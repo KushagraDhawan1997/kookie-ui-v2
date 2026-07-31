@@ -6,7 +6,9 @@ Ground-up rebuild of KookieUI. Base UI primitives behind a Kookie-owned API, gen
 
 Blockers resolved 2026-07-31; code phase open, following §14's build order strictly. Scaffold (step 1) done; next is step 2, the token pipeline. **Button (step 5) stays gated** on focus-visible, disabled/loading, motion, icon sizing (REVIEW.md resolution log). Do not run ahead of a §14 measurement gate.
 
-Read order: `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build).
+Read order: `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
+
+`DECISIONS.md` is what the system is now; `LOG.md` is how it got there. A choice that was genuinely open and got closed — a reversal, a measurement that moved a decision, a rejected alternative worth staying rejected — earns a LOG entry in the same commit. Tuning does not.
 
 ## Non-negotiables
 

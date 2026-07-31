@@ -14,7 +14,8 @@ Companion to `DECISIONS.md` (the spec) and `REVIEW.md` (the audit). Section refe
 4. **The DOM is honest.** Semantic axes render as data-attributes. Anyone inspecting the page reads the design decisions off the element.
 5. **CSS does everything CSS can.** JS resolves props to attributes and vars once at render. Hover, press, focus, responsive, theming are stylesheet work. Interaction-time JS is ~zero and that is checkable.
 6. **Every export is a decision.** Explicit `exports` map, no deep imports, no barrel spray. Public surface = documented surface.
-7. **Comments state constraints only.** A comment is a load-bearing "why this can't be otherwise" (cite the § if one exists) or it is deleted.
+7. **Comments state constraints only.** A comment is a load-bearing "why this can't be otherwise" (cite the § if one exists) or it is deleted. Two exceptions that are function, not decoration: **JSDoc on every exported component, prop, type, and function** (it renders at the call site, so it is part of the enforcement surface beside the types; state intent, never restate the code), and the CHANGES rule below.
+8. **CHANGES notes live at the edit point, dated, newest first, one line, why over what.** An anti-regression device, not a changelog: git is the changelog. Write one only where a future reader could plausibly undo the thing: a reversal of an earlier decision, a constraint the code cannot show (a compiler bug, a silent failure, a load-bearing value), or a fix whose reason is invisible from the fixed code. Never for tuning, and never for new code that is simply new. Decisions large enough to argue with go in `docs/LOG.md` instead.
 
 ---
 
