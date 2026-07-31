@@ -181,6 +181,19 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
     }
   });
 
+  it("never gets squarer as the dial turns up, at any step", () => {
+    // The bug this exists for: `full` capped surfaces at medium's values, so cards read
+    // squarer at full than at large. Turning the dial up must never turn a corner down.
+    const ladder = ["none", "small", "medium", "large", "full"] as const;
+    for (let step = 0; step <= 7; step++) {
+      for (let i = 1; i < ladder.length; i++) {
+        expect(radiusLevels[ladder[i]!].steps[step]!).toBeGreaterThanOrEqual(
+          radiusLevels[ladder[i - 1]!].steps[step]!,
+        );
+      }
+    }
+  });
+
   it("squares everything at none, the kill switch", () => {
     expect(radiusLevels.none.steps.every((v) => v === 0)).toBe(true);
     expect(radiusLevels.none.full).toBe(0);

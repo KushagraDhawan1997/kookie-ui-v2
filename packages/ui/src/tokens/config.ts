@@ -29,7 +29,9 @@ export const radiusLevels = {
   small: { steps: [0, 2, 3, 4, 5, 6, 8, 12], full: 9999 },
   medium: { steps: [0, 4, 6, 8, 10, 12, 16, 24], full: 9999 },
   large: { steps: [0, 6, 8, 12, 14, 16, 24, 32], full: 9999 },
-  full: { steps: [0, 9999, 9999, 9999, 9999, 9999, 16, 24], full: 9999 },
+  // The surface band caps at `large`'s values rather than medium's: capping lower would
+  // make cards squarer as the dial turns up, which is what the level ladder must never do.
+  full: { steps: [0, 9999, 9999, 9999, 9999, 9999, 24, 32], full: 9999 },
 } as const;
 
 export type RadiusLevel = keyof typeof radiusLevels;

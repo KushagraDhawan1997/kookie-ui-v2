@@ -170,7 +170,7 @@
   --radius-3: calc(9999px * var(--scale));
   --radius-4: calc(9999px * var(--scale));
   --radius-5: calc(9999px * var(--scale));
-  --radius-6: calc(16px * var(--scale));
-  --radius-7: calc(24px * var(--scale));
+  --radius-6: calc(24px * var(--scale));
+  --radius-7: calc(32px * var(--scale));
   --radius-full: 9999px;
 }

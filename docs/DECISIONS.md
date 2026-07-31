@@ -328,6 +328,8 @@ The decisive case is `full`. CSS clamps `border-radius` to half the smaller dime
 
 `none` squares everything including `--radius-full`: a kill switch with an exception is not a kill switch.
 
+**The cap sits at `large`'s surface values, not medium's**, and the law is that no step ever gets *smaller* as the level goes up. Capping lower made cards read squarer at `full` than at `large`, which inverts the dial. So `full` means controls become pills and surfaces stop getting rounder — never that they retreat.
+
 ---
 
 ## 7. The color system

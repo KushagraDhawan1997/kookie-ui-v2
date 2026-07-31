@@ -20,7 +20,9 @@ The alternative considered first was letting the radius level re-declare `--radi
 
 `none` squares everything including `--radius-full`, since a kill switch with an exception is not a kill switch. Surfaces moved up a step with the split, so a card reads 16px and a dialog 24px where they were 12 and 16 — a deliberate consequence of giving surfaces their own band, worth re-judging by eye.
 
-Two law-test corrections fell out of building it. The "palette is non-decreasing" law was wrong: at `full` it must drop at the band boundary, so it now asserts monotonicity within each band. And the test helper that sliced a rule body ran to end-of-file, so a density block appeared to contain every later block's declarations; it now bounds at the closing brace. Both were tests asserting something looser than intended, which is the failure mode worth watching in a suite built on absence checks.
+**Caught on the first look at the preview: `full` was capping surfaces at medium's 16/24 while `large` already sat at 24/32, so cards got squarer as the dial turned up.** The cap now sits at large's values, and a law asserts the real invariant — for any step, the value never decreases across `none, small, medium, large, full`. Turning the dial up must never turn a corner down. Worth noting the shape of the miss: the cap was chosen against the requirement it came from (§6's "do not let a dialog become a lens") without checking it against its own neighbour on the ladder.
+
+Two more law-test corrections fell out of building it. The "palette is non-decreasing" law was wrong: at `full` it must drop at the band boundary, so it now asserts monotonicity within each band. And the test helper that sliced a rule body ran to end-of-file, so a density block appeared to contain every later block's declarations; it now bounds at the closing brace. Both were tests asserting something looser than intended, which is the failure mode worth watching in a suite built on absence checks.
 
 ## 2026-08-01 The corner is held to a fraction of its box, and the palette gains a 10
 
