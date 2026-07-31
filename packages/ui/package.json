@@ -31,6 +31,7 @@
   "scripts": {
     "build": "pnpm run tokens && tsdown && node scripts/build-css.mjs",
     "tokens": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/generate.ts",
+    "preview": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/preview.ts",
     "test": "vitest run",
     "lint": "eslint src scripts && tsc -p tsconfig.json",
     "measure": "node scripts/measure-css.mjs"

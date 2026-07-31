@@ -8,32 +8,31 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import {
-  controlGap,
-  controlHeight,
-  controlPaddingX,
-  fontSize,
-  letterSpacing,
-  lineHeight,
-  radius,
-  radiusControl,
-  space,
-} from "./config.ts";
+import { density, fontSize, letterSpacing, lineHeight, radius, space } from "./config.ts";
 import { generateTokens } from "./generate.ts";
 
 const css = generateTokens();
-const declaration = (name: string) => css.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
 const increasing = (xs: readonly number[]) => xs.every((v, i) => i === 0 || v > xs[i - 1]!);
 
+/** Reads a declaration out of a scope: `:root` by default, or a density block. */
+function declaration(name: string, level: "default" | "compact" | "comfortable" = "default") {
+  const scope =
+    level === "default"
+      ? css.slice(css.indexOf(":root {"), css.indexOf("}"))
+      : css.slice(css.indexOf(`[data-density="${level}"] {`));
+  return scope.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
+}
+
 describe("step counts are set per family, not copied across families (§6)", () => {
-  it("space spans 12 steps, radius 7, type 9, controls 4", () => {
+  it("space spans 12 steps, radius 7, type 9, controls 4 at every density", () => {
     expect(space).toHaveLength(12);
     expect(radius).toHaveLength(7);
     expect(fontSize).toHaveLength(9);
-    expect(controlHeight.ratios).toHaveLength(4);
-    expect(controlPaddingX).toHaveLength(4);
-    expect(controlGap).toHaveLength(4);
-    expect(radiusControl).toHaveLength(4);
+    for (const set of Object.values(density)) {
+      for (const family of [set.height, set.px, set.gap, set.radius]) {
+        expect(family).toHaveLength(4);
+      }
+    }
   });
 });
 
@@ -85,6 +84,35 @@ describe("semantic tokens reference palette tokens, never restate numbers (§6)"
   });
 });
 
+describe("density is a designed set, not a multiplier (§12)", () => {
+  it("declares the whole control family at every level", () => {
+    for (const level of ["compact", "comfortable"] as const) {
+      for (let size = 1; size <= 4; size++) {
+        for (const family of ["control-height", "control-px", "control-gap", "radius-control"]) {
+          expect(declaration(`${family}-${size}`, level)).toBeDefined();
+        }
+      }
+    }
+  });
+
+  it("orders compact < default < comfortable for a given size, and nothing else", () => {
+    for (let i = 0; i < 4; i++) {
+      expect(density.compact.height[i]!).toBeLessThan(density.default.height[i]!);
+      expect(density.default.height[i]!).toBeLessThan(density.comfortable.height[i]!);
+    }
+  });
+
+  it("keeps every level's own ladder increasing across sizes", () => {
+    for (const set of Object.values(density)) {
+      expect(increasing(set.height)).toBe(true);
+    }
+  });
+
+  it("carries no density multiplier anywhere", () => {
+    expect(css).not.toContain("var(--density)");
+  });
+});
+
 describe("multiplier wiring matches §12's table", () => {
   it("type takes scale, never density", () => {
     for (let i = 1; i <= fontSize.length; i++) {
@@ -102,12 +130,11 @@ describe("multiplier wiring matches §12's table", () => {
     }
   });
 
-  it("control height, padding, and gap take both scale and density", () => {
+  it("control height takes scale; padding and gap inherit it through the space palette", () => {
     for (let size = 1; size <= 4; size++) {
       expect(declaration(`control-height-${size}`)).toContain("var(--scale)");
-      expect(declaration(`control-height-${size}`)).toContain("var(--density)");
-      expect(declaration(`control-px-${size}`)).toContain("var(--density)");
-      expect(declaration(`control-gap-${size}`)).toContain("var(--density)");
+      expect(declaration(`control-px-${size}`)).toMatch(/^var\(--space-\d+\)$/);
+      expect(declaration(`control-gap-${size}`)).toMatch(/^var\(--space-\d+\)$/);
     }
   });
 

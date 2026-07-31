@@ -13,22 +13,48 @@ export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
 /** §6 — radius palette, index 0..6. Geometric (~1.4), capped where the curve goes visually flat. */
 export const radius = [0, 4, 6, 8, 12, 16, 24] as const;
 
-/** §6 — semantic radius: the space step each role references. Consistency by reference, not coincidence. */
-export const radiusControl = [1, 2, 3, 4] as const; // radius step per size index 1..4
+/** §6 — surfaces have no size index, so they take flat radius references. */
 export const radiusSurface = 4;
 export const radiusOverlay = 5;
 
-/** §4 — fixed-height controls, anchor-derived so one knob moves the set. */
-export const controlHeight = { base: 32, ratios: [0.875, 1, 1.25, 1.5] } as const;
-
-/** §3 — control inline padding, size-indexed, referencing the space palette. No vertical padding exists. */
-export const controlPaddingX = [3, 4, 5, 6] as const; // space step per size index 1..4
-
 /**
- * §12 — control internal gap (icon to label). Density-affected like control padding:
- * a tighter control tightens what is inside it, not just its box.
+ * §12 — the density sets. Density is not a multiplier: each level places its own control
+ * family, so every rendered value is a designed point and any one cell can be corrected
+ * without moving the other three in its level.
+ *
+ * `height` is raw px, the anchor a control actually stands on. `px`, `gap`, and `radius`
+ * are step indices into the space and radius palettes, never restated numbers (§6).
+ *
+ * The ladder is built so one density step moves the box about one size step while the
+ * label holds: compact size 2 stands where default size 1 does, comfortable size 2 where
+ * default size 3 does, and all three set their label at font-size 2. That is the whole
+ * point of the axis — `size` would have moved the type too.
+ *
+ * Compact keeps default's radii on purpose: a fixed corner reads boxy when the box grows,
+ * not when it shrinks, so only the airy end needs its own.
  */
-export const controlGap = [2, 3, 3, 4] as const; // space step per size index 1..4
+export const density = {
+  compact: {
+    height: [24, 28, 34, 40],
+    px: [2, 3, 4, 5],
+    gap: [1, 2, 2, 3],
+    radius: [1, 2, 3, 4],
+  },
+  default: {
+    height: [28, 32, 40, 48],
+    px: [3, 4, 5, 6],
+    gap: [2, 3, 3, 4],
+    radius: [1, 2, 3, 4],
+  },
+  comfortable: {
+    height: [34, 40, 50, 60],
+    px: [4, 5, 6, 7],
+    gap: [3, 4, 4, 5],
+    radius: [3, 4, 5, 6],
+  },
+} as const;
+
+export type DensityLevel = keyof typeof density;
 
 /** §15 — type. Nine steps: type's dynamic range is wider than the control family's. */
 export const fontSize = [12, 14, 16, 18, 20, 24, 30, 40, 56] as const;

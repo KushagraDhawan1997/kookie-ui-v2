@@ -2,9 +2,8 @@
    Source: src/tokens/generate.ts from src/tokens/config.ts.
    Hand edits are overwritten by the next build and fail the drift test. */
 :root {
-  /* factors — Theme props drive these (§5) */
+  /* factors (§5, §12). --scale is reserved, not public: no Theme prop yet. */
   --scale: 1;
-  --density: 1;
   --radius-factor: 1;
 
   /* space palette (§3) — layout currency; density never touches it */
@@ -67,25 +66,63 @@
   --font-heading: var(--font-body);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* semantic: control family, indexed by the size prop (§4, §6) */
-  --control-height-1: calc(28px * var(--scale) * var(--density));
-  --control-height-2: calc(32px * var(--scale) * var(--density));
-  --control-height-3: calc(40px * var(--scale) * var(--density));
-  --control-height-4: calc(48px * var(--scale) * var(--density));
-  --control-px-1: calc(var(--space-3) * var(--density));
-  --control-px-2: calc(var(--space-4) * var(--density));
-  --control-px-3: calc(var(--space-5) * var(--density));
-  --control-px-4: calc(var(--space-6) * var(--density));
-  --control-gap-1: calc(var(--space-2) * var(--density));
-  --control-gap-2: calc(var(--space-3) * var(--density));
-  --control-gap-3: calc(var(--space-3) * var(--density));
-  --control-gap-4: calc(var(--space-4) * var(--density));
+  /* semantic: surfaces have no size index — flat tokens (§6) */
+  --radius-surface: var(--radius-4);
+  --radius-overlay: var(--radius-5);
+
+  /* semantic: control family at the default density (§4, §6, §12) */
+  --control-height-1: calc(28px * var(--scale));
+  --control-height-2: calc(32px * var(--scale));
+  --control-height-3: calc(40px * var(--scale));
+  --control-height-4: calc(48px * var(--scale));
+  --control-px-1: var(--space-3);
+  --control-px-2: var(--space-4);
+  --control-px-3: var(--space-5);
+  --control-px-4: var(--space-6);
+  --control-gap-1: var(--space-2);
+  --control-gap-2: var(--space-3);
+  --control-gap-3: var(--space-3);
+  --control-gap-4: var(--space-4);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+}
 
-  /* semantic: surfaces have no size index — flat tokens (§6) */
-  --radius-surface: var(--radius-4);
-  --radius-overlay: var(--radius-5);
+[data-density="compact"] {
+  --control-height-1: calc(24px * var(--scale));
+  --control-height-2: calc(28px * var(--scale));
+  --control-height-3: calc(34px * var(--scale));
+  --control-height-4: calc(40px * var(--scale));
+  --control-px-1: var(--space-2);
+  --control-px-2: var(--space-3);
+  --control-px-3: var(--space-4);
+  --control-px-4: var(--space-5);
+  --control-gap-1: var(--space-1);
+  --control-gap-2: var(--space-2);
+  --control-gap-3: var(--space-2);
+  --control-gap-4: var(--space-3);
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-density="comfortable"] {
+  --control-height-1: calc(34px * var(--scale));
+  --control-height-2: calc(40px * var(--scale));
+  --control-height-3: calc(50px * var(--scale));
+  --control-height-4: calc(60px * var(--scale));
+  --control-px-1: var(--space-4);
+  --control-px-2: var(--space-5);
+  --control-px-3: var(--space-6);
+  --control-px-4: var(--space-7);
+  --control-gap-1: var(--space-3);
+  --control-gap-2: var(--space-4);
+  --control-gap-3: var(--space-4);
+  --control-gap-4: var(--space-5);
+  --radius-control-1: var(--radius-3);
+  --radius-control-2: var(--radius-4);
+  --radius-control-3: var(--radius-5);
+  --radius-control-4: var(--radius-6);
 }

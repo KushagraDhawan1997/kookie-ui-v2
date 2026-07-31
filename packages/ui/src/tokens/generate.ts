@@ -11,28 +11,24 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
-  controlGap,
-  controlHeight,
-  controlPaddingX,
+  density,
   fontFamily,
   fontSize,
   fontWeight,
   letterSpacing,
   lineHeight,
   radius,
-  radiusControl,
   radiusOverlay,
   radiusSurface,
   space,
+  type DensityLevel,
 } from "./config.ts";
 
 const HEADER = `/* GENERATED FILE — do not edit.
    Source: src/tokens/generate.ts from src/tokens/config.ts.
    Hand edits are overwritten by the next build and fail the drift test. */`;
 
-/** scale = global zoom. density = control compactness only. radius-factor = the Theme radius prop. */
 const zoom = (px: number) => `calc(${px}px * var(--scale))`;
-const zoomDense = (px: number) => `calc(${px}px * var(--scale) * var(--density))`;
 const zoomRadius = (px: number) => `calc(${px}px * var(--scale) * var(--radius-factor))`;
 
 export function generateTokens(): string {
@@ -41,9 +37,8 @@ export function generateTokens(): string {
 
   lines.push(HEADER, ":root {");
 
-  lines.push("  /* factors — Theme props drive these (§5) */");
+  lines.push("  /* factors (§5, §12). --scale is reserved, not public: no Theme prop yet. */");
   put("scale", "1");
-  put("density", "1");
   put("radius-factor", "1");
 
   lines.push("", "  /* space palette (§3) — layout currency; density never touches it */");
@@ -62,24 +57,36 @@ export function generateTokens(): string {
   put("font-heading", fontFamily.heading);
   put("font-mono", fontFamily.mono);
 
-  lines.push("", "  /* semantic: control family, indexed by the size prop (§4, §6) */");
-  controlHeight.ratios.forEach((ratio, i) =>
-    put(`control-height-${i + 1}`, zoomDense(controlHeight.base * ratio)),
-  );
-  controlPaddingX.forEach((step, i) =>
-    put(`control-px-${i + 1}`, `calc(var(--space-${step}) * var(--density))`),
-  );
-  controlGap.forEach((step, i) =>
-    put(`control-gap-${i + 1}`, `calc(var(--space-${step}) * var(--density))`),
-  );
-  radiusControl.forEach((step, i) => put(`radius-control-${i + 1}`, `var(--radius-${step})`));
-
   lines.push("", "  /* semantic: surfaces have no size index — flat tokens (§6) */");
   put("radius-surface", `var(--radius-${radiusSurface})`);
   put("radius-overlay", `var(--radius-${radiusOverlay})`);
 
+  lines.push("", "  /* semantic: control family at the default density (§4, §6, §12) */");
+  lines.push(...controlFamily("default"));
+
   lines.push("}", "");
+
+  // Density is a designed set, not a multiplier: each level re-declares the control family.
+  for (const level of Object.keys(density) as DensityLevel[]) {
+    if (level === "default") continue;
+    lines.push(`[data-density="${level}"] {`, ...controlFamily(level), "}", "");
+  }
+
   return lines.join("\n");
+}
+
+/** The four size-indexed control tokens for one density level (§12). */
+function controlFamily(level: DensityLevel): string[] {
+  const set = density[level];
+  const out: string[] = [];
+  const put = (name: string, value: string) => out.push(`  --${name}: ${value};`);
+
+  set.height.forEach((px, i) => put(`control-height-${i + 1}`, zoom(px)));
+  set.px.forEach((step, i) => put(`control-px-${i + 1}`, `var(--space-${step})`));
+  set.gap.forEach((step, i) => put(`control-gap-${i + 1}`, `var(--space-${step})`));
+  set.radius.forEach((step, i) => put(`radius-control-${i + 1}`, `var(--radius-${step})`));
+
+  return out;
 }
 
 const here = dirname(fileURLToPath(import.meta.url));

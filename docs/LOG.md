@@ -34,6 +34,10 @@ Density's job is breathing room at a fixed type size. Canva's signup button is t
 
 **One law, and only one:** for a given size, compact < default < spacious. Spacious size 2 landing above compact size 3 is not drift, it is what density means; a law forbidding it would encode taste as correctness.
 
+**Built the same day, and two details changed on contact.** The step offsets became explicit per-level arrays: an offset could not carry radius (compact at -1 put a size-1 control on `--radius-0`, a square corner), and once one family needs its own array the offset saves nothing over twelve readable rows of data. Compact therefore keeps default's radii deliberately, since a fixed corner reads boxy when the box grows, not when it shrinks. Measured cost of the two extra levels: +108 bytes gzipped, against the +50% guess, so the whole token file is 730.
+
+The heights landed at 24/28/34/40, 28/32/40/48, 34/40/50/60, built so one density step moves the box about one size step while the label holds: compact size 2 stands where default size 1 does, comfortable size 2 where default size 3 does, all three setting their label at font-size 2. That pairing is the axis stated in numbers.
+
 Still open: the numbers themselves, the level names and count (§5 says `comfortable`, which may understate the airy end), whether surface padding takes density (lands at Card), and a size-by-density matrix in the docs app — which is the real gate, because twelve heights across three levels cannot be judged by reading a config file.
 
 Rejected: multiplicative density (arbitrary products, global corrections); density as "another spacing token series" (height is not spacing, and §3 forbids aligning the scales — `--space-7` at 32px matching a size-2 control at 32px is exactly the coincidence the doc warns against); a per-component density prop; a cross-level ordering law.

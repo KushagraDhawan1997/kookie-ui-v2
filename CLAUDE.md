@@ -40,3 +40,4 @@ From repo root (pnpm 10 / Node 22; turbo fans out to packages):
 - `pnpm run lint` — ESLint + `tsc --noEmit`
 - `pnpm run measure` — CSS budget gate (regression ratchet); numbers live in `packages/ui/budget.json` only. Intentional growth means re-recording `baselineGzipBytes` in the same commit.
 - `pnpm --filter @kookie-ui/react run tokens` — regenerate `src/tokens/tokens.css` from `config.ts` (also runs as part of build)
+- `pnpm --filter @kookie-ui/react run preview` — emit `packages/ui/preview/density.html`, the size × density matrix for judging the numbers by eye
