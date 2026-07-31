@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-01 Emphasis collapses to three rungs, border leaves the ladder, and material becomes backdrop defense
+
+Supersedes the variant decision made earlier today and the material parts of sections 9-11. Kushagra's call, worked out in parallel with the token build.
+
+**The five-name recipe set is dead.** `solid / soft / surface / outline / ghost` named construction rather than loudness, which is why four emphasis rungs could never map onto it cleanly. The earlier fix — keep `variant` public underneath `emphasis` as a documented escape — preserved the mixed metaphor instead of removing it, and left users with two props and no rule for choosing between them. There is now one axis: `emphasis = loud | medium | quiet`. Three rungs, because a rung has to earn a visible step to exist, and three stays obviously separable (roughly what iOS ships).
+
+**`bordered` is the reason the ladder ever looked lossy.** `surface` and `outline` were never loudness levels; they were *containment*, a different question. As an orthogonal boolean it reproduces the whole old range from two comprehensible props: `quiet + bordered` is the old outline, `medium + bordered` the old surface. The blocker that opened this whole thread turns out to have been a factoring error, not a counting error.
+
+**Material is backdrop defense, not decoration**, which is what makes it testable — does the label survive — rather than aesthetic. It is `solid | thin | thick`, off by default, and available on any component that can *float*, buttons included. That corrects the old "containers only" reading in both directions: a Card in a solid layout has nothing to defend against, and a Button over a photo does. `thin` and `thick` are two recipes rather than two magnitudes, since saturation and opacity do not order monotonically between them.
+
+The load-bearing detail is that the brightness floor's direction follows the label: dark label brightens the backdrop, light label darkens it, which is what lets a control survive an arbitrary photo instead of the demo one. It needs no new plumbing — section 7's APCA-derived `--accent-contrast` already carries exactly that signal, so the material reads it and the label never moves.
+
+**Performance has no clever fix, so the rules are architectural**: one glass per stack (the toolbar is the glass, its buttons are plain), material on fixed chrome that content scrolls under rather than on things that move and re-sample every frame, `prefers-reduced-transparency` honoured, `@supports` fallback to opaque. Blur radii are provisional until measured on a mid-tier device.
+
+**Placement stays the user's.** Material over a solid surface is a muddy smudge, and the answer is allow-and-guide rather than block (rigidity leaks) or silence (people ship the smudge and blame the library) — the same stance as `className` forwarding and the margin escape.
+
+Rejected: keeping `variant` as a public escape beneath `emphasis` (two props, one job); four or five rungs (a rung that is not visibly distinct is not a rung); border as a rung (the original error); `regular` as a material level (it was either the off-state or a status word on a magnitude axis); naming the loudness prop `variant` (the docs would spend forever explaining that the prop is not about looks); gating material placement by component (the library defines what material looks like, never where it goes).
+
 ## 2026-08-01 The radius prop becomes designed palettes, and the palette splits into two bands
 
 The Theme `radius` prop was the last multiplier standing after density lost its own. It is now five designed palettes (`none`, `small`, `medium`, `large`, `full`) emitted under `[data-radius]`, and `--radius-factor` is gone.

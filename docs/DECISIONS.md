@@ -57,7 +57,7 @@ Four structural reasons KookieUI stays small (all already decided):
 
 2. **Generated, scoped output (the real differentiator).** Colors are generated at build time (section 7), so the build emits **only** the configured tones, **only** targeted modes (light/dark), **only** wanted gamuts (P3 gated behind `@supports`, droppable), and the alpha ramp **only** where surfaces need it. Output size is a function of config, not a fixed constant. Radix is a precompiled artifact and structurally cannot do this.
 
-3. **Component CSS is additive, not multiplicative.** Variants are shared role-token bundles defined once globally and reused across components in a category (section 8): `[data-variant="soft"]` sets bg/fg tokens; Button, Badge, Select all read them. Sizes set `--control-height`. Total is roughly `O(components + variants + sizes)` as small token-setting rules, never `O(components x variants x sizes x tones)` as full rules. The combinatorial explosion collapses into addition because variation lives in token *values*, not duplicated *rules*.
+3. **Component CSS is additive, not multiplicative.** Emphasis rungs are shared role-token bundles defined once globally and reused across components in a category (section 8): `[data-emphasis="medium"]` sets bg/fg tokens; Button, Badge, Select all read them. Sizes set `--control-height`. Total is roughly `O(components + rungs + sizes)` as small token-setting rules, never `O(components x rungs x sizes x tones)` as full rules. The combinatorial explosion collapses into addition because variation lives in token *values*, not duplicated *rules*.
 
 4. **No utility classes** (this section) so no Tailwind-style utility permutation.
 
@@ -451,25 +451,31 @@ Uniform lightness across hues forces **non-uniform chroma** across hues (the gam
 
 **Decision: variants and interaction states are shared system primitives, defined once, that components cannot deviate from. Consistency is enforced, not designed.**
 
-The taste in "bland with excellent defaults" lives in the system holding together across components, variants, and states, not in any single component. A soft Button matching a soft Badge matching a soft Select, at rest/hover/press, with the same transition, is the whole game. This is combinatorial (components x variants x states), so per-component craft cannot hold it. Encode it once; every component inherits.
+The taste in "bland with excellent defaults" lives in the system holding together across components, emphasis rungs, and states, not in any single component. A medium-emphasis Button matching a medium Badge matching a medium Select, at rest/hover/press, with the same transition, is the whole game. This is combinatorial (components x rungs x states), so per-component craft cannot hold it. Encode it once; every component inherits.
 
-### Variants are a system concept
+### The emphasis ladder is a system concept
 
-A variant is a named bundle of role-token mappings, defined once and consumed by every component:
+Each rung is a named bundle of role-token mappings, defined once and consumed by every component:
 
 ```
-soft    = { bg: accent-3, bgHover: accent-4, bgActive: accent-5, text: accent-11 }
-solid   = { bg: accent-9, bgHover: accent-10, bgActive: accent-solid-active, text: accent-contrast }
-surface = { bg: surface-alpha, border: accent-7, text: accent-11 }
-outline = { bg: transparent, border: accent-8, text: accent-11 }
-ghost   = { bg: transparent, bgHover: accent-3, text: accent-11 }
+loud   = { bg: accent-9, bgHover: accent-10, bgActive: accent-solid-active, text: accent-contrast }
+medium = { bg: accent-3, bgHover: accent-4,  bgActive: accent-5,            text: accent-text }
+quiet  = { bg: transparent, bgHover: accent-3, bgActive: accent-4,          text: accent-text }
 ```
 
-A soft button and a soft badge match because they read identical tokens, not because they were tuned alike. This is the radius-control lesson: consistency from shared reference, not coincidence. These bundles **are** the color role layer (section 7) surfaced as a recipe.
+Plus one orthogonal boolean, `bordered`, which crosses every rung:
+
+```
+bordered = { border: accent-7 }   /* on quiet this is the old "outline"; on medium the old "surface" */
+```
+
+A medium button and a medium badge match because they read identical tokens, not because they were tuned alike. This is the radius-control lesson: consistency from shared reference, not coincidence. These bundles **are** the color role layer (section 7) surfaced as a recipe.
+
+**Superseded (2026-08-01):** the five-name recipe set `solid / soft / surface / outline / ghost` is dead. It named construction rather than emphasis, and two of its members (`surface`, `outline`) were never loudness levels at all — they were *containment*, which is why they never fit the ladder. See section 9.
 
 ### States are uniform steps on the ramp, by one global rule
 
-Each variant does not invent its own feedback amount. The rule: **hover = +1 step, press = +2 steps.** Soft rests at 3, so hover 4, press 5. Solid rests at 9, so hover 10, press the generated active. Absolute colors differ per variant; the *amount* of feedback (one step) is identical everywhere.
+No rung invents its own feedback amount. The rule: **hover = +1 step, press = +2 steps.** Medium rests at 3, so hover 4, press 5. Loud rests at 9, so hover 10, press the generated active. Quiet rests at transparent, which is not a step, so it enters the ramp at hover: transparent, then 3, then 4 — the same one-step increments from a base of nothing. Absolute colors differ per rung; the *amount* of feedback is identical everywhere.
 
 ### One canonical interaction transition
 
@@ -491,48 +497,60 @@ This is the Apple lesson done correctly: separate *meaning* from *loudness* from
 
 ```
 tone       neutral | accent | destructive | (success | warning ...)   picks the HUE (accent resolves via Theme accentColor)
-emphasis   high | medium | low | minimal                              picks the RECIPE (solid/soft/surface/ghost = resolved output)
+emphasis   loud | medium | quiet                                      how loud, three rungs
+bordered   boolean                                                    containment: separate the control from a busy backdrop
 elevation  flat | raised | floating | overlay                         shadow + separation (surfaces only)
-material   solid | translucent | (clear)                              blur + alpha, see-through (surfaces only)
+material   solid | thin | thick                                       backdrop defense; any FLOATING component, buttons included
 states     rest | hover | press                                       the +1/+2 step rule (interactive only)
 size       1 | 2 | 3 | 4                                               height index (controls) / padding (surfaces)
 ```
 
-`appearance` (the actual fill/shadow/blur) is the **resolved output** of (tone x emphasis x elevation x material), never set directly. The soft/solid/surface/outline/ghost recipes from section 8 are the resolved output of the emphasis ladder: high -> solid, medium -> soft, low -> surface, minimal -> ghost. `outline` is not on the ladder — it is reached only through the escape. **`variant` is public:** the raw recipe layer ships as a documented prop beneath `emphasis`, the fire-exit under the semantic axis (same two-layer contract as the tokens, section 13). When both are set, `variant` wins — an escape that loses to the default is not an escape. Four rungs, five recipes, nothing unreachable, and the ladder stays honest instead of stretching to cover the grid.
+`appearance` (the actual fill/shadow/blur) is the **resolved output** of (tone x emphasis x bordered x elevation x material), never set directly.
+
+**There is no `variant` prop. `emphasis` is the only loudness axis**, and its three rungs are the recipes — there is no second, rawer naming underneath to escape into. The old five-name set (`solid / soft / surface / outline / ghost`) is dead: it named construction rather than loudness, and mixing metaphors is what made it unmappable to a ladder.
+
+**Why three rungs and not four or five.** A rung must earn a *visible* step or it does not exist. Three stays obviously separable, and matches the roughly three prominence levels iOS ships. This also settles the old blocker honestly: the ladder is no longer stretched to cover recipes that were never loudness.
+
+**Why `bordered` is separate.** Border-versus-fill is *containment*, a different question from loudness, and forcing it onto the ladder was the entire `surface` incoherence. As an orthogonal boolean it reproduces the old range with fewer concepts: `quiet + bordered` is the old outline, `medium + bordered` the old surface. Border does one job — separate the control from a busy background — which is also why it pairs naturally with material (section 10).
 
 ```
-tone (hue) + emphasis (recipe) -> role-token bundle -> scale steps -> generated OKLCH values
+tone (hue) + emphasis (rung) -> role-token bundle -> scale steps -> generated OKLCH values
 ```
 
-Same pattern as everywhere: expose intent, resolve to values. soft/solid are the raw appearance layer (like `--radius-2`); tone/emphasis are the semantic layer (like `--radius-control`).
+Same pattern as everywhere: expose intent, resolve to values.
 
 ### Axes are derived, not assigned
 
-Six questions about a component's nature determine its axis set:
+Questions about a component's nature determine its axis set:
 - carries meaning -> **tone**
 - an action with loudness -> **emphasis**
+- can sit on a busy background -> **bordered**
 - has height above the page -> **elevation**
-- has see-through substance -> **material**
+- **can float over content** -> **material**
 - interactive -> **states**
 - has a size step -> **size**
 
-Answer those and any component's axes fall out, including ones not yet built. **Controls** use tone x emphasis x states x size. **Surfaces** add elevation and material (a container has both height and substance, and those are unrelated). **Interactive surfaces** reuse the control state machine from a subtler base.
+Answer those and any component's axes fall out, including ones not yet built. **Controls** use tone x emphasis x bordered x states x size. **Surfaces** add elevation. **Interactive surfaces** reuse the control state machine from a subtler base.
+
+**Material is derived from floating, not from being a container** (corrected 2026-08-01). The earlier reading gave material to surfaces only, which was wrong in both directions: a Card sitting in a solid layout has nothing to defend against, and a Button floating over a photo does. Material follows the question "can something busy be behind this," and that question is asked of buttons too.
 
 ### What this finally fixes
 
-The system now *knows* what is primary (`emphasis="high"`), so it can enforce hierarchy (one prominent action, the rest subordinate), which a pure appearance API structurally cannot, because it never learns the button's job. "Matching variants down to states" stops being something you police by hand and becomes something the axes guarantee.
+The system now *knows* what is primary (`emphasis="loud"`), so hierarchy is legible to tooling — a lint rule can flag two loud actions in one scope — which a pure appearance API structurally cannot, because it never learns the button's job. **Hierarchy is convention plus optional lint, not mechanism:** no auto-scoping, no auto-demotion of a second loud button. Silent demotion is the kind of magic that is impossible to debug when it fires wrongly.
 
 ### The cost, named honestly
 
-Two axes per category is a grid. Most cells resolve cleanly (tone swaps hue, emphasis swaps recipe, orthogonal), but a few need a human call: `high + neutral` (a loud gray button, prominent but unbranded), `minimal + accent` (collapses toward a link). Define a sane resolution per cell or constrain which cells are valid. Name the loudness axis **emphasis**, never "primary/secondary," which smuggles the conflation back in.
+Two axes is a grid, and most cells resolve cleanly because tone swaps hue while emphasis swaps rung. One cell needs a real answer: **`loud + neutral`, the loud grey button.** It is a legitimate and common pattern (a near-black primary), but it breaks on the generated ladder rather than on the axis model — `loud` fills with step 9, and neutral step 9 sits near L .62, a mid-grey that reads secondary or disabled instead of primary. A convincing black button wants roughly L .2. This is the same failure as the bright-hue case in section 7 (a fixed ladder producing a wrong-looking solid for one hue, here for the absence of one), so it is resolved with the solid band, not here.
+
+Name the loudness axis **emphasis**, never "primary/secondary," which smuggles the conflation back in, and never `variant`, which invites the docs to spend forever explaining that the prop is not about looks.
 
 ---
 
 ## 10. Surfaces
 
-**Decision: a surface is tone x emphasis x elevation x material. Elevation and material are orthogonal; height and substance are different questions.**
+**Decision: a surface is tone x emphasis x bordered x elevation x material. Elevation and material stay orthogonal; height and substance are different questions.**
 
-The cells all populate, which proves orthogonality: solid+flat (opaque inline card), solid+floating (opaque dropdown with shadow, no blur, the common menu), translucent+flat (frosted panel over a hero), translucent+floating (the glass overlay).
+The cells all populate, which proves orthogonality: solid+flat (opaque inline card), solid+floating (opaque dropdown with shadow, no blur, the common menu), thin+flat (frosted panel over a hero), thick+floating (the glass overlay). iOS fuses material with elevation; we keep them split, because "what it is made of" and "how high it floats" are different questions.
 
 ### Elevation: how high
 
@@ -545,20 +563,54 @@ floating   medium shadow                   (popovers, menus, hovercards)
 overlay    large shadow                    (dialogs, sheets, drawers)
 ```
 
-### Material: what it is made of (Theme policy x component usage)
+### Material: backdrop defense (Theme policy x component usage)
+
+**Decision (revised 2026-08-01): `material = solid | thin | thick`, off by default, available on any component that can float — buttons included.**
+
+**Material is backdrop defense, not decoration.** Its job is keeping the foreground legible over whatever is behind it, and it fires only when something floats over busy content. That framing makes the axis testable — does the label survive — instead of aesthetic, and it is why the axis is not surfaces-only: a Card in a solid layout has nothing to defend against, while a Button floating over a photo does.
+
+**`thin` and `thick` are two recipes, not a magnitude dial.** Saturation and opacity do not order monotonically between them, which is what proves they are different behaviours rather than two points on one scale. Every lever in a recipe does legibility work, moving together by defense intensity. Values are tokens (`--material-thick-alpha` and so on), mode-aware, and are v0 defaults to be judged against real backdrops rather than reasoned about:
+
+```
+                 bg alpha   backdrop-filter (light mode)                  dark-mode delta
+thick   (max)    0.72       blur(20px) saturate(180%) brightness(1.08)    alpha ~0.80, brightness 0.85
+thin    (light)  0.55       blur(12px) saturate(150%) brightness(1.05)    alpha ~0.62, brightness 0.90
+dim / scrim      -          rgba(0,0,0,0.40) + blur(4px)                  rgba(0,0,0,0.55)
+```
+
+Why these and not near-opaque: alpha stays translucent because if you cannot sense the backdrop you should have used `solid`. Legibility comes from blur, saturation, and brightness, not from pushing alpha toward 1. Blur below ~12px lets edges punch through and above ~30px is mush with no depth cue. Saturation is the actual defense: the material's own tint has to dominate so image colours cannot bleed into the label. The scrim's 4px only needs to push the app back, not frost it.
+
+**The brightness floor is load-bearing and its direction follows the label:** dark label means brightening the backdrop, light label means darkening it. That branch is what lets a material control survive an *arbitrary* photo rather than the demo one. It needs no new mechanism — section 7 already computes this signal as `--accent-contrast` (APCA-derived, "is the foreground light or dark on this fill"), so the recipe reads it. The label never moves; the material adapts around it.
+
+**No vibrancy.** We take iOS's concept (a translucency axis, orthogonal to elevation) and skip the glass simulation. Two recipes, not five magnitudes, because ours vary saturation and brightness *against* opacity to make two characters rather than one dial.
 
 Two scopes, **clamped**:
 - **Theme `material` = policy ceiling.** "Is translucency *allowed* in this tree." Default permits; can force-off globally (perf, embedded context, illegible backdrop). The global kill switch.
-- **Component `material` = per-surface usage.** "Is this surface *using* translucency." Defaults solid; opts in.
-- **Clamp:** Theme caps component. `Theme=solid` forces the whole tree solid and ignores a component's `translucent` (kill switch works without hunting). `Theme=on` permits but does not impose; components still default solid and opt in.
+- **Component `material` = per-component usage.** Defaults `solid`; opts in.
+- **Clamp:** Theme caps component. `Theme=solid` forces the whole tree solid and ignores a component's `thin`/`thick`, so the kill switch works without hunting.
 
-Material ladder: `solid / translucent / [clear]`. Ship **solid + translucent** for v1; add **clear** (heavy blur + built-in ~35% scrim, for floating over media) when a media-background case appears, but shape the axis for three. This is where the v1 material signature becomes systematic, gated by the Theme prop.
+### Material costs frames, so the levers are architectural
+
+`backdrop-filter` has no cheap implementation; cost is driven by how many elements blur and whether they re-composite per frame. Four rules follow:
+
+- **One glass per stack.** A material control inside a material container is double glass, the same error as double shadow. Prefer the toolbar being the glass and its buttons plain.
+- **Prefer material on fixed chrome that content scrolls *under*.** A blurred element that itself moves re-samples its backdrop every frame.
+- **Honour `prefers-reduced-transparency`** by falling back to opaque. An accessibility requirement and a performance escape in one.
+- **`@supports` fallback to a higher-alpha opaque fill** where `backdrop-filter` is unavailable.
+
+Blur radii are provisional until measured on a mid-tier device.
+
+### Placement is the user's; the library only defines what material looks like
+
+Material is only *situationally* correct — over a solid surface it blurs nothing and reads as a muddy smudge. We neither block it (rigidity leaks) nor stay silent (people ship the smudge and blame the library), so: **allow and guide.** Default `solid` everywhere so nobody stumbles into it, document that material is for controls floating over media or content, and add a dev-time nudge for material-over-a-solid-parent, in the same spirit as the double-glass warning. The bad case and the good case both require someone to type the prop deliberately, and the default is always safe.
+
+**Border and material pair naturally.** Both answer "this control is sitting on something busy" — one by containment, one by defense — so `bordered` composes with any material. Open: whether that border stays opaque or goes translucent with the fill. An opaque edge on glass reads as a sticker; a fully translucent one vanishes over light backdrops. The platform answer is a semi-transparent hairline, usually lighter along the top edge.
 
 ### Two surface-only rules controls never needed
 
 **A surface sets foreground context, not just a background.** It colors everything nested inside it. A soft-red Callout sets its text to `--accent-text` (red-11) and muted text accordingly so arbitrary children read correctly; a solid-accent Banner flips children to `--accent-contrast` (APCA) text. Mechanically the surface re-scopes the foreground role tokens (`--color-text`, `--color-text-muted`, `--color-contrast`) on its subtree. Translucent surfaces have a **legibility dependency** solid does not: text contrast rides on the backdrop, so they need a contrast floor (subtle scrim / min backdrop-darkening) or text fails over busy content. This is where "surface sets foreground context" grows teeth.
 
-**Surfaces nest, so default backgrounds to the alpha ramp.** A card in a panel in the page: each level must read distinct from its parent. Use **alpha** backgrounds (`--accent-a1..a12`), not solid steps. An alpha fill composites over whatever is behind it, so stacked surfaces auto-differentiate without per-level color math, and survive over images and translucent materials. This is the surface-specific reason the alpha scale earns its keep. Solid surfaces are the opt-out for an opaque seal. (Distinct from `material=translucent`: alpha-for-nesting is the fill *mechanism*; material decides whether the surface *also* blurs to reveal content beyond its parent. Alpha ramp is the resource; material decides how deep through the stack you can see.)
+**Surfaces nest, so default backgrounds to the alpha ramp.** A card in a panel in the page: each level must read distinct from its parent. Use **alpha** backgrounds (`--accent-a1..a12`), not solid steps. An alpha fill composites over whatever is behind it, so stacked surfaces auto-differentiate without per-level color math, and survive over images and translucent materials. This is the surface-specific reason the alpha scale earns its keep. Solid surfaces are the opt-out for an opaque seal. (Distinct from `material`: alpha-for-nesting is the fill *mechanism*; material decides whether the surface *also* blurs to reveal content beyond its parent. Alpha ramp is the resource; material decides how deep through the stack you can see.)
 
 ### Interactive surfaces
 
@@ -574,13 +626,13 @@ Resting position for each component across the four axes. Dash = axis not expose
 
 | Component | tone | emphasis | elev | material | notes |
 |---|---|---|---|---|---|
-| Button | neutral | medium | - | - | primary CTA is explicit `high` + `accent` |
-| IconButton | neutral | minimal (ghost) | - | - | subtle, lives in toolbars |
-| Toggle Button | neutral | low | - | - | accent when active |
-| Select trigger | neutral | low (surface) | - | - | reads like a field |
-| Input / Textarea | neutral | low (surface) | - | - | border-led |
-| Tabs | neutral | minimal (ghost) | - | - | active tab takes accent |
-| Segmented Control | neutral | low (surface) | - | - | selected segment bumps a step |
+| Button | neutral | medium | - | solid | primary CTA is explicit `loud` + `accent`; material only when floating over media |
+| IconButton | neutral | quiet | - | solid | subtle, lives in toolbars |
+| Toggle Button | neutral | quiet | - | solid | accent when active |
+| Select trigger | neutral | medium + bordered | - | solid | reads like a field |
+| Input / Textarea | neutral | medium + bordered | - | solid | border-led |
+| Tabs | neutral | quiet | - | solid | active tab takes accent |
+| Segmented Control | neutral | medium + bordered | - | solid | selected segment bumps a step |
 | Slider | neutral | - | - | - | track low, fill accent |
 
 **Binary controls** (tone x states; emphasis implicit)
@@ -593,34 +645,34 @@ Resting position for each component across the four axes. Dash = axis not expose
 
 | Component | tone | emphasis | elev | material | notes |
 |---|---|---|---|---|---|
-| Badge / Tag | neutral | medium (soft) | - | - | often colored, defaults neutral |
-| Code / Kbd | neutral | low | - | - | subtle fill |
+| Badge / Tag | neutral | medium | - | - | often colored, defaults neutral |
+| Code / Kbd | neutral | medium | - | - | subtle fill |
 
 **Surfaces** (all four axes)
 
 | Component | tone | emphasis | elev | material | notes |
 |---|---|---|---|---|---|
-| Card | neutral | low | raised | solid | canonical surface |
-| Panel | neutral | low | flat | solid | flush (sidebar/inspector body) |
-| Callout | neutral | medium (soft) | flat | solid | tone-forward, inline |
-| Banner | neutral | medium (soft) | flat | solid | tone-forward, full-width |
-| Popover / HoverCard | neutral | low | floating | solid | translucent opt-in |
-| Menu / Dropdown | neutral | low | floating | solid | translucent opt-in |
+| Card | neutral | quiet + bordered | raised | solid | canonical surface |
+| Panel | neutral | quiet | flat | solid | flush (sidebar/inspector body) |
+| Callout | neutral | medium | flat | solid | tone-forward, inline |
+| Banner | neutral | medium | flat | solid | tone-forward, full-width |
+| Popover / HoverCard | neutral | quiet + bordered | floating | solid | thin/thick opt-in |
+| Menu / Dropdown | neutral | quiet + bordered | floating | solid | thin/thick opt-in |
 | Tooltip | neutral (inverted) | - | floating | solid | exception: high-contrast inverted |
-| Dialog | neutral | low | overlay | solid | translucent opt-in over media |
-| Sheet / Drawer | neutral | low | overlay | solid | |
-| Toast | neutral | low | floating | solid | tone-forward for status |
+| Dialog | neutral | quiet | overlay | solid | panel stays solid; the backdrop carries scrim + blur |
+| Sheet / Drawer | neutral | quiet | overlay | solid | content scrolls under: strong material candidate |
+| Toast | neutral | quiet + bordered | floating | solid | tone-forward for status |
 
 **Interactive surfaces** (surface axes + states; reuse control state machine)
 
 | Component | tone | emphasis | elev | material | notes |
 |---|---|---|---|---|---|
-| Clickable Card | neutral | low | raised | solid | ghost hover overlay atop the raised surface |
-| Table row | neutral | minimal (ghost) | flat | solid | transparent -> hover 3 -> press 4; selected = accent |
-| List / Menu item | neutral | minimal (ghost) | flat | solid | active = accent |
-| Command item | neutral | minimal (ghost) | flat | solid | |
-| Sidebar button | neutral | minimal (ghost) | flat | solid | active = accent |
-| Accordion trigger | neutral | minimal (ghost) | flat | solid | |
+| Clickable Card | neutral | quiet + bordered | raised | solid | quiet hover overlay atop the raised surface |
+| Table row | neutral | quiet | flat | solid | transparent -> hover 3 -> press 4; selected = accent |
+| List / Menu item | neutral | quiet | flat | solid | active = accent |
+| Command item | neutral | quiet | flat | solid | |
+| Sidebar button | neutral | quiet | flat | solid | active = accent |
+| Accordion trigger | neutral | quiet | flat | solid | |
 
 **Layout** (spacing only; no visual axes)
 
@@ -639,10 +691,10 @@ Resting position for each component across the four axes. Dash = axis not expose
 
 ### Four rules generate every row
 
-- **Material is solid for everything** in the defaults. Translucent is always an opt-in, mostly on floating/overlay surfaces over media. The Apple-rollback lesson hard-coded into the resting state.
+- **Material is `solid` for everything** in the defaults, and is available on every component that can float, buttons included. `thin`/`thick` are always opt-in, correct only over media or scrolling content. The Apple-rollback lesson hard-coded into the resting state.
 - **Tone is neutral for everything** except the genuine accent-default spots: Checkbox/Radio/Switch (on), Link, and the active state of interactive surfaces. Status surfaces (Callout, Banner, Toast) are tone-*forward* by intent but still default to neutral hue until a color is set.
-- **Elevation and material appear only on containers.** Every control/atom shows a dash there; contents inherit depth from their surface, never declare it. One shadow per stack.
-- **The primary action is always explicit.** No component defaults to `high + accent`. The loud tinted thing is opt-in so the system guarantees one focal point per context instead of hoping you self-police.
+- **Elevation appears only on containers.** Every control/atom shows a dash there; contents inherit depth from their surface, never declare it. One shadow per stack, and by the same logic one glass per stack (section 10).
+- **The primary action is always explicit.** No component defaults to `loud + accent`. The loud tinted thing is opt-in so the system guarantees one focal point per context instead of hoping you self-police.
 
 ---
 
@@ -769,9 +821,11 @@ Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-
 
 **Recipes and axes (sections 8-11):**
 - Lock the **elevation ladder** shadow recipes (shadow step + border per level: flat/raised/floating/overlay).
-- Lock the **material** recipes (blur radius + scrim per level: solid/translucent/[clear]); decide when `clear` ships.
+- Judge the **material** recipes against real backdrops: three or four hostile photos, a real control, both modes. Expect blur to move +/-6px and alpha +/-0.1. Confirm the brightness floor actually holds. Measure `backdrop-filter` cost on a mid-tier device before the radii lock.
+- Decide whether a material `bordered` edge stays opaque or goes translucent (section 10).
 - **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?
-- Resolve the awkward grid cells: `high + neutral`, `minimal + accent`, and which cells are simply invalid.
+- `loud + neutral` (the near-black primary): needs the solid band to reach roughly L .2 for neutral rather than the ladder's ~.62. Resolve with section 7, not as an axis question.
+- How **`quiet`** actually renders: a faint tint at rest, or bare until hover. Decide at the first real Button, not in the abstract.
 - Theme `material` **naming**: `material` vs `allowTranslucency` vs `materials`.
 
 **Radius / layout:**
