@@ -36,4 +36,5 @@ From repo root (pnpm 10 / Node 22; turbo fans out to packages):
 - `pnpm run build` — tsdown (JS + d.ts) then Lightning CSS bundle to `dist/styles.css`
 - `pnpm run test` — Vitest (node env; browser-mode project arrives with Box, §14 step 3)
 - `pnpm run lint` — ESLint + `tsc --noEmit`
-- `pnpm run measure` — CSS budget gate; the number lives in `packages/ui/budget.json` only
+- `pnpm run measure` — CSS budget gate (regression ratchet); numbers live in `packages/ui/budget.json` only. Intentional growth means re-recording `baselineGzipBytes` in the same commit.
+- `pnpm --filter @kookie-ui/react run tokens` — regenerate `src/tokens/tokens.css` from `config.ts` (also runs as part of build)

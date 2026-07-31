@@ -88,7 +88,7 @@ CI asserts the system's invariants; the manifesto is executable.
 - **Milestones:** §14 order with measurement gates between; nobody — human or agent — runs ahead of a gate.
 - **Context hygiene:** research in subagents; parallel component build-out (post-Card, repetition phase) in worktrees; adversarial review pass plus human line-by-line read before merge. Merge only what is fully comprehended.
 - **Entropy audit:** at each §14 gate, sweep for the AI rot signature — near-duplicate helpers, dead exports, off-pattern files, orphaned CSS. Nothing stays without a reason to exist.
-- **Hooks (when code lands):** block edits to generated files; lint on write. CLAUDE.md carries the standing refusals so every session inherits them.
+- **Generated files are protected by a law test, not a hook:** the suite regenerates and compares against the committed artifact, so a hand edit fails CI for everyone rather than only the session that has the hook installed. Lint-on-write hooks remain optional local ergonomics. CLAUDE.md carries the standing refusals so every session inherits them.
 
 ---
 

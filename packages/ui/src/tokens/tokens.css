@@ -1,0 +1,87 @@
+/* GENERATED FILE — do not edit.
+   Source: src/tokens/generate.ts from src/tokens/config.ts.
+   Hand edits are overwritten by the next build and fail the drift test. */
+:root {
+  /* factors — Theme props drive these (§5) */
+  --scale: 1;
+  --density: 1;
+  --radius-factor: 1;
+
+  /* space palette (§3) — layout currency; density never touches it */
+  --space-1: calc(2px * var(--scale));
+  --space-2: calc(4px * var(--scale));
+  --space-3: calc(8px * var(--scale));
+  --space-4: calc(12px * var(--scale));
+  --space-5: calc(16px * var(--scale));
+  --space-6: calc(24px * var(--scale));
+  --space-7: calc(32px * var(--scale));
+  --space-8: calc(40px * var(--scale));
+  --space-9: calc(48px * var(--scale));
+  --space-10: calc(64px * var(--scale));
+  --space-11: calc(96px * var(--scale));
+  --space-12: calc(128px * var(--scale));
+
+  /* radius palette (§6) */
+  --radius-0: calc(0px * var(--scale) * var(--radius-factor));
+  --radius-1: calc(4px * var(--scale) * var(--radius-factor));
+  --radius-2: calc(6px * var(--scale) * var(--radius-factor));
+  --radius-3: calc(8px * var(--scale) * var(--radius-factor));
+  --radius-4: calc(12px * var(--scale) * var(--radius-factor));
+  --radius-5: calc(16px * var(--scale) * var(--radius-factor));
+  --radius-6: calc(24px * var(--scale) * var(--radius-factor));
+  --radius-full: 9999px;
+
+  /* type (§15) — scale only, never density */
+  --font-size-1: calc(12px * var(--scale));
+  --font-size-2: calc(14px * var(--scale));
+  --font-size-3: calc(16px * var(--scale));
+  --font-size-4: calc(18px * var(--scale));
+  --font-size-5: calc(20px * var(--scale));
+  --font-size-6: calc(24px * var(--scale));
+  --font-size-7: calc(30px * var(--scale));
+  --font-size-8: calc(40px * var(--scale));
+  --font-size-9: calc(56px * var(--scale));
+  --line-height-1: calc(16px * var(--scale));
+  --line-height-2: calc(20px * var(--scale));
+  --line-height-3: calc(24px * var(--scale));
+  --line-height-4: calc(26px * var(--scale));
+  --line-height-5: calc(28px * var(--scale));
+  --line-height-6: calc(32px * var(--scale));
+  --line-height-7: calc(38px * var(--scale));
+  --line-height-8: calc(48px * var(--scale));
+  --line-height-9: calc(62px * var(--scale));
+  --letter-spacing-1: 0em;
+  --letter-spacing-2: 0em;
+  --letter-spacing-3: 0em;
+  --letter-spacing-4: -0.005em;
+  --letter-spacing-5: -0.0075em;
+  --letter-spacing-6: -0.01em;
+  --letter-spacing-7: -0.015em;
+  --letter-spacing-8: -0.02em;
+  --letter-spacing-9: -0.025em;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-body: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font-heading: var(--font-body);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* semantic: control family, indexed by the size prop (§4, §6) */
+  --control-height-1: calc(28px * var(--scale) * var(--density));
+  --control-height-2: calc(32px * var(--scale) * var(--density));
+  --control-height-3: calc(40px * var(--scale) * var(--density));
+  --control-height-4: calc(48px * var(--scale) * var(--density));
+  --control-px-1: calc(var(--space-3) * var(--density));
+  --control-px-2: calc(var(--space-4) * var(--density));
+  --control-px-3: calc(var(--space-5) * var(--density));
+  --control-px-4: calc(var(--space-6) * var(--density));
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+
+  /* semantic: surfaces have no size index — flat tokens (§6) */
+  --radius-surface: var(--radius-4);
+  --radius-overlay: var(--radius-5);
+}
