@@ -1,0 +1,699 @@
+# KookieUI v2: Design Decisions
+
+Living document. Captures decisions and rationale as we make them. Numbers in token examples are illustrative unless marked final.
+
+---
+
+## 1. Headless foundation
+
+**Decision: build on Base UI, wrapped behind our own component surface.**
+
+Base UI is the Radix Primitives successor from the same lineage (Radix, Floating UI, MUI contributors), backed by MUI with a long-term maintenance commitment. It solves the specific Radix pains:
+
+- `render` prop instead of `asChild` (explicit composition, no ref-merge weirdness)
+- Floating UI native (configurable popover/tooltip/select positioning)
+- First-class exit animations and unmount handling (no `forceMount` hacks)
+- Real form and field primitives with validation wiring
+
+What we control is the **API boundary**, not the implementation. Base UI is a swappable dependency sitting behind the Kookie component surface. This is the "separate design layer" thesis applied one layer down. If Base UI ever stalls the way Radix did, we swap the layer and the Kookie component API is untouched. Low-regret by construction.
+
+**Current state (June 2026):** v1.6.0, stable since Dec 2025, 35 components under `@base-ui/react`. The maintenance trajectory is the reason to commit: Radix (WorkOS-acquired) has slowed on complex components (Combobox, multi-select cited); Base UI is now the actively maintained primitive layer. Recently matured exactly where headless is hardest: Drawer and OTPField graduated to stable, mount/unmount performance up 50%/85%, iOS VoiceOver and NVDA fixes, nested-menu focus fixes.
+
+**Risks (accepted, mitigated by the wrapper):** young (~6 months stable), API more verbose than Radix, a few components just left preview.
+
+**Optional learning track:** hand-roll one or two primitives (Tooltip, Dialog) behind the same API as a React exercise and an escape hatch. Not a reason to reimplement the whole primitive layer before the move.
+
+---
+
+## 2. Styling model
+
+**Decision: CSS with custom properties (tokens). Not Tailwind. No utility classes in markup.**
+
+Utility classes inline design decisions at every call site, so there is no single source of truth for layout rhythm and no enforceable boundary between library and consumer. Disqualifying for a published design system. (Tailwind remains fine for product teams where the markup *is* the design artifact and nobody publishes an API. Wrong tool for our layer, not a bad tool.)
+
+**On Tailwind's token generation, which we do like:** `radius-[4px]` and `radius-xl` are build-time JIT output, frozen values. CSS custom properties give the same "don't ship every permutation" benefit at **runtime**, and reactively:
+
+```css
+--radius-3: calc(8px * var(--scale) * var(--radius-factor));
+```
+
+`var(--radius-3)` resolves live in the browser and recomputes when Theme factors change. No build step, no JS.
+
+Key consequence: we have **no permutation explosion** because we ship no utility classes. The no-classes-in-markup decision is the same decision that removes any need for a JIT compiler. We define a small set of base tokens once; everything references them by name.
+
+Build-time tooling (Style Dictionary or a small script) is used for *authoring* tokens from a config (base + ratio + steps), and for the color pipeline (section 7). Separate concern from runtime resolution.
+
+### CSS output strategy (no bulky all-permutation CSS)
+
+**Priority: the shipped CSS must stay small. Radix Themes' large output is the anti-target.**
+
+Diagnosis (where Radix's bytes actually are): Radix's *component* CSS is already lean and token-driven (one set of rules per component reading `--accent-*` vars, not 30 precompiled color variants). The weight is the **colors** — it ships all ~25-30 accent scales, each in light, dark, P3, and alpha, so every color is declared 4-8 times as a full 12-step scale, and you carry all 30 whether you use one or none. That color-token mass is the bulk. So the optimization targets color output and keeps component CSS additive.
+
+Four structural reasons KookieUI stays small (all already decided):
+
+1. **Semantic tones, not 30 arbitrary colors.** `tone` is a closed set (neutral, accent, destructive, maybe success/warning/info) ~ 5-6 scales, not 30. There is no open per-component `color` prop forcing all scales to ship (color-scarcity decision, sections 7 and 9). The one arbitrary brand hue is the single configured accent. This alone cuts color mass to ~1/6 of Radix before anything else.
+
+2. **Generated, scoped output (the real differentiator).** Colors are generated at build time (section 7), so the build emits **only** the configured tones, **only** targeted modes (light/dark), **only** wanted gamuts (P3 gated behind `@supports`, droppable), and the alpha ramp **only** where surfaces need it. Output size is a function of config, not a fixed constant. Radix is a precompiled artifact and structurally cannot do this.
+
+3. **Component CSS is additive, not multiplicative.** Variants are shared role-token bundles defined once globally and reused across components in a category (section 8): `[data-variant="soft"]` sets bg/fg tokens; Button, Badge, Select all read them. Sizes set `--control-height`. Total is roughly `O(components + variants + sizes)` as small token-setting rules, never `O(components x variants x sizes x tones)` as full rules. The combinatorial explosion collapses into addition because variation lives in token *values*, not duplicated *rules*.
+
+4. **No utility classes** (this section) so no Tailwind-style utility permutation.
+
+The file is small by construction, not by post-hoc minification. Process the output with **Lightning CSS** (minify, autoprefix, nesting).
+
+**Budget and validation:** set a hard target (e.g. core CSS under ~30-40KB gzipped for a typical config), measure in CI, fail the build on regression. Validate early — the first component built (Button) gets its CSS measured to prove the variant-as-token-remap thesis before scaling to the full set.
+
+Optional later: per-component CSS modules for granular tree-shaking. Likely unnecessary because the monolith is already small; revisit only if measurement says otherwise.
+
+---
+
+## 3. Spacing and layout
+
+**Decision: components never own outer spacing. No margin prop on Button et al.**
+
+Margin is a property of the relationship between elements, not of the element. Inter-element spacing comes from layout primitives (Flex, Stack, Grid) via `gap`. This diverges from Radix Themes (which ships `m`, `mx`, `mt` on everything) on purpose; matches Braid's "margin is a component smell" position.
+
+**Escape hatches (friction must redirect, not just annoy):**
+- Preferred: wrap in a layout component (`<Box m="4">`). The positioning concern lives in a layout element, the markup honestly shows a one-off hack.
+- Per-component: a single loud override prop (working name `UNSAFE_` / `override`). The naming is the design.
+
+**Hard dependency:** this only works if layout primitives are excellent. We remove the easy bad path, so the good path has to be effortless. Gap-based Flex/Stack/Grid on a spacing scale, good defaults.
+
+### Spacing scale
+
+Two layers, structurally parallel to radius (section 6):
+
+**Space palette (the free layout currency).** Gap on Flex/Stack/Grid, Box padding. Hybrid curve: fine and near-linear at the bottom (12, 16, 24 are all distinct and used constantly), geometric and sparse at the top (80 vs 88 is imperceptible).
+
+```css
+--space-1:  2px     --space-7:  32px
+--space-2:  4px     --space-8:  40px
+--space-3:  8px     --space-9:  48px
+--space-4:  12px    --space-10: 64px
+--space-5:  16px    --space-11: 96px
+--space-6:  24px    --space-12: 128px
+```
+
+~12 steps because spacing spans nearly two orders of magnitude, unlike radius's bounded ~4-32px range. This is why Radix ships ~9 space tokens but only 6 radius tokens. The step count is set by dynamic range, not copied from the size count.
+
+**Control padding (semantic, size-indexed, references the palette).** Inline padding inside controls:
+
+```css
+--control-px-1: var(--space-3);   /* 8px  */
+--control-px-2: var(--space-4);   /* 12px */
+--control-px-3: var(--space-5);   /* 16px */
+--control-px-4: var(--space-6);   /* 24px */
+```
+
+Controls have **no vertical padding token** (height + center, per section 4). Surfaces (cards) take both axes via their own `--card-padding` referencing space steps.
+
+**Rule: do not numerically align across scales.** `--space-2` (4px), `--radius-2` (6px), and `--control-height-2` will not match and should not. The alignment that matters lives in the **size index** (a size-2 control pulls control-px-2, control-height-2, radius-control-2 together), not in raw palette numbers matching across families. Forcing space-N = radius-N is the fragile-coincidence trap one layer over.
+
+### Layout primitives
+
+**Decision: a small, stable set of primitives that curate CSS, not mirror it. Parity with CSS is an anti-goal.**
+
+Chasing the CSS surface in props is unwinnable by construction (CSS is a growing spec of hundreds of properties). The primitive's job is to make common, on-system layout effortless and route the long tail to raw CSS without shame. Radix Themes already implements this model (and is why these primitives feel right); KookieUI adopts it with three divergences: margin props live **only** on layout primitives (Radix puts them on most components, which section 3 rejects), the space scale is 1-12, and composition is Base UI `render` (not `asChild`). Responsive object syntax is kept (matches Shell's colocated-responsive API).
+
+**The set (finite, pinned to intents, does not grow when CSS grows):**
+
+`Box` `Flex` `Grid` `Stack` `Container` `Spacer`. (Optional later: `Section` for page vertical rhythm.)
+
+**Prop taxonomy — four buckets, this is the whole design:**
+
+```
+TOKENIZED (space scale OR raw-string escape)    Responsive<SpaceToken | string>
+  gap gapX gapY                                  Flex / Grid / Stack
+  p px py pt pr pb pl                             all
+  m mx my mt mr mb ml                             LAYOUT PRIMITIVES ONLY
+  inset top right bottom left                     position offsets
+
+PASS-THROUGH CSS (freeform, no token)            Responsive<string>
+  width minWidth maxWidth
+  height minHeight maxHeight
+  flexBasis
+
+STRUCTURAL KEYWORDS (fixed enum set)             Responsive<enum>
+  direction align justify wrap                    Flex / Stack
+  columns rows areas flow align justify           Grid (columns/rows/areas also accept raw string)
+  position display overflow overflowX overflowY
+  flexGrow flexShrink                             flex-child control, on any layout primitive
+
+ESCAPE (always forwarded, the long tail)
+  className   style   render
+```
+
+Token is the on-system spelling (`gap="4"` -> `--space-4`); the `| string` on the **same** prop is the inline exit (`gap="13px"`), so you never hit a wall. width/height are pure CSS strings (there was never parity to chase there). Anything uncovered is one `style={{ ... }}` away. A new CSS property ships -> do nothing, it already works via `style`. This is the property you never maintain.
+
+**Per-primitive surface:**
+
+- **Box** — the styled primitive and escape hatch. All tokenized spacing + pass-through sizing + structural position/display/overflow + flex/grid-child props. `render`, `className`, `style`. No flex/grid *container* props.
+- **Flex** — Box props + `direction`, `align`, `justify`, `wrap`, `gap`/`gapX`/`gapY`.
+- **Grid** — Box props + `columns`, `rows`, `areas`, `flow`, `align`, `justify`, `gap`/`gapX`/`gapY`.
+- **Stack** — opinionated Flex: `direction` defaults to `column`, gap is the primary prop, plus `align`/`justify`/`wrap`. The most-reached-for primitive; removes the flex+direction+gap boilerplate. (Radix has no Stack; this is an addition.)
+- **Container** — `size` (1-4, max-width tokens for a readable measure) + `align` + margin/padding/display. Centers and width-constrains.
+- **Spacer** — flex-child filler: `size` (space token) or grows to fill the remaining axis.
+
+**Composition:** `render` (Base UI) replaces Radix's `asChild`, so a primitive's layout behavior wraps any element without adding a DOM node — consistent with section 1.
+
+**Margin boundary (the Radix divergence, restated for emphasis):** Radix ships margin on most components; KookieUI ships it ONLY on these layout primitives. A Button has no `m`; `<Box m="4"><Button/></Box>` is the sanctioned one-off. Layout owns spacing; the escape is a layout wrapper, never a margin prop on a control.
+
+---
+
+## 4. The size system
+
+**Decision: `size` is an index, not a measurement.**
+
+`size="2"` means "the second step, the baseline." It does not mean 32px. 32px is the current resolved value of that step, and resolution lives in a layer the consumer can remap.
+
+A component reads several independent scales, all indexed by the same `size` prop:
+
+- height from `--control-height-N`
+- label from `--font-size-N`
+- inline padding from `--control-px-N`
+- corner from the control-radius family (see section 6)
+- gap from a `--space-N` token
+
+The pixel value lives only in the height family. Text lives in a separate family. That separation is what lets height move to 40px while text stays at size 2.
+
+**Fixed-height controls** (Button, Input, Tabs, Segmented Control, Select trigger):
+
+```css
+height: var(--control-height-2);
+display: inline-flex;
+align-items: center;
+/* inline padding only; vertical padding does not exist as a concept */
+```
+
+Contents center in whatever height the box is. "Make size 2 = 40px" becomes one line, text untouched, everything re-centers free.
+
+**Anchor-based derivation** so one knob moves the set:
+
+```css
+--control-height-base: 32px;
+--control-height-1: calc(var(--control-height-base) * 0.875 * var(--scale) * var(--density));
+--control-height-2: calc(var(--control-height-base) * 1     * var(--scale) * var(--density));
+--control-height-3: calc(var(--control-height-base) * 1.25  * var(--scale) * var(--density));
+--control-height-4: calc(var(--control-height-base) * 1.5   * var(--scale) * var(--density));
+```
+
+**Non-fixed-height components** (cards, table cells, callouts, textareas): padding is the dimension. They rescale via padding anchors, not height anchors.
+
+**Split Radix's single `scaling` knob into independent axes:** control density, type scale, radius, each with its own anchor. Keep a convenience that moves them together for the simple case.
+
+---
+
+## 5. The Theme component
+
+### Props
+
+```
+appearance     light | dark | inherit          color scheme; inherit enables nested dark sections
+material       off | on (policy)               global translucency gate; CAPS per-component material (section 10). aka allowTranslucency
+accentColor    <brand color>                   hue that tone="accent" resolves to; input to the color generator (section 7)
+grayColor      <neutral>                        low-chroma accent from the same generator; tone="neutral" hue
+contrast       default | high                  drives borders/dividers too, resolves per appearance
+radius         none ... full                   a factor over the whole radius scale, not a token pick
+density        compact | default | comfortable  control-height + spacing anchors only
+scale          multiplier                      global zoom: type, height, spacing, radius together
+font           mono | sans | serif             shorthand: sets heading + body
+fontHeading    "
+fontBody       "
+fontMono       "                               third slot for code, kbd, pre
+hasBackground  boolean
+reducedMotion  user | always                   global override beyond prefers-reduced-motion
+```
+
+Deferred: `dir` / RTL. Leave room, do not half-build.
+
+Note on `material`: this is the **policy ceiling**, not the per-surface choice. It answers "is translucency allowed in this tree." The per-component `material` prop (section 10) is the usage; Theme caps it. Naming is open (`material` vs `allowTranslucency` vs `materials`).
+
+### Behavior (not props)
+
+- **Nestable, inherits unspecified props from nearest ancestor Theme.** Subtree theming (a section with a different accent, a forced-dark card, a denser toolbar) is a top use case. Match Radix's inheritance.
+- **Renders a real DOM element** (needs a node to scope the CSS variables). Offer a `render` escape so it does not force an extra wrapper where unwanted.
+
+### density vs scale
+
+Two different multipliers, both default 1, both Theme props, do not collapse:
+- `scale` = global zoom (everything grows together)
+- `density` = control compactness only (height + spacing); type stays on its own font-size tokens
+
+---
+
+## 6. The radius system
+
+**Decision: geometric (non-linear) scale, semantic tokens for consistency, stepped for controls and flat for surfaces.**
+
+### The curve
+
+Radius is perceptually non-linear. Fine steps at the small end (controls, eye is sensitive), spread out at the large end (30 vs 32px on a card is invisible). Grow geometrically, ratio ~1.4:
+
+```css
+--radius-1: 4px    /* chips, tags */
+--radius-2: 6px    /* default control */
+--radius-3: 8px    /* larger control */
+--radius-4: 12px   /* cards, panels */
+--radius-5: 16px   /* dialogs */
+--radius-6: 24px   /* sheets, large surfaces */
+--radius-0: 0px
+--radius-full: 9999px
+```
+
+### Three count ceilings, all different, do not conflate
+
+- **Size system caps at ~6 by maintenance cost.** Each size is real surface area (height, font, padding, radius, tested per component).
+- **Radius palette caps at ~6 to 8 by perception**, where the curve goes visually flat (~24 to 32px). Above that the eye reads "pill," not "rounder." A scale longer than this becomes a ruler, and a ruler is just px with extra syntax.
+- **Control-radius family caps at 4 by the size count**, because there is no size-5 control to pair a control-radius-5 with.
+
+The trap is letting the prettiest ceiling (size = 6) silently set the others. They are unrelated. Step count is set by dynamic range and perception, not copied across scales.
+
+### Semantic layer (where consistency actually comes from)
+
+Numeric coincidence ("size 2 uses radius 2") is fragile, it holds only until something is renumbered. Robust consistency comes from references:
+
+```css
+--radius-control-1: var(--radius-1);   /* size 1 control */
+--radius-control-2: var(--radius-2);   /* size 2 control */
+--radius-control-3: var(--radius-3);   /* size 3 control */
+--radius-control-4: var(--radius-4);   /* size 4 control */
+--radius-surface: var(--radius-4);     /* cards, panels, popovers */
+--radius-overlay: var(--radius-5);     /* dialogs, sheets */
+```
+
+A Button references `--radius-control-2`, never `--radius-2` directly.
+
+### Two axes, one mapping does both jobs
+
+- **Within a component:** radius tracks size. A size-4 button is rounder than a size-2 button (pulls `--radius-control-4` vs `--radius-control-2`). A bigger control wants a bigger corner or it reads boxy.
+- **Across components at the same size:** radius is fixed. Every size-2 control (Button, Input, Select trigger) pulls the same `--radius-control-2`, so corners are locked identical by the reference, not by coincidence. This is the join that matters in a form.
+
+### Boundaries
+
+- Stepped radius family is a **control** concern (fixed-height family). **Surfaces** take flat `--radius-surface` / `--radius-overlay`, because a card has no size index. Small stepped family for controls, flat tokens for surfaces, not a giant matrix.
+- **Do not auto-derive radius from height.** `calc(height * ratio)` re-imports the non-linearity. Each control-radius is a designed value placed on the curve, hand-tuned references.
+
+### radius="full"
+
+CSS clamps `border-radius` to half the smaller dimension, so a large value gives a perfect pill on controls free. **Cap surfaces** in full mode (a dialog at full must not become a giant lens). Radix caps card radius even in full, copy that.
+
+---
+
+## 7. The color system
+
+**Decision: keep Radix's 12-step semantic model as the interop surface; generate every value from OKLCH anchors via one law; compile to static variables at build time. No borrowed values, no per-hue hand authoring, no per-state exceptions.**
+
+Stated bar driving this section: **right over shipped; performance and consistency over everything.**
+
+### Keep the 12-step semantic model
+
+The step number is a UI role, not a darkness level: 1-2 backgrounds, 3-5 interactive (rest/hover/pressed), 6-8 borders, 9-10 solid, 11-12 text. This is the industry benchmark and our Radix-compatibility surface. **Do not mutate the scale** (no step 10.5, no 13th step). Extra states live in the role layer above the scale.
+
+### The problem that forced generation
+
+- The solid band (9, 10) has only two steps, but a solid control needs three: rest, hover, pressed. Radix supplies the third via a brightness/overlay composite.
+- Step 11 cannot supply the pressed state. It is the *text* role, tuned for legibility on a light background, so it is far darker and far lower in chroma (Orange 11 is a brown). Routing press into 11 lurches the hue.
+- Root cause: **soft and solid are two different things wearing consecutive numbers.** There is a real discontinuity at 8 to 9 (chroma jumps, role changes from "tint of the hue" to "the hue itself"). Drawing them as one continuous ramp is a presentation fiction; forcing them to derive the same way is what creates the asymmetry.
+
+### Why one law, not an exception
+
+An apparent exception is a missing distinction. Three responses, one correct:
+- Reject hiding the asymmetry in the role layer (paints over it, does not resolve it).
+- Reject borrowing Radix tints (inherited values, inconsistent with generated solids by construction).
+- Reject the hybrid (two mechanisms *is* the exception).
+- Adopt: generate everything from anchors in OKLCH, one transform law for the whole system.
+
+### The spine: one fixed lightness ladder, system-wide
+
+Twelve L values defined once; **every hue uses the identical ladder.** This is the entire mechanism by which "red step 9" and "blue step 9" read as the same step. Light mode and dark mode each get their own tuned ladder (dark is a separately tuned ladder, not an inversion).
+
+Illustrative light-mode ladder:
+
+```
+1: .99   2: .975  3: .96   4: .945   (backgrounds)
+5: .92   6: .90   7: .87   8: .82    (interactive / borders)
+9: .62   10: .58                     (solid: rest, hover)
+11: .52  12: .24                     (text: low, high contrast)
+```
+
+The large 8 to 9 drop is the soft/solid discontinuity, placed on purpose. Solid active derives as a uniform L-delta off step 9 (~.54): rest, hover, active are evenly spaced **by construction**, across every hue. Direction is mode-aware (darken in light, lighten in dark).
+
+The fixed ladder is also what makes the project finite: design the L ladder once, design the chroma curve, then per accent supply only hue and chroma shape. Bounded, not unbounded tuning.
+
+### Per-hue input: two parameters, not twelve colors
+
+A **hue angle** and a **chroma curve** (peak chroma + falloff shape). That is the entire per-accent definition. You author rules and two knobs, never values. Grays fall out of the same generator at near-zero chroma, so tinted neutrals (slate, sage) are just low-chroma accents. One generator produces the whole system, gray included.
+
+### Accent: a hue-driven, rebindable role (and multi-accent)
+
+Two things the question "what accent, and what if I want more than one" fuses but that are separate axes: **how an accent is chosen** and **how many can coexist.**
+
+**Choosing: the user brings a hue; the generator makes it correct.** Unlike Radix (pick one of ~30 named scales), KookieUI's accent is a brand hue the user supplies: `accentColor="#6E56CF"` (a hex or OKLCH triple, or a preset token name if a few are shipped for convenience). The section-7 pipeline (L ladder + chroma curve) turns it into a system-correct 12-step scale. "What accent do I use" is answered by "your brand color," not "which of our 30."
+
+**Multiplicity: accent is a rebindable role, not a hardcoded color.** "Accent" resolves to whatever hue the nearest Theme provides, and Theme nests (section 5). Three cases:
+
+1. **One accent (common case).** Set the brand hue on the root Theme. Done.
+2. **A second accent in a section — free, already supported.** A nested Theme rebinds the accent role for its subtree. The component never changes; it reads `--accent-*` and context decides the hue:
+   ```
+   <Theme accentColor="indigo">
+     <Button>Primary</Button>            {/* indigo */}
+     <Theme accentColor="teal">
+       <Button>Primary here</Button>      {/* teal, same component, no new prop */}
+     </Theme>
+   </Theme>
+   ```
+   Appearance-as-resolved-output: the component expresses intent (accent), the Theme decides the value. Same mechanism as a forced-dark nested Theme.
+3. **Two accents side by side in one scope — opt-in named slots.** Ship a second always-on accent slot (e.g. `accent` + `accentAlt`, or user-named); a component opts in via `tone="accentAlt"`. Composes with the semantic tones, which are themselves named slots ("destructive" is the red slot).
+
+**CSS cost (the generated-output lever doing its job).** Each always-on accent slot is one more generated scale, so two side-by-side accents is ~2x the accent color mass. Still bounded (you ship 2, not 30), still generated, still tiny next to Radix. Nested-Theme rebinding (case 2) adds scales only for hues actually used in those scopes. The user who declares two accents pays for two; one pays for one; nobody pays for thirty.
+
+**Before reaching for a second accent:** often the "second color" is a semantic role wearing a brand coat (a success green, a warning amber). If so it is already a tone, not a second accent. Push toward the semantic tones first; reserve a true named second accent for genuine dual-brand cases.
+
+**Decision:** ship exactly one `accent` slot plus the semantic tones by default; support nested-Theme rebinding for sectioned multi-accent at zero added API; expose named extra accent slots as the sanctioned dual-brand path, each honestly costing its own generated scale.
+
+### Gamut policy: hold lightness, reduce chroma
+
+**Lightness is sacred** — the consistency guarantee lives in the L ladder, so L can never move to absorb a clamp. Chroma is the give. Shape the chroma curve to **follow the gamut boundary** (peak in mid-lightness, taper toward both ends) so most steps are in-gamut by construction; hold-L-reduce-C only mops up residual clipping. Detect out-of-gamut steps in the build pipeline and apply the mapping explicitly, rather than letting the browser clamp per hue at runtime.
+
+### Contrast token: APCA-computed
+
+White-or-black on each solid is computed by the generator via **APCA**, not WCAG 2 ratios. We left sRGB because its contrast math is perceptually wrong; WCAG 2 carries the same wrongness.
+
+### Output: static, compiled, P3
+
+Generate the 12 steps in TS / Style Dictionary at **build time**; emit plain `--accent-N: oklch(...)` custom properties. The browser does **zero color math at runtime** (the performance answer). Emit P3 with sRGB fallback; flag out-of-gamut steps in the pipeline. Runtime `oklch(from var(--base) ...)` survives only as an **optional** layer for a user's live arbitrary brand hex, where reactivity earns the paint cost. Shipped accents are static.
+
+### Role layer (what components consume)
+
+Components reference roles, never raw steps and never the generation mechanism. Also emit an **alpha ramp** (`--accent-a1..a12`) for surface nesting (section 10):
+
+```css
+--accent-soft / -soft-hover / -soft-active      /* tint states */
+--accent-solid / -solid-hover / -solid-active   /* solid states */
+--accent-border
+--accent-text
+--accent-contrast                               /* APCA-computed text on solid */
+--accent-a1 ... --accent-a12                     /* alpha scale, composites over backdrop */
+```
+
+Press darkens the `background-color` token, **never** `filter: brightness()` (which would dim the contrast text and icon with the fill). The pressed state is a real token, so the label stays crisp.
+
+### The tradeoff, accepted on purpose
+
+Uniform lightness across hues forces **non-uniform chroma** across hues (the gamut is not a cylinder). Vivid blues and reds will read more saturated than yellows at the same step. Unfixable. Trading saturation-uniformity for lightness-uniformity is correct for a UI system: lightness governs hierarchy, contrast, and dark mode (must be predictable); saturation variance is cosmetic. Radix buys saturation consistency by hand-tuning every hue by eye; we buy lightness consistency by formula. **Decision made. Do not reopen.**
+
+---
+
+## 8. Variants and interaction states
+
+**Decision: variants and interaction states are shared system primitives, defined once, that components cannot deviate from. Consistency is enforced, not designed.**
+
+The taste in "bland with excellent defaults" lives in the system holding together across components, variants, and states, not in any single component. A soft Button matching a soft Badge matching a soft Select, at rest/hover/press, with the same transition, is the whole game. This is combinatorial (components x variants x states), so per-component craft cannot hold it. Encode it once; every component inherits.
+
+### Variants are a system concept
+
+A variant is a named bundle of role-token mappings, defined once and consumed by every component:
+
+```
+soft    = { bg: accent-3, bgHover: accent-4, bgActive: accent-5, text: accent-11 }
+solid   = { bg: accent-9, bgHover: accent-10, bgActive: accent-solid-active, text: accent-contrast }
+surface = { bg: surface-alpha, border: accent-7, text: accent-11 }
+outline = { bg: transparent, border: accent-8, text: accent-11 }
+ghost   = { bg: transparent, bgHover: accent-3, text: accent-11 }
+```
+
+A soft button and a soft badge match because they read identical tokens, not because they were tuned alike. This is the radius-control lesson: consistency from shared reference, not coincidence. These bundles **are** the color role layer (section 7) surfaced as a recipe.
+
+### States are uniform steps on the ramp, by one global rule
+
+Each variant does not invent its own feedback amount. The rule: **hover = +1 step, press = +2 steps.** Soft rests at 3, so hover 4, press 5. Solid rests at 9, so hover 10, press the generated active. Absolute colors differ per variant; the *amount* of feedback (one step) is identical everywhere.
+
+### One canonical interaction transition
+
+A single duration + easing, color properties only, no layout animation, applied uniformly. Every hover is the same gesture at the same speed.
+
+### Why uniform steps feel uniform
+
+"+1 step" reads as the same perceived change across every hue **only because of the perceptually-even L ladder** (section 7). On a naive sRGB ramp, one step would read as more change on blue than on yellow, and interaction consistency would silently break per color. The color architecture is what makes uniform interaction feedback possible. The whole system is one decision wearing different clothes.
+
+---
+
+## 9. The component axis model
+
+**Decision: components expose semantic axes that resolve to appearance. Appearance is always output, never input. Each axis is derived from one yes/no about the component's nature.**
+
+This is the Apple lesson done correctly: separate *meaning* from *loudness* from *depth* from *substance*, rather than collapsing them onto one "variant" or "prominence" prop. Naive `primary | secondary | danger` is strictly **less** expressive than soft/solid, because it fuses loudness and meaning and so cannot express a low-emphasis destructive action (a quiet delete link). Apple splits role (`.destructive`) from prominence (`.bordered` / `.borderedProminent`); we mirror the structure, not the glass.
+
+### The axes
+
+```
+tone       neutral | accent | destructive | (success | warning ...)   picks the HUE (accent resolves via Theme accentColor)
+emphasis   high | medium | low | minimal                              picks the RECIPE (solid/soft/surface/ghost = resolved output)
+elevation  flat | raised | floating | overlay                         shadow + separation (surfaces only)
+material   solid | translucent | (clear)                              blur + alpha, see-through (surfaces only)
+states     rest | hover | press                                       the +1/+2 step rule (interactive only)
+size       1 | 2 | 3 | 4                                               height index (controls) / padding (surfaces)
+```
+
+`appearance` (the actual fill/shadow/blur) is the **resolved output** of (tone x emphasis x elevation x material), never set directly. The soft/solid/surface/outline/ghost recipes from section 8 are the resolved output of the emphasis ladder: high -> solid, medium -> soft, low -> surface/outline, minimal -> ghost. They stay reachable underneath as the escape hatch (the fire-exit, like the base palette under semantic tokens).
+
+```
+tone (hue) + emphasis (recipe) -> role-token bundle -> scale steps -> generated OKLCH values
+```
+
+Same pattern as everywhere: expose intent, resolve to values. soft/solid are the raw appearance layer (like `--radius-2`); tone/emphasis are the semantic layer (like `--radius-control`).
+
+### Axes are derived, not assigned
+
+Six questions about a component's nature determine its axis set:
+- carries meaning -> **tone**
+- an action with loudness -> **emphasis**
+- has height above the page -> **elevation**
+- has see-through substance -> **material**
+- interactive -> **states**
+- has a size step -> **size**
+
+Answer those and any component's axes fall out, including ones not yet built. **Controls** use tone x emphasis x states x size. **Surfaces** add elevation and material (a container has both height and substance, and those are unrelated). **Interactive surfaces** reuse the control state machine from a subtler base.
+
+### What this finally fixes
+
+The system now *knows* what is primary (`emphasis="high"`), so it can enforce hierarchy (one prominent action, the rest subordinate), which a pure appearance API structurally cannot, because it never learns the button's job. "Matching variants down to states" stops being something you police by hand and becomes something the axes guarantee.
+
+### The cost, named honestly
+
+Two axes per category is a grid. Most cells resolve cleanly (tone swaps hue, emphasis swaps recipe, orthogonal), but a few need a human call: `high + neutral` (a loud gray button, prominent but unbranded), `minimal + accent` (collapses toward a link). Define a sane resolution per cell or constrain which cells are valid. Name the loudness axis **emphasis**, never "primary/secondary," which smuggles the conflation back in.
+
+---
+
+## 10. Surfaces
+
+**Decision: a surface is tone x emphasis x elevation x material. Elevation and material are orthogonal; height and substance are different questions.**
+
+The cells all populate, which proves orthogonality: solid+flat (opaque inline card), solid+floating (opaque dropdown with shadow, no blur, the common menu), translucent+flat (frosted panel over a hero), translucent+floating (the glass overlay).
+
+### Elevation: how high
+
+Semantic levels, not numbers, consistent with `--radius-surface` / `--radius-overlay`. Each resolves to a shadow step + border treatment:
+
+```
+flat       no shadow, sits in flow         (panels, callouts, inline regions)
+raised     small shadow                    (cards)
+floating   medium shadow                   (popovers, menus, hovercards)
+overlay    large shadow                    (dialogs, sheets, drawers)
+```
+
+### Material: what it is made of (Theme policy x component usage)
+
+Two scopes, **clamped**:
+- **Theme `material` = policy ceiling.** "Is translucency *allowed* in this tree." Default permits; can force-off globally (perf, embedded context, illegible backdrop). The global kill switch.
+- **Component `material` = per-surface usage.** "Is this surface *using* translucency." Defaults solid; opts in.
+- **Clamp:** Theme caps component. `Theme=solid` forces the whole tree solid and ignores a component's `translucent` (kill switch works without hunting). `Theme=on` permits but does not impose; components still default solid and opt in.
+
+Material ladder: `solid / translucent / [clear]`. Ship **solid + translucent** for v1; add **clear** (heavy blur + built-in ~35% scrim, for floating over media) when a media-background case appears, but shape the axis for three. This is where the v1 material signature becomes systematic, gated by the Theme prop.
+
+### Two surface-only rules controls never needed
+
+**A surface sets foreground context, not just a background.** It colors everything nested inside it. A soft-red Callout sets its text to `--accent-text` (red-11) and muted text accordingly so arbitrary children read correctly; a solid-accent Banner flips children to `--accent-contrast` (APCA) text. Mechanically the surface re-scopes the foreground role tokens (`--color-text`, `--color-text-muted`, `--color-contrast`) on its subtree. Translucent surfaces have a **legibility dependency** solid does not: text contrast rides on the backdrop, so they need a contrast floor (subtle scrim / min backdrop-darkening) or text fails over busy content. This is where "surface sets foreground context" grows teeth.
+
+**Surfaces nest, so default backgrounds to the alpha ramp.** A card in a panel in the page: each level must read distinct from its parent. Use **alpha** backgrounds (`--accent-a1..a12`), not solid steps. An alpha fill composites over whatever is behind it, so stacked surfaces auto-differentiate without per-level color math, and survive over images and translucent materials. This is the surface-specific reason the alpha scale earns its keep. Solid surfaces are the opt-out for an opaque seal. (Distinct from `material=translucent`: alpha-for-nesting is the fill *mechanism*; material decides whether the surface *also* blurs to reveal content beyond its parent. Alpha ramp is the resource; material decides how deep through the stack you can see.)
+
+### Interactive surfaces
+
+A clickable card, table row, list/menu item is a **ghost-emphasis control wearing a container**: neutral tone, ghost fill (transparent at rest), plus the +1/+2 step rule from a subtler base (rest transparent -> hover step 3 -> press step 4). Reuse the control state machine; do not invent a surface one. One machine, two dressings.
+
+---
+
+## 11. Per-component defaults
+
+Resting position for each component across the four axes. Dash = axis not exposed (the component's nature lacks that question). Emphasis shown as the rung (resolves to the solid/soft/surface/ghost recipe).
+
+**Controls** (size x tone x emphasis x states)
+
+| Component | tone | emphasis | elev | material | notes |
+|---|---|---|---|---|---|
+| Button | neutral | medium | - | - | primary CTA is explicit `high` + `accent` |
+| IconButton | neutral | minimal (ghost) | - | - | subtle, lives in toolbars |
+| Toggle Button | neutral | low | - | - | accent when active |
+| Select trigger | neutral | low (surface) | - | - | reads like a field |
+| Input / Textarea | neutral | low (surface) | - | - | border-led |
+| Tabs | neutral | minimal (ghost) | - | - | active tab takes accent |
+| Segmented Control | neutral | low (surface) | - | - | selected segment bumps a step |
+| Slider | neutral | - | - | - | track low, fill accent |
+
+**Binary controls** (tone x states; emphasis implicit)
+
+| Component | tone | emphasis | elev | material | notes |
+|---|---|---|---|---|---|
+| Checkbox / Radio / Switch | accent (on) | - | - | - | neutral off, accent on |
+
+**Inert atoms** (size x tone x emphasis; no states)
+
+| Component | tone | emphasis | elev | material | notes |
+|---|---|---|---|---|---|
+| Badge / Tag | neutral | medium (soft) | - | - | often colored, defaults neutral |
+| Code / Kbd | neutral | low | - | - | subtle fill |
+
+**Surfaces** (all four axes)
+
+| Component | tone | emphasis | elev | material | notes |
+|---|---|---|---|---|---|
+| Card | neutral | low | raised | solid | canonical surface |
+| Panel | neutral | low | flat | solid | flush (sidebar/inspector body) |
+| Callout | neutral | medium (soft) | flat | solid | tone-forward, inline |
+| Banner | neutral | medium (soft) | flat | solid | tone-forward, full-width |
+| Popover / HoverCard | neutral | low | floating | solid | translucent opt-in |
+| Menu / Dropdown | neutral | low | floating | solid | translucent opt-in |
+| Tooltip | neutral (inverted) | - | floating | solid | exception: high-contrast inverted |
+| Dialog | neutral | low | overlay | solid | translucent opt-in over media |
+| Sheet / Drawer | neutral | low | overlay | solid | |
+| Toast | neutral | low | floating | solid | tone-forward for status |
+
+**Interactive surfaces** (surface axes + states; reuse control state machine)
+
+| Component | tone | emphasis | elev | material | notes |
+|---|---|---|---|---|---|
+| Clickable Card | neutral | low | raised | solid | ghost hover overlay atop the raised surface |
+| Table row | neutral | minimal (ghost) | flat | solid | transparent -> hover 3 -> press 4; selected = accent |
+| List / Menu item | neutral | minimal (ghost) | flat | solid | active = accent |
+| Command item | neutral | minimal (ghost) | flat | solid | |
+| Sidebar button | neutral | minimal (ghost) | flat | solid | active = accent |
+| Accordion trigger | neutral | minimal (ghost) | flat | solid | |
+
+**Layout** (spacing only; no visual axes)
+
+| Component | tone | emphasis | elev | material | notes |
+|---|---|---|---|---|---|
+| Flex / Stack / Grid / Container / Spacer / Shell | - | - | - | - | structural only |
+| Box | - | - | opt-in | opt-in | escape-hatch surface; can take surface props deliberately |
+| Separator | - | - | - | - | reads a border token |
+
+**Typography** (size x tone x weight; Link adds states)
+
+| Component | tone | emphasis | elev | material | notes |
+|---|---|---|---|---|---|
+| Text / Heading / Blockquote | neutral | - | - | - | *read* the foreground context the surface sets |
+| Link | accent | - | - | - | accent + hover/visited states |
+
+### Four rules generate every row
+
+- **Material is solid for everything** in the defaults. Translucent is always an opt-in, mostly on floating/overlay surfaces over media. The Apple-rollback lesson hard-coded into the resting state.
+- **Tone is neutral for everything** except the genuine accent-default spots: Checkbox/Radio/Switch (on), Link, and the active state of interactive surfaces. Status surfaces (Callout, Banner, Toast) are tone-*forward* by intent but still default to neutral hue until a color is set.
+- **Elevation and material appear only on containers.** Every control/atom shows a dash there; contents inherit depth from their surface, never declare it. One shadow per stack.
+- **The primary action is always explicit.** No component defaults to `high + accent`. The loud tinted thing is opt-in so the system guarantees one focal point per context instead of hoping you self-police.
+
+---
+
+## 12. Token resolution and multipliers
+
+### Two distinct multipliers, keep separate
+
+- `--scale`: global zoom. Affects type, height, spacing, radius.
+- `--radius-factor`: the Theme `radius` prop. Affects radius only. `none` = 0, `large` = ~1.5, `full` = huge.
+
+Fold them into one and you cannot express "square but not shrunk."
+
+```css
+--radius-1: calc(4px * var(--scale) * var(--radius-factor));
+```
+
+### Which multiplier affects what
+
+```
+type      -> scale                 (not density)
+height    -> scale, density
+spacing   -> scale, density
+radius    -> scale                 (not density, never height directly)
+color     -> neither               (compiled static; not a runtime multiplier axis)
+```
+
+### Strict dependency direction, no cycles
+
+```
+raw px constants
+  -> base scale (via --scale and --radius-factor)
+    -> semantic tokens (--radius-control-N, --radius-surface, --control-px-N, ...)
+      -> variant recipes (soft/solid/...) -> components consume via tone x emphasis
+         (user-authored components may consume base directly)
+
+color: OKLCH anchors + curve -> build-time generator -> static --accent-N (+ alpha) -> role tokens -> recipes -> components
+
+Theme props drive the factors, the color hue, and the material policy at the top.
+```
+
+---
+
+## 13. Public token contract
+
+**Both layers are public, with different jobs:**
+- **Base scales** (`--radius-1..6`, `--space-1..12`, `--accent-1..12` + alpha): the palettes, sampled freely by user-authored components. Public, complete, primitive.
+- **Semantic tokens** (`--radius-control-N`, `--control-px-N`, `--accent-solid`, the variant recipes, etc.): the convention, for our components and for users building control-like things.
+
+**Why the base palettes must ship:** once users compose their own components, the palette is the contract, not an escape hatch. A user who writes `8px` opts out of the theme (frozen). A user who writes `var(--radius-3)` or `var(--space-4)` stays in, their component reflows with the theme exactly like a native one. The token sells theme-reactivity that a raw value structurally cannot. The base scale's job is to make the themed path more attractive than the hardcoded one.
+
+**The rule users follow:** consume the numbered tokens and the semantic axes; control them via Theme props. Never redefine a resolved token (`--radius-3: 10px` leaves the system). The `calc()` and the color compilation live inside our layer where users do not touch them.
+
+---
+
+## 14. Build order (first vertical slice)
+
+Architecture is locked; open items are tuning values resolved as the component that needs them is built, not before. Build in this order so every layer and the CSS-size thesis are validated before scaling to the full component set.
+
+1. **Scaffold.** pnpm + Turborepo + tsdown (Rolldown/Oxc) + Lightning CSS + Changesets. `packages/ui`, `apps/docs`, shared config.
+2. **Token pipeline.** OKLCH color generator emitting the configured tones, plus the radius and space scales -> `tokens.css`. **Measure it.** This is the foundation and the first proof of the small-CSS thesis.
+3. **Theme + layout primitives.** Theme (scoping the CSS vars, nesting/inheritance) + Box, Flex, Stack. Proves token consumption and the layout layer.
+4. **Button, end-to-end.** Full axis model (tone x emphasis x states x size) on one control. **Measure its CSS** to prove variant-as-token-remap (additive, not multiplicative) before scaling.
+5. **Card, end-to-end.** One surface, proving elevation + material + foreground-context + alpha-nesting.
+
+This slice exercises every layer (tokens -> variants -> control -> surface) and the CSS budget. Everything after it is repetition across the component set.
+
+---
+
+## Open questions / deferred
+
+**Color:**
+- Tune the actual L ladders, light and dark (current values illustrative).
+- Design the per-hue chroma curve shape (peak + falloff).
+- Confirm dark-mode press direction (lighten) and delta magnitude.
+- Pick the gamut-mapping implementation details for residual clipping (hold-L-reduce-C chosen; edge behavior near cusp TBD).
+
+**Recipes and axes (sections 8-11):**
+- Lock the **elevation ladder** shadow recipes (shadow step + border per level: flat/raised/floating/overlay).
+- Lock the **material** recipes (blur radius + scrim per level: solid/translucent/[clear]); decide when `clear` ships.
+- **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?
+- **Emphasis ladder**: confirm 4 rungs and each rung's recipe mapping (high->solid, medium->soft, low->surface/outline, minimal->ghost).
+- Resolve the awkward grid cells: `high + neutral`, `minimal + accent`, and which cells are simply invalid.
+- Theme `material` **naming**: `material` vs `allowTranslucency` vs `materials`.
+
+**Radius / layout:**
+- Concentric radius nesting (inner R = outer R minus inset P). Apple builds the system around it; we defer to v1+1. Confirmed taste-multiplier.
+- Shape-by-size fork: keep one shape with scaled radius (current) vs Apple's capsule-at-large-sizes. Leaning keep.
+- Surface size cap in `radius="full"` (confirm clamp for dialogs/sheets).
+- Space scale top-out (64 component/section level) vs one fixed scale to 128, with responsive page gutters via `clamp()` as a later layer.
+
+**API:**
+- Naming of the per-component escape prop (`UNSAFE_` vs `override`). The name is the deterrent.
+- `density` value set (compact/comfortable multipliers).
+- RTL / `dir`. Deferred, architectural room left.
+
+**Feel (not ratios):**
+- "Balanced" corner feel, tuned by eye per step.
