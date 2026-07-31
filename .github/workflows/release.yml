@@ -1,7 +1,9 @@
 name: Release
+# Manual until the first intended publish: on push it attempts `changeset publish`
+# for the unpublished 0.0.0 and fails without an NPM_TOKEN secret. Restore the
+# push trigger when publishing begins.
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
