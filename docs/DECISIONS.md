@@ -234,7 +234,7 @@ accentColor    <brand color>                   hue that tone="accent" resolves t
 grayColor      <neutral>                        low-chroma accent from the same generator; tone="neutral" hue
 contrast       default | high                  drives borders/dividers too, resolves per appearance
 radius         none ... full                   a factor over the whole radius scale, not a token pick
-density        compact | default | comfortable  control-height + control-spacing anchors only (never the space palette, section 12)
+density        compact | default | comfortable  selects a designed control-family set (height, px, gap, radius); never type, never the space palette (section 12). Theme-scoped only: an airy region is a nested Theme on an element you already have (via `render`), not a per-component prop, which would duplicate `size`
 scale          multiplier                      global zoom: type, height, spacing, radius together
 font           mono | sans | serif             shorthand: sets heading + body
 fontHeading    "
@@ -312,6 +312,7 @@ A Button references `--radius-control-2`, never `--radius-2` directly.
 
 - Stepped radius family is a **control** concern (fixed-height family). **Surfaces** take flat `--radius-surface` / `--radius-overlay`, because a card has no size index. Small stepped family for controls, flat tokens for surfaces, not a giant matrix.
 - **Do not auto-derive radius from height.** `calc(height * ratio)` re-imports the non-linearity. Each control-radius is a designed value placed on the curve, hand-tuned references.
+- **Control radius is part of the density set** (section 12). Density changes visual size enough that a fixed corner reads boxy at the airy end, so each density level places its own control radii — still designed points, never derived from the height.
 
 ### radius="full"
 
@@ -649,15 +650,20 @@ Fold them into one and you cannot express "square but not shrunk."
 ### Which multiplier affects what
 
 ```
-type              -> scale            (not density)
-height            -> scale, density
-control spacing   -> scale, density   (control-px, control gaps: the semantic layer)
-space palette     -> scale            (layout gaps, gutters; density never touches it)
-radius            -> scale            (not density, never height directly)
-color             -> neither          (compiled static; not a runtime multiplier axis)
+type              -> scale                        (never density)
+space palette     -> scale                        (layout gaps, gutters; density never touches it)
+radius palette    -> scale, radius-factor         (never density, never height directly)
+control family    -> scale, then the density set  (control-height, control-px, control-gap, radius-control)
+color             -> neither                      (compiled static; not a runtime multiplier axis)
 ```
 
-**Density enters at the semantic control layer only.** If it multiplied the base space palette, compact mode would shrink page gutters — the same coarseness section 4 rejects in Radix's single `scaling` knob. Compact tightens controls, not the page.
+**Density is not a multiplier. It selects a designed set.** Each level (`compact`, `default`, `comfortable`) re-declares the control family — height, inline padding, internal gap, and control radius — as placed values, emitted at build time under a `[data-density]` block. Heights are raw numbers per level; the referencing families move by a step offset into the space and radius palettes, with per-cell overrides where an offset lands wrong. Nothing is a product, so nothing resolves to an arbitrary 26.78px, and every cell is correctable on its own — a multiplier can only move a whole level at once, which makes every taste correction global.
+
+**Radius participates.** A large density delta changes visual size enough that a fixed corner reads boxy; section 6's rule that a bigger control wants a bigger corner is about visual size, not about the size index.
+
+**What density never touches:** the space palette, so compact cannot shrink page gutters (the coarseness section 4 rejects in Radix's single `scaling` knob), and type, which is the whole point — density buys breathing room at a fixed label size, where `size` would move the type too.
+
+**One invariant, law-tested:** for a given size, compact < default < comfortable. Nothing orders across both axes; a comfortable size-2 sitting above a compact size-3 is what density means, not drift.
 
 ### Strict dependency direction, no cycles
 
@@ -762,7 +768,8 @@ Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-
 
 **API:**
 - Naming of the per-component escape prop (`UNSAFE_` vs `override`). The name is the deterrent.
-- `density` value set (compact/comfortable multipliers).
+- **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end) and whether surface padding takes density (lands at Card). Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
+- **Scale: fractions or not.** `--scale` stays a free multiplier, so it still produces arbitrary products even with density resolved. Options: accept them (Radix's model), wrap consuming tokens in CSS `round()`, or make scale discrete designed sets the way density now is.
 - RTL / `dir`. Deferred, architectural room left.
 
 **Feel (not ratios):**

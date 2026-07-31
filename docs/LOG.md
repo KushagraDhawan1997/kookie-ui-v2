@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-01 Density becomes designed sets, not a multiplier, and it takes radius with it
+
+Density's job is breathing room at a fixed type size. Canva's signup button is the case that names it: the same label size in a much taller box with a much larger corner. `size` grows everything including type; density grows only the box. v1 had size 2 at 32px height with 14px type and that pairing was right, but some interfaces want the bigger box without the bigger type, and reaching for size 3 to get it moves the type too.
+
+**It is a set of designed values per level, not a multiplier.** Two reasons, and the second is the decisive one. A multiplier produces arbitrary products (`32px * 0.95 * 0.875` = 26.6px), which the system rejects elsewhere: §6 already forbids deriving radius from height on the grounds that each value should be a designed point on a curve. More importantly, a multiplier makes every taste correction *global* — you cannot say "spacious size 2 should be 44px, not 45px" without moving all four sizes in that level. Designed sets make each correction local, and correction is the actual work.
+
+**Shape:** designed heights per level, plus a step offset into the existing palettes for the families that reference them (control-px, control-gap, radius-control), with a per-cell override where the offset lands wrong. Roughly twelve raw numbers and three offsets, about the same decision count as the multiplier model, with the fractions gone and every rendered value a placed point.
+
+**Radius joins the set.** This reverses the call made earlier the same day. Holding radius fixed is right across a small delta, where the radius-to-height ratio moves 0.19 to 0.21 and nobody sees it. It is wrong across density's real range: a 44px box wearing a 6px corner reads boxy, and §6's own argument ("a bigger control wants a bigger corner") is about visual size, not about the size index.
+
+**Untouched, deliberately:** the space palette, so compact never shrinks page gutters, and type, which is the entire point.
+
+**Theme level only, with nested Theme as the escape.** A per-component `density` prop duplicates `size` (a spacious size 2 at 44px against a default size 3 at 40px is two knobs producing overlapping geometry with no rule for choosing between them), and density is a property of a region rather than of an element. The airy hero CTA is reached by putting a nested Theme on the hero section that already exists, via §5's `render` escape, so it costs no extra DOM. Same mechanism §7 uses to rebind accent for a subtree instead of adding a per-component color prop.
+
+**One law, and only one:** for a given size, compact < default < spacious. Spacious size 2 landing above compact size 3 is not drift, it is what density means; a law forbidding it would encode taste as correctness.
+
+Still open: the numbers themselves, the level names and count (§5 says `comfortable`, which may understate the airy end), whether surface padding takes density (lands at Card), and a size-by-density matrix in the docs app — which is the real gate, because twelve heights across three levels cannot be judged by reading a config file.
+
+Rejected: multiplicative density (arbitrary products, global corrections); density as "another spacing token series" (height is not spacing, and §3 forbids aligning the scales — `--space-7` at 32px matching a size-2 control at 32px is exactly the coincidence the doc warns against); a per-component density prop; a cross-level ordering law.
+
 ## 2026-08-01 The token pipeline lands, and density enters at the semantic layer only
 
 Space, radius, type, and the control family generate from `src/tokens/config.ts`, which now holds every raw pixel constant in the system. The generator is §12's multiplier table expressed as code, which is the point: `--scale` is global, `--density` reaches only control height and control inline padding, `--radius-factor` only radius, and the law tests fail if any family drifts from that table.
