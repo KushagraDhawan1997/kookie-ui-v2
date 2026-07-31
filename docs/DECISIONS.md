@@ -34,7 +34,7 @@ Utility classes inline design decisions at every call site, so there is no singl
 **On Tailwind's token generation, which we do like:** `radius-[4px]` and `radius-xl` are build-time JIT output, frozen values. CSS custom properties give the same "don't ship every permutation" benefit at **runtime**, and reactively:
 
 ```css
---radius-3: calc(8px * var(--scale) * var(--radius-factor));
+--radius-3: calc(8px * var(--scale));
 ```
 
 `var(--radius-3)` resolves live in the browser and recomputes when Theme factors change. No build step, no JS.
@@ -233,7 +233,7 @@ material       off | on (policy)               global translucency gate; CAPS pe
 accentColor    <brand color>                   hue that tone="accent" resolves to; input to the color generator (section 7)
 grayColor      <neutral>                        low-chroma accent from the same generator; tone="neutral" hue
 contrast       default | high                  drives borders/dividers too, resolves per appearance
-radius         none ... full                   a factor over the whole radius scale, not a token pick
+radius         none | small | medium | large | full   selects a designed radius palette (section 6), not a factor and not a token pick
 density        compact | default | comfortable  selects a designed control-family set (height, px, gap, radius); never type, never the space palette (section 12). Theme-scoped only: an airy region is a nested Theme on an element you already have (via `render`), not a per-component prop, which would duplicate `size`
 scale          (deferred, see below)            global zoom: type, height, spacing, radius together
 font           mono | sans | serif             shorthand: sets heading + body
@@ -273,14 +273,14 @@ If `scale` ever earns an API it arrives as designed steps, the way density did, 
 Radius is perceptually non-linear. Fine steps at the small end (controls, eye is sensitive), spread out at the large end (30 vs 32px on a card is invisible). Grow geometrically, ratio ~1.4:
 
 ```css
---radius-1: 4px    /* chips, tags */
---radius-2: 6px    /* default control */
---radius-3: 8px    /* larger control */
---radius-4: 10px   /* largest control */
---radius-5: 12px   /* cards, panels */
---radius-6: 16px   /* dialogs */
---radius-7: 24px   /* sheets, large surfaces */
 --radius-0: 0px
+--radius-1: 4px    \
+--radius-2: 6px     |
+--radius-3: 8px     |  the CONTROL band — density picks a step from here
+--radius-4: 10px    |
+--radius-5: 12px   /
+--radius-6: 16px   \   the SURFACE band — --radius-surface, --radius-overlay
+--radius-7: 24px   /
 --radius-full: 9999px
 ```
 
@@ -318,9 +318,15 @@ A Button references `--radius-control-2`, never `--radius-2` directly.
 - **Do not auto-derive radius from height.** `calc(height * ratio)` re-imports the non-linearity. Each control-radius is a designed value placed on the curve, hand-tuned references.
 - **Control radius is part of the density set** (section 12). Density changes visual size enough that a fixed corner reads boxy at the airy end, so each density level places its own control radii — still designed points, never derived from the height.
 
-### radius="full"
+### The Theme radius prop: designed palettes, not a factor
 
-CSS clamps `border-radius` to half the smaller dimension, so a large value gives a perfect pill on controls free. **Cap surfaces** in full mode (a dialog at full must not become a giant lens). Radix caps card radius even in full, copy that.
+**Decision: each level (`none`, `small`, `medium`, `large`, `full`) is a designed palette, emitted at build time under `[data-radius]`.** Not a multiplier over one palette, for the same reason density is not one: a factor can only move every step together, so no single corner is correctable, and each radius is supposed to be a placed point on a perceptual curve.
+
+The decisive case is `full`. CSS clamps `border-radius` to half the smaller dimension, so a huge value gives a perfect pill on controls free — but surfaces must be **capped** (a dialog at full must not become a giant lens; Radix caps card radius even in full). One factor cannot do both, because it scales controls and surfaces by the same amount. A designed palette can: at `full`, the control band goes to 9999 and the surface band holds at its medium values.
+
+**Bands are what make the layering safe.** Steps 1-5 are the control band and 6-7 the surface band, disjoint on purpose. Density only ever picks a step; a level only ever says what a step is worth. No token is written by both, so a nested Theme setting one cannot clobber the other — which a cascade-ordering fix would not survive, since a nearer ancestor's custom property wins regardless of source order.
+
+`none` squares everything including `--radius-full`: a kill switch with an exception is not a kill switch.
 
 ---
 
@@ -643,12 +649,12 @@ Resting position for each component across the four axes. Dash = axis not expose
 ### Two distinct multipliers, keep separate
 
 - `--scale`: global zoom. Affects type, height, spacing, radius.
-- `--radius-factor`: the Theme `radius` prop. Affects radius only. `none` = 0, `large` = ~1.5, `full` = huge.
+- The Theme `radius` prop is **not** a factor: it selects a designed palette per level (section 6), so `full` can pill the controls while capping surfaces, which no single multiplier can express.
 
 Fold them into one and you cannot express "square but not shrunk."
 
 ```css
---radius-1: calc(4px * var(--scale) * var(--radius-factor));
+--radius-1: calc(4px * var(--scale));   /* value comes from the level's palette */
 ```
 
 ### Which multiplier affects what
@@ -656,7 +662,7 @@ Fold them into one and you cannot express "square but not shrunk."
 ```
 type              -> scale                        (never density)
 space palette     -> scale                        (layout gaps, gutters; density never touches it)
-radius palette    -> scale, radius-factor         (never density, never height directly)
+radius palette    -> scale, then the radius set   (never density, never height directly)
 control family    -> scale, then the density set  (control-height, control-px, control-gap, radius-control)
 color             -> neither                      (compiled static; not a runtime multiplier axis)
 ```
@@ -673,7 +679,7 @@ color             -> neither                      (compiled static; not a runtim
 
 ```
 raw px constants
-  -> base scale (via --scale and --radius-factor)
+  -> base scale (via --scale; radius and control values come from the radius and density sets)
     -> semantic tokens (--radius-control-N, --radius-surface, --control-px-N, ...)
       -> variant recipes (soft/solid/...) -> components consume via tone x emphasis
          (user-authored components may consume base directly)
@@ -695,7 +701,7 @@ Theme props drive the factors, the color hue, and the material policy at the top
 
 **The rule users follow:** consume the numbered tokens and the semantic axes; control them via Theme props. Never redefine a resolved token (`--radius-3: 10px` leaves the system). The `calc()` and the color compilation live inside our layer where users do not touch them. Private `--kk-*` mechanism vars (the responsive remap plumbing, section 2) are not part of the contract: undocumented, unstable.
 
-**`--scale` is reserved, not public.** It stays unprefixed because it belongs to the factor family beside `--density` and `--radius-factor` and is intended to become public if it ever earns a Theme prop (section 5); `--kk-*` is for plumbing that never will. Until then it is undocumented and unsupported: set it and you own the fractional values that result.
+**`--scale` is reserved, not public.** It stays unprefixed because it is the system's one remaining factor and is intended to become public if it ever earns a Theme prop (section 5); `--kk-*` is for plumbing that never will. Until then it is undocumented and unsupported: set it and you own the fractional values that result.
 
 **Tailwind bridge (optional, sanctioned):** for teams that keep Tailwind in app code, ship a preset mapping its theme onto our variables (`spacing: { 4: "var(--space-4)" }`, colors onto `--accent-N`, …). The threat Tailwind poses to the system is its parallel token scale, not its syntax; with the preset, even `mt-4` written by a defector resolves through the token contract and reflows with the Theme. Our own components never use it.
 

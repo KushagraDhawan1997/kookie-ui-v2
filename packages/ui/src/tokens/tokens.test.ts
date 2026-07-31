@@ -8,25 +8,38 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { density, fontSize, letterSpacing, lineHeight, radius, space } from "./config.ts";
+import {
+  density,
+  fontSize,
+  letterSpacing,
+  lineHeight,
+  radiusLevels,
+  radiusOverlay,
+  radiusSurface,
+  space,
+  type RadiusLevel,
+} from "./config.ts";
 import { generateTokens } from "./generate.ts";
 
 const css = generateTokens();
 const increasing = (xs: readonly number[]) => xs.every((v, i) => i === 0 || v > xs[i - 1]!);
 
+/** The body of one rule, bounded at its closing brace so it cannot bleed into the next block. */
+function block(selector: string) {
+  const start = css.indexOf(`${selector} {`);
+  return css.slice(start, css.indexOf("}", start));
+}
+
 /** Reads a declaration out of a scope: `:root` by default, or a density block. */
 function declaration(name: string, level: "default" | "compact" | "comfortable" = "default") {
-  const scope =
-    level === "default"
-      ? css.slice(css.indexOf(":root {"), css.indexOf("}"))
-      : css.slice(css.indexOf(`[data-density="${level}"] {`));
+  const scope = level === "default" ? block(":root") : block(`[data-density="${level}"]`);
   return scope.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
 }
 
 describe("step counts are set per family, not copied across families (§6)", () => {
-  it("space spans 12 steps, radius 7, type 9, controls 4 at every density", () => {
+  it("space spans 12 steps, radius 8 at every level, type 9, controls 4 at every density", () => {
     expect(space).toHaveLength(12);
-    expect(radius).toHaveLength(8);
+    for (const level of Object.values(radiusLevels)) expect(level.steps).toHaveLength(8);
     expect(fontSize).toHaveLength(9);
     for (const set of Object.values(density)) {
       for (const family of [set.height, set.px, set.gap, set.radius]) {
@@ -38,8 +51,20 @@ describe("step counts are set per family, not copied across families (§6)", () 
 
 describe("palettes are monotonic", () => {
   it("every scale strictly increases", () => {
-    for (const scale of [space, radius, fontSize, lineHeight]) {
+    for (const scale of [space, fontSize, lineHeight]) {
       expect(increasing(scale)).toBe(true);
+    }
+  });
+
+  it("every radius level is non-decreasing within a band", () => {
+    // Across the bands it may drop, and at `full` it must: controls go to a pill while
+    // surfaces stay capped. That break is the point of splitting the bands.
+    for (const { steps } of Object.values(radiusLevels)) {
+      const control = steps.slice(0, radiusSurface);
+      const surface = steps.slice(radiusSurface);
+      for (const band of [control, surface]) {
+        expect(band.every((v, i) => i === 0 || v >= band[i - 1]!)).toBe(true);
+      }
     }
   });
 });
@@ -114,18 +139,64 @@ describe("density is a designed set, not a multiplier (§12)", () => {
 
   it("never touches type — a size-2 label is size 2 at every density, which is the axis", () => {
     for (const level of ["compact", "comfortable"] as const) {
-      const block = css.slice(css.indexOf(`[data-density="${level}"] {`));
+      const body = block(`[data-density="${level}"]`);
       for (const family of ["font-size", "line-height", "letter-spacing", "font-weight"]) {
-        expect(block).not.toContain(`--${family}-`);
+        expect(body).not.toContain(`--${family}-`);
       }
     }
   });
 
   it("never touches the space or radius palettes — compact must not move page gutters", () => {
     for (const level of ["compact", "comfortable"] as const) {
-      const block = css.slice(css.indexOf(`[data-density="${level}"] {`));
-      expect(block).not.toMatch(/^\s*--space-\d+:/m);
-      expect(block).not.toMatch(/^\s*--radius-\d+:/m);
+      const body = block(`[data-density="${level}"]`);
+      expect(body).not.toMatch(/^\s*--space-\d+:/m);
+      expect(body).not.toMatch(/^\s*--radius-\d+:/m);
+    }
+  });
+});
+
+describe("radius levels are designed palettes, not a factor (§6)", () => {
+  const level = (name: RadiusLevel) => block(`[data-radius="${name}"]`);
+
+  it("carries no radius factor anywhere", () => {
+    expect(css).not.toContain("var(--radius-factor)");
+  });
+
+  it("declares the whole palette at every non-default level", () => {
+    for (const name of ["none", "small", "large", "full"] as const) {
+      for (let step = 0; step <= 7; step++) {
+        expect(level(name)).toMatch(new RegExp(`--radius-${step}:`));
+      }
+      expect(level(name)).toContain("--radius-full:");
+    }
+  });
+
+  it("caps surfaces at full so a dialog never becomes a lens", () => {
+    const { steps } = radiusLevels.full;
+    for (const step of [radiusSurface, radiusOverlay]) {
+      expect(steps[step]).toBeLessThan(100);
+    }
+    for (let step = 1; step < radiusSurface; step++) {
+      expect(steps[step]).toBeGreaterThan(1000);
+    }
+  });
+
+  it("squares everything at none, the kill switch", () => {
+    expect(radiusLevels.none.steps.every((v) => v === 0)).toBe(true);
+    expect(radiusLevels.none.full).toBe(0);
+  });
+
+  it("writes no semantic token, so density picks the step and the level prices it", () => {
+    for (const name of ["none", "small", "large", "full"] as const) {
+      for (const semantic of ["radius-control-", "radius-surface", "radius-overlay"]) {
+        expect(level(name)).not.toContain(`--${semantic}`);
+      }
+    }
+  });
+
+  it("keeps the control and surface bands disjoint, which is what makes full expressible", () => {
+    for (const set of Object.values(density)) {
+      for (const step of set.radius) expect(step).toBeLessThan(radiusSurface);
     }
   });
 });
@@ -155,10 +226,9 @@ describe("multiplier wiring matches §12's table", () => {
     }
   });
 
-  it("radius takes scale and radius-factor, never density", () => {
-    for (let i = 0; i < radius.length; i++) {
+  it("radius takes scale, never density", () => {
+    for (let i = 1; i <= 7; i++) {
       expect(declaration(`radius-${i}`)).toContain("var(--scale)");
-      expect(declaration(`radius-${i}`)).toContain("var(--radius-factor)");
       expect(declaration(`radius-${i}`)).not.toContain("var(--density)");
     }
   });

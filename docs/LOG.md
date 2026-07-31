@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-01 The radius prop becomes designed palettes, and the palette splits into two bands
+
+The Theme `radius` prop was the last multiplier standing after density lost its own. It is now five designed palettes (`none`, `small`, `medium`, `large`, `full`) emitted under `[data-radius]`, and `--radius-factor` is gone.
+
+**`full` is what settles it.** A pill comes free because CSS clamps `border-radius` to half the smaller dimension, but §6 requires surfaces to be *capped* at the same time, so a dialog does not become a giant lens. One factor scales controls and surfaces by the same amount and structurally cannot do both. A designed palette can: the control band goes to 9999 while the surface band holds at its medium values. The multiplier was already broken for the level that most needed care.
+
+**The palette split into disjoint bands, and that is the load-bearing part.** Steps 1-5 are the control band, 6-7 the surface band. Density only ever picks a step; a level only ever says what a step is worth. No token is written by both, so the two axes compose instead of racing.
+
+The alternative considered first was letting the radius level re-declare `--radius-control-N` directly and relying on source order, since the generated file controls it. That fails on nested Themes: a custom property set by a nearer ancestor wins regardless of source order, so an inner Theme setting only `density` would silently drop an outer Theme's `full`. Disjoint bands survive that; cascade ordering does not.
+
+`none` squares everything including `--radius-full`, since a kill switch with an exception is not a kill switch. Surfaces moved up a step with the split, so a card reads 16px and a dialog 24px where they were 12 and 16 — a deliberate consequence of giving surfaces their own band, worth re-judging by eye.
+
+Two law-test corrections fell out of building it. The "palette is non-decreasing" law was wrong: at `full` it must drop at the band boundary, so it now asserts monotonicity within each band. And the test helper that sliced a rule body ran to end-of-file, so a density block appeared to contain every later block's declarations; it now bounds at the closing brace. Both were tests asserting something looser than intended, which is the failure mode worth watching in a suite built on absence checks.
+
 ## 2026-08-01 The corner is held to a fraction of its box, and the palette gains a 10
 
 Seen in the density matrix on the first render: the largest controls read as capsules. The cause was that radius climbed with the size index rather than with the box. Measured against its own height, default ran 0.14 at size 1 to 0.25 at size 4, comfortable reached 0.40, and compact came out at 0.30, rounder than default, because it reused the same radii on smaller boxes. A dense mode being bubblier than a roomy one is backwards.

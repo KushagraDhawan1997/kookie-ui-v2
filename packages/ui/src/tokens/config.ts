@@ -11,17 +11,35 @@
 export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
 
 /**
- * §6 — radius palette, index 0..7. Geometric, capped where the curve goes visually flat.
+ * §6 — the radius palettes, one per Theme `radius` level, index 0..7. Like density, a level
+ * is a designed set rather than a multiplier: a factor cannot express `full`, which has to
+ * make controls pills while *capping* surfaces so a dialog does not become a giant lens.
  *
- * The 10 step exists because controls live in 4-12 and the bare 8 -> 12 jump was 1.5x
- * with nothing between: every control correction had to overshoot, which is what made
- * the size-4 corner read as a capsule. Surfaces sit above it and keep the coarser steps.
+ * The bands are disjoint on purpose, and that is what makes the layering safe:
+ *   steps 1-5  the control band (density picks a step from here)
+ *   steps 6-7  the surface band (--radius-surface, --radius-overlay)
+ * Density only ever picks a step; a level only ever says what a step is worth. No token is
+ * written by both, so a nested Theme setting one cannot clobber the other.
+ *
+ * The 10 step exists because controls live in 4-12, where the bare 8 -> 12 jump was 1.5x
+ * with nothing between: every correction overshot, which is what turned size 4 into a capsule.
  */
-export const radius = [0, 4, 6, 8, 10, 12, 16, 24] as const;
+export const radiusLevels = {
+  none: { steps: [0, 0, 0, 0, 0, 0, 0, 0], full: 0 },
+  small: { steps: [0, 2, 3, 4, 5, 6, 8, 12], full: 9999 },
+  medium: { steps: [0, 4, 6, 8, 10, 12, 16, 24], full: 9999 },
+  large: { steps: [0, 6, 8, 12, 14, 16, 24, 32], full: 9999 },
+  full: { steps: [0, 9999, 9999, 9999, 9999, 9999, 16, 24], full: 9999 },
+} as const;
 
-/** §6 — surfaces have no size index, so they take flat radius references (12px, 16px). */
-export const radiusSurface = 5;
-export const radiusOverlay = 6;
+export type RadiusLevel = keyof typeof radiusLevels;
+
+/** The level emitted on `:root`; the rest ship as `[data-radius]` blocks. */
+export const defaultRadiusLevel = "medium" satisfies RadiusLevel;
+
+/** §6 — surfaces have no size index, so they take flat references from the surface band. */
+export const radiusSurface = 6;
+export const radiusOverlay = 7;
 
 /**
  * §12 — the density sets. Density is not a multiplier: each level places its own control
