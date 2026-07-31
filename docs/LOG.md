@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-01 The corner is held to a fraction of its box, and the palette gains a 10
+
+Seen in the density matrix on the first render: the largest controls read as capsules. The cause was that radius climbed with the size index rather than with the box. Measured against its own height, default ran 0.14 at size 1 to 0.25 at size 4, comfortable reached 0.40, and compact came out at 0.30, rounder than default, because it reused the same radii on smaller boxes. A dense mode being bubblier than a roomy one is backwards.
+
+**The rule is now that a corner holds near a constant fraction of its box (~0.2), growing in absolute terms with size but not in proportion.** §6 already said a bigger control wants a bigger corner; it did not say how much bigger, and "proportionally rounder" was the wrong reading. Resulting ratios: compact 0.17/0.21/0.18/0.20, default 0.14/0.19/0.20/0.21, comfortable 0.18/0.20/0.20/0.20.
+
+**The palette gained a 10px step to make that expressible.** Controls live between 4 and 12, where the old curve jumped 8 to 12 with nothing between, so every correction overshot by 50% and the size-4 corner had nowhere to land. Eight steps is still inside §6's perception cap. Surfaces moved up with the renumbering: `--radius-surface` is now step 5 and `--radius-overlay` step 6, both unchanged in pixels.
+
+Rejected: leaving the palette alone and choosing coarser control radii (the wobble was the problem, and no combination of 4/6/8/12 holds the ratio); dropping the climb entirely for one flat control radius (a size-4 corner genuinely should be larger in absolute terms, which §6 is right about).
+
 ## 2026-08-01 Scale keeps its wiring and loses its API
 
 `--scale` stays a multiplier on every length token and stays at 1; the Theme `scale` prop is deferred. Once density took "bigger box, same type," the only case left for scale was "everything bigger, type included," and that splits into browser zoom (which already does it, and is where accessibility guidance points), a config change to the anchors (for a permanently larger system), and the size index (for one larger region). None of those needs a runtime knob today.

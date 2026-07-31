@@ -26,7 +26,7 @@ function declaration(name: string, level: "default" | "compact" | "comfortable" 
 describe("step counts are set per family, not copied across families (§6)", () => {
   it("space spans 12 steps, radius 7, type 9, controls 4 at every density", () => {
     expect(space).toHaveLength(12);
-    expect(radius).toHaveLength(7);
+    expect(radius).toHaveLength(8);
     expect(fontSize).toHaveLength(9);
     for (const set of Object.values(density)) {
       for (const family of [set.height, set.px, set.gap, set.radius]) {

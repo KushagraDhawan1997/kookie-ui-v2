@@ -276,9 +276,10 @@ Radius is perceptually non-linear. Fine steps at the small end (controls, eye is
 --radius-1: 4px    /* chips, tags */
 --radius-2: 6px    /* default control */
 --radius-3: 8px    /* larger control */
---radius-4: 12px   /* cards, panels */
---radius-5: 16px   /* dialogs */
---radius-6: 24px   /* sheets, large surfaces */
+--radius-4: 10px   /* largest control */
+--radius-5: 12px   /* cards, panels */
+--radius-6: 16px   /* dialogs */
+--radius-7: 24px   /* sheets, large surfaces */
 --radius-0: 0px
 --radius-full: 9999px
 ```
@@ -296,19 +297,19 @@ The trap is letting the prettiest ceiling (size = 6) silently set the others. Th
 Numeric coincidence ("size 2 uses radius 2") is fragile, it holds only until something is renumbered. Robust consistency comes from references:
 
 ```css
---radius-control-1: var(--radius-1);   /* size 1 control */
---radius-control-2: var(--radius-2);   /* size 2 control */
---radius-control-3: var(--radius-3);   /* size 3 control */
---radius-control-4: var(--radius-4);   /* size 4 control */
---radius-surface: var(--radius-4);     /* cards, panels, popovers */
---radius-overlay: var(--radius-5);     /* dialogs, sheets */
+--radius-control-1: var(--radius-1);   /* size 1 control, per density level (section 12) */
+--radius-control-2: var(--radius-2);
+--radius-control-3: var(--radius-3);
+--radius-control-4: var(--radius-4);
+--radius-surface: var(--radius-5);     /* cards, panels, popovers */
+--radius-overlay: var(--radius-6);     /* dialogs, sheets */
 ```
 
 A Button references `--radius-control-2`, never `--radius-2` directly.
 
 ### Two axes, one mapping does both jobs
 
-- **Within a component:** radius tracks size. A size-4 button is rounder than a size-2 button (pulls `--radius-control-4` vs `--radius-control-2`). A bigger control wants a bigger corner or it reads boxy.
+- **Within a component:** radius tracks size. A size-4 button pulls a bigger corner than a size-2 button, or it reads boxy. **Bigger in absolute terms, not proportionally**: hold the corner near a constant fraction of the box (~0.2) rather than letting it climb with the size index. Measured on the first build, a climbing ratio ran 0.14 at size 1 to 0.25 at size 4 and turned the largest control into a capsule; it also made compact, which reuses radii on smaller boxes, come out rounder than default, which is backwards for a dense mode.
 - **Across components at the same size:** radius is fixed. Every size-2 control (Button, Input, Select trigger) pulls the same `--radius-control-2`, so corners are locked identical by the reference, not by coincidence. This is the join that matters in a form.
 
 ### Boundaries

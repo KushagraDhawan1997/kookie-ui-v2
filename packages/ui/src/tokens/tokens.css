@@ -25,9 +25,10 @@
   --radius-1: calc(4px * var(--scale) * var(--radius-factor));
   --radius-2: calc(6px * var(--scale) * var(--radius-factor));
   --radius-3: calc(8px * var(--scale) * var(--radius-factor));
-  --radius-4: calc(12px * var(--scale) * var(--radius-factor));
-  --radius-5: calc(16px * var(--scale) * var(--radius-factor));
-  --radius-6: calc(24px * var(--scale) * var(--radius-factor));
+  --radius-4: calc(10px * var(--scale) * var(--radius-factor));
+  --radius-5: calc(12px * var(--scale) * var(--radius-factor));
+  --radius-6: calc(16px * var(--scale) * var(--radius-factor));
+  --radius-7: calc(24px * var(--scale) * var(--radius-factor));
   --radius-full: 9999px;
 
   /* type (§15) — scale only, never density */
@@ -67,8 +68,8 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* semantic: surfaces have no size index — flat tokens (§6) */
-  --radius-surface: var(--radius-4);
-  --radius-overlay: var(--radius-5);
+  --radius-surface: var(--radius-5);
+  --radius-overlay: var(--radius-6);
 
   /* semantic: control family at the default density (§4, §6, §12) */
   --control-height-1: calc(28px * var(--scale));
@@ -104,8 +105,8 @@
   --control-gap-4: var(--space-3);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
-  --radius-control-3: var(--radius-3);
-  --radius-control-4: var(--radius-4);
+  --radius-control-3: var(--radius-2);
+  --radius-control-4: var(--radius-3);
 }
 
 [data-density="comfortable"] {
@@ -121,8 +122,8 @@
   --control-gap-2: var(--space-4);
   --control-gap-3: var(--space-4);
   --control-gap-4: var(--space-5);
-  --radius-control-1: var(--radius-3);
-  --radius-control-2: var(--radius-4);
-  --radius-control-3: var(--radius-5);
-  --radius-control-4: var(--radius-6);
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
 }

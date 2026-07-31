@@ -10,12 +10,18 @@
 /** §3 — space palette. Hybrid curve: fine and near-linear at the bottom, geometric at the top. */
 export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
 
-/** §6 — radius palette, index 0..6. Geometric (~1.4), capped where the curve goes visually flat. */
-export const radius = [0, 4, 6, 8, 12, 16, 24] as const;
+/**
+ * §6 — radius palette, index 0..7. Geometric, capped where the curve goes visually flat.
+ *
+ * The 10 step exists because controls live in 4-12 and the bare 8 -> 12 jump was 1.5x
+ * with nothing between: every control correction had to overshoot, which is what made
+ * the size-4 corner read as a capsule. Surfaces sit above it and keep the coarser steps.
+ */
+export const radius = [0, 4, 6, 8, 10, 12, 16, 24] as const;
 
-/** §6 — surfaces have no size index, so they take flat radius references. */
-export const radiusSurface = 4;
-export const radiusOverlay = 5;
+/** §6 — surfaces have no size index, so they take flat radius references (12px, 16px). */
+export const radiusSurface = 5;
+export const radiusOverlay = 6;
 
 /**
  * §12 — the density sets. Density is not a multiplier: each level places its own control
@@ -30,15 +36,17 @@ export const radiusOverlay = 5;
  * default size 3 does, and all three set their label at font-size 2. That is the whole
  * point of the axis — `size` would have moved the type too.
  *
- * Compact keeps default's radii on purpose: a fixed corner reads boxy when the box grows,
- * not when it shrinks, so only the airy end needs its own.
+ * Radius is held near a constant fraction of the box (~0.2) rather than allowed to climb
+ * with the size index. Letting it climb is what made size 4 read as a capsule and made
+ * compact, which reuses radii on smaller boxes, come out rounder than default. Comfortable
+ * shifts one palette step, never two.
  */
 export const density = {
   compact: {
     height: [24, 28, 34, 40],
     px: [2, 3, 4, 5],
     gap: [1, 2, 2, 3],
-    radius: [1, 2, 3, 4],
+    radius: [1, 2, 2, 3],
   },
   default: {
     height: [28, 32, 40, 48],
@@ -50,7 +58,7 @@ export const density = {
     height: [34, 40, 50, 60],
     px: [4, 5, 6, 7],
     gap: [3, 4, 4, 5],
-    radius: [3, 4, 5, 6],
+    radius: [2, 3, 4, 5],
   },
 } as const;
 
