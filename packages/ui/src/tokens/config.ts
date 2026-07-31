@@ -24,6 +24,12 @@ export const controlHeight = { base: 32, ratios: [0.875, 1, 1.25, 1.5] } as cons
 /** §3 — control inline padding, size-indexed, referencing the space palette. No vertical padding exists. */
 export const controlPaddingX = [3, 4, 5, 6] as const; // space step per size index 1..4
 
+/**
+ * §12 — control internal gap (icon to label). Density-affected like control padding:
+ * a tighter control tightens what is inside it, not just its box.
+ */
+export const controlGap = [2, 3, 3, 4] as const; // space step per size index 1..4
+
 /** §15 — type. Nine steps: type's dynamic range is wider than the control family's. */
 export const fontSize = [12, 14, 16, 18, 20, 24, 30, 40, 56] as const;
 /** Paired designed values, not a derived ratio: ~1.5 through reading sizes, tightening toward ~1.1 at display. */

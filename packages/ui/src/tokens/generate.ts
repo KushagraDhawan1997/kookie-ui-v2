@@ -11,6 +11,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
+  controlGap,
   controlHeight,
   controlPaddingX,
   fontFamily,
@@ -67,6 +68,9 @@ export function generateTokens(): string {
   );
   controlPaddingX.forEach((step, i) =>
     put(`control-px-${i + 1}`, `calc(var(--space-${step}) * var(--density))`),
+  );
+  controlGap.forEach((step, i) =>
+    put(`control-gap-${i + 1}`, `calc(var(--space-${step}) * var(--density))`),
   );
   radiusControl.forEach((step, i) => put(`radius-control-${i + 1}`, `var(--radius-${step})`));
 

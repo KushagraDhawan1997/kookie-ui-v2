@@ -76,6 +76,10 @@
   --control-px-2: calc(var(--space-4) * var(--density));
   --control-px-3: calc(var(--space-5) * var(--density));
   --control-px-4: calc(var(--space-6) * var(--density));
+  --control-gap-1: calc(var(--space-2) * var(--density));
+  --control-gap-2: calc(var(--space-3) * var(--density));
+  --control-gap-3: calc(var(--space-3) * var(--density));
+  --control-gap-4: calc(var(--space-4) * var(--density));
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);

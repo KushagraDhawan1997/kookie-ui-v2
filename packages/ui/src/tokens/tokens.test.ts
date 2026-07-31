@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
+  controlGap,
   controlHeight,
   controlPaddingX,
   fontSize,
@@ -31,6 +32,7 @@ describe("step counts are set per family, not copied across families (§6)", () 
     expect(fontSize).toHaveLength(9);
     expect(controlHeight.ratios).toHaveLength(4);
     expect(controlPaddingX).toHaveLength(4);
+    expect(controlGap).toHaveLength(4);
     expect(radiusControl).toHaveLength(4);
   });
 });
@@ -56,10 +58,11 @@ describe("type tokens are paired, not derived (§15)", () => {
 });
 
 describe("the size index joins a coherent set (§4)", () => {
-  it("every size 1-4 defines height, inline padding, and radius together", () => {
+  it("every size 1-4 defines height, inline padding, gap, and radius together", () => {
     for (let size = 1; size <= 4; size++) {
       expect(declaration(`control-height-${size}`)).toBeDefined();
       expect(declaration(`control-px-${size}`)).toBeDefined();
+      expect(declaration(`control-gap-${size}`)).toBeDefined();
       expect(declaration(`radius-control-${size}`)).toBeDefined();
     }
   });
@@ -74,9 +77,10 @@ describe("semantic tokens reference palette tokens, never restate numbers (§6)"
     expect(declaration("radius-overlay")).toMatch(/^var\(--radius-\d\)$/);
   });
 
-  it("control padding resolves through the space palette", () => {
+  it("control padding and gap resolve through the space palette", () => {
     for (let size = 1; size <= 4; size++) {
       expect(declaration(`control-px-${size}`)).toContain("var(--space-");
+      expect(declaration(`control-gap-${size}`)).toContain("var(--space-");
     }
   });
 });
@@ -98,11 +102,12 @@ describe("multiplier wiring matches §12's table", () => {
     }
   });
 
-  it("control height and padding take both scale and density", () => {
+  it("control height, padding, and gap take both scale and density", () => {
     for (let size = 1; size <= 4; size++) {
       expect(declaration(`control-height-${size}`)).toContain("var(--scale)");
       expect(declaration(`control-height-${size}`)).toContain("var(--density)");
       expect(declaration(`control-px-${size}`)).toContain("var(--density)");
+      expect(declaration(`control-gap-${size}`)).toContain("var(--density)");
     }
   });
 
