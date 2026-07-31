@@ -2,6 +2,8 @@
 
 2026-07-31. Audit of the v2 decisions against measurements of v1 (`~/Code/kookie-ui`) and the site rebuild's decision log (`~/Code/kushagradhawan-v2`). Verdict: build it. Architecture is sound; three defects to fix in the doc before code, none architectural.
 
+**Resolution log (2026-07-31, later same day):** blockers 1-3, typography, density coupling, accent brand fidelity, `contrast="high"`, the DESIGN.md reconciliation, and both build-order amendments are resolved in DECISIONS.md (§2, §3, §7, §9, §12, §14, §15). Still open from this review: focus-visible, disabled/loading, motion, dark-mode SSR, icon sizing, Shell, migration — the first four gate Button (§14 step 5).
+
 ## Sound, no changes
 
 Base UI behind a Kookie-owned API boundary. Token-only styling, no utility classes. Margin only on layout primitives. Size-as-index. Semantic radius references (`--radius-control-N`). Variants as shared role-token bundles. Tone x emphasis x elevation x material with appearance as resolved output. Generated OKLCH color with a role layer. Build order (tokens, Button, Card, measured at each step).

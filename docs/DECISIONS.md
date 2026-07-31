@@ -49,6 +49,8 @@ Build-time tooling (Style Dictionary or a small script) is used for *authoring* 
 
 Diagnosis (where Radix's bytes actually are): Radix's *component* CSS is already lean and token-driven (one set of rules per component reading `--accent-*` vars, not 30 precompiled color variants). The weight is the **colors** — it ships all ~25-30 accent scales, each in light, dark, P3, and alpha, so every color is declared 4-8 times as a full 12-step scale, and you carry all 30 whether you use one or none. That color-token mass is the bulk. So the optimization targets color output and keeps component CSS additive.
 
+**Measured correction (2026-07-31, v1 shipped output):** ~91.5KB gzipped total; component CSS ~55KB+ of it, dominated by responsive prop utilities (`sidebar.css` alone 48KB raw); all tokens ~13KB; color scales ~2.8KB. In the shipped fork the bulk is not colors — it is the responsive-utility mass. Both masses have structural answers: colors by generation (reason 2 below), responsive props by variable remap (below).
+
 Four structural reasons KookieUI stays small (all already decided):
 
 1. **Semantic tones, not 30 arbitrary colors.** `tone` is a closed set (neutral, accent, destructive, maybe success/warning/info) ~ 5-6 scales, not 30. There is no open per-component `color` prop forcing all scales to ship (color-scarcity decision, sections 7 and 9). The one arbitrary brand hue is the single configured accent. This alone cuts color mass to ~1/6 of Radix before anything else.
@@ -58,6 +60,18 @@ Four structural reasons KookieUI stays small (all already decided):
 3. **Component CSS is additive, not multiplicative.** Variants are shared role-token bundles defined once globally and reused across components in a category (section 8): `[data-variant="soft"]` sets bg/fg tokens; Button, Badge, Select all read them. Sizes set `--control-height`. Total is roughly `O(components + variants + sizes)` as small token-setting rules, never `O(components x variants x sizes x tones)` as full rules. The combinatorial explosion collapses into addition because variation lives in token *values*, not duplicated *rules*.
 
 4. **No utility classes** (this section) so no Tailwind-style utility permutation.
+
+### Responsive props: variable remap, not utility classes
+
+**Decision: responsive props (`gap={{ initial: "2", "@md": "4" }}`) compile by variable remap.** The component writes tier values as inline custom properties (`style="--kk-gap: var(--space-2); --kk-gap-md: var(--space-4)"`); the stylesheet ships a fixed set of arbitration rules per prop — the base rule reads `--kk-gap`, each tier's rule prefers its own var and falls back down the chain. Values never appear in the stylesheet, so:
+
+- CSS cost is O(props × tiers), ~constant forever. The token dimension — the multiplier behind v1's 55KB — is gone; adding tokens costs zero CSS.
+- Raw strings ride the same pipe free (`gap="13px"` inlines like any token), which pregenerated classes structurally cannot do.
+- The mechanism is value-agnostic, so structural props (`direction`, `columns`, `display`, `areas`) remap identically to spacing.
+
+Two requirements: register every `--kk-*` remap var with `@property { inherits: false }` (custom properties inherit; a nested Flex without `gap` must not silently read its parent's), and prove the mechanism on Box alone, measured, before any other layout primitive ships (section 14).
+
+**Tiers are container-keyed and few.** `@md` is a container-width tier resolved by container queries, not a viewport breakpoint — a component adapts to its slot, so the same Grid is correct in a drawer and a main column. Both native platforms converged here (iOS: 2 size classes; Android: 3 window classes; neither has per-prop pixel breakpoints): keep the tier count small and the names semantic. Only Shell and page-gutter concerns key off the viewport. `--kk-*` vars are private plumbing — undocumented, unstable, never for consumers (section 13).
 
 The file is small by construction, not by post-hoc minification. Process the output with **Lightning CSS** (minify, autoprefix, nesting).
 
@@ -119,6 +133,8 @@ Chasing the CSS surface in props is unwinnable by construction (CSS is a growing
 
 `Box` `Flex` `Grid` `Stack` `Container` `Spacer`. (Optional later: `Section` for page vertical rhythm.)
 
+All of them are thin typed wrappers over Box: they preset `display`, narrow the prop types to what their layout model uses, and name the intent in markup. Same CSS, same mechanism, zero added bytes. The narrowing is the point — raw CSS accepts every property on every element and ignores the wrong ones silently; the named primitives are where that becomes a type error and where the library adds enforcement over the platform. Box underneath stays fully capable for the cases the narrowed types would forbid.
+
 **Prop taxonomy — four buckets, this is the whole design:**
 
 ```
@@ -147,7 +163,7 @@ Token is the on-system spelling (`gap="4"` -> `--space-4`); the `| string` on th
 
 **Per-primitive surface:**
 
-- **Box** — the styled primitive and escape hatch. All tokenized spacing + pass-through sizing + structural position/display/overflow + flex/grid-child props. `render`, `className`, `style`. No flex/grid *container* props.
+- **Box** — the engine and escape hatch. The full curated prop set: tokenized spacing, pass-through sizing, structural position/display/overflow, flex/grid-child props, **and the container props** (`display`, `direction`, `columns`, gaps, …). `display` is responsive like any prop, so a flex↔grid switch per tier is legal — CSS ignores inapplicable properties, so both modes' props coexist inertly. `render`, `className`, `style`.
 - **Flex** — Box props + `direction`, `align`, `justify`, `wrap`, `gap`/`gapX`/`gapY`.
 - **Grid** — Box props + `columns`, `rows`, `areas`, `flow`, `align`, `justify`, `gap`/`gapX`/`gapY`.
 - **Stack** — opinionated Flex: `direction` defaults to `column`, gap is the primary prop, plus `align`/`justify`/`wrap`. The most-reached-for primitive; removes the flex+direction+gap boilerplate. (Radix has no Stack; this is an addition.)
@@ -157,6 +173,10 @@ Token is the on-system spelling (`gap="4"` -> `--space-4`); the `| string` on th
 **Composition:** `render` (Base UI) replaces Radix's `asChild`, so a primitive's layout behavior wraps any element without adding a DOM node — consistent with section 1.
 
 **Margin boundary (the Radix divergence, restated for emphasis):** Radix ships margin on most components; KookieUI ships it ONLY on these layout primitives. A Button has no `m`; `<Box m="4"><Button/></Box>` is the sanctioned one-off. Layout owns spacing; the escape is a layout wrapper, never a margin prop on a control.
+
+**Enforcement is a gradient, not a wall.** `className` and `style` stay forwarded everywhere; consumer `style` merges last (an escape that loses to the default is not an escape). Nothing technically stops `className="mt-12"` on a Button — no component API can prevent CSS from styling DOM. The system's leverage: it ships no utility vocabulary (section 2), the blessed path is easier than defection, and defection is visible — one string search, one shipped lint rule (`no-spacing-utilities-on-controls`), one obvious thing in review. Braid locks `className` down entirely; we keep the escape and police it with the linter. Same contract as tokens: nothing stops `8px`, the system makes `var(--space-3)` more attractive.
+
+**Reconciliation with the site's DESIGN.md** (which rejects the Box/Flex/Stack suite as "a layout DSL moving visual decisions into markup"): in Astro, scoped CSS is the enforceable layer, so primitives would be a leak around it. In a published React library, the component API is the only enforceable surface — the primitives *are* the enforcement, not the leak. Same principle (decisions live where they can be reviewed), opposite conclusions per medium. The two documents do not argue.
 
 ---
 
@@ -214,7 +234,7 @@ accentColor    <brand color>                   hue that tone="accent" resolves t
 grayColor      <neutral>                        low-chroma accent from the same generator; tone="neutral" hue
 contrast       default | high                  drives borders/dividers too, resolves per appearance
 radius         none ... full                   a factor over the whole radius scale, not a token pick
-density        compact | default | comfortable  control-height + spacing anchors only
+density        compact | default | comfortable  control-height + control-spacing anchors only (never the space palette, section 12)
 scale          multiplier                      global zoom: type, height, spacing, radius together
 font           mono | sans | serif             shorthand: sets heading + body
 fontHeading    "
@@ -325,7 +345,7 @@ An apparent exception is a missing distinction. Three responses, one correct:
 
 ### The spine: one fixed lightness ladder, system-wide
 
-Twelve L values defined once; **every hue uses the identical ladder.** This is the entire mechanism by which "red step 9" and "blue step 9" read as the same step. Light mode and dark mode each get their own tuned ladder (dark is a separately tuned ladder, not an inversion).
+Twelve L values defined once; **every hue uses the identical ladder for backgrounds, borders, and text (steps 1-8, 11-12); the solid band is the one designed exception, below.** This is the entire mechanism by which "red step 9" and "blue step 9" read as the same step. Light mode and dark mode each get their own tuned ladder (dark is a separately tuned ladder, not an inversion).
 
 Illustrative light-mode ladder:
 
@@ -337,6 +357,8 @@ Illustrative light-mode ladder:
 ```
 
 The large 8 to 9 drop is the soft/solid discontinuity, placed on purpose. Solid active derives as a uniform L-delta off step 9 (~.54): rest, hover, active are evenly spaced **by construction**, across every hue. Direction is mode-aware (darken in light, lighten in dark).
+
+**One designed exception: the solid band's L is hue-aware.** A fixed L ≈ .62 solid is mud for bright hues — saturated yellow, amber, lime, mint, sky do not exist at that lightness. Radix hand-places their solid bands at L ≈ .85+ with dark contrast text; the site's color log hit the same wall and hand-darkened bright ramps. Because accent is an arbitrary user hue, a brand yellow **will** arrive. The fix inside the one-law frame: steps 9/10/active take their L from a **bounded, continuous function of hue angle** — deep hues sit at the ladder's ≈ .62, bright hues rise toward ≈ .85 — while backgrounds, borders, and text bands keep the fixed ladder. The function is part of the generator, identical for every hue: still generation, not per-hue hand-tuning. APCA (below) flips the contrast text automatically where the band rises.
 
 The fixed ladder is also what makes the project finite: design the L ladder once, design the chroma curve, then per accent supply only hue and chroma shape. Bounded, not unbounded tuning.
 
@@ -378,6 +400,14 @@ Two things the question "what accent, and what if I want more than one" fuses bu
 ### Contrast token: APCA-computed
 
 White-or-black on each solid is computed by the generator via **APCA**, not WCAG 2 ratios. We left sRGB because its contrast math is perceptually wrong; WCAG 2 carries the same wrongness.
+
+### Brand fidelity: step 9 pins to the input
+
+**Decision: in light mode, the supplied accent hex reproduces exactly as step 9.** The solid-band L function evaluates locally through the input's own L (clamped to the band's bounds), so the brand color *is* the button, not a normalized cousin of it. Inputs outside the bounds snap to the nearest in-bounds value — a near-black or near-white "brand color" was never usable as a solid. Dark mode derives from the same hue + chroma shape with no pinning; no brand promise exists on a dark solid. Edge behavior near the bounds: tune when the generator is built.
+
+### contrast="high": generated deltas, not a second ladder
+
+**Decision: an L/chroma delta pass at generation time.** The generator emits an override block scoped to `[data-contrast="high"]`, re-declaring only the affected bands — borders (6-8) strengthened, text (11-12) pushed toward the extremes, solid state spread widened — by fixed per-mode deltas. Cost: a fraction of one scale per tone, shipped by default (the Theme prop must work at runtime); a config flag can drop it. One law, one delta table, no second ladder.
 
 ### Output: static, compiled, P3
 
@@ -455,7 +485,7 @@ states     rest | hover | press                                       the +1/+2 
 size       1 | 2 | 3 | 4                                               height index (controls) / padding (surfaces)
 ```
 
-`appearance` (the actual fill/shadow/blur) is the **resolved output** of (tone x emphasis x elevation x material), never set directly. The soft/solid/surface/outline/ghost recipes from section 8 are the resolved output of the emphasis ladder: high -> solid, medium -> soft, low -> surface/outline, minimal -> ghost. They stay reachable underneath as the escape hatch (the fire-exit, like the base palette under semantic tokens).
+`appearance` (the actual fill/shadow/blur) is the **resolved output** of (tone x emphasis x elevation x material), never set directly. The soft/solid/surface/outline/ghost recipes from section 8 are the resolved output of the emphasis ladder: high -> solid, medium -> soft, low -> surface, minimal -> ghost. `outline` is not on the ladder — it is reached only through the escape. **`variant` is public:** the raw recipe layer ships as a documented prop beneath `emphasis`, the fire-exit under the semantic axis (same two-layer contract as the tokens, section 13). When both are set, `variant` wins — an escape that loses to the default is not an escape. Four rungs, five recipes, nothing unreachable, and the ladder stays honest instead of stretching to cover the grid.
 
 ```
 tone (hue) + emphasis (recipe) -> role-token bundle -> scale steps -> generated OKLCH values
@@ -619,12 +649,15 @@ Fold them into one and you cannot express "square but not shrunk."
 ### Which multiplier affects what
 
 ```
-type      -> scale                 (not density)
-height    -> scale, density
-spacing   -> scale, density
-radius    -> scale                 (not density, never height directly)
-color     -> neither               (compiled static; not a runtime multiplier axis)
+type              -> scale            (not density)
+height            -> scale, density
+control spacing   -> scale, density   (control-px, control gaps: the semantic layer)
+space palette     -> scale            (layout gaps, gutters; density never touches it)
+radius            -> scale            (not density, never height directly)
+color             -> neither          (compiled static; not a runtime multiplier axis)
 ```
+
+**Density enters at the semantic control layer only.** If it multiplied the base space palette, compact mode would shrink page gutters — the same coarseness section 4 rejects in Radix's single `scaling` knob. Compact tightens controls, not the page.
 
 ### Strict dependency direction, no cycles
 
@@ -650,7 +683,9 @@ Theme props drive the factors, the color hue, and the material policy at the top
 
 **Why the base palettes must ship:** once users compose their own components, the palette is the contract, not an escape hatch. A user who writes `8px` opts out of the theme (frozen). A user who writes `var(--radius-3)` or `var(--space-4)` stays in, their component reflows with the theme exactly like a native one. The token sells theme-reactivity that a raw value structurally cannot. The base scale's job is to make the themed path more attractive than the hardcoded one.
 
-**The rule users follow:** consume the numbered tokens and the semantic axes; control them via Theme props. Never redefine a resolved token (`--radius-3: 10px` leaves the system). The `calc()` and the color compilation live inside our layer where users do not touch them.
+**The rule users follow:** consume the numbered tokens and the semantic axes; control them via Theme props. Never redefine a resolved token (`--radius-3: 10px` leaves the system). The `calc()` and the color compilation live inside our layer where users do not touch them. Private `--kk-*` mechanism vars (the responsive remap plumbing, section 2) are not part of the contract: undocumented, unstable.
+
+**Tailwind bridge (optional, sanctioned):** for teams that keep Tailwind in app code, ship a preset mapping its theme onto our variables (`spacing: { 4: "var(--space-4)" }`, colors onto `--accent-N`, …). The threat Tailwind poses to the system is its parallel token scale, not its syntax; with the preset, even `mt-4` written by a defector resolves through the token contract and reflows with the Theme. Our own components never use it.
 
 ---
 
@@ -658,13 +693,48 @@ Theme props drive the factors, the color hue, and the material policy at the top
 
 Architecture is locked; open items are tuning values resolved as the component that needs them is built, not before. Build in this order so every layer and the CSS-size thesis are validated before scaling to the full component set.
 
-1. **Scaffold.** pnpm + Turborepo + tsdown (Rolldown/Oxc) + Lightning CSS + Changesets. `packages/ui`, `apps/docs`, shared config.
-2. **Token pipeline.** OKLCH color generator emitting the configured tones, plus the radius and space scales -> `tokens.css`. **Measure it.** This is the foundation and the first proof of the small-CSS thesis.
-3. **Theme + layout primitives.** Theme (scoping the CSS vars, nesting/inheritance) + Box, Flex, Stack. Proves token consumption and the layout layer.
-4. **Button, end-to-end.** Full axis model (tone x emphasis x states x size) on one control. **Measure its CSS** to prove variant-as-token-remap (additive, not multiplicative) before scaling.
-5. **Card, end-to-end.** One surface, proving elevation + material + foreground-context + alpha-nesting.
+1. **Scaffold.** pnpm + Turborepo + tsdown (Rolldown/Oxc) + Lightning CSS + Changesets + Vitest. `packages/ui`, `apps/docs`, shared config. The CI budget gate is wired on day one, even while it measures nothing.
+2. **Token pipeline.** Space, radius, and type scales first — static calc chains, a day's work, exercising the whole path (config -> generation -> tokens.css -> measurement) with zero research risk. Then the OKLCH color generator: the long pole; budget it at 2-3x anything else, and test with hostile hues (brand yellow, neon lime, near-black navy) before calling the law proven. **Measure with a two-accent config** (alpha ramps x modes x tones) so the budget covers section 7's full output.
+3. **Box + the responsive mechanism.** Variable remap, `@property` inheritance guard, the full prop table on one primitive. **Measure its CSS** to prove O(props x tiers) before any other layout primitive ships. (The blocker-1 proof; needs only the space tokens, so it can overlap the color work.)
+4. **Theme + layout primitives.** Theme (scoping the CSS vars, nesting/inheritance) + Flex, Stack, Grid as typed sugar over Box. Proves token consumption and the layout layer.
+5. **Button, end-to-end.** Full axis model (tone x emphasis x states x size) on one control. **Measure its CSS** to prove variant-as-token-remap (additive, not multiplicative) before scaling. Gated on the remaining pre-Button decisions: focus-visible, disabled/loading, motion tokens, icon sizing (REVIEW.md).
+6. **Card, end-to-end.** One surface, proving elevation + material + foreground-context + alpha-nesting.
 
 This slice exercises every layer (tokens -> variants -> control -> surface) and the CSS budget. Everything after it is repetition across the component set.
+
+---
+
+## 15. Typography
+
+**Decision: one indexed font-size family spanning text and controls; line height and letter spacing are paired designed tokens, never derived ratios; three family slots; four weights.**
+
+### Scale
+
+`--font-size-1..9`. Controls consume steps 1-4 through the size index (section 4); Text and Heading span the full range. Hybrid curve like space (section 3): near-linear through the reading sizes (all constantly used, must stay distinct), geometric at display sizes. Illustrative:
+
+```css
+--font-size-1: 12px    --font-size-4: 18px    --font-size-7: 30px
+--font-size-2: 14px    --font-size-5: 20px    --font-size-8: 40px
+--font-size-3: 16px    --font-size-6: 24px    --font-size-9: 56px
+```
+
+Anchor-derived off `--font-size-base` (step 3) x `--scale` — never `--density` (section 12). Nine steps, not six: type's dynamic range (12 to 56+) is wider than the control family's, the same reasoning that gave space 12 steps and radius 6 (section 6's ceilings rule).
+
+### Line height: paired, not derived
+
+Each step ships a designed `--line-height-N` (reading sizes ~1.5x, display sizes tightening toward ~1.1). One global ratio is wrong at both ends — the same anti-derivation stance as radius-from-height (section 6). Inside fixed-height controls, line height is 1: the box centers its contents (section 4); leading is a text-flow concern.
+
+### Letter spacing
+
+`--letter-spacing-N`, ~0 through reading sizes, slightly negative at display sizes. Paired with the step, same rule as line height.
+
+### Weights
+
+`--font-weight-regular / -medium / -semibold / -bold` (400/500/600/700). Closed set; `light` deferred until something needs it. Text defaults regular, Heading defaults bold; the `weight` prop takes token names, never numbers.
+
+### Families
+
+Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-mono`. Components read slots, never raw stacks; the Theme props are the only place a stack is written.
 
 ---
 
@@ -672,6 +742,7 @@ This slice exercises every layer (tokens -> variants -> control -> surface) and 
 
 **Color:**
 - Tune the actual L ladders, light and dark (current values illustrative).
+- Design the solid-band L(hue) function's shape and bounds (the blocker-2 fix; section 7).
 - Design the per-hue chroma curve shape (peak + falloff).
 - Confirm dark-mode press direction (lighten) and delta magnitude.
 - Pick the gamut-mapping implementation details for residual clipping (hold-L-reduce-C chosen; edge behavior near cusp TBD).
@@ -680,7 +751,6 @@ This slice exercises every layer (tokens -> variants -> control -> surface) and 
 - Lock the **elevation ladder** shadow recipes (shadow step + border per level: flat/raised/floating/overlay).
 - Lock the **material** recipes (blur radius + scrim per level: solid/translucent/[clear]); decide when `clear` ships.
 - **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?
-- **Emphasis ladder**: confirm 4 rungs and each rung's recipe mapping (high->solid, medium->soft, low->surface/outline, minimal->ghost).
 - Resolve the awkward grid cells: `high + neutral`, `minimal + accent`, and which cells are simply invalid.
 - Theme `material` **naming**: `material` vs `allowTranslucency` vs `materials`.
 
