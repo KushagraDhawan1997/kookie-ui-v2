@@ -111,6 +111,23 @@ describe("density is a designed set, not a multiplier (§12)", () => {
   it("carries no density multiplier anywhere", () => {
     expect(css).not.toContain("var(--density)");
   });
+
+  it("never touches type — a size-2 label is size 2 at every density, which is the axis", () => {
+    for (const level of ["compact", "comfortable"] as const) {
+      const block = css.slice(css.indexOf(`[data-density="${level}"] {`));
+      for (const family of ["font-size", "line-height", "letter-spacing", "font-weight"]) {
+        expect(block).not.toContain(`--${family}-`);
+      }
+    }
+  });
+
+  it("never touches the space or radius palettes — compact must not move page gutters", () => {
+    for (const level of ["compact", "comfortable"] as const) {
+      const block = css.slice(css.indexOf(`[data-density="${level}"] {`));
+      expect(block).not.toMatch(/^\s*--space-\d+:/m);
+      expect(block).not.toMatch(/^\s*--radius-\d+:/m);
+    }
+  });
 });
 
 describe("multiplier wiring matches §12's table", () => {

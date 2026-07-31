@@ -53,12 +53,15 @@ export function generatePreview(): string {
     font-weight: var(--font-weight-medium); white-space: nowrap;
   }
   .icon { width: 1em; height: 1em; border-radius: 2px; background: #9a9aa6; flex: none; }
+  body:not(.icons) .icon { display: none; }
+  .toggle { font-size: var(--font-size-2); color: #666; margin: 0 0 var(--space-9); display: flex; gap: var(--space-3); align-items: center; }
   .readout { font-family: var(--font-mono); font-size: 11px; color: #888; }
   .ruler { position: relative; }
 </style>
 </head>
 <body>
 <h1>density x size</h1>
+<label class="toggle"><input type="checkbox" id="icons"> show icons (the gap token is only visible with one)</label>
 <p class="note">Every value here is a placed number, not a product. Type is held at the size's own step across all three levels, which is the whole point of the axis: a comfortable size 2 stands as tall as a default size 3 while its label stays size 2. Correct any single cell in <code>src/tokens/config.ts</code> without disturbing its neighbours.</p>
 
 <div class="grid">
@@ -72,6 +75,10 @@ ${LEVELS.map(
 </div>
 
 <script>
+  document.getElementById("icons").addEventListener("change", (e) => {
+    document.body.classList.toggle("icons", e.target.checked);
+  });
+
   // Resolved pixels, so the matrix shows what actually renders rather than what was authored.
   for (const el of document.querySelectorAll(".control")) {
     const s = getComputedStyle(el);
