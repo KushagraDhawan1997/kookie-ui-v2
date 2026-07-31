@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-01 Scale keeps its wiring and loses its API
+
+`--scale` stays a multiplier on every length token and stays at 1; the Theme `scale` prop is deferred. Once density took "bigger box, same type," the only case left for scale was "everything bigger, type included," and that splits into browser zoom (which already does it, and is where accessibility guidance points), a config change to the anchors (for a permanently larger system), and the size index (for one larger region). None of those needs a runtime knob today.
+
+**Keeping the wiring costs nothing that matters.** At `--scale: 1` every token resolves to exactly its designed integer, so the arbitrary products only appear if someone opts in. The price is about fifteen characters per token, highly repetitive, which gzip removes almost entirely.
+
+**Not shipping the prop is what avoids the problem**, because a shipped `scale` would be the one factor in the system still producing values like 26.78px after density stopped. Adding a prop later is non-breaking, so this is the reversible direction.
+
+Rejected: stripping `--scale` from the calcs entirely (cleaner, but it forecloses the option for a saving gzip already provides); shipping the prop now as a free multiplier (arbitrary products, and nobody has named the steps it should have); designed sets for scale the way density got them (density re-declares ~16 control tokens per level, scale would re-declare ~40 — every space step, radius step, type step and line height, plus the control family — for a knob with no demonstrated demand); CSS `zoom` as the sanctioned scoped mechanism (it does not reach portaled content, so a zoomed region's popover renders unzoomed; fine as an app-root escape, wrong as an API).
+
 ## 2026-08-01 Density becomes designed sets, not a multiplier, and it takes radius with it
 
 Density's job is breathing room at a fixed type size. Canva's signup button is the case that names it: the same label size in a much taller box with a much larger corner. `size` grows everything including type; density grows only the box. v1 had size 2 at 32px height with 14px type and that pairing was right, but some interfaces want the bigger box without the bigger type, and reaching for size 3 to get it moves the type too.

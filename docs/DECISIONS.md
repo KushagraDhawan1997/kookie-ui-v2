@@ -235,7 +235,7 @@ grayColor      <neutral>                        low-chroma accent from the same 
 contrast       default | high                  drives borders/dividers too, resolves per appearance
 radius         none ... full                   a factor over the whole radius scale, not a token pick
 density        compact | default | comfortable  selects a designed control-family set (height, px, gap, radius); never type, never the space palette (section 12). Theme-scoped only: an airy region is a nested Theme on an element you already have (via `render`), not a per-component prop, which would duplicate `size`
-scale          multiplier                      global zoom: type, height, spacing, radius together
+scale          (deferred, see below)            global zoom: type, height, spacing, radius together
 font           mono | sans | serif             shorthand: sets heading + body
 fontHeading    "
 fontBody       "
@@ -244,7 +244,7 @@ hasBackground  boolean
 reducedMotion  user | always                   global override beyond prefers-reduced-motion
 ```
 
-Deferred: `dir` / RTL. Leave room, do not half-build.
+Deferred: `scale` (the factor stays wired, no prop yet — below). `dir` / RTL. Leave room, do not half-build.
 
 Note on `material`: this is the **policy ceiling**, not the per-surface choice. It answers "is translucency allowed in this tree." The per-component `material` prop (section 10) is the usage; Theme caps it. Naming is open (`material` vs `allowTranslucency` vs `materials`).
 
@@ -255,9 +255,12 @@ Note on `material`: this is the **policy ceiling**, not the per-surface choice. 
 
 ### density vs scale
 
-Two different multipliers, both default 1, both Theme props, do not collapse:
-- `scale` = global zoom (everything grows together)
-- `density` = control compactness only (height + spacing); type stays on its own font-size tokens
+Two different ideas, deliberately not collapsed, and only one of them ships:
+
+- **`density` = breathing room at a fixed type size.** A designed set per level (section 12), a real Theme prop. Grows the box, holds the label. This is the case people actually reach for, and it is why `size` (which moves type too) is the wrong tool for a taller button.
+- **`scale` = global zoom, type included.** Still a multiplier: `--scale` defaults to 1 and stays wired through every length token, so the door is open and anyone can set it. There is no Theme prop yet. Global magnification is browser zoom's job today, and shipping a knob whose steps nobody has needed would make it the one factor in the system producing arbitrary products. At `--scale: 1` every token resolves to exactly its designed integer, so keeping the wiring costs bytes and nothing else.
+
+If `scale` ever earns an API it arrives as designed steps, the way density did, not as a free number. That change would strip the multiplier from the calcs, so the current wiring is a cheap bet on the cheap model, reversible in one generator edit.
 
 ---
 
@@ -691,6 +694,8 @@ Theme props drive the factors, the color hue, and the material policy at the top
 
 **The rule users follow:** consume the numbered tokens and the semantic axes; control them via Theme props. Never redefine a resolved token (`--radius-3: 10px` leaves the system). The `calc()` and the color compilation live inside our layer where users do not touch them. Private `--kk-*` mechanism vars (the responsive remap plumbing, section 2) are not part of the contract: undocumented, unstable.
 
+**`--scale` is reserved, not public.** It stays unprefixed because it belongs to the factor family beside `--density` and `--radius-factor` and is intended to become public if it ever earns a Theme prop (section 5); `--kk-*` is for plumbing that never will. Until then it is undocumented and unsupported: set it and you own the fractional values that result.
+
 **Tailwind bridge (optional, sanctioned):** for teams that keep Tailwind in app code, ship a preset mapping its theme onto our variables (`spacing: { 4: "var(--space-4)" }`, colors onto `--accent-N`, …). The threat Tailwind poses to the system is its parallel token scale, not its syntax; with the preset, even `mt-4` written by a defector resolves through the token contract and reflows with the Theme. Our own components never use it.
 
 ---
@@ -769,7 +774,7 @@ Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-
 **API:**
 - Naming of the per-component escape prop (`UNSAFE_` vs `override`). The name is the deterrent.
 - **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end) and whether surface padding takes density (lands at Card). Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
-- **Scale: fractions or not.** `--scale` stays a free multiplier, so it still produces arbitrary products even with density resolved. Options: accept them (Radix's model), wrap consuming tokens in CSS `round()`, or make scale discrete designed sets the way density now is.
+- **Scale: if it ever ships.** The factor stays wired and the prop is deferred (sections 5, 13). Reopen only when a real need names the steps, and ship it as designed steps rather than a free multiplier.
 - RTL / `dir`. Deferred, architectural room left.
 
 **Feel (not ratios):**
