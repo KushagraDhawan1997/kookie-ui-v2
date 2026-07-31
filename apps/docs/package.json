@@ -1,0 +1,6 @@
+{
+  "name": "docs",
+  "private": true,
+  "type": "module",
+  "description": "Docs app stub. Framework undecided (Next/Astro/Vite); chosen when the first component needs a showcase."
+}

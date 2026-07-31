@@ -1,0 +1,58 @@
+{
+  "name": "@kookie-ui/react",
+  "version": "0.0.0",
+  "description": "KookieUI v2. Base UI primitives behind a Kookie-owned API, generated OKLCH color, token-only styling.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KushagraDhawan1997/kookie-ui-v2.git",
+    "directory": "packages/ui"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown && node scripts/build-css.mjs",
+    "test": "vitest run",
+    "lint": "eslint src scripts && tsc -p tsconfig.json",
+    "measure": "node scripts/measure-css.mjs"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "browserslist": "^4.24.0",
+    "eslint": "^9.30.0",
+    "lightningcss": "^1.30.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tsdown": "^0.22.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.35.0",
+    "unrun": "^0.3.1",
+    "vitest": "^4.1.0"
+  },
+  "browserslist": [
+    "defaults and fully supports es6-module"
+  ]
+}

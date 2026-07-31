@@ -1,0 +1,24 @@
+{
+  "name": "kookie-ui-v2",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "measure": "turbo run measure",
+    "lint:root": "eslint .",
+    "ci": "turbo run build test lint measure && pnpm run lint:root",
+    "changeset": "changeset"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.0",
+    "eslint": "^9.30.0",
+    "turbo": "^2.5.0",
+    "typescript-eslint": "^8.35.0"
+  }
+}

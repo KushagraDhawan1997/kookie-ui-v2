@@ -4,9 +4,9 @@ Ground-up rebuild of KookieUI. Base UI primitives behind a Kookie-owned API, gen
 
 ## State
 
-Docs only. **No code until the blockers in `docs/REVIEW.md` are resolved in `docs/DECISIONS.md`.** Do not scaffold packages, do not write components, do not "just prototype" past this gate.
+Blockers resolved 2026-07-31; code phase open, following §14's build order strictly. Scaffold (step 1) done; next is step 2, the token pipeline. **Button (step 5) stays gated** on focus-visible, disabled/loading, motion, icon sizing (REVIEW.md resolution log). Do not run ahead of a §14 measurement gate.
 
-Read order: `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (blockers) → `docs/ENGINEERING.md` (how we build).
+Read order: `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build).
 
 ## Non-negotiables
 
@@ -30,4 +30,10 @@ Read order: `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (blockers) → `
 
 ## Commands
 
-None yet (docs-only). Planned stack: pnpm + Turborepo + tsdown + Lightning CSS + Changesets + Vitest. Update this section the day the scaffold lands — commands first, exact invocations.
+From repo root (pnpm 10 / Node 22; turbo fans out to packages):
+
+- `pnpm run ci` — build + test + lint + budget gate, the full check; run before claiming any task done
+- `pnpm run build` — tsdown (JS + d.ts) then Lightning CSS bundle to `dist/styles.css`
+- `pnpm run test` — Vitest (node env; browser-mode project arrives with Box, §14 step 3)
+- `pnpm run lint` — ESLint + `tsc --noEmit`
+- `pnpm run measure` — CSS budget gate; the number lives in `packages/ui/budget.json` only

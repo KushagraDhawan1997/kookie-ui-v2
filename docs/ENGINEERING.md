@@ -23,6 +23,7 @@ Companion to `DECISIONS.md` (the spec) and `REVIEW.md` (the audit). Section refe
 ```
 packages/ui/
   src/
+    styles/          index.css — the CSS entry point, imports only
     tokens/          generated output + generator config (color, space, radius, type)
     theme/           Theme component, appearance/hydration
     system/          the shared mechanisms: prop table + resolver, recipes, state rule
@@ -42,6 +43,7 @@ apps/docs/
 
 ## 3. Naming
 
+- **Package:** published as `@kookie-ui/react`; the styles entry is `@kookie-ui/react/styles.css`.
 - **Files:** kebab-case (`icon-button.tsx`). **Exports:** PascalCase components, camelCase functions, no default exports.
 - **Public tokens** (the §13 contract): unprefixed, as written in the spec — `--space-4`, `--radius-control-2`, `--accent-9`, `--accent-solid`.
 - **Private mechanism vars** (responsive remap, internal plumbing): `--kk-*`. Undocumented, unstable, never for consumers.
