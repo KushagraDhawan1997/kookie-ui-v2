@@ -3,8 +3,10 @@
  * three levels cannot be judged by reading a config file, and the numbers are taste, so
  * the matrix is the gate on correcting them (§12, open questions).
  *
- * It draws boxes from the tokens directly rather than from components, because there are
- * no components yet and because a token preview should not depend on one.
+ * The density matrix draws boxes from the tokens directly — a token preview should not
+ * depend on a component. The layout section goes one layer up: the real resolver against
+ * the shipped stylesheet, since the runner cannot parse JSX to mount the components
+ * themselves (those are covered in the browser suite).
  *
  * Run: node --experimental-strip-types src/tokens/preview.ts
  */
@@ -16,6 +18,21 @@ import { tones, type Mode, type ToneName } from "./color-config.ts";
 import { buildScale, buildScaleFor, toneFromColor, type Scale } from "./color.ts";
 
 import { density, radiusLevels, type DensityLevel } from "./config.ts";
+import { resolveBoxProps, type BoxStyleProps } from "../system/resolve.ts";
+
+/**
+ * A Box the way the components make one: the REAL resolver emits the inline custom
+ * properties, the shipped stylesheet arbitrates them. Only React itself is absent from this
+ * page (the runner cannot parse JSX), so what the layout section proves is the whole
+ * mechanism minus the element wrapper the browser suite already covers.
+ */
+function kkBox(props: BoxStyleProps, body: string): string {
+  const { style } = resolveBoxProps(props);
+  const inline = Object.entries(style)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join("; ");
+  return `<div class="kk-box" style="${inline}">${body}</div>`;
+}
 
 /**
  * A sweep of arbitrary brand hues, none of them shipped tones. This is where the one-law
@@ -223,6 +240,7 @@ export function generatePreview(): string {
 <meta charset="utf-8">
 <title>KookieUI density x size</title>
 <link rel="stylesheet" href="../src/tokens/tokens.css">
+<link rel="stylesheet" href="../src/system/layout.css">
 <style>
   body { font-family: var(--font-body); margin: 0; padding: var(--space-9); background: #fff; color: #111; }
   h1 { font-size: var(--font-size-6); margin: 0 0 var(--space-3); }
@@ -273,6 +291,11 @@ export function generatePreview(): string {
   .live > div { padding: var(--space-3) var(--space-5); border-radius: var(--radius-control-2);
                 font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
   .chip { display: block; width: 22px; height: 22px; border-radius: var(--radius-2); border: 1px solid #0001; }
+  .rig { resize: horizontal; overflow: auto; width: 560px; min-width: 240px; max-width: 100%;
+    border: 1px dashed #b6b6c2; border-radius: var(--radius-surface); margin-top: var(--space-4); }
+  .cell { padding: var(--space-4); background: var(--accent-3); border: 1px solid var(--accent-6);
+    border-radius: var(--radius-control-2); color: var(--accent-text); text-align: center;
+    font: 500 var(--font-size-2)/var(--line-height-2) var(--font-body); }
 </style>
 </head>
 <body>
@@ -304,6 +327,30 @@ ${LEVELS.map(
 <div class="surfaces">
   <div class="surface" style="border-radius: var(--radius-surface)">--radius-surface (card, popover)</div>
   <div class="surface" style="border-radius: var(--radius-overlay)">--radius-overlay (dialog, sheet)</div>
+</div>
+
+<h1 style="margin-top: var(--space-11)">the responsive mechanism, live</h1>
+<p class="note">Rendered through the real resolver against the shipped stylesheet — the exact markup Flex, Grid and Stack produce. Values ride on each element as inline custom properties; the stylesheet only arbitrates which tier's value wins. <strong>Drag a handle</strong>: tiers key on the slot's width (<code>sm</code> 30rem, <code>md</code> 48rem), never the window's — the same Grid is correct in a drawer and a main column (§2).</p>
+
+<p class="note">A Grid: <code>columns={{ initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}</code>, gap steps up at md.</p>
+<div class="rig">
+${kkBox(
+  {
+    display: "grid",
+    columns: { initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
+    gap: { initial: "3", md: "5" },
+    p: "4",
+  },
+  Array.from({ length: 8 }, (_, i) => `<div class="cell">${i + 1}</div>`).join(""),
+)}
+</div>
+
+<p class="note">A Flex switching axis: <code>direction={{ initial: "column", md: "row" }}</code> — a structural keyword riding the same pipe as spacing, which is why this is not a spacing mechanism.</p>
+<div class="rig">
+${kkBox(
+  { display: "flex", direction: { initial: "column", md: "row" }, gap: "3", p: "4" },
+  ["nav", "content", "aside"].map((n) => `<div class="cell" style="flex: 1">${n}</div>`).join(""),
+)}
 </div>
 
 <h1 style="margin-top: var(--space-11)">the role layer</h1>
