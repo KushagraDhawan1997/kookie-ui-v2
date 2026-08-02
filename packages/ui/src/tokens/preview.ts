@@ -169,9 +169,14 @@ function accentSwap(name: string, hex: string, mode: Mode): string {
   // page-wide contrast toggle, which made these blocks the one place contrast="high"
   // silently did nothing. The high variant is baked beside the normal one instead.
   const cls = `swap-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${mode}`;
+  // The second selector is load-bearing: custom properties resolve from the NEAREST ancestor,
+  // and the dark section carries data-appearance="dark", where tokens.css re-declares the
+  // whole theme accent family — closer than this wrapper, so a wrapper-only rule loses and
+  // every dark block silently rendered theme violet. Re-asserting below the appearance
+  // boundary is exactly what a nested Theme with its own accent would do.
   return `<style>
-    .${cls} { ${vars(buildScaleFor(t, mode))} }
-    :root[data-contrast="high"] .${cls} { ${vars(buildScaleFor(t, mode, "srgb", "high"))} }
+    .${cls}, .${cls} [data-appearance] { ${vars(buildScaleFor(t, mode))} }
+    :root[data-contrast="high"] .${cls}, :root[data-contrast="high"] .${cls} [data-appearance] { ${vars(buildScaleFor(t, mode, "srgb", "high"))} }
   </style><div class="${cls}">${buttonMatrix(mode, ["accent"], `${name} — ${hex} — ${mode}`)}</div>`;
 }
 
