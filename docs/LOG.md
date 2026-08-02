@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-03 44 was never the floor, and dropping that error removes a mechanism
+
+Kushagra, reading the coarse matrix: a coarse compact size 1 at 32px is a *conscious* design choice, a consumer reaching for size 1 is doing it deliberately, and raising it to 44 to satisfy a floor destroys the reason they reached for it. Correct — and checking the premise made it stronger than a compromise.
+
+**WCAG 2.2 SC 2.5.8 *Target Size (Minimum)* is 24×24 CSS px at Level AA.** That is the enforceable requirement. The 44×44 number is SC 2.5.5 *Target Size (Enhanced)* at Level AAA, and Apple's HIG figure. §16 had been written treating AAA as the locked floor, which is the "false precision" failure THESIS §4 names — asserting a stricter standard than the evidence supports, and then building machinery to satisfy the overstatement.
+
+Refiled by tier: **24 is locked** — no designed cell in any pointer world at any density may cross it, and the system's smallest control (fine, compact, size 1) sits at exactly 24. **44 is the opt-out default** — default density, size 2, coarse, which is what a consumer gets without choosing anything. Going below takes two deliberate acts: asking for size 1, or setting a denser theme.
+
+**The consequence is a mechanism deleted.** With both guarantees carried by the designed geometry, no control needs a layout box that differs from its painted box, so no control needs a second element to paint into. The `max()` reserve is dropped; Button is one element plus its content slots, which is what "minimise layers" actually requires. The reserve only ever earns its keep for something whose visual size is genuinely below 24 — a Checkbox glyph — and that is a Checkbox decision.
+
+Two laws replace it: every cell clears 24 in both worlds, and the default path clears 44 in geometry alone.
+
+Rejected: raising coarse size 1 to the floor (erases the size index exactly where someone reached for it); a per-control `max()` reserve (a runtime mechanism compensating for a misread standard); keeping 44 filed as tier 1 (it is a target, not a requirement, and calling it locked would make every deliberate small control a violation).
+
 ## 2026-08-02 The pre-Button states close, and loading refuses to eat the label
 
 Four of Button's five gates decided in one pass (§8, §4); motion deferred to its own discussion without gating — Button ships on §8's single canonical transition.

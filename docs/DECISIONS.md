@@ -893,15 +893,16 @@ Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-
 
 Sorted by the governance tiers (THESIS §7):
 
-### Locked: the touch floor
+### Two target sizes, and they are different tiers (corrected 2026-08-03)
 
-Every interactive target under a coarse pointer presents at least **44px** (Apple HIG 44pt; Material 48dp; fingerpad anthropometry). Encoded twice:
+The distinction the earlier draft got wrong: **44 is not the accessibility floor.** WCAG 2.2 SC 2.5.8 *Target Size (Minimum)* is **24×24 CSS px at Level AA** — that is the enforceable requirement. The 44×44 figure is SC 2.5.5 *Target Size (Enhanced)* at Level AAA, and Apple's HIG number. Treating AAA as the floor made the system look like it needed a runtime mechanism it does not.
 
-- **The visible geometry**: the coarse control-height set places most sizes at or above 44 by design.
-- **The reserve**: the layout box is `max(44px, var(--control-height-N))`; the visual fill paints at the token, centered. Sizes designed to stay small (a coarse size 1) keep their distinct look while the floor holds — the reserve covers the remainder invisibly, and because it reserves layout space rather than overlapping neighbours, the collision problem of hit-area expansion does not exist. Layouts get taller under touch; that is correct, not a cost.
-- The floor is a `max()` in the token itself, so no consumer root-font-size games or theme override can drag a target below it. The law test asserts the rendered box, not the token text.
+- **Locked (tier 1): 24px.** No designed cell in any pointer world at any density may fall below it. The smallest control in the system — fine, compact, size 1 — sits at exactly 24. Law-tested across every cell.
+- **Opt-out default (tier 2): 44px on the default path.** Default density, size 2, coarse pointer renders 44. That is what a consumer gets without thinking, which is the whole inversion (THESIS §7). Going below it takes two deliberate acts — asking for size 1, or setting a denser theme — and a smaller control in a specific place is a legitimate design choice, not a defect.
 
-This applies to **interactive surfaces too**: a table row, list item, or clickable card is "a ghost-emphasis control wearing a container" (§10), which makes it a tap target, which makes a 32px row under touch the same defect as a 32px button. They inherit the floor through the control machinery they already reuse.
+**No runtime reserve.** The geometry alone carries both guarantees, which means no control needs a layout box that differs from its painted box, which means **no control needs a second element** — Button is one element plus its content slots. The `max()` reserve considered earlier is dropped; it only ever earns its keep for something whose *visual* size is genuinely below 24 (a Checkbox glyph), and that is a Checkbox decision, not a system one.
+
+Interactive surfaces — a table row, list item, clickable card, "a ghost-emphasis control wearing a container" (§10) — inherit the same designed geometry through the control machinery they already reuse.
 
 ### Opt-out default: the coarse geometry
 
@@ -927,19 +928,19 @@ pointer:    fine  | coarse | auto     (default auto)
 
 ### Taste: every number
 
-The v0 coarse heights (default density) — size 2 anchors at the floor, size 1 stays deliberately under it on the reserve:
+The v0 heights. Size 2 at default density is the path a consumer lands on without choosing anything, so it carries the 44 target; the rest are placed around it:
 
 | | 1 | 2 | 3 | 4 |
 |---|---|---|---|---|
-| fine | 28 | 32 | 40 | 48 |
-| coarse (v0) | 36 | 44 | 52 | 60 |
+| fine — compact / default / comfortable | 24 / 28 / 34 | 28 / 32 / 40 | 34 / 40 / 50 | 40 / 48 / 60 |
+| coarse — compact / default / comfortable | 32 / 36 / 40 | 38 / **44** / 48 | 46 / 52 / 58 | 54 / 60 / 68 |
 
-All numbers await the (size × density × pointer) preview matrix, like density's did.
+Sizes below 44 under coarse are deliberate: a size-1 control in a dense toolbar is a design choice a consumer makes on purpose, it clears the AA floor with room, and pulling it up to 44 would erase the size index exactly where someone reached for it. All numbers await the (size × density × pointer) preview matrix, like density's did.
 
 ### Open
 
-- Every coarse value; the body-type question above; whether compact-coarse leans harder on the reserve.
-- **The `any-pointer` split (proposal, needs a device pass):** visible geometry keys off `pointer: coarse` (primary input), but the reserve could key off `any-pointer: coarse` so a touchscreen laptop gets the floor without ever looking like a phone. Unvalidated; the reserve does occupy layout, so "invisible" is only true where controls already clear 44.
+- Every coarse value; the body-type question above.
+- **The `any-pointer` split (proposal, needs a device pass):** the visible geometry keys off `pointer: coarse` (primary input). Whether a touchscreen laptop should get anything from `any-pointer: coarse` is unresolved — and with the reserve dropped there is no longer an invisible mechanism to give it, so this now means "should a hybrid device get the coarse geometry outright," which is a bigger question with a real visual cost.
 - Budget impact: cells roughly double across the control families. Measured when generated, not estimated.
 
 Rejected: rem-derived geometry from a root font-size switch (one root scales gutters and type together — a multiplier by the back door, and gutters must not grow on phones); the floor as `max()` on the *height* token (flattens size 1 and 2 into the same rendered box, collapsing the index); invisible hit-area expansion via pseudo-element (its safe extent depends on neighbour gaps, which CSS cannot read — clamping was guesswork and overlap was silent); responsive `size` as the mechanism (opt-in, so the floor would depend on every author remembering — the inversion THESIS §7 exists to prevent); width or breakpoints as the signal in any capacity.
@@ -971,7 +972,7 @@ Rejected: rem-derived geometry from a root font-size switch (one root scales gut
 
 **API:**
 - Naming of the per-component escape prop (`UNSAFE_` vs `override`). The name is the deterrent.
-- **Pointer: the numbers and the type question.** The coarse sets' values, whether body text shifts under coarse or only control labels, and the `any-pointer` reserve split — all §16, all judged in the 4b matrix.
+- **Pointer: the numbers and the type question.** The coarse sets' values, whether body text shifts under coarse or only control labels, and whether a hybrid device gets the coarse geometry at all (`any-pointer`) — all §16, numbers judged in the 4b matrix.
 - **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end) and whether surface padding takes density (lands at Card). Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
 - **Scale: if it ever ships.** The factor stays wired and the prop is deferred (sections 5, 13). Reopen only when a real need names the steps, and ship it as designed steps rather than a free multiplier.
 - RTL / `dir`. Deferred, architectural room left.

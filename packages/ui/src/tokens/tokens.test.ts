@@ -29,6 +29,9 @@ import { generateTokens } from "./generate.ts";
 const css = generateTokens();
 const increasing = (xs: readonly number[]) => xs.every((v, i) => i === 0 || v > xs[i - 1]!);
 
+/** WCAG 2.2 SC 2.5.8 Target Size (Minimum), Level AA. Not 44 — that is SC 2.5.5, Level AAA. */
+const TARGET_FLOOR_AA = 24;
+
 /**
  * The body of one rule, bounded at its closing brace so it cannot bleed into the next block.
  *
@@ -217,10 +220,22 @@ describe("the pointer axis is a second designed geometry (§16)", () => {
     }
   });
 
-  it("the baseline control clears the touch floor by design, not by reserve", () => {
-    // Size 2 is the anchor (§16). Size 1 is ALLOWED under the floor — the reserve covers it —
-    // so this deliberately asserts only the anchor.
+  it("the default path clears the enhanced 44 target, in geometry alone", () => {
+    // What a consumer gets without thinking: default density, size 2, coarse pointer. That is
+    // WCAG 2.5.5 / HIG 44 — the AAA target — met by the designed set, with no runtime reserve
+    // and therefore no second element inside any control (§16).
     expect(coarse.default.height[1]!).toBeGreaterThanOrEqual(touchTargetMin);
+  });
+
+  it("NO designed cell anywhere falls below the WCAG 2.2 AA minimum of 24", () => {
+    // The actual locked floor (SC 2.5.8, Level AA). 44 is SC 2.5.5 at AAA and is an opt-out
+    // default, not a law: choosing size 1 or a denser theme is a deliberate, informed step
+    // below it. 24 is the one nothing may cross, in either pointer world.
+    for (const world of [density, coarse]) {
+      for (const level of Object.keys(world) as DensityLevel[]) {
+        for (const h of world[level].height) expect(h).toBeGreaterThanOrEqual(TARGET_FLOOR_AA);
+      }
+    }
   });
 
   it("ships the floor as a token, raw px, unscaled", () => {

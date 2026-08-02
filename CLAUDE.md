@@ -6,7 +6,7 @@ Ground-up rebuild of KookieUI. Base UI primitives behind a Kookie-owned API, gen
 
 Blockers resolved 2026-07-31; code phase open, following §14's build order strictly.
 
-Done: scaffold (1), token pipeline including the colour generator (2), Box and the responsive mechanism (3), Theme + Flex/Stack/Grid (4), and the pointer axis tokens (4b) — coarse cells, Theme `pointer` prop, preview matrix, laws; the reserve and the rendered-floor law land with Button, which is where a control first exists. Theme shipped with dark-mode SSR still unresolved (REVIEW.md); that debt comes due at apps/docs.
+Done: scaffold (1), token pipeline including the colour generator (2), Box and the responsive mechanism (3), Theme + Flex/Stack/Grid (4), and the pointer axis tokens (4b) — coarse cells, Theme `pointer` prop, preview matrix, laws. No runtime touch reserve: the designed geometry carries both the locked 24 floor (WCAG 2.2 AA) and the 44 target on the default path, so every control is one element. Theme shipped with dark-mode SSR still unresolved (REVIEW.md); that debt comes due at apps/docs.
 
 **Next: Button (step 5), on Base UI — the first runtime dependency.** All gates cleared 2026-08-02: focus-visible, disabled, loading (label never hides), icon box (§8, §4); motion deferred without gating; coarse v0 accepted as refinable; Theme is a query container (§2). Button's own gate is the exit measurement: its CSS must prove variant-as-token-remap before any other control ships.
 
