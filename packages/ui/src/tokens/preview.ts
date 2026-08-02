@@ -409,7 +409,9 @@ export function generatePreview(): string {
      The dark colour sections carry data-appearance="dark" and get their surface for free —
      the same rule, the tokens re-declared. Hard-coded values below are structural only. */
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--neutral-1); color: var(--neutral-12);
+  /* White chrome; only the mode blocks are app pages (neutral-1), so light blocks read as
+     regions and the seal inside them still has the page colour to stand above. */
+  body { margin: 0; background: #ffffff; color: var(--neutral-12);
          font: var(--font-weight-regular) var(--font-size-2)/var(--line-height-2) var(--font-body); }
   main { max-width: 1240px; margin: 0 auto; padding: clamp(16px, 4vw, 48px); }
   code { font-family: var(--font-mono); font-size: 0.92em; }
