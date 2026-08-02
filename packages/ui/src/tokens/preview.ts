@@ -13,7 +13,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { tones, type Mode, type ToneName } from "./color-config.ts";
-import { buildScale, buildScaleFor } from "./color.ts";
+import { buildScale, buildScaleFor, type Scale } from "./color.ts";
 
 import { density, radiusLevels, type DensityLevel } from "./config.ts";
 
@@ -56,8 +56,7 @@ function hueSweep(mode: Mode): string {
 const TONES = Object.keys(tones) as ToneName[];
 
 /** Twelve steps, the alpha ramp over the mode's backdrop, and the roles that consume them. */
-function scaleRow(tone: ToneName, mode: Mode): string {
-  const s = buildScale(tone, mode);
+function scaleRow(tone: string, s: Scale): string {
   const swatch = (bg: string, title: string, label = "") =>
     `<div class="sw" title="${title}" style="background:${bg}">${label}</div>`;
 
@@ -87,7 +86,15 @@ function scaleRow(tone: ToneName, mode: Mode): string {
 function colorSection(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>${mode}</h2>
-    ${TONES.map((t) => scaleRow(t, mode)).join("")}
+    ${TONES.map((t) => scaleRow(t, buildScale(t, mode))).join("")}
+  </section>`;
+}
+
+/** The sweep at the depth the shipped tones get, for judging one hue rather than the family. */
+function sweepFull(mode: Mode): string {
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>every hue — ${mode}</h2>
+    ${SWEEP.map(([name, hue, vividness]) => scaleRow(name, buildScaleFor({ hue, vividness }, mode))).join("")}
   </section>`;
 }
 
@@ -188,6 +195,11 @@ ${colorSection("light")}
 ${colorSection("dark")}
 ${hueSweep("light")}
 ${hueSweep("dark")}
+
+<h1 style="margin-top: var(--space-11)">every hue, full scale</h1>
+<p class="note">The same twelve hues at the depth the shipped tones get: all twelve steps, the alpha ramp beneath them, then the roles a component actually consumes. Nothing here is hand-placed. Every row is one generator with a different hue angle.</p>
+${sweepFull("light")}
+${sweepFull("dark")}
 
 <script>
   document.getElementById("icons").addEventListener("change", (e) => {
