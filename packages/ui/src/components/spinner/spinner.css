@@ -1,23 +1,22 @@
-/* A busy indicator that costs one element and no JS (§8).
+/* A busy indicator that costs one composited transform and no JS (§8).
  *
- * Border-and-rotate rather than SVG: no markup to parse, no path to rasterise, one compositor-
- * friendly transform. It inherits `currentColor`, so it is the label's colour for free in every
- * tone, emphasis and mode without a single token reference of its own. */
+ * The spokes are geometry in the component, not CSS: a conic gradient can only cut angular
+ * wedges, and this shape is parallel-sided bars. They are static — rasterised once, then
+ * rotated as a whole — so what runs per frame is a single transform.
+ *
+ * `steps(12)` is the look, not a detail: the indicator ticks from spoke to spoke rather than
+ * sweeping, which is what distinguishes it from a spinning arc. */
 
 .kui-spinner {
   display: inline-block;
   flex: none;
-  /* Load-bearing: without it the 2px ring sits OUTSIDE the icon box and a loading button is
-     4px wider than the same button at rest — the zero-shift promise, broken by a default. */
-  box-sizing: border-box;
   /* The icon box, so a spinner swapped in for an icon shifts nothing (§4). Falls back for a
      bare <Spinner /> used outside a control. */
   width: var(--kui-icon, var(--icon-size-2));
   height: var(--kui-icon, var(--icon-size-2));
-  border: 2px solid transparent;
-  border-top-color: currentColor;
-  border-radius: var(--radius-full);
-  animation: kui-spin 600ms linear infinite;
+  /* The whole point of drawing it in currentColor: no token, correct in every context. */
+  fill: currentColor;
+  animation: kui-spin 1s steps(12) infinite;
 }
 
 @keyframes kui-spin {
@@ -30,6 +29,6 @@
    vestibular guidance targets large motion rather than a 16px rotation (§8). */
 @media (prefers-reduced-motion: reduce) {
   .kui-spinner {
-    animation-duration: 1800ms;
+    animation-duration: 3s;
   }
 }

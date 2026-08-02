@@ -74,6 +74,15 @@ const TONES = Object.keys(tones) as ToneName[];
 
 const EMPHASES = ["loud", "medium", "quiet"] as const;
 
+/** The Spinner's markup, mirroring the component (this file cannot parse JSX). */
+function spinner(style = ""): string {
+  const spokes = Array.from({ length: 12 }, (_, i) => {
+    const opacity = (1 - (i / 12) * 0.85).toFixed(2);
+    return `<rect x="11" y="2" width="2" height="5.5" rx="1" opacity="${opacity}" transform="rotate(${i * 30} 12 12)"/>`;
+  }).join("");
+  return `<svg viewBox="0 0 24 24" aria-hidden class="kui-spinner"${style ? ` style="${style}"` : ""}>${spokes}</svg>`;
+}
+
 /**
  * A Button as the component renders it: same classes, same data attributes, same stylesheet.
  * Written by hand here only because this file cannot parse JSX — the mounted component is
@@ -87,7 +96,7 @@ function button(
   return `<button class="kui-control kui-button" data-size="${size}" data-tone="${tone}" data-emphasis="${emphasis}"${
     bordered ? ' data-bordered="true"' : ""
   }${loading ? ' data-loading="true" aria-busy="true"' : ""}>${
-    loading ? '<span class="kui-spinner" aria-hidden></span>' : ""
+    loading ? spinner() : ""
   }${label}</button>`;
 }
 
@@ -445,6 +454,12 @@ ${buttonMatrix("dark")}
   ${button({ emphasis: "loud", tone: "accent" }, "Save")}
   ${button({ emphasis: "loud", tone: "accent", loading: true }, "Save")}
   ${button({ size: "4", emphasis: "loud", tone: "accent", loading: true }, "Save")}
+</div>
+
+<p class="note">The Spinner alone, at each icon box and blown up — twelve spokes, a rotating fade and a stepped tick, drawn by two gradients on <em>one</em> element. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
+<div class="row-controls">
+  ${[1, 2, 3, 4].map((s) => spinner(`--kui-icon: var(--icon-size-${s})`)).join("")}
+  ${spinner("--kui-icon: 96px")}
 </div>
 
 <h1 id="layout">the responsive mechanism, live</h1>

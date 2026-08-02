@@ -35,9 +35,14 @@
   color: var(--kui-label-color);
   border: 1px solid var(--kui-border-color, transparent);
 
-  cursor: default;
+  cursor: var(--cursor-button);
   user-select: none;
+  /* Two separate mobile defects, both felt rather than seen: the browser's grey flash on tap,
+     and — the worse one — double-tap-to-zoom, which makes every control feel laggy and
+     occasionally zooms the page instead of firing. `manipulation` keeps scroll and pinch
+     while dropping the double-tap gesture the element never wanted. */
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition:
     background-color var(--motion-duration) var(--motion-easing),
     border-color var(--motion-duration) var(--motion-easing),
@@ -150,7 +155,7 @@
    every generated contrast guarantee, where remapping the family keeps a designed, testable
    pair. Rewriting --tone-* rather than --kui-fill means quiet stays bare and every rung keeps
    its own shape while going flat. */
-.kui-control[data-disabled] {
+.kui-control[data-disabled]:not([data-loading]) {
   --tone-soft: var(--neutral-3);
   --tone-soft-hover: var(--neutral-3);
   --tone-soft-active: var(--neutral-3);
@@ -163,7 +168,10 @@
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,
-   because it is still the thing you pressed (§8). */
+   because it is still the thing you pressed (§8). Activation is blocked by the native
+   `disabled` attribute rather than `pointer-events: none` — an element that takes no pointer
+   events also shows no cursor, and the busy cursor is the feedback that the click landed.
+   Disabled elements still hit-test for `cursor`, which is what makes this work. */
 .kui-control[data-loading] {
-  pointer-events: none;
+  cursor: var(--cursor-loading);
 }

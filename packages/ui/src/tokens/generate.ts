@@ -15,6 +15,7 @@ import { tones, type ToneName } from "./color-config.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
   coarse,
+  cursor,
   defaultRadiusLevel,
   density,
   fontFamily,
@@ -73,6 +74,10 @@ export function generateTokens(): string {
   lines.push("", "  /* §8's one canonical interaction transition — not a motion scale */");
   put("motion-duration", motion.duration);
   put("motion-easing", motion.easing);
+
+  lines.push("", "  /* §8 — pointer feedback; `button` is the contested one, so it is overridable */");
+  put("cursor-button", cursor.button);
+  put("cursor-loading", cursor.loading);
 
   lines.push("", "  /* semantic: surfaces have no size index — flat tokens (§6) */");
   put("radius-surface", `var(--radius-${radiusSurface})`);

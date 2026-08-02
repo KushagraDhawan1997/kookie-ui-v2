@@ -159,6 +159,22 @@ export const motion = {
   easing: "cubic-bezier(0.22, 1, 0.36, 1)",
 } as const;
 
+/**
+ * §8 — the pointer's own feedback, tokenised because the first one is genuinely contested.
+ *
+ * Native desktop buttons use an arrow, and a purist reading says the hand belongs to links.
+ * On the web that distinction collapsed decades ago: users read the hand as "this responds",
+ * and every system a consumer has used — Primer, Material, Ant, Bootstrap — shows it. The
+ * human factor here is a learned convention, and refusing it makes a control read as inert.
+ *
+ * `progress` rather than `wait` while loading: it says the system is busy but the interface
+ * still is not frozen, which is exactly the state a loading button is in.
+ */
+export const cursor = {
+  button: "pointer",
+  loading: "progress",
+} as const;
+
 /** §15 — closed weight set; `light` deferred until something needs it. */
 export const fontWeight = { regular: 400, medium: 500, semibold: 600, bold: 700 } as const;
 

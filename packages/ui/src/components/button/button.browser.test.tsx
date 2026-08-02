@@ -156,12 +156,33 @@ describe("states are stylesheet work, and the DOM stays honest (§8, ENGINEERING
 });
 
 describe("loading keeps the label, which is the whole rule (§8)", () => {
-  it("announces busy, blocks interaction, and never hides the text", () => {
-    const el = render(<Button loading>Save</Button>);
+  it("announces busy, blocks activation, and never hides the text", () => {
+    let clicks = 0;
+    const el = render(
+      <Button loading onClick={() => (clicks += 1)}>
+        Save
+      </Button>,
+    );
     expect(el.getAttribute("aria-busy")).toBe("true");
-    expect(computed(el, "pointer-events")).toBe("none");
     expect(el.textContent).toBe("Save");
     expect(el.querySelector(".kui-spinner")).not.toBeNull();
+
+    // The behaviour, not the mechanism: Base UI blocks activation through `aria-disabled`
+    // rather than the native attribute, because native `disabled` would drop the button out
+    // of the tab order and defeat focusableWhenDisabled.
+    el.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(clicks).toBe(0);
+    expect(el.getAttribute("aria-disabled")).toBe("true");
+  });
+
+  it("shows the busy cursor, which pointer-events: none would have made impossible", () => {
+    expect(computed(render(<Button loading>Save</Button>), "cursor")).toBe("progress");
+    expect(computed(render(<Button>Save</Button>), "cursor")).toBe("pointer");
+  });
+
+  it("keeps the keyboard when a press flips it into loading", () => {
+    // A click that starts a request must not dump focus, which is what plain `disabled` does.
+    expect(render(<Button loading>Save</Button>).getAttribute("tabindex")).not.toBe("-1");
   });
 
   it("swaps the icon for the spinner in the same box, so nothing shifts", () => {
@@ -175,12 +196,13 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
         Save
       </Button>,
     );
-    expect(idle.querySelectorAll("svg").length).toBe(1);
-    expect(busy.querySelectorAll("svg").length).toBe(0);
+    // The spinner is itself an svg, so "the icon is gone" has to exclude it by name.
+    expect(idle.querySelectorAll("svg:not(.kui-spinner)").length).toBe(1);
+    expect(busy.querySelectorAll("svg:not(.kui-spinner)").length).toBe(0);
     expect(computed(busy, "width")).toBe(computed(idle, "width"));
 
     const spinner = busy.querySelector(".kui-spinner")!;
-    const icon = idle.querySelector("svg")!;
+    const icon = idle.querySelector("svg:not(.kui-spinner)")!;
     expect(computed(spinner, "width")).toBe(computed(icon, "width"));
   });
 
@@ -192,14 +214,40 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
     );
     const spinner = el.querySelector(".kui-spinner")!;
     expect(computed(spinner, "width")).toBe("24px");
-    expect(computed(spinner, "border-top-color")).toBe(computed(el, "color"));
+    // It fills with currentColor, so it is the label's colour without naming a token (§8).
+    expect(computed(spinner, "fill")).toBe(computed(el, "color"));
+    // Twelve spokes, and the stepped tick that separates this from a spinning arc.
+    expect(spinner.querySelectorAll("rect").length).toBe(12);
+    expect(computed(spinner, "animation-timing-function")).toContain("steps(12");
   });
 
-  it("loading is not disabled — the control still looks like the thing you pressed", () => {
-    const loading = render(<Button loading>Save</Button>);
-    const idle = render(<Button>Save</Button>);
+  it("loading does not LOOK disabled — it is still the thing you pressed", () => {
+    // It carries data-disabled (activation is blocked), but the disabled tone remap excludes
+    // it, so fill and label stay exactly where they were. Tested on loud/accent, where the
+    // disabled neutral is unmistakably different — on medium/neutral the resting fill happens
+    // to BE neutral-3 and the comparison proves nothing.
+    const loading = render(
+      <Button tone="accent" emphasis="loud" loading>
+        Save
+      </Button>,
+    );
+    const idle = render(
+      <Button tone="accent" emphasis="loud">
+        Save
+      </Button>,
+    );
+    const off = render(
+      <Button tone="accent" emphasis="loud" disabled>
+        Save
+      </Button>,
+    );
     expect(computed(loading, "background-color")).toBe(computed(idle, "background-color"));
-    expect(loading.hasAttribute("data-disabled")).toBe(false);
+    expect(computed(loading, "background-color")).not.toBe(computed(off, "background-color"));
+  });
+
+  it("does not light up on hover while busy", () => {
+    const el = render(<Button loading>Save</Button>);
+    expect(computed(el, "background-color")).toBe(computed(render(<Button>Save</Button>), "background-color"));
   });
 });
 

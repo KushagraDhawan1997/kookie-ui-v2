@@ -54,6 +54,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     bordered = false,
     loading = false,
     disabled = false,
+    focusableWhenDisabled,
     icon,
     iconEnd,
     children,
@@ -70,7 +71,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   return (
     <BaseButton
       ref={ref}
-      disabled={disabled}
+      // Loading blocks activation through the native attribute rather than through CSS or a
+      // click handler: no interaction-time JS, and unlike `pointer-events: none` the element
+      // still hit-tests, so the busy cursor shows. `focusableWhenDisabled` is what keeps the
+      // keyboard where it was when a press flips the button into loading (§8).
+      disabled={disabled || loading}
+      focusableWhenDisabled={focusableWhenDisabled ?? loading}
       aria-busy={loading || undefined}
       data-size={size}
       data-tone={tone}
