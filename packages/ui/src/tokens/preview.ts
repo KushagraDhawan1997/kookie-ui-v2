@@ -150,20 +150,27 @@ function buttonMatrix(
  */
 function accentSwap(name: string, hex: string, mode: Mode): string {
   const t = toneFromColor(hex);
-  const s = buildScaleFor(t, mode);
-  const vars = [
-    `--accent-soft: ${s.steps[2]}`,
-    `--accent-soft-hover: ${s.steps[3]}`,
-    `--accent-soft-active: ${s.steps[4]}`,
-    `--accent-solid: ${s.solid}`,
-    `--accent-solid-hover: ${s.solidHover}`,
-    `--accent-solid-active: ${s.solidActive}`,
-    `--accent-border: ${s.steps[6]}`,
-    `--accent-text: ${s.steps[10]}`,
-    `--accent-label: ${s.label}`,
-    `--accent-contrast: ${s.contrast}`,
-  ].join("; ");
-  return `<div style="${vars}">${buttonMatrix(mode, ["accent"], `${name} — ${hex} — ${mode}`)}</div>`;
+  const vars = (s: Scale) =>
+    [
+      `--accent-soft: ${s.steps[2]}`,
+      `--accent-soft-hover: ${s.steps[3]}`,
+      `--accent-soft-active: ${s.steps[4]}`,
+      `--accent-solid: ${s.solid}`,
+      `--accent-solid-hover: ${s.solidHover}`,
+      `--accent-solid-active: ${s.solidActive}`,
+      `--accent-border: ${s.steps[6]}`,
+      `--accent-text: ${s.steps[10]}`,
+      `--accent-label: ${s.label}`,
+      `--accent-contrast: ${s.contrast}`,
+    ].join("; ");
+  // Class rules rather than an inline style: a baked inline value is unreachable by the
+  // page-wide contrast toggle, which made these blocks the one place contrast="high"
+  // silently did nothing. The high variant is baked beside the normal one instead.
+  const cls = `swap-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${mode}`;
+  return `<style>
+    .${cls} { ${vars(buildScaleFor(t, mode))} }
+    :root[data-contrast="high"] .${cls} { ${vars(buildScaleFor(t, mode, "srgb", "high"))} }
+  </style><div class="${cls}">${buttonMatrix(mode, ["accent"], `${name} — ${hex} — ${mode}`)}</div>`;
 }
 
 const swatch = (bg: string, title: string, label = "") =>
