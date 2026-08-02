@@ -235,17 +235,20 @@ const control = (size: number) => `
 
 export function generatePreview(): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="en" data-pointer="auto">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KookieUI density x size</title>
 <link rel="stylesheet" href="../src/tokens/tokens.css">
 <link rel="stylesheet" href="../src/system/layout.css">
 <style>
-  body { font-family: var(--font-body); margin: 0; padding: var(--space-9); background: #fff; color: #111; }
+  body { font-family: var(--font-body); margin: 0; padding: clamp(16px, 4vw, 48px); background: #fff; color: #111; }
   h1 { font-size: var(--font-size-6); margin: 0 0 var(--space-3); }
   p.note { font-size: var(--font-size-2); color: #666; max-width: 60ch; margin: 0 0 var(--space-9); }
-  .grid { display: grid; grid-template-columns: repeat(${LEVELS.length}, max-content); gap: var(--space-10); }
+  /* The judging page has to survive the phone it exists to judge for. */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, max-content)); gap: var(--space-10); }
+  .scroll-x { overflow-x: auto; }
   h2 { font-size: var(--font-size-3); margin: 0 0 var(--space-6); text-transform: lowercase; }
   h2 code { color: #666; font-weight: var(--font-weight-regular); }
   .stack { display: flex; flex-direction: column; align-items: start; gap: var(--space-4); }
@@ -256,11 +259,11 @@ export function generatePreview(): string {
   }
   .icon { width: 1em; height: 1em; border-radius: 2px; background: #9a9aa6; flex: none; }
   body:not(.icons) .icon { display: none; }
-  .toggle { font-size: var(--font-size-2); color: #666; margin: 0 0 var(--space-9); display: flex; gap: var(--space-7); align-items: center; }
+  .toggle { font-size: var(--font-size-2); color: #666; margin: 0 0 var(--space-9); display: flex; flex-wrap: wrap; gap: var(--space-5) var(--space-7); align-items: center; }
   .toggle label { display: flex; gap: var(--space-3); align-items: center; }
-  .surfaces { display: flex; gap: var(--space-6); margin-top: var(--space-10); }
+  .surfaces { display: flex; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-10); }
   .surface { background: #f6f6f8; border: 1px solid #e3e3e8; padding: var(--space-6); font-size: var(--font-size-2); color: #666; }
-  .mode { margin-top: var(--space-10); padding: var(--space-7); border-radius: var(--radius-surface); }
+  .mode { margin-top: var(--space-10); padding: var(--space-7); border-radius: var(--radius-surface); overflow-x: auto; }
   .mode.dark { background: #111214; color: #e9ebed; }
   .mode h2 { margin-bottom: var(--space-6); }
   .scale { margin-bottom: var(--space-7); }
@@ -279,7 +282,7 @@ export function generatePreview(): string {
   .sweep .role { padding: var(--space-2) var(--space-3); font-size: var(--font-size-1); }
   .readout { font-family: var(--font-mono); font-size: 11px; color: #888; }
   .ruler { position: relative; }
-  .roles-table { border-collapse: collapse; font-size: var(--font-size-2); margin-bottom: var(--space-9); }
+  .roles-table { border-collapse: collapse; font-size: var(--font-size-2); margin-bottom: var(--space-9); display: block; overflow-x: auto; max-width: 100%; }
   .roles-table th { text-align: left; font-weight: var(--font-weight-medium); color: #888;
                     padding: var(--space-2) var(--space-5) var(--space-3) 0; font-size: var(--font-size-1); }
   .roles-table td { padding: var(--space-3) var(--space-5) var(--space-3) 0; border-top: 1px solid #eee; vertical-align: middle; }
@@ -291,7 +294,7 @@ export function generatePreview(): string {
   .live > div { padding: var(--space-3) var(--space-5); border-radius: var(--radius-control-2);
                 font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
   .chip { display: block; width: 22px; height: 22px; border-radius: var(--radius-2); border: 1px solid #0001; }
-  .rig { resize: horizontal; overflow: auto; width: 560px; min-width: 240px; max-width: 100%;
+  .rig { resize: horizontal; overflow: auto; width: min(560px, 100%); min-width: 240px; max-width: 100%;
     border: 1px dashed #b6b6c2; border-radius: var(--radius-surface); margin-top: var(--space-4); }
   .cell { padding: var(--space-4); background: var(--accent-3); border: 1px solid var(--accent-6);
     border-radius: var(--radius-control-2); color: var(--accent-text); text-align: center;
@@ -309,14 +312,14 @@ export function generatePreview(): string {
       .join("")}</select>
   </label>
   <label>pointer
-    <select id="pointer"><option selected>fine</option><option>coarse</option></select>
+    <select id="pointer"><option selected>auto</option><option>fine</option><option>coarse</option></select>
   </label>
 </div>
 <p class="note">Every value here is a placed number, not a product. Type is held at the size's own step across all three levels, which is the whole point of the axis: a comfortable size 2 stands as tall as a default size 3 while its label stays size 2. Correct any single cell in <code>src/tokens/config.ts</code> without disturbing its neighbours.</p>
 
 <div class="grid">
 ${LEVELS.map(
-  (level) => `  <section${level === "default" ? "" : ` data-density="${level}"`}>
+  (level) => `  <section data-pointer="auto"${level === "default" ? "" : ` data-density="${level}"`}>
     <h2>${level}${level === "default" ? " <code>(:root)</code>" : ""}</h2>
     <div class="stack">${SIZES.map(control).join("")}
     </div>
