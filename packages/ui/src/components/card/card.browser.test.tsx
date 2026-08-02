@@ -30,9 +30,9 @@ function bgTokenOn(el: Element, name: string): string {
 }
 
 describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
-  it("is always the neutral quiet bordered surface, and nothing casts a shadow", () => {
+  it("is always the sealed bordered surface, and nothing casts a shadow", () => {
     const el = render(<Card>Body</Card>);
-    expect(computed(el, "background-color")).toBe(bgTokenOn(el, "--neutral-a1"));
+    expect(computed(el, "background-color")).toBe(bgTokenOn(el, "--color-surface"));
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
     expect(computed(el, "box-shadow")).toBe("none");
     expect(computed(el, "backdrop-filter")).toBe("none");
@@ -57,13 +57,18 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
   });
 });
 
-describe("fills are alpha, so nesting differentiates by compositing (§10)", () => {
-  it("the fill is translucent, never an opaque step", () => {
+describe("the shell SEALS — translucency is material's job alone (§10, LOG 2026-08-04)", () => {
+  it("the fill is opaque: a card over media is a surface, not a border on a photo", () => {
     const el = render(<Card>B</Card>);
-    expect(computed(el, "background-color")).not.toMatch(/^rgb\(/);
+    // No alpha channel in any spelling (rgb() or the P3 block's color()) — the seal. The
+    // earlier alpha fill (--tone-a1) was material's job leaking into the default:
+    // invisible over the page, broken over media.
+    const fill = computed(el, "background-color");
+    expect(fill).not.toContain("rgba");
+    expect(fill).not.toContain("/");
   });
 
-  it("a card in a card reads the same token and still composites distinctly", () => {
+  it("nested cards separate by border — the alpha-nesting claim is retracted", () => {
     const outer = render(
       <Card>
         <Card data-testid="inner">B</Card>
@@ -71,8 +76,7 @@ describe("fills are alpha, so nesting differentiates by compositing (§10)", () 
     );
     const inner = outer.querySelector<HTMLElement>('[data-testid="inner"]')!;
     expect(computed(inner, "background-color")).toBe(computed(outer, "background-color"));
-    // Same declared value, different rendered result: that is what compositing means, and
-    // it is why the shell needs no per-level variants to nest.
+    expect(computed(inner, "border-top-style")).toBe("solid");
   });
 });
 

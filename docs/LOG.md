@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 The alpha-nesting theory dies by eye, and the shell seals
+
+The preview made two claims Kushagra caught as false in one screenshot: "three distinct levels" over a nesting demo whose levels were indistinguishable, and a "solid" card over a photo that had no background at all. One root cause: the shell's fill was `--tone-a1`, 1.2% alpha — too faint to differentiate nesting, too transparent to be a surface over media. His framing closed it: **why does a card have an alpha background — isn't that material's job?** It is. Translucency belongs to `material` exclusively; the alpha default was material's responsibility leaking into the shell.
+
+§10's alpha-nesting paragraph is retracted rather than tuned: the theory ("stacked surfaces auto-differentiate by compositing") was written before a value existed and falsified when one did. At the neutral end of the ramp the effect is arithmetic, not perception — nested surfaces visibly separate by **border**. The shell now seals with `--color-surface` (opaque, page-coloured, mode-aware, the Radix/shadcn card answer), "solid" finally means solid over media, and the material cells became a true comparison. The alpha ramp keeps its one honest surface job: the tone-forward rungs (`--tone-a3`), where the fill carries chroma and is visible. `--tone-a1` left the role set.
+
+The laws inverted with the decision: "the fill is translucent" became "the fill has no alpha channel in any spelling" (the first draft asserted `rgb(` and was immediately schooled by the P3 block resolving to `color(display-p3 …)` — test the property, not the spelling).
+
+Rejected: darkening the alpha step until nesting reads (chases perception with arithmetic; the border already does the job); a seal at `--neutral-2` (cards a step off the page — the grayish backdrop already judged wrong for judging controls); keeping a1 alongside the seal as an optional tint (1.2% buys nothing; a token nobody can see is budget without a job).
+
 ## 2026-08-04 Card strips to a shell, and the anatomy criterion falls out
 
 The elevation deletion kept going. Kushagra, in sequence: why does a Card have an emphasis ladder at all — a solid card is "a purely visual tool, which is what you did also" (the preview's own `loud accent` demo cell was decoration, which proved the point); then, after a five-slot anatomy (Header/Title/Description/Action/Footer) had been argued down to three (Title/Description/Actions), the sharper question — *why this layout and no other?* A titled card is one layout among many, and a system that blesses one is silently deprecating stat cards, media cards, profile cards. "Card is a block, not a component."

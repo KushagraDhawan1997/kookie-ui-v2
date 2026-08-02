@@ -230,6 +230,10 @@
   /* foreground context (§10) — what a surface re-scopes for everything inside it */
   --color-text: var(--neutral-12);
   --color-text-muted: var(--neutral-11);
+
+  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
+     job alone. Page-coloured, so a card over the page reads as border-defined. */
+  --color-surface: var(--neutral-1);
 }
 
 [data-appearance="dark"] {
@@ -350,6 +354,10 @@
   /* foreground context (§10) — what a surface re-scopes for everything inside it */
   --color-text: var(--neutral-12);
   --color-text-muted: var(--neutral-11);
+
+  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
+     job alone. Page-coloured, so a card over the page reads as border-defined. */
+  --color-surface: var(--neutral-1);
 }
 
 @supports (color: color(display-p3 0 0 0)) {
@@ -953,7 +961,6 @@
   --tone-text: var(--neutral-text);
   --tone-label: var(--neutral-label);
   --tone-contrast: var(--neutral-contrast);
-  --tone-a1: var(--neutral-a1);
   --tone-a3: var(--neutral-a3);
 }
 
@@ -968,7 +975,6 @@
   --tone-text: var(--accent-text);
   --tone-label: var(--accent-label);
   --tone-contrast: var(--accent-contrast);
-  --tone-a1: var(--accent-a1);
   --tone-a3: var(--accent-a3);
 }
 
@@ -983,7 +989,6 @@
   --tone-text: var(--destructive-text);
   --tone-label: var(--destructive-label);
   --tone-contrast: var(--destructive-contrast);
-  --tone-a1: var(--destructive-a1);
   --tone-a3: var(--destructive-a3);
 }
 

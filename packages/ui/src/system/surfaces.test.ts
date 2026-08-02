@@ -46,8 +46,14 @@ describe("the surface layer carries each axis once and never multiplies them (§
 
   it("rungs name roles, never a tone family", () => {
     for (const name of TONE_NAMES) expect(stripped).not.toContain(`--${name}-`);
-    expect(stripped).toContain("--tone-a1");
+    expect(stripped).toContain("--tone-a3");
     expect(stripped).toContain("--tone-solid");
+  });
+
+  it("the default surface seals — alpha belongs to the tone-forward rungs and material", () => {
+    const quiet = stripped.slice(stripped.indexOf('[data-emphasis="quiet"]'));
+    expect(quiet.slice(0, quiet.indexOf("}"))).toContain("--kui-sf-fill: var(--color-surface)");
+    expect(stripped).not.toContain("--tone-a1");
   });
 });
 

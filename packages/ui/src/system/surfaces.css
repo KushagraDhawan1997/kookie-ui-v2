@@ -38,12 +38,14 @@
 }
 
 /* ── The rungs, in surface dressing (§9, §10) ────────────────────────────────────────────────
-   Same axis as the controls, different resolution: fills come from the ALPHA ramp so nested
-   surfaces differentiate by compositing instead of per-level colour math. Medium and loud are
-   tone-forward, so they re-scope the foreground context they set for their children. */
+   Quiet is the SEAL: a surface without a material is opaque — translucency is material's job
+   alone, and the alpha-nesting idea died by eye (LOG 2026-08-04: 1.2% per level is invisible;
+   nested surfaces separate by border). The tone-forward rungs use the alpha ramp because
+   there the fill carries chroma and is actually visible; they also re-scope the foreground
+   context they set for their children. */
 
 .kui-surface[data-emphasis="quiet"] {
-  --kui-sf-fill: var(--tone-a1);
+  --kui-sf-fill: var(--color-surface);
 }
 
 .kui-surface[data-emphasis="medium"] {

@@ -265,8 +265,8 @@ const ROLES = [
   "text",
   "label",
   "contrast",
-  // The surface fills (§10): alpha, so nested surfaces auto-differentiate by compositing.
-  "a1",
+  // The tone-forward surface fill (§10): alpha, visible because it carries chroma — Callout's
+  // dressing. The default surface never uses alpha; it seals (--color-surface below).
   "a3",
 ] as const;
 
@@ -296,6 +296,10 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `  /* foreground context (§10) — what a surface re-scopes for everything inside it */`,
     `  --color-text: var(--neutral-12);`,
     `  --color-text-muted: var(--neutral-11);`,
+    "",
+    `  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's`,
+    `     job alone. Page-coloured, so a card over the page reads as border-defined. */`,
+    `  --color-surface: var(--neutral-1);`,
   ];
 }
 
