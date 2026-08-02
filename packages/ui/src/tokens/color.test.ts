@@ -7,7 +7,15 @@ import { converter, formatHex } from "culori";
 import { describe, expect, it } from "vitest";
 
 import { lightness, lowChromaThreshold, tones, type Mode, type ToneName } from "./color-config.ts";
-import { apcaLc, buildScale, buildScaleFor, cuspLightness, pageBackdrop } from "./color.ts";
+import {
+  apcaLc,
+  buildScale,
+  buildScaleFor,
+  cuspLightness,
+  pageBackdrop,
+  resolveTone,
+  toneFromColor,
+} from "./color.ts";
 
 const toOklch = converter("oklch");
 const toRgb = converter("rgb");
@@ -97,15 +105,15 @@ describe("prominence comes from chroma or from lightness (§7)", () => {
     for (const mode of MODES) {
       for (const tone of TONES) {
         const s = buildScale(tone, mode);
-        expect(s.isLowChroma).toBe(tones[tone].vividness < lowChromaThreshold);
+        expect(s.isLowChroma).toBe(resolveTone(tones[tone]).vividness < lowChromaThreshold);
         expect(s.solid).toBe(s.isLowChroma ? s.steps[11] : s.steps[8]);
       }
     }
   });
 
   it("keys on vividness, not on the name — a desaturated brand accent gets the same fix", () => {
-    expect(tones.neutral.vividness).toBeLessThan(lowChromaThreshold);
-    expect(tones.accent.vividness).toBeGreaterThan(lowChromaThreshold);
+    expect(resolveTone(tones.neutral).vividness).toBeLessThan(lowChromaThreshold);
+    expect(resolveTone(tones.accent).vividness).toBeGreaterThan(lowChromaThreshold);
   });
 
   it("keeps rest, hover and press visibly apart, and a grey further apart than a hue", () => {
@@ -189,6 +197,68 @@ describe("the label colour is a design decision, not a per-display one (§7)", (
         expect(buildScale(tone, mode, "p3").contrast).toBe(buildScale(tone, mode, "srgb").contrast);
       }
     }
+  });
+});
+
+describe("a brand colour goes in and a system-correct tone comes out (§7)", () => {
+  // The headline claim of the section: accent is *your* colour, not one of our thirty.
+  const BRANDS = {
+    "radix violet": "#6E56CF",
+    "vercel blue": "#0070F3",
+    "linear indigo": "#5E6AD2",
+    "radix red": "#E5484D",
+    "radix yellow": "#FFE629",
+    teal: "#00C8B4",
+  } as const;
+
+  for (const [name, hex] of Object.entries(BRANDS)) {
+    it(`${name} reproduces exactly at step 9 in light mode`, () => {
+      const s = buildScaleFor(toneFromColor(hex), "light");
+      expect(s.steps[8]!.toLowerCase()).toBe(hex.toLowerCase());
+    });
+
+    it(`${name} still satisfies every legibility law`, () => {
+      // Pinning must not buy brand fidelity at the cost of the guarantees. This is the test
+      // that makes the intake a system rather than a colour picker.
+      for (const mode of MODES) {
+        const s = buildScaleFor(toneFromColor(hex), mode);
+        for (const fill of [s.solid, s.solidHover, s.solidActive]) {
+          expect(Math.abs(apcaLc(s.contrast, fill))).toBeGreaterThanOrEqual(BODY);
+        }
+        for (const step of [2, 3, 4]) {
+          expect(Math.abs(apcaLc(s.label, s.steps[step]!))).toBeGreaterThanOrEqual(BODY);
+        }
+        expect(Math.abs(apcaLc(s.steps[10]!, s.steps[2]!))).toBeGreaterThanOrEqual(BODY);
+      }
+    });
+  }
+
+  it("keeps the shared ladder outside the solid band, whatever colour came in", () => {
+    const reference = buildScale("neutral", "light");
+    for (const hex of Object.values(BRANDS)) {
+      const s = buildScaleFor(toneFromColor(hex), "light");
+      for (const step of [0, 1, 2, 3, 4, 5, 6, 7, 10, 11]) {
+        expect(Math.abs(L(s.steps[step]!) - L(reference.steps[step]!))).toBeLessThan(0.02);
+      }
+    }
+  });
+
+  it("dark mode re-derives rather than pinning — no promise was made about a dark solid", () => {
+    const s = buildScaleFor(toneFromColor("#FFE629"), "dark");
+    expect(s.steps[8]!.toLowerCase()).not.toBe("#ffe629");
+  });
+
+  it("a near-black or near-white brand colour snaps instead of producing an unusable solid", () => {
+    for (const hex of ["#111111", "#fdfdfd"]) {
+      const s = buildScaleFor(toneFromColor(hex), "light");
+      for (const fill of [s.solid, s.solidHover, s.solidActive]) {
+        expect(Math.abs(apcaLc(s.contrast, fill))).toBeGreaterThanOrEqual(BODY);
+      }
+    }
+  });
+
+  it("rejects a colour it cannot parse rather than emitting something wrong", () => {
+    expect(() => toneFromColor("not-a-colour")).toThrow();
   });
 });
 

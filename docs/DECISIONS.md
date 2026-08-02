@@ -418,7 +418,11 @@ White-or-black on each solid is computed by the generator via **APCA**, not WCAG
 
 ### Brand fidelity: step 9 pins to the input
 
-**Decision: in light mode, the supplied accent hex reproduces exactly as step 9.** The solid-band L function evaluates locally through the input's own L (clamped to the band's bounds), so the brand color *is* the button, not a normalized cousin of it. Inputs outside the bounds snap to the nearest in-bounds value — a near-black or near-white "brand color" was never usable as a solid. Dark mode derives from the same hue + chroma shape with no pinning; no brand promise exists on a dark solid. Edge behavior near the bounds: tune when the generator is built.
+**Decision: in light mode, the supplied accent hex reproduces exactly as step 9.** Implemented and law-tested against real brand colors (Radix violet, Vercel blue, Linear indigo, Radix red and yellow): step 9 comes back byte-identical to the input. The intake takes hue as-is and derives vividness as the color's chroma measured against what its own lightness could hold, so "as saturated as they drew it" survives being replotted anywhere on the ladder; the input's lightness is carried as a pin that overrides the cusp formula in light mode only.
+
+Inputs outside a usable band (roughly L .42 to .92) snap to the nearest in-bounds value — a near-black or near-white "brand color" was never usable as a solid, and a very dark one falls through to the low-chroma path and becomes a near-black solid anyway, which is what it wanted. Dark mode re-derives from the hue and chroma shape with no pinning; no brand promise exists on a dark solid.
+
+**Pinning never buys fidelity at the cost of the guarantees.** Every brand color is tested against the full legibility suite in both modes, and against the shared ladder outside the solid band. A color that pinned but failed APCA would be a colour picker, not a system.
 
 ### contrast="high": an accessibility setting, not a design knob
 

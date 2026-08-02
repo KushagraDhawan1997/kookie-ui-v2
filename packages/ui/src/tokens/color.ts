@@ -14,6 +14,7 @@ import {
   lightness,
   lowChromaThreshold,
   solidBand,
+  solidPinBounds,
   lowChromaStateScale,
   solidStateDeltas,
   step10Offset,
@@ -23,6 +24,7 @@ import {
 } from "./color-config.ts";
 
 const toRgb = converter("rgb");
+const toOklch = converter("oklch");
 const toP3 = converter("p3");
 const fits = { srgb: inGamut("rgb"), p3: inGamut("p3") } as const;
 
@@ -169,7 +171,43 @@ export function pageBackdrop(mode: Mode): string {
     : formatHex(toGamut(oklch(lightness.dark[0]!, 0.004, tones.neutral.hue)))!;
 }
 
-export type ToneSpec = { hue: number; vividness: number };
+export type ToneSpec = {
+  hue: number;
+  /** Chroma as a fraction of what the gamut holds — 1 is as vivid as the display allows. */
+  vividness: number;
+  /** Light-mode solid lightness, when the tone came from a supplied brand colour. */
+  pinL?: number;
+};
+
+/**
+ * §7 — the intake: a brand colour in, a system-correct tone out. This is what makes accent
+ * "your colour" rather than "one of our thirty".
+ *
+ * Hue is taken as-is. Vividness is the colour's chroma measured against what its own lightness
+ * could hold, so "as saturated as they drew it" survives being replotted anywhere on the ladder.
+ * `pinL` carries the input's lightness so light mode can reproduce the colour exactly at step 9
+ * rather than normalising it to the cusp — a brand colour that comes out a shade off is not the
+ * brand colour. Dark mode takes the hue and chroma shape and re-derives, since no promise was
+ * made about a dark solid.
+ */
+export function toneFromColor(css: string): ToneSpec {
+  const c = toOklch(css);
+  if (!c) throw new Error(`accentColor is not a colour this browser or build understands: ${css}`);
+  const hue = c.h ?? 0;
+  const headroom = toGamut(oklch(c.l, 0.5, hue), "srgb").c;
+  return {
+    hue,
+    vividness: headroom > 0 ? Math.min(1, (c.c ?? 0) / headroom) : 0,
+    pinL: c.l,
+  };
+}
+
+/** A tone is authored either as a brand colour or, for greys, as a hue and a vividness. */
+export type ToneInput = ToneSpec | { color: string };
+
+export function resolveTone(input: ToneInput): ToneSpec {
+  return "color" in input ? toneFromColor(input.color) : input;
+}
 
 /** Convenience over `buildScaleFor` for the shipped tones. */
 export function buildScale(
@@ -178,7 +216,7 @@ export function buildScale(
   gamut: Gamut = "srgb",
   contrast: ContrastLevel = "normal",
 ): Scale {
-  return buildScaleFor(tones[tone], mode, gamut, contrast);
+  return buildScaleFor(resolveTone(tones[tone]), mode, gamut, contrast);
 }
 
 /**
@@ -187,7 +225,7 @@ export function buildScale(
  * shipped tones do. That is what the hostile-hue tests exercise.
  */
 export function buildScaleFor(
-  { hue, vividness }: ToneSpec,
+  { hue, vividness, pinL }: ToneSpec,
   mode: Mode,
   gamut: Gamut = "srgb",
   contrast_: ContrastLevel = "normal",
@@ -201,7 +239,12 @@ export function buildScaleFor(
   const cusp = cuspLightness(hue, gamut);
 
   // Steps 9 and 10 lean toward the hue's own cusp; every other step takes the shared ladder.
-  const solidL = ladder[8]! + (cusp - ladder[8]!) * band.cuspPull;
+  // Unless the tone came from a supplied brand colour, in which case light mode pins to it so
+  // the colour someone chose is the colour they get (§7). Dark mode always re-derives.
+  const solidL =
+    pinL !== undefined && mode === "light"
+      ? Math.min(solidPinBounds.max, Math.max(solidPinBounds.min, pinL))
+      : ladder[8]! + (cusp - ladder[8]!) * band.cuspPull;
   const stepL = ladder.map((l, i) => {
     const base = i === 8 ? solidL : i === 9 ? solidL + step10Offset : l;
     if (!hc) return base;

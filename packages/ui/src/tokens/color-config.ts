@@ -117,13 +117,22 @@ export const contrastHigh = {
 export const contrastHighBands = { border: [5, 6, 7], text: [10, 11] } as const;
 
 /**
+ * Bounds the solid band may be pinned into (§7). A supplied brand colour reproduces exactly as
+ * step 9 in light mode, but only inside this range: a near-white or near-black "brand colour"
+ * was never usable as a solid fill, so it snaps to the nearest usable value instead.
+ */
+export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
+
+/**
  * The shipped tones (§9). A closed set, which is the first reason the CSS stays small:
  * five or six scales, never Radix's thirty. `accent` is the user's brand hue.
  */
 export const tones = {
+  /** Not a brand colour: a hue and a near-zero chroma, which is all a tinted grey is. */
   neutral: { hue: 250, vividness: 0.04 },
-  accent: { hue: 267, vividness: 1 },
-  destructive: { hue: 25, vividness: 1 },
+  /** The user's brand colour. Reproduced exactly as step 9 in light mode (§7). */
+  accent: { color: "#6E56CF" },
+  destructive: { color: "#E5484D" },
 } as const;
 
 export type ToneName = keyof typeof tones;
