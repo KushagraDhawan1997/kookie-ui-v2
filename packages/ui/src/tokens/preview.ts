@@ -432,6 +432,10 @@ export function generatePreview(): string {
   .mode { margin-top: var(--space-9); padding: var(--space-7); border-radius: var(--radius-surface);
           overflow-x: auto; background: var(--neutral-2); color: var(--neutral-12);
           border: 1px solid var(--neutral-4); }
+  /* Dark sections sit at the page level, not the card level: the light page around them is
+     neutral-1, so a dark block at neutral-2 judged controls one step off the real app
+     background. Dark step 2 vs 3 is a .034 L gap - the medium fill deserves a fair trial. */
+  .mode[data-appearance="dark"], section[data-appearance="dark"] { background: var(--neutral-1); }
   .scale { margin-bottom: var(--space-7); }
   .scale h3 { font-size: var(--font-size-2); font-weight: var(--font-weight-medium); margin: 0 0 var(--space-3); }
   .scale h3 em { color: var(--neutral-10); font-weight: var(--font-weight-regular); font-style: normal; }
