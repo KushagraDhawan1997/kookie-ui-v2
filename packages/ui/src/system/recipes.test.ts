@@ -68,6 +68,24 @@ describe("the shared layer carries the variation, once (§2)", () => {
   });
 });
 
+describe("nothing ships a stylesheet the tests cannot see", () => {
+  it("the browser scaffolding installs exactly what the entry point imports", () => {
+    // A hand-kept second list of stylesheets is a silent-failure machine: the preview page had
+    // one and rendered Button as bare native buttons, and the browser suite had one and asserted
+    // Button's laws against an empty cascade. The preview now links the entry point directly;
+    // the suite cannot, because `?raw` on index.css yields its @import lines rather than their
+    // contents — so its list is pinned here instead.
+    const entry = read("../styles/index.css");
+    const scaffold = read("../test/browser.tsx");
+    const imported = [...entry.matchAll(/@import "([^"]+)"/g)].map((m) => m[1]!);
+    expect(imported.length).toBeGreaterThan(1);
+    for (const path of imported) {
+      const file = path.split("/").pop()!;
+      expect(scaffold).toContain(`${file}?raw`);
+    }
+  });
+});
+
 describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => {
   it("states are declared as selectors, so no JS runs at interaction time", () => {
     for (const state of [":hover", ":active", ":focus-visible", "[data-disabled]"]) {

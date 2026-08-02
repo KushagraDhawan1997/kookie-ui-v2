@@ -280,8 +280,10 @@ export function generatePreview(): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KookieUI density x size</title>
-<link rel="stylesheet" href="../src/tokens/tokens.css">
-<link rel="stylesheet" href="../src/system/layout.css">
+<!-- The entry point, not a hand-kept list: it @imports every sheet the package ships, so a new
+     component stylesheet reaches this page without anyone remembering to add it here. It did
+     not, once, and the Button grid rendered as bare native buttons. -->
+<link rel="stylesheet" href="../src/styles/index.css">
 <style>
   /* The preview consumes the system it displays: every colour is a neutral or accent token,
      every distance a space step, every text style a (size, line-height, spacing) triple.
