@@ -110,11 +110,12 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     expect(outside).toContain(":active");
   });
 
-  it("press arrives instantly while release eases — the asymmetry touch depends on", () => {
-    // A tap is ~60ms against a 120ms transition, so an eased press never reaches its colour
-    // on a phone and the control reads as dead. A mouse hides this by holding the press.
-    const active = recipes.slice(recipes.indexOf(".kui-control:active"));
-    expect(active.slice(0, active.indexOf("}"))).toContain("transition-duration: 0s");
+  it("no transition ships until the motion system is designed (§8, 2026-08-03)", () => {
+    // Every state change is instant on both pointer worlds. When motion lands, this law is
+    // replaced by the motion system's own — and press must stay instant: an eased press
+    // loses the race against a ~60ms tap and the control reads as dead on a phone.
+    const code = recipes.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(code).not.toContain("transition");
   });
 
   it("disabled remaps the family and never reaches for opacity (§8)", () => {

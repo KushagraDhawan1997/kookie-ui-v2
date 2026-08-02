@@ -531,17 +531,20 @@ No rung invents its own feedback amount. The rule: **hover = +1 step, press = +2
 
 **Law: the label must clear APCA against every background in its rung, not just the resting one.** Medium rests on step 3, hovers to 4, presses to 5, and the press state is where a label that only passed at rest fails silently.
 
-### One canonical interaction transition — with one designed asymmetry (amended 2026-08-03)
+### Interaction motion: zero until the motion system exists (decided 2026-08-03, Kushagra)
 
-A single duration + easing (`--motion-duration` 120ms, `--motion-easing`), color properties only, no layout animation. Every *eased* change is the same gesture at the same speed — but not every change eases:
+**No transition ships.** Every state change — hover, press, release, disable — is instant, on both pointer worlds, until motion is designed as its own system rather than accreted one duration at a time. The motion tokens (`--motion-duration`, `--motion-easing`) stay wired in the pipeline; nothing reads them. A law asserts the recipe layer contains no `transition`.
 
-- **Press arrives instantly** (`transition-duration: 0s` on `:active`); release eases back. A tap lasts ~60ms against a 120ms transition, so an eased press never reaches its colour on a phone and the control reads as dead — a mouse hides this because a click holds the button down. Found on a real device, invisible in desktop emulation. Snap-in/ease-out is also how native controls behave.
+History, because it constrains the future system: an interim 120ms eased transition shipped with Button and failed on a real phone — a tap lasts ~60ms, so an eased press never reaches its colour and the control reads as dead; desktop emulation never showed it. The interim fix was instant press with eased release. Zeroing everything supersedes that, and hands the finding forward as a hard constraint: **whatever motion lands, press stays instant.**
+
+Two touch behaviours are *not* motion and remain shipped:
+
 - **Hover exists only where hovering does**: every `:hover` rule sits under `@media (hover: hover)`. A touch device synthesises hover on tap and holds it until the next tap, so an unguarded rule leaves a pressed control stuck in its hover fill. `:active` is never guarded — on touch it is the only feedback there is.
 - Controls set `touch-action: manipulation` (drops double-tap-to-zoom, keeps scroll and pinch) and clear `-webkit-tap-highlight-color` — the press state is the tap feedback, not the browser's grey flash.
 
-Both asymmetries are laws in `recipes.test.ts`, asserted structurally (comments stripped first — a law a comment can satisfy is not a law).
+Both are laws in `recipes.test.ts`, asserted structurally with comments stripped first — a law a comment can satisfy is not a law.
 
-**The wider motion system is deferred (2026-08-02)** — duration families, overlay enter/exit, the reduced-motion law get their own discussion. Button ships on this one transition alone; the deferral is not a gate.
+**The wider motion system is deferred (2026-08-02)** — duration families, overlay enter/exit, the reduced-motion law get their own discussion. The deferral is not a gate.
 
 ### Cursors: tokenised, three states (decided 2026-08-03)
 
@@ -553,7 +556,7 @@ Both asymmetries are laws in `recipes.test.ts`, asserted structurally (comments 
 
 ### Disabled: a role remap, never opacity (decided 2026-08-02)
 
-Foreground remaps to `neutral-8`, fills to `neutral-3`, borders to `neutral-6`; hover and press stop firing; the canonical transition stops. No `opacity` — it stacks on tinted surfaces and silently voids every generated contrast guarantee, where the remap keeps "legible but clearly off" as a designed, testable pair. Cursor drops to `--cursor-disabled` (see Cursors, above). Not focusable at rest, matching the native element — except while loading, below.
+Foreground remaps to `neutral-8`, fills to `neutral-3`, borders to `neutral-6`; hover and press stop firing. No `opacity` — it stacks on tinted surfaces and silently voids every generated contrast guarantee, where the remap keeps "legible but clearly off" as a designed, testable pair. Cursor drops to `--cursor-disabled` (see Cursors, above). Not focusable at rest, matching the native element — except while loading, below.
 
 ### Loading: the label never hides (decided 2026-08-02)
 

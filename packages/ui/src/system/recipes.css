@@ -43,10 +43,10 @@
      while dropping the double-tap gesture the element never wanted. */
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition:
-    background-color var(--motion-duration) var(--motion-easing),
-    border-color var(--motion-duration) var(--motion-easing),
-    color var(--motion-duration) var(--motion-easing);
+  /* No transition ships until the motion system is designed (§8, decided 2026-08-03): every
+     state change is instant on both pointer worlds. The motion tokens stay wired; nothing
+     reads them yet. Whatever motion lands, press must stay instant — an eased press loses
+     the race against a ~60ms tap and the control reads as dead on a phone. */
 }
 
 /* Icons take the size index's box and the label's colour, so a slot needs no wrapper element
@@ -147,16 +147,9 @@
 }
 
 /* Press is deliberately NOT guarded: it fires on every input, and on touch it is the only
-   feedback there is — it is what "quiet fills on touch" (§9) literally means.
-
-   It also arrives INSTANTLY, and that asymmetry is the whole reason touch feels right. A tap
-   lasts around 60ms against a 120ms transition, so an eased press never reaches its colour
-   before it starts returning: on a phone the control appears to do nothing at all. A mouse
-   hides this, because a click holds the button down long enough to see the ramp. Press snaps,
-   release eases — which is also how native controls behave. */
+   feedback there is — it is what "quiet fills on touch" (§9) literally means. */
 .kui-control:active:not([data-disabled], [data-loading]) {
   background-color: var(--kui-fill-active);
-  transition-duration: 0s;
 }
 
 /* One ring, always accent, keyboard only (§8). `outline` rather than box-shadow: it follows

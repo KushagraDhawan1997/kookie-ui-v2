@@ -22,6 +22,8 @@ This audit also closed §Open's "how does quiet render" (bare at rest, decided a
 
 Rejected: guarding `:active` alongside `:hover` (removes the only feedback touch gets); `not-allowed` on disabled; `wait` while loading; keeping the eased press with a shorter duration (any ease loses a race with a 60ms tap; the asymmetry is the fix, not the number).
 
+**Superseded the same day, by Kushagra: transitions are zero until the motion system exists.** The 120ms transition and the press asymmetry were shipped without approval, and taste-level decisions are not the implementation's to make. All transitions removed — every state change instant on both pointer worlds, motion tokens wired but unread, a law asserting the recipe layer names no `transition`. The press finding survives as a constraint handed to the future motion system: whatever lands, press stays instant. The hover guard and `touch-action` stay — they are input-hardware correctness, not motion.
+
 ## 2026-08-03 Button lands, and the additivity claim stops being an argument
 
 §14 step 5. Base UI behind the Kookie surface — it supplies the `<button>` semantics, keyboard behaviour, `data-disabled` and `focusableWhenDisabled`, and every visible decision stays ours. First runtime dependency in the package.
