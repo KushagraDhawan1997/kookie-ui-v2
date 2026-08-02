@@ -257,6 +257,16 @@ describe("a brand colour goes in and a system-correct tone comes out (§7)", () 
     }
   });
 
+  it("round-trips: any generated solid, fed back in, reproduces its own scale", () => {
+    // The property that makes the preview usable as a picker — every step 9 on the page is a
+    // hex you can paste in as your accent and get that exact scale back.
+    for (const hue of [25, 80, 100, 130, 150, 195, 230, 250, 267, 290, 340]) {
+      const original = buildScaleFor({ hue, vividness: 1 }, "light");
+      const round = buildScaleFor(toneFromColor(original.steps[8]!), "light");
+      expect(round.steps[8]).toBe(original.steps[8]);
+    }
+  });
+
   it("rejects a colour it cannot parse rather than emitting something wrong", () => {
     expect(() => toneFromColor("not-a-colour")).toThrow();
   });

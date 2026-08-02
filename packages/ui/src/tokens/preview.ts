@@ -43,7 +43,7 @@ function hueSweep(mode: Mode): string {
     ${SWEEP.map(([name, hue, vividness]) => {
       const s = buildScaleFor({ hue, vividness }, mode);
       return `<div class="sweep">
-        <span class="sweep-name">${name}</span>
+        <span class="sweep-name">${name}<br><span class="sweep-hex">${s.steps[8]}</span></span>
         <div class="row">${s.steps.map((hex, i) => `<div class="sw sm" title="${name}-${i + 1} ${hex}" style="background:${hex}"></div>`).join("")}</div>
         <div class="role" style="background:${s.solid};color:${s.contrast}">solid</div>
         <div class="role" style="background:${s.solidActive};color:${s.contrast}">active</div>
@@ -255,7 +255,8 @@ export function generatePreview(): string {
   .role { padding: var(--space-3) var(--space-4); border-radius: var(--radius-control-2);
           font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
   .sweep { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
-  .sweep-name { width: 70px; font-size: var(--font-size-1); font-family: var(--font-mono); }
+  .sweep-name { width: 78px; font-size: var(--font-size-1); font-family: var(--font-mono); line-height: 1.4; }
+  .sweep-hex { color: #999; font-size: 10px; }
   .sw.sm { width: 34px; height: 26px; }
   .sweep .role { padding: var(--space-2) var(--space-3); font-size: var(--font-size-1); }
   .readout { font-family: var(--font-mono); font-size: 11px; color: #888; }
