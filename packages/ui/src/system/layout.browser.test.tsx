@@ -124,6 +124,26 @@ describe("what containment does and does not cost (§2)", () => {
     expect(computed(host.querySelector("#probe")!, "padding-top")).toBe("4px");
   });
 
+  it("does NOT hijack positioning — a Box is not a containing block", () => {
+    // Worth pinning because the containment spec reads as though it should: `container-type`
+    // applies layout containment, and layout containment is documented as making an element a
+    // containing block for absolutely and fixed positioned descendants. Measured, neither is
+    // caught — both still resolve against the viewport, exactly as with a plain div. So a
+    // consumer's fixed overlay or absolute child behaves normally inside our layout, and if an
+    // engine ever changes that, this law is where it shows up rather than in someone's app.
+    const host = mount(
+      `<div style="padding: 100px">
+        <div class="kui-box" style="width: 400px">
+          <div id="fixed" style="position: fixed; inset: 0"></div>
+          <div id="abs" style="position: absolute; inset: 0"></div>
+        </div>
+      </div>`,
+    );
+    const viewport = `${document.documentElement.clientWidth}px`;
+    expect(computed(host.querySelector("#fixed")!, "width")).toBe(viewport);
+    expect(computed(host.querySelector("#abs")!, "width")).toBe(viewport);
+  });
+
   it("the real cost, pinned: a bare Box as a flex item shrink-wraps to nothing", () => {
     // Inline-size containment makes the box contribute zero intrinsic inline size, so a flex
     // item at width:auto collapses regardless of content. The escape is any explicit width,
