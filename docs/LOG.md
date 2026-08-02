@@ -8,6 +8,12 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-02 The preview finds the edge the laws could not state: the outermost Box has no tier context
+
+Steps 4 and 4b shipped (Flex/Stack/Grid, the coarse cells, the Theme `pointer` prop), and building their preview rigs surfaced a constraint no string or mounted test had a reason to probe: **a tier reads the nearest ancestor query container, and a Box is a container for its children, never for itself.** The rigs' outermost Box sat at one column at every width — correct per spec, useless per intent. Every browser law had wrapped a Box in a Box, so the suite was structurally incapable of noticing; the demo built for human eyes found it in one render. A law now pins the edge, §2 documents it, and whether Theme's element should be a container (making "inside a Theme, tiers always work" the rule) is an open question gating Button.
+
+Same arc, worth one line each: the coarse world costs +519 bytes gzipped for ~20KB raw of cells, which is the emission strategy's whole bet paying off; the preview page defaulted to no `data-pointer`, so the media-scoped `auto` path could never have fired on a real phone — sections now default `auto`, making a phone on the LAN the honest test of §16's default; and the fine escape must *re-declare* the fine sets, because a nested scope that declares nothing inherits coarse and escapes nothing.
+
 ## 2026-08-02 The pointer axis: touch is a second geometry, not a mobile mode
 
 New §16, THESIS.md folded into the repo, and the pre-Button gate list grows to five. The frame that settled it: **fine and coarse are two complete designed renderings of geometry, the way light and dark are two complete renderings of color.** Same components, same index, same laws — different placed values. The signal is what touches the screen (`pointer: coarse`), never width: an iPad at 1024px gets coarse values at full desktop width, and a narrow desktop window keeps fine ones.

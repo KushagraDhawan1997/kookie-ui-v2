@@ -80,6 +80,8 @@ Four structural reasons KookieUI stays small (all already decided):
 
 The mechanism is generated from one prop table that drives both the resolver and the stylesheet, so a prop cannot exist in one and not the other.
 
+**One sharp edge, pinned by a law (2026-08-02): a tier reads the nearest *ancestor* query container, and a Box is a container for its children, never for itself.** The outermost Box in a tree therefore has no tier context and sits at its base values at every width — found when the preview's grid rig rendered one column forever. Inside any layout this resolves itself (the parent Box is the slot), but a tiered Box mounted directly under Theme silently does nothing. Open: whether Theme's element should carry `container-type: inline-size` so the rule becomes "inside a Theme, tiers always work" — decide before Button.
+
 **Tiers are container-keyed and few.** `@md` is a container-width tier resolved by container queries, not a viewport breakpoint — a component adapts to its slot, so the same Grid is correct in a drawer and a main column. Both native platforms converged here (iOS: 2 size classes; Android: 3 window classes; neither has per-prop pixel breakpoints): keep the tier count small and the names semantic. Only Shell and page-gutter concerns key off the viewport. `--kk-*` vars are private plumbing — undocumented, unstable, never for consumers (section 13).
 
 The file is small by construction, not by post-hoc minification. Process the output with **Lightning CSS** (minify, autoprefix, nesting).
@@ -940,6 +942,7 @@ Rejected: rem-derived geometry from a root font-size switch (one root scales gut
 
 **API:**
 - Naming of the per-component escape prop (`UNSAFE_` vs `override`). The name is the deterrent.
+- **Theme as query container.** A tiered Box with no ancestor Box has no tier context (§2's sharp edge). `container-type: inline-size` on Theme's element would close it for every app; cost is inline-size containment on that element. Decide before Button.
 - **Pointer: the numbers and the type question.** The coarse sets' values, whether body text shifts under coarse or only control labels, and the `any-pointer` reserve split — all §16, all judged in the 4b matrix.
 - **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end) and whether surface padding takes density (lands at Card). Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
 - **Scale: if it ever ships.** The factor stays wired and the prop is deferred (sections 5, 13). Reopen only when a real need names the steps, and ship it as designed steps rather than a free multiplier.
