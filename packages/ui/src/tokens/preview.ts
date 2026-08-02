@@ -260,7 +260,7 @@ function surfaceSection(mode: Mode): string {
   const materials = ["solid", "thin", "thick"]
     .map((m) =>
       card(
-        { material: m === "solid" ? undefined : m, elevation: "floating" },
+        { ...(m === "solid" ? {} : { material: m }), elevation: "floating" },
         `<strong>${m}</strong><div ${muted}>does the label survive?</div>
          <div style="margin-top: var(--space-4)">${button({ tone: "accent", emphasis: "loud" }, "Label")} ${button({}, "Label")}</div>`,
         "flex: 1; min-width: 200px",
