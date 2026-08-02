@@ -139,7 +139,7 @@ export function pageBackdrop(mode: Mode): string {
     : formatHex(toGamut(oklch(lightness.dark[0]!, 0.004, tones.neutral.hue)))!;
 }
 
-export type ToneSpec = { hue: number; peakChroma: number };
+export type ToneSpec = { hue: number; vividness: number };
 
 /** Convenience over `buildScaleFor` for the shipped tones. */
 export function buildScale(tone: ToneName, mode: Mode): Scale {
@@ -151,7 +151,10 @@ export function buildScale(tone: ToneName, mode: Mode): Scale {
  * definition (§7) — so an arbitrary brand colour goes through exactly the same law the
  * shipped tones do. That is what the hostile-hue tests exercise.
  */
-export function buildScaleFor({ hue, peakChroma }: ToneSpec, mode: Mode): Scale {
+export function buildScaleFor({ hue, vividness }: ToneSpec, mode: Mode): Scale {
+  /** The most chroma this hue can hold at this lightness, inside the target gamut. */
+  const available = (l: number) => toGamut(oklch(l, 0.5, hue)).c;
+  const chromaAt = (l: number, fraction: number) => available(l) * fraction * vividness;
   const ladder = lightness[mode];
   const band = solidBand[mode];
   const cusp = cuspLightness(hue);
@@ -160,15 +163,15 @@ export function buildScaleFor({ hue, peakChroma }: ToneSpec, mode: Mode): Scale 
   const solidL = ladder[8]! + (cusp - ladder[8]!) * band.cuspPull;
   const stepL = ladder.map((l, i) => (i === 8 ? solidL : i === 9 ? solidL + step10Offset : l));
 
-  const steps = stepL.map((l, i) => formatHex(toGamut(oklch(l, peakChroma * chromaCurve[i]!, hue)))!);
+  const steps = stepL.map((l, i) => formatHex(toGamut(oklch(l, chromaAt(l, chromaCurve[i]!), hue)))!);
 
-  const isLowChroma = peakChroma < lowChromaThreshold;
+  const isLowChroma = vividness < lowChromaThreshold;
 
   // Prominence comes from chroma or from lightness; at zero chroma lightness does all the work,
   // so a low-chroma scale's solid role is step 12 rather than step 9 (§7).
   const solid = isLowChroma ? steps[11]! : steps[8]!;
   const restL = isLowChroma ? stepL[11]! : solidL;
-  const restC = peakChroma * (isLowChroma ? chromaCurve[11]! : chromaCurve[8]!);
+  const restC = chromaAt(restL, isLowChroma ? chromaCurve[11]! : chromaCurve[8]!);
 
   // The label is decided on the resting fill, then hover and press move AWAY from it, so the
   // interaction states are strictly more legible than rest and only rest has to clear the bar.
@@ -190,7 +193,10 @@ export function buildScaleFor({ hue, peakChroma }: ToneSpec, mode: Mode): Scale 
     toGamut(
       oklch(
         stepL[10]! + (stepL[11]! - stepL[10]!) * labelPosition,
-        peakChroma * (chromaCurve[10]! + (chromaCurve[11]! - chromaCurve[10]!) * labelPosition),
+        chromaAt(
+          stepL[10]! + (stepL[11]! - stepL[10]!) * labelPosition,
+          chromaCurve[10]! + (chromaCurve[11]! - chromaCurve[10]!) * labelPosition,
+        ),
         hue,
       ),
     ),

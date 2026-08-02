@@ -33,8 +33,8 @@ export const lightness = {
  * spaced by construction across every hue. Direction is mode-aware.
  */
 export const solidBand = {
-  light: { cuspPull: 0.72 },
-  dark: { cuspPull: 0.72 },
+  light: { cuspPull: 0.9 },
+  dark: { cuspPull: 0.9 },
 } as const;
 
 /**
@@ -60,11 +60,18 @@ export const solidStateDeltas = { hover: 0.04, active: 0.08 } as const;
 export const step10Offset = -0.04;
 
 /**
- * The chroma curve, shared in shape by every tone and scaled by the tone's own peak.
- * Follows the gamut boundary — low at both ends, peak in the middle — so most steps are
- * in gamut by construction and the hold-L-reduce-C mapping only mops up the residue.
+ * The chroma curve, as a **fraction of the chroma actually available at that lightness**,
+ * not as an absolute. Absolutes were wrong in both directions at once: every light step of
+ * every hue asked for more than the gamut holds and was silently clamped (so the curve did
+ * nothing there and hold-L-reduce-C was doing all the work, which is not what §7 describes),
+ * while the solid band asked for *less* than the gamut holds — red sat at .17 where sRGB
+ * allows .254, which is most of the dullness.
+ *
+ * Expressed against the boundary, the curve means what it says at every step, no step is
+ * silently clipped, and every hue behaves the same way relative to its own possibilities.
+ * It also makes P3 a pure config change: widen the boundary and everything follows.
  */
-export const chromaCurve = [0.2, 0.35, 0.55, 0.7, 0.8, 0.9, 0.97, 1.0, 1.0, 0.98, 0.72, 0.4] as const;
+export const chromaCurve = [0.9, 0.92, 0.94, 0.96, 0.97, 0.98, 1.0, 1.0, 1.0, 1.0, 0.8, 0.55] as const;
 
 /**
  * `--accent-label` sits between steps 11 and 12: enough weight to read as a UI label, enough
@@ -73,20 +80,20 @@ export const chromaCurve = [0.2, 0.35, 0.55, 0.7, 0.8, 0.9, 0.97, 1.0, 1.0, 0.98
 export const labelPosition = 0.45;
 
 /**
- * Below this peak chroma a scale cannot carry prominence by saturation, so `--accent-solid`
+ * Below this vividness a scale cannot carry prominence by saturation, so `--accent-solid`
  * resolves to step 12 instead of step 9 (§7). Keyed on chroma, not on the name "neutral",
  * so a desaturated brand accent is caught too.
  */
-export const lowChromaThreshold = 0.03;
+export const lowChromaThreshold = 0.18;
 
 /**
  * The shipped tones (§9). A closed set, which is the first reason the CSS stays small:
  * five or six scales, never Radix's thirty. `accent` is the user's brand hue.
  */
 export const tones = {
-  neutral: { hue: 250, peakChroma: 0.008 },
-  accent: { hue: 267, peakChroma: 0.17 },
-  destructive: { hue: 25, peakChroma: 0.17 },
+  neutral: { hue: 250, vividness: 0.04 },
+  accent: { hue: 267, vividness: 1 },
+  destructive: { hue: 25, vividness: 1 },
 } as const;
 
 export type ToneName = keyof typeof tones;

@@ -15,31 +15,33 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { tones, type Mode, type ToneName } from "./color-config.ts";
 import { buildScale, buildScaleFor } from "./color.ts";
 
+import { density, radiusLevels, type DensityLevel } from "./config.ts";
+
 /**
  * A sweep of arbitrary brand hues, none of them shipped tones. This is where the one-law
  * thesis is actually visible: if a single generator handles yellow and navy without either
  * being hand-placed, the sweep reads as one family. Bright hues are the ones to distrust.
  */
 const SWEEP: Array<[string, number, number]> = [
-  ["yellow", 100, 0.19],
-  ["amber", 80, 0.19],
-  ["lime", 130, 0.21],
-  ["green", 150, 0.18],
-  ["teal", 175, 0.14],
-  ["cyan", 195, 0.15],
-  ["sky", 230, 0.15],
-  ["blue", 250, 0.17],
-  ["indigo", 267, 0.17],
-  ["violet", 290, 0.19],
-  ["magenta", 340, 0.22],
-  ["red", 25, 0.17],
+  ["yellow", 100, 1],
+  ["amber", 80, 1],
+  ["lime", 130, 1],
+  ["green", 150, 1],
+  ["teal", 175, 1],
+  ["cyan", 195, 1],
+  ["sky", 230, 1],
+  ["blue", 250, 1],
+  ["indigo", 267, 1],
+  ["violet", 290, 1],
+  ["magenta", 340, 1],
+  ["red", 25, 1],
 ];
 
 function hueSweep(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>hue sweep — ${mode}</h2>
-    ${SWEEP.map(([name, hue, peakChroma]) => {
-      const s = buildScaleFor({ hue, peakChroma }, mode);
+    ${SWEEP.map(([name, hue, vividness]) => {
+      const s = buildScaleFor({ hue, vividness }, mode);
       return `<div class="sweep">
         <span class="sweep-name">${name}</span>
         <div class="row">${s.steps.map((hex, i) => `<div class="sw sm" title="${name}-${i + 1} ${hex}" style="background:${hex}"></div>`).join("")}</div>
@@ -50,7 +52,6 @@ function hueSweep(mode: Mode): string {
     }).join("")}
   </section>`;
 }
-import { density, radiusLevels, type DensityLevel } from "./config.ts";
 
 const TONES = Object.keys(tones) as ToneName[];
 

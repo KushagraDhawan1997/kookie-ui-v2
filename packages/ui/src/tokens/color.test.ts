@@ -97,15 +97,15 @@ describe("prominence comes from chroma or from lightness (§7)", () => {
     for (const mode of MODES) {
       for (const tone of TONES) {
         const s = buildScale(tone, mode);
-        expect(s.isLowChroma).toBe(tones[tone].peakChroma < lowChromaThreshold);
+        expect(s.isLowChroma).toBe(tones[tone].vividness < lowChromaThreshold);
         expect(s.solid).toBe(s.isLowChroma ? s.steps[11] : s.steps[8]);
       }
     }
   });
 
-  it("keys on chroma, not on the name — a desaturated brand accent gets the same fix", () => {
-    expect(tones.neutral.peakChroma).toBeLessThan(lowChromaThreshold);
-    expect(tones.accent.peakChroma).toBeGreaterThan(lowChromaThreshold);
+  it("keys on vividness, not on the name — a desaturated brand accent gets the same fix", () => {
+    expect(tones.neutral.vividness).toBeLessThan(lowChromaThreshold);
+    expect(tones.accent.vividness).toBeGreaterThan(lowChromaThreshold);
   });
 
   it("a low-chroma solid still moves under interaction, since the ramp ran out at 12", () => {
@@ -145,12 +145,12 @@ describe("hostile hues survive the same law (§7)", () => {
   // Accent is an arbitrary user hue, so the generator has to hold for the colours that break
   // fixed-ladder systems, not only for the well-behaved blue we happened to ship.
   const HOSTILE = {
-    "brand yellow": { hue: 100, peakChroma: 0.19 },
-    "neon lime": { hue: 130, peakChroma: 0.23 },
-    "hot magenta": { hue: 340, peakChroma: 0.25 },
-    cyan: { hue: 195, peakChroma: 0.15 },
-    "near-black navy": { hue: 265, peakChroma: 0.09 },
-    "near-grey accent": { hue: 250, peakChroma: 0.02 },
+    "brand yellow": { hue: 100, vividness: 1 },
+    "neon lime": { hue: 130, vividness: 1 },
+    "hot magenta": { hue: 340, vividness: 1 },
+    cyan: { hue: 195, vividness: 0.9 },
+    "near-black navy": { hue: 265, vividness: 0.55 },
+    "near-grey accent": { hue: 250, vividness: 0.1 },
   } as const;
 
   for (const [name, spec] of Object.entries(HOSTILE)) {
