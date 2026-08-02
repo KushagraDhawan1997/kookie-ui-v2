@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
+  coarse,
   density,
   fontSize,
   letterSpacing,
@@ -17,6 +18,9 @@ import {
   radiusOverlay,
   radiusSurface,
   space,
+  touchTargetMin,
+  type DensityLevel,
+  type DensitySet,
   type RadiusLevel,
 } from "./config.ts";
 import { generateLayoutCss } from "../system/layout-css.ts";
@@ -176,16 +180,79 @@ describe("the corner holds a fraction of its box (§6)", () => {
   // `none` is 0 by design and `full` is a pill by design; neither has a ratio to hold.
   const levels = ["small", "medium", "large"] as const;
 
-  for (const levelName of levels) {
-    for (const [densityName, set] of Object.entries(density)) {
-      it(`holds across sizes at ${densityName} x ${levelName}`, () => {
-        const ratios = set.radius.map(
-          (step, i) => radiusLevels[levelName].steps[step]! / set.height[i]!,
-        );
-        expect(Math.max(...ratios) / Math.min(...ratios)).toBeLessThanOrEqual(SPREAD);
-      });
+  // Both geometries hold the same law: coarse is a second world, not an exemption (§16).
+  const worlds: [string, Record<DensityLevel, DensitySet>][] = [
+    ["fine", density],
+    ["coarse", coarse],
+  ];
+  for (const [worldName, world] of worlds) {
+    for (const levelName of levels) {
+      for (const [densityName, set] of Object.entries(world)) {
+        it(`holds across sizes at ${worldName} x ${densityName} x ${levelName}`, () => {
+          const ratios = set.radius.map(
+            (step, i) => radiusLevels[levelName].steps[step]! / set.height[i]!,
+          );
+          expect(Math.max(...ratios) / Math.min(...ratios)).toBeLessThanOrEqual(SPREAD);
+        });
+      }
     }
   }
+});
+
+describe("the pointer axis is a second designed geometry (§16)", () => {
+  it("coarse places a complete set per density level, same shape as fine", () => {
+    for (const level of Object.keys(density) as DensityLevel[]) {
+      for (const family of ["height", "px", "gap", "radius"] as const) {
+        expect(coarse[level][family]).toHaveLength(4);
+      }
+      expect(increasing(coarse[level].height)).toBe(true);
+    }
+  });
+
+  it("coarse never renders a size smaller than fine does — the axis only adds room", () => {
+    for (const level of Object.keys(density) as DensityLevel[]) {
+      for (let i = 0; i < 4; i++) {
+        expect(coarse[level].height[i]!).toBeGreaterThan(density[level].height[i]!);
+      }
+    }
+  });
+
+  it("the baseline control clears the touch floor by design, not by reserve", () => {
+    // Size 2 is the anchor (§16). Size 1 is ALLOWED under the floor — the reserve covers it —
+    // so this deliberately asserts only the anchor.
+    expect(coarse.default.height[1]!).toBeGreaterThanOrEqual(touchTargetMin);
+  });
+
+  it("ships the floor as a token, raw px, unscaled", () => {
+    expect(declaration("touch-target-min")).toBe(`${touchTargetMin}px`);
+  });
+
+  it("emits all three scopes: pinned coarse, the media-scoped auto, and the fine escape", () => {
+    for (const scope of [`[data-pointer="coarse"]`, `[data-pointer="fine"]`]) {
+      expect(block(scope)).toContain("--control-height-2:");
+    }
+    // The fine escape must RE-declare, not merely exist: a nested scope that declares nothing
+    // inherits the coarse values, and an escape that does nothing is not an escape.
+    expect(css).toContain("@media (pointer: coarse) {");
+    expect(block(`  [data-pointer="auto"]`)).toContain("--control-height-2:");
+  });
+
+  it("emits the (pointer x radius x density) cells, one axis deeper than radius x density", () => {
+    for (const pointer of ["coarse", "fine"]) {
+      expect(
+        block(`[data-pointer="${pointer}"][data-radius="full"][data-density="compact"]`),
+      ).toContain("--radius-control-1:");
+    }
+  });
+
+  it("never touches the space palette or type — gutters must not inflate on the smaller screen", () => {
+    for (const scope of [`[data-pointer="coarse"]`, `[data-pointer="coarse"][data-density="compact"]`]) {
+      const body = block(scope);
+      expect(body).not.toMatch(/^\s*--space-\d+:/m);
+      expect(body).not.toContain("--font-size-");
+      expect(body).not.toContain("--line-height-");
+    }
+  });
 });
 
 describe("radius levels are designed palettes, not a factor (§6)", () => {

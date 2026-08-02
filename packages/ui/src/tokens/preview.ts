@@ -285,6 +285,9 @@ export function generatePreview(): string {
       .map((l) => `<option${l === "medium" ? " selected" : ""}>${l}</option>`)
       .join("")}</select>
   </label>
+  <label>pointer
+    <select id="pointer"><option selected>fine</option><option>coarse</option></select>
+  </label>
 </div>
 <p class="note">Every value here is a placed number, not a product. Type is held at the size's own step across all three levels, which is the whole point of the axis: a comfortable size 2 stands as tall as a default size 3 while its label stays size 2. Correct any single cell in <code>src/tokens/config.ts</code> without disturbing its neighbours.</p>
 
@@ -353,6 +356,16 @@ ${brandSection("dark")}
 
   document.getElementById("radius").addEventListener("change", (e) => {
     document.documentElement.dataset.radius = e.target.value;
+    readout();
+  });
+
+  // The coarse matrix (§16). The attribute goes on the root AND on each density section:
+  // the (pointer x density) cells select on both attributes on one element, which Theme
+  // guarantees in an app and this page has to arrange by hand.
+  document.getElementById("pointer").addEventListener("change", (e) => {
+    for (const el of [document.documentElement, ...document.querySelectorAll(".grid > section")]) {
+      el.dataset.pointer = e.target.value;
+    }
     readout();
   });
 

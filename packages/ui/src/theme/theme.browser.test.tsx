@@ -64,6 +64,33 @@ describe("a nested Theme inherits what it was not given (§5)", () => {
     );
   });
 
+  it("pinning pointer=coarse renders the coarse geometry (§16)", () => {
+    const el = render(<Theme pointer="coarse">{probe}</Theme>);
+    // Coarse default size 2 anchors at the touch floor by design.
+    expect(computed(el.querySelector("#probe")!, "height")).toBe("44px");
+  });
+
+  it("a nested fine escape returns to the fine geometry instead of inheriting coarse", () => {
+    const el = render(
+      <Theme pointer="coarse">
+        <Theme pointer="fine">{probe}</Theme>
+      </Theme>,
+    );
+    expect(computed(el.querySelector("#probe")!, "height")).toBe("32px");
+  });
+
+  it("pointer composes with density and radius through the cells (§16)", () => {
+    const el = render(
+      <Theme pointer="coarse" density="compact" radius="large">
+        {probe}
+      </Theme>,
+    );
+    const found = el.querySelector("#probe")!;
+    expect(computed(found, "height")).toBe("38px");
+    // compact-coarse size 2 picks step 3; large prices step 3 at 12px.
+    expect(computed(found, "border-top-left-radius")).toBe("12px");
+  });
+
   it("an inner appearance overrides an outer one, so a forced-dark section works", () => {
     const dark = render(
       <Theme appearance="light">

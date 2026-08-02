@@ -8,12 +8,15 @@ export type Appearance = "light" | "dark" | "inherit";
 export type Density = "compact" | "default" | "comfortable";
 export type RadiusLevel = "none" | "small" | "medium" | "large" | "full";
 export type Contrast = "normal" | "high";
+/** §16 — `auto` follows `@media (pointer: coarse)`; pinning forces a geometry, which is also how the coarse matrix is judged on a desktop. */
+export type Pointer = "fine" | "coarse" | "auto";
 
 export type ThemeProps = {
   appearance?: Appearance;
   density?: Density;
   radius?: RadiusLevel;
   contrast?: Contrast;
+  pointer?: Pointer;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -21,13 +24,16 @@ export type ThemeProps = {
   render?: RenderElement;
 };
 
-type Resolved = Required<Pick<ThemeProps, "appearance" | "density" | "radius" | "contrast">>;
+type Resolved = Required<
+  Pick<ThemeProps, "appearance" | "density" | "radius" | "contrast" | "pointer">
+>;
 
 const DEFAULTS: Resolved = {
   appearance: "light",
   density: "default",
   radius: "medium",
   contrast: "normal",
+  pointer: "auto",
 };
 
 const ThemeContext = React.createContext<Resolved>(DEFAULTS);
@@ -55,17 +61,22 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       density: props.density ?? parent.density,
       radius: props.radius ?? parent.radius,
       contrast: props.contrast ?? parent.contrast,
+      pointer: props.pointer ?? parent.pointer,
     }),
-    [props.appearance, props.density, props.radius, props.contrast, parent],
+    [props.appearance, props.density, props.radius, props.contrast, props.pointer, parent],
   );
 
   // `inherit` means "whatever the nearest ancestor resolved to", so it emits no attribute of
   // its own and lets the outer scope keep applying.
+  // Every resolved axis is stamped on ONE element, always — the generated cells select on
+  // attribute combinations, and a custom property reference resolves where it is declared,
+  // so the pair (or triple) has to co-locate for the combined selector to exist (§6, §16).
   const attrs: Record<string, string> = {
     ...(resolved.appearance !== "inherit" ? { "data-appearance": resolved.appearance } : {}),
     "data-density": resolved.density,
     "data-radius": resolved.radius,
     "data-contrast": resolved.contrast,
+    "data-pointer": resolved.pointer,
   };
 
   const merged = { ...attrs, className, style };

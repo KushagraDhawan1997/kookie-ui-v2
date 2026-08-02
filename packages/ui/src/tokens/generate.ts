@@ -13,6 +13,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
+  coarse,
   defaultRadiusLevel,
   density,
   fontFamily,
@@ -24,7 +25,9 @@ import {
   radiusOverlay,
   radiusSurface,
   space,
+  touchTargetMin,
   type DensityLevel,
+  type DensitySet,
   type RadiusLevel,
 } from "./config.ts";
 
@@ -42,6 +45,9 @@ export function generateTokens(): string {
 
   lines.push("  /* factor (§5, §12). --scale is reserved, not public: no Theme prop yet. */");
   put("scale", "1");
+
+  lines.push("", "  /* the touch floor (§16) — raw px on purpose: a physical floor, not a zoomable length */");
+  put("touch-target-min", `${touchTargetMin}px`);
 
   lines.push("", "  /* space palette (§3) — layout currency; density never touches it */");
   space.forEach((px, i) => put(`space-${i + 1}`, zoom(px)));
@@ -63,7 +69,7 @@ export function generateTokens(): string {
   put("radius-overlay", `var(--radius-${radiusOverlay})`);
 
   lines.push("", "  /* semantic: control family at the default density (§4, §6, §12) */");
-  lines.push(...controlFamily("default"));
+  lines.push(...controlFamily(density.default));
 
   lines.push("", "  /* colour, generated (§7) — light mode */");
   lines.push(...colorDeclarations("light"));
@@ -117,7 +123,7 @@ export function generateTokens(): string {
   // Density is a designed set, not a multiplier: each level re-declares the control family.
   for (const level of Object.keys(density) as DensityLevel[]) {
     if (level === "default") continue;
-    lines.push(`[data-density="${level}"] {`, ...controlFamily(level), "}", "");
+    lines.push(`[data-density="${level}"] {`, ...controlFamily(density[level]), "}", "");
   }
 
   // Radius levels re-price the palette.
@@ -152,7 +158,55 @@ export function generateTokens(): string {
     }
   }
 
+  // §16 — the pointer axis. Coarse is a second designed geometry, emitted as cells exactly
+  // like density x radius above and for the same substitution-at-declaration reason. Theme
+  // stamps every resolved axis on one element, so the combined selectors always co-locate.
+  //
+  // Three scopes: [data-pointer="coarse"] (pinned), [data-pointer="auto"] under the media
+  // query (the default — the correct thing when nobody thinks), and [data-pointer="fine"]
+  // (the escape from a coarse ancestor; it must RE-declare the fine sets, because a nested
+  // scope that declares nothing inherits the coarse values, not the :root ones).
+  lines.push(...pointerWorld("fine", density));
+  lines.push(...pointerWorld("coarse", coarse));
+  lines.push(
+    "@media (pointer: coarse) {",
+    ...pointerWorld("auto", coarse).map((l) => (l === "" ? l : `  ${l}`)),
+    "}",
+    "",
+  );
+
   return lines.join("\n");
+}
+
+/**
+ * Every block one pointer value needs: the control family per density level, plus the
+ * (pointer x radius x density) cells for the semantic control radii — the same cells the
+ * radius x density interaction needed, one axis deeper (§16).
+ */
+function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): string[] {
+  const P = `[data-pointer="${pointer}"]`;
+  const out: string[] = [];
+
+  out.push(`${P} {`, ...controlFamily(sets.default), "}", "");
+  for (const d of Object.keys(sets) as DensityLevel[]) {
+    if (d === "default") continue;
+    out.push(`${P}[data-density="${d}"] {`, ...controlFamily(sets[d]), "}", "");
+  }
+
+  for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
+    for (const d of Object.keys(sets) as DensityLevel[]) {
+      const decls = sets[d].radius.map(
+        (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
+      );
+      out.push(`${P}[data-radius="${level}"][data-density="${d}"] {`, ...decls, "}", "");
+    }
+    const decls = sets.default.radius.map(
+      (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
+    );
+    out.push(`${P}[data-radius="${level}"] {`, ...decls, "}", "");
+  }
+
+  return out;
 }
 
 /** The radius palette for one level (§6). Steps 1-5 are the control band, 6-7 surfaces. */
@@ -163,9 +217,8 @@ function radiusPalette(level: RadiusLevel): string[] {
   return out;
 }
 
-/** The four size-indexed control tokens for one density level (§12). */
-function controlFamily(level: DensityLevel): string[] {
-  const set = density[level];
+/** The four size-indexed control tokens for one designed set (§12, §16). */
+function controlFamily(set: DensitySet): string[] {
   const out: string[] = [];
   const put = (name: string, value: string) => out.push(`  --${name}: ${value};`);
 

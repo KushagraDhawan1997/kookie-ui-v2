@@ -6,9 +6,9 @@ Ground-up rebuild of KookieUI. Base UI primitives behind a Kookie-owned API, gen
 
 Blockers resolved 2026-07-31; code phase open, following §14's build order strictly.
 
-Done: scaffold (1), token pipeline including the colour generator (2), Box and the responsive mechanism (3), and Theme — the first half of step 4. **Next is the rest of step 4: Flex, Stack, Grid as typed sugar over Box; then 4b, the pointer axis (§16).** Theme shipped with dark-mode SSR still unresolved (REVIEW.md); that is a known debt, not a closed question, and it lands before an app renders one.
+Done: scaffold (1), token pipeline including the colour generator (2), Box and the responsive mechanism (3), Theme + Flex/Stack/Grid (4), and the pointer axis tokens (4b) — coarse cells, Theme `pointer` prop, preview matrix, laws; the reserve and the rendered-floor law land with Button, which is where a control first exists. Theme shipped with dark-mode SSR still unresolved (REVIEW.md); that debt comes due at apps/docs.
 
-**Button (step 5) stays gated** on five: focus-visible, disabled/loading, motion, icon sizing (REVIEW.md resolution log), and the coarse numbers judged in 4b's preview matrix (§16). Do not run ahead of a §14 measurement gate.
+**Next: the five pre-Button decisions.** Button (step 5) stays gated on focus-visible, disabled/loading, motion, icon sizing (REVIEW.md resolution log), and the coarse numbers judged in 4b's preview matrix (§16). Do not run ahead of a §14 measurement gate.
 
 Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
 

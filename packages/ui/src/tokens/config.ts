@@ -86,6 +86,53 @@ export const density = {
 
 export type DensityLevel = keyof typeof density;
 
+/** One placed geometry: four heights, plus step indices into the space and radius palettes. */
+export type DensitySet = {
+  readonly height: readonly [number, number, number, number];
+  readonly px: readonly [number, number, number, number];
+  readonly gap: readonly [number, number, number, number];
+  readonly radius: readonly [number, number, number, number];
+};
+
+/**
+ * §16 — the coarse geometry. Fine and coarse are two complete designed renderings of the
+ * control family, the way light and dark are two renderings of colour: same index, same laws,
+ * different placed values. The signal is what touches the screen (`pointer: coarse`), never
+ * width. All values v0 until judged in the preview matrix.
+ *
+ * Size 2 anchors at the touch floor; size 1 stays deliberately under it — the reserve
+ * (`max(--touch-target-min, height)` on the control's layout box, landing with Button) covers
+ * the remainder, which is what keeps size 1 and size 2 distinct instead of both flattening
+ * to 44. Radius holds the same ~0.2 fraction of the box as the fine world (§6).
+ */
+export const coarse = {
+  compact: {
+    height: [32, 38, 46, 54],
+    px: [3, 4, 5, 6],
+    gap: [2, 3, 3, 4],
+    radius: [2, 3, 3, 4],
+  },
+  default: {
+    height: [36, 44, 52, 60],
+    px: [4, 5, 6, 7],
+    gap: [3, 4, 4, 5],
+    radius: [2, 3, 4, 5],
+  },
+  comfortable: {
+    height: [40, 48, 58, 68],
+    px: [5, 6, 7, 7],
+    gap: [4, 4, 5, 5],
+    radius: [3, 4, 5, 5],
+  },
+} as const satisfies Record<DensityLevel, DensitySet>;
+
+/**
+ * §16 — the touch floor (Apple HIG 44pt; Material 48dp; fingerpad anthropometry). Raw px on
+ * purpose: a physical floor, not a length that zooms — and a `max()` against it in component
+ * CSS is what no consumer root-font-size game can drag a target below.
+ */
+export const touchTargetMin = 44;
+
 /** §15 — type. Nine steps: type's dynamic range is wider than the control family's. */
 export const fontSize = [12, 14, 16, 18, 20, 24, 30, 40, 56] as const;
 /** Paired designed values, not a derived ratio: ~1.5 through reading sizes, tightening toward ~1.1 at display. */

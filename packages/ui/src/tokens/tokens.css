@@ -5,6 +5,9 @@
   /* factor (§5, §12). --scale is reserved, not public: no Theme prop yet. */
   --scale: 1;
 
+  /* the touch floor (§16) — raw px on purpose: a physical floor, not a zoomable length */
+  --touch-target-min: 44px;
+
   /* space palette (§3) — layout currency; density never touches it */
   --space-1: calc(2px * var(--scale));
   --space-2: calc(4px * var(--scale));
@@ -890,4 +893,598 @@
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"] {
+  --control-height-1: calc(28px * var(--scale));
+  --control-height-2: calc(32px * var(--scale));
+  --control-height-3: calc(40px * var(--scale));
+  --control-height-4: calc(48px * var(--scale));
+  --control-px-1: var(--space-3);
+  --control-px-2: var(--space-4);
+  --control-px-3: var(--space-5);
+  --control-px-4: var(--space-6);
+  --control-gap-1: var(--space-2);
+  --control-gap-2: var(--space-3);
+  --control-gap-3: var(--space-3);
+  --control-gap-4: var(--space-4);
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-density="compact"] {
+  --control-height-1: calc(24px * var(--scale));
+  --control-height-2: calc(28px * var(--scale));
+  --control-height-3: calc(34px * var(--scale));
+  --control-height-4: calc(40px * var(--scale));
+  --control-px-1: var(--space-2);
+  --control-px-2: var(--space-3);
+  --control-px-3: var(--space-4);
+  --control-px-4: var(--space-5);
+  --control-gap-1: var(--space-1);
+  --control-gap-2: var(--space-2);
+  --control-gap-3: var(--space-2);
+  --control-gap-4: var(--space-3);
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-2);
+  --radius-control-4: var(--radius-3);
+}
+
+[data-pointer="fine"][data-density="comfortable"] {
+  --control-height-1: calc(34px * var(--scale));
+  --control-height-2: calc(40px * var(--scale));
+  --control-height-3: calc(50px * var(--scale));
+  --control-height-4: calc(60px * var(--scale));
+  --control-px-1: var(--space-4);
+  --control-px-2: var(--space-5);
+  --control-px-3: var(--space-6);
+  --control-px-4: var(--space-7);
+  --control-gap-1: var(--space-3);
+  --control-gap-2: var(--space-4);
+  --control-gap-3: var(--space-4);
+  --control-gap-4: var(--space-5);
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="fine"][data-radius="none"][data-density="compact"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-2);
+  --radius-control-4: var(--radius-3);
+}
+
+[data-pointer="fine"][data-radius="none"][data-density="default"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-radius="none"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="fine"][data-radius="none"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-radius="small"][data-density="compact"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-2);
+  --radius-control-4: var(--radius-3);
+}
+
+[data-pointer="fine"][data-radius="small"][data-density="default"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-radius="small"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="fine"][data-radius="small"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-radius="medium"][data-density="compact"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-2);
+  --radius-control-4: var(--radius-3);
+}
+
+[data-pointer="fine"][data-radius="medium"][data-density="default"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-radius="medium"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="fine"][data-radius="medium"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-radius="large"][data-density="compact"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-2);
+  --radius-control-4: var(--radius-3);
+}
+
+[data-pointer="fine"][data-radius="large"][data-density="default"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-radius="large"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="fine"][data-radius="large"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-radius="full"][data-density="compact"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-2);
+  --radius-control-4: var(--radius-3);
+}
+
+[data-pointer="fine"][data-radius="full"][data-density="default"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="fine"][data-radius="full"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="fine"][data-radius="full"] {
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="coarse"] {
+  --control-height-1: calc(36px * var(--scale));
+  --control-height-2: calc(44px * var(--scale));
+  --control-height-3: calc(52px * var(--scale));
+  --control-height-4: calc(60px * var(--scale));
+  --control-px-1: var(--space-4);
+  --control-px-2: var(--space-5);
+  --control-px-3: var(--space-6);
+  --control-px-4: var(--space-7);
+  --control-gap-1: var(--space-3);
+  --control-gap-2: var(--space-4);
+  --control-gap-3: var(--space-4);
+  --control-gap-4: var(--space-5);
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-density="compact"] {
+  --control-height-1: calc(32px * var(--scale));
+  --control-height-2: calc(38px * var(--scale));
+  --control-height-3: calc(46px * var(--scale));
+  --control-height-4: calc(54px * var(--scale));
+  --control-px-1: var(--space-3);
+  --control-px-2: var(--space-4);
+  --control-px-3: var(--space-5);
+  --control-px-4: var(--space-6);
+  --control-gap-1: var(--space-2);
+  --control-gap-2: var(--space-3);
+  --control-gap-3: var(--space-3);
+  --control-gap-4: var(--space-4);
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="coarse"][data-density="comfortable"] {
+  --control-height-1: calc(40px * var(--scale));
+  --control-height-2: calc(48px * var(--scale));
+  --control-height-3: calc(58px * var(--scale));
+  --control-height-4: calc(68px * var(--scale));
+  --control-px-1: var(--space-5);
+  --control-px-2: var(--space-6);
+  --control-px-3: var(--space-7);
+  --control-px-4: var(--space-7);
+  --control-gap-1: var(--space-4);
+  --control-gap-2: var(--space-4);
+  --control-gap-3: var(--space-5);
+  --control-gap-4: var(--space-5);
+  --radius-control-1: var(--radius-3);
+  --radius-control-2: var(--radius-4);
+  --radius-control-3: var(--radius-5);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="none"][data-density="compact"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="coarse"][data-radius="none"][data-density="default"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="none"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-3);
+  --radius-control-2: var(--radius-4);
+  --radius-control-3: var(--radius-5);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="none"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="small"][data-density="compact"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="coarse"][data-radius="small"][data-density="default"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="small"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-3);
+  --radius-control-2: var(--radius-4);
+  --radius-control-3: var(--radius-5);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="small"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="medium"][data-density="compact"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="coarse"][data-radius="medium"][data-density="default"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="medium"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-3);
+  --radius-control-2: var(--radius-4);
+  --radius-control-3: var(--radius-5);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="medium"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="large"][data-density="compact"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="coarse"][data-radius="large"][data-density="default"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="large"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-3);
+  --radius-control-2: var(--radius-4);
+  --radius-control-3: var(--radius-5);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="large"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="full"][data-density="compact"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+}
+
+[data-pointer="coarse"][data-radius="full"][data-density="default"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="full"][data-density="comfortable"] {
+  --radius-control-1: var(--radius-3);
+  --radius-control-2: var(--radius-4);
+  --radius-control-3: var(--radius-5);
+  --radius-control-4: var(--radius-5);
+}
+
+[data-pointer="coarse"][data-radius="full"] {
+  --radius-control-1: var(--radius-2);
+  --radius-control-2: var(--radius-3);
+  --radius-control-3: var(--radius-4);
+  --radius-control-4: var(--radius-5);
+}
+
+@media (pointer: coarse) {
+  [data-pointer="auto"] {
+    --control-height-1: calc(36px * var(--scale));
+    --control-height-2: calc(44px * var(--scale));
+    --control-height-3: calc(52px * var(--scale));
+    --control-height-4: calc(60px * var(--scale));
+    --control-px-1: var(--space-4);
+    --control-px-2: var(--space-5);
+    --control-px-3: var(--space-6);
+    --control-px-4: var(--space-7);
+    --control-gap-1: var(--space-3);
+    --control-gap-2: var(--space-4);
+    --control-gap-3: var(--space-4);
+    --control-gap-4: var(--space-5);
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-density="compact"] {
+    --control-height-1: calc(32px * var(--scale));
+    --control-height-2: calc(38px * var(--scale));
+    --control-height-3: calc(46px * var(--scale));
+    --control-height-4: calc(54px * var(--scale));
+    --control-px-1: var(--space-3);
+    --control-px-2: var(--space-4);
+    --control-px-3: var(--space-5);
+    --control-px-4: var(--space-6);
+    --control-gap-1: var(--space-2);
+    --control-gap-2: var(--space-3);
+    --control-gap-3: var(--space-3);
+    --control-gap-4: var(--space-4);
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-3);
+    --radius-control-4: var(--radius-4);
+  }
+
+  [data-pointer="auto"][data-density="comfortable"] {
+    --control-height-1: calc(40px * var(--scale));
+    --control-height-2: calc(48px * var(--scale));
+    --control-height-3: calc(58px * var(--scale));
+    --control-height-4: calc(68px * var(--scale));
+    --control-px-1: var(--space-5);
+    --control-px-2: var(--space-6);
+    --control-px-3: var(--space-7);
+    --control-px-4: var(--space-7);
+    --control-gap-1: var(--space-4);
+    --control-gap-2: var(--space-4);
+    --control-gap-3: var(--space-5);
+    --control-gap-4: var(--space-5);
+    --radius-control-1: var(--radius-3);
+    --radius-control-2: var(--radius-4);
+    --radius-control-3: var(--radius-5);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="none"][data-density="compact"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-3);
+    --radius-control-4: var(--radius-4);
+  }
+
+  [data-pointer="auto"][data-radius="none"][data-density="default"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="none"][data-density="comfortable"] {
+    --radius-control-1: var(--radius-3);
+    --radius-control-2: var(--radius-4);
+    --radius-control-3: var(--radius-5);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="none"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="small"][data-density="compact"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-3);
+    --radius-control-4: var(--radius-4);
+  }
+
+  [data-pointer="auto"][data-radius="small"][data-density="default"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="small"][data-density="comfortable"] {
+    --radius-control-1: var(--radius-3);
+    --radius-control-2: var(--radius-4);
+    --radius-control-3: var(--radius-5);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="small"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="medium"][data-density="compact"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-3);
+    --radius-control-4: var(--radius-4);
+  }
+
+  [data-pointer="auto"][data-radius="medium"][data-density="default"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="medium"][data-density="comfortable"] {
+    --radius-control-1: var(--radius-3);
+    --radius-control-2: var(--radius-4);
+    --radius-control-3: var(--radius-5);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="medium"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="large"][data-density="compact"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-3);
+    --radius-control-4: var(--radius-4);
+  }
+
+  [data-pointer="auto"][data-radius="large"][data-density="default"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="large"][data-density="comfortable"] {
+    --radius-control-1: var(--radius-3);
+    --radius-control-2: var(--radius-4);
+    --radius-control-3: var(--radius-5);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="large"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="full"][data-density="compact"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-3);
+    --radius-control-4: var(--radius-4);
+  }
+
+  [data-pointer="auto"][data-radius="full"][data-density="default"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="full"][data-density="comfortable"] {
+    --radius-control-1: var(--radius-3);
+    --radius-control-2: var(--radius-4);
+    --radius-control-3: var(--radius-5);
+    --radius-control-4: var(--radius-5);
+  }
+
+  [data-pointer="auto"][data-radius="full"] {
+    --radius-control-1: var(--radius-2);
+    --radius-control-2: var(--radius-3);
+    --radius-control-3: var(--radius-4);
+    --radius-control-4: var(--radius-5);
+  }
+
 }
