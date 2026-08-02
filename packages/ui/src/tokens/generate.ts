@@ -30,6 +30,7 @@ import {
   radiusOverlay,
   radiusSurface,
   space,
+  surfaceColor,
   surfacePadding,
   touchTargetMin,
   type DensityLevel,
@@ -298,8 +299,8 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `  --color-text-muted: var(--neutral-11);`,
     "",
     `  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's`,
-    `     job alone. Page-coloured, so a card over the page reads as border-defined. */`,
-    `  --color-surface: var(--neutral-1);`,
+    `     job alone. Paper above the page, so a card is visible where it lives. */`,
+    `  --color-surface: ${surfaceColor[mode]};`,
   ];
 }
 

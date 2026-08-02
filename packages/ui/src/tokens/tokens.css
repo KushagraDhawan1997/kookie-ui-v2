@@ -232,8 +232,8 @@
   --color-text-muted: var(--neutral-11);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
-     job alone. Page-coloured, so a card over the page reads as border-defined. */
-  --color-surface: var(--neutral-1);
+     job alone. Paper above the page, so a card is visible where it lives. */
+  --color-surface: #ffffff;
 }
 
 [data-appearance="dark"] {
@@ -356,8 +356,8 @@
   --color-text-muted: var(--neutral-11);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
-     job alone. Page-coloured, so a card over the page reads as border-defined. */
-  --color-surface: var(--neutral-1);
+     job alone. Paper above the page, so a card is visible where it lives. */
+  --color-surface: var(--neutral-2);
 }
 
 @supports (color: color(display-p3 0 0 0)) {

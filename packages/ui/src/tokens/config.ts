@@ -204,6 +204,13 @@ export const material = {
  */
 export const surfacePadding = [4, 5, 6, 7] as const;
 
+/**
+ * §10 — the seal: what an opaque surface is filled with. Paper ABOVE the page, never the
+ * page itself — a card sealed at --neutral-1 is invisible where it lives most. Light is
+ * pure white over the #fcfcfc page; dark steps up the ladder. The Radix panel answer.
+ */
+export const surfaceColor = { light: "#ffffff", dark: "var(--neutral-2)" } as const;
+
 /** §15 — closed weight set; `light` deferred until something needs it. */
 export const fontWeight = { regular: 400, medium: 500, semibold: 600, bold: 700 } as const;
 

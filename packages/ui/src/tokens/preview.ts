@@ -181,26 +181,28 @@ function accentSwap(name: string, hex: string, mode: Mode): string {
 }
 
 /** The static markup Card produces (LOG 2026-08-04): a shell — identity, not options. */
-function card(body: string, style = "", material?: string): string {
-  return `<div class="kui-surface kui-card" data-size="3" data-tone="neutral" data-emphasis="quiet" data-bordered${
+function card(body: string, style = "", material?: string, size = "3"): string {
+  return `<div class="kui-surface kui-card" data-size="${size}" data-tone="neutral" data-emphasis="quiet" data-bordered${
     material ? ` data-material="${material}"` : ""
   }${style ? ` style="${style}"` : ""}>${body}</div>`;
 }
 
 /**
- * The shell, one mode per block (§10, §14 step 6): alpha nesting three deep, and the material
- * recipes over a deliberately hostile backdrop — the judgment §10 said could only happen
- * against real backdrops, not in prose. No variants to show, which is the point: everything a
- * Card can be is on this screen.
+ * The shell, one mode per block (\u00a710): the seal judged against the page, the padding
+ * index, and the material recipes over a deliberately hostile backdrop. No variants to show,
+ * which is the point - everything a Card can be is on this screen.
  */
 function surfaceSection(mode: Mode): string {
   const muted = `style="color: var(--color-text-muted)"`;
-  const nesting = card(
-    `outer — <span ${muted}>--tone-a1 over the page</span>
-      ${card(`nested — <span ${muted}>the same token, composited darker</span>
-        ${card(`third level`, "margin-top: var(--space-4)")}`, "margin-top: var(--space-4)")}`,
-    "flex: 1",
+  const shell = card(
+    `<strong>The shell</strong>
+     <div ${muted}>Opaque --color-surface over the page; the border is the edge. Translucency is material's job alone.</div>
+     <div style="margin-top: var(--space-4)">${button({ tone: "accent", emphasis: "loud" }, "Action")} ${button({}, "Action")}</div>`,
+    "max-width: 420px",
   );
+  const sizes = ["1", "2", "3", "4"]
+    .map((n) => card(`size ${n}`, "flex: 1", undefined, n))
+    .join("");
   const hostile =
     "background: radial-gradient(circle at 20% 30%, #ff5f6d 0 12%, transparent 40%)," +
     " radial-gradient(circle at 75% 20%, #ffc371 0 18%, transparent 45%)," +
@@ -220,9 +222,11 @@ function surfaceSection(mode: Mode): string {
     .join("");
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>${mode}</h2>
-    <h3>alpha nesting — one token, three distinct levels (§10)</h3>
-    <div style="display: flex; gap: var(--space-5)">${nesting}</div>
-    <h3 style="margin-top: var(--space-7)">material over a hostile backdrop — v0 recipes (§10)</h3>
+    <h3>the seal - paper above the page (\u00a710)</h3>
+    ${shell}
+    <h3 style="margin-top: var(--space-7)">the padding index (\u00a74)</h3>
+    <div style="display: flex; gap: var(--space-5); align-items: flex-start">${sizes}</div>
+    <h3 style="margin-top: var(--space-7)">material over a hostile backdrop - v0 recipes (\u00a710)</h3>
     <div style="${hostile}">${materials}</div>
   </section>`;
 }
