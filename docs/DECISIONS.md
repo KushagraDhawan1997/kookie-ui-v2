@@ -603,6 +603,8 @@ size       1 | 2 | 3 | 4                                               height in
 
 **Why `bordered` is separate.** Border-versus-fill is *containment*, a different question from loudness, and forcing it onto the ladder was the entire `surface` incoherence. As an orthogonal boolean it reproduces the old range with fewer concepts: `quiet + bordered` is the old outline, `medium + bordered` the old surface. Border does one job — separate the control from a busy background — which is also why it pairs naturally with material (section 10).
 
+**`loud + bordered` is useless, and stays legal (judged 2026-08-03, Kushagra).** A step-7 border against a solid step-9 fill does no containment work — the fill already separates itself. It is not forbidden: refusing the combination would cost either an axis-multiplying CSS rule (the exact shape the additivity law forbids) or component-level prop logic, both worse than a no-op nobody reaches for. The preview stops showing the cell; documentation says don't.
+
 ```
 tone (hue) + emphasis (rung) -> role-token bundle -> scale steps -> generated OKLCH values
 ```

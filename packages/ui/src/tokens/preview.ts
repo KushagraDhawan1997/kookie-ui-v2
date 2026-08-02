@@ -110,9 +110,11 @@ function buttonMatrix(
   tones: readonly string[] = TONES,
   heading: string = mode,
 ): string {
+  // No loud + border column: judged useless by eye (2026-08-03) — a step-7 border against a
+  // solid step-9 fill has no containment job, the fill already separates itself (§10).
   const columns = EMPHASES.flatMap((e) => [
     { label: e, emphasis: e, bordered: false },
-    { label: `${e} + border`, emphasis: e, bordered: true },
+    ...(e === "loud" ? [] : [{ label: `${e} + border`, emphasis: e, bordered: true }]),
   ]);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>${heading}</h2>
