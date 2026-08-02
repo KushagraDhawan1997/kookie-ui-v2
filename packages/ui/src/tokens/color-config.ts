@@ -98,8 +98,8 @@ export const lowChromaThreshold = 0.18;
  * AAA-equivalent Lc 75 rather than the AA-equivalent Lc 60, which is law-tested.
  */
 export const contrastHigh = {
-  light: { border: -0.11, text: -0.08, stateSpread: 1.6 },
-  dark: { border: 0.11, text: 0.07, stateSpread: 1.6 },
+  light: { border: -0.19, text: -0.14, stateSpread: 1.6 },
+  dark: { border: 0.17, text: 0.12, stateSpread: 1.6 },
 } as const;
 
 /** Steps the high-contrast pass rewrites: the border band and the text band. */

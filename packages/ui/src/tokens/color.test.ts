@@ -141,6 +141,18 @@ describe("the label sits between the text steps, and is not one of them (§7)", 
   });
 });
 
+describe("the label colour is a design decision, not a per-display one (§7)", () => {
+  it("resolves the same in sRGB and P3, so a wide-gamut monitor cannot flip it", () => {
+    // It did: destructive's more saturated P3 solid tipped APCA to black, so the same button
+    // rendered white-on-red on one display and black-on-red on another.
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        expect(buildScale(tone, mode, "p3").contrast).toBe(buildScale(tone, mode, "srgb").contrast);
+      }
+    }
+  });
+});
+
 describe("hostile hues survive the same law (§7)", () => {
   // Accent is an arbitrary user hue, so the generator has to hold for the colours that break
   // fixed-ladder systems, not only for the well-behaved blue we happened to ship.
@@ -207,6 +219,34 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
           expect(Math.abs(apcaLc(s.label, s.steps[step]!))).toBeGreaterThanOrEqual(AAA);
         }
         expect(Math.abs(apcaLc(s.steps[10]!, s.steps[2]!))).toBeGreaterThanOrEqual(AAA);
+      }
+    }
+  });
+
+  it("moves the label pairing by a visible amount, not a token gesture", () => {
+    // At +7 Lc the two palettes were indistinguishable side by side, which is how a
+    // high-contrast mode ends up shipping as decoration. The bar is a perceptible step.
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        const normal = buildScale(tone, mode);
+        const high = buildScale(tone, mode, "srgb", "high");
+        const gain =
+          Math.abs(apcaLc(high.label, high.steps[2]!)) - Math.abs(apcaLc(normal.label, normal.steps[2]!));
+        expect(gain).toBeGreaterThanOrEqual(9);
+      }
+    }
+  });
+
+  it("never lets a solid state run out of the lightness range", () => {
+    // A pressed state that formatted as flat white: the room check tested the unmultiplied
+    // delta while the spread multiplied it 1.6x, so the excursion ran past L 1.0.
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        const s = buildScale(tone, mode, "srgb", "high");
+        for (const fill of [s.solidHover, s.solidActive]) {
+          expect(L(fill)).toBeGreaterThan(0.02);
+          expect(L(fill)).toBeLessThan(0.99);
+        }
       }
     }
   });

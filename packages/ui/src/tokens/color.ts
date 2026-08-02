@@ -33,6 +33,14 @@ const fits = { srgb: inGamut("rgb"), p3: inGamut("p3") } as const;
 export type Gamut = keyof typeof fits;
 
 type Oklch = { mode: "oklch"; l: number; c: number; h: number };
+
+/**
+ * Lightness is a 0-1 coordinate, and the ends are degenerate: past them everything formats as
+ * flat white or black, losing hue and any distinction between neighbouring steps. Held just
+ * inside so a shifted band cannot collapse — contrast="high" pushes dark neutral's step 12
+ * past 1.0 on its own.
+ */
+const clampL = (l: number) => Math.min(0.985, Math.max(0.02, l));
 const oklch = (l: number, c: number, h: number): Oklch => ({ mode: "oklch", l, c, h });
 
 /**
@@ -196,8 +204,8 @@ export function buildScaleFor(
   const stepL = ladder.map((l, i) => {
     const base = i === 8 ? solidL : i === 9 ? solidL + step10Offset : l;
     if (!hc) return base;
-    if ((contrastHighBands.border as readonly number[]).includes(i)) return base + hc.border;
-    if ((contrastHighBands.text as readonly number[]).includes(i)) return base + hc.text;
+    if ((contrastHighBands.border as readonly number[]).includes(i)) return clampL(base + hc.border);
+    if ((contrastHighBands.text as readonly number[]).includes(i)) return clampL(base + hc.text);
     return base;
   });
 
@@ -213,18 +221,32 @@ export function buildScaleFor(
 
   // The label is decided on the resting fill, then hover and press move AWAY from it, so the
   // interaction states are strictly more legible than rest and only rest has to clear the bar.
-  const contrast = contrastOn(solid);
+  // Decided on the sRGB rendering even when emitting P3, so a wide-gamut display cannot flip
+  // a button's label from white to black. The choice belongs to the design, not to the monitor.
+  const contrast = contrastOn(formatHex(toGamut(oklch(restL, restC, hue), "srgb"))!);
   const preferred = contrast === "#ffffff" ? -1 : 1;
   // A near-white or near-black solid has no room left to move away from its label — a dark
   // mode neutral rests at L .94 with a black label. Fall back toward the label there, which
   // still leaves an enormous margin precisely because the fill was at an extreme.
+  //
+  // The check has to use the SPREAD-multiplied excursion, not the base one: at contrast="high"
+  // the spread is 1.6x, and testing the unmultiplied delta let a bright hue's pressed state
+  // run past L 1.0, where it formatted as pure white and the chip vanished.
+  const spread = hc ? hc.stateSpread : 1;
   const CEILING = 0.97;
   const FLOOR = 0.06;
-  const room = restL + preferred * solidStateDeltas.active;
-  const away = room > CEILING || room < FLOOR ? -preferred : preferred;
-  const spread = hc ? hc.stateSpread : 1;
+  const wanted = solidStateDeltas.active * spread;
+  const headroom = preferred > 0 ? CEILING - restL : restL - FLOOR;
+
+  // Prefer moving away from the label; move toward it when there is not enough headroom.
+  //
+  // Compressing the excursion instead was tried and is worse: a fill sitting near its cusp
+  // (every bright hue) can only go lighter by shedding chroma, so the pressed state washed out
+  // to near-white and stopped being yellow at all. Moving toward the label keeps the hue, and
+  // the APCA laws below guarantee it still clears the bar — which is what the laws are for.
+  const away = headroom < wanted ? -preferred : preferred;
   const state = (delta: number) =>
-    format(toGamut(oklch(restL + away * delta * spread, restC, hue), gamut), gamut);
+    format(toGamut(oklch(clampL(restL + away * delta * spread), restC, hue), gamut), gamut);
   const solidHover = state(solidStateDeltas.hover);
   const solidActive = state(solidStateDeltas.active);
 
