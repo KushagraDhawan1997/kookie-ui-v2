@@ -180,6 +180,106 @@ function accentSwap(name: string, hex: string, mode: Mode): string {
   </style><div class="${cls}">${buttonMatrix(mode, ["accent"], `${name} — ${hex} — ${mode}`)}</div>`;
 }
 
+/** The static markup Card produces (§10) — classes and data attributes, no component. */
+function card(
+  opts: {
+    tone?: string;
+    emphasis?: string;
+    bordered?: boolean;
+    elevation?: string;
+    material?: string;
+    size?: string;
+  },
+  body: string,
+  style = "",
+): string {
+  const {
+    tone = "neutral",
+    emphasis = "quiet",
+    bordered = true,
+    elevation = "raised",
+    material,
+    size = "3",
+  } = opts;
+  return `<div class="kui-surface kui-card" data-size="${size}" data-tone="${tone}" data-emphasis="${emphasis}"${
+    bordered ? " data-bordered" : ""
+  } data-elevation="${elevation}"${material ? ` data-material="${material}"` : ""}${
+    style ? ` style="${style}"` : ""
+  }>${body}</div>`;
+}
+
+/**
+ * The surface axes, one mode per block (§10, §14 step 6): the elevation ladder judged side by
+ * side, alpha nesting three deep, the tone-forward rungs setting foreground context, and the
+ * material recipes over a deliberately hostile backdrop — the judgment §10 said could only
+ * happen against real backdrops, not in prose.
+ */
+function surfaceSection(mode: Mode): string {
+  const muted = `style="color: var(--color-text-muted)"`;
+  const ladder = ["flat", "raised", "floating", "overlay"]
+    .map((lv) =>
+      card(
+        { elevation: lv },
+        `<strong>${lv}</strong><div ${muted}>quiet + bordered</div>`,
+        "flex: 1",
+      ),
+    )
+    .join("");
+  const nesting = card(
+    {},
+    `outer — <span ${muted}>--tone-a1 over the page</span>
+      ${card({}, `nested — <span ${muted}>the same token, composited darker</span>
+        ${card({}, `third level`, "margin-top: var(--space-4)")}`, "margin-top: var(--space-4)")}`,
+    "flex: 1",
+  );
+  const toneForward = [
+    card(
+      { emphasis: "medium", tone: "accent", elevation: "flat" },
+      `<strong>medium accent</strong><div ${muted}>children read --color-text</div>
+       <div style="margin-top: var(--space-4)">${button({}, "Neutral button")}</div>`,
+      "flex: 1",
+    ),
+    card(
+      { emphasis: "medium", tone: "destructive", elevation: "flat" },
+      `<strong>medium destructive</strong><div ${muted}>a callout's dressing</div>`,
+      "flex: 1",
+    ),
+    card(
+      { emphasis: "loud", tone: "accent", elevation: "raised" },
+      `<strong>loud accent</strong><div ${muted}>text flips to --tone-contrast</div>`,
+      "flex: 1",
+    ),
+  ].join("");
+  const hostile =
+    "background: radial-gradient(circle at 20% 30%, #ff5f6d 0 12%, transparent 40%)," +
+    " radial-gradient(circle at 75% 20%, #ffc371 0 18%, transparent 45%)," +
+    " radial-gradient(circle at 60% 80%, #2bc0e4 0 15%, transparent 42%)," +
+    " linear-gradient(115deg, #841e57, #144e68 55%, #1db954);" +
+    " padding: var(--space-7); border-radius: var(--radius-surface);" +
+    " display: flex; gap: var(--space-5); flex-wrap: wrap;";
+  const materials = ["solid", "thin", "thick"]
+    .map((m) =>
+      card(
+        { material: m === "solid" ? undefined : m, elevation: "floating" },
+        `<strong>${m}</strong><div ${muted}>does the label survive?</div>
+         <div style="margin-top: var(--space-4)">${button({ tone: "accent", emphasis: "loud" }, "Label")} ${button({}, "Label")}</div>`,
+        "flex: 1; min-width: 200px",
+      ),
+    )
+    .join("");
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    <h3>the elevation ladder — v0 shadows, judged here (§10)</h3>
+    <div style="display: flex; gap: var(--space-5); align-items: flex-start">${ladder}</div>
+    <h3 style="margin-top: var(--space-7)">alpha nesting — one token, three distinct levels (§10)</h3>
+    <div style="display: flex; gap: var(--space-5)">${nesting}</div>
+    <h3 style="margin-top: var(--space-7)">tone-forward rungs set foreground context (§10)</h3>
+    <div style="display: flex; gap: var(--space-5)">${toneForward}</div>
+    <h3 style="margin-top: var(--space-7)">material over a hostile backdrop — v0 recipes (§10)</h3>
+    <div style="${hostile}">${materials}</div>
+  </section>`;
+}
+
 const swatch = (bg: string, title: string, label = "") =>
   `<div class="sw" title="${title}" style="background:${bg}">${label}</div>`;
 
@@ -526,6 +626,11 @@ ${BRANDS.slice(0, 5)
   ${button({ emphasis: "loud", tone: "accent", loading: true }, "Save")}
   ${button({ size: "4", emphasis: "loud", tone: "accent", loading: true }, "Save")}
 </div>
+
+<h1 id="card">Card — the first surface</h1>
+<p class="note">One component, five axes: <code>tone × emphasis × bordered × elevation × material</code>, and Card ships not one line of its own CSS — everything below is the shared surface layer resolving data attributes, the same additivity that carried Button (§2, §10). The shadows and the glass are v0 values judged on this page, not reasoned about; expect them to move.</p>
+${surfaceSection("light")}
+${surfaceSection("dark")}
 
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">

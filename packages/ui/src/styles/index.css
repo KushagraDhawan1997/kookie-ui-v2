@@ -2,5 +2,6 @@
 @import "../tokens/tokens.css";
 @import "../system/layout.css";
 @import "../system/recipes.css";
+@import "../system/surfaces.css";
 @import "../components/spinner/spinner.css";
 @import "../components/button/button.css";

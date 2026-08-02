@@ -106,6 +106,12 @@
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
 
+  /* surface padding (§10) — space references, never restated numbers */
+  --surface-p-1: var(--space-4);
+  --surface-p-2: var(--space-5);
+  --surface-p-3: var(--space-6);
+  --surface-p-4: var(--space-7);
+
   /* colour, generated (§7) — light mode */
   /* neutral */
   --neutral-1: #fcfcfc;
@@ -213,6 +219,22 @@
   --destructive-label: #6c3230;
   --destructive-contrast: #ffffff;
   --focus-ring: var(--accent-solid);
+
+  /* the elevation ladder (§10) — flat is the absence, so it has no token */
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.06), 0 1px 4px rgb(0 0 0 / 0.08);
+  --shadow-floating: 0 2px 4px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.12);
+  --shadow-overlay: 0 4px 12px rgb(0 0 0 / 0.10), 0 20px 48px rgb(0 0 0 / 0.22);
+
+  /* material recipes (§10) — fills mix over the page colour, so tone rides for free */
+  --material-thin-fill: color-mix(in srgb, var(--neutral-1) 55%, transparent);
+  --material-thin-filter: blur(12px) saturate(150%) brightness(1.05);
+  --material-thick-fill: color-mix(in srgb, var(--neutral-1) 72%, transparent);
+  --material-thick-filter: blur(20px) saturate(180%) brightness(1.08);
+  --material-opaque-fill: color-mix(in srgb, var(--neutral-1) 95%, transparent);
+
+  /* foreground context (§10) — what a surface re-scopes for everything inside it */
+  --color-text: var(--neutral-12);
+  --color-text-muted: var(--neutral-11);
 }
 
 [data-appearance="dark"] {
@@ -322,6 +344,22 @@
   --destructive-label: #ebc9c6;
   --destructive-contrast: #ffffff;
   --focus-ring: var(--accent-solid);
+
+  /* the elevation ladder (§10) — flat is the absence, so it has no token */
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 4px rgb(0 0 0 / 0.30);
+  --shadow-floating: 0 2px 4px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.40);
+  --shadow-overlay: 0 4px 12px rgb(0 0 0 / 0.40), 0 20px 48px rgb(0 0 0 / 0.55);
+
+  /* material recipes (§10) — fills mix over the page colour, so tone rides for free */
+  --material-thin-fill: color-mix(in srgb, var(--neutral-1) 62%, transparent);
+  --material-thin-filter: blur(12px) saturate(150%) brightness(0.9);
+  --material-thick-fill: color-mix(in srgb, var(--neutral-1) 80%, transparent);
+  --material-thick-filter: blur(20px) saturate(180%) brightness(0.85);
+  --material-opaque-fill: color-mix(in srgb, var(--neutral-1) 95%, transparent);
+
+  /* foreground context (§10) — what a surface re-scopes for everything inside it */
+  --color-text: var(--neutral-12);
+  --color-text-muted: var(--neutral-11);
 }
 
 @supports (color: color(display-p3 0 0 0)) {
@@ -925,6 +963,8 @@
   --tone-text: var(--neutral-text);
   --tone-label: var(--neutral-label);
   --tone-contrast: var(--neutral-contrast);
+  --tone-a1: var(--neutral-a1);
+  --tone-a3: var(--neutral-a3);
 }
 
 [data-tone="accent"] {
@@ -938,6 +978,8 @@
   --tone-text: var(--accent-text);
   --tone-label: var(--accent-label);
   --tone-contrast: var(--accent-contrast);
+  --tone-a1: var(--accent-a1);
+  --tone-a3: var(--accent-a3);
 }
 
 [data-tone="destructive"] {
@@ -951,6 +993,8 @@
   --tone-text: var(--destructive-text);
   --tone-label: var(--destructive-label);
   --tone-contrast: var(--destructive-contrast);
+  --tone-a1: var(--destructive-a1);
+  --tone-a3: var(--destructive-a3);
 }
 
 [data-pointer="fine"] {

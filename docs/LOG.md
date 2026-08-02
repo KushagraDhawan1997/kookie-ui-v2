@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-03 Card lands as pure data attributes, and the surface layer is recipes.css one level up
+
+§14 step 6, closing the first vertical slice. The measurement: **+590 bytes gzipped for the entire surface world** — shadow ladder, material recipes, foreground context, the surface rungs — and the additive claim now has its limit case: **Card ships not one line of its own CSS.** There is no card.css, and a law asserts the file does not exist; the component is data attributes over the shared layer, so Panel, Callout, Popover and Dialog will each cost the same nothing.
+
+**Decisions made on contact:**
+
+- **Surface rungs resolve through the alpha ramp, controls through solid steps — same axis, two dressings.** Quiet is `--tone-a1`, medium `--tone-a3`, loud the solid. §10's nesting argument decided it: an alpha fill composites over whatever is behind it, so three nested quiet cards differentiate with one token and no per-level colour math. `a1`/`a3` joined the tone indirection roles, so a medium destructive Callout is a data attribute, not a colour.
+- **Foreground context is two new roles, not a mechanism.** `--color-text` / `--color-text-muted` exist at :root as neutral 12/11; tone-forward rungs re-scope them (`medium` → `--tone-text`, `loud` → `--tone-contrast`). The law that matters: the surface re-scopes only the foreground roles, never the tone indirection — a neutral Button on an accent card is still a neutral Button, asserted mounted.
+- **The surface world is emitted per mode**, because a var() resolves where declared — `--color-text` baked at :root would carry light neutral-12 into a dark subtree, the same lesson `--focus-ring` taught.
+- **Material's three environments are cascade order, not logic**: near-opaque fallback first, the real recipe under `@supports (backdrop-filter)`, `prefers-reduced-transparency` last so the accessibility override wins. A law pins the order.
+- **Bordered is genuinely shared:** the surface skeleton reads the same `--kui-border-color` the control layer's `[data-bordered]` rule sets — containment is defined once for the whole system.
+
+v0 taste shipped for judging in the preview, same contract as the coarse numbers: the shadow recipes (two-layer, higher alphas in dark because a dark page swallows shadow), surface padding on the size index (12/16/24/32, default 3 = 24), and §10's material table against a deliberately hostile gradient backdrop.
+
+Rejected: Base UI for Card (nothing behavioural to buy; Box's cloneElement render pattern is the house style); opaque step fills for surfaces (kills nesting, §10 already argued it); a separate surface state machine (interactive surfaces reuse the control one when they arrive); shipping a card.css for symmetry (an empty file is a place for drift to start).
+
 ## 2026-08-03 Button meets a real phone, and three settled answers reverse
 
 Every defect in this entry was invisible in desktop Chromium, including its device emulator, and each was found by Kushagra on hardware — a preview on an actual iPhone falsified more of §8 in an evening than the test suite could. The suite asserts what the stylesheet *says*; only a device says how it *feels*.

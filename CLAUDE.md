@@ -8,9 +8,11 @@ Blockers resolved 2026-07-31; code phase open, following §14's build order stri
 
 Done: scaffold (1), token pipeline including the colour generator (2), Box and the responsive mechanism (3), Theme + Flex/Stack/Grid (4), and the pointer axis tokens (4b) — coarse cells, Theme `pointer` prop, preview matrix, laws. No runtime touch reserve: the designed geometry carries both the locked 24 floor (WCAG 2.2 AA) and the 44 target on the default path, so every control is one element. Theme shipped with dark-mode SSR still unresolved (REVIEW.md); that debt comes due at apps/docs.
 
-**Button shipped 2026-08-03 (step 5)** on Base UI, the first runtime dependency: `size × tone × emphasis × bordered × loading`, plus Spinner. Exit gate met — +1,206 bytes gzipped for the whole control layer, of which ~480 is Button's own; additivity is law-tested, not just measured. `material` waits for Card.
+**Button shipped 2026-08-03 (step 5)** on Base UI, the first runtime dependency: `size × tone × emphasis × bordered × loading`, plus Spinner. Exit gate met — +1,206 bytes gzipped for the whole control layer, of which ~480 is Button's own; additivity is law-tested, not just measured. Confirmed on a real iPhone. All transitions are zero until the motion system is designed (Kushagra's call; press stays instant whenever motion lands).
 
-**Next: Card (step 6)** — elevation, material, foreground context, alpha nesting. It is where §10's v0 glass values finally meet real backdrops.
+**Card shipped 2026-08-03 (step 6)**, closing the first vertical slice: `system/surfaces.css` is the whole look (rungs on the alpha ramp, elevation ladder, §10 material recipes, foreground context roles) and Card itself ships zero CSS — a law asserts card.css does not exist. +590 bytes gzipped for the entire surface world. v0 taste awaits judgment in the preview: shadows, surface padding, material over the hostile backdrop. `material` returns to Button after those values lock.
+
+**Next:** judge the v0 surface values by eye, then repetition across the component set — plus the §10 deferrals (Theme material policy clamp, brightness-floor branch, material border edge) and the §14 slice's standing debts (dark SSR at apps/docs, motion system).
 
 Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
 

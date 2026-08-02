@@ -18,6 +18,7 @@ import buttonCss from "../components/button/button.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
 import layoutCss from "../system/layout.css?raw";
 import recipesCss from "../system/recipes.css?raw";
+import surfacesCss from "../system/surfaces.css?raw";
 import tokensCss from "../tokens/tokens.css?raw";
 
 let installed = false;
@@ -26,7 +27,7 @@ let installed = false;
 export function installStyles(): void {
   if (installed) return;
   const sheet = document.createElement("style");
-  sheet.textContent = [tokensCss, layoutCss, recipesCss, spinnerCss, buttonCss].join("\n");
+  sheet.textContent = [tokensCss, layoutCss, recipesCss, surfacesCss, spinnerCss, buttonCss].join("\n");
   document.head.append(sheet);
   installed = true;
 }

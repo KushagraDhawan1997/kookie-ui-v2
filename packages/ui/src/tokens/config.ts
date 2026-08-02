@@ -178,6 +178,53 @@ export const cursor = {
   disabled: "default",
 } as const;
 
+/**
+ * §10 — the elevation ladder's shadow recipes. Semantic levels, not numbers: flat is the
+ * absence (no token), and each level is a two-layer shadow — a tight key for the edge and a
+ * soft ambient for the height. Dark mode runs higher alphas because a dark page swallows
+ * shadow; dark surfaces separate mostly by fill, the shadow only assists.
+ *
+ * v0 values, judged in the preview by eye — the same contract as the coarse numbers (§16).
+ */
+export const shadow = {
+  light: {
+    raised: "0 1px 2px rgb(0 0 0 / 0.06), 0 1px 4px rgb(0 0 0 / 0.08)",
+    floating: "0 2px 4px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.12)",
+    overlay: "0 4px 12px rgb(0 0 0 / 0.10), 0 20px 48px rgb(0 0 0 / 0.22)",
+  },
+  dark: {
+    raised: "0 1px 2px rgb(0 0 0 / 0.35), 0 1px 4px rgb(0 0 0 / 0.30)",
+    floating: "0 2px 4px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.40)",
+    overlay: "0 4px 12px rgb(0 0 0 / 0.40), 0 20px 48px rgb(0 0 0 / 0.55)",
+  },
+} as const;
+
+/**
+ * §10 — the material recipes, the spec's v0 table verbatim. Two recipes, not a magnitude
+ * dial: saturation and opacity deliberately do not order monotonically between them. Alpha is
+ * a percentage over `--neutral-1` (the page colour), so the fill is mode-aware for free.
+ * Blur radii are provisional until measured on a mid-tier device (§10).
+ */
+export const material = {
+  light: {
+    thin: { alpha: 55, filter: "blur(12px) saturate(150%) brightness(1.05)" },
+    thick: { alpha: 72, filter: "blur(20px) saturate(180%) brightness(1.08)" },
+  },
+  dark: {
+    thin: { alpha: 62, filter: "blur(12px) saturate(150%) brightness(0.9)" },
+    thick: { alpha: 80, filter: "blur(20px) saturate(180%) brightness(0.85)" },
+  },
+  /** Where backdrop-filter is unavailable or transparency is reduced: near-opaque, still a mix
+      so a whisper of the backdrop survives where that is safe. */
+  fallbackAlpha: 95,
+} as const;
+
+/**
+ * §10 — surface padding as space-palette indices (semantic reference, never a raw px).
+ * v0: 12 / 16 / 24 / 32. Whether this family takes density is still open and lands here.
+ */
+export const surfacePadding = [4, 5, 6, 7] as const;
+
 /** §15 — closed weight set; `light` deferred until something needs it. */
 export const fontWeight = { regular: 400, medium: 500, semibold: 600, bold: 700 } as const;
 

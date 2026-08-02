@@ -24,11 +24,14 @@ import {
   iconSize,
   letterSpacing,
   lineHeight,
+  material,
   motion,
   radiusLevels,
   radiusOverlay,
   radiusSurface,
+  shadow,
   space,
+  surfacePadding,
   touchTargetMin,
   type DensityLevel,
   type DensitySet,
@@ -87,12 +90,26 @@ export function generateTokens(): string {
   lines.push("", "  /* semantic: control family at the default density (§4, §6, §12) */");
   lines.push(...controlFamily(density.default));
 
+  lines.push("", "  /* surface padding (§10) — space references, never restated numbers */");
+  surfacePadding.forEach((step, i) => put(`surface-p-${i + 1}`, `var(--space-${step})`));
+
   lines.push("", "  /* colour, generated (§7) — light mode */");
   lines.push(...colorDeclarations("light"));
 
+  lines.push(...surfaceWorld("light"));
+
   lines.push("}", "");
 
-  lines.push(`[data-appearance="dark"] {`, ...colorDeclarations("dark"), "}", "");
+  // The surface declarations repeat inside the dark scope because a var() resolves where it
+  // is declared: --color-text baked at :root would carry the LIGHT neutral-12 into a dark
+  // subtree (the same lesson --focus-ring taught in §8).
+  lines.push(
+    `[data-appearance="dark"] {`,
+    ...colorDeclarations("dark"),
+    ...surfaceWorld("dark"),
+    "}",
+    "",
+  );
 
   // P3 rides on top of the sRGB values rather than replacing them, so a narrow-gamut display
   // keeps a complete system. It is worth the bytes where sRGB constrains a hue most: sky,
@@ -249,10 +266,42 @@ const ROLES = [
   "text",
   "label",
   "contrast",
+  // The surface fills (§10): alpha, so nested surfaces auto-differentiate by compositing.
+  "a1",
+  "a3",
 ] as const;
 
 function toneRoles(tone: ToneName): string[] {
   return ROLES.map((role) => `  --tone-${role}: var(--${tone}-${role});`);
+}
+
+/**
+ * The surface world (§10): shadow ladder, material recipes, foreground context roles.
+ * Emitted per mode — every value here either differs by mode (shadows, material) or
+ * references a stepped colour that does (--color-text), and a var() resolves where declared.
+ */
+function surfaceWorld(mode: "light" | "dark"): string[] {
+  const s = shadow[mode];
+  const m = material[mode];
+  const mix = (alpha: number) => `color-mix(in srgb, var(--neutral-1) ${alpha}%, transparent)`;
+  return [
+    "",
+    `  /* the elevation ladder (§10) — flat is the absence, so it has no token */`,
+    `  --shadow-raised: ${s.raised};`,
+    `  --shadow-floating: ${s.floating};`,
+    `  --shadow-overlay: ${s.overlay};`,
+    "",
+    `  /* material recipes (§10) — fills mix over the page colour, so tone rides for free */`,
+    `  --material-thin-fill: ${mix(m.thin.alpha)};`,
+    `  --material-thin-filter: ${m.thin.filter};`,
+    `  --material-thick-fill: ${mix(m.thick.alpha)};`,
+    `  --material-thick-filter: ${m.thick.filter};`,
+    `  --material-opaque-fill: ${mix(material.fallbackAlpha)};`,
+    "",
+    `  /* foreground context (§10) — what a surface re-scopes for everything inside it */`,
+    `  --color-text: var(--neutral-12);`,
+    `  --color-text-muted: var(--neutral-11);`,
+  ];
 }
 
 /** The radius palette for one level (§6). Steps 1-5 are the control band, 6-7 surfaces. */

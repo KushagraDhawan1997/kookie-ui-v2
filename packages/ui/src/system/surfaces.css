@@ -1,0 +1,100 @@
+/* The shared surface layer (§10). Hand-authored: this is design, not data.
+ *
+ * Same shape as recipes.css, one level up: everything a surface can look like is written ONCE
+ * here and consumed by every surface component — Card, Panel, Callout, Popover, Dialog. A
+ * surface is tone × emphasis × bordered × elevation × material, and no rule below ever pairs
+ * one axis with another, so the cost stays O(rungs + levels + materials), never a product.
+ * Card's own stylesheet does not exist: this file is the whole of what a Card looks like. */
+
+/* ── The skeleton every surface shares (§10) ─────────────────────────────────────────────── */
+
+.kui-surface {
+  box-sizing: border-box;
+  background-color: var(--kui-sf-fill);
+  /* A surface sets foreground context, not just a background (§10): children read the
+     re-scoped roles, so arbitrary content stays legible on every rung. */
+  color: var(--color-text);
+  border: 1px solid var(--kui-border-color, transparent);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--kui-sf-shadow, none);
+  padding: var(--kui-sf-p);
+}
+
+/* ── The size index: padding only — a surface has no height to own (§4, §10) ─────────────── */
+
+.kui-surface[data-size="1"] {
+  --kui-sf-p: var(--surface-p-1);
+}
+.kui-surface[data-size="2"] {
+  --kui-sf-p: var(--surface-p-2);
+}
+.kui-surface[data-size="3"] {
+  --kui-sf-p: var(--surface-p-3);
+}
+.kui-surface[data-size="4"] {
+  --kui-sf-p: var(--surface-p-4);
+}
+
+/* ── The rungs, in surface dressing (§9, §10) ────────────────────────────────────────────────
+   Same axis as the controls, different resolution: fills come from the ALPHA ramp so nested
+   surfaces differentiate by compositing instead of per-level colour math. Medium and loud are
+   tone-forward, so they re-scope the foreground context they set for their children. */
+
+.kui-surface[data-emphasis="quiet"] {
+  --kui-sf-fill: var(--tone-a1);
+}
+
+.kui-surface[data-emphasis="medium"] {
+  --kui-sf-fill: var(--tone-a3);
+  --color-text: var(--tone-text);
+}
+
+.kui-surface[data-emphasis="loud"] {
+  --kui-sf-fill: var(--tone-solid);
+  --color-text: var(--tone-contrast);
+  --color-text-muted: var(--tone-contrast);
+}
+
+/* ── The elevation ladder: how high, one rule per level (§10) ────────────────────────────── */
+
+.kui-surface[data-elevation="flat"] {
+  --kui-sf-shadow: none;
+}
+.kui-surface[data-elevation="raised"] {
+  --kui-sf-shadow: var(--shadow-raised);
+}
+.kui-surface[data-elevation="floating"] {
+  --kui-sf-shadow: var(--shadow-floating);
+}
+.kui-surface[data-elevation="overlay"] {
+  --kui-sf-shadow: var(--shadow-overlay);
+}
+
+/* ── Material: backdrop defense (§10) ────────────────────────────────────────────────────────
+   Declared worst-case-first: the base rule is the near-opaque fallback for engines without
+   backdrop-filter, the @supports block is the real recipe, and reduced-transparency wins last
+   because it is an accessibility requirement and a performance escape in one. */
+
+.kui-surface[data-material="thin"],
+.kui-surface[data-material="thick"] {
+  --kui-sf-fill: var(--material-opaque-fill);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .kui-surface[data-material="thin"] {
+    --kui-sf-fill: var(--material-thin-fill);
+    backdrop-filter: var(--material-thin-filter);
+  }
+  .kui-surface[data-material="thick"] {
+    --kui-sf-fill: var(--material-thick-fill);
+    backdrop-filter: var(--material-thick-filter);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .kui-surface[data-material="thin"],
+  .kui-surface[data-material="thick"] {
+    --kui-sf-fill: var(--material-opaque-fill);
+    backdrop-filter: none;
+  }
+}
