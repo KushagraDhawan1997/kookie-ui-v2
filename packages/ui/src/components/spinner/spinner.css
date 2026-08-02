@@ -4,7 +4,7 @@
  * wedges, and this shape is parallel-sided bars. They are static — rasterised once, then
  * rotated as a whole — so what runs per frame is a single transform.
  *
- * `steps(12)` is the look, not a detail: the indicator ticks from spoke to spoke rather than
+ * `steps(8)` is the look, not a detail: the indicator ticks from spoke to spoke rather than
  * sweeping, which is what distinguishes it from a spinning arc. */
 
 .kui-spinner {
@@ -16,7 +16,7 @@
   height: var(--kui-icon, var(--icon-size-2));
   /* The whole point of drawing it in currentColor: no token, correct in every context. */
   fill: currentColor;
-  animation: kui-spin 1s steps(12) infinite;
+  animation: kui-spin 1s steps(8) infinite;
 }
 
 @keyframes kui-spin {

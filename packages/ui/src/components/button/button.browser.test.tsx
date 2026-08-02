@@ -218,9 +218,9 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
     expect(computed(spinner, "width")).toBe("24px");
     // It fills with currentColor, so it is the label's colour without naming a token (§8).
     expect(computed(spinner, "fill")).toBe(computed(el, "color"));
-    // Twelve spokes, and the stepped tick that separates this from a spinning arc.
-    expect(spinner.querySelectorAll("rect").length).toBe(12);
-    expect(computed(spinner, "animation-timing-function")).toContain("steps(12");
+    // Eight spokes, and the stepped tick that separates this from a spinning arc.
+    expect(spinner.querySelectorAll("rect").length).toBe(8);
+    expect(computed(spinner, "animation-timing-function")).toContain("steps(8");
   });
 
   it("loading does not LOOK disabled — it is still the thing you pressed", () => {
