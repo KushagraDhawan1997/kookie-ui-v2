@@ -100,25 +100,70 @@ function button(
   }${label}</button>`;
 }
 
-/** The axis model in one grid: every tone against every rung, at the baseline size. */
-function buttonMatrix(mode: Mode): string {
+/**
+ * The axis model in one grid: every tone against every rung, plain and bordered, plus the two
+ * states. `bordered` is orthogonal (§10) — containment, not loudness — so it has to be legible
+ * on all three rungs rather than only on the one it used to be shown with.
+ */
+function buttonMatrix(
+  mode: Mode,
+  tones: readonly string[] = TONES,
+  heading: string = mode,
+): string {
+  const columns = EMPHASES.flatMap((e) => [
+    { label: e, emphasis: e, bordered: false },
+    { label: `${e} + border`, emphasis: e, bordered: true },
+  ]);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>${mode}</h2>
+    <h2>${heading}</h2>
     <table class="axis-table">
-      <thead><tr><th></th>${EMPHASES.map((e) => `<th>${e}</th>`).join("")}<th>+ bordered</th><th>disabled</th><th>loading</th></tr></thead>
+      <thead><tr><th></th>${columns.map((c) => `<th>${c.label}</th>`).join("")}<th>disabled</th><th>loading</th></tr></thead>
       <tbody>
-      ${TONES.map(
-        (tone) => `<tr>
+      ${tones
+        .map(
+          (tone) => `<tr>
           <th>${tone}</th>
-          ${EMPHASES.map((e) => `<td>${button({ tone, emphasis: e }, "Label")}</td>`).join("")}
-          <td>${button({ tone, emphasis: "quiet", bordered: true }, "Label")}</td>
+          ${columns
+            .map(
+              (c) =>
+                `<td>${button({ tone, emphasis: c.emphasis, bordered: c.bordered }, "Label")}</td>`,
+            )
+            .join("")}
           <td><button class="kui-control kui-button" data-size="2" data-tone="${tone}" data-emphasis="medium" data-disabled disabled>Label</button></td>
           <td>${button({ tone, emphasis: "medium", loading: true }, "Saving")}</td>
         </tr>`,
-      ).join("")}
+        )
+        .join("")}
       </tbody>
     </table>
   </section>`;
+}
+
+/**
+ * The same grid under a different brand accent, to answer the question the token preview
+ * cannot: does an arbitrary hue survive being a *control* — every rung, every state, both
+ * modes — or only look right as a swatch?
+ *
+ * The accent family is overridden on a wrapper; because `[data-tone="accent"]` resolves
+ * `--tone-*` at the button, which sits below, the buttons inside simply pick it up. That is
+ * §7's rebindable-accent claim doing real work rather than being asserted.
+ */
+function accentSwap(name: string, hex: string, mode: Mode): string {
+  const t = toneFromColor(hex);
+  const s = buildScaleFor(t, mode);
+  const vars = [
+    `--accent-soft: ${s.steps[2]}`,
+    `--accent-soft-hover: ${s.steps[3]}`,
+    `--accent-soft-active: ${s.steps[4]}`,
+    `--accent-solid: ${s.solid}`,
+    `--accent-solid-hover: ${s.solidHover}`,
+    `--accent-solid-active: ${s.solidActive}`,
+    `--accent-border: ${s.steps[6]}`,
+    `--accent-text: ${s.steps[10]}`,
+    `--accent-label: ${s.label}`,
+    `--accent-contrast: ${s.contrast}`,
+  ].join("; ");
+  return `<div style="${vars}">${buttonMatrix(mode, ["accent"], `${name} — ${hex} — ${mode}`)}</div>`;
 }
 
 const swatch = (bg: string, title: string, label = "") =>
@@ -446,6 +491,15 @@ ${LEVELS.map(
 <p class="note">Every cell below is the same component: <code>tone</code> chooses a family, <code>emphasis</code> chooses a loudness, and neither knows about the other. The CSS behind it is one block per rung and one per size, shared by every control that will ever exist — which is what makes the cost additive rather than the product of the axes (§2, §9). Hover and press are stylesheet work; nothing here runs JavaScript. The toggles above drive it: change <em>radius</em>, <em>pointer</em> or <em>contrast</em> and the whole grid follows.</p>
 ${buttonMatrix("light")}
 ${buttonMatrix("dark")}
+
+<h2 style="margin-top: var(--space-10)">the same button under other brand accents</h2>
+<p class="note">Nothing below is configured or hand-tuned: each block overrides only the accent family, generated from the hex beside it, and the buttons inside pick it up because a rung reads <code>--tone-*</code> and never a colour. This is the question a swatch cannot answer — a hue can look fine in a scale and fail as a control, where its solid has to carry an APCA-chosen label through hover and press, its soft fill has to hold a legible label, and its border has to separate from the page. Yellow is the one to distrust.</p>
+${BRANDS.slice(0, 5)
+  .map(([name, hex]) => accentSwap(name, hex, "light"))
+  .join("")}
+${BRANDS.slice(0, 5)
+  .map(([name, hex]) => accentSwap(name, hex, "dark"))
+  .join("")}
 
 <p class="note">The size index, at the default rung — five scales moving on one number (§4).</p>
 <div class="row-controls">${SIZES.map((s) => button({ size: String(s) }, `Size ${s}`)).join("")}</div>
