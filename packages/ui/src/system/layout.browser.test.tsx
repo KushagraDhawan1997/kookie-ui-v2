@@ -102,6 +102,51 @@ describe("container tiers arbitrate by slot, not by window (§2)", () => {
   });
 });
 
+describe("what containment does and does not cost (§2)", () => {
+  it("height still comes from content — inline-size containment leaves the block axis alone", () => {
+    // The commonly-claimed container-query trap, checked rather than believed: only
+    // `container-type: size` freezes the block axis. Ours is inline-size.
+    const host = mount(
+      `<div class="kui-box" id="probe"><div style="height: 300px"></div></div>`,
+    );
+    expect(computed(host.querySelector("#probe")!, "height")).toBe("300px");
+  });
+
+  it("a container inside a container reads ITS slot, not the outer one", () => {
+    const host = mount(
+      `<div class="kui-box" style="width: 900px">
+        <div class="kui-box" style="width: 300px">
+          <div id="probe" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div>
+        </div>
+      </div>`,
+    );
+    // The outer slot is md-wide; the probe's own slot is 300px, so base wins.
+    expect(computed(host.querySelector("#probe")!, "padding-top")).toBe("4px");
+  });
+
+  it("the real cost, pinned: a bare Box as a flex item shrink-wraps to nothing", () => {
+    // Inline-size containment makes the box contribute zero intrinsic inline size, so a flex
+    // item at width:auto collapses regardless of content. The escape is any explicit width,
+    // flexGrow, or flexBasis — documented in §2. If an engine change ever makes this pass
+    // differently, the doc needs rewriting, which is why it is pinned.
+    const host = mount(
+      `<div style="display: flex; width: 600px">
+        <div id="probe" class="kui-box">content that would normally size this</div>
+      </div>`,
+    );
+    expect(computed(host.querySelector("#probe")!, "width")).toBe("0px");
+  });
+
+  it("and flexGrow is the one-prop escape", () => {
+    const host = mount(
+      `<div style="display: flex; width: 600px">
+        <div id="probe" class="kui-box" style="--kui-fg: 1">content</div>
+      </div>`,
+    );
+    expect(computed(host.querySelector("#probe")!, "width")).toBe("600px");
+  });
+});
+
 describe("density and radius compose instead of racing (§6, §12)", () => {
   it("a nested density does not clobber an outer radius level", () => {
     // The argument that forced the control/surface band split: a custom property set by a
