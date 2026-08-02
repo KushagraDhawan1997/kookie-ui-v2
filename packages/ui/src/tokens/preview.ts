@@ -294,7 +294,8 @@ export function generatePreview(): string {
   .live > div { padding: var(--space-3) var(--space-5); border-radius: var(--radius-control-2);
                 font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
   .chip { display: block; width: 22px; height: 22px; border-radius: var(--radius-2); border: 1px solid #0001; }
-  .rig { resize: horizontal; overflow: auto; width: min(560px, 100%); min-width: 240px; max-width: 100%;
+  .rig-meta { font-family: var(--font-mono); font-size: var(--font-size-1); color: #999; margin-top: var(--space-5); }
+  .rig { resize: horizontal; overflow: auto; width: min(900px, 100%); min-width: 240px; max-width: 100%;
     border: 1px dashed #b6b6c2; border-radius: var(--radius-surface); margin-top: var(--space-4); }
   .cell { padding: var(--space-4); background: var(--accent-3); border: 1px solid var(--accent-6);
     border-radius: var(--radius-control-2); color: var(--accent-text); text-align: center;
@@ -336,6 +337,7 @@ ${LEVELS.map(
 <p class="note">Rendered through the real resolver against the shipped stylesheet — the exact markup Flex, Grid and Stack produce. Values ride on each element as inline custom properties; the stylesheet only arbitrates which tier's value wins. <strong>Drag a handle</strong>: tiers key on the slot's width (<code>sm</code> 30rem, <code>md</code> 48rem), never the window's — the same Grid is correct in a drawer and a main column (§2). Each demo sits inside a plain Box, because a tier reads the <em>nearest ancestor</em> Box — the slot — and a Box with no ancestor container stays at its base values.</p>
 
 <p class="note">A Grid: <code>columns={{ initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}</code>, gap steps up at md.</p>
+<div class="rig-meta">slot <span class="w">—</span></div>
 <div class="rig">
 ${kkBox(
   {},
@@ -352,6 +354,7 @@ ${kkBox(
 </div>
 
 <p class="note">A Flex switching axis: <code>direction={{ initial: "column", md: "row" }}</code> — a structural keyword riding the same pipe as spacing, which is why this is not a spacing mechanism.</p>
+<div class="rig-meta">slot <span class="w">—</span></div>
 <div class="rig">
 ${kkBox(
   {},
@@ -437,6 +440,17 @@ ${brandSection("dark")}
     }
   }
   readout();
+
+  // Live slot readout per rig: width and which tier is active, so "slot not window" is
+  // visible rather than argued. Thresholds are the tiers: sm 30rem = 480px, md 48rem = 768px.
+  for (const rig of document.querySelectorAll(".rig")) {
+    const label = rig.previousElementSibling.querySelector(".w");
+    new ResizeObserver((entries) => {
+      const w = Math.round(entries[0].contentRect.width);
+      const tier = w >= 768 ? "md" : w >= 480 ? "sm" : "base";
+      label.textContent = w + "px — tier " + tier + (tier === "md" ? " (drag narrower)" : "");
+    }).observe(rig);
+  }
 </script>
 </body>
 </html>
