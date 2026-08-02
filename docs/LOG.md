@@ -8,9 +8,25 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-02 An audit of the layout layer: the browser suite was testing the stylesheet, not the components
+
+Swept the work from the token pipeline through Theme against the docs. The finding that matters is not any single defect but what the suite's shape was hiding.
+
+**A browser test that hand-writes its own markup proves the stylesheet and nothing else.** Every one of the twelve browser laws mounted `<div class="kk-box" style="--kk-p: ...">` — the markup Box is *supposed* to produce. So the stylesheet was thoroughly proven and the entire React half was asserted nowhere: prop to custom property, token index to `var()`, tier key to tier var, the `render` merge, Theme's nesting and inheritance. It looked like coverage because the tests were about the right subject; they entered the system one layer below the part nobody had checked. Real components are mounted now, and the resolver has node laws of its own.
+
+**The split between the two projects is itself load-bearing, in both directions.** `p={0}` emitted `var(--space-0)` — the palette starts at 1 — and rendered `0px` anyway, because an unset custom property falls back to the property's initial value and padding's is zero. No browser test could ever have caught it; only reading what the resolver *writes* shows a working token apart from a broken one. The mirror case is the one from the entry below: a stylesheet can be textually perfect and compute nothing. Bare indices are bounded by the palette now, and out-of-range digits pass through as raw CSS where a wrong value is at least visible.
+
+**`layout.css` was generated, committed, and unlawed** while `tokens.css` had a drift test — so a hand edit to the half of the CSS carrying the responsive mechanism would have survived CI. Both are covered now, and both mutations were checked to actually fail.
+
+**The type refused the ordinary conditional prop.** The package compiles with `exactOptionalPropertyTypes`, under which `Partial<Record<...>>` rejects `p={cond ? "4" : undefined}`. A type that turns the normal spelling into an error pushes people to the escape hatch, which is the opposite of what §3's whole enforcement argument depends on. `| undefined` is explicit now.
+
+Smaller, all fixed: nine screenshot artifacts were committed, one of them from a debug test file that no longer exists (`__screenshots__` is ignored now); `config.ts` still carried the disjoint-bands-make-it-safe argument that the browser had disproven and §6 had already been corrected for; the docs spelled remap vars `--kk-gap` where the code writes `--kk-g`; and the entry below claimed §14 step 4 when only Theme had shipped.
+
+Not fixed, recorded instead: **Theme shipped ahead of the dark-mode SSR decision**, which REVIEW.md listed as its gate. Nothing renders an app yet so the debt is invisible, and it comes due at `apps/docs`. Naming it beats quietly deciding the gate was never real.
+
 ## 2026-08-02 Box and Theme land, and the browser finds four things the string tests could not
 
-§14 steps 3 and 4. The responsive mechanism is generated from one prop table, Box is the engine and Theme scopes the tokens, and the suite gains a browser project because the claims that mattered most had been asserted in prose for days and verified nowhere.
+§14 step 3 and the Theme half of step 4 — Flex, Stack and Grid do not exist yet, and the first version of this entry claimed the whole step. The responsive mechanism is generated from one prop table, Box is the engine and Theme scopes the tokens, and the suite gains a browser project because the claims that mattered most had been asserted in prose for days and verified nowhere.
 
 **Every failure below was found by the browser suite within minutes of it existing.** Three of the four were invisible to a test that reads generated CSS as text, because the text was correct and the *engine* disagreed with what we thought it meant.
 

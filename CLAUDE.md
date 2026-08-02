@@ -4,7 +4,11 @@ Ground-up rebuild of KookieUI. Base UI primitives behind a Kookie-owned API, gen
 
 ## State
 
-Blockers resolved 2026-07-31; code phase open, following §14's build order strictly. Scaffold (step 1) done; next is step 2, the token pipeline. **Button (step 5) stays gated** on focus-visible, disabled/loading, motion, icon sizing (REVIEW.md resolution log). Do not run ahead of a §14 measurement gate.
+Blockers resolved 2026-07-31; code phase open, following §14's build order strictly.
+
+Done: scaffold (1), token pipeline including the colour generator (2), Box and the responsive mechanism (3), and Theme — the first half of step 4. **Next is the rest of step 4: Flex, Stack, Grid as typed sugar over Box.** Theme shipped with dark-mode SSR still unresolved (REVIEW.md); that is a known debt, not a closed question, and it lands before an app renders one.
+
+**Button (step 5) stays gated** on focus-visible, disabled/loading, motion, icon sizing (REVIEW.md resolution log). Do not run ahead of a §14 measurement gate.
 
 Read order: `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
 

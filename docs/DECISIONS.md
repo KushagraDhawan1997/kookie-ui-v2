@@ -63,13 +63,20 @@ Four structural reasons KookieUI stays small (all already decided):
 
 ### Responsive props: variable remap, not utility classes
 
-**Decision: responsive props (`gap={{ initial: "2", "@md": "4" }}`) compile by variable remap.** The component writes tier values as inline custom properties (`style="--kk-gap: var(--space-2); --kk-gap-md: var(--space-4)"`); the stylesheet ships a fixed set of arbitration rules per prop — the base rule reads `--kk-gap`, each tier's rule prefers its own var and falls back down the chain. Values never appear in the stylesheet, so:
+**Decision: responsive props (`gap={{ initial: "2", md: "4" }}`) compile by variable remap.** The component writes tier values as inline custom properties (`style="--kk-g: var(--space-2); --kk-g-md: var(--space-4)"`); the stylesheet ships a fixed set of arbitration rules per prop — the base rule reads `--kk-g`, each tier's rule prefers its own var and falls back down the chain. Values never appear in the stylesheet, so:
 
 - CSS cost is O(props × tiers), ~constant forever. The token dimension — the multiplier behind v1's 55KB — is gone; adding tokens costs zero CSS.
 - Raw strings ride the same pipe free (`gap="13px"` inlines like any token), which pregenerated classes structurally cannot do.
 - The mechanism is value-agnostic, so structural props (`direction`, `columns`, `display`, `areas`) remap identically to spacing.
 
-Two requirements: register every `--kk-*` remap var with `@property { inherits: false }` (custom properties inherit; a nested Flex without `gap` must not silently read its parent's), and prove the mechanism on Box alone, measured, before any other layout primitive ships (section 14).
+**Four requirements, and the last two are non-obvious enough that the mechanism was built wrong without them** (found by browser tests, 2026-08-02; all four are law-tested):
+
+1. Register every `--kk-*` remap var with `@property { inherits: false }`. Custom properties inherit; a nested Flex without `gap` must not silently read its parent's.
+2. Prove the mechanism on Box alone, measured, before any other layout primitive ships (section 14).
+3. **Emit longhands only, never a shorthand.** `padding: var(--kk-p)` followed by `padding-block-start: var(--kk-pt)` does not degrade to the shorthand when `pt` is unset — an unset custom property makes its declaration invalid at computed-value time and the property falls back to its *initial* value. So the shorthand renders 0. Prop specificity (`pt` over `py` over `p`) lives inside one var chain per longhand instead, where it behaves.
+4. **Give a fallback to any property whose CSS initial value is not the sensible default.** Same rule, and `display` is the case that matters: `display: var(--kk-d)` with nothing set falls back to `inline`, which ignores width and height and cannot be a query container — so no Box was a container and no tier could ever fire.
+
+The mechanism is generated from one prop table that drives both the resolver and the stylesheet, so a prop cannot exist in one and not the other.
 
 **Tiers are container-keyed and few.** `@md` is a container-width tier resolved by container queries, not a viewport breakpoint — a component adapts to its slot, so the same Grid is correct in a drawer and a main column. Both native platforms converged here (iOS: 2 size classes; Android: 3 window classes; neither has per-prop pixel breakpoints): keep the tier count small and the names semantic. Only Shell and page-gutter concerns key off the viewport. `--kk-*` vars are private plumbing — undocumented, unstable, never for consumers (section 13).
 

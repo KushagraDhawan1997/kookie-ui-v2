@@ -15,11 +15,13 @@ export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
  * is a designed set rather than a multiplier: a factor cannot express `full`, which has to
  * make controls pills while *capping* surfaces so a dialog does not become a giant lens.
  *
- * The bands are disjoint on purpose, and that is what makes the layering safe:
+ * The bands are disjoint on purpose:
  *   steps 1-5  the control band (density picks a step from here)
  *   steps 6-7  the surface band (--radius-surface, --radius-overlay)
- * Density only ever picks a step; a level only ever says what a step is worth. No token is
- * written by both, so a nested Theme setting one cannot clobber the other.
+ * That is what lets `full` pill the controls while capping surfaces. It is NOT what makes the
+ * two axes layer safely — a browser test disproved that (§6, 2026-08-02): a custom property
+ * reference resolves where it is declared, so the generator has to emit every (level x density)
+ * cell rather than rely on the bands never colliding.
  *
  * The 10 step exists because controls live in 4-12, where the bare 8 -> 12 jump was 1.5x
  * with nothing between: every correction overshot, which is what turned size 4 into a capsule.

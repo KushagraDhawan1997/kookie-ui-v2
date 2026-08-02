@@ -16,7 +16,7 @@ Measured v1 gzipped: ~91.5KB total, of which component CSS is ~55KB+ (responsive
 
 Options: (a) pregenerated token x breakpoint utility classes, the v1 mass scoped to layout primitives; (b) variable-per-breakpoint remap: props set `--gap`, `--gap-sm`, `--gap-md` inline, O(breakpoints) global rules decide which var wins per tier. (b) is the answer; it also absorbs the raw-string escape (`gap="13px"`) for free, which (a) structurally cannot. Decide it, write it into section 2, and prove it on Box before Flex/Grid/Stack ship.
 
-Breakpoints stay the Radix scale (xs 520 / sm 768 / md 1024 / lg 1280 / xl 1640): the site rebuild is already written against it "to stay aligned with KookieUI."
+Breakpoints stay the Radix scale (xs 520 / sm 768 / md 1024 / lg 1280 / xl 1640): the site rebuild is already written against it "to stay aligned with KookieUI." ~~Reversed the same day~~ — tiers are container-keyed and there are three of them (`sm` 30rem, `md` 48rem, `lg` 64rem), because a component should adapt to its slot rather than the window (DECISIONS §2; LOG 2026-07-31).
 
 ### 2. The fixed L ladder breaks on bright hues
 

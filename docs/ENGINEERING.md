@@ -28,16 +28,17 @@ packages/ui/
     tokens/          generated output + generator config (color, space, radius, type)
     theme/           Theme component, appearance/hydration
     system/          the shared mechanisms: prop table + resolver, recipes, state rule
+    test/            browser-test scaffolding; unreachable from index.ts, never published
     components/
       button/
         button.tsx
         button.css
-        button.test.ts
-        index.ts
+        button.browser.test.tsx
     index.ts         explicit public exports only
 apps/docs/
 ```
 
+- No per-folder `index.ts`. The exports map ships one entry point, so a folder barrel re-exports to nobody and only adds a second place a name can be spelled — §1.6 with the indirection removed.
 - One component = one folder, identical shape, no exceptions. Boring on purpose.
 - `system/` is the only place mechanisms live. A component that needs a new mechanism adds it there or doesn't add it.
 - Generated files open with a header naming the config that produced them. Editing one is structurally pointless and forbidden.
@@ -56,11 +57,14 @@ apps/docs/
 
 The public API is Radix-style responsive objects on every curated prop. Compilation:
 
-- The component writes values as inline custom properties: `style="--kk-gap: var(--space-2); --kk-gap-md: var(--space-4)"`.
-- The stylesheet ships O(props × tiers) fixed arbitration rules: base rule reads `--kk-gap`; each tier's rule reads `var(--kk-gap-md, fallback-chain)`.
+One table (`system/props.ts`) drives both halves — the resolver that writes the properties and the generator that writes the rules — so a prop cannot exist in one and not the other. Stems are short (`gap` writes `--kk-g`) because they ship on every element.
+
+- The component writes values as inline custom properties: `style="--kk-g: var(--space-2); --kk-g-md: var(--space-4)"`.
+- The stylesheet ships O(longhands × tiers) fixed arbitration rules: the base rule reads `--kk-g`; each tier's rule reads `var(--kk-g-md, fallback-chain)`.
 - Values never appear in the stylesheet, so tokens and raw strings (`gap="13px"`) ride the same pipe at zero CSS cost.
 - **Inheritance guard (required):** custom properties inherit; a nested Flex without `gap` would read its parent's. Register every `--kk-*` remap var with `@property { inherits: false }`.
-- Tiers are container-query-keyed (`@md` = container tier), few, and semantic. Only Shell/page-gutter concerns key off the viewport.
+- **Longhands only, and an explicit fallback where the initial value is wrong.** An unset custom property resets its property to the *initial* value, not to an earlier declaration — see §2 of DECISIONS.md, requirements 3 and 4. Both are the same rule and both shipped broken before a browser test existed.
+- Tiers are container-query-keyed (`md` = container tier), few, and semantic. Only Shell/page-gutter concerns key off the viewport.
 - Prove and measure on Box alone before Flex/Grid/Stack exist (REVIEW.md amendment).
 
 ## 5. The layout layer
@@ -79,8 +83,12 @@ CI asserts the system's invariants; the manifesto is executable.
 - **State law:** every recipe's hover is exactly +1 step, press +2 (§8).
 - **Contrast:** every generated solid passes APCA with its computed contrast token (§7).
 - **Budget:** gzipped CSS measured in CI, hard fail on regression (§2). The number lives in one place.
-- **Boundary:** margin/position props do not exist on control types (type-level test).
+- **Boundary:** margin/position props do not exist on control types (type-level test); style props do not leak out as DOM attributes.
 - No snapshot tests. A snapshot asserts nothing anyone decided.
+
+**Two projects, and the split is a trap worth naming.** The node project covers generators and resolvers: what the code *writes*. The browser project covers what an engine then *does* with it. Neither substitutes for the other, and the failure mode is subtle in both directions — `var(--space-0)` and `0` both compute to `0px`, so only a node test sees that difference; a stylesheet can be textually perfect and still compute nothing, so only a browser test sees that one.
+
+**A browser test that hand-writes the markup proves the stylesheet, not the component.** Both are worth having, but a suite made only of the first kind leaves the entire React layer — prop to custom property, token index to `var()`, tier key to tier var, `render` merging, Theme nesting — asserted nowhere while looking thoroughly covered. Mount the real component.
 
 ## 7. Building with agents
 
@@ -97,4 +105,6 @@ CI asserts the system's invariants; the manifesto is executable.
 
 The 2026-07-31 session decisions are folded into DECISIONS.md: variable remap + container tiers (§2), Box-as-engine, typed sugar, className stance, DESIGN.md reconciliation (§3), hue-aware solid band, brand fidelity, contrast deltas (§7), variant-under-emphasis (§9), density scoping (§12), Tailwind bridge (§13), build-order amendments (§14), typography (§15).
 
-Remaining before Button (tracked in REVIEW.md): focus-visible, disabled/loading, motion tokens, icon sizing. Dark-mode SSR gates Theme. Parked: Shell, migration, RTL.
+Remaining before Button (tracked in REVIEW.md): focus-visible, disabled/loading, motion tokens, icon sizing. Parked: Shell, migration, RTL.
+
+**Theme shipped ahead of the dark-mode SSR decision** (2026-08-02) — `appearance` hydration, inline script vs class on `html`, is still open. It was a gate and it was passed, which is worth recording rather than quietly renumbering: nothing renders an app yet, so the debt is not yet visible, and it comes due at `apps/docs`.
