@@ -672,12 +672,13 @@ What replaces it costs nothing: **separation is border and fill.** In-flow surfa
 
 ```
                  bg alpha   backdrop-filter (light mode)                  dark-mode delta
-thick   (max)    0.72       blur(20px) saturate(180%) brightness(1.08)    alpha ~0.80, brightness 0.85
-thin    (light)  0.55       blur(12px) saturate(150%) brightness(1.05)    alpha ~0.62, brightness 0.90
+thick   (max)    0.88       blur(32px) saturate(210%) brightness(1.12)    alpha 0.92, brightness 0.78
+regular (middle) 0.64       blur(16px) saturate(165%) brightness(1.06)    alpha 0.71, brightness 0.88
+thin    (veil)   0.30       blur(5px)  saturate(130%) brightness(1.02)    alpha 0.38, brightness 0.95
 dim / scrim      -          rgba(0,0,0,0.40) + blur(4px)                  rgba(0,0,0,0.55)
 ```
 
-Why these and not near-opaque: alpha stays translucent because if you cannot sense the backdrop you should have used `solid`. Legibility comes from blur, saturation, and brightness, not from pushing alpha toward 1. Blur below ~12px lets edges punch through and above ~30px is mush with no depth cue. Saturation is the actual defense: the material's own tint has to dominate so image colours cannot bleed into the label. The scrim's 4px only needs to push the app back, not frost it.
+Why these and not near-opaque: alpha stays translucent because if you cannot sense the backdrop you should have used `solid`. Legibility comes from blur, saturation, and brightness, not from pushing alpha toward 1. The ~12px blur floor applies to the *defending* recipes (regular, thick) — `thin` sits below it deliberately, because thin is a veil and the backdrop's structure ghosting through is its point, not a failure. The ~30px mush ceiling binds `regular`; `thick` rides just past it on purpose — it is the near-seal, and losing the depth cue is what maximum defense costs (spread widened twice 2026-08-04, judged against the photo: the ladder is monotone in every lever so thickness reads as one dimension). Saturation is the actual defense: the material's own tint has to dominate so image colours cannot bleed into the label. The scrim's 4px only needs to push the app back, not frost it.
 
 **The brightness floor is load-bearing and its direction follows the label:** dark label means brightening the backdrop, light label means darkening it. That branch is what lets a material control survive an *arbitrary* photo rather than the demo one. It needs no new mechanism — section 7 already computes this signal as `--accent-contrast` (APCA-derived, "is the foreground light or dark on this fill"), so the recipe reads it. The label never moves; the material adapts around it.
 

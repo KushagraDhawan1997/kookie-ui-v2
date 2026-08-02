@@ -187,15 +187,20 @@ export const cursor = {
  * device (§10). v0 values judged against the photo backdrop in the preview.
  */
 export const material = {
+  // The ladder is monotone in every lever — alpha, blur, saturation, brightness push — so
+  // thickness reads as one dimension. Thin is a veil: the backdrop's structure ghosts
+  // through on purpose (its blur sits below §10's 12px defense floor, which applies to the
+  // defending recipes, not the minimal one). Thick approaches the seal without reaching it:
+  // alpha stays translucent because past ~.9 you should have used solid.
   light: {
-    thin: { alpha: 55, filter: "blur(12px) saturate(150%) brightness(1.05)" },
+    thin: { alpha: 30, filter: "blur(5px) saturate(130%) brightness(1.02)" },
     regular: { alpha: 64, filter: "blur(16px) saturate(165%) brightness(1.06)" },
-    thick: { alpha: 72, filter: "blur(20px) saturate(180%) brightness(1.08)" },
+    thick: { alpha: 88, filter: "blur(32px) saturate(210%) brightness(1.12)" },
   },
   dark: {
-    thin: { alpha: 62, filter: "blur(12px) saturate(150%) brightness(0.9)" },
+    thin: { alpha: 38, filter: "blur(5px) saturate(130%) brightness(0.95)" },
     regular: { alpha: 71, filter: "blur(16px) saturate(165%) brightness(0.88)" },
-    thick: { alpha: 80, filter: "blur(20px) saturate(180%) brightness(0.85)" },
+    thick: { alpha: 92, filter: "blur(32px) saturate(210%) brightness(0.78)" },
   },
   /** Where backdrop-filter is unavailable or transparency is reduced: near-opaque, still a mix
       so a whisper of the backdrop survives where that is safe. */

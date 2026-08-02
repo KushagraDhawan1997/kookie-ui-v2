@@ -85,9 +85,9 @@ describe("material is backdrop defense, opt-in (§10)", () => {
     const thin = render(<Card material="thin">B</Card>);
     const regular = render(<Card material="regular">B</Card>);
     const thick = render(<Card material="thick">B</Card>);
-    expect(computed(thin, "backdrop-filter")).toContain("blur(12px)");
+    expect(computed(thin, "backdrop-filter")).toContain("blur(5px)");
     expect(computed(regular, "backdrop-filter")).toContain("blur(16px)");
-    expect(computed(thick, "backdrop-filter")).toContain("blur(20px)");
+    expect(computed(thick, "backdrop-filter")).toContain("blur(32px)");
   });
 
   it("a material fill mixes over the page colour and stays translucent", () => {
