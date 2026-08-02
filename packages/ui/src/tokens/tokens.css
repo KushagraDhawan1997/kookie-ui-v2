@@ -449,6 +449,230 @@
   }
 }
 
+:root[data-contrast="high"] {
+  --neutral-6: #b8bbbd;
+  --neutral-7: #afb1b4;
+  --neutral-8: #9fa2a5;
+  --neutral-11: #515355;
+  --neutral-12: #0d0d0e;
+  --neutral-solid-hover: #030303;
+  --neutral-solid-active: #000000;
+  --neutral-label: #303132;
+  --accent-6: #9db9fe;
+  --accent-7: #8eaeff;
+  --accent-8: #779cff;
+  --accent-11: #1d34d2;
+  --accent-12: #040a26;
+  --accent-solid-hover: #1a00dd;
+  --accent-solid-active: #1200b1;
+  --accent-label: #122479;
+  --destructive-6: #fe9c94;
+  --destructive-7: #ff8a82;
+  --destructive-8: #ff6b65;
+  --destructive-11: #912627;
+  --destructive-12: #1a0706;
+  --destructive-solid-hover: #dd0024;
+  --destructive-solid-active: #bc001d;
+  --destructive-label: #551b19;
+}
+@media (prefers-contrast: more) {
+  :root:not([data-contrast="normal"]) {
+    --neutral-6: #b8bbbd;
+    --neutral-7: #afb1b4;
+    --neutral-8: #9fa2a5;
+    --neutral-11: #515355;
+    --neutral-12: #0d0d0e;
+    --neutral-solid-hover: #030303;
+    --neutral-solid-active: #000000;
+    --neutral-label: #303132;
+    --accent-6: #9db9fe;
+    --accent-7: #8eaeff;
+    --accent-8: #779cff;
+    --accent-11: #1d34d2;
+    --accent-12: #040a26;
+    --accent-solid-hover: #1a00dd;
+    --accent-solid-active: #1200b1;
+    --accent-label: #122479;
+    --destructive-6: #fe9c94;
+    --destructive-7: #ff8a82;
+    --destructive-8: #ff6b65;
+    --destructive-11: #912627;
+    --destructive-12: #1a0706;
+    --destructive-solid-hover: #dd0024;
+    --destructive-solid-active: #bc001d;
+    --destructive-label: #551b19;
+  }
+}
+
+[data-appearance="dark"][data-contrast="high"] {
+  --neutral-6: #535558;
+  --neutral-7: #646669;
+  --neutral-8: #7d8184;
+  --neutral-11: #d3d4d5;
+  --neutral-12: #ffffff;
+  --neutral-solid-hover: #ededed;
+  --neutral-solid-active: #d8d8d8;
+  --neutral-label: #e8e9e9;
+  --accent-6: #1e0df6;
+  --accent-7: #2641ff;
+  --accent-8: #4771ff;
+  --accent-11: #c5d4f7;
+  --accent-12: #ffffff;
+  --accent-solid-hover: #1a00dd;
+  --accent-solid-active: #1200b1;
+  --accent-label: #e2e9f8;
+  --destructive-6: #a1071a;
+  --destructive-7: #c1001e;
+  --destructive-8: #ef0028;
+  --destructive-11: #f7c7c2;
+  --destructive-12: #ffffff;
+  --destructive-solid-hover: #dd0024;
+  --destructive-solid-active: #bc001d;
+  --destructive-label: #f8e3e1;
+}
+@media (prefers-contrast: more) {
+  [data-appearance="dark"]:not([data-contrast="normal"]) {
+    --neutral-6: #535558;
+    --neutral-7: #646669;
+    --neutral-8: #7d8184;
+    --neutral-11: #d3d4d5;
+    --neutral-12: #ffffff;
+    --neutral-solid-hover: #ededed;
+    --neutral-solid-active: #d8d8d8;
+    --neutral-label: #e8e9e9;
+    --accent-6: #1e0df6;
+    --accent-7: #2641ff;
+    --accent-8: #4771ff;
+    --accent-11: #c5d4f7;
+    --accent-12: #ffffff;
+    --accent-solid-hover: #1a00dd;
+    --accent-solid-active: #1200b1;
+    --accent-label: #e2e9f8;
+    --destructive-6: #a1071a;
+    --destructive-7: #c1001e;
+    --destructive-8: #ef0028;
+    --destructive-11: #f7c7c2;
+    --destructive-12: #ffffff;
+    --destructive-solid-hover: #dd0024;
+    --destructive-solid-active: #bc001d;
+    --destructive-label: #f8e3e1;
+  }
+}
+
+@supports (color: color(display-p3 0 0 0)) {
+  :root[data-contrast="high"] {
+    --neutral-6: color(display-p3 0.7242 0.7319 0.7417);
+    --neutral-7: color(display-p3 0.686 0.695 0.7064);
+    --neutral-8: color(display-p3 0.6234 0.6342 0.6479);
+    --neutral-11: color(display-p3 0.3169 0.3241 0.3333);
+    --neutral-12: color(display-p3 0.0506 0.052 0.0538);
+    --neutral-solid-hover: color(display-p3 0.0109 0.0115 0.0123);
+    --neutral-solid-active: color(display-p3 0.0004 0.0004 0.0005);
+    --neutral-label: color(display-p3 0.1895 0.1936 0.1988);
+    --accent-6: color(display-p3 0.6272 0.7193 0.9947);
+    --accent-7: color(display-p3 0.5725 0.6767 1);
+    --accent-8: color(display-p3 0.4857 0.6042 1);
+    --accent-11: color(display-p3 0.1348 0.2002 0.7924);
+    --accent-12: color(display-p3 0.019 0.0386 0.1431);
+    --accent-solid-hover: color(display-p3 0.0926 0 0.8588);
+    --accent-solid-active: color(display-p3 0.0651 0 0.6886);
+    --accent-label: color(display-p3 0.0856 0.14 0.4576);
+    --destructive-6: color(display-p3 0.9952 0.5911 0.5504);
+    --destructive-7: color(display-p3 1 0.5159 0.476);
+    --destructive-8: color(display-p3 1 0.375 0.3505);
+    --destructive-11: color(display-p3 0.5453 0.1506 0.1457);
+    --destructive-12: color(display-p3 0.0971 0.0264 0.0222);
+    --destructive-solid-hover: color(display-p3 1 0.3783 0.3532);
+    --destructive-solid-active: color(display-p3 1 0.5525 0.5115);
+    --destructive-label: color(display-p3 0.3209 0.1061 0.096);
+  }
+  @media (prefers-contrast: more) {
+    :root:not([data-contrast="normal"]) {
+      --neutral-6: color(display-p3 0.7242 0.7319 0.7417);
+      --neutral-7: color(display-p3 0.686 0.695 0.7064);
+      --neutral-8: color(display-p3 0.6234 0.6342 0.6479);
+      --neutral-11: color(display-p3 0.3169 0.3241 0.3333);
+      --neutral-12: color(display-p3 0.0506 0.052 0.0538);
+      --neutral-solid-hover: color(display-p3 0.0109 0.0115 0.0123);
+      --neutral-solid-active: color(display-p3 0.0004 0.0004 0.0005);
+      --neutral-label: color(display-p3 0.1895 0.1936 0.1988);
+      --accent-6: color(display-p3 0.6272 0.7193 0.9947);
+      --accent-7: color(display-p3 0.5725 0.6767 1);
+      --accent-8: color(display-p3 0.4857 0.6042 1);
+      --accent-11: color(display-p3 0.1348 0.2002 0.7924);
+      --accent-12: color(display-p3 0.019 0.0386 0.1431);
+      --accent-solid-hover: color(display-p3 0.0926 0 0.8588);
+      --accent-solid-active: color(display-p3 0.0651 0 0.6886);
+      --accent-label: color(display-p3 0.0856 0.14 0.4576);
+      --destructive-6: color(display-p3 0.9952 0.5911 0.5504);
+      --destructive-7: color(display-p3 1 0.5159 0.476);
+      --destructive-8: color(display-p3 1 0.375 0.3505);
+      --destructive-11: color(display-p3 0.5453 0.1506 0.1457);
+      --destructive-12: color(display-p3 0.0971 0.0264 0.0222);
+      --destructive-solid-hover: color(display-p3 1 0.3783 0.3532);
+      --destructive-solid-active: color(display-p3 1 0.5525 0.5115);
+      --destructive-label: color(display-p3 0.3209 0.1061 0.096);
+    }
+  }
+}
+
+@supports (color: color(display-p3 0 0 0)) {
+  [data-appearance="dark"][data-contrast="high"] {
+    --neutral-6: color(display-p3 0.326 0.3352 0.3468);
+    --neutral-7: color(display-p3 0.3904 0.4013 0.4151);
+    --neutral-8: color(display-p3 0.4907 0.5041 0.521);
+    --neutral-11: color(display-p3 0.8281 0.832 0.837);
+    --neutral-12: color(display-p3 1 1 1);
+    --neutral-solid-hover: color(display-p3 0.9293 0.9293 0.9293);
+    --neutral-solid-active: color(display-p3 0.8468 0.8468 0.8468);
+    --neutral-label: color(display-p3 0.9109 0.9127 0.9148);
+    --accent-6: color(display-p3 0.108 0.0508 0.9259);
+    --accent-7: color(display-p3 0.1611 0.2207 1);
+    --accent-8: color(display-p3 0.2998 0.4261 1);
+    --accent-11: color(display-p3 0.7796 0.8293 0.9668);
+    --accent-12: color(display-p3 1 1 1);
+    --accent-solid-hover: color(display-p3 0.0926 0 0.8588);
+    --accent-solid-active: color(display-p3 0.0651 0 0.6886);
+    --accent-label: color(display-p3 0.8896 0.9122 0.9729);
+    --destructive-6: color(display-p3 0.6058 0.0282 0.092);
+    --destructive-7: color(display-p3 0.7232 0 0.1073);
+    --destructive-8: color(display-p3 0.8985 0 0.1439);
+    --destructive-11: color(display-p3 0.9683 0.7728 0.7468);
+    --destructive-12: color(display-p3 1 1 1);
+    --destructive-solid-hover: color(display-p3 1 0.3783 0.3532);
+    --destructive-solid-active: color(display-p3 1 0.5525 0.5115);
+    --destructive-label: color(display-p3 0.9734 0.8887 0.8765);
+  }
+  @media (prefers-contrast: more) {
+    [data-appearance="dark"]:not([data-contrast="normal"]) {
+      --neutral-6: color(display-p3 0.326 0.3352 0.3468);
+      --neutral-7: color(display-p3 0.3904 0.4013 0.4151);
+      --neutral-8: color(display-p3 0.4907 0.5041 0.521);
+      --neutral-11: color(display-p3 0.8281 0.832 0.837);
+      --neutral-12: color(display-p3 1 1 1);
+      --neutral-solid-hover: color(display-p3 0.9293 0.9293 0.9293);
+      --neutral-solid-active: color(display-p3 0.8468 0.8468 0.8468);
+      --neutral-label: color(display-p3 0.9109 0.9127 0.9148);
+      --accent-6: color(display-p3 0.108 0.0508 0.9259);
+      --accent-7: color(display-p3 0.1611 0.2207 1);
+      --accent-8: color(display-p3 0.2998 0.4261 1);
+      --accent-11: color(display-p3 0.7796 0.8293 0.9668);
+      --accent-12: color(display-p3 1 1 1);
+      --accent-solid-hover: color(display-p3 0.0926 0 0.8588);
+      --accent-solid-active: color(display-p3 0.0651 0 0.6886);
+      --accent-label: color(display-p3 0.8896 0.9122 0.9729);
+      --destructive-6: color(display-p3 0.6058 0.0282 0.092);
+      --destructive-7: color(display-p3 0.7232 0 0.1073);
+      --destructive-8: color(display-p3 0.8985 0 0.1439);
+      --destructive-11: color(display-p3 0.9683 0.7728 0.7468);
+      --destructive-12: color(display-p3 1 1 1);
+      --destructive-solid-hover: color(display-p3 1 0.3783 0.3532);
+      --destructive-solid-active: color(display-p3 1 0.5525 0.5115);
+      --destructive-label: color(display-p3 0.9734 0.8887 0.8765);
+    }
+  }
+}
+
 [data-density="compact"] {
   --control-height-1: calc(24px * var(--scale));
   --control-height-2: calc(28px * var(--scale));

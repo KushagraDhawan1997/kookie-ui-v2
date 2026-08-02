@@ -109,6 +109,17 @@ const ROLE_MAP: Array<[string, string, string]> = [
   ["--tone-a1 … -a12", "each step as alpha over the page", "nested surfaces, fills over media"],
 ];
 
+/** What `contrast="high"` rewrites, and what it deliberately leaves alone (§7). */
+const CONTRAST_MAP: Array<[string, string]> = [
+  ["steps 6-8 (borders)", "pushed toward the extreme, so an edge separates harder"],
+  ["steps 11-12 (text)", "pushed toward the extreme"],
+  ["--tone-label", "follows the text band; must clear Lc 75, not 60"],
+  ["--tone-solid-hover / -active", "spread widened 1.6x so states stay distinguishable"],
+  ["--tone-solid (chromatic)", "untouched — that value is the brand colour"],
+  ["--tone-solid (low chroma)", "deepens: it reads step 12, and a grey has no hue to protect"],
+  ["steps 1-5, alpha ramp", "untouched"],
+];
+
 function roleMap(): string {
   const s = buildScale("accent", "light");
   const sample: Record<string, string> = {
@@ -216,6 +227,7 @@ export function generatePreview(): string {
 <h1>density x size</h1>
 <div class="toggle">
   <label><input type="checkbox" id="icons"> show icons (the gap token is only visible with one)</label>
+  <label><input type="checkbox" id="hc"> contrast="high"</label>
   <label>radius
     <select id="radius">${Object.keys(radiusLevels)
       .map((l) => `<option${l === "medium" ? " selected" : ""}>${l}</option>`)
@@ -243,6 +255,13 @@ ${LEVELS.map(
 <p class="note">Components reference these, never the numbered steps and never the generator. <code>tone</code> stands for whichever of neutral, accent or destructive the component resolved to. Swatches show the accent scale in light mode.</p>
 ${roleMap()}
 
+<h2 style="margin-top: var(--space-9)">contrast="high"</h2>
+<p class="note">An accessibility setting, not a design knob: it shifts values, it never remaps which step a role reads. Applied by the Theme prop or by <code>prefers-contrast: more</code> unless explicitly opted out. Toggle it on the whole page below.</p>
+<table class="roles-table">
+  <thead><tr><th>what</th><th>happens</th></tr></thead>
+  <tbody>${CONTRAST_MAP.map(([a, b]) => `<tr><td><code>${a}</code></td><td>${b}</td></tr>`).join("")}</tbody>
+</table>
+
 <h1 style="margin-top: var(--space-11)">colour</h1>
 <p class="note">Generated from a hue angle and a chroma peak per tone (§7). Steps 1-8 and 11-12 share one lightness ladder across every hue; the solid band leans toward each hue's own cusp, which is the fix for bright hues reading as mud. Every label pairing here is APCA-verified in the suite, not chosen by eye — but the eye is what decides whether it looks right.</p>
 ${colorSection("light")}
@@ -261,6 +280,10 @@ ${sweepFull("dark")}
   });
 
   // The radius level prices the palette; density still picks which step each control pulls.
+  document.getElementById("hc").addEventListener("change", (e) => {
+    document.documentElement.dataset.contrast = e.target.checked ? "high" : "normal";
+  });
+
   document.getElementById("radius").addEventListener("change", (e) => {
     document.documentElement.dataset.radius = e.target.value;
     readout();

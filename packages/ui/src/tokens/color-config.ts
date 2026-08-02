@@ -87,6 +87,25 @@ export const labelPosition = 0.45;
 export const lowChromaThreshold = 0.18;
 
 /**
+ * `contrast="high"` (§7). A Theme-level **accessibility setting**, never a design knob and
+ * never a per-component prop: it shifts values, it does not remap which step a role reads.
+ *
+ * Borders and text move toward the extremes; the interaction spread widens so hover and press
+ * stay distinguishable. A *chromatic* solid is deliberately untouched — that value is the brand
+ * colour, it already clears the target by a wide margin, and pushing it would trade the user's
+ * hue for contrast they did not need. A low-chroma solid does deepen, because it reads step 12
+ * and there is no hue there to protect. Under this setting the label pairings must clear the
+ * AAA-equivalent Lc 75 rather than the AA-equivalent Lc 60, which is law-tested.
+ */
+export const contrastHigh = {
+  light: { border: -0.11, text: -0.08, stateSpread: 1.6 },
+  dark: { border: 0.11, text: 0.07, stateSpread: 1.6 },
+} as const;
+
+/** Steps the high-contrast pass rewrites: the border band and the text band. */
+export const contrastHighBands = { border: [5, 6, 7], text: [10, 11] } as const;
+
+/**
  * The shipped tones (§9). A closed set, which is the first reason the CSS stays small:
  * five or six scales, never Radix's thirty. `accent` is the user's brand hue.
  */

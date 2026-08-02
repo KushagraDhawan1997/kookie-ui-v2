@@ -196,6 +196,80 @@ describe("hostile hues survive the same law (§7)", () => {
   });
 });
 
+describe("contrast=high shifts values, it never remaps a role (§7)", () => {
+  const AAA = 75;
+
+  it("clears the AAA-equivalent bar where normal only has to clear AA", () => {
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        const s = buildScale(tone, mode, "srgb", "high");
+        for (const step of [2, 3, 4]) {
+          expect(Math.abs(apcaLc(s.label, s.steps[step]!))).toBeGreaterThanOrEqual(AAA);
+        }
+        expect(Math.abs(apcaLc(s.steps[10]!, s.steps[2]!))).toBeGreaterThanOrEqual(AAA);
+      }
+    }
+  });
+
+  it("only ever increases contrast, for every pairing", () => {
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        const normal = buildScale(tone, mode);
+        const high = buildScale(tone, mode, "srgb", "high");
+        for (const step of [2, 4]) {
+          expect(Math.abs(apcaLc(high.label, high.steps[step]!))).toBeGreaterThan(
+            Math.abs(apcaLc(normal.label, normal.steps[step]!)),
+          );
+        }
+      }
+    }
+  });
+
+  it("leaves a chromatic solid alone — that value is the brand colour", () => {
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        const normal = buildScale(tone, mode);
+        if (normal.isLowChroma) continue;
+        expect(buildScale(tone, mode, "srgb", "high").solid).toBe(normal.solid);
+      }
+    }
+  });
+
+  it("but a low-chroma solid does deepen, because there is no hue to protect", () => {
+    // Neutral's solid IS step 12, so it follows the text band. Nothing is being traded away:
+    // a grey has no brand value to preserve, and the label gains contrast.
+    for (const mode of MODES) {
+      const normal = buildScale("neutral", mode);
+      const high = buildScale("neutral", mode, "srgb", "high");
+      expect(high.solid).not.toBe(normal.solid);
+      expect(Math.abs(apcaLc(high.contrast, high.solid))).toBeGreaterThan(
+        Math.abs(apcaLc(normal.contrast, normal.solid)),
+      );
+    }
+  });
+
+  it("widens the interaction spread rather than narrowing it", () => {
+    for (const mode of MODES) {
+      const normal = buildScale("accent", mode);
+      const high = buildScale("accent", mode, "srgb", "high");
+      expect(Math.abs(L(high.solidActive) - L(high.solid))).toBeGreaterThan(
+        Math.abs(L(normal.solidActive) - L(normal.solid)),
+      );
+    }
+  });
+
+  it("still resolves the label away from the fill, so nothing regressed", () => {
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        const s = buildScale(tone, mode, "srgb", "high");
+        for (const fill of [s.solid, s.solidHover, s.solidActive]) {
+          expect(Math.abs(apcaLc(s.contrast, fill))).toBeGreaterThanOrEqual(BODY);
+        }
+      }
+    }
+  });
+});
+
 describe("the alpha ramp composites back to its step (§10)", () => {
   it("every alpha value lands on its solid step over the page backdrop", () => {
     for (const mode of MODES) {

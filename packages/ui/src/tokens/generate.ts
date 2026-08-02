@@ -10,7 +10,7 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { colorDeclarations } from "./color.ts";
+import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
   defaultRadiusLevel,
   density,
@@ -85,6 +85,33 @@ export function generateTokens(): string {
     "}",
     "",
   );
+
+  // contrast="high" is an accessibility setting (§7): it shifts values, it never remaps which
+  // step a role reads. Emitted for the explicit prop and for the platform signal, so a user
+  // who asked their OS for more contrast gets it without anyone wiring the prop up.
+  for (const gamut of ["srgb", "p3"] as const) {
+    const wrap = (body: string[]) =>
+      gamut === "p3"
+        ? ["@supports (color: color(display-p3 0 0 0)) {", ...body.map((l) => `  ${l}`), "}"]
+        : body;
+    for (const mode of ["light", "dark"] as const) {
+      const scope = mode === "light" ? ":root" : `[data-appearance="dark"]`;
+      const decls = contrastHighDeclarations(mode, gamut);
+      lines.push(
+        ...wrap([
+          `${scope}[data-contrast="high"] {`,
+          ...decls,
+          "}",
+          `@media (prefers-contrast: more) {`,
+          `  ${scope}:not([data-contrast="normal"]) {`,
+          ...decls.map((l) => `  ${l}`),
+          "  }",
+          "}",
+        ]),
+        "",
+      );
+    }
+  }
 
   // Density is a designed set, not a multiplier: each level re-declares the control family.
   for (const level of Object.keys(density) as DensityLevel[]) {

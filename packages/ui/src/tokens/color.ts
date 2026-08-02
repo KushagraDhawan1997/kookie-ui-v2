@@ -8,6 +8,8 @@ import { converter, formatHex, inGamut } from "culori";
 
 import {
   chromaCurve,
+  contrastHigh,
+  contrastHighBands,
   labelPosition,
   lightness,
   lowChromaThreshold,
@@ -138,6 +140,8 @@ function alphaOver(targetHex: string, backdropHex: string): string {
   return `color-mix(in srgb, ${hex} ${(alpha * 100).toFixed(1)}%, transparent)`;
 }
 
+export type ContrastLevel = "normal" | "high";
+
 export type Scale = {
   steps: string[];
   alpha: string[];
@@ -159,8 +163,13 @@ export function pageBackdrop(mode: Mode): string {
 export type ToneSpec = { hue: number; vividness: number };
 
 /** Convenience over `buildScaleFor` for the shipped tones. */
-export function buildScale(tone: ToneName, mode: Mode, gamut: Gamut = "srgb"): Scale {
-  return buildScaleFor(tones[tone], mode, gamut);
+export function buildScale(
+  tone: ToneName,
+  mode: Mode,
+  gamut: Gamut = "srgb",
+  contrast: ContrastLevel = "normal",
+): Scale {
+  return buildScaleFor(tones[tone], mode, gamut, contrast);
 }
 
 /**
@@ -168,7 +177,13 @@ export function buildScale(tone: ToneName, mode: Mode, gamut: Gamut = "srgb"): S
  * definition (§7) — so an arbitrary brand colour goes through exactly the same law the
  * shipped tones do. That is what the hostile-hue tests exercise.
  */
-export function buildScaleFor({ hue, vividness }: ToneSpec, mode: Mode, gamut: Gamut = "srgb"): Scale {
+export function buildScaleFor(
+  { hue, vividness }: ToneSpec,
+  mode: Mode,
+  gamut: Gamut = "srgb",
+  contrast_: ContrastLevel = "normal",
+): Scale {
+  const hc = contrast_ === "high" ? contrastHigh[mode] : null;
   /** The most chroma this hue can hold at this lightness, inside the target gamut. */
   const available = (l: number) => toGamut(oklch(l, 0.5, hue), gamut).c;
   const chromaAt = (l: number, fraction: number) => available(l) * fraction * vividness;
@@ -178,7 +193,13 @@ export function buildScaleFor({ hue, vividness }: ToneSpec, mode: Mode, gamut: G
 
   // Steps 9 and 10 lean toward the hue's own cusp; every other step takes the shared ladder.
   const solidL = ladder[8]! + (cusp - ladder[8]!) * band.cuspPull;
-  const stepL = ladder.map((l, i) => (i === 8 ? solidL : i === 9 ? solidL + step10Offset : l));
+  const stepL = ladder.map((l, i) => {
+    const base = i === 8 ? solidL : i === 9 ? solidL + step10Offset : l;
+    if (!hc) return base;
+    if ((contrastHighBands.border as readonly number[]).includes(i)) return base + hc.border;
+    if ((contrastHighBands.text as readonly number[]).includes(i)) return base + hc.text;
+    return base;
+  });
 
   const steps = stepL.map((l, i) => format(toGamut(oklch(l, chromaAt(l, chromaCurve[i]!), hue), gamut), gamut));
 
@@ -201,7 +222,9 @@ export function buildScaleFor({ hue, vividness }: ToneSpec, mode: Mode, gamut: G
   const FLOOR = 0.06;
   const room = restL + preferred * solidStateDeltas.active;
   const away = room > CEILING || room < FLOOR ? -preferred : preferred;
-  const state = (delta: number) => format(toGamut(oklch(restL + away * delta, restC, hue), gamut), gamut);
+  const spread = hc ? hc.stateSpread : 1;
+  const state = (delta: number) =>
+    format(toGamut(oklch(restL + away * delta * spread, restC, hue), gamut), gamut);
   const solidHover = state(solidStateDeltas.hover);
   const solidActive = state(solidStateDeltas.active);
 
@@ -246,13 +269,38 @@ export function buildAllScales(): Record<Mode, Record<ToneName, Scale>> {
   return out;
 }
 
+/**
+ * Only what `contrast="high"` actually changes: the border and text bands, the roles that read
+ * them, and the widened interaction spread. Re-declaring the whole scale would ship the solid
+ * band and the backgrounds again for nothing.
+ */
+export function contrastHighDeclarations(mode: Mode, gamut: Gamut = "srgb"): string[] {
+  const out: string[] = [];
+  for (const tone of Object.keys(tones) as ToneName[]) {
+    const s = buildScale(tone, mode, gamut, "high");
+    for (const i of [...contrastHighBands.border, ...contrastHighBands.text]) {
+      out.push(`  --${tone}-${i + 1}: ${s.steps[i]};`);
+    }
+    out.push(
+      `  --${tone}-solid-hover: ${s.solidHover};`,
+      `  --${tone}-solid-active: ${s.solidActive};`,
+      `  --${tone}-label: ${s.label};`,
+    );
+  }
+  return out;
+}
+
 /** The CSS declarations for one mode: raw steps, the alpha ramp, and the role layer (§7). */
-export function colorDeclarations(mode: Mode, gamut: Gamut = "srgb"): string[] {
+export function colorDeclarations(
+  mode: Mode,
+  gamut: Gamut = "srgb",
+  contrast: ContrastLevel = "normal",
+): string[] {
   const out: string[] = [];
   const scales = Object.keys(tones) as ToneName[];
 
   for (const tone of scales) {
-    const s = buildScale(tone, mode, gamut);
+    const s = buildScale(tone, mode, gamut, contrast);
     out.push(`  /* ${tone} */`);
     s.steps.forEach((hex, i) => out.push(`  --${tone}-${i + 1}: ${hex};`));
     // The alpha ramp stays sRGB in both blocks: its solve assumes sRGB channel compositing,
