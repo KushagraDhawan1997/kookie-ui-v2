@@ -16,7 +16,10 @@ export default defineConfig({
       {
         test: {
           name: "node",
-          include: ["src/**/*.test.ts"],
+          // .tsx is here for the type-refusal suites, which build JSX without a DOM; anything
+          // that MOUNTS belongs to the browser project below.
+          include: ["src/**/*.test.{ts,tsx}"],
+          exclude: ["src/**/*.browser.test.tsx"],
           environment: "node",
         },
       },
