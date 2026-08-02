@@ -13,7 +13,43 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { tones, type Mode, type ToneName } from "./color-config.ts";
-import { buildScale } from "./color.ts";
+import { buildScale, buildScaleFor } from "./color.ts";
+
+/**
+ * A sweep of arbitrary brand hues, none of them shipped tones. This is where the one-law
+ * thesis is actually visible: if a single generator handles yellow and navy without either
+ * being hand-placed, the sweep reads as one family. Bright hues are the ones to distrust.
+ */
+const SWEEP: Array<[string, number, number]> = [
+  ["yellow", 100, 0.19],
+  ["amber", 80, 0.19],
+  ["lime", 130, 0.21],
+  ["green", 150, 0.18],
+  ["teal", 175, 0.14],
+  ["cyan", 195, 0.15],
+  ["sky", 230, 0.15],
+  ["blue", 250, 0.17],
+  ["indigo", 267, 0.17],
+  ["violet", 290, 0.19],
+  ["magenta", 340, 0.22],
+  ["red", 25, 0.17],
+];
+
+function hueSweep(mode: Mode): string {
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>hue sweep — ${mode}</h2>
+    ${SWEEP.map(([name, hue, peakChroma]) => {
+      const s = buildScaleFor({ hue, peakChroma }, mode);
+      return `<div class="sweep">
+        <span class="sweep-name">${name}</span>
+        <div class="row">${s.steps.map((hex, i) => `<div class="sw sm" title="${name}-${i + 1} ${hex}" style="background:${hex}"></div>`).join("")}</div>
+        <div class="role" style="background:${s.solid};color:${s.contrast}">solid</div>
+        <div class="role" style="background:${s.solidActive};color:${s.contrast}">active</div>
+        <div class="role" style="background:${s.steps[2]};color:${s.label}">label</div>
+      </div>`;
+    }).join("")}
+  </section>`;
+}
 import { density, radiusLevels, type DensityLevel } from "./config.ts";
 
 const TONES = Object.keys(tones) as ToneName[];
@@ -110,6 +146,10 @@ export function generatePreview(): string {
   .row.roles { margin-top: var(--space-3); gap: var(--space-2); }
   .role { padding: var(--space-3) var(--space-4); border-radius: var(--radius-control-2);
           font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
+  .sweep { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
+  .sweep-name { width: 70px; font-size: var(--font-size-1); font-family: var(--font-mono); }
+  .sw.sm { width: 34px; height: 26px; }
+  .sweep .role { padding: var(--space-2) var(--space-3); font-size: var(--font-size-1); }
   .readout { font-family: var(--font-mono); font-size: 11px; color: #888; }
   .ruler { position: relative; }
 </style>
@@ -145,6 +185,8 @@ ${LEVELS.map(
 <p class="note">Generated from a hue angle and a chroma peak per tone (§7). Steps 1-8 and 11-12 share one lightness ladder across every hue; the solid band leans toward each hue's own cusp, which is the fix for bright hues reading as mud. Every label pairing here is APCA-verified in the suite, not chosen by eye — but the eye is what decides whether it looks right.</p>
 ${colorSection("light")}
 ${colorSection("dark")}
+${hueSweep("light")}
+${hueSweep("dark")}
 
 <script>
   document.getElementById("icons").addEventListener("change", (e) => {
