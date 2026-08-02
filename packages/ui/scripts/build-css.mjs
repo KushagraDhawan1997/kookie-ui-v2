@@ -3,8 +3,8 @@
 // then asserts the tsdown output the exports map promises actually exists.
 import browserslist from "browserslist";
 import { browserslistToTargets, bundle } from "lightningcss";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = dirname(fileURLToPath(import.meta.url));
@@ -29,3 +29,28 @@ for (const file of ["../dist/index.js", "../dist/index.d.ts"]) {
     process.exit(1);
   }
 }
+
+// Every module whose source declares "use client" must still declare it after the build.
+// Bundlers drop directives silently, and the failure only appears in a consumer's RSC app.
+const srcDir = join(root, "../src");
+const outDir = join(root, "../dist");
+const clientSources = [];
+const walk = (dir) => {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) walk(full);
+    else if (/\.tsx?$/.test(entry.name) && readFileSync(full, "utf8").startsWith('"use client"')) {
+      clientSources.push(relative(srcDir, full).replace(/\.tsx?$/, ""));
+    }
+  }
+};
+walk(srcDir);
+
+for (const name of clientSources) {
+  const out = join(outDir, `${name}.js`);
+  if (!existsSync(out) || !readFileSync(out, "utf8").startsWith('"use client"')) {
+    console.error(`build: "use client" lost for ${name} — this breaks RSC consumers silently`);
+    process.exit(1);
+  }
+}
+console.log(`build: "use client" preserved on ${clientSources.length} modules`);

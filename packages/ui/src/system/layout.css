@@ -1,0 +1,355 @@
+/* GENERATED FILE — do not edit.
+   Source: src/system/layout-css.ts from src/system/props.ts.
+   Hand edits are overwritten by the next build and fail the drift test. */
+
+@property --kk-p { syntax: "*"; inherits: false; }
+@property --kk-p-sm { syntax: "*"; inherits: false; }
+@property --kk-p-md { syntax: "*"; inherits: false; }
+@property --kk-p-lg { syntax: "*"; inherits: false; }
+@property --kk-px { syntax: "*"; inherits: false; }
+@property --kk-px-sm { syntax: "*"; inherits: false; }
+@property --kk-px-md { syntax: "*"; inherits: false; }
+@property --kk-px-lg { syntax: "*"; inherits: false; }
+@property --kk-py { syntax: "*"; inherits: false; }
+@property --kk-py-sm { syntax: "*"; inherits: false; }
+@property --kk-py-md { syntax: "*"; inherits: false; }
+@property --kk-py-lg { syntax: "*"; inherits: false; }
+@property --kk-pt { syntax: "*"; inherits: false; }
+@property --kk-pt-sm { syntax: "*"; inherits: false; }
+@property --kk-pt-md { syntax: "*"; inherits: false; }
+@property --kk-pt-lg { syntax: "*"; inherits: false; }
+@property --kk-pr { syntax: "*"; inherits: false; }
+@property --kk-pr-sm { syntax: "*"; inherits: false; }
+@property --kk-pr-md { syntax: "*"; inherits: false; }
+@property --kk-pr-lg { syntax: "*"; inherits: false; }
+@property --kk-pb { syntax: "*"; inherits: false; }
+@property --kk-pb-sm { syntax: "*"; inherits: false; }
+@property --kk-pb-md { syntax: "*"; inherits: false; }
+@property --kk-pb-lg { syntax: "*"; inherits: false; }
+@property --kk-pl { syntax: "*"; inherits: false; }
+@property --kk-pl-sm { syntax: "*"; inherits: false; }
+@property --kk-pl-md { syntax: "*"; inherits: false; }
+@property --kk-pl-lg { syntax: "*"; inherits: false; }
+@property --kk-m { syntax: "*"; inherits: false; }
+@property --kk-m-sm { syntax: "*"; inherits: false; }
+@property --kk-m-md { syntax: "*"; inherits: false; }
+@property --kk-m-lg { syntax: "*"; inherits: false; }
+@property --kk-mx { syntax: "*"; inherits: false; }
+@property --kk-mx-sm { syntax: "*"; inherits: false; }
+@property --kk-mx-md { syntax: "*"; inherits: false; }
+@property --kk-mx-lg { syntax: "*"; inherits: false; }
+@property --kk-my { syntax: "*"; inherits: false; }
+@property --kk-my-sm { syntax: "*"; inherits: false; }
+@property --kk-my-md { syntax: "*"; inherits: false; }
+@property --kk-my-lg { syntax: "*"; inherits: false; }
+@property --kk-mt { syntax: "*"; inherits: false; }
+@property --kk-mt-sm { syntax: "*"; inherits: false; }
+@property --kk-mt-md { syntax: "*"; inherits: false; }
+@property --kk-mt-lg { syntax: "*"; inherits: false; }
+@property --kk-mr { syntax: "*"; inherits: false; }
+@property --kk-mr-sm { syntax: "*"; inherits: false; }
+@property --kk-mr-md { syntax: "*"; inherits: false; }
+@property --kk-mr-lg { syntax: "*"; inherits: false; }
+@property --kk-mb { syntax: "*"; inherits: false; }
+@property --kk-mb-sm { syntax: "*"; inherits: false; }
+@property --kk-mb-md { syntax: "*"; inherits: false; }
+@property --kk-mb-lg { syntax: "*"; inherits: false; }
+@property --kk-ml { syntax: "*"; inherits: false; }
+@property --kk-ml-sm { syntax: "*"; inherits: false; }
+@property --kk-ml-md { syntax: "*"; inherits: false; }
+@property --kk-ml-lg { syntax: "*"; inherits: false; }
+@property --kk-g { syntax: "*"; inherits: false; }
+@property --kk-g-sm { syntax: "*"; inherits: false; }
+@property --kk-g-md { syntax: "*"; inherits: false; }
+@property --kk-g-lg { syntax: "*"; inherits: false; }
+@property --kk-gx { syntax: "*"; inherits: false; }
+@property --kk-gx-sm { syntax: "*"; inherits: false; }
+@property --kk-gx-md { syntax: "*"; inherits: false; }
+@property --kk-gx-lg { syntax: "*"; inherits: false; }
+@property --kk-gy { syntax: "*"; inherits: false; }
+@property --kk-gy-sm { syntax: "*"; inherits: false; }
+@property --kk-gy-md { syntax: "*"; inherits: false; }
+@property --kk-gy-lg { syntax: "*"; inherits: false; }
+@property --kk-w { syntax: "*"; inherits: false; }
+@property --kk-w-sm { syntax: "*"; inherits: false; }
+@property --kk-w-md { syntax: "*"; inherits: false; }
+@property --kk-w-lg { syntax: "*"; inherits: false; }
+@property --kk-minw { syntax: "*"; inherits: false; }
+@property --kk-minw-sm { syntax: "*"; inherits: false; }
+@property --kk-minw-md { syntax: "*"; inherits: false; }
+@property --kk-minw-lg { syntax: "*"; inherits: false; }
+@property --kk-maxw { syntax: "*"; inherits: false; }
+@property --kk-maxw-sm { syntax: "*"; inherits: false; }
+@property --kk-maxw-md { syntax: "*"; inherits: false; }
+@property --kk-maxw-lg { syntax: "*"; inherits: false; }
+@property --kk-h { syntax: "*"; inherits: false; }
+@property --kk-h-sm { syntax: "*"; inherits: false; }
+@property --kk-h-md { syntax: "*"; inherits: false; }
+@property --kk-h-lg { syntax: "*"; inherits: false; }
+@property --kk-minh { syntax: "*"; inherits: false; }
+@property --kk-minh-sm { syntax: "*"; inherits: false; }
+@property --kk-minh-md { syntax: "*"; inherits: false; }
+@property --kk-minh-lg { syntax: "*"; inherits: false; }
+@property --kk-maxh { syntax: "*"; inherits: false; }
+@property --kk-maxh-sm { syntax: "*"; inherits: false; }
+@property --kk-maxh-md { syntax: "*"; inherits: false; }
+@property --kk-maxh-lg { syntax: "*"; inherits: false; }
+@property --kk-fb { syntax: "*"; inherits: false; }
+@property --kk-fb-sm { syntax: "*"; inherits: false; }
+@property --kk-fb-md { syntax: "*"; inherits: false; }
+@property --kk-fb-lg { syntax: "*"; inherits: false; }
+@property --kk-in { syntax: "*"; inherits: false; }
+@property --kk-in-sm { syntax: "*"; inherits: false; }
+@property --kk-in-md { syntax: "*"; inherits: false; }
+@property --kk-in-lg { syntax: "*"; inherits: false; }
+@property --kk-t { syntax: "*"; inherits: false; }
+@property --kk-t-sm { syntax: "*"; inherits: false; }
+@property --kk-t-md { syntax: "*"; inherits: false; }
+@property --kk-t-lg { syntax: "*"; inherits: false; }
+@property --kk-r { syntax: "*"; inherits: false; }
+@property --kk-r-sm { syntax: "*"; inherits: false; }
+@property --kk-r-md { syntax: "*"; inherits: false; }
+@property --kk-r-lg { syntax: "*"; inherits: false; }
+@property --kk-b { syntax: "*"; inherits: false; }
+@property --kk-b-sm { syntax: "*"; inherits: false; }
+@property --kk-b-md { syntax: "*"; inherits: false; }
+@property --kk-b-lg { syntax: "*"; inherits: false; }
+@property --kk-l { syntax: "*"; inherits: false; }
+@property --kk-l-sm { syntax: "*"; inherits: false; }
+@property --kk-l-md { syntax: "*"; inherits: false; }
+@property --kk-l-lg { syntax: "*"; inherits: false; }
+@property --kk-d { syntax: "*"; inherits: false; }
+@property --kk-d-sm { syntax: "*"; inherits: false; }
+@property --kk-d-md { syntax: "*"; inherits: false; }
+@property --kk-d-lg { syntax: "*"; inherits: false; }
+@property --kk-pos { syntax: "*"; inherits: false; }
+@property --kk-pos-sm { syntax: "*"; inherits: false; }
+@property --kk-pos-md { syntax: "*"; inherits: false; }
+@property --kk-pos-lg { syntax: "*"; inherits: false; }
+@property --kk-ov { syntax: "*"; inherits: false; }
+@property --kk-ov-sm { syntax: "*"; inherits: false; }
+@property --kk-ov-md { syntax: "*"; inherits: false; }
+@property --kk-ov-lg { syntax: "*"; inherits: false; }
+@property --kk-ovx { syntax: "*"; inherits: false; }
+@property --kk-ovx-sm { syntax: "*"; inherits: false; }
+@property --kk-ovx-md { syntax: "*"; inherits: false; }
+@property --kk-ovx-lg { syntax: "*"; inherits: false; }
+@property --kk-ovy { syntax: "*"; inherits: false; }
+@property --kk-ovy-sm { syntax: "*"; inherits: false; }
+@property --kk-ovy-md { syntax: "*"; inherits: false; }
+@property --kk-ovy-lg { syntax: "*"; inherits: false; }
+@property --kk-fg { syntax: "*"; inherits: false; }
+@property --kk-fg-sm { syntax: "*"; inherits: false; }
+@property --kk-fg-md { syntax: "*"; inherits: false; }
+@property --kk-fg-lg { syntax: "*"; inherits: false; }
+@property --kk-fs { syntax: "*"; inherits: false; }
+@property --kk-fs-sm { syntax: "*"; inherits: false; }
+@property --kk-fs-md { syntax: "*"; inherits: false; }
+@property --kk-fs-lg { syntax: "*"; inherits: false; }
+@property --kk-ga { syntax: "*"; inherits: false; }
+@property --kk-ga-sm { syntax: "*"; inherits: false; }
+@property --kk-ga-md { syntax: "*"; inherits: false; }
+@property --kk-ga-lg { syntax: "*"; inherits: false; }
+@property --kk-fd { syntax: "*"; inherits: false; }
+@property --kk-fd-sm { syntax: "*"; inherits: false; }
+@property --kk-fd-md { syntax: "*"; inherits: false; }
+@property --kk-fd-lg { syntax: "*"; inherits: false; }
+@property --kk-ai { syntax: "*"; inherits: false; }
+@property --kk-ai-sm { syntax: "*"; inherits: false; }
+@property --kk-ai-md { syntax: "*"; inherits: false; }
+@property --kk-ai-lg { syntax: "*"; inherits: false; }
+@property --kk-jc { syntax: "*"; inherits: false; }
+@property --kk-jc-sm { syntax: "*"; inherits: false; }
+@property --kk-jc-md { syntax: "*"; inherits: false; }
+@property --kk-jc-lg { syntax: "*"; inherits: false; }
+@property --kk-fw { syntax: "*"; inherits: false; }
+@property --kk-fw-sm { syntax: "*"; inherits: false; }
+@property --kk-fw-md { syntax: "*"; inherits: false; }
+@property --kk-fw-lg { syntax: "*"; inherits: false; }
+@property --kk-gtc { syntax: "*"; inherits: false; }
+@property --kk-gtc-sm { syntax: "*"; inherits: false; }
+@property --kk-gtc-md { syntax: "*"; inherits: false; }
+@property --kk-gtc-lg { syntax: "*"; inherits: false; }
+@property --kk-gtr { syntax: "*"; inherits: false; }
+@property --kk-gtr-sm { syntax: "*"; inherits: false; }
+@property --kk-gtr-md { syntax: "*"; inherits: false; }
+@property --kk-gtr-lg { syntax: "*"; inherits: false; }
+@property --kk-gta { syntax: "*"; inherits: false; }
+@property --kk-gta-sm { syntax: "*"; inherits: false; }
+@property --kk-gta-md { syntax: "*"; inherits: false; }
+@property --kk-gta-lg { syntax: "*"; inherits: false; }
+@property --kk-gaf { syntax: "*"; inherits: false; }
+@property --kk-gaf-sm { syntax: "*"; inherits: false; }
+@property --kk-gaf-md { syntax: "*"; inherits: false; }
+@property --kk-gaf-lg { syntax: "*"; inherits: false; }
+
+.kk-box {
+  padding-block-start: var(--kk-pt, var(--kk-py, var(--kk-p)));
+  padding-block-end: var(--kk-pb, var(--kk-py, var(--kk-p)));
+  padding-inline-start: var(--kk-pl, var(--kk-px, var(--kk-p)));
+  padding-inline-end: var(--kk-pr, var(--kk-px, var(--kk-p)));
+  margin-block-start: var(--kk-mt, var(--kk-my, var(--kk-m)));
+  margin-block-end: var(--kk-mb, var(--kk-my, var(--kk-m)));
+  margin-inline-start: var(--kk-ml, var(--kk-mx, var(--kk-m)));
+  margin-inline-end: var(--kk-mr, var(--kk-mx, var(--kk-m)));
+  row-gap: var(--kk-gy, var(--kk-g));
+  column-gap: var(--kk-gx, var(--kk-g));
+  width: var(--kk-w);
+  min-width: var(--kk-minw);
+  max-width: var(--kk-maxw);
+  height: var(--kk-h);
+  min-height: var(--kk-minh);
+  max-height: var(--kk-maxh);
+  flex-basis: var(--kk-fb);
+  inset: var(--kk-in);
+  top: var(--kk-t);
+  right: var(--kk-r);
+  bottom: var(--kk-b);
+  left: var(--kk-l);
+  display: var(--kk-d, block);
+  position: var(--kk-pos);
+  overflow: var(--kk-ov);
+  overflow-x: var(--kk-ovx);
+  overflow-y: var(--kk-ovy);
+  flex-grow: var(--kk-fg);
+  flex-shrink: var(--kk-fs);
+  grid-area: var(--kk-ga);
+  flex-direction: var(--kk-fd);
+  align-items: var(--kk-ai);
+  justify-content: var(--kk-jc);
+  flex-wrap: var(--kk-fw);
+  grid-template-columns: var(--kk-gtc);
+  grid-template-rows: var(--kk-gtr);
+  grid-template-areas: var(--kk-gta);
+  grid-auto-flow: var(--kk-gaf);
+  container-type: inline-size;
+}
+
+@container (min-width: 30rem) {
+  .kk-box {
+    padding-block-start: var(--kk-pt-sm, var(--kk-py-sm, var(--kk-p-sm, var(--kk-pt, var(--kk-py, var(--kk-p))))));
+    padding-block-end: var(--kk-pb-sm, var(--kk-py-sm, var(--kk-p-sm, var(--kk-pb, var(--kk-py, var(--kk-p))))));
+    padding-inline-start: var(--kk-pl-sm, var(--kk-px-sm, var(--kk-p-sm, var(--kk-pl, var(--kk-px, var(--kk-p))))));
+    padding-inline-end: var(--kk-pr-sm, var(--kk-px-sm, var(--kk-p-sm, var(--kk-pr, var(--kk-px, var(--kk-p))))));
+    margin-block-start: var(--kk-mt-sm, var(--kk-my-sm, var(--kk-m-sm, var(--kk-mt, var(--kk-my, var(--kk-m))))));
+    margin-block-end: var(--kk-mb-sm, var(--kk-my-sm, var(--kk-m-sm, var(--kk-mb, var(--kk-my, var(--kk-m))))));
+    margin-inline-start: var(--kk-ml-sm, var(--kk-mx-sm, var(--kk-m-sm, var(--kk-ml, var(--kk-mx, var(--kk-m))))));
+    margin-inline-end: var(--kk-mr-sm, var(--kk-mx-sm, var(--kk-m-sm, var(--kk-mr, var(--kk-mx, var(--kk-m))))));
+    row-gap: var(--kk-gy-sm, var(--kk-g-sm, var(--kk-gy, var(--kk-g))));
+    column-gap: var(--kk-gx-sm, var(--kk-g-sm, var(--kk-gx, var(--kk-g))));
+    width: var(--kk-w-sm, var(--kk-w));
+    min-width: var(--kk-minw-sm, var(--kk-minw));
+    max-width: var(--kk-maxw-sm, var(--kk-maxw));
+    height: var(--kk-h-sm, var(--kk-h));
+    min-height: var(--kk-minh-sm, var(--kk-minh));
+    max-height: var(--kk-maxh-sm, var(--kk-maxh));
+    flex-basis: var(--kk-fb-sm, var(--kk-fb));
+    inset: var(--kk-in-sm, var(--kk-in));
+    top: var(--kk-t-sm, var(--kk-t));
+    right: var(--kk-r-sm, var(--kk-r));
+    bottom: var(--kk-b-sm, var(--kk-b));
+    left: var(--kk-l-sm, var(--kk-l));
+    display: var(--kk-d-sm, var(--kk-d, block));
+    position: var(--kk-pos-sm, var(--kk-pos));
+    overflow: var(--kk-ov-sm, var(--kk-ov));
+    overflow-x: var(--kk-ovx-sm, var(--kk-ovx));
+    overflow-y: var(--kk-ovy-sm, var(--kk-ovy));
+    flex-grow: var(--kk-fg-sm, var(--kk-fg));
+    flex-shrink: var(--kk-fs-sm, var(--kk-fs));
+    grid-area: var(--kk-ga-sm, var(--kk-ga));
+    flex-direction: var(--kk-fd-sm, var(--kk-fd));
+    align-items: var(--kk-ai-sm, var(--kk-ai));
+    justify-content: var(--kk-jc-sm, var(--kk-jc));
+    flex-wrap: var(--kk-fw-sm, var(--kk-fw));
+    grid-template-columns: var(--kk-gtc-sm, var(--kk-gtc));
+    grid-template-rows: var(--kk-gtr-sm, var(--kk-gtr));
+    grid-template-areas: var(--kk-gta-sm, var(--kk-gta));
+    grid-auto-flow: var(--kk-gaf-sm, var(--kk-gaf));
+  }
+}
+
+@container (min-width: 48rem) {
+  .kk-box {
+    padding-block-start: var(--kk-pt-md, var(--kk-py-md, var(--kk-p-md, var(--kk-pt-sm, var(--kk-py-sm, var(--kk-p-sm, var(--kk-pt, var(--kk-py, var(--kk-p)))))))));
+    padding-block-end: var(--kk-pb-md, var(--kk-py-md, var(--kk-p-md, var(--kk-pb-sm, var(--kk-py-sm, var(--kk-p-sm, var(--kk-pb, var(--kk-py, var(--kk-p)))))))));
+    padding-inline-start: var(--kk-pl-md, var(--kk-px-md, var(--kk-p-md, var(--kk-pl-sm, var(--kk-px-sm, var(--kk-p-sm, var(--kk-pl, var(--kk-px, var(--kk-p)))))))));
+    padding-inline-end: var(--kk-pr-md, var(--kk-px-md, var(--kk-p-md, var(--kk-pr-sm, var(--kk-px-sm, var(--kk-p-sm, var(--kk-pr, var(--kk-px, var(--kk-p)))))))));
+    margin-block-start: var(--kk-mt-md, var(--kk-my-md, var(--kk-m-md, var(--kk-mt-sm, var(--kk-my-sm, var(--kk-m-sm, var(--kk-mt, var(--kk-my, var(--kk-m)))))))));
+    margin-block-end: var(--kk-mb-md, var(--kk-my-md, var(--kk-m-md, var(--kk-mb-sm, var(--kk-my-sm, var(--kk-m-sm, var(--kk-mb, var(--kk-my, var(--kk-m)))))))));
+    margin-inline-start: var(--kk-ml-md, var(--kk-mx-md, var(--kk-m-md, var(--kk-ml-sm, var(--kk-mx-sm, var(--kk-m-sm, var(--kk-ml, var(--kk-mx, var(--kk-m)))))))));
+    margin-inline-end: var(--kk-mr-md, var(--kk-mx-md, var(--kk-m-md, var(--kk-mr-sm, var(--kk-mx-sm, var(--kk-m-sm, var(--kk-mr, var(--kk-mx, var(--kk-m)))))))));
+    row-gap: var(--kk-gy-md, var(--kk-g-md, var(--kk-gy-sm, var(--kk-g-sm, var(--kk-gy, var(--kk-g))))));
+    column-gap: var(--kk-gx-md, var(--kk-g-md, var(--kk-gx-sm, var(--kk-g-sm, var(--kk-gx, var(--kk-g))))));
+    width: var(--kk-w-md, var(--kk-w-sm, var(--kk-w)));
+    min-width: var(--kk-minw-md, var(--kk-minw-sm, var(--kk-minw)));
+    max-width: var(--kk-maxw-md, var(--kk-maxw-sm, var(--kk-maxw)));
+    height: var(--kk-h-md, var(--kk-h-sm, var(--kk-h)));
+    min-height: var(--kk-minh-md, var(--kk-minh-sm, var(--kk-minh)));
+    max-height: var(--kk-maxh-md, var(--kk-maxh-sm, var(--kk-maxh)));
+    flex-basis: var(--kk-fb-md, var(--kk-fb-sm, var(--kk-fb)));
+    inset: var(--kk-in-md, var(--kk-in-sm, var(--kk-in)));
+    top: var(--kk-t-md, var(--kk-t-sm, var(--kk-t)));
+    right: var(--kk-r-md, var(--kk-r-sm, var(--kk-r)));
+    bottom: var(--kk-b-md, var(--kk-b-sm, var(--kk-b)));
+    left: var(--kk-l-md, var(--kk-l-sm, var(--kk-l)));
+    display: var(--kk-d-md, var(--kk-d-sm, var(--kk-d, block)));
+    position: var(--kk-pos-md, var(--kk-pos-sm, var(--kk-pos)));
+    overflow: var(--kk-ov-md, var(--kk-ov-sm, var(--kk-ov)));
+    overflow-x: var(--kk-ovx-md, var(--kk-ovx-sm, var(--kk-ovx)));
+    overflow-y: var(--kk-ovy-md, var(--kk-ovy-sm, var(--kk-ovy)));
+    flex-grow: var(--kk-fg-md, var(--kk-fg-sm, var(--kk-fg)));
+    flex-shrink: var(--kk-fs-md, var(--kk-fs-sm, var(--kk-fs)));
+    grid-area: var(--kk-ga-md, var(--kk-ga-sm, var(--kk-ga)));
+    flex-direction: var(--kk-fd-md, var(--kk-fd-sm, var(--kk-fd)));
+    align-items: var(--kk-ai-md, var(--kk-ai-sm, var(--kk-ai)));
+    justify-content: var(--kk-jc-md, var(--kk-jc-sm, var(--kk-jc)));
+    flex-wrap: var(--kk-fw-md, var(--kk-fw-sm, var(--kk-fw)));
+    grid-template-columns: var(--kk-gtc-md, var(--kk-gtc-sm, var(--kk-gtc)));
+    grid-template-rows: var(--kk-gtr-md, var(--kk-gtr-sm, var(--kk-gtr)));
+    grid-template-areas: var(--kk-gta-md, var(--kk-gta-sm, var(--kk-gta)));
+    grid-auto-flow: var(--kk-gaf-md, var(--kk-gaf-sm, var(--kk-gaf)));
+  }
+}
+
+@container (min-width: 64rem) {
+  .kk-box {
+    padding-block-start: var(--kk-pt-lg, var(--kk-py-lg, var(--kk-p-lg, var(--kk-pt-md, var(--kk-py-md, var(--kk-p-md, var(--kk-pt-sm, var(--kk-py-sm, var(--kk-p-sm, var(--kk-pt, var(--kk-py, var(--kk-p))))))))))));
+    padding-block-end: var(--kk-pb-lg, var(--kk-py-lg, var(--kk-p-lg, var(--kk-pb-md, var(--kk-py-md, var(--kk-p-md, var(--kk-pb-sm, var(--kk-py-sm, var(--kk-p-sm, var(--kk-pb, var(--kk-py, var(--kk-p))))))))))));
+    padding-inline-start: var(--kk-pl-lg, var(--kk-px-lg, var(--kk-p-lg, var(--kk-pl-md, var(--kk-px-md, var(--kk-p-md, var(--kk-pl-sm, var(--kk-px-sm, var(--kk-p-sm, var(--kk-pl, var(--kk-px, var(--kk-p))))))))))));
+    padding-inline-end: var(--kk-pr-lg, var(--kk-px-lg, var(--kk-p-lg, var(--kk-pr-md, var(--kk-px-md, var(--kk-p-md, var(--kk-pr-sm, var(--kk-px-sm, var(--kk-p-sm, var(--kk-pr, var(--kk-px, var(--kk-p))))))))))));
+    margin-block-start: var(--kk-mt-lg, var(--kk-my-lg, var(--kk-m-lg, var(--kk-mt-md, var(--kk-my-md, var(--kk-m-md, var(--kk-mt-sm, var(--kk-my-sm, var(--kk-m-sm, var(--kk-mt, var(--kk-my, var(--kk-m))))))))))));
+    margin-block-end: var(--kk-mb-lg, var(--kk-my-lg, var(--kk-m-lg, var(--kk-mb-md, var(--kk-my-md, var(--kk-m-md, var(--kk-mb-sm, var(--kk-my-sm, var(--kk-m-sm, var(--kk-mb, var(--kk-my, var(--kk-m))))))))))));
+    margin-inline-start: var(--kk-ml-lg, var(--kk-mx-lg, var(--kk-m-lg, var(--kk-ml-md, var(--kk-mx-md, var(--kk-m-md, var(--kk-ml-sm, var(--kk-mx-sm, var(--kk-m-sm, var(--kk-ml, var(--kk-mx, var(--kk-m))))))))))));
+    margin-inline-end: var(--kk-mr-lg, var(--kk-mx-lg, var(--kk-m-lg, var(--kk-mr-md, var(--kk-mx-md, var(--kk-m-md, var(--kk-mr-sm, var(--kk-mx-sm, var(--kk-m-sm, var(--kk-mr, var(--kk-mx, var(--kk-m))))))))))));
+    row-gap: var(--kk-gy-lg, var(--kk-g-lg, var(--kk-gy-md, var(--kk-g-md, var(--kk-gy-sm, var(--kk-g-sm, var(--kk-gy, var(--kk-g))))))));
+    column-gap: var(--kk-gx-lg, var(--kk-g-lg, var(--kk-gx-md, var(--kk-g-md, var(--kk-gx-sm, var(--kk-g-sm, var(--kk-gx, var(--kk-g))))))));
+    width: var(--kk-w-lg, var(--kk-w-md, var(--kk-w-sm, var(--kk-w))));
+    min-width: var(--kk-minw-lg, var(--kk-minw-md, var(--kk-minw-sm, var(--kk-minw))));
+    max-width: var(--kk-maxw-lg, var(--kk-maxw-md, var(--kk-maxw-sm, var(--kk-maxw))));
+    height: var(--kk-h-lg, var(--kk-h-md, var(--kk-h-sm, var(--kk-h))));
+    min-height: var(--kk-minh-lg, var(--kk-minh-md, var(--kk-minh-sm, var(--kk-minh))));
+    max-height: var(--kk-maxh-lg, var(--kk-maxh-md, var(--kk-maxh-sm, var(--kk-maxh))));
+    flex-basis: var(--kk-fb-lg, var(--kk-fb-md, var(--kk-fb-sm, var(--kk-fb))));
+    inset: var(--kk-in-lg, var(--kk-in-md, var(--kk-in-sm, var(--kk-in))));
+    top: var(--kk-t-lg, var(--kk-t-md, var(--kk-t-sm, var(--kk-t))));
+    right: var(--kk-r-lg, var(--kk-r-md, var(--kk-r-sm, var(--kk-r))));
+    bottom: var(--kk-b-lg, var(--kk-b-md, var(--kk-b-sm, var(--kk-b))));
+    left: var(--kk-l-lg, var(--kk-l-md, var(--kk-l-sm, var(--kk-l))));
+    display: var(--kk-d-lg, var(--kk-d-md, var(--kk-d-sm, var(--kk-d, block))));
+    position: var(--kk-pos-lg, var(--kk-pos-md, var(--kk-pos-sm, var(--kk-pos))));
+    overflow: var(--kk-ov-lg, var(--kk-ov-md, var(--kk-ov-sm, var(--kk-ov))));
+    overflow-x: var(--kk-ovx-lg, var(--kk-ovx-md, var(--kk-ovx-sm, var(--kk-ovx))));
+    overflow-y: var(--kk-ovy-lg, var(--kk-ovy-md, var(--kk-ovy-sm, var(--kk-ovy))));
+    flex-grow: var(--kk-fg-lg, var(--kk-fg-md, var(--kk-fg-sm, var(--kk-fg))));
+    flex-shrink: var(--kk-fs-lg, var(--kk-fs-md, var(--kk-fs-sm, var(--kk-fs))));
+    grid-area: var(--kk-ga-lg, var(--kk-ga-md, var(--kk-ga-sm, var(--kk-ga))));
+    flex-direction: var(--kk-fd-lg, var(--kk-fd-md, var(--kk-fd-sm, var(--kk-fd))));
+    align-items: var(--kk-ai-lg, var(--kk-ai-md, var(--kk-ai-sm, var(--kk-ai))));
+    justify-content: var(--kk-jc-lg, var(--kk-jc-md, var(--kk-jc-sm, var(--kk-jc))));
+    flex-wrap: var(--kk-fw-lg, var(--kk-fw-md, var(--kk-fw-sm, var(--kk-fw))));
+    grid-template-columns: var(--kk-gtc-lg, var(--kk-gtc-md, var(--kk-gtc-sm, var(--kk-gtc))));
+    grid-template-rows: var(--kk-gtr-lg, var(--kk-gtr-md, var(--kk-gtr-sm, var(--kk-gtr))));
+    grid-template-areas: var(--kk-gta-lg, var(--kk-gta-md, var(--kk-gta-sm, var(--kk-gta))));
+    grid-auto-flow: var(--kk-gaf-lg, var(--kk-gaf-md, var(--kk-gaf-sm, var(--kk-gaf))));
+  }
+}

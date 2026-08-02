@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-02 Box and Theme land, and the browser finds four things the string tests could not
+
+§14 steps 3 and 4. The responsive mechanism is generated from one prop table, Box is the engine and Theme scopes the tokens, and the suite gains a browser project because the claims that mattered most had been asserted in prose for days and verified nowhere.
+
+**Every failure below was found by the browser suite within minutes of it existing.** Three of the four were invisible to a test that reads generated CSS as text, because the text was correct and the *engine* disagreed with what we thought it meant.
+
+**A shorthand followed by longhands does not degrade the way it looks like it should.** `padding: var(--kk-p)` then `padding-block-start: var(--kk-pt)` renders 0 whenever `pt` is unset, because an unset custom property makes its declaration invalid at computed-value time and the property falls back to its *initial* value rather than to the earlier shorthand. Shorthands are expanded now, and the specificity of `pt` over `py` over `p` lives inside one var chain per longhand, where it behaves.
+
+**Every Box was an inline element.** Same rule, worse blast radius: `display: var(--kk-d)` with nothing set falls back to `display`'s initial value, which is `inline`, not `block`. Width and height were ignored, block padding collapsed, and `container-type` does not apply to inline boxes — so no Box was ever a query container and no responsive tier could ever have fired. The prop table now carries an explicit fallback for properties whose CSS initial value is not the sensible default; `display` is the only one that needs it.
+
+**And the one that invalidated an argument in the spec: a custom property reference is substituted where it is DECLARED, not where it is used.** `--radius-control-2: var(--radius-2)` in `:root` is baked to the default palette immediately, so a `[data-radius]` block further down the tree never reaches it — setting a radius level did nothing to control radii. The disjoint-band design was justified on the grounds that the two axes never write the same token and therefore compose; that reasoning was wrong, and only a browser could say so. The generator now emits every (radius x density) cell, which is exact because Theme writes both attributes on one element. Bands still earn their keep for `full` capping surfaces; they just were not sufficient.
+
+**`"use client"` was being stripped by the bundler**, which the audit had warned about and the tsdown bump had not actually fixed: bundling merges modules and drops their directives, and the failure only appears in a consumer's RSC app. Output is unbundled now, and the build walks the source for directives and fails if any is missing downstream.
+
+The mechanism itself: one prop table drives the resolver and the stylesheet, so a prop cannot exist in one and not the other. Cost is O(longhands x tiers) and does not move when tokens are added, because no value ever appears in the CSS. Tiers are container-keyed, three of them, semantic.
+
+Rejected: a shorthand-plus-longhand emission (above); `banner: '"use client"'` on the bundle (marks every export a client module, including ones that are not); reading custom properties directly in tests (`getComputedStyle` hands back the unresolved token stream, so a probe has to actually use the value).
+
 ## 2026-08-02 Colour finishes: chroma against the boundary, P3, contrast, and a brand colour going in
 
 Everything after the generator's first landing, in one entry because it was one arc: making the output actually look right, then making the section's headline claim true.

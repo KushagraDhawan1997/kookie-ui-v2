@@ -10,6 +10,7 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { generateLayoutCss } from "../system/layout-css.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
   defaultRadiusLevel,
@@ -119,11 +120,36 @@ export function generateTokens(): string {
     lines.push(`[data-density="${level}"] {`, ...controlFamily(level), "}", "");
   }
 
-  // A radius level re-declares only palette values, never a semantic token, so it composes
-  // with density instead of racing it in the cascade.
+  // Radius levels re-price the palette.
   for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
     if (level === defaultRadiusLevel) continue;
     lines.push(`[data-radius="${level}"] {`, ...radiusPalette(level), "}", "");
+  }
+
+  // ...but the semantic control radii have to be re-declared alongside them, and this is the
+  // part that reading the CSS will not tell you: a custom property that references another is
+  // substituted WHERE IT IS DECLARED, not where it is used. `--radius-control-2: var(--radius-2)`
+  // sitting in `:root` is therefore already baked to the default palette by the time any
+  // `[data-radius]` block further down the tree changes `--radius-2`. The earlier claim that
+  // the two axes composed because neither wrote the other's token was wrong, and only a browser
+  // could say so.
+  //
+  // Emitting every (radius x density) cell fixes it exactly: the pair is co-located because
+  // Theme always writes both attributes on one element, and the combined selector outranks
+  // either alone. The single-attribute blocks stay for raw-attribute use.
+  for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
+    for (const d of Object.keys(density) as DensityLevel[]) {
+      const decls = density[d].radius.map(
+        (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
+      );
+      lines.push(`[data-radius="${level}"][data-density="${d}"] {`, ...decls, "}", "");
+    }
+    if (level !== defaultRadiusLevel) {
+      const decls = density.default.radius.map(
+        (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
+      );
+      lines.push(`[data-radius="${level}"] {`, ...decls, "}", "");
+    }
   }
 
   return lines.join("\n");
@@ -152,9 +178,13 @@ function controlFamily(level: DensityLevel): string[] {
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
-const outPath = join(here, "tokens.css");
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  writeFileSync(outPath, generateTokens());
-  console.log(`tokens.css: ${generateTokens().length} bytes (raw)`);
+  const tokens = generateTokens();
+  writeFileSync(join(here, "tokens.css"), tokens);
+  console.log(`tokens.css: ${tokens.length} bytes (raw)`);
+
+  const layout = generateLayoutCss();
+  writeFileSync(join(here, "../system/layout.css"), layout);
+  console.log(`layout.css: ${layout.length} bytes (raw)`);
 }
