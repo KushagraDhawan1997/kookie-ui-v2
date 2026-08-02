@@ -243,79 +243,129 @@ export function generatePreview(): string {
 <link rel="stylesheet" href="../src/tokens/tokens.css">
 <link rel="stylesheet" href="../src/system/layout.css">
 <style>
-  body { font-family: var(--font-body); margin: 0; padding: clamp(16px, 4vw, 48px); background: #fff; color: #111; }
-  h1 { font-size: var(--font-size-6); margin: 0 0 var(--space-3); }
-  p.note { font-size: var(--font-size-2); color: #666; max-width: 60ch; margin: 0 0 var(--space-9); }
-  /* The judging page has to survive the phone it exists to judge for. */
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, max-content)); gap: var(--space-10); }
-  .scroll-x { overflow-x: auto; }
-  h2 { font-size: var(--font-size-3); margin: 0 0 var(--space-6); text-transform: lowercase; }
-  h2 code { color: #666; font-weight: var(--font-weight-regular); }
+  /* The preview consumes the system it displays: every colour is a neutral or accent token,
+     every distance a space step, every text style a (size, line-height, spacing) triple.
+     The dark colour sections carry data-appearance="dark" and get their surface for free —
+     the same rule, the tokens re-declared. Hard-coded values below are structural only. */
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--neutral-1); color: var(--neutral-12);
+         font: var(--font-weight-regular) var(--font-size-2)/var(--line-height-2) var(--font-body); }
+  main { max-width: 1240px; margin: 0 auto; padding: clamp(16px, 4vw, 48px); }
+  code { font-family: var(--font-mono); font-size: 0.92em; }
+
+  /* chrome */
+  header { position: sticky; top: 0; z-index: 10; background: var(--neutral-1);
+           border-bottom: 1px solid var(--neutral-4); }
+  .bar { max-width: 1240px; margin: 0 auto; padding: var(--space-4) clamp(16px, 4vw, 48px);
+         display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-8); align-items: center; }
+  .brand { font-weight: var(--font-weight-semibold); font-size: var(--font-size-2); }
+  .brand em { font-style: normal; color: var(--neutral-10); font-weight: var(--font-weight-regular); }
+  nav.toc { display: flex; flex-wrap: wrap; gap: var(--space-5); font-size: var(--font-size-1);
+            margin-right: auto; }
+  nav.toc a { color: var(--neutral-11); text-decoration: none; }
+  nav.toc a:hover { color: var(--neutral-12); }
+  .toggle { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); align-items: center;
+            font-size: var(--font-size-1); color: var(--neutral-11); }
+  .toggle label { display: flex; gap: var(--space-2); align-items: center; }
+
+  /* rhythm: one heading scale, one note style, one section gap */
+  h1 { font: var(--font-weight-semibold) var(--font-size-5)/var(--line-height-5) var(--font-body);
+       letter-spacing: var(--letter-spacing-5); margin: var(--space-12) 0 var(--space-3);
+       scroll-margin-top: 96px; }
+  main > h1:first-child { margin-top: var(--space-8); }
+  h2 { font: var(--font-weight-medium) var(--font-size-3)/var(--line-height-3) var(--font-body);
+       margin: 0 0 var(--space-6); text-transform: lowercase; }
+  h2 code { color: var(--neutral-11); font-weight: var(--font-weight-regular); }
+  p.note { font-size: var(--font-size-2); color: var(--neutral-11); max-width: 64ch;
+           margin: 0 0 var(--space-7); }
+
+  /* the density matrix */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, max-content));
+          gap: var(--space-8) var(--space-10); margin-top: var(--space-9); }
   .stack { display: flex; flex-direction: column; align-items: start; gap: var(--space-4); }
-  .control {
-    display: inline-flex; align-items: center; box-sizing: border-box;
-    background: #f1f1f3; border: 1px solid #d8d8de;
-    font-weight: var(--font-weight-medium); white-space: nowrap;
-  }
-  .icon { width: 1em; height: 1em; border-radius: 2px; background: #9a9aa6; flex: none; }
+  .control { display: inline-flex; align-items: center;
+             background: var(--neutral-3); border: 1px solid var(--neutral-7);
+             font-weight: var(--font-weight-medium); white-space: nowrap; }
+  .icon { width: 1em; height: 1em; border-radius: 2px; background: var(--neutral-8); flex: none; }
   body:not(.icons) .icon { display: none; }
-  .toggle { font-size: var(--font-size-2); color: #666; margin: 0 0 var(--space-9); display: flex; flex-wrap: wrap; gap: var(--space-5) var(--space-7); align-items: center; }
-  .toggle label { display: flex; gap: var(--space-3); align-items: center; }
+  .readout { font-family: var(--font-mono); font-size: 11px; color: var(--neutral-10); }
   .surfaces { display: flex; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-10); }
-  .surface { background: #f6f6f8; border: 1px solid #e3e3e8; padding: var(--space-6); font-size: var(--font-size-2); color: #666; }
-  .mode { margin-top: var(--space-10); padding: var(--space-7); border-radius: var(--radius-surface); overflow-x: auto; }
-  .mode.dark { background: #111214; color: #e9ebed; }
-  .mode h2 { margin-bottom: var(--space-6); }
+  .surface { background: var(--neutral-2); border: 1px solid var(--neutral-6);
+             padding: var(--space-6); font-size: var(--font-size-2); color: var(--neutral-11); }
+
+  /* the layout rigs */
+  .rig-meta { font-family: var(--font-mono); font-size: var(--font-size-1); color: var(--neutral-10);
+              margin-top: var(--space-5); }
+  .rig { resize: horizontal; overflow: auto; width: min(900px, 100%); min-width: 240px; max-width: 100%;
+         border: 1px dashed var(--neutral-8); border-radius: var(--radius-surface);
+         margin: var(--space-3) 0 var(--space-8); }
+  .cell { padding: var(--space-4); background: var(--accent-3); border: 1px solid var(--accent-6);
+          border-radius: var(--radius-control-2); color: var(--accent-text); text-align: center;
+          font: var(--font-weight-medium) var(--font-size-2)/var(--line-height-2) var(--font-body); }
+
+  /* tables */
+  .roles-table { border-collapse: collapse; font-size: var(--font-size-2); margin-bottom: var(--space-9);
+                 display: block; overflow-x: auto; max-width: 100%; }
+  .roles-table th { text-align: left; font-weight: var(--font-weight-medium); color: var(--neutral-10);
+                    padding: var(--space-2) var(--space-5) var(--space-3) 0; font-size: var(--font-size-1); }
+  .roles-table td { padding: var(--space-3) var(--space-5) var(--space-3) 0;
+                    border-top: 1px solid var(--neutral-4); vertical-align: middle; }
+  .roles-table code { font-size: var(--font-size-1); }
+  .roles-table td:nth-child(3), .roles-table td:nth-child(4) { color: var(--neutral-11); }
+  .chip { display: block; width: 22px; height: 22px; border-radius: var(--radius-2);
+          border: 1px solid var(--neutral-a3); }
+  .live { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-9); }
+  .live > div { padding: var(--space-3) var(--space-5); border-radius: var(--radius-control-2);
+                font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
+
+  /* colour sections — the dark ones restyle themselves through their own data-appearance */
+  .mode { margin-top: var(--space-9); padding: var(--space-7); border-radius: var(--radius-surface);
+          overflow-x: auto; background: var(--neutral-2); color: var(--neutral-12);
+          border: 1px solid var(--neutral-4); }
   .scale { margin-bottom: var(--space-7); }
   .scale h3 { font-size: var(--font-size-2); font-weight: var(--font-weight-medium); margin: 0 0 var(--space-3); }
-  .scale h3 em { color: #999; font-weight: var(--font-weight-regular); font-style: normal; }
+  .scale h3 em { color: var(--neutral-10); font-weight: var(--font-weight-regular); font-style: normal; }
   .row { display: flex; gap: 2px; margin-bottom: 2px; }
   .sw { width: 56px; height: 36px; display: flex; align-items: end; justify-content: center;
-        font-size: 10px; font-family: var(--font-mono); color: #8888; }
+        font-size: 10px; font-family: var(--font-mono); color: var(--neutral-a8); }
   .row.roles { margin-top: var(--space-3); gap: var(--space-2); }
   .role { padding: var(--space-3) var(--space-4); border-radius: var(--radius-control-2);
           font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
   .sweep { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
   .sweep-name { width: 78px; font-size: var(--font-size-1); font-family: var(--font-mono); line-height: 1.4; }
-  .sweep-hex { color: #999; font-size: 10px; }
+  .sweep-hex { color: var(--neutral-10); font-size: 10px; }
   .sw.sm { width: 34px; height: 26px; }
   .sweep .role { padding: var(--space-2) var(--space-3); font-size: var(--font-size-1); }
-  .readout { font-family: var(--font-mono); font-size: 11px; color: #888; }
-  .ruler { position: relative; }
-  .roles-table { border-collapse: collapse; font-size: var(--font-size-2); margin-bottom: var(--space-9); display: block; overflow-x: auto; max-width: 100%; }
-  .roles-table th { text-align: left; font-weight: var(--font-weight-medium); color: #888;
-                    padding: var(--space-2) var(--space-5) var(--space-3) 0; font-size: var(--font-size-1); }
-  .roles-table td { padding: var(--space-3) var(--space-5) var(--space-3) 0; border-top: 1px solid #eee; vertical-align: middle; }
-  .roles-table code { font-family: var(--font-mono); font-size: var(--font-size-1); }
-  .roles-table td:nth-child(3), .roles-table td:nth-child(4) { color: #666; }
-  .hc-label { font-size: var(--font-size-1); font-family: var(--font-mono); color: #999;
+  .hc-label { font-size: var(--font-size-1); font-family: var(--font-mono); color: var(--neutral-10);
               margin: var(--space-4) 0 var(--space-2); }
-  .live { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-9); }
-  .live > div { padding: var(--space-3) var(--space-5); border-radius: var(--radius-control-2);
-                font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
-  .chip { display: block; width: 22px; height: 22px; border-radius: var(--radius-2); border: 1px solid #0001; }
-  .rig-meta { font-family: var(--font-mono); font-size: var(--font-size-1); color: #999; margin-top: var(--space-5); }
-  .rig { resize: horizontal; overflow: auto; width: min(900px, 100%); min-width: 240px; max-width: 100%;
-    border: 1px dashed #b6b6c2; border-radius: var(--radius-surface); margin-top: var(--space-4); }
-  .cell { padding: var(--space-4); background: var(--accent-3); border: 1px solid var(--accent-6);
-    border-radius: var(--radius-control-2); color: var(--accent-text); text-align: center;
-    font: 500 var(--font-size-2)/var(--line-height-2) var(--font-body); }
 </style>
 </head>
 <body>
-<h1>density x size</h1>
-<div class="toggle">
-  <label><input type="checkbox" id="icons"> show icons (the gap token is only visible with one)</label>
-  <label><input type="checkbox" id="hc"> contrast="high"</label>
-  <label>radius
-    <select id="radius">${Object.keys(radiusLevels)
-      .map((l) => `<option${l === "medium" ? " selected" : ""}>${l}</option>`)
-      .join("")}</select>
-  </label>
-  <label>pointer
-    <select id="pointer"><option selected>auto</option><option>fine</option><option>coarse</option></select>
-  </label>
-</div>
+<header><div class="bar">
+  <span class="brand">KookieUI <em>tokens</em></span>
+  <nav class="toc">
+    <a href="#matrix">matrix</a>
+    <a href="#layout">layout</a>
+    <a href="#roles">roles</a>
+    <a href="#colour">colour</a>
+    <a href="#hues">hues</a>
+    <a href="#brand">brand</a>
+  </nav>
+  <div class="toggle">
+    <label><input type="checkbox" id="icons"> icons</label>
+    <label><input type="checkbox" id="hc"> contrast="high"</label>
+    <label>radius
+      <select id="radius">${Object.keys(radiusLevels)
+        .map((l) => `<option${l === "medium" ? " selected" : ""}>${l}</option>`)
+        .join("")}</select>
+    </label>
+    <label>pointer
+      <select id="pointer"><option selected>auto</option><option>fine</option><option>coarse</option></select>
+    </label>
+  </div>
+</div></header>
+<main>
+<h1 id="matrix">density x size</h1>
 <p class="note">Every value here is a placed number, not a product. Type is held at the size's own step across all three levels, which is the whole point of the axis: a comfortable size 2 stands as tall as a default size 3 while its label stays size 2. Correct any single cell in <code>src/tokens/config.ts</code> without disturbing its neighbours.</p>
 
 <div class="grid">
@@ -333,7 +383,7 @@ ${LEVELS.map(
   <div class="surface" style="border-radius: var(--radius-overlay)">--radius-overlay (dialog, sheet)</div>
 </div>
 
-<h1 style="margin-top: var(--space-11)">the responsive mechanism, live</h1>
+<h1 id="layout">the responsive mechanism, live</h1>
 <p class="note">Rendered through the real resolver against the shipped stylesheet — the exact markup Flex, Grid and Stack produce. Values ride on each element as inline custom properties; the stylesheet only arbitrates which tier's value wins. <strong>Drag a handle</strong>: tiers key on the slot's width (<code>sm</code> 30rem, <code>md</code> 48rem), never the window's — the same Grid is correct in a drawer and a main column (§2). Each demo sits inside a plain Box, because a tier reads the <em>nearest ancestor</em> Box — the slot — and a Box with no ancestor container stays at its base values.</p>
 
 <p class="note">A Grid: <code>columns={{ initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}</code>, gap steps up at md.</p>
@@ -365,7 +415,7 @@ ${kkBox(
 )}
 </div>
 
-<h1 style="margin-top: var(--space-11)">the role layer</h1>
+<h1 id="roles">the role layer</h1>
 <p class="note">Components reference these, never the numbered steps and never the generator. <code>tone</code> stands for whichever of neutral, accent or destructive the component resolved to. Swatches show the accent scale in light mode.</p>
 ${roleMap()}
 
@@ -386,19 +436,19 @@ ${roleMap()}
   <div style="background: var(--neutral-solid); color: var(--neutral-contrast)">neutral solid</div>
 </div>
 
-<h1 style="margin-top: var(--space-11)">colour</h1>
+<h1 id="colour">colour</h1>
 <p class="note">Generated from a hue angle and a chroma peak per tone (§7). Steps 1-8 and 11-12 share one lightness ladder across every hue; the solid band leans toward each hue's own cusp, which is the fix for bright hues reading as mud. Every label pairing here is APCA-verified in the suite, not chosen by eye — but the eye is what decides whether it looks right.</p>
 ${colorSection("light")}
 ${colorSection("dark")}
 ${hueSweep("light")}
 ${hueSweep("dark")}
 
-<h1 style="margin-top: var(--space-11)">every hue, full scale</h1>
+<h1 id="hues">every hue, full scale</h1>
 <p class="note">The same twelve hues at the depth the shipped tones get: all twelve steps, the alpha ramp beneath them, then the roles a component actually consumes. Nothing here is hand-placed. Every row is one generator with a different hue angle.</p>
 ${sweepFull("light")}
 ${sweepFull("dark")}
 
-<h1 style="margin-top: var(--space-11)">brand colours through the intake</h1>
+<h1 id="brand">brand colours through the intake</h1>
 <p class="note">Somebody hands the system a hex; the system makes it correct. In light mode step 9 comes back identical to what went in — compare the swatch numbered 9 against the hex in the heading. Everything else is generated around it, and every one of these passes the same legibility laws the shipped tones do.</p>
 ${brandSection("light")}
 ${brandSection("dark")}
@@ -452,6 +502,7 @@ ${brandSection("dark")}
     }).observe(rig);
   }
 </script>
+</main>
 </body>
 </html>
 `;
