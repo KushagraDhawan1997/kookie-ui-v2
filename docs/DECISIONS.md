@@ -49,7 +49,9 @@ Build-time tooling (Style Dictionary or a small script) is used for *authoring* 
 
 Diagnosis (where Radix's bytes actually are): Radix's *component* CSS is already lean and token-driven (one set of rules per component reading `--accent-*` vars, not 30 precompiled color variants). The weight is the **colors** — it ships all ~25-30 accent scales, each in light, dark, P3, and alpha, so every color is declared 4-8 times as a full 12-step scale, and you carry all 30 whether you use one or none. That color-token mass is the bulk. So the optimization targets color output and keeps component CSS additive.
 
-**Measured correction (2026-07-31, v1 shipped output):** ~91.5KB gzipped total; component CSS ~55KB+ of it, dominated by responsive prop utilities (`sidebar.css` alone 48KB raw); all tokens ~13KB; color scales ~2.8KB. In the shipped fork the bulk is not colors — it is the responsive-utility mass. Both masses have structural answers: colors by generation (reason 2 below), responsive props by variable remap (below).
+**Measured correction (2026-07-31, amended 2026-08-02, v1 shipped output):** re-measured file by file, gzipped — `styles.css` 127KB aggregate; `components.css` 67KB (dominated by responsive prop utilities; `sidebar.css` alone 47,426 bytes raw); `tokens.css` 36KB; `utilities.css` 25KB; `layout.css` 24KB; and `tokens/colors/` is 31 scales at **29.3KB**, about 1.1KB each.
+
+The original correction put colour at ~2.8KB and concluded the diagnosis above was wrong; that figure was one scale mistaken for the total. Colour *is* a major term and generating only the configured tones earns its place — v2 spends 6,369 bytes on three tones in two modes with alpha ramps, a P3 block and a high-contrast block. What the measurement actually changes is narrower: component CSS is **not** lean in the shipped fork, so responsive prop utilities are the larger mass and the bigger lever. Both have structural answers: colours by generation (reason 2 below), responsive props by variable remap (below).
 
 Four structural reasons KookieUI stays small (all already decided):
 
@@ -214,15 +216,18 @@ align-items: center;
 
 Contents center in whatever height the box is. "Make size 2 = 40px" becomes one line, text untouched, everything re-centers free.
 
-**Anchor-based derivation** so one knob moves the set:
+**Designed heights, not an anchor times a factor** (amended 2026-08-01 when density became designed sets — section 12). Each density level places its own four heights; `--scale` is the only multiplier left, and it sits at 1:
 
 ```css
---control-height-base: 32px;
---control-height-1: calc(var(--control-height-base) * 0.875 * var(--scale) * var(--density));
---control-height-2: calc(var(--control-height-base) * 1     * var(--scale) * var(--density));
---control-height-3: calc(var(--control-height-base) * 1.25  * var(--scale) * var(--density));
---control-height-4: calc(var(--control-height-base) * 1.5   * var(--scale) * var(--density));
+/* :root — the default level */
+--control-height-1: calc(28px * var(--scale));
+--control-height-2: calc(32px * var(--scale));
+--control-height-3: calc(40px * var(--scale));
+--control-height-4: calc(48px * var(--scale));
+/* [data-density="compact"] re-declares the family at 24/28/34/40 */
 ```
+
+The anchor model read better and corrected worse: a factor moves all four heights together, so "size 2 should be 33px" is unsayable. Correction is the actual work, and it has to be local.
 
 **Non-fixed-height components** (cards, table cells, callouts, textareas): padding is the dimension. They rescale via padding anchors, not height anchors.
 
