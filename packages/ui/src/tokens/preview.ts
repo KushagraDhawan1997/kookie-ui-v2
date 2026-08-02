@@ -674,7 +674,12 @@ ${brandSection("dark")}
 
   // The radius level prices the palette; density still picks which step each control pulls.
   document.getElementById("hc").addEventListener("change", (e) => {
-    document.documentElement.dataset.contrast = e.target.checked ? "high" : "normal";
+    // A real Theme writes data-appearance and data-contrast on the SAME node, and the dark
+    // high-contrast scope requires exactly that pairing. The page's bare dark sections stand
+    // in for nested dark Themes, so the toggle has to stamp them too, not just the root.
+    const v = e.target.checked ? "high" : "normal";
+    document.documentElement.dataset.contrast = v;
+    for (const el of document.querySelectorAll("[data-appearance]")) el.dataset.contrast = v;
   });
 
   document.getElementById("radius").addEventListener("change", (e) => {
