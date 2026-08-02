@@ -15,7 +15,10 @@
  * The large 8 -> 9 drop is the soft/solid discontinuity, placed on purpose.
  */
 export const lightness = {
-  light: [0.99, 0.975, 0.96, 0.945, 0.92, 0.9, 0.87, 0.82, 0.62, 0.58, 0.52, 0.24],
+  // Steps 3-5 darkened .96/.945/.92 -> .95/.935/.91 (2026-08-03, judged by eye): the medium
+  // fill read too faint on white. Moved as a band so the 3->4 hover and 4->5 press deltas
+  // hold — darkening 3 alone would have collapsed the hover feedback to near zero.
+  light: [0.99, 0.975, 0.95, 0.935, 0.91, 0.9, 0.87, 0.82, 0.62, 0.58, 0.52, 0.24],
   // Step 11 sits at .80 rather than .77 because at .77 the destructive text role measured
   // APCA Lc 57 on its own soft fill, under the Lc 60 body-text target. Law-tested below.
   dark: [0.17, 0.196, 0.23, 0.265, 0.3, 0.34, 0.4, 0.49, 0.62, 0.66, 0.8, 0.94],

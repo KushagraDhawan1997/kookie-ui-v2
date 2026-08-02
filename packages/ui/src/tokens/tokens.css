@@ -110,9 +110,9 @@
   /* neutral */
   --neutral-1: #fcfcfc;
   --neutral-2: #f6f7f7;
-  --neutral-3: #f1f2f2;
-  --neutral-4: #eceded;
-  --neutral-5: #e4e5e5;
+  --neutral-3: #eeeeef;
+  --neutral-4: #e9e9ea;
+  --neutral-5: #e0e1e2;
   --neutral-6: #dddedf;
   --neutral-7: #d3d4d6;
   --neutral-8: #c2c4c6;
@@ -122,9 +122,9 @@
   --neutral-12: #1f1f20;
   --neutral-a1: color-mix(in srgb, #000000 1.2%, transparent);
   --neutral-a2: color-mix(in srgb, #001c1c 3.5%, transparent);
-  --neutral-a3: color-mix(in srgb, #001212 5.5%, transparent);
-  --neutral-a4: color-mix(in srgb, #000d0d 7.5%, transparent);
-  --neutral-a5: color-mix(in srgb, #000909 10.6%, transparent);
+  --neutral-a3: color-mix(in srgb, #00000f 6.7%, transparent);
+  --neutral-a4: color-mix(in srgb, #00000c 8.6%, transparent);
+  --neutral-a5: color-mix(in srgb, #000810 12.2%, transparent);
   --neutral-a6: color-mix(in srgb, #00070f 13.3%, transparent);
   --neutral-a7: color-mix(in srgb, #000611 17.3%, transparent);
   --neutral-a8: color-mix(in srgb, #000811 23.9%, transparent);
@@ -145,9 +145,9 @@
   /* accent */
   --accent-1: #fbfbfe;
   --accent-2: #f6f6fc;
-  --accent-3: #f1f1fa;
-  --accent-4: #ecebf8;
-  --accent-5: #e3e2f6;
+  --accent-3: #eeedf9;
+  --accent-4: #e8e8f7;
+  --accent-5: #e0dff4;
   --accent-6: #dcdbf3;
   --accent-7: #d2d0f1;
   --accent-8: #c1beeb;
@@ -157,9 +157,9 @@
   --accent-12: #1e1b35;
   --accent-a1: color-mix(in srgb, #0000bf 1.6%, transparent);
   --accent-a2: color-mix(in srgb, #0000aa 3.5%, transparent);
-  --accent-a3: color-mix(in srgb, #0000a4 5.5%, transparent);
-  --accent-a4: color-mix(in srgb, #0d00a6 7.8%, transparent);
-  --accent-a5: color-mix(in srgb, #0900b0 11.4%, transparent);
+  --accent-a3: color-mix(in srgb, #0e00aa 7.1%, transparent);
+  --accent-a4: color-mix(in srgb, #0000a6 9.0%, transparent);
+  --accent-a5: color-mix(in srgb, #0800a7 12.5%, transparent);
   --accent-a6: color-mix(in srgb, #0700aa 14.1%, transparent);
   --accent-a7: color-mix(in srgb, #0b00b3 18.4%, transparent);
   --accent-a8: color-mix(in srgb, #0c00b1 25.5%, transparent);
@@ -180,9 +180,9 @@
   /* destructive */
   --destructive-1: #fefbfb;
   --destructive-2: #fdf5f4;
-  --destructive-3: #fbeeed;
-  --destructive-4: #fae8e6;
-  --destructive-5: #f8dddb;
+  --destructive-3: #faeae9;
+  --destructive-4: #f9e4e2;
+  --destructive-5: #f8d9d7;
   --destructive-6: #f7d5d2;
   --destructive-7: #f6c7c4;
   --destructive-8: #f2b1ad;
@@ -192,9 +192,9 @@
   --destructive-12: #301716;
   --destructive-a1: color-mix(in srgb, #bf0000 1.6%, transparent);
   --destructive-a2: color-mix(in srgb, #d11700 4.3%, transparent);
-  --destructive-a3: color-mix(in srgb, #c60e00 7.1%, transparent);
-  --destructive-a4: color-mix(in srgb, #cc1400 9.8%, transparent);
-  --destructive-a5: color-mix(in srgb, #cd0e00 14.1%, transparent);
+  --destructive-a3: color-mix(in srgb, #c50c00 8.6%, transparent);
+  --destructive-a4: color-mix(in srgb, #ca1200 11.4%, transparent);
+  --destructive-a5: color-mix(in srgb, #d20d00 15.7%, transparent);
   --destructive-a6: color-mix(in srgb, #d21100 17.6%, transparent);
   --destructive-a7: color-mix(in srgb, #d80d00 23.1%, transparent);
   --destructive-a8: color-mix(in srgb, #d70c00 32.2%, transparent);
@@ -329,9 +329,9 @@
     /* neutral */
     --neutral-1: color(display-p3 0.9865 0.9869 0.9873);
     --neutral-2: color(display-p3 0.9664 0.9673 0.9684);
-    --neutral-3: color(display-p3 0.9463 0.9477 0.9495);
-    --neutral-4: color(display-p3 0.9263 0.9283 0.9308);
-    --neutral-5: color(display-p3 0.8931 0.896 0.8997);
+    --neutral-3: color(display-p3 0.933 0.9347 0.937);
+    --neutral-4: color(display-p3 0.913 0.9153 0.9183);
+    --neutral-5: color(display-p3 0.8799 0.8832 0.8873);
     --neutral-6: color(display-p3 0.8667 0.8704 0.875);
     --neutral-7: color(display-p3 0.8273 0.8322 0.8383);
     --neutral-8: color(display-p3 0.7625 0.7692 0.7778);
@@ -352,9 +352,9 @@
     /* accent */
     --accent-1: color(display-p3 0.9861 0.9858 0.9946);
     --accent-2: color(display-p3 0.9653 0.9646 0.9871);
-    --accent-3: color(display-p3 0.9446 0.9433 0.9801);
-    --accent-4: color(display-p3 0.9239 0.9219 0.9737);
-    --accent-5: color(display-p3 0.8896 0.8865 0.9626);
+    --accent-3: color(display-p3 0.9308 0.9291 0.9752);
+    --accent-4: color(display-p3 0.9102 0.9078 0.969);
+    --accent-5: color(display-p3 0.876 0.8723 0.9581);
     --accent-6: color(display-p3 0.8624 0.8581 0.9544);
     --accent-7: color(display-p3 0.8218 0.8153 0.9433);
     --accent-8: color(display-p3 0.7553 0.7444 0.9223);
@@ -375,9 +375,9 @@
     /* destructive */
     --destructive-1: color(display-p3 0.9959 0.9834 0.982);
     --destructive-2: color(display-p3 0.9904 0.9583 0.9546);
-    --destructive-3: color(display-p3 0.9856 0.9328 0.9269);
-    --destructive-4: color(display-p3 0.9814 0.907 0.8988);
-    --destructive-5: color(display-p3 0.9741 0.8639 0.852);
+    --destructive-3: color(display-p3 0.982 0.9159 0.9086);
+    --destructive-4: color(display-p3 0.9781 0.89 0.8803);
+    --destructive-5: color(display-p3 0.971 0.8466 0.8333);
     --destructive-6: color(display-p3 0.969 0.8288 0.814);
     --destructive-7: color(display-p3 0.9628 0.7746 0.7559);
     --destructive-8: color(display-p3 0.95 0.6832 0.6596);
