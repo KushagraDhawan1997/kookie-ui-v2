@@ -17,7 +17,6 @@ const stripped = surfaces.replace(/\/\*[\s\S]*?\*\//g, "");
 
 const TONE_NAMES = Object.keys(tones);
 const RUNGS = ["loud", "medium", "quiet"];
-const LEVELS = ["flat", "raised", "floating", "overlay"];
 const MATERIALS = ["thin", "thick"];
 
 describe("Card owns no CSS at all (§2, §10)", () => {
@@ -27,10 +26,9 @@ describe("Card owns no CSS at all (§2, §10)", () => {
 });
 
 describe("the surface layer carries each axis once and never multiplies them (§2, §10)", () => {
-  it("every rung, level and material is defined exactly once, for every surface ever", () => {
+  it("every rung and material is defined exactly once, for every surface ever", () => {
     for (const [axis, values] of [
       ["data-emphasis", RUNGS],
-      ["data-elevation", LEVELS],
       ["data-material", MATERIALS],
     ] as const) {
       for (const value of values) {
@@ -43,7 +41,7 @@ describe("the surface layer carries each axis once and never multiplies them (§
   });
 
   it("no rule pairs one axis with another", () => {
-    expect(stripped).not.toMatch(/\[data-(emphasis|elevation|material|tone|size)="[a-z0-9]+"\]\[data-(emphasis|elevation|material|tone|size)=/);
+    expect(stripped).not.toMatch(/\[data-(emphasis|material|tone|size)="[a-z0-9]+"\]\[data-(emphasis|material|tone|size)=/);
   });
 
   it("rungs name roles, never a tone family", () => {
@@ -53,13 +51,18 @@ describe("the surface layer carries each axis once and never multiplies them (§
   });
 });
 
-describe("elevation and material resolve through tokens only (§10)", () => {
-  it("every shadow is a --shadow-* token or the absence — no raw shadow recipe here", () => {
-    const values = [...stripped.matchAll(/--kui-sf-shadow:\s*([^;]+);/g)].map((m) => m[1]!.trim());
-    expect(values.length).toBeGreaterThan(0);
-    for (const v of values) expect(v).toMatch(/^var\(--shadow-[a-z]+\)$|^none$/);
+describe("no elevation, no shadows — separation is border and fill (§10, 2026-08-03)", () => {
+  it("the surface layer names no shadow and no elevation, ever", () => {
+    // Kushagra deleted the axis: nothing ever chose elevation at a call site — §11 fixes it
+    // per component — and the ladder existed only to price shadows, which are a no-go.
+    // Detachment is a per-component fact, designed when Popover and Dialog are built.
+    expect(stripped).not.toContain("box-shadow");
+    expect(stripped).not.toContain("--shadow-");
+    expect(stripped).not.toContain("data-elevation");
   });
+});
 
+describe("material resolves through tokens only (§10)", () => {
   it("backdrop-filter exists only inside @supports, with the opaque fallback outside it", () => {
     const guardStart = stripped.indexOf("@supports (backdrop-filter");
     expect(guardStart).toBeGreaterThan(-1);

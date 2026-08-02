@@ -220,11 +220,6 @@
   --destructive-contrast: #ffffff;
   --focus-ring: var(--accent-solid);
 
-  /* the elevation ladder (§10) — flat is the absence, so it has no token */
-  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.06), 0 1px 4px rgb(0 0 0 / 0.08);
-  --shadow-floating: 0 2px 4px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.12);
-  --shadow-overlay: 0 4px 12px rgb(0 0 0 / 0.10), 0 20px 48px rgb(0 0 0 / 0.22);
-
   /* material recipes (§10) — fills mix over the page colour, so tone rides for free */
   --material-thin-fill: color-mix(in srgb, var(--neutral-1) 55%, transparent);
   --material-thin-filter: blur(12px) saturate(150%) brightness(1.05);
@@ -344,11 +339,6 @@
   --destructive-label: #ebc9c6;
   --destructive-contrast: #ffffff;
   --focus-ring: var(--accent-solid);
-
-  /* the elevation ladder (§10) — flat is the absence, so it has no token */
-  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 4px rgb(0 0 0 / 0.30);
-  --shadow-floating: 0 2px 4px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.40);
-  --shadow-overlay: 0 4px 12px rgb(0 0 0 / 0.40), 0 20px 48px rgb(0 0 0 / 0.55);
 
   /* material recipes (§10) — fills mix over the page colour, so tone rides for free */
   --material-thin-fill: color-mix(in srgb, var(--neutral-1) 62%, transparent);

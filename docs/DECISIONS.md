@@ -589,7 +589,7 @@ This is the Apple lesson done correctly: separate *meaning* from *loudness* from
 tone       neutral | accent | destructive | (success | warning ...)   picks the HUE (accent resolves via Theme accentColor)
 emphasis   loud | medium | quiet                                      how loud, three rungs
 bordered   boolean                                                    containment: separate the control from a busy backdrop
-elevation  flat | raised | floating | overlay                         shadow + separation (surfaces only)
+elevation  DELETED 2026-08-03 — see section 10               separation is border and fill; no shadows
 material   solid | thin | thick                                       backdrop defense; any FLOATING component, buttons included
 states     rest | hover | press                                       the +1/+2 step rule (interactive only)
 size       1 | 2 | 3 | 4                                               height index (controls) / padding (surfaces)
@@ -617,12 +617,12 @@ Questions about a component's nature determine its axis set:
 - carries meaning -> **tone**
 - an action with loudness -> **emphasis**
 - can sit on a busy background -> **bordered**
-- has height above the page -> **elevation**
+- ~~has height above the page -> **elevation**~~ (deleted 2026-08-03: nothing ever varied it per call site — it was a component fact, and this list should have caught it)
 - **can float over content** -> **material**
 - interactive -> **states**
 - has a size step -> **size**
 
-Answer those and any component's axes fall out, including ones not yet built. **Controls** use tone x emphasis x bordered x states x size. **Surfaces** add elevation. **Interactive surfaces** reuse the control state machine from a subtler base.
+Answer those and any component's axes fall out, including ones not yet built. **Controls** use tone x emphasis x bordered x states x size. **Surfaces** add material. **Interactive surfaces** reuse the control state machine from a subtler base.
 
 **Material is derived from floating, not from being a container** (corrected 2026-08-01). The earlier reading gave material to surfaces only, which was wrong in both directions: a Card sitting in a solid layout has nothing to defend against, and a Button floating over a photo does. Material follows the question "can something busy be behind this," and that question is asked of buttons too.
 
@@ -640,20 +640,13 @@ Name the loudness axis **emphasis**, never "primary/secondary," which smuggles t
 
 ## 10. Surfaces
 
-**Decision: a surface is tone x emphasis x bordered x elevation x material. Elevation and material stay orthogonal; height and substance are different questions.**
+**Decision (amended 2026-08-03): a surface is tone x emphasis x bordered x material. There is no elevation axis and there are no shadows, anywhere in the system.**
 
-The cells all populate, which proves orthogonality: solid+flat (opaque inline card), solid+floating (opaque dropdown with shadow, no blur, the common menu), thin+flat (frosted panel over a hero), thick+floating (the glass overlay). iOS fuses material with elevation; we keep them split, because "what it is made of" and "how high it floats" are different questions.
+### Elevation: deleted (2026-08-03, Kushagra)
 
-### Elevation: how high
+The section that stood here defined a four-level shadow ladder (flat / raised / floating / overlay). It died on first contact with the eye — "shadows for elevation is a no go" — and the post-mortem showed the axis was over-modelled from the start: **nothing ever chose elevation at a call site.** §11's own table fixed it per component (a Card is never floating, a Menu is never flat, a Dialog is always an overlay), and §9's rule — axes are derived, not assigned — should have caught that a prop nobody varies is a component fact, not an axis.
 
-Semantic levels, not numbers, consistent with `--radius-surface` / `--radius-overlay`. Each resolves to a shadow step + border treatment:
-
-```
-flat       no shadow, sits in flow         (panels, callouts, inline regions)
-raised     small shadow                    (cards)
-floating   medium shadow                   (popovers, menus, hovercards)
-overlay    large shadow                    (dialogs, sheets, drawers)
-```
+What replaces it costs nothing: **separation is border and fill.** In-flow surfaces (Card, Panel, Callout) separate by containment and the alpha ramp. Detached components design their own detachment when they are built — Dialog's separation already lives in its backdrop (scrim + blur, §11), and whether Popover/Menu need anything beyond border + opaque fill is decided at Popover, against a real backdrop, not pre-modelled. A law asserts the surface layer names no shadow and no elevation.
 
 ### Material: backdrop defense (Theme policy x component usage)
 
@@ -785,7 +778,7 @@ Resting position for each component across the four axes. Dash = axis not expose
 
 - **Material is `solid` for everything** in the defaults, and is available on every component that can float, buttons included. `thin`/`thick` are always opt-in, correct only over media or scrolling content. The Apple-rollback lesson hard-coded into the resting state.
 - **Tone is neutral for everything** except the genuine accent-default spots: Checkbox/Radio/Switch (on), Link, and the active state of interactive surfaces. Status surfaces (Callout, Banner, Toast) are tone-*forward* by intent but still default to neutral hue until a color is set.
-- **Elevation appears only on containers.** Every control/atom shows a dash there; contents inherit depth from their surface, never declare it. One shadow per stack, and by the same logic one glass per stack (section 10).
+- **Elevation is deleted (2026-08-03)** — the `elev` column in these tables is historical; no component takes it and nothing casts a shadow. What survives of its logic is the stacking rule: one glass per stack (section 10).
 - **The primary action is always explicit.** No component defaults to `loud + accent`. The loud tinted thing is opt-in so the system guarantees one focal point per context instead of hoping you self-police.
 
 ---
@@ -865,7 +858,7 @@ Architecture is locked; open items are tuning values resolved as the component t
 5. **Button, end-to-end.** Full axis model (tone x emphasis x states x size) on one control, wrapped over Base UI's Button (§1) — the package's first runtime dependency. **Measure its CSS** to prove variant-as-token-remap (additive, not multiplicative) before scaling. Gates cleared 2026-08-02: focus-visible, disabled, loading, icon box decided (§8, §4); motion deferred without gating (§8); coarse v0 numbers accepted as refinable, not blocking (§16); Theme-as-query-container decided yes (§2). **No gates remain.**
    **Shipped 2026-08-03.** Base UI behind the Kookie surface; `size × tone × emphasis × bordered × loading`; Spinner as a one-element primitive. Measured: **+1,206 bytes gzipped for the whole control layer** (8,105 total against the 40,960 ceiling), of which `button.css` is ~480 — the rest is `system/recipes.css`, shared by every control that follows. The additive claim is asserted structurally as well as measured: a law forbids `button.css` from naming any tone, rung or size, and forbids the recipe layer from ever selecting one axis against another. `material` deliberately does **not** ship on Button — §10's recipes are v0-pending-measurement and step 6 is where they get judged.
 6. **Card, end-to-end.** One surface, proving elevation + material + foreground-context + alpha-nesting.
-   **Shipped 2026-08-03.** The surface layer (`system/surfaces.css`) is recipes.css one level up: rungs resolved through the alpha ramp (`--tone-a1` quiet, `--tone-a3` medium, solid loud), the elevation ladder one rule per level through `--shadow-*` tokens, the §10 material table as tokens with the `@supports` fallback and `prefers-reduced-transparency` override in cascade order, and foreground context as `--color-text` / `--color-text-muted` roles re-scoped by the tone-forward rungs. **Card ships zero CSS of its own — a law asserts card.css does not exist.** Measured: +590 bytes gzipped for the entire surface world (8,702 total). v0 taste pending judgment in the preview: shadow recipes, surface padding (12/16/24/32 on the size index, default 3), material values against the hostile backdrop. Deferred with §10's open list: Theme material policy clamp (naming still open), the brightness-floor branch, the material border edge, dev-time nudges, whether surface padding takes density.
+   **Shipped 2026-08-03; elevation deleted the same day on first judgment.** The surface layer (`system/surfaces.css`) is recipes.css one level up: rungs resolved through the alpha ramp (`--tone-a1` quiet, `--tone-a3` medium, solid loud), the §10 material table as tokens with the `@supports` fallback and `prefers-reduced-transparency` override in cascade order, and foreground context as `--color-text` / `--color-text-muted` roles re-scoped by the tone-forward rungs. No shadows: the v0 ladder was built, judged by eye, and killed — separation is border and fill, and a law asserts the layer names no shadow and no elevation. **Card ships zero CSS of its own — a law asserts card.css does not exist.** Measured: +426 bytes gzipped for the surface world after the deletion (8,538 total). v0 taste still pending judgment: surface padding (12/16/24/32 on the size index, default 3), material values against the hostile backdrop. Deferred with §10's open list: Theme material policy clamp (naming still open), the brightness-floor branch, the material border edge, dev-time nudges, whether surface padding takes density, the opaque-seal opt-out for a plain surface over media.
 
 This slice exercises every layer (tokens -> variants -> control -> surface) and the CSS budget. Everything after it is repetition across the component set.
 
@@ -973,7 +966,6 @@ Rejected: rem-derived geometry from a root font-size switch (one root scales gut
 - Chroma varies about 2x across hues at the solid band, because each hue sits at its own cusp: indigo holds C .30 where cyan holds C .15. Intrinsic to sRGB, narrowed but not removed by P3. It only shows when two distant hues ship together (a cyan `accent` beside a red `destructive`), and the lever is per-tone `vividness`. Deliberately **not** normalized automatically across the configured tones: that would mean adding a destructive red silently changes how the accent looks, and action at a distance is worse than a documented asymmetry.
 
 **Recipes and axes (sections 8-11):**
-- Lock the **elevation ladder** shadow recipes (shadow step + border per level: flat/raised/floating/overlay).
 - Judge the **material** recipes against real backdrops: three or four hostile photos, a real control, both modes. Expect blur to move +/-6px and alpha +/-0.1. Confirm the brightness floor actually holds. Measure `backdrop-filter` cost on a mid-tier device before the radii lock.
 - Decide whether a material `bordered` edge stays opaque or goes translucent (section 10).
 - **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?

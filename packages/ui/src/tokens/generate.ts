@@ -29,7 +29,6 @@ import {
   radiusLevels,
   radiusOverlay,
   radiusSurface,
-  shadow,
   space,
   surfacePadding,
   touchTargetMin,
@@ -276,20 +275,16 @@ function toneRoles(tone: ToneName): string[] {
 }
 
 /**
- * The surface world (§10): shadow ladder, material recipes, foreground context roles.
- * Emitted per mode — every value here either differs by mode (shadows, material) or
- * references a stepped colour that does (--color-text), and a var() resolves where declared.
+ * The surface world (§10): material recipes and foreground context roles. No shadows and no
+ * elevation anywhere — elevation was deleted as an axis (LOG 2026-08-03); detachment is a
+ * per-component fact decided when Popover and Dialog are built. Emitted per mode — every
+ * value differs by mode or references a stepped colour that does, and a var() resolves
+ * where declared.
  */
 function surfaceWorld(mode: "light" | "dark"): string[] {
-  const s = shadow[mode];
   const m = material[mode];
   const mix = (alpha: number) => `color-mix(in srgb, var(--neutral-1) ${alpha}%, transparent)`;
   return [
-    "",
-    `  /* the elevation ladder (§10) — flat is the absence, so it has no token */`,
-    `  --shadow-raised: ${s.raised};`,
-    `  --shadow-floating: ${s.floating};`,
-    `  --shadow-overlay: ${s.overlay};`,
     "",
     `  /* material recipes (§10) — fills mix over the page colour, so tone rides for free */`,
     `  --material-thin-fill: ${mix(m.thin.alpha)};`,

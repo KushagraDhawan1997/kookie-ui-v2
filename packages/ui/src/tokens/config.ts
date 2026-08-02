@@ -179,27 +179,6 @@ export const cursor = {
 } as const;
 
 /**
- * §10 — the elevation ladder's shadow recipes. Semantic levels, not numbers: flat is the
- * absence (no token), and each level is a two-layer shadow — a tight key for the edge and a
- * soft ambient for the height. Dark mode runs higher alphas because a dark page swallows
- * shadow; dark surfaces separate mostly by fill, the shadow only assists.
- *
- * v0 values, judged in the preview by eye — the same contract as the coarse numbers (§16).
- */
-export const shadow = {
-  light: {
-    raised: "0 1px 2px rgb(0 0 0 / 0.06), 0 1px 4px rgb(0 0 0 / 0.08)",
-    floating: "0 2px 4px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.12)",
-    overlay: "0 4px 12px rgb(0 0 0 / 0.10), 0 20px 48px rgb(0 0 0 / 0.22)",
-  },
-  dark: {
-    raised: "0 1px 2px rgb(0 0 0 / 0.35), 0 1px 4px rgb(0 0 0 / 0.30)",
-    floating: "0 2px 4px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.40)",
-    overlay: "0 4px 12px rgb(0 0 0 / 0.40), 0 20px 48px rgb(0 0 0 / 0.55)",
-  },
-} as const;
-
-/**
  * §10 — the material recipes, the spec's v0 table verbatim. Two recipes, not a magnitude
  * dial: saturation and opacity deliberately do not order monotonically between them. Alpha is
  * a percentage over `--neutral-1` (the page colour), so the fill is mode-aware for free.

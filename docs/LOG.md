@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-03 Elevation dies on first sight, and it was never an axis
+
+Kushagra, on seeing the v0 shadow ladder rendered: shadows for elevation is a no go — and then the sharper question, "why does our card need any elevation ladder?" It doesn't. The post-mortem matters more than the deletion: **nothing ever chose elevation at a call site.** §11's own defaults table fixed it per component — a Card was always `raised`, a Menu always `floating`, a Dialog always `overlay` — and a prop that nothing varies is a component fact wearing a prop's clothes. §9's rule (axes are derived, not assigned) should have caught it before a preview had to.
+
+What replaces the ladder costs nothing. In-flow surfaces separate by border and fill — the alpha nesting demo already proved three levels of depth with one token and no shadow. Detached components design their own detachment when built: Dialog's separation was already specced as its backdrop scrim (§11), and whether a Popover needs anything beyond border + opaque fill is a judgment for when a Popover exists, made against a real backdrop.
+
+Deleted: the shadow tokens, the `elevation` prop, the ladder rules, and the preview block that displayed them — an hour after they shipped. A law now asserts the surface layer names no shadow and no elevation. The budget gave back 164 bytes.
+
+Rejected: keeping shadows for the overlay tier only (the components that need separation get to design it, and pre-buying a shadow scale for them repeats the same over-modelling); elevation-as-fill-lightness (dark-mode convention, but it collides with the emphasis rungs which already own fill); keeping the axis with all levels resolving to nothing (a rung that is not visibly distinct is not a rung — §9's own words).
+
 ## 2026-08-03 Card lands as pure data attributes, and the surface layer is recipes.css one level up
 
 §14 step 6, closing the first vertical slice. The measurement: **+590 bytes gzipped for the entire surface world** — shadow ladder, material recipes, foreground context, the surface rungs — and the additive claim now has its limit case: **Card ships not one line of its own CSS.** There is no card.css, and a law asserts the file does not exist; the component is data attributes over the shared layer, so Panel, Callout, Popover and Dialog will each cost the same nothing.

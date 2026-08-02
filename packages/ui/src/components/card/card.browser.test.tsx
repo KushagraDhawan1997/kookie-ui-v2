@@ -28,16 +28,16 @@ function bgTokenOn(el: Element, name: string): string {
   return value;
 }
 
-describe("the canonical surface (§11): quiet + bordered, raised, solid", () => {
-  it("defaults resolve without a single prop", () => {
+describe("the canonical surface (§11): quiet + bordered, solid — flat, like everything", () => {
+  it("defaults resolve without a single prop, and nothing casts a shadow", () => {
     const el = render(<Card>Body</Card>);
     expect(el.dataset.emphasis).toBe("quiet");
     expect(el.dataset.bordered).toBe("true");
-    expect(el.dataset.elevation).toBe("raised");
     expect(el.dataset.material).toBeUndefined();
     expect(computed(el, "background-color")).toBe(bgTokenOn(el, "--tone-a1"));
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--tone-border"));
-    expect(computed(el, "box-shadow")).not.toBe("none");
+    // No elevation exists (2026-08-03): separation is border and fill, never a shadow.
+    expect(computed(el, "box-shadow")).toBe("none");
     expect(computed(el, "backdrop-filter")).toBe("none");
   });
 
@@ -65,23 +65,6 @@ describe("fills are alpha, so nesting differentiates by compositing (§10)", () 
     const inner = outer.querySelector<HTMLElement>('[data-testid="inner"]')!;
     expect(computed(inner, "background-color")).toBe(bgTokenOn(inner, "--tone-a1"));
     expect(computed(inner, "background-color")).not.toBe(computed(outer, "background-color"));
-  });
-});
-
-describe("elevation is semantic and orthogonal (§10)", () => {
-  it("flat is the absence; the ladder resolves through --shadow-* tokens", () => {
-    expect(computed(render(<Card elevation="flat">B</Card>), "box-shadow")).toBe("none");
-    const overlay = render(<Card elevation="overlay">B</Card>);
-    const raised = render(<Card>B</Card>);
-    expect(computed(overlay, "box-shadow")).not.toBe("none");
-    expect(computed(overlay, "box-shadow")).not.toBe(computed(raised, "box-shadow"));
-  });
-
-  it("elevation changes nothing but the shadow", () => {
-    const flat = render(<Card elevation="flat">B</Card>);
-    const overlay = render(<Card elevation="overlay">B</Card>);
-    expect(computed(flat, "background-color")).toBe(computed(overlay, "background-color"));
-    expect(computed(flat, "padding-top")).toBe(computed(overlay, "padding-top"));
   });
 });
 
@@ -144,20 +127,19 @@ describe("a surface sets foreground context (§10)", () => {
     );
     const darkCard = dark.querySelector<HTMLElement>(".kui-card")!;
     expect(computed(darkCard, "color")).not.toBe(computed(light, "color"));
-    expect(computed(darkCard, "box-shadow")).not.toBe(computed(light, "box-shadow"));
+    expect(computed(darkCard, "border-top-color")).not.toBe(computed(light, "border-top-color"));
   });
 });
 
 describe("the boundary (§3, §13)", () => {
   it("renders its axes as data attributes and forwards the escapes", () => {
     const el = render(
-      <Card className="mine" style={{ maxWidth: "300px" }} elevation="floating" material="thin">
+      <Card className="mine" style={{ maxWidth: "300px" }} material="thin">
         B
       </Card>,
     );
     expect(el.className.split(" ").sort()).toEqual(["kui-card", "kui-surface", "mine"]);
     expect(computed(el, "max-width")).toBe("300px");
-    expect(el.dataset.elevation).toBe("floating");
     expect(el.dataset.material).toBe("thin");
   });
 

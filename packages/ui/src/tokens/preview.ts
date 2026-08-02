@@ -186,45 +186,26 @@ function card(
     tone?: string;
     emphasis?: string;
     bordered?: boolean;
-    elevation?: string;
     material?: string;
     size?: string;
   },
   body: string,
   style = "",
 ): string {
-  const {
-    tone = "neutral",
-    emphasis = "quiet",
-    bordered = true,
-    elevation = "raised",
-    material,
-    size = "3",
-  } = opts;
+  const { tone = "neutral", emphasis = "quiet", bordered = true, material, size = "3" } = opts;
   return `<div class="kui-surface kui-card" data-size="${size}" data-tone="${tone}" data-emphasis="${emphasis}"${
     bordered ? " data-bordered" : ""
-  } data-elevation="${elevation}"${material ? ` data-material="${material}"` : ""}${
-    style ? ` style="${style}"` : ""
-  }>${body}</div>`;
+  }${material ? ` data-material="${material}"` : ""}${style ? ` style="${style}"` : ""}>${body}</div>`;
 }
 
 /**
- * The surface axes, one mode per block (§10, §14 step 6): the elevation ladder judged side by
- * side, alpha nesting three deep, the tone-forward rungs setting foreground context, and the
- * material recipes over a deliberately hostile backdrop — the judgment §10 said could only
- * happen against real backdrops, not in prose.
+ * The surface axes, one mode per block (§10, §14 step 6): alpha nesting three deep, the
+ * tone-forward rungs setting foreground context, and the material recipes over a deliberately
+ * hostile backdrop — the judgment §10 said could only happen against real backdrops, not in
+ * prose. No elevation, no shadows: separation is border and fill.
  */
 function surfaceSection(mode: Mode): string {
   const muted = `style="color: var(--color-text-muted)"`;
-  const ladder = ["flat", "raised", "floating", "overlay"]
-    .map((lv) =>
-      card(
-        { elevation: lv },
-        `<strong>${lv}</strong><div ${muted}>quiet + bordered</div>`,
-        "flex: 1",
-      ),
-    )
-    .join("");
   const nesting = card(
     {},
     `outer — <span ${muted}>--tone-a1 over the page</span>
@@ -234,18 +215,18 @@ function surfaceSection(mode: Mode): string {
   );
   const toneForward = [
     card(
-      { emphasis: "medium", tone: "accent", elevation: "flat" },
+      { emphasis: "medium", tone: "accent" },
       `<strong>medium accent</strong><div ${muted}>children read --color-text</div>
        <div style="margin-top: var(--space-4)">${button({}, "Neutral button")}</div>`,
       "flex: 1",
     ),
     card(
-      { emphasis: "medium", tone: "destructive", elevation: "flat" },
+      { emphasis: "medium", tone: "destructive" },
       `<strong>medium destructive</strong><div ${muted}>a callout's dressing</div>`,
       "flex: 1",
     ),
     card(
-      { emphasis: "loud", tone: "accent", elevation: "raised" },
+      { emphasis: "loud", tone: "accent" },
       `<strong>loud accent</strong><div ${muted}>text flips to --tone-contrast</div>`,
       "flex: 1",
     ),
@@ -260,7 +241,7 @@ function surfaceSection(mode: Mode): string {
   const materials = ["solid", "thin", "thick"]
     .map((m) =>
       card(
-        { ...(m === "solid" ? {} : { material: m }), elevation: "floating" },
+        { ...(m === "solid" ? {} : { material: m }) },
         `<strong>${m}</strong><div ${muted}>does the label survive?</div>
          <div style="margin-top: var(--space-4)">${button({ tone: "accent", emphasis: "loud" }, "Label")} ${button({}, "Label")}</div>`,
         "flex: 1; min-width: 200px",
@@ -269,9 +250,7 @@ function surfaceSection(mode: Mode): string {
     .join("");
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>${mode}</h2>
-    <h3>the elevation ladder — v0 shadows, judged here (§10)</h3>
-    <div style="display: flex; gap: var(--space-5); align-items: flex-start">${ladder}</div>
-    <h3 style="margin-top: var(--space-7)">alpha nesting — one token, three distinct levels (§10)</h3>
+    <h3>alpha nesting — one token, three distinct levels (§10)</h3>
     <div style="display: flex; gap: var(--space-5)">${nesting}</div>
     <h3 style="margin-top: var(--space-7)">tone-forward rungs set foreground context (§10)</h3>
     <div style="display: flex; gap: var(--space-5)">${toneForward}</div>
@@ -628,7 +607,7 @@ ${BRANDS.slice(0, 5)
 </div>
 
 <h1 id="card">Card — the first surface</h1>
-<p class="note">One component, five axes: <code>tone × emphasis × bordered × elevation × material</code>, and Card ships not one line of its own CSS — everything below is the shared surface layer resolving data attributes, the same additivity that carried Button (§2, §10). The shadows and the glass are v0 values judged on this page, not reasoned about; expect them to move.</p>
+<p class="note">One component, four axes: <code>tone × emphasis × bordered × material</code>, and Card ships not one line of its own CSS — everything below is the shared surface layer resolving data attributes, the same additivity that carried Button (§2, §10). There is no elevation and there are no shadows — separation is border and fill. The glass values are v0, judged on this page; expect them to move.</p>
 ${surfaceSection("light")}
 ${surfaceSection("dark")}
 

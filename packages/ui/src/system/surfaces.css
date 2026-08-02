@@ -2,9 +2,12 @@
  *
  * Same shape as recipes.css, one level up: everything a surface can look like is written ONCE
  * here and consumed by every surface component — Card, Panel, Callout, Popover, Dialog. A
- * surface is tone × emphasis × bordered × elevation × material, and no rule below ever pairs
- * one axis with another, so the cost stays O(rungs + levels + materials), never a product.
- * Card's own stylesheet does not exist: this file is the whole of what a Card looks like. */
+ * surface is tone × emphasis × bordered × material, and no rule below ever pairs one axis
+ * with another, so the cost stays O(rungs + materials), never a product. Card's own
+ * stylesheet does not exist: this file is the whole of what a Card looks like.
+ *
+ * There is no elevation and there are no shadows, anywhere. Separation is border and fill;
+ * a detached component (Popover, Dialog) designs its own detachment when it is built. */
 
 /* ── The skeleton every surface shares (§10) ─────────────────────────────────────────────── */
 
@@ -16,7 +19,6 @@
   color: var(--color-text);
   border: 1px solid var(--kui-border-color, transparent);
   border-radius: var(--radius-surface);
-  box-shadow: var(--kui-sf-shadow, none);
   padding: var(--kui-sf-p);
 }
 
@@ -53,21 +55,6 @@
   --kui-sf-fill: var(--tone-solid);
   --color-text: var(--tone-contrast);
   --color-text-muted: var(--tone-contrast);
-}
-
-/* ── The elevation ladder: how high, one rule per level (§10) ────────────────────────────── */
-
-.kui-surface[data-elevation="flat"] {
-  --kui-sf-shadow: none;
-}
-.kui-surface[data-elevation="raised"] {
-  --kui-sf-shadow: var(--shadow-raised);
-}
-.kui-surface[data-elevation="floating"] {
-  --kui-sf-shadow: var(--shadow-floating);
-}
-.kui-surface[data-elevation="overlay"] {
-  --kui-sf-shadow: var(--shadow-overlay);
 }
 
 /* ── Material: backdrop defense (§10) ────────────────────────────────────────────────────────

@@ -10,7 +10,6 @@ export {
 export {
   Card,
   type CardProps,
-  type Elevation,
   type Material,
   type SurfaceEmphasis,
 } from "./components/card/card.tsx";
