@@ -98,8 +98,11 @@ export const lowChromaThreshold = 0.18;
  * `contrast="high"` (§7). A Theme-level **accessibility setting**, never a design knob and
  * never a per-component prop: it shifts values, it does not remap which step a role reads.
  *
- * Borders and text move toward the extremes; the interaction spread widens so hover and press
- * stay distinguishable. A *chromatic* solid is deliberately untouched — that value is the brand
+ * The claim is **as much contrast as each colour permits**, not a fixed shift. Borders and text
+ * move toward the extremes and the interaction spread widens, but every band is bounded by what
+ * its hue can take: a bright hue's border band already sits at the cusp, so it does not move at
+ * all and takes its gain in the text band instead. A band that stays put is the setting working,
+ * not failing. The only real failure is a pairing that gets *worse*. A *chromatic* solid is deliberately untouched — that value is the brand
  * colour, it already clears the target by a wide margin, and pushing it would trade the user's
  * hue for contrast they did not need. A low-chroma solid does deepen, because it reads step 12
  * and there is no hue there to protect. Under this setting the label pairings must clear the

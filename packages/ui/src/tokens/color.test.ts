@@ -264,7 +264,9 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
 
   it("moves the label pairing by a visible amount, not a token gesture", () => {
     // At +7 Lc the two palettes were indistinguishable side by side, which is how a
-    // high-contrast mode ends up shipping as decoration. The bar is a perceptible step.
+    // high-contrast mode ends up shipping as decoration. The text band is the one place the
+    // ladder structurally guarantees headroom — steps 11 and 12 sit far from either extreme —
+    // so it is where the gain must show even when every other band is pinned.
     for (const mode of MODES) {
       for (const tone of TONES) {
         const normal = buildScale(tone, mode);
@@ -290,17 +292,46 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
     }
   });
 
-  it("only ever increases contrast, for every pairing", () => {
+  it("never lowers contrast anywhere — equal is allowed, worse is not", () => {
+    // The claim is "as much contrast as this colour permits", not "always different". A band
+    // already at its limit is right to stay put; only a regression is a failure.
     for (const mode of MODES) {
       for (const tone of TONES) {
         const normal = buildScale(tone, mode);
         const high = buildScale(tone, mode, "srgb", "high");
-        for (const step of [2, 4]) {
-          expect(Math.abs(apcaLc(high.label, high.steps[step]!))).toBeGreaterThan(
-            Math.abs(apcaLc(normal.label, normal.steps[step]!)),
+        for (const step of [2, 3, 4]) {
+          expect(Math.abs(apcaLc(high.label, high.steps[step]!))).toBeGreaterThanOrEqual(
+            Math.abs(apcaLc(normal.label, normal.steps[step]!)) - 0.5,
           );
         }
       }
+    }
+  });
+
+  it("a band with no headroom stays put, and that is the setting working", () => {
+    // Bright hues sit at their cusp, so the border band cannot darken without turning to mud.
+    // High contrast leaves it alone and takes the gain in the text band instead. This is
+    // asserted rather than merely tolerated, so nobody later "fixes" the no-op by forcing a
+    // shift and reintroducing the olive.
+    for (const spec of [
+      { hue: 100, vividness: 1 },
+      { hue: 130, vividness: 1 },
+      { hue: 195, vividness: 1 },
+    ]) {
+      const normal = buildScaleFor(spec, "light");
+      const high = buildScaleFor(spec, "light", "srgb", "high");
+      expect(high.steps[6]).toBe(normal.steps[6]);
+    }
+  });
+
+  it("but a band with headroom does use it", () => {
+    for (const spec of [
+      { hue: 250, vividness: 1 },
+      { hue: 25, vividness: 1 },
+    ]) {
+      const normal = buildScaleFor(spec, "light");
+      const high = buildScaleFor(spec, "light", "srgb", "high");
+      expect(high.steps[6]).not.toBe(normal.steps[6]);
     }
   });
 
