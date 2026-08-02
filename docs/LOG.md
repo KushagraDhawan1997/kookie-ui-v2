@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-02 The pre-Button states close, and loading refuses to eat the label
+
+Four of Button's five gates decided in one pass (§8, §4); motion deferred to its own discussion without gating — Button ships on §8's single canonical transition.
+
+**Focus is one ring, always accent.** `:focus-visible` only, `outline` (follows radius natively, pills included, cannot move layout), offset 2, and the colour does not follow the control's tone — "where is focus" is one question system-wide, and Spectrum, Radix and Primer all landed on the same answer. The 3:1 adjacent-contrast requirement is a law, not a hope.
+
+**Disabled remaps roles; opacity is refused.** Opacity is the industry shortcut (Material's 38%) and it stacks on tinted surfaces, silently voiding every generated contrast guarantee. The neutral remap keeps a designed, testable pair. Cursor stays default: `not-allowed` scolds, native platforms don't.
+
+**Loading keeps the label, reversing Polaris/Primer.** Kushagra's call, and the reasoning is better than the industry pattern: a button that loses its label stops saying what it is doing. Spinner replaces the icon when one exists (same box, zero shift); otherwise it joins the label, and the slight width change on text-only controls is the named, accepted cost. Spinner itself is deliberately primitive — one element, border-top on `currentColor`, one rotate keyframe, no SVG, no JS — because performance is the system's first constraint. Under reduced motion it slows rather than stops; a stopped busy indicator is information lost.
+
+**Icons are slots, not a dependency.** `--icon-size-1..4` = 16/16/20/24 (sizes 1-2 share 16: the ecosystem's grid has nothing legible below it). Hugeicons is the blessed set, installed by the app and the docs, never shipped by the library — a bundled set is dead weight, an update treadmill, and a licence surface. Only the box is pinned; the icon system proper stays open.
+
+Rejected: label-hiding loading (above); a per-tone focus ring (two questions in one signal); `not-allowed` cursor; opacity-based disabled; shipping hugeicons as a dependency; a third motion duration nobody has ever justified.
+
 ## 2026-08-02 The preview finds the edge the laws could not state: the outermost Box has no tier context
 
 Steps 4 and 4b shipped (Flex/Stack/Grid, the coarse cells, the Theme `pointer` prop), and building their preview rigs surfaced a constraint no string or mounted test had a reason to probe: **a tier reads the nearest ancestor query container, and a Box is a container for its children, never for itself.** The rigs' outermost Box sat at one column at every width — correct per spec, useless per intent. Every browser law had wrapped a Box in a Box, so the suite was structurally incapable of noticing; the demo built for human eyes found it in one render. A law now pins the edge, §2 documents it, and whether Theme's element should be a container (making "inside a Theme, tiers always work" the rule) is an open question gating Button.

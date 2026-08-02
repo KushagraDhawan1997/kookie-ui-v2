@@ -4,6 +4,8 @@
 
 **Resolution log (2026-07-31, later same day):** blockers 1-3, typography, density coupling, accent brand fidelity, `contrast="high"`, the DESIGN.md reconciliation, and both build-order amendments are resolved in DECISIONS.md (§2, §3, §7, §9, §12, §14, §15). Still open from this review: focus-visible, disabled/loading, motion, dark-mode SSR, icon sizing, Shell, migration — focus-visible, disabled/loading, motion and icon sizing gate Button (§14 step 5), joined 2026-08-02 by the pointer axis's coarse numbers (§16, §14 step 4b). Dark-mode SSR was passed by Theme and comes due at apps/docs (ENGINEERING.md).
 
+**Second resolution round (2026-08-02, evening):** focus-visible, disabled, loading and the icon box are decided in §8/§4; motion is deferred without gating Button, which ships on §8's single canonical transition; the coarse v0 numbers are accepted as refinable. Button's sole remaining gate is the Theme-as-query-container question (§2). Still open: the full motion system, dark-mode SSR (due at apps/docs), the icon *system* (set contract, stroke, optical centering — only the box is pinned), Shell, migration.
+
 ## Sound, no changes
 
 Base UI behind a Kookie-owned API boundary. Token-only styling, no utility classes. Margin only on layout primitives. Size-as-index. Semantic radius references (`--radius-control-N`). Variants as shared role-token bundles. Tone x emphasis x elevation x material with appearance as resolved output. Generated OKLCH color with a role layer. Build order (tokens, Button, Card, measured at each step).

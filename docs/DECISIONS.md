@@ -528,6 +528,28 @@ No rung invents its own feedback amount. The rule: **hover = +1 step, press = +2
 
 A single duration + easing, color properties only, no layout animation, applied uniformly. Every hover is the same gesture at the same speed.
 
+**The wider motion system is deferred (2026-08-02)** — duration families, overlay enter/exit, the reduced-motion law get their own discussion. Button ships on this one transition alone; the deferral is not a gate.
+
+### Focus-visible: one ring, defined once (decided 2026-08-02)
+
+`outline: 2px solid var(--focus-ring); outline-offset: 2px`, on `:focus-visible` only — keyboard focus rings, pointer focus does not. `--focus-ring` resolves to the accent (step 9) **regardless of the control's tone**: the ring answers "where is focus," which is one question system-wide, so a destructive button still rings accent (Spectrum, Radix, Primer all converged here). `outline` rather than box-shadow because it follows `border-radius` natively, pills included, and cannot affect layout. WCAG 2.4.7/2.4.13 shape: ≥2px, offset, ≥3:1 against adjacent surfaces — the last is a law, asserted with APCA against steps 1-2 in both modes.
+
+### Disabled: a role remap, never opacity (decided 2026-08-02)
+
+Foreground remaps to `neutral-8`, fills to `neutral-3`, borders to `neutral-6`; hover and press stop firing; the canonical transition stops. No `opacity` — it stacks on tinted surfaces and silently voids every generated contrast guarantee, where the remap keeps "legible but clearly off" as a designed, testable pair. Cursor stays default (native-platform parity; `not-allowed` scolds). Not focusable at rest, matching the native element — except while loading, below.
+
+### Loading: the label never hides (decided 2026-08-02)
+
+`data-loading` + `aria-busy`; interaction blocked; focus retained via Base UI's `focusableWhenDisabled`, so a click that flips a button to loading does not dump keyboard focus.
+
+Composition: **a control with an icon swaps the icon for the Spinner in the same `--icon-size-N` box — zero layout shift. A text-only control gains the Spinner beside its label, and the label stays.** This reverses the label-hiding pattern (Polaris, Primer): a button that loses its label stops saying what it is doing, and the accepted cost is a slight width change on text-only controls while loading.
+
+**Spinner is a public component and deliberately primitive:** one element, `border: 2px solid transparent; border-top-color: currentColor`, a `transform: rotate` keyframe. No SVG, no JS, colour inherited from the label for free, sized by the icon family. Under `prefers-reduced-motion` it slows rather than stops — a busy indicator that stops moving is information lost.
+
+### The icon box (decided 2026-08-02)
+
+`--icon-size-1..4` = 16 / 16 / 20 / 24, pulled by the size index. Sizes 1 and 2 share 16 because the icon grid the ecosystem draws on (16/20/24 — Primer, Lucide, Material) has nothing legible below it, and a 14px raster of a 24-grid icon blurs its strokes. **Icons are `ReactNode` slots; the package ships no icon dependency.** Hugeicons is the blessed set — installed by the app (and the docs), never by the library: a bundled set is dead weight for anyone with their own, an update treadmill, and a licence surface. Stroke width, optical centering, and the set contract stay open with the icon-system decision; only the box is pinned. The Spinner rides the same box.
+
 ### Why uniform steps feel uniform
 
 "+1 step" reads as the same perceived change across every hue **only because of the perceptually-even L ladder** (section 7). On a naive sRGB ramp, one step would read as more change on blue than on yellow, and interaction consistency would silently break per color. The color architecture is what makes uniform interaction feedback possible. The whole system is one decision wearing different clothes.
@@ -817,7 +839,7 @@ Architecture is locked; open items are tuning values resolved as the component t
 3. **Box + the responsive mechanism.** Variable remap, `@property` inheritance guard, the full prop table on one primitive. **Measure its CSS** to prove O(props x tiers) before any other layout primitive ships. (The blocker-1 proof; needs only the space tokens, so it can overlap the color work.)
 4. **Theme + layout primitives.** Theme (scoping the CSS vars, nesting/inheritance) + Flex, Stack, Grid as typed sugar over Box. Proves token consumption and the layout layer.
    - **4b (added 2026-08-02): the pointer axis.** Coarse designed sets in config, generator emits the (family × pointer × density) cells, Theme gains the `pointer` prop, preview gains the coarse matrix (pinned via `data-pointer`), budget re-measured. Laws: the rendered floor holds under coarse (asserted against the box, including under a hostile root font-size), per-world monotonicity, the space palette untouched by pointer (§16).
-5. **Button, end-to-end.** Full axis model (tone x emphasis x states x size) on one control. **Measure its CSS** to prove variant-as-token-remap (additive, not multiplicative) before scaling. Gated on the remaining pre-Button decisions: focus-visible, disabled/loading, motion tokens, icon sizing (REVIEW.md), and the coarse numbers judged in 4b's matrix (§16).
+5. **Button, end-to-end.** Full axis model (tone x emphasis x states x size) on one control, wrapped over Base UI's Button (§1) — the package's first runtime dependency. **Measure its CSS** to prove variant-as-token-remap (additive, not multiplicative) before scaling. Gates cleared 2026-08-02: focus-visible, disabled, loading, icon box decided (§8, §4); motion deferred without gating (§8); coarse v0 numbers accepted as refinable, not blocking (§16). Remaining gate: the Theme-as-query-container call (§2).
 6. **Card, end-to-end.** One surface, proving elevation + material + foreground-context + alpha-nesting.
 
 This slice exercises every layer (tokens -> variants -> control -> surface) and the CSS budget. Everything after it is repetition across the component set.
