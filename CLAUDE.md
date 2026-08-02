@@ -10,7 +10,7 @@ Done: scaffold (1), token pipeline including the colour generator (2), Box and t
 
 **Button (step 5) stays gated** on focus-visible, disabled/loading, motion, icon sizing (REVIEW.md resolution log). Do not run ahead of a §14 measurement gate.
 
-Read order: `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
+Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
 
 `DECISIONS.md` is what the system is now; `LOG.md` is how it got there. A choice that was genuinely open and got closed — a reversal, a measurement that moved a decision, a rejected alternative worth staying rejected — earns a LOG entry in the same commit. Tuning does not.
 

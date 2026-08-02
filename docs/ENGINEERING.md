@@ -2,7 +2,7 @@
 
 How the code is built so the system stays legible — to a stranger reading it, and to an agent editing it. These are the same property. DECISIONS.md says what the system is; this says how the code must read.
 
-Companion to `DECISIONS.md` (the spec) and `REVIEW.md` (the audit). Section references (§N) point at DECISIONS.md.
+Companion to `THESIS.md` (why, and the governance tiers), `DECISIONS.md` (the spec) and `REVIEW.md` (the audit). Section references (§N) point at DECISIONS.md.
 
 ---
 
