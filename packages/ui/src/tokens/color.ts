@@ -20,7 +20,15 @@ import {
 } from "./color-config.ts";
 
 const toRgb = converter("rgb");
-const srgbFits = inGamut("rgb");
+const toP3 = converter("p3");
+const fits = { srgb: inGamut("rgb"), p3: inGamut("p3") } as const;
+
+/**
+ * Which boundary chroma is measured against. sRGB is what ships in `:root`; P3 rides in an
+ * `@supports` block on top (§7). It is a parameter rather than a constant because chroma is
+ * expressed as a fraction of what the gamut holds, so widening the gamut is the entire change.
+ */
+export type Gamut = keyof typeof fits;
 
 type Oklch = { mode: "oklch"; l: number; c: number; h: number };
 const oklch = (l: number, c: number, h: number): Oklch => ({ mode: "oklch", l, c, h });
@@ -30,24 +38,33 @@ const oklch = (l: number, c: number, h: number): Oklch => ({ mode: "oklch", l, c
  * move to absorb a clamp; chroma is the give. Binary search rather than letting the browser
  * clamp per hue at runtime, which would vary by engine.
  */
-function toGamut(color: Oklch): Oklch {
-  if (srgbFits(color)) return color;
+function toGamut(color: Oklch, gamut: Gamut = "srgb"): Oklch {
+  const inside = fits[gamut];
+  if (inside(color)) return color;
   let lo = 0;
   let hi = color.c;
   for (let i = 0; i < 24; i++) {
     const mid = (lo + hi) / 2;
-    if (srgbFits(oklch(color.l, mid, color.h))) lo = mid;
+    if (inside(oklch(color.l, mid, color.h))) lo = mid;
     else hi = mid;
   }
   return oklch(color.l, lo, color.h);
 }
 
+/** The emitted form: hex for sRGB, `color(display-p3 ...)` for P3. */
+function format(color: Oklch, gamut: Gamut): string {
+  if (gamut === "srgb") return formatHex(color)!;
+  const { r, g, b } = toP3(color)!;
+  const n = (v: number) => Math.min(1, Math.max(0, v)).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+  return `color(display-p3 ${n(r)} ${n(g)} ${n(b)})`;
+}
+
 /** The lightness at which a hue reaches peak chroma — where the hue is most itself. */
-function cuspLightness(hue: number): number {
+function cuspLightness(hue: number, gamut: Gamut): number {
   let bestL = 0.5;
   let bestC = 0;
   for (let l = 0.02; l < 1; l += 0.01) {
-    const c = toGamut(oklch(l, 0.4, hue)).c;
+    const c = toGamut(oklch(l, 0.4, hue), gamut).c;
     if (c > bestC) {
       bestC = c;
       bestL = l;
@@ -142,8 +159,8 @@ export function pageBackdrop(mode: Mode): string {
 export type ToneSpec = { hue: number; vividness: number };
 
 /** Convenience over `buildScaleFor` for the shipped tones. */
-export function buildScale(tone: ToneName, mode: Mode): Scale {
-  return buildScaleFor(tones[tone], mode);
+export function buildScale(tone: ToneName, mode: Mode, gamut: Gamut = "srgb"): Scale {
+  return buildScaleFor(tones[tone], mode, gamut);
 }
 
 /**
@@ -151,19 +168,19 @@ export function buildScale(tone: ToneName, mode: Mode): Scale {
  * definition (§7) — so an arbitrary brand colour goes through exactly the same law the
  * shipped tones do. That is what the hostile-hue tests exercise.
  */
-export function buildScaleFor({ hue, vividness }: ToneSpec, mode: Mode): Scale {
+export function buildScaleFor({ hue, vividness }: ToneSpec, mode: Mode, gamut: Gamut = "srgb"): Scale {
   /** The most chroma this hue can hold at this lightness, inside the target gamut. */
-  const available = (l: number) => toGamut(oklch(l, 0.5, hue)).c;
+  const available = (l: number) => toGamut(oklch(l, 0.5, hue), gamut).c;
   const chromaAt = (l: number, fraction: number) => available(l) * fraction * vividness;
   const ladder = lightness[mode];
   const band = solidBand[mode];
-  const cusp = cuspLightness(hue);
+  const cusp = cuspLightness(hue, gamut);
 
   // Steps 9 and 10 lean toward the hue's own cusp; every other step takes the shared ladder.
   const solidL = ladder[8]! + (cusp - ladder[8]!) * band.cuspPull;
   const stepL = ladder.map((l, i) => (i === 8 ? solidL : i === 9 ? solidL + step10Offset : l));
 
-  const steps = stepL.map((l, i) => formatHex(toGamut(oklch(l, chromaAt(l, chromaCurve[i]!), hue)))!);
+  const steps = stepL.map((l, i) => format(toGamut(oklch(l, chromaAt(l, chromaCurve[i]!), hue), gamut), gamut));
 
   const isLowChroma = vividness < lowChromaThreshold;
 
@@ -184,12 +201,12 @@ export function buildScaleFor({ hue, vividness }: ToneSpec, mode: Mode): Scale {
   const FLOOR = 0.06;
   const room = restL + preferred * solidStateDeltas.active;
   const away = room > CEILING || room < FLOOR ? -preferred : preferred;
-  const state = (delta: number) => formatHex(toGamut(oklch(restL + away * delta, restC, hue)))!;
+  const state = (delta: number) => format(toGamut(oklch(restL + away * delta, restC, hue), gamut), gamut);
   const solidHover = state(solidStateDeltas.hover);
   const solidActive = state(solidStateDeltas.active);
 
   // A UI label is not a link: between 11 and 12, keeping chroma that step 12 has given up.
-  const label = formatHex(
+  const label = format(
     toGamut(
       oklch(
         stepL[10]! + (stepL[11]! - stepL[10]!) * labelPosition,
@@ -199,8 +216,10 @@ export function buildScaleFor({ hue, vividness }: ToneSpec, mode: Mode): Scale {
         ),
         hue,
       ),
+      gamut,
     ),
-  )!;
+    gamut,
+  );
 
   const backdrop = pageBackdrop(mode);
   return {
@@ -228,15 +247,17 @@ export function buildAllScales(): Record<Mode, Record<ToneName, Scale>> {
 }
 
 /** The CSS declarations for one mode: raw steps, the alpha ramp, and the role layer (§7). */
-export function colorDeclarations(mode: Mode): string[] {
+export function colorDeclarations(mode: Mode, gamut: Gamut = "srgb"): string[] {
   const out: string[] = [];
   const scales = Object.keys(tones) as ToneName[];
 
   for (const tone of scales) {
-    const s = buildScale(tone, mode);
+    const s = buildScale(tone, mode, gamut);
     out.push(`  /* ${tone} */`);
     s.steps.forEach((hex, i) => out.push(`  --${tone}-${i + 1}: ${hex};`));
-    s.alpha.forEach((value, i) => out.push(`  --${tone}-a${i + 1}: ${value};`));
+    // The alpha ramp stays sRGB in both blocks: its solve assumes sRGB channel compositing,
+    // and its job is differentiating nested surfaces, where the wider gamut buys nothing.
+    if (gamut === "srgb") s.alpha.forEach((v, i) => out.push(`  --${tone}-a${i + 1}: ${v};`));
     out.push(
       `  --${tone}-soft: var(--${tone}-3);`,
       `  --${tone}-soft-hover: var(--${tone}-4);`,

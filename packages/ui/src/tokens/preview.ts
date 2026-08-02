@@ -90,6 +90,49 @@ function colorSection(mode: Mode): string {
   </section>`;
 }
 
+/**
+ * The role layer written out: what each token resolves to and what consumes it. Components
+ * only ever touch this column, never the numbered steps (§7).
+ */
+const ROLE_MAP: Array<[string, string, string]> = [
+  ["--tone-1, -2", "steps 1-2", "page and app backgrounds"],
+  ["--tone-soft", "step 3", "medium emphasis, resting fill"],
+  ["--tone-soft-hover", "step 4", "medium emphasis, hover (+1 step)"],
+  ["--tone-soft-active", "step 5", "medium emphasis, pressed (+2 steps)"],
+  ["--tone-border", "step 7", "the bordered boolean, separators"],
+  ["--tone-solid", "step 9, or step 12 when low chroma", "loud emphasis, resting fill"],
+  ["--tone-solid-hover", "generated, away from the label", "loud emphasis, hover"],
+  ["--tone-solid-active", "generated, away from the label", "loud emphasis, pressed"],
+  ["--tone-contrast", "white or black, chosen by APCA", "the label ON a loud fill"],
+  ["--tone-text", "step 11", "links and prose on a tint"],
+  ["--tone-label", "generated between 11 and 12", "control labels — a label is not a link"],
+  ["--tone-a1 … -a12", "each step as alpha over the page", "nested surfaces, fills over media"],
+];
+
+function roleMap(): string {
+  const s = buildScale("accent", "light");
+  const sample: Record<string, string> = {
+    "--tone-soft": s.steps[2]!,
+    "--tone-soft-hover": s.steps[3]!,
+    "--tone-soft-active": s.steps[4]!,
+    "--tone-border": s.steps[6]!,
+    "--tone-solid": s.solid,
+    "--tone-solid-hover": s.solidHover,
+    "--tone-solid-active": s.solidActive,
+    "--tone-contrast": s.contrast,
+    "--tone-text": s.steps[10]!,
+    "--tone-label": s.label,
+  };
+  return `<table class="roles-table">
+    <thead><tr><th></th><th>token</th><th>resolves to</th><th>consumed by</th></tr></thead>
+    <tbody>${ROLE_MAP.map(
+      ([token, resolves, used]) =>
+        `<tr><td>${sample[token] ? `<span class="chip" style="background:${sample[token]}"></span>` : ""}</td>
+          <td><code>${token}</code></td><td>${resolves}</td><td>${used}</td></tr>`,
+    ).join("")}</tbody>
+  </table>`;
+}
+
 /** The sweep at the depth the shipped tones get, for judging one hue rather than the family. */
 function sweepFull(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
@@ -160,6 +203,13 @@ export function generatePreview(): string {
   .sweep .role { padding: var(--space-2) var(--space-3); font-size: var(--font-size-1); }
   .readout { font-family: var(--font-mono); font-size: 11px; color: #888; }
   .ruler { position: relative; }
+  .roles-table { border-collapse: collapse; font-size: var(--font-size-2); margin-bottom: var(--space-9); }
+  .roles-table th { text-align: left; font-weight: var(--font-weight-medium); color: #888;
+                    padding: var(--space-2) var(--space-5) var(--space-3) 0; font-size: var(--font-size-1); }
+  .roles-table td { padding: var(--space-3) var(--space-5) var(--space-3) 0; border-top: 1px solid #eee; vertical-align: middle; }
+  .roles-table code { font-family: var(--font-mono); font-size: var(--font-size-1); }
+  .roles-table td:nth-child(3), .roles-table td:nth-child(4) { color: #666; }
+  .chip { display: block; width: 22px; height: 22px; border-radius: var(--radius-2); border: 1px solid #0001; }
 </style>
 </head>
 <body>
@@ -188,6 +238,10 @@ ${LEVELS.map(
   <div class="surface" style="border-radius: var(--radius-surface)">--radius-surface (card, popover)</div>
   <div class="surface" style="border-radius: var(--radius-overlay)">--radius-overlay (dialog, sheet)</div>
 </div>
+
+<h1 style="margin-top: var(--space-11)">the role layer</h1>
+<p class="note">Components reference these, never the numbered steps and never the generator. <code>tone</code> stands for whichever of neutral, accent or destructive the component resolved to. Swatches show the accent scale in light mode.</p>
+${roleMap()}
 
 <h1 style="margin-top: var(--space-11)">colour</h1>
 <p class="note">Generated from a hue angle and a chroma peak per tone (§7). Steps 1-8 and 11-12 share one lightness ladder across every hue; the solid band leans toward each hue's own cusp, which is the fix for bright hues reading as mud. Every label pairing here is APCA-verified in the suite, not chosen by eye — but the eye is what decides whether it looks right.</p>

@@ -304,6 +304,151 @@
   --destructive-contrast: #ffffff;
 }
 
+@supports (color: color(display-p3 0 0 0)) {
+  :root {
+    /* neutral */
+    --neutral-1: color(display-p3 0.9865 0.9869 0.9873);
+    --neutral-2: color(display-p3 0.9664 0.9673 0.9684);
+    --neutral-3: color(display-p3 0.9463 0.9477 0.9495);
+    --neutral-4: color(display-p3 0.9263 0.9283 0.9308);
+    --neutral-5: color(display-p3 0.8931 0.896 0.8997);
+    --neutral-6: color(display-p3 0.8667 0.8704 0.875);
+    --neutral-7: color(display-p3 0.8273 0.8322 0.8383);
+    --neutral-8: color(display-p3 0.7625 0.7692 0.7778);
+    --neutral-9: color(display-p3 0.5135 0.5274 0.5451);
+    --neutral-10: color(display-p3 0.468 0.4809 0.4971);
+    --neutral-11: color(display-p3 0.4032 0.4122 0.4235);
+    --neutral-12: color(display-p3 0.1202 0.1226 0.1255);
+    --neutral-soft: var(--neutral-3);
+    --neutral-soft-hover: var(--neutral-4);
+    --neutral-soft-active: var(--neutral-5);
+    --neutral-solid: color(display-p3 0.1202 0.1226 0.1255);
+    --neutral-solid-hover: color(display-p3 0.0842 0.0864 0.0893);
+    --neutral-solid-active: color(display-p3 0.05 0.0521 0.0548);
+    --neutral-border: var(--neutral-7);
+    --neutral-text: var(--neutral-11);
+    --neutral-label: color(display-p3 0.2697 0.2751 0.282);
+    --neutral-contrast: #ffffff;
+    /* accent */
+    --accent-1: color(display-p3 0.9824 0.9869 0.9987);
+    --accent-2: color(display-p3 0.9558 0.9671 0.9974);
+    --accent-3: color(display-p3 0.929 0.9474 0.9969);
+    --accent-4: color(display-p3 0.9019 0.9276 0.9971);
+    --accent-5: color(display-p3 0.8571 0.8946 0.9969);
+    --accent-6: color(display-p3 0.8211 0.868 0.9974);
+    --accent-7: color(display-p3 0.7666 0.8278 1);
+    --accent-8: color(display-p3 0.6779 0.7601 1);
+    --accent-9: color(display-p3 0.1292 0.1178 1);
+    --accent-10: color(display-p3 0.1032 0 0.9244);
+    --accent-11: color(display-p3 0.2193 0.324 0.8825);
+    --accent-12: color(display-p3 0.0606 0.1004 0.2739);
+    --accent-soft: var(--accent-3);
+    --accent-soft-hover: var(--accent-4);
+    --accent-soft-active: var(--accent-5);
+    --accent-solid: color(display-p3 0.1292 0.1178 1);
+    --accent-solid-hover: color(display-p3 0.1032 0 0.9244);
+    --accent-solid-active: color(display-p3 0.0856 0 0.8156);
+    --accent-border: var(--accent-7);
+    --accent-text: var(--accent-11);
+    --accent-label: color(display-p3 0.1318 0.204 0.6258);
+    --accent-contrast: #ffffff;
+    /* destructive */
+    --destructive-1: color(display-p3 0.9987 0.9825 0.98);
+    --destructive-2: color(display-p3 0.9974 0.9558 0.9497);
+    --destructive-3: color(display-p3 0.9969 0.9286 0.9187);
+    --destructive-4: color(display-p3 0.9972 0.9008 0.8871);
+    --destructive-5: color(display-p3 0.997 0.8542 0.8344);
+    --destructive-6: color(display-p3 0.9975 0.816 0.7915);
+    --destructive-7: color(display-p3 1 0.7563 0.7252);
+    --destructive-8: color(display-p3 1 0.6536 0.6148);
+    --destructive-9: color(display-p3 0.9928 0 0.1635);
+    --destructive-10: color(display-p3 0.9125 0 0.1468);
+    --destructive-11: color(display-p3 0.6847 0.1984 0.1923);
+    --destructive-12: color(display-p3 0.1974 0.0777 0.0683);
+    --destructive-soft: var(--destructive-3);
+    --destructive-soft-hover: var(--destructive-4);
+    --destructive-soft-active: var(--destructive-5);
+    --destructive-solid: color(display-p3 0.9928 0 0.1635);
+    --destructive-solid-hover: color(display-p3 1 0.291 0.2868);
+    --destructive-solid-active: color(display-p3 1 0.4273 0.3947);
+    --destructive-border: var(--destructive-7);
+    --destructive-text: var(--destructive-11);
+    --destructive-label: color(display-p3 0.4441 0.159 0.1456);
+    --destructive-contrast: #000000;
+  }
+  [data-appearance="dark"] {
+    /* neutral */
+    --neutral-1: color(display-p3 0.058 0.0605 0.0637);
+    --neutral-2: color(display-p3 0.08 0.083 0.0869);
+    --neutral-3: color(display-p3 0.1098 0.1136 0.1184);
+    --neutral-4: color(display-p3 0.1416 0.1463 0.1521);
+    --neutral-5: color(display-p3 0.1746 0.18 0.187);
+    --neutral-6: color(display-p3 0.2134 0.2198 0.228);
+    --neutral-7: color(display-p3 0.2737 0.2818 0.292);
+    --neutral-8: color(display-p3 0.3686 0.379 0.3922);
+    --neutral-9: color(display-p3 0.5135 0.5274 0.5451);
+    --neutral-10: color(display-p3 0.468 0.4809 0.4971);
+    --neutral-11: color(display-p3 0.7381 0.7441 0.7517);
+    --neutral-12: color(display-p3 0.9204 0.9217 0.9232);
+    --neutral-soft: var(--neutral-3);
+    --neutral-soft-hover: var(--neutral-4);
+    --neutral-soft-active: var(--neutral-5);
+    --neutral-solid: color(display-p3 0.9204 0.9217 0.9232);
+    --neutral-solid-hover: color(display-p3 0.8688 0.87 0.8715);
+    --neutral-solid-active: color(display-p3 0.8177 0.8189 0.8204);
+    --neutral-border: var(--neutral-7);
+    --neutral-text: var(--neutral-11);
+    --neutral-label: color(display-p3 0.8195 0.8231 0.8275);
+    --neutral-contrast: #000000;
+    /* accent */
+    --accent-1: color(display-p3 0.0094 0.0132 0.2211);
+    --accent-2: color(display-p3 0.0137 0.0164 0.2791);
+    --accent-3: color(display-p3 0.0212 0.0202 0.3583);
+    --accent-4: color(display-p3 0.0311 0.0209 0.4447);
+    --accent-5: color(display-p3 0.044 0.0228 0.5322);
+    --accent-6: color(display-p3 0.0598 0.0223 0.636);
+    --accent-7: color(display-p3 0.0835 0 0.8022);
+    --accent-8: color(display-p3 0.1351 0.144 1);
+    --accent-9: color(display-p3 0.1292 0.1178 1);
+    --accent-10: color(display-p3 0.1032 0 0.9244);
+    --accent-11: color(display-p3 0.663 0.7367 0.9497);
+    --accent-12: color(display-p3 0.9052 0.9214 0.9649);
+    --accent-soft: var(--accent-3);
+    --accent-soft-hover: var(--accent-4);
+    --accent-soft-active: var(--accent-5);
+    --accent-solid: color(display-p3 0.1292 0.1178 1);
+    --accent-solid-hover: color(display-p3 0.1032 0 0.9244);
+    --accent-solid-active: color(display-p3 0.0856 0 0.8156);
+    --accent-border: var(--accent-7);
+    --accent-text: var(--accent-11);
+    --accent-label: color(display-p3 0.7756 0.8208 0.9454);
+    --accent-contrast: #ffffff;
+    /* destructive */
+    --destructive-1: color(display-p3 0.1351 0.0075 0.0095);
+    --destructive-2: color(display-p3 0.1738 0.0092 0.0132);
+    --destructive-3: color(display-p3 0.2265 0.0112 0.0192);
+    --destructive-4: color(display-p3 0.2834 0.0115 0.0263);
+    --destructive-5: color(display-p3 0.3416 0.0125 0.036);
+    --destructive-6: color(display-p3 0.4105 0.0121 0.0486);
+    --destructive-7: color(display-p3 0.5194 0 0.0648);
+    --destructive-8: color(display-p3 0.6853 0 0.0994);
+    --destructive-9: color(display-p3 0.9928 0 0.1635);
+    --destructive-10: color(display-p3 0.9125 0 0.1468);
+    --destructive-11: color(display-p3 0.9532 0.6416 0.6056);
+    --destructive-12: color(display-p3 0.9654 0.9047 0.8959);
+    --destructive-soft: var(--destructive-3);
+    --destructive-soft-hover: var(--destructive-4);
+    --destructive-soft-active: var(--destructive-5);
+    --destructive-solid: color(display-p3 0.9928 0 0.1635);
+    --destructive-solid-hover: color(display-p3 1 0.291 0.2868);
+    --destructive-solid-active: color(display-p3 1 0.4273 0.3947);
+    --destructive-border: var(--destructive-7);
+    --destructive-text: var(--destructive-11);
+    --destructive-label: color(display-p3 0.9476 0.7696 0.7457);
+    --destructive-contrast: #000000;
+  }
+}
+
 [data-density="compact"] {
   --control-height-1: calc(24px * var(--scale));
   --control-height-2: calc(28px * var(--scale));

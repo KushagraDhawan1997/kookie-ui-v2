@@ -71,6 +71,21 @@ export function generateTokens(): string {
 
   lines.push(`[data-appearance="dark"] {`, ...colorDeclarations("dark"), "}", "");
 
+  // P3 rides on top of the sRGB values rather than replacing them, so a narrow-gamut display
+  // keeps a complete system. It is worth the bytes where sRGB constrains a hue most: sky,
+  // cyan and blue gain 21-31% chroma, while indigo and violet gain 3-5% (§7).
+  lines.push(
+    "@supports (color: color(display-p3 0 0 0)) {",
+    "  :root {",
+    ...colorDeclarations("light", "p3").map((l) => `  ${l}`),
+    "  }",
+    `  [data-appearance="dark"] {`,
+    ...colorDeclarations("dark", "p3").map((l) => `  ${l}`),
+    "  }",
+    "}",
+    "",
+  );
+
   // Density is a designed set, not a multiplier: each level re-declares the control family.
   for (const level of Object.keys(density) as DensityLevel[]) {
     if (level === "default") continue;
