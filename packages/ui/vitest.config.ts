@@ -21,6 +21,11 @@ export default defineConfig({
         },
       },
       {
+        // Pre-bundled explicitly: discovering React mid-run makes Vite reload the page, which
+        // it warns is a source of flake and duplicated runs.
+        optimizeDeps: {
+          include: ["react", "react-dom", "react-dom/client", "react/jsx-dev-runtime"],
+        },
         test: {
           name: "browser",
           include: ["src/**/*.browser.test.tsx"],
