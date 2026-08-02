@@ -93,6 +93,23 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     }
   });
 
+  it("every :hover rule is guarded by (hover: hover) — and :active never is", () => {
+    // A touch device synthesises :hover on tap and keeps it until you tap elsewhere, so an
+    // unguarded hover rule leaves a pressed control stuck in its hover fill. Structural rather
+    // than mounted, because the browser project cannot change a media feature mid-run: what is
+    // asserted is that no :hover declaration exists outside the guard.
+    // Comments are stripped first: the prose explaining the guard naturally mentions :hover,
+    // and a law that a comment can satisfy is not a law.
+    const code = recipes.replace(/\/\*[\s\S]*?\*\//g, "");
+    const guardStart = code.indexOf("@media (hover: hover)");
+    expect(guardStart).toBeGreaterThan(-1);
+    const guardEnd = code.indexOf("\n}", code.indexOf("}", guardStart));
+    const outside = code.slice(0, guardStart) + code.slice(guardEnd + 2);
+    expect(outside).not.toContain(":hover");
+    // Press is the only feedback a touch device gets; guarding it would remove it entirely.
+    expect(outside).toContain(":active");
+  });
+
   it("disabled remaps the family and never reaches for opacity (§8)", () => {
     const block = recipes.slice(recipes.indexOf(".kui-control[data-disabled]"));
     const body = block.slice(0, block.indexOf("}"));

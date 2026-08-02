@@ -136,10 +136,18 @@
 
 /* ── States: uniform steps on the ramp, one global rule (§8) ─────────────────────────────── */
 
-.kui-control:hover:not([data-disabled], [data-loading]) {
-  background-color: var(--kui-fill-hover);
+/* Hover only exists where hovering does. A touch device synthesises the state on tap and holds
+   it until you tap something else, so an unguarded rule leaves every pressed control stuck in
+   its hover fill — the single most common way a web control stops feeling native on a phone.
+   THESIS §7 calls hover a hardware fact; this is that sentence in CSS. */
+@media (hover: hover) {
+  .kui-control:hover:not([data-disabled], [data-loading]) {
+    background-color: var(--kui-fill-hover);
+  }
 }
 
+/* Press is deliberately NOT guarded: it fires on every input, and on touch it is the only
+   feedback there is — it is what "quiet fills on touch" (§9) literally means. */
 .kui-control:active:not([data-disabled], [data-loading]) {
   background-color: var(--kui-fill-active);
 }
