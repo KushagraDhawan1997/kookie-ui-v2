@@ -82,6 +82,18 @@ describe("container tiers arbitrate by slot, not by window (§2)", () => {
     expect(computed(host.querySelector("#child")!, "padding-top")).toBe("20px");
   });
 
+  it("a Box with no ancestor container stays at its base values — tiers read the SLOT", () => {
+    // The sharp edge, pinned: a tier reads the nearest ancestor query container, and a Box is
+    // a container for its CHILDREN, never for itself. The outermost Box in a tree therefore
+    // has no tier context at all — found when the preview's grid rig sat at one column at
+    // every width. Whether Theme's element should be a container (so "inside a Theme, tiers
+    // always work") is an open §2 question; until it is decided, this law documents the edge.
+    const host = mount(
+      `<div style="width: 900px"><div id="probe" class="kk-box" style="--kk-p: 4px; --kk-p-md: 40px"></div></div>`,
+    );
+    expect(computed(host.querySelector("#probe")!, "padding-top")).toBe("4px");
+  });
+
   it("structural props ride the same pipe, which is why this is not a spacing mechanism", () => {
     const host = mount(
       `<div class="kk-box" style="width: 900px"><div id="child" class="kk-box" style="--kk-fd: column; --kk-fd-md: row"></div></div>`,

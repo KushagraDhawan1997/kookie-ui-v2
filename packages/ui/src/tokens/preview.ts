@@ -333,26 +333,32 @@ ${LEVELS.map(
 </div>
 
 <h1 style="margin-top: var(--space-11)">the responsive mechanism, live</h1>
-<p class="note">Rendered through the real resolver against the shipped stylesheet — the exact markup Flex, Grid and Stack produce. Values ride on each element as inline custom properties; the stylesheet only arbitrates which tier's value wins. <strong>Drag a handle</strong>: tiers key on the slot's width (<code>sm</code> 30rem, <code>md</code> 48rem), never the window's — the same Grid is correct in a drawer and a main column (§2).</p>
+<p class="note">Rendered through the real resolver against the shipped stylesheet — the exact markup Flex, Grid and Stack produce. Values ride on each element as inline custom properties; the stylesheet only arbitrates which tier's value wins. <strong>Drag a handle</strong>: tiers key on the slot's width (<code>sm</code> 30rem, <code>md</code> 48rem), never the window's — the same Grid is correct in a drawer and a main column (§2). Each demo sits inside a plain Box, because a tier reads the <em>nearest ancestor</em> Box — the slot — and a Box with no ancestor container stays at its base values.</p>
 
 <p class="note">A Grid: <code>columns={{ initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}</code>, gap steps up at md.</p>
 <div class="rig">
 ${kkBox(
-  {
-    display: "grid",
-    columns: { initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
-    gap: { initial: "3", md: "5" },
-    p: "4",
-  },
-  Array.from({ length: 8 }, (_, i) => `<div class="cell">${i + 1}</div>`).join(""),
+  {},
+  kkBox(
+    {
+      display: "grid",
+      columns: { initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
+      gap: { initial: "3", md: "5" },
+      p: "4",
+    },
+    Array.from({ length: 8 }, (_, i) => `<div class="cell">${i + 1}</div>`).join(""),
+  ),
 )}
 </div>
 
 <p class="note">A Flex switching axis: <code>direction={{ initial: "column", md: "row" }}</code> — a structural keyword riding the same pipe as spacing, which is why this is not a spacing mechanism.</p>
 <div class="rig">
 ${kkBox(
-  { display: "flex", direction: { initial: "column", md: "row" }, gap: "3", p: "4" },
-  ["nav", "content", "aside"].map((n) => `<div class="cell" style="flex: 1">${n}</div>`).join(""),
+  {},
+  kkBox(
+    { display: "flex", direction: { initial: "column", md: "row" }, gap: "3", p: "4" },
+    ["nav", "content", "aside"].map((n) => `<div class="cell" style="flex: 1">${n}</div>`).join(""),
+  ),
 )}
 </div>
 
