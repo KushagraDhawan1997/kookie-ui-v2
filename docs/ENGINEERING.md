@@ -48,8 +48,8 @@ apps/docs/
 - **Package:** published as `@kookie-ui/react`; the styles entry is `@kookie-ui/react/styles.css`.
 - **Files:** kebab-case (`icon-button.tsx`). **Exports:** PascalCase components, camelCase functions, no default exports.
 - **Public tokens** (the §13 contract): unprefixed, as written in the spec — `--space-4`, `--radius-control-2`, `--accent-9`, `--accent-solid`.
-- **Private mechanism vars** (responsive remap, internal plumbing): `--kk-*`. Undocumented, unstable, never for consumers.
-- **Data attributes:** `data-tone`, `data-emphasis`, `data-elevation`, `data-material`, `data-size`, plus Base UI's state attrs (`data-pressed`, `data-disabled`). CSS selects on these; class names are structural only (`kk-button`), never variant-encoding.
+- **Private mechanism vars** (responsive remap, internal plumbing): `--kui-*`. Undocumented, unstable, never for consumers.
+- **Data attributes:** `data-tone`, `data-emphasis`, `data-elevation`, `data-material`, `data-size`, plus Base UI's state attrs (`data-pressed`, `data-disabled`). CSS selects on these; class names are structural only (`kui-button`), never variant-encoding.
 - **Props:** the §3 taxonomy is the vocabulary; never invent a second spelling for an existing axis.
 - **Commits:** conventional (`feat: button emphasis axis`), granular save points, one concern each.
 
@@ -57,12 +57,12 @@ apps/docs/
 
 The public API is Radix-style responsive objects on every curated prop. Compilation:
 
-One table (`system/props.ts`) drives both halves — the resolver that writes the properties and the generator that writes the rules — so a prop cannot exist in one and not the other. Stems are short (`gap` writes `--kk-g`) because they ship on every element.
+One table (`system/props.ts`) drives both halves — the resolver that writes the properties and the generator that writes the rules — so a prop cannot exist in one and not the other. Stems are short (`gap` writes `--kui-g`) because they ship on every element.
 
-- The component writes values as inline custom properties: `style="--kk-g: var(--space-2); --kk-g-md: var(--space-4)"`.
-- The stylesheet ships O(longhands × tiers) fixed arbitration rules: the base rule reads `--kk-g`; each tier's rule reads `var(--kk-g-md, fallback-chain)`.
+- The component writes values as inline custom properties: `style="--kui-g: var(--space-2); --kui-g-md: var(--space-4)"`.
+- The stylesheet ships O(longhands × tiers) fixed arbitration rules: the base rule reads `--kui-g`; each tier's rule reads `var(--kui-g-md, fallback-chain)`.
 - Values never appear in the stylesheet, so tokens and raw strings (`gap="13px"`) ride the same pipe at zero CSS cost.
-- **Inheritance guard (required):** custom properties inherit; a nested Flex without `gap` would read its parent's. Register every `--kk-*` remap var with `@property { inherits: false }`.
+- **Inheritance guard (required):** custom properties inherit; a nested Flex without `gap` would read its parent's. Register every `--kui-*` remap var with `@property { inherits: false }`.
 - **Longhands only, and an explicit fallback where the initial value is wrong.** An unset custom property resets its property to the *initial* value, not to an earlier declaration — see §2 of DECISIONS.md, requirements 3 and 4. Both are the same rule and both shipped broken before a browser test existed.
 - Tiers are container-query-keyed (`md` = container tier), few, and semantic. Only Shell/page-gutter concerns key off the viewport.
 - Prove and measure on Box alone before Flex/Grid/Stack exist (REVIEW.md amendment).

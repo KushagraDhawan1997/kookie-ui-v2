@@ -11,11 +11,11 @@ import { resolveBoxProps } from "./resolve.ts";
 
 describe("a value becomes a custom property, and nothing becomes a rule (§2)", () => {
   it("a bare index resolves through the palette", () => {
-    expect(resolveBoxProps({ p: "4" }).style).toEqual({ "--kk-p": "var(--space-4)" });
+    expect(resolveBoxProps({ p: "4" }).style).toEqual({ "--kui-p": "var(--space-4)" });
   });
 
   it("a raw string is passed through untouched, on the same prop", () => {
-    expect(resolveBoxProps({ p: "13px" }).style).toEqual({ "--kk-p": "13px" });
+    expect(resolveBoxProps({ p: "13px" }).style).toEqual({ "--kui-p": "13px" });
   });
 
   it("an index outside the palette is not silently invented", () => {
@@ -23,27 +23,27 @@ describe("a value becomes a custom property, and nothing becomes a rule (§2)", 
     // a reference to a token that does not exist. It rendered 0px anyway, because an unset
     // custom property falls back to the property's initial value, which for padding is 0.
     // Nothing downstream could have caught it; only the emitted value shows the difference.
-    expect(resolveBoxProps({ p: 0 }).style).toEqual({ "--kk-p": "0" });
+    expect(resolveBoxProps({ p: 0 }).style).toEqual({ "--kui-p": "0" });
     expect(resolveBoxProps({ p: String(space.length + 1) }).style).toEqual({
-      "--kk-p": String(space.length + 1),
+      "--kui-p": String(space.length + 1),
     });
   });
 
   it("only the space-scaled props tokenize; the pass-through ones stay literal", () => {
-    expect(resolveBoxProps({ width: "4" }).style).toEqual({ "--kk-w": "4" });
+    expect(resolveBoxProps({ width: "4" }).style).toEqual({ "--kui-w": "4" });
   });
 
   it("a responsive object emits one var per tier, base included", () => {
     expect(resolveBoxProps({ gap: { initial: "2", md: "6" } }).style).toEqual({
-      "--kk-g": "var(--space-2)",
-      "--kk-g-md": "var(--space-6)",
+      "--kui-g": "var(--space-2)",
+      "--kui-g-md": "var(--space-6)",
     });
   });
 
   it("structural keywords ride the identical pipe, which is why this is not a spacing mechanism", () => {
     expect(resolveBoxProps({ direction: "column", columns: "repeat(3, 1fr)" }).style).toEqual({
-      "--kk-fd": "column",
-      "--kk-gtc": "repeat(3, 1fr)",
+      "--kui-fd": "column",
+      "--kui-gtc": "repeat(3, 1fr)",
     });
   });
 });
@@ -51,7 +51,7 @@ describe("a value becomes a custom property, and nothing becomes a rule (§2)", 
 describe("the boundary between props and the DOM (§3)", () => {
   it("anything the table does not name reaches the element untouched", () => {
     const { style, rest } = resolveBoxProps({ p: "4", id: "probe", onClick: undefined });
-    expect(style).toEqual({ "--kk-p": "var(--space-4)" });
+    expect(style).toEqual({ "--kui-p": "var(--space-4)" });
     expect(rest).toEqual({ id: "probe", onClick: undefined });
   });
 

@@ -79,9 +79,9 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     "data-pointer": resolved.pointer,
   };
 
-  // kk-theme makes the element a query container (§2): responsive props measure the nearest
+  // kui-theme makes the element a query container (§2): responsive props measure the nearest
   // ancestor Box OR Theme, so a tiered Box directly under a Theme has a slot to read.
-  const themeClass = className ? `kk-theme ${className}` : "kk-theme";
+  const themeClass = className ? `kui-theme ${className}` : "kui-theme";
   const merged = { ...attrs, className: themeClass, style };
 
   return (

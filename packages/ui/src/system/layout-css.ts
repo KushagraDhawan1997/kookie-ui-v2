@@ -22,7 +22,7 @@ function registrations(): string[] {
   return boxPropNames
     .flatMap((name) => {
       const stem = boxProps[name].var;
-      return [`--kk-${stem}`, ...tierNames.map((t) => `--kk-${stem}-${t}`)];
+      return [`--kui-${stem}`, ...tierNames.map((t) => `--kui-${stem}-${t}`)];
     })
     .map((n) => `@property ${n} { syntax: "*"; inherits: false; }`);
 }
@@ -47,12 +47,12 @@ function chain(longhand: string, upTo: number): string {
     .map((n) => boxProps[n].fallback)
     .find(Boolean);
   const last = stems[stems.length - 1]!;
-  let value = base ? `var(--kk-${last}, ${base})` : `var(--kk-${last})`;
-  for (let i = stems.length - 2; i >= 0; i--) value = `var(--kk-${stems[i]}, ${value})`;
+  let value = base ? `var(--kui-${last}, ${base})` : `var(--kui-${last})`;
+  for (let i = stems.length - 2; i >= 0; i--) value = `var(--kui-${stems[i]}, ${value})`;
 
   for (let t = 0; t < upTo; t++) {
     for (let i = stems.length - 1; i >= 0; i--) {
-      value = `var(--kk-${stems[i]}-${tierNames[t]}, ${value})`;
+      value = `var(--kui-${stems[i]}-${tierNames[t]}, ${value})`;
     }
   }
   return value;
@@ -69,7 +69,7 @@ export function generateLayoutCss(): string {
   const lines: string[] = [HEADER, "", ...registrations(), ""];
   const all = longhands();
 
-  lines.push(".kk-box {");
+  lines.push(".kui-box {");
   for (const longhand of all) lines.push(`  ${longhand}: ${chain(longhand, 0)};`);
   // A tier asks "how wide is my slot", so every Box is a query container for its children.
   // inline-size only: containment on the block axis would break height-from-content.
@@ -81,10 +81,10 @@ export function generateLayoutCss(): string {
   // a nested regional Theme is the more correct slot for its subtree anyway. The one caveat:
   // inline-size containment means a Theme's width cannot come from its contents, so a Theme
   // rendered onto a shrink-to-fit element (flex child at width:auto, inline-block) collapses.
-  lines.push(".kk-theme {", "  container-type: inline-size;", "}", "");
+  lines.push(".kui-theme {", "  container-type: inline-size;", "}", "");
 
   tierNames.forEach((_, i) => {
-    lines.push(`@container (min-width: ${tiers[tierNames[i]!]}) {`, "  .kk-box {");
+    lines.push(`@container (min-width: ${tiers[tierNames[i]!]}) {`, "  .kui-box {");
     for (const longhand of all) lines.push(`    ${longhand}: ${chain(longhand, i + 1)};`);
     lines.push("  }", "}", "");
   });

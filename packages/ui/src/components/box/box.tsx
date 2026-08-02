@@ -29,7 +29,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(function Box(props, r
 
   const merged = {
     ref,
-    className: className ? `kk-box ${className}` : "kk-box",
+    className: className ? `kui-box ${className}` : "kui-box",
     style: { ...style, ...userStyle },
     ...domProps,
   };

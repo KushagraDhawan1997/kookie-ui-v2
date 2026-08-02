@@ -50,7 +50,7 @@ describe("typed sugar presets the display and adds nothing else (§3)", () => {
   it("render and the escape hatches survive the wrapper", () => {
     const el = render(<Stack gap="2" render={<nav className="mine" />} />);
     expect(el.tagName).toBe("NAV");
-    expect(el.className.split(" ").sort()).toEqual(["kk-box", "mine"]);
+    expect(el.className.split(" ").sort()).toEqual(["kui-box", "mine"]);
     expect(computed(el, "flex-direction")).toBe("column");
   });
 });

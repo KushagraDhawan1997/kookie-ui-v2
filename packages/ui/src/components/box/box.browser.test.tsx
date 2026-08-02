@@ -85,7 +85,7 @@ describe("the boundary between props and the DOM (§3)", () => {
   it("render targets an element you already have instead of adding a wrapper", () => {
     const el = render(<Box p="4" render={<section className="mine" />} />);
     expect(el.tagName).toBe("SECTION");
-    expect(el.className.split(" ").sort()).toEqual(["kk-box", "mine"]);
+    expect(el.className.split(" ").sort()).toEqual(["kui-box", "mine"]);
     expect(computed(el, "padding-top")).toBe("12px");
   });
 });

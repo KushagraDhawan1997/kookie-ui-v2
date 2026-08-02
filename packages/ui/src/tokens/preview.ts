@@ -26,12 +26,12 @@ import { resolveBoxProps, type BoxStyleProps } from "../system/resolve.ts";
  * page (the runner cannot parse JSX), so what the layout section proves is the whole
  * mechanism minus the element wrapper the browser suite already covers.
  */
-function kkBox(props: BoxStyleProps, body: string): string {
+function kuiBox(props: BoxStyleProps, body: string): string {
   const { style } = resolveBoxProps(props);
   const inline = Object.entries(style)
     .map(([k, v]) => `${k}: ${v}`)
     .join("; ");
-  return `<div class="kk-box" style="${inline}">${body}</div>`;
+  return `<div class="kui-box" style="${inline}">${body}</div>`;
 }
 
 /**
@@ -389,9 +389,9 @@ ${LEVELS.map(
 <p class="note">A Grid: <code>columns={{ initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}</code>, gap steps up at md.</p>
 <div class="rig-meta">slot <span class="w">—</span></div>
 <div class="rig">
-${kkBox(
+${kuiBox(
   {},
-  kkBox(
+  kuiBox(
     {
       display: "grid",
       columns: { initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
@@ -406,9 +406,9 @@ ${kkBox(
 <p class="note">A Flex switching axis: <code>direction={{ initial: "column", md: "row" }}</code> — a structural keyword riding the same pipe as spacing, which is why this is not a spacing mechanism.</p>
 <div class="rig-meta">slot <span class="w">—</span></div>
 <div class="rig">
-${kkBox(
+${kuiBox(
   {},
-  kkBox(
+  kuiBox(
     { display: "flex", direction: { initial: "column", md: "row" }, gap: "3", p: "4" },
     ["nav", "content", "aside"].map((n) => `<div class="cell" style="flex: 1">${n}</div>`).join(""),
   ),

@@ -30,7 +30,7 @@ describe("the axes render as attributes (§5)", () => {
       </Theme>,
     );
     expect(el.tagName).toBe("SECTION");
-    expect(el.className.split(" ").sort()).toEqual(["hero", "kk-theme"]);
+    expect(el.className.split(" ").sort()).toEqual(["hero", "kui-theme"]);
     expect(el.getAttribute("data-density")).toBe("compact");
     expect(el.querySelector("span")).not.toBeNull();
   });

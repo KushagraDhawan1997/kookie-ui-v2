@@ -24,7 +24,7 @@ export type PropDef = {
   /** The CSS longhands this prop feeds. Never a shorthand — see `precedence`. */
   css: string[];
   scale: Scale;
-  /** Private custom property stem; `--kk-` marks it as plumbing, never a public token (§13). */
+  /** Private custom property stem; `--kui-` marks it as plumbing, never a public token (§13). */
   var: string;
   /**
    * How specific this prop is for the longhands it shares: 0 for `p`, 1 for `px`, 2 for `pt`.
@@ -32,8 +32,8 @@ export type PropDef = {
    * Shorthands are expanded rather than emitted, because a shorthand followed by longhands does
    * not degrade the way it looks like it should: an unset custom property makes its declaration
    * invalid at computed-value time, and the property falls back to its *initial* value rather
-   * than to the earlier shorthand. `padding: var(--kk-p)` followed by `padding-block-start:
-   * var(--kk-pt)` therefore renders 0 whenever `pt` is unset. Precedence puts the same ordering
+   * than to the earlier shorthand. `padding: var(--kui-p)` followed by `padding-block-start:
+   * var(--kui-pt)` therefore renders 0 whenever `pt` is unset. Precedence puts the same ordering
    * inside one var chain per longhand, where it behaves.
    */
   precedence: number;

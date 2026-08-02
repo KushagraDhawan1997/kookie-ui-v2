@@ -26,19 +26,19 @@ const computed = (el: Element, prop: string) => getComputedStyle(el).getProperty
 
 describe("the var chain actually resolves (§2)", () => {
   it("a space token reaches the rendered property, through two levels of indirection", () => {
-    // --kk-p -> var(--space-4) -> calc(12px * var(--scale)). Nothing in the node suite can
+    // --kui-p -> var(--space-4) -> calc(12px * var(--scale)). Nothing in the node suite can
     // tell you this arrives; it only checks that the text says the right thing.
-    const host = mount(`<div class="kk-box" style="--kk-p: var(--space-4)"></div>`);
+    const host = mount(`<div class="kui-box" style="--kui-p: var(--space-4)"></div>`);
     expect(computed(host.firstElementChild!, "padding-top")).toBe("12px");
   });
 
   it("a raw value rides the same prop, which is what utility classes could never do", () => {
-    const host = mount(`<div class="kk-box" style="--kk-p: 13px"></div>`);
+    const host = mount(`<div class="kui-box" style="--kui-p: 13px"></div>`);
     expect(computed(host.firstElementChild!, "padding-top")).toBe("13px");
   });
 
   it("an unset prop resolves to nothing rather than to a broken value", () => {
-    const host = mount(`<div class="kk-box"></div>`);
+    const host = mount(`<div class="kui-box"></div>`);
     expect(computed(host.firstElementChild!, "padding-top")).toBe("0px");
   });
 });
@@ -49,13 +49,13 @@ describe("@property { inherits: false } stops the value cascading (§2)", () => 
     // ancestor. Custom properties inherit by default, so without the registration this passes
     // a value down through the whole subtree.
     const host = mount(
-      `<div class="kk-box" style="--kk-g: 40px"><div class="kk-box" id="child"></div></div>`,
+      `<div class="kui-box" style="--kui-g: 40px"><div class="kui-box" id="child"></div></div>`,
     );
     expect(computed(host.querySelector("#child")!, "row-gap")).not.toBe("40px");
   });
 
   it("but a normal token still inherits, because those are meant to", () => {
-    const host = mount(`<div style="--space-4: 99px"><div id="child" class="kk-box" style="--kk-p: var(--space-4)"></div></div>`);
+    const host = mount(`<div style="--space-4: 99px"><div id="child" class="kui-box" style="--kui-p: var(--space-4)"></div></div>`);
     expect(computed(host.querySelector("#child")!, "padding-top")).toBe("99px");
   });
 });
@@ -63,21 +63,21 @@ describe("@property { inherits: false } stops the value cascading (§2)", () => 
 describe("container tiers arbitrate by slot, not by window (§2)", () => {
   it("a narrow container keeps the base value even on a wide screen", () => {
     const host = mount(
-      `<div class="kk-box" style="width: 200px"><div id="child" class="kk-box" style="--kk-p: 4px; --kk-p-md: 40px"></div></div>`,
+      `<div class="kui-box" style="width: 200px"><div id="child" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div></div>`,
     );
     expect(computed(host.querySelector("#child")!, "padding-top")).toBe("4px");
   });
 
   it("a wide container takes the tier value", () => {
     const host = mount(
-      `<div class="kk-box" style="width: 900px"><div id="child" class="kk-box" style="--kk-p: 4px; --kk-p-md: 40px"></div></div>`,
+      `<div class="kui-box" style="width: 900px"><div id="child" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div></div>`,
     );
     expect(computed(host.querySelector("#child")!, "padding-top")).toBe("40px");
   });
 
   it("a tier falls back down the chain when its own value is unset", () => {
     const host = mount(
-      `<div class="kk-box" style="width: 900px"><div id="child" class="kk-box" style="--kk-p: 4px; --kk-p-sm: 20px"></div></div>`,
+      `<div class="kui-box" style="width: 900px"><div id="child" class="kui-box" style="--kui-p: 4px; --kui-p-sm: 20px"></div></div>`,
     );
     expect(computed(host.querySelector("#child")!, "padding-top")).toBe("20px");
   });
@@ -86,17 +86,17 @@ describe("container tiers arbitrate by slot, not by window (§2)", () => {
     // The sharp edge, pinned: a tier reads the nearest ancestor query container, and a Box is
     // a container for its CHILDREN, never for itself. The outermost Box in a tree therefore
     // has no tier context at all — found when the preview's grid rig sat at one column at
-    // every width. Decided 2026-08-02: Theme's element is a container too (.kk-theme), so in
+    // every width. Decided 2026-08-02: Theme's element is a container too (.kui-theme), so in
     // an app this edge only exists OUTSIDE any Theme — which is what this law pins.
     const host = mount(
-      `<div style="width: 900px"><div id="probe" class="kk-box" style="--kk-p: 4px; --kk-p-md: 40px"></div></div>`,
+      `<div style="width: 900px"><div id="probe" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div></div>`,
     );
     expect(computed(host.querySelector("#probe")!, "padding-top")).toBe("4px");
   });
 
   it("structural props ride the same pipe, which is why this is not a spacing mechanism", () => {
     const host = mount(
-      `<div class="kk-box" style="width: 900px"><div id="child" class="kk-box" style="--kk-fd: column; --kk-fd-md: row"></div></div>`,
+      `<div class="kui-box" style="width: 900px"><div id="child" class="kui-box" style="--kui-fd: column; --kui-fd-md: row"></div></div>`,
     );
     expect(computed(host.querySelector("#child")!, "flex-direction")).toBe("row");
   });

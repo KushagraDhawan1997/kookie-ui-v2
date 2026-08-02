@@ -59,10 +59,10 @@ export function resolveBoxProps<P extends BoxStyleProps & Record<string, unknown
       for (const [tier, tierValue] of Object.entries(value as Record<string, string | number>)) {
         if (tierValue === undefined || tierValue === null) continue;
         const suffix = tier === "initial" ? "" : `-${tier}`;
-        style[`--kk-${def.var}${suffix}`] = resolveValue(tierValue, def.scale);
+        style[`--kui-${def.var}${suffix}`] = resolveValue(tierValue, def.scale);
       }
     } else {
-      style[`--kk-${def.var}`] = resolveValue(value as string | number, def.scale);
+      style[`--kui-${def.var}`] = resolveValue(value as string | number, def.scale);
     }
   }
 
