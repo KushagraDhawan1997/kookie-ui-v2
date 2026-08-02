@@ -13,7 +13,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { tones, type Mode, type ToneName } from "./color-config.ts";
-import { buildScale, buildScaleFor, type Scale } from "./color.ts";
+import { buildScale, buildScaleFor, toneFromColor, type Scale } from "./color.ts";
 
 import { density, radiusLevels, type DensityLevel } from "./config.ts";
 
@@ -151,6 +151,37 @@ function roleMap(): string {
           <td><code>${token}</code></td><td>${resolves}</td><td>${used}</td></tr>`,
     ).join("")}</tbody>
   </table>`;
+}
+
+/**
+ * Real brand colours through the intake (§7). Each is a hex someone actually ships, and light
+ * mode reproduces it exactly at step 9 — the swatch marked 9 IS the hex beside the name. Edit
+ * `BRANDS` here, or set `tones.accent` in color-config.ts, then re-run `pnpm run preview`.
+ */
+const BRANDS: Array<[string, string]> = [
+  ["Radix violet", "#6E56CF"],
+  ["Vercel blue", "#0070F3"],
+  ["Linear indigo", "#5E6AD2"],
+  ["Stripe indigo", "#635BFF"],
+  ["Spotify green", "#1DB954"],
+  ["Radix yellow", "#FFE629"],
+  ["Radix red", "#E5484D"],
+  ["teal", "#00C8B4"],
+];
+
+function brandSection(mode: Mode): string {
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>brand colours — ${mode}</h2>
+    ${BRANDS.map(([name, hex]) => {
+      const s = buildScaleFor(toneFromColor(hex), mode);
+      const pinned = s.steps[8]!.toLowerCase() === hex.toLowerCase();
+      return scaleRow(
+        `${name} <em>${hex}${mode === "light" ? (pinned ? " — pinned exactly at step 9" : " — snapped, out of band") : " — re-derived, no pin in dark"}</em>`,
+        s,
+        buildScaleFor(toneFromColor(hex), mode, "srgb", "high"),
+      );
+    }).join("")}
+  </section>`;
 }
 
 /** The sweep at the depth the shipped tones get, for judging one hue rather than the family. */
@@ -303,6 +334,11 @@ ${hueSweep("dark")}
 <p class="note">The same twelve hues at the depth the shipped tones get: all twelve steps, the alpha ramp beneath them, then the roles a component actually consumes. Nothing here is hand-placed. Every row is one generator with a different hue angle.</p>
 ${sweepFull("light")}
 ${sweepFull("dark")}
+
+<h1 style="margin-top: var(--space-11)">brand colours through the intake</h1>
+<p class="note">Somebody hands the system a hex; the system makes it correct. In light mode step 9 comes back identical to what went in — compare the swatch numbered 9 against the hex in the heading. Everything else is generated around it, and every one of these passes the same legibility laws the shipped tones do.</p>
+${brandSection("light")}
+${brandSection("dark")}
 
 <script>
   document.getElementById("icons").addEventListener("change", (e) => {
