@@ -55,38 +55,47 @@ function hueSweep(mode: Mode): string {
 
 const TONES = Object.keys(tones) as ToneName[];
 
-/** Twelve steps, the alpha ramp over the mode's backdrop, and the roles that consume them. */
-function scaleRow(tone: string, s: Scale): string {
-  const swatch = (bg: string, title: string, label = "") =>
-    `<div class="sw" title="${title}" style="background:${bg}">${label}</div>`;
+const swatch = (bg: string, title: string, label = "") =>
+  `<div class="sw" title="${title}" style="background:${bg}">${label}</div>`;
 
+/** Steps and the roles that read them. Rendered twice per scale: normal, then contrast=high. */
+function stepsAndRoles(tone: string, s: Scale, withAlpha: boolean): string {
   return `
-    <div class="scale">
-      <h3>${tone}${s.isLowChroma ? ' <em>low chroma: solid takes step 12</em>' : ""}</h3>
       <div class="row">${s.steps.map((hex, i) => swatch(hex, `${tone}-${i + 1} ${hex}`, String(i + 1))).join("")}</div>
-      <div class="row">${s.alpha.map((v, i) => swatch(v, `${tone}-a${i + 1}`)).join("")}</div>
+      ${withAlpha ? `<div class="row">${s.alpha.map((v, i) => swatch(v, `${tone}-a${i + 1}`)).join("")}</div>` : ""}
       <div class="row roles">
         ${[
           ["solid", s.solid],
           ["hover", s.solidHover],
           ["active", s.solidActive],
         ]
-          .map(
-            ([n, hex]) =>
-              `<div class="role" style="background:${hex};color:${s.contrast}">${n}</div>`,
-          )
+          .map(([n, hex]) => `<div class="role" style="background:${hex};color:${s.contrast}">${n}</div>`)
           .join("")}
         <div class="role" style="background:${s.steps[2]};color:${s.label}">label on 3</div>
         <div class="role" style="background:${s.steps[4]};color:${s.label}">label on 5</div>
         <div class="role" style="background:${s.steps[2]};color:${s.steps[10]}">text on 3</div>
-      </div>
+      </div>`;
+}
+
+/**
+ * One scale at full depth, with its high-contrast variant directly beneath it. The swatches
+ * are generator output rather than `var()` references, so the two states have to be rendered
+ * side by side — a page-wide toggle cannot reach a baked value.
+ */
+function scaleRow(tone: string, normal: Scale, high: Scale): string {
+  return `
+    <div class="scale">
+      <h3>${tone}${normal.isLowChroma ? ' <em>low chroma: solid takes step 12</em>' : ""}</h3>
+      ${stepsAndRoles(tone, normal, true)}
+      <div class="hc-label">contrast="high"</div>
+      ${stepsAndRoles(tone, high, false)}
     </div>`;
 }
 
 function colorSection(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>${mode}</h2>
-    ${TONES.map((t) => scaleRow(t, buildScale(t, mode))).join("")}
+    ${TONES.map((t) => scaleRow(t, buildScale(t, mode), buildScale(t, mode, "srgb", "high"))).join("")}
   </section>`;
 }
 
@@ -148,7 +157,13 @@ function roleMap(): string {
 function sweepFull(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>every hue — ${mode}</h2>
-    ${SWEEP.map(([name, hue, vividness]) => scaleRow(name, buildScaleFor({ hue, vividness }, mode))).join("")}
+    ${SWEEP.map(([name, hue, vividness]) =>
+      scaleRow(
+        name,
+        buildScaleFor({ hue, vividness }, mode),
+        buildScaleFor({ hue, vividness }, mode, "srgb", "high"),
+      ),
+    ).join("")}
   </section>`;
 }
 
@@ -220,6 +235,11 @@ export function generatePreview(): string {
   .roles-table td { padding: var(--space-3) var(--space-5) var(--space-3) 0; border-top: 1px solid #eee; vertical-align: middle; }
   .roles-table code { font-family: var(--font-mono); font-size: var(--font-size-1); }
   .roles-table td:nth-child(3), .roles-table td:nth-child(4) { color: #666; }
+  .hc-label { font-size: var(--font-size-1); font-family: var(--font-mono); color: #999;
+              margin: var(--space-4) 0 var(--space-2); }
+  .live { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-9); }
+  .live > div { padding: var(--space-3) var(--space-5); border-radius: var(--radius-control-2);
+                font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
   .chip { display: block; width: 22px; height: 22px; border-radius: var(--radius-2); border: 1px solid #0001; }
 </style>
 </head>
@@ -261,6 +281,16 @@ ${roleMap()}
   <thead><tr><th>what</th><th>happens</th></tr></thead>
   <tbody>${CONTRAST_MAP.map(([a, b]) => `<tr><td><code>${a}</code></td><td>${b}</td></tr>`).join("")}</tbody>
 </table>
+
+<p class="note">Below is the only strip on this page reading the emitted CSS variables rather than generator output, so the toggle above proves the shipped stylesheet works end to end. Every other swatch is a baked value and shows its high-contrast variant inline instead.</p>
+<div class="live">
+  <div style="background: var(--accent-solid); color: var(--accent-contrast)">accent solid</div>
+  <div style="background: var(--accent-3); color: var(--accent-label)">accent label on 3</div>
+  <div style="background: var(--accent-3); color: var(--accent-text)">accent text on 3</div>
+  <div style="background: var(--accent-1); color: var(--accent-label); border: 1px solid var(--accent-border)">accent border</div>
+  <div style="background: var(--destructive-solid); color: var(--destructive-contrast)">destructive solid</div>
+  <div style="background: var(--neutral-solid); color: var(--neutral-contrast)">neutral solid</div>
+</div>
 
 <h1 style="margin-top: var(--space-11)">colour</h1>
 <p class="note">Generated from a hue angle and a chroma peak per tone (§7). Steps 1-8 and 11-12 share one lightness ladder across every hue; the solid band leans toward each hue's own cusp, which is the fix for bright hues reading as mud. Every label pairing here is APCA-verified in the suite, not chosen by eye — but the eye is what decides whether it looks right.</p>
