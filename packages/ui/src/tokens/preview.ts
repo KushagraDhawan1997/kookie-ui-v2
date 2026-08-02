@@ -210,12 +210,12 @@ function surfaceSection(mode: Mode): string {
     " linear-gradient(115deg, #841e57, #144e68 55%, #1db954);" +
     " padding: var(--space-7); border-radius: var(--radius-surface);" +
     " display: flex; gap: var(--space-5); flex-wrap: wrap;";
-  const materials = ["solid", "thin", "thick"]
+  const materials = ["solid", "thin", "regular", "thick"]
     .map((m) =>
       card(
         `<strong>${m}</strong><div ${muted}>does the label survive?</div>
          <div style="margin-top: var(--space-4)">${button({ tone: "accent", emphasis: "loud" }, "Label")} ${button({}, "Label")}</div>`,
-        "flex: 1; min-width: 200px",
+        "flex: 1; min-width: 180px",
         m === "solid" ? undefined : m,
       ),
     )

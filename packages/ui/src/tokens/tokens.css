@@ -223,6 +223,8 @@
   /* material recipes (§10) — fills mix over the page colour, so tone rides for free */
   --material-thin-fill: color-mix(in srgb, var(--neutral-1) 55%, transparent);
   --material-thin-filter: blur(12px) saturate(150%) brightness(1.05);
+  --material-regular-fill: color-mix(in srgb, var(--neutral-1) 64%, transparent);
+  --material-regular-filter: blur(16px) saturate(165%) brightness(1.06);
   --material-thick-fill: color-mix(in srgb, var(--neutral-1) 72%, transparent);
   --material-thick-filter: blur(20px) saturate(180%) brightness(1.08);
   --material-opaque-fill: color-mix(in srgb, var(--neutral-1) 95%, transparent);
@@ -347,6 +349,8 @@
   /* material recipes (§10) — fills mix over the page colour, so tone rides for free */
   --material-thin-fill: color-mix(in srgb, var(--neutral-1) 62%, transparent);
   --material-thin-filter: blur(12px) saturate(150%) brightness(0.9);
+  --material-regular-fill: color-mix(in srgb, var(--neutral-1) 71%, transparent);
+  --material-regular-filter: blur(16px) saturate(165%) brightness(0.88);
   --material-thick-fill: color-mix(in srgb, var(--neutral-1) 80%, transparent);
   --material-thick-filter: blur(20px) saturate(180%) brightness(0.85);
   --material-opaque-fill: color-mix(in srgb, var(--neutral-1) 95%, transparent);

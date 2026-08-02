@@ -5,8 +5,9 @@ import * as React from "react";
 import type { RenderElement } from "../../system/render.ts";
 import type { Size } from "../button/button.tsx";
 
-/** §10 — what a surface is made of. Two recipes, not a magnitude dial; solid is the absence. */
-export type Material = "solid" | "thin" | "thick";
+/** §10 — what a surface is made of: three designed thicknesses, like the emphasis ladder.
+    `solid` is not a member — it is the seal, the absence of any material (the default). */
+export type Material = "solid" | "thin" | "regular" | "thick";
 
 export type CardProps = Omit<
   React.ComponentPropsWithoutRef<"div">,

@@ -179,18 +179,22 @@ export const cursor = {
 } as const;
 
 /**
- * §10 — the material recipes, the spec's v0 table verbatim. Two recipes, not a magnitude
- * dial: saturation and opacity deliberately do not order monotonically between them. Alpha is
- * a percentage over `--neutral-1` (the page colour), so the fill is mode-aware for free.
- * Blur radii are provisional until measured on a mid-tier device (§10).
+ * §10 — the material recipes: three designed thicknesses, like the emphasis ladder
+ * (amended 2026-08-04, Kushagra — was two). thin / regular / thick, Apple's own naming for
+ * the same scale; solid is not a member, it is the seal — the absence of any material.
+ * Alpha is a percentage over `--neutral-1` (the page colour), so the fill is mode-aware for
+ * free. Designed points, not a dial; blur radii provisional until measured on a mid-tier
+ * device (§10). v0 values judged against the photo backdrop in the preview.
  */
 export const material = {
   light: {
     thin: { alpha: 55, filter: "blur(12px) saturate(150%) brightness(1.05)" },
+    regular: { alpha: 64, filter: "blur(16px) saturate(165%) brightness(1.06)" },
     thick: { alpha: 72, filter: "blur(20px) saturate(180%) brightness(1.08)" },
   },
   dark: {
     thin: { alpha: 62, filter: "blur(12px) saturate(150%) brightness(0.9)" },
+    regular: { alpha: 71, filter: "blur(16px) saturate(165%) brightness(0.88)" },
     thick: { alpha: 80, filter: "blur(20px) saturate(180%) brightness(0.85)" },
   },
   /** Where backdrop-filter is unavailable or transparency is reduced: near-opaque, still a mix

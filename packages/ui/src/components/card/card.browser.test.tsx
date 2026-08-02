@@ -81,10 +81,12 @@ describe("the shell SEALS — translucency is material's job alone (§10, LOG 20
 });
 
 describe("material is backdrop defense, opt-in (§10)", () => {
-  it("thin and thick blur; the default never does", () => {
+  it("three thicknesses blur in order; the default never does", () => {
     const thin = render(<Card material="thin">B</Card>);
+    const regular = render(<Card material="regular">B</Card>);
     const thick = render(<Card material="thick">B</Card>);
     expect(computed(thin, "backdrop-filter")).toContain("blur(12px)");
+    expect(computed(regular, "backdrop-filter")).toContain("blur(16px)");
     expect(computed(thick, "backdrop-filter")).toContain("blur(20px)");
   });
 

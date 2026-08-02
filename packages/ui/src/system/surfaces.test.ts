@@ -17,7 +17,7 @@ const stripped = surfaces.replace(/\/\*[\s\S]*?\*\//g, "");
 
 const TONE_NAMES = Object.keys(tones);
 const RUNGS = ["loud", "medium", "quiet"];
-const MATERIALS = ["thin", "thick"];
+const MATERIALS = ["thin", "regular", "thick"];
 
 describe("Card owns no CSS at all (§2, §10)", () => {
   it("has no stylesheet — the surface layer is the whole of what a Card looks like", () => {

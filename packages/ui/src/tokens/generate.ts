@@ -290,6 +290,8 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `  /* material recipes (§10) — fills mix over the page colour, so tone rides for free */`,
     `  --material-thin-fill: ${mix(m.thin.alpha)};`,
     `  --material-thin-filter: ${m.thin.filter};`,
+    `  --material-regular-fill: ${mix(m.regular.alpha)};`,
+    `  --material-regular-filter: ${m.regular.filter};`,
     `  --material-thick-fill: ${mix(m.thick.alpha)};`,
     `  --material-thick-filter: ${m.thick.filter};`,
     `  --material-opaque-fill: ${mix(material.fallbackAlpha)};`,

@@ -65,6 +65,7 @@
    because it is an accessibility requirement and a performance escape in one. */
 
 .kui-surface[data-material="thin"],
+.kui-surface[data-material="regular"],
 .kui-surface[data-material="thick"] {
   --kui-sf-fill: var(--material-opaque-fill);
 }
@@ -74,6 +75,10 @@
     --kui-sf-fill: var(--material-thin-fill);
     backdrop-filter: var(--material-thin-filter);
   }
+  .kui-surface[data-material="regular"] {
+    --kui-sf-fill: var(--material-regular-fill);
+    backdrop-filter: var(--material-regular-filter);
+  }
   .kui-surface[data-material="thick"] {
     --kui-sf-fill: var(--material-thick-fill);
     backdrop-filter: var(--material-thick-filter);
@@ -82,6 +87,7 @@
 
 @media (prefers-reduced-transparency: reduce) {
   .kui-surface[data-material="thin"],
+  .kui-surface[data-material="regular"],
   .kui-surface[data-material="thick"] {
     --kui-sf-fill: var(--material-opaque-fill);
     backdrop-filter: none;

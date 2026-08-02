@@ -664,11 +664,11 @@ What replaces it costs nothing: **separation is border and fill.** In-flow surfa
 
 ### Material: backdrop defense (Theme policy x component usage)
 
-**Decision (revised 2026-08-01): `material = solid | thin | thick`, off by default, available on any component that can float — buttons included.**
+**Decision (revised 2026-08-04): `material = solid | thin | regular | thick`. `solid` is the default and is not a material — it is the seal, the absence of one. Three designed thicknesses, like the emphasis ladder; `regular` is the middle, SwiftUI's own name for it. Available on any component that can float — buttons included.**
 
 **Material is backdrop defense, not decoration.** Its job is keeping the foreground legible over whatever is behind it, and it fires only when something floats over busy content. That framing makes the axis testable — does the label survive — instead of aesthetic, and it is why the axis is not surfaces-only: a Card in a solid layout has nothing to defend against, while a Button floating over a photo does.
 
-**`thin` and `thick` are two recipes, not a magnitude dial.** Saturation and opacity do not order monotonically between them, which is what proves they are different behaviours rather than two points on one scale. Every lever in a recipe does legibility work, moving together by defense intensity. Values are tokens (`--material-thick-alpha` and so on), mode-aware, and are v0 defaults to be judged against real backdrops rather than reasoned about:
+**Three designed points, not a dial (amended 2026-08-04 — was "two recipes", superseded when the axis gained its middle).** Every lever in a recipe does legibility work, moving together by defense intensity. Values are tokens, mode-aware, and are v0 defaults judged against the photo backdrop in the preview rather than reasoned about (`regular` interpolates thin/thick as a starting point only — it is its own designed row):
 
 ```
                  bg alpha   backdrop-filter (light mode)                  dark-mode delta
