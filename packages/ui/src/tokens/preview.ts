@@ -203,10 +203,10 @@ function surfaceSection(mode: Mode): string {
   const sizes = ["1", "2", "3", "4"]
     .map((n) => card(`size ${n}`, "flex: 1", undefined, n))
     .join("");
+  // A real photo (repo asset beside the emitted html, never published — only dist/ ships),
+  // with the gradient collage as the fallback layer if the file is missing.
   const hostile =
-    "background: radial-gradient(circle at 20% 30%, #ff5f6d 0 12%, transparent 40%)," +
-    " radial-gradient(circle at 75% 20%, #ffc371 0 18%, transparent 45%)," +
-    " radial-gradient(circle at 60% 80%, #2bc0e4 0 15%, transparent 42%)," +
+    "background: url('backdrop.jpg') center / cover no-repeat," +
     " linear-gradient(115deg, #841e57, #144e68 55%, #1db954);" +
     " padding: var(--space-7); border-radius: var(--radius-surface);" +
     " display: flex; gap: var(--space-5); flex-wrap: wrap;";
