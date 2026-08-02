@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-02 The colour generator lands, and interaction states learn to move away from their label
+
+§14 step 2b. Three tones in both modes generate from a hue angle and a chroma peak each, 2,102 bytes gzipped for the whole token file against a 40,960 ceiling. `culori` does the colour-space work at build time; APCA-W3 0.1.9 is implemented directly, thirty lines, so the contrast guarantee has no licence question attached to it. The browser does no colour maths.
+
+**The law tests earned their existence three times before the generator was finished.** Each failure was a real design defect, not a wrong assertion, which is the whole argument for laws over snapshots.
+
+**First: the dark text role missed its own target.** `--destructive-text` measured APCA Lc 57 on the soft fill it sits on, under the Lc 60 body-text bar. Fixed in the ladder, dark step 11 from .77 to .80, rather than by lowering the bar.
+
+**Second, and the interesting one: a fixed interaction direction walks a fill toward its own label half the time.** §7 said darken in light, lighten in dark, reasoned against the *background*. But in dark mode lightening a solid moves it toward its white label — the destructive pressed state landed at Lc 59. The same fault in mirror image hit every bright hue in light mode: yellow, lime and cyan carry black labels, and darkening on press dropped them to Lc 53-55, the worst cases in the system.
+
+The rule is now **away from the label, never a fixed direction per mode.** The label is chosen on the resting fill, then hover and press move away from it, so the interaction states are *strictly more* legible than rest and only rest has to clear the bar. It reads correctly too: pressed separates further from its label rather than muddying into it. One exception falls out of the arithmetic — a fill already at an extreme has no room to move away (dark neutral rests at L .94 with a black label), so it moves toward the label instead, which is safe precisely because being at an extreme is what left the margin.
+
+Worst case across every hue tested, both modes, is now Lc 68. It was 53.
+
+**Third: the cusp pull needed to be stronger than guessed.** At 0.55 the bright hues sat in the middle-lightness zone where neither black nor white clears comfortably. 0.72 puts them where dark text has room.
+
+The hostile-hue suite is the reason all of this surfaced: brand yellow, neon lime, hot magenta, cyan, near-black navy and a near-grey accent, each asserted against the same laws as the shipped tones. The near-grey case also confirms the low-chroma solid remap keys on chroma rather than on the tone being *named* neutral.
+
+Also built: the alpha ramp (least-alpha overlay that composites back to its step, law-tested by recompositing), and colour swatches in the preview, because Lc numbers say a colour is legible and nothing but an eye says it looks right.
+
+Rejected: pulling in `apca-w3` as a dependency (thirty lines against a licence question on a value we ship); snapshotting hex values (a snapshot asserts that the output did not change, never that it is correct); lowering the target to Lc 45 for interaction states, which would have passed all three bugs.
+
 ## 2026-08-02 highContrast does not ship, because both of its jobs are role-layer bugs
 
 Radix's per-component `highContrast` was being reached for as a *look* — a darker, more authoritative button label — which is not what the name says and not what the mechanism is for. Two orthogonal problems were hiding under one prop, and neither one is about contrast.

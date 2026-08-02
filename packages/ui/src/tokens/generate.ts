@@ -10,6 +10,7 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { colorDeclarations } from "./color.ts";
 import {
   defaultRadiusLevel,
   density,
@@ -63,7 +64,12 @@ export function generateTokens(): string {
   lines.push("", "  /* semantic: control family at the default density (§4, §6, §12) */");
   lines.push(...controlFamily("default"));
 
+  lines.push("", "  /* colour, generated (§7) — light mode */");
+  lines.push(...colorDeclarations("light"));
+
   lines.push("}", "");
+
+  lines.push(`[data-appearance="dark"] {`, ...colorDeclarations("dark"), "}", "");
 
   // Density is a designed set, not a multiplier: each level re-declares the control family.
   for (const level of Object.keys(density) as DensityLevel[]) {

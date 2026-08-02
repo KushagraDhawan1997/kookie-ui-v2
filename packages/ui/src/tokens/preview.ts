@@ -12,7 +12,47 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { tones, type Mode, type ToneName } from "./color-config.ts";
+import { buildScale } from "./color.ts";
 import { density, radiusLevels, type DensityLevel } from "./config.ts";
+
+const TONES = Object.keys(tones) as ToneName[];
+
+/** Twelve steps, the alpha ramp over the mode's backdrop, and the roles that consume them. */
+function scaleRow(tone: ToneName, mode: Mode): string {
+  const s = buildScale(tone, mode);
+  const swatch = (bg: string, title: string, label = "") =>
+    `<div class="sw" title="${title}" style="background:${bg}">${label}</div>`;
+
+  return `
+    <div class="scale">
+      <h3>${tone}${s.isLowChroma ? ' <em>low chroma: solid takes step 12</em>' : ""}</h3>
+      <div class="row">${s.steps.map((hex, i) => swatch(hex, `${tone}-${i + 1} ${hex}`, String(i + 1))).join("")}</div>
+      <div class="row">${s.alpha.map((v, i) => swatch(v, `${tone}-a${i + 1}`)).join("")}</div>
+      <div class="row roles">
+        ${[
+          ["solid", s.solid],
+          ["hover", s.solidHover],
+          ["active", s.solidActive],
+        ]
+          .map(
+            ([n, hex]) =>
+              `<div class="role" style="background:${hex};color:${s.contrast}">${n}</div>`,
+          )
+          .join("")}
+        <div class="role" style="background:${s.steps[2]};color:${s.label}">label on 3</div>
+        <div class="role" style="background:${s.steps[4]};color:${s.label}">label on 5</div>
+        <div class="role" style="background:${s.steps[2]};color:${s.steps[10]}">text on 3</div>
+      </div>
+    </div>`;
+}
+
+function colorSection(mode: Mode): string {
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    ${TONES.map((t) => scaleRow(t, mode)).join("")}
+  </section>`;
+}
 
 const LEVELS = Object.keys(density) as DensityLevel[];
 const SIZES = [1, 2, 3, 4] as const;
@@ -58,6 +98,18 @@ export function generatePreview(): string {
   .toggle label { display: flex; gap: var(--space-3); align-items: center; }
   .surfaces { display: flex; gap: var(--space-6); margin-top: var(--space-10); }
   .surface { background: #f6f6f8; border: 1px solid #e3e3e8; padding: var(--space-6); font-size: var(--font-size-2); color: #666; }
+  .mode { margin-top: var(--space-10); padding: var(--space-7); border-radius: var(--radius-surface); }
+  .mode.dark { background: #111214; color: #e9ebed; }
+  .mode h2 { margin-bottom: var(--space-6); }
+  .scale { margin-bottom: var(--space-7); }
+  .scale h3 { font-size: var(--font-size-2); font-weight: var(--font-weight-medium); margin: 0 0 var(--space-3); }
+  .scale h3 em { color: #999; font-weight: var(--font-weight-regular); font-style: normal; }
+  .row { display: flex; gap: 2px; margin-bottom: 2px; }
+  .sw { width: 56px; height: 36px; display: flex; align-items: end; justify-content: center;
+        font-size: 10px; font-family: var(--font-mono); color: #8888; }
+  .row.roles { margin-top: var(--space-3); gap: var(--space-2); }
+  .role { padding: var(--space-3) var(--space-4); border-radius: var(--radius-control-2);
+          font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
   .readout { font-family: var(--font-mono); font-size: 11px; color: #888; }
   .ruler { position: relative; }
 </style>
@@ -88,6 +140,11 @@ ${LEVELS.map(
   <div class="surface" style="border-radius: var(--radius-surface)">--radius-surface (card, popover)</div>
   <div class="surface" style="border-radius: var(--radius-overlay)">--radius-overlay (dialog, sheet)</div>
 </div>
+
+<h1 style="margin-top: var(--space-11)">colour</h1>
+<p class="note">Generated from a hue angle and a chroma peak per tone (§7). Steps 1-8 and 11-12 share one lightness ladder across every hue; the solid band leans toward each hue's own cusp, which is the fix for bright hues reading as mud. Every label pairing here is APCA-verified in the suite, not chosen by eye — but the eye is what decides whether it looks right.</p>
+${colorSection("light")}
+${colorSection("dark")}
 
 <script>
   document.getElementById("icons").addEventListener("change", (e) => {
