@@ -24,10 +24,19 @@ import { generateTokens } from "./generate.ts";
 const css = generateTokens();
 const increasing = (xs: readonly number[]) => xs.every((v, i) => i === 0 || v > xs[i - 1]!);
 
-/** The body of one rule, bounded at its closing brace so it cannot bleed into the next block. */
+/**
+ * The body of one rule, bounded at its closing brace so it cannot bleed into the next block.
+ *
+ * Throws on a missing selector rather than returning "". Most laws here assert *absence*,
+ * and `expect("").not.toContain(x)` passes trivially — so a renamed selector would turn the
+ * whole suite green while checking nothing. Failing loudly is the only safe behaviour.
+ */
 function block(selector: string) {
   const start = css.indexOf(`${selector} {`);
-  return css.slice(start, css.indexOf("}", start));
+  if (start === -1) throw new Error(`no rule for "${selector}" — the suite would assert nothing`);
+  const end = css.indexOf("}", start);
+  if (end === -1) throw new Error(`unterminated rule for "${selector}"`);
+  return css.slice(start, end);
 }
 
 /** Reads a declaration out of a scope: `:root` by default, or a density block. */
@@ -153,6 +162,29 @@ describe("density is a designed set, not a multiplier (§12)", () => {
       expect(body).not.toMatch(/^\s*--radius-\d+:/m);
     }
   });
+});
+
+describe("the corner holds a fraction of its box (§6)", () => {
+  // The capsule bug: radius climbed with the size index rather than the box, so default ran
+  // 0.14 to 0.25 and comfortable reached 0.40. The invariant is not an absolute band — small
+  // is legitimately square and large legitimately round — it is that the ratio stays roughly
+  // constant ACROSS SIZES within one configuration. 1.6 is tuned just under the values that
+  // shipped the bug (1.79 and 1.67); tighten it if the ladders ever get calmer.
+  const SPREAD = 1.6;
+
+  // `none` is 0 by design and `full` is a pill by design; neither has a ratio to hold.
+  const levels = ["small", "medium", "large"] as const;
+
+  for (const levelName of levels) {
+    for (const [densityName, set] of Object.entries(density)) {
+      it(`holds across sizes at ${densityName} x ${levelName}`, () => {
+        const ratios = set.radius.map(
+          (step, i) => radiusLevels[levelName].steps[step]! / set.height[i]!,
+        );
+        expect(Math.max(...ratios) / Math.min(...ratios)).toBeLessThanOrEqual(SPREAD);
+      });
+    }
+  }
 });
 
 describe("radius levels are designed palettes, not a factor (§6)", () => {
