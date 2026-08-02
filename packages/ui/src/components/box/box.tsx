@@ -2,12 +2,13 @@
 
 import * as React from "react";
 
+import type { RenderElement } from "../../system/render.ts";
 import { resolveBoxProps, type BoxStyleProps } from "../../system/resolve.ts";
 
 export type BoxProps = BoxStyleProps &
   Omit<React.ComponentPropsWithoutRef<"div">, keyof BoxStyleProps> & {
     /** Render into an element you already have, instead of adding a wrapper (§5). */
-    render?: React.ReactElement;
+    render?: RenderElement;
   };
 
 /**

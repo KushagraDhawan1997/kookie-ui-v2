@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import type { RenderElement } from "../system/render.ts";
+
 export type Appearance = "light" | "dark" | "inherit";
 export type Density = "compact" | "default" | "comfortable";
 export type RadiusLevel = "none" | "small" | "medium" | "large" | "full";
@@ -16,7 +18,7 @@ export type ThemeProps = {
   className?: string;
   style?: React.CSSProperties;
   /** Put the theme on an element you already have, rather than adding a wrapper (§5). */
-  render?: React.ReactElement;
+  render?: RenderElement;
 };
 
 type Resolved = Required<Pick<ThemeProps, "appearance" | "density" | "radius" | "contrast">>;
