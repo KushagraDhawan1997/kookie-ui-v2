@@ -178,6 +178,8 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
   it("shows the busy cursor, which pointer-events: none would have made impossible", () => {
     expect(computed(render(<Button loading>Save</Button>), "cursor")).toBe("progress");
     expect(computed(render(<Button>Save</Button>), "cursor")).toBe("pointer");
+    // Disabled drops back to the arrow: the hand promises a response this control won't give.
+    expect(computed(render(<Button disabled>Save</Button>), "cursor")).toBe("default");
   });
 
   it("keeps the keyboard when a press flips it into loading", () => {

@@ -531,11 +531,21 @@ No rung invents its own feedback amount. The rule: **hover = +1 step, press = +2
 
 **Law: the label must clear APCA against every background in its rung, not just the resting one.** Medium rests on step 3, hovers to 4, presses to 5, and the press state is where a label that only passed at rest fails silently.
 
-### One canonical interaction transition
+### One canonical interaction transition — with one designed asymmetry (amended 2026-08-03)
 
-A single duration + easing, color properties only, no layout animation, applied uniformly. Every hover is the same gesture at the same speed.
+A single duration + easing (`--motion-duration` 120ms, `--motion-easing`), color properties only, no layout animation. Every *eased* change is the same gesture at the same speed — but not every change eases:
+
+- **Press arrives instantly** (`transition-duration: 0s` on `:active`); release eases back. A tap lasts ~60ms against a 120ms transition, so an eased press never reaches its colour on a phone and the control reads as dead — a mouse hides this because a click holds the button down. Found on a real device, invisible in desktop emulation. Snap-in/ease-out is also how native controls behave.
+- **Hover exists only where hovering does**: every `:hover` rule sits under `@media (hover: hover)`. A touch device synthesises hover on tap and holds it until the next tap, so an unguarded rule leaves a pressed control stuck in its hover fill. `:active` is never guarded — on touch it is the only feedback there is.
+- Controls set `touch-action: manipulation` (drops double-tap-to-zoom, keeps scroll and pinch) and clear `-webkit-tap-highlight-color` — the press state is the tap feedback, not the browser's grey flash.
+
+Both asymmetries are laws in `recipes.test.ts`, asserted structurally (comments stripped first — a law a comment can satisfy is not a law).
 
 **The wider motion system is deferred (2026-08-02)** — duration families, overlay enter/exit, the reduced-motion law get their own discussion. Button ships on this one transition alone; the deferral is not a gate.
+
+### Cursors: tokenised, three states (decided 2026-08-03)
+
+`--cursor-button: pointer`, `--cursor-loading: progress`, `--cursor-disabled: default`. The earlier native-parity position (arrow on buttons, matching macOS) did not survive the medium: on the web the hand means "this responds" — a learned convention every major system honours — and refusing it makes a control read as inert. `progress` rather than `wait` while loading: the system is busy, the interface is not frozen. Disabled reverts to the arrow — the hand promises a response the control will not give — and never `not-allowed`, which scolds and matches no native platform. Loading blocks activation via the disabled attribute rather than `pointer-events: none` precisely because an element that takes no pointer events shows no cursor.
 
 ### Focus-visible: one ring, defined once (decided 2026-08-02)
 
@@ -543,7 +553,7 @@ A single duration + easing, color properties only, no layout animation, applied 
 
 ### Disabled: a role remap, never opacity (decided 2026-08-02)
 
-Foreground remaps to `neutral-8`, fills to `neutral-3`, borders to `neutral-6`; hover and press stop firing; the canonical transition stops. No `opacity` — it stacks on tinted surfaces and silently voids every generated contrast guarantee, where the remap keeps "legible but clearly off" as a designed, testable pair. Cursor stays default (native-platform parity; `not-allowed` scolds). Not focusable at rest, matching the native element — except while loading, below.
+Foreground remaps to `neutral-8`, fills to `neutral-3`, borders to `neutral-6`; hover and press stop firing; the canonical transition stops. No `opacity` — it stacks on tinted surfaces and silently voids every generated contrast guarantee, where the remap keeps "legible but clearly off" as a designed, testable pair. Cursor drops to `--cursor-disabled` (see Cursors, above). Not focusable at rest, matching the native element — except while loading, below.
 
 ### Loading: the label never hides (decided 2026-08-02)
 
@@ -551,7 +561,7 @@ Foreground remaps to `neutral-8`, fills to `neutral-3`, borders to `neutral-6`; 
 
 Composition: **a control with an icon swaps the icon for the Spinner in the same `--icon-size-N` box — zero layout shift. A text-only control gains the Spinner beside its label, and the label stays.** This reverses the label-hiding pattern (Polaris, Primer): a button that loses its label stops saying what it is doing, and the accepted cost is a slight width change on text-only controls while loading.
 
-**Spinner is a public component and deliberately primitive:** one element, `border: 2px solid transparent; border-top-color: currentColor`, a `transform: rotate` keyframe. No SVG, no JS, colour inherited from the label for free, sized by the icon family. Under `prefers-reduced-motion` it slows rather than stops — a busy indicator that stops moving is information lost.
+**Spinner is a public component and deliberately primitive (revised 2026-08-03):** one SVG of twelve static spokes rotated as a whole by a `steps(12)` keyframe — the indicator *ticks* from spoke to spoke rather than sweeping, which is the native-platform idiom. The first build was the border-trick arc (one element, no SVG); it was rejected by eye, and the conic-gradient attempt at spokes failed structurally — a conic gradient cuts angular wedges, not parallel-sided bars, so the spokes are geometry in the component. Still no JS and one composited transform per frame; `fill: currentColor` inherits the label's colour with no token; sized by the icon family. Under `prefers-reduced-motion` it slows (3s) rather than stops — a busy indicator that stops moving is information lost.
 
 ### The icon box (decided 2026-08-02)
 
@@ -962,7 +972,7 @@ Rejected: rem-derived geometry from a root font-size switch (one root scales gut
 - **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?
 - The **chroma threshold** below which `--accent-solid` remaps to step 12 (section 7), and the L-deltas for its hover and press. Tuning, not architecture.
 - Where exactly `--accent-label` sits between steps 11 and 12, per mode.
-- How **`quiet`** actually renders: a faint tint at rest, or bare until hover. Decide at the first real Button, not in the abstract.
+- ~~How **`quiet`** actually renders~~ — closed at the first real Button (2026-08-03): bare at rest, `transparent` literally, entering the ramp at hover (transparent → soft → soft-hover). Law-tested across every tone. `quiet + bordered` covers the faint-containment case the tint would have served.
 - Theme `material` **naming**: `material` vs `allowTranslucency` vs `materials`.
 
 **Radius / layout:**

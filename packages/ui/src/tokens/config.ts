@@ -173,6 +173,9 @@ export const motion = {
 export const cursor = {
   button: "pointer",
   loading: "progress",
+  /* Disabled reverts to the arrow: the hand promises a response the control will not give.
+     Not `not-allowed` — it scolds, and no native platform uses it. */
+  disabled: "default",
 } as const;
 
 /** §15 — closed weight set; `light` deferred until something needs it. */

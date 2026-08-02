@@ -171,6 +171,9 @@
    pair. Rewriting --tone-* rather than --kui-fill means quiet stays bare and every rung keeps
    its own shape while going flat. */
 .kui-control[data-disabled]:not([data-loading]) {
+  /* The hand promises a response; a disabled control makes no such promise. Back to the
+     arrow — never `not-allowed`, which no native platform uses. */
+  cursor: var(--cursor-disabled);
   --tone-soft: var(--neutral-3);
   --tone-soft-hover: var(--neutral-3);
   --tone-soft-active: var(--neutral-3);

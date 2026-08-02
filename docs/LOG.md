@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-03 Button meets a real phone, and three settled answers reverse
+
+Every defect in this entry was invisible in desktop Chromium, including its device emulator, and each was found by Kushagra on hardware — a preview on an actual iPhone falsified more of §8 in an evening than the test suite could. The suite asserts what the stylesheet *says*; only a device says how it *feels*.
+
+**"Applied uniformly" was wrong, and the correction is a designed asymmetry.** The canonical transition promised every state change at the same 120ms. On a phone the button read as dead: a tap lasts ~60ms, so an eased press never reaches its colour before it starts returning — a mouse hides this because a click holds the button down through the ramp. Press now lands instantly (`transition-duration: 0s` on `:active`) and release eases, which is also how native controls behave. Second touch defect, same session: unguarded `:hover` left tapped controls stuck in their hover fill, because touch synthesises hover on tap and holds it — every hover rule now sits under `@media (hover: hover)`, and `:active` deliberately never does, since on touch it is the only feedback there is. The hover law initially *passed against a comment* — the prose explaining the guard contained ":hover" — so the law now strips comments first: a law a comment can satisfy is not a law.
+
+**The cursor reversal.** §8 had chosen the arrow on native-platform-parity grounds. The argument did not survive the medium: on the web the hand means "this responds" — a convention old enough to be a human factor rather than a style — and every system a consumer has used shows it. Now tokenised as a designed set: `pointer` at rest, `progress` while loading (busy, not frozen — `wait` overstates), `default` when disabled (the hand promises a response the control will not give; `not-allowed` scolds). The loading cursor also fixed the blocking mechanism: `pointer-events: none` stops hit-testing, and an element that takes no pointer events shows no cursor, so activation blocks through the disabled attribute instead.
+
+**The Spinner stopped being clever.** The border-trick arc (one element, no SVG) was the spec's pride and was rejected by eye; the conic-gradient replacement failed structurally, because a conic gradient cuts angular wedges and the native idiom is parallel-sided bars. Wrong primitive, not wrong tuning. It is now twelve static SVG spokes rotated as a whole by a `steps(12)` keyframe — the tick from spoke to spoke *is* the look — still zero JS, one composited transform per frame, `currentColor` for free.
+
+This audit also closed §Open's "how does quiet render" (bare at rest, decided at the first real Button as planned) and caught the disabled cursor as genuine doc-code drift: the spec said arrow, the stylesheet still showed the hand. Fixed in CSS with a law, not by amending the doc — the doc was right.
+
+Rejected: guarding `:active` alongside `:hover` (removes the only feedback touch gets); `not-allowed` on disabled; `wait` while loading; keeping the eased press with a shorter duration (any ease loses a race with a 60ms tap; the asymmetry is the fix, not the number).
+
 ## 2026-08-03 Button lands, and the additivity claim stops being an argument
 
 §14 step 5. Base UI behind the Kookie surface — it supplies the `<button>` semantics, keyboard behaviour, `data-disabled` and `focusableWhenDisabled`, and every visible decision stays ours. First runtime dependency in the package.

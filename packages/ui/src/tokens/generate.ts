@@ -78,6 +78,7 @@ export function generateTokens(): string {
   lines.push("", "  /* §8 — pointer feedback; `button` is the contested one, so it is overridable */");
   put("cursor-button", cursor.button);
   put("cursor-loading", cursor.loading);
+  put("cursor-disabled", cursor.disabled);
 
   lines.push("", "  /* semantic: surfaces have no size index — flat tokens (§6) */");
   put("radius-surface", `var(--radius-${radiusSurface})`);

@@ -82,6 +82,7 @@
   /* §8 — pointer feedback; `button` is the contested one, so it is overridable */
   --cursor-button: pointer;
   --cursor-loading: progress;
+  --cursor-disabled: default;
 
   /* semantic: surfaces have no size index — flat tokens (§6) */
   --radius-surface: var(--radius-6);
