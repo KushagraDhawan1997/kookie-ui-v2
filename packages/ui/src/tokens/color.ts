@@ -232,38 +232,38 @@ export function buildScaleFor(
   // a button's label from white to black. The choice belongs to the design, not to the monitor.
   const contrast = contrastOn(formatHex(toGamut(oklch(restL, restC, hue), "srgb"))!);
   const preferred = contrast === "#ffffff" ? -1 : 1;
-  // A near-white or near-black solid has no room left to move away from its label — a dark
-  // mode neutral rests at L .94 with a black label. Fall back toward the label there, which
-  // still leaves an enormous margin precisely because the fill was at an extreme.
-  //
-  // The check has to use the SPREAD-multiplied excursion, not the base one: at contrast="high"
-  // the spread is 1.6x, and testing the unmultiplied delta let a bright hue's pressed state
-  // run past L 1.0, where it formatted as pure white and the chip vanished.
-  // The larger of the two widenings, never their product: both exist to keep the three states
-  // distinguishable, and stacking them took dark neutral's pressed state 27 points of lightness
-  // and dropped its label to APCA Lc 55.
-  const spread = Math.max(hc ? hc.stateSpread : 1, isLowChroma ? lowChromaStateScale : 1);
-  const CEILING = 0.97;
-  const FLOOR = 0.06;
-  const wanted = solidStateDeltas.active * spread;
-  const headroom = preferred > 0 ? CEILING - restL : restL - FLOOR;
+
 
   // A low-chroma solid sits at an extreme (step 12) and has no chroma cue to separate its
-  // states, so lightness is doing all the work — and moving further toward the extreme is
-  // where lightness has least left to say. It moves TOWARD its label, which is both the
-  // visible direction and still enormously legible precisely because it started at an end.
+  // states, so lightness does all the work and must travel further; it moves TOWARD its label,
+  // the visible direction, safe because it started at an end.
   //
-  // Otherwise: prefer moving away from the label; move toward it when there is not enough room.
-  //
-  // Compressing the excursion instead was tried and is worse: a fill sitting near its cusp
-  // (every bright hue) can only go lighter by shedding chroma, so the pressed state washed out
-  // to near-white and stopped being yellow at all. Moving toward the label keeps the hue, and
-  // the APCA laws below guarantee it still clears the bar — which is what the laws are for.
-  const away = isLowChroma || headroom < wanted ? -preferred : preferred;
-  const state = (delta: number) =>
-    format(toGamut(oklch(clampL(restL + away * delta * spread), restC, hue), gamut), gamut);
-  const solidHover = state(solidStateDeltas.hover);
-  const solidActive = state(solidStateDeltas.active);
+  // For everything else the states move away from the label — but bounded by what the HUE can
+  // take, not by a fixed delta. A fill at its cusp is hemmed in on both sides: yellow washed
+  // out to near-white going up (shedding 54% of its chroma) and went olive going down. So the
+  // excursion runs as far as it can while the hue still holds most of its saturation, and the
+  // direction is chosen by which way affords more of that travel.
+  const CHROMA_FLOOR = 0.75;
+  const spread = hc ? hc.stateSpread : 1;
+  const scaleFor = isLowChroma ? lowChromaStateScale : spread;
+  const desired = solidStateDeltas.active * scaleFor;
+  const reach = (dir: number) => {
+    let best = 0;
+    for (let d = 0.01; d <= desired; d += 0.005) {
+      const l = restL + dir * d;
+      if (l !== clampL(l) || available(l) < restC * CHROMA_FLOOR) break;
+      best = d;
+    }
+    return best;
+  };
+
+  const preferredReach = reach(preferred);
+  const away = isLowChroma || preferredReach < solidStateDeltas.hover ? -preferred : preferred;
+  const travel = Math.min(reach(away), desired);
+  const step = (fraction: number) =>
+    format(toGamut(oklch(clampL(restL + away * travel * fraction), restC, hue), gamut), gamut);
+  const solidHover = step(solidStateDeltas.hover / solidStateDeltas.active);
+  const solidActive = step(1);
 
   // A UI label is not a link: between 11 and 12, keeping chroma that step 12 has given up.
   const label = format(

@@ -135,6 +135,31 @@ describe("prominence comes from chroma or from lightness (§7)", () => {
   });
 });
 
+describe("interaction never desaturates a hue out of recognition (§7)", () => {
+  it("no state sheds more than a third of the resting chroma", () => {
+    // Moving a fill away from its cusp costs chroma, and past a point the hue stops being
+    // itself: yellow's pressed state read as olive. Capping the loss caps the mud, whatever
+    // combination of spread, direction and headroom produced the excursion.
+    for (const mode of MODES) {
+      for (const contrast of ["normal", "high"] as const) {
+        for (const spec of [
+          { hue: 100, vividness: 1 },
+          { hue: 130, vividness: 1 },
+          { hue: 195, vividness: 1 },
+          { hue: 250, vividness: 1 },
+          { hue: 25, vividness: 1 },
+        ]) {
+          const s = buildScaleFor(spec, mode, "srgb", contrast);
+          const restC = toOklch(s.solid)!.c;
+          for (const fill of [s.solidHover, s.solidActive]) {
+            expect(toOklch(fill)!.c).toBeGreaterThanOrEqual(restC * 0.66);
+          }
+        }
+      }
+    }
+  });
+});
+
 describe("the label sits between the text steps, and is not one of them (§7)", () => {
   it("lands between 11 and 12 in lightness", () => {
     for (const mode of MODES) {
