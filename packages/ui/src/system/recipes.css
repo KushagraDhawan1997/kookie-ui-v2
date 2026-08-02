@@ -36,6 +36,10 @@
   border: 1px solid var(--kui-border-color, transparent);
 
   cursor: var(--cursor-button);
+  /* Prefixed by hand, not left to the build: Safari only honours -webkit-user-select, and
+     the preview page and the browser suite both load this file raw, before Lightning CSS
+     ever prefixes it — a tap on a real iPhone was selecting the label. */
+  -webkit-user-select: none;
   user-select: none;
   /* Two separate mobile defects, both felt rather than seen: the browser's grey flash on tap,
      and — the worse one — double-tap-to-zoom, which makes every control feel laggy and
