@@ -541,6 +541,7 @@ Two touch behaviours are *not* motion and remain shipped:
 
 - **Hover exists only where hovering does**: every `:hover` rule sits under `@media (hover: hover)`. A touch device synthesises hover on tap and holds it until the next tap, so an unguarded rule leaves a pressed control stuck in its hover fill. `:active` is never guarded — on touch it is the only feedback there is.
 - Controls set `touch-action: manipulation` (drops double-tap-to-zoom, keeps scroll and pinch) and clear `-webkit-tap-highlight-color` — the press state is the tap feedback, not the browser's grey flash.
+- **iOS Safari arms `:active` only while a touch listener is registered somewhere on the page.** Every hydrated React app has one (React 18 roots register touch listeners at mount), so the library ships no shim — but any JS-free page rendering these controls (the token preview was one) must add `document.addEventListener("touchstart", () => {}, { passive: true })` or the press state silently never fires on an iPhone. Found because the preview's buttons showed no tap feedback on a real device while Base UI's hydrated docs site worked.
 
 Both are laws in `recipes.test.ts`, asserted structurally with comments stripped first — a law a comment can satisfy is not a law.
 

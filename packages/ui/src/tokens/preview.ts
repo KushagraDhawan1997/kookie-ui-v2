@@ -597,6 +597,12 @@ ${brandSection("light")}
 ${brandSection("dark")}
 
 <script>
+  // iOS Safari arms :active only while a touch listener exists somewhere on the page. Every
+  // real app has one (a hydrated React root registers touch listeners at mount), so the
+  // library ships nothing - but this page is otherwise JS-free static HTML, the one
+  // environment where the press state would silently never fire on an iPhone.
+  document.addEventListener("touchstart", () => {}, { passive: true });
+
   document.getElementById("icons").addEventListener("change", (e) => {
     document.body.classList.toggle("icons", e.target.checked);
   });
