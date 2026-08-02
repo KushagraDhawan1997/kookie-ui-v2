@@ -110,6 +110,13 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     expect(outside).toContain(":active");
   });
 
+  it("press arrives instantly while release eases — the asymmetry touch depends on", () => {
+    // A tap is ~60ms against a 120ms transition, so an eased press never reaches its colour
+    // on a phone and the control reads as dead. A mouse hides this by holding the press.
+    const active = recipes.slice(recipes.indexOf(".kui-control:active"));
+    expect(active.slice(0, active.indexOf("}"))).toContain("transition-duration: 0s");
+  });
+
   it("disabled remaps the family and never reaches for opacity (§8)", () => {
     const block = recipes.slice(recipes.indexOf(".kui-control[data-disabled]"));
     const body = block.slice(0, block.indexOf("}"));

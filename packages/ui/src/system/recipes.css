@@ -147,9 +147,16 @@
 }
 
 /* Press is deliberately NOT guarded: it fires on every input, and on touch it is the only
-   feedback there is — it is what "quiet fills on touch" (§9) literally means. */
+   feedback there is — it is what "quiet fills on touch" (§9) literally means.
+
+   It also arrives INSTANTLY, and that asymmetry is the whole reason touch feels right. A tap
+   lasts around 60ms against a 120ms transition, so an eased press never reaches its colour
+   before it starts returning: on a phone the control appears to do nothing at all. A mouse
+   hides this, because a click holds the button down long enough to see the ramp. Press snaps,
+   release eases — which is also how native controls behave. */
 .kui-control:active:not([data-disabled], [data-loading]) {
   background-color: var(--kui-fill-active);
+  transition-duration: 0s;
 }
 
 /* One ring, always accent, keyboard only (§8). `outline` rather than box-shadow: it follows
