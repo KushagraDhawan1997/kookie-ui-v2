@@ -15,4 +15,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The browser project needs a real engine. Without this the suite does not fail
+      # loudly-but-partially — it launches nothing, and the laws that only a browser can
+      # answer (var-chain resolution, inherits:false, tier arbitration) never run.
+      - run: pnpm --filter @kookie-ui/react exec playwright install --with-deps chromium
       - run: pnpm run ci
