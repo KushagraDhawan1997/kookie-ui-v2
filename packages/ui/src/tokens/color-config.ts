@@ -53,6 +53,14 @@ export const solidBand = {
 export const solidStateDeltas = { hover: 0.04, active: 0.08 } as const;
 
 /**
+ * Low-chroma solids take a larger step. A chromatic fill separates its states by lightness
+ * *and* by the saturation shift that comes with it; a grey has only lightness, so the same
+ * delta that reads clearly on blue is invisible on black. Widened until the three states are
+ * distinguishable side by side, which is law-tested rather than eyeballed.
+ */
+export const lowChromaStateScale = 2.1;
+
+/**
  * Step 10's offset from step 9 inside the twelve-step scale. Kept because the scale is the
  * Radix-compatibility surface and step 10 is part of it; the *role* `--accent-solid-hover` is
  * generated from the label-relative rule above and no longer maps to this step.

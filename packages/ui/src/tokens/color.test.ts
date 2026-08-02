@@ -7,7 +7,7 @@ import { converter, formatHex } from "culori";
 import { describe, expect, it } from "vitest";
 
 import { lightness, lowChromaThreshold, tones, type Mode, type ToneName } from "./color-config.ts";
-import { apcaLc, buildScale, buildScaleFor, pageBackdrop } from "./color.ts";
+import { apcaLc, buildScale, buildScaleFor, cuspLightness, pageBackdrop } from "./color.ts";
 
 const toOklch = converter("oklch");
 const toRgb = converter("rgb");
@@ -106,6 +106,20 @@ describe("prominence comes from chroma or from lightness (§7)", () => {
   it("keys on vividness, not on the name — a desaturated brand accent gets the same fix", () => {
     expect(tones.neutral.vividness).toBeLessThan(lowChromaThreshold);
     expect(tones.accent.vividness).toBeGreaterThan(lowChromaThreshold);
+  });
+
+  it("keeps rest, hover and press visibly apart, and a grey further apart than a hue", () => {
+    // Neutral's three states were 0.24 / 0.20 / 0.16 and read as one flat black. A chromatic
+    // fill also shifts saturation as it moves, so it says the same thing in less lightness;
+    // a grey has only lightness and needs the wider step.
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        const s = buildScale(tone, mode);
+        const floor = s.isLowChroma ? 0.07 : 0.035;
+        expect(Math.abs(L(s.solidHover) - L(s.solid))).toBeGreaterThanOrEqual(floor);
+        expect(Math.abs(L(s.solidActive) - L(s.solidHover))).toBeGreaterThanOrEqual(floor);
+      }
+    }
   });
 
   it("a low-chroma solid still moves under interaction, since the ramp ran out at 12", () => {
@@ -260,6 +274,29 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
           expect(Math.abs(apcaLc(high.label, high.steps[step]!))).toBeGreaterThan(
             Math.abs(apcaLc(normal.label, normal.steps[step]!)),
           );
+        }
+      }
+    }
+  });
+
+  it("never pushes a border further from its hue's cusp, where the hue turns to mud", () => {
+    // A darkened yellow is olive: in light mode the border shift reintroduced exactly the mud
+    // the solid band's cusp rule exists to prevent, so bright hues barely move there and take
+    // their gain in the text band instead. In dark mode the same shift travels TOWARD the cusp
+    // and is welcome, which is why the invariant is about distance from the cusp, not direction.
+    for (const mode of MODES) {
+      for (const spec of [
+        { hue: 100, vividness: 1 },
+        { hue: 130, vividness: 1 },
+        { hue: 250, vividness: 1 },
+      ]) {
+        const cusp = cuspLightness(spec.hue, "srgb");
+        const normal = buildScaleFor(spec, mode);
+        const high = buildScaleFor(spec, mode, "srgb", "high");
+        for (const step of [5, 6, 7]) {
+          const before = Math.abs(L(normal.steps[step]!) - cusp);
+          const after = Math.abs(L(high.steps[step]!) - cusp);
+          expect(after).toBeLessThanOrEqual(before + 0.005);
         }
       }
     }

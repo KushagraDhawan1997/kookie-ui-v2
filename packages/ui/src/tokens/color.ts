@@ -14,6 +14,7 @@ import {
   lightness,
   lowChromaThreshold,
   solidBand,
+  lowChromaStateScale,
   solidStateDeltas,
   step10Offset,
   tones,
@@ -70,7 +71,7 @@ function format(color: Oklch, gamut: Gamut): string {
 }
 
 /** The lightness at which a hue reaches peak chroma — where the hue is most itself. */
-function cuspLightness(hue: number, gamut: Gamut): number {
+export function cuspLightness(hue: number, gamut: Gamut): number {
   let bestL = 0.5;
   let bestC = 0;
   for (let l = 0.02; l < 1; l += 0.01) {
@@ -204,7 +205,13 @@ export function buildScaleFor(
   const stepL = ladder.map((l, i) => {
     const base = i === 8 ? solidL : i === 9 ? solidL + step10Offset : l;
     if (!hc) return base;
-    if ((contrastHighBands.border as readonly number[]).includes(i)) return clampL(base + hc.border);
+    if ((contrastHighBands.border as readonly number[]).includes(i)) {
+      // Never below the cusp. Below it a hue stops reading as itself — a darkened yellow is
+      // olive, which is the same mud the solid band's cusp rule exists to prevent. Bright hues
+      // therefore barely move here; they take their high-contrast gain in the text band.
+      const shifted = base + hc.border;
+      return clampL(hc.border < 0 ? Math.max(shifted, Math.min(base, cusp)) : Math.min(shifted, Math.max(base, cusp)));
+    }
     if ((contrastHighBands.text as readonly number[]).includes(i)) return clampL(base + hc.text);
     return base;
   });
@@ -232,19 +239,27 @@ export function buildScaleFor(
   // The check has to use the SPREAD-multiplied excursion, not the base one: at contrast="high"
   // the spread is 1.6x, and testing the unmultiplied delta let a bright hue's pressed state
   // run past L 1.0, where it formatted as pure white and the chip vanished.
-  const spread = hc ? hc.stateSpread : 1;
+  // The larger of the two widenings, never their product: both exist to keep the three states
+  // distinguishable, and stacking them took dark neutral's pressed state 27 points of lightness
+  // and dropped its label to APCA Lc 55.
+  const spread = Math.max(hc ? hc.stateSpread : 1, isLowChroma ? lowChromaStateScale : 1);
   const CEILING = 0.97;
   const FLOOR = 0.06;
   const wanted = solidStateDeltas.active * spread;
   const headroom = preferred > 0 ? CEILING - restL : restL - FLOOR;
 
-  // Prefer moving away from the label; move toward it when there is not enough headroom.
+  // A low-chroma solid sits at an extreme (step 12) and has no chroma cue to separate its
+  // states, so lightness is doing all the work — and moving further toward the extreme is
+  // where lightness has least left to say. It moves TOWARD its label, which is both the
+  // visible direction and still enormously legible precisely because it started at an end.
+  //
+  // Otherwise: prefer moving away from the label; move toward it when there is not enough room.
   //
   // Compressing the excursion instead was tried and is worse: a fill sitting near its cusp
   // (every bright hue) can only go lighter by shedding chroma, so the pressed state washed out
   // to near-white and stopped being yellow at all. Moving toward the label keeps the hue, and
   // the APCA laws below guarantee it still clears the bar — which is what the laws are for.
-  const away = headroom < wanted ? -preferred : preferred;
+  const away = isLowChroma || headroom < wanted ? -preferred : preferred;
   const state = (delta: number) =>
     format(toGamut(oklch(clampL(restL + away * delta * spread), restC, hue), gamut), gamut);
   const solidHover = state(solidStateDeltas.hover);
