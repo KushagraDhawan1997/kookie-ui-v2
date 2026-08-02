@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 
+import { Box } from "../components/box/box.tsx";
 import { computed, render } from "../test/browser.tsx";
 import { density, radiusLevels } from "../tokens/config.ts";
 import { Theme } from "./theme.tsx";
@@ -29,7 +30,7 @@ describe("the axes render as attributes (§5)", () => {
       </Theme>,
     );
     expect(el.tagName).toBe("SECTION");
-    expect(el.className).toBe("hero");
+    expect(el.className.split(" ").sort()).toEqual(["hero", "kk-theme"]);
     expect(el.getAttribute("data-density")).toBe("compact");
     expect(el.querySelector("span")).not.toBeNull();
   });
@@ -62,6 +63,24 @@ describe("a nested Theme inherits what it was not given (§5)", () => {
     expect(computed(found, "border-top-left-radius")).toBe(
       `${radiusLevels.large.steps[density.compact.radius[1]!]}px`,
     );
+  });
+
+  it("a tiered Box directly under a Theme has a slot to read (§2, decided 2026-08-02)", () => {
+    // The ancestor-container edge, closed: Theme's element is a query container, so the
+    // outermost Box in an app measures its Theme instead of silently sitting at base values.
+    const wide = render(
+      <Theme style={{ width: "900px" }}>
+        <Box p={{ initial: "1", md: "6" }} id="probe" />
+      </Theme>,
+    );
+    expect(computed(wide.querySelector("#probe")!, "padding-top")).toBe("24px");
+
+    const narrow = render(
+      <Theme style={{ width: "300px" }}>
+        <Box p={{ initial: "1", md: "6" }} id="probe" />
+      </Theme>,
+    );
+    expect(computed(narrow.querySelector("#probe")!, "padding-top")).toBe("2px");
   });
 
   it("pinning pointer=coarse renders the coarse geometry (§16)", () => {

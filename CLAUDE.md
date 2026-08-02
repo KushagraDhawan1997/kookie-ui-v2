@@ -8,7 +8,7 @@ Blockers resolved 2026-07-31; code phase open, following §14's build order stri
 
 Done: scaffold (1), token pipeline including the colour generator (2), Box and the responsive mechanism (3), Theme + Flex/Stack/Grid (4), and the pointer axis tokens (4b) — coarse cells, Theme `pointer` prop, preview matrix, laws; the reserve and the rendered-floor law land with Button, which is where a control first exists. Theme shipped with dark-mode SSR still unresolved (REVIEW.md); that debt comes due at apps/docs.
 
-**Next: Button (step 5), on Base UI — the first runtime dependency.** Gates cleared 2026-08-02: focus-visible, disabled, loading (label never hides), icon box (§8, §4); motion deferred without gating; coarse v0 numbers accepted as refinable. Sole remaining gate: Theme-as-query-container (§2 open question). Do not run ahead of a §14 measurement gate.
+**Next: Button (step 5), on Base UI — the first runtime dependency.** All gates cleared 2026-08-02: focus-visible, disabled, loading (label never hides), icon box (§8, §4); motion deferred without gating; coarse v0 accepted as refinable; Theme is a query container (§2). Button's own gate is the exit measurement: its CSS must prove variant-as-token-remap before any other control ships.
 
 Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
 

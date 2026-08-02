@@ -225,6 +225,10 @@
   container-type: inline-size;
 }
 
+.kk-theme {
+  container-type: inline-size;
+}
+
 @container (min-width: 30rem) {
   .kk-box {
     padding-block-start: var(--kk-pt-sm, var(--kk-py-sm, var(--kk-p-sm, var(--kk-pt, var(--kk-py, var(--kk-p))))));

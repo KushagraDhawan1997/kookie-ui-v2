@@ -79,14 +79,17 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     "data-pointer": resolved.pointer,
   };
 
-  const merged = { ...attrs, className, style };
+  // kk-theme makes the element a query container (§2): responsive props measure the nearest
+  // ancestor Box OR Theme, so a tiered Box directly under a Theme has a slot to read.
+  const themeClass = className ? `kk-theme ${className}` : "kk-theme";
+  const merged = { ...attrs, className: themeClass, style };
 
   return (
     <ThemeContext.Provider value={resolved}>
       {render ? (
         React.cloneElement(render, {
           ...merged,
-          className: [render.props.className, className].filter(Boolean).join(" ") || undefined,
+          className: [render.props.className, themeClass].filter(Boolean).join(" "),
           children,
         })
       ) : (

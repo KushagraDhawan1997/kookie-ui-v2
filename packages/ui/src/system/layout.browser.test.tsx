@@ -86,8 +86,8 @@ describe("container tiers arbitrate by slot, not by window (§2)", () => {
     // The sharp edge, pinned: a tier reads the nearest ancestor query container, and a Box is
     // a container for its CHILDREN, never for itself. The outermost Box in a tree therefore
     // has no tier context at all — found when the preview's grid rig sat at one column at
-    // every width. Whether Theme's element should be a container (so "inside a Theme, tiers
-    // always work") is an open §2 question; until it is decided, this law documents the edge.
+    // every width. Decided 2026-08-02: Theme's element is a container too (.kk-theme), so in
+    // an app this edge only exists OUTSIDE any Theme — which is what this law pins.
     const host = mount(
       `<div style="width: 900px"><div id="probe" class="kk-box" style="--kk-p: 4px; --kk-p-md: 40px"></div></div>`,
     );

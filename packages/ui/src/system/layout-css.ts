@@ -75,6 +75,14 @@ export function generateLayoutCss(): string {
   // inline-size only: containment on the block axis would break height-from-content.
   lines.push("  container-type: inline-size;", "}", "");
 
+  // Theme is a container too (§2, decided 2026-08-02): a Box is a container for its CHILDREN,
+  // never for itself, so the outermost Box in a tree had no tier context and silently sat at
+  // base values. With Theme measurable, the rule is "inside a Theme, tiers always work" — and
+  // a nested regional Theme is the more correct slot for its subtree anyway. The one caveat:
+  // inline-size containment means a Theme's width cannot come from its contents, so a Theme
+  // rendered onto a shrink-to-fit element (flex child at width:auto, inline-block) collapses.
+  lines.push(".kk-theme {", "  container-type: inline-size;", "}", "");
+
   tierNames.forEach((_, i) => {
     lines.push(`@container (min-width: ${tiers[tierNames[i]!]}) {`, "  .kk-box {");
     for (const longhand of all) lines.push(`    ${longhand}: ${chain(longhand, i + 1)};`);
