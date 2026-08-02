@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-02 The pointer axis: touch is a second geometry, not a mobile mode
+
+New §16, THESIS.md folded into the repo, and the pre-Button gate list grows to five. The frame that settled it: **fine and coarse are two complete designed renderings of geometry, the way light and dark are two complete renderings of color.** Same components, same index, same laws — different placed values. The signal is what touches the screen (`pointer: coarse`), never width: an iPad at 1024px gets coarse values at full desktop width, and a narrow desktop window keeps fine ones.
+
+**The floor is locked; the geometry is an opt-out default; the numbers are taste** — the first decision to sort by THESIS §7's tiers end to end, which is most of why the tiers earned their fold-in. The 44px floor encodes twice: coarse height sets place most sizes at or above it by design, and a `max(44px, height)` layout reserve covers the sizes that deliberately stay small, so size 1 and size 2 remain distinct instead of both flattening to the floor. Reserving layout space instead of overlapping neighbours is what dissolves the collision problem that killed hit-area expansion. Opt-out is a Theme prop symmetric with appearance — `pointer: fine | coarse | auto` — and pinning it doubles as the desktop preview mechanism.
+
+**Spacing does not move, and that is the load-bearing exclusion.** Controls grow, gaps hold, layouts adapt on their own; a space palette that inflated under coarse would widen gutters on the smaller screen. Static surfaces hold too — but interactive surfaces (rows, list items, clickable cards) are §10's "ghost-emphasis control wearing a container", so they are tap targets and inherit the floor through machinery they already reuse.
+
+**`min-height` replaced `height` in §4 on the way** — fixed height stays the design intent, but a hard `height` clips a 200%-text-resize label (WCAG 1.4.4) and truncates wrapped ones. Identical render in every normal case; growth only where the alternative is clipping.
+
+**Corrected mid-arc, worth keeping:** the 17px mobile body figure was imported from Apple's *native* HIG as if it were evidence — the web ships ~16px bodies almost universally and iOS Safari doesn't honour Dynamic Type — so whether body text shifts under coarse (vs control labels only) stays open, and the type shift is not the growth mechanism anyway: under §4's model only the height token can grow the box, and both families re-place independently.
+
+Rejected: rem-derived geometry from a root font-size switch (one root scales gutters and type together — a multiplier by the back door, on the axis we control rather than the one the user does; rem's real job, honouring the user's text preference, is a separate open question); the floor as `max()` on the height token itself (size 1 and 2 both render 44 and the index collapses); invisible hit-area expansion via pseudo-element (its safe extent depends on neighbour gaps, which CSS cannot read — the overlap failure is silent); responsive `size` as the mechanism (opt-in, so the floor depends on every author remembering — the exact inversion THESIS §7 forbids); width or breakpoints as a signal anywhere in the axis.
+
 ## 2026-08-02 An audit of the layout layer: the browser suite was testing the stylesheet, not the components
 
 Swept the work from the token pipeline through Theme against the docs. The finding that matters is not any single defect but what the suite's shape was hiding.

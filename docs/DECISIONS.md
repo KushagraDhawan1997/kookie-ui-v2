@@ -208,13 +208,15 @@ The pixel value lives only in the height family. Text lives in a separate family
 **Fixed-height controls** (Button, Input, Tabs, Segmented Control, Select trigger):
 
 ```css
-height: var(--control-height-2);
+min-height: var(--control-height-2);   /* not height: — amended 2026-08-02 */
 display: inline-flex;
 align-items: center;
 /* inline padding only; vertical padding does not exist as a concept */
 ```
 
 Contents center in whatever height the box is. "Make size 2 = 40px" becomes one line, text untouched, everything re-centers free.
+
+**`min-height`, not `height` — fixed height is the design intent, not the implementation.** In every normal render the two are pixel-identical: a single-line label sits far below the token, so the token decides the box. The `min-` is dormant insurance for the two cases where the token loses: WCAG 1.4.4 text resized to 200% (a hard `height` clips the label — clipping the exact preference the type system honours), and wrapping (long labels, localization, user content in a trigger). There, growing is correct because the alternative is truncation. One consequence: wrapped content needs a small designed block padding so two centered lines don't touch the edges — a protection value, not vertical padding returning as a sizing mechanism; height still comes only from the token.
 
 **Designed heights, not an anchor times a factor** (amended 2026-08-01 when density became designed sets — section 12). Each density level places its own four heights; `--scale` is the only multiplier left, and it sits at 1:
 
@@ -812,7 +814,8 @@ Architecture is locked; open items are tuning values resolved as the component t
 2. **Token pipeline.** Space, radius, and type scales first — static calc chains, a day's work, exercising the whole path (config -> generation -> tokens.css -> measurement) with zero research risk. Then the OKLCH color generator: the long pole; budget it at 2-3x anything else, and test with hostile hues (brand yellow, neon lime, near-black navy) before calling the law proven. **Measure with a two-accent config** (alpha ramps x modes x tones) so the budget covers section 7's full output.
 3. **Box + the responsive mechanism.** Variable remap, `@property` inheritance guard, the full prop table on one primitive. **Measure its CSS** to prove O(props x tiers) before any other layout primitive ships. (The blocker-1 proof; needs only the space tokens, so it can overlap the color work.)
 4. **Theme + layout primitives.** Theme (scoping the CSS vars, nesting/inheritance) + Flex, Stack, Grid as typed sugar over Box. Proves token consumption and the layout layer.
-5. **Button, end-to-end.** Full axis model (tone x emphasis x states x size) on one control. **Measure its CSS** to prove variant-as-token-remap (additive, not multiplicative) before scaling. Gated on the remaining pre-Button decisions: focus-visible, disabled/loading, motion tokens, icon sizing (REVIEW.md).
+   - **4b (added 2026-08-02): the pointer axis.** Coarse designed sets in config, generator emits the (family × pointer × density) cells, Theme gains the `pointer` prop, preview gains the coarse matrix (pinned via `data-pointer`), budget re-measured. Laws: the rendered floor holds under coarse (asserted against the box, including under a hostile root font-size), per-world monotonicity, the space palette untouched by pointer (§16).
+5. **Button, end-to-end.** Full axis model (tone x emphasis x states x size) on one control. **Measure its CSS** to prove variant-as-token-remap (additive, not multiplicative) before scaling. Gated on the remaining pre-Button decisions: focus-visible, disabled/loading, motion tokens, icon sizing (REVIEW.md), and the coarse numbers judged in 4b's matrix (§16).
 6. **Card, end-to-end.** One surface, proving elevation + material + foreground-context + alpha-nesting.
 
 This slice exercises every layer (tokens -> variants -> control -> surface) and the CSS budget. Everything after it is repetition across the component set.
@@ -853,6 +856,65 @@ Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-
 
 ---
 
+## 16. The pointer axis
+
+**Decision (2026-08-02, in principle — values open): the system renders two complete geometries, `fine` and `coarse`, the way it renders two complete color modes.** Same components, same size index, same laws — different placed values. Not a mobile mode: a phone is not a small desktop, and the signal is what touches the screen, never how wide anything is (THESIS §7). KookieUI targets apps and products, and products get used on phones whether anyone designed for it or not — so coarse is a first-class world, not an adaptation bolted on.
+
+Sorted by the governance tiers (THESIS §7):
+
+### Locked: the touch floor
+
+Every interactive target under a coarse pointer presents at least **44px** (Apple HIG 44pt; Material 48dp; fingerpad anthropometry). Encoded twice:
+
+- **The visible geometry**: the coarse control-height set places most sizes at or above 44 by design.
+- **The reserve**: the layout box is `max(44px, var(--control-height-N))`; the visual fill paints at the token, centered. Sizes designed to stay small (a coarse size 1) keep their distinct look while the floor holds — the reserve covers the remainder invisibly, and because it reserves layout space rather than overlapping neighbours, the collision problem of hit-area expansion does not exist. Layouts get taller under touch; that is correct, not a cost.
+- The floor is a `max()` in the token itself, so no consumer root-font-size games or theme override can drag a target below it. The law test asserts the rendered box, not the token text.
+
+This applies to **interactive surfaces too**: a table row, list item, or clickable card is "a ghost-emphasis control wearing a container" (§10), which makes it a tap target, which makes a 32px row under touch the same defect as a 32px button. They inherit the floor through the control machinery they already reuse.
+
+### Opt-out default: the coarse geometry
+
+Under `pointer: coarse`, these families re-declare as **designed sets** — placed values per (family × pointer × density), never multipliers, exactly as density levels work (§12):
+
+| Re-placed under coarse | Why |
+|---|---|
+| Control heights | The visible growth; the height token is the only thing that can grow a min-height control (§4) |
+| Control inline padding | Larger type in a taller box wants more air |
+| Control radius | The corner-holds-~0.2-of-box law (§6) prices the bigger box |
+| Type + line height | Extent **open** — control labels certainly; whether body text shifts is undecided (the 17px reference is native-platform convention, not web evidence) |
+
+**Deliberately untouched:** the space palette (gutters must not inflate on the smaller screen — layouts adapt on their own because controls grow and gaps hold), surface radii, elevation, color. Static surfaces do not change; only their interactive contents do.
+
+**The opt-out is a Theme prop, symmetric with appearance:**
+
+```
+appearance: light | dark | inherit
+pointer:    fine  | coarse | auto     (default auto)
+```
+
+`auto` follows the media query; pinning forces a world — which is also how the coarse matrix gets judged in a desktop preview. Theme stamps `data-pointer`; coarse values emit under the attribute plus a media-scoped default for `auto`. Composition with density multiplies cells, the same lesson radius × density taught: any token reacting to two scopes is re-declared per cell, and gzip absorbs the repetition.
+
+### Taste: every number
+
+The v0 coarse heights (default density) — size 2 anchors at the floor, size 1 stays deliberately under it on the reserve:
+
+| | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|
+| fine | 28 | 32 | 40 | 48 |
+| coarse (v0) | 36 | 44 | 52 | 60 |
+
+All numbers await the (size × density × pointer) preview matrix, like density's did.
+
+### Open
+
+- Every coarse value; the body-type question above; whether compact-coarse leans harder on the reserve.
+- **The `any-pointer` split (proposal, needs a device pass):** visible geometry keys off `pointer: coarse` (primary input), but the reserve could key off `any-pointer: coarse` so a touchscreen laptop gets the floor without ever looking like a phone. Unvalidated; the reserve does occupy layout, so "invisible" is only true where controls already clear 44.
+- Budget impact: cells roughly double across the control families. Measured when generated, not estimated.
+
+Rejected: rem-derived geometry from a root font-size switch (one root scales gutters and type together — a multiplier by the back door, and gutters must not grow on phones); the floor as `max()` on the *height* token (flattens size 1 and 2 into the same rendered box, collapsing the index); invisible hit-area expansion via pseudo-element (its safe extent depends on neighbour gaps, which CSS cannot read — clamping was guesswork and overlap was silent); responsive `size` as the mechanism (opt-in, so the floor would depend on every author remembering — the inversion THESIS §7 exists to prevent); width or breakpoints as the signal in any capacity.
+
+---
+
 ## Open questions / deferred
 
 **Color:** section 7 is implemented and law-tested (`src/tokens/color.ts`, 106 laws). What remains is not mechanism:
@@ -878,6 +940,7 @@ Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-
 
 **API:**
 - Naming of the per-component escape prop (`UNSAFE_` vs `override`). The name is the deterrent.
+- **Pointer: the numbers and the type question.** The coarse sets' values, whether body text shifts under coarse or only control labels, and the `any-pointer` reserve split — all §16, all judged in the 4b matrix.
 - **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end) and whether surface padding takes density (lands at Card). Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
 - **Scale: if it ever ships.** The factor stays wired and the prop is deferred (sections 5, 13). Reopen only when a real need names the steps, and ship it as designed steps rather than a free multiplier.
 - RTL / `dir`. Deferred, architectural room left.
