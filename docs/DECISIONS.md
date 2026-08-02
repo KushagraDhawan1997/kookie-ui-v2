@@ -418,9 +418,13 @@ White-or-black on each solid is computed by the generator via **APCA**, not WCAG
 
 **Decision: in light mode, the supplied accent hex reproduces exactly as step 9.** The solid-band L function evaluates locally through the input's own L (clamped to the band's bounds), so the brand color *is* the button, not a normalized cousin of it. Inputs outside the bounds snap to the nearest in-bounds value — a near-black or near-white "brand color" was never usable as a solid. Dark mode derives from the same hue + chroma shape with no pinning; no brand promise exists on a dark solid. Edge behavior near the bounds: tune when the generator is built.
 
-### contrast="high": generated deltas, not a second ladder
+### contrast="high": an accessibility setting, not a design knob
 
-**Decision: an L/chroma delta pass at generation time.** The generator emits an override block scoped to `[data-contrast="high"]`, re-declaring only the affected bands — borders (6-8) strengthened, text (11-12) pushed toward the extremes, solid state spread widened — by fixed per-mode deltas. Cost: a fraction of one scale per tone, shipped by default (the Theme prop must work at runtime); a config flag can drop it. One law, one delta table, no second ladder.
+**Decision: `contrast` is a Theme-level accessibility preference and nothing else. There is no per-component `highContrast` prop.**
+
+Radix's per-component version is a *role remap* — it changes which step a role reads — and it exists to escape a step 11 placed at a threshold. Both of its real uses (the grey solid, the under-weight label) are fixed properly in the role layer above, so what remains would be an appearance escape hatch, which contradicts appearance-as-output and would grow a boolean on every component whose meaning shifts per rung. It does not ship.
+
+The Theme setting is a *value shift*: the generator emits an override block scoped to `[data-contrast="high"]`, re-declaring only the affected bands — borders (6-8) strengthened, text bands pushed toward the extremes, solid state spread widened — by fixed per-mode deltas. Cost: a fraction of one scale per tone, shipped by default so the setting works at runtime; a config flag can drop it. One law, one delta table, no second ladder. It should also honour the platform signal (`prefers-contrast: more`) rather than waiting to be set by hand.
 
 ### Output: static, compiled, P3
 
@@ -434,12 +438,25 @@ Components reference roles, never raw steps and never the generation mechanism. 
 --accent-soft / -soft-hover / -soft-active      /* tint states */
 --accent-solid / -solid-hover / -solid-active   /* solid states */
 --accent-border
---accent-text
+--accent-text                                   /* step 11: links, prose on a tint */
+--accent-label                                  /* generated between 11 and 12: UI labels */
 --accent-contrast                               /* APCA-computed text on solid */
 --accent-a1 ... --accent-a12                     /* alpha scale, composites over backdrop */
 ```
 
 Press darkens the `background-color` token, **never** `filter: brightness()` (which would dim the contrast text and icon with the fill). The pressed state is a real token, so the label stays crisp.
+
+### Two role remaps that stop `highContrast` from ever being needed
+
+Radix ships a per-component `highContrast` prop because its step 11 is placed at a *floor* — the minimum that clears 4.5:1 on the backgrounds it sits on — so the prop is an escape from a value tuned to a threshold rather than to how it should look. We generate and verify with APCA, so the default can sit where it actually looks right and still be provably legible. Both fixes live in the role layer; **neither touches the scale**, and that constraint is what makes them correct.
+
+**1. A UI label is not a link.** `--accent-text` (step 11) stays as it is, because links and prose on a tint genuinely want the lighter, more chromatic value. Button and control labels instead read `--accent-label`, generated between 11 and 12: enough weight to read as a UI label, enough chroma to still say accent rather than ink. This is the section's own rule about extra states living in the role layer above the scale, not as a step 11.5.
+
+**2. Prominence comes from chroma or from lightness, and at zero chroma lightness does all the work.** A mid-grey solid never reads as loud no matter how correct its lightness is, because it has no saturation to carry prominence. So for scales below a chroma threshold, `--accent-solid` resolves to **step 12** rather than step 9. Keyed on chroma rather than on the name "neutral", so a user's desaturated brand accent gets the same correction. In dark mode step 12 is near-white, so the neutral primary becomes a light button with a dark label, which is what the pattern looks like everywhere it ships.
+
+**The ramp runs out at 12**, so a low-chroma solid's hover and press cannot be +1/+2 steps. They derive as generated L-deltas off step 12, exactly as `--accent-solid-active` derives off step 9 for chromatic scales. Same mechanism, one more place it is needed.
+
+Neither of these is a prop. A pairing that needs more contrast is a bug in this layer, not a switch for the user to find.
 
 ### The tradeoff, accepted on purpose
 
@@ -458,9 +475,9 @@ The taste in "bland with excellent defaults" lives in the system holding togethe
 Each rung is a named bundle of role-token mappings, defined once and consumed by every component:
 
 ```
-loud   = { bg: accent-9, bgHover: accent-10, bgActive: accent-solid-active, text: accent-contrast }
-medium = { bg: accent-3, bgHover: accent-4,  bgActive: accent-5,            text: accent-text }
-quiet  = { bg: transparent, bgHover: accent-3, bgActive: accent-4,          text: accent-text }
+loud   = { bg: accent-solid, bgHover: accent-solid-hover, bgActive: accent-solid-active, text: accent-contrast }
+medium = { bg: accent-3,     bgHover: accent-4,            bgActive: accent-5,             text: accent-label }
+quiet  = { bg: transparent,  bgHover: accent-3,            bgActive: accent-4,             text: accent-label }
 ```
 
 Plus one orthogonal boolean, `bordered`, which crosses every rung:
@@ -469,13 +486,17 @@ Plus one orthogonal boolean, `bordered`, which crosses every rung:
 bordered = { border: accent-7 }   /* on quiet this is the old "outline"; on medium the old "surface" */
 ```
 
+Labels read `--accent-label`, not `--accent-text`: a control label is not a link (section 7). `loud` reads `--accent-solid` rather than step 9 directly, because a low-chroma scale resolves that role to step 12 instead — the ramp position is the role layer's business, not the recipe's.
+
 A medium button and a medium badge match because they read identical tokens, not because they were tuned alike. This is the radius-control lesson: consistency from shared reference, not coincidence. These bundles **are** the color role layer (section 7) surfaced as a recipe.
 
 **Superseded (2026-08-01):** the five-name recipe set `solid / soft / surface / outline / ghost` is dead. It named construction rather than emphasis, and two of its members (`surface`, `outline`) were never loudness levels at all — they were *containment*, which is why they never fit the ladder. See section 9.
 
 ### States are uniform steps on the ramp, by one global rule
 
-No rung invents its own feedback amount. The rule: **hover = +1 step, press = +2 steps.** Medium rests at 3, so hover 4, press 5. Loud rests at 9, so hover 10, press the generated active. Quiet rests at transparent, which is not a step, so it enters the ramp at hover: transparent, then 3, then 4 — the same one-step increments from a base of nothing. Absolute colors differ per rung; the *amount* of feedback is identical everywhere.
+No rung invents its own feedback amount. The rule: **hover = +1 step, press = +2 steps.** Medium rests at 3, so hover 4, press 5. Loud rests at 9, so hover 10, press the generated active. Quiet rests at transparent, which is not a step, so it enters the ramp at hover: transparent, then 3, then 4 — the same one-step increments from a base of nothing. Absolute colors differ per rung; the *amount* of feedback is identical everywhere. Low-chroma solids are the exception the role layer already absorbs: resting at step 12 there is no room above, so their hover and press come from generated L-deltas (section 7).
+
+**Law: the label must clear APCA against every background in its rung, not just the resting one.** Medium rests on step 3, hovers to 4, presses to 5, and the press state is where a label that only passed at rest fails silently.
 
 ### One canonical interaction transition
 
@@ -824,7 +845,8 @@ Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-
 - Judge the **material** recipes against real backdrops: three or four hostile photos, a real control, both modes. Expect blur to move +/-6px and alpha +/-0.1. Confirm the brightness floor actually holds. Measure `backdrop-filter` cost on a mid-tier device before the radii lock.
 - Decide whether a material `bordered` edge stays opaque or goes translucent (section 10).
 - **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?
-- `loud + neutral` (the near-black primary): needs the solid band to reach roughly L .2 for neutral rather than the ladder's ~.62. Resolve with section 7, not as an axis question.
+- The **chroma threshold** below which `--accent-solid` remaps to step 12 (section 7), and the L-deltas for its hover and press. Tuning, not architecture.
+- Where exactly `--accent-label` sits between steps 11 and 12, per mode.
 - How **`quiet`** actually renders: a faint tint at rest, or bare until hover. Decide at the first real Button, not in the abstract.
 - Theme `material` **naming**: `material` vs `allowTranslucency` vs `materials`.
 

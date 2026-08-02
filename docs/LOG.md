@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-02 highContrast does not ship, because both of its jobs are role-layer bugs
+
+Radix's per-component `highContrast` was being reached for as a *look* — a darker, more authoritative button label — which is not what the name says and not what the mechanism is for. Two orthogonal problems were hiding under one prop, and neither one is about contrast.
+
+**Radix's step 11 is placed at a floor**, the minimum clearing 4.5:1 on the backgrounds it sits on, so `highContrast` is an escape from a value tuned to a threshold rather than to how it should look. We generate and verify with APCA, so the default can sit where it looks right and still be provably legible. That removes the reason the escape existed.
+
+**Fix one: a UI label is not a link.** `--accent-text` (step 11) stays where it is, because links and prose on a tint want the lighter, more chromatic value and *should* look different from a button label. Controls read a new `--accent-label`, generated between 11 and 12 — enough weight to read as a label, enough chroma to still say accent rather than ink.
+
+**Fix two: prominence comes from chroma or from lightness, and at zero chroma lightness does all the work.** A mid-grey solid never reads as loud, whatever its lightness. So below a chroma threshold, `--accent-solid` resolves to step 12 rather than step 9. Keyed on chroma, not on the name "neutral", so a desaturated brand accent gets the same correction. Dark mode falls out free: step 12 there is near-white, giving the light primary with a dark label that Vercel, Linear and Radix all ship.
+
+**Both live in the role layer, and that constraint is what makes them right.** The first instinct was to bend the solid band's lightness by chroma, the way section 7 already bends it by hue. That breaks the system: neutral step 9 at L .2 would sit *below* step 12 at .24, destroying the ladder's monotonicity and the guarantee that step 9 reads as the same step across every hue. Section 7's "do not mutate the scale" earns its keep here.
+
+**Consequence worth remembering: the ramp runs out at 12.** A low-chroma solid cannot take +1/+2 for hover and press, so those derive as generated L-deltas off step 12 — the same problem that made `--accent-solid-active` a generated token rather than a step.
+
+So `contrast` is now only what it should always have been: a Theme-level accessibility setting, honouring `prefers-contrast: more`, that shifts values globally. Section 7 previously framed it as a design knob with a cost to budget; that framing was wrong.
+
+New law for the build: a label must clear APCA against **every** background in its rung, not only the resting one. Medium rests on step 3 and presses to 5, and the press state is where a label that passed at rest fails silently.
+
+Rejected: a per-component `highContrast` prop (an appearance escape hatch, contradicting appearance-as-output, growing a boolean on every component whose meaning shifts per rung); moving step 11 darker (links and prose need it where it is); a step 11.5 (the scale does not gain steps — extra states live in the role layer); keying the solid remap on `tone === "neutral"` (misses the desaturated brand accent, which has the identical problem).
+
 ## 2026-08-01 Emphasis collapses to three rungs, border leaves the ladder, and material becomes backdrop defense
 
 Supersedes the variant decision made earlier today and the material parts of sections 9-11. Kushagra's call, worked out in parallel with the token build.
