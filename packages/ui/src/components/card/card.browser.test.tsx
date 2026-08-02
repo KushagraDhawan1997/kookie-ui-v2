@@ -1,6 +1,7 @@
 /**
- * Card's laws, mounted (§10, §11): the first surface, and the first component whose entire
- * appearance is shared CSS — there is no card.css to test, only whether the axes resolve.
+ * Card's laws, mounted (§10, §11, LOG 2026-08-04): a shell — one treatment, no variants,
+ * no anatomy. There is no card.css to test; what is asserted is that the shell's fixed
+ * identity resolves through the shared surface layer and that the API refuses opinions.
  */
 import { describe, expect, it } from "vitest";
 
@@ -28,17 +29,26 @@ function bgTokenOn(el: Element, name: string): string {
   return value;
 }
 
-describe("the canonical surface (§11): quiet + bordered, solid — flat, like everything", () => {
-  it("defaults resolve without a single prop, and nothing casts a shadow", () => {
+describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
+  it("is always the neutral quiet bordered surface, and nothing casts a shadow", () => {
     const el = render(<Card>Body</Card>);
-    expect(el.dataset.emphasis).toBe("quiet");
-    expect(el.dataset.bordered).toBe("true");
-    expect(el.dataset.material).toBeUndefined();
-    expect(computed(el, "background-color")).toBe(bgTokenOn(el, "--tone-a1"));
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--tone-border"));
-    // No elevation exists (2026-08-03): separation is border and fill, never a shadow.
+    expect(computed(el, "background-color")).toBe(bgTokenOn(el, "--neutral-a1"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
     expect(computed(el, "box-shadow")).toBe("none");
     expect(computed(el, "backdrop-filter")).toBe("none");
+    expect(computed(el, "color")).toBe(tokenOn(el, "--color-text"));
+  });
+
+  it("exposes no visual opinion: tone and emphasis are not props", () => {
+    // The identity attributes are constants the shell writes for the layer, not API. If this
+    // ever fails, someone has re-grown a variant on the one component defined by not having
+    // any — the type refusal is the law.
+    // @ts-expect-error — tone is not a CardProp
+    void (<Card tone="accent">B</Card>);
+    // @ts-expect-error — emphasis is not a CardProp
+    void (<Card emphasis="loud">B</Card>);
+    // @ts-expect-error — bordered is not a CardProp
+    void (<Card bordered={false}>B</Card>);
   });
 
   it("pads from the surface family by the size index, default 3 = 24px (§4)", () => {
@@ -48,33 +58,30 @@ describe("the canonical surface (§11): quiet + bordered, solid — flat, like e
 });
 
 describe("fills are alpha, so nesting differentiates by compositing (§10)", () => {
-  it("a quiet fill is translucent — never an opaque step", () => {
+  it("the fill is translucent, never an opaque step", () => {
     const el = render(<Card>B</Card>);
-    const fill = computed(el, "background-color");
-    // An rgba/color() with alpha < 1: compositing is what makes card-in-panel-in-page work.
-    expect(fill).not.toMatch(/^rgb\(/);
-    expect(fill).toBe(bgTokenOn(el, "--tone-a1"));
+    expect(computed(el, "background-color")).not.toMatch(/^rgb\(/);
   });
 
-  it("a nested card reads the same alpha token and still composites distinctly", () => {
+  it("a card in a card reads the same token and still composites distinctly", () => {
     const outer = render(
-      <Card emphasis="medium" tone="accent">
+      <Card>
         <Card data-testid="inner">B</Card>
       </Card>,
     );
     const inner = outer.querySelector<HTMLElement>('[data-testid="inner"]')!;
-    expect(computed(inner, "background-color")).toBe(bgTokenOn(inner, "--tone-a1"));
-    expect(computed(inner, "background-color")).not.toBe(computed(outer, "background-color"));
+    expect(computed(inner, "background-color")).toBe(computed(outer, "background-color"));
+    // Same declared value, different rendered result: that is what compositing means, and
+    // it is why the shell needs no per-level variants to nest.
   });
 });
 
 describe("material is backdrop defense, opt-in (§10)", () => {
-  it("thin and thick blur; solid never does", () => {
+  it("thin and thick blur; the default never does", () => {
     const thin = render(<Card material="thin">B</Card>);
     const thick = render(<Card material="thick">B</Card>);
     expect(computed(thin, "backdrop-filter")).toContain("blur(12px)");
     expect(computed(thick, "backdrop-filter")).toContain("blur(20px)");
-    expect(computed(render(<Card>B</Card>), "backdrop-filter")).toBe("none");
   });
 
   it("a material fill mixes over the page colour and stays translucent", () => {
@@ -84,31 +91,10 @@ describe("material is backdrop defense, opt-in (§10)", () => {
   });
 });
 
-describe("a surface sets foreground context (§10)", () => {
-  it("quiet inherits the page's text; tone-forward rungs re-scope it", () => {
-    const quiet = render(<Card>B</Card>);
-    expect(computed(quiet, "color")).toBe(tokenOn(quiet, "--neutral-12"));
-
-    const medium = render(
-      <Card emphasis="medium" tone="destructive">
-        B
-      </Card>,
-    );
-    expect(computed(medium, "color")).toBe(tokenOn(medium, "--tone-text"));
-
-    const loud = render(
-      <Card emphasis="loud" tone="accent">
-        B
-      </Card>,
-    );
-    expect(computed(loud, "color")).toBe(tokenOn(loud, "--tone-contrast"));
-  });
-
-  it("a control inside a tone-forward surface keeps its own resolution", () => {
-    // The surface re-scopes the FOREGROUND roles, never the tone indirection: a neutral
-    // button on an accent card is still a neutral button (§9's orthogonality, nested).
+describe("the shell carries context without imposing any (§10, §13)", () => {
+  it("a control inside keeps its own resolution", () => {
     const card = render(
-      <Card emphasis="medium" tone="accent">
+      <Card>
         <Button>Act</Button>
       </Card>,
     );
@@ -118,7 +104,7 @@ describe("a surface sets foreground context (§10)", () => {
     expect(computed(inCard, "color")).toBe(computed(alone, "color"));
   });
 
-  it("follows appearance: the same Card resolves differently under a dark Theme (§13)", () => {
+  it("follows appearance: the same Card resolves differently under a dark Theme", () => {
     const light = render(<Card>B</Card>);
     const dark = render(
       <Theme appearance="dark">
@@ -132,7 +118,7 @@ describe("a surface sets foreground context (§10)", () => {
 });
 
 describe("the boundary (§3, §13)", () => {
-  it("renders its axes as data attributes and forwards the escapes", () => {
+  it("forwards the escapes and keeps its own classes", () => {
     const el = render(
       <Card className="mine" style={{ maxWidth: "300px" }} material="thin">
         B
@@ -143,15 +129,15 @@ describe("the boundary (§3, §13)", () => {
     expect(el.dataset.material).toBe("thin");
   });
 
-  it("render composes: an article that is a card keeps every axis (§5)", () => {
+  it("render composes: an article that is a card keeps the shell (§5)", () => {
     const el = render(
-      <Card render={<article aria-label="post" />} emphasis="medium">
+      <Card render={<article aria-label="post" />} size="2">
         B
       </Card>,
     );
     expect(el.tagName).toBe("ARTICLE");
     expect(el.getAttribute("aria-label")).toBe("post");
-    expect(el.dataset.emphasis).toBe("medium");
     expect(el.className).toContain("kui-surface");
+    expect(computed(el, "padding-top")).toBe("16px");
   });
 });

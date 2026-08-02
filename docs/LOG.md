@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 Card strips to a shell, and the anatomy criterion falls out
+
+The elevation deletion kept going. Kushagra, in sequence: why does a Card have an emphasis ladder at all — a solid card is "a purely visual tool, which is what you did also" (the preview's own `loud accent` demo cell was decoration, which proved the point); then, after a five-slot anatomy (Header/Title/Description/Action/Footer) had been argued down to three (Title/Description/Actions), the sharper question — *why this layout and no other?* A titled card is one layout among many, and a system that blesses one is silently deprecating stat cards, media cards, profile cards. "Card is a block, not a component."
+
+**The criterion, worth more than the component: anatomy is system-owned only where something non-visual forces it.** Dialog's title/description are forced by a11y wiring; Callout's by status semantics; nothing forces a Card layout. Layouts are blocks (kookie-blocks), built from the shell plus Text/Heading/Flex when they exist. So Card is `size × material` and children — one fixed treatment (neutral quiet alpha + border) written as constant data attributes, resolved through the same shared layer, chosen by no one.
+
+**The slot autopsy, recorded so it stays dead:** the header Action slot died first (its legitimate tenant is card-object operations — dismiss, overflow — whose components don't exist; shipped early it gets squatted by task actions, which is shadcn's own login demo putting Sign Up top-right against its own footer buttons). Header died with it — a wrapper with no horizontal relationship left to lay out. Footer died by name: positional names attract positional tenants, Apple's `Section(footer:)` already means fine print, and the semantic name was Actions. Then the whole trio died as anatomy, by the criterion above. What survives anyway: the one-task-action-zone rule as the documented pattern, and the foreground-context roles, which Dialog and Callout's *forced* anatomy will consume.
+
+**Also named:** on controls, `bordered` genuinely is part of the emphasis ladder — the composed cells reproduce v1's five variants exactly — and §10's containment framing was half true. The prop stays; the reading changes.
+
+Emphasis/tone/bordered props deleted from Card; a `@ts-expect-error` law pins each refusal. Apple as the external check: no Card component exists in SwiftUI — `GroupBox` and inset `Section` ship one fixed treatment, materials are the real axis, card-ness is composed.
+
+Rejected: five surface-emphasis rungs (folding border in); demoting `bordered` to a system-owned ingredient on controls (Button needs its ladder public); a `Card.Content` wrapper (padding lives on the shell, so content is just children); `Card.Media` (full-bleed is its own design problem, buildable from tokens meanwhile); shipping anatomy slots that a block can express with three primitives.
+
 ## 2026-08-03 Elevation dies on first sight, and it was never an axis
 
 Kushagra, on seeing the v0 shadow ladder rendered: shadows for elevation is a no go — and then the sharper question, "why does our card need any elevation ladder?" It doesn't. The post-mortem matters more than the deletion: **nothing ever chose elevation at a call site.** §11's own defaults table fixed it per component — a Card was always `raised`, a Menu always `floating`, a Dialog always `overlay` — and a prop that nothing varies is a component fact wearing a prop's clothes. §9's rule (axes are derived, not assigned) should have caught it before a preview had to.

@@ -3,12 +3,10 @@
 import * as React from "react";
 
 import type { RenderElement } from "../../system/render.ts";
-import type { Size, Tone } from "../button/button.tsx";
+import type { Size } from "../button/button.tsx";
 
 /** §10 — what a surface is made of. Two recipes, not a magnitude dial; solid is the absence. */
 export type Material = "solid" | "thin" | "thick";
-/** §10 — surfaces speak the same loudness axis as controls, resolved through the alpha ramp. */
-export type SurfaceEmphasis = "loud" | "medium" | "quiet";
 
 export type CardProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
@@ -16,10 +14,6 @@ export type CardProps = Omit<
 > & {
   /** §4 — pads from the surface family; a surface has no height to own. */
   size?: Size;
-  tone?: Tone;
-  emphasis?: SurfaceEmphasis;
-  /** §10 — containment; on by default, because §11 makes `quiet + bordered` the canonical card. */
-  bordered?: boolean;
   /** §10 — backdrop defense, opt-in always: over a solid parent it blurs nothing. */
   material?: Material;
   /** Render into an element you already have — an `<article>`, a link (§5). */
@@ -29,36 +23,31 @@ export type CardProps = Omit<
 };
 
 /**
- * The canonical surface (§10, §11): tone × emphasis × bordered × material, every cell
- * resolved by the shared surface layer — Card ships not one line of CSS of its own.
+ * A shell (§10, §11, LOG 2026-08-04). One treatment, no variants: the quiet alpha fill over
+ * whatever it sits on, the border, the surface radius, the padding rhythm — Card is the place
+ * the surface laws are enforced, with zero opinion about what goes inside.
  *
- * No elevation, no shadow: a card is in-flow by definition, and separation is border and
- * fill. Fills come from the alpha ramp, so nested Cards differentiate by compositing (§10).
- * Medium and loud are tone-forward and re-scope the foreground context (`--color-text`) for
- * their children. Defaults are §11's row: neutral, quiet + bordered, solid — and material
- * stays opt-in everywhere because its bad case looks fine on the demo page.
+ * What it deliberately is not: it has no emphasis or tone (loudness ranks actions, and a
+ * container is not an action — status surfaces like Callout carry tone because there it means
+ * something), and no anatomy slots (anatomy is system-owned only where something non-visual
+ * forces it — Dialog's a11y wiring, Callout's status semantics. A titled card is one layout
+ * among many, and layouts are blocks, not components).
+ *
+ * The identity attributes below are constants, not props: the shell still resolves through
+ * the shared surface layer like every surface, it just never lets a call site choose.
  */
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
-  {
-    size = "3",
-    tone = "neutral",
-    emphasis = "quiet",
-    bordered = true,
-    material = "solid",
-    render,
-    className,
-    style,
-    children,
-    ...props
-  },
+  { size = "3", material = "solid", render, className, style, children, ...props },
   ref,
 ) {
   const merged = {
     ref,
     "data-size": size,
-    "data-tone": tone,
-    "data-emphasis": emphasis,
-    "data-bordered": bordered || undefined,
+    // Fixed identity, not API: the tone indirection needs a family to resolve --tone-a1
+    // and --tone-border, and a Card is always the neutral quiet bordered surface.
+    "data-tone": "neutral",
+    "data-emphasis": "quiet",
+    "data-bordered": true,
     // Solid is the absence of a material, so it writes no attribute (§10).
     "data-material": material === "solid" ? undefined : material,
     className: className ? `kui-surface kui-card ${className}` : "kui-surface kui-card",

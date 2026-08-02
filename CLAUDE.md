@@ -10,7 +10,7 @@ Done: scaffold (1), token pipeline including the colour generator (2), Box and t
 
 **Button shipped 2026-08-03 (step 5)** on Base UI, the first runtime dependency: `size × tone × emphasis × bordered × loading`, plus Spinner. Exit gate met — +1,206 bytes gzipped for the whole control layer, of which ~480 is Button's own; additivity is law-tested, not just measured. Confirmed on a real iPhone. All transitions are zero until the motion system is designed (Kushagra's call; press stays instant whenever motion lands).
 
-**Card shipped 2026-08-03 (step 6)**, closing the first vertical slice: `system/surfaces.css` is the whole look (rungs on the alpha ramp, §10 material recipes, foreground context roles) and Card itself ships zero CSS — a law asserts card.css does not exist. **Elevation was deleted the same day** — no shadows anywhere, separation is border and fill; detached components (Popover, Dialog) design their own detachment when built. v0 taste awaits judgment: surface padding, material over the hostile backdrop. `material` returns to Button after those values lock.
+**Card shipped 2026-08-03 (step 6), then stripped to a shell 2026-08-04**: `size × material` and children, one fixed treatment (neutral quiet alpha + border), no tone/emphasis/bordered props, no anatomy slots, zero CSS of its own (a law asserts card.css does not exist). **Elevation is deleted system-wide** — no shadows anywhere; separation is border and fill. The governing criterion (LOG 2026-08-04): anatomy is system-owned only where something non-visual forces it (Dialog a11y, Callout status); layouts are blocks (kookie-blocks). v0 taste awaits judgment: surface padding, material over the hostile backdrop. `material` returns to Button after those values lock.
 
 **Next:** judge the v0 surface values by eye, then repetition across the component set — plus the §10 deferrals (Theme material policy clamp, brightness-floor branch, material border edge) and the §14 slice's standing debts (dark SSR at apps/docs, motion system).
 
@@ -24,7 +24,7 @@ Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DEC
 - Tokens only. No raw px in component CSS; every value resolves through a `--*` token.
 - No utility classes shipped, ever.
 - `size` is an index, not a measurement. Closed unions: `"1" | "2" | "3" | "4"`.
-- Appearance is resolved output. Components expose tone/emphasis/elevation/material, never raw fills.
+- Appearance is resolved output. Components expose tone/emphasis/material, never raw fills. Elevation does not exist; no shadows.
 - Semantic references, not numeric coincidence (`--radius-control-2`, never `--radius-2` in a component).
 - State styling lives in CSS via data-attributes. No JS at interaction time.
 - Never edit generated files (they carry a header naming their source config).

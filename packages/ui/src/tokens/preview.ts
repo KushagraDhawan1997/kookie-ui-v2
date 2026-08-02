@@ -180,57 +180,27 @@ function accentSwap(name: string, hex: string, mode: Mode): string {
   </style><div class="${cls}">${buttonMatrix(mode, ["accent"], `${name} — ${hex} — ${mode}`)}</div>`;
 }
 
-/** The static markup Card produces (§10) — classes and data attributes, no component. */
-function card(
-  opts: {
-    tone?: string;
-    emphasis?: string;
-    bordered?: boolean;
-    material?: string;
-    size?: string;
-  },
-  body: string,
-  style = "",
-): string {
-  const { tone = "neutral", emphasis = "quiet", bordered = true, material, size = "3" } = opts;
-  return `<div class="kui-surface kui-card" data-size="${size}" data-tone="${tone}" data-emphasis="${emphasis}"${
-    bordered ? " data-bordered" : ""
-  }${material ? ` data-material="${material}"` : ""}${style ? ` style="${style}"` : ""}>${body}</div>`;
+/** The static markup Card produces (LOG 2026-08-04): a shell — identity, not options. */
+function card(body: string, style = "", material?: string): string {
+  return `<div class="kui-surface kui-card" data-size="3" data-tone="neutral" data-emphasis="quiet" data-bordered${
+    material ? ` data-material="${material}"` : ""
+  }${style ? ` style="${style}"` : ""}>${body}</div>`;
 }
 
 /**
- * The surface axes, one mode per block (§10, §14 step 6): alpha nesting three deep, the
- * tone-forward rungs setting foreground context, and the material recipes over a deliberately
- * hostile backdrop — the judgment §10 said could only happen against real backdrops, not in
- * prose. No elevation, no shadows: separation is border and fill.
+ * The shell, one mode per block (§10, §14 step 6): alpha nesting three deep, and the material
+ * recipes over a deliberately hostile backdrop — the judgment §10 said could only happen
+ * against real backdrops, not in prose. No variants to show, which is the point: everything a
+ * Card can be is on this screen.
  */
 function surfaceSection(mode: Mode): string {
   const muted = `style="color: var(--color-text-muted)"`;
   const nesting = card(
-    {},
     `outer — <span ${muted}>--tone-a1 over the page</span>
-      ${card({}, `nested — <span ${muted}>the same token, composited darker</span>
-        ${card({}, `third level`, "margin-top: var(--space-4)")}`, "margin-top: var(--space-4)")}`,
+      ${card(`nested — <span ${muted}>the same token, composited darker</span>
+        ${card(`third level`, "margin-top: var(--space-4)")}`, "margin-top: var(--space-4)")}`,
     "flex: 1",
   );
-  const toneForward = [
-    card(
-      { emphasis: "medium", tone: "accent" },
-      `<strong>medium accent</strong><div ${muted}>children read --color-text</div>
-       <div style="margin-top: var(--space-4)">${button({}, "Neutral button")}</div>`,
-      "flex: 1",
-    ),
-    card(
-      { emphasis: "medium", tone: "destructive" },
-      `<strong>medium destructive</strong><div ${muted}>a callout's dressing</div>`,
-      "flex: 1",
-    ),
-    card(
-      { emphasis: "loud", tone: "accent" },
-      `<strong>loud accent</strong><div ${muted}>text flips to --tone-contrast</div>`,
-      "flex: 1",
-    ),
-  ].join("");
   const hostile =
     "background: radial-gradient(circle at 20% 30%, #ff5f6d 0 12%, transparent 40%)," +
     " radial-gradient(circle at 75% 20%, #ffc371 0 18%, transparent 45%)," +
@@ -241,10 +211,10 @@ function surfaceSection(mode: Mode): string {
   const materials = ["solid", "thin", "thick"]
     .map((m) =>
       card(
-        { ...(m === "solid" ? {} : { material: m }) },
         `<strong>${m}</strong><div ${muted}>does the label survive?</div>
          <div style="margin-top: var(--space-4)">${button({ tone: "accent", emphasis: "loud" }, "Label")} ${button({}, "Label")}</div>`,
         "flex: 1; min-width: 200px",
+        m === "solid" ? undefined : m,
       ),
     )
     .join("");
@@ -252,8 +222,6 @@ function surfaceSection(mode: Mode): string {
     <h2>${mode}</h2>
     <h3>alpha nesting — one token, three distinct levels (§10)</h3>
     <div style="display: flex; gap: var(--space-5)">${nesting}</div>
-    <h3 style="margin-top: var(--space-7)">tone-forward rungs set foreground context (§10)</h3>
-    <div style="display: flex; gap: var(--space-5)">${toneForward}</div>
     <h3 style="margin-top: var(--space-7)">material over a hostile backdrop — v0 recipes (§10)</h3>
     <div style="${hostile}">${materials}</div>
   </section>`;
@@ -606,8 +574,8 @@ ${BRANDS.slice(0, 5)
   ${button({ size: "4", emphasis: "loud", tone: "accent", loading: true }, "Save")}
 </div>
 
-<h1 id="card">Card — the first surface</h1>
-<p class="note">One component, four axes: <code>tone × emphasis × bordered × material</code>, and Card ships not one line of its own CSS — everything below is the shared surface layer resolving data attributes, the same additivity that carried Button (§2, §10). There is no elevation and there are no shadows — separation is border and fill. The glass values are v0, judged on this page; expect them to move.</p>
+<h1 id="card">Card — the shell</h1>
+<p class="note">A shell: one treatment, no variants, no anatomy — <code>size × material</code> and children, and Card ships not one line of its own CSS (§10). The fill is the quiet alpha over whatever is behind it, separation is border and fill, and there are no shadows anywhere. Titled layouts are blocks, not components. The glass values are v0, judged on this page; expect them to move.</p>
 ${surfaceSection("light")}
 ${surfaceSection("dark")}
 
