@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-03 Button lands, and the additivity claim stops being an argument
+
+§14 step 5. Base UI behind the Kookie surface — it supplies the `<button>` semantics, keyboard behaviour, `data-disabled` and `focusableWhenDisabled`, and every visible decision stays ours. First runtime dependency in the package.
+
+**The measurement the step exists for: +1,206 bytes gzipped for the entire control layer**, 8,105 against a 40,960 ceiling. The decomposition is the actual result — `button.css` is about 480 bytes and contains three declarations, because everything that varies lives once in `system/recipes.css` and is shared by every control that follows. The second control costs its structure and nothing else.
+
+**Byte counts cannot prove additivity, so laws do.** A measurement tells you today's number; what tells you the *shape* is that a component's stylesheet names none of the axes. `button.css` may not contain a tone, a rung, a size index or a colour token, and the recipe layer may never select one axis against another (`[data-emphasis="loud"][data-tone="accent"]` is the exact rule that starts the multiplicative slide). Both are asserted. The tone indirection is generated from the tone list, so a fourth tone is a config line, not a CSS edit.
+
+**Two things changed on contact.**
+
+The Spinner's 2px ring sat *outside* its 16px box, so a loading button rendered 4px wider than the same button at rest — the zero-shift promise falsified by a `box-sizing` default, caught by the law that asserted it. And the focus ring named `--accent-solid` directly inside the shared layer, which made the "a rung names no family" law fail for a good reason: the ring genuinely is always accent (§8), but writing that in the recipe layer leaks a family into the one file that must stay tone-blind. `--focus-ring` is now a generated role token, re-declared per mode because a `var()` resolves where it is declared.
+
+**Disabled is a tone remap, and that turned out to be better than the spec's wording.** Rewriting `--tone-*` to a flat neutral rather than forcing `--kui-fill` means every rung keeps its own shape while going flat: a disabled quiet button stays bare instead of growing a fill it never had at rest. Same reason opacity was refused — the state should be a designed pair, not a filter over one.
+
+**`material` deliberately does not ship on Button.** §10's recipes are v0 pending measurement against real backdrops, and §14 assigns that proof to Card. Shipping unmeasured glass to hit a table row would be exactly the false precision this project keeps catching.
+
+Rejected: a wrapper element for icon slots (`> svg` sizing plus `--kui-icon` costs no DOM, and minimising layers was the explicit constraint); a paint layer inside the control (the reserve it existed for was already deleted); hiding the label while loading; per-component emphasis rules.
+
 ## 2026-08-03 44 was never the floor, and dropping that error removes a mechanism
 
 Kushagra, reading the coarse matrix: a coarse compact size 1 at 32px is a *conscious* design choice, a consumer reaching for size 1 is doing it deliberately, and raising it to 44 to satisfy a floor destroys the reason they reached for it. Correct — and checking the premise made it stronger than a compromise.

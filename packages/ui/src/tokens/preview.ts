@@ -72,6 +72,46 @@ function hueSweep(mode: Mode): string {
 
 const TONES = Object.keys(tones) as ToneName[];
 
+const EMPHASES = ["loud", "medium", "quiet"] as const;
+
+/**
+ * A Button as the component renders it: same classes, same data attributes, same stylesheet.
+ * Written by hand here only because this file cannot parse JSX — the mounted component is
+ * covered by the browser suite, and what this page is for is the eye.
+ */
+function button(
+  attrs: { size?: string; tone?: string; emphasis?: string; bordered?: boolean; loading?: boolean },
+  label: string,
+): string {
+  const { size = "2", tone = "neutral", emphasis = "medium", bordered, loading } = attrs;
+  return `<button class="kui-control kui-button" data-size="${size}" data-tone="${tone}" data-emphasis="${emphasis}"${
+    bordered ? ' data-bordered="true"' : ""
+  }${loading ? ' data-loading="true" aria-busy="true"' : ""}>${
+    loading ? '<span class="kui-spinner" aria-hidden></span>' : ""
+  }${label}</button>`;
+}
+
+/** The axis model in one grid: every tone against every rung, at the baseline size. */
+function buttonMatrix(mode: Mode): string {
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    <table class="axis-table">
+      <thead><tr><th></th>${EMPHASES.map((e) => `<th>${e}</th>`).join("")}<th>+ bordered</th><th>disabled</th><th>loading</th></tr></thead>
+      <tbody>
+      ${TONES.map(
+        (tone) => `<tr>
+          <th>${tone}</th>
+          ${EMPHASES.map((e) => `<td>${button({ tone, emphasis: e }, "Label")}</td>`).join("")}
+          <td>${button({ tone, emphasis: "quiet", bordered: true }, "Label")}</td>
+          <td><button class="kui-control kui-button" data-size="2" data-tone="${tone}" data-emphasis="medium" data-disabled disabled>Label</button></td>
+          <td>${button({ tone, emphasis: "medium", loading: true }, "Saving")}</td>
+        </tr>`,
+      ).join("")}
+      </tbody>
+    </table>
+  </section>`;
+}
+
 const swatch = (bg: string, title: string, label = "") =>
   `<div class="sw" title="${title}" style="background:${bg}">${label}</div>`;
 
@@ -303,6 +343,13 @@ export function generatePreview(): string {
           border-radius: var(--radius-control-2); color: var(--accent-text); text-align: center;
           font: var(--font-weight-medium) var(--font-size-2)/var(--line-height-2) var(--font-body); }
 
+  /* the button axis grid */
+  .axis-table { border-collapse: separate; border-spacing: var(--space-4) var(--space-3); }
+  .axis-table th { font-size: var(--font-size-1); font-weight: var(--font-weight-medium);
+                   color: var(--neutral-10); text-align: left; text-transform: lowercase; }
+  .row-controls { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center;
+                  margin-bottom: var(--space-9); }
+
   /* tables */
   .roles-table { border-collapse: collapse; font-size: var(--font-size-2); margin-bottom: var(--space-9);
                  display: block; overflow-x: auto; max-width: 100%; }
@@ -345,6 +392,7 @@ export function generatePreview(): string {
   <span class="brand">KookieUI <em>tokens</em></span>
   <nav class="toc">
     <a href="#matrix">matrix</a>
+    <a href="#button">button</a>
     <a href="#layout">layout</a>
     <a href="#roles">roles</a>
     <a href="#colour">colour</a>
@@ -359,7 +407,7 @@ export function generatePreview(): string {
         .map((l) => `<option${l === "medium" ? " selected" : ""}>${l}</option>`)
         .join("")}</select>
     </label>
-    <label>pointer
+  <label>pointer
       <select id="pointer"><option selected>auto</option><option>fine</option><option>coarse</option></select>
     </label>
   </div>
@@ -381,6 +429,20 @@ ${LEVELS.map(
 <div class="surfaces">
   <div class="surface" style="border-radius: var(--radius-surface)">--radius-surface (card, popover)</div>
   <div class="surface" style="border-radius: var(--radius-overlay)">--radius-overlay (dialog, sheet)</div>
+</div>
+
+<h1 id="button">Button — the axis model</h1>
+<p class="note">Every cell below is the same component: <code>tone</code> chooses a family, <code>emphasis</code> chooses a loudness, and neither knows about the other. The CSS behind it is one block per rung and one per size, shared by every control that will ever exist — which is what makes the cost additive rather than the product of the axes (§2, §9). Hover and press are stylesheet work; nothing here runs JavaScript. The toggles above drive it: change <em>radius</em>, <em>pointer</em> or <em>contrast</em> and the whole grid follows.</p>
+${buttonMatrix("light")}
+${buttonMatrix("dark")}
+
+<p class="note">The size index, at the default rung — five scales moving on one number (§4).</p>
+<div class="row-controls">${SIZES.map((s) => button({ size: String(s) }, `Size ${s}`)).join("")}</div>
+<p class="note">Loading never hides the label: the spinner takes the icon's box when there is one, and joins the text when there is not (§8).</p>
+<div class="row-controls">
+  ${button({ emphasis: "loud", tone: "accent" }, "Save")}
+  ${button({ emphasis: "loud", tone: "accent", loading: true }, "Save")}
+  ${button({ size: "4", emphasis: "loud", tone: "accent", loading: true }, "Save")}
 </div>
 
 <h1 id="layout">the responsive mechanism, live</h1>

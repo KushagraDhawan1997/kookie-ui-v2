@@ -399,5 +399,13 @@ export function colorDeclarations(
       `  --${tone}-contrast: ${s.contrast};`,
     );
   }
+
+  // The focus ring (§8). One ring system-wide, always the accent, because "where is focus" is
+  // one question and a per-tone ring would answer two at once. It lives here rather than in the
+  // recipe layer so the shared control CSS names no colour family at all — and it has to be
+  // re-declared per mode, since a `var()` resolves where it is declared and a single :root copy
+  // would bake light's accent into dark (§6).
+  out.push(`  --focus-ring: var(--accent-solid);`);
+
   return out;
 }

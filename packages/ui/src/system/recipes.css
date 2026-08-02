@@ -1,0 +1,169 @@
+/* The shared control layer (§8, §9). Hand-authored: this is design, not data.
+ *
+ * Everything here is written ONCE and consumed by every control. Emphasis rungs set fill and
+ * label from the tone-neutral role layer; the tone indirection is generated (tokens.css) and
+ * decides which family `--tone-*` points at. So the cost is O(rungs + sizes + tones), never
+ * their product — §2's third reason, made real. Adding Input or Select adds structure, not
+ * another copy of this.
+ *
+ * Interaction is entirely stylesheet work (ENGINEERING §1.5): no JS runs on hover or press. */
+
+/* ── The skeleton every fixed-height control shares (§4) ─────────────────────────────────── */
+
+.kui-control {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* min-height, not height: identical in every normal render, but a hard height clips a
+     200%-resized label (WCAG 1.4.4) and truncates a wrapped one (§4). */
+  min-height: var(--kui-h);
+  padding-inline: var(--kui-px);
+  /* Block padding exists only to protect wrapped content from the edges; height still comes
+     from the token, never from padding (§4). */
+  padding-block: var(--kui-py, 0);
+  gap: var(--kui-gap);
+  border-radius: var(--kui-radius);
+
+  font-family: var(--font-body);
+  font-size: var(--kui-font);
+  line-height: var(--kui-line);
+  letter-spacing: var(--kui-tracking);
+  font-weight: var(--font-weight-medium);
+
+  background-color: var(--kui-fill);
+  color: var(--kui-label-color);
+  border: 1px solid var(--kui-border-color, transparent);
+
+  cursor: default;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--motion-duration) var(--motion-easing),
+    border-color var(--motion-duration) var(--motion-easing),
+    color var(--motion-duration) var(--motion-easing);
+}
+
+/* Icons take the size index's box and the label's colour, so a slot needs no wrapper element
+   and no per-icon styling (§4). */
+.kui-control > svg {
+  width: var(--kui-icon);
+  height: var(--kui-icon);
+  flex: none;
+}
+
+/* ── The size index: one join, five families (§4) ────────────────────────────────────────── */
+
+[data-size="1"] {
+  --kui-h: var(--control-height-1);
+  --kui-px: var(--control-px-1);
+  --kui-gap: var(--control-gap-1);
+  --kui-radius: var(--radius-control-1);
+  --kui-font: var(--font-size-1);
+  --kui-line: var(--line-height-1);
+  --kui-tracking: var(--letter-spacing-1);
+  --kui-icon: var(--icon-size-1);
+}
+[data-size="2"] {
+  --kui-h: var(--control-height-2);
+  --kui-px: var(--control-px-2);
+  --kui-gap: var(--control-gap-2);
+  --kui-radius: var(--radius-control-2);
+  --kui-font: var(--font-size-2);
+  --kui-line: var(--line-height-2);
+  --kui-tracking: var(--letter-spacing-2);
+  --kui-icon: var(--icon-size-2);
+}
+[data-size="3"] {
+  --kui-h: var(--control-height-3);
+  --kui-px: var(--control-px-3);
+  --kui-gap: var(--control-gap-3);
+  --kui-radius: var(--radius-control-3);
+  --kui-font: var(--font-size-3);
+  --kui-line: var(--line-height-3);
+  --kui-tracking: var(--letter-spacing-3);
+  --kui-icon: var(--icon-size-3);
+}
+[data-size="4"] {
+  --kui-h: var(--control-height-4);
+  --kui-px: var(--control-px-4);
+  --kui-gap: var(--control-gap-4);
+  --kui-radius: var(--radius-control-4);
+  --kui-font: var(--font-size-4);
+  --kui-line: var(--line-height-4);
+  --kui-tracking: var(--letter-spacing-4);
+  --kui-icon: var(--icon-size-4);
+}
+
+/* ── The emphasis ladder: loudness, not construction (§9) ────────────────────────────────── */
+
+[data-emphasis="loud"] {
+  --kui-fill: var(--tone-solid);
+  --kui-fill-hover: var(--tone-solid-hover);
+  --kui-fill-active: var(--tone-solid-active);
+  /* The APCA-chosen label for this fill (§7). Interaction states move AWAY from it, so they
+     are strictly more legible than rest and only rest has to clear the bar. */
+  --kui-label-color: var(--tone-contrast);
+}
+
+[data-emphasis="medium"] {
+  --kui-fill: var(--tone-soft);
+  --kui-fill-hover: var(--tone-soft-hover);
+  --kui-fill-active: var(--tone-soft-active);
+  /* A control label is not a link: --tone-label sits between steps 11 and 12 (§7). */
+  --kui-label-color: var(--tone-label);
+}
+
+[data-emphasis="quiet"] {
+  /* Bare at rest, fill on touch. Its rest is the absence of a fill, so the +1/+2 step rule
+     (§8) applies from the first visible state rather than from transparency. */
+  --kui-fill: transparent;
+  --kui-fill-hover: var(--tone-soft);
+  --kui-fill-active: var(--tone-soft-hover);
+  --kui-label-color: var(--tone-label);
+}
+
+/* ── Containment, orthogonal to loudness (§10) ───────────────────────────────────────────── */
+
+[data-bordered] {
+  --kui-border-color: var(--tone-border);
+}
+
+/* ── States: uniform steps on the ramp, one global rule (§8) ─────────────────────────────── */
+
+.kui-control:hover:not([data-disabled], [data-loading]) {
+  background-color: var(--kui-fill-hover);
+}
+
+.kui-control:active:not([data-disabled], [data-loading]) {
+  background-color: var(--kui-fill-active);
+}
+
+/* One ring, always accent, keyboard only (§8). `outline` rather than box-shadow: it follows
+   border-radius natively — pills included — and cannot affect layout. */
+.kui-control:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Disabled is a TONE remap, never opacity (§8): opacity stacks on tinted surfaces and voids
+   every generated contrast guarantee, where remapping the family keeps a designed, testable
+   pair. Rewriting --tone-* rather than --kui-fill means quiet stays bare and every rung keeps
+   its own shape while going flat. */
+.kui-control[data-disabled] {
+  --tone-soft: var(--neutral-3);
+  --tone-soft-hover: var(--neutral-3);
+  --tone-soft-active: var(--neutral-3);
+  --tone-solid: var(--neutral-3);
+  --tone-solid-hover: var(--neutral-3);
+  --tone-solid-active: var(--neutral-3);
+  --tone-border: var(--neutral-6);
+  --tone-label: var(--neutral-8);
+  --tone-contrast: var(--neutral-8);
+}
+
+/* Loading blocks interaction without the disabled remap: the control still looks like itself,
+   because it is still the thing you pressed (§8). */
+.kui-control[data-loading] {
+  pointer-events: none;
+}

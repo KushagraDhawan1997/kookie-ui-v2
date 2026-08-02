@@ -1,0 +1,84 @@
+/**
+ * §2's additivity claim, asserted structurally rather than by byte count (ENGINEERING §6).
+ *
+ * "Component CSS is additive, not multiplicative" is the load-bearing size argument of the
+ * whole project: total is O(components + rungs + sizes + tones), never their product. A byte
+ * measurement cannot prove that — it only tells you today's number. What proves it is that a
+ * component's own stylesheet names none of the axes, so adding Input or Select adds structure
+ * and nothing else, and adding a tone or a rung touches one shared file.
+ */
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+import { tones } from "../tokens/color-config.ts";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const read = (p: string) => readFileSync(join(here, p), "utf8");
+
+const recipes = read("./recipes.css");
+const button = read("../components/button/button.css");
+const TONE_NAMES = Object.keys(tones);
+const RUNGS = ["loud", "medium", "quiet"];
+
+describe("a component's own CSS names no axis (§2, §9)", () => {
+  it("button.css contains no tone, no rung, and no size index", () => {
+    for (const name of [...TONE_NAMES, ...RUNGS]) expect(button).not.toContain(name);
+    expect(button).not.toMatch(/data-size/);
+    // If this ever fails, the recipe layer has stopped absorbing variation and the cost has
+    // quietly become multiplicative — which is the moment to fix the layer, not the component.
+  });
+
+  it("button.css names no colour token at all — appearance is resolved output (§7)", () => {
+    expect(button).not.toMatch(/--(accent|neutral|destructive|tone)-/);
+  });
+});
+
+describe("the shared layer carries the variation, once (§2)", () => {
+  it("every rung is defined exactly once, for every component that will ever exist", () => {
+    for (const rung of RUNGS) {
+      const occurrences = recipes.match(new RegExp(`\\[data-emphasis="${rung}"\\]`, "g")) ?? [];
+      expect(occurrences).toHaveLength(1);
+    }
+  });
+
+  it("the rungs name roles, never a tone — one recipe serves all three families", () => {
+    for (const name of TONE_NAMES) {
+      expect(recipes).not.toContain(`--${name}-solid`);
+      expect(recipes).not.toContain(`--${name}-soft`);
+    }
+    expect(recipes).toContain("--tone-solid");
+    expect(recipes).toContain("--tone-soft");
+  });
+
+  it("the size join is one block per index, not one per component", () => {
+    for (const size of ["1", "2", "3", "4"]) {
+      const occurrences = recipes.match(new RegExp(`\\[data-size="${size}"\\]`, "g")) ?? [];
+      expect(occurrences).toHaveLength(1);
+    }
+  });
+
+  it("no rule multiplies an axis by another", () => {
+    // The failure this forbids by name: `[data-emphasis="loud"][data-tone="accent"]`, which is
+    // where a system starts paying O(rungs x tones) and never stops.
+    expect(recipes).not.toMatch(/\[data-emphasis="[a-z]+"\]\[data-tone=/);
+    expect(recipes).not.toMatch(/\[data-tone="[a-z]+"\]\[data-emphasis=/);
+    expect(recipes).not.toMatch(/\[data-size="\d"\]\[data-(emphasis|tone)=/);
+  });
+});
+
+describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => {
+  it("states are declared as selectors, so no JS runs at interaction time", () => {
+    for (const state of [":hover", ":active", ":focus-visible", "[data-disabled]"]) {
+      expect(recipes).toContain(state);
+    }
+  });
+
+  it("disabled remaps the family and never reaches for opacity (§8)", () => {
+    const block = recipes.slice(recipes.indexOf(".kui-control[data-disabled]"));
+    const body = block.slice(0, block.indexOf("}"));
+    expect(body).toContain("--tone-label");
+    expect(body).not.toContain("opacity");
+  });
+});

@@ -62,5 +62,8 @@
   },
   "browserslist": [
     "defaults and fully supports es6-module"
-  ]
+  ],
+  "dependencies": {
+    "@base-ui/react": "^1.6.0"
+  }
 }

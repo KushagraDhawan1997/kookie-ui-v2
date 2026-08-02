@@ -11,7 +11,13 @@ import type { ReactElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 
+// Every stylesheet the package ships, in the order styles/index.css imports them — order is
+// load-bearing, since the recipes read tokens and components read recipes. Keep this list and
+// that file in step; a sheet missing here makes laws pass against an empty cascade.
+import buttonCss from "../components/button/button.css?raw";
+import spinnerCss from "../components/spinner/spinner.css?raw";
 import layoutCss from "../system/layout.css?raw";
+import recipesCss from "../system/recipes.css?raw";
 import tokensCss from "../tokens/tokens.css?raw";
 
 let installed = false;
@@ -20,7 +26,7 @@ let installed = false;
 export function installStyles(): void {
   if (installed) return;
   const sheet = document.createElement("style");
-  sheet.textContent = `${tokensCss}\n${layoutCss}`;
+  sheet.textContent = [tokensCss, layoutCss, recipesCss, spinnerCss, buttonCss].join("\n");
   document.head.append(sheet);
   installed = true;
 }

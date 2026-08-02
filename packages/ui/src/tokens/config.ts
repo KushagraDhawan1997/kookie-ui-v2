@@ -140,6 +140,25 @@ export const lineHeight = [16, 20, 24, 26, 28, 32, 38, 48, 62] as const;
 /** Paired, in em so it tracks the size for free. ~0 through reading sizes, slightly negative at display. */
 export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0.025] as const;
 
+/**
+ * §4 — the icon box, pulled by the size index. Sizes 1 and 2 share 16: the grid the ecosystem
+ * draws on is 16/20/24, and a 14px raster of a 24-grid icon blurs its strokes. Deliberately
+ * NOT part of the density or pointer sets — the icon grid is a perception floor, not a
+ * breathing-room choice, so a compact size 2 and a comfortable size 2 carry the same icon.
+ */
+export const iconSize = [16, 16, 20, 24] as const;
+
+/**
+ * §8's one canonical interaction transition, and only that. The wider motion system —
+ * duration families, overlay enter/exit, the reduced-motion law — is deferred (§8), so these
+ * two values exist to make hover and press feel like one gesture, not to be a scale.
+ * Ease-out: responds immediately, settles. 120ms because hover feedback reads laggy past ~150.
+ */
+export const motion = {
+  duration: "120ms",
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+} as const;
+
 /** §15 — closed weight set; `light` deferred until something needs it. */
 export const fontWeight = { regular: 400, medium: 500, semibold: 600, bold: 700 } as const;
 

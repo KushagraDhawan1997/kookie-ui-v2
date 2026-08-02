@@ -8,7 +8,9 @@ Blockers resolved 2026-07-31; code phase open, following §14's build order stri
 
 Done: scaffold (1), token pipeline including the colour generator (2), Box and the responsive mechanism (3), Theme + Flex/Stack/Grid (4), and the pointer axis tokens (4b) — coarse cells, Theme `pointer` prop, preview matrix, laws. No runtime touch reserve: the designed geometry carries both the locked 24 floor (WCAG 2.2 AA) and the 44 target on the default path, so every control is one element. Theme shipped with dark-mode SSR still unresolved (REVIEW.md); that debt comes due at apps/docs.
 
-**Next: Button (step 5), on Base UI — the first runtime dependency.** All gates cleared 2026-08-02: focus-visible, disabled, loading (label never hides), icon box (§8, §4); motion deferred without gating; coarse v0 accepted as refinable; Theme is a query container (§2). Button's own gate is the exit measurement: its CSS must prove variant-as-token-remap before any other control ships.
+**Button shipped 2026-08-03 (step 5)** on Base UI, the first runtime dependency: `size × tone × emphasis × bordered × loading`, plus Spinner. Exit gate met — +1,206 bytes gzipped for the whole control layer, of which ~480 is Button's own; additivity is law-tested, not just measured. `material` waits for Card.
+
+**Next: Card (step 6)** — elevation, material, foreground context, alpha nesting. It is where §10's v0 glass values finally meet real backdrops.
 
 Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
 

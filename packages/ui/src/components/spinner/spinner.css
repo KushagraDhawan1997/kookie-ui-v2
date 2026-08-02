@@ -1,0 +1,35 @@
+/* A busy indicator that costs one element and no JS (§8).
+ *
+ * Border-and-rotate rather than SVG: no markup to parse, no path to rasterise, one compositor-
+ * friendly transform. It inherits `currentColor`, so it is the label's colour for free in every
+ * tone, emphasis and mode without a single token reference of its own. */
+
+.kui-spinner {
+  display: inline-block;
+  flex: none;
+  /* Load-bearing: without it the 2px ring sits OUTSIDE the icon box and a loading button is
+     4px wider than the same button at rest — the zero-shift promise, broken by a default. */
+  box-sizing: border-box;
+  /* The icon box, so a spinner swapped in for an icon shifts nothing (§4). Falls back for a
+     bare <Spinner /> used outside a control. */
+  width: var(--kui-icon, var(--icon-size-2));
+  height: var(--kui-icon, var(--icon-size-2));
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: var(--radius-full);
+  animation: kui-spin 600ms linear infinite;
+}
+
+@keyframes kui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Slowed, never stopped: a busy indicator that stops moving is information lost, and the
+   vestibular guidance targets large motion rather than a 16px rotation (§8). */
+@media (prefers-reduced-motion: reduce) {
+  .kui-spinner {
+    animation-duration: 1800ms;
+  }
+}

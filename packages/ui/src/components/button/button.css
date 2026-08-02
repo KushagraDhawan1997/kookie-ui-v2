@@ -1,0 +1,16 @@
+/* Button adds almost nothing, and that is the point (§2).
+ *
+ * Everything visible — the emphasis rungs, the size join, the states, the focus ring, the
+ * disabled remap — lives once in system/recipes.css and is shared by every control. What is
+ * left here is what only a button needs. If this file ever grows, the recipe layer is failing.
+ */
+
+.kui-button {
+  /* A button never wraps its label by default: a wrapped button reads as a paragraph with a
+     border. Long labels truncate at the call site or use a different component. */
+  white-space: nowrap;
+  /* The native element brings its own font and margin; the control skeleton sets the rest. */
+  margin: 0;
+  /* Native buttons centre their text but not their box in every engine. */
+  text-align: center;
+}

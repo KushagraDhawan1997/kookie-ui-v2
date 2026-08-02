@@ -11,6 +11,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { generateLayoutCss } from "../system/layout-css.ts";
+import { tones, type ToneName } from "./color-config.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
   coarse,
@@ -19,8 +20,10 @@ import {
   fontFamily,
   fontSize,
   fontWeight,
+  iconSize,
   letterSpacing,
   lineHeight,
+  motion,
   radiusLevels,
   radiusOverlay,
   radiusSurface,
@@ -63,6 +66,13 @@ export function generateTokens(): string {
   put("font-body", fontFamily.body);
   put("font-heading", fontFamily.heading);
   put("font-mono", fontFamily.mono);
+
+  lines.push("", "  /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */");
+  iconSize.forEach((px, i) => put(`icon-size-${i + 1}`, zoom(px)));
+
+  lines.push("", "  /* §8's one canonical interaction transition — not a motion scale */");
+  put("motion-duration", motion.duration);
+  put("motion-easing", motion.easing);
 
   lines.push("", "  /* semantic: surfaces have no size index — flat tokens (§6) */");
   put("radius-surface", `var(--radius-${radiusSurface})`);
@@ -158,6 +168,18 @@ export function generateTokens(): string {
     }
   }
 
+  // The tone indirection (§7's role layer, §9's axes). A component never names a tone: it
+  // writes `data-tone` and reads `--tone-*`, so one recipe serves every tone and the CSS cost
+  // is O(tones + rungs) instead of O(tones x rungs x components) — §2's additivity claim, at
+  // the one place it is actually decided.
+  //
+  // Safe against the substitution-at-declaration rule (§6) because the direction is right:
+  // `data-tone` sits on the control, `data-appearance` on a Theme ABOVE it, so `var(--accent-9)`
+  // resolves here against whichever mode is already in scope.
+  for (const tone of Object.keys(tones) as ToneName[]) {
+    lines.push(`[data-tone="${tone}"] {`, ...toneRoles(tone), "}", "");
+  }
+
   // §16 — the pointer axis. Coarse is a second designed geometry, emitted as cells exactly
   // like density x radius above and for the same substitution-at-declaration reason. Theme
   // stamps every resolved axis on one element, so the combined selectors always co-locate.
@@ -207,6 +229,24 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
   }
 
   return out;
+}
+
+/** Every role a component may read, bound to one tone family (§7). */
+const ROLES = [
+  "soft",
+  "soft-hover",
+  "soft-active",
+  "solid",
+  "solid-hover",
+  "solid-active",
+  "border",
+  "text",
+  "label",
+  "contrast",
+] as const;
+
+function toneRoles(tone: ToneName): string[] {
+  return ROLES.map((role) => `  --tone-${role}: var(--${tone}-${role});`);
 }
 
 /** The radius palette for one level (§6). Steps 1-5 are the control band, 6-7 surfaces. */
