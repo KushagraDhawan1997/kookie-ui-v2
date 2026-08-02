@@ -8,6 +8,31 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-02 Colour finishes: chroma against the boundary, P3, contrast, and a brand colour going in
+
+Everything after the generator's first landing, in one entry because it was one arc: making the output actually look right, then making the section's headline claim true.
+
+**Chroma was authored as absolutes, and they were wrong in both directions at once.** Every light step of every hue asked for more than sRGB holds and was silently clamped — so the curve did nothing through steps 1-8 and hold-L-reduce-C was doing all the work, which is the reverse of what §7 describes. Meanwhile the solid band asked for *less* than available: red sat at .17 where sRGB allows .254. Chroma is now a **fraction of what the gamut holds at that lightness**, and the per-tone knob is `vividness` from 0 to 1. Red gained 50%, green 29%, magenta 31%. The curve means what it says at every step, nothing is silently clipped, and P3 became a parameter rather than a rewrite.
+
+**P3 ships behind `@supports`, layered over the sRGB values rather than replacing them.** It was worth the bytes precisely where sRGB constrains a hue most: cyan +31%, sky +25%, blue +22%, against indigo's +4%. Blue and sky had been sitting *at* the sRGB ceiling — 0.185 of a possible 0.187 — so their flatness was the gamut's shape, not an under-ask. The alpha ramp deliberately stays sRGB: its least-alpha solve assumes sRGB compositing, and surface nesting gains nothing from a wider gamut.
+
+**`contrast="high"` is generated, and its claim is "as much contrast as each colour permits", not a fixed shift.** The first version asserted a uniform +9 Lc, which is the dangerous kind of law: insisting every band move is exactly what pushed yellow's borders below their cusp and turned them olive. Bright hues now take no border shift at all and gain in the text band, which is the one place the ladder structurally guarantees headroom. A band that stays put is the setting working; the only failure is a pairing that comes out worse. Both cases are asserted, so nobody later "fixes" the no-op.
+
+**Six bugs came out of looking at the preview, and four of those were found by a law rather than by eye.** The pattern is worth keeping: each one was invisible until a law existed that stated the intent.
+
+- The contrast token was recomputed per gamut, so P3's more saturated red tipped APCA to black — the same button rendered white-on-red on one display and black-on-red on another. Decided on the sRGB rendering now: the label is a design decision, not a per-display computation.
+- A fixed interaction direction ("darken in light, lighten in dark") reasons against the background and therefore walks a fill *toward* its own label half the time. Dark destructive pressed measured Lc 59; every dark-labelled bright hue measured 53-55. Direction follows the label now, so hover and press are strictly more legible than rest.
+- The excursion is bounded by **what the hue can hold**, not a fixed delta. Yellow was olive going down and washed out to near-white going up, shedding 54% of its chroma — a fill at its cusp is hemmed in on both sides. States now travel as far as they can while keeping 75% of the resting chroma, direction chosen by which way affords more of it.
+- Neutral's states were 0.24 / 0.20 / 0.16 and read as one flat black. A low-chroma solid moves *toward* its label (the visible direction, safe because it started at an extreme) and takes a wider step, since a grey has only lightness where a hue also shifts saturation.
+- The two state-widenings were multiplying rather than taking the larger, dropping dark neutral's pressed label to Lc 55.
+- High contrast pushed dark neutral's step 12 past pure white. Found by the law being written for the bug above it.
+
+**The intake landed last, and it is what makes this a system rather than a generator.** `toneFromColor` takes a CSS colour: hue as-is, vividness as the colour's chroma measured against what its own lightness could hold, and the input's lightness carried as a pin. Light mode reproduces the supplied hex **byte-identically at step 9**; dark mode re-derives, since no promise was made about a dark solid. Verified against Radix violet, Vercel blue, Linear indigo, Radix red and yellow, and a teal — and every one is put through the full legibility suite in both modes, because pinning that bought fidelity at the cost of the guarantees would make this a colour picker. Out-of-band inputs snap, and a near-black brand colour falls through the low-chroma path to a near-black solid, which is what it wanted. Generated solids also round-trip: any step 9 on the preview can be pasted back in as an accent to reproduce its own scale.
+
+Final shape: 106 laws, 4,316 bytes gzipped against a 40,960 ceiling, for three tones in two modes with full alpha ramps, a P3 block and a high-contrast block.
+
+Rejected: `apca-w3` as a dependency (thirty lines against a licence question on a value we ship); snapshotting hex values (a snapshot asserts the output did not change, never that it is correct); normalising vividness across the configured tones so hues read at equal intensity (it works, but adding a destructive red would then silently change how the accent looks, and action at a distance is worse than a documented asymmetry); compressing the state excursion rather than reversing it (a fill near its cusp can only go lighter by shedding chroma, so the pressed yellow stopped being yellow).
+
 ## 2026-08-02 The colour generator lands, and interaction states learn to move away from their label
 
 §14 step 2b. Three tones in both modes generate from a hue angle and a chroma peak each, 2,102 bytes gzipped for the whole token file against a 40,960 ceiling. `culori` does the colour-space work at build time; APCA-W3 0.1.9 is implemented directly, thirty lines, so the contrast guarantee has no licence question attached to it. The browser does no colour maths.

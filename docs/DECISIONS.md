@@ -841,12 +841,10 @@ Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-
 
 ## Open questions / deferred
 
-**Color:**
-- Tune the actual L ladders, light and dark (current values illustrative).
-- Design the solid-band L(hue) function's shape and bounds (the blocker-2 fix; section 7).
-- Design the per-hue chroma curve shape (peak + falloff).
-- Confirm dark-mode press direction (lighten) and delta magnitude.
-- Pick the gamut-mapping implementation details for residual clipping (hold-L-reduce-C chosen; edge behavior near cusp TBD).
+**Color:** section 7 is implemented and law-tested (`src/tokens/color.ts`, 106 laws). What remains is not mechanism:
+- **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?
+- **Named extra accent slots** for genuine dual-brand cases (the `accentAlt` path).
+- Chroma varies about 2x across hues at the solid band, because each hue sits at its own cusp: indigo holds C .30 where cyan holds C .15. Intrinsic to sRGB, narrowed but not removed by P3. It only shows when two distant hues ship together (a cyan `accent` beside a red `destructive`), and the lever is per-tone `vividness`. Deliberately **not** normalized automatically across the configured tones: that would mean adding a destructive red silently changes how the accent looks, and action at a distance is worse than a documented asymmetry.
 
 **Recipes and axes (sections 8-11):**
 - Lock the **elevation ladder** shadow recipes (shadow step + border per level: flat/raised/floating/overlay).
