@@ -264,6 +264,21 @@ describe("the boundary (§3, §13)", () => {
     expect(computed(el, "letter-spacing")).toBe("3px");
   });
 
+  it("render composes: a link that looks like a button keeps every axis (§1)", () => {
+    // Base UI's render prop is the composition escape (§1) — the element changes, the
+    // resolved appearance and the data attributes the stylesheet keys on do not.
+    const el = render(
+      <Button render={<a href="/next" />} tone="accent" emphasis="loud" size="3">
+        Go
+      </Button>,
+    );
+    expect(el.tagName).toBe("A");
+    expect(el.getAttribute("href")).toBe("/next");
+    expect(el.className).toContain("kui-control");
+    expect(el.dataset.emphasis).toBe("loud");
+    expect(computed(el, "min-height")).toBe("40px");
+  });
+
   it("consumes only role tokens — no numbered step reaches a rendered property", () => {
     // §13's contract from the component side: a Button never names --accent-9, so rebinding a
     // tone or switching appearance moves it without the component knowing anything changed.
