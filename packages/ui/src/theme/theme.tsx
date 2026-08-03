@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import type { RenderElement } from "../system/render.ts";
+import { composeRender, type RenderElement } from "../system/render.ts";
 
 export type Appearance = "light" | "dark" | "inherit";
 export type Density = "compact" | "default" | "comfortable";
@@ -108,15 +108,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
 
   return (
     <ThemeContext.Provider value={ctx}>
-      {render ? (
-        React.cloneElement(render, {
-          ...merged,
-          className: [render.props.className, themeClass].filter(Boolean).join(" "),
-          children,
-        })
-      ) : (
-        <div {...merged}>{children}</div>
-      )}
+      {render ? composeRender(render, merged, children) : <div {...merged}>{children}</div>}
     </ThemeContext.Provider>
   );
 }

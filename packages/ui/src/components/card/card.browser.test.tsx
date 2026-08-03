@@ -302,3 +302,51 @@ describe("the control size join does not reach a surface (§4, §10)", () => {
     expect(parseFloat(computed(el, "height"))).toBeGreaterThan(200);
   });
 });
+
+describe("the render escape merges, it does not overwrite (§3, §5)", () => {
+  // cloneElement special-cases exactly one prop for undefined — ref — and copies every other
+  // own key even when its value is undefined. All three hand-rolled merges lost something
+  // different, and every one of these compositions is in the public API.
+  it("Card keeps the target's own children when it has none of its own", () => {
+    const el = render(<Card render={<article>Post body</article>} />);
+    expect(el.tagName).toBe("ARTICLE");
+    expect(el.textContent).toBe("Post body");
+  });
+
+  it("Theme keeps the target's own style", () => {
+    const el = render(<Theme render={<section className="hero" style={{ minHeight: "640px" }} />} />);
+    expect(computed(el, "min-height")).toBe("640px");
+    expect(el.className).toContain("hero");
+  });
+
+  it("Theme keeps the target's own children when it has none", () => {
+    const el = render(<Theme render={<section>Kept</section>} />);
+    expect(el.textContent).toBe("Kept");
+  });
+
+  it("Box gives the node to the target's ref as well as its own", () => {
+    let mine: HTMLElement | null = null;
+    let theirs: HTMLDivElement | null = null;
+    render(
+      <Box
+        ref={(n: HTMLElement | null) => {
+          mine = n;
+        }}
+        render={
+          <div
+            ref={(n: HTMLDivElement | null) => {
+              theirs = n;
+            }}
+          />
+        }
+      />,
+    );
+    expect(mine).not.toBeNull();
+    expect(theirs).toBe(mine);
+  });
+
+  it("and consumer style still wins over the component's, which is what an escape means", () => {
+    const el = render(<Box p="4" render={<div style={{ paddingTop: "99px" }} />} />);
+    expect(computed(el, "padding-top")).toBe("99px");
+  });
+});

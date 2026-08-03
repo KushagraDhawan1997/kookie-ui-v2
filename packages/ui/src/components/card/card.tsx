@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import type { RenderElement } from "../../system/render.ts";
+import { composeRender, type RenderElement } from "../../system/render.ts";
 import type { Material, Size } from "../button/button.tsx";
 
 export type CardProps = Omit<
@@ -52,14 +52,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
     ...props,
   };
 
-  if (render) {
-    return React.cloneElement(render, {
-      ...merged,
-      className: [render.props.className, merged.className].filter(Boolean).join(" "),
-      style: { ...merged.style, ...render.props.style },
-      children,
-    });
-  }
+  if (render) return composeRender(render, merged as never, children);
 
   return <div {...(merged as React.ComponentPropsWithRef<"div">)}>{children}</div>;
 });
