@@ -350,3 +350,24 @@ describe("the render escape merges, it does not overwrite (§3, §5)", () => {
     expect(computed(el, "padding-top")).toBe("99px");
   });
 });
+
+describe("the seal's three rungs are three different colours, in both modes (§10)", () => {
+  // surfaces.test.ts asserted the token NAMES appear in the stylesheet, which they always did.
+  // In dark, --color-surface and --color-surface-hover were both var(--neutral-2) — the same
+  // token, so the same pixels — and an interactive card had no hover feedback at all for the
+  // entire dark world. The name was there; the colour was not.
+  for (const appearance of ["light", "dark"] as const) {
+    it(`resolves rest, hover and active apart under appearance="${appearance}"`, () => {
+      const el = render(
+        <Theme appearance={appearance}>
+          <Card id="probe" />
+        </Theme>,
+      );
+      const card = el.querySelector("#probe")!;
+      const [rest, hover, active] = ["--color-surface", "--color-surface-hover", "--color-surface-active"].map(
+        (token) => computed(card, token),
+      );
+      expect(new Set([rest, hover, active]).size).toBe(3);
+    });
+  }
+});
