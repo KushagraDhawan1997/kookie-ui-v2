@@ -13,7 +13,10 @@ export type Tone = "neutral" | "accent" | "destructive";
 export type Emphasis = "loud" | "medium" | "quiet";
 /** §10 — backdrop defense: three designed thicknesses, like the emphasis ladder. `solid` is
     not a member — it is the seal, the absence of any material (the default, always safe). */
-export type Material = "solid" | "thin" | "regular" | "thick";
+export const MATERIALS = ["solid", "thin", "regular", "thick"] as const;
+export type Material = (typeof MATERIALS)[number];
+/** The thicknesses that actually paint a veil — `solid` is the absence of one. */
+export const GLASS_MATERIALS = MATERIALS.filter((m) => m !== "solid");
 
 export type ButtonProps = Omit<
   React.ComponentPropsWithoutRef<"button">,

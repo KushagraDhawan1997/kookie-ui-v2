@@ -59,7 +59,7 @@ The public API is Radix-style responsive objects on every curated prop. Compilat
 
 One table (`system/props.ts`) drives both halves — the resolver that writes the properties and the generator that writes the rules — so a prop cannot exist in one and not the other. Stems are short (`gap` writes `--kui-g`) because they ship on every element.
 
-- The component writes values as inline custom properties: `style="--kui-g: var(--space-2); --kui-g-md: var(--space-4)"`.
+- The component writes values as inline custom properties: `style="--kui-g: var(--layout-space-2); --kui-g-md: var(--layout-space-4)"`. The resolver emits the density-aware layout-space layer, never the raw palette (§3, §12).
 - The stylesheet ships O(longhands × tiers) fixed arbitration rules: the base rule reads `--kui-g`; each tier's rule reads `var(--kui-g-md, fallback-chain)`.
 - Values never appear in the stylesheet, so tokens and raw strings (`gap="13px"`) ride the same pipe at zero CSS cost.
 - **Inheritance guard (required):** custom properties inherit; a nested Flex without `gap` would read its parent's. Register every `--kui-*` remap var with `@property { inherits: false }`.

@@ -179,7 +179,7 @@ ESCAPE (always forwarded, the long tail)
   className   style   render
 ```
 
-Token is the on-system spelling (`gap="4"` -> `--space-4`); the `| string` on the **same** prop is the inline exit (`gap="13px"`), so you never hit a wall. width/height are pure CSS strings (there was never parity to chase there). Anything uncovered is one `style={{ ... }}` away. A new CSS property ships -> do nothing, it already works via `style`. This is the property you never maintain.
+Token is the on-system spelling (`gap="4"` -> `--layout-space-4`, the density-aware layer of §3 — NOT `--space-4`, which is a frozen alias and would make the index a unit conversion); the `| string` on the **same** prop is the inline exit (`gap="13px"`), so you never hit a wall. width/height are pure CSS strings (there was never parity to chase there). Anything uncovered is one `style={{ ... }}` away. A new CSS property ships -> do nothing, it already works via `style`. This is the property you never maintain.
 
 **Per-primitive surface:**
 
@@ -261,6 +261,7 @@ contrast       normal | high                   drives borders/dividers too, reso
 radius         none | small | medium | large | full   selects a designed radius palette (section 6), not a factor and not a token pick
 density        compact | default | comfortable  selects a designed control-family set (height, px, gap, radius); never type, never the space palette (section 12). Theme-scoped only: an airy region is a nested Theme on an element you already have (via `render`), not a per-component prop, which would duplicate `size`
 surfaces       flat | elevated                 do surfaces sit up (section 10). SHIPPED 2026-08-04. The semantic is elevation-as-identity; shadow row 2 is its current resolution. An app choice made once - no component exposes a shadow API, law-tested
+pointer        fine | coarse | auto            which geometry the controls take (section 16). `auto` follows @media (pointer: coarse); pinning forces a world, which is also how the coarse matrix is judged on a desktop
 scale          (deferred, see below)            global zoom: type, height, spacing, radius together
 font           mono | sans | serif             shorthand: sets heading + body
 fontHeading    "
@@ -596,7 +597,7 @@ tone       neutral | accent | destructive | (success | warning ...)   picks the 
 emphasis   loud | medium | quiet                                      how loud, three rungs
 bordered   boolean                                                    containment: separate the control from a busy backdrop
 elevation  DELETED 2026-08-03 — see section 10               separation is border and fill; no shadows
-material   solid | thin | thick                                       backdrop defense; any FLOATING component, buttons included
+material   solid | thin | regular | thick                             backdrop defense; any FLOATING component, buttons included
 states     rest | hover | press                                       the +1/+2 step rule (interactive only)
 size       1 | 2 | 3 | 4                                               height index (controls) / padding + corner (surfaces)
 ```
@@ -886,7 +887,7 @@ Theme props drive the factors, the color hue, and the material policy at the top
 ## 13. Public token contract
 
 **Both layers are public, with different jobs:**
-- **Base scales** (`--radius-1..6`, `--space-1..12`, `--accent-1..12` + alpha): the palettes, sampled freely by user-authored components. Public, complete, primitive.
+- **Base scales** (`--radius-0..10` + `--radius-full`, `--space-1..12`, `--accent-1..12` + alpha): the palettes, sampled freely by user-authored components. Public, complete, primitive.
 - **Semantic tokens** (`--radius-control-N`, `--control-px-N`, `--accent-solid`, the variant recipes, etc.): the convention, for our components and for users building control-like things.
 
 **Why the base palettes must ship:** once users compose their own components, the palette is the contract, not an escape hatch. A user who writes `8px` opts out of the theme (frozen). A user who writes `var(--radius-3)` or `var(--space-4)` stays in, their component reflows with the theme exactly like a native one. The token sells theme-reactivity that a raw value structurally cannot. The base scale's job is to make the themed path more attractive than the hardcoded one.
