@@ -108,10 +108,12 @@ export type DensitySet = {
  * different placed values. The signal is what touches the screen (`pointer: coarse`), never
  * width. All values v0 until judged in the preview matrix.
  *
- * Size 2 anchors at the touch floor; size 1 stays deliberately under it — the reserve
- * (`max(--touch-target-min, height)` on the control's layout box, landing with Button) covers
- * the remainder, which is what keeps size 1 and size 2 distinct instead of both flattening
- * to 44. Radius holds the same ~0.2 fraction of the box as the fine world (§6).
+ * Size 2 anchors at the touch floor; size 1 stays deliberately under it, and NOTHING widens
+ * it back: §16 dropped the `max(--touch-target-min, height)` reserve considered here, because
+ * the designed geometry already carries both the locked 24 floor and the 44 target on the
+ * default path, and a reserve would have flattened size 1 and size 2 to the same rendered box.
+ * Every control is one element. Radius holds the same ~0.2 fraction of the box as the fine
+ * world (§6).
  */
 export const coarse = {
   compact: {
@@ -136,8 +138,11 @@ export const coarse = {
 
 /**
  * §16 — the touch floor (Apple HIG 44pt; Material 48dp; fingerpad anthropometry). Raw px on
- * purpose: a physical floor, not a length that zooms — and a `max()` against it in component
- * CSS is what no consumer root-font-size game can drag a target below.
+ * purpose: a physical floor, not a length that zooms.
+ *
+ * A §13 resource with no stylesheet consumer: the `max()` reserve this was minted for was
+ * dropped (§16), so nothing reads it but its own drift test. Kept as the published number an
+ * app can reach for; do NOT reintroduce a runtime reserve on the strength of it.
  */
 export const touchTargetMin = 44;
 
@@ -169,10 +174,12 @@ export const borderWidth = 1;
 export const focusRing = { width: 2, offset: 2 } as const;
 
 /**
- * §8's one canonical interaction transition, and only that. The wider motion system —
- * duration families, overlay enter/exit, the reduced-motion law — is deferred (§8), so these
- * two values exist to make hover and press feel like one gesture, not to be a scale.
- * Ease-out: responds immediately, settles. 120ms because hover feedback reads laggy past ~150.
+ * §8 zeroed every transition pending the motion system, and recipes.test.ts makes that a law
+ * — so NOTHING reads these two tokens today. They are emitted as the designed values waiting
+ * for that system, not as a shipped transition: editing `duration` changes nothing anywhere,
+ * and a reader debugging a "missing" 120ms ease in the browser is chasing a token with no
+ * consumer. Ease-out because it responds immediately and settles; 120ms because hover feedback
+ * reads laggy past ~150.
  */
 export const motion = {
   duration: "120ms",
@@ -202,8 +209,10 @@ export const cursor = {
  * §10 — the material recipes: three designed thicknesses, like the emphasis ladder
  * (amended 2026-08-04, Kushagra — was two). thin / regular / thick, Apple's own naming for
  * the same scale; solid is not a member, it is the seal — the absence of any material.
- * Alpha is a percentage over `--neutral-1` (the page colour), so the fill is mode-aware for
- * free. Designed points, not a dial; blur radii provisional until measured on a mid-tier
+ * Alpha is the percentage the component's OWN fill is mixed toward transparent — material is
+ * a fill modifier, never a colour (LOG 2026-08-04). It named `--neutral-1` under the white-veil
+ * model that shipped for hours and was retracted the same day; nothing mixes the page colour
+ * now, and neither recipes.css nor surfaces.css mentions `--neutral-1` at all. Designed points, not a dial; blur radii provisional until measured on a mid-tier
  * device (§10). v0 values judged against the photo backdrop in the preview.
  */
 export const material = {

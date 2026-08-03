@@ -85,7 +85,8 @@
   --focus-ring-width: calc(2px * var(--scale));
   --focus-ring-offset: calc(2px * var(--scale));
 
-  /* §8's one canonical interaction transition — not a motion scale */
+  /* motion (§8) — designed values with NO consumer: every transition is zeroed until the
+     motion system is designed, and a law pins that. Not a shipped transition. */
   --motion-duration: 120ms;
   --motion-easing: cubic-bezier(0.22, 1, 0.36, 1);
 
