@@ -66,9 +66,14 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     expect(stripped).not.toContain("data-elevation");
     const occurrences = stripped.match(/box-shadow/g) ?? [];
     expect(occurrences).toHaveLength(1);
-    const rule = stripped.slice(stripped.indexOf('[data-surfaces="elevated"]'));
-    const body = rule.slice(0, rule.indexOf("}"));
-    expect(body).toContain("box-shadow: var(--surface-chrome)");
+    // The world scopes declare; .kui-surface paints. Routing it through a custom property is
+    // what lets `flat` escape an elevated ancestor — a descendant selector had no reset, so a
+    // nested flat Theme matched nothing and the outer rule still reached the inner cards.
+    const elevated = stripped.slice(stripped.indexOf('[data-surfaces="elevated"]'));
+    const body = elevated.slice(0, elevated.indexOf("}"));
+    expect(body).toContain("--kui-surface-chrome: var(--surface-chrome)");
+    const flat = stripped.slice(stripped.indexOf('[data-surfaces="flat"]'));
+    expect(flat.slice(0, flat.indexOf("}"))).toContain("--kui-surface-chrome: none");
     // Add depth, change nothing else: the edge stays --tone-border, so it keeps its
     // sharpness and contrast="high" reaches it through the tone system. Two dead ends are
     // pinned here: no ring (two lines) and no raw-alpha border (soft, contrast-blind).

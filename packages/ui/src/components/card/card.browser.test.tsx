@@ -371,3 +371,29 @@ describe("the seal's three rungs are three different colours, in both modes (§1
     });
   }
 });
+
+describe("the elevated world escapes both ways (§5, §10)", () => {
+  it("a flat Theme inside an elevated one gets its cards back flat", () => {
+    // Was a descendant selector with no reset, so the nested flat matched nothing and the
+    // ancestor's rule still reached these cards. Every other axis escapes by declaration.
+    const nested = render(
+      <Theme surfaces="elevated">
+        <Theme surfaces="flat">
+          <Card id="probe" />
+        </Theme>
+      </Theme>,
+    );
+    expect(computed(nested.querySelector("#probe")!, "box-shadow")).toBe("none");
+  });
+
+  it("and elevated still elevates, nested inside a flat app", () => {
+    const nested = render(
+      <Theme surfaces="flat">
+        <Theme surfaces="elevated">
+          <Card id="probe" />
+        </Theme>
+      </Theme>,
+    );
+    expect(computed(nested.querySelector("#probe")!, "box-shadow")).not.toBe("none");
+  });
+});
