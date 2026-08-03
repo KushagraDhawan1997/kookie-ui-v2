@@ -157,6 +157,18 @@ export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0
 export const iconSize = [16, 16, 20, 24] as const;
 
 /**
+ * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and
+ * focus are constant facts about a control, not things that get louder as it gets bigger.
+ *
+ * They are here rather than spelled inline because the hand-authored layers had them as raw
+ * `1px` / `2px` literals, which broke the tokens-only rule and, more concretely, made them the
+ * only geometry in a control that ignored `--scale` — a bordered button at scale 2 doubled its
+ * height, padding, radius and type while keeping a 1px hairline.
+ */
+export const borderWidth = 1;
+export const focusRing = { width: 2, offset: 2 } as const;
+
+/**
  * §8's one canonical interaction transition, and only that. The wider motion system —
  * duration families, overlay enter/exit, the reduced-motion law — is deferred (§8), so these
  * two values exist to make hover and press feel like one gesture, not to be a scale.

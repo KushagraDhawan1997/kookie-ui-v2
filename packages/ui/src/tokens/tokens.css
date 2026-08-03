@@ -78,6 +78,13 @@
   --icon-size-3: calc(20px * var(--scale));
   --icon-size-4: calc(24px * var(--scale));
 
+  /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until
+     2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered
+     button at scale 2 kept a 1px hairline while every other length doubled. */
+  --border-width: calc(1px * var(--scale));
+  --focus-ring-width: calc(2px * var(--scale));
+  --focus-ring-offset: calc(2px * var(--scale));
+
   /* §8's one canonical interaction transition — not a motion scale */
   --motion-duration: 120ms;
   --motion-easing: cubic-bezier(0.22, 1, 0.36, 1);

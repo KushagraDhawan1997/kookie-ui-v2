@@ -39,7 +39,7 @@
   /* A surface sets foreground context, not just a background (§10): children read the
      re-scoped roles, so arbitrary content stays legible on every rung. */
   color: var(--color-text);
-  border: 1px solid var(--kui-border-color, transparent);
+  border: var(--border-width) solid var(--kui-border-color, transparent);
   /* The fallback is the default size's corner, for a surface that carries no size index. */
   border-radius: var(--kui-sf-radius, var(--radius-surface-3));
   padding: var(--kui-sf-p);
@@ -121,8 +121,8 @@
 
 /* The one ring, shared with every control (§8). */
 .kui-surface:where(button, a):focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* ── The elevated world (§5, §10): an app identity, never a per-card knob ─────────────────────

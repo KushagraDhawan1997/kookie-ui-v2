@@ -45,7 +45,7 @@
      a fill modifier, not a fill. With no material the chain collapses to the rung's value. */
   background-color: var(--kui-fill, var(--kui-fill-src));
   color: var(--kui-label-color);
-  border: 1px solid var(--kui-border-color, transparent);
+  border: var(--border-width) solid var(--kui-border-color, transparent);
 
   cursor: var(--cursor-button);
   /* Prefixed by hand, not left to the build: Safari only honours -webkit-user-select, and
@@ -171,8 +171,8 @@
 /* One ring, always accent, keyboard only (§8). `outline` rather than box-shadow: it follows
    border-radius natively — pills included — and cannot affect layout. */
 .kui-control:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* Disabled is a TONE remap, never opacity (§8): opacity stacks on tinted surfaces and voids
