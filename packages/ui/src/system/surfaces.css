@@ -127,16 +127,31 @@
 
 /* ── The elevated world (§5, §10): an app identity, never a per-card knob ─────────────────────
    Theme `surfaces="elevated"` is the ONLY thing in the system that puts a shadow on a
-   component. One rule, every surface, on the element that owns the radius. `elevated` is the
-   semantic — surfaces sit up — and shadow row 2 is merely its current resolution; the flat
-   default remains byte-identical to a world where this rule does not exist. */
+   component. `elevated` is the semantic — surfaces sit up — and shadow row 2 is merely its
+   current resolution.
 
-[data-surfaces="elevated"] .kui-surface {
-  /* Add depth, change nothing else. Depth comes from the palette (--surface-chrome composes
-     var(--shadow-2)); the border stays the same --tone-border every surface wears — which
-     keeps the edge sharp and lets contrast="high" reach it through the tone system for
-     free. The top edge reads lighter because every palette shadow falls downward. */
-  box-shadow: var(--surface-chrome);
+   It escapes by DECLARATION, like density, radius and appearance, rather than by a descendant
+   selector. Written as `[data-surfaces="elevated"] .kui-surface { box-shadow: ... }` it had no
+   reset, so a nested `surfaces="flat"` Theme matched nothing and the ancestor's rule still
+   reached the inner cards — a flat inspector panel inside an elevated shell was unbuildable.
+   Every axis in this system escapes the same way: each scope re-declares its own value. */
+
+[data-surfaces="elevated"] {
+  /* Depth comes from the palette (--surface-chrome composes var(--shadow-2)); the border stays
+     the same --tone-border every surface wears — which keeps the edge sharp and lets
+     contrast="high" reach it through the tone system for free. The top edge reads lighter
+     because every palette shadow falls downward. */
+  --kui-surface-chrome: var(--surface-chrome);
+}
+
+[data-surfaces="flat"] {
+  --kui-surface-chrome: none;
+}
+
+.kui-surface {
+  /* Still exactly one box-shadow in the system, and the flat default still resolves to `none`
+     — byte-identical in effect to a world where the elevated rule does not exist. */
+  box-shadow: var(--kui-surface-chrome, none);
 }
 
 /* ── Material: a fill modifier, not a fill (§10) ─────────────────────────────────────────────
