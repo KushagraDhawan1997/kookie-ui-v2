@@ -20,7 +20,15 @@ describe("the axes render as attributes (§5)", () => {
     const el = render(<Theme density="compact" radius="large" />);
     expect(el.getAttribute("data-density")).toBe("compact");
     expect(el.getAttribute("data-radius")).toBe("large");
-    expect(el.getAttribute("data-contrast")).toBe("normal");
+  });
+
+  it("contrast is stamped only when it was chosen, so prefers-contrast can still reach it (§7)", () => {
+    // The generated platform-signal guard is `:not([data-contrast="normal"])`. An unconfigured
+    // Theme that stamped `normal` anyway would exclude itself from the media query it is
+    // supposed to receive — which is exactly what dark mode did until 2026-08-03.
+    expect(render(<Theme density="compact" />).hasAttribute("data-contrast")).toBe(false);
+    expect(render(<Theme contrast="normal" />).getAttribute("data-contrast")).toBe("normal");
+    expect(render(<Theme contrast="high" />).getAttribute("data-contrast")).toBe("high");
   });
 
   it("render puts the theme on an element that already exists, costing no extra DOM", () => {
@@ -121,4 +129,43 @@ describe("a nested Theme inherits what it was not given (§5)", () => {
       computed(light.querySelector("#probe")!, "--neutral-1"),
     );
   });
+
+  it("and the mirror holds: a light section inside a dark app is not stuck dark (§5)", () => {
+    // Light lived only at :root until 2026-08-03, so `light` and `inherit` rendered
+    // identically inside a dark tree — an escape that does nothing is not an escape.
+    const nested = render(
+      <Theme appearance="dark">
+        <Theme appearance="light">{probe}</Theme>
+      </Theme>,
+    );
+    const plain = render(<Theme appearance="light">{probe}</Theme>);
+    expect(computed(nested.querySelector("#probe")!, "--neutral-1")).toBe(
+      computed(plain.querySelector("#probe")!, "--neutral-1"),
+    );
+  });
+});
+
+describe('contrast="high" reaches the tokens, in both appearances (§7)', () => {
+  // Asserting the attribute is one indirection short of the thing that can be wrong: light
+  // stamped data-contrast="high" correctly for months while resolving no rule at all, because
+  // the generated block was :root-scoped and :root only ever matches <html>.
+  for (const appearance of ["light", "dark"] as const) {
+    it(`shifts the value bands under appearance="${appearance}"`, () => {
+      const high = render(
+        <Theme appearance={appearance} contrast="high">
+          {probe}
+        </Theme>,
+      );
+      const normal = render(
+        <Theme appearance={appearance} contrast="normal">
+          {probe}
+        </Theme>,
+      );
+      for (const token of ["--neutral-11", "--accent-11", "--neutral-label"]) {
+        expect(computed(high.querySelector("#probe")!, token)).not.toBe(
+          computed(normal.querySelector("#probe")!, token),
+        );
+      }
+    });
+  }
 });

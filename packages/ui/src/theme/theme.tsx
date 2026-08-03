@@ -41,9 +41,18 @@ const DEFAULTS: Resolved = {
   surfaces: "flat",
 };
 
-const ThemeContext = React.createContext<Resolved>(DEFAULTS);
+/**
+ * `contrastSet` is not an axis — it records whether anyone ever CHOSE the contrast axis.
+ * `@media (prefers-contrast: more)` has to reach a theme that never asked for a contrast, and
+ * has to leave alone one that explicitly asked for `normal`. The generated guard spells that
+ * as `:not([data-contrast="normal"])`, which only works if an unconfigured Theme stamps no
+ * attribute at all — so the flag decides whether the attribute is written (§7).
+ */
+type Ctx = Resolved & { contrastSet: boolean };
 
-export const useTheme = () => React.useContext(ThemeContext);
+const ThemeContext = React.createContext<Ctx>({ ...DEFAULTS, contrastSet: false });
+
+export const useTheme = (): Resolved => React.useContext(ThemeContext);
 
 /**
  * Scopes the design tokens (§5). Nestable, and inherits every prop it is not given, which is
@@ -58,7 +67,9 @@ export const useTheme = () => React.useContext(ThemeContext);
  * They compose rather than race, because no two of them write the same token (§6, §12).
  */
 export function Theme({ children, className, style, render, ...props }: ThemeProps) {
-  const parent = useTheme();
+  // The internal context, not useTheme(): Theme needs `contrastSet`, which is bookkeeping for
+  // the platform-signal guard and deliberately not part of the public shape.
+  const parent = React.useContext(ThemeContext);
 
   const resolved = React.useMemo<Resolved>(
     () => ({
@@ -72,6 +83,10 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     [props.appearance, props.density, props.radius, props.contrast, props.pointer, props.surfaces, parent],
   );
 
+  const contrastSet = props.contrast !== undefined || parent.contrastSet;
+
+  const ctx = React.useMemo<Ctx>(() => ({ ...resolved, contrastSet }), [resolved, contrastSet]);
+
   // `inherit` means "whatever the nearest ancestor resolved to", so it emits no attribute of
   // its own and lets the outer scope keep applying.
   // Every resolved axis is stamped on ONE element, always — the generated cells select on
@@ -81,7 +96,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     ...(resolved.appearance !== "inherit" ? { "data-appearance": resolved.appearance } : {}),
     "data-density": resolved.density,
     "data-radius": resolved.radius,
-    "data-contrast": resolved.contrast,
+    ...(contrastSet ? { "data-contrast": resolved.contrast } : {}),
     "data-pointer": resolved.pointer,
     "data-surfaces": resolved.surfaces,
   };
@@ -92,7 +107,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
   const merged = { ...attrs, className: themeClass, style };
 
   return (
-    <ThemeContext.Provider value={resolved}>
+    <ThemeContext.Provider value={ctx}>
       {render ? (
         React.cloneElement(render, {
           ...merged,
