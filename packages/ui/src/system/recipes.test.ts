@@ -21,11 +21,13 @@ const recipes = read("./recipes.css");
 const button = read("../components/button/button.css");
 const TONE_NAMES = Object.keys(tones);
 const RUNGS = ["loud", "medium", "quiet"];
+const MATERIALS = ["thin", "regular", "thick"];
 
 describe("a component's own CSS names no axis (§2, §9)", () => {
-  it("button.css contains no tone, no rung, and no size index", () => {
+  it("button.css contains no tone, no rung, no size index, and no material", () => {
     for (const name of [...TONE_NAMES, ...RUNGS]) expect(button).not.toContain(name);
     expect(button).not.toMatch(/data-size/);
+    expect(button).not.toMatch(/data-material|--material-/);
     // If this ever fails, the recipe layer has stopped absorbing variation and the cost has
     // quietly become multiplicative — which is the moment to fix the layer, not the component.
   });
@@ -64,7 +66,64 @@ describe("the shared layer carries the variation, once (§2)", () => {
     // where a system starts paying O(rungs x tones) and never stops.
     expect(recipes).not.toMatch(/\[data-emphasis="[a-z]+"\]\[data-tone=/);
     expect(recipes).not.toMatch(/\[data-tone="[a-z]+"\]\[data-emphasis=/);
-    expect(recipes).not.toMatch(/\[data-size="\d"\]\[data-(emphasis|tone)=/);
+    expect(recipes).not.toMatch(/\[data-size="\d"\]\[data-(emphasis|tone|material)=/);
+    expect(recipes).not.toMatch(/\[data-material="[a-z]+"\]\[data-(emphasis|tone|size)=/);
+    expect(recipes).not.toMatch(/\[data-(emphasis|tone)="[a-z]+"\]\[data-material=/);
+  });
+});
+
+describe("material on a control: backdrop defense, three environments (§10)", () => {
+  const code = recipes.replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("each material is defined exactly three times — fallback, recipe, reduced-transparency", () => {
+    // Three environments, not three designs — the same shape the surface layer wears.
+    for (const m of MATERIALS) {
+      const occurrences = code.match(new RegExp(`\\[data-material="${m}"\\]`, "g")) ?? [];
+      expect(occurrences).toHaveLength(3);
+    }
+  });
+
+  it("backdrop-filter exists only inside @supports, with the opaque fallback outside it", () => {
+    const guardStart = code.indexOf("@supports (backdrop-filter");
+    expect(guardStart).toBeGreaterThan(-1);
+    expect(code.slice(0, guardStart)).not.toContain("backdrop-filter:");
+    expect(code.slice(0, guardStart)).toContain("--material-opaque-fill");
+  });
+
+  it("prefers-reduced-transparency forces opaque, kills the blur, and wins by cascade order", () => {
+    const media = code.slice(code.indexOf("@media (prefers-reduced-transparency: reduce)"));
+    expect(media).toContain("--material-opaque-fill");
+    expect(media).toContain("backdrop-filter: none");
+    expect(code.indexOf("@media (prefers-reduced-transparency")).toBeGreaterThan(
+      code.indexOf("@supports (backdrop-filter"),
+    );
+  });
+
+  it("a material owns the whole fill triplet, so no rung fill leaks through mid-interaction", () => {
+    // While material is on, every state a control can paint resolves through the material —
+    // rest, hover AND active, in the recipe and in both opaque environments alike. A missed
+    // state would flash the rung's page-designed fill over glass.
+    const supports = code.slice(code.indexOf("@supports (backdrop-filter"));
+    for (const m of MATERIALS) {
+      const block = supports.slice(supports.indexOf(`[data-material="${m}"]`));
+      const body = block.slice(0, block.indexOf("}"));
+      expect(body).toContain(`--kui-fill: var(--material-${m}-fill)`);
+      expect(body).toContain(`--kui-fill-hover: var(--material-${m}-fill-hover)`);
+      expect(body).toContain(`--kui-fill-active: var(--material-${m}-fill-active)`);
+      expect(body).toContain(`backdrop-filter: var(--material-${m}-filter)`);
+    }
+    for (const env of [code.slice(0, code.indexOf("@supports")), code.slice(code.indexOf("@media (prefers-reduced-transparency"))]) {
+      expect(env).toContain("--kui-fill-hover: var(--color-surface-hover)");
+      expect(env).toContain("--kui-fill-active: var(--color-surface-active)");
+    }
+  });
+
+  it("the label on glass is --tone-label — tone rides, the rung's pairing sleeps", () => {
+    // --tone-contrast is APCA-paired to --tone-solid, a fill that is not there while a
+    // material is on; the neutral glass takes the label token, and the tone family still
+    // reaches the control through it.
+    const base = code.slice(code.indexOf('[data-material="thin"]'));
+    expect(base.slice(0, base.indexOf("}"))).toContain("--kui-label-color: var(--tone-label)");
   });
 });
 

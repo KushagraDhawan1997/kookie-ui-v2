@@ -11,6 +11,9 @@ export type Size = "1" | "2" | "3" | "4";
 export type Tone = "neutral" | "accent" | "destructive";
 /** §9 — loudness, three rungs, because a rung that is not visibly distinct is not a rung. */
 export type Emphasis = "loud" | "medium" | "quiet";
+/** §10 — backdrop defense: three designed thicknesses, like the emphasis ladder. `solid` is
+    not a member — it is the seal, the absence of any material (the default, always safe). */
+export type Material = "solid" | "thin" | "regular" | "thick";
 
 export type ButtonProps = Omit<
   React.ComponentPropsWithoutRef<"button">,
@@ -21,6 +24,10 @@ export type ButtonProps = Omit<
   emphasis?: Emphasis;
   /** §10 — containment, orthogonal to loudness: `quiet + bordered` is the old outline. */
   bordered?: boolean;
+  /** §10, §11 — backdrop defense, opt-in always: for a control floating over media. While a
+      material is on it owns the fill; the rung's dressing returns when it comes off. Over a
+      solid parent it blurs nothing and reads as a smudge — the default is the safe seal. */
+  material?: Material;
   /** Blocks interaction and shows a Spinner, without ever hiding the label (§8). */
   loading?: boolean;
   /** Leading slot. Swapped for the Spinner while loading, so nothing shifts (§8). */
@@ -52,6 +59,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     tone = "neutral",
     emphasis = "medium",
     bordered = false,
+    material = "solid",
     loading = false,
     disabled = false,
     focusableWhenDisabled,
@@ -82,6 +90,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       data-tone={tone}
       data-emphasis={emphasis}
       data-bordered={bordered || undefined}
+      // Solid is the absence of a material, so it writes no attribute (§10).
+      data-material={material === "solid" ? undefined : material}
       data-loading={loading || undefined}
       className={className ? `kui-control kui-button ${className}` : "kui-control kui-button"}
       {...props}

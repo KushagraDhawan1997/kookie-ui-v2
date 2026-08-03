@@ -155,6 +155,60 @@ describe("states are stylesheet work, and the DOM stays honest (§8, ENGINEERING
   });
 });
 
+describe("material is backdrop defense, and it owns the fill while it is on (§10, §11)", () => {
+  it("solid is the absence of a material — the default writes no attribute", () => {
+    expect(render(<Button>Label</Button>).dataset.material).toBeUndefined();
+    expect(render(<Button material="solid">Label</Button>).dataset.material).toBeUndefined();
+    expect(render(<Button material="regular">Label</Button>).dataset.material).toBe("regular");
+  });
+
+  it("a material button paints the glass recipe, not the rung", () => {
+    const el = render(<Button material="regular">Label</Button>);
+    expect(computed(el, "background-color")).toBe(tokenOn(el, "--material-regular-fill"));
+    expect(computed(el, "backdrop-filter")).not.toBe("none");
+  });
+
+  it("interaction steps glass's one ramp — the mix — never the rung's (§8)", () => {
+    const el = render(
+      <Button emphasis="medium" material="thin">
+        Label
+      </Button>,
+    );
+    expect(tokenOn(el, "--kui-fill-hover")).toBe(tokenOn(el, "--material-thin-fill-hover"));
+    expect(tokenOn(el, "--kui-fill-active")).toBe(tokenOn(el, "--material-thin-fill-active"));
+    expect(tokenOn(el, "--kui-fill-hover")).not.toBe(tokenOn(el, "--tone-soft-hover"));
+  });
+
+  it("the label on glass is --tone-label, whatever the rung promised — and tone still rides it", () => {
+    // --tone-contrast is APCA-paired to --tone-solid, a fill material just replaced.
+    const loud = render(
+      <Button tone="accent" emphasis="loud" material="thick">
+        Label
+      </Button>,
+    );
+    expect(computed(loud, "color")).toBe(tokenOn(loud, "--tone-label"));
+    expect(computed(loud, "color")).not.toBe(tokenOn(loud, "--tone-contrast"));
+
+    const destructive = render(
+      <Button tone="destructive" material="thick">
+        Label
+      </Button>,
+    );
+    expect(computed(destructive, "color")).not.toBe(computed(loud, "color"));
+  });
+
+  it("the rung's dressing returns when the material comes off", () => {
+    const glass = render(
+      <Button emphasis="loud" material="regular">
+        Label
+      </Button>,
+    );
+    const plain = render(<Button emphasis="loud">Label</Button>);
+    expect(computed(plain, "background-color")).toBe(tokenOn(plain, "--tone-solid"));
+    expect(computed(glass, "background-color")).not.toBe(computed(plain, "background-color"));
+  });
+});
+
 describe("loading keeps the label, which is the whole rule (§8)", () => {
   it("announces busy, blocks activation, and never hides the text", () => {
     let clicks = 0;

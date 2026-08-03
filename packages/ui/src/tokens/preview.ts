@@ -89,15 +89,22 @@ function spinner(style = ""): string {
  * covered by the browser suite, and what this page is for is the eye.
  */
 function button(
-  attrs: { size?: string; tone?: string; emphasis?: string; bordered?: boolean; loading?: boolean },
+  attrs: {
+    size?: string;
+    tone?: string;
+    emphasis?: string;
+    bordered?: boolean;
+    material?: string;
+    loading?: boolean;
+  },
   label: string,
 ): string {
-  const { size = "2", tone = "neutral", emphasis = "medium", bordered, loading } = attrs;
+  const { size = "2", tone = "neutral", emphasis = "medium", bordered, material, loading } = attrs;
   return `<button class="kui-control kui-button" data-size="${size}" data-tone="${tone}" data-emphasis="${emphasis}"${
     bordered ? ' data-bordered="true"' : ""
-  }${loading ? ' data-loading="true" aria-busy="true"' : ""}>${
-    loading ? spinner() : ""
-  }${label}</button>`;
+  }${material ? ` data-material="${material}"` : ""}${
+    loading ? ' data-loading="true" aria-busy="true"' : ""
+  }>${loading ? spinner() : ""}${label}</button>`;
 }
 
 /**
@@ -265,6 +272,25 @@ function surfaceSection(mode: Mode): string {
         demo(
           "material over a hostile backdrop - v0 recipes (\u00a710)",
           `<div style="${hostile}">${kuiBox({ display: "flex", gap: "5", wrap: "wrap", p: "7" }, materials)}</div>`,
+        ) +
+        demo(
+          "material on a control - the rung sleeps, tone rides the label (\u00a710, \u00a711)",
+          `<div style="${hostile}">${kuiBox(
+            { display: "flex", direction: "column", gap: "4", align: "flex-start", p: "7" },
+            kuiBox(
+              { display: "flex", gap: "3", wrap: "wrap" },
+              ["solid", "thin", "regular", "thick"]
+                .map((m) => button(m === "solid" ? {} : { material: m }, m))
+                .join(""),
+            ) +
+              kuiBox(
+                { display: "flex", gap: "3", wrap: "wrap" },
+                button({ material: "regular", bordered: true }, "bordered") +
+                  button({ material: "regular", tone: "accent" }, "accent label") +
+                  button({ material: "regular", tone: "accent", emphasis: "loud" }, "loud sleeps") +
+                  button({ material: "regular", size: "3" }, "size 3"),
+              ),
+          )}</div>`,
         ),
     )}
   </section>`;
