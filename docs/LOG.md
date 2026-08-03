@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 Surface padding takes density — the deferral closes on first sight of the gap
+
+Kushagra, looking at the shipped Card: density does not move a card, "I mean it should." The question had been explicitly deferred in section 10's open list ("whether surface padding takes density — lands at Card"), and it closed the first time the gap was visible: a compact app whose controls tighten while its cards keep default air is half-adjusted, which is not what a density level means.
+
+The mechanism is the one density already uses everywhere — a designed set per level, never a multiplier. `surfacePadding` becomes per-level step indices into the space palette, one step apart (compact 8/12/16/24, default 12/16/24/32, comfortable 16/24/32/40), emitted inside the existing `[data-density]` blocks; the space palette itself stays untouched, so compact still cannot shrink page gutters. No pointer cells: surface padding does not vary by pointer, and the single-attribute block matches under any pointer scope. Cost: +31 bytes gzipped, baseline re-recorded. The per-level steps are v0 values awaiting the eye, like every other placed number. The preview gained a page-wide density select the same commit — the density x size matrix keeps its pinned sections, because it is the axis laid out, but everything else on the page (cards included) now follows one control the way it would follow an app's Theme.
+
+Raised in the same message and left OPEN, deliberately: whether `--radius-surface` should follow the size index. Today every Card size wears radius step 6; the config comment "surfaces have no size index" predates Card growing one for padding. Not decided here — it is a taste call on real screens, and the surface band would need more than two steps to express it.
+
+Rejected: a density multiplier on the padding (the same reason density is not a multiplier anywhere: no cell would be correctable alone); putting surface padding into the control family emission (it is section 10's family, not section 4's — a surface has no height to own and the families should stay separately correctable); pointer-axis cells for surface padding (nothing varies).
+
 ## 2026-08-04 The shadow's home is the Theme, and Box learns it does not paint
 
 Three corrections inside one afternoon, each Kushagra's: the palette values were rebuilt on researched geometry (negative spread is the sharpness mechanism — Tailwind's sm/md/lg verbatim, because the first two attempts were soft fog with short blurs and the reference card shadow was sharp); the `<Box shadow render={<Card/>}>` composition was judged "ugly, not for my system", which forced the real question; and the answer was the lever recorded a day earlier — **Theme `surfaces="flat" | "elevated"`**, an app identity beside `radius` and `density`. Named `elevated`, not `shadowed`: shadows are not semantic, sitting up is; row 2 is merely tonight's resolution of it.

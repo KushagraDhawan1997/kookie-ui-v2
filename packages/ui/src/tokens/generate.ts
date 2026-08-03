@@ -92,8 +92,8 @@ export function generateTokens(): string {
   lines.push("", "  /* semantic: control family at the default density (§4, §6, §12) */");
   lines.push(...controlFamily(density.default));
 
-  lines.push("", "  /* surface padding (§10) — space references, never restated numbers */");
-  surfacePadding.forEach((step, i) => put(`surface-p-${i + 1}`, `var(--space-${step})`));
+  lines.push("", "  /* surface padding (§10) at the default density — space references, never restated numbers */");
+  lines.push(...surfacePaddingFamily("default"));
 
   lines.push("", "  /* colour, generated (§7) — light mode */");
   lines.push(...colorDeclarations("light"));
@@ -155,10 +155,19 @@ export function generateTokens(): string {
     }
   }
 
-  // Density is a designed set, not a multiplier: each level re-declares the control family.
+  // Density is a designed set, not a multiplier: each level re-declares the control family,
+  // and since 2026-08-04 the surface padding family too (§10's deferral, closed). No pointer
+  // cells for surface padding: it does not vary by pointer, and the single-attribute block
+  // still matches under any [data-pointer] scope because nothing more specific re-declares it.
   for (const level of Object.keys(density) as DensityLevel[]) {
     if (level === "default") continue;
-    lines.push(`[data-density="${level}"] {`, ...controlFamily(density[level]), "}", "");
+    lines.push(
+      `[data-density="${level}"] {`,
+      ...controlFamily(density[level]),
+      ...surfacePaddingFamily(level),
+      "}",
+      "",
+    );
   }
 
   // Radius levels re-price the palette.
@@ -325,6 +334,11 @@ function radiusPalette(level: RadiusLevel): string[] {
   const out = steps.map((px, i) => `  --radius-${i}: ${px === 0 ? "0px" : zoom(px)};`);
   out.push(`  --radius-full: ${full === 0 ? "0px" : `${full}px`};`);
   return out;
+}
+
+/** Surface padding for one density level (§10, §12): step indices into the space palette. */
+function surfacePaddingFamily(level: DensityLevel): string[] {
+  return surfacePadding[level].map((step, i) => `  --surface-p-${i + 1}: var(--space-${step});`);
 }
 
 /** The four size-indexed control tokens for one designed set (§12, §16). */

@@ -208,10 +208,18 @@ export const material = {
 } as const;
 
 /**
- * §10 — surface padding as space-palette indices (semantic reference, never a raw px).
- * v0: 12 / 16 / 24 / 32. Whether this family takes density is still open and lands here.
+ * §10, §12 — surface padding as space-palette indices (semantic reference, never a raw px),
+ * and it takes DENSITY (decided 2026-08-04, closing §10's deferral): a compact app whose
+ * cards keep default air reads half-adjusted. Same shape as control `px` — each level is a
+ * designed set of step indices, one palette step apart, never a multiplier — and density
+ * still never touches the space palette itself; a level only picks different steps from it.
+ * v0 at default: 12 / 16 / 24 / 32.
  */
-export const surfacePadding = [4, 5, 6, 7] as const;
+export const surfacePadding = {
+  compact: [3, 4, 5, 6],
+  default: [4, 5, 6, 7],
+  comfortable: [5, 6, 7, 8],
+} as const satisfies Record<DensityLevel, readonly [number, number, number, number]>;
 
 /**
  * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04). Four rows on the

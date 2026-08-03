@@ -137,7 +137,7 @@ Two layers, structurally parallel to radius (section 6):
 --control-px-4: var(--space-6);   /* 24px */
 ```
 
-Controls have **no vertical padding token** (height + center, per section 4). Surfaces (cards) take both axes via their own `--card-padding` referencing space steps.
+Controls have **no vertical padding token** (height + center, per section 4). Surfaces (cards) take both axes via their own `--surface-p-N` referencing space steps (section 10; density-set since 2026-08-04, section 12).
 
 **Rule: do not numerically align across scales.** `--space-2` (4px), `--radius-2` (6px), and `--control-height-2` will not match and should not. The alignment that matters lives in the **size index** (a size-2 control pulls control-px-2, control-height-2, radius-control-2 together), not in raw palette numbers matching across families. Forcing space-N = radius-N is the fragile-coincidence trap one layer over.
 
@@ -835,10 +835,11 @@ type              -> scale                        (never density)
 space palette     -> scale                        (layout gaps, gutters; density never touches it)
 radius palette    -> scale, then the radius set   (never density, never height directly)
 control family    -> scale, then the density set  (control-height, control-px, control-gap, radius-control)
+surface padding   -> scale (via space), then the density set  (--surface-p-N; section 10, decided 2026-08-04)
 color             -> neither                      (compiled static; not a runtime multiplier axis)
 ```
 
-**Density is not a multiplier. It selects a designed set.** Each level (`compact`, `default`, `comfortable`) re-declares the control family — height, inline padding, internal gap, and control radius — as placed values, emitted at build time under a `[data-density]` block. Heights are raw numbers per level; the referencing families move by a step offset into the space and radius palettes, with per-cell overrides where an offset lands wrong. Nothing is a product, so nothing resolves to an arbitrary 26.78px, and every cell is correctable on its own — a multiplier can only move a whole level at once, which makes every taste correction global.
+**Density is not a multiplier. It selects a designed set.** Each level (`compact`, `default`, `comfortable`) re-declares the control family — height, inline padding, internal gap, and control radius — as placed values, emitted at build time under a `[data-density]` block. Heights are raw numbers per level; the referencing families move by a step offset into the space and radius palettes, with per-cell overrides where an offset lands wrong. Nothing is a product, so nothing resolves to an arbitrary 26.78px, and every cell is correctable on its own — a multiplier can only move a whole level at once, which makes every taste correction global. **Surface padding joined the set 2026-08-04** (closing section 10's deferral, Kushagra): a compact app whose cards keep default air reads half-adjusted, so each level places its own `--surface-p-N` step indices — one palette step apart, the same shape control `px` uses. Density still never touches the space palette itself; a level only picks different steps from it.
 
 **Radius participates.** A large density delta changes visual size enough that a fixed corner reads boxy; section 6's rule that a bigger control wants a bigger corner is about visual size, not about the size index.
 
@@ -1015,7 +1016,7 @@ Rejected: rem-derived geometry from a root font-size switch (one root scales gut
 **API:**
 - Naming of the per-component escape prop (`UNSAFE_` vs `override`). The name is the deterrent.
 - **Pointer: the numbers and the type question.** The coarse sets' values, whether body text shifts under coarse or only control labels, and whether a hybrid device gets the coarse geometry at all (`any-pointer`) — all §16, numbers judged in the 4b matrix.
-- **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end) and whether surface padding takes density (lands at Card). Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
+- **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end). Surface padding takes density — decided 2026-08-04 (section 12); its per-level steps are v0 values like the rest. Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
 - **Scale: if it ever ships.** The factor stays wired and the prop is deferred (sections 5, 13). Reopen only when a real need names the steps, and ship it as designed steps rather than a free multiplier.
 - RTL / `dir`. Deferred, architectural room left.
 

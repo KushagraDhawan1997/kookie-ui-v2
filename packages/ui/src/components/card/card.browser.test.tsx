@@ -55,6 +55,23 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     expect(computed(render(<Card>B</Card>), "padding-top")).toBe("24px");
     expect(computed(render(<Card size="1">B</Card>), "padding-top")).toBe("12px");
   });
+
+  it("takes density: a compact app's cards lose air, a comfortable app's gain it (§12)", () => {
+    // Surface padding joined the density set 2026-08-04 (§10's deferral, closed) — otherwise
+    // a compact Theme adjusted every control while its cards kept default air.
+    const compact = render(
+      <Theme density="compact">
+        <Card>B</Card>
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-card")!;
+    expect(computed(compact, "padding-top")).toBe("16px");
+    const comfortable = render(
+      <Theme density="comfortable">
+        <Card>B</Card>
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-card")!;
+    expect(computed(comfortable, "padding-top")).toBe("32px");
+  });
 });
 
 describe("the shell SEALS — translucency is material's job alone (§10, LOG 2026-08-04)", () => {

@@ -18,6 +18,7 @@ import {
   radiusOverlay,
   radiusSurface,
   space,
+  surfacePadding,
   touchTargetMin,
   type DensityLevel,
   type DensitySet,
@@ -168,6 +169,27 @@ describe("density is a designed set, not a multiplier (§12)", () => {
       const body = block(`[data-density="${level}"]`);
       expect(body).not.toMatch(/^\s*--space-\d+:/m);
       expect(body).not.toMatch(/^\s*--radius-\d+:/m);
+    }
+  });
+
+  it("surface padding takes density (§10's deferral, closed 2026-08-04): a set per level", () => {
+    // Same mechanism as control px — the level picks different STEPS from the space palette,
+    // which stays untouched (the law above). A density block missing the family would leave
+    // cards at default air inside a compact app: half-adjusted.
+    for (const level of ["compact", "comfortable"] as const) {
+      for (let size = 1; size <= 4; size++) {
+        expect(declaration(`surface-p-${size}`, level)).toMatch(/^var\(--space-\d+\)$/);
+      }
+    }
+  });
+
+  it("orders surface padding compact < default < comfortable per size, increasing per level", () => {
+    for (let i = 0; i < 4; i++) {
+      expect(surfacePadding.compact[i]!).toBeLessThan(surfacePadding.default[i]!);
+      expect(surfacePadding.default[i]!).toBeLessThan(surfacePadding.comfortable[i]!);
+    }
+    for (const set of Object.values(surfacePadding)) {
+      expect(increasing(set)).toBe(true);
     }
   });
 });

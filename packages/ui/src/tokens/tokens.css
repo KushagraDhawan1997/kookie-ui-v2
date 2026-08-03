@@ -106,7 +106,7 @@
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
 
-  /* surface padding (§10) — space references, never restated numbers */
+  /* surface padding (§10) at the default density — space references, never restated numbers */
   --surface-p-1: var(--space-4);
   --surface-p-2: var(--space-5);
   --surface-p-3: var(--space-6);
@@ -780,6 +780,10 @@
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
   --radius-control-4: var(--radius-3);
+  --surface-p-1: var(--space-3);
+  --surface-p-2: var(--space-4);
+  --surface-p-3: var(--space-5);
+  --surface-p-4: var(--space-6);
 }
 
 [data-density="comfortable"] {
@@ -799,6 +803,10 @@
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
+  --surface-p-1: var(--space-5);
+  --surface-p-2: var(--space-6);
+  --surface-p-3: var(--space-7);
+  --surface-p-4: var(--space-8);
 }
 
 [data-radius="none"] {
