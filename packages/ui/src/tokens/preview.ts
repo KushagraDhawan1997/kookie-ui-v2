@@ -545,6 +545,9 @@ export function generatePreview(): string {
   <label>pointer
       <select id="pointer"><option selected>auto</option><option>fine</option><option>coarse</option></select>
     </label>
+  <label>density
+      <select id="density">${LEVELS.map((l) => `<option${l === "default" ? " selected" : ""}>${l}</option>`).join("")}</select>
+    </label>
   </div>
 </div></header>
 <main>
@@ -590,7 +593,7 @@ ${BRANDS.slice(0, 5)
 </div>
 
 <h1 id="card">Card — the shell</h1>
-<p class="note">A shell: one treatment, no variants, no anatomy — <code>size × material</code> and children, and Card ships not one line of its own CSS (§10). A surface without a material is opaque — translucency is material's job alone — and separation between nested surfaces is the border, not the fill. No call site chooses a shadow: the surfaces=\"elevated\" toggle above is the one sanctioned depth, an app identity (§5). Titled layouts are blocks, not components. The glass values are v0, judged on this page; expect them to move.</p>
+<p class="note">A shell: one treatment, no variants, no anatomy — <code>size × material</code> and children, and Card ships not one line of its own CSS (§10). A surface without a material is opaque — translucency is material's job alone — and separation between nested surfaces is the border, not the fill. No call site chooses a shadow: the surfaces=\"elevated\" toggle above is the one sanctioned depth, an app identity (§5). Titled layouts are blocks, not components. Padding follows the size index and the page-wide <em>density</em> select above (§12) — a compact app's cards lose air with its controls. The glass values are v0, judged on this page; expect them to move.</p>
 ${surfaceSection("light")}
 ${surfaceSection("dark")}
 
@@ -701,6 +704,14 @@ ${brandSection("dark")}
 
   document.getElementById("radius").addEventListener("change", (e) => {
     document.documentElement.dataset.radius = e.target.value;
+    readout();
+  });
+
+  // Page-wide density, the way a real app Theme sets it — cards and buttons alike (§12).
+  // The density x size matrix above keeps its own pinned sections: it IS the axis laid out,
+  // and a section's own data-density outranks the root's.
+  document.getElementById("density").addEventListener("change", (e) => {
+    document.documentElement.dataset.density = e.target.value;
     readout();
   });
 
