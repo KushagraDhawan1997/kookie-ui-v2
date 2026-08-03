@@ -195,10 +195,12 @@
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,
-   because it is still the thing you pressed (§8). Activation is blocked by the native
-   `disabled` attribute rather than `pointer-events: none` — an element that takes no pointer
-   events also shows no cursor, and the busy cursor is the feedback that the click landed.
-   Disabled elements still hit-test for `cursor`, which is what makes this work. */
+   because it is still the thing you pressed (§8). Activation is blocked by aria-disabled plus
+   Base UI's preventDefault handlers — NOT by the native `disabled` attribute, which the loading
+   path deliberately withholds so the control keeps its place in the tab order. What matters for
+   the cursor is that the element still hit-tests, which it does: `pointer-events: none` would
+   take no pointer events and therefore show no cursor, and the busy cursor is the feedback that
+   the click landed. */
 .kui-control[data-loading] {
   cursor: var(--cursor-loading);
 }

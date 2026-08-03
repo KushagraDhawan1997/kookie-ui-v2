@@ -376,6 +376,32 @@ describe("the boundary (§3, §13)", () => {
     expect(el.className).toContain("kui-control");
     expect(el.dataset.emphasis).toBe("loud");
     expect(computed(el, "min-height")).toBe("40px");
+    // The half this law blessed without checking: it asserted the axes survived and never
+    // asked whether the ELEMENT did. `type` on an anchor means the linked resource's MIME
+    // type, and Base UI emitted it because nativeButton defaults true and was never forwarded.
+    expect(el.hasAttribute("type")).toBe(false);
+    expect(el.getAttribute("role")).toBe("button");
+  });
+
+  it("and a disabled link says so, instead of being a focusable dead end (§1)", () => {
+    // Was: <a href="/x" data-disabled type="button" tabindex="0" disabled> — `disabled` is
+    // inert on an anchor and ignored by assistive tech, so a screen-reader user heard "Go,
+    // link", pressed Enter, and nothing happened with nothing announced.
+    const el = render(
+      <Button render={<a href="/x" />} disabled>
+        Go
+      </Button>,
+    );
+    expect(el.getAttribute("aria-disabled")).toBe("true");
+    expect(el.hasAttribute("disabled")).toBe(false);
+    expect(el.hasAttribute("type")).toBe(false);
+  });
+
+  it("a real button is still a real button, and still takes the native attribute", () => {
+    const el = render(<Button disabled>Save</Button>);
+    expect(el.tagName).toBe("BUTTON");
+    expect(el.getAttribute("type")).toBe("button");
+    expect((el as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("consumes only role tokens — no numbered step reaches a rendered property", () => {
