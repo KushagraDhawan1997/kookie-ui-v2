@@ -6,7 +6,7 @@
  *
  * Run: node --experimental-strip-types src/tokens/generate.ts
  */
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -447,11 +447,29 @@ function controlFamily(set: DensitySet): string[] {
 const here = dirname(fileURLToPath(import.meta.url));
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const tokens = generateTokens();
-  writeFileSync(join(here, "tokens.css"), tokens);
-  console.log(`tokens.css: ${tokens.length} bytes (raw)`);
+  const artifacts = [
+    { path: join(here, "tokens.css"), name: "tokens.css", content: generateTokens() },
+    { path: join(here, "../system/layout.css"), name: "layout.css", content: generateLayoutCss() },
+  ];
 
-  const layout = generateLayoutCss();
-  writeFileSync(join(here, "../system/layout.css"), layout);
-  console.log(`layout.css: ${layout.length} bytes (raw)`);
+  // `--check` verifies and writes NOTHING. `build` runs it in that mode, because a build that
+  // regenerates into src/ silently repairs the very drift the law tests are there to catch:
+  // turbo ran build and test as concurrent graph roots, the generator won every race, and the
+  // "committed artifact matches the generator" law read a file that had just been rewritten.
+  // Ordering the two does not fix it — whichever runs first, build still repairs the evidence.
+  // Only a build that does not write can be trusted to leave a hand edit visible.
+  if (process.argv.includes("--check")) {
+    const drifted = artifacts.filter((a) => readFileSync(a.path, "utf8") !== a.content);
+    for (const a of drifted) console.error(`${a.name}: DRIFT — committed file does not match the generator`);
+    if (drifted.length) {
+      console.error("Run `pnpm --filter @kookie-ui/react run tokens` and commit the result.");
+      process.exit(1);
+    }
+    console.log(`generated files in sync: ${artifacts.map((a) => a.name).join(", ")}`);
+  } else {
+    for (const a of artifacts) {
+      writeFileSync(a.path, a.content);
+      console.log(`${a.name}: ${a.content.length} bytes (raw)`);
+    }
+  }
 }

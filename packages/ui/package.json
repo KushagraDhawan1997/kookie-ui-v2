@@ -29,13 +29,14 @@
     "provenance": true
   },
   "scripts": {
-    "build": "pnpm run tokens && tsdown && node scripts/build-css.mjs",
+    "build": "pnpm run tokens:check && tsdown && node scripts/build-css.mjs",
     "tokens": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/generate.ts",
     "preview": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/preview.ts",
     "preview:serve": "pnpm run preview && python3 -m http.server 4917",
     "test": "vitest run",
     "lint": "eslint src scripts && tsc -p tsconfig.json",
-    "measure": "node scripts/measure-css.mjs"
+    "measure": "node scripts/measure-css.mjs",
+    "tokens:check": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/generate.ts --check"
   },
   "peerDependencies": {
     "react": "^19.0.0",
