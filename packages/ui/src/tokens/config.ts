@@ -224,8 +224,9 @@ export const surfacePadding = {
 /**
  * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04). Four rows on the
  * system's one index shape; 1 is the inset well, 2-4 lift. No semantic component may read
- * these — elevation stayed deleted. The only consumer API is Box's closed `shadow` prop;
- * blocks and escapes are the audience. Dark rows run heavier: dark pages swallow shadow.
+ * these — elevation stayed deleted, and Box's shadow prop died with it (layout components
+ * do not paint). Escapes and blocks reach the palette through `style`; the elevated world
+ * consumes it through --surface-chrome. Dark rows run heavier: dark pages swallow shadow.
  */
 export const shadow = {
   // SHARP by construction, not by taste adjectives (researched 2026-08-04). Three rules:
