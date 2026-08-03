@@ -258,6 +258,7 @@ grayColor      <neutral>                        low-chroma accent from the same 
 contrast       default | high                  drives borders/dividers too, resolves per appearance
 radius         none | small | medium | large | full   selects a designed radius palette (section 6), not a factor and not a token pick
 density        compact | default | comfortable  selects a designed control-family set (height, px, gap, radius); never type, never the space palette (section 12). Theme-scoped only: an airy region is a nested Theme on an element you already have (via `render`), not a per-component prop, which would duplicate `size`
+surfaces       flat | elevated                 do surfaces sit up (section 10). SHIPPED 2026-08-04. The semantic is elevation-as-identity; shadow row 2 is its current resolution. An app choice made once - no component exposes a shadow API, law-tested
 scale          (deferred, see below)            global zoom: type, height, spacing, radius together
 font           mono | sans | serif             shorthand: sets heading + body
 fontHeading    "
@@ -623,9 +624,15 @@ Three arguments closed it, in order:
 
 `<Card render={<button/>}>` (or an anchor) IS the pattern — no prop, no component. The surface layer keys on the element semantics (`.kui-surface:where(button, a)`) and applies the control state machine, per this section's own rule: reuse it, never invent a surface one. Rest is pixel-identical to a plain Card — a card is a card until you point at it. Hover washes the seal to `--color-surface-hover` (guarded by `(hover: hover)`), press steps to `--color-surface-active` instantly and unguarded, keyboard gets the one shared ring, cursor and touch hygiene match the controls. This respects the anatomy criterion: here interactivity is forced by something non-visual — the element itself — and HTML enforces the one-action rule for free, since a button cannot nest a button.
 
-### The shadow palette: a resource, never an axis (decided 2026-08-04)
+### The shadow palette: a resource, never an axis (decided 2026-08-04; consumer corrected the same day)
 
-Elevation stays deleted; taste does not. `--shadow-1..4` ships in the public token contract (§13) as *material for escapes and blocks* — the same standing the alpha ramp has. Four rows on the system's one index shape, mode-aware (dark runs heavier because dark pages swallow shadow), row 1 the inset well. **No semantic component may read them, law-tested.** The only component API is Box's closed `shadow="1|2|3|4"` prop — the decoration escape lives on the layout primitive exactly as margin does, so a shadowed card is `<Box shadow="2"><Card/></Box>`: a deliberate act, visible in review, never a system endorsement. Static, not responsive: a shadow that changes per container tier has no known use.
+Elevation stays deleted; taste does not. `--shadow-1..4` ships in the public token contract (§13) — four rows on the system's one index shape, mode-aware (dark keeps the same geometry and raises alpha only: the light source does not move at night), row 1 the inset well, rows 2-4 on Tailwind's sm/md/lg geometry because **negative spread on the reaching layer is the sharpness mechanism**: it pulls the shadow in under the element so depth drops below instead of haloing sideways.
+
+**Consumers, exactly two, and no component API anywhere:**
+- **Theme `surfaces="elevated"`** — the one stylesheet consumer (§5). One rule dresses every `.kui-surface` with row 2 on the element that owns the radius; `flat` (default) is byte-identical to a world where the rule does not exist. An app identity, never a per-card knob.
+- **Escapes and blocks** through `style={{ boxShadow: "var(--shadow-N)" }}` — lawless but visible, as `style` has always been.
+
+**Box's `shadow` prop shipped for a day and died as a taxonomy leak (Kushagra):** Box is layout, shadow is paint, and a typed prop added nothing but a blessing the taxonomy forbids. A `@ts-expect-error` law pins the refusal, alongside Card's.
 
 ```
 tone (hue) + emphasis (rung) -> role-token bundle -> scale steps -> generated OKLCH values

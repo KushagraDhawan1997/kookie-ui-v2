@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 The shadow's home is the Theme, and Box learns it does not paint
+
+Three corrections inside one afternoon, each Kushagra's: the palette values were rebuilt on researched geometry (negative spread is the sharpness mechanism — Tailwind's sm/md/lg verbatim, because the first two attempts were soft fog with short blurs and the reference card shadow was sharp); the `<Box shadow render={<Card/>}>` composition was judged "ugly, not for my system", which forced the real question; and the answer was the lever recorded a day earlier — **Theme `surfaces="flat" | "elevated"`**, an app identity beside `radius` and `density`. Named `elevated`, not `shadowed`: shadows are not semantic, sitting up is; row 2 is merely tonight's resolution of it.
+
+The forcing argument for the Theme world over a Card prop: a per-card, four-value visual knob that nothing semantic drives is the elevation autopsy's exact profile re-admitted through the side door, ending in `shadow="2"` cargo-culted onto some cards and not others. One world rule dresses every surface on the element that owns the radius — which also kills the wrapper problem (a Box is a sharp-cornered rectangle; its shadow peeks past a rounded card's corners).
+
+**Box's `shadow` prop died the same hour, on taxonomy:** "I thought Box is purely a layout component — why does it get to define shadow?" Correct; the prop was paint on a layout primitive, shipped for a day, and the honest escape was always `style` with the palette tokens. Laws now pin all three refusals: no shadow prop on Box, none on Card, exactly one `box-shadow` in the surface layer and it lives inside the `[data-surfaces="elevated"]` scope reading row 2.
+
+Rejected: `surfaces="shadowed"` (names the resolution, not the semantic); a Card `shadow` prop (the side-door elevation axis); keeping Box's prop for convenience (layout components do not paint, and convenience was the argument for every leak the system has deleted).
+
 ## 2026-08-04 Taste gets its escape valve: shadows as a fenced resource, interactivity from the element
 
 Kushagra, after the elevation deletion settled: where does visual taste come in — a card *looks nice* with a bit of shadow, but that is not everyone's taste. The resolution keeps the identity and prices the taste: KookieUI's surfaces are flat by system decision, and shadow becomes a **resource with a fence** rather than an axis. `--shadow-1..4` in the public contract — the system's one index shape, 1 the inset well (his call, over Radix's six), mode-aware, values only in config. No semantic component may read them, law-tested; the sole API is Box's closed `shadow` prop, the same tier as `m`: decoration spelled where review sees it. If the flat identity itself ever feels wrong on a real screen, the recorded lever is a Theme-level designed set — not a resurrection of elevation.
