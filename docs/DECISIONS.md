@@ -253,7 +253,7 @@ The anchor model read better and corrected worse: a factor moves all four height
 ### Props
 
 ```
-appearance     light | dark | inherit          color scheme. Both directions nest: `[data-appearance="light"]` is emitted as its own block alongside `[data-appearance="dark"]`, so a light section inside a dark app escapes as well as the reverse. `inherit` stamps nothing and keeps the outer scope
+appearance     light | dark | inherit          color scheme. Both directions nest: `[data-appearance="light"]` is emitted as its own block alongside `[data-appearance="dark"]`, so a light section inside a dark app escapes as well as the reverse. `inherit` stamps nothing and keeps the outer scope. Each scope also declares `color-scheme`, so UA-painted chrome (scrollbar tracks, a consumer's native inputs) follows the appearance instead of staying light
 material       off | on (policy)               global translucency gate; CAPS per-component material (section 10). aka allowTranslucency
 accentColor    <brand color>                   hue that tone="accent" resolves to; input to the color generator (section 7)
 grayColor      <neutral>                        low-chroma accent from the same generator; tone="neutral" hue

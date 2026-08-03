@@ -355,6 +355,11 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
   };
   return [
     "",
+    `  /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the`,
+    `     light scrollbar track, and a consumer's <input> or <select> renders with a white UA`,
+    `     background — the one part of the page the token layer cannot reach by itself. */`,
+    `  color-scheme: ${mode};`,
+    "",
     `  /* material recipes (§10) — material is a fill MODIFIER, not a fill: the consuming`,
     `     layer mixes the component's OWN fill toward transparent at these alphas, so tone`,
     `     and loudness ride into the veil for free. hover/active are §8's steps on glass's`,

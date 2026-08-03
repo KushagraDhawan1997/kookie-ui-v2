@@ -130,6 +130,19 @@ describe("a nested Theme inherits what it was not given (§5)", () => {
     );
   });
 
+  it("appearance also tells the UA which world it is painting, both directions (§5)", () => {
+    // Scrollbar tracks and a consumer's native <input> are painted by the UA, not by the token
+    // layer, so they stayed light inside a dark Theme until color-scheme shipped.
+    const dark = render(<Theme appearance="dark">{probe}</Theme>);
+    expect(computed(dark.querySelector("#probe")!, "color-scheme")).toBe("dark");
+    const nested = render(
+      <Theme appearance="dark">
+        <Theme appearance="light">{probe}</Theme>
+      </Theme>,
+    );
+    expect(computed(nested.querySelector("#probe")!, "color-scheme")).toBe("light");
+  });
+
   it("and the mirror holds: a light section inside a dark app is not stuck dark (§5)", () => {
     // Light lived only at :root until 2026-08-03, so `light` and `inherit` rendered
     // identically inside a dark tree — an escape that does nothing is not an escape.
