@@ -24,7 +24,7 @@ Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DEC
 - Tokens only. No raw px in component CSS; every value resolves through a `--*` token.
 - No utility classes shipped, ever.
 - `size` is an index, not a measurement. Closed unions: `"1" | "2" | "3" | "4"`.
-- Appearance is resolved output. Components expose tone/emphasis/material, never raw fills. Elevation does not exist; no shadows.
+- Appearance is resolved output. Components expose tone/emphasis/material, never raw fills. Elevation does not exist; no component casts a shadow. --shadow-1..4 is a fenced resource: Box's closed `shadow` prop only.
 - Semantic references, not numeric coincidence (`--radius-control-2`, never `--radius-2` in a component).
 - State styling lives in CSS via data-attributes. No JS at interaction time.
 - Never edit generated files (they carry a header naming their source config).

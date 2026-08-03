@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 Taste gets its escape valve: shadows as a fenced resource, interactivity from the element
+
+Kushagra, after the elevation deletion settled: where does visual taste come in — a card *looks nice* with a bit of shadow, but that is not everyone's taste. The resolution keeps the identity and prices the taste: KookieUI's surfaces are flat by system decision, and shadow becomes a **resource with a fence** rather than an axis. `--shadow-1..4` in the public contract — the system's one index shape, 1 the inset well (his call, over Radix's six), mode-aware, values only in config. No semantic component may read them, law-tested; the sole API is Box's closed `shadow` prop, the same tier as `m`: decoration spelled where review sees it. If the flat identity itself ever feels wrong on a real screen, the recorded lever is a Theme-level designed set — not a resurrection of elevation.
+
+Card-as-button landed the same session, and its shape is the anatomy criterion applied again: interactivity is forced by something non-visual — the element — so the pattern is `render={<button/>}` and the surface layer keys on `:where(button, a)`. No `interactive` prop, no ClickableCard component. Rest pixel-identical to a plain Card; hover washes the seal (guarded), press steps instantly (unguarded), one shared ring; a button cannot nest a button, so HTML enforces the one-action-zone rule for free.
+
+Rejected: six shadow steps (a menu, not an index); free strings on Box's shadow (`style` already exists for lawlessness; the prop's value is that it cannot be lawless); shadow props on Card or any semantic component; a data-interactive attribute (a prop restating what the element already declares); responsive shadow (no known use; the remap pipe is there if one appears).
+
 ## 2026-08-04 The alpha-nesting theory dies by eye, and the shell seals
 
 The preview made two claims Kushagra caught as false in one screenshot: "three distinct levels" over a nesting demo whose levels were indistinguishable, and a "solid" card over a photo that had no background at all. One root cause: the shell's fill was `--tone-a1`, 1.2% alpha — too faint to differentiate nesting, too transparent to be a surface over media. His framing closed it: **why does a card have an alpha background — isn't that material's job?** It is. Translucency belongs to `material` exclusively; the alpha default was material's responsibility leaking into the shell.

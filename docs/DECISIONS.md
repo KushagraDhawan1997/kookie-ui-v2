@@ -619,6 +619,14 @@ Three arguments closed it, in order:
 
 **The rule the footer discussion produced, kept as the documented pattern:** a composition has exactly one task-action zone. Verbs of the task (Save, Login, Export) live together at the end; verbs on the surface itself (dismiss, overflow) are a different kind and get their slot when Dialog/Toast force it. The corrected login composition becomes the first documented block.
 
+### Card-as-button: the element brings the interactivity (decided 2026-08-04)
+
+`<Card render={<button/>}>` (or an anchor) IS the pattern — no prop, no component. The surface layer keys on the element semantics (`.kui-surface:where(button, a)`) and applies the control state machine, per this section's own rule: reuse it, never invent a surface one. Rest is pixel-identical to a plain Card — a card is a card until you point at it. Hover washes the seal to `--color-surface-hover` (guarded by `(hover: hover)`), press steps to `--color-surface-active` instantly and unguarded, keyboard gets the one shared ring, cursor and touch hygiene match the controls. This respects the anatomy criterion: here interactivity is forced by something non-visual — the element itself — and HTML enforces the one-action rule for free, since a button cannot nest a button.
+
+### The shadow palette: a resource, never an axis (decided 2026-08-04)
+
+Elevation stays deleted; taste does not. `--shadow-1..4` ships in the public token contract (§13) as *material for escapes and blocks* — the same standing the alpha ramp has. Four rows on the system's one index shape, mode-aware (dark runs heavier because dark pages swallow shadow), row 1 the inset well. **No semantic component may read them, law-tested.** The only component API is Box's closed `shadow="1|2|3|4"` prop — the decoration escape lives on the layout primitive exactly as margin does, so a shadowed card is `<Box shadow="2"><Card/></Box>`: a deliberate act, visible in review, never a system endorsement. Static, not responsive: a shadow that changes per container tier has no known use.
+
 ```
 tone (hue) + emphasis (rung) -> role-token bundle -> scale steps -> generated OKLCH values
 ```
