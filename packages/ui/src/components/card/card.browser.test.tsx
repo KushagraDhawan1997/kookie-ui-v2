@@ -20,9 +20,10 @@ function tokenOn(el: Element, name: string): string {
   return value;
 }
 
-function bgTokenOn(el: Element, name: string): string {
+/** Resolve any CSS color expression the way the surface would — through an element. */
+function bgOn(el: Element, expr: string): string {
   const probe = document.createElement("div");
-  probe.style.backgroundColor = `var(${name})`;
+  probe.style.backgroundColor = expr;
   el.append(probe);
   const value = getComputedStyle(probe).backgroundColor;
   probe.remove();
@@ -32,7 +33,7 @@ function bgTokenOn(el: Element, name: string): string {
 describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
   it("is always the sealed bordered surface, and nothing casts a shadow", () => {
     const el = render(<Card>Body</Card>);
-    expect(computed(el, "background-color")).toBe(bgTokenOn(el, "--color-surface"));
+    expect(computed(el, "background-color")).toBe(bgOn(el, "var(--color-surface)"));
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
     expect(computed(el, "box-shadow")).toBe("none");
     expect(computed(el, "backdrop-filter")).toBe("none");
@@ -136,10 +137,23 @@ describe("material is backdrop defense, opt-in (§10)", () => {
     expect(computed(thick, "backdrop-filter")).toContain("blur(32px)");
   });
 
-  it("a material fill mixes over the page colour and stays translucent", () => {
+  it("a material fill is the shell's own seal made translucent — the modifier, applied (§10)", () => {
     const thin = render(<Card material="thin">B</Card>);
-    expect(computed(thin, "background-color")).toBe(bgTokenOn(thin, "--material-thin-fill"));
+    expect(computed(thin, "background-color")).toBe(
+      bgOn(thin, "color-mix(in srgb, var(--color-surface) var(--material-thin-alpha), transparent)"),
+    );
     expect(computed(thin, "background-color")).not.toMatch(/^rgb\(/);
+  });
+
+  it("a plain card nested in a glass card keeps its seal — the derived fill does not inherit", () => {
+    const outer = render(
+      <Card material="regular">
+        <Card data-testid="inner">B</Card>
+      </Card>,
+    );
+    const inner = outer.querySelector<HTMLElement>('[data-testid="inner"]')!;
+    expect(computed(inner, "background-color")).toBe(bgOn(inner, "var(--color-surface)"));
+    expect(computed(inner, "backdrop-filter")).toBe("none");
   });
 });
 

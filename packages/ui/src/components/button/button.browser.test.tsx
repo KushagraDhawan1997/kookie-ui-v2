@@ -129,8 +129,8 @@ describe("states are stylesheet work, and the DOM stays honest (§8, ENGINEERING
     expect(computed(el, "background-color")).toBe(tokenOn(el, "--tone-soft"));
     // The states live in the stylesheet keyed on :hover/:active, so what is asserted here is
     // that the recipe bound them to the right steps — no JS exists to fire at interaction.
-    expect(tokenOn(el, "--kui-fill-hover")).toBe(tokenOn(el, "--tone-soft-hover"));
-    expect(tokenOn(el, "--kui-fill-active")).toBe(tokenOn(el, "--tone-soft-active"));
+    expect(tokenOn(el, "--kui-fill-src-hover")).toBe(tokenOn(el, "--tone-soft-hover"));
+    expect(tokenOn(el, "--kui-fill-src-active")).toBe(tokenOn(el, "--tone-soft-active"));
   });
 
   it("disabled remaps the tone family instead of dropping opacity (§8)", () => {
@@ -155,49 +155,94 @@ describe("states are stylesheet work, and the DOM stays honest (§8, ENGINEERING
   });
 });
 
-describe("material is backdrop defense, and it owns the fill while it is on (§10, §11)", () => {
+describe("material is a fill modifier: the rung's own fill, made translucent (§10, §11)", () => {
+  /** Resolve any CSS color expression the way the stylesheet would — through the element. */
+  function colorOn(el: Element, expr: string): string {
+    const probe = document.createElement("div");
+    probe.style.color = expr;
+    el.append(probe);
+    const value = getComputedStyle(probe).color;
+    probe.remove();
+    return value;
+  }
+
   it("solid is the absence of a material — the default writes no attribute", () => {
     expect(render(<Button>Label</Button>).dataset.material).toBeUndefined();
     expect(render(<Button material="solid">Label</Button>).dataset.material).toBeUndefined();
     expect(render(<Button material="regular">Label</Button>).dataset.material).toBe("regular");
   });
 
-  it("a material button paints the glass recipe, not the rung", () => {
-    const el = render(<Button material="regular">Label</Button>);
-    expect(computed(el, "background-color")).toBe(tokenOn(el, "--material-regular-fill"));
+  it("the veil is the rung's fill at the thickness alpha, over a real blur", () => {
+    const el = render(
+      <Button emphasis="loud" tone="accent" material="thin">
+        Label
+      </Button>,
+    );
+    expect(computed(el, "background-color")).toBe(
+      colorOn(el, "color-mix(in srgb, var(--tone-solid) var(--material-thin-alpha), transparent)"),
+    );
     expect(computed(el, "backdrop-filter")).not.toBe("none");
   });
 
-  it("interaction steps glass's one ramp — the mix — never the rung's (§8)", () => {
+  it("tone and loudness both survive the glass — colour was the point (§7, §9)", () => {
+    const cell = (tone: "neutral" | "accent", emphasis: "loud" | "medium") =>
+      computed(
+        render(
+          <Button tone={tone} emphasis={emphasis} material="thick">
+            Label
+          </Button>,
+        ),
+        "background-color",
+      );
+    expect(cell("accent", "loud")).not.toBe(cell("neutral", "loud"));
+    expect(cell("accent", "loud")).not.toBe(cell("accent", "medium"));
+  });
+
+  it("quiet glass is bare blur: rest keeps the absence of a fill (§9)", () => {
+    const el = render(
+      <Button emphasis="quiet" material="regular">
+        Label
+      </Button>,
+    );
+    // Mixing transparent toward transparent serialises as color(srgb …/0), not rgba(0,0,0,0);
+    // the law is the alpha channel, not the spelling.
+    expect(computed(el, "background-color")).toMatch(/(rgba\(0, 0, 0, 0\)|\/ 0\))$/);
+    expect(computed(el, "backdrop-filter")).not.toBe("none");
+  });
+
+  it("interaction steps the veil from the rung's own hover source, at the hover alpha (§8)", () => {
     const el = render(
       <Button emphasis="medium" material="thin">
         Label
       </Button>,
     );
-    expect(tokenOn(el, "--kui-fill-hover")).toBe(tokenOn(el, "--material-thin-fill-hover"));
-    expect(tokenOn(el, "--kui-fill-active")).toBe(tokenOn(el, "--material-thin-fill-active"));
-    expect(tokenOn(el, "--kui-fill-hover")).not.toBe(tokenOn(el, "--tone-soft-hover"));
+    expect(tokenOn(el, "--kui-fill-hover")).toBe(
+      colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-thin-alpha-hover), transparent)"),
+    );
+    expect(tokenOn(el, "--kui-fill-active")).toBe(
+      colorOn(el, "color-mix(in srgb, var(--tone-soft-active) var(--material-thin-alpha-active), transparent)"),
+    );
   });
 
-  it("the label on glass is --tone-label, whatever the rung promised — and tone still rides it", () => {
-    // --tone-contrast is APCA-paired to --tone-solid, a fill material just replaced.
+  it("the rung keeps its own label pairing under glass", () => {
+    // The fill is still the rung's — merely translucent — so loud keeps the APCA-chosen
+    // contrast and medium keeps the label token. Thin-over-a-bright-photo legibility is
+    // §10's deferred brightness-floor branch, not a label swap.
     const loud = render(
       <Button tone="accent" emphasis="loud" material="thick">
         Label
       </Button>,
     );
-    expect(computed(loud, "color")).toBe(tokenOn(loud, "--tone-label"));
-    expect(computed(loud, "color")).not.toBe(tokenOn(loud, "--tone-contrast"));
-
-    const destructive = render(
-      <Button tone="destructive" material="thick">
+    expect(computed(loud, "color")).toBe(tokenOn(loud, "--tone-contrast"));
+    const medium = render(
+      <Button tone="accent" emphasis="medium" material="thick">
         Label
       </Button>,
     );
-    expect(computed(destructive, "color")).not.toBe(computed(loud, "color"));
+    expect(computed(medium, "color")).toBe(tokenOn(medium, "--tone-label"));
   });
 
-  it("the rung's dressing returns when the material comes off", () => {
+  it("the fill returns to opaque when the material comes off", () => {
     const glass = render(
       <Button emphasis="loud" material="regular">
         Label
