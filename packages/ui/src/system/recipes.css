@@ -8,6 +8,15 @@
  *
  * Interaction is entirely stylesheet work (ENGINEERING §1.5): no JS runs on hover or press. */
 
+/* Containment's variable must NOT inherit: `[data-bordered]` declares --kui-border-color on
+   the element that carries the attribute, but custom properties inherit by default, so every
+   control inside a bordered Card silently grew a border — loud buttons included, spotted on
+   the material demo. Same guard the layout mechanism uses (§2). */
+@property --kui-border-color {
+  syntax: "*";
+  inherits: false;
+}
+
 /* ── The skeleton every fixed-height control shares (§4) ─────────────────────────────────── */
 
 .kui-control {

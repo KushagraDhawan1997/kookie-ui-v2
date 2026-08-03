@@ -110,6 +110,31 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
     expect(computed(inCard, "color")).toBe(computed(alone, "color"));
   });
 
+  it("containment does not inherit: a button inside a bordered card stays borderless", () => {
+    // [data-bordered] declares --kui-border-color on the card, and custom properties inherit
+    // by default — every control inside every Card silently grew a border until the
+    // @property guard (inherits: false) cut the leak. Loud buttons made it visible.
+    const card = render(
+      <Card>
+        <Button tone="accent" emphasis="loud">
+          Act
+        </Button>
+      </Card>,
+    );
+    const inCard = card.querySelector("button")!;
+    expect(computed(inCard, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+    // And a bordered control inside still gets its own border — the guard kills only
+    // the inheritance, never the attribute's own declaration.
+    const bordered = render(
+      <Card>
+        <Button bordered>Act</Button>
+      </Card>,
+    );
+    expect(computed(bordered.querySelector("button")!, "border-top-color")).not.toBe(
+      "rgba(0, 0, 0, 0)",
+    );
+  });
+
   it("the elevated world dresses the shell; flat stays shadowless; no Card API exists (§5, §10)", () => {
     const flat = render(<Card>B</Card>);
     expect(computed(flat, "box-shadow")).toBe("none");
