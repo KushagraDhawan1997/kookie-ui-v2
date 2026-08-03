@@ -4,6 +4,11 @@ dist/
 *.log
 .DS_Store
 coverage/
-preview/
+# The emitted page only. backdrop.jpg beside it is a repo asset, not an artifact: §10's v0
+# material alphas and blur spreads were judged against that photograph, and with the whole
+# directory ignored the judgement was unreproducible off one machine — a fresh clone 404s the
+# url() and grades every glass cell against the smooth gradient fallback instead, i.e. against
+# exactly the easy backdrop §10 warns about.
+packages/ui/preview/*.html
 __screenshots__/
 .vitest-attachments/
