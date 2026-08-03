@@ -67,7 +67,12 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     const occurrences = stripped.match(/box-shadow/g) ?? [];
     expect(occurrences).toHaveLength(1);
     const rule = stripped.slice(stripped.indexOf('[data-surfaces="elevated"]'));
-    expect(rule.slice(0, rule.indexOf("}"))).toContain("box-shadow: var(--shadow-2)");
+    const body = rule.slice(0, rule.indexOf("}"));
+    expect(body).toContain("box-shadow: var(--surface-chrome)");
+    // Add depth, change nothing else: the edge stays --tone-border, so it keeps its
+    // sharpness and contrast="high" reaches it through the tone system. Two dead ends are
+    // pinned here: no ring (two lines) and no raw-alpha border (soft, contrast-blind).
+    expect(body).not.toContain("border-color");
   });
 });
 
@@ -118,16 +123,19 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
       expect(occurrences.length).toBe(2);
     }
     expect(tokens).not.toContain("--shadow-5");
-    for (const line of tokens.split("\n").filter((l) => l.includes("--shadow-"))) {
-      expect(line.includes("inset")).toBe(line.includes("--shadow-1"));
+    for (const line of tokens.split("\n").filter((l) => /--shadow-\d:/.test(l))) {
+      expect(line.includes("inset")).toBe(line.includes("--shadow-1:"));
     }
   });
 
   it("the palette's only stylesheet consumer is the elevated world rule", () => {
     // Box's shadow prop died as a taxonomy leak (layout components do not paint); escapes
-    // reach the palette through `style`, which is not a stylesheet and takes no blessing.
-    const occurrences = stripped.match(/--shadow-/g) ?? [];
-    expect(occurrences).toHaveLength(1);
+    // reach the palette through `style`. The elevated world consumes the palette THROUGH
+    // --surface-chrome (which composes var(--shadow-2) in tokens.css): shadow = elevation,
+    // one lighting model, row 2 the single source of truth for elevated depth.
+    expect(stripped).not.toContain("--shadow-");
+    expect(tokens).toContain("--surface-chrome: var(--shadow-2)");
+    expect(tokens).toContain("inset 0 1px 0");
   });
 });
 

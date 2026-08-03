@@ -119,8 +119,16 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
       </Theme>,
     );
     const el = elevated.querySelector<HTMLElement>(".kui-card")!;
-    expect(computed(el, "box-shadow")).not.toBe("none");
-    expect(computed(el, "box-shadow")).not.toContain("inset");
+    // Depth IS the palette: the elevated card wears exactly row 2 — one lighting model.
+    const probe = document.createElement("div");
+    probe.style.boxShadow = "var(--shadow-2)";
+    el.append(probe);
+    expect(computed(el, "box-shadow")).toBe(computed(probe, "box-shadow"));
+    probe.remove();
+    // Add depth, change nothing else: the border is identical to the flat world's, which
+    // is what keeps the edge sharp and inside the contrast system.
+    expect(computed(el, "border-top-color")).toBe(computed(flat, "border-top-color"));
+    expect(computed(el, "border-top-width")).toBe("1px");
     // The shadow sits on the card element itself, so it follows the surface radius — the
     // whole reason this is a world and not a wrapper.
     // @ts-expect-error — shadow is not a Card prop; the world is the only path

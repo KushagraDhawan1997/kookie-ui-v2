@@ -245,6 +245,22 @@ export const shadow = {
 } as const;
 
 /**
+ * §5/§10 — the elevated world's dressing, COMPOSED from the palette, never restating it:
+ * shadow = elevation, one lighting model, and row 2 is its single source of truth — tune
+ * `shadow[..][1]` and every elevated surface follows. The edge is NOT special: elevated
+ * surfaces keep the same `--tone-border` as flat ones — which is what keeps them sharp and
+ * what lets contrast="high" reach the edge through the tone system, free (two earlier
+ * attempts failed: an inset ring painted inside the transparent border and read as two
+ * lines; a raw-alpha border went soft and fell outside the contrast system). The top edge
+ * stays lighter because the palette's shadows all fall downward. Dark adds the one thing a
+ * drop shadow cannot express — the inset top rim-light a dark fill needs. v0, by eye.
+ */
+export const surfaceChrome = {
+  light: "var(--shadow-2)",
+  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-2)",
+} as const;
+
+/**
  * §10 — the seal: what an opaque surface is filled with. Paper ABOVE the page, never the
  * page itself — a card sealed at --neutral-1 is invisible where it lives most. Light is
  * pure white over the #fcfcfc page; dark steps up the ladder. The Radix panel answer.

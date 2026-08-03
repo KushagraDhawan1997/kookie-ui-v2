@@ -246,6 +246,10 @@
   --shadow-2: 0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-3: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-4: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
+     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
+  --surface-chrome: var(--shadow-2);
 }
 
 [data-appearance="dark"] {
@@ -382,6 +386,10 @@
   --shadow-2: 0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
   --shadow-3: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
   --shadow-4: 0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.45);
+
+  /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
+     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
+  --surface-chrome: inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-2);
 }
 
 @supports (color: color(display-p3 0 0 0)) {

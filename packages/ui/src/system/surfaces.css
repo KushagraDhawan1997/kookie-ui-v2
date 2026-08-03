@@ -103,7 +103,11 @@
    default remains byte-identical to a world where this rule does not exist. */
 
 [data-surfaces="elevated"] .kui-surface {
-  box-shadow: var(--shadow-2);
+  /* Add depth, change nothing else. Depth comes from the palette (--surface-chrome composes
+     var(--shadow-2)); the border stays the same --tone-border every surface wears — which
+     keeps the edge sharp and lets contrast="high" reach it through the tone system for
+     free. The top edge reads lighter because every palette shadow falls downward. */
+  box-shadow: var(--surface-chrome);
 }
 
 /* ── Material: backdrop defense (§10) ────────────────────────────────────────────────────────

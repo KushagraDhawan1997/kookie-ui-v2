@@ -31,6 +31,7 @@ import {
   radiusSurface,
   shadow,
   space,
+  surfaceChrome,
   surfaceColor,
   surfacePadding,
   touchTargetMin,
@@ -311,6 +312,10 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;`,
     `     elevation stays deleted. Row 1 is the inset well. */`,
     ...shadow[mode].map((row, i) => `  --shadow-${i + 1}: ${row};`),
+    "",
+    `  /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is`,
+    `     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */`,
+    `  --surface-chrome: ${surfaceChrome[mode]};`,
   ];
 }
 
