@@ -107,6 +107,19 @@ export function generateTokens(): string {
 
   lines.push("}", "");
 
+  // `light` gets its own block for the same reason `default` density does: Theme stamps
+  // data-appearance on every node, so a light Theme nested inside a dark region would
+  // otherwise INHERIT the dark custom properties — an escape that does nothing is not an
+  // escape (§5, §16). :root cannot serve as that escape because :root only ever matches
+  // <html>, and Theme renders a div.
+  lines.push(
+    `[data-appearance="light"] {`,
+    ...colorDeclarations("light"),
+    ...surfaceWorld("light"),
+    "}",
+    "",
+  );
+
   // The surface declarations repeat inside the dark scope because a var() resolves where it
   // is declared: --color-text baked at :root would carry the LIGHT neutral-12 into a dark
   // subtree (the same lesson --focus-ring taught in §8).
@@ -126,6 +139,9 @@ export function generateTokens(): string {
     "  :root {",
     ...colorDeclarations("light", "p3").map((l) => `  ${l}`),
     "  }",
+    `  [data-appearance="light"] {`,
+    ...colorDeclarations("light", "p3").map((l) => `  ${l}`),
+    "  }",
     `  [data-appearance="dark"] {`,
     ...colorDeclarations("dark", "p3").map((l) => `  ${l}`),
     "  }",
@@ -142,15 +158,24 @@ export function generateTokens(): string {
         ? ["@supports (color: color(display-p3 0 0 0)) {", ...body.map((l) => `  ${l}`), "}"]
         : body;
     for (const mode of ["light", "dark"] as const) {
-      const scope = mode === "light" ? ":root" : `[data-appearance="dark"]`;
+      // Light needs BOTH bases. :root carries the un-themed document, but Theme renders a div,
+      // so a :root-only block means the prop matches nothing at all in the default appearance
+      // — the axis was inert in light until 2026-08-03. The dark base already worked only
+      // because Theme co-locates data-appearance and data-contrast on one element (§5, §7).
+      const bases = mode === "light" ? [":root", `[data-appearance="light"]`] : [`[data-appearance="dark"]`];
       const decls = contrastHighDeclarations(mode, gamut);
+      const high = bases.map((b) => `${b}[data-contrast="high"]`).join(", ");
+      // The platform signal reaches anything that has not explicitly opted out. Theme stamps
+      // data-contrast ONLY when the axis was actually chosen, so an unconfigured Theme node
+      // carries no attribute and this guard still matches it (§7).
+      const auto = bases.map((b) => `${b}:not([data-contrast="normal"])`).join(", ");
       lines.push(
         ...wrap([
-          `${scope}[data-contrast="high"] {`,
+          `${high} {`,
           ...decls,
           "}",
           `@media (prefers-contrast: more) {`,
-          `  ${scope}:not([data-contrast="normal"]) {`,
+          `  ${auto} {`,
           ...decls.map((l) => `  ${l}`),
           "  }",
           "}",

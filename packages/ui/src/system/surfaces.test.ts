@@ -117,10 +117,14 @@ describe("card-as-button: the element brings the interactivity (§10)", () => {
 describe("the shadow palette is a resource, not an axis (§13)", () => {
   const tokens = readFileSync(join(here, "../tokens/tokens.css"), "utf8");
 
-  it("four rows, both modes, and row 1 is the only inset", () => {
+  it("four rows, once per appearance scope, and row 1 is the only inset", () => {
+    // Three scopes, not two: :root carries the un-themed document, [data-appearance="light"]
+    // is the escape a nested light Theme needs (added 2026-08-03 — light lived only at :root,
+    // so a light section inside a dark app stayed dark), and [data-appearance="dark"] is the
+    // dark world. The count is per scope, not per mode.
     for (const i of [1, 2, 3, 4]) {
       const occurrences = tokens.match(new RegExp(`--shadow-${i}:`, "g")) ?? [];
-      expect(occurrences.length).toBe(2);
+      expect(occurrences.length).toBe(3);
     }
     expect(tokens).not.toContain("--shadow-5");
     for (const line of tokens.split("\n").filter((l) => /--shadow-\d:/.test(l))) {

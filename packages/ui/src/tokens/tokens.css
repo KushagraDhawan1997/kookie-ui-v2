@@ -284,6 +284,156 @@
   --surface-chrome: var(--shadow-2);
 }
 
+[data-appearance="light"] {
+  /* neutral */
+  --neutral-1: #fcfcfc;
+  --neutral-2: #f6f7f7;
+  --neutral-3: #eeeeef;
+  --neutral-4: #e9e9ea;
+  --neutral-5: #e0e1e2;
+  --neutral-6: #dddedf;
+  --neutral-7: #d3d4d6;
+  --neutral-8: #c2c4c6;
+  --neutral-9: #8e9195;
+  --neutral-10: #828589;
+  --neutral-11: #67696c;
+  --neutral-12: #1f1f20;
+  --neutral-a1: color-mix(in srgb, #000000 1.2%, transparent);
+  --neutral-a2: color-mix(in srgb, #001c1c 3.5%, transparent);
+  --neutral-a3: color-mix(in srgb, #00000f 6.7%, transparent);
+  --neutral-a4: color-mix(in srgb, #00000c 8.6%, transparent);
+  --neutral-a5: color-mix(in srgb, #000810 12.2%, transparent);
+  --neutral-a6: color-mix(in srgb, #00070f 13.3%, transparent);
+  --neutral-a7: color-mix(in srgb, #000611 17.3%, transparent);
+  --neutral-a8: color-mix(in srgb, #000811 23.9%, transparent);
+  --neutral-a9: color-mix(in srgb, #000710 44.3%, transparent);
+  --neutral-a10: color-mix(in srgb, #00060e 49.0%, transparent);
+  --neutral-a11: color-mix(in srgb, #000308 59.6%, transparent);
+  --neutral-a12: color-mix(in srgb, #000001 87.8%, transparent);
+  --neutral-soft: var(--neutral-3);
+  --neutral-soft-hover: var(--neutral-4);
+  --neutral-soft-active: var(--neutral-5);
+  --neutral-solid: #1f1f20;
+  --neutral-solid-hover: #333334;
+  --neutral-solid-active: #48494a;
+  --neutral-border: var(--neutral-7);
+  --neutral-text: var(--neutral-11);
+  --neutral-label: #454648;
+  --neutral-contrast: #ffffff;
+  /* accent */
+  --accent-1: #fbfbfe;
+  --accent-2: #f6f6fc;
+  --accent-3: #eeedf9;
+  --accent-4: #e8e8f7;
+  --accent-5: #e0dff4;
+  --accent-6: #dcdbf3;
+  --accent-7: #d2d0f1;
+  --accent-8: #c1beeb;
+  --accent-9: #6e56cf;
+  --accent-10: #6447c7;
+  --accent-11: #6756b9;
+  --accent-12: #1e1b35;
+  --accent-a1: color-mix(in srgb, #0000bf 1.6%, transparent);
+  --accent-a2: color-mix(in srgb, #0000aa 3.5%, transparent);
+  --accent-a3: color-mix(in srgb, #0e00aa 7.1%, transparent);
+  --accent-a4: color-mix(in srgb, #0000a6 9.0%, transparent);
+  --accent-a5: color-mix(in srgb, #0800a7 12.5%, transparent);
+  --accent-a6: color-mix(in srgb, #0700aa 14.1%, transparent);
+  --accent-a7: color-mix(in srgb, #0b00b3 18.4%, transparent);
+  --accent-a8: color-mix(in srgb, #0c00b1 25.5%, transparent);
+  --accent-a9: color-mix(in srgb, #2400b7 66.3%, transparent);
+  --accent-a10: color-mix(in srgb, #2800b1 72.2%, transparent);
+  --accent-a11: color-mix(in srgb, #1a0095 66.3%, transparent);
+  --accent-a12: color-mix(in srgb, #03001d 89.4%, transparent);
+  --accent-soft: var(--accent-3);
+  --accent-soft-hover: var(--accent-4);
+  --accent-soft-active: var(--accent-5);
+  --accent-solid: #6e56cf;
+  --accent-solid-hover: #6349c1;
+  --accent-solid-active: #593db4;
+  --accent-border: var(--accent-7);
+  --accent-text: var(--accent-11);
+  --accent-label: #453b79;
+  --accent-contrast: #ffffff;
+  /* destructive */
+  --destructive-1: #fefbfb;
+  --destructive-2: #fdf5f4;
+  --destructive-3: #faeae9;
+  --destructive-4: #f9e4e2;
+  --destructive-5: #f8d9d7;
+  --destructive-6: #f7d5d2;
+  --destructive-7: #f6c7c4;
+  --destructive-8: #f2b1ad;
+  --destructive-9: #e5484d;
+  --destructive-10: #d24146;
+  --destructive-11: #a64545;
+  --destructive-12: #301716;
+  --destructive-a1: color-mix(in srgb, #bf0000 1.6%, transparent);
+  --destructive-a2: color-mix(in srgb, #d11700 4.3%, transparent);
+  --destructive-a3: color-mix(in srgb, #c50c00 8.6%, transparent);
+  --destructive-a4: color-mix(in srgb, #ca1200 11.4%, transparent);
+  --destructive-a5: color-mix(in srgb, #d20d00 15.7%, transparent);
+  --destructive-a6: color-mix(in srgb, #d21100 17.6%, transparent);
+  --destructive-a7: color-mix(in srgb, #d80d00 23.1%, transparent);
+  --destructive-a8: color-mix(in srgb, #d70c00 32.2%, transparent);
+  --destructive-a9: color-mix(in srgb, #db0007 71.8%, transparent);
+  --destructive-a10: color-mix(in srgb, #c30007 74.5%, transparent);
+  --destructive-a11: color-mix(in srgb, #850000 72.9%, transparent);
+  --destructive-a12: color-mix(in srgb, #1c0100 91.4%, transparent);
+  --destructive-soft: var(--destructive-3);
+  --destructive-soft-hover: var(--destructive-4);
+  --destructive-soft-active: var(--destructive-5);
+  --destructive-solid: #e5484d;
+  --destructive-solid-hover: #d73a41;
+  --destructive-solid-active: #c82a36;
+  --destructive-border: var(--destructive-7);
+  --destructive-text: var(--destructive-11);
+  --destructive-label: #6c3230;
+  --destructive-contrast: #ffffff;
+  --focus-ring: var(--accent-solid);
+
+  /* material recipes (§10) — material is a fill MODIFIER, not a fill: the consuming
+     layer mixes the component's OWN fill toward transparent at these alphas, so tone
+     and loudness ride into the veil for free. hover/active are §8's steps on glass's
+     one ramp — read by controls and interactive surfaces; a static surface reads the
+     rest alpha alone. */
+  --material-thin-alpha: 30%;
+  --material-thin-alpha-hover: 38%;
+  --material-thin-alpha-active: 46%;
+  --material-thin-filter: blur(5px) saturate(130%) brightness(1.02);
+  --material-regular-alpha: 64%;
+  --material-regular-alpha-hover: 72%;
+  --material-regular-alpha-active: 80%;
+  --material-regular-filter: blur(16px) saturate(165%) brightness(1.06);
+  --material-thick-alpha: 88%;
+  --material-thick-alpha-hover: 92%;
+  --material-thick-alpha-active: 95%;
+  --material-thick-filter: blur(32px) saturate(210%) brightness(1.12);
+  --material-opaque-alpha: 95%;
+
+  /* foreground context (§10) — what a surface re-scopes for everything inside it */
+  --color-text: var(--neutral-12);
+  --color-text-muted: var(--neutral-11);
+
+  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
+     job alone. Paper above the page, so a card is visible where it lives. The hover and
+     active steps serve the card-as-button pattern: the seal darkening under the pointer. */
+  --color-surface: #ffffff;
+  --color-surface-hover: var(--neutral-2);
+  --color-surface-active: var(--neutral-3);
+
+  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
+     elevation stays deleted. Row 1 is the inset well. */
+  --shadow-1: inset 0 1px 2px rgb(0 0 0 / 0.1);
+  --shadow-2: 0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-3: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-4: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
+     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
+  --surface-chrome: var(--shadow-2);
+}
+
 [data-appearance="dark"] {
   /* neutral */
   --neutral-1: #0f0f10;
@@ -507,6 +657,78 @@
     --destructive-contrast: #ffffff;
     --focus-ring: var(--accent-solid);
   }
+  [data-appearance="light"] {
+    /* neutral */
+    --neutral-1: color(display-p3 0.9865 0.9869 0.9873);
+    --neutral-2: color(display-p3 0.9664 0.9673 0.9684);
+    --neutral-3: color(display-p3 0.933 0.9347 0.937);
+    --neutral-4: color(display-p3 0.913 0.9153 0.9183);
+    --neutral-5: color(display-p3 0.8799 0.8832 0.8873);
+    --neutral-6: color(display-p3 0.8667 0.8704 0.875);
+    --neutral-7: color(display-p3 0.8273 0.8322 0.8383);
+    --neutral-8: color(display-p3 0.7625 0.7692 0.7778);
+    --neutral-9: color(display-p3 0.5135 0.5274 0.5451);
+    --neutral-10: color(display-p3 0.468 0.4809 0.4971);
+    --neutral-11: color(display-p3 0.4032 0.4122 0.4235);
+    --neutral-12: color(display-p3 0.1202 0.1226 0.1255);
+    --neutral-soft: var(--neutral-3);
+    --neutral-soft-hover: var(--neutral-4);
+    --neutral-soft-active: var(--neutral-5);
+    --neutral-solid: color(display-p3 0.1202 0.1226 0.1255);
+    --neutral-solid-hover: color(display-p3 0.1993 0.2018 0.205);
+    --neutral-solid-active: color(display-p3 0.2836 0.2863 0.2896);
+    --neutral-border: var(--neutral-7);
+    --neutral-text: var(--neutral-11);
+    --neutral-label: color(display-p3 0.2697 0.2751 0.282);
+    --neutral-contrast: #ffffff;
+    /* accent */
+    --accent-1: color(display-p3 0.9861 0.9858 0.9946);
+    --accent-2: color(display-p3 0.9653 0.9646 0.9871);
+    --accent-3: color(display-p3 0.9308 0.9291 0.9752);
+    --accent-4: color(display-p3 0.9102 0.9078 0.969);
+    --accent-5: color(display-p3 0.876 0.8723 0.9581);
+    --accent-6: color(display-p3 0.8624 0.8581 0.9544);
+    --accent-7: color(display-p3 0.8218 0.8153 0.9433);
+    --accent-8: color(display-p3 0.7553 0.7444 0.9223);
+    --accent-9: color(display-p3 0.4166 0.3284 0.8091);
+    --accent-10: color(display-p3 0.3738 0.2766 0.7596);
+    --accent-11: color(display-p3 0.3932 0.331 0.7212);
+    --accent-12: color(display-p3 0.1165 0.1052 0.2041);
+    --accent-soft: var(--accent-3);
+    --accent-soft-hover: var(--accent-4);
+    --accent-soft-active: var(--accent-5);
+    --accent-solid: color(display-p3 0.4166 0.3284 0.8091);
+    --accent-solid-hover: color(display-p3 0.3737 0.2784 0.7566);
+    --accent-solid-active: color(display-p3 0.332 0.2275 0.7047);
+    --accent-border: var(--accent-7);
+    --accent-text: var(--accent-11);
+    --accent-label: color(display-p3 0.2624 0.2302 0.4635);
+    --accent-contrast: #ffffff;
+    /* destructive */
+    --destructive-1: color(display-p3 0.9959 0.9834 0.982);
+    --destructive-2: color(display-p3 0.9904 0.9583 0.9546);
+    --destructive-3: color(display-p3 0.982 0.9159 0.9086);
+    --destructive-4: color(display-p3 0.9781 0.89 0.8803);
+    --destructive-5: color(display-p3 0.971 0.8466 0.8333);
+    --destructive-6: color(display-p3 0.969 0.8288 0.814);
+    --destructive-7: color(display-p3 0.9628 0.7746 0.7559);
+    --destructive-8: color(display-p3 0.95 0.6832 0.6596);
+    --destructive-9: color(display-p3 0.8626 0.2843 0.2931);
+    --destructive-10: color(display-p3 0.7898 0.2574 0.2655);
+    --destructive-11: color(display-p3 0.6271 0.2735 0.2637);
+    --destructive-12: color(display-p3 0.1813 0.0907 0.0848);
+    --destructive-soft: var(--destructive-3);
+    --destructive-soft-hover: var(--destructive-4);
+    --destructive-soft-active: var(--destructive-5);
+    --destructive-solid: color(display-p3 0.8626 0.2843 0.2931);
+    --destructive-solid-hover: color(display-p3 0.8077 0.2272 0.2475);
+    --destructive-solid-active: color(display-p3 0.7531 0.1646 0.2019);
+    --destructive-border: var(--destructive-7);
+    --destructive-text: var(--destructive-11);
+    --destructive-label: color(display-p3 0.4082 0.1959 0.1861);
+    --destructive-contrast: #ffffff;
+    --focus-ring: var(--accent-solid);
+  }
   [data-appearance="dark"] {
     /* neutral */
     --neutral-1: color(display-p3 0.058 0.0605 0.0637);
@@ -581,7 +803,7 @@
   }
 }
 
-:root[data-contrast="high"] {
+:root[data-contrast="high"], [data-appearance="light"][data-contrast="high"] {
   --neutral-6: #9fa2a5;
   --neutral-7: #95999c;
   --neutral-8: #8f9397;
@@ -608,7 +830,7 @@
   --destructive-label: #391716;
 }
 @media (prefers-contrast: more) {
-  :root:not([data-contrast="normal"]) {
+  :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
     --neutral-6: #9fa2a5;
     --neutral-7: #95999c;
     --neutral-8: #8f9397;
@@ -692,7 +914,7 @@
 }
 
 @supports (color: color(display-p3 0 0 0)) {
-  :root[data-contrast="high"] {
+  :root[data-contrast="high"], [data-appearance="light"][data-contrast="high"] {
     --neutral-6: color(display-p3 0.6235 0.6342 0.6476);
     --neutral-7: color(display-p3 0.5863 0.5982 0.6134);
     --neutral-8: color(display-p3 0.5254 0.5391 0.5566);
@@ -719,7 +941,7 @@
     --destructive-label: color(display-p3 0.2126 0.0899 0.0843);
   }
   @media (prefers-contrast: more) {
-    :root:not([data-contrast="normal"]) {
+    :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
       --neutral-6: color(display-p3 0.6235 0.6342 0.6476);
       --neutral-7: color(display-p3 0.5863 0.5982 0.6134);
       --neutral-8: color(display-p3 0.5254 0.5391 0.5566);
