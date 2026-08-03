@@ -25,11 +25,26 @@ function mount(html: string): HTMLElement {
 const computed = (el: Element, prop: string) => getComputedStyle(el).getPropertyValue(prop).trim();
 
 describe("the var chain actually resolves (§2)", () => {
-  it("a space token reaches the rendered property, through two levels of indirection", () => {
-    // --kui-p -> var(--space-4) -> calc(12px * var(--scale)). Nothing in the node suite can
-    // tell you this arrives; it only checks that the text says the right thing.
-    const host = mount(`<div class="kui-box" style="--kui-p: var(--space-4)"></div>`);
+  it("a space token reaches the rendered property, through three levels of indirection", () => {
+    // --kui-p -> var(--layout-space-4) -> var(--space-4) -> calc(12px * var(--scale)) — what
+    // the resolver actually writes (§3): layout props read the density-aware layer. Nothing
+    // in the node suite can tell you this arrives; it only checks the text says the right thing.
+    const host = mount(`<div class="kui-box" style="--kui-p: var(--layout-space-4)"></div>`);
     expect(computed(host.firstElementChild!, "padding-top")).toBe("12px");
+  });
+
+  it("the same token tightens under a compact scope — gap=\"4\" is a rhythm, not 16px (§12)", () => {
+    // The layer is the whole point: the inherited --layout-space-4 was re-baked at the
+    // [data-density] element, so a layout distance follows density while the raw palette
+    // (and with it, control innards and this test's sibling above) holds still.
+    const host = mount(
+      `<div data-density="compact"><div id="probe" class="kui-box" style="--kui-p: var(--layout-space-4)"></div></div>`,
+    );
+    expect(computed(host.querySelector("#probe")!, "padding-top")).toBe("8px");
+    const airy = mount(
+      `<div data-density="comfortable"><div id="probe" class="kui-box" style="--kui-p: var(--layout-space-4)"></div></div>`,
+    );
+    expect(computed(airy.querySelector("#probe")!, "padding-top")).toBe("16px");
   });
 
   it("a raw value rides the same prop, which is what utility classes could never do", () => {

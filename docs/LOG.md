@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 Layout space: the rhythm becomes a semantic layer, hours after the per-family fix
+
+Kushagra, immediately after surface padding got its own density sets: if `gap="4"` does not answer density, the index is a unit conversion — "what's the point of writing gap = 4 if it's absolute too, when the user could have written 16px?" The analogy he reached for is the system's own logic: contrast does not change which role a component reads, it changes what the role resolves to. Layout props had no role layer to re-resolve — they consumed the palette raw — which is the actual reason density "couldn't" touch them.
+
+**The layer: `--layout-space-N`, consumed by every distance BETWEEN things** — gap on Flex/Stack/Grid, Box `p`/`m`, and surface padding — with the default level a 1:1 identity map onto the palette and compact/comfortable re-picking steps from it (designed sets, section 12's shape). The palette itself stays untouched, which is the constraint that killed the obvious alternative: space is shared currency between layout and control innards, and control px/gap already answer density through the designed sets, so re-pricing the palette would compress a compact button twice and welding compensation into the density sets would end per-cell correctability. The boundary rule that falls out: **raw space = the palette plus the control family's picks; layout space = everything else.** This superseded the morning's per-family surface padding sets the same day — surface padding is now fixed picks into the layer (identical rendered values), one lever instead of two.
+
+Placed choices in the v0: steps 1-8 shift one palette step per level; the gutter band 9-12 holds at identity, so section 12's original protection — compact must not collapse page gutters — survives as a designed choice rather than a prohibition. Pointer never touches the layer, extending section 16's judgment (a phone needs more content per inch, not less). Surface padding re-bakes inside every density scope — substitution-at-declaration, again. Cost: +108 bytes gzipped.
+
+Rejected: re-pricing the space palette under `[data-density]` (double-applies to control innards; ends correctability); a separate Theme `spacing` identity knob re-pricing the palette, the radius-levels pattern (same double-application, plus a second knob for what density already means); shifting the whole curve including gutters (`p="9"` page margins collapsing 96 -> 64 is Radix's `scaling` coarseness re-admitted); coarse pointer re-picking the layer (nothing forced it, and the section 16 law says gutters hold on small screens).
+
 ## 2026-08-04 Surface padding takes density — the deferral closes on first sight of the gap
 
 Kushagra, looking at the shipped Card: density does not move a card, "I mean it should." The question had been explicitly deferred in section 10's open list ("whether surface padding takes density — lands at Card"), and it closed the first time the gap was visible: a compact app whose controls tighten while its cards keep default air is half-adjusted, which is not what a density level means.

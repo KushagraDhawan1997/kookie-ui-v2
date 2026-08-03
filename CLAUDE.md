@@ -14,7 +14,9 @@ Done: scaffold (1), token pipeline including the colour generator (2), Box and t
 
 **The elevation axis is deleted; depth is an app identity.** No call site chooses a shadow. Theme `surfaces="flat"|"elevated"` (sixth Theme prop) is the one sanctioned consumer: --surface-chrome composes var(--shadow-2), the border stays --tone-border (sharp, and contrast="high" reaches it), dark adds only the inset rim-light. --shadow-1..4 is otherwise a §13 resource for escapes/blocks via `style`.
 
-**Next:** lock the v0 taste by eye (surface padding, material recipes, elevated chrome), then repetition across the component set — plus the §10 deferrals (Theme material policy clamp, brightness-floor branch, material border edge) and the §14 slice's standing debts (dark SSR at apps/docs, motion system, `material` returning to Button).
+**Layout space shipped 2026-08-04 (§3, §12):** `--layout-space-N`, the density-aware semantic layer every layout distance consumes — gap on Flex/Stack/Grid, Box `p`/`m`, surface padding (fixed picks, re-baked per density scope). Default is the 1:1 identity map onto the untouched space palette; compact/comfortable shift picks for steps 1-8 while the gutter band 9-12 holds. Raw space = palette + control-family picks (innards answer density via the designed sets, never twice); pointer never touches the layer. Preview has a page-wide density select.
+
+**Next:** lock the v0 taste by eye (surface padding, layout-space picks incl. the gutter-band hold, material recipes, elevated chrome), then repetition across the component set — plus the §10 deferrals (Theme material policy clamp, brightness-floor branch, material border edge) and the §14 slice's standing debts (dark SSR at apps/docs, motion system, `material` returning to Button).
 
 Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
 

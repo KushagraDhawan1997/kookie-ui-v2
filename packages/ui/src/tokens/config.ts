@@ -208,18 +208,36 @@ export const material = {
 } as const;
 
 /**
- * §10, §12 — surface padding as space-palette indices (semantic reference, never a raw px),
- * and it takes DENSITY (decided 2026-08-04, closing §10's deferral): a compact app whose
- * cards keep default air reads half-adjusted. Same shape as control `px` — each level is a
- * designed set of step indices, one palette step apart, never a multiplier — and density
- * still never touches the space palette itself; a level only picks different steps from it.
- * v0 at default: 12 / 16 / 24 / 32.
+ * §3, §12 — LAYOUT SPACE (decided 2026-08-04, Kushagra): the semantic layer between every
+ * "distance between things" and the raw space palette, and the thing that makes `gap="4"`
+ * mean "step 4 of this density's rhythm" rather than a frozen alias for 16px — the same move
+ * contrast makes on colour roles. Each density level is a designed set of PICKS into the
+ * untouched palette (indices are 1-based space steps; `default` is the 1:1 identity map).
+ *
+ * The boundary, drawn once: layout space is consumed by everything expressing distance
+ * BETWEEN elements or from a container edge to its content — Box/Flex/Stack/Grid `gap`,
+ * `p`, `m`, and surface padding. Raw space remains the palette plus the control family's
+ * own picks: control innards already answer density through the designed sets (§12), and
+ * routing them through this layer would compress a compact button twice.
+ *
+ * v0 shape: compact and comfortable shift steps 1-8 by one; the gutter band (9-12: 48/64/
+ * 96/128) HOLDS at identity, so §12's original protection — compact must not collapse page
+ * gutters — survives as a placed choice instead of a hard rule. Pointer never touches this
+ * layer (§16: a phone needs more content per inch, not less). All picks await the eye.
  */
-export const surfacePadding = {
-  compact: [3, 4, 5, 6],
-  default: [4, 5, 6, 7],
-  comfortable: [5, 6, 7, 8],
-} as const satisfies Record<DensityLevel, readonly [number, number, number, number]>;
+export const layoutSpace = {
+  compact: [1, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12],
+  default: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  comfortable: [2, 3, 4, 5, 6, 7, 8, 9, 9, 10, 11, 12],
+} as const satisfies Record<DensityLevel, readonly number[]>;
+
+/**
+ * §10, §12 — surface padding as picks into LAYOUT SPACE (semantic reference, never a raw
+ * px). Density reaches a card exclusively through the layout-space layer — this family
+ * carries no per-level sets of its own (the 2026-08-04 morning mechanism, superseded the
+ * same day when the layer arrived: one lever, not two). v0 at default: 12 / 16 / 24 / 32.
+ */
+export const surfacePadding = [4, 5, 6, 7] as const;
 
 /**
  * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04). Four rows on the

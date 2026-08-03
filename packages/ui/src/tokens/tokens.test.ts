@@ -12,6 +12,7 @@ import {
   coarse,
   density,
   fontSize,
+  layoutSpace,
   letterSpacing,
   lineHeight,
   radiusLevels,
@@ -172,24 +173,67 @@ describe("density is a designed set, not a multiplier (§12)", () => {
     }
   });
 
-  it("surface padding takes density (§10's deferral, closed 2026-08-04): a set per level", () => {
-    // Same mechanism as control px — the level picks different STEPS from the space palette,
-    // which stays untouched (the law above). A density block missing the family would leave
-    // cards at default air inside a compact app: half-adjusted.
-    for (const level of ["compact", "comfortable"] as const) {
+  it("control innards read the RAW palette at every level — the layer must not double-apply", () => {
+    // The boundary (§12): control px/gap answer density through the designed sets alone.
+    // Routed through layout space they would compress twice under compact.
+    for (const level of ["default", "compact", "comfortable"] as const) {
       for (let size = 1; size <= 4; size++) {
-        expect(declaration(`surface-p-${size}`, level)).toMatch(/^var\(--space-\d+\)$/);
+        expect(declaration(`control-px-${size}`, level)).toMatch(/^var\(--space-\d+\)$/);
+        expect(declaration(`control-gap-${size}`, level)).toMatch(/^var\(--space-\d+\)$/);
+      }
+    }
+  });
+});
+
+describe("layout space: the density-aware layer over the untouched palette (§3, §12)", () => {
+  it("default is the 1:1 identity map — gap=\"4\" at default IS space step 4", () => {
+    for (let i = 1; i <= space.length; i++) {
+      expect(declaration(`layout-space-${i}`)).toBe(`var(--space-${i})`);
+      expect(layoutSpace.default[i - 1]).toBe(i);
+    }
+  });
+
+  it("every level re-picks all twelve steps from the palette, never restates a number", () => {
+    for (const level of ["compact", "comfortable"] as const) {
+      for (let i = 1; i <= space.length; i++) {
+        expect(declaration(`layout-space-${i}`, level)).toMatch(/^var\(--space-\d+\)$/);
       }
     }
   });
 
-  it("orders surface padding compact < default < comfortable per size, increasing per level", () => {
-    for (let i = 0; i < 4; i++) {
-      expect(surfacePadding.compact[i]!).toBeLessThan(surfacePadding.default[i]!);
-      expect(surfacePadding.default[i]!).toBeLessThan(surfacePadding.comfortable[i]!);
+  it("orders compact <= default <= comfortable per step, non-decreasing within a level", () => {
+    for (let i = 0; i < space.length; i++) {
+      expect(layoutSpace.compact[i]!).toBeLessThanOrEqual(layoutSpace.default[i]!);
+      expect(layoutSpace.default[i]!).toBeLessThanOrEqual(layoutSpace.comfortable[i]!);
     }
-    for (const set of Object.values(surfacePadding)) {
-      expect(increasing(set)).toBe(true);
+    for (const picks of Object.values(layoutSpace)) {
+      expect(picks.every((v, i) => i === 0 || v >= picks[i - 1]!)).toBe(true);
+    }
+  });
+
+  it("the gutter band (9-12) holds at identity — density must not collapse page gutters", () => {
+    // §12's original protection, kept as a placed choice: the rhythm between components
+    // tightens, the page frame does not. Loosen this law only by decision, never by drift.
+    for (const picks of Object.values(layoutSpace)) {
+      for (let i = 8; i < space.length; i++) expect(picks[i]).toBe(i + 1);
+    }
+  });
+
+  it("surface padding reads the layer, and is RE-BAKED in every scope that re-picks it", () => {
+    // Substitution-at-declaration (§6): --surface-p-N left in :root alone would carry the
+    // default rhythm into a compact subtree, because a var() bakes where it is declared.
+    for (const level of ["default", "compact", "comfortable"] as const) {
+      for (let size = 1; size <= 4; size++) {
+        expect(declaration(`surface-p-${size}`, level)).toBe(
+          `var(--layout-space-${surfacePadding[size - 1]})`,
+        );
+      }
+    }
+  });
+
+  it("the pointer axis never touches the layer — a phone needs more content per inch, not less", () => {
+    for (const scope of [`[data-pointer="coarse"]`, `[data-pointer="fine"]`]) {
+      expect(block(scope)).not.toContain("--layout-space-");
     }
   });
 });

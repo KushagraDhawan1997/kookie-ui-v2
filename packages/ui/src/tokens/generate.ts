@@ -22,6 +22,7 @@ import {
   fontSize,
   fontWeight,
   iconSize,
+  layoutSpace,
   letterSpacing,
   lineHeight,
   material,
@@ -92,8 +93,13 @@ export function generateTokens(): string {
   lines.push("", "  /* semantic: control family at the default density (§4, §6, §12) */");
   lines.push(...controlFamily(density.default));
 
-  lines.push("", "  /* surface padding (§10) at the default density — space references, never restated numbers */");
-  lines.push(...surfacePaddingFamily("default"));
+  lines.push("", "  /* layout space (§3, §12) at the default density — the 1:1 identity map. Every distance");
+  lines.push("     BETWEEN things (gap, Box p/m, surface padding) reads this layer, never the palette;");
+  lines.push("     control innards keep the raw palette because their density answer is the designed set. */");
+  lines.push(...layoutSpaceFamily("default"));
+
+  lines.push("", "  /* surface padding (§10) — picks into layout space, so density reaches cards through one lever */");
+  lines.push(...surfacePaddingFamily());
 
   lines.push("", "  /* colour, generated (§7) — light mode */");
   lines.push(...colorDeclarations("light"));
@@ -155,16 +161,20 @@ export function generateTokens(): string {
     }
   }
 
-  // Density is a designed set, not a multiplier: each level re-declares the control family,
-  // and since 2026-08-04 the surface padding family too (§10's deferral, closed). No pointer
-  // cells for surface padding: it does not vary by pointer, and the single-attribute block
-  // still matches under any [data-pointer] scope because nothing more specific re-declares it.
+  // Density is a designed set, not a multiplier: each level re-declares the control family
+  // and, since 2026-08-04, re-picks the layout-space layer (§12). Surface padding references
+  // layout space, so it must be re-declared IN THE SAME SCOPE — the substitution-at-
+  // declaration lesson (§6): a var() bakes where it is declared, and a --surface-p-N left in
+  // :root would carry the default rhythm into a compact subtree. No pointer cells for either:
+  // nothing here varies by pointer (§16 — gutters must not inflate on the smaller screen),
+  // and the single-attribute block still matches under any [data-pointer] scope.
   for (const level of Object.keys(density) as DensityLevel[]) {
     if (level === "default") continue;
     lines.push(
       `[data-density="${level}"] {`,
       ...controlFamily(density[level]),
-      ...surfacePaddingFamily(level),
+      ...layoutSpaceFamily(level),
+      ...surfacePaddingFamily(),
       "}",
       "",
     );
@@ -336,9 +346,16 @@ function radiusPalette(level: RadiusLevel): string[] {
   return out;
 }
 
-/** Surface padding for one density level (§10, §12): step indices into the space palette. */
-function surfacePaddingFamily(level: DensityLevel): string[] {
-  return surfacePadding[level].map((step, i) => `  --surface-p-${i + 1}: var(--space-${step});`);
+/** Layout space for one density level (§3, §12): designed picks into the untouched palette. */
+function layoutSpaceFamily(level: DensityLevel): string[] {
+  return layoutSpace[level].map((step, i) => `  --layout-space-${i + 1}: var(--space-${step});`);
+}
+
+/** Surface padding (§10): fixed picks into layout space — density speaks through the layer. */
+function surfacePaddingFamily(): string[] {
+  return surfacePadding.map(
+    (step, i) => `  --surface-p-${i + 1}: var(--layout-space-${step});`,
+  );
 }
 
 /** The four size-indexed control tokens for one designed set (§12, §16). */

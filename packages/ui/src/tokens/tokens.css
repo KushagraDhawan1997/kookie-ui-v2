@@ -106,11 +106,27 @@
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
 
-  /* surface padding (§10) at the default density — space references, never restated numbers */
-  --surface-p-1: var(--space-4);
-  --surface-p-2: var(--space-5);
-  --surface-p-3: var(--space-6);
-  --surface-p-4: var(--space-7);
+  /* layout space (§3, §12) at the default density — the 1:1 identity map. Every distance
+     BETWEEN things (gap, Box p/m, surface padding) reads this layer, never the palette;
+     control innards keep the raw palette because their density answer is the designed set. */
+  --layout-space-1: var(--space-1);
+  --layout-space-2: var(--space-2);
+  --layout-space-3: var(--space-3);
+  --layout-space-4: var(--space-4);
+  --layout-space-5: var(--space-5);
+  --layout-space-6: var(--space-6);
+  --layout-space-7: var(--space-7);
+  --layout-space-8: var(--space-8);
+  --layout-space-9: var(--space-9);
+  --layout-space-10: var(--space-10);
+  --layout-space-11: var(--space-11);
+  --layout-space-12: var(--space-12);
+
+  /* surface padding (§10) — picks into layout space, so density reaches cards through one lever */
+  --surface-p-1: var(--layout-space-4);
+  --surface-p-2: var(--layout-space-5);
+  --surface-p-3: var(--layout-space-6);
+  --surface-p-4: var(--layout-space-7);
 
   /* colour, generated (§7) — light mode */
   /* neutral */
@@ -780,10 +796,22 @@
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
   --radius-control-4: var(--radius-3);
-  --surface-p-1: var(--space-3);
-  --surface-p-2: var(--space-4);
-  --surface-p-3: var(--space-5);
-  --surface-p-4: var(--space-6);
+  --layout-space-1: var(--space-1);
+  --layout-space-2: var(--space-1);
+  --layout-space-3: var(--space-2);
+  --layout-space-4: var(--space-3);
+  --layout-space-5: var(--space-4);
+  --layout-space-6: var(--space-5);
+  --layout-space-7: var(--space-6);
+  --layout-space-8: var(--space-7);
+  --layout-space-9: var(--space-9);
+  --layout-space-10: var(--space-10);
+  --layout-space-11: var(--space-11);
+  --layout-space-12: var(--space-12);
+  --surface-p-1: var(--layout-space-4);
+  --surface-p-2: var(--layout-space-5);
+  --surface-p-3: var(--layout-space-6);
+  --surface-p-4: var(--layout-space-7);
 }
 
 [data-density="comfortable"] {
@@ -803,10 +831,22 @@
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
-  --surface-p-1: var(--space-5);
-  --surface-p-2: var(--space-6);
-  --surface-p-3: var(--space-7);
-  --surface-p-4: var(--space-8);
+  --layout-space-1: var(--space-2);
+  --layout-space-2: var(--space-3);
+  --layout-space-3: var(--space-4);
+  --layout-space-4: var(--space-5);
+  --layout-space-5: var(--space-6);
+  --layout-space-6: var(--space-7);
+  --layout-space-7: var(--space-8);
+  --layout-space-8: var(--space-9);
+  --layout-space-9: var(--space-9);
+  --layout-space-10: var(--space-10);
+  --layout-space-11: var(--space-11);
+  --layout-space-12: var(--space-12);
+  --surface-p-1: var(--layout-space-4);
+  --surface-p-2: var(--layout-space-5);
+  --surface-p-3: var(--layout-space-6);
+  --surface-p-4: var(--layout-space-7);
 }
 
 [data-radius="none"] {

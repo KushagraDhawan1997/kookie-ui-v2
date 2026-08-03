@@ -10,8 +10,8 @@ import { space } from "../tokens/config.ts";
 import { resolveBoxProps } from "./resolve.ts";
 
 describe("a value becomes a custom property, and nothing becomes a rule (§2)", () => {
-  it("a bare index resolves through the palette", () => {
-    expect(resolveBoxProps({ p: "4" }).style).toEqual({ "--kui-p": "var(--space-4)" });
+  it("a bare index resolves through LAYOUT space — the density-aware layer, never the raw palette (§3, §12)", () => {
+    expect(resolveBoxProps({ p: "4" }).style).toEqual({ "--kui-p": "var(--layout-space-4)" });
   });
 
   it("a raw string is passed through untouched, on the same prop", () => {
@@ -35,8 +35,8 @@ describe("a value becomes a custom property, and nothing becomes a rule (§2)", 
 
   it("a responsive object emits one var per tier, base included", () => {
     expect(resolveBoxProps({ gap: { initial: "2", md: "6" } }).style).toEqual({
-      "--kui-g": "var(--space-2)",
-      "--kui-g-md": "var(--space-6)",
+      "--kui-g": "var(--layout-space-2)",
+      "--kui-g-md": "var(--layout-space-6)",
     });
   });
 
@@ -51,7 +51,7 @@ describe("a value becomes a custom property, and nothing becomes a rule (§2)", 
 describe("the boundary between props and the DOM (§3)", () => {
   it("anything the table does not name reaches the element untouched", () => {
     const { style, rest } = resolveBoxProps({ p: "4", id: "probe", onClick: undefined });
-    expect(style).toEqual({ "--kui-p": "var(--space-4)" });
+    expect(style).toEqual({ "--kui-p": "var(--layout-space-4)" });
     expect(rest).toEqual({ id: "probe", onClick: undefined });
   });
 

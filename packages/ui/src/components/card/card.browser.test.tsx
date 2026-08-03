@@ -57,7 +57,8 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
   });
 
   it("takes density: a compact app's cards lose air, a comfortable app's gain it (§12)", () => {
-    // Surface padding joined the density set 2026-08-04 (§10's deferral, closed) — otherwise
+    // Density reaches the card through the layout-space layer (§3, §12; the per-family sets
+    // that shipped the same morning were superseded by the layer the same day) — otherwise
     // a compact Theme adjusted every control while its cards kept default air.
     const compact = render(
       <Theme density="compact">

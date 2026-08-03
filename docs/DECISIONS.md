@@ -115,7 +115,9 @@ Margin is a property of the relationship between elements, not of the element. I
 
 Two layers, structurally parallel to radius (section 6):
 
-**Space palette (the free layout currency).** Gap on Flex/Stack/Grid, Box padding. Hybrid curve: fine and near-linear at the bottom (12, 16, 24 are all distinct and used constantly), geometric and sparse at the top (80 vs 88 is imperceptible).
+**Space palette (the raw currency).** Hybrid curve: fine and near-linear at the bottom (12, 16, 24 are all distinct and used constantly), geometric and sparse at the top (80 vs 88 is imperceptible). Density never touches it; `--scale` re-prices it globally.
+
+**Layout space (the semantic layer over it, decided 2026-08-04, Kushagra).** `--layout-space-N`: what every layout prop actually consumes — gap on Flex/Stack/Grid, Box `p`/`m` — and what surface padding picks from. At default density it is the 1:1 identity map; compact and comfortable re-pick steps from the untouched palette (section 12). This is what makes `gap="4"` mean "step 4 of this density's rhythm" rather than a frozen alias for 16px — the same move contrast makes on colour roles, and without it the index would be a unit conversion. The boundary: layout space carries every distance BETWEEN elements (and container edge to content); raw space remains the palette plus the control family's own picks, because control innards already answer density through the designed sets and a second application would compress them twice.
 
 ```css
 --space-1:  2px     --space-7:  32px
@@ -137,7 +139,7 @@ Two layers, structurally parallel to radius (section 6):
 --control-px-4: var(--space-6);   /* 24px */
 ```
 
-Controls have **no vertical padding token** (height + center, per section 4). Surfaces (cards) take both axes via their own `--surface-p-N` referencing space steps (section 10; density-set since 2026-08-04, section 12).
+Controls have **no vertical padding token** (height + center, per section 4). Surfaces (cards) take both axes via their own `--surface-p-N`, fixed picks into layout space (section 10) — density reaches them through the layer (section 12).
 
 **Rule: do not numerically align across scales.** `--space-2` (4px), `--radius-2` (6px), and `--control-height-2` will not match and should not. The alignment that matters lives in the **size index** (a size-2 control pulls control-px-2, control-height-2, radius-control-2 together), not in raw palette numbers matching across families. Forcing space-N = radius-N is the fragile-coincidence trap one layer over.
 
@@ -835,11 +837,12 @@ type              -> scale                        (never density)
 space palette     -> scale                        (layout gaps, gutters; density never touches it)
 radius palette    -> scale, then the radius set   (never density, never height directly)
 control family    -> scale, then the density set  (control-height, control-px, control-gap, radius-control)
-surface padding   -> scale (via space), then the density set  (--surface-p-N; section 10, decided 2026-08-04)
+layout space      -> scale (via space), then the density set  (--layout-space-N picks; sections 3, 12 — decided 2026-08-04)
+surface padding   -> layout space, fixed picks                (--surface-p-N; section 10 — density speaks through the layer)
 color             -> neither                      (compiled static; not a runtime multiplier axis)
 ```
 
-**Density is not a multiplier. It selects a designed set.** Each level (`compact`, `default`, `comfortable`) re-declares the control family — height, inline padding, internal gap, and control radius — as placed values, emitted at build time under a `[data-density]` block. Heights are raw numbers per level; the referencing families move by a step offset into the space and radius palettes, with per-cell overrides where an offset lands wrong. Nothing is a product, so nothing resolves to an arbitrary 26.78px, and every cell is correctable on its own — a multiplier can only move a whole level at once, which makes every taste correction global. **Surface padding joined the set 2026-08-04** (closing section 10's deferral, Kushagra): a compact app whose cards keep default air reads half-adjusted, so each level places its own `--surface-p-N` step indices — one palette step apart, the same shape control `px` uses. Density still never touches the space palette itself; a level only picks different steps from it.
+**Density is not a multiplier. It selects a designed set.** Each level (`compact`, `default`, `comfortable`) re-declares the control family — height, inline padding, internal gap, and control radius — as placed values, emitted at build time under a `[data-density]` block. Heights are raw numbers per level; the referencing families move by a step offset into the space and radius palettes, with per-cell overrides where an offset lands wrong. Nothing is a product, so nothing resolves to an arbitrary 26.78px, and every cell is correctable on its own — a multiplier can only move a whole level at once, which makes every taste correction global. **Layout space joined the set 2026-08-04** (Kushagra; it superseded, the same day, a morning mechanism that gave surface padding its own per-level sets — one lever, not two): each density level places twelve picks into the untouched space palette (`--layout-space-N`), the default level being the 1:1 identity map. Every layout prop resolves through the layer, surface padding picks from it (re-baked per density scope — substitution-at-declaration, section 6), and the v0 shape shifts steps 1-8 by one while the gutter band (9-12) holds at identity, so "compact must not collapse page gutters" survives as a placed choice rather than a hard rule. Density still never touches the space palette itself; a level only picks different steps from it. The pointer axis never touches the layer (section 16).
 
 **Radius participates.** A large density delta changes visual size enough that a fixed corner reads boxy; section 6's rule that a bigger control wants a bigger corner is about visual size, not about the size index.
 
@@ -959,7 +962,7 @@ Under `pointer: coarse`, these families re-declare as **designed sets** — plac
 | Control radius | The corner-holds-~0.2-of-box law (§6) prices the bigger box |
 | Type + line height | Extent **open** — control labels certainly; whether body text shifts is undecided (the 17px reference is native-platform convention, not web evidence) |
 
-**Deliberately untouched:** the space palette (gutters must not inflate on the smaller screen — layouts adapt on their own because controls grow and gaps hold), surface radii, elevation, color. Static surfaces do not change; only their interactive contents do.
+**Deliberately untouched:** the space palette AND the layout-space layer over it (gutters and gaps must not inflate on the smaller screen — a phone needs more content per inch, not less; layouts adapt on their own because controls grow and gaps hold), surface radii, elevation, color. Static surfaces do not change; only their interactive contents do.
 
 **The opt-out is a Theme prop, symmetric with appearance:**
 
@@ -1016,7 +1019,7 @@ Rejected: rem-derived geometry from a root font-size switch (one root scales gut
 **API:**
 - Naming of the per-component escape prop (`UNSAFE_` vs `override`). The name is the deterrent.
 - **Pointer: the numbers and the type question.** The coarse sets' values, whether body text shifts under coarse or only control labels, and whether a hybrid device gets the coarse geometry at all (`any-pointer`) — all §16, numbers judged in the 4b matrix.
-- **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end). Surface padding takes density — decided 2026-08-04 (section 12); its per-level steps are v0 values like the rest. Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
+- **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end). Surface padding takes density through the layout-space layer — decided 2026-08-04 (sections 3, 12); the per-level layout-space picks are v0 values like the rest, the gutter-band hold included. Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
 - **Scale: if it ever ships.** The factor stays wired and the prop is deferred (sections 5, 13). Reopen only when a real need names the steps, and ship it as designed steps rather than a free multiplier.
 - RTL / `dir`. Deferred, architectural room left.
 

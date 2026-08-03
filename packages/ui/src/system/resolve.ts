@@ -26,7 +26,11 @@ const resolveValue = (value: string | number, scale: "space" | null): string => 
   const v = String(value);
   if (scale !== "space" || !/^\d+$/.test(v)) return v;
   const step = Number(v);
-  return step >= 1 && step <= space.length ? `var(--space-${step})` : v;
+  // LAYOUT space, not the raw palette (§3, §12): a layout prop names a distance between
+  // things, and that rhythm answers density. `gap="4"` means step 4 of the current rhythm,
+  // never a frozen alias for the default one — the raw palette is reachable via `gap="16px"`
+  // or style, where opting out of the system is at least visible.
+  return step >= 1 && step <= space.length ? `var(--layout-space-${step})` : v;
 };
 
 /**
