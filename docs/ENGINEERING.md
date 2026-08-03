@@ -49,7 +49,7 @@ apps/docs/
 - **Files:** kebab-case (`icon-button.tsx`). **Exports:** PascalCase components, camelCase functions, no default exports.
 - **Public tokens** (the §13 contract): unprefixed, as written in the spec — `--space-4`, `--radius-control-2`, `--accent-9`, `--accent-solid`.
 - **Private mechanism vars** (responsive remap, internal plumbing): `--kui-*`. Undocumented, unstable, never for consumers.
-- **Data attributes:** `data-tone`, `data-emphasis`, `data-elevation`, `data-material`, `data-size`, plus Base UI's state attrs (`data-pressed`, `data-disabled`). CSS selects on these; class names are structural only (`kui-button`), never variant-encoding.
+- **Data attributes:** `data-tone`, `data-emphasis`, `data-material`, `data-size`, plus Base UI's state attrs (`data-pressed`, `data-disabled`). CSS selects on these; class names are structural only (`kui-button`), never variant-encoding.
 - **Props:** the §3 taxonomy is the vocabulary; never invent a second spelling for an existing axis.
 - **Commits:** conventional (`feat: button emphasis axis`), granular save points, one concern each.
 
