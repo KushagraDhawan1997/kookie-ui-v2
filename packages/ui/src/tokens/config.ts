@@ -321,8 +321,18 @@ export const surfaceChrome = {
  * §10 — the seal: what an opaque surface is filled with. Paper ABOVE the page, never the
  * page itself — a card sealed at --neutral-1 is invisible where it lives most. Light is
  * pure white over the #fcfcfc page; dark steps up the ladder. The Radix panel answer.
+ *
+ * All three rungs live here per mode, because the hover and active steps were previously
+ * hard-coded to --neutral-2 and --neutral-3 for BOTH modes while the dark seal itself was
+ * --neutral-2. So in dark, rest and hover were the same token and therefore the same pixels:
+ * an interactive card had no hover feedback at all, and a glass card's hover mixed toward a
+ * colour it was already sitting on. Rest is unchanged in both modes — dark moves only the two
+ * states that were broken, so nothing that was judged by eye needs re-judging.
  */
-export const surfaceColor = { light: "#ffffff", dark: "var(--neutral-2)" } as const;
+export const surfaceColor = {
+  light: { rest: "#ffffff", hover: "var(--neutral-2)", active: "var(--neutral-3)" },
+  dark: { rest: "var(--neutral-2)", hover: "var(--neutral-3)", active: "var(--neutral-4)" },
+} as const;
 
 /** §15 — closed weight set; `light` deferred until something needs it. */
 export const fontWeight = { regular: 400, medium: 500, semibold: 600, bold: 700 } as const;
