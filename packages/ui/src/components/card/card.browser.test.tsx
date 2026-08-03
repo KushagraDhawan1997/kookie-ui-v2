@@ -8,6 +8,8 @@ import { describe, expect, it } from "vitest";
 import { Theme } from "../../theme/theme.tsx";
 import { computed, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
+import { Box } from "../box/box.tsx";
+import { Spinner } from "../spinner/spinner.tsx";
 import { Card } from "./card.tsx";
 
 /** Resolve a token the way a component does — through an element, not through the text. */
@@ -271,5 +273,32 @@ describe("the boundary (§3, §13)", () => {
     expect(el.getAttribute("aria-label")).toBe("post");
     expect(el.className).toContain("kui-surface");
     expect(computed(el, "padding-top")).toBe("16px");
+  });
+});
+
+describe("the control size join does not reach a surface (§4, §10)", () => {
+  // Card stamps data-size for its own padding and radius, and the control family's join sat on
+  // a bare [data-size] — so every card silently took --kui-h, --kui-icon and the rest. Both
+  // consequences below are compositions of two public exports, and neither was tested.
+  it("a Spinner inside a Card keeps the size its own fallback documents", () => {
+    const inCard = render(
+      <Card size="4">
+        <Spinner />
+      </Card>,
+    );
+    const bare = render(<Spinner />);
+    const spinner = inCard.querySelector(".kui-spinner") ?? inCard.firstElementChild!;
+    expect(computed(spinner, "width")).toBe(computed(bare, "width"));
+  });
+
+  it("Box's height stem does not collide with the control height on a card", () => {
+    // <Box render={<Card/>}> is one element carrying kui-box AND data-size. `.kui-box { height:
+    // var(--kui-h) }` therefore read the control-family height and pinned the card to 40px.
+    const el = render(
+      <Box render={<Card size="3" />}>
+        <div style={{ height: "300px" }} />
+      </Box>,
+    );
+    expect(parseFloat(computed(el, "height"))).toBeGreaterThan(200);
   });
 });
