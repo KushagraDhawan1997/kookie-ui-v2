@@ -809,6 +809,7 @@
   --neutral-8: #8f9397;
   --neutral-11: #414244;
   --neutral-12: #030303;
+  --neutral-solid: #030303;
   --neutral-solid-hover: #121212;
   --neutral-solid-active: #252525;
   --neutral-label: #222323;
@@ -836,6 +837,7 @@
     --neutral-8: #8f9397;
     --neutral-11: #414244;
     --neutral-12: #030303;
+    --neutral-solid: #030303;
     --neutral-solid-hover: #121212;
     --neutral-solid-active: #252525;
     --neutral-label: #222323;
@@ -864,6 +866,7 @@
   --neutral-8: #8f9397;
   --neutral-11: #e4e4e5;
   --neutral-12: #fafafa;
+  --neutral-solid: #fafafa;
   --neutral-solid-hover: #dfdfdf;
   --neutral-solid-active: #c4c4c4;
   --neutral-label: #eeeeef;
@@ -891,6 +894,7 @@
     --neutral-8: #8f9397;
     --neutral-11: #e4e4e5;
     --neutral-12: #fafafa;
+    --neutral-solid: #fafafa;
     --neutral-solid-hover: #dfdfdf;
     --neutral-solid-active: #c4c4c4;
     --neutral-label: #eeeeef;
@@ -920,6 +924,7 @@
     --neutral-8: color(display-p3 0.5254 0.5391 0.5566);
     --neutral-11: color(display-p3 0.2546 0.2606 0.2683);
     --neutral-12: color(display-p3 0.0126 0.013 0.0135);
+    --neutral-solid: color(display-p3 0.0126 0.013 0.0135);
     --neutral-solid-hover: color(display-p3 0.0701 0.071 0.0721);
     --neutral-solid-active: color(display-p3 0.1447 0.1457 0.147);
     --neutral-label: color(display-p3 0.1326 0.1357 0.1397);
@@ -947,6 +952,7 @@
       --neutral-8: color(display-p3 0.5254 0.5391 0.5566);
       --neutral-11: color(display-p3 0.2546 0.2606 0.2683);
       --neutral-12: color(display-p3 0.0126 0.013 0.0135);
+      --neutral-solid: color(display-p3 0.0126 0.013 0.0135);
       --neutral-solid-hover: color(display-p3 0.0701 0.071 0.0721);
       --neutral-solid-active: color(display-p3 0.1447 0.1457 0.147);
       --neutral-label: color(display-p3 0.1326 0.1357 0.1397);
@@ -977,6 +983,7 @@
     --neutral-8: color(display-p3 0.5135 0.5274 0.5451);
     --neutral-11: color(display-p3 0.8936 0.8959 0.899);
     --neutral-12: color(display-p3 0.98 0.9803 0.9807);
+    --neutral-solid: color(display-p3 0.98 0.9803 0.9807);
     --neutral-solid-hover: color(display-p3 0.8728 0.8731 0.8735);
     --neutral-solid-active: color(display-p3 0.768 0.7683 0.7686);
     --neutral-label: color(display-p3 0.9324 0.9337 0.9353);
@@ -1004,6 +1011,7 @@
       --neutral-8: color(display-p3 0.5135 0.5274 0.5451);
       --neutral-11: color(display-p3 0.8936 0.8959 0.899);
       --neutral-12: color(display-p3 0.98 0.9803 0.9807);
+      --neutral-solid: color(display-p3 0.98 0.9803 0.9807);
       --neutral-solid-hover: color(display-p3 0.8728 0.8731 0.8735);
       --neutral-solid-active: color(display-p3 0.768 0.7683 0.7686);
       --neutral-label: color(display-p3 0.9324 0.9337 0.9353);

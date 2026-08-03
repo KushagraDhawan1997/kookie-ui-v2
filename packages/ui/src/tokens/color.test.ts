@@ -11,6 +11,8 @@ import {
   apcaLc,
   buildScale,
   buildScaleFor,
+  colorDeclarations,
+  contrastHighDeclarations,
   cuspLightness,
   pageBackdrop,
   resolveTone,
@@ -507,4 +509,44 @@ describe("the alpha ramp composites back to its step (§10)", () => {
       }
     }
   });
+});
+
+describe("the interaction ladder is monotone in the EMITTED declarations (§7, §8)", () => {
+  // buildScale() agreeing with itself proves nothing here. `--tone-solid` is emitted as a
+  // literal rather than var(--tone-12), so a high-contrast block that re-declares the STEPS
+  // but not the ROLE leaves rest frozen while hover and active move beneath it. That shipped:
+  // the neutral loud button pressed LIGHTER than it rested, and on the opposite side of hover,
+  // underneath an assertion that compared two Scale objects and passed. So this law reads the
+  // declaration text the generator actually emits, and applies the high block over the base
+  // exactly as the cascade does.
+  const declared = (lines: string[]) => {
+    const map = new Map<string, string>();
+    for (const line of lines) {
+      const m = /^\s*(--[\w-]+):\s*(.+);$/.exec(line);
+      // var() references are followed by the browser, not by us; only literals carry a value.
+      if (m && !m[2]!.startsWith("var(")) map.set(m[1]!, m[2]!);
+    }
+    return map;
+  };
+
+  for (const mode of MODES) {
+    for (const level of ["normal", "high"] as const) {
+      it(`${mode}, contrast="${level}": rest -> hover -> active moves one way, every tone`, () => {
+        const map = declared(colorDeclarations(mode));
+        if (level === "high") {
+          for (const [k, v] of declared(contrastHighDeclarations(mode))) map.set(k, v);
+        }
+        for (const tone of TONES) {
+          const trio = ["solid", "solid-hover", "solid-active"].map((role) =>
+            map.get(`--${tone}-${role}`),
+          );
+          expect(trio.every((v) => typeof v === "string")).toBe(true);
+          const [rest, hover, active] = trio.map((hex) => L(hex!));
+          const direction = Math.sign(hover! - rest!);
+          expect(direction).not.toBe(0);
+          expect(Math.sign(active! - hover!)).toBe(direction);
+        }
+      });
+    }
+  }
 });
