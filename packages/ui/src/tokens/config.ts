@@ -201,12 +201,15 @@ export const material = {
   // defending recipes, not the minimal one). Thick approaches the seal without reaching it:
   // alpha stays translucent because past ~.9 you should have used solid.
   //
-  // `alpha` is [rest, hover, active] — §8's +1/+2 step rule translated to the one ramp glass
-  // has, its mix percentage: interaction steps the fill toward the seal (the control coming
-  // forward), the filter never moves (a blur change re-samples and shimmers). Rest is the
-  // designed thickness; hover/active exist for CONTROLS wearing material — a static surface
-  // only ever reads index 0. Monotone across thicknesses must hold per column, not just at
-  // rest, so thickness still reads as one dimension mid-interaction.
+  // The alphas are what the consuming layer mixes the component's OWN fill toward
+  // transparent at (revised 2026-08-04, Kushagra — was a white veil): material is a fill
+  // modifier, so a loud accent button under glass is translucent accent-9 and the quiet
+  // rung is bare blur. `alpha` is [rest, hover, active] — §8's +1/+2 step rule translated
+  // to the one ramp glass has, its mix percentage: interaction steps the veil toward its
+  // own seal (the control coming forward), the filter never moves (a blur change re-samples
+  // and shimmers). hover/active exist for CONTROLS wearing material — a static surface only
+  // ever reads index 0. Monotone across thicknesses must hold per column, not just at rest,
+  // so thickness still reads as one dimension mid-interaction.
   light: {
     thin: { alpha: [30, 38, 46], filter: "blur(5px) saturate(130%) brightness(1.02)" },
     regular: { alpha: [64, 72, 80], filter: "blur(16px) saturate(165%) brightness(1.06)" },

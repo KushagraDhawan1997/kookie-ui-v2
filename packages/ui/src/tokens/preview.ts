@@ -274,7 +274,7 @@ function surfaceSection(mode: Mode): string {
           `<div style="${hostile}">${kuiBox({ display: "flex", gap: "5", wrap: "wrap", p: "7" }, materials)}</div>`,
         ) +
         demo(
-          "material on a control - the rung sleeps, tone rides the label (\u00a710, \u00a711)",
+          "material on a control - a fill modifier: tone and loudness survive the glass (\u00a710, \u00a711)",
           `<div style="${hostile}">${kuiBox(
             { display: "flex", direction: "column", gap: "4", align: "flex-start", p: "7" },
             kuiBox(
@@ -285,10 +285,11 @@ function surfaceSection(mode: Mode): string {
             ) +
               kuiBox(
                 { display: "flex", gap: "3", wrap: "wrap" },
-                button({ material: "regular", bordered: true }, "bordered") +
-                  button({ material: "regular", tone: "accent" }, "accent label") +
-                  button({ material: "regular", tone: "accent", emphasis: "loud" }, "loud sleeps") +
-                  button({ material: "regular", size: "3" }, "size 3"),
+                button({ material: "regular", tone: "accent", emphasis: "loud" }, "loud accent") +
+                  button({ material: "regular", tone: "destructive", emphasis: "loud" }, "loud destructive") +
+                  button({ material: "regular", tone: "accent" }, "medium accent") +
+                  button({ material: "regular", emphasis: "quiet" }, "quiet = bare blur") +
+                  button({ material: "regular", bordered: true }, "bordered"),
               ),
           )}</div>`,
         ),

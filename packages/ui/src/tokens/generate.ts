@@ -319,25 +319,26 @@ function toneRoles(tone: ToneName): string[] {
  */
 function surfaceWorld(mode: "light" | "dark"): string[] {
   const m = material[mode];
-  const mix = (alpha: number) => `color-mix(in srgb, var(--neutral-1) ${alpha}%, transparent)`;
   const glass = (name: "thin" | "regular" | "thick") => {
     const [rest, hover, active] = m[name].alpha;
     return [
-      `  --material-${name}-fill: ${mix(rest)};`,
-      `  --material-${name}-fill-hover: ${mix(hover)};`,
-      `  --material-${name}-fill-active: ${mix(active)};`,
+      `  --material-${name}-alpha: ${rest}%;`,
+      `  --material-${name}-alpha-hover: ${hover}%;`,
+      `  --material-${name}-alpha-active: ${active}%;`,
       `  --material-${name}-filter: ${m[name].filter};`,
     ];
   };
   return [
     "",
-    `  /* material recipes (§10) — fills mix over the page colour, so tone rides for free.`,
-    `     hover/active are §8's steps on glass's one ramp, the mix percentage — read only by`,
-    `     controls wearing material; a static surface reads the rest fill alone. */`,
+    `  /* material recipes (§10) — material is a fill MODIFIER, not a fill: the consuming`,
+    `     layer mixes the component's OWN fill toward transparent at these alphas, so tone`,
+    `     and loudness ride into the veil for free. hover/active are §8's steps on glass's`,
+    `     one ramp — read by controls and interactive surfaces; a static surface reads the`,
+    `     rest alpha alone. */`,
     ...glass("thin"),
     ...glass("regular"),
     ...glass("thick"),
-    `  --material-opaque-fill: ${mix(material.fallbackAlpha)};`,
+    `  --material-opaque-alpha: ${material.fallbackAlpha}%;`,
     "",
     `  /* foreground context (§10) — what a surface re-scopes for everything inside it */`,
     `  --color-text: var(--neutral-12);`,

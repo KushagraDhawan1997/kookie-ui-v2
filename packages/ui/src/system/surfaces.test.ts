@@ -52,7 +52,7 @@ describe("the surface layer carries each axis once and never multiplies them (§
 
   it("the default surface seals — alpha belongs to the tone-forward rungs and material", () => {
     const quiet = stripped.slice(stripped.indexOf('[data-emphasis="quiet"]'));
-    expect(quiet.slice(0, quiet.indexOf("}"))).toContain("--kui-sf-fill: var(--color-surface)");
+    expect(quiet.slice(0, quiet.indexOf("}"))).toContain("--kui-sf-fill-src: var(--color-surface)");
     expect(stripped).not.toContain("--tone-a1");
   });
 });
@@ -77,17 +77,17 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
 });
 
 describe("material resolves through tokens only (§10)", () => {
-  it("backdrop-filter exists only inside @supports, with the opaque fallback outside it", () => {
+  it("backdrop-filter exists only inside @supports, with the near-sealed fallback outside it", () => {
     const guardStart = stripped.indexOf("@supports (backdrop-filter");
     expect(guardStart).toBeGreaterThan(-1);
     const before = stripped.slice(0, guardStart);
     expect(before).not.toContain("backdrop-filter:");
-    expect(before).toContain("--material-opaque-fill");
+    expect(before).toContain("--material-opaque-alpha");
   });
 
-  it("prefers-reduced-transparency forces opaque and kills the blur (§10)", () => {
+  it("prefers-reduced-transparency forces the near-seal and kills the blur (§10)", () => {
     const media = stripped.slice(stripped.indexOf("@media (prefers-reduced-transparency: reduce)"));
-    expect(media).toContain("--material-opaque-fill");
+    expect(media).toContain("--material-opaque-alpha");
     expect(media).toContain("backdrop-filter: none");
     // Cascade order is the mechanism: the accessibility override must come AFTER the recipe.
     expect(stripped.indexOf("@media (prefers-reduced-transparency")).toBeGreaterThan(

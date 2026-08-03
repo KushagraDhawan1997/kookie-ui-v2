@@ -83,47 +83,62 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     }
   });
 
-  it("backdrop-filter exists only inside @supports, with the opaque fallback outside it", () => {
+  it("backdrop-filter exists only inside @supports, with the near-sealed fallback outside it", () => {
     const guardStart = code.indexOf("@supports (backdrop-filter");
     expect(guardStart).toBeGreaterThan(-1);
     expect(code.slice(0, guardStart)).not.toContain("backdrop-filter:");
-    expect(code.slice(0, guardStart)).toContain("--material-opaque-fill");
+    expect(code.slice(0, guardStart)).toContain("--material-opaque-alpha");
   });
 
-  it("prefers-reduced-transparency forces opaque, kills the blur, and wins by cascade order", () => {
+  it("prefers-reduced-transparency forces the near-seal, kills the blur, and wins by cascade order", () => {
     const media = code.slice(code.indexOf("@media (prefers-reduced-transparency: reduce)"));
-    expect(media).toContain("--material-opaque-fill");
+    expect(media).toContain("--material-opaque-alpha");
     expect(media).toContain("backdrop-filter: none");
     expect(code.indexOf("@media (prefers-reduced-transparency")).toBeGreaterThan(
       code.indexOf("@supports (backdrop-filter"),
     );
   });
 
-  it("a material owns the whole fill triplet, so no rung fill leaks through mid-interaction", () => {
-    // While material is on, every state a control can paint resolves through the material —
-    // rest, hover AND active, in the recipe and in both opaque environments alike. A missed
-    // state would flash the rung's page-designed fill over glass.
+  it("material is a fill MODIFIER: every state derives from the rung's own source (§10)", () => {
+    // The veil is the fill the rung already chose, mixed toward transparent at the thickness
+    // alpha — tone and loudness ride into the glass for free. Every state a control can paint
+    // re-derives from the same source, in the recipe and in both opaque environments alike:
+    // a missed one would flash the opaque page-designed fill over glass.
     const supports = code.slice(code.indexOf("@supports (backdrop-filter"));
     for (const m of MATERIALS) {
       const block = supports.slice(supports.indexOf(`[data-material="${m}"]`));
       const body = block.slice(0, block.indexOf("}"));
-      expect(body).toContain(`--kui-fill: var(--material-${m}-fill)`);
-      expect(body).toContain(`--kui-fill-hover: var(--material-${m}-fill-hover)`);
-      expect(body).toContain(`--kui-fill-active: var(--material-${m}-fill-active)`);
+      expect(body).toContain(
+        `--kui-fill: color-mix(in srgb, var(--kui-fill-src) var(--material-${m}-alpha), transparent)`,
+      );
+      expect(body).toContain(
+        `--kui-fill-hover: color-mix(in srgb, var(--kui-fill-src-hover) var(--material-${m}-alpha-hover), transparent)`,
+      );
+      expect(body).toContain(
+        `--kui-fill-active: color-mix(in srgb, var(--kui-fill-src-active) var(--material-${m}-alpha-active), transparent)`,
+      );
       expect(body).toContain(`backdrop-filter: var(--material-${m}-filter)`);
     }
-    for (const env of [code.slice(0, code.indexOf("@supports")), code.slice(code.indexOf("@media (prefers-reduced-transparency"))]) {
-      expect(env).toContain("--kui-fill-hover: var(--color-surface-hover)");
-      expect(env).toContain("--kui-fill-active: var(--color-surface-active)");
+    for (const env of [
+      code.slice(0, code.indexOf("@supports")),
+      code.slice(code.indexOf("@media (prefers-reduced-transparency")),
+    ]) {
+      for (const state of ["", "-hover", "-active"]) {
+        expect(env).toContain(
+          `--kui-fill${state}: color-mix(in srgb, var(--kui-fill-src${state}) var(--material-opaque-alpha), transparent)`,
+        );
+      }
     }
   });
 
-  it("the label on glass is --tone-label — tone rides, the rung's pairing sleeps", () => {
-    // --tone-contrast is APCA-paired to --tone-solid, a fill that is not there while a
-    // material is on; the neutral glass takes the label token, and the tone family still
-    // reaches the control through it.
-    const base = code.slice(code.indexOf('[data-material="thin"]'));
-    expect(base.slice(0, base.indexOf("}"))).toContain("--kui-label-color: var(--tone-label)");
+  it("material names no colour and never touches the label — the rung's pairing survives", () => {
+    // The modifier reads only the source vars and its own alphas; the rung keeps the fill's
+    // designed label (--tone-contrast stays paired to a loud fill that is still there,
+    // merely translucent). A material block naming a colour or a label would mean it has
+    // quietly become a fill again.
+    const materialBlock = code.slice(code.indexOf('[data-material="thin"]'));
+    expect(materialBlock).not.toMatch(/--(tone|accent|neutral|destructive|color)-/);
+    expect(materialBlock).not.toContain("--kui-label-color");
   });
 });
 
