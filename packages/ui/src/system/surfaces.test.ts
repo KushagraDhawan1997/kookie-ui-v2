@@ -57,14 +57,17 @@ describe("the surface layer carries each axis once and never multiplies them (§
   });
 });
 
-describe("no elevation, no shadows — separation is border and fill (§10, 2026-08-03)", () => {
-  it("the surface layer names no shadow and no elevation, ever", () => {
-    // Kushagra deleted the axis: nothing ever chose elevation at a call site — §11 fixes it
-    // per component — and the ladder existed only to price shadows, which are a no-go.
-    // Detachment is a per-component fact, designed when Popover and Dialog are built.
-    expect(stripped).not.toContain("box-shadow");
-    expect(stripped).not.toContain("--shadow-");
+describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§5, §10)", () => {
+  it("exactly one box-shadow exists, inside the Theme world scope, reading row 2", () => {
+    // The elevation axis stays deleted — nothing chooses shadow at a call site. What exists
+    // is an app identity: Theme surfaces="elevated" dresses every surface with one rule, on
+    // the element that owns the radius. Flat remains the default and byte-identical to a
+    // world where the rule does not exist.
     expect(stripped).not.toContain("data-elevation");
+    const occurrences = stripped.match(/box-shadow/g) ?? [];
+    expect(occurrences).toHaveLength(1);
+    const rule = stripped.slice(stripped.indexOf('[data-surfaces="elevated"]'));
+    expect(rule.slice(0, rule.indexOf("}"))).toContain("box-shadow: var(--shadow-2)");
   });
 });
 
@@ -120,10 +123,11 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     }
   });
 
-  it("no component stylesheet reads it — elevation stays deleted", () => {
-    // The surface layer's own law already bans box-shadow; this pins the palette side:
-    // the only consumer is Box's inline style, which is not a stylesheet.
-    expect(stripped).not.toContain("--shadow-");
+  it("the palette's only stylesheet consumer is the elevated world rule", () => {
+    // Box's shadow prop died as a taxonomy leak (layout components do not paint); escapes
+    // reach the palette through `style`, which is not a stylesheet and takes no blessing.
+    const occurrences = stripped.match(/--shadow-/g) ?? [];
+    expect(occurrences).toHaveLength(1);
   });
 });
 

@@ -89,12 +89,11 @@ describe("the boundary between props and the DOM (§3)", () => {
     expect(computed(el, "padding-top")).toBe("12px");
   });
 
-  it("shadow is Box's alone: a closed index into the palette, row 1 the inset (§13)", () => {
-    const lifted = render(<Box shadow="2" />);
-    expect(computed(lifted, "box-shadow")).not.toBe("none");
-    expect(computed(render(<Box shadow="1" />), "box-shadow")).toContain("inset");
-    expect(computed(render(<Box />), "box-shadow")).toBe("none");
-    // @ts-expect-error — the palette has four rows; free strings never reach box-shadow
-    void (<Box shadow="0 0 9px red" />);
+  it("Box does not paint: shadow is not a prop — layout components stay layout (§3)", () => {
+    // The palette is reached through `style` (the honest escape) or the Theme world, never
+    // through a Box prop; the prop shipped for a day and died as a taxonomy leak.
+    // @ts-expect-error — no shadow prop on a layout component
+    void (<Box shadow="2" />);
+    expect(computed(render(<Box style={{ boxShadow: "var(--shadow-1)" }} />), "box-shadow")).toContain("inset");
   });
 });

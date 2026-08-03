@@ -231,7 +231,7 @@ function surfaceSection(mode: Mode): string {
       <strong>Open project</strong>
       <div style="color: var(--color-text-muted)">The whole card is one button: hover washes the seal, press steps again, keyboard gets the one ring.</div>
     </button>
-    <h3 style="margin-top: var(--space-7)">the shadow palette - a resource for Box and blocks, never a component (\u00a713)</h3>
+    <h3 style="margin-top: var(--space-7)">the shadow palette - a resource; only the elevated world and escapes reach it (\u00a713)</h3>
     <div style="display: flex; gap: var(--space-6); align-items: flex-start">
       ${["1", "2", "3", "4"].map((n) => `<div style="flex: 1; background: var(--color-surface); border: 1px solid var(--neutral-4); border-radius: var(--radius-surface); padding: var(--space-6); box-shadow: var(--shadow-${n})">shadow ${n}${n === "1" ? " - the well" : ""}</div>`).join("")}
     </div>
@@ -536,7 +536,7 @@ export function generatePreview(): string {
   </nav>
   <div class="toggle">
     <label><input type="checkbox" id="icons"> icons</label>
-    <label><input type="checkbox" id="hc"> contrast="high"</label>
+    <label><input type="checkbox" id="hc"> contrast="high"</label>\n  <label><input type="checkbox" id="sf"> surfaces="elevated"</label>
     <label>radius
       <select id="radius">${Object.keys(radiusLevels)
         .map((l) => `<option${l === "medium" ? " selected" : ""}>${l}</option>`)
@@ -676,6 +676,14 @@ ${brandSection("dark")}
   // library ships nothing - but this page is otherwise JS-free static HTML, the one
   // environment where the press state would silently never fire on an iPhone.
   document.addEventListener("touchstart", () => {}, { passive: true });
+
+  document.getElementById("sf").addEventListener("change", (e) => {
+    // Theme stamps data-surfaces on its own node; the page's bare sections stand in for
+    // nested Themes, same as the contrast toggle above.
+    const v = e.target.checked ? "elevated" : "flat";
+    document.documentElement.dataset.surfaces = v;
+    for (const el of document.querySelectorAll("[data-appearance]")) el.dataset.surfaces = v;
+  });
 
   document.getElementById("icons").addEventListener("change", (e) => {
     document.body.classList.toggle("icons", e.target.checked);

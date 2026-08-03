@@ -10,6 +10,9 @@ export type RadiusLevel = "none" | "small" | "medium" | "large" | "full";
 export type Contrast = "normal" | "high";
 /** §16 — `auto` follows `@media (pointer: coarse)`; pinning forces a geometry, which is also how the coarse matrix is judged on a desktop. */
 export type Pointer = "fine" | "coarse" | "auto";
+/** §10 — do surfaces sit up. The semantic is elevation-as-identity; shadow row 2 is merely
+    its current resolution. An app choice made once, never a per-card knob. */
+export type Surfaces = "flat" | "elevated";
 
 export type ThemeProps = {
   appearance?: Appearance;
@@ -17,6 +20,7 @@ export type ThemeProps = {
   radius?: RadiusLevel;
   contrast?: Contrast;
   pointer?: Pointer;
+  surfaces?: Surfaces;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -25,7 +29,7 @@ export type ThemeProps = {
 };
 
 type Resolved = Required<
-  Pick<ThemeProps, "appearance" | "density" | "radius" | "contrast" | "pointer">
+  Pick<ThemeProps, "appearance" | "density" | "radius" | "contrast" | "pointer" | "surfaces">
 >;
 
 const DEFAULTS: Resolved = {
@@ -34,6 +38,7 @@ const DEFAULTS: Resolved = {
   radius: "medium",
   contrast: "normal",
   pointer: "auto",
+  surfaces: "flat",
 };
 
 const ThemeContext = React.createContext<Resolved>(DEFAULTS);
@@ -62,8 +67,9 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       radius: props.radius ?? parent.radius,
       contrast: props.contrast ?? parent.contrast,
       pointer: props.pointer ?? parent.pointer,
+      surfaces: props.surfaces ?? parent.surfaces,
     }),
-    [props.appearance, props.density, props.radius, props.contrast, props.pointer, parent],
+    [props.appearance, props.density, props.radius, props.contrast, props.pointer, props.surfaces, parent],
   );
 
   // `inherit` means "whatever the nearest ancestor resolved to", so it emits no attribute of
@@ -77,6 +83,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     "data-radius": resolved.radius,
     "data-contrast": resolved.contrast,
     "data-pointer": resolved.pointer,
+    "data-surfaces": resolved.surfaces,
   };
 
   // kui-theme makes the element a query container (§2): responsive props measure the nearest

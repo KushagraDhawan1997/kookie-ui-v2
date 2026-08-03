@@ -110,6 +110,23 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
     expect(computed(inCard, "color")).toBe(computed(alone, "color"));
   });
 
+  it("the elevated world dresses the shell; flat stays shadowless; no Card API exists (§5, §10)", () => {
+    const flat = render(<Card>B</Card>);
+    expect(computed(flat, "box-shadow")).toBe("none");
+    const elevated = render(
+      <Theme surfaces="elevated">
+        <Card>B</Card>
+      </Theme>,
+    );
+    const el = elevated.querySelector<HTMLElement>(".kui-card")!;
+    expect(computed(el, "box-shadow")).not.toBe("none");
+    expect(computed(el, "box-shadow")).not.toContain("inset");
+    // The shadow sits on the card element itself, so it follows the surface radius — the
+    // whole reason this is a world and not a wrapper.
+    // @ts-expect-error — shadow is not a Card prop; the world is the only path
+    void (<Card shadow="2">B</Card>);
+  });
+
   it("follows appearance: the same Card resolves differently under a dark Theme", () => {
     const light = render(<Card>B</Card>);
     const dark = render(
