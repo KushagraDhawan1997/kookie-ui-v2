@@ -353,14 +353,23 @@ export function buildAllScales(): Record<Mode, Record<ToneName, Scale>> {
  * Only what `contrast="high"` actually changes: the border and text bands, the roles that read
  * them, and the widened interaction spread. Re-declaring the whole scale would ship the solid
  * band and the backgrounds again for nothing.
+ *
+ * `--tone-solid` is the exception that has to be spelled out, because it is baked as a literal
+ * rather than `var(--tone-12)`: re-declaring the step it was built from cannot reach it. Left
+ * out, a low-chroma rest fill stayed at its normal-contrast value while hover and active moved
+ * beneath it — the neutral loud button's press came out LIGHTER than its rest, on the opposite
+ * side of hover (§7, §8). Chromatic solids are the brand colour and do not move, so the
+ * declaration is emitted only where the value actually changed.
  */
 export function contrastHighDeclarations(mode: Mode, gamut: Gamut = "srgb"): string[] {
   const out: string[] = [];
   for (const tone of Object.keys(tones) as ToneName[]) {
     const s = buildScale(tone, mode, gamut, "high");
+    const normal = buildScale(tone, mode, gamut, "normal");
     for (const i of [...contrastHighBands.border, ...contrastHighBands.text]) {
       out.push(`  --${tone}-${i + 1}: ${s.steps[i]};`);
     }
+    if (s.solid !== normal.solid) out.push(`  --${tone}-solid: ${s.solid};`);
     out.push(
       `  --${tone}-solid-hover: ${s.solidHover};`,
       `  --${tone}-solid-active: ${s.solidActive};`,
