@@ -20,8 +20,8 @@ export type CardProps = Omit<
 };
 
 /**
- * A shell (§10, §11, LOG 2026-08-04). One treatment, no variants: the quiet alpha fill over
- * whatever it sits on, the border, the surface radius, the padding rhythm — Card is the place
+ * A shell (§10, §11, LOG 2026-08-04). One treatment, no variants: the opaque seal
+ * (`--color-surface`), the border, the surface radius, the padding rhythm — Card is the place
  * the surface laws are enforced, with zero opinion about what goes inside.
  *
  * What it deliberately is not: it has no emphasis or tone (loudness ranks actions, and a
@@ -40,8 +40,10 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
   const merged = {
     ref,
     "data-size": size,
-    // Fixed identity, not API: the tone indirection needs a family to resolve --tone-a1
-    // and --tone-border, and a Card is always the neutral quiet bordered surface.
+    // Fixed identity, not API. The tone indirection needs a family to resolve --tone-border,
+    // which is the only reason neutral is named here: the fill is the opaque seal, not a tone
+    // alpha. (--tone-a1 was the quiet fill until the 2026-08-04 retraction, and the generator
+    // no longer emits that role at all.)
     "data-tone": "neutral",
     "data-emphasis": "quiet",
     "data-bordered": true,
