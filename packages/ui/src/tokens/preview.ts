@@ -194,49 +194,79 @@ function card(body: string, style = "", material?: string, size = "3"): string {
  */
 function surfaceSection(mode: Mode): string {
   const muted = `style="color: var(--color-text-muted)"`;
+  // Card content is a Stack, never margins: the same rule the system enforces on consumers
+  // (components never own outer spacing) has to hold in its own demos — these ARE the docs.
+  const cardBody = (title: string, desc: string, buttons: string) =>
+    kuiBox(
+      { display: "flex", direction: "column", gap: "4", align: "flex-start" },
+      `<strong>${title}</strong><div ${muted}>${desc}</div>${kuiBox({ display: "flex", gap: "3" }, buttons)}`,
+    );
   const shell = card(
-    `<strong>The shell</strong>
-     <div ${muted}>Opaque --color-surface over the page; the border is the edge. Translucency is material's job alone.</div>
-     <div style="margin-top: var(--space-4)">${button({ tone: "accent", emphasis: "loud" }, "Action")} ${button({}, "Action")}</div>`,
+    cardBody(
+      "The shell",
+      "Opaque --color-surface over the page; the border is the edge. Translucency is material's job alone.",
+      `${button({ tone: "accent", emphasis: "loud" }, "Action")}${button({}, "Action")}`,
+    ),
     "max-width: 420px",
   );
   const sizes = ["1", "2", "3", "4"]
     .map((n) => card(`size ${n}`, "flex: 1", undefined, n))
     .join("");
-  // A real photo (repo asset beside the emitted html, never published — only dist/ ships),
-  // with the gradient collage as the fallback layer if the file is missing.
-  const hostile =
-    "background: url('backdrop.jpg') center / cover no-repeat," +
-    " linear-gradient(115deg, #841e57, #144e68 55%, #1db954);" +
-    " padding: var(--space-7); border-radius: var(--radius-surface);" +
-    " display: flex; gap: var(--space-5); flex-wrap: wrap;";
   const materials = ["solid", "thin", "regular", "thick"]
     .map((m) =>
       card(
-        `<strong>${m}</strong><div ${muted}>does the label survive?</div>
-         <div style="margin-top: var(--space-4)">${button({ tone: "accent", emphasis: "loud" }, "Label")} ${button({}, "Label")}</div>`,
+        cardBody(
+          m,
+          "does the label survive?",
+          `${button({ tone: "accent", emphasis: "loud" }, "Label")}${button({}, "Label")}`,
+        ),
         "flex: 1; min-width: 180px",
         m === "solid" ? undefined : m,
       ),
     )
     .join("");
+  // A real photo (repo asset beside the emitted html, never published — only dist/ ships),
+  // with the gradient collage as the fallback layer if the file is missing. The backdrop div
+  // is a demo escape (background + radius via style); the cards inside sit in a real Box.
+  const hostile =
+    "background: url('backdrop.jpg') center / cover no-repeat," +
+    " linear-gradient(115deg, #841e57, #144e68 55%, #1db954);" +
+    " border-radius: var(--radius-surface-3);";
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4", align: "stretch" }, `<h3>${title}</h3>${body}`);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>${mode}</h2>
-    <h3>the seal - paper above the page (\u00a710)</h3>
-    ${shell}
-    <h3 style="margin-top: var(--space-7)">the padding index (\u00a74)</h3>
-    <div style="display: flex; gap: var(--space-5); align-items: flex-start">${sizes}</div>
-    <h3 style="margin-top: var(--space-7)">card-as-button - render a button, the surface notices (\u00a710)</h3>
-    <button class="kui-surface kui-card" data-size="3" data-tone="neutral" data-emphasis="quiet" data-bordered style="max-width: 420px; width: 100%; display: block">
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo("the seal - paper above the page (\u00a710)", shell) +
+        demo(
+          "the padding index, and the corner it carries (\u00a74, \u00a76)",
+          kuiBox({ display: "flex", gap: "5", align: "flex-start" }, sizes),
+        ) +
+        demo(
+          "card-as-button - render a button, the surface notices (\u00a710)",
+          `<button class="kui-surface kui-card" data-size="3" data-tone="neutral" data-emphasis="quiet" data-bordered style="max-width: 420px; width: 100%; display: block">
       <strong>Open project</strong>
       <div style="color: var(--color-text-muted)">The whole card is one button: hover washes the seal, press steps again, keyboard gets the one ring.</div>
-    </button>
-    <h3 style="margin-top: var(--space-7)">the shadow palette - a resource; only the elevated world and escapes reach it (\u00a713)</h3>
-    <div style="display: flex; gap: var(--space-6); align-items: flex-start">
-      ${["1", "2", "3", "4"].map((n) => `<div style="flex: 1; background: var(--color-surface); border: 1px solid var(--neutral-4); border-radius: var(--radius-surface); padding: var(--space-6); box-shadow: var(--shadow-${n})">shadow ${n}${n === "1" ? " - the well" : ""}</div>`).join("")}
-    </div>
-    <h3 style="margin-top: var(--space-7)">material over a hostile backdrop - v0 recipes (\u00a710)</h3>
-    <div style="${hostile}">${materials}</div>
+    </button>`,
+        ) +
+        demo(
+          "the shadow palette - a resource; only the elevated world and escapes reach it (\u00a713)",
+          kuiBox(
+            { display: "flex", gap: "6", align: "flex-start" },
+            ["1", "2", "3", "4"]
+              .map(
+                (n) =>
+                  `<div style="flex: 1; background: var(--color-surface); border: 1px solid var(--neutral-4); border-radius: var(--radius-surface-3); padding: var(--space-6); box-shadow: var(--shadow-${n})">shadow ${n}${n === "1" ? " - the well" : ""}</div>`,
+              )
+              .join(""),
+          ),
+        ) +
+        demo(
+          "material over a hostile backdrop - v0 recipes (\u00a710)",
+          `<div style="${hostile}">${kuiBox({ display: "flex", gap: "5", wrap: "wrap", p: "7" }, materials)}</div>`,
+        ),
+    )}
   </section>`;
 }
 
@@ -462,6 +492,7 @@ export function generatePreview(): string {
   body:not(.icons) .icon { display: none; }
   .readout { font-family: var(--font-mono); font-size: 11px; color: var(--neutral-10); }
   .surfaces { display: flex; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-10); }
+  .mode > .kui-box h3, .mode .kui-box h3 { margin: 0; }
   .surface { background: var(--neutral-2); border: 1px solid var(--neutral-6);
              padding: var(--space-6); font-size: var(--font-size-2); color: var(--neutral-11); }
 
@@ -469,7 +500,7 @@ export function generatePreview(): string {
   .rig-meta { font-family: var(--font-mono); font-size: var(--font-size-1); color: var(--neutral-10);
               margin-top: var(--space-5); }
   .rig { resize: horizontal; overflow: auto; width: min(900px, 100%); min-width: 240px; max-width: 100%;
-         border: 1px dashed var(--neutral-8); border-radius: var(--radius-surface);
+         border: 1px dashed var(--neutral-8); border-radius: var(--radius-surface-3);
          margin: var(--space-3) 0 var(--space-8); }
   .cell { padding: var(--space-4); background: var(--accent-3); border: 1px solid var(--accent-6);
           border-radius: var(--radius-control-2); color: var(--accent-text); text-align: center;
@@ -501,7 +532,7 @@ export function generatePreview(): string {
   /* Sections sit at the page level, both modes: their job is to stand in for an app page,
      which is neutral-1 (§7's role table). neutral-2 styled them as cards and judged every
      control against a backdrop one step grayer than the one it ships on. */
-  .mode { margin-top: var(--space-9); padding: var(--space-7); border-radius: var(--radius-surface);
+  .mode { margin-top: var(--space-9); padding: var(--space-7); border-radius: var(--radius-surface-3);
           overflow-x: auto; background: var(--neutral-1); color: var(--neutral-12);
           border: 1px solid var(--neutral-4); }
   .scale { margin-bottom: var(--space-7); }
@@ -565,7 +596,7 @@ ${LEVELS.map(
 </div>
 
 <div class="surfaces">
-  <div class="surface" style="border-radius: var(--radius-surface)">--radius-surface (card, popover)</div>
+  ${["1", "2", "3", "4"].map((n) => `<div class="surface" style="border-radius: var(--radius-surface-${n})">--radius-surface-${n}</div>`).join("\n  ")}
   <div class="surface" style="border-radius: var(--radius-overlay)">--radius-overlay (dialog, sheet)</div>
 </div>
 
