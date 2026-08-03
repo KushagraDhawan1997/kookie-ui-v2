@@ -550,3 +550,57 @@ describe("the interaction ladder is monotone in the EMITTED declarations (§7, �
     }
   }
 });
+
+describe("the focus ring clears its contrast floor against the page (§8, WCAG 2.4.11)", () => {
+  // §8 has claimed since 2026-08-02 that this "is a law, asserted with APCA against steps 1-2
+  // in both modes". It was not: --focus-ring was emitted and asserted nowhere, and the dark
+  // ring had been failing the whole time — step 9 is a deep violet on a near-black page, |Lc|
+  // 22.3, a focus indicator you effectively cannot see. The step is picked per mode now.
+  //
+  // Lc 45 is the non-text floor: below it a boundary stops reading as a boundary. Both modes
+  // clear it with room (74.7 light, 66.3 dark) — the assertion is the guarantee, not the taste.
+  const NON_TEXT = 45;
+
+  for (const mode of MODES) {
+    it(`holds in ${mode}, against every surface the ring can sit on`, () => {
+      const accent = buildScale("accent", mode);
+      const neutral = buildScale("neutral", mode);
+      const ring = mode === "dark" ? accent.steps[10]! : accent.solid;
+      // Steps 1-3: the page, the seal, and the soft fill a focused control may rest on.
+      for (const step of [0, 1, 2]) {
+        expect(
+          Math.abs(apcaLc(ring, neutral.steps[step]!)),
+          `${mode} ring vs neutral-${step + 1}`,
+        ).toBeGreaterThanOrEqual(NON_TEXT);
+      }
+    });
+  }
+
+  it("and the emitted token is the step the law just checked, not a third thing", () => {
+    // The law above proves a colour; this proves the stylesheet ships that colour. Without it
+    // the two could drift apart silently, which is how --tone-solid got missed in §7.
+    for (const mode of MODES) {
+      const emitted = colorDeclarations(mode).find((l) => l.includes("--focus-ring:"));
+      expect(emitted).toContain(mode === "dark" ? "var(--accent-11)" : "var(--accent-solid)");
+    }
+  });
+});
+
+describe("the soft ladder is §8's +1/+2 rule, in the emitted declarations (§7, §8)", () => {
+  // ENGINEERING.md and CLAUDE.md both claim the suite asserts "hover = +1 step, press = +2".
+  // Nothing read the mapping: the ladder was emitted at three lines nobody tested, so any of
+  // them could be changed to any step and the whole suite stayed green. The rung's feedback
+  // amount is the thing being guaranteed — that every rung moves by the SAME amount, so
+  // pressing a medium button and pressing a quiet one feel like one gesture.
+  it("soft rests on 3, hovers to 4, presses to 5, for every tone", () => {
+    for (const mode of MODES) {
+      const declared = colorDeclarations(mode);
+      for (const tone of TONES) {
+        const at = (role: string) => declared.find((l) => l.trimStart().startsWith(`--${tone}-${role}:`));
+        expect(at("soft")).toContain(`var(--${tone}-3)`);
+        expect(at("soft-hover")).toContain(`var(--${tone}-4)`);
+        expect(at("soft-active")).toContain(`var(--${tone}-5)`);
+      }
+    }
+  });
+});

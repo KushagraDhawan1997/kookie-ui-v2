@@ -79,6 +79,8 @@ One table (`system/props.ts`) drives both halves — the resolver that writes th
 
 CI asserts the system's invariants; the manifesto is executable.
 
+**Four of the entries below were prose, not law, until 2026-08-03** — the focus ring's APCA floor, the +1/+2 state rule, the margin-refusal type test, and the surface-radius cap probe (which read a token that no longer existed, so `0 < 100` passed unconditionally). Every one of them has since been written and, more importantly, *falsified* against the pre-fix code. The pattern in what was missing is worth keeping in mind when adding to this list: the absent laws were exactly the ones that needed a second value to compare against, rather than a single string to find. A law that greps for a token NAME proves the name is present, which is never the thing in doubt.
+
 - **Token identity:** every size-2 control resolves the identical `--radius-control-2`, `--control-height-2`, `--control-px-2`.
 - **State law:** every recipe's hover is exactly +1 step, press +2 (§8).
 - **Contrast:** every generated solid passes APCA with its computed contrast token (§7).

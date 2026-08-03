@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
 import { computed, render } from "../../test/browser.tsx";
+import { Card } from "../card/card.tsx";
 import { Button } from "./button.tsx";
 
 /** Resolve a token the way a component does — through an element, not through the text. */
@@ -418,5 +419,29 @@ describe("the boundary (§3, §13)", () => {
     expect(computed(dark.querySelector("button")!, "background-color")).not.toBe(
       computed(light, "background-color"),
     );
+  });
+});
+
+describe("a control refuses outer spacing at the type level (non-negotiable, §3)", () => {
+  // ENGINEERING §5 claims a type-level test pins that margin and position props do not exist
+  // on control types. It did not exist: all sixteen @ts-expect-error sites were accounted for
+  // elsewhere, and button.browser.test.tsx had none at all. The first non-negotiable —
+  // "components never own outer spacing" — was guarded by nothing mechanical, and the lint
+  // rule ENGINEERING promises for it is still a TODO. This is the guard until that lands.
+  it("no margin, no position, no inset on Button or Card", () => {
+    // @ts-expect-error — m is not a ButtonProp; <Box m> is the escape
+    void (<Button m="4">S</Button>);
+    // @ts-expect-error — mt is not a ButtonProp
+    void (<Button mt="4">S</Button>);
+    // @ts-expect-error — p is not a ButtonProp: padding is the size index's job
+    void (<Button p="4">S</Button>);
+    // @ts-expect-error — position is not a ButtonProp
+    void (<Button position="absolute">S</Button>);
+    // @ts-expect-error — top is not a ButtonProp
+    void (<Button top="0">S</Button>);
+    // @ts-expect-error — m is not a CardProp either
+    void (<Card m="4">B</Card>);
+    // @ts-expect-error — inset is not a CardProp
+    void (<Card inset="0">B</Card>);
   });
 });
