@@ -36,6 +36,12 @@ export type ButtonProps = Omit<
   iconEnd?: React.ReactNode;
   /** Keep focus when the button becomes disabled mid-interaction. */
   focusableWhenDisabled?: boolean;
+  /**
+   * Whether the rendered element really is a `<button>`. Inferred from `render` and almost
+   * never worth passing: it exists because Base UI branches its whole a11y contract on it, and
+   * getting it wrong is silent. See the note on the `render` escape below.
+   */
+  nativeButton?: boolean;
   render?: React.ReactElement;
   className?: string;
   style?: React.CSSProperties;
@@ -63,6 +69,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     loading = false,
     disabled = false,
     focusableWhenDisabled,
+    nativeButton,
+    render,
     icon,
     iconEnd,
     children,
@@ -71,6 +79,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   },
   ref,
 ) {
+  // Base UI branches its ENTIRE a11y contract on `nativeButton`, which defaults to true, and
+  // we never forwarded it — so `render={<a/>}`, a composition our own laws bless, shipped
+  // `type="button"` on an anchor (where `type` means the linked resource's MIME type) and, when
+  // disabled, the inert `disabled` attribute with no `aria-disabled` and tabindex 0: a
+  // focusable, unannounced dead link. With it false, Base UI emits role + aria-disabled
+  // instead. Inferred from the render element, overridable for the custom-component case we
+  // cannot inspect.
+  const isNativeButton = nativeButton ?? (render === undefined || render.type === "button");
   // The Spinner takes the icon's place when there is one — same box, zero shift — and joins
   // the label when there is not. The label never goes: a button that stops saying what it is
   // doing is worse than one that changes width (§8).
@@ -79,10 +95,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   return (
     <BaseButton
       ref={ref}
-      // Loading blocks activation through the native attribute rather than through CSS or a
-      // click handler: no interaction-time JS, and unlike `pointer-events: none` the element
-      // still hit-tests, so the busy cursor shows. `focusableWhenDisabled` is what keeps the
-      // keyboard where it was when a press flips the button into loading (§8).
+      render={render}
+      nativeButton={isNativeButton}
+      // Loading blocks activation WITHOUT the native attribute: focusableWhenDisabled is forced
+      // true here, which sends Base UI down the aria-disabled branch, and activation is stopped
+      // by its preventDefault handlers instead. That is deliberate — the control stays focusable
+      // and keeps its place in the tab order when a press flips it into loading (§8). Unlike
+      // `pointer-events: none` the element still hit-tests, which is what makes the busy cursor
+      // show. The plain `disabled` path does write the native attribute.
       disabled={disabled || loading}
       focusableWhenDisabled={focusableWhenDisabled ?? loading}
       aria-busy={loading || undefined}
