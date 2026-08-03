@@ -8,7 +8,7 @@
 
 ## Sound, no changes
 
-Base UI behind a Kookie-owned API boundary. Token-only styling, no utility classes. Margin only on layout primitives. Size-as-index. Semantic radius references (`--radius-control-N`). Variants as shared role-token bundles. Tone x emphasis x elevation x material with appearance as resolved output. Generated OKLCH color with a role layer. Build order (tokens, Button, Card, measured at each step).
+Base UI behind a Kookie-owned API boundary. Token-only styling, no utility classes. Margin only on layout primitives. Size-as-index. Semantic radius references (`--radius-control-N`). Variants as shared role-token bundles. Tone x emphasis x material with appearance as resolved output (elevation was deleted as an axis on 2026-08-03; see LOG). Generated OKLCH color with a role layer. Build order (tokens, Button, Card, measured at each step).
 
 ## Blockers (fix in DECISIONS.md before code)
 

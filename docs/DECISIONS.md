@@ -601,7 +601,7 @@ states     rest | hover | press                                       the +1/+2 
 size       1 | 2 | 3 | 4                                               height index (controls) / padding + corner (surfaces)
 ```
 
-`appearance` (the actual fill/shadow/blur) is the **resolved output** of (tone x emphasis x bordered x elevation x material), never set directly.
+`appearance` (the actual fill/shadow/blur) is the **resolved output** of (tone x emphasis x bordered x material), never set directly.
 
 **There is no `variant` prop. `emphasis` is the only loudness axis**, and its three rungs are the recipes — there is no second, rawer naming underneath to escape into. The old five-name set (`solid / soft / surface / outline / ghost`) is dead: it named construction rather than loudness, and mixing metaphors is what made it unmappable to a ladder.
 
