@@ -6,8 +6,10 @@
  * with another, so the cost stays O(rungs + materials), never a product. Card's own
  * stylesheet does not exist: this file is the whole of what a Card looks like.
  *
- * There is no elevation and there are no shadows, anywhere. Separation is border and fill;
- * a detached component (Popover, Dialog) designs its own detachment when it is built. */
+ * There is no elevation axis, and no call site ever chooses a shadow. Separation is border
+ * and fill; the one sanctioned shadow is the Theme world at the bottom of this file
+ * (surfaces="elevated" — an app identity, §5), and a detached component (Popover, Dialog)
+ * designs its own detachment when it is built. */
 
 /* ── The skeleton every surface shares (§10) ─────────────────────────────────────────────── */
 

@@ -671,7 +671,7 @@ Name the loudness axis **emphasis**, never "primary/secondary," which smuggles t
 
 ## 10. Surfaces
 
-**Decision (amended 2026-08-03): a surface is tone x emphasis x bordered x material. There is no elevation axis and there are no shadows, anywhere in the system.**
+**Decision (amended 2026-08-03, re-amended 2026-08-04): a surface is tone x emphasis x bordered x material. There is no elevation axis, and no call site ever chooses a shadow — the one sanctioned shadow is Theme `surfaces="elevated"`, an app identity chosen once (§5, and "The shadow palette" below).**
 
 ### Elevation: deleted (2026-08-03, Kushagra)
 

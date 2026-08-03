@@ -590,7 +590,7 @@ ${BRANDS.slice(0, 5)
 </div>
 
 <h1 id="card">Card — the shell</h1>
-<p class="note">A shell: one treatment, no variants, no anatomy — <code>size × material</code> and children, and Card ships not one line of its own CSS (§10). A surface without a material is opaque — translucency is material's job alone — and separation between nested surfaces is the border, not the fill. No shadows anywhere. Titled layouts are blocks, not components. The glass values are v0, judged on this page; expect them to move.</p>
+<p class="note">A shell: one treatment, no variants, no anatomy — <code>size × material</code> and children, and Card ships not one line of its own CSS (§10). A surface without a material is opaque — translucency is material's job alone — and separation between nested surfaces is the border, not the fill. No call site chooses a shadow: the surfaces=\"elevated\" toggle above is the one sanctioned depth, an app identity (§5). Titled layouts are blocks, not components. The glass values are v0, judged on this page; expect them to move.</p>
 ${surfaceSection("light")}
 ${surfaceSection("dark")}
 
