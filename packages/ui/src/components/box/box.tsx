@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import type { RenderElement } from "../../system/render.ts";
+import { composeRender, type RenderElement } from "../../system/render.ts";
 import { resolveBoxProps, type BoxStyleProps } from "../../system/resolve.ts";
 
 export type BoxProps = BoxStyleProps &
@@ -34,13 +34,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(function Box(props, r
     ...domProps,
   };
 
-  if (render) {
-    return React.cloneElement(render, {
-      ...merged,
-      className: [render.props.className, merged.className].filter(Boolean).join(" "),
-      style: { ...merged.style, ...render.props.style },
-    });
-  }
+  if (render) return composeRender(render, merged as never);
 
   return <div {...(merged as React.ComponentPropsWithRef<"div">)} />;
 });
