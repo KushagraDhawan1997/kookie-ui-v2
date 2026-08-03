@@ -75,7 +75,7 @@
 
 /* ── The size index: one join, five families (§4) ────────────────────────────────────────── */
 
-[data-size="1"] {
+.kui-control[data-size="1"] {
   --kui-h: var(--control-height-1);
   --kui-px: var(--control-px-1);
   --kui-gap: var(--control-gap-1);
@@ -85,7 +85,7 @@
   --kui-tracking: var(--letter-spacing-1);
   --kui-icon: var(--icon-size-1);
 }
-[data-size="2"] {
+.kui-control[data-size="2"] {
   --kui-h: var(--control-height-2);
   --kui-px: var(--control-px-2);
   --kui-gap: var(--control-gap-2);
@@ -95,7 +95,7 @@
   --kui-tracking: var(--letter-spacing-2);
   --kui-icon: var(--icon-size-2);
 }
-[data-size="3"] {
+.kui-control[data-size="3"] {
   --kui-h: var(--control-height-3);
   --kui-px: var(--control-px-3);
   --kui-gap: var(--control-gap-3);
@@ -105,7 +105,7 @@
   --kui-tracking: var(--letter-spacing-3);
   --kui-icon: var(--icon-size-3);
 }
-[data-size="4"] {
+.kui-control[data-size="4"] {
   --kui-h: var(--control-height-4);
   --kui-px: var(--control-px-4);
   --kui-gap: var(--control-gap-4);
