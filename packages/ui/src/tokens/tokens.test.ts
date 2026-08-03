@@ -156,6 +156,21 @@ describe("density is a designed set, not a multiplier (§12)", () => {
     expect(css).not.toContain("var(--density)");
   });
 
+  it("emits the default level as a real block — an escape that does nothing is not an escape", () => {
+    // Theme stamps data-density on every Theme node, so a nested default Theme inside a
+    // compact region otherwise INHERITS the compact custom properties — the pointer fine
+    // world's bug (§16), one axis over. :root alone cannot fix it; the scope must re-declare.
+    const body = block(`[data-density="default"]`);
+    for (const family of ["control-height-2", "layout-space-4", "surface-p-1"]) {
+      expect(body).toContain(`--${family}:`);
+    }
+    // Order is load-bearing: the block precedes the pointer worlds, so on a coarse device the
+    // later same-specificity [data-pointer] blocks still win the tie and keep coarse geometry.
+    expect(css.indexOf(`[data-density="default"] {`)).toBeLessThan(
+      css.indexOf(`[data-pointer="fine"]`),
+    );
+  });
+
   it("never touches type — a size-2 label is size 2 at every density, which is the axis", () => {
     for (const level of ["compact", "comfortable"] as const) {
       const body = block(`[data-density="${level}"]`);

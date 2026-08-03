@@ -814,6 +814,41 @@
   --surface-p-4: var(--layout-space-7);
 }
 
+[data-density="default"] {
+  --control-height-1: calc(28px * var(--scale));
+  --control-height-2: calc(32px * var(--scale));
+  --control-height-3: calc(40px * var(--scale));
+  --control-height-4: calc(48px * var(--scale));
+  --control-px-1: var(--space-3);
+  --control-px-2: var(--space-4);
+  --control-px-3: var(--space-5);
+  --control-px-4: var(--space-6);
+  --control-gap-1: var(--space-2);
+  --control-gap-2: var(--space-3);
+  --control-gap-3: var(--space-3);
+  --control-gap-4: var(--space-4);
+  --radius-control-1: var(--radius-1);
+  --radius-control-2: var(--radius-2);
+  --radius-control-3: var(--radius-3);
+  --radius-control-4: var(--radius-4);
+  --layout-space-1: var(--space-1);
+  --layout-space-2: var(--space-2);
+  --layout-space-3: var(--space-3);
+  --layout-space-4: var(--space-4);
+  --layout-space-5: var(--space-5);
+  --layout-space-6: var(--space-6);
+  --layout-space-7: var(--space-7);
+  --layout-space-8: var(--space-8);
+  --layout-space-9: var(--space-9);
+  --layout-space-10: var(--space-10);
+  --layout-space-11: var(--space-11);
+  --layout-space-12: var(--space-12);
+  --surface-p-1: var(--layout-space-4);
+  --surface-p-2: var(--layout-space-5);
+  --surface-p-3: var(--layout-space-6);
+  --surface-p-4: var(--layout-space-7);
+}
+
 [data-density="comfortable"] {
   --control-height-1: calc(34px * var(--scale));
   --control-height-2: calc(40px * var(--scale));

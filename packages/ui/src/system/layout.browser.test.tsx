@@ -47,6 +47,18 @@ describe("the var chain actually resolves (§2)", () => {
     expect(computed(airy.querySelector("#probe")!, "padding-top")).toBe("16px");
   });
 
+  it("a nested default scope ESCAPES a compact ancestor — it re-declares, not inherits (§12)", () => {
+    // Theme stamps data-density on every node, and custom properties inherit: without the
+    // emitted [data-density="default"] block this rendered 8px — a compact region nobody
+    // could opt back out of. Same law the pointer fine world holds (§16).
+    const host = mount(
+      `<div data-density="compact"><div data-density="default"><div id="probe" class="kui-box" style="--kui-p: var(--layout-space-4); height: var(--control-height-2)"></div></div></div>`,
+    );
+    const probe = host.querySelector("#probe")!;
+    expect(computed(probe, "padding-top")).toBe("12px");
+    expect(computed(probe, "height")).toBe("32px");
+  });
+
   it("a raw value rides the same prop, which is what utility classes could never do", () => {
     const host = mount(`<div class="kui-box" style="--kui-p: 13px"></div>`);
     expect(computed(host.firstElementChild!, "padding-top")).toBe("13px");

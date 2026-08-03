@@ -168,8 +168,13 @@ export function generateTokens(): string {
   // :root would carry the default rhythm into a compact subtree. No pointer cells for either:
   // nothing here varies by pointer (§16 — gutters must not inflate on the smaller screen),
   // and the single-attribute block still matches under any [data-pointer] scope.
+  //
+  // `default` is emitted too, and it is not redundant with :root: Theme stamps data-density
+  // on every Theme node, and a nested default Theme inside a compact region otherwise
+  // INHERITS the compact custom properties — the same "an escape that does nothing is not an
+  // escape" bug the pointer fine world fixed (§16). Emitted before the pointer worlds, so a
+  // coarse device's later [data-pointer] blocks still win the same-specificity tie.
   for (const level of Object.keys(density) as DensityLevel[]) {
-    if (level === "default") continue;
     lines.push(
       `[data-density="${level}"] {`,
       ...controlFamily(density[level]),
