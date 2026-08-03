@@ -220,17 +220,27 @@ export const surfacePadding = [4, 5, 6, 7] as const;
  * blocks and escapes are the audience. Dark rows run heavier: dark pages swallow shadow.
  */
 export const shadow = {
+  // SHARP by construction, not by taste adjectives (researched 2026-08-04). Three rules:
+  //
+  // 1. NEGATIVE SPREAD on the reaching layer — it pulls the shadow in under the element so
+  //    depth drops BELOW instead of haloing sideways. This is the entire difference between
+  //    crisp (shadcn/Tailwind) and foggy (2015 Material); rows 2-4 take Tailwind's sm/md/lg
+  //    geometry verbatim, because row 2 is literally the card shadow judged sharp by eye.
+  // 2. One light source: x is always 0, y grows with the row.
+  // 3. Depth is offset growth, never more fog — blur stays proportional to offset.
   light: [
-    "inset 0 1px 2px rgb(0 0 0 / 0.08)",
-    "0 1px 2px rgb(0 0 0 / 0.06), 0 1px 4px rgb(0 0 0 / 0.08)",
-    "0 2px 4px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.12)",
-    "0 4px 12px rgb(0 0 0 / 0.1), 0 20px 48px rgb(0 0 0 / 0.22)",
+    "inset 0 1px 2px rgb(0 0 0 / 0.1)",
+    "0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+    "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+    "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
   ],
+  // Same geometry — the light source does not move at night — with alpha carrying the load,
+  // because a dark page swallows shadow.
   dark: [
-    "inset 0 1px 2px rgb(0 0 0 / 0.4)",
-    "0 1px 2px rgb(0 0 0 / 0.35), 0 1px 4px rgb(0 0 0 / 0.3)",
-    "0 2px 4px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.4)",
-    "0 4px 12px rgb(0 0 0 / 0.4), 0 20px 48px rgb(0 0 0 / 0.55)",
+    "inset 0 1px 2px rgb(0 0 0 / 0.45)",
+    "0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4)",
+    "0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4)",
+    "0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.45)",
   ],
 } as const;
 
