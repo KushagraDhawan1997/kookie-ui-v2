@@ -7,6 +7,7 @@
 import { describe, expect, it } from "vitest";
 
 import { space } from "../tokens/config.ts";
+import { boxProps } from "./props.ts";
 import { resolveBoxProps } from "./resolve.ts";
 
 describe("a value becomes a custom property, and nothing becomes a rule (§2)", () => {
@@ -59,5 +60,53 @@ describe("the boundary between props and the DOM (§3)", () => {
     // The type admits undefined on purpose: `p={cond ? "4" : undefined}` is how a conditional
     // prop is written, and a type that refused it would send people to the escape hatch.
     expect(resolveBoxProps({ p: undefined, gap: undefined }).style).toEqual({});
+  });
+});
+
+describe("no row emits a shorthand into a space another row also feeds (§2, requirement 3)", () => {
+  // props.ts has carried the words "Never a shorthand" since 2026-08-02, when padding was
+  // found emitting `padding:` in front of its own longhands. Nothing enforced it, and two
+  // rows went on violating it: `inset` and `overflow` both shipped as dead no-ops, because a
+  // shorthand followed by a longhand whose var is unset does not degrade — the longhand is
+  // invalid at computed-value time and resets the property to its INITIAL value, beating the
+  // shorthand that preceded it.
+  //
+  // A shorthand is legal only where no other row feeds any longhand it would swallow, which is
+  // why `grid-area` stays: nothing else writes grid-row-start.
+  const EXPANDS: Record<string, string[]> = {
+    inset: ["top", "right", "bottom", "left"],
+    overflow: ["overflow-x", "overflow-y"],
+    padding: ["padding-block-start", "padding-block-end", "padding-inline-start", "padding-inline-end"],
+    margin: ["margin-block-start", "margin-block-end", "margin-inline-start", "margin-inline-end"],
+    gap: ["row-gap", "column-gap"],
+    "grid-area": ["grid-row-start", "grid-row-end", "grid-column-start", "grid-column-end"],
+    flex: ["flex-grow", "flex-shrink", "flex-basis"],
+  };
+
+  it("holds for every row in the table", () => {
+    const fedBy = new Map<string, string[]>();
+    for (const [name, def] of Object.entries(boxProps)) {
+      for (const prop of def.css) (fedBy.get(prop) ?? fedBy.set(prop, []).get(prop)!).push(name);
+    }
+    for (const [prop, names] of fedBy) {
+      const swallowed = EXPANDS[prop];
+      if (!swallowed) continue;
+      const collisions = swallowed.filter((longhand) => fedBy.has(longhand));
+      expect(
+        collisions,
+        `${names.join("/")} emits the shorthand \`${prop}\`, which would be reset by ${collisions.join(", ")}`,
+      ).toEqual([]);
+    }
+  });
+
+  it("and the two that were broken now feed their longhands through the precedence chain", () => {
+    expect(boxProps.inset.css).toEqual(["top", "right", "bottom", "left"]);
+    expect(boxProps.overflow.css).toEqual(["overflow-x", "overflow-y"]);
+    for (const [shorthand, longhands] of [
+      [boxProps.inset, [boxProps.top, boxProps.right, boxProps.bottom, boxProps.left]],
+      [boxProps.overflow, [boxProps.overflowX, boxProps.overflowY]],
+    ] as const) {
+      for (const longhand of longhands) expect(longhand.precedence).toBeGreaterThan(shorthand.precedence);
+    }
   });
 });
