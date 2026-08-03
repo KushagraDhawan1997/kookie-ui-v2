@@ -14,10 +14,12 @@ import { generateLayoutCss } from "../system/layout-css.ts";
 import { tones, type ToneName } from "./color-config.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
+  borderWidth,
   coarse,
   cursor,
   defaultRadiusLevel,
   density,
+  focusRing,
   fontFamily,
   fontSize,
   fontWeight,
@@ -76,6 +78,16 @@ export function generateTokens(): string {
 
   lines.push("", "  /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */");
   iconSize.forEach((px, i) => put(`icon-size-${i + 1}`, zoom(px)));
+
+  lines.push(
+    "",
+    "  /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until",
+    "     2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered",
+    "     button at scale 2 kept a 1px hairline while every other length doubled. */",
+  );
+  put("border-width", zoom(borderWidth));
+  put("focus-ring-width", zoom(focusRing.width));
+  put("focus-ring-offset", zoom(focusRing.offset));
 
   lines.push("", "  /* §8's one canonical interaction transition — not a motion scale */");
   put("motion-duration", motion.duration);

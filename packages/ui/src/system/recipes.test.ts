@@ -7,7 +7,7 @@
  * component's own stylesheet names none of the axes, so adding Input or Select adds structure
  * and nothing else, and adding a tone or a rung touches one shared file.
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -197,5 +197,34 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     const body = block.slice(0, block.indexOf("}"));
     expect(body).toContain("--tone-label");
     expect(body).not.toContain("opacity");
+  });
+});
+
+describe("tokens only: no raw length literals in a hand-authored stylesheet (non-negotiable)", () => {
+  // "No raw px in component CSS; every value resolves through a --* token." This was true of
+  // every length except the chrome widths, which sat as `1px` / `2px` literals in recipes.css
+  // and surfaces.css — and the consequence was not stylistic: they were the only geometry in a
+  // control that ignored --scale, so a bordered button at scale 2 doubled its height, padding,
+  // radius and type and kept a 1px hairline. The rule is a law now, not a habit.
+  //
+  // tokens.css and layout.css are exempt: they are GENERATED, and a generated file is where
+  // the literals are supposed to bottom out.
+  const walk = (dir: string): string[] =>
+    readdirSync(join(here, dir), { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory()
+        ? walk(join(dir, entry.name))
+        : entry.name.endsWith(".css") && !["tokens.css", "layout.css"].includes(entry.name)
+          ? [join(dir, entry.name)]
+          : [],
+    );
+
+  it("holds for every hand-authored stylesheet in the package", () => {
+    const files = walk("..");
+    expect(files.length).toBeGreaterThan(2);
+    for (const file of files) {
+      const withoutComments = read(file).replace(/\/\*[\s\S]*?\*\//g, "");
+      const literals = withoutComments.match(/(?<![-\w(#.])\d+(\.\d+)?px\b/g) ?? [];
+      expect(literals, `${file} carries raw px: ${literals.join(", ")}`).toEqual([]);
+    }
   });
 });
