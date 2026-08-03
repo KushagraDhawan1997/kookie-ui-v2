@@ -89,7 +89,8 @@ export function generateTokens(): string {
   put("focus-ring-width", zoom(focusRing.width));
   put("focus-ring-offset", zoom(focusRing.offset));
 
-  lines.push("", "  /* §8's one canonical interaction transition — not a motion scale */");
+  lines.push("", "  /* motion (§8) — designed values with NO consumer: every transition is zeroed until the");
+  lines.push("     motion system is designed, and a law pins that. Not a shipped transition. */");
   put("motion-duration", motion.duration);
   put("motion-easing", motion.easing);
 
@@ -403,7 +404,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
   ];
 }
 
-/** The radius palette for one level (§6). Steps 1-5 are the control band, 6-7 surfaces. */
+/** The radius palette for one level (§6). Steps 1-5 control, 6-9 surfaces, 10 the overlay. */
 function radiusPalette(level: RadiusLevel): string[] {
   const { steps, full } = radiusLevels[level];
   const out = steps.map((px, i) => `  --radius-${i}: ${px === 0 ? "0px" : zoom(px)};`);
