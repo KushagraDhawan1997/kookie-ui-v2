@@ -56,6 +56,34 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     expect(computed(render(<Card size="1">B</Card>), "padding-top")).toBe("12px");
   });
 
+  it("wears the corner of its size — the surface band is size-indexed (§6)", () => {
+    // Decided 2026-08-04: a size-1 card and a size-4 card do not share a corner. Size 3 is
+    // the anchor: it kept the old flat value, so the default card never moved.
+    const one = render(<Card size="1">B</Card>);
+    const four = render(<Card size="4">B</Card>);
+    expect(computed(one, "border-top-left-radius")).toBe("10px");
+    expect(computed(render(<Card>B</Card>), "border-top-left-radius")).toBe("16px");
+    expect(computed(four, "border-top-left-radius")).toBe("20px");
+  });
+
+  it("follows a nested radius Theme — the level blocks re-bake the surface semantics (§6)", () => {
+    // The bug this pins: --radius-surface-N declared only in :root stays baked to the medium
+    // palette (substitution-at-declaration), so a nested small Theme re-priced the palette
+    // and the card's corner ignored it.
+    const small = render(
+      <Theme radius="small">
+        <Card>B</Card>
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-card")!;
+    expect(computed(small, "border-top-left-radius")).toBe("8px");
+    const none = render(
+      <Theme radius="none">
+        <Card>B</Card>
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-card")!;
+    expect(computed(none, "border-top-left-radius")).toBe("0px");
+  });
+
   it("takes density: a compact app's cards lose air, a comfortable app's gain it (§12)", () => {
     // Density reaches the card through the layout-space layer (§3, §12; the per-family sets
     // that shipped the same morning were superseded by the layer the same day) — otherwise

@@ -20,23 +20,28 @@
      re-scoped roles, so arbitrary content stays legible on every rung. */
   color: var(--color-text);
   border: 1px solid var(--kui-border-color, transparent);
-  border-radius: var(--radius-surface);
+  /* The fallback is the default size's corner, for a surface that carries no size index. */
+  border-radius: var(--kui-sf-radius, var(--radius-surface-3));
   padding: var(--kui-sf-p);
 }
 
-/* ── The size index: padding only — a surface has no height to own (§4, §10) ─────────────── */
+/* ── The size index: padding and corner — a surface has no height to own (§4, §6, §10) ───── */
 
 .kui-surface[data-size="1"] {
   --kui-sf-p: var(--surface-p-1);
+  --kui-sf-radius: var(--radius-surface-1);
 }
 .kui-surface[data-size="2"] {
   --kui-sf-p: var(--surface-p-2);
+  --kui-sf-radius: var(--radius-surface-2);
 }
 .kui-surface[data-size="3"] {
   --kui-sf-p: var(--surface-p-3);
+  --kui-sf-radius: var(--radius-surface-3);
 }
 .kui-surface[data-size="4"] {
   --kui-sf-p: var(--surface-p-4);
+  --kui-sf-radius: var(--radius-surface-4);
 }
 
 /* ── The rungs, in surface dressing (§9, §10) ────────────────────────────────────────────────

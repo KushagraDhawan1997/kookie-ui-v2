@@ -29,8 +29,11 @@
   --radius-3: calc(8px * var(--scale));
   --radius-4: calc(10px * var(--scale));
   --radius-5: calc(12px * var(--scale));
-  --radius-6: calc(16px * var(--scale));
-  --radius-7: calc(24px * var(--scale));
+  --radius-6: calc(10px * var(--scale));
+  --radius-7: calc(12px * var(--scale));
+  --radius-8: calc(16px * var(--scale));
+  --radius-9: calc(20px * var(--scale));
+  --radius-10: calc(24px * var(--scale));
   --radius-full: 9999px;
 
   /* type (§15) — scale only, never density */
@@ -84,9 +87,12 @@
   --cursor-loading: progress;
   --cursor-disabled: default;
 
-  /* semantic: surfaces have no size index — flat tokens (§6) */
-  --radius-surface: var(--radius-6);
-  --radius-overlay: var(--radius-7);
+  /* semantic: surface radii by size index, overlay flat (§6, §10) */
+  --radius-surface-1: var(--radius-6);
+  --radius-surface-2: var(--radius-7);
+  --radius-surface-3: var(--radius-8);
+  --radius-surface-4: var(--radius-9);
+  --radius-overlay: var(--radius-10);
 
   /* semantic: control family at the default density (§4, §6, §12) */
   --control-height-1: calc(28px * var(--scale));
@@ -893,7 +899,15 @@
   --radius-5: 0px;
   --radius-6: 0px;
   --radius-7: 0px;
+  --radius-8: 0px;
+  --radius-9: 0px;
+  --radius-10: 0px;
   --radius-full: 0px;
+  --radius-surface-1: var(--radius-6);
+  --radius-surface-2: var(--radius-7);
+  --radius-surface-3: var(--radius-8);
+  --radius-surface-4: var(--radius-9);
+  --radius-overlay: var(--radius-10);
 }
 
 [data-radius="small"] {
@@ -903,9 +917,37 @@
   --radius-3: calc(4px * var(--scale));
   --radius-4: calc(5px * var(--scale));
   --radius-5: calc(6px * var(--scale));
-  --radius-6: calc(8px * var(--scale));
-  --radius-7: calc(12px * var(--scale));
+  --radius-6: calc(5px * var(--scale));
+  --radius-7: calc(6px * var(--scale));
+  --radius-8: calc(8px * var(--scale));
+  --radius-9: calc(10px * var(--scale));
+  --radius-10: calc(12px * var(--scale));
   --radius-full: 9999px;
+  --radius-surface-1: var(--radius-6);
+  --radius-surface-2: var(--radius-7);
+  --radius-surface-3: var(--radius-8);
+  --radius-surface-4: var(--radius-9);
+  --radius-overlay: var(--radius-10);
+}
+
+[data-radius="medium"] {
+  --radius-0: 0px;
+  --radius-1: calc(4px * var(--scale));
+  --radius-2: calc(6px * var(--scale));
+  --radius-3: calc(8px * var(--scale));
+  --radius-4: calc(10px * var(--scale));
+  --radius-5: calc(12px * var(--scale));
+  --radius-6: calc(10px * var(--scale));
+  --radius-7: calc(12px * var(--scale));
+  --radius-8: calc(16px * var(--scale));
+  --radius-9: calc(20px * var(--scale));
+  --radius-10: calc(24px * var(--scale));
+  --radius-full: 9999px;
+  --radius-surface-1: var(--radius-6);
+  --radius-surface-2: var(--radius-7);
+  --radius-surface-3: var(--radius-8);
+  --radius-surface-4: var(--radius-9);
+  --radius-overlay: var(--radius-10);
 }
 
 [data-radius="large"] {
@@ -915,9 +957,17 @@
   --radius-3: calc(12px * var(--scale));
   --radius-4: calc(14px * var(--scale));
   --radius-5: calc(16px * var(--scale));
-  --radius-6: calc(24px * var(--scale));
-  --radius-7: calc(32px * var(--scale));
+  --radius-6: calc(16px * var(--scale));
+  --radius-7: calc(20px * var(--scale));
+  --radius-8: calc(24px * var(--scale));
+  --radius-9: calc(28px * var(--scale));
+  --radius-10: calc(32px * var(--scale));
   --radius-full: 9999px;
+  --radius-surface-1: var(--radius-6);
+  --radius-surface-2: var(--radius-7);
+  --radius-surface-3: var(--radius-8);
+  --radius-surface-4: var(--radius-9);
+  --radius-overlay: var(--radius-10);
 }
 
 [data-radius="full"] {
@@ -927,9 +977,17 @@
   --radius-3: calc(9999px * var(--scale));
   --radius-4: calc(9999px * var(--scale));
   --radius-5: calc(9999px * var(--scale));
-  --radius-6: calc(24px * var(--scale));
-  --radius-7: calc(32px * var(--scale));
+  --radius-6: calc(16px * var(--scale));
+  --radius-7: calc(20px * var(--scale));
+  --radius-8: calc(24px * var(--scale));
+  --radius-9: calc(28px * var(--scale));
+  --radius-10: calc(32px * var(--scale));
   --radius-full: 9999px;
+  --radius-surface-1: var(--radius-6);
+  --radius-surface-2: var(--radius-7);
+  --radius-surface-3: var(--radius-8);
+  --radius-surface-4: var(--radius-9);
+  --radius-overlay: var(--radius-10);
 }
 
 [data-radius="none"][data-density="compact"] {

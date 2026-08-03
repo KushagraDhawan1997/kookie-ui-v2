@@ -305,8 +305,11 @@ Radius is perceptually non-linear. Fine steps at the small end (controls, eye is
 --radius-3: 8px     |  the CONTROL band — density picks a step from here
 --radius-4: 10px    |
 --radius-5: 12px   /
---radius-6: 16px   \   the SURFACE band — --radius-surface, --radius-overlay
---radius-7: 24px   /
+--radius-6: 10px   \
+--radius-7: 12px    |  the SURFACE band — --radius-surface-1..4 (size-indexed, 2026-08-04)
+--radius-8: 16px    |
+--radius-9: 20px   /
+--radius-10: 24px      the OVERLAY — --radius-overlay (a dialog has one size)
 --radius-full: 9999px
 ```
 
@@ -327,8 +330,8 @@ Numeric coincidence ("size 2 uses radius 2") is fragile, it holds only until som
 --radius-control-2: var(--radius-2);
 --radius-control-3: var(--radius-3);
 --radius-control-4: var(--radius-4);
---radius-surface: var(--radius-5);     /* cards, panels, popovers */
---radius-overlay: var(--radius-6);     /* dialogs, sheets */
+--radius-surface-3: var(--radius-8);   /* size-3 card, panel, popover (size-indexed, section 10) */
+--radius-overlay: var(--radius-10);    /* dialogs, sheets — flat */
 ```
 
 A Button references `--radius-control-2`, never `--radius-2` directly.
@@ -340,7 +343,7 @@ A Button references `--radius-control-2`, never `--radius-2` directly.
 
 ### Boundaries
 
-- Stepped radius family is a **control** concern (fixed-height family). **Surfaces** take flat `--radius-surface` / `--radius-overlay`, because a card has no size index. Small stepped family for controls, flat tokens for surfaces, not a giant matrix.
+- Stepped radius families exist for **both** kinds of component, differently sized on purpose. Controls: `--radius-control-1..4`, density-indexed (section 12). Surfaces: `--radius-surface-1..4`, size-indexed only (amended 2026-08-04, Kushagra — a size-1 card and a size-4 card should not wear the same corner; the original "a card has no size index" premise died when Card grew one for padding). Density never touches a surface corner — density reaches a card through padding (layout space); the corner follows the size index alone. Size 3 anchors at each level's old flat value, so the default card never moved. Overlay stays flat: a dialog has one size.
 - **Do not auto-derive radius from height.** `calc(height * ratio)` re-imports the non-linearity. Each control-radius is a designed value placed on the curve, hand-tuned references.
 - **Control radius is part of the density set** (section 12). Density changes visual size enough that a fixed corner reads boxy at the airy end, so each density level places its own control radii — still designed points, never derived from the height.
 
@@ -348,9 +351,9 @@ A Button references `--radius-control-2`, never `--radius-2` directly.
 
 **Decision: each level (`none`, `small`, `medium`, `large`, `full`) is a designed palette, emitted at build time under `[data-radius]`.** Not a multiplier over one palette, for the same reason density is not one: a factor can only move every step together, so no single corner is correctable, and each radius is supposed to be a placed point on a perceptual curve.
 
-The decisive case is `full`. CSS clamps `border-radius` to half the smaller dimension, so a huge value gives a perfect pill on controls free — but surfaces must be **capped** (a dialog at full must not become a giant lens; Radix caps card radius even in full). One factor cannot do both, because it scales controls and surfaces by the same amount. A designed palette can: at `full`, the control band goes to 9999 and the surface band holds at its medium values.
+The decisive case is `full`. CSS clamps `border-radius` to half the smaller dimension, so a huge value gives a perfect pill on controls free — but surfaces must be **capped** (a dialog at full must not become a giant lens; Radix caps card radius even in full). One factor cannot do both, because it scales controls and surfaces by the same amount. A designed palette can: at `full`, the control band goes to 9999 and the surface band holds at `large`'s values.
 
-**Bands keep the two axes legible:** steps 1-5 are the control band and 6-7 the surface band, disjoint on purpose, so `full` can pill the controls while capping surfaces. Density picks a step; a level says what a step is worth.
+**Bands keep the two axes legible:** steps 1-5 are the control band, 6-9 the surface band, 10 the overlay, disjoint on purpose, so `full` can pill the controls while capping surfaces. Density picks a control step; size picks a surface step; a level says what a step is worth. The surface semantics are re-declared inside every `[data-radius]` block — they take no density, so no cell carries them, and a `:root`-only declaration would stay baked to the default palette inside any radius subtree (the substitution-at-declaration lesson below, applied at emission time rather than re-learned).
 
 **But disjoint bands are not sufficient, and a browser test is what proved it (2026-08-02).** A custom property that references another is substituted **where it is declared**, not where it is used, so `--radius-control-2: var(--radius-2)` sitting in `:root` is already baked to the default palette before any `[data-radius]` block further down changes `--radius-2`. Setting a radius level therefore did nothing to control radii at all, and the earlier claim that the axes composed because neither wrote the other's token was simply wrong. The generator now emits every (radius x density) cell — Theme writes both attributes on one element, so the combined selector always matches and outranks either alone. The lesson is narrower than "test the cascade": **an indirection through a custom property is resolved at its declaration site, so any token that must react to a scope below it has to be re-declared in that scope.**
 
@@ -595,7 +598,7 @@ bordered   boolean                                                    containmen
 elevation  DELETED 2026-08-03 — see section 10               separation is border and fill; no shadows
 material   solid | thin | thick                                       backdrop defense; any FLOATING component, buttons included
 states     rest | hover | press                                       the +1/+2 step rule (interactive only)
-size       1 | 2 | 3 | 4                                               height index (controls) / padding (surfaces)
+size       1 | 2 | 3 | 4                                               height index (controls) / padding + corner (surfaces)
 ```
 
 `appearance` (the actual fill/shadow/blur) is the **resolved output** of (tone x emphasis x bordered x elevation x material), never set directly.
@@ -855,7 +858,7 @@ color             -> neither                      (compiled static; not a runtim
 ```
 raw px constants
   -> base scale (via --scale; radius and control values come from the radius and density sets)
-    -> semantic tokens (--radius-control-N, --radius-surface, --control-px-N, ...)
+    -> semantic tokens (--radius-control-N, --radius-surface-N, --control-px-N, ...)
       -> variant recipes (soft/solid/...) -> components consume via tone x emphasis
          (user-authored components may consume base directly)
 

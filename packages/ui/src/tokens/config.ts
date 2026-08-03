@@ -11,29 +11,32 @@
 export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
 
 /**
- * §6 — the radius palettes, one per Theme `radius` level, index 0..7. Like density, a level
+ * §6 — the radius palettes, one per Theme `radius` level, index 0..10. Like density, a level
  * is a designed set rather than a multiplier: a factor cannot express `full`, which has to
  * make controls pills while *capping* surfaces so a dialog does not become a giant lens.
  *
  * The bands are disjoint on purpose:
- *   steps 1-5  the control band (density picks a step from here)
- *   steps 6-7  the surface band (--radius-surface, --radius-overlay)
+ *   steps 1-5   the control band (density picks a step from here)
+ *   steps 6-9   the surface band (--radius-surface-1..4 — size-indexed since 2026-08-04)
+ *   step  10    the overlay (--radius-overlay)
  * That is what lets `full` pill the controls while capping surfaces. It is NOT what makes the
  * two axes layer safely — a browser test disproved that (§6, 2026-08-02): a custom property
  * reference resolves where it is declared, so the generator has to emit every (level x density)
  * cell rather than rely on the bands never colliding.
  *
- * The 10 step exists because controls live in 4-12, where the bare 8 -> 12 jump was 1.5x
- * with nothing between: every correction overshot, which is what turned size 4 into a capsule.
+ * The 10 step in the control band exists because controls live in 4-12, where the bare
+ * 8 -> 12 jump was 1.5x with nothing between: every correction overshot, which is what turned
+ * size 4 into a capsule. The surface band anchors size 3 at each level's old flat value
+ * (small 8, medium 16, large 24) so the default card never moved; the rest are v0 by eye.
  */
 export const radiusLevels = {
-  none: { steps: [0, 0, 0, 0, 0, 0, 0, 0], full: 0 },
-  small: { steps: [0, 2, 3, 4, 5, 6, 8, 12], full: 9999 },
-  medium: { steps: [0, 4, 6, 8, 10, 12, 16, 24], full: 9999 },
-  large: { steps: [0, 6, 8, 12, 14, 16, 24, 32], full: 9999 },
+  none: { steps: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], full: 0 },
+  small: { steps: [0, 2, 3, 4, 5, 6, 5, 6, 8, 10, 12], full: 9999 },
+  medium: { steps: [0, 4, 6, 8, 10, 12, 10, 12, 16, 20, 24], full: 9999 },
+  large: { steps: [0, 6, 8, 12, 14, 16, 16, 20, 24, 28, 32], full: 9999 },
   // The surface band caps at `large`'s values rather than medium's: capping lower would
   // make cards squarer as the dial turns up, which is what the level ladder must never do.
-  full: { steps: [0, 9999, 9999, 9999, 9999, 9999, 24, 32], full: 9999 },
+  full: { steps: [0, 9999, 9999, 9999, 9999, 9999, 16, 20, 24, 28, 32], full: 9999 },
 } as const;
 
 export type RadiusLevel = keyof typeof radiusLevels;
@@ -41,9 +44,14 @@ export type RadiusLevel = keyof typeof radiusLevels;
 /** The level emitted on `:root`; the rest ship as `[data-radius]` blocks. */
 export const defaultRadiusLevel = "medium" satisfies RadiusLevel;
 
-/** §6 — surfaces have no size index, so they take flat references from the surface band. */
-export const radiusSurface = 6;
-export const radiusOverlay = 7;
+/**
+ * §6, §10 — surface radii are size-indexed picks into the surface band (decided 2026-08-04,
+ * Kushagra: a size-1 card and a size-4 card should not wear the same corner). Density never
+ * touches these — density reaches a card through padding (layout space); the corner follows
+ * only the size index. The overlay stays flat: a dialog has one size.
+ */
+export const radiusSurface = [6, 7, 8, 9] as const;
+export const radiusOverlay = 10;
 
 /**
  * §12 — the density sets. Density is not a multiplier: each level places its own control

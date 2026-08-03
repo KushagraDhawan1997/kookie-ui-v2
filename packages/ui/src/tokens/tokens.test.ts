@@ -56,9 +56,9 @@ function declaration(name: string, level: "default" | "compact" | "comfortable" 
 }
 
 describe("step counts are set per family, not copied across families (§6)", () => {
-  it("space spans 12 steps, radius 8 at every level, type 9, controls 4 at every density", () => {
+  it("space spans 12 steps, radius 11 at every level, type 9, controls 4 at every density", () => {
     expect(space).toHaveLength(12);
-    for (const level of Object.values(radiusLevels)) expect(level.steps).toHaveLength(8);
+    for (const level of Object.values(radiusLevels)) expect(level.steps).toHaveLength(11);
     expect(fontSize).toHaveLength(9);
     for (const set of Object.values(density)) {
       for (const family of [set.height, set.px, set.gap, set.radius]) {
@@ -79,8 +79,8 @@ describe("palettes are monotonic", () => {
     // Across the bands it may drop, and at `full` it must: controls go to a pill while
     // surfaces stay capped. That break is the point of splitting the bands.
     for (const { steps } of Object.values(radiusLevels)) {
-      const control = steps.slice(0, radiusSurface);
-      const surface = steps.slice(radiusSurface);
+      const control = steps.slice(0, radiusSurface[0]);
+      const surface = steps.slice(radiusSurface[0]);
       for (const band of [control, surface]) {
         expect(band.every((v, i) => i === 0 || v >= band[i - 1]!)).toBe(true);
       }
@@ -114,10 +114,10 @@ describe("the size index joins a coherent set (§4)", () => {
 describe("semantic tokens reference palette tokens, never restate numbers (§6)", () => {
   it("control and surface radii resolve through var(--radius-N)", () => {
     for (let size = 1; size <= 4; size++) {
-      expect(declaration(`radius-control-${size}`)).toMatch(/^var\(--radius-\d\)$/);
+      expect(declaration(`radius-control-${size}`)).toMatch(/^var\(--radius-\d+\)$/);
+      expect(declaration(`radius-surface-${size}`)).toMatch(/^var\(--radius-\d+\)$/);
     }
-    expect(declaration("radius-surface")).toMatch(/^var\(--radius-\d\)$/);
-    expect(declaration("radius-overlay")).toMatch(/^var\(--radius-\d\)$/);
+    expect(declaration("radius-overlay")).toMatch(/^var\(--radius-\d+\)$/);
   });
 
   it("control padding and gap resolve through the space palette", () => {
@@ -358,9 +358,12 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
     expect(css).not.toContain("var(--radius-factor)");
   });
 
-  it("declares the whole palette at every non-default level", () => {
-    for (const name of ["none", "small", "large", "full"] as const) {
-      for (let step = 0; step <= 7; step++) {
+  it("declares the whole palette at EVERY level, the default included", () => {
+    // The default block is the escape (§12's density lesson, one axis over): Theme stamps
+    // data-radius on every node, and a nested medium Theme inside a small region otherwise
+    // inherits the small palette.
+    for (const name of ["none", "small", "medium", "large", "full"] as const) {
+      for (let step = 0; step <= 10; step++) {
         expect(level(name)).toMatch(new RegExp(`--radius-${step}:`));
       }
       expect(level(name)).toContain("--radius-full:");
@@ -369,10 +372,10 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
 
   it("caps surfaces at full so a dialog never becomes a lens", () => {
     const { steps } = radiusLevels.full;
-    for (const step of [radiusSurface, radiusOverlay]) {
+    for (const step of [...radiusSurface, radiusOverlay]) {
       expect(steps[step]).toBeLessThan(100);
     }
-    for (let step = 1; step < radiusSurface; step++) {
+    for (let step = 1; step < radiusSurface[0]; step++) {
       expect(steps[step]).toBeGreaterThan(1000);
     }
   });
@@ -381,7 +384,7 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
     // The bug this exists for: `full` capped surfaces at medium's values, so cards read
     // squarer at full than at large. Turning the dial up must never turn a corner down.
     const ladder = ["none", "small", "medium", "large", "full"] as const;
-    for (let step = 0; step <= 7; step++) {
+    for (let step = 0; step <= 10; step++) {
       for (let i = 1; i < ladder.length; i++) {
         expect(radiusLevels[ladder[i]!].steps[step]!).toBeGreaterThanOrEqual(
           radiusLevels[ladder[i - 1]!].steps[step]!,
@@ -395,17 +398,34 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
     expect(radiusLevels.none.full).toBe(0);
   });
 
-  it("writes no semantic token, so density picks the step and the level prices it", () => {
-    for (const name of ["none", "small", "large", "full"] as const) {
-      for (const semantic of ["radius-control-", "radius-surface", "radius-overlay"]) {
-        expect(level(name)).not.toContain(`--${semantic}`);
-      }
+  it("writes no CONTROL semantic — density picks that step and the (level x density) cells carry it", () => {
+    for (const name of ["none", "small", "medium", "large", "full"] as const) {
+      expect(level(name)).not.toContain("--radius-control-");
     }
+  });
+
+  it("re-declares the surface semantics in every level block — no density cell carries them", () => {
+    // Substitution-at-declaration (§6): --radius-surface-N left in :root alone stays baked
+    // to the medium palette inside any [data-radius] subtree, so a nested small Theme's cards
+    // would keep medium corners. Surface radii take no density, so the level block itself is
+    // the only scope that can re-bake them.
+    for (const name of ["none", "small", "medium", "large", "full"] as const) {
+      for (let size = 1; size <= 4; size++) {
+        expect(level(name)).toContain(`--radius-surface-${size}: var(--radius-${radiusSurface[size - 1]})`);
+      }
+      expect(level(name)).toContain(`--radius-overlay: var(--radius-${radiusOverlay})`);
+    }
+  });
+
+  it("surface picks are size-ordered within the band, and the band sits between control and overlay", () => {
+    expect([...radiusSurface].every((v, i) => i === 0 || v > radiusSurface[i - 1]!)).toBe(true);
+    expect(radiusSurface[0]).toBeGreaterThan(5);
+    expect(radiusOverlay).toBeGreaterThan(radiusSurface[3]!);
   });
 
   it("keeps the control and surface bands disjoint, which is what makes full expressible", () => {
     for (const set of Object.values(density)) {
-      for (const step of set.radius) expect(step).toBeLessThan(radiusSurface);
+      for (const step of set.radius) expect(step).toBeLessThan(radiusSurface[0]);
     }
   });
 });
@@ -436,7 +456,7 @@ describe("multiplier wiring matches §12's table", () => {
   });
 
   it("radius takes scale, never density", () => {
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= 10; i++) {
       expect(declaration(`radius-${i}`)).toContain("var(--scale)");
       expect(declaration(`radius-${i}`)).not.toContain("var(--density)");
     }

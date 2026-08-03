@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 The surface corner takes the size index, and the preview stops breaking the system's own law
+
+Two catches from one screenshot of the padding-index row, both Kushagra's.
+
+**Surface radius follows size now.** Every Card wore radius step 6 flat, on the §6 premise "a card has no size index" — a premise that quietly died the day Card grew a size index for padding, and looked wrong the moment four sizes stood side by side. The surface band widens from two steps to four plus the overlay (palette 0-10: control 1-5, surface 6-9, overlay 10), and `--radius-surface-1..4` becomes size-indexed picks, joined by the surface size join in surfaces.css. Placed rules: size 3 anchors at each level's old flat value (small 8, medium 16, large 24) so the default card never moved; `full` still caps the band at large's values; **density never touches a surface corner** — density reaches a card through padding, the corner follows size alone. Fixing this surfaced the third instance of the substitution-at-declaration bug: `--radius-surface` lived only in `:root`, so a nested radius Theme re-priced the palette and cards ignored it. The surface semantics now re-declare inside every `[data-radius]` block, the default level's included (the escape lesson, radius axis this time), and a mounted law pins a nested small Theme's card at 8px.
+
+**The preview was violating the no-margin law in its own demos** — card bodies pushed with `margin-top`, demo rows with inline flex-gap strings — "the biggest blunder we could make," and correctly so: the preview is the system demonstrating itself, and a demo that spaces by margin documents the exact habit the system forbids. Every demo distance in the surface section now goes through `kuiBox` — the real resolver, emitting real `--layout-space-N` references — so the demos are Boxes with flex and gap all the way down and follow the density select like any consumer's layout would. Heading rhythm inside the section rides the same stack gap, margins zeroed.
+
+Rejected: surface radius per density (padding already answers density; a second mover on the corner has no semantic); reusing control-band steps for small surfaces (at `full` the control band is 9999 — a size-1 card would become a lens, which is the exact case the disjoint bands exist for); a bare `--radius-surface` kept as an alias (two names for one thing is how drift starts).
+
 ## 2026-08-04 Layout space: the rhythm becomes a semantic layer, hours after the per-family fix
 
 Kushagra, immediately after surface padding got its own density sets: if `gap="4"` does not answer density, the index is a unit conversion — "what's the point of writing gap = 4 if it's absolute too, when the user could have written 16px?" The analogy he reached for is the system's own logic: contrast does not change which role a component reads, it changes what the role resolves to. Layout props had no role layer to re-resolve — they consumed the palette raw — which is the actual reason density "couldn't" touch them.

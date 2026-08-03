@@ -86,9 +86,8 @@ export function generateTokens(): string {
   put("cursor-loading", cursor.loading);
   put("cursor-disabled", cursor.disabled);
 
-  lines.push("", "  /* semantic: surfaces have no size index — flat tokens (§6) */");
-  put("radius-surface", `var(--radius-${radiusSurface})`);
-  put("radius-overlay", `var(--radius-${radiusOverlay})`);
+  lines.push("", "  /* semantic: surface radii by size index, overlay flat (§6, §10) */");
+  lines.push(...surfaceRadiusFamily());
 
   lines.push("", "  /* semantic: control family at the default density (§4, §6, §12) */");
   lines.push(...controlFamily(density.default));
@@ -185,10 +184,20 @@ export function generateTokens(): string {
     );
   }
 
-  // Radius levels re-price the palette.
+  // Radius levels re-price the palette. The default level is emitted too — Theme stamps
+  // data-radius on every node, so a nested medium Theme inside a small-radius region would
+  // otherwise inherit the small palette (the density default-escape bug, one axis over).
+  // Each block also re-declares the surface radius semantics IN ITS OWN SCOPE: they are not
+  // density-indexed, so no cell carries them, and a :root-only declaration would stay baked
+  // to the default palette inside any [data-radius] subtree (substitution-at-declaration, §6).
   for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
-    if (level === defaultRadiusLevel) continue;
-    lines.push(`[data-radius="${level}"] {`, ...radiusPalette(level), "}", "");
+    lines.push(
+      `[data-radius="${level}"] {`,
+      ...radiusPalette(level),
+      ...surfaceRadiusFamily(),
+      "}",
+      "",
+    );
   }
 
   // ...but the semantic control radii have to be re-declared alongside them, and this is the
@@ -349,6 +358,14 @@ function radiusPalette(level: RadiusLevel): string[] {
   const out = steps.map((px, i) => `  --radius-${i}: ${px === 0 ? "0px" : zoom(px)};`);
   out.push(`  --radius-full: ${full === 0 ? "0px" : `${full}px`};`);
   return out;
+}
+
+/** Surface radii (§6, §10): size-indexed picks into the surface band, plus the flat overlay. */
+function surfaceRadiusFamily(): string[] {
+  return [
+    ...radiusSurface.map((step, i) => `  --radius-surface-${i + 1}: var(--radius-${step});`),
+    `  --radius-overlay: var(--radius-${radiusOverlay});`,
+  ];
 }
 
 /** Layout space for one density level (§3, §12): designed picks into the untouched palette. */
