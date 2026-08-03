@@ -9,6 +9,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+import { GLASS_MATERIALS } from "../components/button/button.tsx";
+
 import { tones } from "../tokens/color-config.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -17,7 +19,10 @@ const stripped = surfaces.replace(/\/\*[\s\S]*?\*\//g, "");
 
 const TONE_NAMES = Object.keys(tones);
 const RUNGS = ["loud", "medium", "quiet"];
-const MATERIALS = ["thin", "regular", "thick"];
+// Derived from the exported type, not restated: §9's axis table drifted to three values
+// while the code shipped four, and a local literal here would have kept the ladder's hole
+// invisible to CI. Adding a thickness now fails these laws until the layer supports it.
+const MATERIALS = [...GLASS_MATERIALS];
 
 describe("Card owns no CSS at all (§2, §10)", () => {
   it("has no stylesheet — the surface layer is the whole of what a Card looks like", () => {
