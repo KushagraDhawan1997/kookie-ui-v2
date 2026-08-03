@@ -21,7 +21,12 @@ export const tierNames = Object.keys(tiers) as Tier[];
 export type Scale = "space" | null;
 
 export type PropDef = {
-  /** The CSS longhands this prop feeds. Never a shorthand — see `precedence`. */
+  /**
+   * The CSS longhands this prop feeds. Never a shorthand whose longhands another row also
+   * feeds — see `precedence`, and the law in resolve.test.ts that now enforces this rather
+   * than leaving it to a comment nobody rereads. `inset` and `overflow` both violated it in
+   * silence and both shipped dead.
+   */
   css: string[];
   scale: Scale;
   /** Private custom property stem; `--kui-` marks it as plumbing, never a public token (§13). */
@@ -104,19 +109,23 @@ export const boxProps = {
   maxHeight: raw(["max-height"], "maxh"),
   flexBasis: raw(["flex-basis"], "fb"),
 
-  inset: space(["inset"], "in"),
-  top: space(["top"], "t"),
-  right: space(["right"], "r"),
-  bottom: space(["bottom"], "b"),
-  left: space(["left"], "l"),
+  // `inset` expands like `p` does, for the same reason: emitted as a shorthand it sat in front
+  // of its own longhands and every one of them reset it to `auto` the moment their var was
+  // unset. Both props shipped dead — <Box position="absolute" inset="0"> shrink-wrapped at its
+  // static position instead of stretching.
+  inset: space(["top", "right", "bottom", "left"], "in", 0),
+  top: space(["top"], "t", 1),
+  right: space(["right"], "r", 1),
+  bottom: space(["bottom"], "b", 1),
+  left: space(["left"], "l", 1),
 
   // Structural keywords. A custom property holds `column` or `repeat(3, 1fr)` exactly as
   // happily as it holds a length, which is why the remap is not a spacing mechanism (§2).
   display: raw(["display"], "d", 0, "block"),
   position: raw(["position"], "pos"),
-  overflow: raw(["overflow"], "ov"),
-  overflowX: raw(["overflow-x"], "ovx"),
-  overflowY: raw(["overflow-y"], "ovy"),
+  overflow: raw(["overflow-x", "overflow-y"], "ov", 0),
+  overflowX: raw(["overflow-x"], "ovx", 1),
+  overflowY: raw(["overflow-y"], "ovy", 1),
   flexGrow: raw(["flex-grow"], "fg"),
   flexShrink: raw(["flex-shrink"], "fs"),
   gridArea: raw(["grid-area"], "ga"),

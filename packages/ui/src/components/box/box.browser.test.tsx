@@ -97,3 +97,43 @@ describe("the boundary between props and the DOM (§3)", () => {
     expect(computed(render(<Box style={{ boxShadow: "var(--shadow-1)" }} />), "box-shadow")).toContain("inset");
   });
 });
+
+describe("the two props that shipped dead (§2, requirement 3)", () => {
+  // Both were emitted as shorthands in front of their own longhands, so both were no-ops in
+  // every browser. Neither had ever been mounted — the type-level tests covered them, which is
+  // exactly the kind of coverage that cannot see a cascade defect.
+  it("inset stretches an absolute box instead of shrink-wrapping it", () => {
+    const parent = render(
+      <Box position="relative" width="300px" height="200px">
+        <Box position="absolute" inset="0" id="probe" />
+      </Box>,
+    );
+    const box = parent.querySelector("#probe")!;
+    expect(computed(box, "top")).toBe("0px");
+    expect(computed(box, "left")).toBe("0px");
+    expect(computed(box, "width")).toBe("300px");
+    expect(computed(box, "height")).toBe("200px");
+  });
+
+  it("a longhand still wins over inset, which is what precedence is for", () => {
+    const parent = render(
+      <Box position="relative" width="300px" height="200px">
+        <Box position="absolute" inset="0" top="50px" id="probe" />
+      </Box>,
+    );
+    expect(computed(parent.querySelector("#probe")!, "top")).toBe("50px");
+    expect(computed(parent.querySelector("#probe")!, "bottom")).toBe("0px");
+  });
+
+  it("overflow clips on both axes", () => {
+    const el = render(<Box overflow="hidden" maxHeight="200px" />);
+    expect(computed(el, "overflow-x")).toBe("hidden");
+    expect(computed(el, "overflow-y")).toBe("hidden");
+  });
+
+  it("and an axis prop still overrides it", () => {
+    const el = render(<Box overflow="hidden" overflowY="scroll" />);
+    expect(computed(el, "overflow-x")).toBe("hidden");
+    expect(computed(el, "overflow-y")).toBe("scroll");
+  });
+});
