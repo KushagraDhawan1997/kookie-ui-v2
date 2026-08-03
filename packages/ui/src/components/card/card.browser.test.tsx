@@ -135,6 +135,22 @@ describe("the boundary (§3, §13)", () => {
     expect(el.dataset.material).toBe("thin");
   });
 
+  it("card-as-button: render a button and the surface notices (§10)", () => {
+    let clicks = 0;
+    const el = render(
+      <Card render={<button type="button" onClick={() => (clicks += 1)} />}>Open</Card>,
+    );
+    const plain = render(<Card>Open</Card>);
+    expect(el.tagName).toBe("BUTTON");
+    // Rest is pixel-identical to a plain Card — a card is a card until you point at it.
+    expect(computed(el, "background-color")).toBe(computed(plain, "background-color"));
+    expect(computed(el, "border-top-color")).toBe(computed(plain, "border-top-color"));
+    expect(computed(el, "cursor")).toBe("pointer");
+    expect(computed(plain, "cursor")).toBe("auto");
+    el.click();
+    expect(clicks).toBe(1);
+  });
+
   it("render composes: an article that is a card keeps the shell (§5)", () => {
     const el = render(
       <Card render={<article aria-label="post" />} size="2">

@@ -234,8 +234,18 @@
   --color-text-muted: var(--neutral-11);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
-     job alone. Paper above the page, so a card is visible where it lives. */
+     job alone. Paper above the page, so a card is visible where it lives. The hover and
+     active steps serve the card-as-button pattern: the seal darkening under the pointer. */
   --color-surface: #ffffff;
+  --color-surface-hover: var(--neutral-2);
+  --color-surface-active: var(--neutral-3);
+
+  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
+     elevation stays deleted. Row 1 is the inset well. */
+  --shadow-1: inset 0 1px 2px rgb(0 0 0 / 0.08);
+  --shadow-2: 0 1px 2px rgb(0 0 0 / 0.06), 0 1px 4px rgb(0 0 0 / 0.08);
+  --shadow-3: 0 2px 4px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.12);
+  --shadow-4: 0 4px 12px rgb(0 0 0 / 0.1), 0 20px 48px rgb(0 0 0 / 0.22);
 }
 
 [data-appearance="dark"] {
@@ -360,8 +370,18 @@
   --color-text-muted: var(--neutral-11);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
-     job alone. Paper above the page, so a card is visible where it lives. */
+     job alone. Paper above the page, so a card is visible where it lives. The hover and
+     active steps serve the card-as-button pattern: the seal darkening under the pointer. */
   --color-surface: var(--neutral-2);
+  --color-surface-hover: var(--neutral-2);
+  --color-surface-active: var(--neutral-3);
+
+  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
+     elevation stays deleted. Row 1 is the inset well. */
+  --shadow-1: inset 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-2: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 4px rgb(0 0 0 / 0.3);
+  --shadow-3: 0 2px 4px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.4);
+  --shadow-4: 0 4px 12px rgb(0 0 0 / 0.4), 0 20px 48px rgb(0 0 0 / 0.55);
 }
 
 @supports (color: color(display-p3 0 0 0)) {

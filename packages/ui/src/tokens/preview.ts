@@ -226,6 +226,15 @@ function surfaceSection(mode: Mode): string {
     ${shell}
     <h3 style="margin-top: var(--space-7)">the padding index (\u00a74)</h3>
     <div style="display: flex; gap: var(--space-5); align-items: flex-start">${sizes}</div>
+    <h3 style="margin-top: var(--space-7)">card-as-button - render a button, the surface notices (\u00a710)</h3>
+    <button class="kui-surface kui-card" data-size="3" data-tone="neutral" data-emphasis="quiet" data-bordered style="max-width: 420px; width: 100%; display: block">
+      <strong>Open project</strong>
+      <div style="color: var(--color-text-muted)">The whole card is one button: hover washes the seal, press steps again, keyboard gets the one ring.</div>
+    </button>
+    <h3 style="margin-top: var(--space-7)">the shadow palette - a resource for Box and blocks, never a component (\u00a713)</h3>
+    <div style="display: flex; gap: var(--space-6); align-items: flex-start">
+      ${["1", "2", "3", "4"].map((n) => `<div style="flex: 1; background: var(--color-surface); border: 1px solid var(--neutral-4); border-radius: var(--radius-surface); padding: var(--space-6); box-shadow: var(--shadow-${n})">shadow ${n}${n === "1" ? " - the well" : ""}</div>`).join("")}
+    </div>
     <h3 style="margin-top: var(--space-7)">material over a hostile backdrop - v0 recipes (\u00a710)</h3>
     <div style="${hostile}">${materials}</div>
   </section>`;

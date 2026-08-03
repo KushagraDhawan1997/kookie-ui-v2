@@ -214,6 +214,27 @@ export const material = {
 export const surfacePadding = [4, 5, 6, 7] as const;
 
 /**
+ * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04). Four rows on the
+ * system's one index shape; 1 is the inset well, 2-4 lift. No semantic component may read
+ * these — elevation stayed deleted. The only consumer API is Box's closed `shadow` prop;
+ * blocks and escapes are the audience. Dark rows run heavier: dark pages swallow shadow.
+ */
+export const shadow = {
+  light: [
+    "inset 0 1px 2px rgb(0 0 0 / 0.08)",
+    "0 1px 2px rgb(0 0 0 / 0.06), 0 1px 4px rgb(0 0 0 / 0.08)",
+    "0 2px 4px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.12)",
+    "0 4px 12px rgb(0 0 0 / 0.1), 0 20px 48px rgb(0 0 0 / 0.22)",
+  ],
+  dark: [
+    "inset 0 1px 2px rgb(0 0 0 / 0.4)",
+    "0 1px 2px rgb(0 0 0 / 0.35), 0 1px 4px rgb(0 0 0 / 0.3)",
+    "0 2px 4px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.4)",
+    "0 4px 12px rgb(0 0 0 / 0.4), 0 20px 48px rgb(0 0 0 / 0.55)",
+  ],
+} as const;
+
+/**
  * §10 — the seal: what an opaque surface is filled with. Paper ABOVE the page, never the
  * page itself — a card sealed at --neutral-1 is invisible where it lives most. Light is
  * pure white over the #fcfcfc page; dark steps up the ladder. The Radix panel answer.

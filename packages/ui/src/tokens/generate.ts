@@ -29,6 +29,7 @@ import {
   radiusLevels,
   radiusOverlay,
   radiusSurface,
+  shadow,
   space,
   surfaceColor,
   surfacePadding,
@@ -301,8 +302,15 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `  --color-text-muted: var(--neutral-11);`,
     "",
     `  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's`,
-    `     job alone. Paper above the page, so a card is visible where it lives. */`,
+    `     job alone. Paper above the page, so a card is visible where it lives. The hover and`,
+    `     active steps serve the card-as-button pattern: the seal darkening under the pointer. */`,
     `  --color-surface: ${surfaceColor[mode]};`,
+    `  --color-surface-hover: var(--neutral-2);`,
+    `  --color-surface-active: var(--neutral-3);`,
+    "",
+    `  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;`,
+    `     elevation stays deleted. Row 1 is the inset well. */`,
+    ...shadow[mode].map((row, i) => `  --shadow-${i + 1}: ${row};`),
   ];
 }
 

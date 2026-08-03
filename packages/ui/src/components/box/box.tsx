@@ -9,6 +9,12 @@ export type BoxProps = BoxStyleProps &
   Omit<React.ComponentPropsWithoutRef<"div">, keyof BoxStyleProps> & {
     /** Render into an element you already have, instead of adding a wrapper (§5). */
     render?: RenderElement;
+    /**
+     * §13 — the shadow palette, and the ONLY component API that reaches it. A closed index
+     * (1 is the inset well), static on purpose, and deliberately not on Card or any semantic
+     * component: decoration is an escape, spelled where review can see it — like `m`.
+     */
+    shadow?: "1" | "2" | "3" | "4";
   };
 
 /**
@@ -24,8 +30,9 @@ export type BoxProps = BoxStyleProps &
  * an escape that loses to the default is not an escape.
  */
 export const Box = React.forwardRef<HTMLElement, BoxProps>(function Box(props, ref) {
-  const { render, className, style: userStyle, ...rest } = props;
+  const { render, className, style: userStyle, shadow, ...rest } = props;
   const { style, rest: domProps } = resolveBoxProps(rest);
+  if (shadow) style["box-shadow"] = `var(--shadow-${shadow})`;
 
   const merged = {
     ref,

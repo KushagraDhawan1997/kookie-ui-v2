@@ -88,6 +88,45 @@ describe("material resolves through tokens only (§10)", () => {
   });
 });
 
+describe("card-as-button: the element brings the interactivity (§10)", () => {
+  it("the interactive block keys on element semantics, never on a prop", () => {
+    expect(stripped).toContain(":where(button, a)");
+    expect(stripped).not.toContain("data-interactive");
+  });
+
+  it("hover is guarded by (hover: hover); press is not, and reads the surface steps", () => {
+    const guardStart = stripped.indexOf("@media (hover: hover)");
+    expect(guardStart).toBeGreaterThan(-1);
+    const guardEnd = stripped.indexOf("\n}", stripped.indexOf("}", guardStart));
+    const outside = stripped.slice(0, guardStart) + stripped.slice(guardEnd + 2);
+    expect(outside).not.toContain(":hover");
+    expect(outside).toContain(":active");
+    expect(stripped).toContain("--color-surface-hover");
+    expect(stripped).toContain("--color-surface-active");
+  });
+});
+
+describe("the shadow palette is a resource, not an axis (§13)", () => {
+  const tokens = readFileSync(join(here, "../tokens/tokens.css"), "utf8");
+
+  it("four rows, both modes, and row 1 is the only inset", () => {
+    for (const i of [1, 2, 3, 4]) {
+      const occurrences = tokens.match(new RegExp(`--shadow-${i}:`, "g")) ?? [];
+      expect(occurrences.length).toBe(2);
+    }
+    expect(tokens).not.toContain("--shadow-5");
+    for (const line of tokens.split("\n").filter((l) => l.includes("--shadow-"))) {
+      expect(line.includes("inset")).toBe(line.includes("--shadow-1"));
+    }
+  });
+
+  it("no component stylesheet reads it — elevation stays deleted", () => {
+    // The surface layer's own law already bans box-shadow; this pins the palette side:
+    // the only consumer is Box's inline style, which is not a stylesheet.
+    expect(stripped).not.toContain("--shadow-");
+  });
+});
+
 describe("a surface sets foreground context (§10)", () => {
   it("the skeleton reads --color-text, and the tone-forward rungs re-scope it", () => {
     expect(stripped).toContain("color: var(--color-text)");

@@ -88,4 +88,13 @@ describe("the boundary between props and the DOM (§3)", () => {
     expect(el.className.split(" ").sort()).toEqual(["kui-box", "mine"]);
     expect(computed(el, "padding-top")).toBe("12px");
   });
+
+  it("shadow is Box's alone: a closed index into the palette, row 1 the inset (§13)", () => {
+    const lifted = render(<Box shadow="2" />);
+    expect(computed(lifted, "box-shadow")).not.toBe("none");
+    expect(computed(render(<Box shadow="1" />), "box-shadow")).toContain("inset");
+    expect(computed(render(<Box />), "box-shadow")).toBe("none");
+    // @ts-expect-error — the palette has four rows; free strings never reach box-shadow
+    void (<Box shadow="0 0 9px red" />);
+  });
 });

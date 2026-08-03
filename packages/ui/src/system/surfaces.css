@@ -59,6 +59,43 @@
   --color-text-muted: var(--tone-contrast);
 }
 
+/* ── The card-as-button pattern (§10): interactivity is the element's, not a prop ─────────────
+   `<Card render={<button/>}>` (or an anchor) IS the pattern — the surface notices the element
+   semantics and gains the control state machine, per §10's rule: reuse it, never invent a
+   surface one. Rest is pixel-identical to a plain Card; a card is a card until you point at
+   it. HTML enforces the one-action rule for free: a button cannot nest a button. */
+
+.kui-surface:where(button, a) {
+  cursor: var(--cursor-button);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* The native element brings its own font and alignment; the shell already sets the rest. */
+  font: inherit;
+  text-align: inherit;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+/* Hover only exists where hovering does — same hardware fact as the control layer. */
+@media (hover: hover) {
+  .kui-surface:where(button, a):hover {
+    background-color: var(--color-surface-hover);
+  }
+}
+
+/* Press is unguarded and instant: on touch it is the only feedback there is. */
+.kui-surface:where(button, a):active {
+  background-color: var(--color-surface-active);
+}
+
+/* The one ring, shared with every control (§8). */
+.kui-surface:where(button, a):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* ── Material: backdrop defense (§10) ────────────────────────────────────────────────────────
    Declared worst-case-first: the base rule is the near-opaque fallback for engines without
    backdrop-filter, the @supports block is the real recipe, and reduced-transparency wins last
