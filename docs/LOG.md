@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 Material returns to Button: glass owns the fill, tone rides the label
+
+The standing debt from §14 step 5 ("material deliberately does not ship on Button") comes due: Card proved §10's recipes against the photo backdrop, so the axis extends to the control layer. What was genuinely open was not *whether* — §10 already said "available on any component that can float, buttons included" — but *how glass composes with the control machinery*, which has three fills and a designed label pairing where a surface has one fill.
+
+The composition: **while a material is on, it owns the whole fill triplet, and the rung's dressing sleeps until it comes off.** The rung fills were designed against the page; glass is designed against an arbitrary backdrop, and the two do not mix — a hover that flashed `--tone-soft-hover` over glass would be the page's answer to a question the photo asked. Interaction instead steps glass's one ramp, the mix percentage: each thickness carries designed `[rest, hover, active]` alphas moving toward the seal (§8's +1/+2 rule translated), monotone per column so thickness reads as one dimension mid-interaction. The filter never moves with state — a blur change re-samples the backdrop and shimmers. The label re-scopes to `--tone-label`: `--tone-contrast` is APCA-paired to `--tone-solid`, a fill that is no longer there, and the neutral glass takes the label token — so tone still reaches a glass button, on its label, which is iOS's own answer (tint the symbol, not the glass). In the opaque environments (no `backdrop-filter`, reduced transparency) the fill is the near-opaque fallback and hover/press read the seal's own steps (`--color-surface-hover/-active`) — the fallback is the seal's neighbour, so it responds like the seal.
+
+Mechanically: the material block lands in recipes.css (the shared layer — every control that will ever float reads it), three-environment shape copied from the surface layer; `Material` moves to button.tsx and Card imports it, so types flow one direction; `button.css` still names no axis, material included, law-tested. The loud-under-glass consequence ships to the preview for judgment ("loud sleeps") rather than being reasoned about.
+
+Rejected: tinted per-tone glass (a tone × material product the token layer never pays, and the platform tints symbols, not glass); keeping the rung's label and branching on backdrop brightness (that is §10's deferred brightness-floor mechanism — it arrives designed, not as a side effect of a prop landing); gating material by emphasis or per component (axes never select against one another; the library defines what material looks like, never where it goes); stepping the blur for hover feedback (re-sampling shimmer).
+
 ## 2026-08-04 The surface corner takes the size index, and the preview stops breaking the system's own law
 
 Two catches from one screenshot of the padding-index row, both Kushagra's.

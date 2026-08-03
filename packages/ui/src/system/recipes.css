@@ -199,3 +199,58 @@
 .kui-control[data-loading] {
   cursor: var(--cursor-loading);
 }
+
+/* ── Material on a control: backdrop defense (§10) ───────────────────────────────────────────
+   Written once for every control that will ever float, same three-environment shape as the
+   surface layer: fallback base first, the real recipe under @supports, reduced-transparency
+   winning last. While material is on it OWNS the fill machinery — the rung's dressing sleeps
+   and returns when the material comes off — because glass over an arbitrary backdrop is a
+   different legibility problem from a fill over the page, and the rung fills were designed
+   for the page. Tone still rides, on the label: --tone-label against the neutral glass
+   (--tone-contrast is APCA-paired to --tone-solid, a fill that is no longer there). These
+   rules sit after the ladder on purpose; cascade order is the override. */
+
+.kui-control[data-material="thin"],
+.kui-control[data-material="regular"],
+.kui-control[data-material="thick"] {
+  --kui-fill: var(--material-opaque-fill);
+  /* The near-opaque fallback is the seal's neighbour, so it responds like the seal does:
+     the surface steps, designed for exactly this neutral ground. */
+  --kui-fill-hover: var(--color-surface-hover);
+  --kui-fill-active: var(--color-surface-active);
+  --kui-label-color: var(--tone-label);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  /* Interaction steps the mix toward the seal — glass's one ramp (§8). The filter never
+     moves with state: a blur change re-samples the backdrop and shimmers. */
+  .kui-control[data-material="thin"] {
+    --kui-fill: var(--material-thin-fill);
+    --kui-fill-hover: var(--material-thin-fill-hover);
+    --kui-fill-active: var(--material-thin-fill-active);
+    backdrop-filter: var(--material-thin-filter);
+  }
+  .kui-control[data-material="regular"] {
+    --kui-fill: var(--material-regular-fill);
+    --kui-fill-hover: var(--material-regular-fill-hover);
+    --kui-fill-active: var(--material-regular-fill-active);
+    backdrop-filter: var(--material-regular-filter);
+  }
+  .kui-control[data-material="thick"] {
+    --kui-fill: var(--material-thick-fill);
+    --kui-fill-hover: var(--material-thick-fill-hover);
+    --kui-fill-active: var(--material-thick-fill-active);
+    backdrop-filter: var(--material-thick-filter);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .kui-control[data-material="thin"],
+  .kui-control[data-material="regular"],
+  .kui-control[data-material="thick"] {
+    --kui-fill: var(--material-opaque-fill);
+    --kui-fill-hover: var(--color-surface-hover);
+    --kui-fill-active: var(--color-surface-active);
+    backdrop-filter: none;
+  }
+}

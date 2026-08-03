@@ -242,12 +242,20 @@
   --destructive-contrast: #ffffff;
   --focus-ring: var(--accent-solid);
 
-  /* material recipes (§10) — fills mix over the page colour, so tone rides for free */
+  /* material recipes (§10) — fills mix over the page colour, so tone rides for free.
+     hover/active are §8's steps on glass's one ramp, the mix percentage — read only by
+     controls wearing material; a static surface reads the rest fill alone. */
   --material-thin-fill: color-mix(in srgb, var(--neutral-1) 30%, transparent);
+  --material-thin-fill-hover: color-mix(in srgb, var(--neutral-1) 38%, transparent);
+  --material-thin-fill-active: color-mix(in srgb, var(--neutral-1) 46%, transparent);
   --material-thin-filter: blur(5px) saturate(130%) brightness(1.02);
   --material-regular-fill: color-mix(in srgb, var(--neutral-1) 64%, transparent);
+  --material-regular-fill-hover: color-mix(in srgb, var(--neutral-1) 72%, transparent);
+  --material-regular-fill-active: color-mix(in srgb, var(--neutral-1) 80%, transparent);
   --material-regular-filter: blur(16px) saturate(165%) brightness(1.06);
   --material-thick-fill: color-mix(in srgb, var(--neutral-1) 88%, transparent);
+  --material-thick-fill-hover: color-mix(in srgb, var(--neutral-1) 92%, transparent);
+  --material-thick-fill-active: color-mix(in srgb, var(--neutral-1) 95%, transparent);
   --material-thick-filter: blur(32px) saturate(210%) brightness(1.12);
   --material-opaque-fill: color-mix(in srgb, var(--neutral-1) 95%, transparent);
 
@@ -382,12 +390,20 @@
   --destructive-contrast: #ffffff;
   --focus-ring: var(--accent-solid);
 
-  /* material recipes (§10) — fills mix over the page colour, so tone rides for free */
+  /* material recipes (§10) — fills mix over the page colour, so tone rides for free.
+     hover/active are §8's steps on glass's one ramp, the mix percentage — read only by
+     controls wearing material; a static surface reads the rest fill alone. */
   --material-thin-fill: color-mix(in srgb, var(--neutral-1) 38%, transparent);
+  --material-thin-fill-hover: color-mix(in srgb, var(--neutral-1) 46%, transparent);
+  --material-thin-fill-active: color-mix(in srgb, var(--neutral-1) 54%, transparent);
   --material-thin-filter: blur(5px) saturate(130%) brightness(0.95);
   --material-regular-fill: color-mix(in srgb, var(--neutral-1) 71%, transparent);
+  --material-regular-fill-hover: color-mix(in srgb, var(--neutral-1) 78%, transparent);
+  --material-regular-fill-active: color-mix(in srgb, var(--neutral-1) 85%, transparent);
   --material-regular-filter: blur(16px) saturate(165%) brightness(0.88);
   --material-thick-fill: color-mix(in srgb, var(--neutral-1) 92%, transparent);
+  --material-thick-fill-hover: color-mix(in srgb, var(--neutral-1) 94%, transparent);
+  --material-thick-fill-active: color-mix(in srgb, var(--neutral-1) 96%, transparent);
   --material-thick-filter: blur(32px) saturate(210%) brightness(0.78);
   --material-opaque-fill: color-mix(in srgb, var(--neutral-1) 95%, transparent);
 
