@@ -216,13 +216,20 @@ describe("density and radius compose instead of racing (§6, §12)", () => {
     const host = mount(
       `<div data-radius="full">
         <div id="control" style="width: 80px; height: 32px; border-radius: var(--radius-control-2)"></div>
-        <div id="surface" style="width: 80px; height: 80px; border-radius: var(--radius-surface)"></div>
+        <div id="surface" style="width: 80px; height: 80px; border-radius: var(--radius-surface-3)"></div>
       </div>`,
     );
     // A pill: CSS clamps border-radius to half the smaller dimension, so 9999px renders as 16px
     // on a 32px-tall control. The surface stays at its designed cap instead (§6).
+    //
+    // This probe read `var(--radius-surface)` until 2026-08-03 — a token deleted when the band
+    // became size-indexed (LOG 2026-08-04 records the bare alias being rejected). An unset var
+    // is invalid at computed-value time, so border-radius computed 0px and `0 < 100` passed
+    // unconditionally: the assertion could not fail, whatever the surface band did.
     expect(computed(host.querySelector("#control")!, "border-top-left-radius")).toBe("9999px");
-    expect(parseFloat(computed(host.querySelector("#surface")!, "border-top-left-radius"))).toBeLessThan(100);
+    const surface = parseFloat(computed(host.querySelector("#surface")!, "border-top-left-radius"));
+    expect(surface).toBeGreaterThan(0);
+    expect(surface).toBeLessThan(100);
   });
 
   it("an inner appearance overrides an outer one, so a forced-dark section works", () => {

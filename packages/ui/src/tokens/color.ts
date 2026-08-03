@@ -414,7 +414,14 @@ export function colorDeclarations(
   // recipe layer so the shared control CSS names no colour family at all — and it has to be
   // re-declared per mode, since a `var()` resolves where it is declared and a single :root copy
   // would bake light's accent into dark (§6).
-  out.push(`  --focus-ring: var(--accent-solid);`);
+  // The step is chosen per mode because the ring's job is a CONTRAST guarantee against the page
+  // it sits on, and the solid band cannot keep that promise in dark: `--accent-solid` is step 9,
+  // which in dark is a deep violet sitting on a near-black page at |Lc| 22.3 — a focus indicator
+  // that is very nearly invisible, and a WCAG 2.4.11 failure that shipped because §8's stated
+  // "≥3:1 against adjacent surfaces" law was never actually written (found 2026-08-03). Step 11
+  // is the band designed to be legible against the page, and it clears the same floor light's
+  // solid already did: 74.7 light, 66.3 dark, against --neutral-1.
+  out.push(`  --focus-ring: var(${mode === "dark" ? "--accent-11" : "--accent-solid"});`);
 
   return out;
 }
