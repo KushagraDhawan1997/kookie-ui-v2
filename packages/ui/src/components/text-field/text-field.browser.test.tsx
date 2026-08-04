@@ -550,7 +550,7 @@ describe("a control hosted in a slot is sized by its container (§4, decided 202
   });
 });
 
-describe("disabled reaches the wrapper however it arrives (§8, audited 2026-08-05)", () => {
+describe("the wrapper's four JS debts, paid (§4, audited 2026-08-05)", () => {
   it("a Field.Root-disabled field greys out — the wrapper is told by the input, not the prop", () => {
     // The component stamped data-disabled from ITS OWN prop and claimed that was sufficient
     // "because we own the prop". It is not: Base UI computes `fieldDisabled || disabledProp`
@@ -579,6 +579,38 @@ describe("disabled reaches the wrapper however it arrives (§8, audited 2026-08-
     expect(computed(el, "border-top-color")).toBe(computed(plain, "border-top-color"));
   });
 
+  it("clicking the box lands the caret in THIS field's input, not the first one in the box", () => {
+    // The redirect did `currentTarget.querySelector("input")`, which is document order — a
+    // leading slot holding an input of its own (a country code, a unit) is earlier in the
+    // tree, so clicking the padding put the caret in the adornment instead of the value.
+    const el = render(<TextField leading={<input data-testid="adornment" size={2} />} />);
+    const adornment = el.querySelector<HTMLInputElement>('[data-testid="adornment"]')!;
+    expect(inputOf(el)).toBe(adornment); // document order: the trap, made visible
+
+    el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+    expect(document.activeElement).toBe(el.querySelector(".kui-field-input"));
+    expect(document.activeElement).not.toBe(adornment);
+    (document.activeElement as HTMLElement).blur();
+  });
+
+  it("a falsy adornment renders no slot at all — not an empty one buying a gap", () => {
+    // `{isSearch && <Icon/>}` evaluates to `false` and `""` is what a unit slot holds before
+    // the caller has one. Both passed the old `!== undefined && !== null` guard, and each
+    // rendered an empty span that still took a full gap of dead space beside the value.
+    for (const empty of [false, "", null, undefined] as const) {
+      const el = render(<TextField leading={empty} trailing={empty} />);
+      expect(el.querySelectorAll("[data-slot]")).toHaveLength(0);
+    }
+    // 0 is content, and stays.
+    expect(render(<TextField leading={0} />).querySelectorAll("[data-slot]")).toHaveLength(1);
+  });
+
+  it("children is not part of the API — a void element has none", () => {
+    // It was typed on the props and spread onto the `<input>`: it compiled clean and threw at
+    // render. The law is the type error, which `tsc --noEmit` runs over this file.
+    // @ts-expect-error — the slots are the way in (§4)
+    void (<TextField>hello</TextField>);
+  });
 });
 
 describe("a glass field's fill really does not move (§10)", () => {

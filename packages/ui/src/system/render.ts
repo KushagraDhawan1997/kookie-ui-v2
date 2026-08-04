@@ -20,7 +20,7 @@ export type RenderProps = {
 export type RenderElement = React.ReactElement<RenderProps>;
 
 /** Both refs get the node. Neither wins, which is the whole point. */
-function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
+export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
   return (value: T | null) => {
     for (const ref of refs) {
       if (typeof ref === "function") ref(value);

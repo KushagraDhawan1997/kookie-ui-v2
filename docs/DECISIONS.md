@@ -640,6 +640,8 @@ size       1 | 2 | 3 | 4                                               height in
 
 **`disabled` is read off the input, not only stamped from the prop** (2026-08-05). Inside a `Field.Root disabled` the flag never passes through this component: Base UI computes `fieldDisabled || disabledProp` at the input, so the wrapper — the element that paints — was never told, and a disabled fieldset rendered a field that looked entirely live. The shared layer now carries a direct-child `:has()` arm beside the attribute, exactly the way `invalid` has always been read. Direct child only: a disabled control hosted in a slot must not grey out the field containing it.
 
+**`children` is not part of the API.** It was typed on the props and spread onto the `<input>`, so `<TextField>x</TextField>` type-checked and threw at render. The slots are the way in.
+
 **What Base UI owns and we do not:** label, description and error are `Field` parts, which already do the `aria-*` wiring; the state vocabulary (`data-invalid`, `data-focused`, `data-filled`, `data-dirty`, `data-touched`) is Base UI's, read by our stylesheet. The labelled arrangement around a field is a block.
 
 **Measured: +247 bytes gzipped for the entire second control** (9,574 -> 9,821; the same number §14 records), because the size index, the states, the disabled and invalid remaps and material all arrived from the layer Button already paid for. That is §2's additivity claim getting its first real test rather than its first assertion.
