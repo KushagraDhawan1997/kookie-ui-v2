@@ -20,6 +20,7 @@ import textFieldCss from "../components/text-field/text-field.css?raw";
 import layoutCss from "../system/layout.css?raw";
 import recipesCss from "../system/recipes.css?raw";
 import surfacesCss from "../system/surfaces.css?raw";
+import typeCss from "../system/type.css?raw";
 import tokensCss from "../tokens/tokens.css?raw";
 
 let installed = false;
@@ -33,6 +34,7 @@ export function installStyles(): void {
     layoutCss,
     recipesCss,
     surfacesCss,
+    typeCss,
     spinnerCss,
     buttonCss,
     textFieldCss,
