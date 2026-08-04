@@ -102,7 +102,8 @@
   --radius-surface-4: var(--radius-9);
   --radius-overlay: var(--radius-10);
 
-  /* semantic: control family at the default density (§4, §6, §12) */
+  /* semantic: control family at the default density (§4, §6, §12); the gap is
+     the label cluster's — size-indexed, never density's (§4) */
   --control-height-1: calc(28px * var(--scale));
   --control-height-2: calc(32px * var(--scale));
   --control-height-3: calc(40px * var(--scale));
@@ -111,14 +112,14 @@
   --control-px-2: var(--space-4);
   --control-px-3: var(--space-5);
   --control-px-4: var(--space-6);
-  --control-gap-1: var(--space-2);
-  --control-gap-2: var(--space-3);
-  --control-gap-3: var(--space-3);
-  --control-gap-4: var(--space-4);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --control-gap-1: var(--space-2);
+  --control-gap-2: var(--space-3);
+  --control-gap-3: var(--space-3);
+  --control-gap-4: var(--space-4);
 
   /* layout space (§3, §12) at the default density — the 1:1 identity map. Every distance
      BETWEEN things (gap, Box p/m, surface padding) reads this layer, never the palette;
@@ -1067,10 +1068,6 @@
   --control-px-2: var(--space-3);
   --control-px-3: var(--space-4);
   --control-px-4: var(--space-5);
-  --control-gap-1: var(--space-1);
-  --control-gap-2: var(--space-2);
-  --control-gap-3: var(--space-2);
-  --control-gap-4: var(--space-3);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
@@ -1102,10 +1099,6 @@
   --control-px-2: var(--space-4);
   --control-px-3: var(--space-5);
   --control-px-4: var(--space-6);
-  --control-gap-1: var(--space-2);
-  --control-gap-2: var(--space-3);
-  --control-gap-3: var(--space-3);
-  --control-gap-4: var(--space-4);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
@@ -1137,10 +1130,6 @@
   --control-px-2: var(--space-5);
   --control-px-3: var(--space-6);
   --control-px-4: var(--space-7);
-  --control-gap-1: var(--space-3);
-  --control-gap-2: var(--space-4);
-  --control-gap-3: var(--space-4);
-  --control-gap-4: var(--space-5);
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
@@ -1447,14 +1436,14 @@
   --control-px-2: var(--space-4);
   --control-px-3: var(--space-5);
   --control-px-4: var(--space-6);
-  --control-gap-1: var(--space-2);
-  --control-gap-2: var(--space-3);
-  --control-gap-3: var(--space-3);
-  --control-gap-4: var(--space-4);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --control-gap-1: var(--space-2);
+  --control-gap-2: var(--space-3);
+  --control-gap-3: var(--space-3);
+  --control-gap-4: var(--space-4);
 }
 
 [data-pointer="fine"][data-density="compact"] {
@@ -1466,10 +1455,6 @@
   --control-px-2: var(--space-3);
   --control-px-3: var(--space-4);
   --control-px-4: var(--space-5);
-  --control-gap-1: var(--space-1);
-  --control-gap-2: var(--space-2);
-  --control-gap-3: var(--space-2);
-  --control-gap-4: var(--space-3);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
@@ -1485,10 +1470,6 @@
   --control-px-2: var(--space-5);
   --control-px-3: var(--space-6);
   --control-px-4: var(--space-7);
-  --control-gap-1: var(--space-3);
-  --control-gap-2: var(--space-4);
-  --control-gap-3: var(--space-4);
-  --control-gap-4: var(--space-5);
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
@@ -1644,14 +1625,14 @@
   --control-px-2: var(--space-5);
   --control-px-3: var(--space-6);
   --control-px-4: var(--space-7);
-  --control-gap-1: var(--space-3);
-  --control-gap-2: var(--space-4);
-  --control-gap-3: var(--space-4);
-  --control-gap-4: var(--space-5);
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
+  --control-gap-1: var(--space-3);
+  --control-gap-2: var(--space-4);
+  --control-gap-3: var(--space-4);
+  --control-gap-4: var(--space-5);
 }
 
 [data-pointer="coarse"][data-density="compact"] {
@@ -1663,10 +1644,6 @@
   --control-px-2: var(--space-4);
   --control-px-3: var(--space-5);
   --control-px-4: var(--space-6);
-  --control-gap-1: var(--space-2);
-  --control-gap-2: var(--space-3);
-  --control-gap-3: var(--space-3);
-  --control-gap-4: var(--space-4);
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-3);
@@ -1682,10 +1659,6 @@
   --control-px-2: var(--space-6);
   --control-px-3: var(--space-7);
   --control-px-4: var(--space-7);
-  --control-gap-1: var(--space-4);
-  --control-gap-2: var(--space-4);
-  --control-gap-3: var(--space-5);
-  --control-gap-4: var(--space-5);
   --radius-control-1: var(--radius-3);
   --radius-control-2: var(--radius-4);
   --radius-control-3: var(--radius-5);
@@ -1842,14 +1815,14 @@
     --control-px-2: var(--space-5);
     --control-px-3: var(--space-6);
     --control-px-4: var(--space-7);
-    --control-gap-1: var(--space-3);
-    --control-gap-2: var(--space-4);
-    --control-gap-3: var(--space-4);
-    --control-gap-4: var(--space-5);
     --radius-control-1: var(--radius-2);
     --radius-control-2: var(--radius-3);
     --radius-control-3: var(--radius-4);
     --radius-control-4: var(--radius-5);
+    --control-gap-1: var(--space-3);
+    --control-gap-2: var(--space-4);
+    --control-gap-3: var(--space-4);
+    --control-gap-4: var(--space-5);
   }
 
   [data-pointer="auto"][data-density="compact"] {
@@ -1861,10 +1834,6 @@
     --control-px-2: var(--space-4);
     --control-px-3: var(--space-5);
     --control-px-4: var(--space-6);
-    --control-gap-1: var(--space-2);
-    --control-gap-2: var(--space-3);
-    --control-gap-3: var(--space-3);
-    --control-gap-4: var(--space-4);
     --radius-control-1: var(--radius-2);
     --radius-control-2: var(--radius-3);
     --radius-control-3: var(--radius-3);
@@ -1880,10 +1849,6 @@
     --control-px-2: var(--space-6);
     --control-px-3: var(--space-7);
     --control-px-4: var(--space-7);
-    --control-gap-1: var(--space-4);
-    --control-gap-2: var(--space-4);
-    --control-gap-3: var(--space-5);
-    --control-gap-4: var(--space-5);
     --radius-control-1: var(--radius-3);
     --radius-control-2: var(--radius-4);
     --radius-control-3: var(--radius-5);

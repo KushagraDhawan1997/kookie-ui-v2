@@ -16,6 +16,7 @@ import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
   borderWidth,
   coarse,
+  controlGap,
   cursor,
   defaultRadiusLevel,
   density,
@@ -102,8 +103,10 @@ export function generateTokens(): string {
   lines.push("", "  /* semantic: surface radii by size index, overlay flat (§6, §10) */");
   lines.push(...surfaceRadiusFamily());
 
-  lines.push("", "  /* semantic: control family at the default density (§4, §6, §12) */");
+  lines.push("", "  /* semantic: control family at the default density (§4, §6, §12); the gap is");
+  lines.push("     the label cluster's — size-indexed, never density's (§4) */");
   lines.push(...controlFamily(density.default));
+  lines.push(...controlGapFamily("fine"));
 
   lines.push("", "  /* layout space (§3, §12) at the default density — the 1:1 identity map. Every distance");
   lines.push("     BETWEEN things (gap, Box p/m, surface padding) reads this layer, never the palette;");
@@ -305,7 +308,9 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
   const P = `[data-pointer="${pointer}"]`;
   const out: string[] = [];
 
-  out.push(`${P} {`, ...controlFamily(sets.default), "}", "");
+  // The gap re-declares per pointer world (the coarse cluster spreads with its box, §16) —
+  // and only per world: density blocks inherit it, which IS the density-invariance.
+  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), "}", "");
   for (const d of Object.keys(sets) as DensityLevel[]) {
     if (d === "default") continue;
     out.push(`${P}[data-density="${d}"] {`, ...controlFamily(sets[d]), "}", "");
@@ -432,17 +437,22 @@ function surfacePaddingFamily(): string[] {
   );
 }
 
-/** The four size-indexed control tokens for one designed set (§12, §16). */
+/** The four size-indexed control tokens for one designed set (§12, §16). No gap here: the
+ * icon-label gap is the label cluster's (§4), size- and pointer-indexed but never density's. */
 function controlFamily(set: DensitySet): string[] {
   const out: string[] = [];
   const put = (name: string, value: string) => out.push(`  --${name}: ${value};`);
 
   set.height.forEach((px, i) => put(`control-height-${i + 1}`, zoom(px)));
   set.px.forEach((step, i) => put(`control-px-${i + 1}`, `var(--space-${step})`));
-  set.gap.forEach((step, i) => put(`control-gap-${i + 1}`, `var(--space-${step})`));
   set.radius.forEach((step, i) => put(`radius-control-${i + 1}`, `var(--radius-${step})`));
 
   return out;
+}
+
+/** The icon-label gap for one pointer world (§4, §12): size-indexed, density-invariant. */
+function controlGapFamily(world: keyof typeof controlGap): string[] {
+  return controlGap[world].map((step, i) => `  --control-gap-${i + 1}: var(--space-${step});`);
 }
 
 const here = dirname(fileURLToPath(import.meta.url));

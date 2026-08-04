@@ -8,6 +8,15 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 The icon-label gap joins the label cluster, out of the density sets
+
+Kushagra, reading the rebuilt card demos: the gap between a button's icon and label should not be controlled by density. Correct by the axis's own definition — density grows the box and holds the content, and the system already said so twice without noticing the third instance: type never takes density (the whole point of the axis) and the icon box is explicitly "size-indexed, but never density-indexed" (a perception floor). The gap that binds those two is part of the same **label cluster**; a compact button squeezing icon against label was the content moving when only the box should.
+
+`gap` leaves the density sets. `controlGap` is size-indexed, declared once at `:root` and re-declared per pointer world — fine 4/8/8/12, coarse 8/12/12/16, because the coarse box is a full size step larger and the cluster spreads with it (§16's designed-set values, preserved exactly). Density blocks no longer declare it, which IS the invariance, law-tested: same 8px gap at every density, 12px under coarse. CSS shrank 21 bytes; the ratchet was re-recorded downward.
+
+Preview, same session: title + description became one coupled text group (tighter to each other than the group sits to the actions — two nested Stacks, the block pattern), the card-as-button demo got the same structure it had missed, and the first render exposed a real footgun worth remembering: **a `kui-box` is an inline-size container, so in a shrink-to-fit context (a flex column with `align-items: flex-start`) its width cannot come from its contents and it collapses to nothing.** Stacks stretch; that is the default for a reason.
+
+Rejected: making the gap fully pointer-invariant like the icon box (the coarse judged sets placed larger gaps and nothing argued against them — flattening would have been a silent v0 change smuggled inside a refactor); keeping identical gap rows in every density level as data (a set that never varies is a constant wearing a set's costume, and the emission would still invite divergence).
 ## 2026-08-03 The two escape axes nobody opened in a browser were the two that were broken
 
 Found by an audit of the whole repo, not by use: `contrast="high"` resolved **no rule at all** in light mode, and `prefers-contrast: more` could **never fire** in dark. Both had shipped since the token pipeline landed, both were "covered" by tests, and neither could have been caught by the tests that covered them.

@@ -58,8 +58,11 @@ export const radiusOverlay = 10;
  * family, so every rendered value is a designed point and any one cell can be corrected
  * without moving the other three in its level.
  *
- * `height` is raw px, the anchor a control actually stands on. `px`, `gap`, and `radius`
- * are step indices into the space and radius palettes, never restated numbers (§6).
+ * `height` is raw px, the anchor a control actually stands on. `px` and `radius` are step
+ * indices into the space and radius palettes, never restated numbers (§6). The icon-label
+ * gap is NOT here (decided 2026-08-04, Kushagra): density grows the box and holds the
+ * content, and type, the icon box, and the gap binding them are one label cluster —
+ * `controlGap` below is size- and pointer-indexed only.
  *
  * The ladder is built so one density step moves the box about one size step while the
  * label holds: compact size 2 stands where default size 1 does, comfortable size 2 where
@@ -75,19 +78,16 @@ export const density = {
   compact: {
     height: [24, 28, 34, 40],
     px: [2, 3, 4, 5],
-    gap: [1, 2, 2, 3],
     radius: [1, 2, 2, 3],
   },
   default: {
     height: [28, 32, 40, 48],
     px: [3, 4, 5, 6],
-    gap: [2, 3, 3, 4],
     radius: [1, 2, 3, 4],
   },
   comfortable: {
     height: [34, 40, 50, 60],
     px: [4, 5, 6, 7],
-    gap: [3, 4, 4, 5],
     radius: [2, 3, 4, 5],
   },
 } as const;
@@ -98,7 +98,6 @@ export type DensityLevel = keyof typeof density;
 export type DensitySet = {
   readonly height: readonly [number, number, number, number];
   readonly px: readonly [number, number, number, number];
-  readonly gap: readonly [number, number, number, number];
   readonly radius: readonly [number, number, number, number];
 };
 
@@ -119,19 +118,16 @@ export const coarse = {
   compact: {
     height: [32, 38, 46, 54],
     px: [3, 4, 5, 6],
-    gap: [2, 3, 3, 4],
     radius: [2, 3, 3, 4],
   },
   default: {
     height: [36, 44, 52, 60],
     px: [4, 5, 6, 7],
-    gap: [3, 4, 4, 5],
     radius: [2, 3, 4, 5],
   },
   comfortable: {
     height: [40, 48, 58, 68],
     px: [5, 6, 7, 7],
-    gap: [4, 4, 5, 5],
     radius: [3, 4, 5, 5],
   },
 } as const satisfies Record<DensityLevel, DensitySet>;
@@ -160,6 +156,18 @@ export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0
  * breathing-room choice, so a compact size 2 and a comfortable size 2 carry the same icon.
  */
 export const iconSize = [16, 16, 20, 24] as const;
+
+/**
+ * §4, §12 — the icon-label gap, pulled by the size index. Like the icon box above, it is
+ * part of the LABEL CLUSTER and deliberately not in the density sets (decided 2026-08-04,
+ * Kushagra): density grows the box and holds the content — type, icon, and the gap binding
+ * them move together or not at all. It IS pointer-indexed (§16): the coarse world is a full
+ * size step larger and the cluster spreads with its box. Steps into the space palette.
+ */
+export const controlGap = {
+  fine: [2, 3, 3, 4],
+  coarse: [3, 4, 4, 5],
+} as const;
 
 /**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and

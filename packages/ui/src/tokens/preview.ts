@@ -203,10 +203,19 @@ function surfaceSection(mode: Mode): string {
   const muted = `style="color: var(--color-text-muted)"`;
   // Card content is a Stack, never margins: the same rule the system enforces on consumers
   // (components never own outer spacing) has to hold in its own demos — these ARE the docs.
+  // Title + description are one text group, coupled tighter than the group sits to the
+  // actions — two nested Stacks, the way a block would compose it. Never margins.
+  const textGroup = (title: string, desc: string) =>
+    kuiBox(
+      { display: "flex", direction: "column", gap: "2" },
+      `<strong>${title}</strong><div ${muted}>${desc}</div>`,
+    );
+  // Stacks stretch (the default): a kui-box is an inline-size container, so in a
+  // shrink-to-fit context its width cannot come from its contents and it collapses.
   const cardBody = (title: string, desc: string, buttons: string) =>
     kuiBox(
-      { display: "flex", direction: "column", gap: "4", align: "flex-start" },
-      `<strong>${title}</strong><div ${muted}>${desc}</div>${kuiBox({ display: "flex", gap: "3" }, buttons)}`,
+      { display: "flex", direction: "column", gap: "4" },
+      `${textGroup(title, desc)}${kuiBox({ display: "flex", gap: "3" }, buttons)}`,
     );
   const shell = card(
     cardBody(
@@ -252,10 +261,10 @@ function surfaceSection(mode: Mode): string {
         ) +
         demo(
           "card-as-button - render a button, the surface notices (\u00a710)",
-          `<button class="kui-surface kui-card" data-size="3" data-tone="neutral" data-emphasis="quiet" data-bordered style="max-width: 420px; width: 100%; display: block">
-      <strong>Open project</strong>
-      <div style="color: var(--color-text-muted)">The whole card is one button: hover washes the seal, press steps again, keyboard gets the one ring.</div>
-    </button>`,
+          `<button class="kui-surface kui-card" data-size="3" data-tone="neutral" data-emphasis="quiet" data-bordered style="max-width: 420px; width: 100%; display: block">${textGroup(
+            "Open project",
+            "The whole card is one button: hover washes the seal, press steps again, keyboard gets the one ring.",
+          )}</button>`,
         ) +
         demo(
           "the shadow palette - a resource; only the elevated world and escapes reach it (\u00a713)",

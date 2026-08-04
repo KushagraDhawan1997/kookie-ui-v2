@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   coarse,
+  controlGap,
   density,
   fontSize,
   layoutSpace,
@@ -61,10 +62,11 @@ describe("step counts are set per family, not copied across families (§6)", () 
     for (const level of Object.values(radiusLevels)) expect(level.steps).toHaveLength(11);
     expect(fontSize).toHaveLength(9);
     for (const set of Object.values(density)) {
-      for (const family of [set.height, set.px, set.gap, set.radius]) {
+      for (const family of [set.height, set.px, set.radius]) {
         expect(family).toHaveLength(4);
       }
     }
+    for (const world of Object.values(controlGap)) expect(world).toHaveLength(4);
   });
 });
 
@@ -132,7 +134,7 @@ describe("density is a designed set, not a multiplier (§12)", () => {
   it("declares the whole control family at every level", () => {
     for (const level of ["compact", "comfortable"] as const) {
       for (let size = 1; size <= 4; size++) {
-        for (const family of ["control-height", "control-px", "control-gap", "radius-control"]) {
+        for (const family of ["control-height", "control-px", "radius-control"]) {
           expect(declaration(`${family}-${size}`, level)).toBeDefined();
         }
       }
@@ -189,14 +191,30 @@ describe("density is a designed set, not a multiplier (§12)", () => {
   });
 
   it("control innards read the RAW palette at every level — the layer must not double-apply", () => {
-    // The boundary (§12): control px/gap answer density through the designed sets alone.
-    // Routed through layout space they would compress twice under compact.
+    // The boundary (§12): control px answers density through the designed sets alone.
+    // Routed through layout space it would compress twice under compact.
     for (const level of ["default", "compact", "comfortable"] as const) {
       for (let size = 1; size <= 4; size++) {
         expect(declaration(`control-px-${size}`, level)).toMatch(/^var\(--space-\d+\)$/);
-        expect(declaration(`control-gap-${size}`, level)).toMatch(/^var\(--space-\d+\)$/);
       }
     }
+  });
+
+  it("the icon-label gap is the label cluster's — density never declares it (§4, decided 2026-08-04)", () => {
+    // Density grows the box and holds the content: type, the icon box, and the gap binding
+    // them move together or not at all. The gap lives at :root and per pointer world only —
+    // a density block declaring it would re-open the axis.
+    for (let size = 1; size <= 4; size++) {
+      expect(declaration(`control-gap-${size}`)).toMatch(/^var\(--space-\d+\)$/);
+    }
+    for (const level of ["default", "compact", "comfortable"] as const) {
+      expect(block(`[data-density="${level}"]`)).not.toContain("--control-gap-");
+    }
+    // It IS pointer-indexed: the coarse cluster spreads with its box (§16).
+    for (const world of [`[data-pointer="fine"]`, `[data-pointer="coarse"]`]) {
+      expect(block(world)).toContain("--control-gap-2:");
+    }
+    expect(controlGap.coarse[1]!).toBeGreaterThan(controlGap.fine[1]!);
   });
 });
 
@@ -286,7 +304,7 @@ describe("the corner holds a fraction of its box (§6)", () => {
 describe("the pointer axis is a second designed geometry (§16)", () => {
   it("coarse places a complete set per density level, same shape as fine", () => {
     for (const level of Object.keys(density) as DensityLevel[]) {
-      for (const family of ["height", "px", "gap", "radius"] as const) {
+      for (const family of ["height", "px", "radius"] as const) {
         expect(coarse[level][family]).toHaveLength(4);
       }
       expect(increasing(coarse[level].height)).toBe(true);
