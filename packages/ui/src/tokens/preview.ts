@@ -621,7 +621,7 @@ const control = (size: number) => `
 
 export function generatePreview(): string {
   return `<!doctype html>
-<html lang="en" data-pointer="auto">
+<html lang="en" data-pointer="auto" data-device="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
