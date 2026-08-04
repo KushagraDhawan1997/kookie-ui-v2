@@ -7,6 +7,9 @@
 
   /* the touch floor (§16) — raw px on purpose: a physical floor, not a zoomable length */
   --touch-target-min: 44px;
+  /* and the zoom floor (§4), which is zero here: a fine pointer never zooms on focus.
+     The coarse world re-declares it — see pointerWorld(). */
+  --input-font-floor: 0px;
 
   /* space palette (§3) — layout currency; density never touches it */
   --space-1: calc(2px * var(--scale));
@@ -2365,6 +2368,7 @@
   --control-gap-2: var(--space-3);
   --control-gap-3: var(--space-3);
   --control-gap-4: var(--space-4);
+  --input-font-floor: 0px;
 }
 
 [data-pointer="fine"][data-density="compact"] {
@@ -2566,6 +2570,7 @@
   --control-gap-2: var(--space-4);
   --control-gap-3: var(--space-4);
   --control-gap-4: var(--space-5);
+  --input-font-floor: 16px;
 }
 
 [data-pointer="coarse"][data-density="compact"] {
@@ -2768,6 +2773,7 @@
     --control-gap-2: var(--space-4);
     --control-gap-3: var(--space-4);
     --control-gap-4: var(--space-5);
+    --input-font-floor: 16px;
   }
 
   [data-pointer="auto"][data-density="compact"] {

@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 The iOS zoom hole was bigger than the size 1 everyone had pencilled in
+
+Safari zooms the whole page when a text input under 16px takes focus — the layout shifts off-centre and the user pinches back. It is the only way a control in this system can break the page *around* it just by being tapped.
+
+The device axis (§17) was recorded as having mostly closed this: the handheld band lifts size 2 to 16px, so "sizes 2+ are safe on a phone, size 1 is the known edge." The first half is true and the second half was wrong. An iPad in landscape is past the handheld conjunction's 48rem threshold, so it resolves as `desktop`, takes the desktop type ladder — 14px at size 2 — and Safari zooms on the default size of the default control. The axis that was supposed to answer this is optical (where the screen sits); the question is motor (a finger is touching it). Wrong axis.
+
+So `--input-font-floor` rides the POINTER world: 0px on fine, 16px on coarse, and the input's font size is `max()`ed against it. It lands on the input alone — the box keeps its designed height, the label its designed step — so a size-1 field is still visibly a size-1 field, and the control≡type parity the size index rests on is untouched.
+
+**Rejected: lifting the handheld type ladder so size 1 renders 16px.** It fixes one control by making the caption step unusable — a phone that cannot render small secondary text has lost more than it gained.
+
+**Rejected: a bare `@media (pointer: coarse)` rule.** Same rendered result, but it would be the one geometry answer in the system that cannot be pinned, escaped, or read as a computed value through `<Theme pointer>` — which is how everything else in the pointer axis works and how it gets tested.
+
+---
+
 ## 2026-08-05 Two layers were writing to the same private names, and one of them was Box
 
 `--kui-h` was the control layer's height stem AND the layout mechanism's stem for Box's `height` prop. So were `--kui-px` and `--kui-py`, against Box's `px` and `py`. Three names, six meanings.

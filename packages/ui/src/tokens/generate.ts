@@ -40,6 +40,7 @@ import {
   surfaceChrome,
   surfaceColor,
   surfacePadding,
+  inputFontFloor,
   touchTargetMin,
   type DensityLevel,
   type DensitySet,
@@ -63,6 +64,9 @@ export function generateTokens(): string {
 
   lines.push("", "  /* the touch floor (§16) — raw px on purpose: a physical floor, not a zoomable length */");
   put("touch-target-min", `${touchTargetMin}px`);
+  lines.push("  /* and the zoom floor (§4), which is zero here: a fine pointer never zooms on focus.");
+  lines.push("     The coarse world re-declares it — see pointerWorld(). */");
+  put("input-font-floor", "0px");
 
   lines.push("", "  /* space palette (§3) — layout currency; density never touches it */");
   space.forEach((px, i) => put(`space-${i + 1}`, zoom(px)));
@@ -336,7 +340,11 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
 
   // The gap re-declares per pointer world (the coarse cluster spreads with its box, §16) —
   // and only per world: density blocks inherit it, which IS the density-invariance.
-  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), "}", "");
+  // The zoom floor rides the pointer world rather than a bare @media, so it resolves through
+  // the same [data-pointer] scopes everything else does — pinnable, escapable, and readable as
+  // a computed value in the suite. Raw px: Safari's threshold does not zoom with --scale.
+  const zoomFloor = `  --input-font-floor: ${pointer === "fine" ? "0px" : `${inputFontFloor}px`};`;
+  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, "}", "");
   for (const d of Object.keys(sets) as DensityLevel[]) {
     if (d === "default") continue;
     out.push(`${P}[data-density="${d}"] {`, ...controlFamily(sets[d]), "}", "");

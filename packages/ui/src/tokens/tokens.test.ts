@@ -15,6 +15,7 @@ import {
   deviceType,
   fontSize,
   handheldMedia,
+  inputFontFloor,
   layoutSpace,
   letterSpacing,
   lineHeight,
@@ -403,6 +404,17 @@ describe("the pointer axis is a second designed geometry (§16)", () => {
 
   it("ships the floor as a token, raw px, unscaled", () => {
     expect(declaration("touch-target-min")).toBe(`${touchTargetMin}px`);
+  });
+
+  it("carries the zoom floor as a per-world token, zero where nothing zooms (§4)", () => {
+    // Safari zooms the page when a text input under 16px takes focus. It rides the pointer
+    // axis rather than a bare @media, so it resolves through the same scopes everything else
+    // does — pinnable, escapable, and readable as a computed value in the browser suite.
+    // Raw px in both worlds: the threshold is Safari's and does not move with --scale.
+    expect(declaration("input-font-floor")).toBe("0px");
+    expect(block(`[data-pointer="fine"]`)).toContain("--input-font-floor: 0px;");
+    expect(block(`[data-pointer="coarse"]`)).toContain(`--input-font-floor: ${inputFontFloor}px;`);
+    expect(block(`  [data-pointer="auto"]`)).toContain(`--input-font-floor: ${inputFontFloor}px;`);
   });
 
   it("emits all three scopes: pinned coarse, the media-scoped auto, and the fine escape", () => {

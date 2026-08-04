@@ -656,3 +656,50 @@ describe("the input's own facts (§4)", () => {
     expect(computed(input, "color")).toBe(computed(el, "color"));
   });
 });
+
+describe("the zoom floor: a field must not move the page under a finger (§4, §16)", () => {
+  // Safari zooms the whole page when a text input under 16px takes focus. The device axis
+  // lifted the handheld type ladder far enough that sizes 2+ clear it on a PHONE, and the
+  // remaining hole was assumed to be size 1 only — it is not. An iPad in landscape is past
+  // the handheld width threshold, so it reads as `desktop` and gets the desktop type ladder,
+  // where size 2 is 14px and Safari still zooms. The signal has to be the pointer world.
+  const size = (root: HTMLElement, s: "1" | "2") =>
+    root.querySelector<HTMLElement>(`.kui-field[data-size="${s}"]`)!;
+
+  const world = (pointer: "fine" | "coarse") =>
+    render(
+      <Theme pointer={pointer}>
+        <TextField size="1" />
+        <TextField size="2" />
+      </Theme>,
+    );
+
+  it("floors the input at the platform threshold wherever a finger is", () => {
+    const coarse = world("coarse");
+    for (const s of ["1", "2"] as const) {
+      const field = size(coarse, s);
+      expect(parseFloat(computed(inputOf(field), "font-size"))).toBeGreaterThanOrEqual(16);
+    }
+  });
+
+  it("and is the identity on a fine pointer — nothing is paid where nothing zooms", () => {
+    const fine = world("fine");
+    for (const s of ["1", "2"] as const) {
+      const field = size(fine, s);
+      expect(computed(inputOf(field), "font-size")).toBe(computed(field, "font-size"));
+    }
+    expect(parseFloat(computed(inputOf(size(fine, "1")), "font-size"))).toBeLessThan(16);
+  });
+
+  it("lands on the INPUT alone — the box and the label keep their designed step", () => {
+    // Otherwise the floor becomes a second type axis: a size-1 field would render a size-2
+    // label, and the control-vs-type parity that the whole size index rests on would break.
+    const coarse = world("coarse");
+    const one = size(coarse, "1");
+    const two = size(coarse, "2");
+    expect(computed(one, "font-size")).not.toBe(computed(two, "font-size"));
+    expect(parseFloat(computed(one, "min-height"))).toBeLessThan(
+      parseFloat(computed(two, "min-height")),
+    );
+  });
+});

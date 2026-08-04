@@ -81,6 +81,13 @@
      highlight in the control layer, and just as invisible from a desktop. */
   -webkit-appearance: none;
   appearance: none;
+  /* The zoom floor (§4, §16). Safari zooms the whole page when a text input under 16px takes
+     focus — the page shifts off-centre and the user has to pinch back, which is the only way
+     a control in this system can break the layout AROUND it just by being tapped. The token
+     resolves to 0 on a fine pointer, so this max() is the identity on a desktop and the floor
+     is paid only where a finger is. It lands on the input alone: the box keeps its designed
+     height and the label its designed step, so a size-1 field is still a size-1 field. */
+  font-size: max(var(--input-font-floor), var(--kui-ct-font));
 }
 
 .kui-field-input::placeholder {

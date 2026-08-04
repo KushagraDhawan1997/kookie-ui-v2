@@ -173,6 +173,24 @@ export const coarse = {
  */
 export const touchTargetMin = 44;
 
+/**
+ * §4, §16 — mobile Safari's zoom threshold, and the second platform constant that is a raw
+ * physical number rather than a designed one. **Safari zooms the whole page when a text input
+ * under 16px takes focus**, which throws the layout off-centre and leaves the user pinching
+ * back; it is the only way a control can break the page around it just by being tapped.
+ *
+ * It floors the INPUT's font size, never the control's box or its label. §17's handheld band
+ * lifts the type ladder far enough that sizes 2 and up clear it on a phone — but a phone is
+ * not the only touchscreen: an iPad in landscape reads as `desktop` on the device axis (its
+ * width is past the handheld threshold) while Safari still zooms, and size 1 is under the
+ * threshold in every band there is. So the signal is the POINTER world, which is what "a
+ * finger touches this screen" means, and the floor resolves to 0 on a fine pointer.
+ *
+ * Deliberately not solved by raising the type ladder: size 1 is the caption step, and a phone
+ * that cannot render small secondary text has lost something real to fix one control.
+ */
+export const inputFontFloor = 16;
+
 /** §15 — type. Nine steps: type's dynamic range is wider than the control family's. */
 export const fontSize = [12, 14, 16, 18, 20, 24, 30, 40, 56] as const;
 /** Paired designed values, not a derived ratio: ~1.5 through reading sizes, tightening toward ~1.1 at display. */
