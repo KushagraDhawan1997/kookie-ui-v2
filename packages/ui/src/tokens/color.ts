@@ -300,8 +300,33 @@ export function buildScaleFor(
     return best;
   };
 
+  // "Which way affords more travel" is the comment's rule, and for a while the code
+  // implemented less of it: it flipped direction only when the preferred side could not even
+  // reach the hover step, so a hue parked AT its cusp (dark-mode green: away affords .055,
+  // toward affords the full excursion) kept the short side and compressed both states below
+  // the visibility floor. The flip is a trade — toward-label travel spends label contrast —
+  // so it is GATED on the label law: it happens only when every flipped state still clears
+  // the APCA floor (60, or 75 under contrast="high"). Away-from-label wins whenever it
+  // affords the full excursion; a hue that can afford neither (amber: away washes out,
+  // toward drops the label to Lc 55) simply cannot ship as a tone, and the separation law
+  // is what says so. Both laws hold; membership in the tone set is what gives.
   const preferredReach = reach(preferred);
-  const away = isLowChroma || preferredReach < solidStateDeltas.hover ? -preferred : preferred;
+  const oppositeReach = reach(-preferred);
+  const labelFloor = hc ? 75 : 60;
+  const flippedStillClears = (() => {
+    const t = Math.min(oppositeReach, desired);
+    if (t <= preferredReach) return false;
+    const fillAt = (fraction: number) =>
+      formatHex(toGamut(oklch(clampL(restL - preferred * t * fraction), restC, hue), "srgb"))!;
+    return [solidStateDeltas.hover / solidStateDeltas.active, 1].every(
+      (f) => Math.abs(apcaLc(contrast, fillAt(f))) >= labelFloor,
+    );
+  })();
+  const away = isLowChroma
+    ? -preferred
+    : preferredReach >= desired || !flippedStillClears
+      ? preferred
+      : -preferred;
   const travel = Math.min(reach(away), desired);
   const step = (fraction: number) =>
     format(toGamut(oklch(clampL(restL + away * travel * fraction), restC, hue), gamut), gamut);

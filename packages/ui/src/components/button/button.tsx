@@ -3,12 +3,16 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
+import type { ToneName } from "../../tokens/color-config.ts";
 import { Spinner } from "../spinner/spinner.tsx";
 
 /** §4 — an index, not a measurement. Closed, because a scale with an escape is not a scale. */
 export type Size = "1" | "2" | "3" | "4";
-/** §7 — the semantic families. A component never names a colour, only a role. */
-export type Tone = "neutral" | "accent" | "destructive";
+/** §7 — the tone families, derived from the config rather than restated (the audit lesson:
+    a local literal here kept ladder holes invisible to CI). A component never names a
+    colour, only a family; the semantic core plus the basic categorical set live in
+    color-config.ts and widen there. */
+export type Tone = ToneName;
 /** §9 — loudness, three rungs, because a rung that is not visibly distinct is not a rung. */
 export type Emphasis = "loud" | "medium" | "quiet";
 /** §10 — backdrop defense: three designed thicknesses, like the emphasis ladder. `solid` is
