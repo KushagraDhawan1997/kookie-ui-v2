@@ -78,6 +78,58 @@ describe("the wrapper is the control, and it joins the size index (§4)", () => 
   });
 });
 
+describe("a field and a button at the same index are the same box (§2, §4)", () => {
+  // The strongest statement of the shared-layer claim there is, and the one that has to keep
+  // being true as controls are added: if a form's Submit does not line up with the field above
+  // it, the size index has stopped being an index. This is a law rather than a screenshot
+  // because it compares two components against EACH OTHER — neither side can drift alone, and
+  // neither can be satisfied by a hard-coded number.
+  const BOX = [
+    "min-height",
+    "padding-left",
+    "padding-right",
+    "border-top-left-radius",
+    "font-size",
+    "column-gap",
+    "border-top-width",
+  ];
+
+  for (const size of ["1", "2", "3", "4"] as const) {
+    it(`agrees on every box property at size ${size}`, () => {
+      const button = render(<Button size={size}>Label</Button>);
+      const field = render(<TextField size={size} />);
+      for (const property of BOX) {
+        expect(computed(field, property), `size ${size} disagrees on ${property}`).toBe(
+          computed(button, property),
+        );
+      }
+    });
+  }
+
+  it("keeps agreeing in every density and pointer world (§12, §16)", () => {
+    // The worlds re-declare the control family, so parity has to survive the re-declaration —
+    // this is where a component that quietly hard-coded a height would finally show up.
+    for (const world of [
+      <Theme density="compact" key="c" />,
+      <Theme density="comfortable" key="f" />,
+      <Theme pointer="coarse" key="p" />,
+    ]) {
+      const host = render(
+        <world.type {...world.props}>
+          <Button size="2">Label</Button>
+          <TextField size="2" />
+        </world.type>,
+      );
+      const button = host.querySelector<HTMLElement>(".kui-button")!;
+      const field = host.querySelector<HTMLElement>(".kui-field")!;
+      expect(computed(field, "min-height")).toBe(computed(button, "min-height"));
+      expect(computed(field, "border-top-left-radius")).toBe(
+        computed(button, "border-top-left-radius"),
+      );
+    }
+  });
+});
+
 describe("one treatment: a field has no loudness (§9, §11)", () => {
   it("exposes no emphasis, no tone, and no outer spacing", () => {
     // Loudness ranks actions against their siblings; a form where one field is louder than the
