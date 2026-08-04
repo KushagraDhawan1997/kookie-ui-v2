@@ -482,6 +482,18 @@ function controlFamily(set: DensitySet): string[] {
   set.px.forEach((step, i) => put(`control-px-${i + 1}`, `var(--space-${step})`));
   set.radius.forEach((step, i) => put(`radius-control-${i + 1}`, `var(--radius-${step})`));
 
+  // The inset a control keeps around anything it hosts in a slot, and the height that leaves
+  // for the hosted control. ONE designed number drives both, which is the point: the space
+  // above, below and beside a trailing button is the same number, where before the sides came
+  // from --control-px (12px at size 2) and the top and bottom came from whatever was left over
+  // (~1px) — a 13:1 asymmetry nobody chose.
+  //
+  // The hosted height is derived rather than designed a second time, because two designed
+  // ladders that must agree are two ladders that will drift. It is also what stops a field
+  // GROWING past its own size token: a nested control that exceeds the content box stretched
+  // the wrapper by 2 x --border-width in 16/16 measured cells.
+  set.slotInset.forEach((px, i) => put(`slot-inset-${i + 1}`, zoom(px)));
+
   return out;
 }
 

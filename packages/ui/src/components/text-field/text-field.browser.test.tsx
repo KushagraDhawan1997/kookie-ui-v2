@@ -459,3 +459,58 @@ describe("a control inside a glass control paints its OWN fill (§2, §10)", () 
     expect(computed(field.querySelector("button")!, "backdrop-filter")).toBe("none");
   });
 });
+
+describe("a control hosted in a slot is sized by its container (§4, decided 2026-08-04)", () => {
+  // The system had no rule for a control inside a control, so the call site had to derive the
+  // relationship — pick a size index — and the mapping it was asked to infer was non-uniform
+  // and undefined at size 1. Everything here is measured geometry, because that is the entire
+  // subject: what the numbers ARE is the decision.
+  const px = (v: string) => parseFloat(v);
+
+  for (const size of ["1", "2", "3", "4"] as const) {
+    it(`fits inside the field at size ${size}, with equal air on all four sides`, () => {
+      const field = render(
+        <TextField size={size} trailing={<Button>Show</Button>} defaultValue="hunter2" />,
+      );
+      const button = field.querySelector<HTMLElement>(".kui-button")!;
+      const fieldBox = field.getBoundingClientRect();
+      const buttonBox = button.getBoundingClientRect();
+
+      // 1. The field is the height its own size token says. Before this rule a nested control
+      //    exceeded the content box and stretched the wrapper by 2 x --border-width.
+      const bare = render(<TextField size={size} />);
+      expect(px(computed(field, "height"))).toBe(px(computed(bare, "height")));
+
+      // 2. The hosted control is strictly smaller than its container — it reads as an
+      //    affordance inside a box, not as a second box.
+      expect(buttonBox.height).toBeLessThan(fieldBox.height);
+
+      // 3. The air is the SAME number on all four sides, which is the point of one designed
+      //    inset driving both the padding and the derived height.
+      const top = buttonBox.top - fieldBox.top;
+      const bottom = fieldBox.bottom - buttonBox.bottom;
+      const right = fieldBox.right - buttonBox.right;
+      expect(Math.abs(top - bottom)).toBeLessThanOrEqual(1);
+      expect(Math.abs(right - top)).toBeLessThanOrEqual(1);
+    });
+  }
+
+  it("an ICON slot keeps the field's own text inset — an icon is not a hosted control", () => {
+    // The guard that makes the rule above safe: an icon has no box of its own and wants to line
+    // up with the value beside it, so it must NOT get the tighter slot inset.
+    const withIcon = render(<TextField leading={<svg />} />);
+    const plain = render(<TextField />);
+    expect(computed(withIcon, "padding-left")).toBe(computed(plain, "padding-left"));
+  });
+
+  it("re-sizes with density, because both numbers ride the control family (§12)", () => {
+    const compact = render(
+      <Theme density="compact">
+        <TextField size="2" trailing={<Button>Show</Button>} />
+      </Theme>,
+    );
+    const dflt = render(<TextField size="2" trailing={<Button>Show</Button>} />);
+    const h = (root: HTMLElement) => px(computed(root.querySelector<HTMLElement>(".kui-button")!, "height"));
+    expect(h(compact)).toBeLessThan(h(dflt));
+  });
+});

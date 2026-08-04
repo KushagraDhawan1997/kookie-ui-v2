@@ -90,6 +90,22 @@
 /* The slots. Passive by convention, sized by the same index as the label, and muted so an
    adornment never competes with the value. An interactive trailing child (a clear button)
    brings its own colour and its own box — the slot only decides where it sits. */
+/* A slot holding a CONTROL gives back the field's own inline padding and keeps the slot inset
+   instead, so the space around a hosted button is the same number on all four sides. Before
+   this, the sides came from --control-px (12px at size 2) and the top and bottom from whatever
+   the height left over (~1px): a 13:1 asymmetry that read as a button crammed against the top
+   and bottom of the field while floating away from its right edge.
+
+   Guarded on the slot containing a control rather than on the slot existing, because an ICON
+   is not a hosted control — it has no box of its own, and it wants the field's normal text
+   inset so it lines up with the value beside it. */
+.kui-field:has(> [data-slot="leading"] > .kui-control) {
+  padding-inline-start: var(--kui-slot-inset);
+}
+.kui-field:has(> [data-slot="trailing"] > .kui-control) {
+  padding-inline-end: var(--kui-slot-inset);
+}
+
 .kui-field-slot {
   display: inline-flex;
   align-items: center;

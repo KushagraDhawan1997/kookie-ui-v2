@@ -36,6 +36,23 @@
   inherits: false;
 }
 
+/* Registered as a LENGTH, and that is the whole mechanism. An unregistered custom property
+   inherits as a token stream, so `var(--kui-h)` inside it would be substituted on the element
+   that USES it — the hosted control, where --kui-h is that control's own height — and the
+   container's size would have no effect at all. Registering it computes the subtraction at the
+   point of DECLARATION, on the slot, and inherits the resolved length down. Fourth instance of
+   substitution-at-declaration in this system, after radius, density and surface padding (§6). */
+@property --kui-slot-h {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --kui-hosted-height {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 /* ── The skeleton every fixed-height control shares (§4) ─────────────────────────────────── */
 
 .kui-control {
@@ -65,6 +82,12 @@
   background-color: var(--kui-fill, var(--kui-fill-src));
   color: var(--kui-label-color);
   border: var(--border-width) solid var(--kui-border-color, transparent);
+
+  /* What a control hosted in one of THIS control's slots may be: its own height, less its
+     borders and two insets. Computed on the CONTAINER because --kui-h is registered
+     inherits:false by the layout mechanism — Box's `height` prop shares the stem — so it is
+     simply absent on the slot. */
+  --kui-slot-h: calc(var(--kui-h) - 2 * var(--border-width) - 2 * var(--kui-slot-inset));
 
   cursor: var(--cursor-button);
   /* Prefixed by hand, not left to the build: Safari only honours -webkit-user-select, and
@@ -97,6 +120,61 @@
   flex: none;
 }
 
+/* ── A control hosted inside another control (§4, decided 2026-08-04) ────────────────────────
+   The system owed this rule and did not have it. Its only nesting rule was §10's "one glass per
+   stack", so a call site putting a clear button in a field had to DERIVE the relationship — pick
+   a size index — and the mapping it was asked to infer was non-uniform (2px, 4px, 4px of slack
+   across the ladder) and undefined at size 1, where nothing in the system fits a 26px content box.
+
+   Measured before this rule: a size-2 field hosting a default Button rendered the button at 32px
+   inside a field that had GROWN to 34px — 1px of slack, flush to the border, and the field 2px
+   taller than its own size token said, in 16/16 cells. Under coarse at size 1 the hosted control
+   was exactly 100% of its container's height. It read as a second field wedged inside the field,
+   which is what it geometrically was.
+
+   ONE designed number drives all of it: --slot-inset-N shows above, below and beside the hosted
+   control, and its height is that inset subtracted rather than a second designed ladder that
+   would drift. Both re-declare per density and per pointer world with the rest of the control
+   family, so a compact field hosts a compact button.
+
+   The two-step — container computes --kui-slot-h, slot captures it into --kui-hosted-height — is
+   load-bearing, not indirection for its own sake. The hosted control is ALSO a .kui-control, so
+   it re-declares --kui-slot-h from its own index; capturing on the slot, which has no size join,
+   is what stops the child from overwriting the parent's answer. Both are registered lengths so
+   each computes where it is declared rather than where it is used. */
+.kui-control > [data-slot] {
+  /* The slot CAPTURES the container s value into a name the hosted control does not itself
+     declare. Both are registered lengths so each computes where it is declared rather than
+     where it is used — the hosted control is also a .kui-control and re-declares --kui-slot-h
+     from its OWN index, which is exactly how the container s size stopped reaching it. */
+  --kui-hosted-height: var(--kui-slot-h);
+  --kui-hosted-inset: var(--kui-slot-inset);
+}
+
+.kui-control > [data-slot] > .kui-control {
+  min-height: var(--kui-hosted-height);
+  /* Both, because min-height alone loses to the hosted control's own size join. */
+  height: var(--kui-hosted-height);
+}
+
+/* Touch: the hit area is the CONTAINER's content box, never the 44 target directly (§16).
+   A nested control that grew to 44 inside a 36px size-1 field would be a larger target than
+   the thing containing it, and would overlap whatever sits above and below in a stacked form —
+   which WCAG 2.5.8 counts against you. Matching the container instead means the hosted control
+   inherits whatever compliance its container already has, and size 1 keeps the ONE deliberate
+   sub-44 compromise §16 already made rather than inventing a second one. */
+@media (pointer: coarse) {
+  .kui-control > [data-slot] > .kui-control::after {
+    content: "";
+    position: absolute;
+    inset-block: calc(-1 * (var(--kui-hosted-inset) + var(--border-width)));
+    inset-inline: 0;
+  }
+  .kui-control > [data-slot] > .kui-control {
+    position: relative;
+  }
+}
+
 /* ── The size index: one join, five families (§4) ────────────────────────────────────────── */
 
 .kui-control[data-size="1"] {
@@ -108,6 +186,7 @@
   --kui-line: var(--line-height-1);
   --kui-tracking: var(--letter-spacing-1);
   --kui-icon: var(--icon-size-1);
+  --kui-slot-inset: var(--slot-inset-1);
 }
 .kui-control[data-size="2"] {
   --kui-h: var(--control-height-2);
@@ -118,6 +197,7 @@
   --kui-line: var(--line-height-2);
   --kui-tracking: var(--letter-spacing-2);
   --kui-icon: var(--icon-size-2);
+  --kui-slot-inset: var(--slot-inset-2);
 }
 .kui-control[data-size="3"] {
   --kui-h: var(--control-height-3);
@@ -128,6 +208,7 @@
   --kui-line: var(--line-height-3);
   --kui-tracking: var(--letter-spacing-3);
   --kui-icon: var(--icon-size-3);
+  --kui-slot-inset: var(--slot-inset-3);
 }
 .kui-control[data-size="4"] {
   --kui-h: var(--control-height-4);
@@ -138,6 +219,7 @@
   --kui-line: var(--line-height-4);
   --kui-tracking: var(--letter-spacing-4);
   --kui-icon: var(--icon-size-4);
+  --kui-slot-inset: var(--slot-inset-4);
 }
 
 /* ── The emphasis ladder: loudness, not construction (§9) ────────────────────────────────── */

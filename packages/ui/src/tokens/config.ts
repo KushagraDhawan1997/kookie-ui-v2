@@ -79,16 +79,19 @@ export const density = {
     height: [24, 28, 34, 40],
     px: [2, 3, 4, 5],
     radius: [1, 2, 2, 3],
+    slotInset: [2, 3, 3, 4],
   },
   default: {
     height: [28, 32, 40, 48],
     px: [3, 4, 5, 6],
     radius: [1, 2, 3, 4],
+    slotInset: [3, 3, 4, 4],
   },
   comfortable: {
     height: [34, 40, 50, 60],
     px: [4, 5, 6, 7],
     radius: [2, 3, 4, 5],
+    slotInset: [3, 4, 5, 6],
   },
 } as const;
 
@@ -99,6 +102,16 @@ export type DensitySet = {
   readonly height: readonly [number, number, number, number];
   readonly px: readonly [number, number, number, number];
   readonly radius: readonly [number, number, number, number];
+  /**
+   * §4 — the inset a control keeps around anything it hosts in a slot: a clear button, a
+   * password reveal, a unit label. One number for all four sides, and the hosted control's
+   * height is derived from it rather than designed separately, so the two cannot drift.
+   *
+   * Designed rather than a fraction of the box (Kushagra, 2026-08-04): a fraction reads as a
+   * ratio nobody chose, and this ladder already learned that lesson with radius, which is held
+   * near a constant fraction precisely because letting it climb made size 4 a capsule.
+   */
+  readonly slotInset: readonly [number, number, number, number];
 };
 
 /**
@@ -119,16 +132,19 @@ export const coarse = {
     height: [32, 38, 46, 54],
     px: [3, 4, 5, 6],
     radius: [2, 3, 3, 4],
+    slotInset: [3, 4, 4, 5],
   },
   default: {
     height: [36, 44, 52, 60],
     px: [4, 5, 6, 7],
     radius: [2, 3, 4, 5],
+    slotInset: [4, 4, 5, 5],
   },
   comfortable: {
     height: [40, 48, 58, 68],
     px: [5, 6, 7, 7],
     radius: [3, 4, 5, 5],
+    slotInset: [4, 5, 6, 7],
   },
 } as const satisfies Record<DensityLevel, DensitySet>;
 

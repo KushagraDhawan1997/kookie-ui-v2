@@ -362,7 +362,13 @@ describe("tokens only: no raw length literals in a hand-authored stylesheet (non
     const files = walk("..");
     expect(files.length).toBeGreaterThan(2);
     for (const file of files) {
-      const withoutComments = read(file).replace(/\/\*[\s\S]*?\*\//g, "");
+      const withoutComments = read(file)
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        // `initial-value` is a REQUIRED descriptor of an @property registration, not a design
+        // value: a registered <length> must declare the value it computes to when the cascade
+        // gives it nothing, and that is 0px by definition. Exempting the descriptor rather than
+        // the whole @property block, so a real literal inside one still fails.
+        .replace(/^\s*initial-value:[^;]*;/gm, "");
       const literals = withoutComments.match(/(?<![-\w(#.])\d+(\.\d+)?px\b/g) ?? [];
       expect(literals, `${file} carries raw px: ${literals.join(", ")}`).toEqual([]);
     }
