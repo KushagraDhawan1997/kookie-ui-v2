@@ -22,7 +22,7 @@ export type Material = (typeof MATERIALS)[number];
 /** The thicknesses that actually paint a veil — `solid` is the absence of one. */
 export const GLASS_MATERIALS = MATERIALS.filter((m) => m !== "solid");
 
-export type ButtonProps = Omit<
+type ButtonBase = Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {
@@ -55,6 +55,27 @@ export type ButtonProps = Omit<
 };
 
 /**
+ * `iconOnly` squares the box and drops the label — the glyph goes in `children`, because for
+ * this button the glyph IS the content, not an adornment beside one. That is why it is not
+ * spelled through `icon`, which means "the thing to the left of a label" and would have to mean
+ * two different things depending on a boolean.
+ *
+ * A separate `IconButton` component was the v1 answer and it failed in a specific way worth
+ * recording: it was opt-in by memory, so both people and agents reached for `Button` and got a
+ * pill where they wanted a square. One component cannot be forgotten.
+ *
+ * The union is the point of the prop, not decoration: an icon-only control has no visible text,
+ * so without an accessible name a screen reader announces "button" and nothing else — the single
+ * most common a11y defect in any component library. Here it does not compile. ENGINEERING §1.3:
+ * types are the refusals, enforced.
+ */
+type IconOnly =
+  | { iconOnly: true; "aria-label": string }
+  | { iconOnly: true; "aria-labelledby": string };
+
+export type ButtonProps = ButtonBase & (IconOnly | { iconOnly?: false | undefined });
+
+/**
  * The primary control (§9, §11). Base UI supplies the semantics — real `<button>`, keyboard
  * behaviour, `data-disabled` — and every visible decision is ours, resolved through the token
  * layer: `tone` picks a family, `emphasis` picks a loudness, `size` joins five scales at one
@@ -76,6 +97,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     loading = false,
     disabled = false,
     focusableWhenDisabled,
+    iconOnly,
     nativeButton,
     render,
     icon,
@@ -117,6 +139,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       data-tone={tone}
       data-emphasis={emphasis}
       data-bordered={bordered || undefined}
+      // Squares the box in the shared layer; the glyph is children, so nothing else changes.
+      data-icon-only={iconOnly || undefined}
       // Solid is the absence of a material, so it writes no attribute (§10).
       data-material={material === "solid" ? undefined : material}
       data-loading={loading || undefined}

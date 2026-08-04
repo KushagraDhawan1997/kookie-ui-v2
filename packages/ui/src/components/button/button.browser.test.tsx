@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import { Theme } from "../../theme/theme.tsx";
 import { computed, render } from "../../test/browser.tsx";
 import { Card } from "../card/card.tsx";
+import { TextField as TextFieldForButtonTest } from "../text-field/text-field.tsx";
 import { Button } from "./button.tsx";
 
 /** Resolve a token the way a component does — through an element, not through the text. */
@@ -455,5 +456,55 @@ describe("a control refuses outer spacing at the type level (non-negotiable, §3
     void (<Card m="4">B</Card>);
     // @ts-expect-error — inset is not a CardProp
     void (<Card inset="0">B</Card>);
+  });
+});
+
+describe("iconOnly is a square box with a required name (§4, decided 2026-08-04)", () => {
+  it("squares the box at every size, and the glyph is the content", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const el = render(
+        <Button size={size} iconOnly aria-label="Search">
+          <svg />
+        </Button>,
+      );
+      const box = el.getBoundingClientRect();
+      expect(Math.abs(box.width - box.height), `size ${size} is not square`).toBeLessThanOrEqual(1);
+      expect(computed(el, "padding-left")).toBe("0px");
+    }
+  });
+
+  it("a labelled icon button compiles; an unlabelled one does not", () => {
+    // The whole reason the prop exists rather than being inferred. An icon-only control has no
+    // visible text, so with no accessible name a screen reader announces "button" and nothing
+    // else. A separate IconButton component was v1's answer and was simply forgotten at the
+    // call site; a type error cannot be forgotten.
+    void (
+      <Button iconOnly aria-label="Search">
+        <svg />
+      </Button>
+    );
+    void (
+      <Button iconOnly aria-labelledby="lbl">
+        <svg />
+      </Button>
+    );
+    // @ts-expect-error — iconOnly without an accessible name
+    void (<Button iconOnly><svg /></Button>);
+  });
+
+  it("hosted in a field, it takes the CONTAINER's height and stays square", () => {
+    const field = render(
+      <TextFieldForButtonTest
+        trailing={
+          <Button iconOnly aria-label="Clear">
+            <svg />
+          </Button>
+        }
+      />,
+    );
+    const button = field.querySelector<HTMLElement>(".kui-button")!;
+    const box = button.getBoundingClientRect();
+    expect(Math.abs(box.width - box.height)).toBeLessThanOrEqual(1);
+    expect(box.height).toBeLessThan(field.getBoundingClientRect().height);
   });
 });

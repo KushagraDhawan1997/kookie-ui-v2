@@ -175,6 +175,15 @@
   }
 }
 
+/* An icon-only control is square: the glyph is the content, so there is no label to pad away
+   from. `aspect-ratio` rather than a min-width token because the height it must match is not
+   always its own — a hosted icon button takes --kui-hosted-height from its container, and a
+   width pinned to --kui-h would ignore that (§4). */
+.kui-control[data-icon-only] {
+  padding-inline: 0;
+  aspect-ratio: 1;
+}
+
 /* ── The size index: one join, five families (§4) ────────────────────────────────────────── */
 
 .kui-control[data-size="1"] {
