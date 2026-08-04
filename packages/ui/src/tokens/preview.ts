@@ -766,6 +766,9 @@ export function generatePreview(): string {
   <label>pointer
       <select id="pointer"><option selected>auto</option><option>fine</option><option>coarse</option></select>
     </label>
+  <label>device
+      <select id="device"><option selected>auto</option><option>desktop</option><option>handheld</option></select>
+    </label>
   <label>density
       <select id="density">${LEVELS.map((l) => `<option${l === "default" ? " selected" : ""}>${l}</option>`).join("")}</select>
     </label>
@@ -830,7 +833,7 @@ ${fieldSection("dark")}
 </div>
 
 <h1 id="type">Text &amp; Heading — the ramp, worn (§15)</h1>
-<p class="note">Nine steps, three paired scales joined at one index — font-size, line-height and letter-spacing are designed pairs, never derived ratios. Type never follows the density or pointer selects above: flip either and every box and gap on this page moves while these lines hold, which is the whole point of the axis (§12). Text and Heading ship no CSS of their own; the type layer is the whole of what they look like.</p>
+<p class="note">Nine steps, three paired scales joined at one index — font-size, line-height and letter-spacing are designed pairs, never derived ratios. Type never follows the density or pointer selects above: flip either and every box and gap on this page moves while these lines hold, which is the whole point of the axis (§12). The <em>device</em> select is the one that moves it (§17): <code>handheld</code> re-picks each step's index — reading sizes rise, display sizes fall, and steps 4/5 and 7/8 collapse to one rendered value, the band's designed price. Text and Heading ship no CSS of their own; the type layer is the whole of what they look like.</p>
 ${typeSection()}
 
 <h1 id="layout">the responsive mechanism, live</h1>
@@ -942,6 +945,14 @@ ${brandSection("dark")}
   // and a section's own data-density outranks the root's.
   document.getElementById("density").addEventListener("change", (e) => {
     document.documentElement.dataset.density = e.target.value;
+    readout();
+  });
+
+  // The device band (§17) — pin handheld to judge phone type on a desktop, the same move
+  // as pinning coarse. Root only: nothing else on the page re-declares a type token, so no
+  // per-section stamping is needed.
+  document.getElementById("device").addEventListener("change", (e) => {
+    document.documentElement.dataset.device = e.target.value;
     readout();
   });
 
