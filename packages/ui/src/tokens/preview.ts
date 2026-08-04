@@ -188,8 +188,8 @@ function accentSwap(name: string, hex: string, mode: Mode): string {
 }
 
 /** The static markup Text and Heading produce (§15) — the type layer resolves the rest. */
-function text(size: number, body: string, weight = "regular", style = ""): string {
-  return `<span class="kui-type kui-text" data-size="${size}" data-weight="${weight}"${style ? ` style="${style}"` : ""}>${body}</span>`;
+function text(size: number, body: string, weight = "regular", emphasis = "loud"): string {
+  return `<span class="kui-type kui-text" data-size="${size}" data-weight="${weight}" data-emphasis="${emphasis}">${body}</span>`;
 }
 
 /**
@@ -217,18 +217,29 @@ function typeSection(): string {
       { display: "flex", direction: "column", gap: "4" },
       kuiBox(
         { display: "flex", direction: "column", gap: "2" },
-        `<h2 class="kui-type kui-heading" data-size="6" data-weight="bold">One ramp, two consumers</h2>${text(
+        `<h2 class="kui-type kui-heading" data-size="6" data-weight="bold" data-emphasis="loud">One ramp, two consumers</h2>${text(
           3,
           "Heading and Text share the size index and the paired scales; only the family slot and the resting weight differ. Neither carries a tone — this paragraph is reading the surface's foreground context.",
-        )}${text(2, "The muted aside is the call site's style against the role token.", "regular", "color: var(--color-text-muted)")}`,
+        )}${text(2, "The muted aside is emphasis, one rung down the same ladder.", "regular", "medium")}`,
       ) + kuiBox({ display: "flex", gap: "3" }, `${button({ tone: "accent", emphasis: "loud" }, "Continue")}${button({}, "Cancel")}`),
     ),
     "max-width: 560px",
+  );
+  const ladder = kuiBox(
+    { display: "flex", direction: "column", gap: "2" },
+    `${text(3, "Loud is the resting state: body copy reads at full contrast.")}${text(
+      3,
+      "Medium is the muted role — descriptions, asides, secondary lines.",
+      "regular",
+      "medium",
+    )}${text(3, "Quiet is faint by design: a timestamp, a placeholder — never a paragraph.", "regular", "quiet")}`,
   );
   return (
     kuiBox({ display: "flex", direction: "column", gap: "6", align: "stretch" }, ramp) +
     `<p class="note">The four weights, at the anchor step — token names, never numbers (§15).</p>` +
     weights +
+    `<p class="note">The emphasis ladder, resolved for type (§9, §15): the same axis controls resolve as fills and surfaces as dressing lands here as foreground roles — loud reads text, medium muted, quiet faint. Text rests loud, the inversion of the control default: full contrast is the accessible resting state for reading.</p>` +
+    ladder +
     `<p class="note">The composition a block would build.</p>` +
     specimen
   );
