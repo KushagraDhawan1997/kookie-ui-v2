@@ -188,8 +188,8 @@ function accentSwap(name: string, hex: string, mode: Mode): string {
 }
 
 /** The static markup Text and Heading produce (§15) — the type layer resolves the rest. */
-function text(size: number, body: string, weight = "regular", emphasis = "loud"): string {
-  return `<span class="kui-type kui-text" data-size="${size}" data-weight="${weight}" data-emphasis="${emphasis}">${body}</span>`;
+function text(size: number, body: string, weight = "regular", emphasis = "loud", tone = ""): string {
+  return `<span class="kui-type kui-text" data-size="${size}" data-weight="${weight}" data-emphasis="${emphasis}"${tone ? ` data-tone="${tone}"` : ""}>${body}</span>`;
 }
 
 /**
@@ -234,12 +234,26 @@ function typeSection(): string {
       "medium",
     )}${text(3, "Quiet is faint by design: a timestamp, a placeholder — never a paragraph.", "regular", "quiet")}`,
   );
+  // The ink ladders (§7, §15): a chroma family's loud rung is its one designed text colour;
+  // the lower rungs fade the ink. Neutral's are designed steps. Mix values are v0.
+  const inks = ["accent", "destructive"]
+    .map((tone) =>
+      kuiBox(
+        { display: "flex", gap: "5", align: "baseline" },
+        ["loud", "medium", "quiet"]
+          .map((e) => text(3, `${tone} ${e}`, "regular", e, tone))
+          .join(""),
+      ),
+    )
+    .join("");
   return (
     kuiBox({ display: "flex", direction: "column", gap: "6", align: "stretch" }, ramp) +
     `<p class="note">The four weights, at the anchor step — token names, never numbers (§15).</p>` +
     weights +
     `<p class="note">The emphasis ladder, resolved for type (§9, §15): the same axis controls resolve as fills and surfaces as dressing lands here as foreground roles — loud reads text, medium muted, quiet faint. Text rests loud, the inversion of the control default: full contrast is the accessible resting state for reading.</p>` +
     ladder +
+    `<p class="note">Tone re-scopes the ladder onto the family's ink trio (§7): loud is the family's one designed text colour — an error reads red, not near-black — and the lower rungs fade the ink, since a chroma scale's steps below the text step are solid fills, more vivid rather than less. Mix values are v0, judged here.</p>` +
+    kuiBox({ display: "flex", direction: "column", gap: "2" }, inks) +
     `<p class="note">The composition a block would build.</p>` +
     specimen
   );
