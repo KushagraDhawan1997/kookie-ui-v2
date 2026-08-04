@@ -22,7 +22,7 @@ function tokenOn(el: Element, name: string): string {
 }
 
 /** Read a custom property declared ON this element. tokenOn() appends a CHILD probe, which
-    cannot see a property registered `inherits: false` — as --kui-fill and its state siblings
+    cannot see a property registered `inherits: false` — as --kui-ct-fill and its state siblings
     now are, so a glass control stops painting its veil onto controls nested inside it. */
 function ownToken(el: Element, name: string): string {
   const probe = document.createElement("div");
@@ -147,8 +147,8 @@ describe("states are stylesheet work, and the DOM stays honest (§8, ENGINEERING
     expect(computed(el, "background-color")).toBe(tokenOn(el, "--tone-soft"));
     // The states live in the stylesheet keyed on :hover/:active, so what is asserted here is
     // that the recipe bound them to the right steps — no JS exists to fire at interaction.
-    expect(tokenOn(el, "--kui-fill-src-hover")).toBe(tokenOn(el, "--tone-soft-hover"));
-    expect(tokenOn(el, "--kui-fill-src-active")).toBe(tokenOn(el, "--tone-soft-active"));
+    expect(tokenOn(el, "--kui-ct-fill-src-hover")).toBe(tokenOn(el, "--tone-soft-hover"));
+    expect(tokenOn(el, "--kui-ct-fill-src-active")).toBe(tokenOn(el, "--tone-soft-active"));
   });
 
   it("disabled remaps the tone family instead of dropping opacity (§8)", () => {
@@ -234,10 +234,10 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
         Label
       </Button>,
     );
-    expect(ownToken(el, "--kui-fill-hover")).toBe(
+    expect(ownToken(el, "--kui-ct-fill-hover")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-thin-alpha-hover), transparent)"),
     );
-    expect(ownToken(el, "--kui-fill-active")).toBe(
+    expect(ownToken(el, "--kui-ct-fill-active")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-soft-active) var(--material-thin-alpha-active), transparent)"),
     );
   });

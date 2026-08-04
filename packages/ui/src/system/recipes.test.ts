@@ -17,7 +17,17 @@ import { GLASS_MATERIALS } from "../components/button/button.tsx";
 import { tones } from "../tokens/color-config.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const read = (p: string) => readFileSync(join(here, p), "utf8");
+
+/**
+ * A stylesheet's CODE, comments stripped. Every law in this file asks what a sheet DOES, and
+ * the answer is never in its prose — but these are heavily commented files whose comments name
+ * the very things the laws forbid, because explaining why a rung, a family or an abandoned
+ * stem is absent means writing it down. Scanning raw text made two laws fire on their own
+ * documentation, and the cheap fix each time is to delete the sentence, which is the wrong
+ * direction for a codebase whose comments are the argument.
+ */
+const code = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, " ");
+const read = (p: string) => code(readFileSync(join(here, p), "utf8"));
 
 const recipes = read("./recipes.css");
 const button = read("../components/button/button.css");
@@ -84,7 +94,7 @@ describe("the icon box is a mechanism, declared once (§4, ENGINEERING §4)", ()
     // in a fourth copy of three declarations when Select ships.
     expect(recipes).toContain("[data-slot] > svg");
     for (const [, css] of [["button.css", button], ["text-field.css", textField]] as const) {
-      expect(css).not.toContain("--kui-icon");
+      expect(css).not.toContain("--kui-ct-icon");
     }
   });
 });
@@ -206,13 +216,13 @@ describe("material on a control: backdrop defense, three environments (§10)", (
       const block = supports.slice(supports.indexOf(`[data-material="${m}"]`));
       const body = block.slice(0, block.indexOf("}"));
       expect(body).toContain(
-        `--kui-fill: color-mix(in srgb, var(--kui-fill-src) var(--material-${m}-alpha), transparent)`,
+        `--kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-${m}-alpha), transparent)`,
       );
       expect(body).toContain(
-        `--kui-fill-hover: color-mix(in srgb, var(--kui-fill-src-hover) var(--material-${m}-alpha-hover), transparent)`,
+        `--kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-${m}-alpha-hover), transparent)`,
       );
       expect(body).toContain(
-        `--kui-fill-active: color-mix(in srgb, var(--kui-fill-src-active) var(--material-${m}-alpha-active), transparent)`,
+        `--kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-${m}-alpha-active), transparent)`,
       );
       expect(body).toContain(`backdrop-filter: var(--material-${m}-filter)`);
     }
@@ -222,7 +232,7 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     ]) {
       for (const state of ["", "-hover", "-active"]) {
         expect(env).toContain(
-          `--kui-fill${state}: color-mix(in srgb, var(--kui-fill-src${state}) var(--material-opaque-alpha), transparent)`,
+          `--kui-ct-fill${state}: color-mix(in srgb, var(--kui-ct-fill-src${state}) var(--material-opaque-alpha), transparent)`,
         );
       }
     }
@@ -235,7 +245,7 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     // quietly become a fill again.
     const materialBlock = code.slice(code.indexOf('[data-material="thin"]'));
     expect(materialBlock).not.toMatch(/--(tone|accent|neutral|destructive|color)-/);
-    expect(materialBlock).not.toContain("--kui-label-color");
+    expect(materialBlock).not.toContain("--kui-ct-label-color");
   });
 });
 
@@ -373,4 +383,40 @@ describe("tokens only: no raw length literals in a hand-authored stylesheet (non
       expect(literals, `${file} carries raw px: ${literals.join(", ")}`).toEqual([]);
     }
   });
+});
+
+describe("private stems are namespaced per layer (§2, added 2026-08-05)", () => {
+  // The layout mechanism generates one `--kui-<shortcode>` per Box prop, so it owns a large,
+  // GROWING set of terse names — `--kui-h` for `height`, `--kui-px` for `px`, and so on. The
+  // hand-authored layers were reaching into the same space: the control layer used `--kui-h`
+  // for control height, `--kui-px` for inline padding, and read `--kui-py`. All three were
+  // the same name meaning two different things.
+  //
+  // It was not theoretical. `--kui-h` is registered `inherits: false` by layout.css, which
+  // made it silently ABSENT on any element that does not declare it — that is why the hosted
+  // control's height had to be computed on the container and handed through the slot, and it
+  // is the second thing the collision broke (the size join leaking onto every Card was the
+  // first). The control layer now wears `--kui-ct-`, matching the surface layer's `--kui-sf-`.
+  //
+  // Not "no shared names" — `--kui-border-color` and `--kui-surface-chrome` are shared on
+  // purpose, one idea written once for both layers. The law is narrower and is the one that
+  // could not be satisfied by accident: nothing outside the layout mechanism may so much as
+  // MENTION a name the layout mechanism declares. Mention, not declare, because reading a
+  // stem you do not own is the same defect from the other side, and `--kui-py` was exactly
+  // that — read by the control skeleton, declared by Box.
+  const names = (css: string) => new Set(css.match(/--kui-[a-z0-9-]+/g) ?? []);
+
+  const layoutOwned = names(code(readFileSync(join(here, "./layout.css"), "utf8")));
+
+  it("the layout mechanism really does own a large terse set — the premise, not an assumption", () => {
+    expect(layoutOwned.size).toBeGreaterThan(100);
+    for (const stem of ["--kui-h", "--kui-px", "--kui-py"]) expect(layoutOwned.has(stem)).toBe(true);
+  });
+
+  for (const path of allStylesheets()) {
+    it(`${path.split("/").pop()} names nothing the layout mechanism owns`, () => {
+      const shared = [...names(read(path))].filter((n) => layoutOwned.has(n));
+      expect(shared, `${path} shares stems with layout.css`).toEqual([]);
+    });
+  }
 });

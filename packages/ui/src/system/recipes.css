@@ -11,43 +11,45 @@
 /* Containment's variable must NOT inherit: `[data-bordered]` declares --kui-border-color on
    the element that carries the attribute, but custom properties inherit by default, so every
    control inside a bordered Card silently grew a border — loud buttons included, spotted on
-   the material demo. Same guard the layout mechanism uses (§2). */
+   the material demo. Same guard the layout mechanism uses (§2).
+
+   The one stem this layer shares with the surface layer, and deliberately: `[data-bordered]` is
+   written once here and read by both `.kui-control` and `.kui-surface`, because containment is
+   one idea. Everything else this file owns wears the `--kui-ct-` prefix (surfaces wear
+   `--kui-sf-`) so that no private stem can ever collide with the layout mechanism's — which is
+   not hypothetical: `--kui-h`, `--kui-px` and `--kui-py` were shared with Box's `height`,
+   `px` and `py` props until 2026-08-05, and the first of them broke two separate things. */
 @property --kui-border-color {
   syntax: "*";
   inherits: false;
 }
 
 /* The DERIVED fills need the same guard, and did not have it — the surface layer already
-   guards its equivalents (surfaces.css). Material writes --kui-fill/-hover/-active on the
+   guards its equivalents (surfaces.css). Material writes --kui-ct-fill/-hover/-active on the
    element carrying [data-material], and custom properties inherit, so every control INSIDE a
    glass control painted its container's veil rather than its own fill: a Button in the trailing
    slot of a `material` TextField computed the identical background as the field at rest, hover
    AND press, unblurred, reading as one flat shape. Fourth instance of this lesson (§2, §10). */
-@property --kui-fill {
+@property --kui-ct-fill {
   syntax: "*";
   inherits: false;
 }
-@property --kui-fill-hover {
+@property --kui-ct-fill-hover {
   syntax: "*";
   inherits: false;
 }
-@property --kui-fill-active {
+@property --kui-ct-fill-active {
   syntax: "*";
   inherits: false;
 }
 
 /* Registered as a LENGTH, and that is the whole mechanism. An unregistered custom property
-   inherits as a token stream, so `var(--kui-h)` inside it would be substituted on the element
-   that USES it — the hosted control, where --kui-h is that control's own height — and the
+   inherits as a token stream, so `var(--kui-ct-h)` inside it would be substituted on the element
+   that USES it — the hosted control, where --kui-ct-h is that control's own height — and the
    container's size would have no effect at all. Registering it computes the subtraction at the
    point of DECLARATION, on the slot, and inherits the resolved length down. Fourth instance of
    substitution-at-declaration in this system, after radius, density and surface padding (§6). */
-@property --kui-slot-h {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 0px;
-}
-@property --kui-hosted-height {
+@property --kui-ct-hosted-height {
   syntax: "<length>";
   inherits: true;
   initial-value: 0px;
@@ -62,32 +64,26 @@
   justify-content: center;
   /* min-height, not height: identical in every normal render, but a hard height clips a
      200%-resized label (WCAG 1.4.4) and truncates a wrapped one (§4). */
-  min-height: var(--kui-h);
-  padding-inline: var(--kui-px);
+  min-height: var(--kui-ct-h);
+  padding-inline: var(--kui-ct-px);
   /* Block padding exists only to protect wrapped content from the edges; height still comes
      from the token, never from padding (§4). */
-  padding-block: var(--kui-py, 0);
-  gap: var(--kui-gap);
-  border-radius: var(--kui-radius);
+  padding-block: var(--kui-ct-py, 0);
+  gap: var(--kui-ct-gap);
+  border-radius: var(--kui-ct-radius);
 
   font-family: var(--font-body);
-  font-size: var(--kui-font);
-  line-height: var(--kui-line);
-  letter-spacing: var(--kui-tracking);
+  font-size: var(--kui-ct-font);
+  line-height: var(--kui-ct-line);
+  letter-spacing: var(--kui-ct-tracking);
   font-weight: var(--font-weight-medium);
 
-  /* The rungs publish their fills as SOURCES (--kui-fill-src-*); the painted value reads
+  /* The rungs publish their fills as SOURCES (--kui-ct-fill-src-*); the painted value reads
      through this chain so material (§10) can re-derive every state from the same source —
      a fill modifier, not a fill. With no material the chain collapses to the rung's value. */
-  background-color: var(--kui-fill, var(--kui-fill-src));
-  color: var(--kui-label-color);
+  background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
+  color: var(--kui-ct-label-color);
   border: var(--border-width) solid var(--kui-border-color, transparent);
-
-  /* What a control hosted in one of THIS control's slots may be: its own height, less its
-     borders and two insets. Computed on the CONTAINER because --kui-h is registered
-     inherits:false by the layout mechanism — Box's `height` prop shares the stem — so it is
-     simply absent on the slot. */
-  --kui-slot-h: calc(var(--kui-h) - 2 * var(--border-width) - 2 * var(--kui-slot-inset));
 
   cursor: var(--cursor-button);
   /* Prefixed by hand, not left to the build: Safari only honours -webkit-user-select, and
@@ -115,8 +111,8 @@
    `[data-slot]` is the system's name for that wrapper. */
 .kui-control > svg,
 .kui-control > [data-slot] > svg {
-  width: var(--kui-icon);
-  height: var(--kui-icon);
+  width: var(--kui-ct-icon);
+  height: var(--kui-ct-icon);
   flex: none;
 }
 
@@ -137,24 +133,26 @@
    would drift. Both re-declare per density and per pointer world with the rest of the control
    family, so a compact field hosts a compact button.
 
-   The two-step — container computes --kui-slot-h, slot captures it into --kui-hosted-height — is
-   load-bearing, not indirection for its own sake. The hosted control is ALSO a .kui-control, so
-   it re-declares --kui-slot-h from its own index; capturing on the slot, which has no size join,
-   is what stops the child from overwriting the parent's answer. Both are registered lengths so
-   each computes where it is declared rather than where it is used. */
+   The arithmetic happens on the SLOT, and that placement is the whole mechanism. The slot is a
+   plain span with no size join, so it inherits the container's height and inset; the hosted
+   control is itself a .kui-control and re-declares both from its OWN index, which is exactly how
+   the container's size stopped reaching it before this rule existed. Registering the result as a
+   length is what makes the subtraction compute where it is DECLARED rather than where it is used
+   — the fourth instance of substitution-at-declaration here, after radius, density and surface
+   padding (§6). It took two hops until 2026-08-05, when the control layer moved off the stems it
+   shared with Box: `--kui-h` was registered `inherits: false` by the layout mechanism, so it was
+   simply absent on the slot and the container had to do the arithmetic itself. */
 .kui-control > [data-slot] {
-  /* The slot CAPTURES the container s value into a name the hosted control does not itself
-     declare. Both are registered lengths so each computes where it is declared rather than
-     where it is used — the hosted control is also a .kui-control and re-declares --kui-slot-h
-     from its OWN index, which is exactly how the container s size stopped reaching it. */
-  --kui-hosted-height: var(--kui-slot-h);
-  --kui-hosted-inset: var(--kui-slot-inset);
+  --kui-ct-hosted-height: calc(
+    var(--kui-ct-h) - 2 * var(--border-width) - 2 * var(--kui-ct-slot-inset)
+  );
+  --kui-ct-hosted-inset: var(--kui-ct-slot-inset);
 }
 
 .kui-control > [data-slot] > .kui-control {
-  min-height: var(--kui-hosted-height);
+  min-height: var(--kui-ct-hosted-height);
   /* Both, because min-height alone loses to the hosted control's own size join. */
-  height: var(--kui-hosted-height);
+  height: var(--kui-ct-hosted-height);
 }
 
 /* Touch: the hit area is the CONTAINER's content box, never the 44 target directly (§16).
@@ -167,7 +165,7 @@
   .kui-control > [data-slot] > .kui-control::after {
     content: "";
     position: absolute;
-    inset-block: calc(-1 * (var(--kui-hosted-inset) + var(--border-width)));
+    inset-block: calc(-1 * (var(--kui-ct-hosted-inset) + var(--border-width)));
     inset-inline: 0;
   }
   .kui-control > [data-slot] > .kui-control {
@@ -177,8 +175,8 @@
 
 /* An icon-only control is square: the glyph is the content, so there is no label to pad away
    from. `aspect-ratio` rather than a min-width token because the height it must match is not
-   always its own — a hosted icon button takes --kui-hosted-height from its container, and a
-   width pinned to --kui-h would ignore that (§4). */
+   always its own — a hosted icon button takes --kui-ct-hosted-height from its container, and a
+   width pinned to --kui-ct-h would ignore that (§4). */
 .kui-control[data-icon-only] {
   padding-inline: 0;
   aspect-ratio: 1;
@@ -187,76 +185,76 @@
 /* ── The size index: one join, five families (§4) ────────────────────────────────────────── */
 
 .kui-control[data-size="1"] {
-  --kui-h: var(--control-height-1);
-  --kui-px: var(--control-px-1);
-  --kui-gap: var(--control-gap-1);
-  --kui-radius: var(--radius-control-1);
-  --kui-font: var(--font-size-1);
-  --kui-line: var(--line-height-1);
-  --kui-tracking: var(--letter-spacing-1);
-  --kui-icon: var(--icon-size-1);
-  --kui-slot-inset: var(--slot-inset-1);
+  --kui-ct-h: var(--control-height-1);
+  --kui-ct-px: var(--control-px-1);
+  --kui-ct-gap: var(--control-gap-1);
+  --kui-ct-radius: var(--radius-control-1);
+  --kui-ct-font: var(--font-size-1);
+  --kui-ct-line: var(--line-height-1);
+  --kui-ct-tracking: var(--letter-spacing-1);
+  --kui-ct-icon: var(--icon-size-1);
+  --kui-ct-slot-inset: var(--slot-inset-1);
 }
 .kui-control[data-size="2"] {
-  --kui-h: var(--control-height-2);
-  --kui-px: var(--control-px-2);
-  --kui-gap: var(--control-gap-2);
-  --kui-radius: var(--radius-control-2);
-  --kui-font: var(--font-size-2);
-  --kui-line: var(--line-height-2);
-  --kui-tracking: var(--letter-spacing-2);
-  --kui-icon: var(--icon-size-2);
-  --kui-slot-inset: var(--slot-inset-2);
+  --kui-ct-h: var(--control-height-2);
+  --kui-ct-px: var(--control-px-2);
+  --kui-ct-gap: var(--control-gap-2);
+  --kui-ct-radius: var(--radius-control-2);
+  --kui-ct-font: var(--font-size-2);
+  --kui-ct-line: var(--line-height-2);
+  --kui-ct-tracking: var(--letter-spacing-2);
+  --kui-ct-icon: var(--icon-size-2);
+  --kui-ct-slot-inset: var(--slot-inset-2);
 }
 .kui-control[data-size="3"] {
-  --kui-h: var(--control-height-3);
-  --kui-px: var(--control-px-3);
-  --kui-gap: var(--control-gap-3);
-  --kui-radius: var(--radius-control-3);
-  --kui-font: var(--font-size-3);
-  --kui-line: var(--line-height-3);
-  --kui-tracking: var(--letter-spacing-3);
-  --kui-icon: var(--icon-size-3);
-  --kui-slot-inset: var(--slot-inset-3);
+  --kui-ct-h: var(--control-height-3);
+  --kui-ct-px: var(--control-px-3);
+  --kui-ct-gap: var(--control-gap-3);
+  --kui-ct-radius: var(--radius-control-3);
+  --kui-ct-font: var(--font-size-3);
+  --kui-ct-line: var(--line-height-3);
+  --kui-ct-tracking: var(--letter-spacing-3);
+  --kui-ct-icon: var(--icon-size-3);
+  --kui-ct-slot-inset: var(--slot-inset-3);
 }
 .kui-control[data-size="4"] {
-  --kui-h: var(--control-height-4);
-  --kui-px: var(--control-px-4);
-  --kui-gap: var(--control-gap-4);
-  --kui-radius: var(--radius-control-4);
-  --kui-font: var(--font-size-4);
-  --kui-line: var(--line-height-4);
-  --kui-tracking: var(--letter-spacing-4);
-  --kui-icon: var(--icon-size-4);
-  --kui-slot-inset: var(--slot-inset-4);
+  --kui-ct-h: var(--control-height-4);
+  --kui-ct-px: var(--control-px-4);
+  --kui-ct-gap: var(--control-gap-4);
+  --kui-ct-radius: var(--radius-control-4);
+  --kui-ct-font: var(--font-size-4);
+  --kui-ct-line: var(--line-height-4);
+  --kui-ct-tracking: var(--letter-spacing-4);
+  --kui-ct-icon: var(--icon-size-4);
+  --kui-ct-slot-inset: var(--slot-inset-4);
 }
 
 /* ── The emphasis ladder: loudness, not construction (§9) ────────────────────────────────── */
 
 [data-emphasis="loud"] {
-  --kui-fill-src: var(--tone-solid);
-  --kui-fill-src-hover: var(--tone-solid-hover);
-  --kui-fill-src-active: var(--tone-solid-active);
+  --kui-ct-fill-src: var(--tone-solid);
+  --kui-ct-fill-src-hover: var(--tone-solid-hover);
+  --kui-ct-fill-src-active: var(--tone-solid-active);
   /* The APCA-chosen label for this fill (§7). Interaction states move AWAY from it, so they
      are strictly more legible than rest and only rest has to clear the bar. */
-  --kui-label-color: var(--tone-contrast);
+  --kui-ct-label-color: var(--tone-contrast);
 }
 
 [data-emphasis="medium"] {
-  --kui-fill-src: var(--tone-soft);
-  --kui-fill-src-hover: var(--tone-soft-hover);
-  --kui-fill-src-active: var(--tone-soft-active);
+  --kui-ct-fill-src: var(--tone-soft);
+  --kui-ct-fill-src-hover: var(--tone-soft-hover);
+  --kui-ct-fill-src-active: var(--tone-soft-active);
   /* A control label is not a link: --tone-label sits between steps 11 and 12 (§7). */
-  --kui-label-color: var(--tone-label);
+  --kui-ct-label-color: var(--tone-label);
 }
 
 [data-emphasis="quiet"] {
   /* Bare at rest, fill on touch. Its rest is the absence of a fill, so the +1/+2 step rule
      (§8) applies from the first visible state rather than from transparency. */
-  --kui-fill-src: transparent;
-  --kui-fill-src-hover: var(--tone-soft);
-  --kui-fill-src-active: var(--tone-soft-hover);
-  --kui-label-color: var(--tone-label);
+  --kui-ct-fill-src: transparent;
+  --kui-ct-fill-src-hover: var(--tone-soft);
+  --kui-ct-fill-src-active: var(--tone-soft-hover);
+  --kui-ct-label-color: var(--tone-label);
 }
 
 /* ── Containment, orthogonal to loudness (§10) ───────────────────────────────────────────── */
@@ -273,14 +271,14 @@
    THESIS §7 calls hover a hardware fact; this is that sentence in CSS. */
 @media (hover: hover) {
   .kui-control:hover:not([data-disabled], [data-loading]) {
-    background-color: var(--kui-fill-hover, var(--kui-fill-src-hover));
+    background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
   }
 }
 
 /* Press is deliberately NOT guarded: it fires on every input, and on touch it is the only
    feedback there is — it is what "quiet fills on touch" (§9) literally means. */
 .kui-control:active:not([data-disabled], [data-loading]) {
-  background-color: var(--kui-fill-active, var(--kui-fill-src-active));
+  background-color: var(--kui-ct-fill-active, var(--kui-ct-fill-src-active));
 }
 
 /* One ring, always accent, keyboard only (§8). `outline` rather than box-shadow: it follows
@@ -292,7 +290,7 @@
 
 /* Disabled is a TONE remap, never opacity (§8): opacity stacks on tinted surfaces and voids
    every generated contrast guarantee, where remapping the family keeps a designed, testable
-   pair. Rewriting --tone-* rather than --kui-fill means quiet stays bare and every rung keeps
+   pair. Rewriting --tone-* rather than --kui-ct-fill means quiet stays bare and every rung keeps
    its own shape while going flat.
 
    The `:has()` arm is the same one the invalid rule below has always carried, and it was
@@ -378,28 +376,28 @@
 .kui-control[data-material="thick"] {
   /* No backdrop-filter means no defense from a 30% veil, so the fallback is the rung's own
      fill nearly sealed — quiet honestly stays bare, exactly as it is without a material. */
-  --kui-fill: color-mix(in srgb, var(--kui-fill-src) var(--material-opaque-alpha), transparent);
-  --kui-fill-hover: color-mix(in srgb, var(--kui-fill-src-hover) var(--material-opaque-alpha), transparent);
-  --kui-fill-active: color-mix(in srgb, var(--kui-fill-src-active) var(--material-opaque-alpha), transparent);
+  --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-opaque-alpha), transparent);
+  --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-opaque-alpha), transparent);
+  --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-opaque-alpha), transparent);
 }
 
 @supports (backdrop-filter: blur(1px)) {
   .kui-control[data-material="thin"] {
-    --kui-fill: color-mix(in srgb, var(--kui-fill-src) var(--material-thin-alpha), transparent);
-    --kui-fill-hover: color-mix(in srgb, var(--kui-fill-src-hover) var(--material-thin-alpha-hover), transparent);
-    --kui-fill-active: color-mix(in srgb, var(--kui-fill-src-active) var(--material-thin-alpha-active), transparent);
+    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thin-alpha), transparent);
+    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thin-alpha-hover), transparent);
+    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thin-alpha-active), transparent);
     backdrop-filter: var(--material-thin-filter);
   }
   .kui-control[data-material="regular"] {
-    --kui-fill: color-mix(in srgb, var(--kui-fill-src) var(--material-regular-alpha), transparent);
-    --kui-fill-hover: color-mix(in srgb, var(--kui-fill-src-hover) var(--material-regular-alpha-hover), transparent);
-    --kui-fill-active: color-mix(in srgb, var(--kui-fill-src-active) var(--material-regular-alpha-active), transparent);
+    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-regular-alpha), transparent);
+    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-regular-alpha-hover), transparent);
+    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-regular-alpha-active), transparent);
     backdrop-filter: var(--material-regular-filter);
   }
   .kui-control[data-material="thick"] {
-    --kui-fill: color-mix(in srgb, var(--kui-fill-src) var(--material-thick-alpha), transparent);
-    --kui-fill-hover: color-mix(in srgb, var(--kui-fill-src-hover) var(--material-thick-alpha-hover), transparent);
-    --kui-fill-active: color-mix(in srgb, var(--kui-fill-src-active) var(--material-thick-alpha-active), transparent);
+    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thick-alpha), transparent);
+    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thick-alpha-hover), transparent);
+    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thick-alpha-active), transparent);
     backdrop-filter: var(--material-thick-filter);
   }
 }
@@ -408,9 +406,9 @@
   .kui-control[data-material="thin"],
   .kui-control[data-material="regular"],
   .kui-control[data-material="thick"] {
-    --kui-fill: color-mix(in srgb, var(--kui-fill-src) var(--material-opaque-alpha), transparent);
-    --kui-fill-hover: color-mix(in srgb, var(--kui-fill-src-hover) var(--material-opaque-alpha), transparent);
-    --kui-fill-active: color-mix(in srgb, var(--kui-fill-src-active) var(--material-opaque-alpha), transparent);
+    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-opaque-alpha), transparent);
+    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-opaque-alpha), transparent);
+    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-opaque-alpha), transparent);
     backdrop-filter: none;
   }
 }

@@ -45,8 +45,8 @@ function bgOn(el: Element, expr: string): string {
  * back to the source exactly as `var(--kui-fill-X, var(--kui-fill-src-X))` does.
  */
 function stateFill(el: Element, state: "hover" | "active"): string {
-  const derived = getComputedStyle(el).getPropertyValue(`--kui-fill-${state}`).trim();
-  return bgOn(el, derived || `var(--kui-fill-src-${state})`);
+  const derived = getComputedStyle(el).getPropertyValue(`--kui-ct-fill-${state}`).trim();
+  return bgOn(el, derived || `var(--kui-ct-fill-src-${state})`);
 }
 
 const inputOf = (el: HTMLElement) => el.querySelector("input")!;
@@ -166,14 +166,14 @@ describe("one treatment: a field has no loudness (§9, §11)", () => {
     expect(computed(el, "background-color")).not.toContain("rgba");
 
     // The trap this pins, which no rendered screenshot would catch: the shared layer paints
-    // `var(--kui-fill, var(--kui-fill-src))` and swaps to the -hover / -active sources on
+    // `var(--kui-ct-fill, var(--kui-ct-fill-src))` and swaps to the -hover / -active sources on
     // interaction. A field that declared only the rest source would make that declaration
     // INVALID AT COMPUTED-VALUE TIME the moment a pointer touched it, and background-color
     // would fall back to transparent. So resolve the interaction chains the way the hover and
     // press rules will, and assert they land on the same seal rather than on nothing.
     const rest = computed(el, "background-color");
-    expect(bgOn(el, "var(--kui-fill-hover, var(--kui-fill-src-hover))")).toBe(rest);
-    expect(bgOn(el, "var(--kui-fill-active, var(--kui-fill-src-active))")).toBe(rest);
+    expect(bgOn(el, "var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover))")).toBe(rest);
+    expect(bgOn(el, "var(--kui-ct-fill-active, var(--kui-ct-fill-src-active))")).toBe(rest);
   });
 
   it("wears a caret, not a hand, and its text stays selectable", () => {
@@ -477,7 +477,7 @@ describe("the boundary (§3, §5)", () => {
 
 describe("a control inside a glass control paints its OWN fill (§2, §10)", () => {
   // recipes.css guarded --kui-border-color and nothing else, while surfaces.css guarded its
-  // three equivalents. Material writes --kui-fill/-hover/-active on the element carrying
+  // three equivalents. Material writes --kui-ct-fill/-hover/-active on the element carrying
   // [data-material], custom properties inherit, so a Button in the trailing slot of a glass
   // field computed the identical background as the field itself — at rest, on hover and on
   // press — unblurred, reading as one flat shape rather than a control inside a container.

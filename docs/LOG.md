@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 Two layers were writing to the same private names, and one of them was Box
+
+`--kui-h` was the control layer's height stem AND the layout mechanism's stem for Box's `height` prop. So were `--kui-px` and `--kui-py`, against Box's `px` and `py`. Three names, six meanings.
+
+This is not a tidiness complaint. The layout mechanism registers every one of its stems `inherits: false` — correctly, so a Box's padding does not leak into its children — and that registration applies to the NAME, not to the layer. So `--kui-h` was silently *absent* on any element that did not declare it, which is exactly why the hosted-control geometry needed two hops: the container had to compute the height and hand it to the slot, because the slot could not read the container's `--kui-h` at all. That was the second thing the collision broke; the size join leaking the whole control family onto every Card was the first, and it was fixed at the symptom in the 2026-08-03 audit by scoping the selector, leaving the name shared.
+
+The control layer now wears `--kui-ct-`, which is the convention the surface layer already had (`--kui-sf-`). With the names distinct, the slot can simply read the container's height and the second hop is gone — one registered property deleted, and the mechanism reads the way it should have.
+
+`--kui-border-color` stays shared, on purpose: `[data-bordered]` is written once and read by both `.kui-control` and `.kui-surface`, because containment is one idea. So the law is not "no shared names" — it is the narrower one that could not have been satisfied by accident: **nothing outside the layout mechanism may so much as MENTION a name the layout mechanism declares.** Mention rather than declare, because reading a stem you do not own is the same defect from the other side, and `--kui-py` was precisely that — read by the control skeleton, declared by Box.
+
+Two laws had to learn to strip comments to make this work, and the reason is worth recording: these stylesheets explain why a rung, a family or an abandoned stem is *absent*, which means writing it down, which made both laws fire on their own documentation. The cheap fix each time is to delete the sentence. That is the wrong direction for a codebase whose comments are the argument, so the laws now read code.
+
+---
+
 ## 2026-08-05 Control padding leaves the space palette — the radius bug, one family over
 
 Kushagra, judging the preview: "in both text field and button, at size 2 to size 4, the horizontal padding seems a bit too much." He was right, and the interesting part is *why* it was too much, because the answer is a mistake this system had already made once and already fixed once.
