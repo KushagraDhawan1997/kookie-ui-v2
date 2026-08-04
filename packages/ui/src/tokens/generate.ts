@@ -345,6 +345,11 @@ const ROLES = [
   "text",
   "label",
   "contrast",
+  // The ink ladder (§15): the type rungs' per-family resolutions. `text` stays what it was —
+  // the surface layer consumes it — and ink is the type layer's own trio.
+  "ink",
+  "ink-muted",
+  "ink-faint",
   // The tone-forward surface fill (§10): alpha, visible because it carries chroma — Callout's
   // dressing. The default surface never uses alpha; it seals (--color-surface below).
   "a3",
