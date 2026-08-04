@@ -235,8 +235,10 @@ function typeSection(): string {
     )}${text(3, "Quiet is faint by design: a timestamp, a placeholder — never a paragraph.", "regular", "quiet")}`,
   );
   // The ink ladders (§7, §15): a chroma family's loud rung is its one designed text colour;
-  // the lower rungs fade the ink. Neutral's are designed steps. Mix values are v0.
-  const inks = ["accent", "destructive"]
+  // the lower rungs fade the ink. Neutral's are designed steps. Mix values are v0. Iterates
+  // the config so a family added there shows up here without anyone remembering to add it.
+  const inks = Object.keys(tones)
+    .filter((t) => t !== "neutral")
     .map((tone) =>
       kuiBox(
         { display: "flex", gap: "5", align: "baseline" },

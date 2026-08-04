@@ -128,7 +128,15 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
 
 /**
  * The shipped tones (§9). A closed set, which is the first reason the CSS stays small:
- * five or six scales, never Radix's thirty. `accent` is the user's brand hue.
+ * a semantic core plus a few basic categorical families — six scales, never Radix's thirty.
+ * `accent` is the user's brand hue.
+ *
+ * The basics (LOG 2026-08-04) are colour-as-data vocabulary — tags, calendars, charts,
+ * badges — where the colour IS the information and a status name would be dishonest. They
+ * are hue-authored, not pinned: the generator places them on the same spine as everything
+ * else, which is what makes "blue step 9" and the brand's step 9 read as the same step.
+ * The set widens here, by config, when a component forces it; the palette is never
+ * pre-shipped.
  */
 export const tones = {
   /** Not a brand colour: a hue and a near-zero chroma, which is all a tinted grey is. */
@@ -136,6 +144,15 @@ export const tones = {
   /** The user's brand colour. Reproduced exactly as step 9 in light mode (§7). */
   accent: { color: "#6E56CF" },
   destructive: { color: "#E5484D" },
+  blue: { hue: 250, vividness: 1 },
+  green: { hue: 150, vividness: 1 },
+  /** Pinned, not hue-authored: at hue 55 the generated solid cannot hold an APCA-clearing
+      label, while this placed orange passes every law in both modes. */
+  orange: { color: "#F76B15" },
+  /** amber/yellow is deliberately ABSENT: the band is hemmed at its cusp in both directions —
+      away-from-label washes out (separation .032 < the .035 floor), toward-label drops the
+      black label to Lc 55 (< 60). Both laws hold; membership is what gives (LOG 2026-08-04).
+      It joins the day the generator earns it a designed exception, not before. */
 } as const;
 
 export type ToneName = keyof typeof tones;
