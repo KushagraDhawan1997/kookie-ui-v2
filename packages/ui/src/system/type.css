@@ -1,0 +1,85 @@
+/* The type layer (§15): Text and Heading resolved once, the way recipes.css resolves every
+ * control and surfaces.css every surface. The components ship no stylesheet of their own —
+ * a law asserts text.css and heading.css do not exist.
+ *
+ * A size step joins the three paired scales at one index: font-size, line height and letter
+ * spacing are designed pairs, never derived ratios (§15). Nothing here scopes by density or
+ * pointer — type never takes either axis (§12, §16); only `--scale` reaches it, and it does
+ * so inside the tokens themselves.
+ */
+
+.kui-type {
+  /* Components never own outer spacing (§3) — the native h* and p arrive with margins. */
+  margin: 0;
+  /* Text reads the foreground context its surface sets (§11): the role token, not
+     inheritance, so a tone-forward surface re-scopes it across any depth of markup. */
+  color: var(--color-text);
+}
+
+/* The family is the Theme's slot (§5), never a stack written here. `--font-heading` chains
+   to the body stack until an app sets it, so the split costs nothing by default. */
+.kui-text {
+  font-family: var(--font-body);
+}
+.kui-heading {
+  font-family: var(--font-heading);
+}
+
+.kui-type[data-size="1"] {
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
+}
+.kui-type[data-size="2"] {
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
+}
+.kui-type[data-size="3"] {
+  font-size: var(--font-size-3);
+  line-height: var(--line-height-3);
+  letter-spacing: var(--letter-spacing-3);
+}
+.kui-type[data-size="4"] {
+  font-size: var(--font-size-4);
+  line-height: var(--line-height-4);
+  letter-spacing: var(--letter-spacing-4);
+}
+.kui-type[data-size="5"] {
+  font-size: var(--font-size-5);
+  line-height: var(--line-height-5);
+  letter-spacing: var(--letter-spacing-5);
+}
+.kui-type[data-size="6"] {
+  font-size: var(--font-size-6);
+  line-height: var(--line-height-6);
+  letter-spacing: var(--letter-spacing-6);
+}
+.kui-type[data-size="7"] {
+  font-size: var(--font-size-7);
+  line-height: var(--line-height-7);
+  letter-spacing: var(--letter-spacing-7);
+}
+.kui-type[data-size="8"] {
+  font-size: var(--font-size-8);
+  line-height: var(--line-height-8);
+  letter-spacing: var(--letter-spacing-8);
+}
+.kui-type[data-size="9"] {
+  font-size: var(--font-size-9);
+  line-height: var(--line-height-9);
+  letter-spacing: var(--letter-spacing-9);
+}
+
+.kui-type[data-weight="regular"] {
+  font-weight: var(--font-weight-regular);
+}
+.kui-type[data-weight="medium"] {
+  font-weight: var(--font-weight-medium);
+}
+.kui-type[data-weight="semibold"] {
+  font-weight: var(--font-weight-semibold);
+}
+.kui-type[data-weight="bold"] {
+  font-weight: var(--font-weight-bold);
+}

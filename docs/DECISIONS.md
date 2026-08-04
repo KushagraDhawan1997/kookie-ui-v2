@@ -975,6 +975,12 @@ Each step ships a designed `--line-height-N` (reading sizes ~1.5x, display sizes
 
 Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-mono`. Components read slots, never raw stacks; the Theme props are the only place a stack is written.
 
+### The components (shipped 2026-08-04)
+
+`Text` and `Heading` are one type system through two family slots, resolved by a shared type layer (`system/type.css`) the way every control resolves through recipes.css — neither ships a stylesheet of its own, law-tested. `size` spans the full `"1"–"9"`; a step joins the three paired scales at one index. `weight` takes the token names. No tone, no emphasis, no margin: text reads the foreground context its surface sets (section 11), spacing belongs to the layout that owns the relationship (section 3), and decoration beyond the ramp — a muted aside, an inline code face — is the call site's `style` against the role tokens.
+
+Defaults, chosen not derived: **Text** renders a `<span>` at size 3 (the anchor step), regular — flow is the layout layer's job, and a paragraph is `render={<p/>}`. **Heading** renders an `<h2>` at size 6, bold — a page rarely wants a second `h1`, so the default is the level a section actually reaches for, and the real outline level is named through `render` (section 5). Visual size and outline level are deliberately independent axes: `size` prices the type, `render` names the document structure.
+
 ---
 
 ## 16. The pointer axis
