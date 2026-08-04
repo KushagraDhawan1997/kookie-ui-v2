@@ -19,6 +19,18 @@ function tokenOn(el: Element, name: string): string {
   return value;
 }
 
+/** Read a custom property declared ON this element. tokenOn() appends a CHILD probe, which
+    cannot see a property registered `inherits: false` — as --kui-fill and its state siblings
+    now are, so a glass control stops painting its veil onto controls nested inside it. */
+function ownToken(el: Element, name: string): string {
+  const probe = document.createElement("div");
+  probe.style.color = getComputedStyle(el).getPropertyValue(name).trim();
+  el.append(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value;
+}
+
 describe("the size index joins five scales at one number (§4)", () => {
   it("resolves height, padding, gap, radius and type together", () => {
     const el = render(<Button size="3">Label</Button>);
@@ -217,10 +229,10 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
         Label
       </Button>,
     );
-    expect(tokenOn(el, "--kui-fill-hover")).toBe(
+    expect(ownToken(el, "--kui-fill-hover")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-thin-alpha-hover), transparent)"),
     );
-    expect(tokenOn(el, "--kui-fill-active")).toBe(
+    expect(ownToken(el, "--kui-fill-active")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-soft-active) var(--material-thin-alpha-active), transparent)"),
     );
   });

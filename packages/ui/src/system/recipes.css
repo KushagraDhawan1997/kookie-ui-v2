@@ -17,6 +17,25 @@
   inherits: false;
 }
 
+/* The DERIVED fills need the same guard, and did not have it — the surface layer already
+   guards its equivalents (surfaces.css). Material writes --kui-fill/-hover/-active on the
+   element carrying [data-material], and custom properties inherit, so every control INSIDE a
+   glass control painted its container's veil rather than its own fill: a Button in the trailing
+   slot of a `material` TextField computed the identical background as the field at rest, hover
+   AND press, unblurred, reading as one flat shape. Fourth instance of this lesson (§2, §10). */
+@property --kui-fill {
+  syntax: "*";
+  inherits: false;
+}
+@property --kui-fill-hover {
+  syntax: "*";
+  inherits: false;
+}
+@property --kui-fill-active {
+  syntax: "*";
+  inherits: false;
+}
+
 /* ── The skeleton every fixed-height control shares (§4) ─────────────────────────────────── */
 
 .kui-control {
@@ -205,9 +224,22 @@
    control that can be wrong wears it — Select, Combobox, NumberField — and because a validity
    VARIANT is exactly what this system refuses: nothing chooses to look invalid.
 
-   Only the border moves. The value the user typed is their content and stays legible, and the
-   ring stays accent because §8 ships one ring — a destructive ring would also have to re-clear
-   the APCA floor per mode, which is the trap the 2026-08-03 audit found in the dark ring.
+   The value the user typed is their content and stays legible; the BOX carries the state.
+
+   Both the border and the ring read --invalid-edge (decided 2026-08-04, reversing the
+   one-ring rule for this state only). Two things forced it. The border was step 7, which shares
+   its lightness with every tone at that step BY LAW, so the state was a hue rotation at constant
+   luminance: APCA 23.9 light and 9.8 dark against the field fill, against 22.8 / 10.3 for the
+   resting border — in dark, being invalid LOWERED contrast, and to a red-green colourblind user
+   at constant luminance it read as nothing at all. And the ring stayed accent, which measured
+   6.4x the visual weight of the error border it sat beside — so the error signal was at its
+   faintest exactly when the user focused the field to correct it.
+
+   §8's own defence of one-ring-everywhere lost half its argument to measurement: a destructive
+   ring does NOT struggle to clear the APCA floor per mode (55-65 in both, against a floor of
+   45). What remains is consistency with Spectrum/Radix/Primer, and that is outweighed here by
+   two chromatic signals arguing on one control. A destructive-tone BUTTON still rings accent —
+   that rule is untouched. This is about a state, not a tone.
 
    Two spellings, both required: inside a `Field.Root` Base UI writes `data-invalid`, and
    standalone the platform spelling is `aria-invalid`. The `:has()` arm is for the controls
@@ -215,7 +247,8 @@
    child and the border being corrected is the parent's. */
 .kui-control:is([data-invalid], [aria-invalid="true"]),
 .kui-control:has(> :is([data-invalid], [aria-invalid="true"])) {
-  --tone-border: var(--destructive-border);
+  --tone-border: var(--invalid-edge);
+  --focus-ring: var(--invalid-edge);
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,

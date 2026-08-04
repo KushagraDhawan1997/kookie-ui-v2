@@ -192,7 +192,7 @@ describe("validity is state, never a prop (§8)", () => {
   it("aria-invalid re-tones the border — the platform spelling, standalone", () => {
     const plain = render(<TextField />);
     const invalid = render(<TextField aria-invalid="true" />);
-    expect(computed(invalid, "border-top-color")).toBe(tokenOn(invalid, "--destructive-border"));
+    expect(computed(invalid, "border-top-color")).toBe(tokenOn(invalid, "--invalid-edge"));
     expect(computed(invalid, "border-top-color")).not.toBe(computed(plain, "border-top-color"));
   });
 
@@ -202,20 +202,45 @@ describe("validity is state, never a prop (§8)", () => {
     // whole reason the rule needs :has(), and reading the wrapper's computed border is the
     // only way to know the hop actually happened.
     inputOf(el).setAttribute("data-invalid", "");
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--destructive-border"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
     inputOf(el).removeAttribute("data-invalid");
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
   });
 
-  it("only the border moves: the value stays legible and the ring stays accent (§8)", () => {
+  it("the value stays legible; the box carries the state, border AND ring (§8)", () => {
     const plain = render(<TextField />);
     const invalid = render(<TextField aria-invalid="true" />);
     expect(computed(invalid, "color")).toBe(computed(plain, "color"));
-    // One ring, always accent. A destructive ring would have to re-clear the APCA floor per
-    // mode — the trap the audit found in the dark ring.
+
+    // Reversed 2026-08-04. The ring was accent on an invalid field, which measured 6.4x the
+    // visual weight of the error border beside it — so the error was faintest exactly when the
+    // user focused to fix it — and put two chromatic signals in an argument. Both now read
+    // --invalid-edge. Asserting the RESOLVED colour, not the token name: reading --focus-ring
+    // through the invalid element resolves the remapped value and would pass either way.
+    inputOf(plain).focus();
     inputOf(invalid).focus();
-    expect(computed(invalid, "outline-color")).toBe(tokenOn(invalid, "--focus-ring"));
+    expect(computed(invalid, "outline-color")).toBe(tokenOn(invalid, "--invalid-edge"));
+    expect(computed(invalid, "outline-color")).not.toBe(computed(plain, "outline-color"));
+    expect(computed(invalid, "border-top-color")).toBe(tokenOn(invalid, "--invalid-edge"));
+    inputOf(plain).blur();
     inputOf(invalid).blur();
+  });
+
+  it("a destructive-tone Button still rings accent — this is a state, not a tone (§8)", () => {
+    // The one-ring rule is reversed for the invalid STATE only; nothing about tone changed.
+    // Asserted on the RESOLVED ring colour in each element's own scope rather than by focusing:
+    // the control ring is :focus-visible, which a programmatic .focus() does not satisfy, so a
+    // rendered-outline assertion here would pass for the wrong reason.
+    const plain = render(<TextField />);
+    const button = render(
+      <Button tone="destructive" emphasis="loud">
+        Delete
+      </Button>,
+    );
+    const invalid = render(<TextField aria-invalid="true" />);
+    expect(tokenOn(button, "--focus-ring")).toBe(tokenOn(plain, "--focus-ring"));
+    expect(tokenOn(button, "--focus-ring")).not.toBe(tokenOn(invalid, "--focus-ring"));
+    expect(tokenOn(invalid, "--focus-ring")).toBe(tokenOn(invalid, "--invalid-edge"));
   });
 });
 
@@ -412,5 +437,25 @@ describe("the boundary (§3, §5)", () => {
     input.dispatchEvent(new Event("input", { bubbles: true }));
     expect(seen).toBe("world");
     input.blur();
+  });
+});
+
+describe("a control inside a glass control paints its OWN fill (§2, §10)", () => {
+  // recipes.css guarded --kui-border-color and nothing else, while surfaces.css guarded its
+  // three equivalents. Material writes --kui-fill/-hover/-active on the element carrying
+  // [data-material], custom properties inherit, so a Button in the trailing slot of a glass
+  // field computed the identical background as the field itself — at rest, on hover and on
+  // press — unblurred, reading as one flat shape rather than a control inside a container.
+  it("a Button in a material field does not inherit the field's veil", () => {
+    const field = render(<TextField material="regular" trailing={<Button size="1">Show</Button>} />);
+    const button = field.querySelector("button")!;
+    const bare = render(<Button size="1">Show</Button>);
+    expect(computed(button, "background-color")).toBe(computed(bare, "background-color"));
+    expect(computed(button, "background-color")).not.toBe(computed(field, "background-color"));
+  });
+
+  it("and it does not inherit the blur either — one glass per stack (§10)", () => {
+    const field = render(<TextField material="regular" trailing={<Button size="1">Show</Button>} />);
+    expect(computed(field.querySelector("button")!, "backdrop-filter")).toBe("none");
   });
 });

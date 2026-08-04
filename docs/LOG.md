@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 The invalid state was a hue rotation at constant luminance, and the ring drowned it
+
+Kushagra, looking at the rendered preview: the invalid border is too light, and a validity state should read as high-emphasis. Both halves were right, and the measurements are worse than the complaint.
+
+`--destructive-border` is step 7, and step 7 shares its lightness with every other tone **by law** — the shared-ladder test asserts exactly that. So the entire validity signal was a hue rotation at constant luminance. Against the field own fill: 22.8 -> 23.9 Lc in light (+1.1), and 10.3 -> **9.8** in dark. **Going invalid lowered contrast in dark mode**, and at constant luminance the state is close to invisible to a red-green colourblind user. Both modes sat far under the Lc 45 non-text floor the system already enforces on the focus ring — a floor adopted the previous day and never applied here.
+
+The ring made it worse. On a focused invalid field the accent ring measured **6.4x** the visual weight of the error border it surrounded (2px at Lc 76.5 against 1px at Lc 23.9), so the error indication was at its faintest at precisely the moment the user focused the field to fix it.
+
+**Both now read `--invalid-edge`**, one token picked per mode — `--destructive-solid` in light (Lc 65.4), `--destructive-11` in dark (65.2), because step 9 clears the floor in light and misses it in dark at 36.1. That is the same per-mode shape the focus ring itself took on 2026-08-03, for the same reason.
+
+**This reverses §8 one-ring rule for the invalid state, and half of that rule defence was false.** §8 argued a destructive ring "would have to re-clear the APCA floor per mode — the trap the audit found in the dark ring." Measured, it does not struggle at all: destructive clears Lc 55-65 in both modes. What genuinely argued for one ring was consistency with Spectrum, Radix and Primer; that is real but outweighed here by two chromatic signals arguing on one control. **The rule survives for tone and dies only for state** — a destructive-tone Button still rings accent, and a law pins that. A tone is chosen; a state is not.
+
+The related trap, named so it stays named: the fix is that invalid one *resolved appearance* is loud, **not** that loudness becomes selectable. An `invalidEmphasis` prop would be an axis nobody varies, which §9 calls a component fact rather than an axis — the reasoning that deleted the elevation axis.
+
+Rejected: keeping the accent ring and thickening the border instead (the two signals still argue, and stroke width is not the variable that was wrong); a per-tone ring generally (tone is chosen, and the Spectrum/Radix/Primer convergence stands); an `invalid` emphasis rung (above).
+
+## 2026-08-04 The tone set widens to six, and the widening catches the generator not following its own comment
+
 ## 2026-08-04 The device axis: type follows where the screen sits, and the third device question gets its own signal
 
 Kushagra, from Apple's "Ensuring legibility" table (iOS body 17pt, macOS 13pt): text should respect breakpoints, "but not in the same way as coarse and fine — on a mobile, what you want is a larger font size." The observation is the dissociation that forces a third axis: `pointer` is motor (can a finger hit the box), this is optical (how far the screen is from the eye), and they come apart on exactly the devices that matter — a touchscreen laptop is coarse at desk distance, an iPad with a keyboard is fine at reading distance. §16 had left "whether body text shifts under coarse" open; the answer turned out to be that it was the wrong question — type never follows pointer at all.
@@ -72,7 +90,7 @@ The audit also found the interactive-element list written twice, in the click ha
 
 One defect found by hand rather than by any auditor, because it needs a device: **iOS zooms the page on focus for any input under 16px**, which is sizes 1 and 2. Recorded in the open list unfixed — the fix (a 16px floor under coarse) trades away the promise that size-2 type is size-2 type, and that is a taste call.
 
-Rejected: an `invalid` prop (nothing chooses to look invalid); a destructive focus ring on invalid (it would have to re-clear the APCA floor per mode — the exact trap the audit found in the dark ring); putting the invalid remap in the component (Select and Combobox wear it too); compound `TextField.Slot` children (arbitrary stacking, the shadcn header failure); label/description/error parts (Base UI's `Field` already does the `aria-*` wiring, and the labelled arrangement is a block).
+Rejected: an `invalid` prop (nothing chooses to look invalid); a destructive focus ring on invalid — REVERSED 2026-08-04, and the reason given here was false: destructive clears the APCA floor in both modes (55-65 against a floor of 45), and the accent ring measured 6.4x the weight of the error border beside it; putting the invalid remap in the component (Select and Combobox wear it too); compound `TextField.Slot` children (arbitrary stacking, the shadcn header failure); label/description/error parts (Base UI's `Field` already does the `aria-*` wiring, and the labelled arrangement is a block).
 
 ## 2026-08-04 The icon-label gap joins the label cluster, out of the density sets
 

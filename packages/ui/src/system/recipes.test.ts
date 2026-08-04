@@ -154,11 +154,16 @@ describe("invalid is a state remap, and it belongs to every control (§8)", () =
     expect(code).toMatch(/:has\(>\s*:is\(\[data-invalid\]/);
   });
 
-  it("moves the border and NOTHING else — the value stays legible, the ring stays accent", () => {
+  it("moves the box and NOTHING else — the value the user typed stays legible", () => {
+    // Reversed 2026-08-04: the ring moves WITH the border now, both reading --invalid-edge.
+    // This law previously forbade --focus-ring here, pinning the rule that the accent ring
+    // measured 6.4x the weight of the error border it surrounded. What it still pins is the
+    // real invariant: a state re-tones the BOX, never the content or the fill.
     const start = code.indexOf(".kui-control:is([data-invalid]");
     const body = code.slice(start, code.indexOf("}", start));
-    expect(body).toContain("--tone-border");
-    for (const forbidden of ["--tone-label", "--focus-ring", "--tone-solid", "--tone-soft", "background"]) {
+    expect(body).toContain("--tone-border: var(--invalid-edge)");
+    expect(body).toContain("--focus-ring: var(--invalid-edge)");
+    for (const forbidden of ["--tone-label", "--tone-solid", "--tone-soft", "background"]) {
       expect(body).not.toContain(forbidden);
     }
   });
