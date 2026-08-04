@@ -111,8 +111,8 @@ describe("the family is the Theme's slot (§5, §15)", () => {
   });
 });
 
-describe("no tone, no emphasis: text reads the foreground context its surface sets (§11)", () => {
-  it("takes the --color-text role inside a plain surface", () => {
+describe("no tone: text reads the foreground context, and emphasis picks the role (§9, §11, §15)", () => {
+  it("rests loud — the --color-text role inside a plain surface", () => {
     const el = render(
       <Card>
         <Text>inside</Text>
@@ -121,13 +121,33 @@ describe("no tone, no emphasis: text reads the foreground context its surface se
     expect(computed(el, "color")).toBe(tokenOn(el, "--color-text"));
   });
 
-  it("follows a tone-forward surface's re-scope with no prop at all", () => {
-    const el = render(
+  it("the ladder resolves three distinct colours, in both appearances", () => {
+    for (const appearance of ["light", "dark"] as const) {
+      const host = render(
+        <Theme appearance={appearance}>
+          <Text emphasis="loud">a</Text>
+          <Text emphasis="medium">b</Text>
+          <Text emphasis="quiet">c</Text>
+        </Theme>,
+      );
+      const colours = [...host.querySelectorAll(".kui-text")].map((el) => computed(el, "color"));
+      expect(new Set(colours).size).toBe(3);
+      const el = host.querySelector('[data-emphasis="medium"]')!;
+      expect(computed(el, "color")).toBe(tokenOn(el, "--color-text-muted"));
+    }
+  });
+
+  it("on a loud surface the whole ladder collapses to the APCA-chosen contrast (§10)", () => {
+    const host = render(
       <div className="kui-surface" data-size="3" data-tone="accent" data-emphasis="loud">
-        <Text>on solid accent</Text>
+        <Text emphasis="loud">a</Text>
+        <Text emphasis="medium">b</Text>
+        <Text emphasis="quiet">c</Text>
       </div>,
-    ).querySelector(".kui-text")!;
-    expect(computed(el, "color")).toBe(tokenOn(el, "--tone-contrast"));
+    );
+    for (const el of host.querySelectorAll(".kui-text")) {
+      expect(computed(el, "color")).toBe(tokenOn(el, "--tone-contrast"));
+    }
   });
 });
 

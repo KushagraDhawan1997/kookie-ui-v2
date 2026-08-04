@@ -71,6 +71,21 @@
   letter-spacing: var(--letter-spacing-9);
 }
 
+/* The emphasis ladder, resolved for type (§9, §15): the third resolution of the one axis —
+   fills for controls, seal and alpha for surfaces, foreground roles here. Text rests LOUD,
+   the inversion of the control default, because full contrast is the accessible resting
+   state for reading; quiet is below body-copy contrast by design and never carries a
+   reading-length line. On a loud surface all three collapse to --tone-contrast (§10). */
+.kui-type[data-emphasis="loud"] {
+  color: var(--color-text);
+}
+.kui-type[data-emphasis="medium"] {
+  color: var(--color-text-muted);
+}
+.kui-type[data-emphasis="quiet"] {
+  color: var(--color-text-faint);
+}
+
 .kui-type[data-weight="regular"] {
   font-weight: var(--font-weight-regular);
 }

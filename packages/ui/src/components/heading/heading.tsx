@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
+import type { Emphasis } from "../button/button.tsx";
 import type { TypeSize, Weight } from "../text/text.tsx";
 
 export type HeadingProps = Omit<
@@ -11,6 +12,8 @@ export type HeadingProps = Omit<
 > & {
   size?: TypeSize;
   weight?: Weight;
+  /** §9, §15 — the type ladder: a muted eyebrow or section label without leaving the axis. */
+  emphasis?: Emphasis;
   /** Name the real outline level — `render={<h1/>}`, `<h3/>` — without moving the ramp (§5). */
   render?: RenderElement;
   className?: string;
@@ -28,13 +31,14 @@ export type HeadingProps = Omit<
  * (§3, §11).
  */
 export const Heading = React.forwardRef<HTMLHeadingElement, HeadingProps>(function Heading(
-  { size = "6", weight = "bold", render, className, style, children, ...props },
+  { size = "6", weight = "bold", emphasis = "loud", render, className, style, children, ...props },
   ref,
 ) {
   const merged = {
     ref,
     "data-size": size,
     "data-weight": weight,
+    "data-emphasis": emphasis,
     className: className ? `kui-type kui-heading ${className}` : "kui-type kui-heading",
     style,
     ...props,

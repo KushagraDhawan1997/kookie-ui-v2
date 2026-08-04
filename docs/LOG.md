@@ -8,7 +8,19 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
-## 2026-08-04 TextField: the second control costs 261 bytes, and three "exactly one" claims turn out to be stale
+## 2026-08-04 Emphasis reaches type: the one axis earns its third resolution
+
+Kushagra, hours after Text shipped without it: will Text have emphasis — "a low grayish text vs strong"? The morning's ship had answered no ("no tone, no emphasis; decoration is the call site's `style` against the role tokens"), and the question exposed that answer as a category error of the polite kind: muted body copy is not decoration. It is the second rung of a ladder the system already designed — every surface sets `--color-text` **and** `--color-text-muted`, the tone-forward rungs re-scope both — and the shipped API made the most common text treatment in any app ride the lawless escape.
+
+**The resolution is the axis, not a new prop.** The precedent was already in the codebase twice: controls resolve `emphasis` as fills (§9), surfaces resolve the same three rungs as dressing (§10). Type is the third resolution — foreground roles: loud reads `--color-text`, medium `--color-text-muted`, quiet a new `--color-text-faint` (v0 at neutral-10, awaiting the eye like every placed value). One axis, one vocabulary, three layers each answering it in their own terms — versus a `muted` boolean, which was the recommendation on the table and lost because it would have been a ladder wearing a boolean: the moment a third level exists (iOS ships four), the boolean is API debt.
+
+**Text rests loud, the deliberate inversion of the control default.** §11's mantra — nothing loud by accident — ranks *actions*; a paragraph is not competing for a focal point, and full contrast is the accessible resting state for reading. The system's resting states now read as a sentence: surfaces rest quiet, controls rest medium, text rests loud — each layer's safe default is the opposite end of the same axis, for its own reason.
+
+**Two placed choices carried in the same commit:** quiet is below body-copy contrast by design (a timestamp, a placeholder — never a reading-length line, the call site's law, same shape as §16's "size 1 below the touch target is a choice, not a defect"); and on a loud surface all three rungs collapse to `--tone-contrast`, because the APCA-chosen contrast is the one colour guaranteed against a solid tone fill — legibility over hierarchy, made a law rather than left as an accident of the re-scope.
+
+Rejected: a `muted` boolean (a ladder wearing a boolean; the role layer already had two rungs and iOS's four says the count grows); "strong" as a rung (already spelled twice — `weight` prices it, `render={<strong/>}` means it; a third spelling would drift); a text-specific union name (`variant`, `hierarchy` — the axis exists, renaming it per layer is how one idea becomes three APIs); keeping the style escape as the API (semantics spelled where review sees them is the thesis, and `bordered` on Button set the precedent for a role-reading modifier).
+
+## 2026-08-04 TextField: the second control costs 247 bytes, and three "exactly one" claims turn out to be stale
 
 Repetition begins, and the point of going second is that the additivity claim finally has something to compare against: **+247 bytes gzipped for a whole control**, against the +1,206 Button paid to create the layer. The size index, the emphasis-free skeleton, the disabled remap, the states and material all arrived from `recipes.css` untouched. That is §2 measured rather than asserted.
 

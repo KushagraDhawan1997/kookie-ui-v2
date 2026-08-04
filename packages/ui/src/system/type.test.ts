@@ -44,8 +44,22 @@ describe("a size step joins the three paired scales at one index (§15)", () => 
     }
   });
 
-  it("no rule pairs size with weight — the axes stay orthogonal (§2)", () => {
-    expect(stripped).not.toMatch(/\[data-(size|weight)="[a-z0-9]+"\]\[data-(size|weight)=/);
+  it("the emphasis ladder resolves to the three foreground roles, each rung once (§9, §15)", () => {
+    for (const [rung, role] of [
+      ["loud", "--color-text"],
+      ["medium", "--color-text-muted"],
+      ["quiet", "--color-text-faint"],
+    ] as const) {
+      const blocks = stripped.match(new RegExp(`\\[data-emphasis="${rung}"\\][^}]*}`, "g")) ?? [];
+      expect(blocks.length).toBe(1);
+      expect(blocks[0]).toContain(`color: var(${role})`);
+    }
+  });
+
+  it("no rule pairs one axis with another — they stay orthogonal (§2)", () => {
+    expect(stripped).not.toMatch(
+      /\[data-(size|weight|emphasis)="[a-z0-9]+"\]\[data-(size|weight|emphasis)=/,
+    );
   });
 });
 
