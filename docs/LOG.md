@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 Two layers were writing to the same private names, and one of them was Box
+
+`--kui-h` was the control layer's height stem AND the layout mechanism's stem for Box's `height` prop. So were `--kui-px` and `--kui-py`, against Box's `px` and `py`. Three names, six meanings.
+
+This is not a tidiness complaint. The layout mechanism registers every one of its stems `inherits: false` — correctly, so a Box's padding does not leak into its children — and that registration applies to the NAME, not to the layer. So `--kui-h` was silently *absent* on any element that did not declare it, which is exactly why the hosted-control geometry needed two hops: the container had to compute the height and hand it to the slot, because the slot could not read the container's `--kui-h` at all. That was the second thing the collision broke; the size join leaking the whole control family onto every Card was the first, and it was fixed at the symptom in the 2026-08-03 audit by scoping the selector, leaving the name shared.
+
+The control layer now wears `--kui-ct-`, which is the convention the surface layer already had (`--kui-sf-`). With the names distinct, the slot can simply read the container's height and the second hop is gone — one registered property deleted, and the mechanism reads the way it should have.
+
+`--kui-border-color` stays shared, on purpose: `[data-bordered]` is written once and read by both `.kui-control` and `.kui-surface`, because containment is one idea. So the law is not "no shared names" — it is the narrower one that could not have been satisfied by accident: **nothing outside the layout mechanism may so much as MENTION a name the layout mechanism declares.** Mention rather than declare, because reading a stem you do not own is the same defect from the other side, and `--kui-py` was precisely that — read by the control skeleton, declared by Box.
+
+Two laws had to learn to strip comments to make this work, and the reason is worth recording: these stylesheets explain why a rung, a family or an abandoned stem is *absent*, which means writing it down, which made both laws fire on their own documentation. The cheap fix each time is to delete the sentence. That is the wrong direction for a codebase whose comments are the argument, so the laws now read code.
+
+---
+
 ## 2026-08-05 The iOS zoom hole was bigger than the size 1 everyone had pencilled in
 
 Safari zooms the whole page when a text input under 16px takes focus — the layout shifts off-centre and the user pinches back. It is the only way a control in this system can break the page *around* it just by being tapped.
@@ -22,17 +36,15 @@ So `--input-font-floor` rides the POINTER world: 0px on fine, 16px on coarse, an
 
 ---
 
-## 2026-08-05 Two layers were writing to the same private names, and one of them was Box
+## 2026-08-05 readOnly was a prop that resolved to nothing
 
-`--kui-h` was the control layer's height stem AND the layout mechanism's stem for Box's `height` prop. So were `--kui-px` and `--kui-py`, against Box's `px` and `py`. Three names, six meanings.
+`<TextField readOnly />` was fully accepted, refused keystrokes, and looked pixel-identical to the editable field beside it. The only feedback was typing and having nothing happen.
 
-This is not a tidiness complaint. The layout mechanism registers every one of its stems `inherits: false` — correctly, so a Box's padding does not leak into its children — and that registration applies to the NAME, not to the layer. So `--kui-h` was silently *absent* on any element that did not declare it, which is exactly why the hosted-control geometry needed two hops: the container had to compute the height and hand it to the slot, because the slot could not read the container's `--kui-h` at all. That was the second thing the collision broke; the size join leaking the whole control family onto every Card was the first, and it was fixed at the symptom in the 2026-08-03 audit by scoping the selector, leaving the name shared.
+The temptation is to reach for the disabled treatment, and it is wrong: a read-only field is live. Its value is selectable, copyable, focusable, in the tab order, and submitted with the form. Exactly one thing is gone — the invitation to type — so exactly one thing changes: the **seal**, which is what makes a field read as a well you put a caret into. Border, text contrast and the caret cursor all stay, because each of them is still telling the truth.
 
-The control layer now wears `--kui-ct-`, which is the convention the surface layer already had (`--kui-sf-`). With the names distinct, the slot can simply read the container's height and the second hop is gone — one registered property deleted, and the mechanism reads the way it should have.
+One trap, and it is CSS's: `:read-only` matches anything that is not `:read-write`, which includes a *disabled* input. Without `:not(:disabled)` every disabled field would lose its fill on top of the disabled remap — two states painting one box.
 
-`--kui-border-color` stays shared, on purpose: `[data-bordered]` is written once and read by both `.kui-control` and `.kui-surface`, because containment is one idea. So the law is not "no shared names" — it is the narrower one that could not have been satisfied by accident: **nothing outside the layout mechanism may so much as MENTION a name the layout mechanism declares.** Mention rather than declare, because reading a stem you do not own is the same defect from the other side, and `--kui-py` was precisely that — read by the control skeleton, declared by Box.
-
-Two laws had to learn to strip comments to make this work, and the reason is worth recording: these stylesheets explain why a rung, a family or an abandoned stem is *absent*, which means writing it down, which made both laws fire on their own documentation. The cheap fix each time is to delete the sentence. That is the wrong direction for a codebase whose comments are the argument, so the laws now read code.
+Closed at the same time, from the same audit: `type` became a closed union. On the native element `type` is not an axis but a component selector, and unconstrained it let `type="hidden"` render a visible empty bordered box — the wrapper draws the border and the height, and it cannot honour a type nobody told it about. And slot content now DESCRIBES the field through `aria-describedby` rather than floating beside it unlinked; described rather than labelled, because an adornment qualifies the value and does not name the field.
 
 ---
 

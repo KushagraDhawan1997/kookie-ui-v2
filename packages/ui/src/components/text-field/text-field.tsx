@@ -6,6 +6,20 @@ import * as React from "react";
 import { mergeRefs } from "../../system/render.ts";
 import type { Material, Size } from "../button/button.tsx";
 
+/**
+ * The `type` values a text FIELD is (§4). A closed union, the way `size` is one — because
+ * `type` on the native element is not one axis but a component selector: `hidden` renders no
+ * box at all, `checkbox`, `radio`, `range`, `color` and `file` each render a different control
+ * with its own anatomy, and `submit` and `button` are buttons.
+ *
+ * Unconstrained, `<TextField type="hidden" />` produced a **visible empty bordered box**, which
+ * is the whole argument in one render: the wrapper is what draws the border and the height, and
+ * a wrapper cannot honour a type it was never told about. The ones left here are the values for
+ * which "a box you type text into" is the right control. Date and time are absent on purpose —
+ * they render a native picker inside the box and are a component, not a value of this one.
+ */
+export type TextFieldType = "text" | "email" | "password" | "search" | "tel" | "url" | "number";
+
 export type TextFieldProps = Omit<
   React.ComponentPropsWithoutRef<"input">,
   // `size` is ours — the index (§4). The native attribute is a character-count width hack that
@@ -14,9 +28,11 @@ export type TextFieldProps = Omit<
   // `children` is omitted because a void element has none: it was typed here and spread onto
   // the `<input>`, so `<TextField>x</TextField>` type-checked and then threw at render — the
   // API promised something the DOM cannot do. The slots are the way in (§4).
-  "color" | "style" | "className" | "size" | "children"
+  "color" | "style" | "className" | "size" | "children" | "type"
 > & {
   size?: Size;
+  /** Narrowed from the platform's open list — see {@link TextFieldType}. */
+  type?: TextFieldType;
   /** §10 — backdrop defense, opt-in: a search field over a hero image. Zero CSS of its own —
       the control layer's material block re-derives the fill from whatever the field declared. */
   material?: Material;
@@ -53,6 +69,14 @@ export type TextFieldProps = Omit<
  * `ref` goes to the INPUT, which is what a caller reaches for — `.focus()`, `.select()`, the
  * value. Every unrecognised prop goes there too (`placeholder`, `value`, `onChange`, `name`,
  * `type`, `id`), so label association and form wiring behave natively.
+ *
+ * **There is no `render` escape, and that is the decision, not the omission it looked like**
+ * (recorded 2026-08-05). Everywhere else in this system `render` swaps the one element that IS
+ * the component — `<Card render={<article/>}/>`. Here there are two, and neither can move: the
+ * wrapper exists to hold a border that the input cannot hold once a slot sits inside it, and
+ * the input has to stay an `<input>` or the platform wiring this component exists to preserve
+ * — labelling, autofill, form association, the `type` behaviours — goes with it. `render`
+ * would have to mean one of them, silently. It is refused by the type, which is the law.
  */
 /**
  * What React would actually PAINT in a slot. The guard used to be `!== undefined && !== null`,
@@ -65,12 +89,32 @@ const filled = (node: React.ReactNode) =>
   node !== undefined && node !== null && node !== false && node !== true && node !== "";
 
 export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
-  { size = "2", material = "solid", leading, trailing, disabled, className, style, ...props },
+  {
+    size = "2",
+    material = "solid",
+    leading,
+    trailing,
+    disabled,
+    className,
+    style,
+    "aria-describedby": describedBy,
+    ...props
+  },
   ref,
 ) {
   // The field's OWN input, held so the caret redirect below cannot land somewhere else. The
   // forwarded ref still reaches the same node — neither wins (§3).
   const inputRef = React.useRef<HTMLInputElement>(null);
+
+  // Slot content REACHES the accessibility tree, described rather than merely present (§4,
+  // 2026-08-05). Before this, a "$" or a "USD" in a slot was announced — if at all — as loose
+  // text with no relationship to the field beside it, so a screen-reader user heard "edit
+  // text, blank" and a stray currency mark somewhere in the form. Describing rather than
+  // labelling is the right relationship: an adornment qualifies the value, it does not name
+  // the field, and a label is the caller's (Base UI's `Field.Label`, or a `<label for>`).
+  // A slot holding a control contributes its own name here too — mildly redundant, since the
+  // control also announces itself in the tab order, and better than silence.
+  const slotId = React.useId();
 
   // Hit-target unification, the first of the wrapper's three debts. Only the padding and the
   // passive slots redirect: anything the user could have meant to click — a clear button, a
@@ -100,6 +144,15 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
   // against a momentarily empty ref.
   const setInput = React.useMemo(() => mergeRefs(ref, inputRef), [ref]);
 
+  const hasLeading = filled(leading);
+  const hasTrailing = filled(trailing);
+  // Appended to the caller's own, never replacing it: `aria-describedby` takes a list, and a
+  // field inside a `Field.Root` already has a description id on it that must survive.
+  const describedByAll =
+    [describedBy, hasLeading && `${slotId}-l`, hasTrailing && `${slotId}-t`]
+      .filter(Boolean)
+      .join(" ") || undefined;
+
   return (
     <span
       className={className ? `kui-control kui-field ${className}` : "kui-control kui-field"}
@@ -122,14 +175,20 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
       data-disabled={disabled || undefined}
       onMouseDown={focusInput}
     >
-      {filled(leading) ? (
-        <span className="kui-field-slot" data-slot="leading">
+      {hasLeading ? (
+        <span className="kui-field-slot" data-slot="leading" id={`${slotId}-l`}>
           {leading}
         </span>
       ) : null}
-      <BaseInput ref={setInput} className="kui-field-input" disabled={disabled} {...props} />
-      {filled(trailing) ? (
-        <span className="kui-field-slot" data-slot="trailing">
+      <BaseInput
+        ref={setInput}
+        className="kui-field-input"
+        disabled={disabled}
+        aria-describedby={describedByAll}
+        {...props}
+      />
+      {hasTrailing ? (
+        <span className="kui-field-slot" data-slot="trailing" id={`${slotId}-t`}>
           {trailing}
         </span>
       ) : null}

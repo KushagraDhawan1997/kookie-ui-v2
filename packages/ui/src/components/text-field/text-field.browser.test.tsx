@@ -703,3 +703,84 @@ describe("the zoom floor: a field must not move the page under a finger (§4, §
     );
   });
 });
+
+describe("readOnly is a state with a resolved appearance (§8, added 2026-08-05)", () => {
+  it("drops the well and keeps everything else", () => {
+    const plain = render(<TextField defaultValue="v" />);
+    const ro = render(<TextField defaultValue="v" readOnly />);
+    // The seal is what makes a field read as a place to put a caret. It is the one thing gone.
+    expect(computed(ro, "background-color")).toBe("rgba(0, 0, 0, 0)");
+    expect(computed(plain, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
+    // Everything a read-only field still IS: bounded, legible, selectable, focusable.
+    expect(computed(ro, "border-top-color")).toBe(computed(plain, "border-top-color"));
+    expect(computed(ro, "color")).toBe(computed(plain, "color"));
+    expect(computed(ro, "cursor")).toBe("text");
+    inputOf(ro).focus();
+    expect(document.activeElement).toBe(inputOf(ro));
+    expect(computed(ro, "outline-style")).toBe("solid");
+    inputOf(ro).blur();
+  });
+
+  it("does not borrow the disabled vocabulary, and disabled does not borrow this", () => {
+    // CSS :read-only matches anything that is not :read-write, which INCLUDES a disabled
+    // input — so without the :not(:disabled) guard every disabled field would lose its fill
+    // on top of the disabled remap: two states painting one box.
+    const off = render(<TextField disabled />);
+    expect(computed(off, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
+    const ro = render(<TextField readOnly />);
+    expect(computed(ro, "border-top-color")).not.toBe(tokenOn(ro, "--neutral-6"));
+  });
+});
+
+describe("the API's closed edges (§3, §4)", () => {
+  it("type is a closed union — hidden and the non-text controls are refused", () => {
+    // Unconstrained, `type="hidden"` rendered a VISIBLE empty bordered box: the wrapper draws
+    // the border and the height, and it cannot honour a type it was never told about.
+    // @ts-expect-error — hidden renders no box; it is not a field
+    void (<TextField type="hidden" />);
+    // @ts-expect-error — a different control with its own anatomy
+    void (<TextField type="checkbox" />);
+    // @ts-expect-error — that is a Button
+    void (<TextField type="submit" />);
+    void (<TextField type="email" />);
+    void (<TextField type="password" />);
+  });
+
+  it("there is no render escape, and the type is where that is enforced", () => {
+    // Every other component's `render` swaps the one element that IS the component. Here
+    // there are two and neither can move: the wrapper holds a border the input cannot hold
+    // once a slot is inside it, and the input must stay an <input> or the platform wiring
+    // this component exists to preserve goes with it.
+    // @ts-expect-error — refused, deliberately (§5)
+    void (<TextField render={<textarea />} />);
+  });
+});
+
+describe("slot content reaches the accessibility tree (§4, added 2026-08-05)", () => {
+  it("an adornment DESCRIBES the field rather than floating beside it", () => {
+    const el = render(<TextField leading={<span>$</span>} trailing={<span>USD</span>} />);
+    const ids = inputOf(el).getAttribute("aria-describedby")!.split(" ");
+    expect(ids).toHaveLength(2);
+    // Resolve them the way an AT would: the ids must actually name the slots.
+    const text = ids.map((id) => el.querySelector(`#${CSS.escape(id)}`)!.textContent);
+    expect(text).toEqual(["$", "USD"]);
+  });
+
+  it("describes, never labels — an adornment qualifies the value, it does not name the field", () => {
+    const el = render(<TextField leading={<span>$</span>} />);
+    expect(inputOf(el).getAttribute("aria-labelledby")).toBe(null);
+  });
+
+  it("appends to the caller's description instead of replacing it", () => {
+    // A field inside a Field.Root already carries a description id, and losing it would trade
+    // one accessibility defect for another.
+    const el = render(<TextField aria-describedby="hint" trailing={<span>USD</span>} />);
+    const ids = inputOf(el).getAttribute("aria-describedby")!.split(" ");
+    expect(ids[0]).toBe("hint");
+    expect(ids).toHaveLength(2);
+  });
+
+  it("says nothing when there is nothing to say", () => {
+    expect(inputOf(render(<TextField />)).getAttribute("aria-describedby")).toBe(null);
+  });
+});

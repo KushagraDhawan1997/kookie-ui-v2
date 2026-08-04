@@ -97,6 +97,28 @@
   opacity: 1;
 }
 
+/* READ-ONLY drops the well, and keeps everything else (§8, added 2026-08-05). It shipped as a
+   fully accepted prop that resolved to nothing at all: `<TextField readOnly />` refused
+   keystrokes while looking pixel-identical to the field beside it, so the only feedback was
+   typing and having nothing happen.
+
+   It is not disabled and must not borrow that vocabulary — the value is live, selectable,
+   focusable, in the tab order and submitted with the form. What is gone is exactly one thing:
+   the invitation to type. So exactly one thing changes — the seal, which is what makes a field
+   read as a well you put a caret into. The border stays (it still bounds the value), the text
+   stays at full contrast (it is content, not a disabled label), the caret cursor stays (you can
+   still select and copy). Under a material the mix resolves to transparent, which is the same
+   answer the quiet rung gets under glass: bare blur.
+
+   `:not(:disabled)` because CSS `:read-only` matches anything that is not `:read-write`, and a
+   disabled input is not read-write — without the guard every disabled field would silently
+   lose its fill on top of the disabled remap, which is two states painting one box. */
+.kui-field:has(> .kui-field-input:read-only:not(:disabled)) {
+  --kui-ct-fill-src: transparent;
+  --kui-ct-fill-src-hover: transparent;
+  --kui-ct-fill-src-active: transparent;
+}
+
 /* A disabled field's hint must not end up brighter than the value it sits beside: the shared
    remap moves --tone-label and nothing else, so the placeholder joins it here.
 
