@@ -99,6 +99,7 @@ export function generateTokens(): string {
   put("cursor-button", cursor.button);
   put("cursor-loading", cursor.loading);
   put("cursor-disabled", cursor.disabled);
+  put("cursor-text", cursor.text);
 
   lines.push("", "  /* semantic: surface radii by size index, overlay flat (§6, §10) */");
   lines.push(...surfaceRadiusFamily());

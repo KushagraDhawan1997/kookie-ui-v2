@@ -94,6 +94,7 @@
   --cursor-button: pointer;
   --cursor-loading: progress;
   --cursor-disabled: default;
+  --cursor-text: text;
 
   /* semantic: surface radii by size index, overlay flat (§6, §10) */
   --radius-surface-1: var(--radius-6);

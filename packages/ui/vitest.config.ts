@@ -27,7 +27,18 @@ export default defineConfig({
         // Pre-bundled explicitly: discovering React mid-run makes Vite reload the page, which
         // it warns is a source of flake and duplicated runs.
         optimizeDeps: {
-          include: ["react", "react-dom", "react-dom/client", "react/jsx-dev-runtime"],
+          // Base UI's entry points belong here for the same reason React does, and the failure
+          // is louder: an entry discovered mid-run is optimized in a second pass and ends up
+          // holding a different React than the page, so every hook in it reads off `null`.
+          // `@base-ui/react/input` did exactly that the first time TextField mounted.
+          include: [
+            "react",
+            "react-dom",
+            "react-dom/client",
+            "react/jsx-dev-runtime",
+            "@base-ui/react/button",
+            "@base-ui/react/input",
+          ],
         },
         test: {
           name: "browser",

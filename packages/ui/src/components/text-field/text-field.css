@@ -1,0 +1,103 @@
+/* TextField adds the wrapper's own facts and nothing else (§2, §4).
+ *
+ * The size index, the states, the disabled remap, the invalid remap and material all arrive
+ * from system/recipes.css, because a field is a control and those are what every control
+ * shares. What is left here is what only a field has: a fill that does not move, a bare input
+ * inside a box that is the real control, a caret instead of a hand, and two slots.
+ *
+ * If this file grows a tone, a rung or a size, the recipe layer has stopped absorbing
+ * variation — which is the moment to fix the layer, not the component (§2, law-tested).
+ */
+
+.kui-field {
+  /* The control skeleton centres its content and forbids selection. Both are right for a
+     button and wrong here: a field reads from its leading edge, and the text inside it is the
+     user's to select. */
+  justify-content: flex-start;
+  -webkit-user-select: auto;
+  user-select: auto;
+  cursor: var(--cursor-text);
+
+  /* The seal, stated for all three states ON PURPOSE. The shared layer paints
+     `var(--kui-fill, var(--kui-fill-src))` and swaps to the -hover / -active sources on
+     interaction; leaving those two unset would make the declaration invalid at computed-value
+     time exactly when you point at the field, and background-color would fall back to
+     transparent — a fill that vanishes under the pointer. A field's fill does not move at all:
+     the border and the ring carry its states, which is the honest way to say it. */
+  --kui-fill-src: var(--color-surface);
+  --kui-fill-src-hover: var(--color-surface);
+  --kui-fill-src-active: var(--color-surface);
+  /* The role, not the colour: the shared disabled remap re-points --tone-label, so the value
+     the user typed goes flat with the rest of the control and this file needs no disabled
+     branch of its own. */
+  --kui-label-color: var(--tone-label);
+
+  /* Depth is the app's identity, never the field's (§5, §10). The same variable every surface
+     reads, so fields lift with the cards in an elevated world and the flat default resolves to
+     `none` — byte-identical in effect to a world where the elevated rule does not exist. */
+  box-shadow: var(--kui-surface-chrome, none);
+}
+
+/* The input is BARE: every visible fact belongs to the wrapper, so there is exactly one box,
+   one border and one ring however many slots are in it. */
+.kui-field-input {
+  /* Take what the slots leave. `min-width: 0` because a flex item's automatic minimum size is
+     its content: without it a long value pushes the trailing slot out of the box instead of
+     scrolling inside it. */
+  flex: 1 1 auto;
+  min-width: 0;
+  /* Height is the wrapper's (§4); the input contributes none of its own. */
+  align-self: stretch;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  /* A second ring inside the first is the tell of a field assembled rather than designed. */
+  outline: none;
+  /* iOS paints its own inset shadow and corner radius on every text input, and ignores the
+     background until appearance is cleared — the same class of platform default as the tap
+     highlight in the control layer, and just as invisible from a desktop. */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.kui-field-input::placeholder {
+  color: var(--color-text-muted);
+  /* Firefox ships placeholders at opacity 0.54, which drops the hint below the contrast the
+     muted role was chosen to clear. */
+  opacity: 1;
+}
+
+/* A disabled field's hint must not end up brighter than the value it sits beside: the shared
+   remap moves --tone-label and nothing else, so the placeholder joins it here. */
+.kui-field[data-disabled] .kui-field-input::placeholder {
+  color: var(--tone-label);
+}
+
+/* Focus is a MODE here, not a keyboard affordance — the one place a control deliberately
+   parts from §8's `:focus-visible` ring. You do not press a field, you enter it: once your
+   keystrokes land inside, the box has to say so however you arrived, mouse included.
+   `:focus-within` because the focus itself is on the input, and the ring belongs to the box
+   that draws the border — including its slots. */
+.kui-field:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* The slots. Passive by convention, sized by the same index as the label, and muted so an
+   adornment never competes with the value. An interactive trailing child (a clear button)
+   brings its own colour and its own box — the slot only decides where it sits. */
+.kui-field-slot {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  /* Muted unconditionally, with no guard for interactive children: a control inside a slot
+     paints its own label colour through the shared layer, so it overrides this for itself.
+     The guard that used to be here listed the interactive elements a SECOND time, in a
+     different order than the click handler's list, and the two had already drifted apart —
+     one question, two answers, which is how a rule stops being a rule. */
+  color: var(--color-text-muted);
+}

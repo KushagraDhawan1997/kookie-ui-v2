@@ -211,6 +211,10 @@ export const cursor = {
   /* Disabled reverts to the arrow: the hand promises a response the control will not give.
      Not `not-allowed` — it scolds, and no native platform uses it. */
   disabled: "default",
+  /* A field is a place to put a caret, not a thing to press (§8, the cursors block): the box
+     wears the I-beam, including its padding and its passive slots, because clicking any of
+     them puts you in the same text. */
+  text: "text",
 } as const;
 
 /**

@@ -16,6 +16,7 @@ import { createRoot } from "react-dom/client";
 // that file in step; a sheet missing here makes laws pass against an empty cascade.
 import buttonCss from "../components/button/button.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
+import textFieldCss from "../components/text-field/text-field.css?raw";
 import layoutCss from "../system/layout.css?raw";
 import recipesCss from "../system/recipes.css?raw";
 import surfacesCss from "../system/surfaces.css?raw";
@@ -27,7 +28,15 @@ let installed = false;
 export function installStyles(): void {
   if (installed) return;
   const sheet = document.createElement("style");
-  sheet.textContent = [tokensCss, layoutCss, recipesCss, surfacesCss, spinnerCss, buttonCss].join("\n");
+  sheet.textContent = [
+    tokensCss,
+    layoutCss,
+    recipesCss,
+    surfacesCss,
+    spinnerCss,
+    buttonCss,
+    textFieldCss,
+  ].join("\n");
   document.head.append(sheet);
   installed = true;
 }

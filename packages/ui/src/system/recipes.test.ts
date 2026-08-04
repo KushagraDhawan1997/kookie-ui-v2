@@ -21,7 +21,21 @@ const read = (p: string) => readFileSync(join(here, p), "utf8");
 
 const recipes = read("./recipes.css");
 const button = read("../components/button/button.css");
+const textField = read("../components/text-field/text-field.css");
 const TONE_NAMES = Object.keys(tones);
+
+/** Every hand-authored stylesheet the package ships. Generated files are where literals and
+    palette references are supposed to bottom out, so they are not in scope. */
+function allStylesheets(dir = ".."): string[] {
+  return readdirSync(join(here, dir), { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory()
+      ? allStylesheets(join(dir, entry.name))
+      : entry.name.endsWith(".css") && !["tokens.css", "layout.css"].includes(entry.name)
+        ? [join(dir, entry.name)]
+        : [],
+  );
+}
+
 const RUNGS = ["loud", "medium", "quiet"];
 // Derived from the exported type, not restated: §9's axis table drifted to three values
 // while the code shipped four, and a local literal here would have kept the ladder's hole
@@ -29,16 +43,49 @@ const RUNGS = ["loud", "medium", "quiet"];
 const MATERIALS = [...GLASS_MATERIALS];
 
 describe("a component's own CSS names no axis (§2, §9)", () => {
-  it("button.css contains no tone, no rung, no size index, and no material", () => {
-    for (const name of [...TONE_NAMES, ...RUNGS]) expect(button).not.toContain(name);
-    expect(button).not.toMatch(/data-size/);
-    expect(button).not.toMatch(/data-material|--material-/);
-    // If this ever fails, the recipe layer has stopped absorbing variation and the cost has
-    // quietly become multiplicative — which is the moment to fix the layer, not the component.
-  });
+  // Every component stylesheet the package ships. The claim is about all of them, and TextField
+  // is its first real test: the second control had to cost structure and nothing else, or the
+  // additivity argument was only ever true of a sample of one.
+  const components: [string, string][] = [
+    ["button.css", button],
+    ["text-field.css", textField],
+  ];
+
+  for (const [name, css] of components) {
+    it(`${name} contains no tone, no rung, no size index, and no material`, () => {
+      for (const tone of TONE_NAMES) expect(css).not.toContain(`--${tone}-`);
+      for (const rung of RUNGS) expect(css).not.toContain(rung);
+      expect(css).not.toMatch(/data-size/);
+      expect(css).not.toMatch(/data-material|--material-/);
+      // If this ever fails, the recipe layer has stopped absorbing variation and the cost has
+      // quietly become multiplicative — which is the moment to fix the layer, not the component.
+    });
+  }
 
   it("button.css names no colour token at all — appearance is resolved output (§7)", () => {
     expect(button).not.toMatch(/--(accent|neutral|destructive|tone)-/);
+  });
+
+  it("text-field.css names ROLES where it must, and never a family (§7)", () => {
+    // A field is stricter than a button in one way and looser in another, and the difference is
+    // worth stating rather than blurring. It declares its own identity — the seal it fills with,
+    // the muted hint — so it necessarily names colour, where button.css names none at all. What
+    // it must never do is reach past the role layer to a FAMILY: the moment a component knows
+    // the word `neutral`, rebinding a tone stops being a Theme's job.
+    expect(textField).not.toMatch(/--(accent|neutral|destructive)-/);
+    expect(textField).toMatch(/--color-surface|--tone-label/);
+  });
+});
+
+describe("the icon box is a mechanism, declared once (§4, ENGINEERING §4)", () => {
+  it("no component restates it — including for adornments in a slot wrapper", () => {
+    // A field's icons sit inside `[data-slot]`, so they are grandchildren of the control and
+    // the bare `.kui-control > svg` rule misses them. The fix belongs in the shared layer, not
+    // in a fourth copy of three declarations when Select ships.
+    expect(recipes).toContain("[data-slot] > svg");
+    for (const [, css] of [["button.css", button], ["text-field.css", textField]] as const) {
+      expect(css).not.toContain("--kui-icon");
+    }
   });
 });
 
@@ -51,9 +98,16 @@ describe("the shared layer carries the variation, once (§2)", () => {
   });
 
   it("the rungs name roles, never a tone — one recipe serves all three families", () => {
-    for (const name of TONE_NAMES) {
-      expect(recipes).not.toContain(`--${name}-solid`);
-      expect(recipes).not.toContain(`--${name}-soft`);
+    // Scoped to the RUNG blocks, and to every role rather than two of them. The old form swept
+    // the whole file for `--{family}-solid` and `--{family}-soft` only, which is both too wide
+    // and too narrow: too wide because a state remap MUST name a family to remap anything (the
+    // disabled block has always named raw `--neutral-N` steps), and too narrow because every
+    // other role — `-border`, `-label`, `-contrast` — went straight through the hole. The law
+    // now says what its title says.
+    for (const rung of RUNGS) {
+      const start = recipes.indexOf(`[data-emphasis="${rung}"]`);
+      const body = recipes.slice(start, recipes.indexOf("}", start));
+      for (const name of TONE_NAMES) expect(body).not.toContain(`--${name}-`);
     }
     expect(recipes).toContain("--tone-solid");
     expect(recipes).toContain("--tone-soft");
@@ -74,6 +128,39 @@ describe("the shared layer carries the variation, once (§2)", () => {
     expect(recipes).not.toMatch(/\[data-size="\d"\]\[data-(emphasis|tone|material)=/);
     expect(recipes).not.toMatch(/\[data-material="[a-z]+"\]\[data-(emphasis|tone|size)=/);
     expect(recipes).not.toMatch(/\[data-(emphasis|tone)="[a-z]+"\]\[data-material=/);
+  });
+});
+
+describe("invalid is a state remap, and it belongs to every control (§8)", () => {
+  const code = recipes.replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("lives in the shared layer, not in the component that happened to need it first", () => {
+    // TextField is the first control that can be wrong, but Select, Combobox and NumberField
+    // all can be. If this ever moves into a component's stylesheet the remap has become a
+    // variant, which is the thing the system refuses.
+    expect(code).toMatch(/\[data-invalid\]/);
+    // Comments may DISCUSS it; only a rule would mean the remap had moved.
+    const componentRules = textField.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(componentRules).not.toContain("invalid");
+  });
+
+  it("reads BOTH spellings — Base UI's inside a Field, the platform's standalone", () => {
+    expect(code).toContain('[aria-invalid="true"]');
+    expect(code).toContain("[data-invalid]");
+  });
+
+  it("reaches the wrapper pattern, where the state lands on a child", () => {
+    // Without the :has() arm a field's border could never answer its own input's validity.
+    expect(code).toMatch(/:has\(>\s*:is\(\[data-invalid\]/);
+  });
+
+  it("moves the border and NOTHING else — the value stays legible, the ring stays accent", () => {
+    const start = code.indexOf(".kui-control:is([data-invalid]");
+    const body = code.slice(start, code.indexOf("}", start));
+    expect(body).toContain("--tone-border");
+    for (const forbidden of ["--tone-label", "--focus-ring", "--tone-solid", "--tone-soft", "background"]) {
+      expect(body).not.toContain(forbidden);
+    }
   });
 });
 
@@ -202,6 +289,49 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     const body = block.slice(0, block.indexOf("}"));
     expect(body).toContain("--tone-label");
     expect(body).not.toContain("opacity");
+  });
+});
+
+describe("the ring and the chrome are designed once, applied wherever they land (§5, §8)", () => {
+  // Both of these were single-site facts that quietly became multi-site ones, and in both cases
+  // the doc still claimed "exactly one" while the second and third copies shipped. Counting
+  // occurrences in ONE file is what let that happen, so these laws walk every stylesheet the
+  // package ships and check the thing that actually matters: not how many rules there are, but
+  // that every one of them resolves the same designed value.
+  const sheets = allStylesheets().map((f) => [f, read(f).replace(/\/\*[\s\S]*?\*\//g, "")] as const);
+
+  it("every focus rule reads the ring tokens — no literal, no second colour", () => {
+    // §8's "one ring, defined once" was already three rules before TextField existed: the
+    // control, the interactive surface (card-as-button) and now the field wrapper. One ring
+    // never meant one selector — it means one designed value, and THAT is what is asserted.
+    let found = 0;
+    for (const [file, css] of sheets) {
+      for (const match of css.matchAll(/:focus(?:-visible|-within)?[^{]*\{([^}]*)\}/g)) {
+        const body = match[1]!;
+        if (!body.includes("outline")) continue;
+        found += 1;
+        expect(body, `${file} rings with something other than the tokens`).toContain(
+          "var(--focus-ring-width) solid var(--focus-ring)",
+        );
+        expect(body).toContain("var(--focus-ring-offset)");
+      }
+    }
+    expect(found).toBeGreaterThanOrEqual(3);
+  });
+
+  it("every box-shadow reads the world's chrome — depth is never a component's own idea", () => {
+    // The elevated world dresses surfaces AND the controls that are built like them (a field is
+    // a bordered box on the page). What no stylesheet may do is invent its own depth: the moment
+    // a rule names --shadow-N directly, the fenced resource has become an axis again (§13).
+    let found = 0;
+    for (const [file, css] of sheets) {
+      for (const match of css.matchAll(/box-shadow:\s*([^;]+);/g)) {
+        found += 1;
+        expect(match[1]!, `${file} paints a shadow of its own`).toContain("--kui-surface-chrome");
+      }
+      expect(css, `${file} reaches past the chrome to the palette`).not.toContain("--shadow-");
+    }
+    expect(found).toBeGreaterThanOrEqual(2);
   });
 });
 

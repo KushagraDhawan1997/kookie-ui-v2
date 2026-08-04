@@ -188,6 +188,84 @@ function accentSwap(name: string, hex: string, mode: Mode): string {
 }
 
 /** The static markup Card produces (LOG 2026-08-04): a shell — identity, not options. */
+/** The markup TextField renders (§4): the wrapper is the control, the input is bare. */
+function field(
+  attrs: {
+    size?: string;
+    material?: string;
+    placeholder?: string;
+    value?: string;
+    disabled?: boolean;
+    invalid?: boolean;
+    leading?: string;
+    trailing?: string;
+    style?: string;
+  } = {},
+): string {
+  const { size = "2", material, placeholder = "", value, disabled, invalid, leading, trailing, style } = attrs;
+  const slot = (content: string, which: string) =>
+    `<span class="kui-field-slot" data-slot="${which}">${content}</span>`;
+  return `<span class="kui-control kui-field" data-size="${size}" data-tone="neutral" data-bordered${
+    material ? ` data-material="${material}"` : ""
+  }${disabled ? " data-disabled" : ""}${style ? ` style="${style}"` : ""}>${
+    leading ? slot(leading, "leading") : ""
+  }<input class="kui-field-input" placeholder="${placeholder}"${value ? ` value="${value}"` : ""}${
+    disabled ? " disabled" : ""
+  }${invalid ? ' aria-invalid="true"' : ""}/>${trailing ? slot(trailing, "trailing") : ""}</span>`;
+}
+
+/** A magnifier, drawn inline: the preview has no icon set and the box is what matters. */
+const GLYPH =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+
+function fieldSection(mode: Mode): string {
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
+  const row = (body: string) =>
+    kuiBox({ display: "flex", gap: "5", align: "flex-start", wrap: "wrap" }, body);
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo(
+        "the size index - one join, shared with every control (\u00a74)",
+        row(SIZES.map((n) => field({ size: String(n), placeholder: `size ${n}` })).join("")),
+      ) +
+        demo(
+          "states - the border carries them; the fill never moves (\u00a78)",
+          row(
+            [
+              field({ placeholder: "rest" }),
+              field({ value: "typed" }),
+              field({ placeholder: "invalid", invalid: true }),
+              field({ placeholder: "disabled", disabled: true }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "slots - forced anatomy, because the border moved to the wrapper (\u00a710)",
+          row(
+            [
+              field({ leading: GLYPH, placeholder: "Search" }),
+              field({ leading: "<span>$</span>", placeholder: "0.00" }),
+              field({ placeholder: "Password", trailing: button({ size: "1" }, "Show") }),
+              field({ size: "3", leading: GLYPH, placeholder: "Search", trailing: button({ size: "2", emphasis: "quiet" }, "Clear") }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "material - the same seal, made glass, with no CSS of its own (\u00a710)",
+          `<div style="background: url('backdrop.jpg') center / cover no-repeat, linear-gradient(115deg, #841e57, #144e68 55%, #1db954); border-radius: var(--radius-surface-3);">${kuiBox(
+            { display: "flex", gap: "5", wrap: "wrap", p: "7" },
+            ["thin", "regular", "thick"]
+              .map((m) => field({ material: m, leading: GLYPH, placeholder: m }))
+              .join(""),
+          )}</div>`,
+        ),
+    )}
+  </section>`;
+}
+
 function card(body: string, style = "", material?: string, size = "3"): string {
   return `<div class="kui-surface kui-card" data-size="${size}" data-tone="neutral" data-emphasis="quiet" data-bordered${
     material ? ` data-material="${material}"` : ""
@@ -595,6 +673,7 @@ export function generatePreview(): string {
   <nav class="toc">
     <a href="#matrix">matrix</a>
     <a href="#button">button</a>
+    <a href="#field">field</a>
     <a href="#layout">layout</a>
     <a href="#roles">roles</a>
     <a href="#colour">colour</a>
@@ -663,6 +742,11 @@ ${BRANDS.slice(0, 5)
 <p class="note">A shell: one treatment, no variants, no anatomy — <code>size × material</code> and children, and Card ships not one line of its own CSS (§10). A surface without a material is opaque — translucency is material's job alone — and separation between nested surfaces is the border, not the fill. No call site chooses a shadow: the surfaces=\"elevated\" toggle above is the one sanctioned depth, an app identity (§5). Titled layouts are blocks, not components. Padding follows the size index and the page-wide <em>density</em> select above (§12) — a compact app's cards lose air with its controls. The glass values are v0, judged on this page; expect them to move.</p>
 ${surfaceSection("light")}
 ${surfaceSection("dark")}
+
+<h1 id="field">TextField — the second control</h1>
+<p class="note">The additivity claim's first real test (\u00a72): a whole second control for <strong>+247 bytes</strong> gzipped, because the size index, the states, the disabled and invalid remaps and material all arrived from the layer Button already paid for. What is genuinely new is the <em>wrapper</em> — a field that holds an icon inside its border cannot keep that border on the <code>&lt;input&gt;</code>, and once a wrapper owns the border it owes three things no consumer can compose from outside: clicking anywhere lands the caret, the input yields to the slots without breaking the placeholder, and an interactive trailing control keeps its own press. That is the anatomy criterion met, which is why this component has slots and Card does not. No emphasis and no tone: loudness ranks actions, and a form where one field is louder than the next names nothing. Validity is state (<code>aria-invalid</code>, or <code>data-invalid</code> from a Base UI Field), never a prop.</p>
+${fieldSection("light")}
+${fieldSection("dark")}
 
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">

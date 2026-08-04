@@ -9,6 +9,7 @@ export {
   type Tone,
 } from "./components/button/button.tsx";
 export { Card, type CardProps } from "./components/card/card.tsx";
+export { TextField, type TextFieldProps } from "./components/text-field/text-field.tsx";
 export { Spinner, type SpinnerProps } from "./components/spinner/spinner.tsx";
 export { Flex, type FlexProps } from "./components/flex/flex.tsx";
 export { Grid, type GridProps } from "./components/grid/grid.tsx";

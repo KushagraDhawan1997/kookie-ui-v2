@@ -65,9 +65,14 @@
      the race against a ~60ms tap and the control reads as dead on a phone. */
 }
 
-/* Icons take the size index's box and the label's colour, so a slot needs no wrapper element
-   and no per-icon styling (§4). */
-.kui-control > svg {
+/* Icons take the size index's box and the label's colour, so a slot needs no per-icon styling
+   (§4). The second selector is for the controls whose adornments sit in a positioned wrapper —
+   a field's leading and trailing slots — where the icon is a grandchild. It lives HERE rather
+   than in that component's stylesheet because the icon box is a mechanism, and a mechanism
+   copied into a fourth component is how the shared layer stops being shared (ENGINEERING §4).
+   `[data-slot]` is the system's name for that wrapper. */
+.kui-control > svg,
+.kui-control > [data-slot] > svg {
   width: var(--kui-icon);
   height: var(--kui-icon);
   flex: none;
@@ -192,6 +197,25 @@
   --tone-border: var(--neutral-6);
   --tone-label: var(--neutral-8);
   --tone-contrast: var(--neutral-8);
+}
+
+/* Invalid is a TONE REMAP too, and for the same reason disabled is one (§8): the control keeps
+   its shape and changes family, so the pairing stays designed and testable instead of a red
+   border bolted onto whatever was underneath. Written here, not on the field, because every
+   control that can be wrong wears it — Select, Combobox, NumberField — and because a validity
+   VARIANT is exactly what this system refuses: nothing chooses to look invalid.
+
+   Only the border moves. The value the user typed is their content and stays legible, and the
+   ring stays accent because §8 ships one ring — a destructive ring would also have to re-clear
+   the APCA floor per mode, which is the trap the 2026-08-03 audit found in the dark ring.
+
+   Two spellings, both required: inside a `Field.Root` Base UI writes `data-invalid`, and
+   standalone the platform spelling is `aria-invalid`. The `:has()` arm is for the controls
+   whose visible box is a WRAPPER around the input — TextField — where the state lands on a
+   child and the border being corrected is the parent's. */
+.kui-control:is([data-invalid], [aria-invalid="true"]),
+.kui-control:has(> :is([data-invalid], [aria-invalid="true"])) {
+  --tone-border: var(--destructive-border);
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,
