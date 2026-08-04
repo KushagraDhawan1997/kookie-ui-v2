@@ -58,11 +58,12 @@ export const radiusOverlay = 10;
  * family, so every rendered value is a designed point and any one cell can be corrected
  * without moving the other three in its level.
  *
- * `height` is raw px, the anchor a control actually stands on. `px` and `radius` are step
- * indices into the space and radius palettes, never restated numbers (§6). The icon-label
- * gap is NOT here (decided 2026-08-04, Kushagra): density grows the box and holds the
- * content, and type, the icon box, and the gap binding them are one label cluster —
- * `controlGap` below is size- and pointer-indexed only.
+ * `height` and `px` are raw px, the two numbers a control's box actually stands on; `radius`
+ * is a step index into the radius palette. `px` left the space palette on 2026-08-05 — see
+ * the note on the ladder below. The icon-label gap is NOT here (decided 2026-08-04,
+ * Kushagra): density grows the box and holds the content, and type, the icon box, and the
+ * gap binding them are one label cluster — `controlGap` below is size- and pointer-indexed
+ * only.
  *
  * The ladder is built so one density step moves the box about one size step while the
  * label holds: compact size 2 stands where default size 1 does, comfortable size 2 where
@@ -73,23 +74,35 @@ export const radiusOverlay = 10;
  * with the size index. Letting it climb is what made size 4 read as a capsule and made
  * compact, which reuses radii on smaller boxes, come out rounder than default. Comfortable
  * shifts one palette step, never two.
+ *
+ * `px` is held the same way (~0.3), and for the same reason — it is the radius bug a second
+ * time (judged 2026-08-05, Kushagra: "at size 2 to size 4 the horizontal padding seems a bit
+ * too much"; LOG). It used to be a step index into the space palette, and that was the whole
+ * defect: the palette is a LAYOUT rhythm, near-linear at the bottom and geometric at the top,
+ * so through the control band it grows ~1.44x per step against a height ladder that grows
+ * ~1.20x. Indexing one with the other cannot hold a fraction — default ran 0.286 -> 0.500,
+ * and coarse/comfortable ran out of palette entirely, repeating a step so size 4 was padded
+ * no wider than size 3. Radius solved this by widening its own palette inside the control
+ * band; space cannot be widened without renumbering every layout pick, so control padding
+ * joins `height` as a designed raw number. All six sets now sit in 0.24-0.38 of their box,
+ * law-tested, with size 4 down 33% from what shipped. v0 for the eye pass.
  */
 export const density = {
   compact: {
     height: [24, 28, 34, 40],
-    px: [2, 3, 4, 5],
+    px: [6, 8, 10, 12],
     radius: [1, 2, 2, 3],
     slotInset: [2, 3, 3, 4],
   },
   default: {
     height: [28, 32, 40, 48],
-    px: [3, 4, 5, 6],
+    px: [8, 10, 13, 16],
     radius: [1, 2, 3, 4],
     slotInset: [3, 3, 4, 4],
   },
   comfortable: {
     height: [34, 40, 50, 60],
-    px: [4, 5, 6, 7],
+    px: [12, 14, 18, 22],
     radius: [2, 3, 4, 5],
     slotInset: [3, 4, 5, 6],
   },
@@ -97,9 +110,11 @@ export const density = {
 
 export type DensityLevel = keyof typeof density;
 
-/** One placed geometry: four heights, plus step indices into the space and radius palettes. */
+/** One placed geometry: four heights and four inline paddings in raw px, plus step indices
+ *  into the radius palette. */
 export type DensitySet = {
   readonly height: readonly [number, number, number, number];
+  /** Inline padding, raw px — a designed number, not a palette pick. See `density` above. */
   readonly px: readonly [number, number, number, number];
   readonly radius: readonly [number, number, number, number];
   /**
@@ -130,19 +145,19 @@ export type DensitySet = {
 export const coarse = {
   compact: {
     height: [32, 38, 46, 54],
-    px: [3, 4, 5, 6],
+    px: [8, 10, 13, 16],
     radius: [2, 3, 3, 4],
     slotInset: [3, 4, 4, 5],
   },
   default: {
     height: [36, 44, 52, 60],
-    px: [4, 5, 6, 7],
+    px: [10, 13, 16, 20],
     radius: [2, 3, 4, 5],
     slotInset: [4, 4, 5, 5],
   },
   comfortable: {
     height: [40, 48, 58, 68],
-    px: [5, 6, 7, 7],
+    px: [14, 17, 21, 25],
     radius: [3, 4, 5, 5],
     slotInset: [4, 5, 6, 7],
   },

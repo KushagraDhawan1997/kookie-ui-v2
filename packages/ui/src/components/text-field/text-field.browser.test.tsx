@@ -10,6 +10,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
+import { density } from "../../tokens/config.ts";
 import { computed, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "./text-field.tsx";
@@ -43,8 +44,9 @@ const onPlaceholder = (el: Element, prop: string): string =>
 describe("the wrapper is the control, and it joins the size index (§4)", () => {
   it("resolves height, padding, radius and type from the shared control family", () => {
     const el = render(<TextField size="3" />);
-    expect(computed(el, "min-height")).toBe("40px");
-    expect(computed(el, "padding-left")).toBe("16px");
+    // The designed set, not a restated number — same reason as the Button law it mirrors.
+    expect(computed(el, "min-height")).toBe(`${density.default.height[2]}px`);
+    expect(computed(el, "padding-left")).toBe(`${density.default.px[2]}px`);
     expect(computed(el, "border-top-left-radius")).toBe("8px");
     expect(computed(el, "font-size")).toBe("16px");
   });

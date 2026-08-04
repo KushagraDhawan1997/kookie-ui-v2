@@ -124,9 +124,12 @@ describe("semantic tokens reference palette tokens, never restate numbers (§6)"
     expect(declaration("radius-overlay")).toMatch(/^var\(--radius-\d+\)$/);
   });
 
-  it("control padding and gap resolve through the space palette", () => {
+  // The icon-label gap still resolves through the palette; inline padding no longer does, and
+  // that is the point of the 2026-08-05 change — the gap binds two pieces of CONTENT and can
+  // take a layout rhythm, where padding has to hold a fraction of a box the palette knows
+  // nothing about. §6 forbids restating a number, not naming one that has no palette to name.
+  it("the icon-label gap resolves through the space palette", () => {
     for (let size = 1; size <= 4; size++) {
-      expect(declaration(`control-px-${size}`)).toContain("var(--space-");
       expect(declaration(`control-gap-${size}`)).toContain("var(--space-");
     }
   });
@@ -192,12 +195,16 @@ describe("density is a designed set, not a multiplier (§12)", () => {
     }
   });
 
-  it("control innards read the RAW palette at every level — the layer must not double-apply", () => {
-    // The boundary (§12): control px answers density through the designed sets alone.
-    // Routed through layout space it would compress twice under compact.
+  it("control innards never route through LAYOUT SPACE — the layer must not double-apply", () => {
+    // The boundary (§12): control px answers density through the designed sets alone. Routed
+    // through layout space it would compress twice under compact. Since 2026-08-05 it does not
+    // route through the raw palette either — it is a designed length, which is a stronger form
+    // of the same guarantee, so the assertion moved from "is a space reference" to "references
+    // nothing that density has already moved".
     for (const level of ["default", "compact", "comfortable"] as const) {
       for (let size = 1; size <= 4; size++) {
-        expect(declaration(`control-px-${size}`, level)).toMatch(/^var\(--space-\d+\)$/);
+        expect(declaration(`control-px-${size}`, level)).not.toContain("--layout-space-");
+        expect(declaration(`control-px-${size}`, level)).not.toContain("--space-");
       }
     }
   });
@@ -301,6 +308,61 @@ describe("the corner holds a fraction of its box (§6)", () => {
       }
     }
   }
+});
+
+describe("the inline padding holds a fraction of its box (§4, §12)", () => {
+  // The radius bug a second time, found 2026-08-05 and fixed by taking `px` out of the space
+  // palette. The palette is a LAYOUT rhythm — through the control band it grows ~1.44x per
+  // step against a height ladder that grows ~1.20x — so indexing one with the other could not
+  // hold a fraction: default ran 0.286 -> 0.500 and comfortable reached 0.533. Every one of
+  // these assertions fails against the config that shipped, which is why they are here.
+  //
+  // A BAND rather than a spread ratio, because unlike radius the acceptable range is known:
+  // v1 of this system used a flat 0.375, Radix runs 0.33-0.42, and the eye pass judged those
+  // too loose at the top of the ladder. 0.24-0.38 is where all six sets now sit.
+  const FLOOR = 0.24;
+  const CEILING = 0.38;
+
+  const worlds: [string, Record<DensityLevel, DensitySet>][] = [
+    ["fine", density],
+    ["coarse", coarse],
+  ];
+
+  for (const [worldName, world] of worlds) {
+    for (const [levelName, set] of Object.entries(world)) {
+      it(`stays inside the band at ${worldName} x ${levelName}`, () => {
+        for (let i = 0; i < 4; i++) {
+          const fraction = set.px[i]! / set.height[i]!;
+          expect(fraction).toBeGreaterThanOrEqual(FLOOR);
+          expect(fraction).toBeLessThanOrEqual(CEILING);
+        }
+      });
+
+      // coarse/comfortable shipped [16, 24, 32, 32] — it ran out of palette and repeated a
+      // step, so a size-4 control was padded no wider than a size-3 one. Absolute monotonicity
+      // is the law that would have caught it, and no law covered `px` at all.
+      it(`grows with the size index at ${worldName} x ${levelName}`, () => {
+        expect(increasing(set.px)).toBe(true);
+      });
+    }
+  }
+
+  it("orders compact < default < comfortable at every size, the way height does", () => {
+    for (const world of worlds.map(([, w]) => w)) {
+      for (let i = 0; i < 4; i++) {
+        expect(world.compact.px[i]!).toBeLessThan(world.default.px[i]!);
+        expect(world.default.px[i]!).toBeLessThan(world.comfortable.px[i]!);
+      }
+    }
+  });
+
+  it("emits a scaled length, not a space reference — the palette is layout's, not the control's", () => {
+    // The token must also ZOOM: an index resolved to var(--space-N), which already carried
+    // --scale. A raw px emitted without zoom() would silently drop a control's padding out of
+    // the one geometry that answers the scale escape (§13).
+    expect(declaration("control-px-4")).toBe(`calc(${density.default.px[3]}px * var(--scale))`);
+    expect(css).not.toContain("--control-px-1: var(--space-");
+  });
 });
 
 describe("the pointer axis is a second designed geometry (§16)", () => {
@@ -532,10 +594,12 @@ describe("multiplier wiring matches §12's table", () => {
     }
   });
 
-  it("control height takes scale; padding and gap inherit it through the space palette", () => {
+  it("control height and padding take scale directly; the gap inherits it through the palette", () => {
     for (let size = 1; size <= 4; size++) {
       expect(declaration(`control-height-${size}`)).toContain("var(--scale)");
-      expect(declaration(`control-px-${size}`)).toMatch(/^var\(--space-\d+\)$/);
+      // Padding joined height on 2026-08-05, so it now has to carry the multiplier itself —
+      // the space palette is no longer there to carry it (see the padding-fraction laws).
+      expect(declaration(`control-px-${size}`)).toContain("var(--scale)");
       expect(declaration(`control-gap-${size}`)).toMatch(/^var\(--space-\d+\)$/);
     }
   });

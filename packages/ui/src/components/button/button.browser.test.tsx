@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
+import { density } from "../../tokens/config.ts";
 import { computed, render } from "../../test/browser.tsx";
 import { Card } from "../card/card.tsx";
 import { TextField as TextFieldForButtonTest } from "../text-field/text-field.tsx";
@@ -35,8 +36,11 @@ function ownToken(el: Element, name: string): string {
 describe("the size index joins five scales at one number (§4)", () => {
   it("resolves height, padding, gap, radius and type together", () => {
     const el = render(<Button size="3">Label</Button>);
-    expect(computed(el, "min-height")).toBe("40px");
-    expect(computed(el, "padding-left")).toBe("16px");
+    // Read off the designed set rather than restated: this law is about the JOIN — that one
+    // index pulls every family together — so the number it compares against must be the one
+    // the config placed, or the law re-freezes a value the eye pass is meant to move.
+    expect(computed(el, "min-height")).toBe(`${density.default.height[2]}px`);
+    expect(computed(el, "padding-left")).toBe(`${density.default.px[2]}px`);
     expect(computed(el, "column-gap")).toBe("8px");
     expect(computed(el, "border-top-left-radius")).toBe("8px");
     expect(computed(el, "font-size")).toBe("16px");

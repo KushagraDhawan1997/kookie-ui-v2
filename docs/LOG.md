@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 Control padding leaves the space palette — the radius bug, one family over
+
+Kushagra, judging the preview: "in both text field and button, at size 2 to size 4, the horizontal padding seems a bit too much." He was right, and the interesting part is *why* it was too much, because the answer is a mistake this system had already made once and already fixed once.
+
+`--control-px-N` was a step index into the space palette. The palette is a **layout** rhythm — a hybrid curve, near-linear at the bottom and geometric at the top — so through the band controls actually live in (8, 12, 16, 24) it grows about **1.44x per step**, against a control height ladder that grows about **1.20x**. Two ladders climbing at different rates, joined by a shared index, cannot hold a ratio between them. Measured across default density: padding ran **0.286 -> 0.375 -> 0.400 -> 0.500** of the box. Size 4 was carrying half its own height in side padding, and v1 of this system used a flat 0.375 — so the top of the ladder was 33% past the project's own reference constant while the bottom sat under it.
+
+Coarse/comfortable was worse and gave the game away: it needed a fifth step past 32 and the palette had none, so it repeated one — `[16, 24, 32, 32]`. A size-4 control padded no wider than a size-3 control, shipped, with no law that could see it.
+
+This is section 6's capsule bug in a different family. Radius climbed with the size index until size 4 read as a pill; the fix was to hold it near a constant fraction of the box, and the mechanism that made that possible was **widening the radius palette inside the control band** — that is what the extra step at index 10 exists for. Space cannot take the same fix: inserting a step renumbers every layout pick, and `gap="6"` would quietly change meaning across the whole system.
+
+So control padding joins `height` as a **designed raw number per set**, six sets of four. All twenty-four cells now sit in **0.24-0.38** of their box, and three laws hold it there: the band per cell, absolute monotonicity across sizes, and the compact < default < comfortable ordering that height already had. Every one of them fails against the config that shipped — including the coarse/comfortable repeat, which is exactly the kind of defect that survives because no law was ever pointed at it.
+
+**Rejected: adding a step to the space palette.** It fixes the resolution and breaks the meaning of every layout number in the system, to serve one family that is not a layout family.
+
+**Rejected: a fraction of the height, computed.** Same objection Kushagra raised against a computed `slotInset` the day before — a ratio nobody chose is not a design — and the same reason radius is *held near* a fraction by designed points rather than derived from one.
+
+Not a violation of "reference, never restate" (section 6): there is no palette entry being restated. What the rule forbids is a component knowing `12px`; `--control-px-N` is still the only name any component may use. It does now carry `--scale` directly instead of inheriting it from the space token, which a law pins — a raw length emitted without it would have dropped control padding out of the one geometry that answers the scale escape.
+
+Size 4 came down 24 -> 16 (-33%), size 3 16 -> 13, size 2 12 -> 10, size 1 unchanged. v0, like every number here, and now correctable per cell instead of per palette step.
+
+---
+
 ## 2026-08-04 A control inside a control, and the mapping the call site was being asked to invent
 
 Kushagra, on the preview: the Show and Clear buttons inside a field do not compose — they are the same height as the field. Measured, they were: 87.5% of the box in the two cells he was looking at, 100% under coarse at size 1, and 1px of slack in the composition a consumer would actually write (`<TextField trailing={<Button/>}/>`, both at their own default size). In that last case the field also **grew 2px past its own size token**, in 16/16 measured cells — `box-sizing: border-box` plus a hosted control that exceeds the content box.

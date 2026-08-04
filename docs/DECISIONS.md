@@ -130,14 +130,16 @@ Two layers, structurally parallel to radius (section 6):
 
 ~12 steps because spacing spans nearly two orders of magnitude, unlike radius's bounded ~4-32px range. This is why Radix ships ~9 space tokens but only 6 radius tokens. The step count is set by dynamic range, not copied from the size count.
 
-**Control padding (semantic, size-indexed, references the palette).** Inline padding inside controls:
+**Control padding (semantic, size-indexed, a designed number — NOT a palette pick).** Inline padding inside controls, at default density in the fine world:
 
 ```css
---control-px-1: var(--space-3);   /* 8px  */
---control-px-2: var(--space-4);   /* 12px */
---control-px-3: var(--space-5);   /* 16px */
---control-px-4: var(--space-6);   /* 24px */
+--control-px-1: 8px    --control-px-3: 13px
+--control-px-2: 10px   --control-px-4: 16px
 ```
+
+**It left the space palette on 2026-08-05, and the reason is the whole rule.** Padding has to hold a roughly constant fraction of the box it pads — the same law section 6 already imposes on the control radius, and for the same reason: let it climb with the size index and the top of the ladder stops looking like the bottom. The palette cannot express that. It is a *layout* rhythm, near-linear at the bottom and geometric at the top, so through the control band it grows ~1.44x per step against a height ladder that grows ~1.20x; indexing one with the other made the fraction climb 0.286 -> 0.500 across four sizes, and coarse/comfortable ran out of palette entirely and repeated a step, so its size 4 was padded no wider than its size 3. Radius solved its own version of this by widening its palette inside the control band; space cannot be widened without renumbering every layout pick, so control padding joins `height` as a raw designed number. All six density x pointer sets now sit in **0.24-0.38 of their box**, law-tested per cell, alongside monotonicity and the compact < default < comfortable ordering.
+
+This is not an exception to "reference, never restate" — there is no palette entry being restated. `--control-px-N` is still the only name a component may use, and it still carries `--scale`, which it previously inherited from the space token and now takes directly.
 
 Controls have **no vertical padding token** (height + center, per section 4). Surfaces (cards) take both axes via their own `--surface-p-N`, fixed picks into layout space (section 10) — density reaches them through the layer (section 12).
 
@@ -210,7 +212,7 @@ A component reads several independent scales, all indexed by the same `size` pro
 
 - height from `--control-height-N`
 - label from `--font-size-N`
-- inline padding from `--control-px-N`
+- inline padding from `--control-px-N` (a designed length, not a space pick — see section 3)
 - corner from the control-radius family (see section 6)
 - gap from a `--space-N` token
 
@@ -879,13 +881,14 @@ type              -> scale                        (never density)
 space palette     -> scale                        (layout gaps, gutters; density never touches it)
 radius palette    -> scale, then the radius set   (never density, never height directly)
 control family    -> scale, then the density set  (control-height, control-px, radius-control)
+                     control-height and control-px are designed lengths; radius indexes its palette
 icon-label gap    -> scale (via space), size and pointer only  (--control-gap-N; the label cluster, never density — amended 2026-08-04)
 layout space      -> scale (via space), then the density set  (--layout-space-N picks; sections 3, 12 — decided 2026-08-04)
 surface padding   -> layout space, fixed picks                (--surface-p-N; section 10 — density speaks through the layer)
 color             -> neither                      (compiled static; not a runtime multiplier axis)
 ```
 
-**Density is not a multiplier. It selects a designed set.** Each level (`compact`, `default`, `comfortable`) re-declares the control family — height, inline padding, and control radius — as placed values, emitted at build time under a `[data-density]` block. The icon-label gap left the set 2026-08-04 (Kushagra): density grows the box and holds the content, and type, the icon box, and the gap binding them are one **label cluster** — the gap is size-indexed, re-declared per pointer world (the coarse cluster spreads with its box, section 16), and a law asserts no `[data-density]` block declares it. Heights are raw numbers per level; the referencing families move by a step offset into the space and radius palettes, with per-cell overrides where an offset lands wrong. Nothing is a product, so nothing resolves to an arbitrary 26.78px, and every cell is correctable on its own — a multiplier can only move a whole level at once, which makes every taste correction global. **Layout space joined the set 2026-08-04** (Kushagra; it superseded, the same day, a morning mechanism that gave surface padding its own per-level sets — one lever, not two): each density level places twelve picks into the untouched space palette (`--layout-space-N`), the default level being the 1:1 identity map. Every layout prop resolves through the layer, surface padding picks from it (re-baked per density scope — substitution-at-declaration, section 6), and the v0 shape shifts steps 1-8 by one while the gutter band (9-12) holds at identity, so "compact must not collapse page gutters" survives as a placed choice rather than a hard rule. Density still never touches the space palette itself; a level only picks different steps from it. The pointer axis never touches the layer (section 16).
+**Density is not a multiplier. It selects a designed set.** Each level (`compact`, `default`, `comfortable`) re-declares the control family — height, inline padding, and control radius — as placed values, emitted at build time under a `[data-density]` block. The icon-label gap left the set 2026-08-04 (Kushagra): density grows the box and holds the content, and type, the icon box, and the gap binding them are one **label cluster** — the gap is size-indexed, re-declared per pointer world (the coarse cluster spreads with its box, section 16), and a law asserts no `[data-density]` block declares it. Heights and inline paddings are raw numbers per level (padding joined them 2026-08-05, section 3); the radius family moves by a step offset into its palette, with per-cell overrides where an offset lands wrong. Nothing is a product, so nothing resolves to an arbitrary 26.78px, and every cell is correctable on its own — a multiplier can only move a whole level at once, which makes every taste correction global. **Layout space joined the set 2026-08-04** (Kushagra; it superseded, the same day, a morning mechanism that gave surface padding its own per-level sets — one lever, not two): each density level places twelve picks into the untouched space palette (`--layout-space-N`), the default level being the 1:1 identity map. Every layout prop resolves through the layer, surface padding picks from it (re-baked per density scope — substitution-at-declaration, section 6), and the v0 shape shifts steps 1-8 by one while the gutter band (9-12) holds at identity, so "compact must not collapse page gutters" survives as a placed choice rather than a hard rule. Density still never touches the space palette itself; a level only picks different steps from it. The pointer axis never touches the layer (section 16).
 
 **Radius participates.** A large density delta changes visual size enough that a fixed corner reads boxy; section 6's rule that a bigger control wants a bigger corner is about visual size, not about the size index.
 

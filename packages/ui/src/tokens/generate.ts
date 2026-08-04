@@ -479,7 +479,11 @@ function controlFamily(set: DensitySet): string[] {
   const put = (name: string, value: string) => out.push(`  --${name}: ${value};`);
 
   set.height.forEach((px, i) => put(`control-height-${i + 1}`, zoom(px)));
-  set.px.forEach((step, i) => put(`control-px-${i + 1}`, `var(--space-${step})`));
+  // Raw px, alongside the height it has to hold a fraction of — NOT a pick into the space
+  // palette (changed 2026-08-05). The palette's control band grows faster per step than the
+  // height ladder does, so an index could not hold that fraction and the padding drifted to
+  // half the box at size 4. See the note on `density` in config.ts.
+  set.px.forEach((px, i) => put(`control-px-${i + 1}`, zoom(px)));
   set.radius.forEach((step, i) => put(`radius-control-${i + 1}`, `var(--radius-${step})`));
 
   // The inset a control keeps around anything it hosts in a slot, and the height that leaves
