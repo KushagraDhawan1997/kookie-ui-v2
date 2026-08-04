@@ -12,7 +12,9 @@ import {
   coarse,
   controlGap,
   density,
+  deviceType,
   fontSize,
+  handheldMedia,
   layoutSpace,
   letterSpacing,
   lineHeight,
@@ -366,6 +368,71 @@ describe("the pointer axis is a second designed geometry (§16)", () => {
       expect(body).not.toContain("--font-size-");
       expect(body).not.toContain("--line-height-");
     }
+  });
+});
+
+describe("the device axis re-prices the type palette, and only the type palette (§15, §17)", () => {
+  /** The declarations of a scope, trimmed — for comparing two bands independent of indent. */
+  const decls = (selector: string) =>
+    block(selector)
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.startsWith("--"));
+
+  it("a handheld step is the palette's designed TRIPLE at the picked index — never a mixed pair", () => {
+    // The whole point of re-picking an index rather than scaling a value: font-size, line
+    // height and letter spacing arrive as one designed step, so a band cannot ship a 18px
+    // face on a 24px line with 16px tracking.
+    const body = block(`[data-device="handheld"]`);
+    deviceType.handheld.forEach((pick, i) => {
+      expect(body).toContain(`--font-size-${i + 1}: calc(${fontSize[pick - 1]}px * var(--scale));`);
+      expect(body).toContain(`--line-height-${i + 1}: calc(${lineHeight[pick - 1]}px * var(--scale));`);
+      expect(body).toContain(`--letter-spacing-${i + 1}: ${letterSpacing[pick - 1]}em;`);
+    });
+  });
+
+  it("desktop is the identity, emitted as a real block — an escape that does nothing is not an escape", () => {
+    // Theme stamps data-device on every node, so a desktop Theme nested in a handheld region
+    // would otherwise inherit the handheld palette (§16's default-escape lesson, one axis over).
+    const body = block(`[data-device="desktop"]`);
+    fontSize.forEach((px, i) => expect(body).toContain(`--font-size-${i + 1}: calc(${px}px * var(--scale));`));
+    lineHeight.forEach((px, i) => expect(body).toContain(`--line-height-${i + 1}: calc(${px}px * var(--scale));`));
+  });
+
+  it("auto rides the CONJUNCTION — coarse alone is a touch laptop, narrow alone a squeezed window", () => {
+    expect(handheldMedia).toContain("pointer: coarse");
+    expect(handheldMedia).toContain("max-width");
+    const media = css.indexOf(`@media ${handheldMedia} {`);
+    expect(media).toBeGreaterThan(-1);
+    expect(css.indexOf(`[data-device="auto"]`)).toBeGreaterThan(media);
+    // The auto band IS the handheld band — one designed set, two ways in.
+    expect(decls(`[data-device="auto"]`)).toEqual(decls(`[data-device="handheld"]`));
+  });
+
+  it("touches nothing but type — geometry is the pointer axis's, spacing is nobody's (§16)", () => {
+    for (const scope of [`[data-device="desktop"]`, `[data-device="handheld"]`, `  [data-device="auto"]`]) {
+      const body = block(scope);
+      for (const stem of ["--space-", "--layout-space-", "--control-", "--radius", "--icon-size-", "--surface-p-"]) {
+        expect(body).not.toContain(stem);
+      }
+    }
+    // And the reverse: no other axis re-declares a type token, which is why the device axis
+    // needs no interaction cells where pointer needed (pointer x radius x density).
+    for (const world of [`[data-pointer="fine"]`, `[data-pointer="coarse"]`]) {
+      expect(block(world)).not.toContain("--font-size-");
+    }
+  });
+
+  it("the band is non-monotonic BY DESIGN: reading sizes rise, display sizes fall, order holds", () => {
+    const picks = deviceType.handheld;
+    expect(picks).toHaveLength(fontSize.length);
+    // Every pick lands inside the palette, and a larger step never renders smaller.
+    expect(picks.every((p) => p >= 1 && p <= fontSize.length)).toBe(true);
+    expect(picks.every((p, i) => i === 0 || p >= picks[i - 1]!)).toBe(true);
+    // The shape is the decision (values are v0): body text rises toward the HIG's 17pt...
+    expect(picks[2]!).toBeGreaterThan(3);
+    // ...and display text falls — 56px on a 375px screen is seven characters a line.
+    expect(picks[8]!).toBeLessThan(9);
   });
 });
 

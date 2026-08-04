@@ -4,8 +4,9 @@
  *
  * A size step joins the three paired scales at one index: font-size, line height and letter
  * spacing are designed pairs, never derived ratios (§15). Nothing here scopes by density or
- * pointer — type never takes either axis (§12, §16); only `--scale` reaches it, and it does
- * so inside the tokens themselves.
+ * pointer — type never takes either axis (§12, §16). What DOES reach it reaches it inside
+ * the tokens themselves, where this layer never sees it: `--scale`, and the device band
+ * (§17), which re-prices the palette per band the way radius levels re-price theirs.
  */
 
 .kui-type {

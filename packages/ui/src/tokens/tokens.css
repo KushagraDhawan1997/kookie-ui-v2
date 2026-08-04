@@ -36,7 +36,7 @@
   --radius-10: calc(24px * var(--scale));
   --radius-full: 9999px;
 
-  /* type (§15) — scale only, never density */
+  /* type (§15) — scale and the device band (§17) reach it, never density or pointer */
   --font-size-1: calc(12px * var(--scale));
   --font-size-2: calc(14px * var(--scale));
   --font-size-3: calc(16px * var(--scale));
@@ -2890,4 +2890,96 @@
     --radius-control-4: var(--radius-5);
   }
 
+}
+
+[data-device="desktop"] {
+  --font-size-1: calc(12px * var(--scale));
+  --font-size-2: calc(14px * var(--scale));
+  --font-size-3: calc(16px * var(--scale));
+  --font-size-4: calc(18px * var(--scale));
+  --font-size-5: calc(20px * var(--scale));
+  --font-size-6: calc(24px * var(--scale));
+  --font-size-7: calc(30px * var(--scale));
+  --font-size-8: calc(40px * var(--scale));
+  --font-size-9: calc(56px * var(--scale));
+  --line-height-1: calc(16px * var(--scale));
+  --line-height-2: calc(20px * var(--scale));
+  --line-height-3: calc(24px * var(--scale));
+  --line-height-4: calc(26px * var(--scale));
+  --line-height-5: calc(28px * var(--scale));
+  --line-height-6: calc(32px * var(--scale));
+  --line-height-7: calc(38px * var(--scale));
+  --line-height-8: calc(48px * var(--scale));
+  --line-height-9: calc(62px * var(--scale));
+  --letter-spacing-1: 0em;
+  --letter-spacing-2: 0em;
+  --letter-spacing-3: 0em;
+  --letter-spacing-4: -0.005em;
+  --letter-spacing-5: -0.0075em;
+  --letter-spacing-6: -0.01em;
+  --letter-spacing-7: -0.015em;
+  --letter-spacing-8: -0.02em;
+  --letter-spacing-9: -0.025em;
+}
+
+[data-device="handheld"] {
+  --font-size-1: calc(14px * var(--scale));
+  --font-size-2: calc(16px * var(--scale));
+  --font-size-3: calc(18px * var(--scale));
+  --font-size-4: calc(20px * var(--scale));
+  --font-size-5: calc(20px * var(--scale));
+  --font-size-6: calc(24px * var(--scale));
+  --font-size-7: calc(30px * var(--scale));
+  --font-size-8: calc(30px * var(--scale));
+  --font-size-9: calc(40px * var(--scale));
+  --line-height-1: calc(20px * var(--scale));
+  --line-height-2: calc(24px * var(--scale));
+  --line-height-3: calc(26px * var(--scale));
+  --line-height-4: calc(28px * var(--scale));
+  --line-height-5: calc(28px * var(--scale));
+  --line-height-6: calc(32px * var(--scale));
+  --line-height-7: calc(38px * var(--scale));
+  --line-height-8: calc(38px * var(--scale));
+  --line-height-9: calc(48px * var(--scale));
+  --letter-spacing-1: 0em;
+  --letter-spacing-2: 0em;
+  --letter-spacing-3: -0.005em;
+  --letter-spacing-4: -0.0075em;
+  --letter-spacing-5: -0.0075em;
+  --letter-spacing-6: -0.01em;
+  --letter-spacing-7: -0.015em;
+  --letter-spacing-8: -0.015em;
+  --letter-spacing-9: -0.02em;
+}
+
+@media (pointer: coarse) and (max-width: 48rem) {
+  [data-device="auto"] {
+    --font-size-1: calc(14px * var(--scale));
+    --font-size-2: calc(16px * var(--scale));
+    --font-size-3: calc(18px * var(--scale));
+    --font-size-4: calc(20px * var(--scale));
+    --font-size-5: calc(20px * var(--scale));
+    --font-size-6: calc(24px * var(--scale));
+    --font-size-7: calc(30px * var(--scale));
+    --font-size-8: calc(30px * var(--scale));
+    --font-size-9: calc(40px * var(--scale));
+    --line-height-1: calc(20px * var(--scale));
+    --line-height-2: calc(24px * var(--scale));
+    --line-height-3: calc(26px * var(--scale));
+    --line-height-4: calc(28px * var(--scale));
+    --line-height-5: calc(28px * var(--scale));
+    --line-height-6: calc(32px * var(--scale));
+    --line-height-7: calc(38px * var(--scale));
+    --line-height-8: calc(38px * var(--scale));
+    --line-height-9: calc(48px * var(--scale));
+    --letter-spacing-1: 0em;
+    --letter-spacing-2: 0em;
+    --letter-spacing-3: -0.005em;
+    --letter-spacing-4: -0.0075em;
+    --letter-spacing-5: -0.0075em;
+    --letter-spacing-6: -0.01em;
+    --letter-spacing-7: -0.015em;
+    --letter-spacing-8: -0.015em;
+    --letter-spacing-9: -0.02em;
+  }
 }

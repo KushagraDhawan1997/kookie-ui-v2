@@ -20,10 +20,12 @@ import {
   cursor,
   defaultRadiusLevel,
   density,
+  deviceType,
   focusRing,
   fontFamily,
   fontSize,
   fontWeight,
+  handheldMedia,
   iconSize,
   layoutSpace,
   letterSpacing,
@@ -68,7 +70,7 @@ export function generateTokens(): string {
   lines.push("", `  /* radius palette (§6) at the ${defaultRadiusLevel} level */`);
   lines.push(...radiusPalette(defaultRadiusLevel));
 
-  lines.push("", "  /* type (§15) — scale only, never density */");
+  lines.push("", "  /* type (§15) — scale and the device band (§17) reach it, never density or pointer */");
   fontSize.forEach((px, i) => put(`font-size-${i + 1}`, zoom(px)));
   lineHeight.forEach((px, i) => put(`line-height-${i + 1}`, zoom(px)));
   letterSpacing.forEach((em, i) => put(`letter-spacing-${i + 1}`, `${em}em`));
@@ -297,6 +299,29 @@ export function generateTokens(): string {
     "",
   );
 
+  // §17 — the device axis: two bands of the type palette, the radius-level mechanism one
+  // family over (a band re-prices the palette in place). Re-picking within the family via
+  // var() is impossible here — handheld maps step 5 onto step 5's own name, and a custom
+  // property that references itself is invalid at computed-value time, taking the whole
+  // chain down with it — so a band emits raw re-priced values from the same config source.
+  //
+  // Three scopes, the pointer axis's exact shape (§16): pinned desktop (the identity — an
+  // escape that does nothing is not an escape, so a desktop Theme nested in a handheld
+  // region must RE-declare what :root already says), pinned handheld, and auto under the
+  // conjunction. No interaction cells: no other axis re-declares a type token, and two laws
+  // (density/pointer invariance) keep it that way.
+  const identity = fontSize.map((_, i) => i + 1);
+  lines.push(`[data-device="desktop"] {`, ...deviceTypePalette(identity), "}", "");
+  lines.push(`[data-device="handheld"] {`, ...deviceTypePalette(deviceType.handheld), "}", "");
+  lines.push(
+    `@media ${handheldMedia} {`,
+    `  [data-device="auto"] {`,
+    ...deviceTypePalette(deviceType.handheld).map((l) => `  ${l}`),
+    "  }",
+    "}",
+    "",
+  );
+
   return lines.join("\n");
 }
 
@@ -463,6 +488,16 @@ function controlFamily(set: DensitySet): string[] {
 /** The icon-label gap for one pointer world (§4, §12): size-indexed, density-invariant. */
 function controlGapFamily(world: keyof typeof controlGap): string[] {
   return controlGap[world].map((step, i) => `  --control-gap-${i + 1}: var(--space-${step});`);
+}
+
+/** One device band of the type palette (§15, §17): each pick re-prices the step's designed
+ * TRIPLE — font-size, line height, letter spacing move together or not at all. */
+function deviceTypePalette(picks: readonly number[]): string[] {
+  return [
+    ...picks.map((step, i) => `  --font-size-${i + 1}: ${zoom(fontSize[step - 1]!)};`),
+    ...picks.map((step, i) => `  --line-height-${i + 1}: ${zoom(lineHeight[step - 1]!)};`),
+    ...picks.map((step, i) => `  --letter-spacing-${i + 1}: ${letterSpacing[step - 1]!}em;`),
+  ];
 }
 
 const here = dirname(fileURLToPath(import.meta.url));

@@ -10,6 +10,11 @@ export type RadiusLevel = "none" | "small" | "medium" | "large" | "full";
 export type Contrast = "normal" | "high";
 /** §16 — `auto` follows `@media (pointer: coarse)`; pinning forces a geometry, which is also how the coarse matrix is judged on a desktop. */
 export type Pointer = "fine" | "coarse" | "auto";
+/** §17 — where the screen sits, not what touches it: `pointer` is motor, this is optical.
+    `auto` follows the conjunction (coarse AND narrow — either alone is the wrong device);
+    pinning forces a band, which is also how handheld type is judged on a desktop. Only the
+    type palette answers it: geometry is the pointer axis's, spacing is nobody's (§16). */
+export type Device = "desktop" | "handheld" | "auto";
 /** §10 — do surfaces sit up. The semantic is elevation-as-identity; shadow row 2 is merely
     its current resolution. An app choice made once, never a per-card knob. */
 export type Surfaces = "flat" | "elevated";
@@ -20,6 +25,7 @@ export type ThemeProps = {
   radius?: RadiusLevel;
   contrast?: Contrast;
   pointer?: Pointer;
+  device?: Device;
   surfaces?: Surfaces;
   children?: React.ReactNode;
   className?: string;
@@ -29,7 +35,7 @@ export type ThemeProps = {
 };
 
 type Resolved = Required<
-  Pick<ThemeProps, "appearance" | "density" | "radius" | "contrast" | "pointer" | "surfaces">
+  Pick<ThemeProps, "appearance" | "density" | "radius" | "contrast" | "pointer" | "device" | "surfaces">
 >;
 
 const DEFAULTS: Resolved = {
@@ -38,6 +44,7 @@ const DEFAULTS: Resolved = {
   radius: "medium",
   contrast: "normal",
   pointer: "auto",
+  device: "auto",
   surfaces: "flat",
 };
 
@@ -78,9 +85,10 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       radius: props.radius ?? parent.radius,
       contrast: props.contrast ?? parent.contrast,
       pointer: props.pointer ?? parent.pointer,
+      device: props.device ?? parent.device,
       surfaces: props.surfaces ?? parent.surfaces,
     }),
-    [props.appearance, props.density, props.radius, props.contrast, props.pointer, props.surfaces, parent],
+    [props.appearance, props.density, props.radius, props.contrast, props.pointer, props.device, props.surfaces, parent],
   );
 
   const contrastSet = props.contrast !== undefined || parent.contrastSet;
@@ -98,6 +106,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     "data-radius": resolved.radius,
     ...(contrastSet ? { "data-contrast": resolved.contrast } : {}),
     "data-pointer": resolved.pointer,
+    "data-device": resolved.device,
     "data-surfaces": resolved.surfaces,
   };
 

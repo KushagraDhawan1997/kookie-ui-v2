@@ -9,9 +9,10 @@ import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
 import { computed, render } from "../../test/browser.tsx";
+import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Heading } from "../heading/heading.tsx";
-import { Text } from "./text.tsx";
+import { Text, type TypeSize } from "./text.tsx";
 
 /** Resolve a token the way a component does — through an element, not through the text. */
 function tokenOn(el: Element, name: string): string {
@@ -75,6 +76,95 @@ describe("type never takes density or pointer — boxes move, labels hold (§12,
       expect(computed(render(<Text size="1">zoomed</Text>), "font-size")).toBe("24px");
     } finally {
       document.documentElement.style.removeProperty("--scale");
+    }
+  });
+});
+
+describe("the device axis: handheld re-picks the step, desktop is the escape (§15, §17)", () => {
+  const triple = ["font-size", "line-height", "letter-spacing"] as const;
+
+  it("a handheld step computes exactly the desktop triple at its picked index — designed, not scaled", () => {
+    // size → pick, from config's deviceType.handheld. Equality against another RENDERED step
+    // rather than restated numbers: the law is "a band re-picks the palette", so the palette
+    // itself is the reference. Both appearances, per the audit standard.
+    for (const appearance of ["light", "dark"] as const) {
+      for (const [size, pick] of [
+        ["1", "2"],
+        ["3", "4"],
+        ["5", "5"],
+        ["9", "8"],
+      ] as [TypeSize, TypeSize][]) {
+        const handheld = render(
+          <Theme appearance={appearance} device="handheld">
+            <Text size={size}>h</Text>
+          </Theme>,
+        ).querySelector(".kui-text")!;
+        const desktop = render(
+          <Theme appearance={appearance} device="desktop">
+            <Text size={pick}>d</Text>
+          </Theme>,
+        ).querySelector(".kui-text")!;
+        for (const prop of triple) {
+          expect(computed(handheld, prop), `size ${size} → step ${pick}, ${prop}`).toBe(
+            computed(desktop, prop),
+          );
+        }
+      }
+    }
+  });
+
+  it("a desktop Theme nested in a handheld region resets — an escape that does nothing is not an escape", () => {
+    const reference = render(<Text size="3">ref</Text>);
+    const host = render(
+      <Theme device="handheld">
+        <Text size="3">outer</Text>
+        <Theme device="desktop">
+          <Text size="3">inner</Text>
+        </Theme>
+      </Theme>,
+    );
+    const [outer, inner] = [...host.querySelectorAll(".kui-text")];
+    expect(computed(inner!, "font-size")).toBe(computed(reference, "font-size"));
+    expect(computed(outer!, "font-size")).not.toBe(computed(inner!, "font-size"));
+  });
+
+  it("auto resolves desktop on a fine, wide screen — the conjunction, not either signal alone", () => {
+    // This browser is fine-pointer and wide, so auto must be the identity here. The handheld
+    // side of the media query needs a real handheld; the emitted-declarations law pins that
+    // the auto band under the conjunction IS the handheld band.
+    const auto = render(
+      <Theme>
+        <Text size="3">a</Text>
+      </Theme>,
+    ).querySelector(".kui-text")!;
+    const desktop = render(
+      <Theme device="desktop">
+        <Text size="3">d</Text>
+      </Theme>,
+    ).querySelector(".kui-text")!;
+    for (const prop of triple) expect(computed(auto, prop)).toBe(computed(desktop, prop));
+  });
+
+  it("a control's label IS type at the size join — same triple, both bands (§4, §15)", () => {
+    // The parity law: there is one definition of what a size step means, and the control
+    // join consumes it. This is also what carries the device axis into control labels
+    // without the geometry moving — boxes are the pointer axis's (§16, §17).
+    for (const device of ["desktop", "handheld"] as const) {
+      for (const size of ["1", "2", "3", "4"] as const) {
+        const host = render(
+          <Theme device={device}>
+            <Button size={size}>b</Button>
+            <Text size={size}>t</Text>
+          </Theme>,
+        );
+        const button = host.querySelector(".kui-control")!;
+        const text = host.querySelector(".kui-text")!;
+        for (const prop of triple) {
+          expect(computed(button, prop), `${device} size ${size}, ${prop}`).toBe(
+            computed(text, prop),
+          );
+        }
+      }
     }
   });
 });

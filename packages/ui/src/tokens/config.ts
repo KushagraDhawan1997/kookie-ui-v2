@@ -150,6 +150,37 @@ export const lineHeight = [16, 20, 24, 26, 28, 32, 38, 48, 62] as const;
 export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0.025] as const;
 
 /**
+ * §17 — the device axis: where the screen sits, not what touches it. `pointer` is motor
+ * (can a finger hit the box); this is optical (how far the screen is from the eye), and the
+ * two come apart on exactly the devices that matter — a touchscreen laptop is coarse at desk
+ * distance, an iPad with a keyboard is fine at reading distance.
+ *
+ * `handheld` re-picks each type step's INDEX into the three paired palettes above, so a pick
+ * moves font-size, line height and letter spacing together and every rendered triple is a
+ * designed one (§15). Non-monotonic on purpose (Apple HIG "Ensuring legibility": iOS body
+ * 17pt against macOS 13pt): reading steps rise one index (body 16 → 18), the middle holds,
+ * and display steps come DOWN — 56px on a 375px screen is seven characters a line. Steps 4/5
+ * and 7/8 collapse to one rendered value on a handheld, the price compact already pays in
+ * layout space (§12). All v0, judged in the preview.
+ *
+ * `desktop` is the identity and earns no table. Only type lives here: spacing must not
+ * inflate on the smaller screen (§16), and control GEOMETRY answers the pointer axis —
+ * two axes pushing one box would compose a height nobody designed.
+ */
+export const deviceType = {
+  handheld: [2, 3, 4, 5, 5, 6, 7, 7, 8],
+} as const;
+
+/**
+ * §17 — the auto signal, a CONJUNCTION on purpose. Coarse alone is a touchscreen laptop at
+ * desk distance, which must not get handheld type; narrow alone is a squeezed desktop window,
+ * whose boxes did not grow. Both together is a screen held in a hand. The 48rem threshold is
+ * v0 and phones-first: a tablet's band (17pt on iPadOS at any width) is an open question,
+ * recorded in §17 rather than guessed at.
+ */
+export const handheldMedia = "(pointer: coarse) and (max-width: 48rem)";
+
+/**
  * §4 — the icon box, pulled by the size index. Sizes 1 and 2 share 16: the grid the ecosystem
  * draws on is 16/20/24, and a 14px raster of a 24-grid icon blurs its strokes. Deliberately
  * NOT part of the density or pointer sets — the icon grid is a perception floor, not a
