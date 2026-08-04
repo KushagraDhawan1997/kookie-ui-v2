@@ -845,7 +845,7 @@ Resting position for each component across the four axes. Dash = axis not expose
 
 | Component | tone | emphasis | elev | material | notes |
 |---|---|---|---|---|---|
-| Text / Heading / Blockquote | neutral | - | - | - | *read* the foreground context the surface sets |
+| Text / Heading / Blockquote | neutral | ladder-as-roles | - | - | *read* the foreground context the surface sets; emphasis picks WHICH role (loud text / medium muted / quiet faint, §15) |
 | Link | accent | - | - | - | accent + hover/visited states |
 
 ### Four rules generate every row
@@ -977,7 +977,9 @@ Three slots, set by Theme (section 5): `--font-heading`, `--font-body`, `--font-
 
 ### The components (shipped 2026-08-04)
 
-`Text` and `Heading` are one type system through two family slots, resolved by a shared type layer (`system/type.css`) the way every control resolves through recipes.css — neither ships a stylesheet of its own, law-tested. `size` spans the full `"1"–"9"`; a step joins the three paired scales at one index. `weight` takes the token names. No tone, no emphasis, no margin: text reads the foreground context its surface sets (section 11), spacing belongs to the layout that owns the relationship (section 3), and decoration beyond the ramp — a muted aside, an inline code face — is the call site's `style` against the role tokens.
+`Text` and `Heading` are one type system through two family slots, resolved by a shared type layer (`system/type.css`) the way every control resolves through recipes.css — neither ships a stylesheet of its own, law-tested. `size` spans the full `"1"–"9"`; a step joins the three paired scales at one index. `weight` takes the token names. No tone, no margin: text reads the foreground context its surface sets (section 11), and spacing belongs to the layout that owns the relationship (section 3).
+
+**`emphasis` reaches type — the third resolution of the one axis (2026-08-04).** Controls resolve the ladder as fills (section 9), surfaces as dressing (section 10); type resolves it as the foreground roles: loud reads `--color-text`, medium `--color-text-muted`, quiet `--color-text-faint` (a third role, v0 at neutral-10). Text **rests loud** — the deliberate inversion of the control default, because full contrast is the accessible resting state for reading; a screen ranks its actions, not its paragraphs. Quiet is below body-copy contrast by design (a timestamp, a placeholder) and never carries a reading-length line — the call site's law. On a loud surface all three rungs collapse to `--tone-contrast`: legibility over hierarchy, since the APCA-chosen contrast is the one colour guaranteed against a solid tone fill. Strength has no rung because it is already spelled twice: `weight` prices it, `render={<strong/>}` means it.
 
 Defaults, chosen not derived: **Text** renders a `<span>` at size 3 (the anchor step), regular — flow is the layout layer's job, and a paragraph is `render={<p/>}`. **Heading** renders an `<h2>` at size 6, bold — a page rarely wants a second `h1`, so the default is the level a section actually reaches for, and the real outline level is named through `render` (section 5). Visual size and outline level are deliberately independent axes: `size` prices the type, `render` names the document structure.
 

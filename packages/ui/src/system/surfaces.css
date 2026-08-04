@@ -84,6 +84,9 @@
   --kui-sf-fill-src: var(--tone-solid);
   --color-text: var(--tone-contrast);
   --color-text-muted: var(--tone-contrast);
+  /* The whole type ladder collapses on a solid fill: legibility over hierarchy — the
+     APCA-chosen contrast is the one colour guaranteed against this backdrop (§10, §15). */
+  --color-text-faint: var(--tone-contrast);
 }
 
 /* ── The card-as-button pattern (§10): interactivity is the element's, not a prop ─────────────

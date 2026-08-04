@@ -276,9 +276,13 @@
   --material-thick-filter: blur(32px) saturate(210%) brightness(1.12);
   --material-opaque-alpha: 95%;
 
-  /* foreground context (§10) — what a surface re-scopes for everything inside it */
+  /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
+     Three rungs, the type ladder's resolutions: loud reads text, medium muted, quiet
+     faint. Faint is BELOW body-copy contrast by design (a placeholder, a timestamp) —
+     it must never carry a reading-length line, which is the call site's law. */
   --color-text: var(--neutral-12);
   --color-text-muted: var(--neutral-11);
+  --color-text-faint: var(--neutral-10);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
      job alone. Paper above the page, so a card is visible where it lives. The hover and
@@ -431,9 +435,13 @@
   --material-thick-filter: blur(32px) saturate(210%) brightness(1.12);
   --material-opaque-alpha: 95%;
 
-  /* foreground context (§10) — what a surface re-scopes for everything inside it */
+  /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
+     Three rungs, the type ladder's resolutions: loud reads text, medium muted, quiet
+     faint. Faint is BELOW body-copy contrast by design (a placeholder, a timestamp) —
+     it must never carry a reading-length line, which is the call site's law. */
   --color-text: var(--neutral-12);
   --color-text-muted: var(--neutral-11);
+  --color-text-faint: var(--neutral-10);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
      job alone. Paper above the page, so a card is visible where it lives. The hover and
@@ -586,9 +594,13 @@
   --material-thick-filter: blur(32px) saturate(210%) brightness(0.78);
   --material-opaque-alpha: 95%;
 
-  /* foreground context (§10) — what a surface re-scopes for everything inside it */
+  /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
+     Three rungs, the type ladder's resolutions: loud reads text, medium muted, quiet
+     faint. Faint is BELOW body-copy contrast by design (a placeholder, a timestamp) —
+     it must never carry a reading-length line, which is the call site's law. */
   --color-text: var(--neutral-12);
   --color-text-muted: var(--neutral-11);
+  --color-text-faint: var(--neutral-10);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
      job alone. Paper above the page, so a card is visible where it lives. The hover and
