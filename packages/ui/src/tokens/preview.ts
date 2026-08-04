@@ -17,7 +17,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { tones, type Mode, type ToneName } from "./color-config.ts";
 import { buildScale, buildScaleFor, toneFromColor, type Scale } from "./color.ts";
 
-import { density, radiusLevels, type DensityLevel } from "./config.ts";
+import { density, fontSize, lineHeight, radiusLevels, type DensityLevel } from "./config.ts";
 import { resolveBoxProps, type BoxStyleProps } from "../system/resolve.ts";
 
 /**
@@ -185,6 +185,53 @@ function accentSwap(name: string, hex: string, mode: Mode): string {
     .${cls}, .${cls} [data-appearance] { ${vars(buildScaleFor(t, mode))} }
     :root[data-contrast="high"] .${cls}, :root[data-contrast="high"] .${cls} [data-appearance] { ${vars(buildScaleFor(t, mode, "srgb", "high"))} }
   </style><div class="${cls}">${buttonMatrix(mode, ["accent"], `${name} — ${hex} — ${mode}`)}</div>`;
+}
+
+/** The static markup Text and Heading produce (§15) — the type layer resolves the rest. */
+function text(size: number, body: string, weight = "regular", style = ""): string {
+  return `<span class="kui-type kui-text" data-size="${size}" data-weight="${weight}"${style ? ` style="${style}"` : ""}>${body}</span>`;
+}
+
+/**
+ * The ramp worn by its consumers (§15): nine paired steps, four weights, and the invariance
+ * that defines the axis — flip the density select above and every gap on this page moves
+ * while the type holds its step.
+ */
+function typeSection(): string {
+  const anno = `style="font-family: var(--font-mono); font-size: var(--font-size-1); color: var(--neutral-10); flex: none; width: 96px"`;
+  const ramp = [9, 8, 7, 6, 5, 4, 3, 2, 1]
+    .map((s) =>
+      kuiBox(
+        { display: "flex", gap: "4", align: "baseline" },
+        `<span ${anno}>${s} — ${fontSize[s - 1]}/${lineHeight[s - 1]}</span>${text(s, "The quick brown fox jumps over the lazy dog")}`,
+      ),
+    )
+    .join("");
+  const weights = kuiBox(
+    { display: "flex", gap: "5", align: "baseline" },
+    ["regular", "medium", "semibold", "bold"].map((w) => text(3, w, w)).join(""),
+  );
+  // The composition a block would build: Heading and Text in one Card, sharing the ramp.
+  const specimen = card(
+    kuiBox(
+      { display: "flex", direction: "column", gap: "4" },
+      kuiBox(
+        { display: "flex", direction: "column", gap: "2" },
+        `<h2 class="kui-type kui-heading" data-size="6" data-weight="bold">One ramp, two consumers</h2>${text(
+          3,
+          "Heading and Text share the size index and the paired scales; only the family slot and the resting weight differ. Neither carries a tone — this paragraph is reading the surface's foreground context.",
+        )}${text(2, "The muted aside is the call site's style against the role token.", "regular", "color: var(--color-text-muted)")}`,
+      ) + kuiBox({ display: "flex", gap: "3" }, `${button({ tone: "accent", emphasis: "loud" }, "Continue")}${button({}, "Cancel")}`),
+    ),
+    "max-width: 560px",
+  );
+  return (
+    kuiBox({ display: "flex", direction: "column", gap: "6", align: "stretch" }, ramp) +
+    `<p class="note">The four weights, at the anchor step — token names, never numbers (§15).</p>` +
+    weights +
+    `<p class="note">The composition a block would build.</p>` +
+    specimen
+  );
 }
 
 /** The static markup Card produces (LOG 2026-08-04): a shell — identity, not options. */
@@ -674,6 +721,7 @@ export function generatePreview(): string {
     <a href="#matrix">matrix</a>
     <a href="#button">button</a>
     <a href="#field">field</a>
+    <a href="#type">type</a>
     <a href="#layout">layout</a>
     <a href="#roles">roles</a>
     <a href="#colour">colour</a>
@@ -753,6 +801,10 @@ ${fieldSection("dark")}
   ${[1, 2, 3, 4].map((s) => spinner(`--kui-icon: var(--icon-size-${s})`)).join("")}
   ${spinner("--kui-icon: 96px")}
 </div>
+
+<h1 id="type">Text &amp; Heading — the ramp, worn (§15)</h1>
+<p class="note">Nine steps, three paired scales joined at one index — font-size, line-height and letter-spacing are designed pairs, never derived ratios. Type never follows the density or pointer selects above: flip either and every box and gap on this page moves while these lines hold, which is the whole point of the axis (§12). Text and Heading ship no CSS of their own; the type layer is the whole of what they look like.</p>
+${typeSection()}
 
 <h1 id="layout">the responsive mechanism, live</h1>
 <p class="note">Rendered through the real resolver against the shipped stylesheet — the exact markup Flex, Grid and Stack produce. Values ride on each element as inline custom properties; the stylesheet only arbitrates which tier's value wins. <strong>Drag a handle</strong>: tiers key on the slot's width (<code>sm</code> 30rem, <code>md</code> 48rem), never the window's — the same Grid is correct in a drawer and a main column (§2). Each demo sits inside a plain Box, because a tier reads the <em>nearest ancestor</em> Box — the slot — and a Box with no ancestor container stays at its base values. Token gaps resolve through <em>layout space</em> (§3): flip the density select above and every <code>gap</code> re-picks its step while raw-string values hold still.</p>
