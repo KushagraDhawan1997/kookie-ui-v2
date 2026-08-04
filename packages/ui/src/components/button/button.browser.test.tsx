@@ -302,12 +302,12 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
 
   it("swaps the icon for the spinner in the same box, so nothing shifts", () => {
     const idle = render(
-      <Button icon={<svg />} size="3">
+      <Button leading={<svg />} size="3">
         Save
       </Button>,
     );
     const busy = render(
-      <Button icon={<svg />} size="3" loading>
+      <Button leading={<svg />} size="3" loading>
         Save
       </Button>,
     );

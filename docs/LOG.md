@@ -8,6 +8,31 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-04 A control inside a control, and the mapping the call site was being asked to invent
+
+Kushagra, on the preview: the Show and Clear buttons inside a field do not compose — they are the same height as the field. Measured, they were: 87.5% of the box in the two cells he was looking at, 100% under coarse at size 1, and 1px of slack in the composition a consumer would actually write (`<TextField trailing={<Button/>}/>`, both at their own default size). In that last case the field also **grew 2px past its own size token**, in 16/16 measured cells — `box-sizing: border-box` plus a hosted control that exceeds the content box.
+
+His hypothesis — "perhaps size 1" — was already what the preview shipped, and it did not work. Dropping one index only ever buys 2-4px because adjacent heights are 4-8px apart, and **no size index in the ladder seats a hosted control with visible air**. That is the actual finding: the system had exactly one nesting rule (§10's "one glass per stack") and none for geometry, so a call site had to DERIVE the relationship — and the mapping it was asked to infer was non-uniform (2px, 4px, 4px) and undefined at size 1, where nothing in the system fits a 26px content box.
+
+The space was also asymmetric by **13:1**. The sides came from `--control-px` (12px at size 2); the top and bottom came from whatever the height left over (~1px). Two numbers from two places, one of them nobody chose.
+
+**One designed `slotInset` per size now drives all four sides**, and the hosted height is that inset subtracted rather than a second designed ladder that would drift out of agreement with the first. Rejected: a fraction of the container (~0.7) — Kushagra, "I don't like fraction" — and the ladder had already learned that lesson with radius, which is deliberately held near a constant fraction *because* letting it climb made size 4 read as a capsule. A designed number per size is what every other control quantity here is.
+
+**Touch: the hit area matches the CONTAINER's content box, not 44.** Kushagra caught the flaw in targeting 44 directly — at coarse size 1 the field is 36, so a hosted control grown to 44 would be a *larger target than the thing containing it* and would overlap its neighbours in a stacked form, which WCAG 2.5.8 counts against you. Matching the container means the hosted control inherits whatever compliance its container already has, and size 1 keeps the one deliberate sub-44 compromise §16 already made rather than inventing a second one.
+
+Two mechanisms this cost, both lessons this system has already learned once:
+
+- `--kui-slot-h` and `--kui-hosted-height` are **registered lengths**. Unregistered, a custom property inherits as a token stream and `var(--kui-h)` inside it substitutes on the element that USES it — the hosted control, where `--kui-h` is that control's own height. Measured 24px at every field size, i.e. the container's size having no effect at all. Fourth instance of substitution-at-declaration, after radius, density and surface padding.
+- The container computes and the **slot captures**, because the hosted control is also a `.kui-control` and re-declares `--kui-slot-h` from its own index. The slot is a plain span with no size join, so a value parked there survives.
+
+Found on the way, and it is why the container must do the arithmetic at all: `--kui-h` is registered `inherits: false` by the layout mechanism, because Box's `height` prop shares the stem. So it is simply *absent* on the slot. The stem collision the 2026-08-03 audit flagged was fixed at the symptom (scoping the size join to `.kui-control`); the name is still shared, and this is the second thing it has broken.
+
+**`iconOnly` ships with it, as a prop on Button rather than a second component.** v1 had a separate `IconButton` and it failed in a specific way: it was opt-in by memory, so people and agents alike reached for `Button` and got a pill where they wanted a square. One component cannot be forgotten. The glyph goes in `children` because for this button the glyph *is* the content, not an adornment beside one — spelling it through the leading slot would make that prop mean two different things depending on a boolean. And the prop is explicit rather than inferred from "has a glyph, no children" precisely so the type can demand an accessible name: an icon-only control with no `aria-label` announces "button" and nothing else, and here it does not compile.
+
+**The adornment spelling closed at the same time**: Button takes TextField's `leading`/`trailing`. `iconEnd` is not RTL-correct, and a trailing slot holding a *control* is now routine rather than exceptional. The break is theoretical while the package is unpublished; two spellings would have been permanent.
+
+Rejected: an `IconButton` component (above); inferring `iconOnly` (an unlabelled icon button would still compile); targeting 44 for hosted controls on touch (above); a `--slot-control-height-N` token family (24 declarations across six worlds restating a subtraction — measured 422 bytes gzipped — that one `calc()` does once).
+
 ## 2026-08-04 The invalid state was a hue rotation at constant luminance, and the ring drowned it
 
 Kushagra, looking at the rendered preview: the invalid border is too light, and a validity state should read as high-emphasis. Both halves were right, and the measurements are worse than the complaint.

@@ -37,10 +37,17 @@ type ButtonBase = Omit<
   material?: Material;
   /** Blocks interaction and shows a Spinner, without ever hiding the label (§8). */
   loading?: boolean;
-  /** Leading slot. Swapped for the Spinner while loading, so nothing shifts (§8). */
-  icon?: React.ReactNode;
-  /** Trailing slot — a chevron, a count. Never replaced by the Spinner. */
-  iconEnd?: React.ReactNode;
+  /**
+   * Leading slot. Swapped for the Spinner while loading, so nothing shifts (§8).
+   *
+   * Named `leading`/`trailing` rather than `icon`/`iconEnd` (renamed 2026-08-04): ENGINEERING §3
+   * forbids two spellings for one axis, and TextField had already shipped the better pair. It is
+   * better on the merits too — the names are RTL-correct where `End` is not, and a trailing slot
+   * frequently holds a button rather than an icon, which `iconEnd` misdescribes.
+   */
+  leading?: React.ReactNode;
+  /** Trailing slot — a chevron, a count, a control. Never replaced by the Spinner. */
+  trailing?: React.ReactNode;
   /** Keep focus when the button becomes disabled mid-interaction. */
   focusableWhenDisabled?: boolean;
   /**
@@ -57,7 +64,7 @@ type ButtonBase = Omit<
 /**
  * `iconOnly` squares the box and drops the label — the glyph goes in `children`, because for
  * this button the glyph IS the content, not an adornment beside one. That is why it is not
- * spelled through `icon`, which means "the thing to the left of a label" and would have to mean
+ * spelled through `leading`, which means "the thing to the left of a label" and would have to mean
  * two different things depending on a boolean.
  *
  * A separate `IconButton` component was the v1 answer and it failed in a specific way worth
@@ -100,8 +107,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     iconOnly,
     nativeButton,
     render,
-    icon,
-    iconEnd,
+    leading: leadingSlot,
+    trailing,
     children,
     className,
     ...props
@@ -119,7 +126,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   // The Spinner takes the icon's place when there is one — same box, zero shift — and joins
   // the label when there is not. The label never goes: a button that stops saying what it is
   // doing is worse than one that changes width (§8).
-  const leading = loading ? <Spinner /> : icon;
+  const leading = loading ? <Spinner /> : leadingSlot;
 
   return (
     <BaseButton
@@ -149,7 +156,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     >
       {leading}
       {children}
-      {iconEnd}
+      {trailing}
     </BaseButton>
   );
 });
