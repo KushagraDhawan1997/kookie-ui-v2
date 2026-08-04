@@ -35,6 +35,20 @@ function bgOn(el: Element, expr: string): string {
   return value;
 }
 
+/**
+ * The fill a state rule would actually paint, resolved the way the cascade resolves it.
+ *
+ * `bgOn` alone cannot answer this: the derived fills are registered `inherits: false` (so a
+ * glass control never paints its veil onto controls nested inside it), and the probe is a
+ * CHILD — it sees nothing, falls through to the inheriting source, and reports the seal for
+ * every material in the system. So read the derived value off the element itself, and fall
+ * back to the source exactly as `var(--kui-fill-X, var(--kui-fill-src-X))` does.
+ */
+function stateFill(el: Element, state: "hover" | "active"): string {
+  const derived = getComputedStyle(el).getPropertyValue(`--kui-fill-${state}`).trim();
+  return bgOn(el, derived || `var(--kui-fill-src-${state})`);
+}
+
 const inputOf = (el: HTMLElement) => el.querySelector("input")!;
 
 /** The placeholder is a real pseudo-element, and the only way to know what it looks like. */
@@ -179,13 +193,32 @@ describe("focus is a mode, not a keyboard affordance (§8)", () => {
 
     inputOf(el).focus();
     expect(document.activeElement).toBe(inputOf(el));
-    // :focus-within, not :focus-visible — you do not press a field, you enter it, and the box
-    // has to say where the keystrokes land however you arrived.
+    // Not :focus-visible — you do not press a field, you enter it, and the box has to say
+    // where the keystrokes land however you arrived.
     expect(computed(el, "outline-style")).toBe("solid");
     expect(computed(el, "outline-width")).toBe("2px");
     expect(computed(el, "outline-color")).toBe(tokenOn(el, "--focus-ring"));
     // And still exactly one ring: the input never grows a second one inside the first.
     expect(computed(inputOf(el), "outline-style")).toBe("none");
+    inputOf(el).blur();
+  });
+
+  it("a focused control in a slot rings ITSELF, and the field stays unringed (§4)", () => {
+    // The rule was `:focus-within`, which fires for any descendant. Since a control hosted in
+    // a slot became a first-class pattern, that descendant is routinely a button — so tabbing
+    // to a clear button lit two rings, one nested inside the other, and the outer one claimed
+    // a focus the field did not have. Counting rings is the whole law, so both are read.
+    const el = render(<TextField trailing={<Button size="1">Clear</Button>} />);
+    const button = el.querySelector("button")!;
+
+    button.focus();
+    expect(document.activeElement).toBe(button);
+    expect(computed(el, "outline-style")).toBe("none");
+
+    // And the field's own ring still works with the button present — the fix narrowed the
+    // question, it did not remove the answer.
+    inputOf(el).focus();
+    expect(computed(el, "outline-style")).toBe("solid");
     inputOf(el).blur();
   });
 });
@@ -514,5 +547,80 @@ describe("a control hosted in a slot is sized by its container (§4, decided 202
     const dflt = render(<TextField size="2" trailing={<Button>Show</Button>} />);
     const h = (root: HTMLElement) => px(computed(root.querySelector<HTMLElement>(".kui-button")!, "height"));
     expect(h(compact)).toBeLessThan(h(dflt));
+  });
+});
+
+describe("disabled reaches the wrapper however it arrives (§8, audited 2026-08-05)", () => {
+  it("a Field.Root-disabled field greys out — the wrapper is told by the input, not the prop", () => {
+    // The component stamped data-disabled from ITS OWN prop and claimed that was sufficient
+    // "because we own the prop". It is not: Base UI computes `fieldDisabled || disabledProp`
+    // at the input, so a disabled fieldset never passes through this component at all and the
+    // element that paints — the wrapper — was never told. Simulated by disabling the input
+    // directly, which is exactly the state Field.Root produces.
+    const el = render(<TextField />);
+    const live = computed(el, "border-top-color");
+
+    inputOf(el).disabled = true;
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+    expect(computed(el, "border-top-color")).not.toBe(live);
+    expect(computed(el, "cursor")).toBe("default");
+    // And the hint goes flat with the value, rather than ending up brighter than it.
+    expect(onPlaceholder(inputOf(el), "color")).toBe(tokenOn(el, "--tone-label"));
+
+    inputOf(el).disabled = false;
+    expect(computed(el, "border-top-color")).toBe(live);
+  });
+
+  it("a disabled control HOSTED in a slot does not grey out the field containing it", () => {
+    // The `:has()` arm is direct-child only, and this is why: a clear button that has gone
+    // disabled is a grandchild, and a field is not disabled because something inside it is.
+    const el = render(<TextField trailing={<Button disabled>Clear</Button>} />);
+    const plain = render(<TextField />);
+    expect(computed(el, "border-top-color")).toBe(computed(plain, "border-top-color"));
+  });
+
+});
+
+describe("a glass field's fill really does not move (§10)", () => {
+  it("hover and press resolve to the resting veil, not to the next alpha up the ramp", () => {
+    // The three fill SOURCES were pinned to one colour, and that was still not enough: a fill
+    // modifier mixes the source toward transparent on a ramp of its own, so what moved was the
+    // mix. In light at `regular` that ramp is 64% -> 72% -> 80% of the same white.
+    const glass = render(<TextField material="regular" />);
+    const rest = computed(glass, "background-color");
+    expect(stateFill(glass, "hover")).toBe(rest);
+    expect(stateFill(glass, "active")).toBe(rest);
+    // Still glass, not the seal — pinning the states must not have flattened the material.
+    expect(rest).not.toBe(computed(render(<TextField />), "background-color"));
+  });
+
+  it("and pinning it does not reach a control that IS supposed to move", () => {
+    // The pin is unguarded — where nothing derives a fill the reference is invalid at
+    // computed-value time and the shared fallback chain takes over. A plain Button proves the
+    // chain still steps, so the mechanism cannot have leaked past the field.
+    const button = render(<Button emphasis="medium">Save</Button>);
+    expect(stateFill(button, "hover")).not.toBe(computed(button, "background-color"));
+    // Including one that DOES derive a fill, which is the case the pin could actually reach.
+    const glassButton = render(<Button emphasis="medium" material="regular">Save</Button>);
+    expect(stateFill(glassButton, "hover")).not.toBe(computed(glassButton, "background-color"));
+  });
+});
+
+describe("the input's own facts (§4)", () => {
+  it("clears the platform's inset shadow and corner — appearance is the system's, not iOS's", () => {
+    // Shipped behaviour with no law until 2026-08-05. iOS paints its own inset shadow and
+    // radius on every text input and ignores the background until appearance is cleared —
+    // the same class of platform default as the tap highlight, and just as invisible from a
+    // desktop, which is precisely why it needs a law rather than an eye.
+    expect(computed(inputOf(render(<TextField />)), "appearance")).toBe("none");
+  });
+
+  it("the value is the field's type and the surface's foreground — the thing it exists to show", () => {
+    const el = render(<TextField size="3" defaultValue="hello" />);
+    const input = inputOf(el);
+    expect(computed(input, "font-size")).toBe(computed(el, "font-size"));
+    expect(computed(input, "font-family")).toBe(computed(el, "font-family"));
+    expect(computed(input, "letter-spacing")).toBe(computed(el, "letter-spacing"));
+    expect(computed(input, "color")).toBe(computed(el, "color"));
   });
 });

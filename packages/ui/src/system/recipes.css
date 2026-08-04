@@ -293,8 +293,16 @@
 /* Disabled is a TONE remap, never opacity (§8): opacity stacks on tinted surfaces and voids
    every generated contrast guarantee, where remapping the family keeps a designed, testable
    pair. Rewriting --tone-* rather than --kui-fill means quiet stays bare and every rung keeps
-   its own shape while going flat. */
-.kui-control[data-disabled]:not([data-loading]) {
+   its own shape while going flat.
+
+   The `:has()` arm is the same one the invalid rule below has always carried, and it was
+   missing here: on a control whose visible box is a WRAPPER — TextField — the state lands on
+   the input, and inside a `Field.Root disabled` it lands there WITHOUT passing through the
+   component, because Base UI computes `fieldDisabled || disabledProp` at the input. So a
+   disabled fieldset rendered a field that looked entirely live. Direct child only: a disabled
+   Button hosted in a slot is a grandchild, and must not grey out the field containing it. */
+.kui-control[data-disabled]:not([data-loading]),
+.kui-control:has(> :is(:disabled, [data-disabled])):not([data-loading]) {
   /* The hand promises a response; a disabled control makes no such promise. Back to the
      arrow — never `not-allowed`, which no native platform uses. */
   cursor: var(--cursor-disabled);

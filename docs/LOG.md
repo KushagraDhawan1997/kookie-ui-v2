@@ -30,6 +30,28 @@ Size 4 came down 24 -> 16 (-33%), size 3 16 -> 13, size 2 12 -> 10, size 1 uncha
 
 ---
 
+## 2026-08-05 A field's ring answers "is the caret here", not "is focus anywhere in this box"
+
+Fallout from making a hosted control a first-class pattern the day before. The field rang on `:focus-within`, which fires for **any** descendant — and the descendant is now routinely a button. Tabbing to a clear button lit the field's ring and the button's own `:focus-visible` ring, one nested inside the other, saying two different things at once.
+
+The framing problem underneath is the more important one. Section 8 defends the field's departure from `:focus-visible` on the grounds that *a field's focus is a mode*: you do not press a field, you enter it, and the box has to say where your keystrokes land. A ring that fires when focus is on a button inside the box says something that is not true. It was a correct rule asked a question it was never meant to answer, and the fix is to ask the right one: `:has(> .kui-field-input:focus)`. The border still belongs to the wrapper; the ring still encloses the slots; a hosted control rings itself, like any control.
+
+Rejected: excluding slots from `:focus-within` with a `:not(:has(...))` arm. Same rendered result, but it states the rule as a list of exceptions to a question that is still the wrong question.
+
+---
+
+## 2026-08-05 Two things a field claimed about itself that its CSS did not deliver
+
+Both from the TextField audit, and both the same shape: a comment asserting an invariant that half the mechanism did not honour.
+
+**A glass field's fill did move.** text-field.css pins all three fill *sources* to `--color-surface` and says, in a comment, that a field's fill does not move at all — the border and ring carry its states. True of the sources. But material is a **fill modifier** (section 10): it mixes the source toward transparent on a ramp of its own — rest, hover, active — so the thing that moved was the mix, not the source. At the middle thickness in light that is 64% -> 72% -> 80% of the same white. The trailing button was enough to fire it just by being crossed on the way to the caret. Fixed by pinning the *derived* hover and active fills to the resting derived value, which names no thickness — a fourth one would not touch the rule. Deliberately unguarded: where nothing derives a fill the reference is invalid at computed-value time, the property falls to the guaranteed-invalid value, and the shared layer's own fallback chain takes over exactly as before.
+
+**A `Field.Root disabled` field looked entirely live.** The component stamped `data-disabled` from its own prop and the comment claimed that was sufficient "because we own the prop". It is not — Base UI computes `fieldDisabled || disabledProp` at the *input*, so inside a disabled fieldset the flag never passes through this component at all, and the element that paints was never told. The identical problem was solved for `invalid` one line away, in the shared layer, with `:has()`. It now reads `disabled` the same way. Direct child only, because a disabled clear button is a grandchild and a field is not disabled because something inside it is.
+
+The audit's own summary of the 2026-08-03 sweep applies unchanged: a law that reads the component's attribute instead of the browser's computed value is one indirection short of the thing that can be wrong. Both of these had laws. Neither law asked the engine.
+
+---
+
 ## 2026-08-04 A control inside a control, and the mapping the call site was being asked to invent
 
 Kushagra, on the preview: the Show and Clear buttons inside a field do not compose — they are the same height as the field. Measured, they were: 87.5% of the box in the two cells he was looking at, 100% under coarse at size 1, and 1px of slack in the composition a consumer would actually write (`<TextField trailing={<Button/>}/>`, both at their own default size). In that last case the field also **grew 2px past its own size token**, in 16/16 measured cells — `box-sizing: border-box` plus a hosted control that exceeds the content box.

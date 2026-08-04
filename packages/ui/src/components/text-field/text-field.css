@@ -38,6 +38,25 @@
   box-shadow: var(--kui-surface-chrome, none);
 }
 
+/* And the same sentence again, for the fill the shared layer DERIVES (fixed 2026-08-05). The
+   three sources above are one colour, and that was still not enough: a fill modifier mixes
+   whatever the component declared toward transparent at a ramp of its own — rest, hover,
+   active — so the thing that moved was the mix, not the source. In light at the middle
+   thickness that ramp is 64% -> 72% -> 80% of the same white, and the box lightened under the
+   pointer; a trailing button was enough to fire it just by being crossed on the way to the
+   caret. The invariant this file has always claimed was true of half its fill.
+   Pinned to the resting DERIVED value rather than by re-stating a recipe, so this rule names
+   no thickness and a fourth one would not touch it — and unguarded, because where nothing
+   derives a fill the reference is invalid at computed-value time, `--kui-fill-hover` falls to
+   the guaranteed-invalid value, and the shared layer's own fallback chain takes over exactly
+   as it does today. Both classes for the specificity tie the shared rule's attribute selector
+   would otherwise win; the tie breaks on source order, which index.css and the browser suite
+   install identically. */
+.kui-control.kui-field {
+  --kui-fill-hover: var(--kui-fill);
+  --kui-fill-active: var(--kui-fill);
+}
+
 /* The input is BARE: every visible fact belongs to the wrapper, so there is exactly one box,
    one border and one ring however many slots are in it. */
 .kui-field-input {
@@ -72,17 +91,28 @@
 }
 
 /* A disabled field's hint must not end up brighter than the value it sits beside: the shared
-   remap moves --tone-label and nothing else, so the placeholder joins it here. */
-.kui-field[data-disabled] .kui-field-input::placeholder {
+   remap moves --tone-label and nothing else, so the placeholder joins it here.
+
+   Keyed on the INPUT's own state rather than the wrapper's attribute, because that is the one
+   spelling both routes agree on — our `disabled` prop and a `Field.Root disabled` both end up
+   as the native attribute on this element, and only one of them ever reached the wrapper. */
+.kui-field-input:disabled::placeholder {
   color: var(--tone-label);
 }
 
 /* Focus is a MODE here, not a keyboard affordance — the one place a control deliberately
    parts from §8's `:focus-visible` ring. You do not press a field, you enter it: once your
    keystrokes land inside, the box has to say so however you arrived, mouse included.
-   `:focus-within` because the focus itself is on the input, and the ring belongs to the box
-   that draws the border — including its slots. */
-.kui-field:focus-within {
+
+   Keyed on the INPUT holding focus, not `:focus-within` (fixed 2026-08-05). `:focus-within`
+   fires for any descendant, and since a control hosted in a slot became a first-class pattern
+   (§4) that descendant is routinely a button: tabbing to a clear button lit the field's ring
+   AND the button's own `:focus-visible` — two rings, one nested inside the other, saying two
+   different things. Worse, the field claimed a focus it did not have, so the ring stopped
+   meaning "your keystrokes land here", which is the only thing it is for. The border still
+   belongs to the wrapper; what moved is the question being asked, from "is focus anywhere in
+   this box" to "is the caret in this field". */
+.kui-field:has(> .kui-field-input:focus) {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
 }

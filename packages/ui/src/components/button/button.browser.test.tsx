@@ -512,3 +512,35 @@ describe("iconOnly is a square box with a required name (§4, decided 2026-08-04
     expect(box.height).toBeLessThan(field.getBoundingClientRect().height);
   });
 });
+
+describe("the invalid remap's DIRECT arm — the control that IS the element (§8)", () => {
+  // The shared rule has two arms: the element carrying the state, and `:has()` for wrappers.
+  // Both of TextField's laws exercised the second one — `aria-invalid` on a field is spread
+  // onto the input, so the wrapper matched through `:has()` and the spelling the law was named
+  // for was never on the element the direct arm selects. Nothing tested the first arm at all.
+  // A Button is that case: it is the element and the box at once, and every control that can
+  // be wrong wears this remap, which is why it lives in the shared layer.
+  it("aria-invalid re-tones a bordered button's edge and its ring", () => {
+    const plain = render(<Button bordered>Save</Button>);
+    const invalid = render(
+      <Button bordered aria-invalid="true">
+        Save
+      </Button>,
+    );
+    expect(invalid.matches('[aria-invalid="true"]')).toBe(true); // the direct arm, not :has()
+    expect(computed(invalid, "border-top-color")).toBe(tokenOn(invalid, "--invalid-edge"));
+    expect(computed(invalid, "border-top-color")).not.toBe(computed(plain, "border-top-color"));
+    // The ring reads the same edge — a state, not a tone (§8, reversed 2026-08-04).
+    expect(tokenOn(invalid, "--focus-ring")).toBe(tokenOn(invalid, "--invalid-edge"));
+    expect(tokenOn(invalid, "--focus-ring")).not.toBe(tokenOn(plain, "--focus-ring"));
+  });
+
+  it("data-invalid is the same arm — what Base UI writes on a control inside a Field.Root", () => {
+    const el = render(<Button bordered>Save</Button>);
+    const valid = computed(el, "border-top-color");
+    el.setAttribute("data-invalid", "");
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
+    el.removeAttribute("data-invalid");
+    expect(computed(el, "border-top-color")).toBe(valid);
+  });
+});
