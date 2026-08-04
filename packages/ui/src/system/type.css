@@ -76,6 +76,17 @@
    the inversion of the control default, because full contrast is the accessible resting
    state for reading; quiet is below body-copy contrast by design and never carries a
    reading-length line. On a loud surface all three collapse to --tone-contrast (§10). */
+/* Colour reaches text as tone (§7, §15): choosing a family re-scopes the three roles the
+   rungs already read onto that family's ink ladder — no rung rule names a family, the same
+   indirection every control uses. Stamped only when chosen, so the element-level re-scope
+   also means an EXPLICIT tone survives a loud surface's collapse: an explicit choice is
+   respected, the tone-less default is protected. */
+.kui-type[data-tone] {
+  --color-text: var(--tone-ink);
+  --color-text-muted: var(--tone-ink-muted);
+  --color-text-faint: var(--tone-ink-faint);
+}
+
 .kui-type[data-emphasis="loud"] {
   color: var(--color-text);
 }

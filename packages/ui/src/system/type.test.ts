@@ -56,9 +56,24 @@ describe("a size step joins the three paired scales at one index (§15)", () => 
     }
   });
 
+  it("tone re-scopes the roles onto the ink trio, in one block naming no family (§7)", () => {
+    const blocks = stripped.match(/\[data-tone\][^}]*}/g) ?? [];
+    expect(blocks.length).toBe(1);
+    expect(blocks[0]).toContain("--color-text: var(--tone-ink)");
+    expect(blocks[0]).toContain("--color-text-muted: var(--tone-ink-muted)");
+    expect(blocks[0]).toContain("--color-text-faint: var(--tone-ink-faint)");
+  });
+
+  it("tone never names a family — the indirection is the whole mechanism (§7)", () => {
+    expect(stripped).not.toMatch(/\[data-tone="/);
+  });
+
   it("no rule pairs one axis with another — they stay orthogonal (§2)", () => {
     expect(stripped).not.toMatch(
       /\[data-(size|weight|emphasis)="[a-z0-9]+"\]\[data-(size|weight|emphasis)=/,
+    );
+    expect(stripped).not.toMatch(
+      /\[data-tone\]\[data-(size|weight|emphasis)=|\[data-(size|weight|emphasis)="[a-z0-9]+"\]\[data-tone\]/,
     );
   });
 });

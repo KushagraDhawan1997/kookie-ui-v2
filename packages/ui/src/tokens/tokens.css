@@ -180,6 +180,9 @@
   --neutral-text: var(--neutral-11);
   --neutral-label: #454648;
   --neutral-contrast: #ffffff;
+  --neutral-ink: var(--neutral-12);
+  --neutral-ink-muted: var(--neutral-11);
+  --neutral-ink-faint: var(--neutral-10);
   /* accent */
   --accent-1: #fbfbfe;
   --accent-2: #f6f6fc;
@@ -215,6 +218,9 @@
   --accent-text: var(--accent-11);
   --accent-label: #453b79;
   --accent-contrast: #ffffff;
+  --accent-ink: var(--accent-11);
+  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
+  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
   /* destructive */
   --destructive-1: #fefbfb;
   --destructive-2: #fdf5f4;
@@ -250,6 +256,9 @@
   --destructive-text: var(--destructive-11);
   --destructive-label: #6c3230;
   --destructive-contrast: #ffffff;
+  --destructive-ink: var(--destructive-11);
+  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
+  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -339,6 +348,9 @@
   --neutral-text: var(--neutral-11);
   --neutral-label: #454648;
   --neutral-contrast: #ffffff;
+  --neutral-ink: var(--neutral-12);
+  --neutral-ink-muted: var(--neutral-11);
+  --neutral-ink-faint: var(--neutral-10);
   /* accent */
   --accent-1: #fbfbfe;
   --accent-2: #f6f6fc;
@@ -374,6 +386,9 @@
   --accent-text: var(--accent-11);
   --accent-label: #453b79;
   --accent-contrast: #ffffff;
+  --accent-ink: var(--accent-11);
+  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
+  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
   /* destructive */
   --destructive-1: #fefbfb;
   --destructive-2: #fdf5f4;
@@ -409,6 +424,9 @@
   --destructive-text: var(--destructive-11);
   --destructive-label: #6c3230;
   --destructive-contrast: #ffffff;
+  --destructive-ink: var(--destructive-11);
+  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
+  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -498,6 +516,9 @@
   --neutral-text: var(--neutral-11);
   --neutral-label: #d1d2d3;
   --neutral-contrast: #000000;
+  --neutral-ink: var(--neutral-12);
+  --neutral-ink-muted: var(--neutral-11);
+  --neutral-ink-faint: var(--neutral-10);
   /* accent */
   --accent-1: #0f0926;
   --accent-2: #150d31;
@@ -533,6 +554,9 @@
   --accent-text: var(--accent-11);
   --accent-label: #d0cfe7;
   --accent-contrast: #ffffff;
+  --accent-ink: var(--accent-11);
+  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
+  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
   /* destructive */
   --destructive-1: #200606;
   --destructive-2: #290809;
@@ -568,6 +592,9 @@
   --destructive-text: var(--destructive-11);
   --destructive-label: #ebc9c6;
   --destructive-contrast: #ffffff;
+  --destructive-ink: var(--destructive-11);
+  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
+  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
   --focus-ring: var(--accent-11);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -646,6 +673,9 @@
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.2697 0.2751 0.282);
     --neutral-contrast: #ffffff;
+    --neutral-ink: var(--neutral-12);
+    --neutral-ink-muted: var(--neutral-11);
+    --neutral-ink-faint: var(--neutral-10);
     /* accent */
     --accent-1: color(display-p3 0.9861 0.9858 0.9946);
     --accent-2: color(display-p3 0.9653 0.9646 0.9871);
@@ -669,6 +699,9 @@
     --accent-text: var(--accent-11);
     --accent-label: color(display-p3 0.2624 0.2302 0.4635);
     --accent-contrast: #ffffff;
+    --accent-ink: var(--accent-11);
+    --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
+    --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
     /* destructive */
     --destructive-1: color(display-p3 0.9959 0.9834 0.982);
     --destructive-2: color(display-p3 0.9904 0.9583 0.9546);
@@ -692,6 +725,9 @@
     --destructive-text: var(--destructive-11);
     --destructive-label: color(display-p3 0.4082 0.1959 0.1861);
     --destructive-contrast: #ffffff;
+    --destructive-ink: var(--destructive-11);
+    --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
+    --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
   }
   [data-appearance="light"] {
@@ -718,6 +754,9 @@
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.2697 0.2751 0.282);
     --neutral-contrast: #ffffff;
+    --neutral-ink: var(--neutral-12);
+    --neutral-ink-muted: var(--neutral-11);
+    --neutral-ink-faint: var(--neutral-10);
     /* accent */
     --accent-1: color(display-p3 0.9861 0.9858 0.9946);
     --accent-2: color(display-p3 0.9653 0.9646 0.9871);
@@ -741,6 +780,9 @@
     --accent-text: var(--accent-11);
     --accent-label: color(display-p3 0.2624 0.2302 0.4635);
     --accent-contrast: #ffffff;
+    --accent-ink: var(--accent-11);
+    --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
+    --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
     /* destructive */
     --destructive-1: color(display-p3 0.9959 0.9834 0.982);
     --destructive-2: color(display-p3 0.9904 0.9583 0.9546);
@@ -764,6 +806,9 @@
     --destructive-text: var(--destructive-11);
     --destructive-label: color(display-p3 0.4082 0.1959 0.1861);
     --destructive-contrast: #ffffff;
+    --destructive-ink: var(--destructive-11);
+    --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
+    --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
   }
   [data-appearance="dark"] {
@@ -790,6 +835,9 @@
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.8195 0.8231 0.8275);
     --neutral-contrast: #000000;
+    --neutral-ink: var(--neutral-12);
+    --neutral-ink-muted: var(--neutral-11);
+    --neutral-ink-faint: var(--neutral-10);
     /* accent */
     --accent-1: color(display-p3 0.0558 0.036 0.1462);
     --accent-2: color(display-p3 0.0773 0.0525 0.1877);
@@ -813,6 +861,9 @@
     --accent-text: var(--accent-11);
     --accent-label: color(display-p3 0.8154 0.8112 0.9039);
     --accent-contrast: #ffffff;
+    --accent-ink: var(--accent-11);
+    --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
+    --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
     /* destructive */
     --destructive-1: color(display-p3 0.1194 0.0223 0.0217);
     --destructive-2: color(display-p3 0.1547 0.0326 0.0322);
@@ -836,6 +887,9 @@
     --destructive-text: var(--destructive-11);
     --destructive-label: color(display-p3 0.9197 0.7821 0.7678);
     --destructive-contrast: #ffffff;
+    --destructive-ink: var(--destructive-11);
+    --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
+    --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
     --focus-ring: var(--accent-11);
   }
 }
@@ -1409,6 +1463,9 @@
   --tone-text: var(--neutral-text);
   --tone-label: var(--neutral-label);
   --tone-contrast: var(--neutral-contrast);
+  --tone-ink: var(--neutral-ink);
+  --tone-ink-muted: var(--neutral-ink-muted);
+  --tone-ink-faint: var(--neutral-ink-faint);
   --tone-a3: var(--neutral-a3);
 }
 
@@ -1423,6 +1480,9 @@
   --tone-text: var(--accent-text);
   --tone-label: var(--accent-label);
   --tone-contrast: var(--accent-contrast);
+  --tone-ink: var(--accent-ink);
+  --tone-ink-muted: var(--accent-ink-muted);
+  --tone-ink-faint: var(--accent-ink-faint);
   --tone-a3: var(--accent-a3);
 }
 
@@ -1437,6 +1497,9 @@
   --tone-text: var(--destructive-text);
   --tone-label: var(--destructive-label);
   --tone-contrast: var(--destructive-contrast);
+  --tone-ink: var(--destructive-ink);
+  --tone-ink-muted: var(--destructive-ink-muted);
+  --tone-ink-faint: var(--destructive-ink-faint);
   --tone-a3: var(--destructive-a3);
 }
 

@@ -137,7 +137,7 @@ describe("no tone: text reads the foreground context, and emphasis picks the rol
     }
   });
 
-  it("on a loud surface the whole ladder collapses to the APCA-chosen contrast (§10)", () => {
+  it("on a loud surface the tone-less ladder collapses to the APCA-chosen contrast (§10)", () => {
     const host = render(
       <div className="kui-surface" data-size="3" data-tone="accent" data-emphasis="loud">
         <Text emphasis="loud">a</Text>
@@ -148,6 +148,49 @@ describe("no tone: text reads the foreground context, and emphasis picks the rol
     for (const el of host.querySelectorAll(".kui-text")) {
       expect(computed(el, "color")).toBe(tokenOn(el, "--tone-contrast"));
     }
+  });
+});
+
+describe("colour reaches text as tone — a family, never a colour name (§7, §15)", () => {
+  it("a chroma family's loud rung is its designed text colour, and the ladder stays distinct", () => {
+    for (const appearance of ["light", "dark"] as const) {
+      const host = render(
+        <Theme appearance={appearance}>
+          <Text tone="destructive" emphasis="loud">a</Text>
+          <Text tone="destructive" emphasis="medium">b</Text>
+          <Text tone="destructive" emphasis="quiet">c</Text>
+        </Theme>,
+      );
+      const els = [...host.querySelectorAll(".kui-text")];
+      const colours = els.map((el) => computed(el, "color"));
+      expect(new Set(colours).size).toBe(3);
+      // Loud is the family's ONE designed text colour (11) — not 12, which is the
+      // high-contrast variant: an error message should read red, not near-black.
+      expect(colours[0]).toBe(tokenOn(els[0]!, "--destructive-text"));
+    }
+  });
+
+  it("tone='neutral' is exactly the tone-less resting state — one ladder, not two", () => {
+    const host = render(
+      <div>
+        <Text>plain</Text>
+        <Text tone="neutral">named</Text>
+      </div>,
+    );
+    const [plain, named] = [...host.querySelectorAll(".kui-text")];
+    expect(computed(named!, "color")).toBe(computed(plain!, "color"));
+  });
+
+  it("an explicit tone survives a loud surface's collapse — a choice is respected", () => {
+    const host = render(
+      <div className="kui-surface" data-size="3" data-tone="accent" data-emphasis="loud">
+        <Text tone="destructive">explicit</Text>
+        <Text>ambient</Text>
+      </div>,
+    );
+    const [explicit, ambient] = [...host.querySelectorAll(".kui-text")];
+    expect(computed(explicit!, "color")).toBe(tokenOn(explicit!, "--destructive-text"));
+    expect(computed(ambient!, "color")).toBe(tokenOn(ambient!, "--tone-contrast"));
   });
 });
 

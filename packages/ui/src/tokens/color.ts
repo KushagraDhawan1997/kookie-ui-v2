@@ -406,6 +406,23 @@ export function colorDeclarations(
       `  --${tone}-text: var(--${tone}-11);`,
       `  --${tone}-label: ${s.label};`,
       `  --${tone}-contrast: ${s.contrast};`,
+      // The ink ladder (§15) — what the type emphasis rungs read when this family is chosen.
+      // Neutral's three inks are designed steps: a gray scale has twelve grays. A chroma
+      // family has exactly ONE designed text colour (11; 12 is the high-contrast variant,
+      // and 9/10 are solid fills — the steps below the text step are MORE vivid, not less).
+      // So a chroma family's lower rungs fade the ink itself, the material trick applied
+      // to text. Mix percentages are v0, judged in the preview.
+      ...(tone === "neutral"
+        ? [
+            `  --${tone}-ink: var(--${tone}-12);`,
+            `  --${tone}-ink-muted: var(--${tone}-11);`,
+            `  --${tone}-ink-faint: var(--${tone}-10);`,
+          ]
+        : [
+            `  --${tone}-ink: var(--${tone}-11);`,
+            `  --${tone}-ink-muted: color-mix(in oklab, var(--${tone}-11) 74%, transparent);`,
+            `  --${tone}-ink-faint: color-mix(in oklab, var(--${tone}-11) 52%, transparent);`,
+          ]),
     );
   }
 
