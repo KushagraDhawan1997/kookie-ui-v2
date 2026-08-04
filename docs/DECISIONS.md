@@ -939,7 +939,7 @@ Architecture is locked; open items are tuning values resolved as the component t
 
 This slice exercises every layer (tokens -> variants -> control -> surface) and the CSS budget. Everything after it is repetition across the component set.
 
-**Repetition, first entry — TextField, shipped 2026-08-04 (§9, §11).** The second control, and the additivity claim's first test with something to compare against: **+247 bytes gzipped** (9,574 -> 9,821), against Button's +1,206 for the control layer it created. What is genuinely new is the wrapper pattern and one shared-layer addition (the `invalid` tone remap, §8); everything else was already paid for. Laws: 23 mounted, written to the post-audit bar — computed values only, both appearances — plus structural laws for the invalid remap, the icon-box mechanism, and the two claims that had quietly gone stale (every focus rule reads the ring tokens; every `box-shadow` reads the world's chrome), both mutation-checked. Standing debts it opened: the `leading`/`trailing` versus Button's `icon`/`iconEnd` spelling, the absent `render` escape, and iOS's zoom-on-focus below 16px at sizes 1-2 — all recorded in §17's open list.
+**Repetition, first entry — TextField, shipped 2026-08-04 (§9, §11).** The second control, and the additivity claim's first test with something to compare against: **+247 bytes gzipped** (9,574 -> 9,821), against Button's +1,206 for the control layer it created. What is genuinely new is the wrapper pattern and one shared-layer addition (the `invalid` tone remap, §8); everything else was already paid for. Laws: 23 mounted, written to the post-audit bar — computed values only, both appearances — plus structural laws for the invalid remap, the icon-box mechanism, and the two claims that had quietly gone stale (every focus rule reads the ring tokens; every `box-shadow` reads the world's chrome), both mutation-checked. Standing debts it opened: the `leading`/`trailing` versus Button's `icon`/`iconEnd` spelling, the absent `render` escape, and iOS's zoom-on-focus below 16px at sizes 1-2 — all recorded in the Open-questions list.
 
 ---
 
@@ -957,7 +957,7 @@ This slice exercises every layer (tokens -> variants -> control -> surface) and 
 --font-size-3: 16px    --font-size-6: 24px    --font-size-9: 56px
 ```
 
-Anchor-derived off `--font-size-base` (step 3) x `--scale` — never `--density` (section 12). Nine steps, not six: type's dynamic range (12 to 56+) is wider than the control family's, the same reasoning that gave space 12 steps and radius 6 (section 6's ceilings rule).
+Anchor-derived off `--font-size-base` (step 3) x `--scale` — never `--density` (section 12). Nine steps, not six: type's dynamic range (12 to 56+) is wider than the control family's, the same reasoning that gave space 12 steps and radius 6 (section 6's ceilings rule). The device axis (section 17) re-prices the whole palette per band — a size step names a *role on the ramp*, and what a role renders as follows the device, the same move contrast makes on colour roles; density and pointer still never touch it.
 
 ### Line height: paired, not derived
 
@@ -1014,7 +1014,7 @@ Under `pointer: coarse`, these families re-declare as **designed sets** — plac
 | Control inline padding | Larger type in a taller box wants more air |
 | Icon-label gap | The label cluster spreads with the much larger coarse box — the one axis the gap follows besides size (section 12) |
 | Control radius | The corner-holds-~0.2-of-box law (§6) prices the bigger box |
-| Type + line height | Extent **open** — control labels certainly; whether body text shifts is undecided (the 17px reference is native-platform convention, not web evidence) |
+| Type + line height | **Resolved 2026-08-04: type does not follow pointer at all** — it follows the device axis (section 17), whose auto signal is a conjunction that *includes* coarseness. A touchscreen laptop gets coarse geometry and desktop type, which is the dissociation that forced the third axis |
 
 **Deliberately untouched:** the space palette AND the layout-space layer over it (gutters and gaps must not inflate on the smaller screen — a phone needs more content per inch, not less; layouts adapt on their own because controls grow and gaps hold), surface radii, elevation, color. Static surfaces do not change; only their interactive contents do.
 
@@ -1044,7 +1044,37 @@ Sizes below 44 under coarse are deliberate: a size-1 control in a dense toolbar 
 - **The `any-pointer` split (proposal, needs a device pass):** the visible geometry keys off `pointer: coarse` (primary input). Whether a touchscreen laptop should get anything from `any-pointer: coarse` is unresolved — and with the reserve dropped there is no longer an invisible mechanism to give it, so this now means "should a hybrid device get the coarse geometry outright," which is a bigger question with a real visual cost.
 - Budget impact: cells roughly double across the control families. Measured when generated, not estimated.
 
-Rejected: rem-derived geometry from a root font-size switch (one root scales gutters and type together — a multiplier by the back door, and gutters must not grow on phones); the floor as `max()` on the *height* token (flattens size 1 and 2 into the same rendered box, collapsing the index); invisible hit-area expansion via pseudo-element (its safe extent depends on neighbour gaps, which CSS cannot read — clamping was guesswork and overlap was silent); responsive `size` as the mechanism (opt-in, so the floor would depend on every author remembering — the inversion THESIS §7 exists to prevent); width or breakpoints as the signal in any capacity.
+Rejected: rem-derived geometry from a root font-size switch (one root scales gutters and type together — a multiplier by the back door, and gutters must not grow on phones); the floor as `max()` on the *height* token (flattens size 1 and 2 into the same rendered box, collapsing the index); invisible hit-area expansion via pseudo-element (its safe extent depends on neighbour gaps, which CSS cannot read — clamping was guesswork and overlap was silent); responsive `size` as the mechanism (opt-in, so the floor would depend on every author remembering — the inversion THESIS §7 exists to prevent); width or breakpoints as the signal *for geometry* in any capacity (the device axis, section 17, keys **type** off a conjunction that includes width — geometry still never reads it).
+
+---
+
+## 17. The device axis
+
+**Decision (2026-08-04, Kushagra; values v0): the system renders two designed bands of the type palette, `desktop` and `handheld`, keyed off where the screen sits — the third device-facing axis, orthogonal to both of the others.** `pointer` (§16) is motor: can a finger hit the box. This is optical: how far the screen is from the eye. The two come apart on exactly the devices that matter — a touchscreen laptop is coarse at desk distance and must not get phone type; an iPad with a keyboard is fine at reading distance and should. The floors are Apple's published minimums (HIG "Ensuring legibility": body 17pt on iOS against 13pt on macOS) — the same class of citation as the touch target, measured and platform-tested, not taste.
+
+### The band is a re-pick, and it is non-monotonic by design
+
+`handheld` re-picks each type step's **index** into the three paired palettes (§15), so every rendered step is a designed triple — font-size, line height and letter spacing move together or not at all. The v0 table: reading steps rise one index (body 16 → 18), the middle holds, display steps come **down** (56px on a 375px screen is seven characters a line). Steps 4/5 and 7/8 collapse to one rendered value on a handheld — the price of a nine-step range on a small screen, the same price compact pays in layout space (§12). "Bigger on mobile" as a multiplier is wrong at both ends, the same anti-derivation stance as line-height (§15).
+
+Mechanically the band **re-prices the palette in place** — `[data-device="handheld"]` re-declares `--font-size-N` and its pair, the radius-level mechanism (§6) one family over. No second token name: raw type has no legitimate consumer the way raw space does (§12's boundary), so `--font-size-N` stays the one spelling and consumers never learn a band exists. (Re-picking *within* the family via `var()` is impossible — handheld maps step 5 onto its own name, and a self-referencing custom property is invalid at computed-value time, taking the chain down with it — so a band emits re-priced values from the same config source.)
+
+### The auto signal is a conjunction
+
+`auto` follows `(pointer: coarse) and (max-width: 48rem)` — **both**, on purpose. Coarse alone is a touchscreen laptop; narrow alone is a squeezed desktop window whose boxes did not grow. Both together is a screen held in a hand. This does not reopen §16's rejection of width as a signal *for geometry*: geometry still never reads width in any capacity; the conjunction gates type and (later) interaction adaptation, the two things that genuinely follow the device rather than the box. Container tiers (§2) keep answering "how much room do I have" — the two questions dissociate (a narrow card on a desktop, a full-width block on a phone) and therefore stay two mechanisms with two vocabularies.
+
+**The prop is Theme-only, symmetric with `pointer`:** `device: desktop | handheld | auto` (default `auto`). Pinning is how handheld type is judged on a desktop (the preview's device select) and how a phone-shaped canvas inside a desktop tool opts its subtree in. No component takes a `device` prop.
+
+### What reads it, and what must not
+
+- **Type** — the whole palette, so Text, Heading, control labels and field text all follow through the one size-step definition (the §15 join; the control≡type parity law pins that there is exactly one such definition). A side effect that is not an accident: TextField at size 2 renders 16px on a handheld, which stops iOS's zoom-on-focus on the default-adjacent sizes (size 1 remains exposed).
+- **Interaction adaptation, later** — dialog→sheet, popover→drawer, hover-reveal→tap (THESIS Part II's opt-out responsiveness). This axis is the signal those adaptations were waiting for; none are built yet.
+- **Never: spacing** (gutters must not inflate on the smaller screen — §16's exclusion, reasserted per band by law) **and never: control geometry** (heights are the pointer axis's; two axes pushing one box would compose a height nobody designed).
+
+### Open
+
+- The handheld picks, and the 48rem threshold — v0, phones-first. The tablet band (iPadOS says 17pt at any width; a portrait iPad crosses 48rem at rotation) is genuinely unresolved.
+- A locked type floor ("no band renders below the platform minimum") is *not yet claimed* — the band happens to clear it, but nothing enforces it. Claiming it without a law is the audit sin (§2); it becomes a claim the day it becomes a law.
+- Whether `desktop` ever earns its own non-identity band (macOS 13pt against the web's 16px default suggests not).
 
 ---
 
@@ -1074,8 +1104,10 @@ Rejected: rem-derived geometry from a root font-size switch (one root scales gut
 - Naming of the per-component escape prop (`UNSAFE_` vs `override`). The name is the deterrent.
 - **The adornment spelling, and it is a real inconsistency (opened 2026-08-04).** Button says `icon` / `iconEnd`; TextField says `leading` / `trailing`. ENGINEERING's rule is explicit — never invent a second spelling for an existing axis — so one of them must go. `leading`/`trailing` is the better pair on the merits (RTL-correct, and a field's trailing slot is frequently a *button*, not an icon, which `iconEnd` misdescribes), but renaming Button's props is a public API break and Kushagra's call.
 - **TextField ships no `render` escape**, where Button and Card both do. Defensible — rendering a text field as something else has no obvious semantic, unlike Card-as-article or Button-as-link — but it is currently an undocumented omission rather than a recorded refusal. Either add it through the existing `composeRender`, or pin the refusal with a type law the way Box's dead `shadow` prop is pinned.
-- **iOS zooms the page on focus for any input under 16px**, which is sizes 1 and 2 (12px and 14px). A real, felt mobile defect of the same family as the double-tap-zoom Button fixed, and invisible from a desktop. The fix is a design call: force a 16px floor on the input under `pointer: coarse` (which breaks the promise that a size-2 label is size-2 type), or accept the zoom on small fields.
-- **Pointer: the numbers and the type question.** The coarse sets' values, whether body text shifts under coarse or only control labels, and whether a hybrid device gets the coarse geometry at all (`any-pointer`) — all §16, numbers judged in the 4b matrix.
+- **iOS zooms the page on focus for any input under 16px** — mostly resolved by the device axis (section 17, 2026-08-04): the handheld band renders size 2 at 16px, so the default-adjacent field sizes stop triggering the zoom with no floor and no broken size promise. **Size 1 still zooms** (14px on the handheld band); whether it earns a per-size exception or stays a documented edge is open.
+- **Pointer: the numbers.** The coarse sets' values, and whether a hybrid device gets the coarse geometry at all (`any-pointer`) — §16, numbers judged in the 4b matrix. The type half of the old question moved to the device axis and closed there (section 17).
+- **Device: the numbers, and the tablet band.** The handheld picks and the 48rem conjunction threshold are v0 (section 17); iPadOS's 17pt-at-any-width does not fit a width-gated band, and rotation crossing the threshold is unexamined. Also open: the not-yet-claimed platform-minimum type floor, which becomes a claim only as a law.
+- **Container tiers: wrapping re-targets.** Adding a plain Box around a subtree changes which container its children's tiers measure — a documented consequence of nearest-ancestor resolution (section 2) that is not yet *named as a cost* there, has no pinning law, and whose taught escape is "put tier props on the region's direct children." Recorded 2026-08-04 after a full re-litigation of container-keyed tiers (window-based re-rejected; see LOG); to be named in section 2's cost list with a law when touched next.
 - **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end). Surface padding takes density through the layout-space layer — decided 2026-08-04 (sections 3, 12); the per-level layout-space picks are v0 values like the rest, the gutter-band hold included. Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
 - **Scale: if it ever ships.** The factor stays wired and the prop is deferred (sections 5, 13). Reopen only when a real need names the steps, and ship it as designed steps rather than a free multiplier.
 - RTL / `dir`. Deferred, architectural room left.
