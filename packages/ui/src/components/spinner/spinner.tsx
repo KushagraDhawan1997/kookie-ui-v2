@@ -10,6 +10,21 @@ const SPOKES = Array.from({ length: 8 }, (_, i) => ({
   opacity: (1 - (i / 8) * 0.85).toFixed(2),
 }));
 
+// The elements too, not just the data: every input is a module constant, and a loading
+// control re-renders its spinner with every parent render.
+const SPOKE_RECTS = SPOKES.map(({ angle, opacity }) => (
+  <rect
+    key={angle}
+    x="11"
+    y="2"
+    width="2"
+    height="5.5"
+    rx="1"
+    opacity={opacity}
+    transform={`rotate(${angle} 12 12)`}
+  />
+));
+
 /**
  * A busy indicator (§8): eight spokes with a fading trail, ticking one spoke at a time.
  *
@@ -38,18 +53,7 @@ export const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(function Sp
       className={className ? `kui-spinner ${className}` : "kui-spinner"}
       {...props}
     >
-      {SPOKES.map(({ angle, opacity }) => (
-        <rect
-          key={angle}
-          x="11"
-          y="2"
-          width="2"
-          height="5.5"
-          rx="1"
-          opacity={opacity}
-          transform={`rotate(${angle} 12 12)`}
-        />
-      ))}
+      {SPOKE_RECTS}
     </svg>
   );
 });
