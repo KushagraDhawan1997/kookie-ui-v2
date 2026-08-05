@@ -80,13 +80,33 @@
    resolves its insets against the PADDING box, and the mark wears a real border — without
    the subtraction the rendered target is 2 x --border-width short of the rule in every cell,
    22px at fine/compact/size 1 against the 24 floor. The hosted-control rule in the shared
-   layer carries the same term for the same reason. */
-.kui-checkbox::after {
+   layer carries the same term for the same reason.
+
+   Scoped OUT of slots (`:where` keeps the specificity at the class's own): a hosted mark has
+   a container, and §4's hosted-control rule already gives it the container-matched target on
+   coarse — a second expander on the same element would reintroduce the audit's finding of a
+   target larger than the field holding it (D4). `:where()` so the exclusion adds nothing the
+   shared layer's slot rules would then have to outrank. */
+.kui-checkbox:where(:not([data-slot] > *))::after {
   content: "";
   position: absolute;
   inset: calc(
     (var(--kui-ct-mark) - min(var(--kui-ct-h), var(--touch-target-min))) / 2 - var(--border-width)
   );
+}
+
+/* ── Hosted in another control's slot: it stays a mark (§4, decided 2026-08-06) ──────────────
+   The hosted-control rule sizes what it hosts by pinning `height` to the slot's derived box —
+   right for a Button, wrong for a mark, whose box is the mark itself: a checkbox in a field's
+   trailing slot measured 20 wide and 24 tall (audit D4), a rectangle with its corner holding
+   two different fractions of two different axes. Both axes now come from ONE expression — the
+   mark, floored by the hosted box for the cells where the slot is genuinely tighter — so it is
+   square by construction, or it is not there. Same specificity as the hosted rule, later in
+   the cascade on purpose; that ordering is the override. */
+.kui-control > [data-slot] > .kui-checkbox {
+  height: min(var(--kui-ct-mark), var(--kui-ct-hosted-height));
+  min-height: 0;
+  inline-size: min(var(--kui-ct-mark), var(--kui-ct-hosted-height));
 }
 
 /* ── The on state (§11) ──────────────────────────────────────────────────────────────────────

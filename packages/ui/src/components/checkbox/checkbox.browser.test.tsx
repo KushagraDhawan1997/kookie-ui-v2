@@ -14,6 +14,7 @@ import * as React from "react";
 import { Theme } from "../../theme/theme.tsx";
 import { computed, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
+import { TextField } from "../text-field/text-field.tsx";
 import { Checkbox } from "./checkbox.tsx";
 
 const SIZES = ["1", "2", "3", "4"] as const;
@@ -473,5 +474,50 @@ describe("the API's closed edges, and the two facts the types state (§3)", () =
     const labelledBy = mark.getAttribute("aria-labelledby");
     expect(labelledBy).toBeTruthy();
     expect(document.getElementById(labelledBy!)?.textContent).toBe("Accept the terms");
+  });
+});
+
+describe("hosted in a slot, it stays a mark (§4, decided 2026-08-06 — audit D4)", () => {
+  // The hosted-control rule pins `height` to the slot's derived box — right for a Button,
+  // wrong for a mark: a checkbox in a field's trailing slot measured 20 wide and 24 tall,
+  // its corner holding two different fractions of two different axes, which is the exact
+  // class of defect the --radius-mark-N fix was written to end.
+  for (const pointer of ["fine", "coarse"] as const) {
+    it(`${pointer}: square inside a field's slot, and no larger than the slot allows`, () => {
+      const el = render(
+        <Theme pointer={pointer}>
+          <TextField size="2" trailing={<Checkbox size="2" />} />
+        </Theme>,
+      );
+      const mark = el.querySelector(".kui-checkbox")!;
+      const { w, h } = markBox(mark);
+      expect(w).toBe(h);
+      expect(h).toBeLessThanOrEqual(px(tokenOn(el, "--mark-2")));
+    });
+  }
+
+  it("gives up its own reach in a slot — one target, and it is the container's rule", () => {
+    // Standalone, the mark grows its own invisible target. Hosted, §4's hosted-control rule
+    // owns the question (container-matched, coarse only), and a second expander on the same
+    // element is how the audit measured a 36px target inside a 32px field.
+    const el = render(
+      <Theme pointer="fine">
+        <TextField size="2" trailing={<Checkbox size="2" />} />
+      </Theme>,
+    );
+    const mark = el.querySelector(".kui-checkbox")!;
+    expect(getComputedStyle(mark, "::after").content).toBe("none");
+  });
+
+  it("keeps its own target everywhere that is NOT a slot", () => {
+    // The exclusion must not leak: a checkbox that merely sits inside a form, a label, or a
+    // Card keeps the grown target — only a [data-slot] parent hands the question over.
+    const el = render(
+      <label>
+        <Checkbox size="2" />
+      </label>,
+    );
+    const mark = el.querySelector(".kui-checkbox") ?? el;
+    expect(getComputedStyle(mark, "::after").content).not.toBe("none");
   });
 });

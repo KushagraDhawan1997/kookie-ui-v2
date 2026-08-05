@@ -469,6 +469,13 @@ function checkboxSection(mode: Mode): string {
           ),
         ) +
         demo(
+          "hosted in a field's slot - it stays square, and the field's rule owns the target (\u00a74)",
+          row(
+            field({ size: "2", placeholder: "notify me", trailing: checkbox({ size: "2", checked: true }) }) +
+              field({ size: "3", placeholder: "remember", trailing: checkbox({ size: "3" }) }),
+          ),
+        ) +
+        demo(
           "a stacked list - the invisible target is a control of its size, capped at 44",
           kuiBox(
             { display: "flex", direction: "column", gap: "4" },
