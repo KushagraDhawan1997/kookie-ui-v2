@@ -1136,6 +1136,21 @@ Plus the preview, which has to force both bands side by side to judge them at al
 
 ## Open questions / deferred
 
+### NEXT UP — window size classes (raised 2026-08-05, Kushagra)
+
+**The system has no way for an APP to ask how big the window is, and it needs one.**
+
+Container tiers (§2) answer *"how much room does this component have"* — measured against the nearest container, deliberately, so the same card stacks in a sidebar and spreads in the main area. That is right for components and it is not the only question a responsive system has to answer.
+
+The other question is *"which interface should this app show"*: bottom bar on a phone, rail on a tablet, sidebar on a desktop. Figma-on-iPad shipping a viewer instead of an editor is the same decision one level up. It is made **once, at the top, against the viewport** — not per container, not per component.
+
+Today a consumer has to hand-write `@media (min-width: …)` and invent their own numbers, which is precisely what this system exists to prevent, and every app built on it would pick a different set.
+
+What it is not: a type band (settled — §17), and not a replacement for container tiers (they answer a different question and both are needed). Reference shape: Material's window size classes, compact / medium / expanded.
+
+Open within it: the class names and count; whether it surfaces as a Theme-stamped attribute, a hook, or both; whether it composes with `device` (a phone-shaped canvas inside a desktop tool is a *pinned* small window); and whether the thresholds are the same numbers as the `narrow` type band's or independent.
+
+
 **Color:** section 7 is implemented and law-tested (`src/tokens/color.ts`, 106 laws). What remains is not mechanism:
 - **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?
 - **Named extra accent slots** for genuine dual-brand cases (the `accentAlt` path).
