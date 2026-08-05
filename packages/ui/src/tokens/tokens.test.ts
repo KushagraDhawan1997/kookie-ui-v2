@@ -56,6 +56,11 @@ function block(selector: string) {
   return css.slice(start, end);
 }
 
+/** A declaration read out of an arbitrary scope block — two mark-family describes had grown
+    private near-copies of this regex machinery (audit straggler, merged 2026-08-06). */
+const inScope = (scope: string, name: string) =>
+  block(scope).match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
+
 /** Reads a declaration out of a scope: `:root` by default, or a density block. */
 function declaration(name: string, level: "default" | "compact" | "comfortable" = "default") {
   const scope = level === "default" ? block(":root") : block(`[data-density="${level}"]`);
@@ -775,10 +780,8 @@ describe("the mark family is the line box, and nothing designed twice (§4)", ()
   // Checkbox, radio, switch track and slider thumb are one visual weight class, and four
   // separately designed ladders in one weight class drift. The ladder is an identity rather
   // than a ratio: a mark occupies exactly one line of the label it sits beside.
-  const markIn = (scope: string, i: number) =>
-    block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1];
-  const lineIn = (scope: string, i: number) =>
-    block(scope).match(new RegExp(`--line-height-${i}:\\s*([^;]+);`))?.[1];
+  const markIn = (scope: string, i: number) => inScope(scope, `mark-${i}`);
+  const lineIn = (scope: string, i: number) => inScope(scope, `line-height-${i}`);
 
   it("resolves to the line box at :root and in the fine world", () => {
     for (const scope of [":root", '[data-pointer="fine"]']) {
@@ -826,10 +829,8 @@ describe("a mark's corner holds a fraction of ITS OWN box (§6)", () => {
   // comfortable size 4 — a circle in all but name, arrived at by an axis rather than a theme,
   // which is why the `full` ceiling never saw it. Fractions, not values: the picks are taste.
   const value = (decl: string | undefined) => parseFloat(decl!.match(/[\d.]+/)![0]);
-  const markIn = (scope: string, i: number) =>
-    value(block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1]);
-  const cornerIn = (scope: string, i: number) =>
-    value(block(scope).match(new RegExp(`--radius-mark-${i}:\\s*([^;]+);`))?.[1]);
+  const markIn = (scope: string, i: number) => value(inScope(scope, `mark-${i}`));
+  const cornerIn = (scope: string, i: number) => value(inScope(scope, `radius-mark-${i}`));
 
   for (const level of ["small", "medium", "large", "full"] as const) {
     it(`holds 0.05-0.40 of the box at every size, level ${level}, both pointer worlds`, () => {

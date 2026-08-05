@@ -4,12 +4,14 @@
  * proves nothing.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { page } from "@vitest/browser/context";
+import { page } from "vitest/browser";
+
+import { VIEWPORT as WIDE } from "../test/viewport.ts";
 
 import { render } from "../test/browser.tsx";
 import { useWindowClass, windowClassQueries, type WindowClass } from "./window.ts";
 
-const WIDE = { width: 1280, height: 800 };
+
 
 function Probe() {
   const wc = useWindowClass();
@@ -41,13 +43,13 @@ describe("the window class answers the window, live (§18)", () => {
   });
 
   it("a mounted consumer follows a resize without remounting", async () => {
-    await page.viewport(1280, 800);
+    await page.viewport(WIDE.width, WIDE.height);
     const el = render(<Probe />);
     expect(el.textContent).toBe("wide");
     await page.viewport(375, 800);
     // matchMedia change events dispatch async of the resize; poll the mounted output.
     await expect.poll(() => el.textContent).toBe("narrow");
-    await page.viewport(1280, 800);
+    await page.viewport(WIDE.width, WIDE.height);
     await expect.poll(() => el.textContent).toBe("wide");
   });
 
