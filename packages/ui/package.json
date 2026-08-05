@@ -29,20 +29,22 @@
     "provenance": true
   },
   "scripts": {
-    "build": "pnpm run tokens:check && tsdown && node scripts/build-css.mjs",
+    "build": "pnpm run tokens:check && tsdown && node scripts/build-css.mjs && pnpm run pack:check",
     "tokens": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/generate.ts",
     "preview": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/preview.ts",
     "preview:serve": "pnpm run preview && python3 -m http.server 4917",
     "test": "vitest run",
     "lint": "eslint src scripts && tsc -p tsconfig.json",
     "measure": "node scripts/measure-css.mjs",
-    "tokens:check": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/generate.ts --check"
+    "tokens:check": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/generate.ts --check",
+    "pack:check": "publint && attw --pack . --profile esm-only --exclude-entrypoints styles.css"
   },
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@types/culori": "^4.0.1",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
@@ -53,6 +55,7 @@
     "eslint": "^9.30.0",
     "lightningcss": "^1.30.0",
     "playwright": "^1.62.1",
+    "publint": "^0.3.23",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tsdown": "^0.22.0",
