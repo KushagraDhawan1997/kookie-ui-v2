@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 A textarea's frame is the inset — the one-row-equals-TextField identity is reversed, same day it shipped
+
+TextArea shipped with its block padding DERIVED from the height token — `(h − line − 2·border)/2` — so a one-row textarea sat exactly where a TextField's value sits. Kushagra caught the cost in the preview within hours: with a second line, that residue stops being invisible centering and becomes the visible top margin of a paragraph — 13px at the sides, 9px above in the coarse world, an asymmetry nobody designed. The diagnosis that closed it: **centering leftover is not an inset.** In a fixed-height control, the vertical space is residue the eye never judges; in a grown box the eye reads a frame and expects the four sides related. One number was doing two jobs and only one had ever been chosen.
+
+Three candidates, two rejected on the record:
+
+- **A compromise value between the residue and the side padding** — rejected by Kushagra outright: worst of both worlds, fixes neither the frame nor the alignment, and mints a third unexplained number.
+- **Keeping the identity** — died on the use-case audit. Every real textarea is a multi-row paragraph (comment, description, ticket, address, commit body); a one-row box is what TextField is for, and the chat composer — the one genuine one-row-that-grows case — is its own component with more props and its own needs, not a reason to bend the paragraph control.
+- **What shipped: block padding IS the side padding.** One inset, all four sides, no new number. The one-row law is deleted; the size index still joins every non-height fact (law amended to say exactly that); a `rows={1}` textarea sits taller than a field, accepted.
+
+**No exception for roundness** (Kushagra: "lets try with no exception"): at `full` the pill bump stays horizontal-only, so radius never buys height. The bump corrects text running *sideways* into the corner at its widest swing; vertically the curve has flattened to under half a pixel at the x where text starts. Flagged for the eye pass — a rounded textarea's top corners are the case to judge — and the preview note points at it.
+
+---
+
 ## 2026-08-05 The capsule is half the height TOKEN — full's control band states the rule instead of riding the clamp
 
 Kushagra caught it in the preview the day TextArea shipped: at `radius="full"` the three-row textareas were stadiums — corners scaling with the box, the first line of text deep inside the curve. The control band priced `full` at 9999px and let CSS clamping find the capsule, and clamping asks the *rendered* box: right for every control whose height is its token's, wrong the moment one grows, which TextArea does by design (§4's non-fixed-height class — so every future growing control inherited the bug).

@@ -53,37 +53,31 @@ function stateFill(el: Element, state: "hover" | "active"): string {
 const onPlaceholder = (el: Element, prop: string): string =>
   getComputedStyle(el, "::placeholder").getPropertyValue(prop).trim();
 
-describe("padding is the dimension: the first non-fixed-height control (§4)", () => {
-  // The height ladder is for fixed-height controls, and this box grows with its content. What
-  // the size index still owes it is every other join — and one derived number that makes the
-  // geometry close. These laws assert the identity itself, not a restated pixel value, so a
-  // density or type change cannot silently break the alignment they exist to hold.
+describe("padding is the dimension, and it is ONE inset (§4, reversed 2026-08-05)", () => {
+  // The height ladder is for fixed-height controls, and this box grows with its content. The
+  // first cut derived the block padding from the height token so a one-row textarea matched a
+  // TextField — and the residue read as an accident the moment a second line existed: 13px at
+  // the sides, 9px above, chosen by nobody. Every real textarea is a multi-row paragraph, so
+  // the paragraph wins outright: the frame is the side padding, all four sides.
   for (const size of ["1", "2", "3", "4"] as const) {
-    it(`the derived block padding closes against the control height at size ${size}`, () => {
-      // 2·py + line + 2·border = the control height — which is exactly the claim "one row
-      // sits where a field's value sits", stated as arithmetic.
-      const el = render(<TextArea size={size} />);
-      const closed =
-        2 * px(computed(el, "padding-top")) +
-        px(computed(el, "line-height")) +
-        2 * px(computed(el, "border-top-width"));
-      expect(closed).toBeCloseTo(px(computed(el, "min-height")), 1);
-      // And the padding is symmetric — derived once, applied to both block edges.
+    it(`the frame is uniform at size ${size} — block padding IS the side padding`, () => {
+      const el = render(<TextArea size={size} rows={3} />);
+      expect(computed(el, "padding-top")).toBe(computed(el, "padding-left"));
       expect(computed(el, "padding-top")).toBe(computed(el, "padding-bottom"));
     });
 
-    it(`a one-row TextArea is the same box as a TextField at size ${size}`, () => {
-      // The cross-component form of the law above, and the reason the padding is derived
-      // rather than designed: a textarea in a form sits beside fields, and the first row of
-      // one must line up with the value of the other.
+    it(`shares every joint with a TextField at size ${size} except the height`, () => {
+      // The reversal's remainder: the size index still joins the two components everywhere
+      // height is not involved. The one-row-equals-field height identity is deliberately
+      // gone — a one-row box is TextField's job, and a rows={1} textarea sits taller.
       const area = render(<TextArea size={size} rows={1} />);
       const field = render(<TextField size={size} />);
-      expect(px(computed(area, "height"))).toBeCloseTo(px(computed(field, "height")), 1);
       for (const property of ["padding-left", "border-top-left-radius", "font-size"]) {
         expect(computed(area, property), `size ${size} disagrees on ${property}`).toBe(
           computed(field, property),
         );
       }
+      expect(px(computed(area, "height"))).toBeGreaterThanOrEqual(px(computed(field, "height")));
     });
   }
 
@@ -99,9 +93,9 @@ describe("padding is the dimension: the first non-fixed-height control (§4)", (
     expect(px(computed(el, "height"))).toBeGreaterThan(px(computed(el, "min-height")));
   });
 
-  it("the identity holds in every density and pointer world (§12, §16)", () => {
-    // The worlds re-declare the control family; the derivation has to survive because it is
-    // written against the family's variables, not against any world's numbers.
+  it("the frame stays uniform in every density and pointer world (§12, §16)", () => {
+    // Written against the family's variables, not any world's numbers, so the worlds'
+    // re-declarations cannot split the two axes apart again.
     for (const world of [
       <Theme density="compact" key="c" />,
       <Theme density="comfortable" key="f" />,
@@ -109,17 +103,32 @@ describe("padding is the dimension: the first non-fixed-height control (§4)", (
     ]) {
       const host = render(
         <world.type {...world.props}>
-          <TextArea size="2" rows={1} />
-          <TextField size="2" />
+          <TextArea size="2" rows={3} />
           <Button size="2">Label</Button>
         </world.type>,
       );
       const area = host.querySelector<HTMLElement>(".kui-textarea")!;
-      const field = host.querySelector<HTMLElement>(".kui-field")!;
       const button = host.querySelector<HTMLElement>(".kui-button")!;
-      expect(px(computed(area, "height"))).toBeCloseTo(px(computed(field, "height")), 1);
+      expect(computed(area, "padding-top")).toBe(computed(area, "padding-left"));
       expect(computed(area, "min-height")).toBe(computed(button, "min-height"));
     }
+  });
+
+  it("no exception for roundness: full bumps the sides only, so radius never buys height", () => {
+    // The pill bump corrects text running SIDEWAYS into the corner at its widest swing;
+    // vertically the curve has flattened to under half a pixel where the text starts. So at
+    // full the sides take the pill value and the block keeps the plain inset — Kushagra's
+    // call, judged in the preview.
+    const host = render(
+      <Theme radius="full">
+        <TextArea size="2" rows={3} />
+      </Theme>,
+    );
+    const el = host.querySelector<HTMLElement>(".kui-textarea")!;
+    const plain = render(<TextArea size="2" rows={3} />);
+    expect(px(computed(el, "padding-left"))).toBeGreaterThan(px(computed(plain, "padding-left")));
+    expect(computed(el, "padding-top")).toBe(computed(plain, "padding-top"));
+    expect(computed(el, "height")).toBe(computed(plain, "height"));
   });
 });
 

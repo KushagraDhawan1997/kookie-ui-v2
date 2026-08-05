@@ -14,13 +14,21 @@
 
 .kui-textarea {
   /* §4: a textarea is the system's first non-fixed-height control — "padding is the
-     dimension". The skeleton's height token survives as a FLOOR (min-height, inherited from
-     .kui-control), and the block padding is derived so the geometry closes: one row of text
-     sits exactly where a TextField's value sits at the same index, because
-     2·py + line + 2·border = the control height. Derived, not designed, because it is a
-     geometric identity between two components — a new number here could drift from the
-     field it exists to line up with. */
-  --kui-ct-py: calc((var(--kui-ct-h) - var(--kui-ct-line)) / 2 - var(--border-width));
+     dimension" — and the dimension is ONE inset, all four sides (reversed 2026-08-05, LOG).
+     The first cut derived the block padding from the height token so a one-row textarea
+     lined up with a TextField — and Kushagra caught what that residue looks like the moment
+     there is a second line: a paragraph framed 13px at the sides and 9px above, an asymmetry
+     nobody chose, because centering leftover is not an inset. Every real use of a textarea
+     is a multi-row paragraph (a one-row box is TextField's job; a chat composer is its own
+     component), so the paragraph wins outright: block padding IS the side padding.
+
+     The PLAIN side padding, deliberately not the pill value at radius full: the pill bump
+     corrects text running sideways into the corner at its widest swing, and vertically the
+     curve has flattened to under half a pixel where the text starts — Kushagra's call, no
+     exception for roundness, judged in the preview. The control height stays as a floor
+     (min-height via the skeleton); a rows={1} textarea is therefore taller than a field,
+     accepted with the reversal. */
+  --kui-ct-py: var(--kui-ct-px);
 
   /* The value is the user's content, not a control label (§15): content rests regular, is
      the user's to select, and takes a caret. All three override the skeleton's button-shaped
