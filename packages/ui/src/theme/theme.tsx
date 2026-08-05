@@ -83,7 +83,24 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       pointer: props.pointer ?? parent.pointer,
       surfaces: props.surfaces ?? parent.surfaces,
     }),
-    [props.appearance, props.density, props.radius, props.contrast, props.pointer, props.surfaces, parent],
+    // The six fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
+    // ancestor axis moves, including ones this scope overrides — depending on the identity
+    // would rebuild `resolved` (and so re-render every consumer below) on changes that
+    // cannot reach it.
+    [
+      props.appearance,
+      props.density,
+      props.radius,
+      props.contrast,
+      props.pointer,
+      props.surfaces,
+      parent.appearance,
+      parent.density,
+      parent.radius,
+      parent.contrast,
+      parent.pointer,
+      parent.surfaces,
+    ],
   );
 
   const contrastSet = props.contrast !== undefined || parent.contrastSet;
