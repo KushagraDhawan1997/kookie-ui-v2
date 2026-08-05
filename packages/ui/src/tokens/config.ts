@@ -5,6 +5,12 @@
  *
  * Step counts differ per family on purpose: each is set by that family's dynamic
  * range and perception, never copied across families (§6, "three count ceilings").
+ *
+ * The boundary with color-config.ts, declared (2026-08-06): color-config.ts holds what the
+ * OKLCH GENERATOR consumes — hues, ladders, deltas, floors, per-mode step picks. This file
+ * holds everything else, INCLUDING literal colour strings that bypass the generator (the
+ * glass edge/rim alphas, the shadow rows, the surface seal): a value lives by which machinery
+ * reads it, not by whether it looks like a colour.
  */
 
 /** §3 — space palette. Hybrid curve: fine and near-linear at the bottom, geometric at the top. */
@@ -188,9 +194,10 @@ export const coarse = {
  * §16 — the touch floor (Apple HIG 44pt; Material 48dp; fingerpad anthropometry). Raw px on
  * purpose: a physical floor, not a length that zooms.
  *
- * A §13 resource with no stylesheet consumer: the `max()` reserve this was minted for was
- * dropped (§16), so nothing reads it but its own drift test. Kept as the published number an
- * app can reach for; do NOT reintroduce a runtime reserve on the strength of it.
+ * A §13 resource whose first stylesheet consumer arrived 2026-08-05: the mark family's hit
+ * target reads `min(--kui-ct-h, var(--touch-target-min))` (checkbox.css — the §4 pseudo-element
+ * reach). The `max()` RESERVE this was originally minted for stays dropped (§16); do NOT
+ * reintroduce a runtime reserve on the strength of the token existing.
  */
 export const touchTargetMin = 44;
 

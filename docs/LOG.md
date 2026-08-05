@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-06 The alpha ramp composites over the seal, and its law stops grading its own homework
+
+The recomposition law took its backdrop from the emitter's own `pageBackdrop` — the same value the alpha solve consumed — so the law was a tautology: it could verify the arithmetic but never notice the backdrop being the wrong colour. And it quietly was. The page colour existed as three near-identical statements (`surfaceColor.light.rest` `#ffffff`, `pageBackdrop`'s own white / hand-built dark approximation, and the generated `--neutral-1`), and the two modes told different stories: light solved against white — which happens to be the seal — while dark solved against a page approximation, which is why dark's neutral overlay hexes came out faintly pink (`#fff0f1` for a grey ramp).
+
+Kushagra's call: the ramp officially sits on the **surface seal**, not the page — an alpha fill's usual home is a card or a field, both sealed. `alphaBackdrop` now reads config's `surfaceColor` (a literal directly; dark's `var(--neutral-2)` resolved through the same generator that emits it, via a steps-only build that breaks the solve's cycle), and the law derives the seal independently from config, so an emitter/seal divergence now fails CI. Dark's ramp re-solved: 98 declarations moved by a hair, the pink cast gone; light was already seal-based and did not move. Budget 18,137 → 18,129.
+
+Rejected: compositing against the page (`--neutral-1`) — it matches the word "page" but not where alpha fills live, and dark's seal (`--neutral-2`) is the surface story §10 already tells; leaving the tolerance recorded — the deltas were invisible, but a law that cannot fail is the audit's oldest finding.
+
 ## 2026-08-06 The budget gate pins its compressor: pako in the lockfile, not the runner's zlib
 
 CI went red on a +20-byte "regression" no commit caused. `dist/styles.css` was byte-identical on both sides (167,744 raw) — the build is deterministic — but the gate's number came from `node:zlib`, and Node vendors zlib: Node 22.23 (CI) and Node 25.2 (the machine that recorded the 18,137 baseline) emit different, equally valid gzip streams for the same input at the same level, 20 bytes apart. The last green run agreed with its baseline exactly, because back then both sides compressed alike; the divergence began the day the recording machine's Node moved. The law was measuring the environment, not the stylesheet — the standing audit lesson one layer down: a gate's number must be a function of the artifact alone, and a compressor outside the lockfile is an input nobody pinned.

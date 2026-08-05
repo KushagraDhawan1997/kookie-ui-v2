@@ -510,7 +510,7 @@ Generate the 12 steps in TS / Style Dictionary at **build time**; emit plain `--
 
 ### Role layer (what components consume)
 
-Components reference roles, never raw steps and never the generation mechanism. Also emit an **alpha ramp** (`--accent-a1..a12`) for surface nesting (section 10):
+Components reference roles, never raw steps and never the generation mechanism. Also emit an **alpha ramp** (`--accent-a1..a12`) for surface nesting (section 10). The ramp composites over the **surface seal** (`--color-surface`, decided 2026-08-06): an alpha fill's usual home is a sealed surface, so the solve targets what the fill actually sits on — read from config's `surfaceColor` in both modes, never a second statement of the page colour.
 
 ```css
 --accent-soft / -soft-hover / -soft-active      /* tint states */
@@ -519,7 +519,7 @@ Components reference roles, never raw steps and never the generation mechanism. 
 --accent-text                                   /* step 11: links, prose on a tint */
 --accent-label                                  /* generated between 11 and 12: UI labels */
 --accent-contrast                               /* APCA-computed text on solid */
---accent-a1 ... --accent-a12                     /* alpha scale, composites over backdrop */
+--accent-a1 ... --accent-a12                     /* alpha scale, composites over the seal */
 ```
 
 Press darkens the `background-color` token, **never** `filter: brightness()` (which would dim the contrast text and icon with the fill). The pressed state is a real token, so the label stays crisp.
