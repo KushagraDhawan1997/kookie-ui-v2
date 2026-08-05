@@ -1,0 +1,15 @@
+/* Radio adds its circle and nothing else (§2, §4, §6, §11).
+ *
+ * The box, the target, the resting identity, the ON state and the glyph rule all arrive from
+ * the mark family in system/recipes.css — Radio is the member whose landing (with the slider
+ * thumb) promoted them there. What only a radio has is its SHAPE.
+ *
+ * The circle is ROLE SEMANTICS, not dress, so the radius axis never reaches it — `none`
+ * included. §6's kill switch squares every corner a theme owns, but this corner is not the
+ * theme's: a square radio reads as a checkbox, and role legibility outranks theme uniformity
+ * — the same sentence that caps the checkbox below the capsule at `full`, mirrored. Stated
+ * as the rule (half the mark) rather than 9999px riding CSS clamping, which asks the
+ * rendered box — §6's own correction to the control band, applied at birth. */
+.kui-radio {
+  border-radius: calc(var(--kui-ct-mark) / 2);
+}

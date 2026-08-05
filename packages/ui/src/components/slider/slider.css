@@ -1,0 +1,77 @@
+/* Slider adds the track, the fill, and the thumb's shape — the parts only a slider has
+ * (§2, §4, §11). The size join, the disabled and invalid remaps, the cursor and the target
+ * all arrive from system/recipes.css: the ROOT is the control, so the height ladder is the
+ * hit area (44 on the coarse default path, §16) and no new target mechanism exists here.
+ * The thumb is a mark (family rules shared); its circle is stated below beside Radio's,
+ * for Radio's reason. */
+
+.kui-slider {
+  /* The skeleton pads for a label; a track runs the full box, ends included. */
+  padding-inline: 0;
+  /* The one control whose inline size is its container's: a track has no intrinsic width,
+     so shrink-wrapping would collapse it to nothing. The Box that owns the row constrains it. */
+  inline-size: 100%;
+  /* The root paints nothing itself — but the sources must be stated, all three: the triple
+     is inherits-agnostic plumbing the shared layer swaps on interaction, and a control that
+     declared none would inherit an ancestor's fill through the unregistered -src chain. */
+  --kui-ct-fill-src: transparent;
+  --kui-ct-fill-src-hover: transparent;
+  --kui-ct-fill-src-active: transparent;
+}
+
+.kui-slider-control {
+  /* Fill the root's whole box: the control part is what Base UI hit-tests for track presses,
+     so its box IS the target the height ladder promises (§16). Stretch, because the skeleton
+     centers its children and a centered child takes only its content height. */
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  position: relative;
+  /* Dragging is the interaction: a vertical scroll must not steal a horizontal drag mid-way.
+     Overrides the skeleton's `manipulation`, which keeps scroll — right for a button, wrong
+     for the one control whose press is a movement. */
+  touch-action: none;
+}
+
+.kui-slider-track {
+  inline-size: 100%;
+  block-size: var(--kui-ct-track);
+  /* The family's off part (§11 "track low"): neutral through the tone-independent well role,
+     because the element stamps `accent` for its fill and the off part must not tint with it —
+     the checkbox's "neutral off", one control over. */
+  background-color: var(--color-track);
+  /* The capsule stated as the rule (§6's own correction): half the box, never 9999px riding
+     CSS clamping against a rendered height. */
+  border-radius: calc(var(--kui-ct-track) / 2);
+  /* The containing block for the thumb and the vertical fill — Base UI positions both. */
+  position: relative;
+}
+
+.kui-slider-fill {
+  block-size: 100%;
+  /* The accent part (§11 "fill accent"), through the tone indirection like every fill in the
+     system — which is what hands it to the shared disabled remap for free. */
+  background-color: var(--tone-solid);
+  border-radius: inherit;
+}
+
+.kui-slider-thumb {
+  /* The circle is ROLE SEMANTICS, Radio's sentence verbatim (§6): the radius axis never
+     reaches it, `none` included — a square handle on a rail reads as a bead that stuck. */
+  border-radius: calc(var(--kui-ct-mark) / 2);
+  /* A mark that is not itself a .kui-control paints its own resting identity: the family
+     declares the sources (the seal; --tone-soft when disabled) and the edge role; this rule
+     resolves them. No hover or active step — a handle does not fill, it moves. */
+  background-color: var(--kui-ct-fill-src);
+  border: var(--border-width) solid var(--tone-border);
+}
+
+/* The ring lands on the thumb — the element the arrows move — not the root: focus is where
+   the keyboard acts. `:has(input:focus-visible)` because the focusable is the hidden range
+   input Base UI nests inside the handle. The tokens are the law: an invalid slider's ring
+   reads --invalid-edge through the shared remap on the root, inherited here. */
+.kui-slider-thumb:has(input:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

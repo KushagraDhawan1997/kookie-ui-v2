@@ -4,6 +4,8 @@ export { Button, type ButtonProps } from "./components/button/button.tsx";
 export { Card, type CardProps } from "./components/card/card.tsx";
 export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx";
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
+export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
+export { Slider, type SliderProps } from "./components/slider/slider.tsx";
 export { Text, type TextProps, type TypeSize, type Weight } from "./components/text/text.tsx";
 export { TextArea, type TextAreaProps } from "./components/text-area/text-area.tsx";
 export { TextField, type TextFieldProps } from "./components/text-field/text-field.tsx";
