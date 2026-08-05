@@ -111,6 +111,20 @@
   inline-size: min(var(--kui-ct-mark), var(--kui-ct-hosted-height));
 }
 
+/* ── Disabled reaches the resting fill (§8, audit D6, 2026-08-06) ────────────────────────────
+   The shared disabled arm rewrites the TONE roles, and the resting fill deliberately is not
+   one — it is the surface seal, so an unchecked disabled checkbox computed byte-identical to
+   a live one: the border moved a single neutral step and, on a phone, that was the entire
+   signal. Re-pointing the fill at --tone-soft hands it to the arm (soft remaps to neutral-3
+   with everything else), so this rule names no state colour of its own and a change to the
+   disabled remap reaches it for free. Checked was never wrong: its fill rides --tone-solid,
+   which the arm already owns. */
+.kui-checkbox[data-disabled] {
+  --kui-ct-fill-src: var(--tone-soft);
+  --kui-ct-fill-src-hover: var(--tone-soft);
+  --kui-ct-fill-src-active: var(--tone-soft);
+}
+
 /* ── The on state (§11) ──────────────────────────────────────────────────────────────────────
    Every rung the emphasis ladder publishes is about how loud an ACTION is; a checkbox is not
    an action and takes no rung (`emphasis` is refused by the type). What it has instead is two

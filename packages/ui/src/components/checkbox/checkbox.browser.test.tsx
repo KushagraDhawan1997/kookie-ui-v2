@@ -411,15 +411,73 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     expect(computed(el, "outline-style")).not.toBe("auto");
   });
 
-  it("goes flat through the tone remap when disabled, never through opacity (§8)", () => {
+  it("goes flat through the tone remap when disabled — the FILL, not just the chrome (§8)", () => {
+    // The first spelling asserted opacity and cursor, neither of which could be wrong (audit
+    // D6): the resting fill is the surface seal, not a tone role, so the shared arm could not
+    // reach it and a disabled unchecked checkbox computed byte-identical to a live one.
+    for (const appearance of ["light", "dark"] as const) {
+      const off = render(
+        <Theme appearance={appearance}>
+          <Checkbox disabled />
+        </Theme>,
+      );
+      const on = render(
+        <Theme appearance={appearance}>
+          <Checkbox disabled defaultChecked />
+        </Theme>,
+      );
+      for (const el of [off, on]) {
+        const mark = markOf(el.querySelector(".kui-checkbox") ? el : el);
+        expect(computed(markOf(el), "background-color"), appearance).toBe(colorOn(el, "var(--neutral-3)"));
+        expect(computed(markOf(el), "opacity")).toBe("1");
+      }
+      const live = render(
+        <Theme appearance={appearance}>
+          <Checkbox />
+        </Theme>,
+      );
+      expect(computed(markOf(off), "background-color")).not.toBe(computed(markOf(live), "background-color"));
+    }
     const el = render(<Checkbox disabled />);
-    const mark = markOf(el);
-    expect(computed(mark, "opacity")).toBe("1");
     // The arrow, not `not-allowed`: §8 refuses a cursor no native platform uses. Read through
     // the token so this law states the rule rather than a keyword.
-    expect(computed(mark, "cursor")).toBe(
+    expect(computed(markOf(el), "cursor")).toBe(
       probeIn(el, (p) => (p.style.cursor = "var(--cursor-disabled)"), (s) => s.cursor),
     );
+  });
+
+  it("a state outranks dress: checked AND invalid shows the invalid edge (§8, audit D8)", () => {
+    // The :where() on the checked rule is what this asserts, and it is the one of the LOG's
+    // "two defects the laws caught" that had no law: written with :is(), checked ties with
+    // the invalid remap at (0,2,0) and wins on source order — a checked invalid checkbox
+    // showed a confident accent box with nothing wrong about it. Falsified against :is()
+    // before this was accepted: the law fails under that spelling in all four cells.
+    for (const appearance of ["light", "dark"] as const) {
+      for (const state of [{ defaultChecked: true }, { indeterminate: true }]) {
+        const el = render(
+          <Theme appearance={appearance}>
+            <Checkbox aria-invalid="true" {...state} />
+          </Theme>,
+        );
+        const mark = markOf(el);
+        expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--invalid-edge)"));
+        expect(computed(mark, "border-top-color")).not.toBe(computed(mark, "background-color"));
+      }
+    }
+  });
+
+  it("the focus ring is the real ring, and it is absent at rest (§8, audit D9)", () => {
+    // The first spelling asserted outline-style !== "auto", which "none" satisfies — the
+    // shared ring could be deleted outright and it passed. This one names the ring: solid,
+    // the system width, the system colour, and nothing before focus arrives.
+    const el = render(<Checkbox />);
+    const mark = markOf(el) as HTMLElement;
+    expect(getComputedStyle(mark).outlineStyle).toBe("none");
+    mark.focus();
+    const focused = getComputedStyle(mark);
+    expect(focused.outlineStyle).toBe("solid");
+    expect(focused.outlineWidth).toBe(probeIn(el, (p) => (p.style.width = "var(--focus-ring-width)"), (s) => s.width));
+    expect(focused.outlineColor).toBe(colorOn(el, "var(--focus-ring)"));
   });
 
   it("carries the invalid remap on its own element, no :has() hop", () => {
