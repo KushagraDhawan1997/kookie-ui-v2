@@ -989,8 +989,8 @@ ${checkboxSection("dark")}
 
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">
-  ${[1, 2, 3, 4].map((s) => spinner(`--kui-icon: var(--icon-size-${s})`)).join("")}
-  ${spinner("--kui-icon: 96px")}
+  ${[1, 2, 3, 4].map((s) => spinner(`--kui-ct-icon: var(--icon-size-${s})`)).join("")}
+  ${spinner("--kui-ct-icon: 96px")}
 </div>
 
 <h1 id="type">Text &amp; Heading — the ramp, worn (§15)</h1>
