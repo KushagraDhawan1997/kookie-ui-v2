@@ -18,6 +18,24 @@ Kushagra's call, and the scope IS the decision: **a new role for the mark family
 
 Rejected: re-stepping `--color-border` for everyone (above); a raw designed hex (goes deaf to `contrast="high"`, which reaches the mark automatically because the role resolves through the re-declared neutral scale); leaving it to the eye pass (a WCAG failure is not taste).
 
+## 2026-08-06 Marks in a stack need twelve pixels — the overlap is governed, not removed
+
+The audit's D1, its largest finding: below the target's reach, the LATER of two stacked marks owned pixels inside the EARLIER one's painted box (both invisible targets hit-test in tree order), so a real click on one checkbox toggled the next — measured, 6px of a 24px mark stolen at a 4px gap under coarse — while the shipped sentence said "a stacked list is clear at any layout-space gap the system offers" in three places. The scale starts at 2px; the sentence was false at its bottom rungs.
+
+Four options were put up and Kushagra picked the rule: **keep the expanding target as it is, state the spacing it obliges — 12 real pixels between stacked marks — and check it automatically.** Twelve is one more than the worst reach in any cell (11 with the border term), a real rung (space 4; the default density's `gap="4"` sits exactly on it, `gap="5"` is the smallest index that holds it at every density since compact resolves 4 to 8px), and the law mounts the rule rather than deriving it: two marks at exactly 12px in all 24 (pointer × density × size) cells, every point strictly inside the first's paint must belong to the first — plus a negative control at 4px that must KEEP stealing, so the twelve cannot rot into decoration.
+
+The law itself earned a correction before it earned trust: the first cut ran after enough mounts had pushed the pair off-viewport, `elementFromPoint` answered null for every row, and all 24 cells passed while measuring nothing. A row nobody claims is now an error, not a zero.
+
+Rejected: clamping the reach to half the tightest gap the scale offers (~1px — kills the mechanism to save the worst layout); expanding on the inline axis only (nothing sits beside a mark but its label, but the vertical reach is where the value is, and a rule beats an asymmetry); dropping the expansion entirely (returns every fine cell to a sub-24 target, the thing the expansion exists to fix); leaving the sentence and hoping (it was already false).
+
+## 2026-08-06 A hosted mark stays a mark — behaving beats a rule nobody can enforce
+
+The audit's D4: a checkbox in a field's trailing slot rendered 20 wide and 24 tall. The hosted-control rule pins `height` to the slot's derived box — right for a Button, which is a container for a label, wrong for the one control whose box IS its mark — and physical `height` beats logical `block-size` in the cascade while `inline-size` sails through unopposed. The corner then held two different fractions of two different axes, the exact class of thing the `--radius-mark-N` fix was written to end. Worse, on a fine pointer the mark kept its own expanding target inside the container: 36px of reach inside a 32px field, the inversion §4's hosted rule exists to prevent.
+
+Two options: make it behave, or declare the combination unsupported. The deciding fact, surfaced when Kushagra asked what a block would take: **a true block is impossible** — the slots accept any node, so "unsupported" could only ever be a written rule, and anyone ignoring it would get the broken rectangle. He chose behaving ("A"). Both axes now come from one expression — the mark, floored by the hosted box for the cells where the slot is genuinely tighter — and the mark's own expander is scoped out of slots entirely (`:where` keeps the exclusion at class specificity), so the container-matched coarse target from the shared layer is the only target a hosted mark has. A law pins that the exclusion does not leak to marks that merely sit inside a label or a form. Radio and Switch inherit the geometry.
+
+Rejected: the written-rule "block" (unenforceable, and a documented broken cell sits badly with a system whose demos are law-checked); filling the hosted box instead of keeping the mark (24×24 in a size-2 field — a hosted checkbox LARGER than a standalone one, growing on entry); suppressing the coarse container-matched target along with the mark's own (it is the sanctioned §4 behaviour for anything hosted).
+
 ## 2026-08-06 readOnly is refused on Checkbox — the standard pattern is that there is none
 
 The audit (D5) found `readOnly` accepted and resolving to nothing: a checkbox that looked live, stepped its fill under the pointer, kept the pointing cursor, and silently refused the click — three affordances promising a toggle Base UI then denied. The open question was what it should look like; four candidates were mocked in the preview and judged.
