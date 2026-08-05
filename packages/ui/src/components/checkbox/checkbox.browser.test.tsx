@@ -53,15 +53,17 @@ function markBox(el: Element): { w: number; h: number } {
 }
 
 /**
- * The TARGET, read off the pseudo-element's computed insets. Deliberately not measured with
- * getBoundingClientRect: a pseudo-element has no box in the DOM API, and reading the declared
- * inset is what proves the rule rather than the rendering. Negative insets expand, so the
- * target is the mark plus twice the reach on each side.
+ * The TARGET, as the browser actually resolves it: the pseudo-element's own computed height.
+ *
+ * The first version reconstructed the number from the mark's border box plus the DECLARED
+ * inset — the same two inputs the buggy formula used, so it agreed with the bug (the audit's
+ * D3): an absolutely positioned box resolves its insets against the PADDING box, the mark
+ * wears a real border, and the rendered target was 2 x --border-width short of the rule in
+ * all 24 cells while this helper reported it exactly on. A law must read the resolved output,
+ * never re-derive the author's arithmetic from the author's inputs.
  */
 function targetBox(el: Element): number {
-  const after = getComputedStyle(el, "::after");
-  const reach = -px(after.top);
-  return px(getComputedStyle(el).height) + 2 * reach;
+  return px(getComputedStyle(el, "::after").height);
 }
 
 describe("the mark is the line box, not the height ladder (§4)", () => {
@@ -161,11 +163,11 @@ describe("the target is a control of its size, capped at the touch floor (§4, �
     }
   });
 
-  it("never reaches more than 10px past the mark — the overlap §16 refused to guess at", () => {
+  it("never reaches more than 11px past the mark — the overlap §16 refused to guess at", () => {
     // What makes this expansion legitimate where §16's rejected one was not: the extent is a
     // rule (the control height, capped), so the reach is a KNOWN number in every cell rather
-    // than a clamp nobody could size. Bounded under 10px, a stacked list is clear at any gap
-    // the layout-space scale offers.
+    // than a clamp nobody could size. The bound is (44 - smallest coarse mark) / 2 plus the
+    // border term the target owes (D3): 10 + 1.
     for (const pointer of ["fine", "coarse"] as const) {
       for (const density of DENSITIES) {
         for (const size of SIZES) {
@@ -176,7 +178,7 @@ describe("the target is a control of its size, capped at the touch floor (§4, �
           );
           const mark = markOf(el);
           const reach = -px(getComputedStyle(mark, "::after").top);
-          expect(reach, `${pointer}/${density}/${size} reaches ${reach}px`).toBeLessThanOrEqual(10);
+          expect(reach, `${pointer}/${density}/${size} reaches ${reach}px`).toBeLessThanOrEqual(11);
         }
       }
     }

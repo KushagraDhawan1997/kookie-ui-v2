@@ -69,16 +69,24 @@
    around a 28px mark is 20px of invisible reach on every side — past 44 a target buys nothing
    (it is already the platform maximum anyone designs for) and starts taking from whatever sits
    above and below, which is precisely the silent overlap that got pseudo-expansion rejected.
-   With the cap the widest reach in any of the 24 cells is under 10px, so a stacked list is
-   clear at any layout-space gap the system offers.
+   With the cap the widest reach in any of the 24 cells is 11px (the half-difference plus the
+   border term below).
 
    --touch-target-min gets its first stylesheet consumer here. It was minted for the `max()`
    height reserve §16 dropped and has been a published number with nothing reading it since;
-   this is the one place it means what it says. */
+   this is the one place it means what it says.
+
+   The border term is not optional (audit 2026-08-05, D3): an absolutely positioned box
+   resolves its insets against the PADDING box, and the mark wears a real border — without
+   the subtraction the rendered target is 2 x --border-width short of the rule in every cell,
+   22px at fine/compact/size 1 against the 24 floor. The hosted-control rule in the shared
+   layer carries the same term for the same reason. */
 .kui-checkbox::after {
   content: "";
   position: absolute;
-  inset: calc((var(--kui-ct-mark) - min(var(--kui-ct-h), var(--touch-target-min))) / 2);
+  inset: calc(
+    (var(--kui-ct-mark) - min(var(--kui-ct-h), var(--touch-target-min))) / 2 - var(--border-width)
+  );
 }
 
 /* ── The on state (§11) ──────────────────────────────────────────────────────────────────────
