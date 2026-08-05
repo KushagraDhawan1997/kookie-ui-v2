@@ -298,7 +298,7 @@ export const handheldMedia = "(pointer: coarse)";
  *
  *   narrow   ≤ 48rem   one column, bottom bar; dialogs become sheets (later)
  *   regular  in between  rail navigation
- *   wide     ≥ 64rem   sidebar; everything a shell can use
+ *   wide     ≥ 75rem   sidebar; everything a shell can use
  *
  * Boundaries land DOWNWARD (a window at exactly 48rem is narrow), matching the narrow
  * type band's inclusive max-width — same word, same number, same moment.
@@ -308,9 +308,16 @@ export const windowClass = {
    *  from it below, so "display type shrinks" and "the app goes to one column" cannot
    *  drift apart. v0 keeps the 48rem the band already had. */
   narrowMax: "48rem",
-  /** The regular/wide boundary. v0 64rem: Kookie's bias is apps, where a sidebar wants
-   *  real room; Material's 840px reference sat too low for that. Judged like every number. */
-  regularMax: "64rem",
+  /** The regular/wide boundary. 75rem (judged 2026-08-05, Kushagra — 64rem was too small):
+   *  `wide` promises a sidebar, a real sidebar is ~260px, and at 1024 the content behind it
+   *  would be narrower than a narrow window. At 1200, iPads in landscape (1024-1180) take
+   *  the rail, half a 27" display (1280) and every fullscreen laptop take the sidebar, and
+   *  content behind a sidebar never drops below ~920px. NOT 80rem: that would put the
+   *  boundary exactly on 1280 — one of the most populated widths in the wild (half-27",
+   *  WXGA fullscreen) — so the commonest desktop posture would sit on the knife edge and
+   *  flip shells with a pixel of drag. A threshold sits in quiet territory between
+   *  populations, never on top of one; almost nothing lands exactly on 1200. */
+  regularMax: "75rem",
 } as const;
 
 /**

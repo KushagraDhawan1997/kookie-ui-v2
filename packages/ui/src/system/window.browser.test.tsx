@@ -32,12 +32,12 @@ describe("the window class answers the window, live (§18)", () => {
     expect(await at(1280)).toBe("wide");
   });
 
-  it("boundaries land downward — exactly 48rem is narrow, exactly 64rem is regular", async () => {
+  it("boundaries land downward — exactly 48rem is narrow, exactly 75rem is regular", async () => {
     // The same direction the narrow type band's inclusive max-width resolves, which is what
     // makes the shared 48rem one moment rather than two: at that exact width, display type
     // shrinks AND the app is narrow — never one without the other.
     expect(await at(768)).toBe("narrow");
-    expect(await at(1024)).toBe("regular");
+    expect(await at(1200)).toBe("regular");
   });
 
   it("a mounted consumer follows a resize without remounting", async () => {
@@ -55,7 +55,7 @@ describe("the window class answers the window, live (§18)", () => {
     // Walk the boundaries' neighbourhoods against raw matchMedia: at every probed width
     // exactly ONE query matches after downward tie-breaking. This is the mounted version of
     // the derivation law — it would catch a rem/px mistake the string law cannot see.
-    for (const width of [767, 768, 769, 1023, 1024, 1025]) {
+    for (const width of [767, 768, 769, 1199, 1200, 1201]) {
       await page.viewport(width, 800);
       const matches = (Object.keys(windowClassQueries) as WindowClass[]).filter(
         (c) => window.matchMedia(windowClassQueries[c]).matches,

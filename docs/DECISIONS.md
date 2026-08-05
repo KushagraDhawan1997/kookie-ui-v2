@@ -1145,7 +1145,7 @@ Container tiers (§2) answer *"how much room does this component have"* — meas
 |---|---|---|
 | `narrow` | width ≤ 48rem | one column, bottom bar; dialogs become sheets (later) |
 | `regular` | in between | rail navigation |
-| `wide` | width ≥ 64rem | sidebar; everything a shell can use |
+| `wide` | width ≥ 75rem | sidebar; everything a shell can use |
 
 ### Three, not four (LOG 2026-08-05)
 
@@ -1160,7 +1160,7 @@ A class exists to pick the navigation shape, and there are three shapes. Materia
 Two numbers make three classes: the queries are derived so `regular` is "not narrow, not wide" spelled with the identical strings — a threshold correction cannot open a gap or an overlap, law-tested.
 
 - **narrow/regular = 48rem, and it IS the narrow type band's number by derivation** (`config.ts`: `narrowMedia` is built from `windowClass.narrowMax`). One word, one number, one moment: display type shrinks exactly when the app goes to one column. This closes §17's open "same numbers or independent" question — same, mechanically.
-- **regular/wide = 64rem, v0.** Kookie's bias is apps, where a sidebar wants real room; Material's 840px reference sat too low. Judged like every number.
+- **regular/wide = 75rem (judged 2026-08-05 — opened at 64rem, moved same day).** `wide` promises a sidebar, and at 1024 the content behind a ~260px sidebar would be narrower than a narrow window — the shell would grant a sidebar and starve the content it serves. At 1200: iPads in landscape (1024–1180) take the rail, half a 27" display (1280) and every fullscreen laptop take the sidebar, content behind a sidebar never drops below ~920px. Not 80rem: that puts the boundary exactly on 1280, one of the most populated widths in the wild (half-27", WXGA fullscreen), so the commonest desktop posture would flip shells with a pixel of drag — a threshold sits in quiet territory between populations, never on top of one.
 - **Boundaries land downward** — a window at exactly 48rem is `narrow`, matching the band's inclusive `max-width`. Law-tested at the exact widths.
 
 ### How it surfaces: a hook, because a shell is components
@@ -1171,7 +1171,7 @@ Two numbers make three classes: the queries are derived so `regular` is "not nar
 
 ### Open
 
-- The 64rem boundary, judged when a real shell exists to judge it against.
+- The 75rem boundary, re-judged when a real shell exists to judge it against (the 2026-08-05 judgment was arithmetic and device populations, not an eye on a rendered shell).
 - The pre-paint stamp + `data-window` attribute for CSS consumers — deliberately deferred to apps/docs with dark SSR (REVIEW.md); the attribute contract is reserved, nothing stamps it yet.
 - Pinning (a phone-shaped canvas inside a desktop tool is a pinned narrow window — the escape the dropped `device` prop would have wanted). Arrives with the attribute, if it arrives.
 - Interaction adaptation (dialog→sheet at `narrow`, popover→drawer) — §17's open item resolves mostly into this class, not into a band; hover-reveal→tap stays the pointer's.
