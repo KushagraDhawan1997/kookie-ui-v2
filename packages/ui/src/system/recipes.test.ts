@@ -150,6 +150,21 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     }
   });
 
+  it("a component that ships a stylesheet ships its mounted laws — the file must exist", () => {
+    // Decided 2026-08-06 (Kushagra): the 2026-08-03 standard's blind spot was structural —
+    // nothing asserted a browser test FILE exists, so Spinner shipped CSS with zero mounted
+    // laws and every walk-based law happily audited its stylesheet while its geometry claims
+    // stayed prose. The law is about the file, deliberately: what the laws inside it must
+    // assert cannot be walked, but "some exist" can be.
+    for (const p of allStylesheets("components")) {
+      const dir = p.slice(0, p.lastIndexOf("/"));
+      const tests = walkFiles(dir, ".browser.test.tsx");
+      expect(tests, `${dir} ships ${p.split("/").pop()!} but no browser test file`).not.toEqual(
+        [],
+      );
+    }
+  });
+
   it("every Base UI entry a component imports is pre-bundled for the browser suite (ENGINEERING §7)", () => {
     // An entry discovered mid-run is optimized in a second pass and holds a different React
     // than the page, so every hook inside it reads null — how @base-ui/react/input failed the
