@@ -30,7 +30,21 @@ The gap the tablet discussion surfaced (§17, LOG below) closed the same day, as
 
 **The narrow boundary IS the narrow type band's number, by derivation.** Not two thresholds that happen to agree: `narrowMedia` is built from `windowClass.narrowMax` in config, a law pins the derivation, and the shared word is the point — display type shrinks exactly when the app goes to one column, including at exactly 48rem (boundaries land downward, law-tested at the exact widths). This closes §17's "same numbers or independent" question as *same, mechanically*. The wide boundary opened at 64rem and moved to **75rem the same day** (Kushagra: 1024 is too small — and the arithmetic agrees: `wide` promises a sidebar, and at 1024 the content behind ~260px of sidebar is narrower than a narrow window). 80rem was rejected for where the boundary would *sit*, not what it would grant: exactly on 1280, one of the most populated widths in the wild — half of every 27" display, WXGA fullscreen — so the commonest desktop posture would flip shells with a pixel of drag. A threshold sits in quiet territory between populations; almost nothing lands exactly on 1200. Re-judged by eye when a real shell exists.
 
-The mechanism is a hook, `useWindowClass()`, and deliberately NOT a token: no emitted declaration keys on a window class (law-tested), because a class picks a shell and a shell is components. SSR returns `null` honestly — the server has no window, and a guessed class paints a guessed shell. The pre-paint stamp that would close that gap is the same debt dark-mode SSR carries, and the two are now formally one deliverable at apps/docs: one inline script, both answers stamped before first paint.
+The mechanism is a hook, `useWindowClass()`, and deliberately NOT a token: no emitted declaration keys on a window class (law-tested), because a class picks a shell and a shell is components. SSR returns `null` honestly — the server has no window, and a guessed class paints a guessed shell. ~~The pre-paint stamp that would close that gap is the same debt dark-mode SSR carries, and the two are now formally one deliverable at apps/docs: one inline script, both answers stamped before first paint.~~ *Retracted same day — see the entry below.*
+
+---
+
+## 2026-08-05 The window half of the pre-paint stamp is retracted — false symmetry with dark mode
+
+Same day as §18 shipped, Kushagra's standing rule — every claim scrutinised against standards — killed half of it. The recorded plan was one inline script at apps/docs stamping two answers before first paint: dark mode and `data-window`. The symmetry is false, and the window half fails twice:
+
+**CSS never needed the stamp.** Media queries read the window width natively, before paint, with no script — it is the standard mechanism and the one our own type bands already use. `data-pointer` earns its attribute because *pinning* overrides what media queries would say; window pinning is deferred and may never land. Until it does, `data-window` duplicates a native capability.
+
+**JS cannot use the stamp.** Hydration: React's first client render must match the server HTML, and the server rendered the `null` branch — so the first frame is the null branch no matter what an inline script stamped on the root. This is not a Kookie limitation; next-themes, the reference implementation of the dark-mode script, has exactly this shape — the script fixes CSS only, and its hook returns undefined until mount.
+
+**The standard answer for a first-paint shell is CSS-shaped**: both navigations in the HTML, the exported boundary queries picking which shows. No JS decides layout, so nothing flashes. The hook serves post-mount decisions — what to fetch, what to route — which is what a runtime signal is for.
+
+What survives: the dark-mode inline script, alone — the industry-standard fix (next-themes, Tailwind docs), and needed only because `appearance` can be authored rather than system-followed; pure system-following is plain `prefers-color-scheme`. The `data-window` attribute is no longer reserved; it exists the day pinning does, as pinning's mechanism, or never.
 
 ---
 

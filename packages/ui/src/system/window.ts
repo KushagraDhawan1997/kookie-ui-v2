@@ -16,10 +16,11 @@
  * narrow — matching the narrow type band's inclusive max-width, with which the narrow
  * boundary shares its number BY DERIVATION (config.ts): one word, one moment.
  *
- * SSR returns `null`, honestly: the server has no window, and a guessed class would paint
- * a guessed shell. The pre-paint stamp that would close the gap is the same debt dark-mode
- * SSR already carries; the two resolve together at apps/docs (REVIEW.md). Until then a
- * consumer decides its own fallback, knowing it is one.
+ * SSR returns `null`, honestly, and stays null through first paint BY DESIGN (LOG
+ * 2026-08-05): no pre-paint stamp can fix it — React's first client render must match the
+ * server HTML, so the null branch paints first regardless of what a script stamped. A
+ * first-paint shell is CSS-shaped instead: both navigations in the HTML, the exported
+ * boundary queries picking which shows. This hook serves decisions AFTER mount.
  */
 import * as React from "react";
 
@@ -62,7 +63,7 @@ function subscribe(onChange: () => void): () => void {
 
 /**
  * The window's size class, live. `null` on the server and during hydration's first paint —
- * see the module note; the honest answer until the pre-paint stamp exists.
+ * see the module note; a first-paint shell belongs to CSS, not this hook.
  */
 export function useWindowClass(): WindowClass | null {
   return React.useSyncExternalStore(subscribe, classify, () => null);
