@@ -151,10 +151,14 @@ export const tones = {
   /** Pinned, not hue-authored: at hue 55 the generated solid cannot hold an APCA-clearing
       label, while this placed orange passes every law in both modes. */
   orange: { color: "#F76B15" },
-  /** amber/yellow is deliberately ABSENT: the band is hemmed at its cusp in both directions —
-      away-from-label washes out (separation .032 < the .035 floor), toward-label drops the
-      black label to Lc 55 (< 60). Both laws hold; membership is what gives (LOG 2026-08-04).
-      It joins the day the generator earns it a designed exception, not before. */
+  /** Joined 2026-08-05 at vividness 0.9, closing the absence LOG 2026-08-04 recorded. At full
+      vividness the resting solid parks ON the gamut cusp, where any lightness move sheds
+      chroma past the mud-guard and the states compress to .032 (< the .035 floor). Backing
+      off the cusp by 10% is what buys the visible press state — the per-tone vividness knob
+      doing its designed job, no law bent, no generator exception. Kushagra judged 0.9 against
+      the refused full-vividness row and a Radix-lightness pin in the preview sweep; brighter
+      ambers exist only by carrying a pin into dark (declined — this is the one he liked). */
+  amber: { hue: 80, vividness: 0.9 },
 } as const;
 
 export type ToneName = keyof typeof tones;

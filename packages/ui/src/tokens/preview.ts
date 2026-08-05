@@ -41,15 +41,10 @@ function kuiBox(props: BoxStyleProps, body: string): string {
  */
 const SWEEP: Array<[string, { hue: number; vividness: number; pinL?: number }]> = [
   ["yellow", { hue: 100, vividness: 1 }],
-  ["amber", { hue: 80, vividness: 1 }],
-  // The amber candidates (2026-08-05): at full vividness the resting solid parks ON the gamut
-  // cusp and the states cannot move .035 in lightness without shedding past the mud-guard —
-  // the law refuses it. Backing vividness off the cusp is what buys the visible press state;
-  // every variant below passes all the laws in both modes. The pinned row is Radix amber 9's
-  // own lightness (L .854) and hue (84) — lighter and yellower than hue 80, which is most of
-  // why theirs reads brighter — at the highest vividness whose dark mode still passes.
-  ["amber v0.9 — passes", { hue: 80, vividness: 0.9 }],
-  ["amber Radix-L v0.85 — passes", { hue: 84.13, vividness: 0.85, pinL: 0.854 }],
+  // Full-vividness amber stays in the sweep as the hostile case it always was: the SHIPPED
+  // amber tone is this hue at vividness 0.9 (color-config.ts — the cusp finding, 2026-08-05),
+  // and the shipped-tone sections below render it. This row is the one the laws refuse.
+  ["amber (v1.0, refused)", { hue: 80, vividness: 1 }],
   ["lime", { hue: 130, vividness: 1 }],
   ["green", { hue: 150, vividness: 1 }],
   ["teal", { hue: 175, vividness: 1 }],

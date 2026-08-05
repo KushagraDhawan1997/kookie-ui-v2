@@ -384,6 +384,44 @@
   --orange-ink: var(--orange-11);
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
   --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+  /* amber */
+  --amber-1: #fefbf6;
+  --amber-2: #fef6e9;
+  --amber-3: #fcecd2;
+  --amber-4: #fce6c3;
+  --amber-5: #fbddaa;
+  --amber-6: #fbd99f;
+  --amber-7: #fbcc7c;
+  --amber-8: #f7b838;
+  --amber-9: #f0b236;
+  --amber-10: #e0a632;
+  --amber-11: #806431;
+  --amber-12: #251e12;
+  --amber-a1: color-mix(in srgb, #e38e00 3.5%, transparent);
+  --amber-a2: color-mix(in srgb, #f39700 8.6%, transparent);
+  --amber-a3: color-mix(in srgb, #ee9300 17.6%, transparent);
+  --amber-a4: color-mix(in srgb, #f29500 23.5%, transparent);
+  --amber-a5: color-mix(in srgb, #f39900 33.3%, transparent);
+  --amber-a6: color-mix(in srgb, #f49a00 37.6%, transparent);
+  --amber-a7: color-mix(in srgb, #f79c00 51.4%, transparent);
+  --amber-a8: color-mix(in srgb, #f5a400 78.0%, transparent);
+  --amber-a9: color-mix(in srgb, #ec9d00 78.8%, transparent);
+  --amber-a10: color-mix(in srgb, #d89000 80.4%, transparent);
+  --amber-a11: color-mix(in srgb, #623f00 80.8%, transparent);
+  --amber-a12: color-mix(in srgb, #140d00 92.9%, transparent);
+  --amber-soft: var(--amber-3);
+  --amber-soft-hover: var(--amber-4);
+  --amber-soft-active: var(--amber-5);
+  --amber-solid: #f0b236;
+  --amber-solid-hover: #fdbe47;
+  --amber-solid-active: #ffcf7d;
+  --amber-border: var(--amber-7);
+  --amber-text: var(--amber-11);
+  --amber-label: #544325;
+  --amber-contrast: #000000;
+  --amber-ink: var(--amber-11);
+  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
+  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
 
@@ -667,6 +705,44 @@
   --orange-ink: var(--orange-11);
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
   --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+  /* amber */
+  --amber-1: #fefbf6;
+  --amber-2: #fef6e9;
+  --amber-3: #fcecd2;
+  --amber-4: #fce6c3;
+  --amber-5: #fbddaa;
+  --amber-6: #fbd99f;
+  --amber-7: #fbcc7c;
+  --amber-8: #f7b838;
+  --amber-9: #f0b236;
+  --amber-10: #e0a632;
+  --amber-11: #806431;
+  --amber-12: #251e12;
+  --amber-a1: color-mix(in srgb, #e38e00 3.5%, transparent);
+  --amber-a2: color-mix(in srgb, #f39700 8.6%, transparent);
+  --amber-a3: color-mix(in srgb, #ee9300 17.6%, transparent);
+  --amber-a4: color-mix(in srgb, #f29500 23.5%, transparent);
+  --amber-a5: color-mix(in srgb, #f39900 33.3%, transparent);
+  --amber-a6: color-mix(in srgb, #f49a00 37.6%, transparent);
+  --amber-a7: color-mix(in srgb, #f79c00 51.4%, transparent);
+  --amber-a8: color-mix(in srgb, #f5a400 78.0%, transparent);
+  --amber-a9: color-mix(in srgb, #ec9d00 78.8%, transparent);
+  --amber-a10: color-mix(in srgb, #d89000 80.4%, transparent);
+  --amber-a11: color-mix(in srgb, #623f00 80.8%, transparent);
+  --amber-a12: color-mix(in srgb, #140d00 92.9%, transparent);
+  --amber-soft: var(--amber-3);
+  --amber-soft-hover: var(--amber-4);
+  --amber-soft-active: var(--amber-5);
+  --amber-solid: #f0b236;
+  --amber-solid-hover: #fdbe47;
+  --amber-solid-active: #ffcf7d;
+  --amber-border: var(--amber-7);
+  --amber-text: var(--amber-11);
+  --amber-label: #544325;
+  --amber-contrast: #000000;
+  --amber-ink: var(--amber-11);
+  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
+  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
 
@@ -950,6 +1026,44 @@
   --orange-ink: var(--orange-11);
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
   --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+  /* amber */
+  --amber-1: #160e02;
+  --amber-2: #1d1303;
+  --amber-3: #271b05;
+  --amber-4: #312206;
+  --amber-5: #3c2a08;
+  --amber-6: #49340b;
+  --amber-7: #5d430f;
+  --amber-8: #7b5a17;
+  --amber-9: #f0b236;
+  --amber-10: #e0a632;
+  --amber-11: #e6b55e;
+  --amber-12: #f5ead7;
+  --amber-a1: color-mix(in srgb, #170e00 88.2%, transparent);
+  --amber-a2: color-mix(in srgb, #201400 82.4%, transparent);
+  --amber-a3: color-mix(in srgb, #312000 70.6%, transparent);
+  --amber-a4: color-mix(in srgb, #442c00 64.7%, transparent);
+  --amber-a5: color-mix(in srgb, #654100 52.9%, transparent);
+  --amber-a6: color-mix(in srgb, #b57600 35.3%, transparent);
+  --amber-a7: color-mix(in srgb, #ffac0b 32.8%, transparent);
+  --amber-a8: color-mix(in srgb, #ffb41e 45.2%, transparent);
+  --amber-a9: color-mix(in srgb, #ffbd38 93.8%, transparent);
+  --amber-a10: color-mix(in srgb, #ffbc37 87.1%, transparent);
+  --amber-a11: color-mix(in srgb, #ffc867 89.6%, transparent);
+  --amber-a12: color-mix(in srgb, #fff3e0 95.9%, transparent);
+  --amber-soft: var(--amber-3);
+  --amber-soft-hover: var(--amber-4);
+  --amber-soft-active: var(--amber-5);
+  --amber-solid: #f0b236;
+  --amber-solid-hover: #fdbe47;
+  --amber-solid-active: #ffcf7d;
+  --amber-border: var(--amber-7);
+  --amber-text: var(--amber-11);
+  --amber-label: #eecd95;
+  --amber-contrast: #000000;
+  --amber-ink: var(--amber-11);
+  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
+  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
   --focus-ring: var(--accent-11);
   --invalid-edge: var(--destructive-11);
 
@@ -1162,6 +1276,32 @@
     --orange-ink: var(--orange-11);
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
     --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+    /* amber */
+    --amber-1: color(display-p3 0.9975 0.9857 0.9636);
+    --amber-2: color(display-p3 0.9944 0.964 0.9072);
+    --amber-3: color(display-p3 0.99 0.927 0.8096);
+    --amber-4: color(display-p3 0.9886 0.9041 0.7468);
+    --amber-5: color(display-p3 0.9855 0.8652 0.6407);
+    --amber-6: color(display-p3 0.9851 0.849 0.5942);
+    --amber-7: color(display-p3 0.9838 0.7989 0.4431);
+    --amber-8: color(display-p3 0.9559 0.7205 0.2146);
+    --amber-9: color(display-p3 0.939 0.7075 0.2101);
+    --amber-10: color(display-p3 0.8779 0.6607 0.1938);
+    --amber-11: color(display-p3 0.4966 0.3918 0.1872);
+    --amber-12: color(display-p3 0.1449 0.1181 0.0677);
+    --amber-soft: var(--amber-3);
+    --amber-soft-hover: var(--amber-4);
+    --amber-soft-active: var(--amber-5);
+    --amber-solid: color(display-p3 0.939 0.7075 0.2101);
+    --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
+    --amber-solid-active: color(display-p3 1 0.8263 0.4955);
+    --amber-border: var(--amber-7);
+    --amber-text: var(--amber-11);
+    --amber-label: color(display-p3 0.3267 0.2636 0.1433);
+    --amber-contrast: #000000;
+    --amber-ink: var(--amber-11);
+    --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
+    --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
   }
@@ -1322,6 +1462,32 @@
     --orange-ink: var(--orange-11);
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
     --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+    /* amber */
+    --amber-1: color(display-p3 0.9975 0.9857 0.9636);
+    --amber-2: color(display-p3 0.9944 0.964 0.9072);
+    --amber-3: color(display-p3 0.99 0.927 0.8096);
+    --amber-4: color(display-p3 0.9886 0.9041 0.7468);
+    --amber-5: color(display-p3 0.9855 0.8652 0.6407);
+    --amber-6: color(display-p3 0.9851 0.849 0.5942);
+    --amber-7: color(display-p3 0.9838 0.7989 0.4431);
+    --amber-8: color(display-p3 0.9559 0.7205 0.2146);
+    --amber-9: color(display-p3 0.939 0.7075 0.2101);
+    --amber-10: color(display-p3 0.8779 0.6607 0.1938);
+    --amber-11: color(display-p3 0.4966 0.3918 0.1872);
+    --amber-12: color(display-p3 0.1449 0.1181 0.0677);
+    --amber-soft: var(--amber-3);
+    --amber-soft-hover: var(--amber-4);
+    --amber-soft-active: var(--amber-5);
+    --amber-solid: color(display-p3 0.939 0.7075 0.2101);
+    --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
+    --amber-solid-active: color(display-p3 1 0.8263 0.4955);
+    --amber-border: var(--amber-7);
+    --amber-text: var(--amber-11);
+    --amber-label: color(display-p3 0.3267 0.2636 0.1433);
+    --amber-contrast: #000000;
+    --amber-ink: var(--amber-11);
+    --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
+    --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
   }
@@ -1482,6 +1648,32 @@
     --orange-ink: var(--orange-11);
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
     --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+    /* amber */
+    --amber-1: color(display-p3 0.0839 0.0545 0.0086);
+    --amber-2: color(display-p3 0.1116 0.0756 0.0119);
+    --amber-3: color(display-p3 0.1492 0.1042 0.017);
+    --amber-4: color(display-p3 0.1896 0.1347 0.0228);
+    --amber-5: color(display-p3 0.2311 0.1663 0.0308);
+    --amber-6: color(display-p3 0.2802 0.2035 0.0414);
+    --amber-7: color(display-p3 0.3571 0.2611 0.0549);
+    --amber-8: color(display-p3 0.4761 0.3524 0.0867);
+    --amber-9: color(display-p3 0.939 0.7075 0.2101);
+    --amber-10: color(display-p3 0.8779 0.6607 0.1938);
+    --amber-11: color(display-p3 0.8902 0.7105 0.3601);
+    --amber-12: color(display-p3 0.9607 0.9166 0.8343);
+    --amber-soft: var(--amber-3);
+    --amber-soft-hover: var(--amber-4);
+    --amber-soft-active: var(--amber-5);
+    --amber-solid: color(display-p3 0.939 0.7075 0.2101);
+    --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
+    --amber-solid-active: color(display-p3 1 0.8263 0.4955);
+    --amber-border: var(--amber-7);
+    --amber-text: var(--amber-11);
+    --amber-label: color(display-p3 0.9342 0.8022 0.5546);
+    --amber-contrast: #000000;
+    --amber-ink: var(--amber-11);
+    --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
+    --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
     --focus-ring: var(--accent-11);
     --invalid-edge: var(--destructive-11);
   }
@@ -1537,6 +1729,14 @@
   --orange-solid-hover: #dc5b00;
   --orange-solid-active: #bf4e00;
   --orange-label: #351a0e;
+  --amber-6: #f6b83e;
+  --amber-7: #f7b838;
+  --amber-8: #f7b838;
+  --amber-11: #523f1d;
+  --amber-12: #040301;
+  --amber-solid-hover: #fdbe47;
+  --amber-solid-active: #ffcf7d;
+  --amber-label: #2b2110;
 }
 @media (prefers-contrast: more) {
   :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -1589,6 +1789,14 @@
     --orange-solid-hover: #dc5b00;
     --orange-solid-active: #bf4e00;
     --orange-label: #351a0e;
+    --amber-6: #f6b83e;
+    --amber-7: #f7b838;
+    --amber-8: #f7b838;
+    --amber-11: #523f1d;
+    --amber-12: #040301;
+    --amber-solid-hover: #fdbe47;
+    --amber-solid-active: #ffcf7d;
+    --amber-label: #2b2110;
   }
 }
 
@@ -1642,6 +1850,14 @@
   --orange-solid-hover: #dd5b00;
   --orange-solid-active: #c04e00;
   --orange-label: #f9ebe4;
+  --amber-6: #825f1c;
+  --amber-7: #986f1f;
+  --amber-8: #b98928;
+  --amber-11: #f8e1bd;
+  --amber-12: #fcfaf5;
+  --amber-solid-hover: #fdbe47;
+  --amber-solid-active: #ffcf7d;
+  --amber-label: #f9edd9;
 }
 @media (prefers-contrast: more) {
   [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -1694,6 +1910,14 @@
     --orange-solid-hover: #dd5b00;
     --orange-solid-active: #c04e00;
     --orange-label: #f9ebe4;
+    --amber-6: #825f1c;
+    --amber-7: #986f1f;
+    --amber-8: #b98928;
+    --amber-11: #f8e1bd;
+    --amber-12: #fcfaf5;
+    --amber-solid-hover: #fdbe47;
+    --amber-solid-active: #ffcf7d;
+    --amber-label: #f9edd9;
   }
 }
 
@@ -1748,6 +1972,14 @@
     --orange-solid-hover: color(display-p3 0.8341 0.3572 0);
     --orange-solid-active: color(display-p3 0.725 0.3066 0);
     --orange-label: color(display-p3 0.2023 0.1037 0.052);
+    --amber-6: color(display-p3 0.9677 0.7338 0.2393);
+    --amber-7: color(display-p3 0.9713 0.7323 0.2188);
+    --amber-8: color(display-p3 0.9559 0.7205 0.2146);
+    --amber-11: color(display-p3 0.3177 0.2469 0.1087);
+    --amber-12: color(display-p3 0.0173 0.0122 0.0053);
+    --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
+    --amber-solid-active: color(display-p3 1 0.8263 0.4955);
+    --amber-label: color(display-p3 0.1655 0.129 0.0596);
   }
   @media (prefers-contrast: more) {
     :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -1800,6 +2032,14 @@
       --orange-solid-hover: color(display-p3 0.8341 0.3572 0);
       --orange-solid-active: color(display-p3 0.725 0.3066 0);
       --orange-label: color(display-p3 0.2023 0.1037 0.052);
+      --amber-6: color(display-p3 0.9677 0.7338 0.2393);
+      --amber-7: color(display-p3 0.9713 0.7323 0.2188);
+      --amber-8: color(display-p3 0.9559 0.7205 0.2146);
+      --amber-11: color(display-p3 0.3177 0.2469 0.1087);
+      --amber-12: color(display-p3 0.0173 0.0122 0.0053);
+      --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
+      --amber-solid-active: color(display-p3 1 0.8263 0.4955);
+      --amber-label: color(display-p3 0.1655 0.129 0.0596);
     }
   }
 }
@@ -1855,6 +2095,14 @@
     --orange-solid-hover: color(display-p3 0.8682 0.373 0);
     --orange-solid-active: color(display-p3 0.7582 0.322 0);
     --orange-label: color(display-p3 0.9781 0.9194 0.8891);
+    --amber-6: color(display-p3 0.5014 0.3741 0.1051);
+    --amber-7: color(display-p3 0.5866 0.4372 0.1161);
+    --amber-8: color(display-p3 0.7157 0.5362 0.1506);
+    --amber-11: color(display-p3 0.9713 0.8842 0.7222);
+    --amber-12: color(display-p3 0.9901 0.9792 0.9589);
+    --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
+    --amber-solid-active: color(display-p3 1 0.8263 0.4955);
+    --amber-label: color(display-p3 0.9749 0.9283 0.8414);
   }
   @media (prefers-contrast: more) {
     [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -1907,6 +2155,14 @@
       --orange-solid-hover: color(display-p3 0.8682 0.373 0);
       --orange-solid-active: color(display-p3 0.7582 0.322 0);
       --orange-label: color(display-p3 0.9781 0.9194 0.8891);
+      --amber-6: color(display-p3 0.5014 0.3741 0.1051);
+      --amber-7: color(display-p3 0.5866 0.4372 0.1161);
+      --amber-8: color(display-p3 0.7157 0.5362 0.1506);
+      --amber-11: color(display-p3 0.9713 0.8842 0.7222);
+      --amber-12: color(display-p3 0.9901 0.9792 0.9589);
+      --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
+      --amber-solid-active: color(display-p3 1 0.8263 0.4955);
+      --amber-label: color(display-p3 0.9749 0.9283 0.8414);
     }
   }
 }
@@ -2377,6 +2633,23 @@
   --tone-ink-muted: var(--orange-ink-muted);
   --tone-ink-faint: var(--orange-ink-faint);
   --tone-a3: var(--orange-a3);
+}
+
+[data-tone="amber"] {
+  --tone-soft: var(--amber-soft);
+  --tone-soft-hover: var(--amber-soft-hover);
+  --tone-soft-active: var(--amber-soft-active);
+  --tone-solid: var(--amber-solid);
+  --tone-solid-hover: var(--amber-solid-hover);
+  --tone-solid-active: var(--amber-solid-active);
+  --tone-border: var(--amber-border);
+  --tone-text: var(--amber-text);
+  --tone-label: var(--amber-label);
+  --tone-contrast: var(--amber-contrast);
+  --tone-ink: var(--amber-ink);
+  --tone-ink-muted: var(--amber-ink-muted);
+  --tone-ink-faint: var(--amber-ink-faint);
+  --tone-a3: var(--amber-a3);
 }
 
 [data-pointer="fine"] {
