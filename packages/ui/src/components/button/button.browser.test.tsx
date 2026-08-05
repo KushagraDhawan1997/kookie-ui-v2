@@ -399,6 +399,10 @@ describe("the boundary (§3, §13)", () => {
     // type, and Base UI emitted it because nativeButton defaults true and was never forwarded.
     expect(el.hasAttribute("type")).toBe(false);
     expect(el.getAttribute("role")).toBe("button");
+    // ...and whether the element DRESSED as one: the UA underlines anchors, and until
+    // 2026-08-05 a link-as-button wore that underline into the control dress — the docs
+    // nav shipped underlined "buttons" before any law asked. Computed, per the standing rule.
+    expect(computed(el, "text-decoration-line")).toBe("none");
   });
 
   it("and a disabled link says so, instead of being a focusable dead end (§1)", () => {
