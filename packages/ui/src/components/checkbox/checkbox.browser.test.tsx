@@ -427,7 +427,6 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
         </Theme>,
       );
       for (const el of [off, on]) {
-        const mark = markOf(el.querySelector(".kui-checkbox") ? el : el);
         expect(computed(markOf(el), "background-color"), appearance).toBe(colorOn(el, "var(--neutral-3)"));
         expect(computed(markOf(el), "opacity")).toBe("1");
       }
