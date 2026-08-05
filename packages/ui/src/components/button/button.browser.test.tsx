@@ -425,10 +425,14 @@ describe("the boundary (§3, §13)", () => {
   it("consumes only role tokens — no numbered step reaches a rendered property", () => {
     // §13's contract from the component side: a Button never names --accent-9, so rebinding a
     // tone or switching appearance moves it without the component knowing anything changed.
-    const light = render(<Button tone="accent" emphasis="loud">L</Button>);
+    // The probe is the SOFT fill, not the solid: a hue-authored accent at full vividness
+    // legitimately places the same solid in both modes (the generator finds the same cusp —
+    // the blue family always did), so the solid stopped being evidence the day the accent
+    // became hue-authored (2026-08-05). The soft tint differs by mode for every tone.
+    const light = render(<Button tone="accent" emphasis="medium">L</Button>);
     const dark = render(
       <Theme appearance="dark">
-        <Button tone="accent" emphasis="loud">
+        <Button tone="accent" emphasis="medium">
           L
         </Button>
       </Theme>,

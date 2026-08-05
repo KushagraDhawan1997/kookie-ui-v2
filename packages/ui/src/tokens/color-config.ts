@@ -141,8 +141,10 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
 export const tones = {
   /** Not a brand colour: a hue and a near-zero chroma, which is all a tinted grey is. */
   neutral: { hue: 250, vividness: 0.04 },
-  /** The user's brand colour. Reproduced exactly as step 9 in light mode (§7). */
-  accent: { color: "#6E56CF" },
+  /** The user's brand colour. A pinned hex is reproduced exactly as step 9 in light mode
+      (§7); hue-authored here so the preview's accent IS the blue family (Kushagra,
+      2026-08-05) — one definition, so the two can never drift apart. */
+  accent: { hue: 250, vividness: 1 },
   destructive: { color: "#E5484D" },
   blue: { hue: 250, vividness: 1 },
   green: { hue: 150, vividness: 1 },
