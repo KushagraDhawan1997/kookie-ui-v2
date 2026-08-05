@@ -81,6 +81,24 @@
   --icon-size-3: calc(20px * var(--scale));
   --icon-size-4: calc(24px * var(--scale));
 
+  /* the mark family (§4) — the painted box of a control that IS its own mark: checkbox,
+     radio, switch track, slider thumb. ONE ladder, and it is the line box: a mark occupies
+     exactly one line of the label it sits beside. Emitted as the resolved length rather
+     than var(--line-height-N) so a band re-pricing type cannot leave a mark behind — the
+     pointer worlds re-declare it below, which is where the coarse rise comes from. */
+  --mark-1: calc(16px * var(--scale));
+  --mark-2: calc(20px * var(--scale));
+  --mark-3: calc(24px * var(--scale));
+  --mark-4: calc(26px * var(--scale));
+
+  /* and the corner it can never exceed (§6): at radius=full the control band states the
+     capsule, and a circular checkbox is a radio. The ceiling is the DEFAULT level's corner
+     — theme-, density- and pointer-invariant, so it is declared once. */
+  --radius-mark-cap-1: calc(4px * var(--scale));
+  --radius-mark-cap-2: calc(6px * var(--scale));
+  --radius-mark-cap-3: calc(8px * var(--scale));
+  --radius-mark-cap-4: calc(10px * var(--scale));
+
   /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until
      2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered
      button at scale 2 kept a 1px hairline while every other length doubled. */
@@ -584,6 +602,15 @@
   --color-surface-hover: var(--neutral-2);
   --color-surface-active: var(--neutral-3);
 
+  /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in
+     THIS family"; this answers "the edge of a thing that has no family" — a Separator, and
+     the resting box of a control whose tone belongs to its ON state alone (Checkbox, Radio,
+     Switch: neutral off, accent on). Without it, such a control has to choose between
+     stamping accent and wearing a tinted edge at rest, or stamping neutral and having no
+     way to name accent when it is checked — and naming a FAMILY in a component stylesheet
+     is what the role-not-family law forbids. Neutral's own border role, exposed. */
+  --color-border: var(--neutral-border);
+
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
      elevation stays deleted. Row 1 is the inset well. */
   --shadow-1: inset 0 1px 2px rgb(0 0 0 / 0.1);
@@ -1025,6 +1052,15 @@
   --color-surface-hover: var(--neutral-2);
   --color-surface-active: var(--neutral-3);
 
+  /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in
+     THIS family"; this answers "the edge of a thing that has no family" — a Separator, and
+     the resting box of a control whose tone belongs to its ON state alone (Checkbox, Radio,
+     Switch: neutral off, accent on). Without it, such a control has to choose between
+     stamping accent and wearing a tinted edge at rest, or stamping neutral and having no
+     way to name accent when it is checked — and naming a FAMILY in a component stylesheet
+     is what the role-not-family law forbids. Neutral's own border role, exposed. */
+  --color-border: var(--neutral-border);
+
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
      elevation stays deleted. Row 1 is the inset well. */
   --shadow-1: inset 0 1px 2px rgb(0 0 0 / 0.1);
@@ -1465,6 +1501,15 @@
   --color-surface: var(--neutral-2);
   --color-surface-hover: var(--neutral-3);
   --color-surface-active: var(--neutral-4);
+
+  /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in
+     THIS family"; this answers "the edge of a thing that has no family" — a Separator, and
+     the resting box of a control whose tone belongs to its ON state alone (Checkbox, Radio,
+     Switch: neutral off, accent on). Without it, such a control has to choose between
+     stamping accent and wearing a tinted edge at rest, or stamping neutral and having no
+     way to name accent when it is checked — and naming a FAMILY in a component stylesheet
+     is what the role-not-family law forbids. Neutral's own border role, exposed. */
+  --color-border: var(--neutral-border);
 
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
      elevation stays deleted. Row 1 is the inset well. */
@@ -3587,6 +3632,10 @@
   --letter-spacing-2: 0em;
   --letter-spacing-3: 0em;
   --letter-spacing-4: -0.005em;
+  --mark-1: calc(16px * var(--scale));
+  --mark-2: calc(20px * var(--scale));
+  --mark-3: calc(24px * var(--scale));
+  --mark-4: calc(26px * var(--scale));
 }
 
 [data-pointer="fine"][data-density="compact"] {
@@ -3829,6 +3878,10 @@
   --letter-spacing-2: 0em;
   --letter-spacing-3: -0.005em;
   --letter-spacing-4: -0.0075em;
+  --mark-1: calc(20px * var(--scale));
+  --mark-2: calc(24px * var(--scale));
+  --mark-3: calc(26px * var(--scale));
+  --mark-4: calc(28px * var(--scale));
 }
 
 [data-pointer="coarse"][data-density="compact"] {
@@ -4072,6 +4125,10 @@
     --letter-spacing-2: 0em;
     --letter-spacing-3: -0.005em;
     --letter-spacing-4: -0.0075em;
+    --mark-1: calc(20px * var(--scale));
+    --mark-2: calc(24px * var(--scale));
+    --mark-3: calc(26px * var(--scale));
+    --mark-4: calc(28px * var(--scale));
   }
 
   [data-pointer="auto"][data-density="compact"] {

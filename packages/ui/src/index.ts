@@ -9,6 +9,7 @@ export {
   type Tone,
 } from "./components/button/button.tsx";
 export { Card, type CardProps } from "./components/card/card.tsx";
+export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx";
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
 export { Text, type TextProps, type TypeSize, type Weight } from "./components/text/text.tsx";
 export { TextArea, type TextAreaProps } from "./components/text-area/text-area.tsx";

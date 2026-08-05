@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import {
   coarse,
   controlGap,
+  defaultRadiusLevel,
   density,
   handheldMedia,
   fontSize,
@@ -766,6 +767,96 @@ describe("multiplier wiring matches §12's table", () => {
       expect(declaration(`radius-${i}`)).toContain("var(--scale)");
       expect(declaration(`radius-${i}`)).not.toContain("var(--density)");
     }
+  });
+});
+
+describe("the mark family is the line box, and nothing designed twice (§4)", () => {
+  // Checkbox, radio, switch track and slider thumb are one visual weight class, and four
+  // separately designed ladders in one weight class drift. The ladder is an identity rather
+  // than a ratio: a mark occupies exactly one line of the label it sits beside.
+  const markIn = (scope: string, i: number) =>
+    block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1];
+  const lineIn = (scope: string, i: number) =>
+    block(scope).match(new RegExp(`--line-height-${i}:\\s*([^;]+);`))?.[1];
+
+  it("resolves to the line box at :root and in the fine world", () => {
+    for (const scope of [":root", '[data-pointer="fine"]']) {
+      for (let i = 1; i <= 4; i++) {
+        expect(markIn(scope, i), `${scope} mark ${i}`).toBe(lineIn(":root", i));
+      }
+    }
+  });
+
+  it("rises in the coarse world because the TYPE rose — the handheld band, not a second ladder", () => {
+    // The whole argument for sourcing the family from type: Spectrum grows every component
+    // 1.25x on touch, and this arrives at the same place with no coarse ladder to maintain.
+    for (const scope of ['[data-pointer="coarse"]']) {
+      for (let i = 1; i <= 4; i++) {
+        const band = typeBands.handheld[i - 1]!;
+        expect(markIn(scope, i), `${scope} mark ${i}`).toBe(lineIn(":root", band));
+        expect(parseFloat(markIn(scope, i)!.match(/[\d.]+/)![0])).toBeGreaterThan(
+          parseFloat(markIn(":root", i)!.match(/[\d.]+/)![0]),
+        );
+      }
+    }
+  });
+
+  it("is declared in FULL in every pointer scope — a partial re-declaration inherits the world above", () => {
+    for (const scope of [":root", '[data-pointer="fine"]', '[data-pointer="coarse"]']) {
+      for (let i = 1; i <= 4; i++) expect(markIn(scope, i), `${scope} is missing mark ${i}`).toBeDefined();
+    }
+  });
+
+  it("never rides density — a mark sits beside a label, and the label does not move either (§4)", () => {
+    for (const level of ["compact", "comfortable"] as const) {
+      expect(block(`[data-density="${level}"]`)).not.toContain("--mark-");
+    }
+  });
+
+  it("takes --scale like every other length", () => {
+    for (let i = 1; i <= 4; i++) expect(markIn(":root", i)).toContain("var(--scale)");
+  });
+});
+
+describe("a mark's corner has a ceiling, and the ceiling is not a circle (§6)", () => {
+  const value = (decl: string | undefined) => parseFloat(decl!.match(/[\d.]+/)![0]);
+
+  it("caps under half the mark in every cell — half IS a circle, and a circle is a radio", () => {
+    for (const scope of [":root", '[data-pointer="coarse"]']) {
+      for (let i = 1; i <= 4; i++) {
+        const cap = value(block(":root").match(new RegExp(`--radius-mark-cap-${i}:\\s*([^;]+);`))?.[1]);
+        const mark = value(block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1]);
+        expect(cap, `size ${i} in ${scope} caps at or past a circle`).toBeLessThan(mark / 2);
+      }
+    }
+  });
+
+  it("is derived from the DEFAULT radius level, not designed a second time", () => {
+    for (let i = 1; i <= 4; i++) {
+      const cap = value(block(":root").match(new RegExp(`--radius-mark-cap-${i}:\\s*([^;]+);`))?.[1]);
+      expect(cap).toBe(radiusLevels[defaultRadiusLevel].steps[density.default.radius[i - 1]!]);
+    }
+  });
+
+  it("is one length no axis moves — declared once, never re-cut per level or density", () => {
+    // A per-level cell would make `min()` in the consuming layer meaningless: the point is
+    // that a level BELOW the ceiling passes through untouched, which is what keeps `none`
+    // able to square a mark like it squares everything else (§6).
+    expect(css.match(/--radius-mark-cap-1:/g)).toHaveLength(1);
+  });
+});
+
+describe("the tone-independent hairline (§7, §11)", () => {
+  it("is declared in every appearance scope, so a dark subtree does not inherit a light edge", () => {
+    for (const scope of [":root", '[data-appearance="light"]', '[data-appearance="dark"]']) {
+      expect(block(scope), `${scope} has no --color-border`).toContain("--color-border:");
+    }
+  });
+
+  it("resolves through neutral's own border role, never a raw step", () => {
+    // A role, not a coincidence (§13): if this ever became --neutral-7 directly, a contrast
+    // shift that moved the family's border would leave this one behind.
+    expect(declaration("color-border")).toBe("var(--neutral-border)");
   });
 });
 

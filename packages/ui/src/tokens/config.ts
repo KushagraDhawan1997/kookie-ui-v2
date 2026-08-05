@@ -349,6 +349,63 @@ export const controlGap = {
 } as const;
 
 /**
+ * §4 — the MARK family: the painted box of a control that IS its own mark. A checkbox, a
+ * radio, a switch's track, a slider's thumb — four controls whose visible box is not a
+ * container for a label but the mark itself, sitting BESIDE one.
+ *
+ * It is one ladder because four separately designed ladders in the same visual weight class
+ * will drift, and a checkbox beside a switch in one form has to read as the same size of
+ * thing. The derivations off it are identities, never ratios (Kushagra, 2026-08-05: "I don't
+ * like fraction" — the same objection that moved control padding off the space palette a day
+ * earlier):
+ *
+ *   checkbox side = radio diameter = slider thumb = mark(n)
+ *   switch track height                           = mark(n + 1)
+ *
+ * The one-index shift is what every peer system arrives at by hand: Radix's switch heights
+ * (16/20/24) ARE their checkbox ladder (14/16/20) moved up a step, and Material's switch
+ * track is 32 against an 18 checkbox. An index shift is a move this system already makes —
+ * density shifts layout-space picks, the handheld band shifts type steps.
+ *
+ * **The ladder is the line box**, and that is why there are no numbers here. A mark occupies
+ * exactly one line of the label it sits beside, so `--mark-N` resolves to `--line-height-N`.
+ * Three things follow that no designed ladder would have given for free: the mark aligns with
+ * its label by construction and never disturbs the text rhythm; it grows on a phone because
+ * §17's handheld band raises the type, which is the honest version of what Spectrum does by
+ * scaling every component 1.25x on touch; and there is nothing to keep in sync.
+ *
+ * The space palette was the first thing tried and it cannot hold this. Across a mark's entire
+ * plausible range (14-30px) the palette offers exactly two rungs — 16 and 24 — so a four-step
+ * ladder either repeats steps (16, 16, 24, 24) or overshoots (12, 16, 24, 32). That is the
+ * control-padding failure verbatim, one family over, and Radix hit the same wall from the
+ * other side: their switch size 2 is `calc(var(--space-5) * 5/6)` because they needed 20 and
+ * the palette does not have it.
+ *
+ * Rendered: 16/20/24/26 fine, 20/24/26/28 coarse. Peer check — Material paints 18 (one size),
+ * Radix 14/16/20, Fluent 16/20.
+ */
+export const markSteps = [1, 2, 3, 4] as const;
+
+/**
+ * §6 — the corner a mark can never exceed, and the reason the family needs one: at
+ * `radius="full"` the control band states the capsule (`height / 2`), and a circular checkbox
+ * is a radio. Shape is role semantics here, and role legibility outranks theme uniformity, so
+ * the mark is the control band's designed exception (§6, pre-scoped 2026-08-05).
+ *
+ * Derived, not designed: the ceiling is what the corner would be at the system's DEFAULT
+ * radius level, so a theme can round a mark right up to "what everything looks like when
+ * nobody asks for round" and no further. `full` and `large` both land on it; `small` and
+ * `none` sit under it and pass through untouched — which is what keeps §6's kill switch
+ * whole, since `none` must square a checkbox like everything else.
+ *
+ * Rendered: 4/6/8/10, against marks of 16/20/24/26 — a corner between 0.25 and 0.38 of the
+ * box, visibly rounded and never a circle. v0 for the eye pass.
+ */
+export const markRadiusCap = density.default.radius.map(
+  (step) => radiusLevels[defaultRadiusLevel].steps[step]!,
+) as readonly number[];
+
+/**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and
  * focus are constant facts about a control, not things that get louder as it gets bigger.
  *

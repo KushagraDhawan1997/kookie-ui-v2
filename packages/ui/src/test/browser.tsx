@@ -15,6 +15,7 @@ import { createRoot } from "react-dom/client";
 // load-bearing, since the recipes read tokens and components read recipes. Keep this list and
 // that file in step; a sheet missing here makes laws pass against an empty cascade.
 import buttonCss from "../components/button/button.css?raw";
+import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
 import textAreaCss from "../components/text-area/text-area.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
@@ -38,6 +39,7 @@ export function installStyles(): void {
     typeCss,
     spinnerCss,
     buttonCss,
+    checkboxCss,
     textFieldCss,
     textAreaCss,
   ].join("\n");

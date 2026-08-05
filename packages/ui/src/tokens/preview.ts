@@ -409,6 +409,78 @@ function textAreaSection(mode: Mode): string {
   </section>`;
 }
 
+function checkbox(
+  attrs: {
+    size?: string;
+    checked?: boolean;
+    indeterminate?: boolean;
+    disabled?: boolean;
+    invalid?: boolean;
+    label?: string;
+  } = {},
+): string {
+  const { size = "2", checked, indeterminate, disabled, invalid, label } = attrs;
+  const state = indeterminate ? " data-indeterminate" : checked ? " data-checked" : " data-unchecked";
+  const glyph = `<svg viewBox="0 0 16 16" fill="none"${state} aria-hidden="true"><path class="kui-checkbox-check" d="M4 8.5 6.75 11.25 12 5.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path class="kui-checkbox-dash" d="M4.25 8h7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const box = `<span class="kui-control kui-checkbox" data-size="${size}" data-tone="accent" data-bordered${
+    indeterminate ? " data-indeterminate" : checked ? " data-checked" : ""
+  }${disabled ? " data-disabled" : ""}${invalid ? ' aria-invalid="true"' : ""} role="checkbox">${glyph}</span>`;
+  // The label is a SIBLING, never children: a mark sits beside its label, and the row that
+  // owns them both is what spaces them (the non-negotiable). Judge the alignment here — the
+  // mark is one line box, so its top edge should sit exactly on the label's.
+  return label
+    ? kuiBox(
+        { display: "flex", gap: "3", align: "flex-start", flexShrink: "0" },
+        `${box}${text(Number(size), label)}`,
+      )
+    : box;
+}
+
+function checkboxSection(mode: Mode): string {
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
+  // A GRID with definite tracks, not a flex row, and the reason is a live system defect rather
+  // than taste: every .kui-box is a `container-type: inline-size` query container (§2), so its
+  // contents never contribute to its own inline size — a Box asked to shrink-wrap (a flex-row
+  // item, inline-flex, max-content) computes to ZERO and its content spills. Definite tracks
+  // hand each pair a width, which is the one thing containment does not take away. Recorded
+  // for a fix; a demo must not model a workaround silently.
+  const row = (body: string) =>
+    kuiBox({ display: "grid", columns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "5" }, body);
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo(
+        "the size index - one line of the label it sits beside, never the height ladder (\u00a74)",
+        row(SIZES.map((n) => checkbox({ size: String(n), checked: true, label: `size ${n}` })).join("")),
+      ) +
+        demo(
+          "states - neutral off, accent on (\u00a711); indeterminate is a third meaning, not a faded tick",
+          row(
+            [
+              checkbox({ label: "off" }),
+              checkbox({ checked: true, label: "on" }),
+              checkbox({ indeterminate: true, label: "mixed" }),
+              checkbox({ invalid: true, label: "invalid" }),
+              checkbox({ disabled: true, label: "disabled" }),
+              checkbox({ checked: true, disabled: true, label: "on + disabled" }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "a stacked list - the invisible target is a control of its size, capped at 44",
+          kuiBox(
+            { display: "flex", direction: "column", gap: "4" },
+            ["Ship it on Friday", "Notify the team", "Archive the old branch"]
+              .map((l, i) => checkbox({ checked: i === 0, label: l }))
+              .join(""),
+          ),
+        ),
+    )}
+  </section>`;
+}
+
 function card(body: string, style = "", material?: string, size = "3"): string {
   return `<div class="kui-surface kui-card" data-size="${size}" data-tone="neutral" data-emphasis="quiet" data-bordered${
     material ? ` data-material="${material}"` : ""
@@ -819,6 +891,7 @@ export function generatePreview(): string {
     <a href="#button">button</a>
     <a href="#field">field</a>
     <a href="#textarea">textarea</a>
+    <a href="#checkbox">checkbox</a>
     <a href="#type">type</a>
     <a href="#layout">layout</a>
     <a href="#roles">roles</a>
@@ -898,6 +971,11 @@ ${fieldSection("dark")}
 <p class="note">The first non-fixed-height control: §4's height ladder is for boxes that do not grow, so here <em>padding is the dimension</em> — and the dimension is ONE inset, all four sides (reversed 2026-08-05, LOG: the first cut derived the block padding from the height so one row matched a TextField, and the leftover read as an accident the moment there was a second line — 13px at the sides, 9px above, chosen by nobody). A paragraph is the only real job (a one-row box is TextField's; a composer is its own component), so the frame is the side padding, top and bottom included — and at <em>full</em> the pill bump stays horizontal-only, no exception for roundness: judge the top-left corner of a rounded textarea on this page. Height belongs to the content (<code>rows</code>, a vertical resize handle; horizontal would break the column that owns it), with the control height as a floor. No wrapper and no slots, by the same anatomy criterion that gave TextField both. The states arrive through the shared layer's third disabled spelling — the element that paints IS the disabled form element.</p>
 ${textAreaSection("light")}
 ${textAreaSection("dark")}
+
+<h1 id="checkbox">Checkbox — the mark family</h1>
+<p class="note">The first control whose painted box is <em>not</em> the height ladder (\u00a74). A checkbox does not contain a label, it sits <em>beside</em> one, so it takes the <strong>mark family</strong> — one ladder shared by checkbox, radio, switch track and slider thumb, because four separately designed ladders in one visual weight class drift apart. The ladder is the <em>line box</em>: a mark occupies exactly one line of its label, which is why it aligns with the text by construction and why it grows on a phone with nothing designed twice — flip the <em>pointer</em> select and the marks rise because \u00a717's handheld band raised the type. The invisible target is a control of its size, capped at the 44 floor, so a checkbox is exactly as large a thing to aim at as the Button beside it while staying a 20px square: click a few pixels above a box on this page and it still toggles. At <em>radius=full</em> the corner caps below a circle, because a circular checkbox is a radio and shape is role semantics (\u00a76) \u2014 flip the radius select and compare it with the pills. Every number here is v0 for the eye pass.</p>
+${checkboxSection("light")}
+${checkboxSection("dark")}
 
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">

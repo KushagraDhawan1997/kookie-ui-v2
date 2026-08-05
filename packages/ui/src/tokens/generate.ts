@@ -31,6 +31,8 @@ import {
   layoutSpace,
   letterSpacing,
   lineHeight,
+  markRadiusCap,
+  markSteps,
   material,
   motion,
   radiusLevels,
@@ -86,6 +88,24 @@ export function generateTokens(): string {
 
   lines.push("", "  /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */");
   iconSize.forEach((px, i) => put(`icon-size-${i + 1}`, zoom(px)));
+
+  lines.push(
+    "",
+    "  /* the mark family (§4) — the painted box of a control that IS its own mark: checkbox,",
+    "     radio, switch track, slider thumb. ONE ladder, and it is the line box: a mark occupies",
+    "     exactly one line of the label it sits beside. Emitted as the resolved length rather",
+    "     than var(--line-height-N) so a band re-pricing type cannot leave a mark behind — the",
+    "     pointer worlds re-declare it below, which is where the coarse rise comes from. */",
+  );
+  lines.push(...markFamily(markSteps));
+
+  lines.push(
+    "",
+    "  /* and the corner it can never exceed (§6): at radius=full the control band states the",
+    "     capsule, and a circular checkbox is a radio. The ceiling is the DEFAULT level's corner",
+    "     — theme-, density- and pointer-invariant, so it is declared once. */",
+  );
+  markRadiusCap.forEach((px, i) => put(`radius-mark-cap-${i + 1}`, zoom(px)));
 
   lines.push(
     "",
@@ -379,11 +399,14 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
   // nothing inherits. Neither world touches steps 8-9: width is the narrow band's question,
   // and a pointer says nothing about how wide the window is.
   const bandSteps = moved(typeBands.handheld);
-  const band = bandTypePalette(
-    pointer === "fine" ? fontSize.map((_, i) => i + 1) : typeBands.handheld,
-    bandSteps,
-  );
-  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, ...band, "}", "");
+  const picks = pointer === "fine" ? fontSize.map((_, i) => i + 1) : typeBands.handheld;
+  const band = bandTypePalette(picks, bandSteps);
+  // The mark family rides the band rather than being designed twice (§4): a checkbox is one
+  // line of its label in both worlds, so the coarse rise is the type rise and nothing else.
+  // Re-declared here in full — all four steps, not just the moved ones — because these are
+  // resolved lengths, and a scope that declares nothing inherits the world above it.
+  const marks = markFamily(picks);
+  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, ...band, ...marks, "}", "");
   for (const d of Object.keys(sets) as DensityLevel[]) {
     if (d === "default") continue;
     out.push(`${P}[data-density="${d}"] {`, ...controlFamily(sets[d]), "}", "");
@@ -484,6 +507,15 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `  --color-surface: ${surfaceColor[mode].rest};`,
     `  --color-surface-hover: ${surfaceColor[mode].hover};`,
     `  --color-surface-active: ${surfaceColor[mode].active};`,
+    "",
+    `  /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in`,
+    `     THIS family"; this answers "the edge of a thing that has no family" — a Separator, and`,
+    `     the resting box of a control whose tone belongs to its ON state alone (Checkbox, Radio,`,
+    `     Switch: neutral off, accent on). Without it, such a control has to choose between`,
+    `     stamping accent and wearing a tinted edge at rest, or stamping neutral and having no`,
+    `     way to name accent when it is checked — and naming a FAMILY in a component stylesheet`,
+    `     is what the role-not-family law forbids. Neutral's own border role, exposed. */`,
+    `  --color-border: var(--neutral-border);`,
     "",
     `  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;`,
     `     elevation stays deleted. Row 1 is the inset well. */`,
@@ -588,6 +620,18 @@ function pillFamily(set: DensitySet): string[] {
  * declare a step it does not change (which is what would let two bands fight). */
 function moved(picks: readonly number[]): number[] {
   return picks.flatMap((step, i) => (step === i + 1 ? [] : [i]));
+}
+
+/** The mark ladder (§4) for one set of type picks: `--mark-N` is the line box of the step the
+ * band actually renders, so the marks rise on a phone for the same reason the label does.
+ * `picks` is the band's mapping — the identity in the fine world, `typeBands.handheld` in the
+ * coarse one. Resolved to a length here rather than pointing at `--line-height-N`, because a
+ * var() bakes where it is declared (§6): a :root-level indirection would carry the desktop
+ * line box into the coarse scope, which is the one place this family has to move. */
+function markFamily(picks: readonly number[]): string[] {
+  return markSteps.map(
+    (_, i) => `  --mark-${i + 1}: ${zoom(lineHeight[picks[i]! - 1]!)};`,
+  );
 }
 
 /** One band of the type palette (§15, §17), over the steps it moves: each pick re-prices the

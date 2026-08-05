@@ -37,6 +37,7 @@ export default defineConfig({
             "react-dom/client",
             "react/jsx-dev-runtime",
             "@base-ui/react/button",
+            "@base-ui/react/checkbox",
             "@base-ui/react/input",
           ],
         },
