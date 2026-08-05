@@ -22,9 +22,11 @@ export type Responsive<T> = T | ({ initial?: T } & Partial<Record<Tier, T>>);
  * rather than to zero. Out-of-range digits pass through as raw CSS instead, where a wrong
  * value is at least visible.
  */
+const DIGITS = /^\d+$/;
+
 const resolveValue = (value: string | number, scale: "space" | null): string => {
   const v = String(value);
-  if (scale !== "space" || !/^\d+$/.test(v)) return v;
+  if (scale !== "space" || !DIGITS.test(v)) return v;
   const step = Number(v);
   // LAYOUT space, not the raw palette (§3, §12): a layout prop names a distance between
   // things, and that rhythm answers density. `gap="4"` means step 4 of the current rhythm,
