@@ -5,6 +5,6 @@ import tseslint from "typescript-eslint";
 // real boundary rule (eslint-plugin-boundaries) — relative-depth patterns false-positive
 // on legitimate nesting like src/components/button → src/system.
 export default tseslint.config(
-  { ignores: ["**/dist/**", "**/node_modules/**", "**/.turbo/**"] },
+  { ignores: ["**/dist/**", "**/node_modules/**", "**/.turbo/**", "**/.next/**", "**/next-env.d.ts"] },
   ...tseslint.configs.recommended,
 );
