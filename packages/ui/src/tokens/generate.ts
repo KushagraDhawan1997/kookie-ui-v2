@@ -40,6 +40,7 @@ import {
   radiusOverlay,
   radiusSurface,
   shadow,
+  sliderTrack,
   space,
   surfaceChrome,
   surfaceColor,
@@ -108,6 +109,16 @@ export function generateTokens(): string {
     "     Density never touches it: the box it rounds does not move either. */",
   );
   lines.push(...markRadiusFamily(defaultRadiusLevel));
+
+  lines.push(
+    "",
+    "  /* the slider's track thickness (§4, §11) — raw designed px per size, ~0.25 of the fine",
+    "     mark (the palette has nothing between 4 and 8, the mark's own wall one part over).",
+    "     Density- and pointer-invariant: the coarse target is the CONTROL's height, and iOS",
+    "     holds its track at 4pt against a 28pt thumb for the same reason. Emitted once at",
+    "     :root — no scope below re-prices it, so there is nothing to re-declare. */",
+  );
+  sliderTrack.forEach((px, i) => lines.push(decl(`slider-track-${i + 1}`, zoom(px))));
 
   lines.push(
     "",

@@ -418,6 +418,22 @@ export const markSteps = [1, 2, 3, 4] as const;
 export const markRadius = [1, 1, 2, 2] as const;
 
 /**
+ * §4, §11 — the slider's track thickness, raw designed px per size. The space palette was
+ * asked first, as it must be, and refuses this family the same way it refused the mark and
+ * control padding: a track's plausible ladder wants 4/5/6/7, and between 4 and 8 the palette
+ * has nothing, so a pick either repeats a step or doubles between sizes 2 and 3. A designed
+ * raw number per size is the established answer (`height`, `px`, `pxPill`).
+ *
+ * The values hold ~0.25 of the FINE mark across the index (4/16, 5/20, 6/24, 7/26) — the
+ * constant-fraction discipline the corner and padding laws already enforce, applied to the
+ * one dimension a track has. Density- and pointer-invariant like the mark it serves: the
+ * coarse world's extra target comes from the CONTROL's height (the slider root is a control
+ * of its size and the whole box is pressable), not from a fatter line — iOS holds its track
+ * at 4pt against a 28pt thumb for the same reason. v0, judged in the preview.
+ */
+export const sliderTrack = [4, 5, 6, 7] as const;
+
+/**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and
  * focus are constant facts about a control, not things that get louder as it gets bigger.
  *
