@@ -83,7 +83,7 @@ function spinner(style = ""): string {
     const opacity = (1 - (i / 8) * 0.85).toFixed(2);
     return `<rect x="11" y="2" width="2" height="5.5" rx="1" opacity="${opacity}" transform="rotate(${i * 45} 12 12)"/>`;
   }).join("");
-  return `<svg viewBox="0 0 24 24" aria-hidden class="kui-spinner"${style ? ` style="${style}"` : ""}>${spokes}</svg>`;
+  return `<span aria-hidden class="kui-spinner"${style ? ` style="${style}"` : ""}><svg viewBox="0 0 24 24" class="kui-spinner-svg">${spokes}</svg></span>`;
 }
 
 /**

@@ -4,6 +4,10 @@
  * wedges, and this shape is parallel-sided bars. They are static — rasterised once, then
  * rotated as a whole — so what runs per frame is a single transform.
  *
+ * The animated element is the HTML wrapper, never the svg (LOG 2026-08-06): an SVG root's
+ * transform is not reliably composited, and this control's one job is to keep moving while
+ * the main thread is busy.
+ *
  * `steps(8)` is the look, not a detail: the indicator ticks from spoke to spoke rather than
  * sweeping, which is what distinguishes it from a spinning arc. */
 
@@ -14,9 +18,17 @@
      bare <Spinner /> used outside a control. */
   width: var(--kui-ct-icon, var(--icon-size-2));
   height: var(--kui-ct-icon, var(--icon-size-2));
-  /* The whole point of drawing it in currentColor: no token, correct in every context. */
+  /* The whole point of drawing it in currentColor: no token, correct in every context.
+     Declared on the wrapper because `fill` inherits — the svg reads it. */
   fill: currentColor;
   animation: kui-spin 1s steps(8) infinite;
+}
+
+/* The svg only fills the box the wrapper owns; block display kills the baseline gap. */
+.kui-spinner-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 @keyframes kui-spin {

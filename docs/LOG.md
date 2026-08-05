@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-06 The spinner gains a wrapper: composited rotation outranks one element
+
+An external audit (Vercel's react-best-practices rules, run over the whole repo) matched the Spinner against its animate-the-wrapper rule: the `kui-spin` transform sat on the `<svg>` root, and an SVG element's CSS transform is not reliably composited — some engines run it on the main thread. For this control that is not a micro-optimisation: a busy indicator exists to keep moving while the main thread is busy, so a main-thread rotation freezes at exactly the moment it is for. The component's own comment claimed "a single composited rotation"; the claim was precisely the assumption the rule disputes, and nothing enforced it.
+
+The animation, the icon box, `fill: currentColor` (inherited into the svg) and the ref move to a `<span>` wrapper; the svg fills the box at 100%. One element becomes two, and the criterion that allows it is the anatomy criterion already governing wrappers elsewhere: the second element is forced by something non-visual (animation reliability under load), not by layout convenience. Done now because nothing is published — the ref retypes from `SVGSVGElement` to `HTMLSpanElement` at zero cost, which stops being true the day there is a consumer.
+
+The same audit's remaining runtime findings landed as separate commits: Theme's `resolved` memo depended on the parent context's *identity* rather than the six fields it reads, so a nested Theme re-rendered its whole subtree on ancestor changes it overrides; `useWindowClass` built fresh `MediaQueryList`s on every snapshot read and every subscribe (now one shared trio per document, lazy so SSR never allocates it); the spinner's spoke elements and the resolver's digit regex hoisted to module level. Everything else came back clean or not applicable — the no-JS-at-interaction-time law means most of the rule set has nothing to bite on, and the barrel/tree-shaking posture passed by mechanism (unbundled output, `sideEffects`, deep Base UI imports).
+
+Rejected: keeping the one-element spinner with `will-change` or a translate hint (a hint requests a layer; it does not change which thread animates an SVG root's transform in the engines that main-thread it); animating an inner `<g>` instead (same element class, same question, plus a second SVG node).
+
 ## 2026-08-06 The mark edge: a control that IS its hairline gets its own resting colour
 
 The audit's D2: an unchecked checkbox failed WCAG 1.4.11 outright — its entire visual identity is the 1px `--color-border` hairline, and that role (neutral 7) measures |Lc| 22.8 light / 10.3 dark against the surface, against the non-text floor of 45 the system itself declares and enforces for the focus ring and the invalid edge. The floor existed; nothing pointed it at the border a mark rests on. The checked state passed, so the failure was precisely the state every form starts in, and `contrast="high"` only reached 2.87:1 in light.

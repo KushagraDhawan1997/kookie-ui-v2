@@ -315,13 +315,13 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
         Save
       </Button>,
     );
-    // The spinner is itself an svg, so "the icon is gone" has to exclude it by name.
-    expect(idle.querySelectorAll("svg:not(.kui-spinner)").length).toBe(1);
-    expect(busy.querySelectorAll("svg:not(.kui-spinner)").length).toBe(0);
+    // The spinner hosts an svg of its own, so "the icon is gone" has to exclude it by name.
+    expect(idle.querySelectorAll("svg:not(.kui-spinner-svg)").length).toBe(1);
+    expect(busy.querySelectorAll("svg:not(.kui-spinner-svg)").length).toBe(0);
     expect(computed(busy, "width")).toBe(computed(idle, "width"));
 
     const spinner = busy.querySelector(".kui-spinner")!;
-    const icon = idle.querySelector("svg:not(.kui-spinner)")!;
+    const icon = idle.querySelector("svg:not(.kui-spinner-svg)")!;
     expect(computed(spinner, "width")).toBe(computed(icon, "width"));
   });
 
