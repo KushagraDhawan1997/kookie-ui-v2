@@ -21,6 +21,7 @@ import {
   layoutSpace,
   letterSpacing,
   lineHeight,
+  material,
   radiusLevels,
   radiusOverlay,
   radiusSurface,
@@ -941,6 +942,42 @@ describe("no var() dangles — every reference the generator writes, it also dec
     const dangling = [...referenced].filter((name) => !declared.has(name));
     expect(dangling, `referenced but never declared: ${dangling.join(", ")}`).toEqual([]);
   });
+});
+
+
+describe("the material ladder is monotone in every lever (§10)", () => {
+  // config.ts has stated this invariant in prose since the ladder shipped ("Monotone across
+  // thicknesses must hold per column, not just at rest, so thickness still reads as one
+  // dimension mid-interaction") — and nothing asserted it. Asserted from the config because
+  // the claim is about the designed SET; the emitted spelling is covered by the drift law.
+  const THICKNESSES = ["thin", "regular", "thick"] as const;
+  const rises = (values: readonly number[]) => {
+    for (let i = 1; i < values.length; i++) expect(values[i]!).toBeGreaterThan(values[i - 1]!);
+  };
+  for (const mode of ["light", "dark"] as const) {
+    it(`${mode}: thickness rises per column, states rise per thickness, high defends harder`, () => {
+      for (const key of ["alpha", "alphaHigh"] as const) {
+        for (const col of [0, 1, 2]) {
+          rises(THICKNESSES.map((th) => material[mode][th][key][col]!));
+        }
+        for (const th of THICKNESSES) rises(material[mode][th][key]);
+      }
+      // The pane's own light: edge and rim rise with thickness (thicker glass catches more),
+      // and the blur radius rises — thickness is one dimension in the filter too.
+      for (const part of ["edge", "rim"] as const) {
+        rises(THICKNESSES.map((th) => material[mode][th][part]));
+      }
+      rises(THICKNESSES.map((th) => Number(material[mode][th].filter.match(/blur\((\d+)px/)![1]!)));
+      // alphaHigh is MORE opaque than normal at every cell and never reaches the seal: past
+      // ~.9-and-change you should have used solid, and three thicknesses must stay three.
+      for (const th of THICKNESSES) {
+        material[mode][th].alpha.forEach((a, i) => {
+          expect(material[mode][th].alphaHigh[i]!).toBeGreaterThan(a);
+        });
+        expect(material[mode][th].alphaHigh[2]!).toBeLessThan(100);
+      }
+    });
+  }
 });
 
 describe("generated output is not hand-edited (ENGINEERING §7)", () => {
