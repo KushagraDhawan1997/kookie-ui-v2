@@ -12,6 +12,14 @@
  * component adapts to its slot: the same Grid is correct in a drawer and in a main column.
  * Three rather than six, following the platforms that have lived with this longest (iOS ships
  * two size classes, Android three window classes, neither has per-prop pixel breakpoints).
+ *
+ * T-shirt names, NOT §18's room words, on principle (LOG 2026-08-05): normative words need a
+ * unique referent. A window is one per app, so "regular" judges it against one norm; a
+ * container is everything — sidebar, gallery, pane — and "a regular container" is relative to
+ * the particular thing. A size label is semantically empty, which is what makes it true in
+ * every slot. That `md`/`lg` currently equal the window boundaries (48/64rem) is COINCIDENCE,
+ * deliberately unpinned: tiers judge where content breaks, classes judge where shells break,
+ * and the eye pass may move them apart. Nothing may rely on the numbers agreeing.
  */
 export const tiers = { sm: "30rem", md: "48rem", lg: "64rem" } as const;
 export type Tier = keyof typeof tiers;

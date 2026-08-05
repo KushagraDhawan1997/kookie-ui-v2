@@ -8,6 +8,18 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 Two width vocabularies, and they are correct — a window is unique, containers are legion
+
+Raised immediately after §18 shipped: tiers say `sm / md / lg`, window classes say `narrow / regular / wide` — two word-families for width, and `md` and the narrow boundary even share 48rem. One vocabulary was considered seriously, and the unification is genuinely available: room words work as thresholds for the two upper tiers without inversion (`{ initial, regular, wide }` — "when this slot has regular-window room"), `initial` is the narrow state by mobile-first construction, and only `sm` (30rem, sub-class) lacks a name.
+
+**Kushagra's argument killed it, and it is the better argument: normative words need a unique referent.** A window is one per app — "a regular window" judges one thing against one norm, so state words mean something. Containers are *everything* — a sidebar, a gallery, a pane — and "a regular container" is relative to expectations of the particular thing: a regular sidebar and a regular gallery are wildly different widths. Room words smuggle in a norm that containers do not share. `md` survives precisely because a T-shirt size is semantically empty — an absolute measurement label that means the same 48rem in a sidebar and a gallery, claiming nothing about what is normal for either.
+
+So the vocabularies stay split, on principle rather than by accident: **states of the unique thing get normative words; measurements of the many things get size labels.**
+
+**The number coincidence is recorded as coincidence, deliberately unpinned.** `md` = 48rem = the narrow boundary and `lg` = 64rem = the wide boundary — but tiers judge where *content* breaks and window classes judge where *shells* break, and the eye pass must stay free to move them apart. Deriving one from the other (the `narrowMedia` move) was considered and rejected: §6's sin is coincidence silently *relied on*, not coincidence existing. Nothing may assume a slot at `md` has "a narrow window's worth of room"; if the numbers ever need to agree by rule, that is a new decision, not this one.
+
+---
+
 ## 2026-08-05 Window size classes: three, named for room, one boundary shared with the narrow band
 
 The gap the tablet discussion surfaced (§17, LOG below) closed the same day, as §18. Three decisions inside it, each of which was genuinely open:
