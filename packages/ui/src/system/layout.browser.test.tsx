@@ -217,16 +217,21 @@ describe("density and radius compose instead of racing (§6, §12)", () => {
       `<div data-radius="full">
         <div id="control" style="width: 80px; height: 32px; border-radius: var(--radius-control-2)"></div>
         <div id="surface" style="width: 80px; height: 80px; border-radius: var(--radius-surface-3)"></div>
+        <div id="h" style="height: var(--control-height-2)"></div>
       </div>`,
     );
-    // A pill: CSS clamps border-radius to half the smaller dimension, so 9999px renders as 16px
-    // on a 32px-tall control. The surface stays at its designed cap instead (§6).
+    // A pill: the control band STATES half the size's height (changed 2026-08-05 — it was
+    // 9999px, and CSS clamping against the rendered box found the capsule; the clamp asks the
+    // wrong box the moment a control grows, which TextArea does by design). The surface stays
+    // at its designed cap instead (§6) — the same per-band rule the control band now follows.
     //
     // This probe read `var(--radius-surface)` until 2026-08-03 — a token deleted when the band
     // became size-indexed (LOG 2026-08-04 records the bare alias being rejected). An unset var
     // is invalid at computed-value time, so border-radius computed 0px and `0 < 100` passed
     // unconditionally: the assertion could not fail, whatever the surface band did.
-    expect(computed(host.querySelector("#control")!, "border-top-left-radius")).toBe("9999px");
+    const radius = parseFloat(computed(host.querySelector("#control")!, "border-top-left-radius"));
+    const height = parseFloat(computed(host.querySelector("#h")!, "height"));
+    expect(radius).toBeCloseTo(height / 2, 1);
     const surface = parseFloat(computed(host.querySelector("#surface")!, "border-top-left-radius"));
     expect(surface).toBeGreaterThan(0);
     expect(surface).toBeLessThan(100);

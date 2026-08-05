@@ -354,6 +354,73 @@ describe("the zoom floor rides the pointer axis (§4, §16)", () => {
   });
 });
 
+describe("a capsule is half the HEIGHT TOKEN, not half the rendered box (§6, decided 2026-08-05)", () => {
+  // `full` used to price the control band at 9999px and let CSS clamping find the capsule —
+  // which asks the RENDERED box, and a three-row textarea answered with a stadium, its first
+  // line deep inside the corner curve. The band now states the rule itself:
+  // --radius-control-N = half the size's control height. These laws read the COMPUTED radius,
+  // which was the literal 9999px before the change — every one of them failed against it.
+  it("a grown TextArea keeps the one-row curvature instead of scaling with its own height", () => {
+    const host = render(
+      <Theme radius="full">
+        <TextArea size="2" rows={1} />
+        <TextArea size="2" rows={4} />
+      </Theme>,
+    );
+    const [one, four] = [...host.querySelectorAll<HTMLElement>(".kui-textarea")];
+    const half = px(computed(one!, "min-height")) / 2;
+    expect(px(computed(one!, "border-top-left-radius"))).toBeCloseTo(half, 1);
+    // The law's whole point: the tall box wears the SAME corner, not half of itself.
+    expect(computed(four!, "border-top-left-radius")).toBe(computed(one!, "border-top-left-radius"));
+    expect(px(computed(four!, "height"))).toBeGreaterThan(px(computed(one!, "height")));
+  });
+
+  it("a fixed-height control renders the identical capsule the clamp used to produce", () => {
+    // The change must be invisible where 9999 was giving the right answer.
+    const host = render(
+      <Theme radius="full">
+        <Button size="2">Label</Button>
+      </Theme>,
+    );
+    const button = host.querySelector<HTMLElement>(".kui-button")!;
+    expect(px(computed(button, "border-top-left-radius"))).toBeCloseTo(
+      px(computed(button, "min-height")) / 2,
+      1,
+    );
+  });
+
+  it("each world derives the capsule from its OWN height ladder", () => {
+    // Substitution-at-declaration: the full cells re-state the rule beside each world's
+    // heights, so a coarse or compact control halves the height it actually has.
+    for (const world of [
+      <Theme radius="full" density="compact" key="c" />,
+      <Theme radius="full" pointer="coarse" key="p" />,
+    ]) {
+      const host = render(
+        <world.type {...world.props}>
+          <TextArea size="2" rows={3} />
+        </world.type>,
+      );
+      const el = host.querySelector<HTMLElement>(".kui-textarea")!;
+      expect(px(computed(el, "border-top-left-radius"))).toBeCloseTo(
+        px(computed(el, "min-height")) / 2,
+        1,
+      );
+    }
+  });
+
+  it("every other radius level is untouched — the rule exists only where the capsule does", () => {
+    const medium = render(
+      <Theme radius="medium">
+        <TextArea size="2" rows={4} />
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-textarea")!;
+    expect(px(computed(medium, "border-top-left-radius"))).toBeLessThan(
+      px(computed(medium, "min-height")) / 2,
+    );
+  });
+});
+
 describe("the boundary (§3, §5)", () => {
   it("ref reaches the textarea — the one element there is", () => {
     let node: HTMLTextAreaElement | null = null;

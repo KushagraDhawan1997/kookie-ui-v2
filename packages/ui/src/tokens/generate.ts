@@ -266,16 +266,12 @@ export function generateTokens(): string {
   // full cells must state the values themselves, per density and (below) per pointer world.
   for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
     for (const d of Object.keys(density) as DensityLevel[]) {
-      const decls = density[d].radius.map(
-        (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
-      );
+      const decls = controlRadiusFamily(density[d], level);
       if (level === "full") decls.push(...pillFamily(density[d]));
       lines.push(`[data-radius="${level}"][data-density="${d}"] {`, ...decls, "}", "");
     }
     if (level !== defaultRadiusLevel) {
-      const decls = density.default.radius.map(
-        (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
-      );
+      const decls = controlRadiusFamily(density.default, level);
       if (level === "full") decls.push(...pillFamily(density.default));
       lines.push(`[data-radius="${level}"] {`, ...decls, "}", "");
     }
@@ -377,15 +373,11 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
 
   for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
     for (const d of Object.keys(sets) as DensityLevel[]) {
-      const decls = sets[d].radius.map(
-        (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
-      );
+      const decls = controlRadiusFamily(sets[d], level);
       if (level === "full") decls.push(...pillFamily(sets[d]));
       out.push(`${P}[data-radius="${level}"][data-density="${d}"] {`, ...decls, "}", "");
     }
-    const decls = sets.default.radius.map(
-      (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
-    );
+    const decls = controlRadiusFamily(sets.default, level);
     if (level === "full") decls.push(...pillFamily(sets.default));
     out.push(`${P}[data-radius="${level}"] {`, ...decls, "}", "");
   }
@@ -505,6 +497,22 @@ function surfacePaddingFamily(): string[] {
   return surfacePadding.map(
     (step, i) => `  --surface-p-${i + 1}: var(--layout-space-${step});`,
   );
+}
+
+/** The control radii for one designed set at one level (§6). At `full` the band is the rule
+ * itself — half the size's control height — rather than the palette's 9999px. A capsule was
+ * only ever "half the height", and 9999 reached it by CSS clamping against the RENDERED box,
+ * which is the wrong box the moment a control's height is not the token's: a textarea three
+ * rows tall became a stadium, its first line deep inside the corner curve. The surface band
+ * made this exact move already — full re-prices it to designed large corners, never a capsule
+ * (§6) — this is the control band's version. Stated per cell, where the heights are declared
+ * on the same element, so substitution-at-declaration picks up each world's own ladder. */
+function controlRadiusFamily(set: DensitySet, level: RadiusLevel): string[] {
+  if (level === "full")
+    return set.radius.map(
+      (_, i) => `  --radius-control-${i + 1}: calc(var(--control-height-${i + 1}) / 2);`,
+    );
+  return set.radius.map((step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`);
 }
 
 /** The four size-indexed control tokens for one designed set (§12, §16). No gap here: the

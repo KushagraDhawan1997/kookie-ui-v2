@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 The capsule is half the height TOKEN — full's control band states the rule instead of riding the clamp
+
+Kushagra caught it in the preview the day TextArea shipped: at `radius="full"` the three-row textareas were stadiums — corners scaling with the box, the first line of text deep inside the curve. The control band priced `full` at 9999px and let CSS clamping find the capsule, and clamping asks the *rendered* box: right for every control whose height is its token's, wrong the moment one grows, which TextArea does by design (§4's non-fixed-height class — so every future growing control inherited the bug).
+
+Two fixes were argued and the first was refuted in review: a `min(radius, h/2)` cap in text-area.css states a true rule in one component's stylesheet — a system gap patched locally, the token still lying about what it means. The precedent that decided the layer was Card's: the surface band never had this bug because `full` re-prices it to designed corners at the *palette* level. The control band now makes the same move — the generator emits `--radius-control-N: calc(var(--control-height-N) / 2)` in every full cell, beside the heights it halves (substitution-at-declaration, each world's own ladder). Fixed-height controls render byte-identically — 9999 was only ever a trick to reach h/2 — and TextArea is correct with zero CSS of its own.
+
+One visible change accepted knowingly: a pill control whose label wraps (200% zoom, WCAG 1.4.4) used to stay a full stadium and now keeps h/2 corners — judged more correct by the same principle (a corner must not scale with accidental height). Rejected alternatives: exempting TextArea from full (breaks the one-row ≡ TextField law) and giving it the surface band's answer (breaks the same law the same way). The raw palette steps 1–5 keep 9999 as a §13 escape; the old law that pinned the literal `9999px` is rewritten to assert radius = height/2 — the literal was the bug's spelling.
+
+---
+
 ## 2026-08-05 The semantic core completes: success, warning, info — each a family, none an alias
 
 Kushagra, closing the open question the docs had carried since the tone set was born ("do success/warning/info earn system-tone status, or stay app-defined?"): the set completes. The forcing was his product call rather than a component landing first — scrutinised and accepted: status names are universal and stable, so the shipped-early-gets-squatted risk that killed Card's slots does not apply to them, and the widening was already unblocked by the amber finding (below).
