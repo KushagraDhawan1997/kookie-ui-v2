@@ -76,7 +76,11 @@ export function Checkbox({ size = "2", className, ref, ...props }: CheckboxProps
       // sibling component names its real element; now this one does. The hidden input stays
       // reachable through Base UI's own `inputRef` prop when the form element itself is needed.
       ref={ref}
-      className={className ? `kui-control kui-checkbox ${className}` : "kui-control kui-checkbox"}
+      className={
+        className
+          ? `kui-control kui-mark kui-checkbox ${className}`
+          : "kui-control kui-mark kui-checkbox"
+      }
       data-size={size}
       // Fixed identity, not API (TextField's pattern): the tone indirection needs a family to
       // resolve --tone-solid against for the ON state, and accent is what §11 assigns every
