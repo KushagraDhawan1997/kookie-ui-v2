@@ -175,3 +175,22 @@ export const tones = {
 
 export type ToneName = keyof typeof tones;
 export type Mode = keyof typeof lightness;
+
+/**
+ * §7, §11 — the step the MARK EDGE reads per mode (worn by Checkbox now; Radio, Switch and
+ * Slider when they land; decided 2026-08-06, Kushagra — "a new darker colour just for
+ * checkboxes and switches, nothing else changes").
+ *
+ * A mark is the only control whose resting identity is its hairline alone — a field has a
+ * seal and a value, a card has a body, but an unchecked checkbox IS its border. The shared
+ * `--color-border` (neutral 7) sits at |Lc| 22.8 light / 10.3 dark against the surface, far
+ * under the system's own non-text floor of 45 (color.test.ts), so the resting state of every
+ * form's every checkbox failed WCAG 1.4.11 (audit D2). These are the FIRST steps per mode
+ * that clear the floor against both the surface and the page, measured through the shipped
+ * generator: light 9 (Lc 58.8 / 57.0), dark 11 (66.5 / 66.9 — dark's step 9 misses at 42).
+ * Material's unchecked outlines sit in the same territory in both modes.
+ *
+ * Deliberately NOT a re-step of --color-border itself: Separator, the field family and the
+ * card seal keep the quiet hairline — their identity does not rest on it.
+ */
+export const markEdgeStep = { light: 9, dark: 11 } as const;

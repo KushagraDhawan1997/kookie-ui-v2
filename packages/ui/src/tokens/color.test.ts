@@ -7,6 +7,7 @@ import { converter, formatHex } from "culori";
 import { describe, expect, it } from "vitest";
 
 import { lightness, lowChromaThreshold, tones, type Mode, type ToneName } from "./color-config.ts";
+import { markEdgeStep } from "./color-config.ts";
 import {
   apcaLc,
   buildScale,
@@ -601,6 +602,38 @@ describe("the soft ladder is §8's +1/+2 rule, in the emitted declarations (§7,
         expect(at("soft-hover")).toContain(`var(--${tone}-4)`);
         expect(at("soft-active")).toContain(`var(--${tone}-5)`);
       }
+    }
+  });
+});
+
+describe("the mark edge clears the non-text floor, in both modes (§7, §11, WCAG 1.4.11)", () => {
+  // The audit's D2, as the law whose absence let it ship: an unchecked checkbox is the one
+  // control whose resting identity is its hairline alone, and the shared --color-border
+  // (neutral 7) sat at |Lc| 22.8 light / 10.3 dark against the surface — the system had
+  // written this exact floor for the focus ring and the invalid edge and never pointed it at
+  // the border a mark actually rests on. Per-mode steps, chosen as the FIRST that clear the
+  // floor against both the surface and the page; the picks live in color-config.ts so the
+  // generator and this law read one source. Mutation-checked: step 7 fails in both modes,
+  // and dark's own step 9 fails at 42.
+  const NON_TEXT = 45;
+
+  for (const mode of MODES) {
+    it(`holds in ${mode}, against the surface and the page`, () => {
+      const neutral = buildScale("neutral", mode);
+      const edge = neutral.steps[markEdgeStep[mode] - 1]!;
+      const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
+      for (const surface of surfaces) {
+        expect(Math.abs(apcaLc(edge, surface)), `${mode} mark edge vs ${surface}`).toBeGreaterThanOrEqual(
+          NON_TEXT,
+        );
+      }
+    });
+  }
+
+  it("and the emitted token is the step the law just checked", () => {
+    for (const mode of MODES) {
+      const emitted = colorDeclarations(mode).find((l) => l.includes("--mark-edge:"));
+      expect(emitted).toContain(`var(--neutral-${markEdgeStep[mode]})`);
     }
   });
 });

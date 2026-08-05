@@ -13,6 +13,7 @@ import {
   labelPosition,
   lightness,
   lowChromaThreshold,
+  markEdgeStep,
   solidBand,
   solidPinBounds,
   lowChromaStateScale,
@@ -476,6 +477,13 @@ export function colorDeclarations(
   // resting border it replaces. In dark, being invalid LOWERED contrast. Step 9 clears the
   // Lc 45 non-text floor in light (65.4) but not in dark (36.1); step 11 does (65.2).
   out.push(`  --invalid-edge: var(${mode === "dark" ? "--destructive-11" : "--destructive-solid"});`);
+
+  // The mark edge (§7, §11, decided 2026-08-06) — the resting outline of a control that IS its
+  // hairline: checkbox now, radio/switch/slider when they land. Its own role because a mark's
+  // unchecked state has no other identity, so it must clear the non-text floor the quiet
+  // --color-border deliberately does not (audit D2: |Lc| 22.8 light, 10.3 dark). Per-mode
+  // steps from color-config, the focus-ring precedent; the law beside the invalid edge's.
+  out.push(`  --mark-edge: var(--neutral-${markEdgeStep[mode]});`);
 
   return out;
 }

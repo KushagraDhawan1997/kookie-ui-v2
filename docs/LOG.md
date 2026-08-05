@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-06 The mark edge: a control that IS its hairline gets its own resting colour
+
+The audit's D2: an unchecked checkbox failed WCAG 1.4.11 outright — its entire visual identity is the 1px `--color-border` hairline, and that role (neutral 7) measures |Lc| 22.8 light / 10.3 dark against the surface, against the non-text floor of 45 the system itself declares and enforces for the focus ring and the invalid edge. The floor existed; nothing pointed it at the border a mark rests on. The checked state passed, so the failure was precisely the state every form starts in, and `contrast="high"` only reached 2.87:1 in light.
+
+Kushagra's call, and the scope IS the decision: **a new role for the mark family only — checkbox, switch, slider (and radio with them) — nothing else changes.** The alternative was re-stepping `--color-border` itself, which would have darkened TextField, TextArea and the card seal in the same stroke; refused because their identity does not rest on the hairline (a field has a seal and a value) and the quiet edge is a deliberate part of how surfaces read.
+
+`--mark-edge` resolves per mode to the FIRST neutral step clearing the floor against both the surface and the page, measured through the shipped generator: light 9 (Lc 58.8), dark 11 (66.5 — dark's step 9 misses at 42.1, and its step 10 is darker still; the dark ladder folds back past the solid). Per-mode steps are the `--focus-ring` precedent. Material's unchecked outlines sit in the same territory in both modes, so this lands beside the platform rather than away from it. The picks live in color-config.ts; the law lives beside the invalid edge's and was watched failing at step 7 in both modes before the picks were accepted.
+
+Rejected: re-stepping `--color-border` for everyone (above); a raw designed hex (goes deaf to `contrast="high"`, which reaches the mark automatically because the role resolves through the re-declared neutral scale); leaving it to the eye pass (a WCAG failure is not taste).
+
 ## 2026-08-06 readOnly is refused on Checkbox — the standard pattern is that there is none
 
 The audit (D5) found `readOnly` accepted and resolving to nothing: a checkbox that looked live, stepped its fill under the pointer, kept the pointing cursor, and silently refused the click — three affordances promising a toggle Base UI then denied. The open question was what it should look like; four candidates were mocked in the preview and judged.

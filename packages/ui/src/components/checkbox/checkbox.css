@@ -27,8 +27,10 @@
 
   /* Off is neutral, on is accent (§11). The element stamps `accent`, so the ON state resolves
      through the tone indirection like every other control's fill — and the resting box wears
-     the tone-INDEPENDENT hairline instead, which is exactly what --color-border exists for.
-     Naming --accent-* here would be the role-not-family law's own counterexample.
+     the MARK EDGE, its own tone-independent role (§7, decided 2026-08-06): a mark's unchecked
+     state has no identity but this hairline, and the shared --color-border sits at |Lc| 22.8
+     against the surface, far under the non-text floor an outline must clear (WCAG 1.4.11 —
+     audit D2). Naming --accent-* here would be the role-not-family law's own counterexample.
 
      Re-pointing --tone-border rather than declaring --kui-border-color directly, and that is
      load-bearing: the shared layer's state remaps (disabled, invalid) rewrite the TONE roles,
@@ -38,7 +40,7 @@
   --kui-ct-fill-src: var(--color-surface);
   --kui-ct-fill-src-hover: var(--color-surface-hover);
   --kui-ct-fill-src-active: var(--color-surface-active);
-  --tone-border: var(--color-border);
+  --tone-border: var(--mark-edge);
 
   /* The target's anchor. `relative` on the mark itself rather than on a wrapper, because there
      is no wrapper: one element, per §4's own preference, and the pseudo below is not one. */

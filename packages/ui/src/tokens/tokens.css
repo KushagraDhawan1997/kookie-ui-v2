@@ -557,6 +557,7 @@
   --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
+  --mark-edge: var(--neutral-9);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1007,6 +1008,7 @@
   --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
+  --mark-edge: var(--neutral-9);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1457,6 +1459,7 @@
   --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
   --focus-ring: var(--accent-11);
   --invalid-edge: var(--destructive-11);
+  --mark-edge: var(--neutral-11);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1788,6 +1791,7 @@
     --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
+    --mark-edge: var(--neutral-9);
   }
   [data-appearance="light"] {
     /* neutral */
@@ -2052,6 +2056,7 @@
     --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
+    --mark-edge: var(--neutral-9);
   }
   [data-appearance="dark"] {
     /* neutral */
@@ -2316,6 +2321,7 @@
     --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
     --focus-ring: var(--accent-11);
     --invalid-edge: var(--destructive-11);
+    --mark-edge: var(--neutral-11);
   }
 }
 

@@ -296,16 +296,20 @@ describe("a mark's corner holds a fraction of its own box (§6)", () => {
 
 describe("neutral off, accent on (§11)", () => {
   for (const appearance of ["light", "dark"] as const) {
-    it(`${appearance}: the resting box wears the tone-INDEPENDENT hairline`, () => {
+    it(`${appearance}: the resting box wears the MARK EDGE, and it clears the non-text floor`, () => {
       // "Neutral off" has to survive the element stamping data-tone="accent" for its ON state,
-      // and --color-border is what makes that possible without a component naming a family.
+      // and a role token is what makes that possible without a component naming a family. The
+      // role moved off --color-border on 2026-08-06 (audit D2): a mark's unchecked state has
+      // no identity but this hairline, and the quiet border sat at |Lc| 22.8 against the
+      // surface. The floor itself is asserted per mode in color.test.ts, where the hex lives.
       const el = render(
         <Theme appearance={appearance}>
           <Checkbox />
         </Theme>,
       );
       const mark = markOf(el);
-      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--color-border)"));
+      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--mark-edge)"));
+      expect(computed(mark, "border-top-color")).not.toBe(colorOn(el, "var(--color-border)"));
       expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
     });
 
