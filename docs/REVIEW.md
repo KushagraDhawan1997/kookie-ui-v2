@@ -6,6 +6,8 @@
 
 **Second resolution round (2026-08-02, evening):** focus-visible, disabled, loading and the icon box are decided in §8/§4; motion is deferred without gating Button, which ships on §8's single canonical transition; the coarse v0 numbers are accepted as refinable. Button's sole remaining gate is the Theme-as-query-container question (§2). Still open: the full motion system, dark-mode SSR (due at apps/docs), the icon *system* (set contract, stroke, optical centering — only the box is pinned), Shell, migration.
 
+**Third resolution round (2026-08-05):** dark-mode SSR is resolved where it was due — apps/docs exists (bare Next.js; every visible pixel is @kookie-ui/react, no docs framework — LOG). A pre-paint inline script stamps `data-appearance` *and* `data-contrast` on `<html>` — both, because the generated high-contrast selectors assume the two attributes co-locate on one element (§7) — and the root Theme runs `appearance="inherit"` so it stamps neither: one source of truth, no flash, hydration-safe (the store's server snapshots render the toggles neutral and `useSyncExternalStore` corrects them without a mismatch). Still open from this review: the full motion system, the icon system, Shell, migration.
+
 ## Sound, no changes
 
 Base UI behind a Kookie-owned API boundary. Token-only styling, no utility classes. Margin only on layout primitives. Size-as-index. Semantic radius references (`--radius-control-N`). Variants as shared role-token bundles. Tone x emphasis x material with appearance as resolved output (elevation was deleted as an axis on 2026-08-03; see LOG). Generated OKLCH color with a role layer. Build order (tokens, Button, Card, measured at each step).
