@@ -525,3 +525,68 @@ describe("hosted in a slot, it stays a mark (§4, decided 2026-08-06 — audit D
     expect(getComputedStyle(mark, "::after").content).not.toBe("none");
   });
 });
+
+describe("marks in a stack keep their clicks at twelve pixels (§4, decided 2026-08-06)", () => {
+  // The audit's D1, and the sentence it replaced shipped false in three places: "a stacked
+  // list is clear at ANY layout-space gap the system offers" — the scale starts at 2px, and
+  // below the target's reach the LATER sibling owns pixels inside the EARLIER one's painted
+  // box (both targets hit-test in tree order). The rule that replaces it: stacked marks need
+  // 12 real pixels — one more than the worst reach in any cell (11) — and this law mounts
+  // the rule rather than deriving it: two marks at exactly 12px, every point strictly inside
+  // the first's paint must belong to the first, in all 24 (pointer x density x size) cells.
+  const stack = (pointer: "fine" | "coarse", density: "compact" | "default" | "comfortable", size: "1" | "2" | "3" | "4") =>
+    render(
+      <Theme pointer={pointer} density={density}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "200px" }}>
+          <Checkbox size={size} aria-label="A" />
+          <Checkbox size={size} aria-label="B" />
+        </div>
+      </Theme>,
+    );
+
+  /** Every 1px row down the centre of A's painted box, asked who owns it.
+   *
+   * Scrolled into view FIRST, and a row nobody claims is an error rather than a zero: the
+   * first cut of this helper ran after two dozen mounts had pushed the pair below the
+   * viewport, elementFromPoint answered null for every row, and 24 cells passed while
+   * measuring nothing — the exact vacuity this suite exists to forbid. */
+  function stolenRows(host: Element): number {
+    const [a, b] = [...host.querySelectorAll(".kui-checkbox")] as HTMLElement[];
+    a!.scrollIntoView({ block: "center" });
+    const r = a!.getBoundingClientRect();
+    let stolen = 0;
+    for (let dy = 0.5; dy < r.height; dy += 1) {
+      const owner = document.elementFromPoint(r.left + r.width / 2, r.bottom - dy);
+      if (owner === b) stolen += 1;
+      else if (!owner || !a!.contains(owner)) {
+        throw new Error(`the scan is not measuring the pair: row ${dy} belongs to ${owner?.tagName ?? "nothing"}`);
+      }
+    }
+    return stolen;
+  }
+
+  for (const pointer of ["fine", "coarse"] as const) {
+    for (const density of DENSITIES) {
+      it(`${pointer}/${density}: twelve pixels keep every size's paint its own`, () => {
+        for (const size of SIZES) {
+          expect(stolenRows(stack(pointer, density, size)), `${pointer}/${density}/${size}`).toBe(0);
+        }
+      });
+    }
+  }
+
+  it("and the rule is load-bearing: at 4px the later mark really does own the earlier one's paint", () => {
+    // The negative control, so the twelve above cannot rot into decoration. If this ever
+    // fails, the overlap mechanism itself changed — retire the 12px rule deliberately, in
+    // DECISIONS, not by deleting this law.
+    const el = render(
+      <Theme pointer="coarse">
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "200px" }}>
+          <Checkbox size="2" aria-label="A" />
+          <Checkbox size="2" aria-label="B" />
+        </div>
+      </Theme>,
+    );
+    expect(stolenRows(el)).toBeGreaterThan(0);
+  });
+});

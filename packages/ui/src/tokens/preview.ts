@@ -476,9 +476,12 @@ function checkboxSection(mode: Mode): string {
           ),
         ) +
         demo(
-          "a stacked list - the invisible target is a control of its size, capped at 44",
+          "a stacked list - marks need 12px of air, and this gap holds it at every density (\u00a74)",
           kuiBox(
-            { display: "flex", direction: "column", gap: "4" },
+            // gap 5, not 4: the rule is 12 REAL pixels between stacked marks, and the compact
+            // density resolves gap 4 to 8px. Step 5 is the smallest index that clears the rule
+            // at all three densities (12 / 16 / 24).
+            { display: "flex", direction: "column", gap: "5" },
             ["Ship it on Friday", "Notify the team", "Archive the old branch"]
               .map((l, i) => checkbox({ checked: i === 0, label: l }))
               .join(""),
