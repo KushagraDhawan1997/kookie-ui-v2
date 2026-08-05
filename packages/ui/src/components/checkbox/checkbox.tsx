@@ -42,6 +42,8 @@ export type CheckboxProps = Omit<
   size?: Size;
   /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;
+  /** The honest element (audit 2026-08-05, D12): Base UI's root renders a <span>. See below. */
+  ref?: React.Ref<HTMLSpanElement>;
 };
 
 /**
@@ -65,10 +67,7 @@ export type CheckboxProps = Omit<
  * input carries it, so a parent checkbox over a partially-selected group submits and announces
  * correctly. The glyph swap is CSS reading `data-indeterminate` — no JS at interaction time.
  */
-export const Checkbox = React.forwardRef<HTMLSpanElement, CheckboxProps>(function Checkbox(
-  { size = "2", className, ...props },
-  ref,
-) {
+export function Checkbox({ size = "2", className, ref, ...props }: CheckboxProps) {
   return (
     <BaseCheckbox.Root
       // The honest ref type (audit 2026-08-05, D12): Base UI's root renders a <span> with the
@@ -119,4 +118,4 @@ export const Checkbox = React.forwardRef<HTMLSpanElement, CheckboxProps>(functio
       </BaseCheckbox.Indicator>
     </BaseCheckbox.Root>
   );
-});
+}

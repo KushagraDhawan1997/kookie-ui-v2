@@ -45,6 +45,8 @@ export type TextFieldProps = Omit<
   className?: string;
   /** Applied to the WRAPPER, so `width` sizes the field rather than the text inside it. */
   style?: React.CSSProperties;
+  /** Reaches the INPUT, not the wrapper — `.focus()`, `.select()`, the value. */
+  ref?: React.Ref<HTMLInputElement>;
 };
 
 /**
@@ -78,20 +80,18 @@ export type TextFieldProps = Omit<
  * — labelling, autofill, form association, the `type` behaviours — goes with it. `render`
  * would have to mean one of them, silently. It is refused by the type, which is the law.
  */
-export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
-  {
-    size = "2",
-    material = "solid",
-    leading,
-    trailing,
-    disabled,
-    className,
-    style,
-    "aria-describedby": describedBy,
-    ...props
-  },
+export function TextField({
+  size = "2",
+  material = "solid",
+  leading,
+  trailing,
+  disabled,
+  className,
+  style,
+  "aria-describedby": describedBy,
   ref,
-) {
+  ...props
+}: TextFieldProps) {
   // The field's OWN input, held so the caret redirect below cannot land somewhere else. The
   // forwarded ref still reaches the same node — neither wins (§3).
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -184,4 +184,4 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
       ) : null}
     </span>
   );
-});
+}

@@ -9,6 +9,7 @@ export type BoxProps = BoxStyleProps &
   Omit<React.ComponentPropsWithoutRef<"div">, keyof BoxStyleProps> & {
     /** Render into an element you already have, instead of adding a wrapper (§5). */
     render?: RenderElement;
+    ref?: React.Ref<HTMLElement>;
   };
 
 /**
@@ -23,8 +24,8 @@ export type BoxProps = BoxStyleProps &
  * Anything not in the prop table is one `style={{ }}` away, and consumer `style` merges last:
  * an escape that loses to the default is not an escape.
  */
-export const Box = React.forwardRef<HTMLElement, BoxProps>(function Box(props, ref) {
-  const { render, className, style: userStyle, ...rest } = props;
+export function Box(props: BoxProps) {
+  const { ref, render, className, style: userStyle, ...rest } = props;
   const { style, rest: domProps } = resolveBoxProps(rest);
 
   const merged = {
@@ -37,4 +38,4 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(function Box(props, r
   if (render) return composeRender(render, merged as never);
 
   return <div {...(merged as React.ComponentPropsWithRef<"div">)} />;
-});
+}

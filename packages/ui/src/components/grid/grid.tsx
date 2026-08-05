@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-
 import { Box, type BoxProps } from "../box/box.tsx";
 
 /**
@@ -18,9 +16,6 @@ export type GridProps = Omit<BoxProps, "display" | "direction" | "wrap"> & {
  * A grid container, typed to grid's vocabulary (§3). Sugar over Box: preset `display`,
  * narrowed props, zero CSS of its own.
  */
-export const Grid = React.forwardRef<HTMLElement, GridProps>(function Grid(
-  { display = "grid", ...props },
-  ref,
-) {
-  return <Box ref={ref} display={display} {...props} />;
-});
+export function Grid({ display = "grid", ...props }: GridProps) {
+  return <Box display={display} {...props} />;
+}

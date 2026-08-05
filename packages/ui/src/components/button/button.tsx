@@ -60,6 +60,7 @@ type ButtonBase = Omit<
   render?: React.ReactElement;
   className?: string;
   style?: React.CSSProperties;
+  ref?: React.Ref<HTMLButtonElement>;
 };
 
 /**
@@ -95,27 +96,25 @@ export type ButtonProps = ButtonBase & (IconOnly | { iconOnly?: false | undefine
  * Defaults are `medium` and `neutral` (§11): nothing is loud-and-accent by accident, so a
  * screen has one focal point unless somebody deliberately asks for a second.
  */
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  {
-    size = "2",
-    tone = "neutral",
-    emphasis = "medium",
-    bordered = false,
-    material = "solid",
-    loading = false,
-    disabled = false,
-    focusableWhenDisabled,
-    iconOnly,
-    nativeButton,
-    render,
-    leading: leadingSlot,
-    trailing,
-    children,
-    className,
-    ...props
-  },
+export function Button({
+  size = "2",
+  tone = "neutral",
+  emphasis = "medium",
+  bordered = false,
+  material = "solid",
+  loading = false,
+  disabled = false,
+  focusableWhenDisabled,
+  iconOnly,
+  nativeButton,
+  render,
+  leading: leadingSlot,
+  trailing,
+  children,
+  className,
   ref,
-) {
+  ...props
+}: ButtonProps) {
   // Base UI branches its ENTIRE a11y contract on `nativeButton`, which defaults to true, and
   // we never forwarded it — so `render={<a/>}`, a composition our own laws bless, shipped
   // `type="button"` on an anchor (where `type` means the linked resource's MIME type) and, when
@@ -168,4 +167,4 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       {slot(trailing, "trailing")}
     </BaseButton>
   );
-});
+}

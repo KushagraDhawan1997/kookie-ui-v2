@@ -1,6 +1,8 @@
 import * as React from "react";
 
-export type SpinnerProps = Omit<React.ComponentPropsWithoutRef<"span">, "children">;
+export type SpinnerProps = Omit<React.ComponentPropsWithoutRef<"span">, "children"> & {
+  ref?: React.Ref<HTMLSpanElement>;
+};
 
 /** Eight spokes on a 24-unit grid: a 2-wide rounded bar from radius 4.5 out to radius 10. */
 const SPOKES = Array.from({ length: 8 }, (_, i) => ({
@@ -46,10 +48,7 @@ const SPOKE_RECTS = SPOKES.map(({ angle, opacity }) => (
  * Decorative by default: `aria-hidden`, because the control that owns it carries `aria-busy`
  * and announcing the same state twice is noise.
  */
-export const Spinner = React.forwardRef<HTMLSpanElement, SpinnerProps>(function Spinner(
-  { className, ...props },
-  ref,
-) {
+export function Spinner({ className, ref, ...props }: SpinnerProps) {
   return (
     <span
       ref={ref}
@@ -62,4 +61,4 @@ export const Spinner = React.forwardRef<HTMLSpanElement, SpinnerProps>(function 
       </svg>
     </span>
   );
-});
+}

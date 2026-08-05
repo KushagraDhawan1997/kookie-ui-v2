@@ -20,6 +20,7 @@ export type HeadingProps = Omit<
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;
+  ref?: React.Ref<HTMLHeadingElement>;
 };
 
 /**
@@ -32,10 +33,18 @@ export type HeadingProps = Omit<
  * the level a section actually reaches for. Like Text: no tone, no emphasis, no margin
  * (§3, §11).
  */
-export const Heading = React.forwardRef<HTMLHeadingElement, HeadingProps>(function Heading(
-  { size = "6", weight = "bold", emphasis = "loud", tone, render, className, style, children, ...props },
+export function Heading({
+  size = "6",
+  weight = "bold",
+  emphasis = "loud",
+  tone,
+  render,
+  className,
+  style,
+  children,
   ref,
-) {
+  ...props
+}: HeadingProps) {
   const merged = {
     ref,
     "data-size": size,
@@ -51,4 +60,4 @@ export const Heading = React.forwardRef<HTMLHeadingElement, HeadingProps>(functi
   if (render) return composeRender(render, merged as never, children);
 
   return <h2 {...(merged as React.ComponentPropsWithRef<"h2">)}>{children}</h2>;
-});
+}
