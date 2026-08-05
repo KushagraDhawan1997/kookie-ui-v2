@@ -16,6 +16,7 @@ import { createRoot } from "react-dom/client";
 // that file in step; a sheet missing here makes laws pass against an empty cascade.
 import buttonCss from "../components/button/button.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
+import textAreaCss from "../components/text-area/text-area.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
 import layoutCss from "../system/layout.css?raw";
 import recipesCss from "../system/recipes.css?raw";
@@ -38,6 +39,7 @@ export function installStyles(): void {
     spinnerCss,
     buttonCss,
     textFieldCss,
+    textAreaCss,
   ].join("\n");
   document.head.append(sheet);
   installed = true;

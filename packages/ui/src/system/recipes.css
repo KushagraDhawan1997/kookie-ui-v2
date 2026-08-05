@@ -332,8 +332,14 @@
    the input, and inside a `Field.Root disabled` it lands there WITHOUT passing through the
    component, because Base UI computes `fieldDisabled || disabledProp` at the input. So a
    disabled fieldset rendered a field that looked entirely live. Direct child only: a disabled
-   Button hosted in a slot is a grandchild, and must not grey out the field containing it. */
+   Button hosted in a slot is a grandchild, and must not grey out the field containing it.
+
+   The `:disabled` arm (added with TextArea, 2026-08-05) is the third spelling of the same
+   state, for the control that IS the native form element: no wrapper, no attribute stamp —
+   whichever route disables it, our prop or a Field.Root, it lands here as the native
+   attribute, and the native attribute is the one source of truth. */
 .kui-control[data-disabled]:not([data-loading]),
+.kui-control:disabled:not([data-loading]),
 .kui-control:has(> :is(:disabled, [data-disabled])):not([data-loading]) {
   /* The hand promises a response; a disabled control makes no such promise. Back to the
      arrow — never `not-allowed`, which no native platform uses. */

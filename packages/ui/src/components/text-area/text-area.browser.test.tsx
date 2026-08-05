@@ -1,0 +1,414 @@
+/**
+ * TextArea's laws, mounted (§4, §8, §10, §11).
+ *
+ * Same bar as TextField's suite: every law reads a COMPUTED value through a mounted component.
+ * What is genuinely new here is the geometry — the first non-fixed-height control, where §4
+ * says padding is the dimension — so the geometric laws are the ones that could not have been
+ * written before: the derived block padding closing against the control height, one row of
+ * textarea sitting exactly where a field's value sits, and growth arriving in whole lines.
+ */
+import { describe, expect, it } from "vitest";
+
+import { Theme } from "../../theme/theme.tsx";
+import { computed, render } from "../../test/browser.tsx";
+import { Button } from "../button/button.tsx";
+import { TextField } from "../text-field/text-field.tsx";
+import { TextArea } from "./text-area.tsx";
+
+/** Resolve a token the way the component does — through an element in the same scope. */
+function tokenOn(el: Element, name: string): string {
+  const probe = document.createElement("div");
+  probe.style.color = `var(${name})`;
+  el.parentElement!.append(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value;
+}
+
+/** Resolve any colour expression the way the stylesheet would, in this element's scope. */
+function bgOn(el: Element, expr: string): string {
+  const probe = document.createElement("div");
+  probe.style.backgroundColor = expr;
+  el.parentElement!.append(probe);
+  const value = getComputedStyle(probe).backgroundColor;
+  probe.remove();
+  return value;
+}
+
+const px = (v: string) => parseFloat(v);
+
+/**
+ * The fill an interaction rule would paint. The field suite's probe trick — append a child and
+ * read through inheritance — cannot work here: a <textarea> has no rendered children, and a
+ * SIBLING probe inherits nothing the element declared on itself. So both halves of the chain
+ * are read off the element's own computed values (custom properties arrive var-substituted),
+ * and bgOn only normalises the resulting colour string.
+ */
+function stateFill(el: Element, state: "hover" | "active"): string {
+  const styles = getComputedStyle(el);
+  const derived = styles.getPropertyValue(`--kui-ct-fill-${state}`).trim();
+  return bgOn(el, derived || styles.getPropertyValue(`--kui-ct-fill-src-${state}`).trim());
+}
+
+const onPlaceholder = (el: Element, prop: string): string =>
+  getComputedStyle(el, "::placeholder").getPropertyValue(prop).trim();
+
+describe("padding is the dimension: the first non-fixed-height control (§4)", () => {
+  // The height ladder is for fixed-height controls, and this box grows with its content. What
+  // the size index still owes it is every other join — and one derived number that makes the
+  // geometry close. These laws assert the identity itself, not a restated pixel value, so a
+  // density or type change cannot silently break the alignment they exist to hold.
+  for (const size of ["1", "2", "3", "4"] as const) {
+    it(`the derived block padding closes against the control height at size ${size}`, () => {
+      // 2·py + line + 2·border = the control height — which is exactly the claim "one row
+      // sits where a field's value sits", stated as arithmetic.
+      const el = render(<TextArea size={size} />);
+      const closed =
+        2 * px(computed(el, "padding-top")) +
+        px(computed(el, "line-height")) +
+        2 * px(computed(el, "border-top-width"));
+      expect(closed).toBeCloseTo(px(computed(el, "min-height")), 1);
+      // And the padding is symmetric — derived once, applied to both block edges.
+      expect(computed(el, "padding-top")).toBe(computed(el, "padding-bottom"));
+    });
+
+    it(`a one-row TextArea is the same box as a TextField at size ${size}`, () => {
+      // The cross-component form of the law above, and the reason the padding is derived
+      // rather than designed: a textarea in a form sits beside fields, and the first row of
+      // one must line up with the value of the other.
+      const area = render(<TextArea size={size} rows={1} />);
+      const field = render(<TextField size={size} />);
+      expect(px(computed(area, "height"))).toBeCloseTo(px(computed(field, "height")), 1);
+      for (const property of ["padding-left", "border-top-left-radius", "font-size"]) {
+        expect(computed(area, property), `size ${size} disagrees on ${property}`).toBe(
+          computed(field, property),
+        );
+      }
+    });
+  }
+
+  it("growth arrives in whole lines — rows is a content-height statement", () => {
+    const one = render(<TextArea rows={1} />);
+    const four = render(<TextArea rows={4} />);
+    const line = px(computed(one, "line-height"));
+    expect(px(computed(four, "height")) - px(computed(one, "height"))).toBeCloseTo(3 * line, 1);
+  });
+
+  it("the control height survives as a floor, never a ceiling", () => {
+    const el = render(<TextArea rows={6} />);
+    expect(px(computed(el, "height"))).toBeGreaterThan(px(computed(el, "min-height")));
+  });
+
+  it("the identity holds in every density and pointer world (§12, §16)", () => {
+    // The worlds re-declare the control family; the derivation has to survive because it is
+    // written against the family's variables, not against any world's numbers.
+    for (const world of [
+      <Theme density="compact" key="c" />,
+      <Theme density="comfortable" key="f" />,
+      <Theme pointer="coarse" key="p" />,
+    ]) {
+      const host = render(
+        <world.type {...world.props}>
+          <TextArea size="2" rows={1} />
+          <TextField size="2" />
+          <Button size="2">Label</Button>
+        </world.type>,
+      );
+      const area = host.querySelector<HTMLElement>(".kui-textarea")!;
+      const field = host.querySelector<HTMLElement>(".kui-field")!;
+      const button = host.querySelector<HTMLElement>(".kui-button")!;
+      expect(px(computed(area, "height"))).toBeCloseTo(px(computed(field, "height")), 1);
+      expect(computed(area, "min-height")).toBe(computed(button, "min-height"));
+    }
+  });
+});
+
+describe("one treatment: the field family's identity (§9, §11)", () => {
+  it("exposes no emphasis, no tone, and no outer spacing", () => {
+    // @ts-expect-error — emphasis is not a TextAreaProp
+    void (<TextArea emphasis="loud" />);
+    // @ts-expect-error — tone is not a TextAreaProp
+    void (<TextArea tone="accent" />);
+    // @ts-expect-error — no margin prop on any control (first non-negotiable)
+    void (<TextArea m="4" />);
+  });
+
+  it("the fill is the opaque seal, and it does not move when you point at it", () => {
+    const el = render(<TextArea />);
+    expect(computed(el, "background-color")).toBe(bgOn(el, "var(--color-surface)"));
+    // Same trap as the field: all three sources must resolve, or pointing at the box makes
+    // the fill declaration invalid at computed-value time and it vanishes.
+    const rest = computed(el, "background-color");
+    expect(stateFill(el, "hover")).toBe(rest);
+    expect(stateFill(el, "active")).toBe(rest);
+  });
+
+  it("wears a caret, not a hand; the text is content — selectable, regular weight (§15)", () => {
+    const el = render(<TextArea defaultValue="hello" />);
+    expect(computed(el, "cursor")).toBe("text");
+    expect(computed(el, "user-select")).not.toBe("none");
+    expect(computed(el, "font-weight")).toBe("400");
+  });
+
+  it("the border is painted, and it is the affordance — bordered by identity", () => {
+    const el = render(<TextArea />);
+    expect(computed(el, "border-top-width")).toBe("1px");
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
+  });
+
+  it("offers the one resize axis that cannot break a layout, as raw CSS", () => {
+    // Vertical only: a horizontal handle makes the element wider than the column that owns
+    // it. No prop — resize is plain CSS and `style` already covers all of CSS.
+    expect(computed(render(<TextArea />), "resize")).toBe("vertical");
+    expect(computed(render(<TextArea style={{ resize: "none" }} />), "resize")).toBe("none");
+  });
+});
+
+describe("focus is a mode, not a keyboard affordance (§8)", () => {
+  it("rings on entry however you arrived — plain :focus, on the one element there is", () => {
+    const el = render(<TextArea />) as HTMLTextAreaElement;
+    expect(computed(el, "outline-style")).toBe("none");
+    el.focus();
+    expect(document.activeElement).toBe(el);
+    expect(computed(el, "outline-style")).toBe("solid");
+    expect(computed(el, "outline-width")).toBe("2px");
+    expect(computed(el, "outline-color")).toBe(tokenOn(el, "--focus-ring"));
+    el.blur();
+  });
+});
+
+describe("validity is state, never a prop (§8)", () => {
+  it("aria-invalid re-tones the border — the platform spelling, standalone", () => {
+    const plain = render(<TextArea />);
+    const invalid = render(<TextArea aria-invalid="true" />);
+    expect(computed(invalid, "border-top-color")).toBe(tokenOn(invalid, "--invalid-edge"));
+    expect(computed(invalid, "border-top-color")).not.toBe(computed(plain, "border-top-color"));
+    // The value stays legible: a state re-tones the box, never the content.
+    expect(computed(invalid, "color")).toBe(computed(plain, "color"));
+  });
+
+  it("data-invalid re-tones it too — what Base UI writes, landing on this element DIRECTLY", () => {
+    // No :has() hop here: the control is the element Base UI decorates, so this exercises the
+    // shared rule's direct arm — the arm that shipped with no law at all until 2026-08-05.
+    const el = render(<TextArea />);
+    el.setAttribute("data-invalid", "");
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
+    el.removeAttribute("data-invalid");
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
+  });
+
+  it("the ring moves with the border — the invalid state's own reversal of one-ring (§8)", () => {
+    const invalid = render(<TextArea aria-invalid="true" />) as HTMLTextAreaElement;
+    invalid.focus();
+    expect(computed(invalid, "outline-color")).toBe(tokenOn(invalid, "--invalid-edge"));
+    invalid.blur();
+  });
+});
+
+describe("disabled arrives as the native attribute, and the shared remap reads it (§8)", () => {
+  it("goes flat by tone through the :disabled arm", () => {
+    // The third spelling of the disabled state, added with this component: no wrapper to tell —
+    // the element that paints IS the disabled form element, and the native attribute is the
+    // truth the arm reads. (Base UI stamps `data-disabled` here too, but the arm must not need
+    // it: the next law disables through the attribute alone.) Falsified against the shared
+    // layer without the arm: the colour assertions here failed.
+    const el = render(<TextArea disabled placeholder="hint" />);
+    expect((el as HTMLTextAreaElement).disabled).toBe(true);
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+    expect(computed(el, "color")).toBe(tokenOn(el, "--neutral-8"));
+    expect(computed(el, "opacity")).toBe("1");
+    expect(computed(el, "cursor")).toBe("default");
+    // The hint goes flat with the value rather than ending up brighter than it.
+    expect(onPlaceholder(el, "color")).toBe(tokenOn(el, "--neutral-8"));
+  });
+
+  it("a Field.Root-computed disable reaches it the same way — the attribute is the one truth", () => {
+    // Base UI computes `fieldDisabled || disabledProp` at the control; simulate the half that
+    // never passes through this component by setting the native attribute directly.
+    const el = render(<TextArea />) as HTMLTextAreaElement;
+    const live = computed(el, "border-top-color");
+    el.disabled = true;
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+    el.disabled = false;
+    expect(computed(el, "border-top-color")).toBe(live);
+  });
+
+  it("disabled outranks invalid, deterministically", () => {
+    const el = render(<TextArea disabled aria-invalid="true" />);
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+  });
+});
+
+describe("readOnly drops the well, and keeps everything else (§8)", () => {
+  it("the seal is the one thing gone", () => {
+    const plain = render(<TextArea defaultValue="v" />);
+    const ro = render(<TextArea defaultValue="v" readOnly />) as HTMLTextAreaElement;
+    expect(computed(ro, "background-color")).toBe("rgba(0, 0, 0, 0)");
+    expect(computed(plain, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
+    expect(computed(ro, "border-top-color")).toBe(computed(plain, "border-top-color"));
+    expect(computed(ro, "color")).toBe(computed(plain, "color"));
+    expect(computed(ro, "cursor")).toBe("text");
+    ro.focus();
+    expect(computed(ro, "outline-style")).toBe("solid");
+    ro.blur();
+  });
+
+  it("does not borrow the disabled vocabulary, and disabled does not borrow this", () => {
+    // CSS :read-only matches a disabled control too; the :not(:disabled) guard is what keeps
+    // two states from painting one box.
+    const off = render(<TextArea disabled />);
+    expect(computed(off, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
+    const ro = render(<TextArea readOnly />);
+    expect(computed(ro, "border-top-color")).not.toBe(tokenOn(ro, "--neutral-6"));
+  });
+});
+
+describe("the placeholder is a designed role, not a UA default (§7, §15)", () => {
+  it("reads the FAINT role at full opacity", () => {
+    const el = render(<TextArea placeholder="Notes" />);
+    expect(onPlaceholder(el, "color")).toBe(tokenOn(el, "--color-text-faint"));
+    expect(onPlaceholder(el, "color")).not.toBe(tokenOn(el, "--color-text-muted"));
+    expect(onPlaceholder(el, "opacity")).toBe("1");
+  });
+});
+
+describe("the app's identities reach it without it knowing (§5, §10)", () => {
+  it("the elevated world lifts it; flat casts nothing", () => {
+    expect(computed(render(<TextArea />), "box-shadow")).toBe("none");
+    const host = render(
+      <Theme surfaces="elevated">
+        <TextArea />
+      </Theme>,
+    );
+    const el = host.querySelector<HTMLElement>(".kui-textarea")!;
+    const probe = document.createElement("div");
+    probe.style.boxShadow = "var(--surface-chrome)";
+    host.append(probe);
+    expect(computed(el, "box-shadow")).toBe(computed(probe, "box-shadow"));
+    probe.remove();
+    // @ts-expect-error — depth is an app identity; nothing chooses a shadow
+    void (<TextArea shadow="2" />);
+  });
+
+  it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
+    const glass = render(<TextArea material="regular" />);
+    expect(computed(glass, "backdrop-filter")).toContain("blur(16px)");
+    expect(computed(glass, "background-color")).toBe(
+      bgOn(
+        glass,
+        "color-mix(in srgb, var(--color-surface) var(--material-regular-alpha), transparent)",
+      ),
+    );
+    // And the glass fill does not move either — the ramp is pinned to rest, like the field's.
+    const derived = getComputedStyle(glass).getPropertyValue("--kui-ct-fill-hover").trim();
+    expect(bgOn(glass, derived)).toBe(computed(glass, "background-color"));
+  });
+
+  it("resolves differently under a dark Theme — both directions of every axis", () => {
+    const light = render(<TextArea />);
+    const dark = render(
+      <Theme appearance="dark">
+        <TextArea />
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-textarea")!;
+    expect(computed(dark, "background-color")).not.toBe(computed(light, "background-color"));
+    expect(computed(dark, "border-top-color")).not.toBe(computed(light, "border-top-color"));
+    expect(computed(dark, "background-color")).toBe(bgOn(dark, "var(--color-surface)"));
+  });
+});
+
+describe("the zoom floor rides the pointer axis (§4, §16)", () => {
+  it("floors the type at the platform threshold wherever a finger is", () => {
+    const coarse = render(
+      <Theme pointer="coarse">
+        <TextArea size="1" />
+        <TextArea size="2" />
+      </Theme>,
+    );
+    for (const el of coarse.querySelectorAll(".kui-textarea")) {
+      expect(px(computed(el, "font-size"))).toBeGreaterThanOrEqual(16);
+    }
+  });
+
+  it("and is the identity on a fine pointer — nothing is paid where nothing zooms", () => {
+    const fine = render(
+      <Theme pointer="fine">
+        <TextArea size="1" />
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-textarea")!;
+    expect(px(computed(fine, "font-size"))).toBeLessThan(16);
+    // One element means the floor moves the box's own type where it applies; the line height
+    // keeps its token, so the sizes still answer the index where the floor is inert.
+    const coarse = render(
+      <Theme pointer="coarse">
+        <TextArea size="1" />
+        <TextArea size="2" />
+      </Theme>,
+    );
+    const [one, two] = [...coarse.querySelectorAll(".kui-textarea")];
+    expect(computed(one!, "min-height")).not.toBe(computed(two!, "min-height"));
+  });
+
+  it("clears the platform's own dress — appearance is the system's, not iOS's", () => {
+    expect(computed(render(<TextArea />), "appearance")).toBe("none");
+  });
+});
+
+describe("the boundary (§3, §5)", () => {
+  it("ref reaches the textarea — the one element there is", () => {
+    let node: HTMLTextAreaElement | null = null;
+    render(
+      <TextArea
+        ref={(n) => {
+          node = n;
+        }}
+      />,
+    );
+    expect(node).toBeInstanceOf(HTMLTextAreaElement);
+    node!.focus();
+    expect(document.activeElement).toBe(node);
+    node!.blur();
+  });
+
+  it("form props, className and style all land on the element — there is no second place", () => {
+    const el = render(
+      <TextArea className="mine" style={{ maxWidth: "300px" }} name="notes" id="probe" rows={3} />,
+    ) as HTMLTextAreaElement;
+    expect(el.className.split(" ").sort()).toEqual(["kui-control", "kui-textarea", "mine"]);
+    expect(computed(el, "max-width")).toBe("300px");
+    expect(el.name).toBe("notes");
+    expect(el.id).toBe("probe");
+    expect(el.rows).toBe(3);
+  });
+
+  it("accepts a value and reports changes like the native element it is", () => {
+    let seen = "";
+    const el = render(
+      <TextArea defaultValue="hello" onChange={(e) => (seen = e.target.value)} />,
+    ) as HTMLTextAreaElement;
+    expect(el.value).toBe("hello");
+    el.focus();
+    // Through the prototype's own setter, because React tracks the value property — the same
+    // trap the field's suite documents.
+    const setValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!
+      .set!;
+    setValue.call(el, "world");
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(seen).toBe("world");
+    el.blur();
+  });
+
+  it("the API's closed edges: no render, no children, no cols", () => {
+    // One element that must stay a <textarea> — the platform wiring is the component.
+    // @ts-expect-error — refused, deliberately (§5)
+    void (<TextArea render={<div />} />);
+    // React's contract for form values is defaultValue; two spellings for one fact is drift.
+    // @ts-expect-error — children is not the API
+    void (<TextArea>hello</TextArea>);
+    // The same character-count width hack the field's native `size` attribute is.
+    // @ts-expect-error — width belongs to layout
+    void (<TextArea cols={40} />);
+    // @ts-expect-error — `size` is the index, never a number
+    void (<TextArea size={3} />);
+  });
+});

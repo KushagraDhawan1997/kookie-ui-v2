@@ -1,0 +1,104 @@
+/* TextArea adds the field family's facts, keyed on SELF (§2, §4).
+ *
+ * The size index, the states, the disabled and invalid remaps and material all arrive from
+ * system/recipes.css. What is here repeats text-field.css almost line for line — deliberately
+ * in a second file rather than shared selectors, because the two components have different
+ * anatomy: the field's facts are structural (`:has(> .kui-field-input …)` — a wrapper asking
+ * about its child) and this component has no child to ask, so every state keys on the element
+ * itself. A third field-shaped control is the signal to promote the family into the shared
+ * layer (ENGINEERING §4's rule of copies); the second is not.
+ *
+ * If this file grows a tone, a rung or a size, the recipe layer has stopped absorbing
+ * variation — the same tripwire text-field.css carries, enforced by the same law.
+ */
+
+.kui-textarea {
+  /* §4: a textarea is the system's first non-fixed-height control — "padding is the
+     dimension". The skeleton's height token survives as a FLOOR (min-height, inherited from
+     .kui-control), and the block padding is derived so the geometry closes: one row of text
+     sits exactly where a TextField's value sits at the same index, because
+     2·py + line + 2·border = the control height. Derived, not designed, because it is a
+     geometric identity between two components — a new number here could drift from the
+     field it exists to line up with. */
+  --kui-ct-py: calc((var(--kui-ct-h) - var(--kui-ct-line)) / 2 - var(--border-width));
+
+  /* The value is the user's content, not a control label (§15): content rests regular, is
+     the user's to select, and takes a caret. All three override the skeleton's button-shaped
+     answers — same three lines the field wrapper carries. */
+  font-weight: var(--font-weight-regular);
+  cursor: var(--cursor-text);
+  -webkit-user-select: auto;
+  user-select: auto;
+
+  /* The seal, stated for all three states ON PURPOSE — the field's invariant, same trap: the
+     shared layer swaps to the -hover/-active sources on interaction, and leaving them unset
+     would make the declaration invalid at computed-value time exactly when you point at the
+     box. A field's fill does not move; the border and the ring carry its states. */
+  --kui-ct-fill-src: var(--color-surface);
+  --kui-ct-fill-src-hover: var(--color-surface);
+  --kui-ct-fill-src-active: var(--color-surface);
+  /* The role, not the colour: the shared disabled remap re-points --tone-label, so the value
+     goes flat with the box and this file needs no disabled branch of its own. */
+  --kui-ct-label-color: var(--tone-label);
+
+  /* Depth is the app's identity, never the component's (§5, §10). */
+  box-shadow: var(--kui-surface-chrome, none);
+
+  /* The one resize axis that cannot break a layout: horizontal resize makes the element wider
+     than the column that owns it, so the handle offers height only. `none` and `both` are one
+     `style` away — resize is raw CSS, and a prop that renames a CSS property earns no row
+     (ENGINEERING §5). */
+  resize: vertical;
+
+  /* iOS paints its own inset shadow and corner on text inputs and ignores the background
+     until appearance is cleared — invisible from a desktop, same as the field's input. */
+  -webkit-appearance: none;
+  appearance: none;
+
+  /* The zoom floor (§4, §16): Safari zooms the page when a text control under 16px takes
+     focus, textareas included. The token resolves to 0 on a fine pointer, so this is the
+     identity on a desktop. Unlike the field there is no wrapper to hold the designed step —
+     one element means the floor moves the box's own type where it applies, and the line
+     height keeps its token so the paragraph stays on the designed rhythm. */
+  font-size: max(var(--input-font-floor), var(--kui-ct-font));
+}
+
+/* The DERIVED fill pinned to rest, the field's second invariant verbatim: under a material the
+   thing that moves is the mix ramp, not the sources, so the resting derived value is what the
+   hover and active hooks must resolve to. Unguarded for the same reason — where nothing
+   derives a fill the reference is invalid at computed-value time and the shared fallback chain
+   takes over. Both classes for the same specificity tie. */
+.kui-control.kui-textarea {
+  --kui-ct-fill-hover: var(--kui-ct-fill);
+  --kui-ct-fill-active: var(--kui-ct-fill);
+}
+
+/* READ-ONLY drops the well, and keeps everything else (§8) — the field's rule, self-keyed.
+   `:not(:disabled)` because CSS :read-only matches anything not :read-write, which includes a
+   disabled control: without the guard, two states would paint one box. */
+.kui-textarea:read-only:not(:disabled) {
+  --kui-ct-fill-src: transparent;
+  --kui-ct-fill-src-hover: transparent;
+  --kui-ct-fill-src-active: transparent;
+}
+
+/* Focus is a MODE here, not a keyboard affordance (§8) — you do not press a field, you enter
+   it. Plain :focus, and on SELF: there is no wrapper to hand the ring to and no hosted control
+   that could falsely claim it, so the field's two-element focus question never arises. */
+.kui-textarea:focus {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* The placeholder is the FAINT role at full opacity (§7, §15) — its definition names this
+   case, and Firefox's 0.54 default would stack a second fade on it. */
+.kui-textarea::placeholder {
+  color: var(--color-text-faint);
+  opacity: 1;
+}
+
+/* A disabled hint must not end up brighter than the value beside it: the shared remap moves
+   --tone-label and nothing else, so the placeholder joins it here. */
+.kui-textarea:disabled::placeholder {
+  color: var(--tone-label);
+}

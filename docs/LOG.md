@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 TextArea: one element, because the anatomy criterion answers twice; padding derived, not designed
+
+Repetition's second entry, and three questions inside it were genuinely open:
+
+**Wrapper or bare element — the anatomy criterion, applied twice with two answers.** TextField's wrapper is forced: a slot puts an icon inside the border, the border must leave the `<input>`, and the wrapper then owes the caret redirect, slot layout and hosted-control focus. TextArea was decided by asking the same question, not by copying the neighbour: it has no slots — an adornment floating over a scrolling paragraph is not a designed position — so nothing non-visual forces a second element, the border stays on the `<textarea>`, and every wrapper debt never exists. The temptation rejected was symmetry ("the field family shares one anatomy"); the criterion outranks the family resemblance. The stylesheet consequence is accepted and bounded: text-field.css's facts repeat self-keyed in text-area.css because the field's selectors are structural (`:has(> .kui-field-input …)`) and this component has no child to ask — the THIRD field-shaped control is the signal to promote the family into the shared layer, not the second.
+
+**The block padding is derived — the one place the system's anti-derivation stance inverts.** §6 rejects derived values where the number is taste (radius-from-height). Here the number is a geometric identity BETWEEN two components: a textarea sits beside fields in a form, and its first row must sit exactly where the field's value sits. `py = (height − line − 2·border) / 2` makes that true at every size in every world by construction; a designed number would be the same four values today and free to drift tomorrow. Taste has no opinion for the identity to override — when it does (the eye pass), the identity is the thing to re-judge, not the values.
+
+**`resize` is a stylesheet default, not a prop.** Vertical-only (horizontal resize makes the element wider than the column that owns it — the one axis that breaks the layout around it); `none` and `both` are one `style` away. A `resize` prop was considered and refused by §3's own rule: a prop earns a row only if it adds something raw CSS lacks, and this one would rename a CSS property.
+
+Also closed: the disabled remap's third arm (`.kui-control:disabled`) for the control that IS the native form element — no stamp, the native attribute is the one truth both routes land on; and the type refusals (`children` — React's form contract is `defaultValue`; `cols` — the field's `size` argument verbatim; `render` — the element cannot move). Cost: **+91 bytes gzipped**, against TextField's +247 and Button's +1,206 — the additivity curve, third point.
+
+---
+
 ## 2026-08-05 Two width vocabularies, and they are correct — a window is unique, containers are legion
 
 Raised immediately after §18 shipped: tiers say `sm / md / lg`, window classes say `narrow / regular / wide` — two word-families for width, and `md` and the narrow boundary even share 48rem. One vocabulary was considered seriously, and the unification is genuinely available: room words work as thresholds for the two upper tiers without inversion (`{ initial, regular, wide }` — "when this slot has regular-window room"), `initial` is the narrow state by mobile-first construction, and only `sm` (30rem, sub-class) lacks a name.

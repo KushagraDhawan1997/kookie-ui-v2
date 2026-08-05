@@ -39,26 +39,34 @@ function kuiBox(props: BoxStyleProps, body: string): string {
  * thesis is actually visible: if a single generator handles yellow and navy without either
  * being hand-placed, the sweep reads as one family. Bright hues are the ones to distrust.
  */
-const SWEEP: Array<[string, number, number]> = [
-  ["yellow", 100, 1],
-  ["amber", 80, 1],
-  ["lime", 130, 1],
-  ["green", 150, 1],
-  ["teal", 175, 1],
-  ["cyan", 195, 1],
-  ["sky", 230, 1],
-  ["blue", 250, 1],
-  ["indigo", 267, 1],
-  ["violet", 290, 1],
-  ["magenta", 340, 1],
-  ["red", 25, 1],
+const SWEEP: Array<[string, { hue: number; vividness: number; pinL?: number }]> = [
+  ["yellow", { hue: 100, vividness: 1 }],
+  ["amber", { hue: 80, vividness: 1 }],
+  // The amber candidates (2026-08-05): at full vividness the resting solid parks ON the gamut
+  // cusp and the states cannot move .035 in lightness without shedding past the mud-guard —
+  // the law refuses it. Backing vividness off the cusp is what buys the visible press state;
+  // every variant below passes all the laws in both modes. The pinned row is Radix amber 9's
+  // own lightness (L .854) and hue (84) — lighter and yellower than hue 80, which is most of
+  // why theirs reads brighter — at the highest vividness whose dark mode still passes.
+  ["amber v0.9 — passes", { hue: 80, vividness: 0.9 }],
+  ["amber Radix-L v0.85 — passes", { hue: 84.13, vividness: 0.85, pinL: 0.854 }],
+  ["lime", { hue: 130, vividness: 1 }],
+  ["green", { hue: 150, vividness: 1 }],
+  ["teal", { hue: 175, vividness: 1 }],
+  ["cyan", { hue: 195, vividness: 1 }],
+  ["sky", { hue: 230, vividness: 1 }],
+  ["blue", { hue: 250, vividness: 1 }],
+  ["indigo", { hue: 267, vividness: 1 }],
+  ["violet", { hue: 290, vividness: 1 }],
+  ["magenta", { hue: 340, vividness: 1 }],
+  ["red", { hue: 25, vividness: 1 }],
 ];
 
 function hueSweep(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>hue sweep — ${mode}</h2>
-    ${SWEEP.map(([name, hue, vividness]) => {
-      const s = buildScaleFor({ hue, vividness }, mode);
+    ${SWEEP.map(([name, spec]) => {
+      const s = buildScaleFor(spec, mode);
       return `<div class="sweep">
         <span class="sweep-name">${name}<br><span class="sweep-hex">${s.steps[8]}</span></span>
         <div class="row">${s.steps.map((hex, i) => `<div class="sw sm" title="${name}-${i + 1} ${hex}" style="background:${hex}"></div>`).join("")}</div>
@@ -340,6 +348,72 @@ function fieldSection(mode: Mode): string {
   </section>`;
 }
 
+/** The markup TextArea renders (§4): ONE element — the field family without the wrapper. */
+function textarea(
+  attrs: {
+    size?: string;
+    material?: string;
+    placeholder?: string;
+    value?: string;
+    rows?: number;
+    disabled?: boolean;
+    invalid?: boolean;
+    readonly?: boolean;
+    style?: string;
+  } = {},
+): string {
+  const { size = "2", material, placeholder = "", value, rows, disabled, invalid, readonly, style } = attrs;
+  return `<textarea class="kui-control kui-textarea" data-size="${size}" data-tone="neutral" data-bordered${
+    material ? ` data-material="${material}"` : ""
+  }${rows ? ` rows="${rows}"` : ""}${disabled ? " disabled" : ""}${readonly ? " readonly" : ""}${
+    invalid ? ' aria-invalid="true"' : ""
+  } placeholder="${placeholder}"${style ? ` style="${style}"` : ""}>${value ?? ""}</textarea>`;
+}
+
+function textAreaSection(mode: Mode): string {
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
+  const row = (body: string) =>
+    kuiBox({ display: "flex", gap: "5", align: "flex-start", wrap: "wrap" }, body);
+  const LOREM = "The quick brown fox jumps over the lazy dog, then does it again with feeling.";
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo(
+        "the size index - padding is the dimension; one row sits where a field's value sits (§4)",
+        row(
+          SIZES.map((n) =>
+            [
+              field({ size: String(n), placeholder: `field ${n}` }),
+              textarea({ size: String(n), rows: 1, placeholder: `one row` }),
+            ].join(""),
+          ).join(""),
+        ),
+      ) +
+        demo(
+          "states - the same family, keyed on the one element there is (§8)",
+          row(
+            [
+              textarea({ rows: 3, placeholder: "rest" }),
+              textarea({ rows: 3, value: LOREM }),
+              textarea({ rows: 3, placeholder: "invalid", invalid: true }),
+              textarea({ rows: 3, placeholder: "disabled", disabled: true }),
+              textarea({ rows: 3, value: "read-only: the well is gone", readonly: true }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "material - the seal made glass, no CSS of its own (§10)",
+          `<div style="background: url('backdrop.jpg') center / cover no-repeat, linear-gradient(115deg, #841e57, #144e68 55%, #1db954); border-radius: var(--radius-surface-3);">${kuiBox(
+            { display: "flex", gap: "5", wrap: "wrap", p: "7" },
+            ["thin", "regular", "thick"].map((m) => textarea({ material: m, rows: 3, placeholder: m })).join(""),
+          )}</div>`,
+        ),
+    )}
+  </section>`;
+}
+
 function card(body: string, style = "", material?: string, size = "3"): string {
   return `<div class="kui-surface kui-card" data-size="${size}" data-tone="neutral" data-emphasis="quiet" data-bordered${
     material ? ` data-material="${material}"` : ""
@@ -591,12 +665,8 @@ function brandSection(mode: Mode): string {
 function sweepFull(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>every hue — ${mode}</h2>
-    ${SWEEP.map(([name, hue, vividness]) =>
-      scaleRow(
-        name,
-        buildScaleFor({ hue, vividness }, mode),
-        buildScaleFor({ hue, vividness }, mode, "srgb", "high"),
-      ),
+    ${SWEEP.map(([name, spec]) =>
+      scaleRow(name, buildScaleFor(spec, mode), buildScaleFor(spec, mode, "srgb", "high")),
     ).join("")}
   </section>`;
 }
@@ -748,6 +818,7 @@ export function generatePreview(): string {
     <a href="#matrix">matrix</a>
     <a href="#button">button</a>
     <a href="#field">field</a>
+    <a href="#textarea">textarea</a>
     <a href="#type">type</a>
     <a href="#layout">layout</a>
     <a href="#roles">roles</a>
@@ -822,6 +893,11 @@ ${surfaceSection("dark")}
 <p class="note">The additivity claim's first real test (\u00a72): a whole second control for <strong>+247 bytes</strong> gzipped, because the size index, the states, the disabled and invalid remaps and material all arrived from the layer Button already paid for. What is genuinely new is the <em>wrapper</em> — a field that holds an icon inside its border cannot keep that border on the <code>&lt;input&gt;</code>, and once a wrapper owns the border it owes three things no consumer can compose from outside: clicking anywhere lands the caret, the input yields to the slots without breaking the placeholder, and an interactive trailing control keeps its own press. That is the anatomy criterion met, which is why this component has slots and Card does not. No emphasis and no tone: loudness ranks actions, and a form where one field is louder than the next names nothing. Validity is state (<code>aria-invalid</code>, or <code>data-invalid</code> from a Base UI Field), never a prop.</p>
 ${fieldSection("light")}
 ${fieldSection("dark")}
+
+<h1 id="textarea">TextArea — the field family, one element</h1>
+<p class="note">The first non-fixed-height control: §4's height ladder is for boxes that do not grow, so here <em>padding is the dimension</em> — the block padding is derived so a one-row TextArea is geometrically identical to a TextField at the same index, and height then belongs to the content (<code>rows</code>, and a vertical resize handle; horizontal would break the column that owns it). No wrapper and no slots, by the same anatomy criterion that gave TextField both: nothing non-visual forces a second element, so the border stays on the <code>&lt;textarea&gt;</code> and every wrapper debt simply never exists. The states arrive through the shared layer's third disabled spelling — the element that paints IS the disabled form element.</p>
+${textAreaSection("light")}
+${textAreaSection("dark")}
 
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">

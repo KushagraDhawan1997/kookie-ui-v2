@@ -32,6 +32,7 @@ const read = (p: string) => code(readFileSync(join(here, p), "utf8"));
 const recipes = read("./recipes.css");
 const button = read("../components/button/button.css");
 const textField = read("../components/text-field/text-field.css");
+const textArea = read("../components/text-area/text-area.css");
 const TONE_NAMES = Object.keys(tones);
 
 /** Every hand-authored stylesheet the package ships. Generated files are where literals and
@@ -59,6 +60,7 @@ describe("a component's own CSS names no axis (§2, §9)", () => {
   const components: [string, string][] = [
     ["button.css", button],
     ["text-field.css", textField],
+    ["text-area.css", textArea],
   ];
 
   for (const [name, css] of components) {
@@ -76,14 +78,17 @@ describe("a component's own CSS names no axis (§2, §9)", () => {
     expect(button).not.toMatch(/--(accent|neutral|destructive|tone)-/);
   });
 
-  it("text-field.css names ROLES where it must, and never a family (§7)", () => {
+  it("the field family names ROLES where it must, and never a family (§7)", () => {
     // A field is stricter than a button in one way and looser in another, and the difference is
     // worth stating rather than blurring. It declares its own identity — the seal it fills with,
     // the muted hint — so it necessarily names colour, where button.css names none at all. What
     // it must never do is reach past the role layer to a FAMILY: the moment a component knows
-    // the word `neutral`, rebinding a tone stops being a Theme's job.
-    expect(textField).not.toMatch(/--(accent|neutral|destructive)-/);
-    expect(textField).toMatch(/--color-surface|--tone-label/);
+    // the word `neutral`, rebinding a tone stops being a Theme's job. TextArea is the same
+    // family with the same identity, held to the same line.
+    for (const css of [textField, textArea]) {
+      expect(css).not.toMatch(/--(accent|neutral|destructive)-/);
+      expect(css).toMatch(/--color-surface|--tone-label/);
+    }
   });
 });
 
@@ -93,7 +98,11 @@ describe("the icon box is a mechanism, declared once (§4, ENGINEERING §4)", ()
     // the bare `.kui-control > svg` rule misses them. The fix belongs in the shared layer, not
     // in a fourth copy of three declarations when Select ships.
     expect(recipes).toContain("[data-slot] > svg");
-    for (const [, css] of [["button.css", button], ["text-field.css", textField]] as const) {
+    for (const [, css] of [
+      ["button.css", button],
+      ["text-field.css", textField],
+      ["text-area.css", textArea],
+    ] as const) {
       expect(css).not.toContain("--kui-ct-icon");
     }
   });
