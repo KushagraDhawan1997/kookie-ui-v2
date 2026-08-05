@@ -376,12 +376,12 @@ function textAreaSection(mode: Mode): string {
     ${kuiBox(
       { display: "flex", direction: "column", gap: "7" },
       demo(
-        "the size index - padding is the dimension; one row sits where a field's value sits (§4)",
+        "the size index - padding is the dimension, and it is ONE inset, all four sides (§4)",
         row(
           SIZES.map((n) =>
             [
               field({ size: String(n), placeholder: `field ${n}` }),
-              textarea({ size: String(n), rows: 1, placeholder: `one row` }),
+              textarea({ size: String(n), rows: 3, placeholder: `size ${n}` }),
             ].join(""),
           ).join(""),
         ),
@@ -502,6 +502,10 @@ function surfaceSection(mode: Mode): string {
         demo(
           "material over a hostile backdrop - v0 recipes (\u00a710)",
           `<div style="${hostile}">${kuiBox({ display: "flex", gap: "5", wrap: "wrap", p: "7" }, materials)}</div>`,
+        ) +
+        demo(
+          "the same cards in an ELEVATED world - the pane's own chrome wins on the element (\u00a710)",
+          `<div data-surfaces="elevated"><div style="${hostile}">${kuiBox({ display: "flex", gap: "5", wrap: "wrap", p: "7" }, materials)}</div></div>`,
         ) +
         demo(
           "material on a control - a fill modifier: tone and loudness survive the glass (\u00a710, \u00a711)",
@@ -804,6 +808,7 @@ export function generatePreview(): string {
   .sweep .role { padding: var(--space-2) var(--space-3); font-size: var(--font-size-1); }
   .hc-label { font-size: var(--font-size-1); font-family: var(--font-mono); color: var(--neutral-10);
               margin: var(--space-4) 0 var(--space-2); }
+
 </style>
 </head>
 <body>
@@ -890,7 +895,7 @@ ${fieldSection("light")}
 ${fieldSection("dark")}
 
 <h1 id="textarea">TextArea — the field family, one element</h1>
-<p class="note">The first non-fixed-height control: §4's height ladder is for boxes that do not grow, so here <em>padding is the dimension</em> — the block padding is derived so a one-row TextArea is geometrically identical to a TextField at the same index, and height then belongs to the content (<code>rows</code>, and a vertical resize handle; horizontal would break the column that owns it). No wrapper and no slots, by the same anatomy criterion that gave TextField both: nothing non-visual forces a second element, so the border stays on the <code>&lt;textarea&gt;</code> and every wrapper debt simply never exists. The states arrive through the shared layer's third disabled spelling — the element that paints IS the disabled form element.</p>
+<p class="note">The first non-fixed-height control: §4's height ladder is for boxes that do not grow, so here <em>padding is the dimension</em> — and the dimension is ONE inset, all four sides (reversed 2026-08-05, LOG: the first cut derived the block padding from the height so one row matched a TextField, and the leftover read as an accident the moment there was a second line — 13px at the sides, 9px above, chosen by nobody). A paragraph is the only real job (a one-row box is TextField's; a composer is its own component), so the frame is the side padding, top and bottom included — and at <em>full</em> the pill bump stays horizontal-only, no exception for roundness: judge the top-left corner of a rounded textarea on this page. Height belongs to the content (<code>rows</code>, a vertical resize handle; horizontal would break the column that owns it), with the control height as a floor. No wrapper and no slots, by the same anatomy criterion that gave TextField both. The states arrive through the shared layer's third disabled spelling — the element that paints IS the disabled form element.</p>
 ${textAreaSection("light")}
 ${textAreaSection("dark")}
 

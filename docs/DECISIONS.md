@@ -785,7 +785,15 @@ Blur radii are provisional until measured on a mid-tier device.
 
 Material is only *situationally* correct — over a solid surface it blurs nothing and reads as a muddy smudge. We neither block it (rigidity leaks) nor stay silent (people ship the smudge and blame the library), so: **allow and guide.** Default `solid` everywhere so nobody stumbles into it, document that material is for controls floating over media or content, and add a dev-time nudge for material-over-a-solid-parent, in the same spirit as the double-glass warning. The bad case and the good case both require someone to type the prop deliberately, and the default is always safe.
 
-**Border and material pair naturally.** Both answer "this control is sitting on something busy" — one by containment, one by defense — so `bordered` composes with any material. Open: whether that border stays opaque or goes translucent with the fill. An opaque edge on glass reads as a sticker; a fully translucent one vanishes over light backdrops. The platform answer is a semi-transparent hairline, usually lighter along the top edge.
+**Border and material pair naturally.** Both answer "this control is sitting on something busy" — one by containment, one by defense — so `bordered` composes with any material.
+
+**The edge belongs to the material (closed 2026-08-05, Kushagra: blur plus the ordinary card border read "cheap" — the border looked slapped on, and was).** A material is a pane, and a pane owns more than what light does passing through it. On surfaces, three of its parts are now the material's own, per thickness and mode, all v0 for the eye:
+
+- **Edge:** the tone border on glass was opaque pigment on a pane of light. Under a material the border resolves to `--material-<t>-edge` — a translucent white hairline, stronger with thickness — consumed with a `var(--tone-border)` fallback that resolves at the element.
+- **Rim:** a top inner light catch, painted as a `background-image` gradient rather than a shadow — the scene's one light source falls downward (the shadow palette's own model), and using a background layer keeps the one-box-shadow law out of it entirely.
+- **Separation stays the app's** — deliberately NOT the pane's. A first cut welded `var(--shadow-2)` to glass ("a pane floats by definition") and was reversed the same hour: a pane that always floats overrides the flat identity. Rim and edge are what the material *is*; depth follows `surfaces="elevated"`, so a flat world's glass has edge and glint, no lift.
+
+**`contrast="high"` leans on the glass, it does not unmake it.** Each thickness carries a designed `alphaHigh` triple — more opaque, never fully, so the three thicknesses stay distinct (a first cut reused the reduced-transparency fallback and collapsed them into one). The edge and rim empty, sending the border back to the tone system, which is the one place high contrast can reach it. Reduced transparency keeps meaning the near-seal.
 
 ### Two surface-only rules controls never needed
 
@@ -1189,7 +1197,6 @@ Two numbers make three classes: the queries are derived so `regular` is "not nar
 
 **Recipes and axes (sections 8-11):**
 - Judge the **material** recipes against real backdrops: three or four hostile photos, a real control, both modes. Expect blur to move +/-6px and alpha +/-0.1. Confirm the brightness floor actually holds. Measure `backdrop-filter` cost on a mid-tier device before the radii lock.
-- Decide whether a material `bordered` edge stays opaque or goes translucent (section 10).
 - The **chroma threshold** below which `--accent-solid` remaps to step 12 (section 7), and the L-deltas for its hover and press. Tuning, not architecture.
 - Where exactly `--accent-label` sits between steps 11 and 12, per mode.
 - ~~How **`quiet`** actually renders~~ — closed at the first real Button (2026-08-03): bare at rest, `transparent` literally, entering the ramp at hover (transparent → soft → soft-hover). Law-tested across every tone. `quiet + bordered` covers the faint-containment case the tint would have served.

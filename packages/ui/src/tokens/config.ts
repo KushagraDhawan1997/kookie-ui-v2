@@ -422,15 +422,27 @@ export const material = {
   // and shimmers). hover/active exist for CONTROLS wearing material — a static surface only
   // ever reads index 0. Monotone across thicknesses must hold per column, not just at rest,
   // so thickness still reads as one dimension mid-interaction.
+  // A material owns FOUR parts, not one (2026-08-05, Kushagra: blur + a borrowed border reads
+  // "cheap"): the body (alpha + filter), its own EDGE (a translucent hairline of light — the
+  // opaque tone border on glass was the sticker), the RIM (a top inner highlight; the scene's
+  // one light source falls downward, the same model the shadow palette commits to), and
+  // SEPARATION (a pane with content behind it is above it — it composes var(--shadow-2) on its
+  // own authority, so glass floats even in a flat world). Edge and rim are white alphas per
+  // thickness, rising with it: thicker glass catches more light. All v0, judged in the preview.
+  // alphaHigh is contrast="high"'s answer per thickness: MORE opaque, never fully — the
+  // ladder keeps its three visibly distinct thicknesses, each just defending harder. The
+  // near-opaque fallbackAlpha below stays what reduced-transparency means; high contrast is
+  // a different preference and gets its own designed row (judged 2026-08-05, Kushagra: the
+  // first cut reused fallbackAlpha and collapsed all three thicknesses into one).
   light: {
-    thin: { alpha: [30, 38, 46], filter: "blur(5px) saturate(130%) brightness(1.02)" },
-    regular: { alpha: [64, 72, 80], filter: "blur(16px) saturate(165%) brightness(1.06)" },
-    thick: { alpha: [88, 92, 95], filter: "blur(32px) saturate(210%) brightness(1.12)" },
+    thin: { alpha: [30, 38, 46], alphaHigh: [55, 62, 69], filter: "blur(5px) saturate(130%) brightness(1.02)", edge: 0.5, rim: 0.35 },
+    regular: { alpha: [64, 72, 80], alphaHigh: [82, 87, 92], filter: "blur(16px) saturate(165%) brightness(1.06)", edge: 0.6, rim: 0.45 },
+    thick: { alpha: [88, 92, 95], alphaHigh: [94, 96, 97], filter: "blur(32px) saturate(210%) brightness(1.12)", edge: 0.7, rim: 0.55 },
   },
   dark: {
-    thin: { alpha: [38, 46, 54], filter: "blur(5px) saturate(130%) brightness(0.95)" },
-    regular: { alpha: [71, 78, 85], filter: "blur(16px) saturate(165%) brightness(0.88)" },
-    thick: { alpha: [92, 94, 96], filter: "blur(32px) saturate(210%) brightness(0.78)" },
+    thin: { alpha: [38, 46, 54], alphaHigh: [60, 67, 74], filter: "blur(5px) saturate(130%) brightness(0.95)", edge: 0.1, rim: 0.06 },
+    regular: { alpha: [71, 78, 85], alphaHigh: [86, 90, 94], filter: "blur(16px) saturate(165%) brightness(0.88)", edge: 0.14, rim: 0.1 },
+    thick: { alpha: [92, 94, 96], alphaHigh: [95, 96, 97], filter: "blur(32px) saturate(210%) brightness(0.78)", edge: 0.18, rim: 0.14 },
   },
   /** Where backdrop-filter is unavailable or transparency is reduced: near-opaque, still a mix
       so a whisper of the backdrop survives where that is safe. */

@@ -553,14 +553,20 @@
   --material-thin-alpha-hover: 38%;
   --material-thin-alpha-active: 46%;
   --material-thin-filter: blur(5px) saturate(130%) brightness(1.02);
+  --material-thin-edge: rgb(255 255 255 / 0.5);
+  --material-thin-rim: linear-gradient(rgb(255 255 255 / 0.35) 0 var(--border-width), transparent var(--border-width));
   --material-regular-alpha: 64%;
   --material-regular-alpha-hover: 72%;
   --material-regular-alpha-active: 80%;
   --material-regular-filter: blur(16px) saturate(165%) brightness(1.06);
+  --material-regular-edge: rgb(255 255 255 / 0.6);
+  --material-regular-rim: linear-gradient(rgb(255 255 255 / 0.45) 0 var(--border-width), transparent var(--border-width));
   --material-thick-alpha: 88%;
   --material-thick-alpha-hover: 92%;
   --material-thick-alpha-active: 95%;
   --material-thick-filter: blur(32px) saturate(210%) brightness(1.12);
+  --material-thick-edge: rgb(255 255 255 / 0.7);
+  --material-thick-rim: linear-gradient(rgb(255 255 255 / 0.55) 0 var(--border-width), transparent var(--border-width));
   --material-opaque-alpha: 95%;
 
   /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
@@ -988,14 +994,20 @@
   --material-thin-alpha-hover: 38%;
   --material-thin-alpha-active: 46%;
   --material-thin-filter: blur(5px) saturate(130%) brightness(1.02);
+  --material-thin-edge: rgb(255 255 255 / 0.5);
+  --material-thin-rim: linear-gradient(rgb(255 255 255 / 0.35) 0 var(--border-width), transparent var(--border-width));
   --material-regular-alpha: 64%;
   --material-regular-alpha-hover: 72%;
   --material-regular-alpha-active: 80%;
   --material-regular-filter: blur(16px) saturate(165%) brightness(1.06);
+  --material-regular-edge: rgb(255 255 255 / 0.6);
+  --material-regular-rim: linear-gradient(rgb(255 255 255 / 0.45) 0 var(--border-width), transparent var(--border-width));
   --material-thick-alpha: 88%;
   --material-thick-alpha-hover: 92%;
   --material-thick-alpha-active: 95%;
   --material-thick-filter: blur(32px) saturate(210%) brightness(1.12);
+  --material-thick-edge: rgb(255 255 255 / 0.7);
+  --material-thick-rim: linear-gradient(rgb(255 255 255 / 0.55) 0 var(--border-width), transparent var(--border-width));
   --material-opaque-alpha: 95%;
 
   /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
@@ -1423,14 +1435,20 @@
   --material-thin-alpha-hover: 46%;
   --material-thin-alpha-active: 54%;
   --material-thin-filter: blur(5px) saturate(130%) brightness(0.95);
+  --material-thin-edge: rgb(255 255 255 / 0.1);
+  --material-thin-rim: linear-gradient(rgb(255 255 255 / 0.06) 0 var(--border-width), transparent var(--border-width));
   --material-regular-alpha: 71%;
   --material-regular-alpha-hover: 78%;
   --material-regular-alpha-active: 85%;
   --material-regular-filter: blur(16px) saturate(165%) brightness(0.88);
+  --material-regular-edge: rgb(255 255 255 / 0.14);
+  --material-regular-rim: linear-gradient(rgb(255 255 255 / 0.1) 0 var(--border-width), transparent var(--border-width));
   --material-thick-alpha: 92%;
   --material-thick-alpha-hover: 94%;
   --material-thick-alpha-active: 96%;
   --material-thick-filter: blur(32px) saturate(210%) brightness(0.78);
+  --material-thick-edge: rgb(255 255 255 / 0.18);
+  --material-thick-rim: linear-gradient(rgb(255 255 255 / 0.14) 0 var(--border-width), transparent var(--border-width));
   --material-opaque-alpha: 95%;
 
   /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
@@ -2337,6 +2355,21 @@
   --info-solid-hover: #0081dd;
   --info-solid-active: #006ebe;
   --info-label: #0e2439;
+  --material-thin-alpha: 55%;
+  --material-thin-alpha-hover: 62%;
+  --material-thin-alpha-active: 69%;
+  --material-thin-edge: initial;
+  --material-thin-rim: initial;
+  --material-regular-alpha: 82%;
+  --material-regular-alpha-hover: 87%;
+  --material-regular-alpha-active: 92%;
+  --material-regular-edge: initial;
+  --material-regular-rim: initial;
+  --material-thick-alpha: 94%;
+  --material-thick-alpha-hover: 96%;
+  --material-thick-alpha-active: 97%;
+  --material-thick-edge: initial;
+  --material-thick-rim: initial;
 }
 @media (prefers-contrast: more) {
   :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -2421,6 +2454,21 @@
     --info-solid-hover: #0081dd;
     --info-solid-active: #006ebe;
     --info-label: #0e2439;
+    --material-thin-alpha: 55%;
+    --material-thin-alpha-hover: 62%;
+    --material-thin-alpha-active: 69%;
+    --material-thin-edge: initial;
+    --material-thin-rim: initial;
+    --material-regular-alpha: 82%;
+    --material-regular-alpha-hover: 87%;
+    --material-regular-alpha-active: 92%;
+    --material-regular-edge: initial;
+    --material-regular-rim: initial;
+    --material-thick-alpha: 94%;
+    --material-thick-alpha-hover: 96%;
+    --material-thick-alpha-active: 97%;
+    --material-thick-edge: initial;
+    --material-thick-rim: initial;
   }
 }
 
@@ -2506,6 +2554,21 @@
   --info-solid-hover: #0081dd;
   --info-solid-active: #006ebe;
   --info-label: #e6effa;
+  --material-thin-alpha: 60%;
+  --material-thin-alpha-hover: 67%;
+  --material-thin-alpha-active: 74%;
+  --material-thin-edge: initial;
+  --material-thin-rim: initial;
+  --material-regular-alpha: 86%;
+  --material-regular-alpha-hover: 90%;
+  --material-regular-alpha-active: 94%;
+  --material-regular-edge: initial;
+  --material-regular-rim: initial;
+  --material-thick-alpha: 95%;
+  --material-thick-alpha-hover: 96%;
+  --material-thick-alpha-active: 97%;
+  --material-thick-edge: initial;
+  --material-thick-rim: initial;
 }
 @media (prefers-contrast: more) {
   [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -2590,6 +2653,21 @@
     --info-solid-hover: #0081dd;
     --info-solid-active: #006ebe;
     --info-label: #e6effa;
+    --material-thin-alpha: 60%;
+    --material-thin-alpha-hover: 67%;
+    --material-thin-alpha-active: 74%;
+    --material-thin-edge: initial;
+    --material-thin-rim: initial;
+    --material-regular-alpha: 86%;
+    --material-regular-alpha-hover: 90%;
+    --material-regular-alpha-active: 94%;
+    --material-regular-edge: initial;
+    --material-regular-rim: initial;
+    --material-thick-alpha: 95%;
+    --material-thick-alpha-hover: 96%;
+    --material-thick-alpha-active: 97%;
+    --material-thick-edge: initial;
+    --material-thick-rim: initial;
   }
 }
 

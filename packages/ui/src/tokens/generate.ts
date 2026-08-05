@@ -187,7 +187,25 @@ export function generateTokens(): string {
       // — the axis was inert in light until 2026-08-03. The dark base already worked only
       // because Theme co-locates data-appearance and data-contrast on one element (§5, §7).
       const bases = mode === "light" ? [":root", `[data-appearance="light"]`] : [`[data-appearance="dark"]`];
-      const decls = contrastHighDeclarations(mode, gamut);
+      const decls = [...contrastHighDeclarations(mode, gamut)];
+      // High contrast leans on the glass, it does not unmake it (§7, §10, 2026-08-05):
+      // each thickness takes its own designed alphaHigh triple — MORE opaque, never fully,
+      // so the ladder keeps three distinct thicknesses. Emptying edge and rim sends the
+      // border back to the tone system — the glass blocks consume the edge with a
+      // var(--tone-border) fallback that resolves AT THE ELEMENT, which is what a scope-level
+      // override here could never do. srgb pass only: none of this varies by gamut.
+      if (gamut === "srgb") {
+        for (const t of ["thin", "regular", "thick"] as const) {
+          const [rest, hover, active] = material[mode][t].alphaHigh;
+          decls.push(
+            `  --material-${t}-alpha: ${rest}%;`,
+            `  --material-${t}-alpha-hover: ${hover}%;`,
+            `  --material-${t}-alpha-active: ${active}%;`,
+            `  --material-${t}-edge: initial;`,
+            `  --material-${t}-rim: initial;`,
+          );
+        }
+      }
       const high = bases.map((b) => `${b}[data-contrast="high"]`).join(", ");
       // The platform signal reaches anything that has not explicitly opted out. Theme stamps
       // data-contrast ONLY when the axis was actually chosen, so an unconfigured Theme node
@@ -427,6 +445,12 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       `  --material-${name}-alpha-hover: ${hover}%;`,
       `  --material-${name}-alpha-active: ${active}%;`,
       `  --material-${name}-filter: ${m[name].filter};`,
+      // The pane's own edge and lighting (§10, 2026-08-05): a hairline of light, not pigment,
+      // and a top rim catch painted as a background layer — NOT a shadow, so depth stays the
+      // app's identity (surfaces="elevated") and the one-box-shadow law never learns glass
+      // exists. A flat world's glass has edge and glint, no lift.
+      `  --material-${name}-edge: rgb(255 255 255 / ${m[name].edge});`,
+      `  --material-${name}-rim: linear-gradient(rgb(255 255 255 / ${m[name].rim}) 0 var(--border-width), transparent var(--border-width));`,
     ];
   };
   return [

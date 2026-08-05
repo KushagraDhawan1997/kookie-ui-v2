@@ -180,18 +180,31 @@
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thin-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thin-alpha-active), transparent);
     backdrop-filter: var(--material-thin-filter);
+    /* The pane's own edge and lighting (§10, 2026-08-05): the tone border on glass read as a
+       sticker — pigment on a pane of light. The edge is now the material's, a translucent
+       hairline; the chrome adds the top rim catch and the pane's separation (glass floats by
+       definition, so this wins over whatever the surface world declared by being ON the
+       element rather than inherited from a scope). */
+    --kui-border-color: var(--material-thin-edge, var(--tone-border));
+    background-image: var(--material-thin-rim, none);
   }
   .kui-surface[data-material="regular"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-regular-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-regular-alpha-active), transparent);
     backdrop-filter: var(--material-regular-filter);
+    /* Edge, rim and separation — the pane's own; see the thin block (§10). */
+    --kui-border-color: var(--material-regular-edge, var(--tone-border));
+    background-image: var(--material-regular-rim, none);
   }
   .kui-surface[data-material="thick"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thick-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thick-alpha-active), transparent);
     backdrop-filter: var(--material-thick-filter);
+    /* Edge, rim and separation — the pane's own; see the thin block (§10). */
+    --kui-border-color: var(--material-thick-edge, var(--tone-border));
+    background-image: var(--material-thick-rim, none);
   }
 }
 
@@ -203,5 +216,9 @@
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-opaque-alpha), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-opaque-alpha), transparent);
     backdrop-filter: none;
+    /* No glass, no pane: the near-opaque fallback takes the ordinary surface dress back —
+       tone border, no rim. The world's depth is untouched: an elevated app stays elevated. */
+    --kui-border-color: var(--tone-border);
+    background-image: none;
   }
 }

@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 A material is a pane with four parts, and only one had been designed
+
+Kushagra, on the preview's glass cards: thin material as blur plus the ordinary card border reads "cheap — the border looks slapped on." It was. The material owned only its body (the alpha mix and the filter); its edge came from the tone system (opaque step-7 pigment on a translucent pane), it had no lighting, and no relationship to depth. The missing parts were being filled in by systems designed for opaque, in-flow surfaces — which is exactly what cheap looks like.
+
+Three parts landed, each per thickness and mode, all v0. The **edge** is now the material's own translucent white hairline (`--material-<t>-edge`), consumed with a `var(--tone-border)` fallback that resolves at the element — closing §10's long-open "does the material border stay opaque" question with the platform answer it had already sketched. The **rim** is a top inner light catch, painted as a `background-image` gradient deliberately rather than a shadow: the first cut composed it into `box-shadow` and ran straight into `none` being illegal inside a shadow list — flat worlds declare `none` — which would have meant rewriting every "computed box-shadow is none" law; a background layer keeps the one-box-shadow law untouched and cannot leak into nested cards, since `background-image` is a real property, not an inherited custom one.
+
+**Separation was welded to the glass for one hour and then given back to the app.** The first cut had every pane compose `var(--shadow-2)` on its own authority — "a pane with content behind it is above it, flat world or not." Kushagra called it: the persistent elevated look overrides the `surfaces` identity. Rim and edge are what the material IS; depth is what the app SAYS. Glass in a flat world now has edge and glint, no lift; the elevated world lifts it like everything else.
+
+**High contrast leans on the glass rather than unmaking it** — his second catch, same session. The first cut reused the reduced-transparency fallback (95%) and collapsed all three thicknesses into one near-opaque slab. Each thickness now carries its own designed `alphaHigh` triple — more opaque, never fully — and the edge and rim empty so the border returns to the tone system, the one place the contrast setting can reach it.
+
+Tried and declined the same session: **fading blur** (the frost dissolving top-to-bottom with the light, one masked `::before`) — built as page-CSS-only in the preview, judged, reverted. Recorded because the technique is real and cheap if scroll-edge chrome ever wants it at Shell.
+
+Rejected: the pane carrying its own `var(--shadow-2)` (above — reversed on sight); rim as `box-shadow` (the `none`-in-a-list trap, plus custom-property inheritance into nested cards); one fallback alpha serving both high contrast and reduced transparency (two preferences, one designed answer each); leaving the edge on the tone border for `contrast="high"` reachability alone (the setting now gets it back by emptying the material edge, which is strictly better than never having a designed one).
+
 ## 2026-08-05 A textarea's frame is the inset — the one-row-equals-TextField identity is reversed, same day it shipped
 
 TextArea shipped with its block padding DERIVED from the height token — `(h − line − 2·border)/2` — so a one-row textarea sat exactly where a TextField's value sits. Kushagra caught the cost in the preview within hours: with a second line, that residue stops being invisible centering and becomes the visible top margin of a paragraph — 13px at the sides, 9px above in the coarse world, an asymmetry nobody designed. The diagnosis that closed it: **centering leftover is not an inset.** In a fixed-height control, the vertical space is residue the eye never judges; in a grown box the eye reads a frame and expects the four sides related. One number was doing two jobs and only one had ever been chosen.
