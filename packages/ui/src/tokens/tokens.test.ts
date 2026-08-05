@@ -924,6 +924,25 @@ describe("the tone-independent hairline (§7, §11)", () => {
   });
 });
 
+describe("no var() dangles — every reference the generator writes, it also declares (§6, §13)", () => {
+  // The generator aliases by NAME in several places — ROLES maps fourteen role names onto
+  // `--{tone}-{role}`, the semantic families point at palette steps — and a typo'd name would
+  // emit `var(--tone-foo)`, resolve to nothing at runtime, and pass every law that greps for
+  // the token it MEANT to write (the thing a name-grep can never catch, ENGINEERING §6). The
+  // whole file is closed over its own vocabulary: tokens.css consumes no name it does not
+  // declare, so the set of references minus the set of declarations must be empty.
+  it("every var(--x) in tokens.css has a declaration in tokens.css", () => {
+    // Comments stripped first — the law fired on its own first run against an emitted comment
+    // explaining that the mark family is "resolved rather than var(--line-height-N)". A law a
+    // comment can satisfy is not a law, and one a comment can FAIL is not one either.
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, " ");
+    const declared = new Set([...code.matchAll(/--([\w-]+)\s*:/g)].map((m) => m[1]!));
+    const referenced = new Set([...code.matchAll(/var\(\s*--([\w-]+)/g)].map((m) => m[1]!));
+    const dangling = [...referenced].filter((name) => !declared.has(name));
+    expect(dangling, `referenced but never declared: ${dangling.join(", ")}`).toEqual([]);
+  });
+});
+
 describe("generated output is not hand-edited (ENGINEERING §7)", () => {
   it("committed tokens.css matches the generator", () => {
     const committed = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "tokens.css"), "utf8");

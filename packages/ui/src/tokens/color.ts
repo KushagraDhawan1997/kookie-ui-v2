@@ -4,6 +4,7 @@
  * The browser does zero colour maths at runtime: everything here runs at build time and emits
  * plain values. Nothing is a borrowed value and nothing is hand-placed per hue.
  */
+import { decl } from "./emit.ts";
 import { converter, formatHex, inGamut } from "culori";
 
 import {
@@ -393,13 +394,13 @@ export function contrastHighDeclarations(mode: Mode, gamut: Gamut = "srgb"): str
     const s = buildScale(tone, mode, gamut, "high");
     const normal = buildScale(tone, mode, gamut, "normal");
     for (const i of [...contrastHighBands.border, ...contrastHighBands.text]) {
-      out.push(`  --${tone}-${i + 1}: ${s.steps[i]};`);
+      out.push(decl(`${tone}-${i + 1}`, s.steps[i]!));
     }
-    if (s.solid !== normal.solid) out.push(`  --${tone}-solid: ${s.solid};`);
+    if (s.solid !== normal.solid) out.push(decl(`${tone}-solid`, s.solid));
     out.push(
-      `  --${tone}-solid-hover: ${s.solidHover};`,
-      `  --${tone}-solid-active: ${s.solidActive};`,
-      `  --${tone}-label: ${s.label};`,
+      decl(`${tone}-solid-hover`, s.solidHover),
+      decl(`${tone}-solid-active`, s.solidActive),
+      decl(`${tone}-label`, s.label),
     );
   }
   return out;
@@ -417,21 +418,21 @@ export function colorDeclarations(
   for (const tone of scales) {
     const s = buildScale(tone, mode, gamut, contrast);
     out.push(`  /* ${tone} */`);
-    s.steps.forEach((hex, i) => out.push(`  --${tone}-${i + 1}: ${hex};`));
+    s.steps.forEach((hex, i) => out.push(decl(`${tone}-${i + 1}`, hex)));
     // The alpha ramp stays sRGB in both blocks: its solve assumes sRGB channel compositing,
     // and its job is differentiating nested surfaces, where the wider gamut buys nothing.
-    if (gamut === "srgb") s.alpha.forEach((v, i) => out.push(`  --${tone}-a${i + 1}: ${v};`));
+    if (gamut === "srgb") s.alpha.forEach((v, i) => out.push(decl(`${tone}-a${i + 1}`, v)));
     out.push(
-      `  --${tone}-soft: var(--${tone}-3);`,
-      `  --${tone}-soft-hover: var(--${tone}-4);`,
-      `  --${tone}-soft-active: var(--${tone}-5);`,
-      `  --${tone}-solid: ${s.solid};`,
-      `  --${tone}-solid-hover: ${s.solidHover};`,
-      `  --${tone}-solid-active: ${s.solidActive};`,
-      `  --${tone}-border: var(--${tone}-7);`,
-      `  --${tone}-text: var(--${tone}-11);`,
-      `  --${tone}-label: ${s.label};`,
-      `  --${tone}-contrast: ${s.contrast};`,
+      decl(`${tone}-soft`, `var(--${tone}-3)`),
+      decl(`${tone}-soft-hover`, `var(--${tone}-4)`),
+      decl(`${tone}-soft-active`, `var(--${tone}-5)`),
+      decl(`${tone}-solid`, s.solid),
+      decl(`${tone}-solid-hover`, s.solidHover),
+      decl(`${tone}-solid-active`, s.solidActive),
+      decl(`${tone}-border`, `var(--${tone}-7)`),
+      decl(`${tone}-text`, `var(--${tone}-11)`),
+      decl(`${tone}-label`, s.label),
+      decl(`${tone}-contrast`, s.contrast),
       // The ink ladder (§15) — what the type emphasis rungs read when this family is chosen.
       // Neutral's three inks are designed steps: a gray scale has twelve grays. A chroma
       // family has exactly ONE designed text colour (11; 12 is the high-contrast variant,
@@ -440,14 +441,14 @@ export function colorDeclarations(
       // to text. Mix percentages are v0, judged in the preview.
       ...(tone === "neutral"
         ? [
-            `  --${tone}-ink: var(--${tone}-12);`,
-            `  --${tone}-ink-muted: var(--${tone}-11);`,
-            `  --${tone}-ink-faint: var(--${tone}-10);`,
+            decl(`${tone}-ink`, `var(--${tone}-12)`),
+            decl(`${tone}-ink-muted`, `var(--${tone}-11)`),
+            decl(`${tone}-ink-faint`, `var(--${tone}-10)`),
           ]
         : [
-            `  --${tone}-ink: var(--${tone}-11);`,
-            `  --${tone}-ink-muted: color-mix(in oklab, var(--${tone}-11) 74%, transparent);`,
-            `  --${tone}-ink-faint: color-mix(in oklab, var(--${tone}-11) 52%, transparent);`,
+            decl(`${tone}-ink`, `var(--${tone}-11)`),
+            decl(`${tone}-ink-muted`, `color-mix(in oklab, var(--${tone}-11) 74%, transparent)`),
+            decl(`${tone}-ink-faint`, `color-mix(in oklab, var(--${tone}-11) 52%, transparent)`),
           ]),
     );
   }
@@ -464,7 +465,7 @@ export function colorDeclarations(
   // "≥3:1 against adjacent surfaces" law was never actually written (found 2026-08-03). Step 11
   // is the band designed to be legible against the page, and it clears the same floor light's
   // solid already did: 74.7 light, 66.3 dark, against --neutral-1.
-  out.push(`  --focus-ring: var(${mode === "dark" ? "--accent-11" : "--accent-solid"});`);
+  out.push(decl("focus-ring", `var(${mode === "dark" ? "--accent-11" : "--accent-solid"})`));
 
   // The edge a control wears while it is INVALID — both its border and its ring (§8, decided
   // 2026-08-04). One token because it is one answer: "this control is wrong" is a single
@@ -476,14 +477,14 @@ export function colorDeclarations(
   // luminance — APCA 23.9 light and 9.8 dark against the field fill, versus 22.8 / 10.3 for the
   // resting border it replaces. In dark, being invalid LOWERED contrast. Step 9 clears the
   // Lc 45 non-text floor in light (65.4) but not in dark (36.1); step 11 does (65.2).
-  out.push(`  --invalid-edge: var(${mode === "dark" ? "--destructive-11" : "--destructive-solid"});`);
+  out.push(decl("invalid-edge", `var(${mode === "dark" ? "--destructive-11" : "--destructive-solid"})`));
 
   // The mark edge (§7, §11, decided 2026-08-06) — the resting outline of a control that IS its
   // hairline: checkbox now, radio/switch/slider when they land. Its own role because a mark's
   // unchecked state has no other identity, so it must clear the non-text floor the quiet
   // --color-border deliberately does not (audit D2: |Lc| 22.8 light, 10.3 dark). Per-mode
   // steps from color-config, the focus-ring precedent; the law beside the invalid edge's.
-  out.push(`  --mark-edge: var(--neutral-${markEdgeStep[mode]});`);
+  out.push(decl("mark-edge", `var(--neutral-${markEdgeStep[mode]})`));
 
   return out;
 }
