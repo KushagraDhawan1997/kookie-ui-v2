@@ -260,17 +260,23 @@ export function generateTokens(): string {
   // Emitting every (radius x density) cell fixes it exactly: the pair is co-located because
   // Theme always writes both attributes on one element, and the combined selector outranks
   // either alone. The single-attribute blocks stay for raw-attribute use.
+  // `full` also carries the PILL PADDING as raw designed numbers (§4, §6, decided 2026-08-05):
+  // a pill's corner curve swings inward at the text's cap line, so a bare edge pads wider —
+  // and unlike the control radii there is no palette indirection to carry the level, so the
+  // full cells must state the values themselves, per density and (below) per pointer world.
   for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
     for (const d of Object.keys(density) as DensityLevel[]) {
       const decls = density[d].radius.map(
         (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
       );
+      if (level === "full") decls.push(...pillFamily(density[d]));
       lines.push(`[data-radius="${level}"][data-density="${d}"] {`, ...decls, "}", "");
     }
     if (level !== defaultRadiusLevel) {
       const decls = density.default.radius.map(
         (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
       );
+      if (level === "full") decls.push(...pillFamily(density.default));
       lines.push(`[data-radius="${level}"] {`, ...decls, "}", "");
     }
   }
@@ -374,11 +380,13 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
       const decls = sets[d].radius.map(
         (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
       );
+      if (level === "full") decls.push(...pillFamily(sets[d]));
       out.push(`${P}[data-radius="${level}"][data-density="${d}"] {`, ...decls, "}", "");
     }
     const decls = sets.default.radius.map(
       (step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`,
     );
+    if (level === "full") decls.push(...pillFamily(sets.default));
     out.push(`${P}[data-radius="${level}"] {`, ...decls, "}", "");
   }
 
@@ -511,6 +519,10 @@ function controlFamily(set: DensitySet): string[] {
   // height ladder does, so an index could not hold that fraction and the padding drifted to
   // half the box at size 4. See the note on `density` in config.ts.
   set.px.forEach((px, i) => put(`control-px-${i + 1}`, zoom(px)));
+  // The pill padding resolves to the plain padding at every radius level except `full` — this
+  // identity is re-declared wherever px is, so it substitutes against the scope's own value
+  // (substitution-at-declaration, §6). The `full` cells override it with raw designed numbers.
+  set.px.forEach((_, i) => put(`control-px-pill-${i + 1}`, `var(--control-px-${i + 1})`));
   set.radius.forEach((step, i) => put(`radius-control-${i + 1}`, `var(--radius-${step})`));
 
   // The inset a control keeps around anything it hosts in a slot, and the height that leaves
@@ -531,6 +543,12 @@ function controlFamily(set: DensitySet): string[] {
 /** The icon-label gap for one pointer world (§4, §12): size-indexed, density-invariant. */
 function controlGapFamily(world: keyof typeof controlGap): string[] {
   return controlGap[world].map((step, i) => `  --control-gap-${i + 1}: var(--space-${step});`);
+}
+
+/** The pill padding for one designed set (§4, §6): what a bare edge pads under `radius="full"`.
+ * Raw zoomed lengths, like px — the full level has no palette step to point these at. */
+function pillFamily(set: DensitySet): string[] {
+  return set.pxPill.map((px, i) => `  --control-px-pill-${i + 1}: ${zoom(px)};`);
 }
 
 /** The steps a band actually MOVES — every index whose pick is not the identity. Derived

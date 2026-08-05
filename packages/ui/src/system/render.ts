@@ -69,3 +69,15 @@ export function composeRender(
 
   return React.cloneElement(render, next);
 }
+
+/**
+ * What React would actually PAINT in a slot (§4). The guard `!= null` alone lets the two
+ * commonest ways of writing "no adornment" through — `{isSearch && <Icon/>}` evaluates to
+ * `false`, and an empty string is what a unit or currency slot holds before the caller has one
+ * — and each rendered an empty wrapper that still bought a full gap of dead space beside the
+ * content. `0` is content and stays. Shared because every slotted control asks this question,
+ * and two copies of the answer had already been written once (TextField, then Button).
+ */
+export function filled(node: React.ReactNode): boolean {
+  return node !== undefined && node !== null && node !== false && node !== true && node !== "";
+}

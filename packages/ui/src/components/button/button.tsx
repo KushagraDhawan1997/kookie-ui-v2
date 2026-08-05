@@ -3,6 +3,7 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
+import { filled } from "../../system/render.ts";
 import type { ToneName } from "../../tokens/color-config.ts";
 import { Spinner } from "../spinner/spinner.tsx";
 
@@ -128,6 +129,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   // doing is worse than one that changes width (§8).
   const leading = loading ? <Spinner /> : leadingSlot;
 
+  // Slots wear the system's adornment wrapper (`data-slot`, ENGINEERING §3) since 2026-08-05.
+  // The wrapper is what lets the shared layer read structure off the DOM instead of asking the
+  // component: the pill-padding rule keys "this edge starts with a slot" on it (§4, §6), and a
+  // control hosted in a trailing slot gets §4's slot-inset geometry through the same selector —
+  // which TextField had and Button, without the wrapper, silently did not.
+  const slot = (content: React.ReactNode, which: "leading" | "trailing") =>
+    filled(content) ? <span data-slot={which}>{content}</span> : null;
+
   return (
     <BaseButton
       ref={ref}
@@ -154,9 +163,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       className={className ? `kui-control kui-button ${className}` : "kui-control kui-button"}
       {...props}
     >
-      {leading}
+      {slot(leading, "leading")}
       {children}
-      {trailing}
+      {slot(trailing, "trailing")}
     </BaseButton>
   );
 });

@@ -104,7 +104,7 @@ function button(
     bordered ? ' data-bordered="true"' : ""
   }${material ? ` data-material="${material}"` : ""}${
     loading ? ' data-loading="true" aria-busy="true"' : ""
-  }>${loading ? spinner() : ""}${label}</button>`;
+  }>${loading ? `<span data-slot="leading">${spinner()}</span>` : ""}${label}</button>`;
 }
 
 /**

@@ -3,7 +3,7 @@
 import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
-import { mergeRefs } from "../../system/render.ts";
+import { filled, mergeRefs } from "../../system/render.ts";
 import type { Material, Size } from "../button/button.tsx";
 
 /**
@@ -78,16 +78,6 @@ export type TextFieldProps = Omit<
  * — labelling, autofill, form association, the `type` behaviours — goes with it. `render`
  * would have to mean one of them, silently. It is refused by the type, which is the law.
  */
-/**
- * What React would actually PAINT in a slot. The guard used to be `!== undefined && !== null`,
- * which let the two commonest ways of writing "no adornment" through — `{isSearch && <Icon/>}`
- * evaluates to `false`, and an empty string is what a unit or currency slot holds before the
- * caller has one — and each rendered an empty `<span>` that still bought a full gap of dead
- * space beside the value. `0` is content and stays.
- */
-const filled = (node: React.ReactNode) =>
-  node !== undefined && node !== null && node !== false && node !== true && node !== "";
-
 export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
   {
     size = "2",

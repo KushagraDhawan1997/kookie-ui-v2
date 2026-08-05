@@ -65,7 +65,14 @@
   /* min-height, not height: identical in every normal render, but a hard height clips a
      200%-resized label (WCAG 1.4.4) and truncates a wrapped one (§4). */
   min-height: var(--kui-ct-h);
-  padding-inline: var(--kui-ct-px);
+  /* Longhands, per SIDE, because the pill correction is per side (§4, §6, decided 2026-08-05):
+     under radius="full" the corner curve swings inward at the text's cap line, so a BARE edge
+     pads wider (--control-px-pill resolves to the plain padding at every other level, so this
+     is the identity outside the full world). A side whose content starts with a slot — an
+     icon, a hosted clear button — keeps the plain padding: the slot already stands between
+     the text and the curve. The slot rules below do that reset. */
+  padding-inline-start: var(--kui-ct-px-pill);
+  padding-inline-end: var(--kui-ct-px-pill);
   /* Block padding exists only to protect wrapped content from the edges; height still comes
      from the token, never from padding (§4). */
   padding-block: var(--kui-ct-py, 0);
@@ -114,6 +121,29 @@
   width: var(--kui-ct-icon);
   height: var(--kui-ct-icon);
   flex: none;
+}
+
+/* The adornment wrapper itself, one layout for every control that has one (ENGINEERING §3
+   names `data-slot` as THE structural attribute — Button's slots wear it too since 2026-08-05,
+   which is also what lets the pill rule below read "this edge starts with a slot" off the
+   DOM instead of asking each component). Colour is not set here: a field mutes its slots
+   (.kui-field-slot), a button's icon rides the label colour. */
+.kui-control > [data-slot] {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+/* A slotted edge keeps the plain padding under a pill (§4, §6): the icon or hosted control
+   already stands between the text and the corner curve, and compensating anyway would push
+   the slot visibly off its edge. Inert at every radius level below `full`, where the pill
+   token IS the plain padding. A hosted CONTROL tightens further still — the field's
+   slot-inset rules (text-field.css) outrank these by source order. */
+.kui-control:has(> [data-slot="leading"]) {
+  padding-inline-start: var(--kui-ct-px);
+}
+.kui-control:has(> [data-slot="trailing"]) {
+  padding-inline-end: var(--kui-ct-px);
 }
 
 /* ── A control hosted inside another control (§4, decided 2026-08-04) ────────────────────────
@@ -187,6 +217,7 @@
 .kui-control[data-size="1"] {
   --kui-ct-h: var(--control-height-1);
   --kui-ct-px: var(--control-px-1);
+  --kui-ct-px-pill: var(--control-px-pill-1);
   --kui-ct-gap: var(--control-gap-1);
   --kui-ct-radius: var(--radius-control-1);
   --kui-ct-font: var(--font-size-1);
@@ -198,6 +229,7 @@
 .kui-control[data-size="2"] {
   --kui-ct-h: var(--control-height-2);
   --kui-ct-px: var(--control-px-2);
+  --kui-ct-px-pill: var(--control-px-pill-2);
   --kui-ct-gap: var(--control-gap-2);
   --kui-ct-radius: var(--radius-control-2);
   --kui-ct-font: var(--font-size-2);
@@ -209,6 +241,7 @@
 .kui-control[data-size="3"] {
   --kui-ct-h: var(--control-height-3);
   --kui-ct-px: var(--control-px-3);
+  --kui-ct-px-pill: var(--control-px-pill-3);
   --kui-ct-gap: var(--control-gap-3);
   --kui-ct-radius: var(--radius-control-3);
   --kui-ct-font: var(--font-size-3);
@@ -220,6 +253,7 @@
 .kui-control[data-size="4"] {
   --kui-ct-h: var(--control-height-4);
   --kui-ct-px: var(--control-px-4);
+  --kui-ct-px-pill: var(--control-px-pill-4);
   --kui-ct-gap: var(--control-gap-4);
   --kui-ct-radius: var(--radius-control-4);
   --kui-ct-font: var(--font-size-4);

@@ -91,18 +91,21 @@ export const density = {
   compact: {
     height: [24, 28, 34, 40],
     px: [6, 8, 10, 12],
+    pxPill: [10, 12, 14, 16],
     radius: [1, 2, 2, 3],
     slotInset: [2, 3, 3, 4],
   },
   default: {
     height: [28, 32, 40, 48],
     px: [8, 10, 13, 16],
+    pxPill: [12, 14, 17, 20],
     radius: [1, 2, 3, 4],
     slotInset: [3, 3, 4, 4],
   },
   comfortable: {
     height: [34, 40, 50, 60],
     px: [12, 14, 18, 22],
+    pxPill: [14, 17, 21, 25],
     radius: [2, 3, 4, 5],
     slotInset: [3, 4, 5, 6],
   },
@@ -116,6 +119,21 @@ export type DensitySet = {
   readonly height: readonly [number, number, number, number];
   /** Inline padding, raw px — a designed number, not a palette pick. See `density` above. */
   readonly px: readonly [number, number, number, number];
+  /**
+   * §4, §6 — the inline padding a BARE edge takes when the control is a pill (`radius="full"`).
+   *
+   * The correction is geometric, not taste: padding is measured at the vertical midline, where
+   * a pill is widest, but the eye judges the gap at the text's cap line — where the corner
+   * curve has already swung inward — so at r = height/2 the label reads crammed against the
+   * cap (judged 2026-08-05, Kushagra). The safe maximum is half the height (the text starts
+   * where the straight walls do, the capsule rule of thumb); these sit just under it, ~0.40 to
+   * 0.44 of the box, because full half-height overshoots at the large sizes.
+   *
+   * Per SIDE, not per control: a side whose content starts with a slot — an icon, a hosted
+   * clear button — keeps `px`, because the slot already stands between the text and the curve.
+   * At every other radius level the token resolves to `px` and the split is inert.
+   */
+  readonly pxPill: readonly [number, number, number, number];
   readonly radius: readonly [number, number, number, number];
   /**
    * §4 — the inset a control keeps around anything it hosts in a slot: a clear button, a
@@ -146,18 +164,21 @@ export const coarse = {
   compact: {
     height: [32, 38, 46, 54],
     px: [8, 10, 13, 16],
+    pxPill: [13, 16, 19, 22],
     radius: [2, 3, 3, 4],
     slotInset: [3, 4, 4, 5],
   },
   default: {
     height: [36, 44, 52, 60],
     px: [10, 13, 16, 20],
+    pxPill: [15, 18, 21, 25],
     radius: [2, 3, 4, 5],
     slotInset: [4, 4, 5, 5],
   },
   comfortable: {
     height: [40, 48, 58, 68],
     px: [14, 17, 21, 25],
+    pxPill: [17, 20, 24, 28],
     radius: [3, 4, 5, 5],
     slotInset: [4, 5, 6, 7],
   },

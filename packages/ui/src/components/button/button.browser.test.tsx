@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
-import { density } from "../../tokens/config.ts";
+import { coarse, density } from "../../tokens/config.ts";
 import { computed, render } from "../../test/browser.tsx";
 import { Card } from "../card/card.tsx";
 import { TextField as TextFieldForButtonTest } from "../text-field/text-field.tsx";
@@ -546,5 +546,89 @@ describe("the invalid remap's DIRECT arm — the control that IS the element (§
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
     el.removeAttribute("data-invalid");
     expect(computed(el, "border-top-color")).toBe(valid);
+  });
+});
+
+describe("a bare pill edge pads wider, per side (§4, §6, decided 2026-08-05)", () => {
+  // Padding is measured at the midline, where a pill is widest; the eye reads the gap at the
+  // text's cap line, where the corner curve has already swung inward. So under radius="full"
+  // a bare edge takes the designed pill padding — and ONLY a bare edge: a slot at that edge
+  // (an icon, a hosted control) already stands between the text and the curve.
+  const pill = (b: Element) => [computed(b, "padding-left"), computed(b, "padding-right")];
+
+  it("a text-only pill pads wider on both sides; the correction does not exist at other levels", () => {
+    const full = render(
+      <Theme radius="full">
+        <Button size="2">Save</Button>
+      </Theme>,
+    ).querySelector("button")!;
+    expect(pill(full)).toEqual([
+      `${density.default.pxPill[1]}px`,
+      `${density.default.pxPill[1]}px`,
+    ]);
+
+    const medium = render(
+      <Theme radius="medium">
+        <Button size="2">Save</Button>
+      </Theme>,
+    ).querySelector("button")!;
+    expect(pill(medium)).toEqual([`${density.default.px[1]}px`, `${density.default.px[1]}px`]);
+  });
+
+  it("a slotted edge keeps the plain padding; the bare edge opposite still compensates", () => {
+    const leading = render(
+      <Theme radius="full">
+        <Button size="2" leading={<svg />}>
+          Save
+        </Button>
+      </Theme>,
+    ).querySelector("button")!;
+    expect(pill(leading)).toEqual([
+      `${density.default.px[1]}px`,
+      `${density.default.pxPill[1]}px`,
+    ]);
+
+    const trailing = render(
+      <Theme radius="full">
+        <Button size="2" trailing={<svg />}>
+          Save
+        </Button>
+      </Theme>,
+    ).querySelector("button")!;
+    expect(pill(trailing)).toEqual([
+      `${density.default.pxPill[1]}px`,
+      `${density.default.px[1]}px`,
+    ]);
+  });
+
+  it("follows the pointer and density worlds — the full cells are raw, so every cell must exist", () => {
+    // Unlike the control radii there is no palette indirection carrying `full` into a pointer
+    // world: a missing cell would silently fall back to the fine value under coarse.
+    const touch = render(
+      <Theme pointer="coarse" radius="full">
+        <Button size="2">Save</Button>
+      </Theme>,
+    ).querySelector("button")!;
+    expect(computed(touch, "padding-left")).toBe(`${coarse.default.pxPill[1]}px`);
+
+    const compact = render(
+      <Theme density="compact" radius="full">
+        <Button size="3">Save</Button>
+      </Theme>,
+    ).querySelector("button")!;
+    expect(computed(compact, "padding-left")).toBe(`${density.compact.pxPill[2]}px`);
+  });
+
+  it("iconOnly stays square: the pill padding never reaches it", () => {
+    const el = render(
+      <Theme radius="full">
+        <Button iconOnly aria-label="Search">
+          <svg />
+        </Button>
+      </Theme>,
+    ).querySelector("button")!;
+    expect(computed(el, "padding-left")).toBe("0px");
+    const box = el.getBoundingClientRect();
+    expect(Math.abs(box.width - box.height)).toBeLessThanOrEqual(1);
   });
 });

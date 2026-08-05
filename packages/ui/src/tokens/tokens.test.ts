@@ -367,6 +367,66 @@ describe("the inline padding holds a fraction of its box (§4, §12)", () => {
   });
 });
 
+describe("a bare pill edge pads wider (§4, §6, decided 2026-08-05)", () => {
+  // Padding is measured at the vertical midline, where a pill is widest; the eye judges the
+  // gap at the text's cap line, where the corner curve has already swung inward. So under
+  // `radius="full"` a bare edge takes a wider designed padding. The band is just under the
+  // capsule rule of thumb (half the height — text starts where the straight walls do), pulled
+  // back at the top of the ladder where full half-height overshoots.
+  const FLOOR = 0.38;
+  const CEILING = 0.46;
+
+  const worlds: [string, Record<DensityLevel, DensitySet>][] = [
+    ["fine", density],
+    ["coarse", coarse],
+  ];
+
+  for (const [worldName, world] of worlds) {
+    for (const [levelName, set] of Object.entries(world)) {
+      it(`sits between the plain padding and half the box at ${worldName} x ${levelName}`, () => {
+        for (let i = 0; i < 4; i++) {
+          // Wider than the plain padding — a pill set equal to its base is the correction
+          // not shipping — and never past half the height, where the cap begins.
+          expect(set.pxPill[i]!).toBeGreaterThan(set.px[i]!);
+          expect(set.pxPill[i]!).toBeLessThanOrEqual(set.height[i]! / 2);
+          const fraction = set.pxPill[i]! / set.height[i]!;
+          expect(fraction).toBeGreaterThanOrEqual(FLOOR);
+          expect(fraction).toBeLessThanOrEqual(CEILING);
+        }
+      });
+
+      it(`grows with the size index at ${worldName} x ${levelName}`, () => {
+        expect(increasing(set.pxPill)).toBe(true);
+      });
+    }
+  }
+
+  it("orders compact < default < comfortable at every size, the way px does", () => {
+    for (const world of worlds.map(([, w]) => w)) {
+      for (let i = 0; i < 4; i++) {
+        expect(world.compact.pxPill[i]!).toBeLessThan(world.default.pxPill[i]!);
+        expect(world.default.pxPill[i]!).toBeLessThan(world.comfortable.pxPill[i]!);
+      }
+    }
+  });
+
+  it("resolves to the plain padding at every level except full — the identity is the escape", () => {
+    // The identity rides wherever px is declared, so it re-substitutes per scope
+    // (substitution-at-declaration, §6); only the full cells state raw numbers.
+    for (let size = 1; size <= 4; size++) {
+      expect(declaration(`control-px-pill-${size}`)).toBe(`var(--control-px-${size})`);
+    }
+    expect(block(`[data-radius="full"][data-density="compact"]`)).toContain(
+      `--control-px-pill-1: calc(${density.compact.pxPill[0]}px * var(--scale));`,
+    );
+    // The pointer cells exist, because unlike the control radii there is no palette
+    // indirection to carry the level into a pointer world: the values are raw.
+    expect(block(`[data-pointer="coarse"][data-radius="full"][data-density="default"]`)).toContain(
+      `--control-px-pill-2: calc(${coarse.default.pxPill[1]}px * var(--scale));`,
+    );
+  });
+});
+
 describe("the pointer axis is a second designed geometry (§16)", () => {
   it("coarse places a complete set per density level, same shape as fine", () => {
     for (const level of Object.keys(density) as DensityLevel[]) {

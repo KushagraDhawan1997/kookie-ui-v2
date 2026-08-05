@@ -116,6 +116,10 @@
   --control-px-2: calc(10px * var(--scale));
   --control-px-3: calc(13px * var(--scale));
   --control-px-4: calc(16px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
@@ -1916,6 +1920,10 @@
   --control-px-2: calc(8px * var(--scale));
   --control-px-3: calc(10px * var(--scale));
   --control-px-4: calc(12px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
@@ -1951,6 +1959,10 @@
   --control-px-2: calc(10px * var(--scale));
   --control-px-3: calc(13px * var(--scale));
   --control-px-4: calc(16px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
@@ -1986,6 +1998,10 @@
   --control-px-2: calc(14px * var(--scale));
   --control-px-3: calc(18px * var(--scale));
   --control-px-4: calc(22px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
@@ -2222,6 +2238,10 @@
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
   --radius-control-4: var(--radius-3);
+  --control-px-pill-1: calc(10px * var(--scale));
+  --control-px-pill-2: calc(12px * var(--scale));
+  --control-px-pill-3: calc(14px * var(--scale));
+  --control-px-pill-4: calc(16px * var(--scale));
 }
 
 [data-radius="full"][data-density="default"] {
@@ -2229,6 +2249,10 @@
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --control-px-pill-1: calc(12px * var(--scale));
+  --control-px-pill-2: calc(14px * var(--scale));
+  --control-px-pill-3: calc(17px * var(--scale));
+  --control-px-pill-4: calc(20px * var(--scale));
 }
 
 [data-radius="full"][data-density="comfortable"] {
@@ -2236,6 +2260,10 @@
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
+  --control-px-pill-1: calc(14px * var(--scale));
+  --control-px-pill-2: calc(17px * var(--scale));
+  --control-px-pill-3: calc(21px * var(--scale));
+  --control-px-pill-4: calc(25px * var(--scale));
 }
 
 [data-radius="full"] {
@@ -2243,6 +2271,10 @@
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --control-px-pill-1: calc(12px * var(--scale));
+  --control-px-pill-2: calc(14px * var(--scale));
+  --control-px-pill-3: calc(17px * var(--scale));
+  --control-px-pill-4: calc(20px * var(--scale));
 }
 
 [data-tone="neutral"] {
@@ -2356,6 +2388,10 @@
   --control-px-2: calc(10px * var(--scale));
   --control-px-3: calc(13px * var(--scale));
   --control-px-4: calc(16px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
@@ -2392,6 +2428,10 @@
   --control-px-2: calc(8px * var(--scale));
   --control-px-3: calc(10px * var(--scale));
   --control-px-4: calc(12px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
@@ -2411,6 +2451,10 @@
   --control-px-2: calc(14px * var(--scale));
   --control-px-3: calc(18px * var(--scale));
   --control-px-4: calc(22px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
@@ -2538,6 +2582,10 @@
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
   --radius-control-4: var(--radius-3);
+  --control-px-pill-1: calc(10px * var(--scale));
+  --control-px-pill-2: calc(12px * var(--scale));
+  --control-px-pill-3: calc(14px * var(--scale));
+  --control-px-pill-4: calc(16px * var(--scale));
 }
 
 [data-pointer="fine"][data-radius="full"][data-density="default"] {
@@ -2545,6 +2593,10 @@
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --control-px-pill-1: calc(12px * var(--scale));
+  --control-px-pill-2: calc(14px * var(--scale));
+  --control-px-pill-3: calc(17px * var(--scale));
+  --control-px-pill-4: calc(20px * var(--scale));
 }
 
 [data-pointer="fine"][data-radius="full"][data-density="comfortable"] {
@@ -2552,6 +2604,10 @@
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
+  --control-px-pill-1: calc(14px * var(--scale));
+  --control-px-pill-2: calc(17px * var(--scale));
+  --control-px-pill-3: calc(21px * var(--scale));
+  --control-px-pill-4: calc(25px * var(--scale));
 }
 
 [data-pointer="fine"][data-radius="full"] {
@@ -2559,6 +2615,10 @@
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --control-px-pill-1: calc(12px * var(--scale));
+  --control-px-pill-2: calc(14px * var(--scale));
+  --control-px-pill-3: calc(17px * var(--scale));
+  --control-px-pill-4: calc(20px * var(--scale));
 }
 
 [data-pointer="coarse"] {
@@ -2570,6 +2630,10 @@
   --control-px-2: calc(13px * var(--scale));
   --control-px-3: calc(16px * var(--scale));
   --control-px-4: calc(20px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
@@ -2606,6 +2670,10 @@
   --control-px-2: calc(10px * var(--scale));
   --control-px-3: calc(13px * var(--scale));
   --control-px-4: calc(16px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-3);
@@ -2625,6 +2693,10 @@
   --control-px-2: calc(17px * var(--scale));
   --control-px-3: calc(21px * var(--scale));
   --control-px-4: calc(25px * var(--scale));
+  --control-px-pill-1: var(--control-px-1);
+  --control-px-pill-2: var(--control-px-2);
+  --control-px-pill-3: var(--control-px-3);
+  --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-3);
   --radius-control-2: var(--radius-4);
   --radius-control-3: var(--radius-5);
@@ -2752,6 +2824,10 @@
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --control-px-pill-1: calc(13px * var(--scale));
+  --control-px-pill-2: calc(16px * var(--scale));
+  --control-px-pill-3: calc(19px * var(--scale));
+  --control-px-pill-4: calc(22px * var(--scale));
 }
 
 [data-pointer="coarse"][data-radius="full"][data-density="default"] {
@@ -2759,6 +2835,10 @@
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
+  --control-px-pill-1: calc(15px * var(--scale));
+  --control-px-pill-2: calc(18px * var(--scale));
+  --control-px-pill-3: calc(21px * var(--scale));
+  --control-px-pill-4: calc(25px * var(--scale));
 }
 
 [data-pointer="coarse"][data-radius="full"][data-density="comfortable"] {
@@ -2766,6 +2846,10 @@
   --radius-control-2: var(--radius-4);
   --radius-control-3: var(--radius-5);
   --radius-control-4: var(--radius-5);
+  --control-px-pill-1: calc(17px * var(--scale));
+  --control-px-pill-2: calc(20px * var(--scale));
+  --control-px-pill-3: calc(24px * var(--scale));
+  --control-px-pill-4: calc(28px * var(--scale));
 }
 
 [data-pointer="coarse"][data-radius="full"] {
@@ -2773,6 +2857,10 @@
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
+  --control-px-pill-1: calc(15px * var(--scale));
+  --control-px-pill-2: calc(18px * var(--scale));
+  --control-px-pill-3: calc(21px * var(--scale));
+  --control-px-pill-4: calc(25px * var(--scale));
 }
 
 @media (pointer: coarse) {
@@ -2785,6 +2873,10 @@
     --control-px-2: calc(13px * var(--scale));
     --control-px-3: calc(16px * var(--scale));
     --control-px-4: calc(20px * var(--scale));
+    --control-px-pill-1: var(--control-px-1);
+    --control-px-pill-2: var(--control-px-2);
+    --control-px-pill-3: var(--control-px-3);
+    --control-px-pill-4: var(--control-px-4);
     --radius-control-1: var(--radius-2);
     --radius-control-2: var(--radius-3);
     --radius-control-3: var(--radius-4);
@@ -2821,6 +2913,10 @@
     --control-px-2: calc(10px * var(--scale));
     --control-px-3: calc(13px * var(--scale));
     --control-px-4: calc(16px * var(--scale));
+    --control-px-pill-1: var(--control-px-1);
+    --control-px-pill-2: var(--control-px-2);
+    --control-px-pill-3: var(--control-px-3);
+    --control-px-pill-4: var(--control-px-4);
     --radius-control-1: var(--radius-2);
     --radius-control-2: var(--radius-3);
     --radius-control-3: var(--radius-3);
@@ -2840,6 +2936,10 @@
     --control-px-2: calc(17px * var(--scale));
     --control-px-3: calc(21px * var(--scale));
     --control-px-4: calc(25px * var(--scale));
+    --control-px-pill-1: var(--control-px-1);
+    --control-px-pill-2: var(--control-px-2);
+    --control-px-pill-3: var(--control-px-3);
+    --control-px-pill-4: var(--control-px-4);
     --radius-control-1: var(--radius-3);
     --radius-control-2: var(--radius-4);
     --radius-control-3: var(--radius-5);
@@ -2967,6 +3067,10 @@
     --radius-control-2: var(--radius-3);
     --radius-control-3: var(--radius-3);
     --radius-control-4: var(--radius-4);
+    --control-px-pill-1: calc(13px * var(--scale));
+    --control-px-pill-2: calc(16px * var(--scale));
+    --control-px-pill-3: calc(19px * var(--scale));
+    --control-px-pill-4: calc(22px * var(--scale));
   }
 
   [data-pointer="auto"][data-radius="full"][data-density="default"] {
@@ -2974,6 +3078,10 @@
     --radius-control-2: var(--radius-3);
     --radius-control-3: var(--radius-4);
     --radius-control-4: var(--radius-5);
+    --control-px-pill-1: calc(15px * var(--scale));
+    --control-px-pill-2: calc(18px * var(--scale));
+    --control-px-pill-3: calc(21px * var(--scale));
+    --control-px-pill-4: calc(25px * var(--scale));
   }
 
   [data-pointer="auto"][data-radius="full"][data-density="comfortable"] {
@@ -2981,6 +3089,10 @@
     --radius-control-2: var(--radius-4);
     --radius-control-3: var(--radius-5);
     --radius-control-4: var(--radius-5);
+    --control-px-pill-1: calc(17px * var(--scale));
+    --control-px-pill-2: calc(20px * var(--scale));
+    --control-px-pill-3: calc(24px * var(--scale));
+    --control-px-pill-4: calc(28px * var(--scale));
   }
 
   [data-pointer="auto"][data-radius="full"] {
@@ -2988,6 +3100,10 @@
     --radius-control-2: var(--radius-3);
     --radius-control-3: var(--radius-4);
     --radius-control-4: var(--radius-5);
+    --control-px-pill-1: calc(15px * var(--scale));
+    --control-px-pill-2: calc(18px * var(--scale));
+    --control-px-pill-3: calc(21px * var(--scale));
+    --control-px-pill-4: calc(25px * var(--scale));
   }
 
 }

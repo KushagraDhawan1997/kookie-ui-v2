@@ -550,6 +550,47 @@ describe("a control hosted in a slot is sized by its container (§4, decided 202
   });
 });
 
+describe("a bare pill edge pads wider, and only a bare edge (§4, §6, decided 2026-08-05)", () => {
+  // The Password/Search pair that decided the per-side rule: a pill field whose text meets the
+  // corner curve directly pads wider on that side alone. A leading icon or a trailing control
+  // already stands between the text and the curve, so those sides keep what they had.
+  it("a bare field compensates both sides; every other radius level is untouched", () => {
+    const full = render(
+      <Theme radius="full">
+        <TextField size="2" />
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-field")!;
+    expect(computed(full, "padding-left")).toBe(`${density.default.pxPill[1]}px`);
+    expect(computed(full, "padding-right")).toBe(`${density.default.pxPill[1]}px`);
+
+    const medium = render(
+      <Theme radius="medium">
+        <TextField size="2" />
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-field")!;
+    expect(computed(medium, "padding-left")).toBe(`${density.default.px[1]}px`);
+  });
+
+  it("the Password case: leading text compensates, the trailing control keeps the slot inset", () => {
+    const field = render(
+      <Theme radius="full">
+        <TextField size="2" trailing={<Button size="1">Show</Button>} />
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-field")!;
+    expect(computed(field, "padding-left")).toBe(`${density.default.pxPill[1]}px`);
+    expect(computed(field, "padding-right")).toBe(`${density.default.slotInset[1]}px`);
+  });
+
+  it("the Search case: a leading icon keeps the plain padding under a pill", () => {
+    const field = render(
+      <Theme radius="full">
+        <TextField size="2" leading={<svg />} />
+      </Theme>,
+    ).querySelector<HTMLElement>(".kui-field")!;
+    expect(computed(field, "padding-left")).toBe(`${density.default.px[1]}px`);
+  });
+});
+
 describe("the wrapper's four JS debts, paid (§4, audited 2026-08-05)", () => {
   it("a Field.Root-disabled field greys out — the wrapper is told by the input, not the prop", () => {
     // The component stamped data-disabled from ITS OWN prop and claimed that was sufficient

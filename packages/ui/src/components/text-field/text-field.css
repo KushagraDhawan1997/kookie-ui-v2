@@ -165,10 +165,10 @@
   padding-inline-end: var(--kui-ct-slot-inset);
 }
 
+/* Layout (inline-flex, centred, unshrinkable) comes from the shared adornment-wrapper rule in
+   recipes.css — Button's slots wear the same wrapper since 2026-08-05. Only the muting is the
+   field's own. */
 .kui-field-slot {
-  display: inline-flex;
-  align-items: center;
-  flex: none;
   /* Muted unconditionally, with no guard for interactive children: a control inside a slot
      paints its own label colour through the shared layer, so it overrides this for itself.
      The guard that used to be here listed the interactive elements a SECOND time, in a
