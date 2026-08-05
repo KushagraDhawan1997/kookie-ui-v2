@@ -55,7 +55,7 @@ The original correction put colour at ~2.8KB and concluded the diagnosis above w
 
 Four structural reasons KookieUI stays small (all already decided):
 
-1. **A closed tone set, not 30 arbitrary colors.** `tone` is a closed set: the semantic core (neutral, accent, destructive) plus a few basic categorical families (blue, green, orange added 2026-08-04; amber 2026-08-05 at vividness 0.9, the cusp finding — colour-as-data vocabulary for tags, charts, badges) — seven scales, not 30. The set widens only in config, when a component forces it; the palette is never pre-shipped. There is no open per-component `color` prop forcing all scales to ship (color-scarcity decision, sections 7 and 9). The one arbitrary brand hue is the single configured accent. This alone cuts color mass to ~1/5 of Radix before anything else.
+1. **A closed tone set, not 30 arbitrary colors.** `tone` is a closed set: the semantic core (neutral, accent, destructive; **success, warning, info completed it 2026-08-05**, Kushagra — each its own family resolving to an already-judged pigment: green's hue, amber's, blue's, so a meaning stays independently correctable without moving the data colour it currently shares a hue with) plus a few basic categorical families (blue, green, orange added 2026-08-04; amber 2026-08-05 at vividness 0.9, the cusp finding — colour-as-data vocabulary for tags, charts, badges) — ten scales, not 30. The set widens only in config, when a component forces it; the palette is never pre-shipped. There is no open per-component `color` prop forcing all scales to ship (color-scarcity decision, sections 7 and 9). The one arbitrary brand hue is the single configured accent. This alone cuts color mass to ~1/5 of Radix before anything else.
 
 2. **Generated, scoped output (the real differentiator).** Colors are generated at build time (section 7), so the build emits **only** the configured tones, **only** targeted modes (light/dark), **only** wanted gamuts (P3 gated behind `@supports`, droppable), and the alpha ramp **only** where surfaces need it. Output size is a function of config, not a fixed constant. Radix is a precompiled artifact and structurally cannot do this.
 
@@ -1182,14 +1182,12 @@ Two numbers make three classes: the queries are derived so `regular` is "not nar
 ## Open questions / deferred
 
 **Color:** section 7 is implemented and law-tested (`src/tokens/color.ts`, 106 laws). What remains is not mechanism:
-- **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?
 - **Named extra accent slots** for genuine dual-brand cases (the `accentAlt` path).
 - Chroma varies about 2x across hues at the solid band, because each hue sits at its own cusp: indigo holds C .30 where cyan holds C .15. Intrinsic to sRGB, narrowed but not removed by P3. It only shows when two distant hues ship together (a cyan `accent` beside a red `destructive`), and the lever is per-tone `vividness`. Deliberately **not** normalized automatically across the configured tones: that would mean adding a destructive red silently changes how the accent looks, and action at a distance is worse than a documented asymmetry.
 
 **Recipes and axes (sections 8-11):**
 - Judge the **material** recipes against real backdrops: three or four hostile photos, a real control, both modes. Expect blur to move +/-6px and alpha +/-0.1. Confirm the brightness floor actually holds. Measure `backdrop-filter` cost on a mid-tier device before the radii lock.
 - Decide whether a material `bordered` edge stays opaque or goes translucent (section 10).
-- **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?
 - The **chroma threshold** below which `--accent-solid` remaps to step 12 (section 7), and the L-deltas for its hover and press. Tuning, not architecture.
 - Where exactly `--accent-label` sits between steps 11 and 12, per mode.
 - ~~How **`quiet`** actually renders~~ — closed at the first real Button (2026-08-03): bare at rest, `transparent` literally, entering the ramp at hover (transparent → soft → soft-hover). Law-tested across every tone. `quiet + bordered` covers the faint-containment case the tint would have served.

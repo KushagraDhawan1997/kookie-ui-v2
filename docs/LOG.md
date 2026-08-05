@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 The semantic core completes: success, warning, info — each a family, none an alias
+
+Kushagra, closing the open question the docs had carried since the tone set was born ("do success/warning/info earn system-tone status, or stay app-defined?"): the set completes. The forcing was his product call rather than a component landing first — scrutinised and accepted: status names are universal and stable, so the shipped-early-gets-squatted risk that killed Card's slots does not apply to them, and the widening was already unblocked by the amber finding (below).
+
+**Each name ships as its own generated family resolving to a pigment already judged and law-passed:** success on green's hue (150), warning on amber's (80 at vividness 0.9), info on blue's (250). Not aliases into those families, though today they render identically — names are meanings, and a meaning must stay independently correctable: success can drift toward teal someday without `green`, a colour-as-data name, moving with it. The accent/blue pair set the precedent (same hue, two names, two jobs), and gzip absorbs duplicate scales well. Ten tones total; +~2.9KB gzipped for the three.
+
+**Warning is the amber question answered.** The 2026-08-04 position was that warning could not ship without either orange standing in or a generator exception; the day amber earned membership (below), warning stopped needing either.
+
+Rejected: aliasing the semantic names onto the data families in the tone indirection (saves bytes, welds two meanings to one correction knob — the action-at-a-distance §7 already refuses across tones); waiting for Callout/Toast to force each name (the principled default, overridden knowingly — the names are not speculative the way Card's slots were); warning-as-orange (a stand-in with a recorded expiry, expired).
+
 ## 2026-08-05 Amber joins at vividness 0.9 — the refusal was real, but the input space was not exhausted
 
 The 2026-08-04 entry recorded amber as unable to ship: hemmed at its cusp in both directions, refused by the state-separation law, waiting on "a designed exception" in the generator. Chasing Kushagra's tone-set widening reopened it, and the finding is that no exception was ever needed — **the failure was specific to full vividness, and vividness is a designed per-tone input the first attempt never varied.**

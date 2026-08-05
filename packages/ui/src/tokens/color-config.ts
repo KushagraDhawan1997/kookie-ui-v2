@@ -159,6 +159,18 @@ export const tones = {
       the refused full-vividness row and a Radix-lightness pin in the preview sweep; brighter
       ambers exist only by carrying a pin into dark (declined — this is the one he liked). */
   amber: { hue: 80, vividness: 0.9 },
+
+  /* The semantic core completed (2026-08-05, Kushagra) — success, warning, info join the
+     destructive they were always implied by. Each is its OWN family resolving to a pigment
+     already judged and law-passed above, not an alias into it: names are meanings, and a
+     meaning must stay independently correctable — success can drift toward teal someday
+     without green (a colour-as-data name) moving with it. The accent/blue pair set the
+     precedent: same hue, two names, two jobs. Gzip absorbs the duplicate scales. */
+  success: { hue: 150, vividness: 1 },
+  /** Warning is the amber question answered: the day amber earned membership (above) is the
+      day warning stopped needing orange as a stand-in. */
+  warning: { hue: 80, vividness: 0.9 },
+  info: { hue: 250, vividness: 1 },
 } as const;
 
 export type ToneName = keyof typeof tones;
