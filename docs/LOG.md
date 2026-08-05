@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-06 readOnly is refused on Checkbox — the standard pattern is that there is none
+
+The audit (D5) found `readOnly` accepted and resolving to nothing: a checkbox that looked live, stepped its fill under the pointer, kept the pointing cursor, and silently refused the click — three affordances promising a toggle Base UI then denied. The open question was what it should look like; four candidates were mocked in the preview and judged.
+
+Kushagra asked the question that dissolved it: what does everyone else do — why are we reinventing the wheel? Checked rather than answered from memory, and the finding is that **the wheel does not exist.** The HTML `readonly` attribute is defined for text fields and deliberately not for checkboxes; the WHATWG's stated position is that a read-only checkbox has no useful distinction from a disabled one. Material has an open feature request from 2019 it never shipped. Ant the same. Adrian Roselli's article on the subject is titled "Avoid Read-only Controls". The libraries that do accept the prop — Chakra, Base UI — draw it identically to a live control, which is not a pattern but the same bug this audit had just flagged.
+
+So the prop is refused by the type, beside `render`, `children` and `nativeButton`, and the mock section came off the preview. The one real capability lost is submission: a read-only value goes with the form where a disabled one does not. Accepted — it is rare, and an app that needs it sends the value itself. Radio and Switch inherit the refusal.
+
+Rejected: the four mocked appearances (no-fill, faded, Kushagra's grey tick, and the shipped nothing) — not on their merits, but because designing an appearance concedes the state should exist, and the platform's own position is that it should not; keeping the prop functional-but-unstyled (the Chakra/Base UI shape — the exact defect being fixed); mapping it to the disabled look (the two differ in form submission, and identical dress on different behaviour is a lie in the other direction).
+
 ## 2026-08-05 A mark's corner held a fraction of the wrong box — the radius bug, third instance
 
 Checkbox shipped its corner riding `--radius-control-N` with a ceiling at `full` to stop it becoming a radio. Kushagra caught the rest of it by eye within the hour: "size 4 looks much more rounded than size 1."

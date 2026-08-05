@@ -30,7 +30,14 @@ export type CheckboxProps = Omit<
   // Base UI's wiring to expect a real <button> that can never exist here — the id moves off
   // the hidden input so no label can find it, and Space stops toggling. A prop whose every
   // value but the default breaks the component is not API.
-  "children" | "render" | "className" | "nativeButton"
+  //
+  // `readOnly` is refused because the PLATFORM refuses it (decided 2026-08-06, Kushagra; LOG):
+  // the HTML attribute is defined for text fields and deliberately not for checkboxes — the
+  // spec's own position is that a read-only checkbox has no useful difference from a disabled
+  // one — and neither Material nor Ant ever shipped it. Base UI accepts it and draws nothing,
+  // which is how it reached this component as a prop that resolved to no appearance at all
+  // (audit D5). A form that must submit an untouchable value sends it itself.
+  "children" | "render" | "className" | "nativeButton" | "readOnly"
 > & {
   size?: Size;
   /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */

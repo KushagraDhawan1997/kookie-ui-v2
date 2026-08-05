@@ -436,102 +436,6 @@ function checkbox(
     : box;
 }
 
-/**
- * MOCK-ONLY variants, for judging two open questions by eye (2026-08-06). Everything here is
- * inline `style` on the real markup rather than shipped CSS: nothing below exists in the
- * component, and none of it should be copied into one. Delete this block once the calls land.
- */
-function checkboxMock(
-  label: string,
-  note: string,
-  style: string,
-  checked: boolean,
-  opts: { tone?: string; reacts?: boolean; toggles?: boolean } = {},
-): string {
-  const { tone = "accent", reacts = false, toggles = false } = opts;
-  const glyph = `<svg viewBox="0 0 16 16" fill="none"${checked ? " data-checked" : " data-unchecked"} aria-hidden="true"><path class="kui-checkbox-check" d="M4 8.5 6.75 11.25 12 5.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path class="kui-checkbox-dash" d="M4.25 8h7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-  // A read-only candidate must not react at all, so the mock freezes the hover/press sources
-  // inline and keeps the arrow cursor. "live" keeps everything; "today" keeps its reactions
-  // and only refuses the toggle — that mismatch IS the shipped bug, on display.
-  const frozen =
-    "--color-surface-hover: var(--color-surface); --color-surface-active: var(--color-surface); --tone-solid-hover: var(--tone-solid); --tone-solid-active: var(--tone-solid); cursor: default";
-  const css = reacts ? style : style ? `${style}; ${frozen}` : frozen;
-  const box = `<span class="kui-control kui-checkbox" data-size="2" data-tone="${tone}" data-bordered${
-    checked ? " data-checked" : ""
-  }${toggles ? "" : " data-mock"}${css ? ` style="${css}"` : ""} role="checkbox">${glyph}</span>`;
-  return kuiBox(
-    { display: "flex", direction: "column", gap: "3" },
-    kuiBox({ display: "flex", gap: "3", align: "center" }, box + text(2, label)) +
-      text(1, note, "regular", "quiet"),
-  );
-}
-
-/** The read-only question (\u00a78): what should a mark that cannot be changed look like? */
-function readOnlySection(mode: Mode): string {
-  const demo = (title: string, body: string) =>
-    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
-  const grid = (body: string) =>
-    kuiBox({ display: "grid", columns: "repeat(auto-fill, minmax(210px, 1fr))", gap: "6" }, body);
-
-  // The four candidates, unticked then ticked. The ticked row is the one that decides it.
-  const options = (checked: boolean) =>
-    grid(
-      [
-        checkboxMock("live", "what a normal one looks like", "", checked, { reacts: true, toggles: true }),
-        checkboxMock("today", "read-only, as it ships: identical to live, and ignores you", "", checked, { reacts: true }),
-        checkboxMock(
-          "no fill",
-          "the fill goes, like a read-only text field loses its well",
-          "--kui-ct-fill-src: transparent; --kui-ct-label-color: var(--tone-ink)",
-          checked,
-        ),
-        checkboxMock(
-          "faded",
-          "one step back in the neutral family, edge and all",
-          "--tone-border: var(--neutral-6); --kui-ct-fill-src: var(--neutral-2); --tone-solid: var(--neutral-8)",
-          checked,
-        ),
-        checkboxMock(
-          "grey tick",
-          "Kushagra's: the tick keeps full strength, the blue goes - a fact, not a button",
-          "",
-          checked,
-          { tone: "neutral" },
-        ),
-      ].join(""),
-    );
-
-  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>${mode}</h2>
-    ${kuiBox(
-      { display: "flex", direction: "column", gap: "7" },
-      demo("unticked", options(false)) +
-        demo("ticked - and this is the row that decides it", options(true)) +
-        demo(
-          "a checkbox tucked inside a typing field",
-          kuiBox(
-            { display: "flex", direction: "column", gap: "5" },
-            kuiBox(
-              { display: "flex", gap: "5", align: "center", wrap: "wrap" },
-              field({ placeholder: "as it ships", trailing: checkbox({ size: "2" }) }) +
-                text(1, "20 wide, 24 tall - a rectangle", "regular", "quiet"),
-            ) +
-              kuiBox(
-                { display: "flex", gap: "5", align: "center", wrap: "wrap" },
-                field({
-                  placeholder: "forced square",
-                  trailing: checkbox({ size: "2" }).replace(
-                    'role="checkbox"',
-                    'role="checkbox" style="height: var(--kui-ct-mark)"',
-                  ),
-                }) + text(1, "square, and it fits", "regular", "quiet"),
-              ),
-          ),
-        ),
-    )}
-  </section>`;
-}
-
 function checkboxSection(mode: Mode): string {
   const demo = (title: string, body: string) =>
     kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
@@ -988,7 +892,6 @@ export function generatePreview(): string {
     <a href="#field">field</a>
     <a href="#textarea">textarea</a>
     <a href="#checkbox">checkbox</a>
-    <a href="#open">open calls</a>
     <a href="#type">type</a>
     <a href="#layout">layout</a>
     <a href="#roles">roles</a>
@@ -1073,11 +976,6 @@ ${textAreaSection("dark")}
 <p class="note">The first control whose painted box is <em>not</em> the height ladder (\u00a74). A checkbox does not contain a label, it sits <em>beside</em> one, so it takes the <strong>mark family</strong> — one ladder shared by checkbox, radio, switch track and slider thumb, because four separately designed ladders in one visual weight class drift apart. The ladder is the <em>line box</em>: a mark occupies exactly one line of its label, which is why it aligns with the text by construction and why it grows on a phone with nothing designed twice — flip the <em>pointer</em> select and the marks rise because \u00a717's handheld band raised the type. The invisible target is a control of its size, capped at the 44 floor, so a checkbox is exactly as large a thing to aim at as the Button beside it while staying a 20px square: click a few pixels above a box on this page and it still toggles. At <em>radius=full</em> the corner caps below a circle, because a circular checkbox is a radio and shape is role semantics (\u00a76) \u2014 flip the radius select and compare it with the pills. Every number here is v0 for the eye pass.</p>
 ${checkboxSection("light")}
 ${checkboxSection("dark")}
-
-<h1 id="open">Two open calls — mocked, nothing here is shipped</h1>
-<p class="note">Both rows below are inline <code>style</code> on the real markup: <strong>none of this exists in the component</strong>, and it is here only so the two remaining decisions can be made by eye rather than in prose. <strong>Read only</strong> means "you may see this, you may not change it" — a permission you lack, or a summary before you submit. It ships today looking exactly like a live checkbox and silently ignoring the click, which is the defect. Judge the <em>ticked</em> row first: dropping the fill is what a read-only typing field does, but a tick is white <em>because</em> it sits on a filled box, so the no-fill option has to hand the tick a different colour or it vanishes — that trade is the whole question. The <em>grey tick</em> column is Kushagra's own suggestion (2026-08-06): full-strength tick, the system's neutral grey instead of the blue — and unticked it is simply a normal box that does not respond. <strong>The field row</strong> asks whether a checkbox tucked inside a typing field should be supported at all; as it ships it comes out 20 wide and 24 tall.</p>
-${readOnlySection("light")}
-${readOnlySection("dark")}
 
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">
@@ -1173,7 +1071,7 @@ ${brandSection("dark")}
   // page standing in for it, and it moves the same attributes the stylesheet reads.
   document.addEventListener("click", (e) => {
     const mark = e.target.closest(".kui-checkbox");
-    if (!mark || mark.hasAttribute("data-disabled") || mark.hasAttribute("data-mock")) return;
+    if (!mark || mark.hasAttribute("data-disabled")) return;
     const on = !(mark.hasAttribute("data-checked") || mark.hasAttribute("data-indeterminate"));
     for (const el of [mark, mark.querySelector("svg")]) {
       el.toggleAttribute("data-checked", on);

@@ -445,6 +445,10 @@ describe("the API's closed edges, and the two facts the types state (§3)", () =
     void (<Checkbox tone="destructive" />);
     // @ts-expect-error — no margin prop on any control (first non-negotiable)
     void (<Checkbox m="4" />);
+    // @ts-expect-error — the platform has no read-only checkbox, and neither does this one
+    // (2026-08-06, LOG): Base UI accepts it and draws nothing, which shipped here as a prop
+    // that resolved to no appearance at all. Disabled is the state that exists.
+    void (<Checkbox readOnly />);
   });
 
   it("the ref names the element it actually holds — the span, not a button (audit D12)", () => {
