@@ -1120,35 +1120,63 @@ For one day the split left a Theme prop called `device: desktop | handheld | aut
 ### What reads a band, and what must not
 
 - **Type** — the whole palette, so Text, Heading, control labels and field text all follow through the one size-step definition (the §15 join; the control≡type parity law pins that there is exactly one such definition).
-- **Interaction adaptation, later** — dialog→sheet, popover→drawer, hover-reveal→tap (THESIS Part II's opt-out responsiveness). Which signal each follows is open, and they likely split the same way the bands did: hover-reveal is a pointer fact, sheet/drawer are window-size facts.
+- **Interaction adaptation, later** — dialog→sheet, popover→drawer, hover-reveal→tap (THESIS Part II's opt-out responsiveness). They split the same way the bands did: hover-reveal is a pointer fact; sheet/drawer follow the `narrow` window class (§18), not a band.
 - **Never: spacing** (gutters must not inflate on the smaller screen — §16's exclusion, reasserted per band by law) **and never: control geometry from the narrow band** (heights are the pointer axis's; width pushing a box would compose a height nobody designed).
 
 ### Open
 
-- **The picks and both thresholds** — v0. The narrow threshold in particular inherited 48rem from the conjunction it replaced and has never been judged on its own terms.
+- **The picks and both thresholds** — v0. The narrow threshold is now §18's narrow window boundary by derivation (one number, shared on purpose), so judging it is judging both at once.
 - **The narrow band should arguably key on the CONTAINER, not the viewport.** A heading in a narrow sidebar on a wide monitor wraps just as badly. Re-pricing tokens inside a container query has substitution problems the viewport version does not (§6), so the viewport band ships first.
-- **Window-level size classes for app-shell layout** — the actual "tablet" deliverable, and the gap this discussion surfaced. Container tiers (§2) answer "how much room does this component have"; nothing answers "which interface should this app show", which is what a product like Figma-on-iPad is deciding. Material's compact/medium/expanded is the reference shape. Not a type band — a layout primitive.
+- ~~**Window-level size classes for app-shell layout**~~ — **CLOSED 2026-08-05: section 18.** Three classes, `narrow | regular | wide`, a hook; the narrow boundary is this band's number by derivation.
 - A locked type floor ("no band renders below the platform minimum") is *not yet claimed* — the bands happen to clear it, but nothing enforces it. Claiming it without a law is the audit sin (§2); it becomes a claim the day it becomes a law.
 - Whether the fine world ever earns its own non-identity band (macOS 13pt against the web's 16px default suggests not).
 
 ---
 
+## 18. Window size classes
+
+**Decision (2026-08-05, Kushagra; thresholds v0): the one viewport question gets three classes — `narrow | regular | wide` — and they pick the SHELL, nothing else.**
+
+Container tiers (§2) answer *"how much room does this component have"* — measured against the nearest container, deliberately, so the same card stacks in a sidebar and spreads in the main area. Nothing answered *"which interface should this app show"*: bottom bar on a narrow window, rail in between, sidebar when there is room. That is decided **once, at the top, against the window** — not per container, not per component — and without a sanctioned answer every consumer hand-writes media queries with invented numbers, which is what this system exists to prevent.
+
+| class | boundary | shell it names |
+|---|---|---|
+| `narrow` | width ≤ 48rem | one column, bottom bar; dialogs become sheets (later) |
+| `regular` | in between | rail navigation |
+| `wide` | width ≥ 64rem | sidebar; everything a shell can use |
+
+### Three, not four (LOG 2026-08-05)
+
+A class exists to pick the navigation shape, and there are three shapes. Material's three primary classes map to exactly this ladder; Apple's two are the documented failure (rail and sidebar collapse into "regular"); Microsoft ships three. Material's fourth and fifth classes ("at 1600px, add an inspector") exist to compensate for not having container queries — that is a *room* question, and container tiers already answer it where it is asked, in the pane. The set is a closed union that widens by config the day a real shell forces it — the tone set's rule — and the waiting name is `expanded`.
+
+### Named for room, never hardware (LOG)
+
+`phone | tablet | desktop` was considered and rejected with its own argument: users run apps in windowed mode, so device names lie — an app dragged to half a 5K display would be "tablet" with no tablet anywhere, and a phone-shaped preview canvas inside a desktop tool would be a "phone". Every platform that started from devices retreated to window-measured classes. The device question is already answered properly by `pointer` (§16, §17); the window class is pure room. The words are the system's kind — blunt, one each: `narrow` shared with the type band on purpose, `regular` the unmarked middle (material's habit, not "medium", which would claim a midpoint), `wide` the sidebar shell.
+
+### The boundaries, and the one that is shared
+
+Two numbers make three classes: the queries are derived so `regular` is "not narrow, not wide" spelled with the identical strings — a threshold correction cannot open a gap or an overlap, law-tested.
+
+- **narrow/regular = 48rem, and it IS the narrow type band's number by derivation** (`config.ts`: `narrowMedia` is built from `windowClass.narrowMax`). One word, one number, one moment: display type shrinks exactly when the app goes to one column. This closes §17's open "same numbers or independent" question — same, mechanically.
+- **regular/wide = 64rem, v0.** Kookie's bias is apps, where a sidebar wants real room; Material's 840px reference sat too low. Judged like every number.
+- **Boundaries land downward** — a window at exactly 48rem is `narrow`, matching the band's inclusive `max-width`. Law-tested at the exact widths.
+
+### How it surfaces: a hook, because a shell is components
+
+`useWindowClass(): "narrow" | "regular" | "wide" | null` — live over `matchMedia`, subscribed at the two boundaries. **No token moves with the window class**: spacing is nobody's, type already answers width through the narrow band, geometry is the pointer axis's — a law asserts the generated CSS never mentions a window class. A class picks a shell, and a shell is different components, which only JS can render; that is why the primitive is a hook and not a stylesheet, and why it is the system's first sanctioned runtime signal (still nothing at *interaction* time — a resize listener the consumer opts into).
+
+**`null` is the server's answer, honestly.** SSR has no window, and a guessed class paints a guessed shell. The pre-paint stamp that would close the gap is the same debt dark-mode SSR carries; **they resolve together at apps/docs** — one inline script, stamping both before first paint. Until then a consumer picks its own fallback knowing it is one.
+
+### Open
+
+- The 64rem boundary, judged when a real shell exists to judge it against.
+- The pre-paint stamp + `data-window` attribute for CSS consumers — deliberately deferred to apps/docs with dark SSR (REVIEW.md); the attribute contract is reserved, nothing stamps it yet.
+- Pinning (a phone-shaped canvas inside a desktop tool is a pinned narrow window — the escape the dropped `device` prop would have wanted). Arrives with the attribute, if it arrives.
+- Interaction adaptation (dialog→sheet at `narrow`, popover→drawer) — §17's open item resolves mostly into this class, not into a band; hover-reveal→tap stays the pointer's.
+
+---
+
 ## Open questions / deferred
-
-### NEXT UP — window size classes (raised 2026-08-05, Kushagra)
-
-**The system has no way for an APP to ask how big the window is, and it needs one.**
-
-Container tiers (§2) answer *"how much room does this component have"* — measured against the nearest container, deliberately, so the same card stacks in a sidebar and spreads in the main area. That is right for components and it is not the only question a responsive system has to answer.
-
-The other question is *"which interface should this app show"*: bottom bar on a phone, rail on a tablet, sidebar on a desktop. Figma-on-iPad shipping a viewer instead of an editor is the same decision one level up. It is made **once, at the top, against the viewport** — not per container, not per component.
-
-Today a consumer has to hand-write `@media (min-width: …)` and invent their own numbers, which is precisely what this system exists to prevent, and every app built on it would pick a different set.
-
-What it is not: a type band (settled — §17), and not a replacement for container tiers (they answer a different question and both are needed). Reference shape: Material's window size classes, compact / medium / expanded.
-
-Open within it: the class names and count; whether it surfaces as a Theme-stamped attribute, a hook, or both; whether a class can be *pinned* (a phone-shaped canvas inside a desktop tool is a pinned small window — the escape the dropped `device` prop would have wanted); and whether the thresholds are the same numbers as the `narrow` type band's or independent.
-
 
 **Color:** section 7 is implemented and law-tested (`src/tokens/color.ts`, 106 laws). What remains is not mechanism:
 - **Tone set** membership: do success/warning/info earn system-tone status, or stay app-defined?

@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 Window size classes: three, named for room, one boundary shared with the narrow band
+
+The gap the tablet discussion surfaced (§17, LOG below) closed the same day, as §18. Three decisions inside it, each of which was genuinely open:
+
+**Three classes, not four.** Kushagra opened at four (and the system does follow 3s and 4s). What settled it: a window class exists to pick the navigation shape — bottom bar, rail, sidebar — and there are three shapes. The platform survey said the same from both directions: Apple's two is the documented failure (rail and sidebar collapse into one "regular"), and Material's four-then-five is compensation for not having container queries — their "at 1600px add an inspector" is a *room* question our container tiers already answer in the pane that asks it. Three ships as a closed union with the tone set's widening rule: `expanded` joins the day a real shell forces it, not before.
+
+**Named for room, never hardware.** `phone | tablet | small desktop | desktop` was on the table and was rejected with its own author's argument: users run apps in windowed mode, so device names lie — an app in half a 5K display would be "tablet" with no tablet anywhere, and a phone-preview canvas inside a desktop tool would be a "phone". Every platform that started from device names retreated to window-measured classes. The device question is `pointer`'s (§16, §17); the window class is pure room. `narrow | medium | wide | full` was also rejected (Kushagra: `medium` is not the middle of four, `full` is vague) — at three the shape resolves to **`narrow | regular | wide`**: blunt words, and the unmarked middle rung, material's habit.
+
+**The narrow boundary IS the narrow type band's number, by derivation.** Not two thresholds that happen to agree: `narrowMedia` is built from `windowClass.narrowMax` in config, a law pins the derivation, and the shared word is the point — display type shrinks exactly when the app goes to one column, including at exactly 48rem (boundaries land downward, law-tested at the exact widths). This closes §17's "same numbers or independent" question as *same, mechanically*. The wide boundary is 64rem v0 — Material's 840px sat too low for an app-first system; a sidebar wants real room — unjudged until a real shell exists.
+
+The mechanism is a hook, `useWindowClass()`, and deliberately NOT a token: no emitted declaration keys on a window class (law-tested), because a class picks a shell and a shell is components. SSR returns `null` honestly — the server has no window, and a guessed class paints a guessed shell. The pre-paint stamp that would close that gap is the same debt dark-mode SSR carries, and the two are now formally one deliverable at apps/docs: one inline script, both answers stamped before first paint.
+
+---
+
 ## 2026-08-05 A pill pads wider — but only on an edge where text meets the curve
 
 Kushagra, judging the preview at `radius="full"`: on buttons and fields without a leading icon, the text sits too close to the left edge, and the fix should be system-wide. Then, on the first cut, the refinement that turned out to be the whole design: a side holding an icon or a hosted control needs no correction — the password field (bare text, trailing Show button) compensates only its left edge; the search field (leading icon, trailing Clear) compensates neither.

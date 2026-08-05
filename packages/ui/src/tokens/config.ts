@@ -285,11 +285,41 @@ export const typeBands = {
 export const handheldMedia = "(pointer: coarse)";
 
 /**
- * §17 — the narrow signal, and now tunable on its own, which is half the point of the split:
- * "how close is this screen" and "how wide is this screen" no longer share a number. v0 keeps
- * the 48rem the conjunction used, so exactly one thing changed in this commit.
+ * §18 — the window size classes: which SHELL should this app show. Three, not four (LOG
+ * 2026-08-05): a class exists to pick the navigation shape — bottom bar, rail, sidebar —
+ * and there are three shapes. Material's fourth and fifth classes exist to compensate for
+ * not having container queries; our container tiers (§2) already answer "can this area
+ * afford another pane". The set widens by config the day a real shell forces it (the tone
+ * set's rule), and the waiting name is `expanded`.
+ *
+ * Measured against the WINDOW, never the screen — a user in windowed mode has a window,
+ * not a device — and named for room, never hardware: a phone-shaped canvas inside a
+ * desktop tool is a narrow window with no phone anywhere.
+ *
+ *   narrow   ≤ 48rem   one column, bottom bar; dialogs become sheets (later)
+ *   regular  in between  rail navigation
+ *   wide     ≥ 64rem   sidebar; everything a shell can use
+ *
+ * Boundaries land DOWNWARD (a window at exactly 48rem is narrow), matching the narrow
+ * type band's inclusive max-width — same word, same number, same moment.
  */
-export const narrowMedia = "(max-width: 48rem)";
+export const windowClass = {
+  /** The narrow/regular boundary. THE shared number: the narrow type band's media derives
+   *  from it below, so "display type shrinks" and "the app goes to one column" cannot
+   *  drift apart. v0 keeps the 48rem the band already had. */
+  narrowMax: "48rem",
+  /** The regular/wide boundary. v0 64rem: Kookie's bias is apps, where a sidebar wants
+   *  real room; Material's 840px reference sat too low for that. Judged like every number. */
+  regularMax: "64rem",
+} as const;
+
+/**
+ * §17 — the narrow signal, and now tunable on its own, which is half the point of the split:
+ * "how close is this screen" and "how wide is this screen" no longer share a number...
+ * except the one it shares on purpose: §18's narrow WINDOW boundary is the same number by
+ * derivation, so the two `narrow`s are one word for one moment.
+ */
+export const narrowMedia = `(max-width: ${windowClass.narrowMax})`;
 
 /**
  * §4 — the icon box, pulled by the size index. Sizes 1 and 2 share 16: the grid the ecosystem
