@@ -438,8 +438,10 @@ const materialAlpha = (name: string, alpha: readonly number[]): string[] => {
   ];
 };
 
-/** Every role a component may read, bound to one tone family (§7). */
-const ROLES = [
+/** Every role a component may read, bound to one tone family (§7). Exported for the
+ * preview, which builds its role table and accent swap FROM this list — an exhaustive
+ * switch, so adding a role here fails the preview build until the page can show it. */
+export const ROLES = [
   "soft",
   "soft-hover",
   "soft-active",

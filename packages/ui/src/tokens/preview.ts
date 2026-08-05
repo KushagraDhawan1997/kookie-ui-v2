@@ -14,10 +14,17 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { tones, type Mode, type ToneName } from "./color-config.ts";
+import { inkMix, tones, type Mode, type ToneName } from "./color-config.ts";
 import { buildScale, buildScaleFor, toneFromColor, type Scale } from "./color.ts";
 
 import { density, fontSize, lineHeight, radiusLevels, type DensityLevel } from "./config.ts";
+import { ROLES } from "./generate.ts";
+import { SIZES } from "../system/axes.ts";
+import { tiers } from "../system/props.ts";
+
+/** The tier boundaries in px, for the readout script: the rem values are authored in
+    system/props.ts and a preview page has no rem context of its own at build time. */
+const remPx = (rem: string): number => parseFloat(rem) * 16;
 import { resolveBoxProps, type BoxStyleProps } from "../system/resolve.ts";
 
 /**
@@ -160,21 +167,38 @@ function buttonMatrix(
  * `--tone-*` at the button, which sits below, the buttons inside simply pick it up. That is
  * §7's rebindable-accent claim doing real work rather than being asserted.
  */
+/** One role, one literal value off a built Scale — the swap's half of the generator's ROLES
+ * contract. Exhaustive over the union: the hand-kept ten-name list this replaces had already
+ * drifted (a swapped brand accent kept the theme's ink ladder and alpha fill), and a role
+ * added to ROLES now fails compilation here until the swap can express it. */
+function roleValue(s: Scale, role: (typeof ROLES)[number]): string {
+  switch (role) {
+    case "soft": return s.steps[2]!;
+    case "soft-hover": return s.steps[3]!;
+    case "soft-active": return s.steps[4]!;
+    case "solid": return s.solid;
+    case "solid-hover": return s.solidHover;
+    case "solid-active": return s.solidActive;
+    case "border": return s.steps[6]!;
+    case "text": return s.steps[10]!;
+    case "label": return s.label;
+    case "contrast": return s.contrast;
+    // A chroma family's inks: the one designed text colour, then the fade (§7, §15) — the
+    // mix spelled from the same config number the generator reads.
+    case "ink": return s.steps[10]!;
+    case "ink-muted": return `color-mix(in oklab, ${s.steps[10]!} ${inkMix.muted}%, transparent)`;
+    case "ink-faint": return `color-mix(in oklab, ${s.steps[10]!} ${inkMix.faint}%, transparent)`;
+    case "a3": return s.alpha[2]!;
+    default: {
+      const unmapped: never = role;
+      throw new Error(`accentSwap cannot express role: ${String(unmapped)}`);
+    }
+  }
+}
+
 function accentSwap(name: string, hex: string, mode: Mode): string {
   const t = toneFromColor(hex);
-  const vars = (s: Scale) =>
-    [
-      `--accent-soft: ${s.steps[2]}`,
-      `--accent-soft-hover: ${s.steps[3]}`,
-      `--accent-soft-active: ${s.steps[4]}`,
-      `--accent-solid: ${s.solid}`,
-      `--accent-solid-hover: ${s.solidHover}`,
-      `--accent-solid-active: ${s.solidActive}`,
-      `--accent-border: ${s.steps[6]}`,
-      `--accent-text: ${s.steps[10]}`,
-      `--accent-label: ${s.label}`,
-      `--accent-contrast: ${s.contrast}`,
-    ].join("; ");
+  const vars = (s: Scale) => ROLES.map((r) => `--accent-${r}: ${roleValue(s, r)}`).join("; ");
   // Class rules rather than an inline style: a baked inline value is unreachable by the
   // page-wide contrast toggle, which made these blocks the one place contrast="high"
   // silently did nothing. The high variant is baked beside the normal one instead.
@@ -306,7 +330,7 @@ function fieldSection(mode: Mode): string {
       { display: "flex", direction: "column", gap: "7" },
       demo(
         "the size index - one join, shared with every control (\u00a74)",
-        row(SIZES.map((n) => field({ size: String(n), placeholder: `size ${n}` })).join("")),
+        row(SIZES.map((n) => field({ size: n, placeholder: `size ${n}` })).join("")),
       ) +
         demo(
           "states - the border carries them; the fill never moves (\u00a78)",
@@ -380,8 +404,8 @@ function textAreaSection(mode: Mode): string {
         row(
           SIZES.map((n) =>
             [
-              field({ size: String(n), placeholder: `field ${n}` }),
-              textarea({ size: String(n), rows: 3, placeholder: `size ${n}` }),
+              field({ size: n, placeholder: `field ${n}` }),
+              textarea({ size: n, rows: 3, placeholder: `size ${n}` }),
             ].join(""),
           ).join(""),
         ),
@@ -453,7 +477,7 @@ function checkboxSection(mode: Mode): string {
       { display: "flex", direction: "column", gap: "7" },
       demo(
         "the size index - one line of the label it sits beside, never the height ladder (\u00a74)",
-        row(SIZES.map((n) => checkbox({ size: String(n), checked: true, label: `size ${n}` })).join("")),
+        row(SIZES.map((n) => checkbox({ size: n, checked: true, label: `size ${n}` })).join("")),
       ) +
         demo(
           "states - neutral off, accent on (\u00a711); indeterminate is a third meaning, not a faded tick",
@@ -659,20 +683,33 @@ function colorSection(mode: Mode): string {
 
 /**
  * The role layer written out: what each token resolves to and what consumes it. Components
- * only ever touch this column, never the numbered steps (§7).
+ * only ever touch this column, never the numbered steps (§7). The rows DERIVE from the
+ * generator's own ROLES list — the hand-kept copy this replaces was already lying (the ink
+ * trio shipped 2026-08-04 and never appeared here). Annotating a role is still hand work;
+ * FORGETTING one is now a type error, which is the difference that matters.
  */
+const ROLE_NOTES: Record<(typeof ROLES)[number], [string, string]> = {
+  soft: ["step 3", "medium emphasis, resting fill"],
+  "soft-hover": ["step 4", "medium emphasis, hover (+1 step)"],
+  "soft-active": ["step 5", "medium emphasis, pressed (+2 steps)"],
+  border: ["step 7", "the bordered boolean, separators"],
+  solid: ["step 9, or step 12 when low chroma", "loud emphasis, resting fill"],
+  "solid-hover": ["generated, away from the label", "loud emphasis, hover"],
+  "solid-active": ["generated, away from the label", "loud emphasis, pressed"],
+  contrast: ["white or black, chosen by APCA", "the label ON a loud fill"],
+  text: ["step 11", "links and prose on a tint"],
+  label: ["generated between 11 and 12", "control labels — a label is not a link"],
+  ink: ["step 12 (neutral) or step 11 (chroma)", "loud type — the rung's per-family text"],
+  "ink-muted": ["step 11, or the ink faded to 74%", "medium type on a chosen tone"],
+  "ink-faint": ["step 10, or the ink faded to 52%", "quiet type — timestamps, placeholders"],
+  a3: ["step 3 as alpha over the page", "the tone-forward surface fill (Callout)"],
+};
+
 const ROLE_MAP: Array<[string, string, string]> = [
   ["--tone-1, -2", "steps 1-2", "page and app backgrounds"],
-  ["--tone-soft", "step 3", "medium emphasis, resting fill"],
-  ["--tone-soft-hover", "step 4", "medium emphasis, hover (+1 step)"],
-  ["--tone-soft-active", "step 5", "medium emphasis, pressed (+2 steps)"],
-  ["--tone-border", "step 7", "the bordered boolean, separators"],
-  ["--tone-solid", "step 9, or step 12 when low chroma", "loud emphasis, resting fill"],
-  ["--tone-solid-hover", "generated, away from the label", "loud emphasis, hover"],
-  ["--tone-solid-active", "generated, away from the label", "loud emphasis, pressed"],
-  ["--tone-contrast", "white or black, chosen by APCA", "the label ON a loud fill"],
-  ["--tone-text", "step 11", "links and prose on a tint"],
-  ["--tone-label", "generated between 11 and 12", "control labels — a label is not a link"],
+  ...ROLES.map(
+    (r): [string, string, string] => [`--tone-${r}`, ...ROLE_NOTES[r]],
+  ),
   ["--tone-a1 … -a12", "each step as alpha over the page", "nested surfaces, fills over media"],
 ];
 
@@ -753,10 +790,9 @@ function sweepFull(mode: Mode): string {
 }
 
 const LEVELS = Object.keys(density) as DensityLevel[];
-const SIZES = [1, 2, 3, 4] as const;
 
 /** A fake control: the real tokens, an icon square, a label at the size's own font step. */
-const control = (size: number) => `
+const control = (size: string) => `
       <div class="control" data-size="${size}" style="
         height: var(--control-height-${size});
         padding-inline: var(--control-px-${size});
@@ -959,7 +995,7 @@ ${BRANDS.slice(0, 5)
   .join("")}
 
 <p class="note">The size index, at the default rung — five scales moving on one number (§4).</p>
-<div class="row-controls">${SIZES.map((s) => button({ size: String(s) }, `Size ${s}`)).join("")}</div>
+<div class="row-controls">${SIZES.map((s) => button({ size: s }, `Size ${s}`)).join("")}</div>
 <p class="note">Loading never hides the label: the spinner takes the icon's box when there is one, and joins the text when there is not (§8).</p>
 <div class="row-controls">
   ${button({ emphasis: "loud", tone: "accent" }, "Save")}
@@ -989,7 +1025,7 @@ ${checkboxSection("dark")}
 
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">
-  ${[1, 2, 3, 4].map((s) => spinner(`--kui-ct-icon: var(--icon-size-${s})`)).join("")}
+  ${SIZES.map((s) => spinner(`--kui-ct-icon: var(--icon-size-${s})`)).join("")}
   ${spinner("--kui-ct-icon: 96px")}
 </div>
 
@@ -1152,12 +1188,14 @@ ${brandSection("dark")}
   readout();
 
   // Live slot readout per rig: width and which tier is active, so "slot not window" is
-  // visible rather than argued. Thresholds are the tiers: sm 30rem = 480px, md 48rem = 768px.
+  // visible rather than argued. Thresholds are the tiers, read from the same table the
+  // resolver and the CSS generator walk (system/props.ts) — the preview restating them as
+  // 480/768 literals was the exact hand-kept-second-list shape §4 built that table to end.
   for (const rig of document.querySelectorAll(".rig")) {
     const label = rig.previousElementSibling.querySelector(".w");
     new ResizeObserver((entries) => {
       const w = Math.round(entries[0].contentRect.width);
-      const tier = w >= 768 ? "md" : w >= 480 ? "sm" : "base";
+      const tier = w >= ${remPx(tiers.md)} ? "md" : w >= ${remPx(tiers.sm)} ? "sm" : "base";
       label.textContent = w + "px — tier " + tier + (tier === "md" ? " (drag narrower)" : "");
     }).observe(rig);
   }
