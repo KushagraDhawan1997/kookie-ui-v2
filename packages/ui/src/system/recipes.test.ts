@@ -54,14 +54,21 @@ const RUNGS = ["loud", "medium", "quiet"];
 const MATERIALS = [...GLASS_MATERIALS];
 
 describe("a component's own CSS names no axis (§2, §9)", () => {
-  // Every component stylesheet the package ships. The claim is about all of them, and TextField
-  // is its first real test: the second control had to cost structure and nothing else, or the
-  // additivity argument was only ever true of a sample of one.
-  const components: [string, string][] = [
-    ["button.css", button],
-    ["text-field.css", textField],
-    ["text-area.css", textArea],
-  ];
+  // Every component stylesheet the package ships — WALKED, not listed (audit D14, 2026-08-06):
+  // this was a three-file literal under a comment claiming "all of them", so checkbox.css
+  // shipped outside the law and Radio and Switch would have too. The claim is about all of
+  // them, so the list is the directory; a stylesheet added tomorrow is audited tomorrow.
+  const components: [string, string][] = allStylesheets("../components").map((p) => [
+    p.split("/").pop()!,
+    read(p),
+  ]);
+
+  it("the walk found the components it must — an empty walk audits nothing", () => {
+    const names = components.map(([n]) => n);
+    for (const known of ["button.css", "checkbox.css", "text-field.css", "text-area.css"]) {
+      expect(names).toContain(known);
+    }
+  });
 
   for (const [name, css] of components) {
     it(`${name} contains no tone, no rung, no size index, and no material`, () => {
@@ -96,14 +103,14 @@ describe("the icon box is a mechanism, declared once (§4, ENGINEERING §4)", ()
   it("no component restates it — including for adornments in a slot wrapper", () => {
     // A field's icons sit inside `[data-slot]`, so they are grandchildren of the control and
     // the bare `.kui-control > svg` rule misses them. The fix belongs in the shared layer, not
-    // in a fourth copy of three declarations when Select ships.
+    // in a fourth copy of three declarations when Select ships. Walked like the no-axis law
+    // (audit D14), with ONE exemption: spinner.css consumes --kui-ct-icon by design — the
+    // spinner IS the icon, so reading the icon box is its job, not a restatement of it.
     expect(recipes).toContain("[data-slot] > svg");
-    for (const [, css] of [
-      ["button.css", button],
-      ["text-field.css", textField],
-      ["text-area.css", textArea],
-    ] as const) {
-      expect(css).not.toContain("--kui-ct-icon");
+    for (const p of allStylesheets("../components")) {
+      const name = p.split("/").pop()!;
+      if (name === "spinner.css") continue;
+      expect(read(p), `${name} restates the icon box`).not.toContain("--kui-ct-icon");
     }
   });
 });
