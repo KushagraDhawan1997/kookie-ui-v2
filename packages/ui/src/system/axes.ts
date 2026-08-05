@@ -35,5 +35,7 @@ export const GLASS_MATERIALS = MATERIALS.filter((m) => m !== "solid");
     attribute's PRESENCE (wrapper layout, icon box, hosted geometry) and its VALUE (the pill
     padding reset, the field's slot inset): a value outside this union would take the first
     family and silently lose the second — a partial, invisible failure. So the spelling is a
-    type, not a per-component string literal. */
-export type SlotName = "leading" | "trailing";
+    type, not a per-component string literal — and a value list, because the contract law walks
+    every sheet and source asserting no other spelling exists. */
+export const SLOT_NAMES = ["leading", "trailing"] as const;
+export type SlotName = (typeof SLOT_NAMES)[number];

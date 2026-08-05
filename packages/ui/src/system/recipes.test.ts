@@ -13,10 +13,10 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { GLASS_MATERIALS, RUNGS } from "./axes.ts";
+import { GLASS_MATERIALS, RUNGS, SLOT_NAMES } from "./axes.ts";
 
 import { tones } from "../tokens/color-config.ts";
-import { allStylesheets, block, from, raw, sheet, stripped } from "../test/stylesheets.ts";
+import { allStylesheets, block, from, raw, sheet, stripped, walkFiles } from "../test/stylesheets.ts";
 
 const recipes = sheet("system/recipes.css");
 const button = sheet("components/button/button.css");
@@ -74,6 +74,92 @@ describe("a component's own CSS names no axis (§2, §9)", () => {
     for (const css of [textField, textArea]) {
       expect(css).not.toMatch(/--(accent|neutral|destructive)-/);
       expect(css).toMatch(/--color-surface|--tone-label/);
+    }
+  });
+});
+
+describe("the control contract is enforced, not remembered (§9; ENGINEERING §2.1)", () => {
+  // The checkbox audit found two defects with the same shape — a component reaching past the
+  // shared layer — and its fixes were mounted as CHECKBOX laws, which do not travel. These are
+  // the second-value laws (ENGINEERING §6) for the contract itself, walked so Radio and Switch
+  // inherit them on the day their stylesheets exist.
+
+  it("a control that re-sources its fill declares the whole triple — a missing state paints transparent", () => {
+    // The fill pipeline reads three sources (--kui-ct-fill-src, -src-hover, -src-active), all
+    // registered inherits:false: a rule that re-points one and not the three ships a box whose
+    // OTHER states resolve no source at all and paint transparent under the pointer. This was
+    // prose in three stylesheets ("the trap", text-field.css / text-area.css / checkbox.css)
+    // and a law nowhere. Per RULE, not per file: a file-level count would pass a state block
+    // that re-sourced only hover.
+    let blocks = 0;
+    for (const p of allStylesheets()) {
+      for (const body of sheet(p).split("}")) {
+        const declarations = body.slice(body.indexOf("{") + 1);
+        const declared = [
+          /--kui-ct-fill-src\s*:/,
+          /--kui-ct-fill-src-hover\s*:/,
+          /--kui-ct-fill-src-active\s*:/,
+        ].filter((r) => r.test(declarations)).length;
+        if (declared > 0) blocks += 1;
+        expect(declared, `${p}: a rule re-sources the fill partially:\n${declarations}`).toBeOneOf([
+          0, 3,
+        ]);
+      }
+    }
+    // The negative control: the emphasis rungs alone re-source three times.
+    expect(blocks).toBeGreaterThanOrEqual(3);
+  });
+
+  it("no component mentions a painted variable — a state remap rewrites ROLES, and it must reach every box", () => {
+    // Checkbox audit defect (a): the resting box declared --kui-border-color directly, so the
+    // invalid remap — which rewrites --tone-border and expects the paint to follow — could not
+    // reach it, and an invalid checkbox rested with a healthy border. A component re-points the
+    // role; only the shared layer touches the painted name. Mention, not declare, the same
+    // stance as the stem law below: reading a painted name is the defect from the other side.
+    for (const p of allStylesheets("components")) {
+      expect(sheet(p), `${p} mentions --kui-border-color`).not.toContain("--kui-border-color");
+    }
+  });
+
+  it("every component stylesheet the walk finds is shipped by the entry point", () => {
+    // The reverse direction of "nothing ships a stylesheet the tests cannot see" below: that
+    // law pins entry → suite, so a sheet the entry ships is one the laws see — but a component
+    // .css the entry never @imports ships UNSTYLED while every walk-based law passes on it.
+    // This was step one of the new-control checklist, and the only enforcement was memory.
+    const entry = raw("styles/index.css");
+    for (const p of allStylesheets("components")) {
+      expect(entry, `${p} is not imported by styles/index.css`).toContain(`/${p.split("/").pop()!}"`);
+    }
+  });
+
+  it("data-slot speaks only the SlotName union, in every sheet and every source", () => {
+    // The shared layer keys rules on the attribute's presence AND its value: a control writing
+    // data-slot="start" would take the wrapper layout and hosted geometry (presence) and
+    // silently lose the pill-padding reset and the field's slot inset (value) — a partial,
+    // invisible failure with no error anywhere. The union lives in system/axes.ts; this walks
+    // everything shipped and asserts no other spelling exists.
+    for (const p of allStylesheets()) {
+      for (const m of sheet(p).matchAll(/\[data-slot="([^"]+)"\]/g)) {
+        expect(SLOT_NAMES, `${p} keys on data-slot="${m[1]}"`).toContain(m[1]);
+      }
+    }
+    for (const p of walkFiles("components", ".tsx").filter((f) => !f.includes(".test."))) {
+      for (const m of raw(p).matchAll(/data-slot=\{?"([^"]+)"/g)) {
+        expect(SLOT_NAMES, `${p} writes data-slot="${m[1]}"`).toContain(m[1]);
+      }
+    }
+  });
+
+  it("every Base UI entry a component imports is pre-bundled for the browser suite (ENGINEERING §7)", () => {
+    // An entry discovered mid-run is optimized in a second pass and holds a different React
+    // than the page, so every hook inside it reads null — how @base-ui/react/input failed the
+    // first time TextField mounted, with a stack that blames React. "Add the entry when you
+    // add the component" was a prose rule; the walk makes it a law.
+    const config = raw("../vitest.config.ts");
+    for (const p of walkFiles("components", ".tsx").filter((f) => !f.includes(".test."))) {
+      for (const m of raw(p).matchAll(/from "(@base-ui\/react\/[a-z-]+)"/g)) {
+        expect(config, `${m[1]} is missing from optimizeDeps.include`).toContain(`"${m[1]}"`);
+      }
     }
   });
 });

@@ -37,17 +37,20 @@ export const sheet = (path: string): string => stripped(raw(path));
     references and literals legitimately bottom out. */
 export const GENERATED = ["tokens.css", "layout.css"];
 
-/** Every hand-authored stylesheet the package ships, walked — never listed. Returns
-    src-relative paths. `dir` narrows the walk (e.g. "components"). */
-export function allStylesheets(dir = "."): string[] {
+/** Every file under `dir` (src-relative) with `ext`, walked — never listed. The walk is what
+    lets a law claim "all of them" and stay true tomorrow (audit D14). */
+export function walkFiles(dir: string, ext: string, exclude: string[] = []): string[] {
   return readdirSync(join(src, dir), { withFileTypes: true }).flatMap((entry) =>
     entry.isDirectory()
-      ? allStylesheets(join(dir, entry.name))
-      : entry.name.endsWith(".css") && !GENERATED.includes(entry.name)
+      ? walkFiles(join(dir, entry.name), ext, exclude)
+      : entry.name.endsWith(ext) && !exclude.includes(entry.name)
         ? [join(dir, entry.name)]
         : [],
   );
 }
+
+/** Every hand-authored stylesheet the package ships. `dir` narrows the walk (e.g. "components"). */
+export const allStylesheets = (dir = "."): string[] => walkFiles(dir, ".css", GENERATED);
 
 /** The declaration body of the first rule at `selector` — and LOUD when the selector is
     missing, which is the whole point (see the header). `selector` may be a prefix of the
