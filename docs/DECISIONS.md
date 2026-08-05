@@ -263,7 +263,7 @@ contrast       normal | high                   drives borders/dividers too, reso
 radius         none | small | medium | large | full   selects a designed radius palette (section 6), not a factor and not a token pick
 density        compact | default | comfortable  selects a designed control-family set (height, px, gap, radius); never type, never the space palette (section 12). Theme-scoped only: an airy region is a nested Theme on an element you already have (via `render`), not a per-component prop, which would duplicate `size`
 surfaces       flat | elevated                 do surfaces sit up (section 10). SHIPPED 2026-08-04. The semantic is elevation-as-identity; shadow row 2 is its current resolution. An app choice made once - no component exposes a shadow API, law-tested
-pointer        fine | coarse | auto            which geometry the controls take (section 16). `auto` follows @media (pointer: coarse); pinning forces a world, which is also how the coarse matrix is judged on a desktop
+pointer        fine | coarse | auto            which geometry the controls take (section 16), and the handheld type band with it (section 17 — coarse means handheld; there is no separate device prop). `auto` follows @media (pointer: coarse); pinning forces the whole world, which is also how the coarse matrix and phone type are judged on a desktop
 scale          (deferred, see below)            global zoom: type, height, spacing, radius together
 font           mono | sans | serif             shorthand: sets heading + body
 fontHeading    "
@@ -976,7 +976,7 @@ This slice exercises every layer (tokens -> variants -> control -> surface) and 
 --font-size-3: 16px    --font-size-6: 24px    --font-size-9: 56px
 ```
 
-Anchor-derived off `--font-size-base` (step 3) x `--scale` — never `--density` (section 12). Nine steps, not six: type's dynamic range (12 to 56+) is wider than the control family's, the same reasoning that gave space 12 steps and radius 6 (section 6's ceilings rule). The device axis (section 17) re-prices the whole palette per band — a size step names a *role on the ramp*, and what a role renders as follows the device, the same move contrast makes on colour roles; density and pointer still never touch it.
+Anchor-derived off `--font-size-base` (step 3) x `--scale` — never `--density` (section 12). Nine steps, not six: type's dynamic range (12 to 56+) is wider than the control family's, the same reasoning that gave space 12 steps and radius 6 (section 6's ceilings rule). The type bands (section 17) re-price the palette per band — a size step names a *role on the ramp*, and what a role renders as follows the band, the same move contrast makes on colour roles; density still never touches it, and the handheld band's carrier is the pointer axis itself (the `device` prop is dropped — section 17).
 
 ### Line height: paired, not derived
 
@@ -1033,7 +1033,7 @@ Under `pointer: coarse`, these families re-declare as **designed sets** — plac
 | Control inline padding | Larger type in a taller box wants more air |
 | Icon-label gap | The label cluster spreads with the much larger coarse box — the one axis the gap follows besides size (section 12) |
 | Control radius | The corner-holds-~0.2-of-box law (§6) prices the bigger box |
-| Type + line height | **Resolved 2026-08-04, amended 2026-08-05: type follows the `held` band (section 17), whose signal IS `pointer: coarse`.** The conjunction that once separated them is gone — it was excluding tablets from a rise Apple gives them. The dissociation that keeps `device` alive is now the kiosk and the POS terminal, expressed by pinning the prop rather than by an automatic signal |
+| Type + line height | **Resolved 2026-08-04, amended 2026-08-05: reading type follows the `handheld` band (section 17), which rides this axis's own scopes.** The conjunction that once separated them is gone — it was excluding tablets from a rise Apple gives them. The `device` prop that briefly kept type and targets separable is dropped: pinning `pointer` moves both, because coarse means handheld (section 17, LOG) |
 
 **Deliberately untouched:** the space palette AND the layout-space layer over it (gutters and gaps must not inflate on the smaller screen — a phone needs more content per inch, not less; layouts adapt on their own because controls grow and gaps hold), surface radii, elevation, color. Static surfaces do not change; only their interactive contents do.
 
@@ -1067,13 +1067,13 @@ Rejected: rem-derived geometry from a root font-size switch (one root scales gut
 
 ---
 
-## 17. Type bands: held and narrow
+## 17. Type bands: handheld and narrow
 
-**Decision (2026-08-05, Kushagra; supersedes the single `handheld` band of 2026-08-04; values v0): the type palette answers TWO independent questions with two independent bands.**
+**Decision (2026-08-05, Kushagra; supersedes the single conjunction-gated band of 2026-08-04; values v0): the type palette answers TWO independent questions with two independent bands.**
 
 | band | what moves | why | signal |
 |---|---|---|---|
-| `held` | reading steps 1–4 rise (16 → 18) | the screen is close to the eye | `(pointer: coarse)` |
+| `handheld` | reading steps 1–4 rise (16 → 18) | the screen is close to the eye | `(pointer: coarse)` |
 | `narrow` | display steps 8–9 fall (56 → 40) | the line is short | `(max-width: 48rem)` |
 
 Steps 5–7 are nobody's. Each band emits **only the steps it moves**, which is what lets two bands coexist without overwriting each other on a phone, where both apply.
@@ -1091,8 +1091,8 @@ The four cells now come out right, and two of them are the ones the single band 
 | | reading | display |
 |---|---|---|
 | phone (touch + narrow) | ↑ 18 | ↓ 40 |
-| tablet landscape (touch, wide) | ↑ 18 | **56 held** |
-| narrow desktop window (fine, narrow) | **16 held** | ↓ 40 |
+| tablet landscape (touch, wide) | ↑ 18 | **56 holds** |
+| narrow desktop window (fine, narrow) | **16 holds** | ↓ 40 |
 | desktop | 16 | 56 |
 
 ### A band is a re-pick, and it is non-monotonic by design
@@ -1103,26 +1103,23 @@ Mechanically a band **re-prices the palette in place** — it re-declares `--fon
 
 ### The signals, and why each is the one it is
 
-**`held` reads `pointer`, not `any-pointer`.** The *primary* input being a finger is what says there is no attached pointing device, which is what says the thing is probably in a hand. A 1920px Windows laptop with a trackpad reports `fine` and stays desktop; detach the keyboard from a Surface and it reports `coarse`, which is correct — it is a slab in someone's hands. A stylus reports `fine` too. `any-pointer: coarse` would mean "touch exists somewhere on this machine" and would permanently inflate a mouse-driven touchscreen laptop.
+**`handheld` reads `pointer`, not `any-pointer`.** The *primary* input being a finger is what says there is no attached pointing device, which is what says the thing is probably in a hand. A 1920px Windows laptop with a trackpad reports `fine` and stays desktop; detach the keyboard from a Surface and it reports `coarse`, which is correct — it is a slab in someone's hands. A stylus reports `fine` too. `any-pointer: coarse` would mean "touch exists somewhere on this machine" and would permanently inflate a mouse-driven touchscreen laptop.
 
-**`narrow` reads width, and carries no attribute at all.** Width is not a device fact and there is nothing to escape: a Theme pinned to `desktop` inside a 375px window still has a 375px window. The band sits on `:root` and inherits into every Theme scope. This does not reopen §16's rejection of width as a signal *for geometry* — geometry still never reads width in any capacity.
+**And it rides the pointer axis's own scopes** — `[data-pointer]`, the three-scope shape of §16, with the band's steps emitted inside the pointer world blocks. Pinning `pointer="coarse"` therefore forces the *whole* coarse world, geometry and reading type together, and `pointer="fine"` is the escape (it re-declares the identity steps — an escape that does nothing is not an escape). There is no separate attribute and no separate prop; see "The `device` prop was dropped" below.
+
+**`narrow` reads width, and carries no attribute at all.** Width is not a device fact and there is nothing to escape: a Theme pinned to `fine` inside a 375px window still has a 375px window. The band sits on `:root` and inherits into every Theme scope. Neither pointer world touches steps 8–9 — a pointer says nothing about how wide the window is. This does not reopen §16's rejection of width as a signal *for geometry* — geometry still never reads width in any capacity.
 
 **The two thresholds are now tunable separately**, which is half the point of the split: "how close is this screen" and "how wide is this screen" no longer share a number. v0 keeps 48rem for the narrow band so exactly one thing changed.
 
-### What the `device` prop is now for
+### The `device` prop was dropped (2026-08-05, Kushagra)
 
-`device: desktop | handheld | auto` (default `auto`), Theme-only, symmetric with `pointer`. **After the split it is an escape, not an axis** — its auto signal asks the same question `pointer` asks, so it earns its place on the two cases where the automatic answer is wrong and no query can tell:
-
-- **A touch-only kiosk or wall display.** Coarse, held by nobody, read from two metres — it wants *bigger* type, not held type. `device="desktop"` is the only way to say so.
-- **A POS terminal at desk distance.** Coarse targets, desk-distance text: `pointer="coarse"` with `device="desktop"`. Without the prop, type and targets are welded and this is inexpressible.
-
-Plus the preview, which has to force both bands side by side to judge them at all. The `desktop` escape re-declares the **held** band's steps and deliberately *not* the display steps — being pinned to desktop says nothing about how wide the window is.
+For one day the split left a Theme prop called `device: desktop | handheld | auto` whose auto signal asked the same question `pointer` asks, kept alive as an escape for the cases where "coarse" and "held close" disagree: a touch-only kiosk read from two metres, a POS terminal at desk distance. **We are not designing for those** — and with them gone the prop had no consumer: it controlled reading type only (a name that promised a device's worth and delivered four font sizes), and the preview can force phone type by pinning `pointer`, which now carries the band. So the prop, its type, its attribute and its emitted scopes are gone; coarse means handheld with no daylight between them. The LOG records the shape to bring back if a touch-at-a-distance product ever appears.
 
 ### What reads a band, and what must not
 
 - **Type** — the whole palette, so Text, Heading, control labels and field text all follow through the one size-step definition (the §15 join; the control≡type parity law pins that there is exactly one such definition).
-- **Interaction adaptation, later** — dialog→sheet, popover→drawer, hover-reveal→tap (THESIS Part II's opt-out responsiveness). Which band those follow is open; `held` is the likely one.
-- **Never: spacing** (gutters must not inflate on the smaller screen — §16's exclusion, reasserted per band by law) **and never: control geometry** (heights are the pointer axis's; two axes pushing one box would compose a height nobody designed).
+- **Interaction adaptation, later** — dialog→sheet, popover→drawer, hover-reveal→tap (THESIS Part II's opt-out responsiveness). Which signal each follows is open, and they likely split the same way the bands did: hover-reveal is a pointer fact, sheet/drawer are window-size facts.
+- **Never: spacing** (gutters must not inflate on the smaller screen — §16's exclusion, reasserted per band by law) **and never: control geometry from the narrow band** (heights are the pointer axis's; width pushing a box would compose a height nobody designed).
 
 ### Open
 
@@ -1130,7 +1127,7 @@ Plus the preview, which has to force both bands side by side to judge them at al
 - **The narrow band should arguably key on the CONTAINER, not the viewport.** A heading in a narrow sidebar on a wide monitor wraps just as badly. Re-pricing tokens inside a container query has substitution problems the viewport version does not (§6), so the viewport band ships first.
 - **Window-level size classes for app-shell layout** — the actual "tablet" deliverable, and the gap this discussion surfaced. Container tiers (§2) answer "how much room does this component have"; nothing answers "which interface should this app show", which is what a product like Figma-on-iPad is deciding. Material's compact/medium/expanded is the reference shape. Not a type band — a layout primitive.
 - A locked type floor ("no band renders below the platform minimum") is *not yet claimed* — the bands happen to clear it, but nothing enforces it. Claiming it without a law is the audit sin (§2); it becomes a claim the day it becomes a law.
-- Whether `desktop` ever earns its own non-identity band (macOS 13pt against the web's 16px default suggests not).
+- Whether the fine world ever earns its own non-identity band (macOS 13pt against the web's 16px default suggests not).
 
 ---
 
@@ -1148,7 +1145,7 @@ Today a consumer has to hand-write `@media (min-width: …)` and invent their ow
 
 What it is not: a type band (settled — §17), and not a replacement for container tiers (they answer a different question and both are needed). Reference shape: Material's window size classes, compact / medium / expanded.
 
-Open within it: the class names and count; whether it surfaces as a Theme-stamped attribute, a hook, or both; whether it composes with `device` (a phone-shaped canvas inside a desktop tool is a *pinned* small window); and whether the thresholds are the same numbers as the `narrow` type band's or independent.
+Open within it: the class names and count; whether it surfaces as a Theme-stamped attribute, a hook, or both; whether a class can be *pinned* (a phone-shaped canvas inside a desktop tool is a pinned small window — the escape the dropped `device` prop would have wanted); and whether the thresholds are the same numbers as the `narrow` type band's or independent.
 
 
 **Color:** section 7 is implemented and law-tested (`src/tokens/color.ts`, 106 laws). What remains is not mechanism:
@@ -1177,7 +1174,7 @@ Open within it: the class names and count; whether it surfaces as a Theme-stampe
 - ~~**TextField ships no `render` escape.**~~ **CLOSED 2026-08-05: refused, and pinned by a type law.** Everywhere else `render` swaps the one element that *is* the component; here there are two, and neither can move — the wrapper holds a border the input cannot hold once a slot sits inside it, and the input must stay an `<input>` or the platform wiring the component exists to preserve goes with it. `render` would have to silently mean one of them.
 - ~~**iOS zooms the page on focus for any input under 16px.**~~ **CLOSED 2026-08-05: the input's font takes a floor from the pointer world.** The device axis was only most of the answer, and the hole was bigger than the size 1 it was thought to be: an iPad in landscape is past the handheld width threshold, so it reads as `desktop`, gets the desktop type ladder — 14px at size 2 — and Safari still zooms. The signal has to be *what touches the screen*, so `--input-font-floor` rides the pointer axis (0 on fine, 16 on coarse) and `max()`es the INPUT's font size only. The box keeps its designed height and the label its designed step, so a size-1 field is still a size-1 field. Deliberately not solved by lifting the type ladder: size 1 is the caption step, and a phone that cannot render small secondary text has lost something real to fix one control.
 - **Pointer: the numbers.** The coarse sets' values — §16, judged in the 4b matrix. ~~Whether a hybrid device gets coarse geometry via `any-pointer`~~ — **closed 2026-08-05: no.** `any-pointer: coarse` means "touch exists somewhere on this machine" and would permanently inflate a mouse-driven touchscreen laptop, overriding density, a whole axis built so people could choose airiness. `pointer` tracks how the machine is being used *right now* — flip a 2-in-1 into tablet mode and the controls grow, flip it back and they shrink — and every designed cell already clears the WCAG 24px minimum, so what `any-pointer` would buy is only the stricter 44 target. Capability is not use.
-- ~~**Device: the tablet band.**~~ **CLOSED 2026-08-05: there is no tablet band, because the single band that needed one was doing two jobs.** Apple ships one Dynamic Type table for iOS and iPadOS, so a tablet's reading type is a phone's; the only thing that genuinely differed was display type, and that is a line-length fact keyed on width. Split into `held` (touch) and `narrow` (width) — section 17. Still open there: both sets of picks, both thresholds, the container version of the narrow band, and the not-yet-claimed platform-minimum type floor. **Newly open, and the real tablet deliverable: window-level size classes for app-shell layout** — nothing in the system answers "which interface should this app show" (container tiers answer a different question), which is what Figma-on-iPad is deciding.
+- ~~**Device: the tablet band.**~~ **CLOSED 2026-08-05: there is no tablet band, because the single band that needed one was doing two jobs.** Apple ships one Dynamic Type table for iOS and iPadOS, so a tablet's reading type is a phone's; the only thing that genuinely differed was display type, and that is a line-length fact keyed on width. Split into `handheld` (touch) and `narrow` (width) — section 17. Still open there: both sets of picks, both thresholds, the container version of the narrow band, and the not-yet-claimed platform-minimum type floor. **Newly open, and the real tablet deliverable: window-level size classes for app-shell layout** — nothing in the system answers "which interface should this app show" (container tiers answer a different question), which is what Figma-on-iPad is deciding.
 - **Container tiers: wrapping re-targets.** Adding a plain Box around a subtree changes which container its children's tiers measure — a documented consequence of nearest-ancestor resolution (section 2) that is not yet *named as a cost* there, has no pinning law, and whose taught escape is "put tier props on the region's direct children." Recorded 2026-08-04 after a full re-litigation of container-keyed tiers (window-based re-rejected; see LOG); to be named in section 2's cost list with a law when touched next.
 - **Density: the numbers.** Heights per level, the step offsets, and any per-cell overrides. Also the level names and count (`comfortable` may understate the airy end). Surface padding takes density through the layout-space layer — decided 2026-08-04 (sections 3, 12); the per-level layout-space picks are v0 values like the rest, the gutter-band hold included. Architecture settled (section 12); values are taste, and they need the size-by-density matrix in the docs app before they can be judged.
 - **Scale: if it ever ships.** The factor stays wired and the prop is deferred (sections 5, 13). Reopen only when a real need names the steps, and ship it as designed steps rather than a free multiplier.

@@ -658,11 +658,11 @@ describe("the input's own facts (§4)", () => {
 });
 
 describe("the zoom floor: a field must not move the page under a finger (§4, §16)", () => {
-  // Safari zooms the whole page when a text input under 16px takes focus. The device axis
-  // lifted the handheld type ladder far enough that sizes 2+ clear it on a PHONE, and the
-  // remaining hole was assumed to be size 1 only — it is not. An iPad in landscape is past
-  // the handheld width threshold, so it reads as `desktop` and gets the desktop type ladder,
-  // where size 2 is 14px and Safari still zooms. The signal has to be the pointer world.
+  // Safari zooms the whole page when a text input under 16px takes focus. The handheld band
+  // lifts the type ladder far enough that sizes 2+ clear it wherever the pointer is coarse —
+  // but size 1 is under the threshold in every band there is, so the floor is still needed,
+  // and it rides the same pointer world the band does (found when the band was width-gated
+  // and an iPad in landscape fell out of it; the gate is gone, the floor stays).
   const size = (root: HTMLElement, s: "1" | "2") =>
     root.querySelector<HTMLElement>(`.kui-field[data-size="${s}"]`)!;
 

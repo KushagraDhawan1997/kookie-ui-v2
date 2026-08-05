@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 The device prop is dropped — coarse means handheld
+
+Kushagra, on being walked through what `device` survived on after the split: "I'm not designing for kiosk and POS terminal." And that was the prop's whole remaining justification — the two cases where "the primary input is a finger" and "the screen is close to a face" disagree, which no media query can tell apart.
+
+Strike those and the prop was indefensible on three counts:
+
+- **It had no consumer.** Its auto signal asked exactly the question `pointer` asks, so in every product actually being designed for, nobody would ever set it.
+- **The name wrote a cheque the implementation didn't cash.** A prop called `device` set four font sizes and nothing else — no targets, no spacing. Someone setting `device="handheld"` expecting a mobile mode would get bigger paragraphs and identical buttons.
+- **It held two spellings open.** The prop said `handheld`, the band said `held` — the same two-spellings debt just paid off on Button's `icon`/`iconEnd`, one day old.
+
+So: the band is renamed `handheld` (Kushagra: the better word regardless, one word everywhere), the prop, its type, its `data-device` attribute and its emitted scopes are deleted, and the band now rides the POINTER axis's own `[data-pointer]` scopes — its steps are emitted inside the pointer world blocks. Pinning `pointer="coarse"` forces the whole coarse world, geometry and reading type together; `pointer="fine"` is the escape and re-declares the identity steps. The preview's pointer select judges phone type now; its device select is gone. Neither world touches the narrow band's steps — a pointer says nothing about width.
+
+Two laws changed meaning with it, deliberately: "type never takes density or pointer" is now "type never takes density" (pinning pointer legitimately moves the reading steps — that is the point), and §16's "coarse world never touches type" became "the coarse world's type declarations are exactly the handheld band's".
+
+**To bring it back** — a touch screen genuinely operated from a distance: re-add the Theme prop stamping `data-device`, emit the band under `[data-device="desktop"|"handheld"]` plus `@media (pointer: coarse) { [data-device="auto"] }` instead of inside the pointer worlds, and restore the pointer-invariance law. The commit before this one carries the complete working mechanism; this entry is the pointer to it.
+
+---
+
 ## 2026-08-05 One type band was doing two jobs, and Apple's own table is what showed it
 
 Kushagra, on the question of whether iPads need their own band, with a screenshot: Apple's page is titled **"iOS, iPadOS Dynamic Type sizes"** — one table for both platforms. Body is 17pt on an iPhone and 17pt on an iPad.

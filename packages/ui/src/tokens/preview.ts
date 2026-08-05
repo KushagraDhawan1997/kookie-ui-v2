@@ -621,7 +621,7 @@ const control = (size: number) => `
 
 export function generatePreview(): string {
   return `<!doctype html>
-<html lang="en" data-pointer="auto" data-device="auto">
+<html lang="en" data-pointer="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -766,9 +766,6 @@ export function generatePreview(): string {
   <label>pointer
       <select id="pointer"><option selected>auto</option><option>fine</option><option>coarse</option></select>
     </label>
-  <label>device
-      <select id="device"><option selected>auto</option><option>desktop</option><option>handheld</option></select>
-    </label>
   <label>density
       <select id="density">${LEVELS.map((l) => `<option${l === "default" ? " selected" : ""}>${l}</option>`).join("")}</select>
     </label>
@@ -833,7 +830,7 @@ ${fieldSection("dark")}
 </div>
 
 <h1 id="type">Text &amp; Heading — the ramp, worn (§15)</h1>
-<p class="note">Nine steps, three paired scales joined at one index — font-size, line-height and letter-spacing are designed pairs, never derived ratios. Type never follows the density or pointer selects above: flip either and every box and gap on this page moves while these lines hold, which is the whole point of the axis (§12). <strong>Two bands move it, and they are separate on purpose (§17, split 2026-08-05).</strong> The <em>device</em> select drives the <em>held</em> band — <code>handheld</code> raises the reading steps 1&ndash;4 toward the HIG's 17pt, because a screen in a hand is close to the eye. The <em>narrow</em> band is not a select at all: <strong>drag this window under 768px</strong> and the display steps 8&ndash;9 come down, because a short line cannot hold 56px. A phone gets both; a tablet in landscape gets the first only; a squeezed desktop window gets the second only. Text and Heading ship no CSS of their own; the type layer is the whole of what they look like.</p>
+<p class="note">Nine steps, three paired scales joined at one index — font-size, line-height and letter-spacing are designed pairs, never derived ratios. Type never follows the density select above: flip it and every box and gap on this page moves while these lines hold, which is the whole point of the axis (§12). <strong>Two bands move it, and they are separate on purpose (§17, split 2026-08-05).</strong> The <em>pointer</em> select drives the <em>handheld</em> band — <code>coarse</code> raises the reading steps 1&ndash;4 toward the HIG's 17pt, because a touch-first screen is in a hand, close to the eye (there is no separate device switch: coarse means handheld, LOG 2026-08-05). The <em>narrow</em> band is not a select at all: <strong>drag this window under 768px</strong> and the display steps 8&ndash;9 come down, because a short line cannot hold 56px. A phone gets both; a tablet in landscape gets the first only; a squeezed desktop window gets the second only. Text and Heading ship no CSS of their own; the type layer is the whole of what they look like.</p>
 ${typeSection()}
 
 <h1 id="layout">the responsive mechanism, live</h1>
@@ -948,17 +945,11 @@ ${brandSection("dark")}
     readout();
   });
 
-  // The device band (§17) — pin handheld to judge phone type on a desktop, the same move
-  // as pinning coarse. Root only: nothing else on the page re-declares a type token, so no
-  // per-section stamping is needed.
-  document.getElementById("device").addEventListener("change", (e) => {
-    document.documentElement.dataset.device = e.target.value;
-    readout();
-  });
-
-  // The coarse matrix (§16). The attribute goes on the root AND on each density section:
-  // the (pointer x density) cells select on both attributes on one element, which Theme
-  // guarantees in an app and this page has to arrange by hand.
+  // The coarse matrix (§16) — and, since 2026-08-05, the handheld type band with it (§17):
+  // pinning coarse is how phone type is judged on a desktop, there is no separate device
+  // switch. The attribute goes on the root AND on each density section: the (pointer x
+  // density) cells select on both attributes on one element, which Theme guarantees in an
+  // app and this page has to arrange by hand.
   document.getElementById("pointer").addEventListener("change", (e) => {
     for (const el of [document.documentElement, ...document.querySelectorAll(".grid > section")]) {
       el.dataset.pointer = e.target.value;

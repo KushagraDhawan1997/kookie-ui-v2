@@ -39,7 +39,7 @@
   --radius-10: calc(24px * var(--scale));
   --radius-full: 9999px;
 
-  /* type (§15) — scale and the device band (§17) reach it, never density or pointer */
+  /* type (§15) — scale and the type bands (§17) reach it, never density */
   --font-size-1: calc(12px * var(--scale));
   --font-size-2: calc(14px * var(--scale));
   --font-size-3: calc(16px * var(--scale));
@@ -2369,6 +2369,18 @@
   --control-gap-3: var(--space-3);
   --control-gap-4: var(--space-4);
   --input-font-floor: 0px;
+  --font-size-1: calc(12px * var(--scale));
+  --font-size-2: calc(14px * var(--scale));
+  --font-size-3: calc(16px * var(--scale));
+  --font-size-4: calc(18px * var(--scale));
+  --line-height-1: calc(16px * var(--scale));
+  --line-height-2: calc(20px * var(--scale));
+  --line-height-3: calc(24px * var(--scale));
+  --line-height-4: calc(26px * var(--scale));
+  --letter-spacing-1: 0em;
+  --letter-spacing-2: 0em;
+  --letter-spacing-3: 0em;
+  --letter-spacing-4: -0.005em;
 }
 
 [data-pointer="fine"][data-density="compact"] {
@@ -2571,6 +2583,18 @@
   --control-gap-3: var(--space-4);
   --control-gap-4: var(--space-5);
   --input-font-floor: 16px;
+  --font-size-1: calc(14px * var(--scale));
+  --font-size-2: calc(16px * var(--scale));
+  --font-size-3: calc(18px * var(--scale));
+  --font-size-4: calc(20px * var(--scale));
+  --line-height-1: calc(20px * var(--scale));
+  --line-height-2: calc(24px * var(--scale));
+  --line-height-3: calc(26px * var(--scale));
+  --line-height-4: calc(28px * var(--scale));
+  --letter-spacing-1: 0em;
+  --letter-spacing-2: 0em;
+  --letter-spacing-3: -0.005em;
+  --letter-spacing-4: -0.0075em;
 }
 
 [data-pointer="coarse"][data-density="compact"] {
@@ -2774,6 +2798,18 @@
     --control-gap-3: var(--space-4);
     --control-gap-4: var(--space-5);
     --input-font-floor: 16px;
+    --font-size-1: calc(14px * var(--scale));
+    --font-size-2: calc(16px * var(--scale));
+    --font-size-3: calc(18px * var(--scale));
+    --font-size-4: calc(20px * var(--scale));
+    --line-height-1: calc(20px * var(--scale));
+    --line-height-2: calc(24px * var(--scale));
+    --line-height-3: calc(26px * var(--scale));
+    --line-height-4: calc(28px * var(--scale));
+    --letter-spacing-1: 0em;
+    --letter-spacing-2: 0em;
+    --letter-spacing-3: -0.005em;
+    --letter-spacing-4: -0.0075em;
   }
 
   [data-pointer="auto"][data-density="compact"] {
@@ -2954,53 +2990,6 @@
     --radius-control-4: var(--radius-5);
   }
 
-}
-
-[data-device="desktop"] {
-  --font-size-1: calc(12px * var(--scale));
-  --font-size-2: calc(14px * var(--scale));
-  --font-size-3: calc(16px * var(--scale));
-  --font-size-4: calc(18px * var(--scale));
-  --line-height-1: calc(16px * var(--scale));
-  --line-height-2: calc(20px * var(--scale));
-  --line-height-3: calc(24px * var(--scale));
-  --line-height-4: calc(26px * var(--scale));
-  --letter-spacing-1: 0em;
-  --letter-spacing-2: 0em;
-  --letter-spacing-3: 0em;
-  --letter-spacing-4: -0.005em;
-}
-
-[data-device="handheld"] {
-  --font-size-1: calc(14px * var(--scale));
-  --font-size-2: calc(16px * var(--scale));
-  --font-size-3: calc(18px * var(--scale));
-  --font-size-4: calc(20px * var(--scale));
-  --line-height-1: calc(20px * var(--scale));
-  --line-height-2: calc(24px * var(--scale));
-  --line-height-3: calc(26px * var(--scale));
-  --line-height-4: calc(28px * var(--scale));
-  --letter-spacing-1: 0em;
-  --letter-spacing-2: 0em;
-  --letter-spacing-3: -0.005em;
-  --letter-spacing-4: -0.0075em;
-}
-
-@media (pointer: coarse) {
-  [data-device="auto"] {
-    --font-size-1: calc(14px * var(--scale));
-    --font-size-2: calc(16px * var(--scale));
-    --font-size-3: calc(18px * var(--scale));
-    --font-size-4: calc(20px * var(--scale));
-    --line-height-1: calc(20px * var(--scale));
-    --line-height-2: calc(24px * var(--scale));
-    --line-height-3: calc(26px * var(--scale));
-    --line-height-4: calc(28px * var(--scale));
-    --letter-spacing-1: 0em;
-    --letter-spacing-2: 0em;
-    --letter-spacing-3: -0.005em;
-    --letter-spacing-4: -0.0075em;
-  }
 }
 
 @media (max-width: 48rem) {

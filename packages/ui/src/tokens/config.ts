@@ -180,11 +180,10 @@ export const touchTargetMin = 44;
  * back; it is the only way a control can break the page around it just by being tapped.
  *
  * It floors the INPUT's font size, never the control's box or its label. §17's handheld band
- * lifts the type ladder far enough that sizes 2 and up clear it on a phone — but a phone is
- * not the only touchscreen: an iPad in landscape reads as `desktop` on the device axis (its
- * width is past the handheld threshold) while Safari still zooms, and size 1 is under the
- * threshold in every band there is. So the signal is the POINTER world, which is what "a
- * finger touches this screen" means, and the floor resolves to 0 on a fine pointer.
+ * lifts the type ladder far enough that sizes 2 and up clear it wherever the pointer is
+ * coarse — but size 1 is under the threshold in every band there is, so the floor is still
+ * needed. The signal is the POINTER world, which is what "a finger touches this screen"
+ * means, and the floor resolves to 0 on a fine pointer.
  *
  * Deliberately not solved by raising the type ladder: size 1 is the caption step, and a phone
  * that cannot render small secondary text has lost something real to fix one control.
@@ -217,14 +216,17 @@ export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0
  *
  * So: two bands, two signals, both still designed picks into the paired palettes above.
  *
- *   held    reading rises   signal: `pointer: coarse` — a finger is the primary input, so
- *                           there is no attached pointing device, so it is probably in a
- *                           hand. Apple's iOS/iPadOS 17pt against macOS 13pt.
- *   narrow  display falls   signal: viewport width — the ORIGINAL justification for the
- *                           display cut was line length ("56px on a 375px screen is seven
- *                           characters a line"), which is a width fact and always was. It
- *                           now also fires on a squeezed desktop window, which the old rule
- *                           wrongly ignored.
+ *   handheld  reading rises  signal: `pointer: coarse` — a finger is the primary input, so
+ *                            there is no attached pointing device, so it is probably in a
+ *                            hand. Apple's iOS/iPadOS 17pt against macOS 13pt. Carried by
+ *                            the POINTER axis's own scopes since 2026-08-05, when the
+ *                            `device` prop was dropped (LOG): pinning `pointer` forces the
+ *                            whole coarse world, type included.
+ *   narrow    display falls  signal: viewport width — the ORIGINAL justification for the
+ *                            display cut was line length ("56px on a 375px screen is seven
+ *                            characters a line"), which is a width fact and always was. It
+ *                            now also fires on a squeezed desktop window, which the old rule
+ *                            wrongly ignored.
  *
  * They compose, and the four cells come out right — including the two the single band got
  * wrong: an iPad in landscape rises and keeps its 56px display, and a narrow desktop window
@@ -238,8 +240,8 @@ export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0
  * container query has substitution problems the viewport version does not.
  */
 export const typeBands = {
-  /** Held: steps 1-4 rise one index. 5-9 are identity and are not emitted. */
-  held: [2, 3, 4, 5, 5, 6, 7, 8, 9],
+  /** Handheld: steps 1-4 rise one index. 5-9 are identity and are not emitted. */
+  handheld: [2, 3, 4, 5, 5, 6, 7, 8, 9],
   /** Narrow: steps 8-9 fall. 1-7 are identity and are not emitted. Steps 4/5 and 7/8 still
    *  collapse to one rendered value on a phone, where both bands apply — the price compact
    *  already pays in layout space (§12). */
@@ -247,17 +249,19 @@ export const typeBands = {
 } as const;
 
 /**
- * §17 — the held signal. `pointer`, not `any-pointer`: the PRIMARY input being a finger is
- * what says there is no attached pointing device. A 1920px Windows laptop with a trackpad
+ * §17 — the handheld signal. `pointer`, not `any-pointer`: the PRIMARY input being a finger
+ * is what says there is no attached pointing device. A 1920px Windows laptop with a trackpad
  * reports `fine` and stays desktop; detach the keyboard from a Surface and it reports
  * `coarse`, which is correct — it is a slab in someone's hands. A stylus reports `fine` too.
  *
- * The one case no query catches is a touch-only kiosk or wall display: coarse, held by
- * nobody, read from two metres, and wanting BIGGER type rather than held type. That is what
- * the Theme `device` prop is for, and after this split it is the prop's whole remaining job
- * (that, and a POS terminal that wants coarse targets with desk-distance text).
+ * Deliberately the same query the pointer axis reads (§16): since the `device` prop was
+ * dropped (2026-08-05, LOG), coarse means handheld with no daylight between them, and the
+ * band rides the pointer axis's own [data-pointer] scopes rather than an attribute of its
+ * own. The cases that wanted the two apart — a touch-only kiosk read from two metres, a POS
+ * terminal at desk distance — are deliberately not designed for; the LOG records what to
+ * bring back if that changes.
  */
-export const heldMedia = "(pointer: coarse)";
+export const handheldMedia = "(pointer: coarse)";
 
 /**
  * §17 — the narrow signal, and now tunable on its own, which is half the point of the split:

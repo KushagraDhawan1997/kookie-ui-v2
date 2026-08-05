@@ -25,7 +25,7 @@ import {
   fontFamily,
   fontSize,
   fontWeight,
-  heldMedia,
+  handheldMedia,
   narrowMedia,
   iconSize,
   layoutSpace,
@@ -75,7 +75,7 @@ export function generateTokens(): string {
   lines.push("", `  /* radius palette (§6) at the ${defaultRadiusLevel} level */`);
   lines.push(...radiusPalette(defaultRadiusLevel));
 
-  lines.push("", "  /* type (§15) — scale and the device band (§17) reach it, never density or pointer */");
+  lines.push("", "  /* type (§15) — scale and the type bands (§17) reach it, never density */");
   fontSize.forEach((px, i) => put(`font-size-${i + 1}`, zoom(px)));
   lineHeight.forEach((px, i) => put(`line-height-${i + 1}`, zoom(px)));
   letterSpacing.forEach((em, i) => put(`letter-spacing-${i + 1}`, `${em}em`));
@@ -298,7 +298,7 @@ export function generateTokens(): string {
   lines.push(...pointerWorld("fine", density));
   lines.push(...pointerWorld("coarse", coarse));
   lines.push(
-    "@media (pointer: coarse) {",
+    `@media ${handheldMedia} {`,
     ...pointerWorld("auto", coarse).map((l) => (l === "" ? l : `  ${l}`)),
     "}",
     "",
@@ -310,29 +310,16 @@ export function generateTokens(): string {
   // that references itself is invalid at computed-value time, taking the whole chain down.
   //
   // Each band emits only the steps it MOVES. That is what lets two bands coexist without
-  // fighting: `held` owns 1-4, `narrow` owns 8-9, and neither can silently overwrite the
-  // other's answer on a phone, where both apply. It is also why the `desktop` escape below
-  // re-declares the held band's steps and NOT the display steps — being pinned to desktop
-  // says nothing about how wide the window is.
-  const held = moved(typeBands.held);
+  // fighting: `handheld` owns 1-4, `narrow` owns 8-9, and neither can silently overwrite the
+  // other's answer on a phone, where both apply.
+  //
+  // The HANDHELD band rides the pointer axis's own scopes — its declarations are emitted
+  // inside pointerWorld() above, not here. Since the `device` prop was dropped (2026-08-05,
+  // LOG), coarse means handheld with no daylight between them: pinning `pointer` forces the
+  // whole coarse world, type included, and `pointer="fine"` is the escape (it re-declares
+  // the identity steps, because an escape that does nothing is not an escape). The fine
+  // world deliberately does NOT touch steps 8-9 — being fine says nothing about width.
   const narrow = moved(typeBands.narrow);
-
-  // The HELD band. Three scopes, the pointer axis's exact shape (§16): pinned desktop (the
-  // identity — an escape that does nothing is not an escape, so a desktop Theme nested in a
-  // held region must RE-declare what :root already says), pinned handheld, and auto under the
-  // media query. No interaction cells: no other axis re-declares a type token, and two laws
-  // (density/pointer invariance) keep it that way.
-  const identity = fontSize.map((_, i) => i + 1);
-  lines.push(`[data-device="desktop"] {`, ...deviceTypePalette(identity, held), "}", "");
-  lines.push(`[data-device="handheld"] {`, ...deviceTypePalette(typeBands.held, held), "}", "");
-  lines.push(
-    `@media ${heldMedia} {`,
-    `  [data-device="auto"] {`,
-    ...deviceTypePalette(typeBands.held, held).map((l) => `  ${l}`),
-    "  }",
-    "}",
-    "",
-  );
 
   // The NARROW band, and it carries no attribute at all — deliberately. Width is not a device
   // fact and there is nothing here to escape: a Theme pinned to `desktop` inside a 375px
@@ -342,7 +329,7 @@ export function generateTokens(): string {
   lines.push(
     `@media ${narrowMedia} {`,
     "  :root {",
-    ...deviceTypePalette(typeBands.narrow, narrow).map((l) => `  ${l}`),
+    ...bandTypePalette(typeBands.narrow, narrow).map((l) => `  ${l}`),
     "  }",
     "}",
     "",
@@ -352,9 +339,10 @@ export function generateTokens(): string {
 }
 
 /**
- * Every block one pointer value needs: the control family per density level, plus the
- * (pointer x radius x density) cells for the semantic control radii — the same cells the
- * radius x density interaction needed, one axis deeper (§16).
+ * Every block one pointer value needs: the control family per density level, the handheld
+ * type band (§17 — since the `device` prop was dropped, coarse means handheld and the band
+ * rides these scopes), plus the (pointer x radius x density) cells for the semantic control
+ * radii — the same cells the radius x density interaction needed, one axis deeper (§16).
  */
 function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): string[] {
   const P = `[data-pointer="${pointer}"]`;
@@ -366,7 +354,16 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
   // the same [data-pointer] scopes everything else does — pinnable, escapable, and readable as
   // a computed value in the suite. Raw px: Safari's threshold does not zoom with --scale.
   const zoomFloor = `  --input-font-floor: ${pointer === "fine" ? "0px" : `${inputFontFloor}px`};`;
-  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, "}", "");
+  // The handheld band, over exactly the steps it owns. `fine` emits the identity — the
+  // escape from a coarse ancestor must RE-declare, because a nested scope that declares
+  // nothing inherits. Neither world touches steps 8-9: width is the narrow band's question,
+  // and a pointer says nothing about how wide the window is.
+  const bandSteps = moved(typeBands.handheld);
+  const band = bandTypePalette(
+    pointer === "fine" ? fontSize.map((_, i) => i + 1) : typeBands.handheld,
+    bandSteps,
+  );
+  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, ...band, "}", "");
   for (const d of Object.keys(sets) as DensityLevel[]) {
     if (d === "default") continue;
     out.push(`${P}[data-density="${d}"] {`, ...controlFamily(sets[d]), "}", "");
@@ -545,9 +542,9 @@ function moved(picks: readonly number[]): number[] {
 
 /** One band of the type palette (§15, §17), over the steps it moves: each pick re-prices the
  * step's designed TRIPLE — font-size, line height, letter spacing move together or not at
- * all. `indices` is passed rather than derived so the desktop ESCAPE can emit the identity
- * over exactly the set its band owns. */
-function deviceTypePalette(picks: readonly number[], indices: readonly number[]): string[] {
+ * all. `indices` is passed rather than derived so the fine-pointer ESCAPE can emit the
+ * identity over exactly the set its band owns. */
+function bandTypePalette(picks: readonly number[], indices: readonly number[]): string[] {
   const at = (i: number) => picks[i]! - 1;
   return [
     ...indices.map((i) => `  --font-size-${i + 1}: ${zoom(fontSize[at(i)]!)};`),

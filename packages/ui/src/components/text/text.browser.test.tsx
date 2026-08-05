@@ -48,13 +48,15 @@ describe("a size step joins the three paired scales at one index (§15)", () => 
   });
 });
 
-describe("type never takes density or pointer — boxes move, labels hold (§12, §15, §16)", () => {
-  it("holds its step under every world a Theme can set", () => {
+describe("type never takes density — boxes move, labels hold (§12, §15, §16)", () => {
+  it("holds its step under every density a Theme can set", () => {
+    // Pointer left this list 2026-08-05: the handheld band rides the pointer axis now (§17,
+    // the device prop is dropped), so pinning coarse legitimately moves the reading steps.
+    // Density is the invariance that remains, in both pointer worlds — and in the coarse
+    // world the held step it must hold is the BAND's, not the desktop one.
     for (const worlds of [
       { density: "compact" },
       { density: "comfortable" },
-      { pointer: "coarse" },
-      { density: "compact", pointer: "coarse" },
     ] as const) {
       const el = render(
         <Theme {...worlds}>
@@ -63,6 +65,15 @@ describe("type never takes density or pointer — boxes move, labels hold (§12,
       ).querySelector(".kui-text")!;
       expect(computed(el, "font-size")).toBe("16px");
       expect(computed(el, "line-height")).toBe("24px");
+    }
+    for (const density of ["compact", "comfortable"] as const) {
+      const el = render(
+        <Theme pointer="coarse" density={density}>
+          <Text size="3">held</Text>
+        </Theme>,
+      ).querySelector(".kui-text")!;
+      expect(computed(el, "font-size")).toBe("18px");
+      expect(computed(el, "line-height")).toBe("26px");
     }
   });
 
@@ -81,13 +92,15 @@ describe("type never takes density or pointer — boxes move, labels hold (§12,
   });
 });
 
-describe("the HELD band: touch re-picks the reading steps, desktop is the escape (§15, §17)", () => {
+describe("the HANDHELD band: coarse re-picks the reading steps, fine is the escape (§15, §17)", () => {
   const triple = ["font-size", "line-height", "letter-spacing"] as const;
 
-  it("a held step computes exactly the desktop triple at its picked index — designed, not scaled", () => {
-    // size → pick, from config's typeBands.held. Equality against another RENDERED step
+  it("a handheld step computes exactly the desktop triple at its picked index — designed, not scaled", () => {
+    // size → pick, from config's typeBands.handheld. Equality against another RENDERED step
     // rather than restated numbers: the law is "a band re-picks the palette", so the palette
-    // itself is the reference. Both appearances, per the audit standard.
+    // itself is the reference. Both appearances, per the audit standard. The band rides the
+    // pointer axis since the device prop was dropped (2026-08-05, LOG): pinning coarse is
+    // pinning handheld.
     //
     // Step 9 maps to ITSELF here, and that is the split of 2026-08-05 (LOG): a held screen is
     // close to the eye, which is a reason to raise reading sizes and no reason at all to cut
@@ -101,12 +114,12 @@ describe("the HELD band: touch re-picks the reading steps, desktop is the escape
         ["9", "9"],
       ] as [TypeSize, TypeSize][]) {
         const handheld = render(
-          <Theme appearance={appearance} device="handheld">
+          <Theme appearance={appearance} pointer="coarse">
             <Text size={size}>h</Text>
           </Theme>,
         ).querySelector(".kui-text")!;
         const desktop = render(
-          <Theme appearance={appearance} device="desktop">
+          <Theme appearance={appearance} pointer="fine">
             <Text size={pick}>d</Text>
           </Theme>,
         ).querySelector(".kui-text")!;
@@ -119,12 +132,12 @@ describe("the HELD band: touch re-picks the reading steps, desktop is the escape
     }
   });
 
-  it("a desktop Theme nested in a handheld region resets — an escape that does nothing is not an escape", () => {
+  it("a fine Theme nested in a coarse region resets — an escape that does nothing is not an escape", () => {
     const reference = render(<Text size="3">ref</Text>);
     const host = render(
-      <Theme device="handheld">
+      <Theme pointer="coarse">
         <Text size="3">outer</Text>
-        <Theme device="desktop">
+        <Theme pointer="fine">
           <Text size="3">inner</Text>
         </Theme>
       </Theme>,
@@ -134,33 +147,33 @@ describe("the HELD band: touch re-picks the reading steps, desktop is the escape
     expect(computed(outer!, "font-size")).not.toBe(computed(inner!, "font-size"));
   });
 
-  it("auto resolves desktop on a fine pointer, whatever the width", () => {
+  it("auto resolves desktop type on a fine pointer, whatever the width", () => {
     // This browser is fine-pointer, so auto must be the identity here — and after the split
     // it must stay the identity at ANY width, which is the whole correction: the old rule
     // asked `coarse AND narrow`, so a wide iPad fell out of a rise it should have had while
     // a narrow desktop window was safe for the wrong reason. The coarse side of the query
-    // needs real hardware; the emitted-declarations law pins that auto IS the held band.
+    // needs real hardware; the emitted-declarations law pins that auto IS the coarse world.
     const auto = render(
       <Theme>
         <Text size="3">a</Text>
       </Theme>,
     ).querySelector(".kui-text")!;
     const desktop = render(
-      <Theme device="desktop">
+      <Theme pointer="fine">
         <Text size="3">d</Text>
       </Theme>,
     ).querySelector(".kui-text")!;
     for (const prop of triple) expect(computed(auto, prop)).toBe(computed(desktop, prop));
   });
 
-  it("a control's label IS type at the size join — same triple, both bands (§4, §15)", () => {
+  it("a control's label IS type at the size join — same triple, both worlds (§4, §15)", () => {
     // The parity law: there is one definition of what a size step means, and the control
-    // join consumes it. This is also what carries the device axis into control labels
-    // without the geometry moving — boxes are the pointer axis's (§16, §17).
-    for (const device of ["desktop", "handheld"] as const) {
+    // join consumes it. This is also what carries the band into control labels through the
+    // same pointer world that grows their boxes (§16, §17).
+    for (const pointer of ["fine", "coarse"] as const) {
       for (const size of ["1", "2", "3", "4"] as const) {
         const host = render(
-          <Theme device={device}>
+          <Theme pointer={pointer}>
             <Button size={size}>b</Button>
             <Text size={size}>t</Text>
           </Theme>,
@@ -168,7 +181,7 @@ describe("the HELD band: touch re-picks the reading steps, desktop is the escape
         const button = host.querySelector(".kui-control")!;
         const text = host.querySelector(".kui-text")!;
         for (const prop of triple) {
-          expect(computed(button, prop), `${device} size ${size}, ${prop}`).toBe(
+          expect(computed(button, prop), `${pointer} size ${size}, ${prop}`).toBe(
             computed(text, prop),
           );
         }
@@ -214,14 +227,14 @@ describe("the NARROW band: a short line cuts the display steps (§15, §17, spli
     expect(await at(NARROW, body)).toEqual(await at(WIDE, body));
   });
 
-  it("a Theme pinned to `desktop` does NOT undo it — width is not a device fact", async () => {
-    // The escape re-declares the held band's steps and deliberately not the display steps.
-    // Being pinned to desktop says nothing about how wide the window is, and a `desktop`
-    // Theme inside a 375px viewport still has a 375px viewport.
+  it("a Theme pinned to `fine` does NOT undo it — width is not a device fact", async () => {
+    // The escape re-declares the handheld band's steps and deliberately not the display
+    // steps. A pointer says nothing about how wide the window is, and a `fine` Theme inside
+    // a 375px viewport still has a 375px viewport.
     const pinned = () => [
       computed(
         render(
-          <Theme device="desktop">
+          <Theme pointer="fine">
             <Heading size="9">h</Heading>
           </Theme>,
         ).querySelector(".kui-heading")!,

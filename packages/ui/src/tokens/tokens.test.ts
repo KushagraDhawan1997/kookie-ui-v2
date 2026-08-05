@@ -12,7 +12,7 @@ import {
   coarse,
   controlGap,
   density,
-  heldMedia,
+  handheldMedia,
   fontSize,
   narrowMedia,
   typeBands,
@@ -436,13 +436,16 @@ describe("the pointer axis is a second designed geometry (§16)", () => {
     }
   });
 
-  it("never touches the space palette or type — gutters must not inflate on the smaller screen", () => {
+  it("never touches the space palette — gutters must not inflate on the smaller screen", () => {
+    // Type is deliberately NOT excluded from the world block any more: since the `device`
+    // prop was dropped (2026-08-05), the handheld band rides these scopes — the band laws
+    // below pin exactly which steps, and the density cells stay type-free.
     for (const scope of [`[data-pointer="coarse"]`, `[data-pointer="coarse"][data-density="compact"]`]) {
       const body = block(scope);
       expect(body).not.toMatch(/^\s*--space-\d+:/m);
-      expect(body).not.toContain("--font-size-");
-      expect(body).not.toContain("--line-height-");
+      expect(body).not.toMatch(/^\s*--layout-space-\d+:/m);
     }
+    expect(block(`[data-pointer="coarse"][data-density="compact"]`)).not.toContain("--font-size-");
   });
 });
 
@@ -468,19 +471,20 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
 
   it("each band emits ONLY the steps it moves — which is what lets two bands coexist", () => {
     // The single band this replaced emitted all nine steps, so two bands would have silently
-    // overwritten each other's answer on a phone, where both apply. Held owns 1-4 (a held
+    // overwritten each other's answer on a phone, where both apply. Handheld owns 1-4 (a held
     // screen is close to the eye), narrow owns 8-9 (a narrow screen is seven characters wide),
-    // and 5-7 are nobody's.
-    expect(moved(typeBands.held).map((i) => i + 1)).toEqual([1, 2, 3, 4]);
+    // and 5-7 are nobody's. The handheld band rides the POINTER world's own block — there is
+    // no data-device attribute since the prop was dropped (2026-08-05, LOG).
+    expect(moved(typeBands.handheld).map((i) => i + 1)).toEqual([1, 2, 3, 4]);
     expect(moved(typeBands.narrow).map((i) => i + 1)).toEqual([8, 9]);
-    expect(moved(typeBands.held).some((i) => moved(typeBands.narrow).includes(i))).toBe(false);
+    expect(moved(typeBands.handheld).some((i) => moved(typeBands.narrow).includes(i))).toBe(false);
 
     for (const step of [1, 4]) {
-      expect(block(`[data-device="handheld"]`)).toContain(`--font-size-${step}:`);
+      expect(block(`[data-pointer="coarse"]`)).toContain(`--font-size-${step}:`);
       expect(narrowBand()).toContain(`--font-size-${step === 1 ? 8 : 9}:`);
     }
     for (const step of [5, 6, 7, 8, 9]) {
-      expect(block(`[data-device="handheld"]`)).not.toContain(`--font-size-${step}:`);
+      expect(block(`[data-pointer="coarse"]`)).not.toContain(`--font-size-${step}:`);
     }
   });
 
@@ -489,7 +493,7 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
     // height and letter spacing arrive as one designed step, so a band cannot ship an 18px
     // face on a 24px line with 16px tracking.
     for (const [body, picks] of [
-      [block(`[data-device="handheld"]`), typeBands.held],
+      [block(`[data-pointer="coarse"]`), typeBands.handheld],
       [narrowBand(), typeBands.narrow],
     ] as const) {
       for (const i of moved(picks)) {
@@ -501,14 +505,13 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
     }
   });
 
-  it("desktop is the identity over the HELD band's steps, and says nothing about width", () => {
-    // Theme stamps data-device on every node, so a desktop Theme nested in a held region
-    // would otherwise inherit the risen reading sizes (§16's default-escape lesson, one axis
-    // over). It must NOT re-declare 8-9: being pinned to desktop says nothing about how wide
-    // the window is, and re-declaring them would let a `desktop` Theme undo the narrow band
-    // inside a 375px viewport.
-    const body = block(`[data-device="desktop"]`);
-    for (const i of moved(typeBands.held)) {
+  it("fine is the identity over the HANDHELD band's steps, and says nothing about width", () => {
+    // Theme stamps data-pointer on every node, so a fine Theme nested in a coarse region
+    // would otherwise inherit the risen reading sizes (§16's default-escape lesson). It must
+    // NOT re-declare 8-9: a pointer says nothing about how wide the window is, and
+    // re-declaring them would let a `fine` Theme undo the narrow band inside a 375px viewport.
+    const body = block(`[data-pointer="fine"]`);
+    for (const i of moved(typeBands.handheld)) {
       expect(body).toContain(`--font-size-${i + 1}: calc(${fontSize[i]}px * var(--scale));`);
       expect(body).toContain(`--line-height-${i + 1}: calc(${lineHeight[i]}px * var(--scale));`);
     }
@@ -517,44 +520,44 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
     }
   });
 
-  it("held rides the POINTER alone, and narrow rides width alone — no conjunction", () => {
+  it("handheld rides the POINTER alone, and narrow rides width alone — no conjunction", () => {
     // The conjunction this replaces got the middle of the range wrong in both directions.
     // Apple ships ONE Dynamic Type table for iOS and iPadOS — Body is 17pt on both — so the
     // reading question does not distinguish phone from tablet, and the width half excluded
     // every iPad from a rise it should have had.
-    expect(heldMedia).toBe("(pointer: coarse)");
-    expect(heldMedia).not.toContain("width");
+    expect(handheldMedia).toBe("(pointer: coarse)");
+    expect(handheldMedia).not.toContain("width");
     expect(narrowMedia).toContain("max-width");
     expect(narrowMedia).not.toContain("pointer");
 
-    const media = css.indexOf(`@media ${heldMedia} {`);
+    const media = css.indexOf(`@media ${handheldMedia} {`);
     expect(media).toBeGreaterThan(-1);
-    expect(css.indexOf(`[data-device="auto"]`)).toBeGreaterThan(media);
-    // The auto band IS the handheld band — one designed set, two ways in.
-    expect(decls(`[data-device="auto"]`)).toEqual(decls(`[data-device="handheld"]`));
+    expect(css.indexOf(`[data-pointer="auto"]`)).toBeGreaterThan(media);
+    // The auto world IS the coarse world, band included — one designed set, two ways in.
+    expect(decls(`  [data-pointer="auto"]`)).toEqual(decls(`[data-pointer="coarse"]`));
   });
 
   it("the narrow band carries no attribute — width is not a device fact", () => {
-    // There is nothing here to escape: a Theme pinned to `desktop` inside a 375px window
+    // There is nothing here to escape: a Theme pinned to `fine` inside a 375px window
     // still has a 375px window. It sits on :root and inherits into every Theme scope, and it
     // is emitted LAST so it wins the :root-versus-:root tie against the base palette.
     const narrow = css.indexOf(`@media ${narrowMedia} {`);
     expect(narrow).toBeGreaterThan(-1);
-    expect(narrow).toBeGreaterThan(css.indexOf(`[data-device="handheld"] {`));
-    expect(css.slice(narrow, narrow + 200)).not.toContain("data-device");
+    expect(narrow).toBeGreaterThan(css.indexOf(`[data-pointer="coarse"] {`));
+    expect(css.slice(narrow, narrow + 200)).not.toContain("data-pointer");
   });
 
-  it("touches nothing but type — geometry is the pointer axis's, spacing is nobody's (§16)", () => {
-    for (const scope of [`[data-device="desktop"]`, `[data-device="handheld"]`, `  [data-device="auto"]`]) {
-      const body = block(scope);
-      for (const stem of ["--space-", "--layout-space-", "--control-", "--radius", "--icon-size-", "--surface-p-"]) {
-        expect(body).not.toContain(stem);
-      }
+  it("the narrow band touches nothing but type, and no other axis touches type", () => {
+    // Narrow re-prices display steps and nothing else — geometry is the pointer axis's,
+    // spacing is nobody's (§16). The handheld band's own footprint is pinned by the
+    // emits-only-what-it-moves law above; density and radius never declare a type token,
+    // which is why the bands need no interaction cells with either.
+    for (const stem of ["--space-", "--layout-space-", "--control-", "--radius", "--icon-size-", "--surface-p-"]) {
+      expect(narrowBand()).not.toContain(stem);
     }
-    // And the reverse: no other axis re-declares a type token, which is why the device axis
-    // needs no interaction cells where pointer needed (pointer x radius x density).
-    for (const world of [`[data-pointer="fine"]`, `[data-pointer="coarse"]`]) {
-      expect(block(world)).not.toContain("--font-size-");
+    for (const scope of [`[data-density="compact"]`, `[data-density="comfortable"]`, `[data-radius="full"]`]) {
+      expect(block(scope)).not.toContain("--font-size-");
+      expect(block(scope)).not.toContain("--line-height-");
     }
   });
 
@@ -568,10 +571,10 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
     }
     // The direction of each band is its reason for existing (values are v0): reading rises
     // toward the HIG's 17pt, display falls because a short line cannot hold 56px.
-    expect(typeBands.held[2]!).toBeGreaterThan(3);
+    expect(typeBands.handheld[2]!).toBeGreaterThan(3);
     expect(typeBands.narrow[8]!).toBeLessThan(9);
     // ...and each band leaves the OTHER's steps alone, which is the split itself.
-    expect(typeBands.held[8]).toBe(9);
+    expect(typeBands.handheld[8]).toBe(9);
     expect(typeBands.narrow[2]).toBe(3);
   });
 
@@ -579,8 +582,8 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
     // The composition is what a device actually gets. Read as: [reading step 3, display 9].
     const px = (band: readonly number[], i: number) => fontSize[band[i]! - 1]!;
     const desktopWide = [px([1, 2, 3, 4, 5, 6, 7, 8, 9], 2), px([1, 2, 3, 4, 5, 6, 7, 8, 9], 8)];
-    const phone = [px(typeBands.held, 2), px(typeBands.narrow, 8)];
-    const tabletLandscape = [px(typeBands.held, 2), px([1, 2, 3, 4, 5, 6, 7, 8, 9], 8)];
+    const phone = [px(typeBands.handheld, 2), px(typeBands.narrow, 8)];
+    const tabletLandscape = [px(typeBands.handheld, 2), px([1, 2, 3, 4, 5, 6, 7, 8, 9], 8)];
     const narrowDesktop = [px([1, 2, 3, 4, 5, 6, 7, 8, 9], 2), px(typeBands.narrow, 8)];
 
     expect(desktopWide).toEqual([16, 56]);
