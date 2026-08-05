@@ -17,8 +17,11 @@ export type Size = "1" | "2" | "3" | "4";
     color-config.ts and widen there. */
 export type Tone = ToneName;
 
-/** §9 — loudness, three rungs, because a rung that is not visibly distinct is not a rung. */
-export type Emphasis = "loud" | "medium" | "quiet";
+/** §9 — loudness, three rungs, because a rung that is not visibly distinct is not a rung.
+    A value list, not just a union: the laws iterate the rungs, and two law files were
+    restating this literal with the same warning comment about restating literals. */
+export const RUNGS = ["loud", "medium", "quiet"] as const;
+export type Emphasis = (typeof RUNGS)[number];
 
 /** §10 — backdrop defense: three designed thicknesses, like the emphasis ladder. `solid` is
     not a member — it is the seal, the absence of any material (the default, always safe). */
