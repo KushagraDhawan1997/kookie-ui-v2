@@ -4,7 +4,14 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { gzipSync } from "node:zlib";
+
+// pako, not node:zlib (2026-08-06): the gate compares against a recorded number, so the
+// compressor must be part of the lockfile, not the runtime. Node vendors zlib, and two Node
+// releases emit different (equally valid) gzip streams for identical input — CI on Node 22
+// measured +20 bytes over a baseline recorded on Node 25, with dist/styles.css byte-identical.
+// A law that moves when the runner's Node moves is measuring the environment, not the
+// stylesheet. pako is pure JS and pinned exactly, so the number is the same everywhere.
+import { gzip } from "pako";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const { ceilingGzipBytes, baselineGzipBytes } = JSON.parse(
@@ -19,18 +26,18 @@ try {
   process.exit(1);
 }
 
-const gzip = gzipSync(css, { level: 9 }).length;
+const gzipped = gzip(css, { level: 9 }).length;
 console.log(
-  `css: ${gzip} gzipped / baseline ${baselineGzipBytes} / ceiling ${ceilingGzipBytes}`,
+  `css: ${gzipped} gzipped / baseline ${baselineGzipBytes} / ceiling ${ceilingGzipBytes}`,
 );
 
-if (gzip > ceilingGzipBytes) {
-  console.error(`CEILING EXCEEDED by ${gzip - ceilingGzipBytes} bytes`);
+if (gzipped > ceilingGzipBytes) {
+  console.error(`CEILING EXCEEDED by ${gzipped - ceilingGzipBytes} bytes`);
   process.exit(1);
 }
-if (gzip > baselineGzipBytes) {
+if (gzipped > baselineGzipBytes) {
   console.error(
-    `REGRESSION: +${gzip - baselineGzipBytes} bytes over baseline. If intentional, re-record baselineGzipBytes in budget.json in this commit.`,
+    `REGRESSION: +${gzipped - baselineGzipBytes} bytes over baseline. If intentional, re-record baselineGzipBytes in budget.json in this commit.`,
   );
   process.exit(1);
 }

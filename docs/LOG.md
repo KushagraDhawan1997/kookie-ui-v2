@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-06 The budget gate pins its compressor: pako in the lockfile, not the runner's zlib
+
+CI went red on a +20-byte "regression" no commit caused. `dist/styles.css` was byte-identical on both sides (167,744 raw) — the build is deterministic — but the gate's number came from `node:zlib`, and Node vendors zlib: Node 22.23 (CI) and Node 25.2 (the machine that recorded the 18,137 baseline) emit different, equally valid gzip streams for the same input at the same level, 20 bytes apart. The last green run agreed with its baseline exactly, because back then both sides compressed alike; the divergence began the day the recording machine's Node moved. The law was measuring the environment, not the stylesheet — the standing audit lesson one layer down: a gate's number must be a function of the artifact alone, and a compressor outside the lockfile is an input nobody pinned.
+
+`measure-css.mjs` now compresses with pako, pure JS and exactly pinned, so the number is identical on every platform and Node version. Pako's level 9 lands on 18,137 for the current bundle — the recorded baseline — so the number did not even move; only its provenance did.
+
+Rejected: re-recording the baseline to CI's number (leaves a ±20 band where a real local regression hides, and moves again whenever either side's Node does); pinning Node to an exact patch in CI and on every machine (fixes today's pair, not the class — the compressor stays outside the lockfile); ratcheting raw bytes instead (deterministic and dependency-free, but §2 states the budget as wire cost, and gzipped is the unit the ceiling means).
+
 ## 2026-08-06 The spinner gains a wrapper: composited rotation outranks one element
 
 An external audit (Vercel's react-best-practices rules, run over the whole repo) matched the Spinner against its animate-the-wrapper rule: the `kui-spin` transform sat on the `<svg>` root, and an SVG element's CSS transform is not reliably composited — some engines run it on the main thread. For this control that is not a micro-optimisation: a busy indicator exists to keep moving while the main thread is busy, so a main-thread rotation freezes at exactly the moment it is for. The component's own comment claimed "a single composited rotation"; the claim was precisely the assumption the rule disputes, and nothing enforced it.
