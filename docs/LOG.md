@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 Amber joins at vividness 0.9 — the refusal was real, but the input space was not exhausted
+
+The 2026-08-04 entry recorded amber as unable to ship: hemmed at its cusp in both directions, refused by the state-separation law, waiting on "a designed exception" in the generator. Chasing Kushagra's tone-set widening reopened it, and the finding is that no exception was ever needed — **the failure was specific to full vividness, and vividness is a designed per-tone input the first attempt never varied.**
+
+The mechanism: at vividness 1.0 the chroma curve asks for everything hue 80 holds, which parks the resting solid exactly ON the sRGB cusp. From the cusp, any lightness move sheds chroma steeply, the mud-guard (states keep ≥75% of resting chroma) halts the travel at .032, and the .035 separation floor refuses it — by .003, which is why the preview looked fine while the law said no: a 0.003 lightness step is precisely the "nearly visible feedback" the floor exists to catch. At vividness 0.9 the fill sits 10% off the cusp, the same excursion affords .035+, and every law passes in both modes and both contrast levels. Sitting slightly off maximum saturation is what buys the visible press state; that trade IS the fix.
+
+Why amber still reads softer than indigo, recorded so nobody chases it: yellow's saturation lives at high lightness (dark vivid yellow is brown — it does not exist), blue's lives at low, and one shared lightness ladder means each hue keeps only what the gamut holds at that depth. §7's saturation-for-lightness trade, visible for the first time with both hues in one sweep. Radix has the identical asymmetry and hides it by hand-placing every scale.
+
+**Rejected: carrying the light pin into dark (Radix's own move — their dark amber 9 is byte-identical to light).** Kushagra spotted it in their dark palette, it was measured viable (a pinned #FFC53D passes every light law at full vividness; only our re-derived dark fails), and the fix was scoped: let a pin carry to the dark solid band. He chose the hue-80 v0.9 row by eye instead — config only, dark stays dark-tuned. The carry stays recorded here as the known route to a brighter amber if taste ever wants it. Also rejected: every pinned amber tried (#FFC53D, #FFB224, #F5A623, #FFAE00, #EFA400 — all fail dark separation, because a pin derives full vividness and dark re-derives from it), and the pin-plus-vividness-override hybrid (passes at 0.85, but needs an intake extension the chosen answer doesn't).
+
+## 2026-08-05 The exports map gets its promised validators, and "leaning ESM-only" stops leaning
+
+Prompted by "is the repo set up well": Part III of the planning doc named `publint` + `are-the-types-wrong` as the package-output validation, and neither was installed — while the repo had *already shipped* both failures they exist to catch (2026-07-31: a content-hashed d.ts the exports map did not name, and stripped `"use client"` directives; the build's assert-own-files check was the partial cover). Both now run against the **packed artifact** at the end of every build (`pack:check`), so the exports map is verified rather than trusted, and the gate rides CI. Mutation-checked: pointing `exports.types` at a file that does not exist fails by name. ENGINEERING §1.6 carries the standing rule.
+
+**The decision inside the chore: the module-format lean became a stance.** The spec said "ESM-first, leaning ESM-only (dual if adoption reach matters)." Validating under attw's `esm-only` profile closes that: node10 resolution and `require()` are now *formally* the unsupported paths — reported as ignored in every build log rather than silently untested. Reopening means changing one flag, but from this point shipping dual is a decision someone must make, not a drift that happens. The `styles.css` subpath is excluded from attw only because attw can exclusively type-resolve JS; publint still covers the file's existence.
+
+Rejected: a separate CI step instead of the build tail (the build is what packs — a check that can be skipped by running the build alone re-creates the claimed-versus-actual gap the audit closed); validating the source tree instead of the packed tarball (the 2026-07-31 defects were only visible in the artifact); the strict profile (it fails ESM-only packages on node10/CJS by design, which would force dual output nobody decided to ship).
+
 ## 2026-08-05 TextArea: one element, because the anatomy criterion answers twice; padding derived, not designed
 
 Repetition's second entry, and three questions inside it were genuinely open:
