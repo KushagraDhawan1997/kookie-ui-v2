@@ -299,14 +299,28 @@ describe("disabled arrives through the shared remap (§8)", () => {
   });
 });
 
-describe("the placeholder is a designed role, not a UA default (§7)", () => {
-  it("reads the muted role at full opacity", () => {
+describe("the placeholder is a designed role, not a UA default (§7, §15)", () => {
+  it("reads the FAINT role at full opacity — the role whose definition names the placeholder", () => {
+    // Was muted until 2026-08-05: the faint role's own definition ("below body-copy contrast
+    // by design — a placeholder, a timestamp") named this case, and the stylesheet disagreed
+    // with it. Muted stays the slot colour: an adornment informs, a placeholder invites.
     const el = render(<TextField placeholder="Search" />);
     const input = inputOf(el);
-    expect(onPlaceholder(input, "color")).toBe(tokenOn(el, "--color-text-muted"));
-    // Firefox ships 0.54 here, which drops the hint below the contrast the role was chosen to
-    // clear. Chrome does not, so this law is about what we DECLARE surviving the cascade.
+    expect(onPlaceholder(input, "color")).toBe(tokenOn(el, "--color-text-faint"));
+    expect(onPlaceholder(input, "color")).not.toBe(tokenOn(el, "--color-text-muted"));
+    // Firefox ships 0.54 here, which would stack a second fade on an already-faint role.
+    // Chrome does not, so this law is about what we DECLARE surviving the cascade.
     expect(onPlaceholder(input, "opacity")).toBe("1");
+  });
+
+  it("the value is content and wears content weight — regular, not the control's medium (§15)", () => {
+    // The skeleton's medium was designed for button labels and reached the input through
+    // `font: inherit`; a field's value is the user's content, and content rests regular.
+    const el = render(<TextField placeholder="Search" defaultValue="hello" />);
+    expect(computed(inputOf(el), "font-weight")).toBe("400");
+    // The button beside it keeps its own label weight — the skeleton re-declares it.
+    const hosted = render(<TextField trailing={<Button>Show</Button>} />);
+    expect(computed(hosted.querySelector(".kui-button")!, "font-weight")).toBe("500");
   });
 });
 

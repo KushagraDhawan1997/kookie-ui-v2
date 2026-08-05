@@ -17,6 +17,13 @@
   -webkit-user-select: auto;
   user-select: auto;
   cursor: var(--cursor-text);
+  /* CONTENT weight, not control weight (2026-08-05, Kushagra). The skeleton's medium was
+     designed for button labels, and the input inherited it through `font: inherit` — so the
+     value the user typed wore a control's weight by inheritance, never by decision. A field's
+     value is the user's content, and content in this system rests regular (§15: Text's own
+     default). The slots follow (a "$" is content-adjacent, not a label); a hosted control
+     re-declares medium through the skeleton and is untouched. */
+  font-weight: var(--font-weight-regular);
 
   /* The seal, stated for all three states ON PURPOSE. The shared layer paints
      `var(--kui-ct-fill, var(--kui-ct-fill-src))` and swaps to the -hover / -active sources on
@@ -91,9 +98,13 @@
 }
 
 .kui-field-input::placeholder {
-  color: var(--color-text-muted);
-  /* Firefox ships placeholders at opacity 0.54, which drops the hint below the contrast the
-     muted role was chosen to clear. */
+  /* FAINT, not muted (drift fixed 2026-08-05, Kushagra: "not light enough"). The faint role's
+     own definition names the placeholder as its case — "below body-copy contrast by design
+     (a placeholder, a timestamp)" (§15) — and this rule was disagreeing with it. Muted stays
+     the SLOT colour: an adornment is information; a placeholder is an invitation. */
+  color: var(--color-text-faint);
+  /* Firefox ships placeholders at opacity 0.54, which would stack a second fade on a role
+     that is already designed to sit below body copy. */
   opacity: 1;
 }
 
