@@ -1220,5 +1220,10 @@ Two numbers make three classes: the queries are derived so `regular` is "not nar
 - **Scale: if it ever ships.** The factor stays wired and the prop is deferred (sections 5, 13). Reopen only when a real need names the steps, and ship it as designed steps rather than a free multiplier.
 - RTL / `dir`. Deferred, architectural room left.
 
+**Selection controls (pre-scoping, 2026-08-05 — discussed, nothing built):**
+- **Checkbox × `radius="full"`: the capsule must not reach it.** A circular checkbox reads as a radio — shape is role semantics here, and role legibility outranks theme uniformity. §6 already re-prices `full` per band (surfaces to designed corners, controls to h/2); the checkbox is the control band's designed exception at full, capping at a designed step instead of taking the capsule. Same family as the pill padding bump: a place where roundness meets a rule that outranks it. The cap's value is taste, judged in the preview.
+- **Checkbox × coarse pointer: it stays a checkbox.** iOS's native vocabulary has none (switches for settings, edit-mode selection circles in lists) — but that is an iOS stance, not a mobile truth: Material ships one and the mobile web is full of them (consent, multi-select filters, row selection). Swapping to a switch by pointer would change semantics (a switch commits immediately; a checkbox waits for submit) — a product choice, never a pointer response. What coarse owes it is the target: the visual box stays small and the hit area extends to the 44 target — the hosted-control rule inverted (there the hit area shrinks to the container; here it grows past the box).
+- **Switch leaves the control height ladder.** Its geometry is its own designed pair (track × thumb) per pointer world — it does not take control height on iOS either, and coarse widens the track/thumb (iOS 26 direction) to buy target area the height ladder would not give it. The numbers are config lines, judged in the preview; a taste call lands here with the coarse pair especially.
+
 **Feel (not ratios):**
 - "Balanced" corner feel, tuned by eye per step.
