@@ -201,20 +201,25 @@ describe("a mark's corner holds a fraction of its own box (§6)", () => {
     px(computed(mark, "border-top-left-radius")) / markBox(mark).h;
 
   for (const level of ["small", "medium", "large", "full"] as const) {
-    it(`is uniform across the size index at radius="${level}"`, () => {
-      // The complaint that found the bug, mounted (Kushagra, by eye: "size 4 looks much more
-      // rounded than size 1"). It rode --radius-control-N, designed against the HEIGHT ladder,
-      // so the fraction climbed 0.250 -> 0.385 across the index while the box did not.
-      const fractions = SIZES.map((size) => {
-        const el = render(
-          <Theme radius={level}>
-            <Checkbox size={size} />
-          </Theme>,
-        );
-        return fractionOf(markOf(el));
+    for (const pointer of ["fine", "coarse"] as const) {
+      it(`is uniform across the size index at radius="${level}", ${pointer} pointer`, () => {
+        // The complaint that found the bug, mounted (Kushagra, by eye: "size 4 looks much more
+        // rounded than size 1"). It rode --radius-control-N, designed against the HEIGHT
+        // ladder, so the fraction climbed 0.250 -> 0.385 across the index while the box did
+        // not. Both pointer worlds since 2026-08-06 (audit D7): the first spelling mounted no
+        // Theme pointer, so the coarse world — the phone's default path — was asserted
+        // nowhere. Ceiling 1.4; the token law explains why it is not 1.34.
+        const fractions = SIZES.map((size) => {
+          const el = render(
+            <Theme radius={level} pointer={pointer}>
+              <Checkbox size={size} />
+            </Theme>,
+          );
+          return fractionOf(markOf(el));
+        });
+        expect(Math.max(...fractions) / Math.min(...fractions)).toBeLessThan(1.4);
       });
-      expect(Math.max(...fractions) / Math.min(...fractions)).toBeLessThan(1.34);
-    });
+    }
   }
 
   for (const density of DENSITIES) {

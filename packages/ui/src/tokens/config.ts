@@ -397,8 +397,12 @@ export const markSteps = [1, 2, 3, 4] as const;
  * at comfortable size 4, which is a circle in all but name — the one thing a checkbox must
  * never be (§6), reached by an AXIS rather than by a theme, so the `full` ceiling never saw it.
  *
- * Its own picks fix both halves. The fraction lands in 0.17-0.25 across every size, level and
- * pointer world, and it is DENSITY-INVARIANT like the mark itself: an airier form does not
+ * Its own picks fix both halves. The fraction is a PER-LEVEL band (corrected 2026-08-06,
+ * audit D13 — the first spelling claimed 0.17-0.25 "across every level", which is only the
+ * default level's range): small runs 0.08-0.13, medium 0.17-0.25, large and full 0.25-0.38,
+ * across both pointer worlds. What holds everywhere is the pair of invariants the laws carry
+ * — no cell reaches half its box, and the spread across the size index stays under 1.4x per
+ * level per world. It is DENSITY-INVARIANT like the mark itself: an airier form does not
  * change what a checkbox is, and the corner of an unchanged box has nothing to answer to.
  *
  * Steps rather than raw px, so the Theme radius levels still reach it — `none` must square a
