@@ -194,3 +194,39 @@ export type Mode = keyof typeof lightness;
  * card seal keep the quiet hairline — their identity does not rest on it.
  */
 export const markEdgeStep = { light: 9, dark: 11 } as const;
+
+/**
+ * The APCA floors (§7) — WCAG-anchored, so NOT taste numbers: body is the AA-equivalent Lc 60
+ * every label pairing must clear, aaa the Lc 75 `contrast="high"` raises it to, nonText the
+ * Lc 45 floor for borders, rings and marks (WCAG 1.4.11's territory). One home because the
+ * generator READS them (the state-direction flip is gated on the label law) and the laws
+ * assert against them — and they were spelled five separate times across the two. Lowering
+ * one is an accessibility decision, not tuning; a law pins the values themselves.
+ */
+export const apcaFloors = { body: 60, aaa: 75, nonText: 45 } as const;
+
+/**
+ * The mud-guard (§7): states keep at least this fraction of the resting chroma, which is what
+ * stops an excursion from washing a hue out or driving it olive. This is the number the amber
+ * decision reasons about by name (LOG 2026-08-05 — the cusp halts travel at .032 against the
+ * .035 floor, refused by .003) and it lived as a local const inside the state solve.
+ */
+export const chromaFloor = 0.75;
+
+/**
+ * The ink fade (§7, §15): a chroma family has ONE designed text colour (step 11), and the
+ * lower type rungs fade the ink itself — the material trick applied to text. Percentages are
+ * v0, judged in the preview; the eye pass edits them here, not in the emitter.
+ */
+export const inkMix = { muted: 74, faint: 52 } as const;
+
+/**
+ * The per-mode step the focus ring and the invalid edge read (§8) — the third and first
+ * members of the family markEdgeStep completed: a role whose job is a contrast guarantee
+ * against the page picks its step per mode, because dark's solid band cannot keep the promise
+ * (step 9 on a near-black page is |Lc| 22, the shipped WCAG 2.4.11 failure of 2026-08-03;
+ * step 11 is the band designed to be legible against the page). `solid` rather than a number
+ * in light: the ring IS the brand colour where the brand colour already clears the floor.
+ */
+export const focusRingStep = { light: "solid", dark: "11" } as const;
+export const invalidEdgeStep = { light: "solid", dark: "11" } as const;

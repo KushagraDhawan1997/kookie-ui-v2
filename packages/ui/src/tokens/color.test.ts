@@ -6,7 +6,8 @@
 import { converter, formatHex } from "culori";
 import { describe, expect, it } from "vitest";
 
-import { lightness, lowChromaThreshold, tones, type Mode, type ToneName } from "./color-config.ts";
+import {
+  apcaFloors, lightness, lowChromaThreshold, tones, type Mode, type ToneName } from "./color-config.ts";
 import { markEdgeStep } from "./color-config.ts";
 import {
   apcaLc,
@@ -26,8 +27,17 @@ const toRgb = converter("rgb");
 const MODES = Object.keys(lightness) as Mode[];
 const TONES = Object.keys(tones) as ToneName[];
 
-/** APCA's body-text target. Lc 45 is large text, 60 is body, 75 is preferred. */
-const BODY = 60;
+/** APCA's body-text target — read from the config, where the generator reads it too, and
+    pinned by its own law below: shared home, standard-anchored values. */
+const BODY = apcaFloors.body;
+
+/** The floors are WCAG-anchored, not tuning knobs: a single home in color-config means the
+    generator's flip gate and these laws can never drift apart — and THIS pin is what stops
+    the single home from becoming a single silent lever. Changing a floor is an accessibility
+    decision that must edit a law. */
+it("the APCA floors are the standard's numbers", () => {
+  expect(apcaFloors).toEqual({ body: 60, aaa: 75, nonText: 45 });
+});
 
 const L = (hex: string) => toOklch(hex)!.l;
 
@@ -331,7 +341,7 @@ describe("hostile hues survive the same law (§7)", () => {
 });
 
 describe("contrast=high shifts values, it never remaps a role (§7)", () => {
-  const AAA = 75;
+  const AAA = apcaFloors.aaa;
 
   it("clears the AAA-equivalent bar where normal only has to clear AA", () => {
     for (const mode of MODES) {
@@ -560,7 +570,7 @@ describe("the focus ring clears its contrast floor against the page (§8, WCAG 2
   //
   // Lc 45 is the non-text floor: below it a boundary stops reading as a boundary. Both modes
   // clear it with room (74.7 light, 66.3 dark) — the assertion is the guarantee, not the taste.
-  const NON_TEXT = 45;
+  const NON_TEXT = apcaFloors.nonText;
 
   for (const mode of MODES) {
     it(`holds in ${mode}, against every surface the ring can sit on`, () => {
@@ -615,7 +625,7 @@ describe("the mark edge clears the non-text floor, in both modes (§7, §11, WCA
   // floor against both the surface and the page; the picks live in color-config.ts so the
   // generator and this law read one source. Mutation-checked: step 7 fails in both modes,
   // and dark's own step 9 fails at 42.
-  const NON_TEXT = 45;
+  const NON_TEXT = apcaFloors.nonText;
 
   for (const mode of MODES) {
     it(`holds in ${mode}, against the surface and the page`, () => {
@@ -645,7 +655,7 @@ describe("the invalid edge clears the non-text floor, in both modes (§8, WCAG 1
   // the field's own fill, 22.8 -> 23.9 Lc in light, and 10.3 -> 9.8 in dark, i.e. going invalid
   // made the border FAINTER than the resting one it replaced. At constant luminance it is also
   // close to invisible to a red-green colourblind user. No law covered it; this is that law.
-  const NON_TEXT = 45;
+  const NON_TEXT = apcaFloors.nonText;
 
   for (const mode of MODES) {
     it(`holds in ${mode}, against the field fill and the page`, () => {

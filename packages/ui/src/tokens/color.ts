@@ -9,8 +9,13 @@ import { converter, formatHex, inGamut } from "culori";
 
 import {
   chromaCurve,
+  apcaFloors,
+  chromaFloor,
   contrastHigh,
   contrastHighBands,
+  focusRingStep,
+  inkMix,
+  invalidEdgeStep,
   labelPosition,
   lightness,
   lowChromaThreshold,
@@ -288,7 +293,6 @@ export function buildScaleFor(
   // out to near-white going up (shedding 54% of its chroma) and went olive going down. So the
   // excursion runs as far as it can while the hue still holds most of its saturation, and the
   // direction is chosen by which way affords more of that travel.
-  const CHROMA_FLOOR = 0.75;
   const spread = hc ? hc.stateSpread : 1;
   const scaleFor = isLowChroma ? lowChromaStateScale : spread;
   const desired = solidStateDeltas.active * scaleFor;
@@ -296,7 +300,7 @@ export function buildScaleFor(
     let best = 0;
     for (let d = 0.01; d <= desired; d += 0.005) {
       const l = restL + dir * d;
-      if (l !== clampL(l) || available(l) < restC * CHROMA_FLOOR) break;
+      if (l !== clampL(l) || available(l) < restC * chromaFloor) break;
       best = d;
     }
     return best;
@@ -314,7 +318,7 @@ export function buildScaleFor(
   // is what says so. Both laws hold; membership in the tone set is what gives.
   const preferredReach = reach(preferred);
   const oppositeReach = reach(-preferred);
-  const labelFloor = hc ? 75 : 60;
+  const labelFloor = hc ? apcaFloors.aaa : apcaFloors.body;
   const flippedStillClears = (() => {
     const t = Math.min(oppositeReach, desired);
     if (t <= preferredReach) return false;
@@ -447,8 +451,8 @@ export function colorDeclarations(
           ]
         : [
             decl(`${tone}-ink`, `var(--${tone}-11)`),
-            decl(`${tone}-ink-muted`, `color-mix(in oklab, var(--${tone}-11) 74%, transparent)`),
-            decl(`${tone}-ink-faint`, `color-mix(in oklab, var(--${tone}-11) 52%, transparent)`),
+            decl(`${tone}-ink-muted`, `color-mix(in oklab, var(--${tone}-11) ${inkMix.muted}%, transparent)`),
+            decl(`${tone}-ink-faint`, `color-mix(in oklab, var(--${tone}-11) ${inkMix.faint}%, transparent)`),
           ]),
     );
   }
@@ -465,7 +469,7 @@ export function colorDeclarations(
   // "≥3:1 against adjacent surfaces" law was never actually written (found 2026-08-03). Step 11
   // is the band designed to be legible against the page, and it clears the same floor light's
   // solid already did: 74.7 light, 66.3 dark, against --neutral-1.
-  out.push(decl("focus-ring", `var(${mode === "dark" ? "--accent-11" : "--accent-solid"})`));
+  out.push(decl("focus-ring", `var(--accent-${focusRingStep[mode]})`));
 
   // The edge a control wears while it is INVALID — both its border and its ring (§8, decided
   // 2026-08-04). One token because it is one answer: "this control is wrong" is a single
@@ -477,7 +481,7 @@ export function colorDeclarations(
   // luminance — APCA 23.9 light and 9.8 dark against the field fill, versus 22.8 / 10.3 for the
   // resting border it replaces. In dark, being invalid LOWERED contrast. Step 9 clears the
   // Lc 45 non-text floor in light (65.4) but not in dark (36.1); step 11 does (65.2).
-  out.push(decl("invalid-edge", `var(${mode === "dark" ? "--destructive-11" : "--destructive-solid"})`));
+  out.push(decl("invalid-edge", `var(--destructive-${invalidEdgeStep[mode]})`));
 
   // The mark edge (§7, §11, decided 2026-08-06) — the resting outline of a control that IS its
   // hairline: checkbox now, radio/switch/slider when they land. Its own role because a mark's
