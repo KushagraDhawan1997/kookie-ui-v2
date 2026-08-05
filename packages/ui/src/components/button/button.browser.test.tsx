@@ -5,8 +5,10 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
+import { density } from "../../tokens/config.ts";
 import { computed, render } from "../../test/browser.tsx";
 import { Card } from "../card/card.tsx";
+import { TextField as TextFieldForButtonTest } from "../text-field/text-field.tsx";
 import { Button } from "./button.tsx";
 
 /** Resolve a token the way a component does — through an element, not through the text. */
@@ -19,11 +21,26 @@ function tokenOn(el: Element, name: string): string {
   return value;
 }
 
+/** Read a custom property declared ON this element. tokenOn() appends a CHILD probe, which
+    cannot see a property registered `inherits: false` — as --kui-ct-fill and its state siblings
+    now are, so a glass control stops painting its veil onto controls nested inside it. */
+function ownToken(el: Element, name: string): string {
+  const probe = document.createElement("div");
+  probe.style.color = getComputedStyle(el).getPropertyValue(name).trim();
+  el.append(probe);
+  const value = getComputedStyle(probe).color;
+  probe.remove();
+  return value;
+}
+
 describe("the size index joins five scales at one number (§4)", () => {
   it("resolves height, padding, gap, radius and type together", () => {
     const el = render(<Button size="3">Label</Button>);
-    expect(computed(el, "min-height")).toBe("40px");
-    expect(computed(el, "padding-left")).toBe("16px");
+    // Read off the designed set rather than restated: this law is about the JOIN — that one
+    // index pulls every family together — so the number it compares against must be the one
+    // the config placed, or the law re-freezes a value the eye pass is meant to move.
+    expect(computed(el, "min-height")).toBe(`${density.default.height[2]}px`);
+    expect(computed(el, "padding-left")).toBe(`${density.default.px[2]}px`);
     expect(computed(el, "column-gap")).toBe("8px");
     expect(computed(el, "border-top-left-radius")).toBe("8px");
     expect(computed(el, "font-size")).toBe("16px");
@@ -130,8 +147,8 @@ describe("states are stylesheet work, and the DOM stays honest (§8, ENGINEERING
     expect(computed(el, "background-color")).toBe(tokenOn(el, "--tone-soft"));
     // The states live in the stylesheet keyed on :hover/:active, so what is asserted here is
     // that the recipe bound them to the right steps — no JS exists to fire at interaction.
-    expect(tokenOn(el, "--kui-fill-src-hover")).toBe(tokenOn(el, "--tone-soft-hover"));
-    expect(tokenOn(el, "--kui-fill-src-active")).toBe(tokenOn(el, "--tone-soft-active"));
+    expect(tokenOn(el, "--kui-ct-fill-src-hover")).toBe(tokenOn(el, "--tone-soft-hover"));
+    expect(tokenOn(el, "--kui-ct-fill-src-active")).toBe(tokenOn(el, "--tone-soft-active"));
   });
 
   it("disabled remaps the tone family instead of dropping opacity (§8)", () => {
@@ -217,10 +234,10 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
         Label
       </Button>,
     );
-    expect(tokenOn(el, "--kui-fill-hover")).toBe(
+    expect(ownToken(el, "--kui-ct-fill-hover")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-thin-alpha-hover), transparent)"),
     );
-    expect(tokenOn(el, "--kui-fill-active")).toBe(
+    expect(ownToken(el, "--kui-ct-fill-active")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-soft-active) var(--material-thin-alpha-active), transparent)"),
     );
   });
@@ -289,12 +306,12 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
 
   it("swaps the icon for the spinner in the same box, so nothing shifts", () => {
     const idle = render(
-      <Button icon={<svg />} size="3">
+      <Button leading={<svg />} size="3">
         Save
       </Button>,
     );
     const busy = render(
-      <Button icon={<svg />} size="3" loading>
+      <Button leading={<svg />} size="3" loading>
         Save
       </Button>,
     );
@@ -443,5 +460,87 @@ describe("a control refuses outer spacing at the type level (non-negotiable, §3
     void (<Card m="4">B</Card>);
     // @ts-expect-error — inset is not a CardProp
     void (<Card inset="0">B</Card>);
+  });
+});
+
+describe("iconOnly is a square box with a required name (§4, decided 2026-08-04)", () => {
+  it("squares the box at every size, and the glyph is the content", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const el = render(
+        <Button size={size} iconOnly aria-label="Search">
+          <svg />
+        </Button>,
+      );
+      const box = el.getBoundingClientRect();
+      expect(Math.abs(box.width - box.height), `size ${size} is not square`).toBeLessThanOrEqual(1);
+      expect(computed(el, "padding-left")).toBe("0px");
+    }
+  });
+
+  it("a labelled icon button compiles; an unlabelled one does not", () => {
+    // The whole reason the prop exists rather than being inferred. An icon-only control has no
+    // visible text, so with no accessible name a screen reader announces "button" and nothing
+    // else. A separate IconButton component was v1's answer and was simply forgotten at the
+    // call site; a type error cannot be forgotten.
+    void (
+      <Button iconOnly aria-label="Search">
+        <svg />
+      </Button>
+    );
+    void (
+      <Button iconOnly aria-labelledby="lbl">
+        <svg />
+      </Button>
+    );
+    // @ts-expect-error — iconOnly without an accessible name
+    void (<Button iconOnly><svg /></Button>);
+  });
+
+  it("hosted in a field, it takes the CONTAINER's height and stays square", () => {
+    const field = render(
+      <TextFieldForButtonTest
+        trailing={
+          <Button iconOnly aria-label="Clear">
+            <svg />
+          </Button>
+        }
+      />,
+    );
+    const button = field.querySelector<HTMLElement>(".kui-button")!;
+    const box = button.getBoundingClientRect();
+    expect(Math.abs(box.width - box.height)).toBeLessThanOrEqual(1);
+    expect(box.height).toBeLessThan(field.getBoundingClientRect().height);
+  });
+});
+
+describe("the invalid remap's DIRECT arm — the control that IS the element (§8)", () => {
+  // The shared rule has two arms: the element carrying the state, and `:has()` for wrappers.
+  // Both of TextField's laws exercised the second one — `aria-invalid` on a field is spread
+  // onto the input, so the wrapper matched through `:has()` and the spelling the law was named
+  // for was never on the element the direct arm selects. Nothing tested the first arm at all.
+  // A Button is that case: it is the element and the box at once, and every control that can
+  // be wrong wears this remap, which is why it lives in the shared layer.
+  it("aria-invalid re-tones a bordered button's edge and its ring", () => {
+    const plain = render(<Button bordered>Save</Button>);
+    const invalid = render(
+      <Button bordered aria-invalid="true">
+        Save
+      </Button>,
+    );
+    expect(invalid.matches('[aria-invalid="true"]')).toBe(true); // the direct arm, not :has()
+    expect(computed(invalid, "border-top-color")).toBe(tokenOn(invalid, "--invalid-edge"));
+    expect(computed(invalid, "border-top-color")).not.toBe(computed(plain, "border-top-color"));
+    // The ring reads the same edge — a state, not a tone (§8, reversed 2026-08-04).
+    expect(tokenOn(invalid, "--focus-ring")).toBe(tokenOn(invalid, "--invalid-edge"));
+    expect(tokenOn(invalid, "--focus-ring")).not.toBe(tokenOn(plain, "--focus-ring"));
+  });
+
+  it("data-invalid is the same arm — what Base UI writes on a control inside a Field.Root", () => {
+    const el = render(<Button bordered>Save</Button>);
+    const valid = computed(el, "border-top-color");
+    el.setAttribute("data-invalid", "");
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
+    el.removeAttribute("data-invalid");
+    expect(computed(el, "border-top-color")).toBe(valid);
   });
 });

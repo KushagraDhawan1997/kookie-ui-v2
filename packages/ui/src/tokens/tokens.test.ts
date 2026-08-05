@@ -12,9 +12,11 @@ import {
   coarse,
   controlGap,
   density,
-  deviceType,
+  heldMedia,
   fontSize,
-  handheldMedia,
+  narrowMedia,
+  typeBands,
+  inputFontFloor,
   layoutSpace,
   letterSpacing,
   lineHeight,
@@ -124,9 +126,12 @@ describe("semantic tokens reference palette tokens, never restate numbers (§6)"
     expect(declaration("radius-overlay")).toMatch(/^var\(--radius-\d+\)$/);
   });
 
-  it("control padding and gap resolve through the space palette", () => {
+  // The icon-label gap still resolves through the palette; inline padding no longer does, and
+  // that is the point of the 2026-08-05 change — the gap binds two pieces of CONTENT and can
+  // take a layout rhythm, where padding has to hold a fraction of a box the palette knows
+  // nothing about. §6 forbids restating a number, not naming one that has no palette to name.
+  it("the icon-label gap resolves through the space palette", () => {
     for (let size = 1; size <= 4; size++) {
-      expect(declaration(`control-px-${size}`)).toContain("var(--space-");
       expect(declaration(`control-gap-${size}`)).toContain("var(--space-");
     }
   });
@@ -192,12 +197,16 @@ describe("density is a designed set, not a multiplier (§12)", () => {
     }
   });
 
-  it("control innards read the RAW palette at every level — the layer must not double-apply", () => {
-    // The boundary (§12): control px answers density through the designed sets alone.
-    // Routed through layout space it would compress twice under compact.
+  it("control innards never route through LAYOUT SPACE — the layer must not double-apply", () => {
+    // The boundary (§12): control px answers density through the designed sets alone. Routed
+    // through layout space it would compress twice under compact. Since 2026-08-05 it does not
+    // route through the raw palette either — it is a designed length, which is a stronger form
+    // of the same guarantee, so the assertion moved from "is a space reference" to "references
+    // nothing that density has already moved".
     for (const level of ["default", "compact", "comfortable"] as const) {
       for (let size = 1; size <= 4; size++) {
-        expect(declaration(`control-px-${size}`, level)).toMatch(/^var\(--space-\d+\)$/);
+        expect(declaration(`control-px-${size}`, level)).not.toContain("--layout-space-");
+        expect(declaration(`control-px-${size}`, level)).not.toContain("--space-");
       }
     }
   });
@@ -303,6 +312,61 @@ describe("the corner holds a fraction of its box (§6)", () => {
   }
 });
 
+describe("the inline padding holds a fraction of its box (§4, §12)", () => {
+  // The radius bug a second time, found 2026-08-05 and fixed by taking `px` out of the space
+  // palette. The palette is a LAYOUT rhythm — through the control band it grows ~1.44x per
+  // step against a height ladder that grows ~1.20x — so indexing one with the other could not
+  // hold a fraction: default ran 0.286 -> 0.500 and comfortable reached 0.533. Every one of
+  // these assertions fails against the config that shipped, which is why they are here.
+  //
+  // A BAND rather than a spread ratio, because unlike radius the acceptable range is known:
+  // v1 of this system used a flat 0.375, Radix runs 0.33-0.42, and the eye pass judged those
+  // too loose at the top of the ladder. 0.24-0.38 is where all six sets now sit.
+  const FLOOR = 0.24;
+  const CEILING = 0.38;
+
+  const worlds: [string, Record<DensityLevel, DensitySet>][] = [
+    ["fine", density],
+    ["coarse", coarse],
+  ];
+
+  for (const [worldName, world] of worlds) {
+    for (const [levelName, set] of Object.entries(world)) {
+      it(`stays inside the band at ${worldName} x ${levelName}`, () => {
+        for (let i = 0; i < 4; i++) {
+          const fraction = set.px[i]! / set.height[i]!;
+          expect(fraction).toBeGreaterThanOrEqual(FLOOR);
+          expect(fraction).toBeLessThanOrEqual(CEILING);
+        }
+      });
+
+      // coarse/comfortable shipped [16, 24, 32, 32] — it ran out of palette and repeated a
+      // step, so a size-4 control was padded no wider than a size-3 one. Absolute monotonicity
+      // is the law that would have caught it, and no law covered `px` at all.
+      it(`grows with the size index at ${worldName} x ${levelName}`, () => {
+        expect(increasing(set.px)).toBe(true);
+      });
+    }
+  }
+
+  it("orders compact < default < comfortable at every size, the way height does", () => {
+    for (const world of worlds.map(([, w]) => w)) {
+      for (let i = 0; i < 4; i++) {
+        expect(world.compact.px[i]!).toBeLessThan(world.default.px[i]!);
+        expect(world.default.px[i]!).toBeLessThan(world.comfortable.px[i]!);
+      }
+    }
+  });
+
+  it("emits a scaled length, not a space reference — the palette is layout's, not the control's", () => {
+    // The token must also ZOOM: an index resolved to var(--space-N), which already carried
+    // --scale. A raw px emitted without zoom() would silently drop a control's padding out of
+    // the one geometry that answers the scale escape (§13).
+    expect(declaration("control-px-4")).toBe(`calc(${density.default.px[3]}px * var(--scale))`);
+    expect(css).not.toContain("--control-px-1: var(--space-");
+  });
+});
+
 describe("the pointer axis is a second designed geometry (§16)", () => {
   it("coarse places a complete set per density level, same shape as fine", () => {
     for (const level of Object.keys(density) as DensityLevel[]) {
@@ -343,6 +407,17 @@ describe("the pointer axis is a second designed geometry (§16)", () => {
     expect(declaration("touch-target-min")).toBe(`${touchTargetMin}px`);
   });
 
+  it("carries the zoom floor as a per-world token, zero where nothing zooms (§4)", () => {
+    // Safari zooms the page when a text input under 16px takes focus. It rides the pointer
+    // axis rather than a bare @media, so it resolves through the same scopes everything else
+    // does — pinnable, escapable, and readable as a computed value in the browser suite.
+    // Raw px in both worlds: the threshold is Safari's and does not move with --scale.
+    expect(declaration("input-font-floor")).toBe("0px");
+    expect(block(`[data-pointer="fine"]`)).toContain("--input-font-floor: 0px;");
+    expect(block(`[data-pointer="coarse"]`)).toContain(`--input-font-floor: ${inputFontFloor}px;`);
+    expect(block(`  [data-pointer="auto"]`)).toContain(`--input-font-floor: ${inputFontFloor}px;`);
+  });
+
   it("emits all three scopes: pinned coarse, the media-scoped auto, and the fine escape", () => {
     for (const scope of [`[data-pointer="coarse"]`, `[data-pointer="fine"]`]) {
       expect(block(scope)).toContain("--control-height-2:");
@@ -371,7 +446,7 @@ describe("the pointer axis is a second designed geometry (§16)", () => {
   });
 });
 
-describe("the device axis re-prices the type palette, and only the type palette (§15, §17)", () => {
+describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () => {
   /** The declarations of a scope, trimmed — for comparing two bands independent of indent. */
   const decls = (selector: string) =>
     block(selector)
@@ -379,34 +454,94 @@ describe("the device axis re-prices the type palette, and only the type palette 
       .map((l) => l.trim())
       .filter((l) => l.startsWith("--"));
 
-  it("a handheld step is the palette's designed TRIPLE at the picked index — never a mixed pair", () => {
+  /** The steps a band moves — the same derivation the generator makes. */
+  const moved = (picks: readonly number[]) => picks.flatMap((p, i) => (p === i + 1 ? [] : [i]));
+
+  /** The narrow band's body. Not `block(":root")`: the narrow band is an unattributed :root
+   *  rule inside a media query, and so is the P3 @supports block that precedes it — indexOf
+   *  would find that one and the laws would assert against the wrong scope. */
+  const narrowBand = () => {
+    const start = css.indexOf(`@media ${narrowMedia} {`);
+    if (start === -1) throw new Error("no narrow band — the suite would assert nothing");
+    return css.slice(start, css.indexOf("\n  }", start));
+  };
+
+  it("each band emits ONLY the steps it moves — which is what lets two bands coexist", () => {
+    // The single band this replaced emitted all nine steps, so two bands would have silently
+    // overwritten each other's answer on a phone, where both apply. Held owns 1-4 (a held
+    // screen is close to the eye), narrow owns 8-9 (a narrow screen is seven characters wide),
+    // and 5-7 are nobody's.
+    expect(moved(typeBands.held).map((i) => i + 1)).toEqual([1, 2, 3, 4]);
+    expect(moved(typeBands.narrow).map((i) => i + 1)).toEqual([8, 9]);
+    expect(moved(typeBands.held).some((i) => moved(typeBands.narrow).includes(i))).toBe(false);
+
+    for (const step of [1, 4]) {
+      expect(block(`[data-device="handheld"]`)).toContain(`--font-size-${step}:`);
+      expect(narrowBand()).toContain(`--font-size-${step === 1 ? 8 : 9}:`);
+    }
+    for (const step of [5, 6, 7, 8, 9]) {
+      expect(block(`[data-device="handheld"]`)).not.toContain(`--font-size-${step}:`);
+    }
+  });
+
+  it("a band's step is the palette's designed TRIPLE at the picked index — never a mixed pair", () => {
     // The whole point of re-picking an index rather than scaling a value: font-size, line
-    // height and letter spacing arrive as one designed step, so a band cannot ship a 18px
+    // height and letter spacing arrive as one designed step, so a band cannot ship an 18px
     // face on a 24px line with 16px tracking.
-    const body = block(`[data-device="handheld"]`);
-    deviceType.handheld.forEach((pick, i) => {
-      expect(body).toContain(`--font-size-${i + 1}: calc(${fontSize[pick - 1]}px * var(--scale));`);
-      expect(body).toContain(`--line-height-${i + 1}: calc(${lineHeight[pick - 1]}px * var(--scale));`);
-      expect(body).toContain(`--letter-spacing-${i + 1}: ${letterSpacing[pick - 1]}em;`);
-    });
+    for (const [body, picks] of [
+      [block(`[data-device="handheld"]`), typeBands.held],
+      [narrowBand(), typeBands.narrow],
+    ] as const) {
+      for (const i of moved(picks)) {
+        const pick = picks[i]!;
+        expect(body).toContain(`--font-size-${i + 1}: calc(${fontSize[pick - 1]}px * var(--scale));`);
+        expect(body).toContain(`--line-height-${i + 1}: calc(${lineHeight[pick - 1]}px * var(--scale));`);
+        expect(body).toContain(`--letter-spacing-${i + 1}: ${letterSpacing[pick - 1]}em;`);
+      }
+    }
   });
 
-  it("desktop is the identity, emitted as a real block — an escape that does nothing is not an escape", () => {
-    // Theme stamps data-device on every node, so a desktop Theme nested in a handheld region
-    // would otherwise inherit the handheld palette (§16's default-escape lesson, one axis over).
+  it("desktop is the identity over the HELD band's steps, and says nothing about width", () => {
+    // Theme stamps data-device on every node, so a desktop Theme nested in a held region
+    // would otherwise inherit the risen reading sizes (§16's default-escape lesson, one axis
+    // over). It must NOT re-declare 8-9: being pinned to desktop says nothing about how wide
+    // the window is, and re-declaring them would let a `desktop` Theme undo the narrow band
+    // inside a 375px viewport.
     const body = block(`[data-device="desktop"]`);
-    fontSize.forEach((px, i) => expect(body).toContain(`--font-size-${i + 1}: calc(${px}px * var(--scale));`));
-    lineHeight.forEach((px, i) => expect(body).toContain(`--line-height-${i + 1}: calc(${px}px * var(--scale));`));
+    for (const i of moved(typeBands.held)) {
+      expect(body).toContain(`--font-size-${i + 1}: calc(${fontSize[i]}px * var(--scale));`);
+      expect(body).toContain(`--line-height-${i + 1}: calc(${lineHeight[i]}px * var(--scale));`);
+    }
+    for (const i of moved(typeBands.narrow)) {
+      expect(body).not.toContain(`--font-size-${i + 1}:`);
+    }
   });
 
-  it("auto rides the CONJUNCTION — coarse alone is a touch laptop, narrow alone a squeezed window", () => {
-    expect(handheldMedia).toContain("pointer: coarse");
-    expect(handheldMedia).toContain("max-width");
-    const media = css.indexOf(`@media ${handheldMedia} {`);
+  it("held rides the POINTER alone, and narrow rides width alone — no conjunction", () => {
+    // The conjunction this replaces got the middle of the range wrong in both directions.
+    // Apple ships ONE Dynamic Type table for iOS and iPadOS — Body is 17pt on both — so the
+    // reading question does not distinguish phone from tablet, and the width half excluded
+    // every iPad from a rise it should have had.
+    expect(heldMedia).toBe("(pointer: coarse)");
+    expect(heldMedia).not.toContain("width");
+    expect(narrowMedia).toContain("max-width");
+    expect(narrowMedia).not.toContain("pointer");
+
+    const media = css.indexOf(`@media ${heldMedia} {`);
     expect(media).toBeGreaterThan(-1);
     expect(css.indexOf(`[data-device="auto"]`)).toBeGreaterThan(media);
     // The auto band IS the handheld band — one designed set, two ways in.
     expect(decls(`[data-device="auto"]`)).toEqual(decls(`[data-device="handheld"]`));
+  });
+
+  it("the narrow band carries no attribute — width is not a device fact", () => {
+    // There is nothing here to escape: a Theme pinned to `desktop` inside a 375px window
+    // still has a 375px window. It sits on :root and inherits into every Theme scope, and it
+    // is emitted LAST so it wins the :root-versus-:root tie against the base palette.
+    const narrow = css.indexOf(`@media ${narrowMedia} {`);
+    expect(narrow).toBeGreaterThan(-1);
+    expect(narrow).toBeGreaterThan(css.indexOf(`[data-device="handheld"] {`));
+    expect(css.slice(narrow, narrow + 200)).not.toContain("data-device");
   });
 
   it("touches nothing but type — geometry is the pointer axis's, spacing is nobody's (§16)", () => {
@@ -423,16 +558,37 @@ describe("the device axis re-prices the type palette, and only the type palette 
     }
   });
 
-  it("the band is non-monotonic BY DESIGN: reading sizes rise, display sizes fall, order holds", () => {
-    const picks = deviceType.handheld;
-    expect(picks).toHaveLength(fontSize.length);
-    // Every pick lands inside the palette, and a larger step never renders smaller.
-    expect(picks.every((p) => p >= 1 && p <= fontSize.length)).toBe(true);
-    expect(picks.every((p, i) => i === 0 || p >= picks[i - 1]!)).toBe(true);
-    // The shape is the decision (values are v0): body text rises toward the HIG's 17pt...
-    expect(picks[2]!).toBeGreaterThan(3);
-    // ...and display text falls — 56px on a 375px screen is seven characters a line.
-    expect(picks[8]!).toBeLessThan(9);
+  it("both bands stay inside the palette and never re-order a step", () => {
+    for (const picks of Object.values(typeBands)) {
+      expect(picks).toHaveLength(fontSize.length);
+      expect(picks.every((p) => p >= 1 && p <= fontSize.length)).toBe(true);
+      // A larger step never renders smaller than the one below it, in either band or in
+      // their composition — the ladder may collapse, it may not invert.
+      expect(picks.every((p, i) => i === 0 || p >= picks[i - 1]!)).toBe(true);
+    }
+    // The direction of each band is its reason for existing (values are v0): reading rises
+    // toward the HIG's 17pt, display falls because a short line cannot hold 56px.
+    expect(typeBands.held[2]!).toBeGreaterThan(3);
+    expect(typeBands.narrow[8]!).toBeLessThan(9);
+    // ...and each band leaves the OTHER's steps alone, which is the split itself.
+    expect(typeBands.held[8]).toBe(9);
+    expect(typeBands.narrow[2]).toBe(3);
+  });
+
+  it("composes to the four real cells, and two of them were wrong before the split", () => {
+    // The composition is what a device actually gets. Read as: [reading step 3, display 9].
+    const px = (band: readonly number[], i: number) => fontSize[band[i]! - 1]!;
+    const desktopWide = [px([1, 2, 3, 4, 5, 6, 7, 8, 9], 2), px([1, 2, 3, 4, 5, 6, 7, 8, 9], 8)];
+    const phone = [px(typeBands.held, 2), px(typeBands.narrow, 8)];
+    const tabletLandscape = [px(typeBands.held, 2), px([1, 2, 3, 4, 5, 6, 7, 8, 9], 8)];
+    const narrowDesktop = [px([1, 2, 3, 4, 5, 6, 7, 8, 9], 2), px(typeBands.narrow, 8)];
+
+    expect(desktopWide).toEqual([16, 56]);
+    expect(phone).toEqual([18, 40]);
+    // The two the single band got wrong: a tablet rises AND keeps its display size...
+    expect(tabletLandscape).toEqual([18, 56]);
+    // ...and a squeezed desktop window cuts its display without touching reading sizes.
+    expect(narrowDesktop).toEqual([16, 40]);
   });
 });
 
@@ -532,10 +688,12 @@ describe("multiplier wiring matches §12's table", () => {
     }
   });
 
-  it("control height takes scale; padding and gap inherit it through the space palette", () => {
+  it("control height and padding take scale directly; the gap inherits it through the palette", () => {
     for (let size = 1; size <= 4; size++) {
       expect(declaration(`control-height-${size}`)).toContain("var(--scale)");
-      expect(declaration(`control-px-${size}`)).toMatch(/^var\(--space-\d+\)$/);
+      // Padding joined height on 2026-08-05, so it now has to carry the multiplier itself —
+      // the space palette is no longer there to carry it (see the padding-fraction laws).
+      expect(declaration(`control-px-${size}`)).toContain("var(--scale)");
       expect(declaration(`control-gap-${size}`)).toMatch(/^var\(--space-\d+\)$/);
     }
   });

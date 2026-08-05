@@ -7,6 +7,9 @@
 
   /* the touch floor (§16) — raw px on purpose: a physical floor, not a zoomable length */
   --touch-target-min: 44px;
+  /* and the zoom floor (§4), which is zero here: a fine pointer never zooms on focus.
+     The coarse world re-declares it — see pointerWorld(). */
+  --input-font-floor: 0px;
 
   /* space palette (§3) — layout currency; density never touches it */
   --space-1: calc(2px * var(--scale));
@@ -109,14 +112,18 @@
   --control-height-2: calc(32px * var(--scale));
   --control-height-3: calc(40px * var(--scale));
   --control-height-4: calc(48px * var(--scale));
-  --control-px-1: var(--space-3);
-  --control-px-2: var(--space-4);
-  --control-px-3: var(--space-5);
-  --control-px-4: var(--space-6);
+  --control-px-1: calc(8px * var(--scale));
+  --control-px-2: calc(10px * var(--scale));
+  --control-px-3: calc(13px * var(--scale));
+  --control-px-4: calc(16px * var(--scale));
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --slot-inset-1: calc(3px * var(--scale));
+  --slot-inset-2: calc(3px * var(--scale));
+  --slot-inset-3: calc(4px * var(--scale));
+  --slot-inset-4: calc(4px * var(--scale));
   --control-gap-1: var(--space-2);
   --control-gap-2: var(--space-3);
   --control-gap-3: var(--space-3);
@@ -374,6 +381,7 @@
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
   --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
+  --invalid-edge: var(--destructive-solid);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -656,6 +664,7 @@
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
   --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
+  --invalid-edge: var(--destructive-solid);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -938,6 +947,7 @@
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
   --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
   --focus-ring: var(--accent-11);
+  --invalid-edge: var(--destructive-11);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1149,6 +1159,7 @@
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
     --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
+    --invalid-edge: var(--destructive-solid);
   }
   [data-appearance="light"] {
     /* neutral */
@@ -1308,6 +1319,7 @@
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
     --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
+    --invalid-edge: var(--destructive-solid);
   }
   [data-appearance="dark"] {
     /* neutral */
@@ -1467,6 +1479,7 @@
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
     --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
     --focus-ring: var(--accent-11);
+    --invalid-edge: var(--destructive-11);
   }
 }
 
@@ -1899,14 +1912,18 @@
   --control-height-2: calc(28px * var(--scale));
   --control-height-3: calc(34px * var(--scale));
   --control-height-4: calc(40px * var(--scale));
-  --control-px-1: var(--space-2);
-  --control-px-2: var(--space-3);
-  --control-px-3: var(--space-4);
-  --control-px-4: var(--space-5);
+  --control-px-1: calc(6px * var(--scale));
+  --control-px-2: calc(8px * var(--scale));
+  --control-px-3: calc(10px * var(--scale));
+  --control-px-4: calc(12px * var(--scale));
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
   --radius-control-4: var(--radius-3);
+  --slot-inset-1: calc(2px * var(--scale));
+  --slot-inset-2: calc(3px * var(--scale));
+  --slot-inset-3: calc(3px * var(--scale));
+  --slot-inset-4: calc(4px * var(--scale));
   --layout-space-1: var(--space-1);
   --layout-space-2: var(--space-1);
   --layout-space-3: var(--space-2);
@@ -1930,14 +1947,18 @@
   --control-height-2: calc(32px * var(--scale));
   --control-height-3: calc(40px * var(--scale));
   --control-height-4: calc(48px * var(--scale));
-  --control-px-1: var(--space-3);
-  --control-px-2: var(--space-4);
-  --control-px-3: var(--space-5);
-  --control-px-4: var(--space-6);
+  --control-px-1: calc(8px * var(--scale));
+  --control-px-2: calc(10px * var(--scale));
+  --control-px-3: calc(13px * var(--scale));
+  --control-px-4: calc(16px * var(--scale));
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --slot-inset-1: calc(3px * var(--scale));
+  --slot-inset-2: calc(3px * var(--scale));
+  --slot-inset-3: calc(4px * var(--scale));
+  --slot-inset-4: calc(4px * var(--scale));
   --layout-space-1: var(--space-1);
   --layout-space-2: var(--space-2);
   --layout-space-3: var(--space-3);
@@ -1961,14 +1982,18 @@
   --control-height-2: calc(40px * var(--scale));
   --control-height-3: calc(50px * var(--scale));
   --control-height-4: calc(60px * var(--scale));
-  --control-px-1: var(--space-4);
-  --control-px-2: var(--space-5);
-  --control-px-3: var(--space-6);
-  --control-px-4: var(--space-7);
+  --control-px-1: calc(12px * var(--scale));
+  --control-px-2: calc(14px * var(--scale));
+  --control-px-3: calc(18px * var(--scale));
+  --control-px-4: calc(22px * var(--scale));
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
+  --slot-inset-1: calc(3px * var(--scale));
+  --slot-inset-2: calc(4px * var(--scale));
+  --slot-inset-3: calc(5px * var(--scale));
+  --slot-inset-4: calc(6px * var(--scale));
   --layout-space-1: var(--space-2);
   --layout-space-2: var(--space-3);
   --layout-space-3: var(--space-4);
@@ -2327,18 +2352,23 @@
   --control-height-2: calc(32px * var(--scale));
   --control-height-3: calc(40px * var(--scale));
   --control-height-4: calc(48px * var(--scale));
-  --control-px-1: var(--space-3);
-  --control-px-2: var(--space-4);
-  --control-px-3: var(--space-5);
-  --control-px-4: var(--space-6);
+  --control-px-1: calc(8px * var(--scale));
+  --control-px-2: calc(10px * var(--scale));
+  --control-px-3: calc(13px * var(--scale));
+  --control-px-4: calc(16px * var(--scale));
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --slot-inset-1: calc(3px * var(--scale));
+  --slot-inset-2: calc(3px * var(--scale));
+  --slot-inset-3: calc(4px * var(--scale));
+  --slot-inset-4: calc(4px * var(--scale));
   --control-gap-1: var(--space-2);
   --control-gap-2: var(--space-3);
   --control-gap-3: var(--space-3);
   --control-gap-4: var(--space-4);
+  --input-font-floor: 0px;
 }
 
 [data-pointer="fine"][data-density="compact"] {
@@ -2346,14 +2376,18 @@
   --control-height-2: calc(28px * var(--scale));
   --control-height-3: calc(34px * var(--scale));
   --control-height-4: calc(40px * var(--scale));
-  --control-px-1: var(--space-2);
-  --control-px-2: var(--space-3);
-  --control-px-3: var(--space-4);
-  --control-px-4: var(--space-5);
+  --control-px-1: calc(6px * var(--scale));
+  --control-px-2: calc(8px * var(--scale));
+  --control-px-3: calc(10px * var(--scale));
+  --control-px-4: calc(12px * var(--scale));
   --radius-control-1: var(--radius-1);
   --radius-control-2: var(--radius-2);
   --radius-control-3: var(--radius-2);
   --radius-control-4: var(--radius-3);
+  --slot-inset-1: calc(2px * var(--scale));
+  --slot-inset-2: calc(3px * var(--scale));
+  --slot-inset-3: calc(3px * var(--scale));
+  --slot-inset-4: calc(4px * var(--scale));
 }
 
 [data-pointer="fine"][data-density="comfortable"] {
@@ -2361,14 +2395,18 @@
   --control-height-2: calc(40px * var(--scale));
   --control-height-3: calc(50px * var(--scale));
   --control-height-4: calc(60px * var(--scale));
-  --control-px-1: var(--space-4);
-  --control-px-2: var(--space-5);
-  --control-px-3: var(--space-6);
-  --control-px-4: var(--space-7);
+  --control-px-1: calc(12px * var(--scale));
+  --control-px-2: calc(14px * var(--scale));
+  --control-px-3: calc(18px * var(--scale));
+  --control-px-4: calc(22px * var(--scale));
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
+  --slot-inset-1: calc(3px * var(--scale));
+  --slot-inset-2: calc(4px * var(--scale));
+  --slot-inset-3: calc(5px * var(--scale));
+  --slot-inset-4: calc(6px * var(--scale));
 }
 
 [data-pointer="fine"][data-radius="none"][data-density="compact"] {
@@ -2516,18 +2554,23 @@
   --control-height-2: calc(44px * var(--scale));
   --control-height-3: calc(52px * var(--scale));
   --control-height-4: calc(60px * var(--scale));
-  --control-px-1: var(--space-4);
-  --control-px-2: var(--space-5);
-  --control-px-3: var(--space-6);
-  --control-px-4: var(--space-7);
+  --control-px-1: calc(10px * var(--scale));
+  --control-px-2: calc(13px * var(--scale));
+  --control-px-3: calc(16px * var(--scale));
+  --control-px-4: calc(20px * var(--scale));
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-4);
   --radius-control-4: var(--radius-5);
+  --slot-inset-1: calc(4px * var(--scale));
+  --slot-inset-2: calc(4px * var(--scale));
+  --slot-inset-3: calc(5px * var(--scale));
+  --slot-inset-4: calc(5px * var(--scale));
   --control-gap-1: var(--space-3);
   --control-gap-2: var(--space-4);
   --control-gap-3: var(--space-4);
   --control-gap-4: var(--space-5);
+  --input-font-floor: 16px;
 }
 
 [data-pointer="coarse"][data-density="compact"] {
@@ -2535,14 +2578,18 @@
   --control-height-2: calc(38px * var(--scale));
   --control-height-3: calc(46px * var(--scale));
   --control-height-4: calc(54px * var(--scale));
-  --control-px-1: var(--space-3);
-  --control-px-2: var(--space-4);
-  --control-px-3: var(--space-5);
-  --control-px-4: var(--space-6);
+  --control-px-1: calc(8px * var(--scale));
+  --control-px-2: calc(10px * var(--scale));
+  --control-px-3: calc(13px * var(--scale));
+  --control-px-4: calc(16px * var(--scale));
   --radius-control-1: var(--radius-2);
   --radius-control-2: var(--radius-3);
   --radius-control-3: var(--radius-3);
   --radius-control-4: var(--radius-4);
+  --slot-inset-1: calc(3px * var(--scale));
+  --slot-inset-2: calc(4px * var(--scale));
+  --slot-inset-3: calc(4px * var(--scale));
+  --slot-inset-4: calc(5px * var(--scale));
 }
 
 [data-pointer="coarse"][data-density="comfortable"] {
@@ -2550,14 +2597,18 @@
   --control-height-2: calc(48px * var(--scale));
   --control-height-3: calc(58px * var(--scale));
   --control-height-4: calc(68px * var(--scale));
-  --control-px-1: var(--space-5);
-  --control-px-2: var(--space-6);
-  --control-px-3: var(--space-7);
-  --control-px-4: var(--space-7);
+  --control-px-1: calc(14px * var(--scale));
+  --control-px-2: calc(17px * var(--scale));
+  --control-px-3: calc(21px * var(--scale));
+  --control-px-4: calc(25px * var(--scale));
   --radius-control-1: var(--radius-3);
   --radius-control-2: var(--radius-4);
   --radius-control-3: var(--radius-5);
   --radius-control-4: var(--radius-5);
+  --slot-inset-1: calc(4px * var(--scale));
+  --slot-inset-2: calc(5px * var(--scale));
+  --slot-inset-3: calc(6px * var(--scale));
+  --slot-inset-4: calc(7px * var(--scale));
 }
 
 [data-pointer="coarse"][data-radius="none"][data-density="compact"] {
@@ -2706,18 +2757,23 @@
     --control-height-2: calc(44px * var(--scale));
     --control-height-3: calc(52px * var(--scale));
     --control-height-4: calc(60px * var(--scale));
-    --control-px-1: var(--space-4);
-    --control-px-2: var(--space-5);
-    --control-px-3: var(--space-6);
-    --control-px-4: var(--space-7);
+    --control-px-1: calc(10px * var(--scale));
+    --control-px-2: calc(13px * var(--scale));
+    --control-px-3: calc(16px * var(--scale));
+    --control-px-4: calc(20px * var(--scale));
     --radius-control-1: var(--radius-2);
     --radius-control-2: var(--radius-3);
     --radius-control-3: var(--radius-4);
     --radius-control-4: var(--radius-5);
+    --slot-inset-1: calc(4px * var(--scale));
+    --slot-inset-2: calc(4px * var(--scale));
+    --slot-inset-3: calc(5px * var(--scale));
+    --slot-inset-4: calc(5px * var(--scale));
     --control-gap-1: var(--space-3);
     --control-gap-2: var(--space-4);
     --control-gap-3: var(--space-4);
     --control-gap-4: var(--space-5);
+    --input-font-floor: 16px;
   }
 
   [data-pointer="auto"][data-density="compact"] {
@@ -2725,14 +2781,18 @@
     --control-height-2: calc(38px * var(--scale));
     --control-height-3: calc(46px * var(--scale));
     --control-height-4: calc(54px * var(--scale));
-    --control-px-1: var(--space-3);
-    --control-px-2: var(--space-4);
-    --control-px-3: var(--space-5);
-    --control-px-4: var(--space-6);
+    --control-px-1: calc(8px * var(--scale));
+    --control-px-2: calc(10px * var(--scale));
+    --control-px-3: calc(13px * var(--scale));
+    --control-px-4: calc(16px * var(--scale));
     --radius-control-1: var(--radius-2);
     --radius-control-2: var(--radius-3);
     --radius-control-3: var(--radius-3);
     --radius-control-4: var(--radius-4);
+    --slot-inset-1: calc(3px * var(--scale));
+    --slot-inset-2: calc(4px * var(--scale));
+    --slot-inset-3: calc(4px * var(--scale));
+    --slot-inset-4: calc(5px * var(--scale));
   }
 
   [data-pointer="auto"][data-density="comfortable"] {
@@ -2740,14 +2800,18 @@
     --control-height-2: calc(48px * var(--scale));
     --control-height-3: calc(58px * var(--scale));
     --control-height-4: calc(68px * var(--scale));
-    --control-px-1: var(--space-5);
-    --control-px-2: var(--space-6);
-    --control-px-3: var(--space-7);
-    --control-px-4: var(--space-7);
+    --control-px-1: calc(14px * var(--scale));
+    --control-px-2: calc(17px * var(--scale));
+    --control-px-3: calc(21px * var(--scale));
+    --control-px-4: calc(25px * var(--scale));
     --radius-control-1: var(--radius-3);
     --radius-control-2: var(--radius-4);
     --radius-control-3: var(--radius-5);
     --radius-control-4: var(--radius-5);
+    --slot-inset-1: calc(4px * var(--scale));
+    --slot-inset-2: calc(5px * var(--scale));
+    --slot-inset-3: calc(6px * var(--scale));
+    --slot-inset-4: calc(7px * var(--scale));
   }
 
   [data-pointer="auto"][data-radius="none"][data-density="compact"] {
@@ -2897,29 +2961,14 @@
   --font-size-2: calc(14px * var(--scale));
   --font-size-3: calc(16px * var(--scale));
   --font-size-4: calc(18px * var(--scale));
-  --font-size-5: calc(20px * var(--scale));
-  --font-size-6: calc(24px * var(--scale));
-  --font-size-7: calc(30px * var(--scale));
-  --font-size-8: calc(40px * var(--scale));
-  --font-size-9: calc(56px * var(--scale));
   --line-height-1: calc(16px * var(--scale));
   --line-height-2: calc(20px * var(--scale));
   --line-height-3: calc(24px * var(--scale));
   --line-height-4: calc(26px * var(--scale));
-  --line-height-5: calc(28px * var(--scale));
-  --line-height-6: calc(32px * var(--scale));
-  --line-height-7: calc(38px * var(--scale));
-  --line-height-8: calc(48px * var(--scale));
-  --line-height-9: calc(62px * var(--scale));
   --letter-spacing-1: 0em;
   --letter-spacing-2: 0em;
   --letter-spacing-3: 0em;
   --letter-spacing-4: -0.005em;
-  --letter-spacing-5: -0.0075em;
-  --letter-spacing-6: -0.01em;
-  --letter-spacing-7: -0.015em;
-  --letter-spacing-8: -0.02em;
-  --letter-spacing-9: -0.025em;
 }
 
 [data-device="handheld"] {
@@ -2927,58 +2976,39 @@
   --font-size-2: calc(16px * var(--scale));
   --font-size-3: calc(18px * var(--scale));
   --font-size-4: calc(20px * var(--scale));
-  --font-size-5: calc(20px * var(--scale));
-  --font-size-6: calc(24px * var(--scale));
-  --font-size-7: calc(30px * var(--scale));
-  --font-size-8: calc(30px * var(--scale));
-  --font-size-9: calc(40px * var(--scale));
   --line-height-1: calc(20px * var(--scale));
   --line-height-2: calc(24px * var(--scale));
   --line-height-3: calc(26px * var(--scale));
   --line-height-4: calc(28px * var(--scale));
-  --line-height-5: calc(28px * var(--scale));
-  --line-height-6: calc(32px * var(--scale));
-  --line-height-7: calc(38px * var(--scale));
-  --line-height-8: calc(38px * var(--scale));
-  --line-height-9: calc(48px * var(--scale));
   --letter-spacing-1: 0em;
   --letter-spacing-2: 0em;
   --letter-spacing-3: -0.005em;
   --letter-spacing-4: -0.0075em;
-  --letter-spacing-5: -0.0075em;
-  --letter-spacing-6: -0.01em;
-  --letter-spacing-7: -0.015em;
-  --letter-spacing-8: -0.015em;
-  --letter-spacing-9: -0.02em;
 }
 
-@media (pointer: coarse) and (max-width: 48rem) {
+@media (pointer: coarse) {
   [data-device="auto"] {
     --font-size-1: calc(14px * var(--scale));
     --font-size-2: calc(16px * var(--scale));
     --font-size-3: calc(18px * var(--scale));
     --font-size-4: calc(20px * var(--scale));
-    --font-size-5: calc(20px * var(--scale));
-    --font-size-6: calc(24px * var(--scale));
-    --font-size-7: calc(30px * var(--scale));
-    --font-size-8: calc(30px * var(--scale));
-    --font-size-9: calc(40px * var(--scale));
     --line-height-1: calc(20px * var(--scale));
     --line-height-2: calc(24px * var(--scale));
     --line-height-3: calc(26px * var(--scale));
     --line-height-4: calc(28px * var(--scale));
-    --line-height-5: calc(28px * var(--scale));
-    --line-height-6: calc(32px * var(--scale));
-    --line-height-7: calc(38px * var(--scale));
-    --line-height-8: calc(38px * var(--scale));
-    --line-height-9: calc(48px * var(--scale));
     --letter-spacing-1: 0em;
     --letter-spacing-2: 0em;
     --letter-spacing-3: -0.005em;
     --letter-spacing-4: -0.0075em;
-    --letter-spacing-5: -0.0075em;
-    --letter-spacing-6: -0.01em;
-    --letter-spacing-7: -0.015em;
+  }
+}
+
+@media (max-width: 48rem) {
+  :root {
+    --font-size-8: calc(30px * var(--scale));
+    --font-size-9: calc(40px * var(--scale));
+    --line-height-8: calc(38px * var(--scale));
+    --line-height-9: calc(48px * var(--scale));
     --letter-spacing-8: -0.015em;
     --letter-spacing-9: -0.02em;
   }

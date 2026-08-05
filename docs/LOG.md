@@ -8,6 +8,160 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 One type band was doing two jobs, and Apple's own table is what showed it
+
+Kushagra, on the question of whether iPads need their own band, with a screenshot: Apple's page is titled **"iOS, iPadOS Dynamic Type sizes"** — one table for both platforms. Body is 17pt on an iPhone and 17pt on an iPad.
+
+Which quietly demolishes the width half of our rule. The `handheld` band (shipped 2026-08-04) fired on `(pointer: coarse) and (max-width: 48rem)`, and the *cited* justification for the band was "HIG: iOS body 17pt against macOS 13pt" — a **touch platform vs desktop platform** contrast. The width gate silently converted that into **phone vs tablet**, a split the source does not make. And it did not even make that split well: a 13" iPad Pro is 1032px portrait and 1376px landscape, the 10.9" is 820px, so at 768px the gate separates an iPad mini in portrait from every other iPad. That is where a threshold landed, not a boundary anyone chose.
+
+Chasing the fix exposed the real defect, which was structural rather than numeric. **The band was doing two unrelated jobs:**
+
+    reading steps 1-4 ROSE    16 -> 18   because a held screen is close to the eye
+    display steps 8-9  FELL   56 -> 40   because a narrow screen is seven characters wide
+
+Viewing distance and line length. Different questions, different answers, welded to one signal — so the middle of the range came out wrong in both directions. A tablet lost a rise it should have had, and a squeezed desktop window kept 56px headings though the line-length argument applies to it identically.
+
+So: two bands. `held` on `(pointer: coarse)`, `narrow` on `(max-width: 48rem)`. Each emits only the steps it MOVES, which is what lets them coexist — held owns 1-4, narrow owns 8-9, steps 5-7 are nobody's, and neither can silently overwrite the other on a phone where both apply. The generator derives the moved set from the picks, so tuning a pick moves the emission with it.
+
+Two consequences worth recording.
+
+**`device` stops being an axis and becomes an escape.** Its auto signal now asks exactly the question `pointer` asks. It survives on two cases no query can answer: a touch-only kiosk or wall display (coarse, held by nobody, read from two metres, wanting *bigger* type), and a POS terminal that wants coarse targets with desk-distance text. Without the prop, type and targets are welded and neither is expressible. §17's framing as "the third device-facing question gets its own signal" is now overstated and has been rewritten.
+
+**There is no tablet band, and the thing Kushagra was actually reaching for is a different deliverable.** Figma-on-iPad ships a reduced interface — but sort what differs and it is: which features exist (a product decision), navigation shape (width), tap targets (the pointer axis), and type (where Apple says tablet equals phone). Nothing is left for a band to hold. What IS missing is a **window-level size class** for app-shell composition: our tiers are container-keyed on purpose, and "which interface should this app show" is a viewport question the system currently cannot answer. Recorded as open, shaped like Material's compact/medium/expanded.
+
+Rejected on the way: **`any-pointer: coarse`** as the held signal — it means "touch exists somewhere on this machine", so it would permanently inflate a mouse-driven touchscreen laptop and override density, an axis built precisely so people could choose airiness. `pointer` tracks how the machine is being used now: flip a 2-in-1 into tablet mode and it becomes coarse, flip it back and it does not. That also closes §16's long-open `any-pointer` question for geometry, with the same answer — capability is not use.
+
+One test-infrastructure note, because it was a live falsification: the browser suite's viewport was under 768px, so the moment the narrow band existed every law that read a step-9 size was silently asserting against the narrow world while claiming to test the base palette. The viewport is now pinned wide, and the narrow band has its own laws that resize the page for real.
+
+---
+
+## 2026-08-05 Two layers were writing to the same private names, and one of them was Box
+
+`--kui-h` was the control layer's height stem AND the layout mechanism's stem for Box's `height` prop. So were `--kui-px` and `--kui-py`, against Box's `px` and `py`. Three names, six meanings.
+
+This is not a tidiness complaint. The layout mechanism registers every one of its stems `inherits: false` — correctly, so a Box's padding does not leak into its children — and that registration applies to the NAME, not to the layer. So `--kui-h` was silently *absent* on any element that did not declare it, which is exactly why the hosted-control geometry needed two hops: the container had to compute the height and hand it to the slot, because the slot could not read the container's `--kui-h` at all. That was the second thing the collision broke; the size join leaking the whole control family onto every Card was the first, and it was fixed at the symptom in the 2026-08-03 audit by scoping the selector, leaving the name shared.
+
+The control layer now wears `--kui-ct-`, which is the convention the surface layer already had (`--kui-sf-`). With the names distinct, the slot can simply read the container's height and the second hop is gone — one registered property deleted, and the mechanism reads the way it should have.
+
+`--kui-border-color` stays shared, on purpose: `[data-bordered]` is written once and read by both `.kui-control` and `.kui-surface`, because containment is one idea. So the law is not "no shared names" — it is the narrower one that could not have been satisfied by accident: **nothing outside the layout mechanism may so much as MENTION a name the layout mechanism declares.** Mention rather than declare, because reading a stem you do not own is the same defect from the other side, and `--kui-py` was precisely that — read by the control skeleton, declared by Box.
+
+Two laws had to learn to strip comments to make this work, and the reason is worth recording: these stylesheets explain why a rung, a family or an abandoned stem is *absent*, which means writing it down, which made both laws fire on their own documentation. The cheap fix each time is to delete the sentence. That is the wrong direction for a codebase whose comments are the argument, so the laws now read code.
+
+---
+
+## 2026-08-05 The iOS zoom hole was bigger than the size 1 everyone had pencilled in
+
+Safari zooms the whole page when a text input under 16px takes focus — the layout shifts off-centre and the user pinches back. It is the only way a control in this system can break the page *around* it just by being tapped.
+
+The device axis (§17) was recorded as having mostly closed this: the handheld band lifts size 2 to 16px, so "sizes 2+ are safe on a phone, size 1 is the known edge." The first half is true and the second half was wrong. An iPad in landscape is past the handheld conjunction's 48rem threshold, so it resolves as `desktop`, takes the desktop type ladder — 14px at size 2 — and Safari zooms on the default size of the default control. The axis that was supposed to answer this is optical (where the screen sits); the question is motor (a finger is touching it). Wrong axis.
+
+So `--input-font-floor` rides the POINTER world: 0px on fine, 16px on coarse, and the input's font size is `max()`ed against it. It lands on the input alone — the box keeps its designed height, the label its designed step — so a size-1 field is still visibly a size-1 field, and the control≡type parity the size index rests on is untouched.
+
+**Rejected: lifting the handheld type ladder so size 1 renders 16px.** It fixes one control by making the caption step unusable — a phone that cannot render small secondary text has lost more than it gained.
+
+**Rejected: a bare `@media (pointer: coarse)` rule.** Same rendered result, but it would be the one geometry answer in the system that cannot be pinned, escaped, or read as a computed value through `<Theme pointer>` — which is how everything else in the pointer axis works and how it gets tested.
+
+---
+
+## 2026-08-05 readOnly was a prop that resolved to nothing
+
+`<TextField readOnly />` was fully accepted, refused keystrokes, and looked pixel-identical to the editable field beside it. The only feedback was typing and having nothing happen.
+
+The temptation is to reach for the disabled treatment, and it is wrong: a read-only field is live. Its value is selectable, copyable, focusable, in the tab order, and submitted with the form. Exactly one thing is gone — the invitation to type — so exactly one thing changes: the **seal**, which is what makes a field read as a well you put a caret into. Border, text contrast and the caret cursor all stay, because each of them is still telling the truth.
+
+One trap, and it is CSS's: `:read-only` matches anything that is not `:read-write`, which includes a *disabled* input. Without `:not(:disabled)` every disabled field would lose its fill on top of the disabled remap — two states painting one box.
+
+Closed at the same time, from the same audit: `type` became a closed union. On the native element `type` is not an axis but a component selector, and unconstrained it let `type="hidden"` render a visible empty bordered box — the wrapper draws the border and the height, and it cannot honour a type nobody told it about. And slot content now DESCRIBES the field through `aria-describedby` rather than floating beside it unlinked; described rather than labelled, because an adornment qualifies the value and does not name the field.
+
+---
+
+## 2026-08-05 Control padding leaves the space palette — the radius bug, one family over
+
+Kushagra, judging the preview: "in both text field and button, at size 2 to size 4, the horizontal padding seems a bit too much." He was right, and the interesting part is *why* it was too much, because the answer is a mistake this system had already made once and already fixed once.
+
+`--control-px-N` was a step index into the space palette. The palette is a **layout** rhythm — a hybrid curve, near-linear at the bottom and geometric at the top — so through the band controls actually live in (8, 12, 16, 24) it grows about **1.44x per step**, against a control height ladder that grows about **1.20x**. Two ladders climbing at different rates, joined by a shared index, cannot hold a ratio between them. Measured across default density: padding ran **0.286 -> 0.375 -> 0.400 -> 0.500** of the box. Size 4 was carrying half its own height in side padding, and v1 of this system used a flat 0.375 — so the top of the ladder was 33% past the project's own reference constant while the bottom sat under it.
+
+Coarse/comfortable was worse and gave the game away: it needed a fifth step past 32 and the palette had none, so it repeated one — `[16, 24, 32, 32]`. A size-4 control padded no wider than a size-3 control, shipped, with no law that could see it.
+
+This is section 6's capsule bug in a different family. Radius climbed with the size index until size 4 read as a pill; the fix was to hold it near a constant fraction of the box, and the mechanism that made that possible was **widening the radius palette inside the control band** — that is what the extra step at index 10 exists for. Space cannot take the same fix: inserting a step renumbers every layout pick, and `gap="6"` would quietly change meaning across the whole system.
+
+So control padding joins `height` as a **designed raw number per set**, six sets of four. All twenty-four cells now sit in **0.24-0.38** of their box, and three laws hold it there: the band per cell, absolute monotonicity across sizes, and the compact < default < comfortable ordering that height already had. Every one of them fails against the config that shipped — including the coarse/comfortable repeat, which is exactly the kind of defect that survives because no law was ever pointed at it.
+
+**Rejected: adding a step to the space palette.** It fixes the resolution and breaks the meaning of every layout number in the system, to serve one family that is not a layout family.
+
+**Rejected: a fraction of the height, computed.** Same objection Kushagra raised against a computed `slotInset` the day before — a ratio nobody chose is not a design — and the same reason radius is *held near* a fraction by designed points rather than derived from one.
+
+Not a violation of "reference, never restate" (section 6): there is no palette entry being restated. What the rule forbids is a component knowing `12px`; `--control-px-N` is still the only name any component may use. It does now carry `--scale` directly instead of inheriting it from the space token, which a law pins — a raw length emitted without it would have dropped control padding out of the one geometry that answers the scale escape.
+
+Size 4 came down 24 -> 16 (-33%), size 3 16 -> 13, size 2 12 -> 10, size 1 unchanged. v0, like every number here, and now correctable per cell instead of per palette step.
+
+---
+
+## 2026-08-05 A field's ring answers "is the caret here", not "is focus anywhere in this box"
+
+Fallout from making a hosted control a first-class pattern the day before. The field rang on `:focus-within`, which fires for **any** descendant — and the descendant is now routinely a button. Tabbing to a clear button lit the field's ring and the button's own `:focus-visible` ring, one nested inside the other, saying two different things at once.
+
+The framing problem underneath is the more important one. Section 8 defends the field's departure from `:focus-visible` on the grounds that *a field's focus is a mode*: you do not press a field, you enter it, and the box has to say where your keystrokes land. A ring that fires when focus is on a button inside the box says something that is not true. It was a correct rule asked a question it was never meant to answer, and the fix is to ask the right one: `:has(> .kui-field-input:focus)`. The border still belongs to the wrapper; the ring still encloses the slots; a hosted control rings itself, like any control.
+
+Rejected: excluding slots from `:focus-within` with a `:not(:has(...))` arm. Same rendered result, but it states the rule as a list of exceptions to a question that is still the wrong question.
+
+---
+
+## 2026-08-05 Two things a field claimed about itself that its CSS did not deliver
+
+Both from the TextField audit, and both the same shape: a comment asserting an invariant that half the mechanism did not honour.
+
+**A glass field's fill did move.** text-field.css pins all three fill *sources* to `--color-surface` and says, in a comment, that a field's fill does not move at all — the border and ring carry its states. True of the sources. But material is a **fill modifier** (section 10): it mixes the source toward transparent on a ramp of its own — rest, hover, active — so the thing that moved was the mix, not the source. At the middle thickness in light that is 64% -> 72% -> 80% of the same white. The trailing button was enough to fire it just by being crossed on the way to the caret. Fixed by pinning the *derived* hover and active fills to the resting derived value, which names no thickness — a fourth one would not touch the rule. Deliberately unguarded: where nothing derives a fill the reference is invalid at computed-value time, the property falls to the guaranteed-invalid value, and the shared layer's own fallback chain takes over exactly as before.
+
+**A `Field.Root disabled` field looked entirely live.** The component stamped `data-disabled` from its own prop and the comment claimed that was sufficient "because we own the prop". It is not — Base UI computes `fieldDisabled || disabledProp` at the *input*, so inside a disabled fieldset the flag never passes through this component at all, and the element that paints was never told. The identical problem was solved for `invalid` one line away, in the shared layer, with `:has()`. It now reads `disabled` the same way. Direct child only, because a disabled clear button is a grandchild and a field is not disabled because something inside it is.
+
+The audit's own summary of the 2026-08-03 sweep applies unchanged: a law that reads the component's attribute instead of the browser's computed value is one indirection short of the thing that can be wrong. Both of these had laws. Neither law asked the engine.
+
+---
+
+## 2026-08-04 A control inside a control, and the mapping the call site was being asked to invent
+
+Kushagra, on the preview: the Show and Clear buttons inside a field do not compose — they are the same height as the field. Measured, they were: 87.5% of the box in the two cells he was looking at, 100% under coarse at size 1, and 1px of slack in the composition a consumer would actually write (`<TextField trailing={<Button/>}/>`, both at their own default size). In that last case the field also **grew 2px past its own size token**, in 16/16 measured cells — `box-sizing: border-box` plus a hosted control that exceeds the content box.
+
+His hypothesis — "perhaps size 1" — was already what the preview shipped, and it did not work. Dropping one index only ever buys 2-4px because adjacent heights are 4-8px apart, and **no size index in the ladder seats a hosted control with visible air**. That is the actual finding: the system had exactly one nesting rule (§10's "one glass per stack") and none for geometry, so a call site had to DERIVE the relationship — and the mapping it was asked to infer was non-uniform (2px, 4px, 4px) and undefined at size 1, where nothing in the system fits a 26px content box.
+
+The space was also asymmetric by **13:1**. The sides came from `--control-px` (12px at size 2); the top and bottom came from whatever the height left over (~1px). Two numbers from two places, one of them nobody chose.
+
+**One designed `slotInset` per size now drives all four sides**, and the hosted height is that inset subtracted rather than a second designed ladder that would drift out of agreement with the first. Rejected: a fraction of the container (~0.7) — Kushagra, "I don't like fraction" — and the ladder had already learned that lesson with radius, which is deliberately held near a constant fraction *because* letting it climb made size 4 read as a capsule. A designed number per size is what every other control quantity here is.
+
+**Touch: the hit area matches the CONTAINER's content box, not 44.** Kushagra caught the flaw in targeting 44 directly — at coarse size 1 the field is 36, so a hosted control grown to 44 would be a *larger target than the thing containing it* and would overlap its neighbours in a stacked form, which WCAG 2.5.8 counts against you. Matching the container means the hosted control inherits whatever compliance its container already has, and size 1 keeps the one deliberate sub-44 compromise §16 already made rather than inventing a second one.
+
+Two mechanisms this cost, both lessons this system has already learned once:
+
+- `--kui-slot-h` and `--kui-hosted-height` are **registered lengths**. Unregistered, a custom property inherits as a token stream and `var(--kui-h)` inside it substitutes on the element that USES it — the hosted control, where `--kui-h` is that control's own height. Measured 24px at every field size, i.e. the container's size having no effect at all. Fourth instance of substitution-at-declaration, after radius, density and surface padding.
+- The container computes and the **slot captures**, because the hosted control is also a `.kui-control` and re-declares `--kui-slot-h` from its own index. The slot is a plain span with no size join, so a value parked there survives.
+
+Found on the way, and it is why the container must do the arithmetic at all: `--kui-h` is registered `inherits: false` by the layout mechanism, because Box's `height` prop shares the stem. So it is simply *absent* on the slot. The stem collision the 2026-08-03 audit flagged was fixed at the symptom (scoping the size join to `.kui-control`); the name is still shared, and this is the second thing it has broken.
+
+**`iconOnly` ships with it, as a prop on Button rather than a second component.** v1 had a separate `IconButton` and it failed in a specific way: it was opt-in by memory, so people and agents alike reached for `Button` and got a pill where they wanted a square. One component cannot be forgotten. The glyph goes in `children` because for this button the glyph *is* the content, not an adornment beside one — spelling it through the leading slot would make that prop mean two different things depending on a boolean. And the prop is explicit rather than inferred from "has a glyph, no children" precisely so the type can demand an accessible name: an icon-only control with no `aria-label` announces "button" and nothing else, and here it does not compile.
+
+**The adornment spelling closed at the same time**: Button takes TextField's `leading`/`trailing`. `iconEnd` is not RTL-correct, and a trailing slot holding a *control* is now routine rather than exceptional. The break is theoretical while the package is unpublished; two spellings would have been permanent.
+
+Rejected: an `IconButton` component (above); inferring `iconOnly` (an unlabelled icon button would still compile); targeting 44 for hosted controls on touch (above); a `--slot-control-height-N` token family (24 declarations across six worlds restating a subtraction — measured 422 bytes gzipped — that one `calc()` does once).
+
+## 2026-08-04 The invalid state was a hue rotation at constant luminance, and the ring drowned it
+
+Kushagra, looking at the rendered preview: the invalid border is too light, and a validity state should read as high-emphasis. Both halves were right, and the measurements are worse than the complaint.
+
+`--destructive-border` is step 7, and step 7 shares its lightness with every other tone **by law** — the shared-ladder test asserts exactly that. So the entire validity signal was a hue rotation at constant luminance. Against the field own fill: 22.8 -> 23.9 Lc in light (+1.1), and 10.3 -> **9.8** in dark. **Going invalid lowered contrast in dark mode**, and at constant luminance the state is close to invisible to a red-green colourblind user. Both modes sat far under the Lc 45 non-text floor the system already enforces on the focus ring — a floor adopted the previous day and never applied here.
+
+The ring made it worse. On a focused invalid field the accent ring measured **6.4x** the visual weight of the error border it surrounded (2px at Lc 76.5 against 1px at Lc 23.9), so the error indication was at its faintest at precisely the moment the user focused the field to fix it.
+
+**Both now read `--invalid-edge`**, one token picked per mode — `--destructive-solid` in light (Lc 65.4), `--destructive-11` in dark (65.2), because step 9 clears the floor in light and misses it in dark at 36.1. That is the same per-mode shape the focus ring itself took on 2026-08-03, for the same reason.
+
+**This reverses §8 one-ring rule for the invalid state, and half of that rule defence was false.** §8 argued a destructive ring "would have to re-clear the APCA floor per mode — the trap the audit found in the dark ring." Measured, it does not struggle at all: destructive clears Lc 55-65 in both modes. What genuinely argued for one ring was consistency with Spectrum, Radix and Primer; that is real but outweighed here by two chromatic signals arguing on one control. **The rule survives for tone and dies only for state** — a destructive-tone Button still rings accent, and a law pins that. A tone is chosen; a state is not.
+
+The related trap, named so it stays named: the fix is that invalid one *resolved appearance* is loud, **not** that loudness becomes selectable. An `invalidEmphasis` prop would be an axis nobody varies, which §9 calls a component fact rather than an axis — the reasoning that deleted the elevation axis.
+
+Rejected: keeping the accent ring and thickening the border instead (the two signals still argue, and stroke width is not the variable that was wrong); a per-tone ring generally (tone is chosen, and the Spectrum/Radix/Primer convergence stands); an `invalid` emphasis rung (above).
+
+## 2026-08-04 The tone set widens to six, and the widening catches the generator not following its own comment
+
 ## 2026-08-04 The device axis: type follows where the screen sits, and the third device question gets its own signal
 
 Kushagra, from Apple's "Ensuring legibility" table (iOS body 17pt, macOS 13pt): text should respect breakpoints, "but not in the same way as coarse and fine — on a mobile, what you want is a larger font size." The observation is the dissociation that forces a third axis: `pointer` is motor (can a finger hit the box), this is optical (how far the screen is from the eye), and they come apart on exactly the devices that matter — a touchscreen laptop is coarse at desk distance, an iPad with a keyboard is fine at reading distance. §16 had left "whether body text shifts under coarse" open; the answer turned out to be that it was the wrong question — type never follows pointer at all.
@@ -72,7 +226,7 @@ The audit also found the interactive-element list written twice, in the click ha
 
 One defect found by hand rather than by any auditor, because it needs a device: **iOS zooms the page on focus for any input under 16px**, which is sizes 1 and 2. Recorded in the open list unfixed — the fix (a 16px floor under coarse) trades away the promise that size-2 type is size-2 type, and that is a taste call.
 
-Rejected: an `invalid` prop (nothing chooses to look invalid); a destructive focus ring on invalid (it would have to re-clear the APCA floor per mode — the exact trap the audit found in the dark ring); putting the invalid remap in the component (Select and Combobox wear it too); compound `TextField.Slot` children (arbitrary stacking, the shadcn header failure); label/description/error parts (Base UI's `Field` already does the `aria-*` wiring, and the labelled arrangement is a block).
+Rejected: an `invalid` prop (nothing chooses to look invalid); a destructive focus ring on invalid — REVERSED 2026-08-04, and the reason given here was false: destructive clears the APCA floor in both modes (55-65 against a floor of 45), and the accent ring measured 6.4x the weight of the error border beside it; putting the invalid remap in the component (Select and Combobox wear it too); compound `TextField.Slot` children (arbitrary stacking, the shadcn header failure); label/description/error parts (Base UI's `Field` already does the `aria-*` wiring, and the labelled arrangement is a block).
 
 ## 2026-08-04 The icon-label gap joins the label cluster, out of the density sets
 

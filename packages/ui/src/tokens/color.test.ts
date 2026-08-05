@@ -604,3 +604,39 @@ describe("the soft ladder is §8's +1/+2 rule, in the emitted declarations (§7,
     }
   });
 });
+
+describe("the invalid edge clears the non-text floor, in both modes (§8, WCAG 1.4.11)", () => {
+  // The shipped invalid border was --destructive-border, i.e. step 7 — and step 7 shares its
+  // lightness with every other tone BY LAW (the shared-ladder test at the top of this file).
+  // So the entire validity signal was a hue rotation at CONSTANT LUMINANCE: measured against
+  // the field's own fill, 22.8 -> 23.9 Lc in light, and 10.3 -> 9.8 in dark, i.e. going invalid
+  // made the border FAINTER than the resting one it replaced. At constant luminance it is also
+  // close to invisible to a red-green colourblind user. No law covered it; this is that law.
+  const NON_TEXT = 45;
+
+  for (const mode of MODES) {
+    it(`holds in ${mode}, against the field fill and the page`, () => {
+      const destructive = buildScale("destructive", mode);
+      const neutral = buildScale("neutral", mode);
+      const edge = mode === "dark" ? destructive.steps[10]! : destructive.solid;
+      // --color-surface is the field's fill: white in light, neutral-2 in dark.
+      const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
+      for (const surface of surfaces) {
+        expect(Math.abs(apcaLc(edge, surface)), `${mode} invalid edge vs ${surface}`).toBeGreaterThanOrEqual(
+          NON_TEXT,
+        );
+      }
+      // And it must be a real step up from the resting border, not a hue swap at equal weight.
+      const resting = neutral.steps[6]!;
+      const restingLc = Math.abs(apcaLc(resting, surfaces[0]!));
+      expect(Math.abs(apcaLc(edge, surfaces[0]!))).toBeGreaterThan(restingLc * 2);
+    });
+  }
+
+  it("and the emitted token is the step the law just checked", () => {
+    for (const mode of MODES) {
+      const emitted = colorDeclarations(mode).find((l) => l.includes("--invalid-edge:"));
+      expect(emitted).toContain(mode === "dark" ? "var(--destructive-11)" : "var(--destructive-solid)");
+    }
+  });
+});

@@ -12,8 +12,8 @@
   flex: none;
   /* The icon box, so a spinner swapped in for an icon shifts nothing (§4). Falls back for a
      bare <Spinner /> used outside a control. */
-  width: var(--kui-icon, var(--icon-size-2));
-  height: var(--kui-icon, var(--icon-size-2));
+  width: var(--kui-ct-icon, var(--icon-size-2));
+  height: var(--kui-ct-icon, var(--icon-size-2));
   /* The whole point of drawing it in currentColor: no token, correct in every context. */
   fill: currentColor;
   animation: kui-spin 1s steps(8) infinite;

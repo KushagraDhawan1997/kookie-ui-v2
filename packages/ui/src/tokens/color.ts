@@ -465,5 +465,17 @@ export function colorDeclarations(
   // solid already did: 74.7 light, 66.3 dark, against --neutral-1.
   out.push(`  --focus-ring: var(${mode === "dark" ? "--accent-11" : "--accent-solid"});`);
 
+  // The edge a control wears while it is INVALID — both its border and its ring (§8, decided
+  // 2026-08-04). One token because it is one answer: "this control is wrong" is a single
+  // question, the way "where is focus" is.
+  //
+  // Picked per mode for the same reason the ring is, and the numbers are why the border band
+  // could not serve: --destructive-border is step 7, which shares its LIGHTNESS with every
+  // other tone at that step by law, so the shipped invalid state was a hue rotation at constant
+  // luminance — APCA 23.9 light and 9.8 dark against the field fill, versus 22.8 / 10.3 for the
+  // resting border it replaces. In dark, being invalid LOWERED contrast. Step 9 clears the
+  // Lc 45 non-text floor in light (65.4) but not in dark (36.1); step 11 does (65.2).
+  out.push(`  --invalid-edge: var(${mode === "dark" ? "--destructive-11" : "--destructive-solid"});`);
+
   return out;
 }

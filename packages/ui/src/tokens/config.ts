@@ -58,11 +58,12 @@ export const radiusOverlay = 10;
  * family, so every rendered value is a designed point and any one cell can be corrected
  * without moving the other three in its level.
  *
- * `height` is raw px, the anchor a control actually stands on. `px` and `radius` are step
- * indices into the space and radius palettes, never restated numbers (§6). The icon-label
- * gap is NOT here (decided 2026-08-04, Kushagra): density grows the box and holds the
- * content, and type, the icon box, and the gap binding them are one label cluster —
- * `controlGap` below is size- and pointer-indexed only.
+ * `height` and `px` are raw px, the two numbers a control's box actually stands on; `radius`
+ * is a step index into the radius palette. `px` left the space palette on 2026-08-05 — see
+ * the note on the ladder below. The icon-label gap is NOT here (decided 2026-08-04,
+ * Kushagra): density grows the box and holds the content, and type, the icon box, and the
+ * gap binding them are one label cluster — `controlGap` below is size- and pointer-indexed
+ * only.
  *
  * The ladder is built so one density step moves the box about one size step while the
  * label holds: compact size 2 stands where default size 1 does, comfortable size 2 where
@@ -73,32 +74,59 @@ export const radiusOverlay = 10;
  * with the size index. Letting it climb is what made size 4 read as a capsule and made
  * compact, which reuses radii on smaller boxes, come out rounder than default. Comfortable
  * shifts one palette step, never two.
+ *
+ * `px` is held the same way (~0.3), and for the same reason — it is the radius bug a second
+ * time (judged 2026-08-05, Kushagra: "at size 2 to size 4 the horizontal padding seems a bit
+ * too much"; LOG). It used to be a step index into the space palette, and that was the whole
+ * defect: the palette is a LAYOUT rhythm, near-linear at the bottom and geometric at the top,
+ * so through the control band it grows ~1.44x per step against a height ladder that grows
+ * ~1.20x. Indexing one with the other cannot hold a fraction — default ran 0.286 -> 0.500,
+ * and coarse/comfortable ran out of palette entirely, repeating a step so size 4 was padded
+ * no wider than size 3. Radius solved this by widening its own palette inside the control
+ * band; space cannot be widened without renumbering every layout pick, so control padding
+ * joins `height` as a designed raw number. All six sets now sit in 0.24-0.38 of their box,
+ * law-tested, with size 4 down 33% from what shipped. v0 for the eye pass.
  */
 export const density = {
   compact: {
     height: [24, 28, 34, 40],
-    px: [2, 3, 4, 5],
+    px: [6, 8, 10, 12],
     radius: [1, 2, 2, 3],
+    slotInset: [2, 3, 3, 4],
   },
   default: {
     height: [28, 32, 40, 48],
-    px: [3, 4, 5, 6],
+    px: [8, 10, 13, 16],
     radius: [1, 2, 3, 4],
+    slotInset: [3, 3, 4, 4],
   },
   comfortable: {
     height: [34, 40, 50, 60],
-    px: [4, 5, 6, 7],
+    px: [12, 14, 18, 22],
     radius: [2, 3, 4, 5],
+    slotInset: [3, 4, 5, 6],
   },
 } as const;
 
 export type DensityLevel = keyof typeof density;
 
-/** One placed geometry: four heights, plus step indices into the space and radius palettes. */
+/** One placed geometry: four heights and four inline paddings in raw px, plus step indices
+ *  into the radius palette. */
 export type DensitySet = {
   readonly height: readonly [number, number, number, number];
+  /** Inline padding, raw px — a designed number, not a palette pick. See `density` above. */
   readonly px: readonly [number, number, number, number];
   readonly radius: readonly [number, number, number, number];
+  /**
+   * §4 — the inset a control keeps around anything it hosts in a slot: a clear button, a
+   * password reveal, a unit label. One number for all four sides, and the hosted control's
+   * height is derived from it rather than designed separately, so the two cannot drift.
+   *
+   * Designed rather than a fraction of the box (Kushagra, 2026-08-04): a fraction reads as a
+   * ratio nobody chose, and this ladder already learned that lesson with radius, which is held
+   * near a constant fraction precisely because letting it climb made size 4 a capsule.
+   */
+  readonly slotInset: readonly [number, number, number, number];
 };
 
 /**
@@ -117,18 +145,21 @@ export type DensitySet = {
 export const coarse = {
   compact: {
     height: [32, 38, 46, 54],
-    px: [3, 4, 5, 6],
+    px: [8, 10, 13, 16],
     radius: [2, 3, 3, 4],
+    slotInset: [3, 4, 4, 5],
   },
   default: {
     height: [36, 44, 52, 60],
-    px: [4, 5, 6, 7],
+    px: [10, 13, 16, 20],
     radius: [2, 3, 4, 5],
+    slotInset: [4, 4, 5, 5],
   },
   comfortable: {
     height: [40, 48, 58, 68],
-    px: [5, 6, 7, 7],
+    px: [14, 17, 21, 25],
     radius: [3, 4, 5, 5],
+    slotInset: [4, 5, 6, 7],
   },
 } as const satisfies Record<DensityLevel, DensitySet>;
 
@@ -142,6 +173,24 @@ export const coarse = {
  */
 export const touchTargetMin = 44;
 
+/**
+ * §4, §16 — mobile Safari's zoom threshold, and the second platform constant that is a raw
+ * physical number rather than a designed one. **Safari zooms the whole page when a text input
+ * under 16px takes focus**, which throws the layout off-centre and leaves the user pinching
+ * back; it is the only way a control can break the page around it just by being tapped.
+ *
+ * It floors the INPUT's font size, never the control's box or its label. §17's handheld band
+ * lifts the type ladder far enough that sizes 2 and up clear it on a phone — but a phone is
+ * not the only touchscreen: an iPad in landscape reads as `desktop` on the device axis (its
+ * width is past the handheld threshold) while Safari still zooms, and size 1 is under the
+ * threshold in every band there is. So the signal is the POINTER world, which is what "a
+ * finger touches this screen" means, and the floor resolves to 0 on a fine pointer.
+ *
+ * Deliberately not solved by raising the type ladder: size 1 is the caption step, and a phone
+ * that cannot render small secondary text has lost something real to fix one control.
+ */
+export const inputFontFloor = 16;
+
 /** §15 — type. Nine steps: type's dynamic range is wider than the control family's. */
 export const fontSize = [12, 14, 16, 18, 20, 24, 30, 40, 56] as const;
 /** Paired designed values, not a derived ratio: ~1.5 through reading sizes, tightening toward ~1.1 at display. */
@@ -150,35 +199,72 @@ export const lineHeight = [16, 20, 24, 26, 28, 32, 38, 48, 62] as const;
 export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0.025] as const;
 
 /**
- * §17 — the device axis: where the screen sits, not what touches it. `pointer` is motor
- * (can a finger hit the box); this is optical (how far the screen is from the eye), and the
- * two come apart on exactly the devices that matter — a touchscreen laptop is coarse at desk
- * distance, an iPad with a keyboard is fine at reading distance.
+ * §17 — the two TYPE BANDS, and the reason there are two of them (split 2026-08-05).
  *
- * `handheld` re-picks each type step's INDEX into the three paired palettes above, so a pick
- * moves font-size, line height and letter spacing together and every rendered triple is a
- * designed one (§15). Non-monotonic on purpose (Apple HIG "Ensuring legibility": iOS body
- * 17pt against macOS 13pt): reading steps rise one index (body 16 → 18), the middle holds,
- * and display steps come DOWN — 56px on a 375px screen is seven characters a line. Steps 4/5
- * and 7/8 collapse to one rendered value on a handheld, the price compact already pays in
- * layout space (§12). All v0, judged in the preview.
+ * One band shipped from 2026-08-04 to 2026-08-05, called `handheld`, keyed on the conjunction
+ * `(pointer: coarse) and (max-width: 48rem)`. It did two unrelated jobs at once:
  *
- * `desktop` is the identity and earns no table. Only type lives here: spacing must not
- * inflate on the smaller screen (§16), and control GEOMETRY answers the pointer axis —
- * two axes pushing one box would compose a height nobody designed.
+ *   reading steps 1-4 ROSE    16 -> 18   because a held screen is close to the eye
+ *   display steps 8-9  FELL   56 -> 40   because a narrow screen is seven characters wide
+ *
+ * Those are different questions with different answers, and welding them together got the
+ * middle of the range wrong in both directions. Kushagra caught it from Apple's own table
+ * (LOG): "iOS, iPadOS Dynamic Type sizes" is ONE table — Body is 17pt on an iPhone and 17pt
+ * on an iPad — so the reading question does not distinguish phone from tablet at all. Our
+ * width gate did, and it excluded every iPad from the reading rise it should have had. Nor
+ * did the gate even split phones from tablets: at 768px it separates an iPad mini in portrait
+ * from every other iPad, which is where a threshold lands, not a boundary anyone designed.
+ *
+ * So: two bands, two signals, both still designed picks into the paired palettes above.
+ *
+ *   held    reading rises   signal: `pointer: coarse` — a finger is the primary input, so
+ *                           there is no attached pointing device, so it is probably in a
+ *                           hand. Apple's iOS/iPadOS 17pt against macOS 13pt.
+ *   narrow  display falls   signal: viewport width — the ORIGINAL justification for the
+ *                           display cut was line length ("56px on a 375px screen is seven
+ *                           characters a line"), which is a width fact and always was. It
+ *                           now also fires on a squeezed desktop window, which the old rule
+ *                           wrongly ignored.
+ *
+ * They compose, and the four cells come out right — including the two the single band got
+ * wrong: an iPad in landscape rises and keeps its 56px display, and a narrow desktop window
+ * cuts its display without touching its reading sizes.
+ *
+ * Each band emits only the steps it MOVES (the generator derives that set), so the two cannot
+ * fight over a step and a band is cheap to add. Steps 5-7 are nobody's.
+ *
+ * Open, recorded in §17: the narrow band should arguably key on the CONTAINER — a heading in
+ * a narrow sidebar on a wide monitor wraps just as badly — but re-pricing tokens inside a
+ * container query has substitution problems the viewport version does not.
  */
-export const deviceType = {
-  handheld: [2, 3, 4, 5, 5, 6, 7, 7, 8],
+export const typeBands = {
+  /** Held: steps 1-4 rise one index. 5-9 are identity and are not emitted. */
+  held: [2, 3, 4, 5, 5, 6, 7, 8, 9],
+  /** Narrow: steps 8-9 fall. 1-7 are identity and are not emitted. Steps 4/5 and 7/8 still
+   *  collapse to one rendered value on a phone, where both bands apply — the price compact
+   *  already pays in layout space (§12). */
+  narrow: [1, 2, 3, 4, 5, 6, 7, 7, 8],
 } as const;
 
 /**
- * §17 — the auto signal, a CONJUNCTION on purpose. Coarse alone is a touchscreen laptop at
- * desk distance, which must not get handheld type; narrow alone is a squeezed desktop window,
- * whose boxes did not grow. Both together is a screen held in a hand. The 48rem threshold is
- * v0 and phones-first: a tablet's band (17pt on iPadOS at any width) is an open question,
- * recorded in §17 rather than guessed at.
+ * §17 — the held signal. `pointer`, not `any-pointer`: the PRIMARY input being a finger is
+ * what says there is no attached pointing device. A 1920px Windows laptop with a trackpad
+ * reports `fine` and stays desktop; detach the keyboard from a Surface and it reports
+ * `coarse`, which is correct — it is a slab in someone's hands. A stylus reports `fine` too.
+ *
+ * The one case no query catches is a touch-only kiosk or wall display: coarse, held by
+ * nobody, read from two metres, and wanting BIGGER type rather than held type. That is what
+ * the Theme `device` prop is for, and after this split it is the prop's whole remaining job
+ * (that, and a POS terminal that wants coarse targets with desk-distance text).
  */
-export const handheldMedia = "(pointer: coarse) and (max-width: 48rem)";
+export const heldMedia = "(pointer: coarse)";
+
+/**
+ * §17 — the narrow signal, and now tunable on its own, which is half the point of the split:
+ * "how close is this screen" and "how wide is this screen" no longer share a number. v0 keeps
+ * the 48rem the conjunction used, so exactly one thing changed in this commit.
+ */
+export const narrowMedia = "(max-width: 48rem)";
 
 /**
  * §4 — the icon box, pulled by the size index. Sizes 1 and 2 share 16: the grid the ecosystem

@@ -22,7 +22,7 @@ export type Material = (typeof MATERIALS)[number];
 /** The thicknesses that actually paint a veil — `solid` is the absence of one. */
 export const GLASS_MATERIALS = MATERIALS.filter((m) => m !== "solid");
 
-export type ButtonProps = Omit<
+type ButtonBase = Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {
@@ -37,10 +37,17 @@ export type ButtonProps = Omit<
   material?: Material;
   /** Blocks interaction and shows a Spinner, without ever hiding the label (§8). */
   loading?: boolean;
-  /** Leading slot. Swapped for the Spinner while loading, so nothing shifts (§8). */
-  icon?: React.ReactNode;
-  /** Trailing slot — a chevron, a count. Never replaced by the Spinner. */
-  iconEnd?: React.ReactNode;
+  /**
+   * Leading slot. Swapped for the Spinner while loading, so nothing shifts (§8).
+   *
+   * Named `leading`/`trailing` rather than `icon`/`iconEnd` (renamed 2026-08-04): ENGINEERING §3
+   * forbids two spellings for one axis, and TextField had already shipped the better pair. It is
+   * better on the merits too — the names are RTL-correct where `End` is not, and a trailing slot
+   * frequently holds a button rather than an icon, which `iconEnd` misdescribes.
+   */
+  leading?: React.ReactNode;
+  /** Trailing slot — a chevron, a count, a control. Never replaced by the Spinner. */
+  trailing?: React.ReactNode;
   /** Keep focus when the button becomes disabled mid-interaction. */
   focusableWhenDisabled?: boolean;
   /**
@@ -53,6 +60,27 @@ export type ButtonProps = Omit<
   className?: string;
   style?: React.CSSProperties;
 };
+
+/**
+ * `iconOnly` squares the box and drops the label — the glyph goes in `children`, because for
+ * this button the glyph IS the content, not an adornment beside one. That is why it is not
+ * spelled through `leading`, which means "the thing to the left of a label" and would have to mean
+ * two different things depending on a boolean.
+ *
+ * A separate `IconButton` component was the v1 answer and it failed in a specific way worth
+ * recording: it was opt-in by memory, so both people and agents reached for `Button` and got a
+ * pill where they wanted a square. One component cannot be forgotten.
+ *
+ * The union is the point of the prop, not decoration: an icon-only control has no visible text,
+ * so without an accessible name a screen reader announces "button" and nothing else — the single
+ * most common a11y defect in any component library. Here it does not compile. ENGINEERING §1.3:
+ * types are the refusals, enforced.
+ */
+type IconOnly =
+  | { iconOnly: true; "aria-label": string }
+  | { iconOnly: true; "aria-labelledby": string };
+
+export type ButtonProps = ButtonBase & (IconOnly | { iconOnly?: false | undefined });
 
 /**
  * The primary control (§9, §11). Base UI supplies the semantics — real `<button>`, keyboard
@@ -76,10 +104,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     loading = false,
     disabled = false,
     focusableWhenDisabled,
+    iconOnly,
     nativeButton,
     render,
-    icon,
-    iconEnd,
+    leading: leadingSlot,
+    trailing,
     children,
     className,
     ...props
@@ -97,7 +126,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   // The Spinner takes the icon's place when there is one — same box, zero shift — and joins
   // the label when there is not. The label never goes: a button that stops saying what it is
   // doing is worse than one that changes width (§8).
-  const leading = loading ? <Spinner /> : icon;
+  const leading = loading ? <Spinner /> : leadingSlot;
 
   return (
     <BaseButton
@@ -117,6 +146,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       data-tone={tone}
       data-emphasis={emphasis}
       data-bordered={bordered || undefined}
+      // Squares the box in the shared layer; the glyph is children, so nothing else changes.
+      data-icon-only={iconOnly || undefined}
       // Solid is the absence of a material, so it writes no attribute (§10).
       data-material={material === "solid" ? undefined : material}
       data-loading={loading || undefined}
@@ -125,7 +156,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     >
       {leading}
       {children}
-      {iconEnd}
+      {trailing}
     </BaseButton>
   );
 });
