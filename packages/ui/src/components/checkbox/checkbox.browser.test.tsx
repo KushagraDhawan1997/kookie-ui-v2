@@ -9,6 +9,7 @@
  * after every broken axis turned out to be one no law had actually resolved.
  */
 import { describe, expect, it } from "vitest";
+import * as React from "react";
 
 import { Theme } from "../../theme/theme.tsx";
 import { computed, render } from "../../test/browser.tsx";
@@ -425,5 +426,48 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     const checkbox = render(<Checkbox size="3" />);
     const button = render(<Button size="3">Save</Button>);
     expect(px(tokenOn(checkbox, "--control-height-3"))).toBe(px(computed(button, "height")));
+  });
+});
+
+describe("the API's closed edges, and the two facts the types state (§3)", () => {
+  it("refuses render, children, nativeButton, and the axes it never had", () => {
+    // @ts-expect-error — the one element must stay Base UI's root, which owns the hidden
+    // input, the form association and the tri-state (§5)
+    void (<Checkbox render={<button />} />);
+    // @ts-expect-error — the glyph is the component's; the label is a SIBLING
+    void (<Checkbox>Accept</Checkbox>);
+    // @ts-expect-error — describes an element `render` could have produced, and `render` is
+    // refused; reachable, it silently broke Space and the label chain (audit D10)
+    void (<Checkbox nativeButton />);
+    // @ts-expect-error — loudness ranks actions, and a checkbox is not one (§11)
+    void (<Checkbox emphasis="loud" />);
+    // @ts-expect-error — the ON state's family is an identity, not an axis (§11)
+    void (<Checkbox tone="destructive" />);
+    // @ts-expect-error — no margin prop on any control (first non-negotiable)
+    void (<Checkbox m="4" />);
+  });
+
+  it("the ref names the element it actually holds — the span, not a button (audit D12)", () => {
+    // Typed HTMLButtonElement, this compiled and lied: `ref.current.form` type-checked and
+    // was undefined at runtime. The law reads the mounted reality.
+    const ref = React.createRef<HTMLSpanElement>();
+    const el = render(<Checkbox ref={ref} />);
+    expect(ref.current).toBe(markOf(el));
+    expect(ref.current!.tagName).toBe("SPAN");
+  });
+
+  it("the documented label pairing produces a real accessible name (audit D11)", () => {
+    // The comment in checkbox.tsx is the only labelling guidance the component gives; its
+    // first spelling named props that do not exist. This mounts the corrected one.
+    const host = render(
+      <div>
+        <Checkbox id="terms" />
+        <label htmlFor="terms">Accept the terms</label>
+      </div>,
+    );
+    const mark = host.querySelector(".kui-checkbox")!;
+    const labelledBy = mark.getAttribute("aria-labelledby");
+    expect(labelledBy).toBeTruthy();
+    expect(document.getElementById(labelledBy!)?.textContent).toBe("Accept the terms");
   });
 });

@@ -11,13 +11,26 @@ export type CheckboxProps = Omit<
   // a checkbox that can be made to mean anything. The LABEL is not children either: it is a
   // sibling, because components never own the space between themselves and the next thing
   // (the non-negotiable), and a label that belongs to the control cannot be laid out by the
-  // form that owns the row. Pair it with `<Text as="label" htmlFor>`.
+  // form that owns the row. The working pairing (the first spelling of this comment named
+  // props Text does not have — audit 2026-08-05, D11 — and forgot the id it depends on):
+  //
+  //   <Checkbox id="terms" />
+  //   <Text render={<label htmlFor="terms" />}>Accept the terms</Text>
+  //
+  // Base UI reads the association off the hidden input and wires aria-labelledby itself; a
+  // label WRAPPING the checkbox works with no id at all.
   //
   // `render` goes for the reason it went on TextField, arrived at from the other side: there
   // the wrapper and the input are two elements and neither can move; here the one element must
   // stay Base UI's root, which owns the hidden input, the form association, the `indeterminate`
   // tri-state and the ARIA. Swapping it swaps all of that out silently.
-  "children" | "render" | "className"
+  //
+  // `nativeButton` goes WITH `render`, because it only describes an element `render` could
+  // have produced. Left reachable it was worse than dead (audit 2026-08-05, D10): it flips
+  // Base UI's wiring to expect a real <button> that can never exist here — the id moves off
+  // the hidden input so no label can find it, and Space stops toggling. A prop whose every
+  // value but the default breaks the component is not API.
+  "children" | "render" | "className" | "nativeButton"
 > & {
   size?: Size;
   /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */
@@ -45,13 +58,18 @@ export type CheckboxProps = Omit<
  * input carries it, so a parent checkbox over a partially-selected group submits and announces
  * correctly. The glyph swap is CSS reading `data-indeterminate` — no JS at interaction time.
  */
-export const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(function Checkbox(
+export const Checkbox = React.forwardRef<HTMLSpanElement, CheckboxProps>(function Checkbox(
   { size = "2", className, ...props },
   ref,
 ) {
   return (
     <BaseCheckbox.Root
-      ref={ref as React.Ref<HTMLElement>}
+      // The honest ref type (audit 2026-08-05, D12): Base UI's root renders a <span> with the
+      // form input hidden beside it. This was typed HTMLButtonElement with a cast to make the
+      // lie compile — so `ref.current.form` type-checked and was undefined at runtime. Every
+      // sibling component names its real element; now this one does. The hidden input stays
+      // reachable through Base UI's own `inputRef` prop when the form element itself is needed.
+      ref={ref}
       className={className ? `kui-control kui-checkbox ${className}` : "kui-control kui-checkbox"}
       data-size={size}
       // Fixed identity, not API (TextField's pattern): the tone indirection needs a family to
