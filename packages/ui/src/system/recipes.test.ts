@@ -150,6 +150,21 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     }
   });
 
+  it("component dress never uses :is() — a state must outrank it, not tie with it", () => {
+    // Checkbox audit defect (b), made structural (2026-08-06): its checked rule used :is(),
+    // which KEEPS its arguments' specificity — tying with the shared invalid remap and
+    // winning on source order, so a checked invalid checkbox looked healthy. :where() zeroes
+    // the dress selector's weight, and the state arms (plain specificity, shared layer) then
+    // outrank every component rule by construction. In a component sheet everything is
+    // skeleton or dress, so the law is total there; the shared layer's own :is() use is
+    // deliberate — its states are exactly what must carry weight.
+    for (const p of allStylesheets("components")) {
+      expect(sheet(p), `${p} uses :is() — dress that can tie with a state remap`).not.toContain(
+        ":is(",
+      );
+    }
+  });
+
   it("a component that ships a stylesheet ships its mounted laws — the file must exist", () => {
     // Decided 2026-08-06 (Kushagra): the 2026-08-03 standard's blind spot was structural —
     // nothing asserted a browser test FILE exists, so Spinner shipped CSS with zero mounted
