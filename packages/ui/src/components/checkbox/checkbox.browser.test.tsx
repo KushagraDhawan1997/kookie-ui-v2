@@ -191,34 +191,79 @@ describe("the target is a control of its size, capped at the touch floor (§4, �
   });
 });
 
-describe("a mark is never a circle (§6)", () => {
-  for (const size of SIZES) {
-    it(`radius="full" caps at the ceiling, size ${size}`, () => {
-      // The control band states the capsule at `full` (height / 2), and a circular checkbox
-      // reads as a radio. Shape is role semantics here and outranks theme uniformity.
-      const el = render(
-        <Theme radius="full">
-          <Checkbox size={size} />
-        </Theme>,
-      );
-      const mark = markOf(el);
-      const radius = px(computed(mark, "border-top-left-radius"));
-      const box = markBox(mark).h;
-      expect(radius).toBe(px(tokenOn(el, `--radius-mark-cap-${size}`)));
-      // The claim in its own terms, so a future cap that is too large fails here rather than
-      // in someone's eyes: half the box IS a circle.
-      expect(radius).toBeLessThan(box / 2);
+describe("a mark's corner holds a fraction of its own box (§6)", () => {
+  /** The corner as a fraction of the box it rounds — the only terms this question has. */
+  const fractionOf = (mark: Element) =>
+    px(computed(mark, "border-top-left-radius")) / markBox(mark).h;
+
+  for (const level of ["small", "medium", "large", "full"] as const) {
+    it(`is uniform across the size index at radius="${level}"`, () => {
+      // The complaint that found the bug, mounted (Kushagra, by eye: "size 4 looks much more
+      // rounded than size 1"). It rode --radius-control-N, designed against the HEIGHT ladder,
+      // so the fraction climbed 0.250 -> 0.385 across the index while the box did not.
+      const fractions = SIZES.map((size) => {
+        const el = render(
+          <Theme radius={level}>
+            <Checkbox size={size} />
+          </Theme>,
+        );
+        return fractionOf(markOf(el));
+      });
+      expect(Math.max(...fractions) / Math.min(...fractions)).toBeLessThan(1.34);
     });
   }
 
-  it('radius="large" is capped too — the ceiling is a ceiling, not a `full` special case', () => {
-    const el = render(
+  for (const density of DENSITIES) {
+    it(`${density}: density does not move the corner, because it does not move the box`, () => {
+      // The half of the defect no theme could expose: --radius-control-N IS density-indexed,
+      // so an airier form re-cut the corner of a box it had left alone — 0.462 of it at
+      // comfortable size 4, a circle in all but name.
+      const el = render(
+        <Theme density={density}>
+          <Checkbox size="4" />
+        </Theme>,
+      );
+      expect(px(computed(markOf(el), "border-top-left-radius"))).toBe(
+        px(tokenOn(el, "--radius-mark-4")),
+      );
+    });
+  }
+
+  it("is never half the box, in any (level × density × pointer × size) cell — half IS a circle", () => {
+    for (const level of ["small", "medium", "large", "full"] as const) {
+      for (const pointer of ["fine", "coarse"] as const) {
+        for (const density of DENSITIES) {
+          for (const size of SIZES) {
+            const el = render(
+              <Theme radius={level} pointer={pointer} density={density}>
+                <Checkbox size={size} />
+              </Theme>,
+            );
+            const mark = markOf(el);
+            expect(
+              px(computed(mark, "border-top-left-radius")),
+              `${level}/${pointer}/${density}/${size} is a circle`,
+            ).toBeLessThan(markBox(mark).h / 2);
+          }
+        }
+      }
+    }
+  });
+
+  it("holds at `large` when the theme says `full` — the control band pills, a mark must not", () => {
+    const full = render(
+      <Theme radius="full">
+        <Checkbox size="4" />
+      </Theme>,
+    );
+    const large = render(
       <Theme radius="large">
         <Checkbox size="4" />
       </Theme>,
     );
-    const mark = markOf(el);
-    expect(px(computed(mark, "border-top-left-radius"))).toBeLessThan(markBox(mark).h / 2);
+    expect(computed(markOf(full), "border-top-left-radius")).toBe(
+      computed(markOf(large), "border-top-left-radius"),
+    );
   });
 
   it('radius="none" still squares it — a kill switch with an exception is not one (§6)', () => {
@@ -227,21 +272,21 @@ describe("a mark is never a circle (§6)", () => {
         <Checkbox />
       </Theme>,
     );
-    expect(computed(el.querySelector(".kui-checkbox")!, "border-top-left-radius")).toBe("0px");
+    expect(computed(markOf(el), "border-top-left-radius")).toBe("0px");
   });
 
-  it("a level under the ceiling passes through untouched", () => {
-    // min() must not become a floor: at `small` the theme's own corner is smaller than the
-    // ceiling, and it is the theme's corner that should win.
-    const el = render(
+  it("the levels still reach it — small is tighter than large", () => {
+    const small = render(
       <Theme radius="small">
-        <Checkbox size="2" />
+        <Checkbox size="3" />
       </Theme>,
     );
-    const mark = markOf(el);
-    expect(px(computed(mark, "border-top-left-radius"))).toBeLessThan(
-      px(tokenOn(el, "--radius-mark-cap-2")),
+    const large = render(
+      <Theme radius="large">
+        <Checkbox size="3" />
+      </Theme>,
     );
+    expect(fractionOf(markOf(small))).toBeLessThan(fractionOf(markOf(large)));
   });
 });
 

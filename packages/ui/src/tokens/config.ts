@@ -387,23 +387,31 @@ export const controlGap = {
 export const markSteps = [1, 2, 3, 4] as const;
 
 /**
- * §6 — the corner a mark can never exceed, and the reason the family needs one: at
- * `radius="full"` the control band states the capsule (`height / 2`), and a circular checkbox
- * is a radio. Shape is role semantics here, and role legibility outranks theme uniformity, so
- * the mark is the control band's designed exception (§6, pre-scoped 2026-08-05).
+ * §6 — the mark's own corner, as STEPS into the radius palette (corrected 2026-08-05).
  *
- * Derived, not designed: the ceiling is what the corner would be at the system's DEFAULT
- * radius level, so a theme can round a mark right up to "what everything looks like when
- * nobody asks for round" and no further. `full` and `large` both land on it; `small` and
- * `none` sit under it and pass through untouched — which is what keeps §6's kill switch
- * whole, since `none` must square a checkbox like everything else.
+ * It first rode `--radius-control-N`, and that was the fraction bug a third time (after the
+ * control corner itself and control padding). Those radii are designed to hold ~0.2 of the
+ * HEIGHT ladder, and a mark is not on that ladder — so the corner held a fraction of a box the
+ * control does not have. Measured against the shipped marks: 0.250 -> 0.385 across the index at
+ * default density (Kushagra, by eye: "size 4 looks much more rounded than size 1"), and 0.462
+ * at comfortable size 4, which is a circle in all but name — the one thing a checkbox must
+ * never be (§6), reached by an AXIS rather than by a theme, so the `full` ceiling never saw it.
  *
- * Rendered: 4/6/8/10, against marks of 16/20/24/26 — a corner between 0.25 and 0.38 of the
- * box, visibly rounded and never a circle. v0 for the eye pass.
+ * Its own picks fix both halves. The fraction lands in 0.17-0.25 across every size, level and
+ * pointer world, and it is DENSITY-INVARIANT like the mark itself: an airier form does not
+ * change what a checkbox is, and the corner of an unchanged box has nothing to answer to.
+ *
+ * Steps rather than raw px, so the Theme radius levels still reach it — `none` must square a
+ * mark like it squares everything else (§6's kill switch), and `small` and `large` should move
+ * it. At `full` the band holds at `large`'s values, which is the surface band's own sentence
+ * (§6: full means it stops getting rounder, never that it retreats) and is what keeps a
+ * checkbox from becoming a radio.
+ *
+ * The residual spread is the palette's granularity: holding 0.25 exactly would need a 5 at
+ * size 2 and a 6.5 at size 4, which the palette does not have and which a raw ladder could
+ * only buy by going deaf to the levels.
  */
-export const markRadiusCap = density.default.radius.map(
-  (step) => radiusLevels[defaultRadiusLevel].steps[step]!,
-) as readonly number[];
+export const markRadius = [1, 1, 2, 2] as const;
 
 /**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and

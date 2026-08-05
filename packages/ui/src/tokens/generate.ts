@@ -31,7 +31,7 @@ import {
   layoutSpace,
   letterSpacing,
   lineHeight,
-  markRadiusCap,
+  markRadius,
   markSteps,
   material,
   motion,
@@ -101,11 +101,12 @@ export function generateTokens(): string {
 
   lines.push(
     "",
-    "  /* and the corner it can never exceed (§6): at radius=full the control band states the",
-    "     capsule, and a circular checkbox is a radio. The ceiling is the DEFAULT level's corner",
-    "     — theme-, density- and pointer-invariant, so it is declared once. */",
+    "  /* and the mark's own corner (§6) — its own picks into the palette, because riding",
+    "     --radius-control-N made it hold a fraction of a box a mark does not have (0.250 ->",
+    "     0.385 across the index, and 0.462 at comfortable size 4, a circle in all but name).",
+    "     Density never touches it: the box it rounds does not move either. */",
   );
-  markRadiusCap.forEach((px, i) => put(`radius-mark-cap-${i + 1}`, zoom(px)));
+  lines.push(...markRadiusFamily(defaultRadiusLevel));
 
   lines.push(
     "",
@@ -282,6 +283,7 @@ export function generateTokens(): string {
       `[data-radius="${level}"] {`,
       ...radiusPalette(level),
       ...surfaceRadiusFamily(),
+      ...markRadiusFamily(level),
       "}",
       "",
     );
@@ -541,6 +543,22 @@ function surfaceRadiusFamily(): string[] {
     ...radiusSurface.map((step, i) => `  --radius-surface-${i + 1}: var(--radius-${step});`),
     `  --radius-overlay: var(--radius-${radiusOverlay});`,
   ];
+}
+
+/** The mark corner (§6) for one radius level: the family's own picks, density-invariant.
+ *
+ * At `full` it holds at `large`'s values, which is the surface band's own sentence one band
+ * over — full means a corner stops getting rounder, never that it retreats — and here it is
+ * also what keeps a checkbox from becoming a radio. The control band cannot serve this: it
+ * states the capsule at `full` and, more quietly, it is DENSITY-indexed, so an axis that never
+ * touches the mark's box was moving the mark's corner (0.462 of the box at comfortable size 4,
+ * measured; the `full` ceiling could not see it because no theme was involved). */
+function markRadiusFamily(level: RadiusLevel): string[] {
+  const steps = radiusLevels[level === "full" ? "large" : level].steps;
+  return markRadius.map((pick, i) => {
+    const px = steps[pick]!;
+    return `  --radius-mark-${i + 1}: ${px === 0 ? "0px" : zoom(px)};`;
+  });
 }
 
 /** Layout space for one density level (§3, §12): designed picks into the untouched palette. */

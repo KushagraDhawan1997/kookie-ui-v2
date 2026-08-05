@@ -91,13 +91,14 @@
   --mark-3: calc(24px * var(--scale));
   --mark-4: calc(26px * var(--scale));
 
-  /* and the corner it can never exceed (§6): at radius=full the control band states the
-     capsule, and a circular checkbox is a radio. The ceiling is the DEFAULT level's corner
-     — theme-, density- and pointer-invariant, so it is declared once. */
-  --radius-mark-cap-1: calc(4px * var(--scale));
-  --radius-mark-cap-2: calc(6px * var(--scale));
-  --radius-mark-cap-3: calc(8px * var(--scale));
-  --radius-mark-cap-4: calc(10px * var(--scale));
+  /* and the mark's own corner (§6) — its own picks into the palette, because riding
+     --radius-control-N made it hold a fraction of a box a mark does not have (0.250 ->
+     0.385 across the index, and 0.462 at comfortable size 4, a circle in all but name).
+     Density never touches it: the box it rounds does not move either. */
+  --radius-mark-1: calc(4px * var(--scale));
+  --radius-mark-2: calc(4px * var(--scale));
+  --radius-mark-3: calc(6px * var(--scale));
+  --radius-mark-4: calc(6px * var(--scale));
 
   /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until
      2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered
@@ -3193,6 +3194,10 @@
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
   --radius-overlay: var(--radius-10);
+  --radius-mark-1: 0px;
+  --radius-mark-2: 0px;
+  --radius-mark-3: 0px;
+  --radius-mark-4: 0px;
 }
 
 [data-radius="small"] {
@@ -3213,6 +3218,10 @@
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
   --radius-overlay: var(--radius-10);
+  --radius-mark-1: calc(2px * var(--scale));
+  --radius-mark-2: calc(2px * var(--scale));
+  --radius-mark-3: calc(3px * var(--scale));
+  --radius-mark-4: calc(3px * var(--scale));
 }
 
 [data-radius="medium"] {
@@ -3233,6 +3242,10 @@
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
   --radius-overlay: var(--radius-10);
+  --radius-mark-1: calc(4px * var(--scale));
+  --radius-mark-2: calc(4px * var(--scale));
+  --radius-mark-3: calc(6px * var(--scale));
+  --radius-mark-4: calc(6px * var(--scale));
 }
 
 [data-radius="large"] {
@@ -3253,6 +3266,10 @@
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
   --radius-overlay: var(--radius-10);
+  --radius-mark-1: calc(6px * var(--scale));
+  --radius-mark-2: calc(6px * var(--scale));
+  --radius-mark-3: calc(8px * var(--scale));
+  --radius-mark-4: calc(8px * var(--scale));
 }
 
 [data-radius="full"] {
@@ -3273,6 +3290,10 @@
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
   --radius-overlay: var(--radius-10);
+  --radius-mark-1: calc(6px * var(--scale));
+  --radius-mark-2: calc(6px * var(--scale));
+  --radius-mark-3: calc(8px * var(--scale));
+  --radius-mark-4: calc(8px * var(--scale));
 }
 
 [data-radius="none"][data-density="compact"] {

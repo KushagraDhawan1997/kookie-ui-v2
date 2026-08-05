@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 A mark's corner held a fraction of the wrong box — the radius bug, third instance
+
+Checkbox shipped its corner riding `--radius-control-N` with a ceiling at `full` to stop it becoming a radio. Kushagra caught the rest of it by eye within the hour: "size 4 looks much more rounded than size 1."
+
+Measured, and it was worse than it looked. The control radii are designed to hold ~0.2 of the HEIGHT ladder; a mark is not on that ladder, so the corner was holding a fraction of a box the control does not have — **0.250 → 0.385** across the index at default density, and **0.462** at comfortable size 4, which is a circle in all but name.
+
+**The second half is the part worth recording, because no ceiling could have caught it.** `--radius-control-N` is DENSITY-indexed. Density does not touch a mark's box — that was a deliberate call when the family landed, since a mark sits beside a label and the label does not move either — yet it was re-cutting the mark's corner, and the guard I had written only looked at the `radius` LEVELS. A theme could not reach the failure; an axis could. This is the third instance of one lesson (the control corner in 2026-08-04, control padding on 2026-08-05, now this): **a fraction is only meaningful against the box it is a fraction of, and inheriting a ladder is not the same as being on it.**
+
+`--radius-mark-N` is the family's own picks into the palette — steps, not raw px, so the levels still reach it (`none` must square a mark like it squares everything else), density-invariant like the mark itself, and at `full` it holds at `large`'s values, which is the sentence the surface band already uses one band over. The fraction lands in 0.17-0.25 everywhere.
+
+Rejected: a raw designed ladder per size (4/5/6/7 would hold 0.25 exactly — the palette cannot, since it has no 5 and no 6.5 — but a raw number goes deaf to the radius levels, and `none` squaring every corner is not negotiable); keeping the ceiling as the whole mechanism (it is a guard against a theme, and the defect arrived through an axis); making the ceiling density-aware (it would have hidden the real fault, which is that the corner was reading the wrong ladder at all).
+
+The laws that now exist are the ones whose absence let this ship: the spread across the size index stays under a third at every level, no (level × density × pointer × size) cell reaches half the box, and density declares no mark corner at all. The first of those fails against the shipped ladder at 1.54.
+
 ## 2026-08-05 Checkbox: the mark family is the line box, and the target is a control of its size
 
 Repetition's third entry, and the first control that leaves the height ladder without leaving the size index. Four questions were genuinely open, and Kushagra closed each one against a different argument than the one I brought.

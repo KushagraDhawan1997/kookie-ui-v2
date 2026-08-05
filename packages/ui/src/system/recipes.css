@@ -219,10 +219,12 @@
    switch track, slider thumb. It joins here rather than in a component because it is a size
    join, which is what this block is; the mark's BOX rules stay in checkbox.css until the
    family's third member promotes them (the rule TextArea's LOG set for the field family).
-   Its corner is the theme's, capped: at radius="full" the control band states the capsule,
-   and a circular checkbox is a radio (§6). `min()` rather than a per-level cell because the
-   ceiling is one length that no axis moves — a level below it passes through untouched, which
-   is what keeps `none` able to square a mark like it squares everything else. */
+   Its corner is the family's own band (§6, corrected 2026-08-05): it rode --radius-control-N
+   for half a day, which made it hold a fraction of a box a mark does not have — 0.250 -> 0.385
+   across the index, and 0.462 at comfortable size 4, a circle in all but name reached by an
+   AXIS rather than a theme. --radius-mark-N picks into the same palette on its own terms, so
+   the levels still reach it (`none` squares a mark like it squares everything) while density,
+   which does not move the box, no longer moves the corner. */
 .kui-control[data-size="1"] {
   --kui-ct-h: var(--control-height-1);
   --kui-ct-px: var(--control-px-1);
@@ -235,7 +237,7 @@
   --kui-ct-icon: var(--icon-size-1);
   --kui-ct-slot-inset: var(--slot-inset-1);
   --kui-ct-mark: var(--mark-1);
-  --kui-ct-mark-radius: min(var(--radius-control-1), var(--radius-mark-cap-1));
+  --kui-ct-mark-radius: var(--radius-mark-1);
 }
 .kui-control[data-size="2"] {
   --kui-ct-h: var(--control-height-2);
@@ -249,7 +251,7 @@
   --kui-ct-icon: var(--icon-size-2);
   --kui-ct-slot-inset: var(--slot-inset-2);
   --kui-ct-mark: var(--mark-2);
-  --kui-ct-mark-radius: min(var(--radius-control-2), var(--radius-mark-cap-2));
+  --kui-ct-mark-radius: var(--radius-mark-2);
 }
 .kui-control[data-size="3"] {
   --kui-ct-h: var(--control-height-3);
@@ -263,7 +265,7 @@
   --kui-ct-icon: var(--icon-size-3);
   --kui-ct-slot-inset: var(--slot-inset-3);
   --kui-ct-mark: var(--mark-3);
-  --kui-ct-mark-radius: min(var(--radius-control-3), var(--radius-mark-cap-3));
+  --kui-ct-mark-radius: var(--radius-mark-3);
 }
 .kui-control[data-size="4"] {
   --kui-ct-h: var(--control-height-4);
@@ -277,7 +279,7 @@
   --kui-ct-icon: var(--icon-size-4);
   --kui-ct-slot-inset: var(--slot-inset-4);
   --kui-ct-mark: var(--mark-4);
-  --kui-ct-mark-radius: min(var(--radius-control-4), var(--radius-mark-cap-4));
+  --kui-ct-mark-radius: var(--radius-mark-4);
 }
 
 /* ── The emphasis ladder: loudness, not construction (§9) ────────────────────────────────── */

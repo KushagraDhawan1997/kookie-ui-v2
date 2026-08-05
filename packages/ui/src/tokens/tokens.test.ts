@@ -818,31 +818,81 @@ describe("the mark family is the line box, and nothing designed twice (§4)", ()
   });
 });
 
-describe("a mark's corner has a ceiling, and the ceiling is not a circle (§6)", () => {
+describe("a mark's corner holds a fraction of ITS OWN box (§6)", () => {
+  // The law that did not exist when the corner shipped, and the one that would have caught it:
+  // it rode --radius-control-N, which is designed against the HEIGHT ladder and is density-
+  // indexed, so the fraction climbed 0.250 -> 0.385 across the index and reached 0.462 at
+  // comfortable size 4 — a circle in all but name, arrived at by an axis rather than a theme,
+  // which is why the `full` ceiling never saw it. Fractions, not values: the picks are taste.
   const value = (decl: string | undefined) => parseFloat(decl!.match(/[\d.]+/)![0]);
+  const markIn = (scope: string, i: number) =>
+    value(block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1]);
+  const cornerIn = (scope: string, i: number) =>
+    value(block(scope).match(new RegExp(`--radius-mark-${i}:\\s*([^;]+);`))?.[1]);
 
-  it("caps under half the mark in every cell — half IS a circle, and a circle is a radio", () => {
-    for (const scope of [":root", '[data-pointer="coarse"]']) {
-      for (let i = 1; i <= 4; i++) {
-        const cap = value(block(":root").match(new RegExp(`--radius-mark-cap-${i}:\\s*([^;]+);`))?.[1]);
-        const mark = value(block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1]);
-        expect(cap, `size ${i} in ${scope} caps at or past a circle`).toBeLessThan(mark / 2);
+  for (const level of ["small", "medium", "large", "full"] as const) {
+    it(`holds 0.05-0.40 of the box at every size, level ${level}, both pointer worlds`, () => {
+      const scope = level === defaultRadiusLevel ? ":root" : `[data-radius="${level}"]`;
+      for (const world of [":root", '[data-pointer="coarse"]']) {
+        for (let i = 1; i <= 4; i++) {
+          const fraction = cornerIn(scope, i) / markIn(world, i);
+          // A wide band on purpose: how ROUND a mark is at a given level is the theme's call
+          // (`small` runs 0.08-0.13, `large` about 0.31-0.38), and this only catches a corner
+          // that has stopped being a corner. The law carrying the actual complaint is the
+          // spread one below — a level may be tight or round, but not both at once.
+          expect(fraction, `${level}/${world}/size ${i} is ${fraction.toFixed(3)} of its box`)
+            .toBeGreaterThanOrEqual(0.05);
+          expect(fraction).toBeLessThan(0.4);
+        }
+      }
+    });
+
+    it(`varies by no more than a third across the index at ${level} — a size-4 mark must not read rounder`, () => {
+      // The complaint that found the bug, stated as a law (Kushagra, by eye: "size 4 looks
+      // much more rounded than size 1"). The shipped ladder spread 0.250 -> 0.385, a 54%
+      // climb; the palette's granularity allows about a third and no more.
+      const scope = level === defaultRadiusLevel ? ":root" : `[data-radius="${level}"]`;
+      const fractions = [1, 2, 3, 4].map((i) => cornerIn(scope, i) / markIn(":root", i));
+      expect(Math.max(...fractions) / Math.min(...fractions)).toBeLessThan(1.34);
+    });
+  }
+
+  it("is never half the box — half IS a circle, and a circular checkbox is a radio", () => {
+    for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
+      const scope = level === defaultRadiusLevel ? ":root" : `[data-radius="${level}"]`;
+      for (const world of [":root", '[data-pointer="coarse"]']) {
+        for (let i = 1; i <= 4; i++) {
+          expect(cornerIn(scope, i), `${level}/${world}/${i}`).toBeLessThan(markIn(world, i) / 2);
+        }
       }
     }
   });
 
-  it("is derived from the DEFAULT radius level, not designed a second time", () => {
+  it("holds at `large` when the theme says `full` — a corner stops getting rounder, never retreats", () => {
+    // The surface band's own sentence (§6), one band over.
     for (let i = 1; i <= 4; i++) {
-      const cap = value(block(":root").match(new RegExp(`--radius-mark-cap-${i}:\\s*([^;]+);`))?.[1]);
-      expect(cap).toBe(radiusLevels[defaultRadiusLevel].steps[density.default.radius[i - 1]!]);
+      expect(cornerIn('[data-radius="full"]', i)).toBe(cornerIn('[data-radius="large"]', i));
     }
   });
 
-  it("is one length no axis moves — declared once, never re-cut per level or density", () => {
-    // A per-level cell would make `min()` in the consuming layer meaningless: the point is
-    // that a level BELOW the ceiling passes through untouched, which is what keeps `none`
-    // able to square a mark like it squares everything else (§6).
-    expect(css.match(/--radius-mark-cap-1:/g)).toHaveLength(1);
+  it("`none` still squares it — a kill switch with an exception is not a kill switch (§6)", () => {
+    for (let i = 1; i <= 4; i++) expect(cornerIn('[data-radius="none"]', i)).toBe(0);
+  });
+
+  it("DENSITY never touches it, because density never touches the box it rounds", () => {
+    // The half of the defect no theme could have exposed: --radius-control-N is density-indexed,
+    // so an axis that leaves the mark's box alone was re-cutting its corner.
+    for (const level of ["compact", "comfortable"] as const) {
+      expect(block(`[data-density="${level}"]`)).not.toContain("--radius-mark-");
+    }
+  });
+
+  it("is re-declared in every radius level's own scope (substitution-at-declaration, §6)", () => {
+    for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
+      expect(block(`[data-radius="${level}"]`), `${level} inherits a baked corner`).toContain(
+        "--radius-mark-1:",
+      );
+    }
   });
 });
 
