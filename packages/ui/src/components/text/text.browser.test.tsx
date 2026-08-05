@@ -5,7 +5,8 @@
  * axis once, tokens only) lives in system/type.test.ts.
  */
 import type * as React from "react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { page } from "@vitest/browser/context";
 
 import { Theme } from "../../theme/theme.tsx";
 import { computed, render } from "../../test/browser.tsx";
@@ -80,19 +81,24 @@ describe("type never takes density or pointer — boxes move, labels hold (§12,
   });
 });
 
-describe("the device axis: handheld re-picks the step, desktop is the escape (§15, §17)", () => {
+describe("the HELD band: touch re-picks the reading steps, desktop is the escape (§15, §17)", () => {
   const triple = ["font-size", "line-height", "letter-spacing"] as const;
 
-  it("a handheld step computes exactly the desktop triple at its picked index — designed, not scaled", () => {
-    // size → pick, from config's deviceType.handheld. Equality against another RENDERED step
+  it("a held step computes exactly the desktop triple at its picked index — designed, not scaled", () => {
+    // size → pick, from config's typeBands.held. Equality against another RENDERED step
     // rather than restated numbers: the law is "a band re-picks the palette", so the palette
     // itself is the reference. Both appearances, per the audit standard.
+    //
+    // Step 9 maps to ITSELF here, and that is the split of 2026-08-05 (LOG): a held screen is
+    // close to the eye, which is a reason to raise reading sizes and no reason at all to cut
+    // display sizes. Cutting them is a line-length fact, and line length is width — so the
+    // display steps moved to their own band and an iPad keeps its 56px heading.
     for (const appearance of ["light", "dark"] as const) {
       for (const [size, pick] of [
         ["1", "2"],
         ["3", "4"],
         ["5", "5"],
-        ["9", "8"],
+        ["9", "9"],
       ] as [TypeSize, TypeSize][]) {
         const handheld = render(
           <Theme appearance={appearance} device="handheld">
@@ -128,10 +134,12 @@ describe("the device axis: handheld re-picks the step, desktop is the escape (§
     expect(computed(outer!, "font-size")).not.toBe(computed(inner!, "font-size"));
   });
 
-  it("auto resolves desktop on a fine, wide screen — the conjunction, not either signal alone", () => {
-    // This browser is fine-pointer and wide, so auto must be the identity here. The handheld
-    // side of the media query needs a real handheld; the emitted-declarations law pins that
-    // the auto band under the conjunction IS the handheld band.
+  it("auto resolves desktop on a fine pointer, whatever the width", () => {
+    // This browser is fine-pointer, so auto must be the identity here — and after the split
+    // it must stay the identity at ANY width, which is the whole correction: the old rule
+    // asked `coarse AND narrow`, so a wide iPad fell out of a rise it should have had while
+    // a narrow desktop window was safe for the wrong reason. The coarse side of the query
+    // needs real hardware; the emitted-declarations law pins that auto IS the held band.
     const auto = render(
       <Theme>
         <Text size="3">a</Text>
@@ -166,6 +174,61 @@ describe("the device axis: handheld re-picks the step, desktop is the escape (§
         }
       }
     }
+  });
+});
+
+describe("the NARROW band: a short line cuts the display steps (§15, §17, split 2026-08-05)", () => {
+  // The other half of the band that used to be one. Its justification was always line length
+  // — "56px on a 375px screen is seven characters" — which is a width fact and has nothing to
+  // do with how far the screen is from your eyes. Welded to the held band it fired on phones
+  // only; on its own it fires wherever the line is short, a squeezed desktop window included.
+  //
+  // The viewport is resized for real rather than simulated: a media query is the mechanism,
+  // and a law that stubs the mechanism it is testing proves nothing.
+  const WIDE = { width: 1280, height: 800 };
+  const NARROW = { width: 375, height: 800 };
+
+  async function at(size: { width: number; height: number }, read: () => string[]) {
+    await page.viewport(size.width, size.height);
+    return read();
+  }
+
+  afterEach(async () => {
+    await page.viewport(WIDE.width, WIDE.height);
+  });
+
+  it("cuts step 9 when the window is narrow, and restores it when it is not", async () => {
+    const step9 = () => [computed(render(<Heading size="9">h</Heading>), "font-size")];
+    expect(await at(NARROW, step9)).not.toEqual(await at(WIDE, step9));
+    // Down, never up: the whole reason the band exists.
+    const [narrow] = await at(NARROW, step9);
+    const [wide] = await at(WIDE, step9);
+    expect(parseFloat(narrow!)).toBeLessThan(parseFloat(wide!));
+  });
+
+  it("leaves the READING steps alone — that is the other band's question", async () => {
+    // The bug this pins is the one the split fixed from the other side: a narrow desktop
+    // window is not held, so its body copy must not grow. Before the split the two moved
+    // together or not at all.
+    const body = () => [computed(render(<Text size="3">t</Text>), "font-size")];
+    expect(await at(NARROW, body)).toEqual(await at(WIDE, body));
+  });
+
+  it("a Theme pinned to `desktop` does NOT undo it — width is not a device fact", async () => {
+    // The escape re-declares the held band's steps and deliberately not the display steps.
+    // Being pinned to desktop says nothing about how wide the window is, and a `desktop`
+    // Theme inside a 375px viewport still has a 375px viewport.
+    const pinned = () => [
+      computed(
+        render(
+          <Theme device="desktop">
+            <Heading size="9">h</Heading>
+          </Theme>,
+        ).querySelector(".kui-heading")!,
+        "font-size",
+      ),
+    ];
+    expect(await at(NARROW, pinned)).not.toEqual(await at(WIDE, pinned));
   });
 });
 

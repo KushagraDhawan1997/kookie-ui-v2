@@ -8,6 +8,33 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-05 One type band was doing two jobs, and Apple's own table is what showed it
+
+Kushagra, on the question of whether iPads need their own band, with a screenshot: Apple's page is titled **"iOS, iPadOS Dynamic Type sizes"** — one table for both platforms. Body is 17pt on an iPhone and 17pt on an iPad.
+
+Which quietly demolishes the width half of our rule. The `handheld` band (shipped 2026-08-04) fired on `(pointer: coarse) and (max-width: 48rem)`, and the *cited* justification for the band was "HIG: iOS body 17pt against macOS 13pt" — a **touch platform vs desktop platform** contrast. The width gate silently converted that into **phone vs tablet**, a split the source does not make. And it did not even make that split well: a 13" iPad Pro is 1032px portrait and 1376px landscape, the 10.9" is 820px, so at 768px the gate separates an iPad mini in portrait from every other iPad. That is where a threshold landed, not a boundary anyone chose.
+
+Chasing the fix exposed the real defect, which was structural rather than numeric. **The band was doing two unrelated jobs:**
+
+    reading steps 1-4 ROSE    16 -> 18   because a held screen is close to the eye
+    display steps 8-9  FELL   56 -> 40   because a narrow screen is seven characters wide
+
+Viewing distance and line length. Different questions, different answers, welded to one signal — so the middle of the range came out wrong in both directions. A tablet lost a rise it should have had, and a squeezed desktop window kept 56px headings though the line-length argument applies to it identically.
+
+So: two bands. `held` on `(pointer: coarse)`, `narrow` on `(max-width: 48rem)`. Each emits only the steps it MOVES, which is what lets them coexist — held owns 1-4, narrow owns 8-9, steps 5-7 are nobody's, and neither can silently overwrite the other on a phone where both apply. The generator derives the moved set from the picks, so tuning a pick moves the emission with it.
+
+Two consequences worth recording.
+
+**`device` stops being an axis and becomes an escape.** Its auto signal now asks exactly the question `pointer` asks. It survives on two cases no query can answer: a touch-only kiosk or wall display (coarse, held by nobody, read from two metres, wanting *bigger* type), and a POS terminal that wants coarse targets with desk-distance text. Without the prop, type and targets are welded and neither is expressible. §17's framing as "the third device-facing question gets its own signal" is now overstated and has been rewritten.
+
+**There is no tablet band, and the thing Kushagra was actually reaching for is a different deliverable.** Figma-on-iPad ships a reduced interface — but sort what differs and it is: which features exist (a product decision), navigation shape (width), tap targets (the pointer axis), and type (where Apple says tablet equals phone). Nothing is left for a band to hold. What IS missing is a **window-level size class** for app-shell composition: our tiers are container-keyed on purpose, and "which interface should this app show" is a viewport question the system currently cannot answer. Recorded as open, shaped like Material's compact/medium/expanded.
+
+Rejected on the way: **`any-pointer: coarse`** as the held signal — it means "touch exists somewhere on this machine", so it would permanently inflate a mouse-driven touchscreen laptop and override density, an axis built precisely so people could choose airiness. `pointer` tracks how the machine is being used now: flip a 2-in-1 into tablet mode and it becomes coarse, flip it back and it does not. That also closes §16's long-open `any-pointer` question for geometry, with the same answer — capability is not use.
+
+One test-infrastructure note, because it was a live falsification: the browser suite's viewport was under 768px, so the moment the narrow band existed every law that read a step-9 size was silently asserting against the narrow world while claiming to test the base palette. The viewport is now pinned wide, and the narrow band has its own laws that resize the page for real.
+
+---
+
 ## 2026-08-05 Two layers were writing to the same private names, and one of them was Box
 
 `--kui-h` was the control layer's height stem AND the layout mechanism's stem for Box's `height` prop. So were `--kui-px` and `--kui-py`, against Box's `px` and `py`. Three names, six meanings.

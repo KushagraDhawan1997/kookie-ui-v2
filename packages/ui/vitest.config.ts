@@ -47,6 +47,13 @@ export default defineConfig({
             enabled: true,
             provider: playwright(),
             headless: true,
+            // A WIDE viewport, pinned rather than defaulted (2026-08-05). The type layer
+            // gained a narrow band that cuts display sizes below 48rem, and the default
+            // headless window sat under it — so every law that read a step-9 size was
+            // silently asserting against the narrow world while claiming to test the base
+            // palette. The identity is what a law should stand on; the narrow band gets its
+            // own laws that resize the page deliberately.
+            viewport: { width: 1280, height: 800 },
             instances: [{ browser: "chromium" }],
           },
         },
