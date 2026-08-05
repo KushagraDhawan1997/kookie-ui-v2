@@ -1064,6 +1064,23 @@ ${brandSection("dark")}
   // environment where the press state would silently never fire on an iPhone.
   document.addEventListener("touchstart", () => {}, { passive: true });
 
+  // The marks toggle, and on this page that is not a nicety: a checkbox's TARGET is invisible
+  // (§4 — a control of its size, capped at 44, around a 16-26px box), so "does the hit area
+  // feel right" cannot be judged by looking at it. Click a few pixels above or beside a box
+  // and it should still take. The real component gets this from Base UI; this is the static
+  // page standing in for it, and it moves the same attributes the stylesheet reads.
+  document.addEventListener("click", (e) => {
+    const mark = e.target.closest(".kui-checkbox");
+    if (!mark || mark.hasAttribute("data-disabled")) return;
+    const on = !(mark.hasAttribute("data-checked") || mark.hasAttribute("data-indeterminate"));
+    for (const el of [mark, mark.querySelector("svg")]) {
+      el.toggleAttribute("data-checked", on);
+      el.toggleAttribute("data-unchecked", !on);
+      el.removeAttribute("data-indeterminate");
+    }
+    mark.setAttribute("aria-checked", String(on));
+  });
+
   document.getElementById("sf").addEventListener("change", (e) => {
     // Theme stamps data-surfaces on its own node; the page's bare sections stand in for
     // nested Themes, same as the contrast toggle above.
