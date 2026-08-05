@@ -8,8 +8,10 @@
 
 import type { ToneName } from "../tokens/color-config.ts";
 
-/** §4 — an index, not a measurement. Closed, because a scale with an escape is not a scale. */
-export type Size = "1" | "2" | "3" | "4";
+/** §4 — an index, not a measurement. Closed, because a scale with an escape is not a scale.
+    A value list too, because the laws walk the index and were each spelling it out. */
+export const SIZES = ["1", "2", "3", "4"] as const;
+export type Size = (typeof SIZES)[number];
 
 /** §7 — the tone families, derived from the config rather than restated (the audit lesson:
     a local literal here kept ladder holes invisible to CI). A component never names a

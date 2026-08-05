@@ -4,25 +4,20 @@
  */
 import { beforeAll, describe, expect, it } from "vitest";
 
-// The committed artifacts, not the generators: these tests are about what actually ships, and
-// importing the generators would only prove the generators agree with themselves.
-import layoutCss from "./layout.css?raw";
-import tokensCss from "../tokens/tokens.css?raw";
+// The harness injects every shipped sheet (the committed artifacts, not the generators). This
+// file's selectors only ever touch tokens + layout; the other sheets are inert here.
+import { computed, installStyles } from "../test/browser.tsx";
 
-beforeAll(() => {
-  const sheet = document.createElement("style");
-  sheet.textContent = `${tokensCss}\n${layoutCss}`;
-  document.head.append(sheet);
-});
+beforeAll(installStyles);
 
+/** Deliberately NOT the harness's render(): this file writes the markup by hand, because it
+    proves the stylesheet rather than the React half (ENGINEERING §6). */
 function mount(html: string): HTMLElement {
   const host = document.createElement("div");
   host.innerHTML = html;
   document.body.append(host);
   return host;
 }
-
-const computed = (el: Element, prop: string) => getComputedStyle(el).getPropertyValue(prop).trim();
 
 describe("the var chain actually resolves (§2)", () => {
   it("a space token reaches the rendered property, through three levels of indirection", () => {

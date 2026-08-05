@@ -9,21 +9,23 @@ import { afterEach, describe, expect, it } from "vitest";
 import { page } from "@vitest/browser/context";
 
 import { Theme } from "../../theme/theme.tsx";
-import { computed, render } from "../../test/browser.tsx";
+import {
+  APPEARANCES,
+  POINTERS,
+  SIZES,
+  colorOn,
+  computed,
+  mounted,
+  render,
+} from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text, type TypeSize } from "./text.tsx";
 
-/** Resolve a token the way a component does — through an element, not through the text. */
-function tokenOn(el: Element, name: string): string {
-  const probe = document.createElement("div");
-  probe.style.color = `var(${name})`;
-  el.append(probe);
-  const value = getComputedStyle(probe).color;
-  probe.remove();
-  return value;
-}
+/** Every token this file resolves is a colour, and the harness's tokenOn reads lengths — so
+    the name stays, one line over the shared probe. */
+const tokenOn = (el: Element, name: string): string => colorOn(el, `var(${name})`);
 
 describe("a size step joins the three paired scales at one index (§15)", () => {
   it("resolves font-size, line-height and letter-spacing together", () => {
@@ -58,20 +60,12 @@ describe("type never takes density — boxes move, labels hold (§12, §15, §16
       { density: "compact" },
       { density: "comfortable" },
     ] as const) {
-      const el = render(
-        <Theme {...worlds}>
-          <Text size="3">held</Text>
-        </Theme>,
-      ).querySelector(".kui-text")!;
+      const el = mounted(<Text size="3">held</Text>, { theme: worlds });
       expect(computed(el, "font-size")).toBe("16px");
       expect(computed(el, "line-height")).toBe("24px");
     }
     for (const density of ["compact", "comfortable"] as const) {
-      const el = render(
-        <Theme pointer="coarse" density={density}>
-          <Text size="3">held</Text>
-        </Theme>,
-      ).querySelector(".kui-text")!;
+      const el = mounted(<Text size="3">held</Text>, { theme: { pointer: "coarse", density } });
       expect(computed(el, "font-size")).toBe("18px");
       expect(computed(el, "line-height")).toBe("26px");
     }
@@ -106,23 +100,19 @@ describe("the HANDHELD band: coarse re-picks the reading steps, fine is the esca
     // close to the eye, which is a reason to raise reading sizes and no reason at all to cut
     // display sizes. Cutting them is a line-length fact, and line length is width — so the
     // display steps moved to their own band and an iPad keeps its 56px heading.
-    for (const appearance of ["light", "dark"] as const) {
+    for (const appearance of APPEARANCES) {
       for (const [size, pick] of [
         ["1", "2"],
         ["3", "4"],
         ["5", "5"],
         ["9", "9"],
       ] as [TypeSize, TypeSize][]) {
-        const handheld = render(
-          <Theme appearance={appearance} pointer="coarse">
-            <Text size={size}>h</Text>
-          </Theme>,
-        ).querySelector(".kui-text")!;
-        const desktop = render(
-          <Theme appearance={appearance} pointer="fine">
-            <Text size={pick}>d</Text>
-          </Theme>,
-        ).querySelector(".kui-text")!;
+        const handheld = mounted(<Text size={size}>h</Text>, {
+          theme: { appearance, pointer: "coarse" },
+        });
+        const desktop = mounted(<Text size={pick}>d</Text>, {
+          theme: { appearance, pointer: "fine" },
+        });
         for (const prop of triple) {
           expect(computed(handheld, prop), `size ${size} → step ${pick}, ${prop}`).toBe(
             computed(desktop, prop),
@@ -153,16 +143,8 @@ describe("the HANDHELD band: coarse re-picks the reading steps, fine is the esca
     // asked `coarse AND narrow`, so a wide iPad fell out of a rise it should have had while
     // a narrow desktop window was safe for the wrong reason. The coarse side of the query
     // needs real hardware; the emitted-declarations law pins that auto IS the coarse world.
-    const auto = render(
-      <Theme>
-        <Text size="3">a</Text>
-      </Theme>,
-    ).querySelector(".kui-text")!;
-    const desktop = render(
-      <Theme pointer="fine">
-        <Text size="3">d</Text>
-      </Theme>,
-    ).querySelector(".kui-text")!;
+    const auto = mounted(<Text size="3">a</Text>, { theme: {} });
+    const desktop = mounted(<Text size="3">d</Text>, { theme: { pointer: "fine" } });
     for (const prop of triple) expect(computed(auto, prop)).toBe(computed(desktop, prop));
   });
 
@@ -170,8 +152,8 @@ describe("the HANDHELD band: coarse re-picks the reading steps, fine is the esca
     // The parity law: there is one definition of what a size step means, and the control
     // join consumes it. This is also what carries the band into control labels through the
     // same pointer world that grows their boxes (§16, §17).
-    for (const pointer of ["fine", "coarse"] as const) {
-      for (const size of ["1", "2", "3", "4"] as const) {
+    for (const pointer of POINTERS) {
+      for (const size of SIZES) {
         const host = render(
           <Theme pointer={pointer}>
             <Button size={size}>b</Button>
@@ -232,14 +214,7 @@ describe("the NARROW band: a short line cuts the display steps (§15, §17, spli
     // steps. A pointer says nothing about how wide the window is, and a `fine` Theme inside
     // a 375px viewport still has a 375px viewport.
     const pinned = () => [
-      computed(
-        render(
-          <Theme pointer="fine">
-            <Heading size="9">h</Heading>
-          </Theme>,
-        ).querySelector(".kui-heading")!,
-        "font-size",
-      ),
+      computed(mounted(<Heading size="9">h</Heading>, { theme: { pointer: "fine" } }), "font-size"),
     ];
     expect(await at(NARROW, pinned)).not.toEqual(await at(WIDE, pinned));
   });
@@ -288,7 +263,7 @@ describe("no tone: text reads the foreground context, and emphasis picks the rol
   });
 
   it("the ladder resolves three distinct colours, in both appearances", () => {
-    for (const appearance of ["light", "dark"] as const) {
+    for (const appearance of APPEARANCES) {
       const host = render(
         <Theme appearance={appearance}>
           <Text emphasis="loud">a</Text>
@@ -319,7 +294,7 @@ describe("no tone: text reads the foreground context, and emphasis picks the rol
 
 describe("colour reaches text as tone — a family, never a colour name (§7, §15)", () => {
   it("a chroma family's loud rung is its designed text colour, and the ladder stays distinct", () => {
-    for (const appearance of ["light", "dark"] as const) {
+    for (const appearance of APPEARANCES) {
       const host = render(
         <Theme appearance={appearance}>
           <Text tone="destructive" emphasis="loud">a</Text>

@@ -12,38 +12,24 @@ import { describe, expect, it } from "vitest";
 import * as React from "react";
 
 import { Theme } from "../../theme/theme.tsx";
-import { computed, render } from "../../test/browser.tsx";
+import {
+  APPEARANCES,
+  DENSITIES,
+  POINTERS,
+  SIZES,
+  colorOn,
+  computed,
+  forEachCell,
+  mounted,
+  probeIn,
+  render,
+  tokenOn,
+} from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { Checkbox } from "./checkbox.tsx";
 
-const SIZES = ["1", "2", "3", "4"] as const;
-const DENSITIES = ["compact", "default", "comfortable"] as const;
-
 const px = (v: string) => parseFloat(v);
-
-/**
- * Resolve a token INSIDE the scope that is being tested. The probe goes in as a child rather
- * than a sibling, which is not a detail: every law here mounts a `<Theme>`, and a probe
- * appended to the Theme's parent reads the document scope — so a coarse cell would be checked
- * against the fine world's tokens and pass for the wrong reason. Positioned absolutely so it
- * cannot participate in the flex layout it is measuring.
- */
-function probeIn<T>(scope: Element, apply: (el: HTMLElement) => void, read: (s: CSSStyleDeclaration) => T): T {
-  const probe = document.createElement("div");
-  probe.style.position = "absolute";
-  apply(probe);
-  scope.append(probe);
-  const value = read(getComputedStyle(probe));
-  probe.remove();
-  return value;
-}
-
-const tokenOn = (scope: Element, name: string): string =>
-  probeIn(scope, (el) => (el.style.width = `var(${name})`), (s) => s.width);
-
-const colorOn = (scope: Element, expr: string): string =>
-  probeIn(scope, (el) => (el.style.backgroundColor = expr), (s) => s.backgroundColor);
 
 /** The mark element, whether the law mounted it bare or inside a <Theme>. */
 const markOf = (el: Element): Element => el.querySelector(".kui-checkbox") ?? el;
@@ -128,41 +114,33 @@ describe("the mark is the line box, not the height ladder (§4)", () => {
 });
 
 describe("the target is a control of its size, capped at the touch floor (§4, §16)", () => {
-  for (const pointer of ["fine", "coarse"] as const) {
-    for (const density of DENSITIES) {
-      for (const size of SIZES) {
-        it(`${pointer}/${density}/size ${size}: target = min(control height, 44)`, () => {
-          const el = render(
-            <Theme pointer={pointer} density={density}>
-              <Checkbox size={size} />
-            </Theme>,
-          );
-          const mark = markOf(el);
-          const height = px(tokenOn(el, `--control-height-${size}`));
-          const floor = px(tokenOn(el, "--touch-target-min"));
-          expect(targetBox(mark)).toBeCloseTo(Math.min(height, floor), 1);
-        });
-      }
-    }
-  }
+  forEachCell(({ pointer, density, size }) => {
+    it(`${pointer}/${density}/size ${size}: target = min(control height, 44)`, () => {
+      const el = render(
+        <Theme pointer={pointer} density={density}>
+          <Checkbox size={size} />
+        </Theme>,
+      );
+      const mark = markOf(el);
+      const height = px(tokenOn(el, `--control-height-${size}`));
+      const floor = px(tokenOn(el, "--touch-target-min"));
+      expect(targetBox(mark)).toBeCloseTo(Math.min(height, floor), 1);
+    });
+  });
 
   it("clears WCAG 2.5.8's 24px minimum in every cell, on paint-independent grounds", () => {
     // The reason the expansion exists at all, and the reason it is not coarse-only: a fine
     // cell's mark is 16px, which is under the minimum wherever a mouse is, and "a mouse is
     // precise" is not what the criterion says.
-    for (const pointer of ["fine", "coarse"] as const) {
-      for (const density of DENSITIES) {
-        for (const size of SIZES) {
-          const el = render(
-            <Theme pointer={pointer} density={density}>
-              <Checkbox size={size} />
-            </Theme>,
-          );
-          const mark = markOf(el);
-          expect(targetBox(mark), `${pointer}/${density}/${size} is under the floor`).toBeGreaterThanOrEqual(24);
-        }
-      }
-    }
+    forEachCell(({ pointer, density, size }) => {
+      const el = render(
+        <Theme pointer={pointer} density={density}>
+          <Checkbox size={size} />
+        </Theme>,
+      );
+      const mark = markOf(el);
+      expect(targetBox(mark), `${pointer}/${density}/${size} is under the floor`).toBeGreaterThanOrEqual(24);
+    });
   });
 
   it("never reaches more than 11px past the mark — the overlap §16 refused to guess at", () => {
@@ -170,20 +148,16 @@ describe("the target is a control of its size, capped at the touch floor (§4, �
     // rule (the control height, capped), so the reach is a KNOWN number in every cell rather
     // than a clamp nobody could size. The bound is (44 - smallest coarse mark) / 2 plus the
     // border term the target owes (D3): 10 + 1.
-    for (const pointer of ["fine", "coarse"] as const) {
-      for (const density of DENSITIES) {
-        for (const size of SIZES) {
-          const el = render(
-            <Theme pointer={pointer} density={density}>
-              <Checkbox size={size} />
-            </Theme>,
-          );
-          const mark = markOf(el);
-          const reach = -px(getComputedStyle(mark, "::after").top);
-          expect(reach, `${pointer}/${density}/${size} reaches ${reach}px`).toBeLessThanOrEqual(11);
-        }
-      }
-    }
+    forEachCell(({ pointer, density, size }) => {
+      const el = render(
+        <Theme pointer={pointer} density={density}>
+          <Checkbox size={size} />
+        </Theme>,
+      );
+      const mark = markOf(el);
+      const reach = -px(getComputedStyle(mark, "::after").top);
+      expect(reach, `${pointer}/${density}/${size} reaches ${reach}px`).toBeLessThanOrEqual(11);
+    });
   });
 
   it("is the hosted-control rule inverted — a hosted control shrinks, a mark grows", () => {
@@ -201,7 +175,7 @@ describe("a mark's corner holds a fraction of its own box (§6)", () => {
     px(computed(mark, "border-top-left-radius")) / markBox(mark).h;
 
   for (const level of ["small", "medium", "large", "full"] as const) {
-    for (const pointer of ["fine", "coarse"] as const) {
+    for (const pointer of POINTERS) {
       it(`is uniform across the size index at radius="${level}", ${pointer} pointer`, () => {
         // The complaint that found the bug, mounted (Kushagra, by eye: "size 4 looks much more
         // rounded than size 1"). It rode --radius-control-N, designed against the HEIGHT
@@ -209,14 +183,9 @@ describe("a mark's corner holds a fraction of its own box (§6)", () => {
         // not. Both pointer worlds since 2026-08-06 (audit D7): the first spelling mounted no
         // Theme pointer, so the coarse world — the phone's default path — was asserted
         // nowhere. Ceiling 1.4; the token law explains why it is not 1.34.
-        const fractions = SIZES.map((size) => {
-          const el = render(
-            <Theme radius={level} pointer={pointer}>
-              <Checkbox size={size} />
-            </Theme>,
-          );
-          return fractionOf(markOf(el));
-        });
+        const fractions = SIZES.map((size) =>
+          fractionOf(mounted(<Checkbox size={size} />, { theme: { radius: level, pointer } })),
+        );
         expect(Math.max(...fractions) / Math.min(...fractions)).toBeLessThan(1.4);
       });
     }
@@ -240,67 +209,40 @@ describe("a mark's corner holds a fraction of its own box (§6)", () => {
 
   it("is never half the box, in any (level × density × pointer × size) cell — half IS a circle", () => {
     for (const level of ["small", "medium", "large", "full"] as const) {
-      for (const pointer of ["fine", "coarse"] as const) {
-        for (const density of DENSITIES) {
-          for (const size of SIZES) {
-            const el = render(
-              <Theme radius={level} pointer={pointer} density={density}>
-                <Checkbox size={size} />
-              </Theme>,
-            );
-            const mark = markOf(el);
-            expect(
-              px(computed(mark, "border-top-left-radius")),
-              `${level}/${pointer}/${density}/${size} is a circle`,
-            ).toBeLessThan(markBox(mark).h / 2);
-          }
-        }
-      }
+      forEachCell(({ pointer, density, size }) => {
+        const mark = mounted(<Checkbox size={size} />, {
+          theme: { radius: level, pointer, density },
+        });
+        expect(
+          px(computed(mark, "border-top-left-radius")),
+          `${level}/${pointer}/${density}/${size} is a circle`,
+        ).toBeLessThan(markBox(mark).h / 2);
+      });
     }
   });
 
   it("holds at `large` when the theme says `full` — the control band pills, a mark must not", () => {
-    const full = render(
-      <Theme radius="full">
-        <Checkbox size="4" />
-      </Theme>,
-    );
-    const large = render(
-      <Theme radius="large">
-        <Checkbox size="4" />
-      </Theme>,
-    );
-    expect(computed(markOf(full), "border-top-left-radius")).toBe(
-      computed(markOf(large), "border-top-left-radius"),
+    const full = mounted(<Checkbox size="4" />, { theme: { radius: "full" } });
+    const large = mounted(<Checkbox size="4" />, { theme: { radius: "large" } });
+    expect(computed(full, "border-top-left-radius")).toBe(
+      computed(large, "border-top-left-radius"),
     );
   });
 
   it('radius="none" still squares it — a kill switch with an exception is not one (§6)', () => {
-    const el = render(
-      <Theme radius="none">
-        <Checkbox />
-      </Theme>,
-    );
-    expect(computed(markOf(el), "border-top-left-radius")).toBe("0px");
+    const el = mounted(<Checkbox />, { theme: { radius: "none" } });
+    expect(computed(el, "border-top-left-radius")).toBe("0px");
   });
 
   it("the levels still reach it — small is tighter than large", () => {
-    const small = render(
-      <Theme radius="small">
-        <Checkbox size="3" />
-      </Theme>,
-    );
-    const large = render(
-      <Theme radius="large">
-        <Checkbox size="3" />
-      </Theme>,
-    );
-    expect(fractionOf(markOf(small))).toBeLessThan(fractionOf(markOf(large)));
+    const small = mounted(<Checkbox size="3" />, { theme: { radius: "small" } });
+    const large = mounted(<Checkbox size="3" />, { theme: { radius: "large" } });
+    expect(fractionOf(small)).toBeLessThan(fractionOf(large));
   });
 });
 
 describe("neutral off, accent on (§11)", () => {
-  for (const appearance of ["light", "dark"] as const) {
+  for (const appearance of APPEARANCES) {
     it(`${appearance}: the resting box wears the MARK EDGE, and it clears the non-text floor`, () => {
       // "Neutral off" has to survive the element stamping data-tone="accent" for its ON state,
       // and a role token is what makes that possible without a component naming a family. The
@@ -354,7 +296,7 @@ describe("neutral off, accent on (§11)", () => {
   it("the resting hairline is not the accent family, in either appearance", () => {
     // The law behind the role token: if --color-border ever resolves to the stamped family,
     // "neutral off" is a comment rather than a fact.
-    for (const appearance of ["light", "dark"] as const) {
+    for (const appearance of APPEARANCES) {
       const el = render(
         <Theme appearance={appearance}>
           <Checkbox />
@@ -415,7 +357,7 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     // The first spelling asserted opacity and cursor, neither of which could be wrong (audit
     // D6): the resting fill is the surface seal, not a tone role, so the shared arm could not
     // reach it and a disabled unchecked checkbox computed byte-identical to a live one.
-    for (const appearance of ["light", "dark"] as const) {
+    for (const appearance of APPEARANCES) {
       const off = render(
         <Theme appearance={appearance}>
           <Checkbox disabled />
@@ -451,7 +393,7 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     // the invalid remap at (0,2,0) and wins on source order — a checked invalid checkbox
     // showed a confident accent box with nothing wrong about it. Falsified against :is()
     // before this was accepted: the law fails under that spelling in all four cells.
-    for (const appearance of ["light", "dark"] as const) {
+    for (const appearance of APPEARANCES) {
       for (const state of [{ defaultChecked: true }, { indeterminate: true }]) {
         const el = render(
           <Theme appearance={appearance}>
@@ -548,7 +490,7 @@ describe("hosted in a slot, it stays a mark (§4, decided 2026-08-06 — audit D
   // wrong for a mark: a checkbox in a field's trailing slot measured 20 wide and 24 tall,
   // its corner holding two different fractions of two different axes, which is the exact
   // class of defect the --radius-mark-N fix was written to end.
-  for (const pointer of ["fine", "coarse"] as const) {
+  for (const pointer of POINTERS) {
     it(`${pointer}: square inside a field's slot, and no larger than the slot allows`, () => {
       const el = render(
         <Theme pointer={pointer}>
@@ -627,7 +569,7 @@ describe("marks in a stack keep their clicks at twelve pixels (§4, decided 2026
     return stolen;
   }
 
-  for (const pointer of ["fine", "coarse"] as const) {
+  for (const pointer of POINTERS) {
     for (const density of DENSITIES) {
       it(`${pointer}/${density}: twelve pixels keep every size's paint its own`, () => {
         for (const size of SIZES) {
