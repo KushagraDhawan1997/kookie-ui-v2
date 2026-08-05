@@ -230,7 +230,7 @@ function typeSection(): string {
     .map((s) =>
       kuiBox(
         { display: "flex", gap: "4", align: "baseline" },
-        `<span ${anno}>${s} — ${fontSize[s - 1]}/${lineHeight[s - 1]}</span>${text(s, "The quick brown fox jumps over the lazy dog")}`,
+        `<span ${anno} data-ramp-step="${s}">${s} — ${fontSize[s - 1]}/${lineHeight[s - 1]}</span>${text(s, "The quick brown fox jumps over the lazy dog")}`,
       ),
     )
     .join("");
@@ -1191,6 +1191,25 @@ ${brandSection("dark")}
   // visible rather than argued. Thresholds are the tiers, read from the same table the
   // resolver and the CSS generator walk (system/props.ts) — the preview restating them as
   // 480/768 literals was the exact hand-kept-second-list shape §4 built that table to end.
+  // The ramp annotation reads the RENDERED text (2026-08-06): it used to print the base
+  // palette pair baked at build time, so flipping the pointer select to coarse (the handheld
+  // band) or squeezing under 768px (the narrow band) moved the text while the numbers lied.
+  const syncRamp = () => {
+    for (const anno of document.querySelectorAll("[data-ramp-step]")) {
+      const sample = anno.parentElement.querySelector(".kui-text");
+      const cs = getComputedStyle(sample);
+      anno.textContent =
+        anno.dataset.rampStep + " — " + parseFloat(cs.fontSize) + "/" + parseFloat(cs.lineHeight);
+    }
+  };
+  syncRamp();
+  window.addEventListener("resize", syncRamp);
+  new MutationObserver(syncRamp).observe(document.body, {
+    attributes: true,
+    subtree: true,
+    attributeFilter: ["data-pointer", "data-density"],
+  });
+
   for (const rig of document.querySelectorAll(".rig")) {
     const label = rig.previousElementSibling.querySelector(".w");
     new ResizeObserver((entries) => {
