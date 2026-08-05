@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
-import type { Material, Size } from "../button/button.tsx";
+import type { Material, Size } from "../../system/axes.ts";
 
 export type CardProps = Omit<
   React.ComponentPropsWithoutRef<"div">,

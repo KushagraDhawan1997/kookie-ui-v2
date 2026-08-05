@@ -4,7 +4,7 @@ import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
 import { filled, mergeRefs } from "../../system/render.ts";
-import type { Material, Size } from "../button/button.tsx";
+import type { Material, Size, SlotName } from "../../system/axes.ts";
 
 /**
  * The `type` values a text FIELD is (§4). A closed union, the way `size` is one — because
@@ -166,7 +166,7 @@ export function TextField({
       onMouseDown={focusInput}
     >
       {hasLeading ? (
-        <span className="kui-field-slot" data-slot="leading" id={`${slotId}-l`}>
+        <span className="kui-field-slot" data-slot={"leading" satisfies SlotName} id={`${slotId}-l`}>
           {leading}
         </span>
       ) : null}
@@ -178,7 +178,7 @@ export function TextField({
         {...props}
       />
       {hasTrailing ? (
-        <span className="kui-field-slot" data-slot="trailing" id={`${slotId}-t`}>
+        <span className="kui-field-slot" data-slot={"trailing" satisfies SlotName} id={`${slotId}-t`}>
           {trailing}
         </span>
       ) : null}

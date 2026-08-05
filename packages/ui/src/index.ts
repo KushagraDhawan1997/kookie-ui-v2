@@ -1,13 +1,6 @@
 // Public surface of @kookie-ui/react. Every export here is a decision (ENGINEERING.md §1.6).
 export { Box, type BoxProps } from "./components/box/box.tsx";
-export {
-  Button,
-  type ButtonProps,
-  type Emphasis,
-  type Material,
-  type Size,
-  type Tone,
-} from "./components/button/button.tsx";
+export { Button, type ButtonProps } from "./components/button/button.tsx";
 export { Card, type CardProps } from "./components/card/card.tsx";
 export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx";
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
@@ -20,5 +13,6 @@ export { Grid, type GridProps } from "./components/grid/grid.tsx";
 export { Stack, type StackProps } from "./components/stack/stack.tsx";
 export { Theme, useTheme, type ThemeProps } from "./theme/theme.tsx";
 export { useWindowClass, windowClassQueries, type WindowClass } from "./system/window.ts";
+export type { Emphasis, Material, Size, Tone } from "./system/axes.ts";
 export type { Responsive } from "./system/resolve.ts";
 export type { Tier } from "./system/props.ts";

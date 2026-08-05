@@ -12,7 +12,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { GLASS_MATERIALS } from "../components/button/button.tsx";
+import { GLASS_MATERIALS } from "./axes.ts";
 
 import { tones } from "../tokens/color-config.ts";
 

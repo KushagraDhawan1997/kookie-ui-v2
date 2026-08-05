@@ -3,25 +3,9 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
+import type { Emphasis, Material, Size, SlotName, Tone } from "../../system/axes.ts";
 import { filled } from "../../system/render.ts";
-import type { ToneName } from "../../tokens/color-config.ts";
 import { Spinner } from "../spinner/spinner.tsx";
-
-/** §4 — an index, not a measurement. Closed, because a scale with an escape is not a scale. */
-export type Size = "1" | "2" | "3" | "4";
-/** §7 — the tone families, derived from the config rather than restated (the audit lesson:
-    a local literal here kept ladder holes invisible to CI). A component never names a
-    colour, only a family; the semantic core plus the basic categorical set live in
-    color-config.ts and widen there. */
-export type Tone = ToneName;
-/** §9 — loudness, three rungs, because a rung that is not visibly distinct is not a rung. */
-export type Emphasis = "loud" | "medium" | "quiet";
-/** §10 — backdrop defense: three designed thicknesses, like the emphasis ladder. `solid` is
-    not a member — it is the seal, the absence of any material (the default, always safe). */
-export const MATERIALS = ["solid", "thin", "regular", "thick"] as const;
-export type Material = (typeof MATERIALS)[number];
-/** The thicknesses that actually paint a veil — `solid` is the absence of one. */
-export const GLASS_MATERIALS = MATERIALS.filter((m) => m !== "solid");
 
 type ButtonBase = Omit<
   React.ComponentPropsWithoutRef<"button">,
@@ -133,7 +117,7 @@ export function Button({
   // component: the pill-padding rule keys "this edge starts with a slot" on it (§4, §6), and a
   // control hosted in a trailing slot gets §4's slot-inset geometry through the same selector —
   // which TextField had and Button, without the wrapper, silently did not.
-  const slot = (content: React.ReactNode, which: "leading" | "trailing") =>
+  const slot = (content: React.ReactNode, which: SlotName) =>
     filled(content) ? <span data-slot={which}>{content}</span> : null;
 
   return (

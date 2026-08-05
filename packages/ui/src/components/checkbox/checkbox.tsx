@@ -3,7 +3,7 @@
 import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import * as React from "react";
 
-import type { Size } from "../button/button.tsx";
+import type { Size } from "../../system/axes.ts";
 
 export type CheckboxProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseCheckbox.Root>,

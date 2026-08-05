@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
-import type { Emphasis, Tone } from "../button/button.tsx";
+import type { Emphasis, Tone } from "../../system/axes.ts";
 
 /** §15 — the full ramp: type's dynamic range is wider than the control family's (§4). */
 export type TypeSize = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";

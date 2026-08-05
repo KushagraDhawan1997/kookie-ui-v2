@@ -3,7 +3,7 @@
 import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
-import type { Material, Size } from "../button/button.tsx";
+import type { Material, Size } from "../../system/axes.ts";
 
 export type TextAreaProps = Omit<
   React.ComponentPropsWithoutRef<"textarea">,
