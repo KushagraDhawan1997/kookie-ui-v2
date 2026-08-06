@@ -8,48 +8,42 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
-## 2026-08-07 The rail is drawn, not filled — and that is what let the contrast axis reach a slider
+## 2026-08-07 The drawn rail is built, judged and reverted — and it takes the slider's contrast fix with it
 
-Kushagra, correcting my reading of his own note: *"I meant the rail, not the handle."* The
-original sentence was "in outline modes, slider's [rail] on the right part is still filled, it
-needs to have outline, and filled for filled, it doesn't respect it. Once you do that, outline
-will work."
+`outlined` was made to mean *drawn* on the slider rail: an empty channel bounded by a hairline
+instead of a solid grey bar, with the accent portion painted inside it. Built, regenerated into
+the preview, rejected on sight. Kushagra: *"handle doesnt look good w outline."* A solid handle
+sitting on a transparent rail reads as a bead resting on nothing, and the rail is the one part
+of this control whose job is to show the handle where it sits.
 
-Before this, the rail was a solid grey bar in BOTH looks. The look axis had reached it a day
-earlier, but only as a fill-versus-fill trade — one grey in `outlined`, a sunken grey in
-`filled` — which is a difference you have to hunt for. `outlined` now means what it says: an
-empty channel bounded by a hairline, with the accent portion painted inside it. `filled` keeps
-the sunk bar and takes the softer dress edge.
+**The shape of the mistake is what is worth keeping.** The design argument was sound and
+general and still wrong here. "Outlined means drawn rather than filled" is a rule about
+SURFACES — regions that have content inside them, where an outline still describes the region.
+It was applied to a track by analogy. A rail is not a region; it is a path, and a path drawn as
+an outline stops looking like a path. So: the look axis REACHING a part is not the same as the
+axis's usual expression SUITING that part. The rail's honest answer to the axis is the
+fill-versus-fill trade it already had — one grey, then a sunk grey — a smaller difference than
+the other families get, and that is a property of what a rail is rather than a gap to close.
 
-**The prediction attached to it was right, and for a reason worth recording.** "Once you do
-that, outline will work" — measured before the change, in the outlined world a slider answered
-`contrast="high"` with *nothing at all*: rail fill, handle fill and handle edge were byte
-identical between normal and high, in both appearances. The rail's fill is a mid-neutral that
-sits outside every high-contrast band and the rail had no edge to strengthen, so the escape was
-simply inert on this control. Giving the rail an outline routes it through a neutral role the
-contrast pass does re-price, and the rail now moves in both looks (light 0.827 → 0.586, dark
-0.274 → 0.457). The fix for the appearance and the fix for the accessibility gap were the same
-edit — which is the argument for drawing wells generally, not a coincidence.
+**What the revert costs, recorded as open rather than quietly lost: the slider is deaf to
+`contrast="high"` in the outlined world again.** Measured, both appearances: rail fill, handle
+fill and handle edge all byte-identical between normal and high. The rail's fill is a
+mid-neutral that sits outside every high-contrast band, and with no edge there is nothing to
+strengthen — so the accessibility escape does nothing at all on this control on the default
+path. The drawn rail closed that as a side effect, which was the one genuinely good thing about
+it, and the fix now needs its own answer. Untried candidates: a rail fill picked to land inside
+a contrast band, or a hairline that appears only under `contrast="high"` (the material's
+stand-down pattern, inverted).
 
-Two spellings mattered and both were wrong first. The edge falls back to `--color-border`, not
-`--tone-border`: the element stamps `accent` for its filled part, so a tone-derived hairline
-would tint the off part with the on part's family, against §11's "track low". And the fallback
-has to be a real colour — `transparent` was the first attempt and it made the rail edge vanish
-in exactly the two states that need it, because `outlined` emits `initial` and so does the
-`contrast="high"` stand-down. `box-sizing: border-box` on the rail for the thumb's own R1
-reason, one part over: a 4px rail with a hairline added outside it paints 6px and stops being
-the designed number.
+Also still open and unrelated, restated because the original request bundled the two: the
+handle ignores `invalid` and `disabled`. That is a cascade problem — the mark family declares
+its ring colour ON the mark, which beats the state colour inherited from the control — and no
+change to how the rail looks can fix it. Removing that declaration is not available either: it
+is the same line that gives all three marks their resting ring, and deleting it turns a
+checkbox's grey ring pale blue (measured), undoing audit D2.
 
-**Recorded as a real exception:** this is the ONE place `outlined` does not resolve to the
-pre-axis value. That claim holds everywhere else and a reader is entitled to assume it holds
-here, so it is stated in the stylesheet, in §19, and in the law that used to assert the
-opposite. The token law that requires every outlined slot to name a pre-axis role now allows
-`transparent` for the track ALONE — named rather than blanket, so the next family cannot slip
-through the same hole.
-
-Not fixed by any of this, and worth separating because the note above assumed otherwise: the
-handle still ignores `invalid` and `disabled`. That is a cascade problem, not an appearance one
-— see the entry on the mark family's ring.
+Kept from the reverted work, because they were separate commits and stand on their own: the
+rail squaring off at `radius="none"`, and §6's corrected "only two corners" count.
 
 ---
 

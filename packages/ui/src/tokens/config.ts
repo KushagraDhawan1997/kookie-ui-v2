@@ -679,10 +679,7 @@ export const look = {
       "fill-active": "var(--color-surface-active)",
       border: "initial",
     },
-    // The rail is an OUTLINE in the outlined world (Kushagra, 2026-08-07): a bordered
-    // empty well, not a grey bar. See the note under `dress` on why this is the one
-    // place `outlined` is not literally the pre-axis value.
-    track: { fill: "transparent", border: "initial" },
+    track: { fill: "initial" },
   },
   filled: {
     surface: {
@@ -698,7 +695,7 @@ export const look = {
       "fill-active": "var(--dress-mark-fill-active)",
       border: "var(--dress-mark-edge)",
     },
-    track: { fill: "var(--dress-track-fill)", border: "var(--dress-track-edge)" },
+    track: { fill: "var(--dress-track-fill)" },
   },
 } as const;
 
@@ -742,14 +739,14 @@ export const dress = {
     field: { fill: 3, edge: 5 },
     mark: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 7 },
     // Darker than the card it is cut into: in light, sunk means further DOWN the ramp.
-    track: { fill: 6, edge: 6 },
+    track: { fill: 6 },
   },
   dark: {
     surface: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 5 },
     field: { fill: 4, edge: 5 },
     mark: { fill: 5, "fill-hover": 6, "fill-active": 7, edge: 7 },
     // Darker than the card, which in dark means further UP toward the page, not down it.
-    track: { fill: 2, edge: 5 },
+    track: { fill: 2 },
   },
 } as const;
 

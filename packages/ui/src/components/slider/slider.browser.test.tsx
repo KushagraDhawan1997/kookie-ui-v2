@@ -206,43 +206,13 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     // the design. Once `filled` became a fill question, an untouched rail was simply the one
     // part of the slider that ignored the app's identity. The old law's own comment set the
     // bar for this: "if it ever moves with the look, that is a decision."
-    //
-    // And the rail is DRAWN rather than filled in the outlined world (2026-08-07, Kushagra:
-    // "I meant the rail, not the handle"). Before this it was a solid grey bar in BOTH looks,
-    // which is why the slider was the one control that looked identical either way. Outlined
-    // is therefore the ONE place the axis does not resolve to the pre-axis value — an empty
-    // channel with a hairline, which is what a well looks like on every platform that draws
-    // one, and is the thing that finally gives the rail an edge the contrast axis can reach.
-    const outlinedTrack = trackOf(slider({}, { look: "outlined", appearance }));
-    const filledTrack = trackOf(slider({}, { look: "filled", appearance }));
-
-    expect(computed(filledTrack, "background-color")).not.toBe(
-      computed(outlinedTrack, "background-color"),
+    const outlined = trackOf(slider({}, { look: "outlined", appearance }));
+    const filled = trackOf(slider({}, { look: "filled", appearance }));
+    expect(computed(filled, "background-color")).not.toBe(computed(outlined, "background-color"));
+    // Outlined stays the identity: the untouched well role, resolved at the element.
+    expect(computed(outlined, "background-color")).toBe(
+      colorOn(rootOf(slider({}, { look: "outlined", appearance })), "var(--color-track)"),
     );
-    // Outlined: an empty channel that is nonetheless bounded. Both halves matter — a rail with
-    // no fill AND no edge is not an outline, it is an invisible control.
-    expect(computed(outlinedTrack, "background-color")).toBe("rgba(0, 0, 0, 0)");
-    expect(
-      computed(outlinedTrack, "border-top-color"),
-      "an outlined rail with no edge is not drawn, it is absent",
-    ).not.toBe("rgba(0, 0, 0, 0)");
-    // Filled: a sunk bar, really painted.
-    expect(computed(filledTrack, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
-  });
-
-  it.each(APPEARANCES)("%s: the rail answers contrast=high in BOTH looks (§7, §19)", (appearance) => {
-    // The gap this closes, measured before the fix: in the outlined world NOTHING on a slider
-    // moved when high contrast was asked for — not the rail, not the handle's fill, not the
-    // handle's edge. The rail had no edge to strengthen and its fill was a mid-neutral outside
-    // every high-contrast band, so the accessibility escape was simply inert on this control.
-    // Drawing the rail is what fixed it: the hairline routes through the neutral role, which
-    // the contrast pass does re-price.
-    for (const look of ["outlined", "filled"] as const) {
-      const at = (contrast: "normal" | "high") =>
-        computed(trackOf(slider({}, { look, appearance, contrast })), "border-top-color");
-      expect(at("normal"), `${look}: no edge to strengthen`).not.toBe("rgba(0, 0, 0, 0)");
-      expect(at("high"), `${look}: the rail is deaf to contrast="high"`).not.toBe(at("normal"));
-    }
   });
 
   it.each(APPEARANCES)("%s: the thumb is never its own rail", (appearance) => {
@@ -273,32 +243,16 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
 describe("track low, fill accent (§11)", () => {
   for (const appearance of APPEARANCES) {
     it(`${appearance}: the track is the neutral well, the fill the accent solid`, () => {
-      // Restated for the drawn rail (2026-08-07). The claim was never really "the rail is
-      // --color-track" — it is that the OFF part stays neutral while the ON part carries the
-      // accent, even though the element stamps `accent` for its fill. That claim survives the
-      // rail becoming an outline; it just lives on the edge now in the outlined world, and on
-      // the fill in the filled one. Asserted per look so neither world can drift alone.
-      const accent = (el: HTMLElement) =>
-        computed(el.querySelector(".kui-slider-fill")!, "background-color");
-
-      for (const look of ["outlined", "filled"] as const) {
-        const el = slider({}, { appearance, look });
-        const track = trackOf(el);
-        // The ON part is the accent solid, in both worlds — the look never touches it.
-        expect(accent(el), `${look}: the fill is not the accent solid`).toBe(
-          colorOn(el, "var(--accent-solid)"),
-        );
-        // Whichever channel the rail paints in this world, it must not be the accent family.
-        const painted =
-          look === "outlined"
-            ? computed(track, "border-top-color")
-            : computed(track, "background-color");
-        expect(painted, `${look}: the well tinted with the accent`).not.toBe(
-          colorOn(el, "var(--accent-3)"),
-        );
-        expect(painted).not.toBe(colorOn(el, "var(--accent-solid)"));
-        expect(painted, `${look}: the well paints nothing at all`).not.toBe("rgba(0, 0, 0, 0)");
-      }
+      const el = slider({}, { appearance });
+      expect(computed(trackOf(el), "background-color")).toBe(colorOn(el, "var(--color-track)"));
+      expect(computed(el.querySelector(".kui-slider-fill")!, "background-color")).toBe(
+        colorOn(el, "var(--accent-solid)"),
+      );
+      // The well is not the accent family: "track low" means neutral, and it must survive the
+      // element stamping accent for its fill.
+      expect(computed(trackOf(el), "background-color")).not.toBe(
+        colorOn(el, "var(--accent-3)"),
+      );
     });
   }
 

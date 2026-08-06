@@ -1036,16 +1036,10 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
     // default path must still resolve the untouched well role at the element.
     for (const [family, slots] of Object.entries(look.outlined)) {
       for (const value of Object.values(slots)) {
-        // `transparent` joins the allowed set for ONE family, and the exception is named
-        // rather than blanket: the rail is DRAWN in the outlined world (2026-08-07), an empty
-        // channel with a hairline instead of a solid grey bar, so its outlined fill is
-        // deliberately not a pre-axis value. Every other family must still resolve to a role
-        // that existed before the axis, or stand down.
-        const allowed =
-          value === "initial" ||
-          /^var\(--(color|tone|mark)-[\w-]+\)$/.test(value) ||
-          (family === "track" && value === "transparent");
-        expect(allowed, `outlined/${family} introduces a value of its own: ${value}`).toBe(true);
+        expect(
+          value === "initial" || /^var\(--(color|tone|mark)-[\w-]+\)$/.test(value),
+          `outlined/${family} introduces a value of its own: ${value}`,
+        ).toBe(true);
       }
     }
   });
