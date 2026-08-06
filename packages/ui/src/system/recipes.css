@@ -271,20 +271,43 @@
      shared state remaps (disabled, invalid) rewrite the TONE roles, and a component that
      reaches past them makes itself unreachable by every state law written once for everybody.
 
-     Both channels resolve through the LOOK axis (§19), and the family answers once for all
-     three members — checkbox, radio, the slider thumb — which is the promotion paying off:
-     the axis was wired to `.kui-checkbox` while the family lived in that file, and landing it
-     here is one rule instead of three. Outlined emits `initial`, so the fallback resolves the
-     seal and the mark edge AT THIS ELEMENT, mode-correct and still reachable by the state
-     remaps (the material edge's pattern, §10). Filled trades both for the darkest well in the
-     hierarchy — surfaces lightest, fields one darker, marks darkest. */
+     This is the UNDRESSED identity — the seal and the mark edge, no look roles. The block
+     below dresses the members that take the app's identity; a mark that does not reach it
+     keeps exactly what is declared here. */
+  --kui-ct-fill-src: var(--color-surface);
+  --kui-ct-fill-src-hover: var(--color-surface-hover);
+  --kui-ct-fill-src-active: var(--color-surface-active);
+  --tone-border: var(--mark-edge);
+
+  /* The target's anchor: no wrapper exists, and the pseudo below is not one. */
+  position: relative;
+}
+
+/* ── The dress, for the marks that ARE controls (§19, narrowed 2026-08-07) ───────────────────
+   The look axis reaches a mark that IS a control, and stops at a mark that is a PART of one.
+   Checkbox and radio are dressed; the slider thumb is not (Kushagra, judged in the preview:
+   "the handle / thumb also shouldn't subscribe to look axis").
+
+   The reason is what the two things ARE. A checkbox at rest is a small empty surface with a
+   boundary, and the app's identity is exactly a statement about how its resting surfaces are
+   drawn — so it takes the dress the way a card and a field do. A handle is not a surface you
+   read, it is a grip you move: its whole job is to stay the same recognisable object while
+   everything behind it changes. That is also why Button belongs to no dressed family (§19),
+   and the thumb lands in Button's category rather than the checkbox's despite sharing the
+   checkbox's geometry.
+
+   So the mark family shares its BOX and not its DRESS: one ladder, one corner, one target
+   rule, and a divergence in resting fill that is now stated rather than assumed. The selector
+   is the hosted-mark precedent from the target rule below, reused exactly — `:not(.kui-control *)`
+   already means "a mark that is itself the control" one rule further down.
+
+   Specificity is deliberately equal to the block above (`:where()` contributes nothing), so
+   this wins on source order alone and reads top-to-bottom as identity-then-dress. */
+.kui-mark:where(:not(.kui-control *)) {
   --kui-ct-fill-src: var(--look-mark-fill);
   --kui-ct-fill-src-hover: var(--look-mark-fill-hover);
   --kui-ct-fill-src-active: var(--look-mark-fill-active);
   --tone-border: var(--look-mark-border, var(--mark-edge));
-
-  /* The target's anchor: no wrapper exists, and the pseudo below is not one. */
-  position: relative;
 }
 
 /* ── The target: a control of its size, painted or not (§4, §16) ─────────────────────────────

@@ -186,18 +186,32 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     });
   }
 
-  for (const look of ["outlined", "filled"] as const) {
-    it(`${look}: the thumb takes the family's dress, identical to a checkbox (§19)`, () => {
-      // The third member proving the axis landed on the family rather than on a component:
-      // slider.css says nothing about `look`, and the thumb still answers the app's identity —
-      // the same computed pair a checkbox of any size resolves.
-      const thumb = thumbOf(slider({}, { look }));
-      const box = mounted(<Checkbox />, { theme: { look }, select: ".kui-checkbox" });
-      for (const prop of ["background-color", "border-top-color"]) {
-        expect(computed(thumb, prop), prop).toBe(computed(box, prop));
-      }
-    });
-  }
+  it.each(APPEARANCES)("%s: the thumb does NOT take the app's dress (§19)", (appearance) => {
+    // REVERSED 2026-08-07 (Kushagra, from the preview: "the handle / thumb also shouldn't
+    // subscribe to look axis"). This used to assert the opposite — that the thumb resolves the
+    // same computed pair as a checkbox in both looks — and that was the axis landing on the
+    // family rather than on a component, which was the right shape for the wrong members.
+    //
+    // A checkbox at rest is a small empty surface with a boundary, and the app's identity is a
+    // statement about how resting surfaces are drawn, so it takes the dress like a card does.
+    // A handle is not a surface you read, it is a grip you move, and its job is to stay the
+    // same recognisable object while everything behind it changes. Button belongs to no dressed
+    // family for the same reason; the thumb lands in Button's category despite sharing the
+    // checkbox's geometry. The family shares its BOX, not its DRESS.
+    const at = (look: "outlined" | "filled") => thumbOf(slider({}, { look, appearance }));
+    for (const prop of ["background-color", "border-top-color"]) {
+      expect(computed(at("filled"), prop), `the look reached the thumb's ${prop}`).toBe(
+        computed(at("outlined"), prop),
+      );
+    }
+    // The negative control, and it is the whole point of the narrowing: a checkbox in the same
+    // two worlds must still MOVE, or the axis has simply been switched off for the family.
+    const box = (look: "outlined" | "filled") =>
+      computed(mounted(<Checkbox />, { theme: { look, appearance }, select: ".kui-checkbox" }), "background-color");
+    expect(box("filled"), "the checkbox stopped answering the app's identity").not.toBe(
+      box("outlined"),
+    );
+  });
 
   it.each(APPEARANCES)("%s: the track joins the axis — the well is dressed too (§19)", (appearance) => {
     // REVERSED 2026-08-06 (Kushagra, from the preview: "slider doesn't respect outline at all

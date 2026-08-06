@@ -220,11 +220,16 @@ describe("the mark family lives in the shared layer, once (§4, promoted 2026-08
   it("the shared layer declares the box, the target, the resting identity and the ON state", () => {
     expect(recipes).toContain(".kui-mark {");
     expect(block(recipes, ".kui-mark {")).toContain("var(--kui-ct-mark)");
-    // The resting edge routes through the look axis (§19) and lands on the mark edge when the
-    // app takes the outlined look — the role stands down (`initial`) and this fallback is what
-    // resolves, at the element, where the tone system lives. Both halves asserted: the family
-    // still owns the identity, and the identity is still the mark edge.
-    expect(block(recipes, ".kui-mark {")).toContain(
+    // The family block is the UNDRESSED identity: the seal and the mark edge, and nothing from
+    // the look axis (narrowed 2026-08-07 — a mark that IS a control is dressed, a mark that is
+    // a PART of one is not). Both halves asserted: the family still owns the resting identity,
+    // and that identity is still the mark edge.
+    expect(block(recipes, ".kui-mark {")).toContain("--tone-border: var(--mark-edge)");
+    // And the dress is a SEPARATE rule, reached by the hosted-mark selector. Asserted here so
+    // the narrowing cannot be undone by folding the two blocks back together — which would
+    // silently re-dress the slider thumb.
+    expect(recipes).toContain(".kui-mark:where(:not(.kui-control *)) {");
+    expect(block(recipes, ".kui-mark:where(:not(.kui-control *)) {")).toContain(
       "--tone-border: var(--look-mark-border, var(--mark-edge))",
     );
     expect(recipes).toContain(".kui-mark:where(:not(.kui-control *))::after");

@@ -8,6 +8,42 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 The thumb leaves the look axis — the mark family shares its box, not its dress
+
+Kushagra, after the drawn-rail revert: *"I further think the handle / thumb also shouldn't
+subscribe to look axis."* The mark family had answered the axis once for all three members,
+which read as the promotion paying off — one rule instead of three, and a law pinning checkbox,
+radio and thumb to the same computed pair in both looks. Right shape, wrong membership.
+
+**The criterion is what the two things ARE.** A checkbox at rest is a small empty surface with
+a boundary, and `look` is precisely a statement about how the app draws its resting surfaces —
+so it takes the dress for the same reason a card and a field do. A handle is not a surface you
+read; it is a grip you move, and its job is to stay the same recognisable object while
+everything behind it changes. Button belongs to no dressed family on exactly that argument
+(its border is rank, not dress), and the thumb lands in Button's category despite sharing the
+checkbox's geometry down to the pixel. So the family shares its **box** — one ladder, one
+corner, one target rule — and not its **dress**, and that divergence is now stated rather than
+assumed.
+
+The selector is not new: `:where(:not(.kui-control *))` already means "a mark that is itself the
+control" in the target rule two blocks down, where the thumb is excluded from growing its own
+hit area for a related reason. Reusing it makes "is this mark a control or a part of one" one
+question with one spelling. Specificity stays equal to the family block (`:where()` contributes
+nothing), so the file reads top-to-bottom as identity-then-dress.
+
+**It immediately reintroduced the collision the track joined the axis to fix, through the other
+door.** With the thumb pinned to the seal, and dark's seal being `--neutral-2`, the filled rail
+at `--neutral-2` became the handle's own colour again — 1.000:1, the handle invisible on its
+rail, caught by the law written for the first instance. Dark's filled rail moved to the page
+step: a deeper well inside a filled card, with the handle a clear step above it. Worth noting
+that the law caught this the same session it was written for a different cause, which is the
+argument for laws that assert a RELATIONSHIP (this must not equal that) over laws that assert a
+value — a value law would have needed rewriting here and would have gone quiet instead.
+
+Not fixed, and unchanged by any of this: the handle still ignores `invalid` and `disabled`.
+
+---
+
 ## 2026-08-07 The drawn rail is built, judged and reverted — and it takes the slider's contrast fix with it
 
 `outlined` was made to mean *drawn* on the slider rail: an empty channel bounded by a hairline
