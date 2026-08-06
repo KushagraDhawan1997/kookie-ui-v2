@@ -25,6 +25,10 @@ import { tiers } from "../system/props.ts";
 /** The tier boundaries in px, for the readout script: the rem values are authored in
     system/props.ts and a preview page has no rem context of its own at build time. */
 const remPx = (rem: string): number => parseFloat(rem) * 16;
+
+/** Sentence case for headings and labels built from token values ("solid" → "Solid").
+    The page speaks in sentences; raw lowercase identifiers read as unfinished. */
+const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 import { resolveBoxProps, type BoxStyleProps } from "../system/resolve.ts";
 
 /**
@@ -63,22 +67,6 @@ const SWEEP: Array<[string, { hue: number; vividness: number; pinL?: number }]> 
   ["magenta", { hue: 340, vividness: 1 }],
   ["red", { hue: 25, vividness: 1 }],
 ];
-
-function hueSweep(mode: Mode): string {
-  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>hue sweep — ${mode}</h2>
-    ${SWEEP.map(([name, spec]) => {
-      const s = buildScaleFor(spec, mode);
-      return `<div class="sweep">
-        <span class="sweep-name">${name}<br><span class="sweep-hex">${s.steps[8]}</span></span>
-        <div class="row">${s.steps.map((hex, i) => `<div class="sw sm" title="${name}-${i + 1} ${hex}" style="background:${hex}"></div>`).join("")}</div>
-        <div class="role" style="background:${s.solid};color:${s.contrast}">solid</div>
-        <div class="role" style="background:${s.solidActive};color:${s.contrast}">active</div>
-        <div class="role" style="background:${s.steps[2]};color:${s.label}">label</div>
-      </div>`;
-    }).join("")}
-  </section>`;
-}
 
 const TONES = Object.keys(tones) as ToneName[];
 
@@ -125,23 +113,23 @@ function button(
 function buttonMatrix(
   mode: Mode,
   tones: readonly string[] = TONES,
-  heading: string = mode,
+  heading: string = cap(mode),
 ): string {
   // No loud + border column: judged useless by eye (2026-08-03) — a step-7 border against a
   // solid step-9 fill has no containment job, the fill already separates itself (§10).
   const columns = EMPHASES.flatMap((e) => [
-    { label: e, emphasis: e, bordered: false },
-    ...(e === "loud" ? [] : [{ label: `${e} + border`, emphasis: e, bordered: true }]),
+    { label: cap(e), emphasis: e, bordered: false },
+    ...(e === "loud" ? [] : [{ label: `${cap(e)} + border`, emphasis: e, bordered: true }]),
   ]);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
     <h2>${heading}</h2>
     <table class="axis-table">
-      <thead><tr><th></th>${columns.map((c) => `<th>${c.label}</th>`).join("")}<th>disabled</th><th>loading</th></tr></thead>
+      <thead><tr><th></th>${columns.map((c) => `<th>${c.label}</th>`).join("")}<th>Disabled</th><th>Loading</th></tr></thead>
       <tbody>
       ${tones
         .map(
           (tone) => `<tr>
-          <th>${tone}</th>
+          <th>${cap(tone)}</th>
           ${columns
             .map(
               (c) =>
@@ -211,7 +199,7 @@ function accentSwap(name: string, hex: string, mode: Mode): string {
   return `<style>
     .${cls}, .${cls} [data-appearance] { ${vars(buildScaleFor(t, mode))} }
     :root[data-contrast="high"] .${cls}, :root[data-contrast="high"] .${cls} [data-appearance] { ${vars(buildScaleFor(t, mode, "srgb", "high"))} }
-  </style><div class="${cls}">${buttonMatrix(mode, ["accent"], `${name} — ${hex} — ${mode}`)}</div>`;
+  </style><div class="${cls}">${buttonMatrix(mode, ["accent"], `${name} — ${hex} — ${cap(mode)}`)}</div>`;
 }
 
 /** The static markup Text and Heading produce (§15) — the type layer resolves the rest. */
@@ -236,7 +224,7 @@ function typeSection(): string {
     .join("");
   const weights = kuiBox(
     { display: "flex", gap: "5", align: "baseline" },
-    ["regular", "medium", "semibold", "bold"].map((w) => text(3, w, w)).join(""),
+    ["regular", "medium", "semibold", "bold"].map((w) => text(3, cap(w), w)).join(""),
   );
   // The composition a block would build: Heading and Text in one Card, sharing the ramp.
   const specimen = card(
@@ -270,7 +258,7 @@ function typeSection(): string {
       kuiBox(
         { display: "flex", gap: "5", align: "baseline" },
         ["loud", "medium", "quiet"]
-          .map((e) => text(3, `${tone} ${e}`, "regular", e, tone))
+          .map((e) => text(3, `${cap(tone)} ${e}`, "regular", e, tone))
           .join(""),
       ),
     )
@@ -325,26 +313,26 @@ function fieldSection(mode: Mode): string {
   const row = (body: string) =>
     kuiBox({ display: "flex", gap: "5", align: "flex-start", wrap: "wrap" }, body);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>${mode}</h2>
+    <h2>${cap(mode)}</h2>
     ${kuiBox(
       { display: "flex", direction: "column", gap: "7" },
       demo(
-        "the size index - one join, shared with every control (\u00a74)",
-        row(SIZES.map((n) => field({ size: n, placeholder: `size ${n}` })).join("")),
+        "The size index — one join, shared with every control <code>\u00a74</code>",
+        row(SIZES.map((n) => field({ size: n, placeholder: `Size ${n}` })).join("")),
       ) +
         demo(
-          "states - the border carries them; the fill never moves (\u00a78)",
+          "States — the border carries them; the fill never moves <code>\u00a78</code>",
           row(
             [
-              field({ placeholder: "rest" }),
-              field({ value: "typed" }),
-              field({ placeholder: "invalid", invalid: true }),
-              field({ placeholder: "disabled", disabled: true }),
+              field({ placeholder: "Rest" }),
+              field({ value: "Typed" }),
+              field({ placeholder: "Invalid", invalid: true }),
+              field({ placeholder: "Disabled", disabled: true }),
             ].join(""),
           ),
         ) +
         demo(
-          "slots - forced anatomy, because the border moved to the wrapper (\u00a710)",
+          "Slots — forced anatomy, because the border moved to the wrapper <code>\u00a710</code>",
           row(
             [
               field({ leading: GLYPH, placeholder: "Search" }),
@@ -355,11 +343,11 @@ function fieldSection(mode: Mode): string {
           ),
         ) +
         demo(
-          "material - the same seal, made glass, with no CSS of its own (\u00a710)",
+          "Material — the same seal, made glass, with no CSS of its own <code>\u00a710</code>",
           `<div style="background: url('backdrop.jpg') center / cover no-repeat, linear-gradient(115deg, #841e57, #144e68 55%, #1db954); border-radius: var(--radius-surface-3);">${kuiBox(
             { display: "flex", gap: "5", wrap: "wrap", p: "7" },
             ["thin", "regular", "thick"]
-              .map((m) => field({ material: m, leading: GLYPH, placeholder: m }))
+              .map((m) => field({ material: m, leading: GLYPH, placeholder: cap(m) }))
               .join(""),
           )}</div>`,
         ),
@@ -396,37 +384,37 @@ function textAreaSection(mode: Mode): string {
     kuiBox({ display: "flex", gap: "5", align: "flex-start", wrap: "wrap" }, body);
   const LOREM = "The quick brown fox jumps over the lazy dog, then does it again with feeling.";
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>${mode}</h2>
+    <h2>${cap(mode)}</h2>
     ${kuiBox(
       { display: "flex", direction: "column", gap: "7" },
       demo(
-        "the size index - padding is the dimension, and it is ONE inset, all four sides (§4)",
+        "The size index — padding is the dimension, one inset on all four sides <code>§4</code>",
         row(
           SIZES.map((n) =>
             [
-              field({ size: n, placeholder: `field ${n}` }),
-              textarea({ size: n, rows: 3, placeholder: `size ${n}` }),
+              field({ size: n, placeholder: `Field ${n}` }),
+              textarea({ size: n, rows: 3, placeholder: `Size ${n}` }),
             ].join(""),
           ).join(""),
         ),
       ) +
         demo(
-          "states - the same family, keyed on the one element there is (§8)",
+          "States — the same family, keyed on the one element there is <code>§8</code>",
           row(
             [
-              textarea({ rows: 3, placeholder: "rest" }),
+              textarea({ rows: 3, placeholder: "Rest" }),
               textarea({ rows: 3, value: LOREM }),
-              textarea({ rows: 3, placeholder: "invalid", invalid: true }),
-              textarea({ rows: 3, placeholder: "disabled", disabled: true }),
-              textarea({ rows: 3, value: "read-only: the well is gone", readonly: true }),
+              textarea({ rows: 3, placeholder: "Invalid", invalid: true }),
+              textarea({ rows: 3, placeholder: "Disabled", disabled: true }),
+              textarea({ rows: 3, value: "Read-only — the well is gone", readonly: true }),
             ].join(""),
           ),
         ) +
         demo(
-          "material - the seal made glass, no CSS of its own (§10)",
+          "Material — the seal made glass, no CSS of its own <code>§10</code>",
           `<div style="background: url('backdrop.jpg') center / cover no-repeat, linear-gradient(115deg, #841e57, #144e68 55%, #1db954); border-radius: var(--radius-surface-3);">${kuiBox(
             { display: "flex", gap: "5", wrap: "wrap", p: "7" },
-            ["thin", "regular", "thick"].map((m) => textarea({ material: m, rows: 3, placeholder: m })).join(""),
+            ["thin", "regular", "thick"].map((m) => textarea({ material: m, rows: 3, placeholder: cap(m) })).join(""),
           )}</div>`,
         ),
     )}
@@ -472,35 +460,35 @@ function checkboxSection(mode: Mode): string {
   const row = (body: string) =>
     kuiBox({ display: "grid", columns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "5" }, body);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>${mode}</h2>
+    <h2>${cap(mode)}</h2>
     ${kuiBox(
       { display: "flex", direction: "column", gap: "7" },
       demo(
-        "the size index - one line of the label it sits beside, never the height ladder (\u00a74)",
-        row(SIZES.map((n) => checkbox({ size: n, checked: true, label: `size ${n}` })).join("")),
+        "The size index — one line of the label it sits beside, never the height ladder <code>\u00a74</code>",
+        row(SIZES.map((n) => checkbox({ size: n, checked: true, label: `Size ${n}` })).join("")),
       ) +
         demo(
-          "states - neutral off, accent on (\u00a711); indeterminate is a third meaning, not a faded tick",
+          "States — neutral off, accent on; indeterminate is a third meaning, not a faded tick <code>\u00a711</code>",
           row(
             [
-              checkbox({ label: "off" }),
-              checkbox({ checked: true, label: "on" }),
-              checkbox({ indeterminate: true, label: "mixed" }),
-              checkbox({ invalid: true, label: "invalid" }),
-              checkbox({ disabled: true, label: "disabled" }),
-              checkbox({ checked: true, disabled: true, label: "on + disabled" }),
+              checkbox({ label: "Off" }),
+              checkbox({ checked: true, label: "On" }),
+              checkbox({ indeterminate: true, label: "Mixed" }),
+              checkbox({ invalid: true, label: "Invalid" }),
+              checkbox({ disabled: true, label: "Disabled" }),
+              checkbox({ checked: true, disabled: true, label: "On + disabled" }),
             ].join(""),
           ),
         ) +
         demo(
-          "hosted in a field's slot - it stays square, and the field's rule owns the target (\u00a74)",
+          "Hosted in a field's slot — it stays square, and the field's rule owns the target <code>\u00a74</code>",
           row(
-            field({ size: "2", placeholder: "notify me", trailing: checkbox({ size: "2", checked: true }) }) +
-              field({ size: "3", placeholder: "remember", trailing: checkbox({ size: "3" }) }),
+            field({ size: "2", placeholder: "Notify me", trailing: checkbox({ size: "2", checked: true }) }) +
+              field({ size: "3", placeholder: "Remember", trailing: checkbox({ size: "3" }) }),
           ),
         ) +
         demo(
-          "a stacked list - marks need 12px of air, and this gap holds it at every density (\u00a74)",
+          "A stacked list — marks need 12px of air, and this gap holds it at every density <code>\u00a74</code>",
           kuiBox(
             // gap 5, not 4: the rule is 12 REAL pixels between stacked marks, and the compact
             // density resolves gap 4 to 8px. Step 5 is the smallest index that clears the rule
@@ -544,27 +532,27 @@ function radioSection(mode: Mode): string {
   const row = (body: string) =>
     kuiBox({ display: "grid", columns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "5" }, body);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>${mode}</h2>
+    <h2>${cap(mode)}</h2>
     ${kuiBox(
       { display: "flex", direction: "column", gap: "7" },
       demo(
-        "the size index - the checkbox's box exactly, worn as a circle (§4, §6)",
-        row(SIZES.map((n) => radio({ size: n, checked: true, label: `size ${n}` })).join("")),
+        "The size index — the checkbox's box exactly, worn as a circle <code>§4 §6</code>",
+        row(SIZES.map((n) => radio({ size: n, checked: true, label: `Size ${n}` })).join("")),
       ) +
         demo(
-          "states - the family identity, resolved by the shared layer (§11)",
+          "States — the family identity, resolved by the shared layer <code>§11</code>",
           row(
             [
-              radio({ label: "off" }),
-              radio({ checked: true, label: "on" }),
-              radio({ invalid: true, label: "invalid" }),
-              radio({ disabled: true, label: "disabled" }),
-              radio({ checked: true, disabled: true, label: "on + disabled" }),
+              radio({ label: "Off" }),
+              radio({ checked: true, label: "On" }),
+              radio({ invalid: true, label: "Invalid" }),
+              radio({ disabled: true, label: "Disabled" }),
+              radio({ checked: true, disabled: true, label: "On + disabled" }),
             ].join(""),
           ),
         ) +
         demo(
-          "a group - one value, and the circle holds at every radius level: flip the select",
+          "A group — one value, and the circle holds at every radius level: flip the select",
           kuiBox(
             { display: "flex", direction: "column", gap: "5" },
             ["Starter", "Pro", "Enterprise"]
@@ -593,18 +581,18 @@ function sliderSection(mode: Mode): string {
   const demo = (title: string, body: string) =>
     kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>${mode}</h2>
+    <h2>${cap(mode)}</h2>
     ${kuiBox(
       { display: "flex", direction: "column", gap: "7" },
       demo(
-        "the size index - the root rides the height ladder, the thumb the mark ladder, the track its own (§4)",
+        "The size index — the root rides the height ladder, the thumb the mark ladder, the track its own <code>§4</code>",
         kuiBox(
           { display: "flex", direction: "column", gap: "5" },
           SIZES.map((n) => slider({ size: n, value: 25 + Number(n) * 12 })).join(""),
         ),
       ) +
         demo(
-          "states - track low, fill accent; disabled greys through the one remap (§11)",
+          "States — track low, fill accent; disabled greys through the one remap <code>§11</code>",
           kuiBox(
             { display: "flex", direction: "column", gap: "5" },
             [
@@ -616,7 +604,7 @@ function sliderSection(mode: Mode): string {
           ),
         ) +
         demo(
-          "beside its family - one weight class: the handle IS the checkbox's box (§4)",
+          "Beside its family — one weight class: the handle is the checkbox's box <code>§4</code>",
           kuiBox(
             { display: "flex", gap: "5", align: "center" },
             checkbox({ size: "2", checked: true }) + radio({ size: "2", checked: true }) + slider({ size: "2", value: 60 }),
@@ -664,14 +652,14 @@ function surfaceSection(mode: Mode): string {
     "max-width: 420px",
   );
   const sizes = ["1", "2", "3", "4"]
-    .map((n) => card(`size ${n}`, "flex: 1", undefined, n))
+    .map((n) => card(`Size ${n}`, "flex: 1", undefined, n))
     .join("");
   const materials = ["solid", "thin", "regular", "thick"]
     .map((m) =>
       card(
         cardBody(
-          m,
-          "does the label survive?",
+          cap(m),
+          "Does the label survive?",
           `${button({ tone: "accent", emphasis: "loud" }, "Label")}${button({}, "Label")}`,
         ),
         "flex: 1; min-width: 180px",
@@ -689,23 +677,23 @@ function surfaceSection(mode: Mode): string {
   const demo = (title: string, body: string) =>
     kuiBox({ display: "flex", direction: "column", gap: "4", align: "stretch" }, `<h3>${title}</h3>${body}`);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>${mode}</h2>
+    <h2>${cap(mode)}</h2>
     ${kuiBox(
       { display: "flex", direction: "column", gap: "7" },
-      demo("the seal - paper above the page (\u00a710)", shell) +
+      demo("The seal — paper above the page <code>\u00a710</code>", shell) +
         demo(
-          "the padding index, and the corner it carries (\u00a74, \u00a76)",
+          "The padding index, and the corner it carries <code>\u00a74 \u00a76</code>",
           kuiBox({ display: "flex", gap: "5", align: "flex-start" }, sizes),
         ) +
         demo(
-          "card-as-button - render a button, the surface notices (\u00a710)",
+          "Card as button — render a button, the surface notices <code>\u00a710</code>",
           `<button class="kui-surface kui-card" data-size="3" data-tone="neutral" data-emphasis="quiet" data-bordered style="max-width: 420px; width: 100%; display: block">${textGroup(
             "Open project",
             "The whole card is one button: hover washes the seal, press steps again, keyboard gets the one ring.",
           )}</button>`,
         ) +
         demo(
-          "the look axis - outlined vs filled, one Theme line; Button identical in both: rank, not dress (\u00a719)",
+          "The look axis — outlined vs filled, one Theme line; Button identical in both <code>\u00a719</code>",
           kuiBox(
             { display: "flex", gap: "5", align: "flex-start" },
             (["outlined", "filled"] as const)
@@ -720,7 +708,7 @@ function surfaceSection(mode: Mode): string {
                   // data-look-pinned exempts it from the page-wide look select alone.
                   `<div data-appearance="${mode}" data-look="${l}" data-look-pinned style="flex: 1">${kuiBox(
                     { display: "flex", direction: "column", gap: "4" },
-                    `<strong>${l}</strong>` +
+                    `<strong>${cap(l)}</strong>` +
                       card(
                         kuiBox(
                           { display: "flex", direction: "column", gap: "4" },
@@ -732,7 +720,7 @@ function surfaceSection(mode: Mode): string {
                             // members sit here on purpose: one shared rule dresses them, so a
                             // divergence shows up in this row first.
                             { display: "grid", columns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "3" },
-                            `${checkbox({ label: "remember" })}${radio({ label: "daily" })}${radio({ checked: true, label: "weekly" })}`,
+                            `${checkbox({ label: "Remember" })}${radio({ label: "Daily" })}${radio({ checked: true, label: "Weekly" })}`,
                           )}${slider({ width: "100%" })}${kuiBox(
                             { display: "grid", columns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "3" },
                             `${button({ tone: "accent", emphasis: "loud" }, "Send")}${button({ bordered: true }, "Cancel")}`,
@@ -745,42 +733,42 @@ function surfaceSection(mode: Mode): string {
           ),
         ) +
         demo(
-          "the shadow palette - a resource; only the elevated world and escapes reach it (\u00a713)",
+          "The shadow palette — a resource; only the elevated world and escapes reach it <code>\u00a713</code>",
           kuiBox(
             { display: "flex", gap: "6", align: "flex-start" },
             ["1", "2", "3", "4"]
               .map(
                 (n) =>
-                  `<div style="flex: 1; background: var(--color-surface); border: 1px solid var(--neutral-4); border-radius: var(--radius-surface-3); padding: var(--space-6); box-shadow: var(--shadow-${n})">shadow ${n}${n === "1" ? " - the well" : ""}</div>`,
+                  `<div style="flex: 1; background: var(--color-surface); border: 1px solid var(--neutral-4); border-radius: var(--radius-surface-3); padding: var(--space-6); box-shadow: var(--shadow-${n})">Shadow ${n}${n === "1" ? " — the well" : ""}</div>`,
               )
               .join(""),
           ),
         ) +
         demo(
-          "material over a hostile backdrop - v0 recipes (\u00a710)",
+          "Material over a hostile backdrop — v0 recipes <code>\u00a710</code>",
           `<div style="${hostile}">${kuiBox({ display: "flex", gap: "5", wrap: "wrap", p: "7" }, materials)}</div>`,
         ) +
         demo(
-          "the same cards in an ELEVATED world - the pane's own chrome wins on the element (\u00a710)",
+          "The same cards in an elevated world — the pane's own chrome wins on the element <code>\u00a710</code>",
           `<div data-surfaces="elevated"><div style="${hostile}">${kuiBox({ display: "flex", gap: "5", wrap: "wrap", p: "7" }, materials)}</div></div>`,
         ) +
         demo(
-          "material on a control - a fill modifier: tone and loudness survive the glass (\u00a710, \u00a711)",
+          "Material on a control — a fill modifier: tone and loudness survive the glass <code>\u00a710 \u00a711</code>",
           `<div style="${hostile}">${kuiBox(
             { display: "flex", direction: "column", gap: "4", align: "flex-start", p: "7" },
             kuiBox(
               { display: "flex", gap: "3", wrap: "wrap" },
               ["solid", "thin", "regular", "thick"]
-                .map((m) => button(m === "solid" ? {} : { material: m }, m))
+                .map((m) => button(m === "solid" ? {} : { material: m }, cap(m)))
                 .join(""),
             ) +
               kuiBox(
                 { display: "flex", gap: "3", wrap: "wrap" },
-                button({ material: "regular", tone: "accent", emphasis: "loud" }, "loud accent") +
-                  button({ material: "regular", tone: "destructive", emphasis: "loud" }, "loud destructive") +
-                  button({ material: "regular", tone: "accent" }, "medium accent") +
-                  button({ material: "regular", emphasis: "quiet" }, "quiet = bare blur") +
-                  button({ material: "regular", bordered: true }, "bordered"),
+                button({ material: "regular", tone: "accent", emphasis: "loud" }, "Loud accent") +
+                  button({ material: "regular", tone: "destructive", emphasis: "loud" }, "Loud destructive") +
+                  button({ material: "regular", tone: "accent" }, "Medium accent") +
+                  button({ material: "regular", emphasis: "quiet" }, "Quiet — bare blur") +
+                  button({ material: "regular", bordered: true }, "Bordered"),
               ),
           )}</div>`,
         ),
@@ -818,7 +806,7 @@ function stepsAndRoles(tone: string, s: Scale, withAlpha: boolean): string {
 function scaleRow(tone: string, normal: Scale, high: Scale): string {
   return `
     <div class="scale">
-      <h3>${tone}${normal.isLowChroma ? ' <em>low chroma: solid takes step 12</em>' : ""}</h3>
+      <h3>${tone}${normal.isLowChroma ? ' <em>Low chroma — solid takes step 12</em>' : ""}</h3>
       ${stepsAndRoles(tone, normal, true)}
       <div class="hc-label">contrast="high"</div>
       ${stepsAndRoles(tone, high, false)}
@@ -827,8 +815,8 @@ function scaleRow(tone: string, normal: Scale, high: Scale): string {
 
 function colorSection(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>${mode}</h2>
-    ${TONES.map((t) => scaleRow(t, buildScale(t, mode), buildScale(t, mode, "srgb", "high"))).join("")}
+    <h2>${cap(mode)}</h2>
+    ${TONES.map((t) => scaleRow(cap(t), buildScale(t, mode), buildScale(t, mode, "srgb", "high"))).join("")}
   </section>`;
 }
 
@@ -890,7 +878,7 @@ function roleMap(): string {
     "--tone-label": s.label,
   };
   return `<table class="roles-table">
-    <thead><tr><th></th><th>token</th><th>resolves to</th><th>consumed by</th></tr></thead>
+    <thead><tr><th></th><th>Token</th><th>Resolves to</th><th>Consumed by</th></tr></thead>
     <tbody>${ROLE_MAP.map(
       ([token, resolves, used]) =>
         `<tr><td>${sample[token] ? `<span class="chip" style="background:${sample[token]}"></span>` : ""}</td>
@@ -912,12 +900,12 @@ const BRANDS: Array<[string, string]> = [
   ["Spotify green", "#1DB954"],
   ["Radix yellow", "#FFE629"],
   ["Radix red", "#E5484D"],
-  ["teal", "#00C8B4"],
+  ["Teal", "#00C8B4"],
 ];
 
 function brandSection(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>brand colours — ${mode}</h2>
+    <h2>${cap(mode)}</h2>
     ${BRANDS.map(([name, hex]) => {
       const s = buildScaleFor(toneFromColor(hex), mode);
       const pinned = s.steps[8]!.toLowerCase() === hex.toLowerCase();
@@ -933,9 +921,9 @@ function brandSection(mode: Mode): string {
 /** The sweep at the depth the shipped tones get, for judging one hue rather than the family. */
 function sweepFull(mode: Mode): string {
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
-    <h2>every hue — ${mode}</h2>
+    <h2>${cap(mode)}</h2>
     ${SWEEP.map(([name, spec]) =>
-      scaleRow(name, buildScaleFor(spec, mode), buildScaleFor(spec, mode, "srgb", "high")),
+      scaleRow(cap(name), buildScaleFor(spec, mode), buildScaleFor(spec, mode, "srgb", "high")),
     ).join("")}
   </section>`;
 }
@@ -996,14 +984,21 @@ export function generatePreview(): string {
             font-size: var(--font-size-1); color: var(--neutral-11); }
   .toggle label { display: flex; gap: var(--space-2); align-items: center; }
 
-  /* rhythm: one heading scale, one note style, one section gap */
+  /* rhythm: one heading scale, one note style, one section gap. Nothing on this page is
+     bold — semibold is the loudest weight, everywhere (Kushagra, 2026-08-07). */
+  strong, b { font-weight: var(--font-weight-semibold); }
   h1 { font: var(--font-weight-semibold) var(--font-size-5)/var(--line-height-5) var(--font-body);
        letter-spacing: var(--letter-spacing-5); margin: var(--space-12) 0 var(--space-3);
        scroll-margin-top: 96px; }
   main > h1:first-child { margin-top: var(--space-8); }
   h2 { font: var(--font-weight-medium) var(--font-size-3)/var(--line-height-3) var(--font-body);
-       margin: 0 0 var(--space-6); text-transform: lowercase; }
+       margin: 0 0 var(--space-6); }
   h2 code { color: var(--neutral-11); font-weight: var(--font-weight-regular); }
+  /* Demo titles: the UA's bold 1.17em default was doing the styling until now. Semibold at
+     body size; the section reference hangs off the end muted, not shouted. */
+  h3 { font: var(--font-weight-semibold) var(--font-size-2)/var(--line-height-2) var(--font-body);
+       letter-spacing: var(--letter-spacing-2); margin: 0; }
+  h3 code { color: var(--neutral-10); font-weight: var(--font-weight-regular); font-size: var(--font-size-1); }
   p.note { font-size: var(--font-size-2); color: var(--neutral-11); max-width: 64ch;
            margin: 0 0 var(--space-7); }
 
@@ -1018,7 +1013,6 @@ export function generatePreview(): string {
   body:not(.icons) .icon { display: none; }
   .readout { font-family: var(--font-mono); font-size: 11px; color: var(--neutral-10); }
   .surfaces { display: flex; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-10); }
-  .mode > .kui-box h3, .mode .kui-box h3 { margin: 0; }
   .surface { background: var(--neutral-2); border: 1px solid var(--neutral-6);
              padding: var(--space-6); font-size: var(--font-size-2); color: var(--neutral-11); }
 
@@ -1035,7 +1029,7 @@ export function generatePreview(): string {
   /* the button axis grid */
   .axis-table { border-collapse: separate; border-spacing: var(--space-4) var(--space-3); }
   .axis-table th { font-size: var(--font-size-1); font-weight: var(--font-weight-medium);
-                   color: var(--neutral-10); text-align: left; text-transform: lowercase; }
+                   color: var(--neutral-10); text-align: left; }
   .row-controls { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center;
                   margin-bottom: var(--space-9); }
 
@@ -1070,11 +1064,6 @@ export function generatePreview(): string {
   .row.roles { margin-top: var(--space-3); gap: var(--space-2); }
   .role { padding: var(--space-3) var(--space-4); border-radius: var(--radius-control-2);
           font-size: var(--font-size-2); font-weight: var(--font-weight-medium); }
-  .sweep { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
-  .sweep-name { width: 78px; font-size: var(--font-size-1); font-family: var(--font-mono); line-height: 1.4; }
-  .sweep-hex { color: var(--neutral-10); font-size: 10px; }
-  .sw.sm { width: 34px; height: 26px; }
-  .sweep .role { padding: var(--space-2) var(--space-3); font-size: var(--font-size-1); }
   .hc-label { font-size: var(--font-size-1); font-family: var(--font-mono); color: var(--neutral-10);
               margin: var(--space-4) 0 var(--space-2); }
 
@@ -1084,22 +1073,22 @@ export function generatePreview(): string {
 <header><div class="bar">
   <span class="brand">KookieUI <em>tokens</em></span>
   <nav class="toc">
-    <a href="#matrix">matrix</a>
-    <a href="#button">button</a>
-    <a href="#field">field</a>
-    <a href="#textarea">textarea</a>
-    <a href="#checkbox">checkbox</a>
-    <a href="#radio">radio</a>
-    <a href="#slider">slider</a>
-    <a href="#type">type</a>
-    <a href="#layout">layout</a>
-    <a href="#roles">roles</a>
-    <a href="#colour">colour</a>
-    <a href="#hues">hues</a>
-    <a href="#brand">brand</a>
+    <a href="#matrix">Matrix</a>
+    <a href="#button">Button</a>
+    <a href="#field">Field</a>
+    <a href="#textarea">Text area</a>
+    <a href="#checkbox">Checkbox</a>
+    <a href="#radio">Radio</a>
+    <a href="#slider">Slider</a>
+    <a href="#type">Type</a>
+    <a href="#layout">Layout</a>
+    <a href="#roles">Roles</a>
+    <a href="#colour">Colour</a>
+    <a href="#hues">Hues</a>
+    <a href="#brand">Brand</a>
   </nav>
   <div class="toggle">
-    <label><input type="checkbox" id="icons"> icons</label>
+    <label><input type="checkbox" id="icons"> Icons</label>
     <label><input type="checkbox" id="hc"> contrast="high"</label>\n  <label><input type="checkbox" id="sf"> surfaces="elevated"</label>
     <label>radius
       <select id="radius">${Object.keys(radiusLevels)
@@ -1118,13 +1107,13 @@ export function generatePreview(): string {
   </div>
 </div></header>
 <main>
-<h1 id="matrix">density x size</h1>
+<h1 id="matrix">Density × size</h1>
 <p class="note">Every value here is a placed number, not a product. Type is held at the size's own step across all three levels, which is the whole point of the axis: a comfortable size 2 stands as tall as a default size 3 while its label stays size 2. Correct any single cell in <code>src/tokens/config.ts</code> without disturbing its neighbours.</p>
 
 <div class="grid">
 ${LEVELS.map(
   (level) => `  <section data-pointer="auto"${level === "default" ? "" : ` data-density="${level}"`}>
-    <h2>${level}${level === "default" ? " <code>(:root)</code>" : ""}</h2>
+    <h2>${cap(level)}${level === "default" ? " <code>(:root)</code>" : ""}</h2>
     <div class="stack">${SIZES.map(control).join("")}
     </div>
   </section>`,
@@ -1141,7 +1130,7 @@ ${LEVELS.map(
 ${buttonMatrix("light")}
 ${buttonMatrix("dark")}
 
-<h2 style="margin-top: var(--space-10)">the same button under other brand accents</h2>
+<h2 style="margin-top: var(--space-10)">The same button under other brand accents</h2>
 <p class="note">Nothing below is configured or hand-tuned: each block overrides only the accent family, generated from the hex beside it, and the buttons inside pick it up because a rung reads <code>--tone-*</code> and never a colour. This is the question a swatch cannot answer — a hue can look fine in a scale and fail as a control, where its solid has to carry an APCA-chosen label through hover and press, its soft fill has to hold a legible label, and its border has to separate from the page. Yellow is the one to distrust.</p>
 ${BRANDS.slice(0, 5)
   .map(([name, hex]) => accentSwap(name, hex, "light"))
@@ -1199,7 +1188,7 @@ ${sliderSection("dark")}
 <p class="note">Nine steps, three paired scales joined at one index — font-size, line-height and letter-spacing are designed pairs, never derived ratios. Type never follows the density select above: flip it and every box and gap on this page moves while these lines hold, which is the whole point of the axis (§12). <strong>Two bands move it, and they are separate on purpose (§17, split 2026-08-05).</strong> The <em>pointer</em> select drives the <em>handheld</em> band — <code>coarse</code> raises the reading steps 1&ndash;4 toward the HIG's 17pt, because a touch-first screen is in a hand, close to the eye (there is no separate device switch: coarse means handheld, LOG 2026-08-05). The <em>narrow</em> band is not a select at all: <strong>drag this window under 768px</strong> and the display steps 8&ndash;9 come down, because a short line cannot hold 56px. A phone gets both; a tablet in landscape gets the first only; a squeezed desktop window gets the second only. Text and Heading ship no CSS of their own; the type layer is the whole of what they look like.</p>
 ${typeSection()}
 
-<h1 id="layout">the responsive mechanism, live</h1>
+<h1 id="layout">The responsive mechanism, live</h1>
 <p class="note">Rendered through the real resolver against the shipped stylesheet — the exact markup Flex, Grid and Stack produce. Values ride on each element as inline custom properties; the stylesheet only arbitrates which tier's value wins. <strong>Drag a handle</strong>: tiers key on the slot's width (<code>sm</code> 30rem, <code>md</code> 48rem), never the window's — the same Grid is correct in a drawer and a main column (§2). Each demo sits inside a plain Box, because a tier reads the <em>nearest ancestor</em> Box — the slot — and a Box with no ancestor container stays at its base values. Token gaps resolve through <em>layout space</em> (§3): flip the density select above and every <code>gap</code> re-picks its step while raw-string values hold still.</p>
 
 <p class="note">A Grid: <code>columns={{ initial: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}</code>, gap steps up at md.</p>
@@ -1231,14 +1220,14 @@ ${kuiBox(
 )}
 </div>
 
-<h1 id="roles">the role layer</h1>
+<h1 id="roles">The role layer</h1>
 <p class="note">Components reference these, never the numbered steps and never the generator. <code>tone</code> stands for whichever of neutral, accent or destructive the component resolved to. Swatches show the accent scale in light mode.</p>
 ${roleMap()}
 
 <h2 style="margin-top: var(--space-9)">contrast="high"</h2>
 <p class="note">An accessibility setting, not a design knob: it shifts values, it never remaps which step a role reads. Applied by the Theme prop or by <code>prefers-contrast: more</code> unless explicitly opted out. Toggle it on the whole page below.</p>
 <table class="roles-table">
-  <thead><tr><th>what</th><th>happens</th></tr></thead>
+  <thead><tr><th>What</th><th>Happens</th></tr></thead>
   <tbody>${CONTRAST_MAP.map(([a, b]) => `<tr><td><code>${a}</code></td><td>${b}</td></tr>`).join("")}</tbody>
 </table>
 
@@ -1252,19 +1241,17 @@ ${roleMap()}
   <div style="background: var(--neutral-solid); color: var(--neutral-contrast)">neutral solid</div>
 </div>
 
-<h1 id="colour">colour</h1>
+<h1 id="colour">Colour</h1>
 <p class="note">Generated from a hue angle and a chroma peak per tone (§7). Steps 1-8 and 11-12 share one lightness ladder across every hue; the solid band leans toward each hue's own cusp, which is the fix for bright hues reading as mud. Every label pairing here is APCA-verified in the suite, not chosen by eye — but the eye is what decides whether it looks right.</p>
 ${colorSection("light")}
 ${colorSection("dark")}
-${hueSweep("light")}
-${hueSweep("dark")}
 
-<h1 id="hues">every hue, full scale</h1>
+<h1 id="hues">Every hue, full scale</h1>
 <p class="note">The same twelve hues at the depth the shipped tones get: all twelve steps, the alpha ramp beneath them, then the roles a component actually consumes. Nothing here is hand-placed. Every row is one generator with a different hue angle.</p>
 ${sweepFull("light")}
 ${sweepFull("dark")}
 
-<h1 id="brand">brand colours through the intake</h1>
+<h1 id="brand">Brand colours through the intake</h1>
 <p class="note">Somebody hands the system a hex; the system makes it correct. In light mode step 9 comes back identical to what went in — compare the swatch numbered 9 against the hex in the heading. Everything else is generated around it, and every one of these passes the same legibility laws the shipped tones do.</p>
 ${brandSection("light")}
 ${brandSection("dark")}
