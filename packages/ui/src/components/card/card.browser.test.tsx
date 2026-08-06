@@ -3,7 +3,8 @@
  * no anatomy. There is no card.css to test; what is asserted is that the shell's fixed
  * identity resolves through the shared surface layer and that the API refuses opinions.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { cdp } from "vitest/browser";
 
 import { Theme } from "../../theme/theme.tsx";
 import { APPEARANCES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
@@ -443,4 +444,40 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     );
     expect(computed(nested.querySelector("#probe")!, "box-shadow")).not.toBe("none");
   });
+});
+
+describe("reduced transparency takes the pane away, not the app's dress (§10, §19)", () => {
+  // The only media path in this repo that no law had ever executed in a browser, which is why
+  // the defect below sat in a rule whose own comment denied it. Emulated over CDP, the same
+  // route the audit's completeness critic proved works.
+  const emulate = (features: { name: string; value: string }[]) =>
+    cdp().send("Emulation.setEmulatedMedia", { features });
+
+  afterEach(async () => {
+    await emulate([]);
+  });
+
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: a glass card's edge matches every other card's under filled`, async () => {
+      await emulate([{ name: "prefers-reduced-transparency", value: "reduce" }]);
+      const glass = mounted(<Card material="regular">Body</Card>, {
+        theme: { look: "filled", appearance },
+        select: ".kui-surface",
+      });
+      const plain = mounted(<Card>Body</Card>, {
+        theme: { look: "filled", appearance },
+        select: ".kui-surface",
+      });
+
+      // The negative control, and it is not optional: without it this law passes when the
+      // media query never fires at all, which is the failure mode a media-emulating test is
+      // most likely to have. No blur means the reduce block really is the one painting.
+      expect(computed(glass, "backdrop-filter"), "the reduce block never fired").toBe("none");
+
+      // Pre-fix the reduce block named var(--tone-border) directly. That WAS the ordinary
+      // dress until the look axis existed; under `filled` it made the one surface that asked
+      // for less transparency the only surface wearing the tone hairline.
+      expect(computed(glass, "border-top-color")).toBe(computed(plain, "border-top-color"));
+    });
+  }
 });

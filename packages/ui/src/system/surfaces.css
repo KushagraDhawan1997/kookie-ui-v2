@@ -229,9 +229,17 @@
     --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-opaque-alpha), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-opaque-alpha), transparent);
     backdrop-filter: none;
-    /* No glass, no pane: the near-opaque fallback takes the ordinary surface dress back —
-       tone border, no rim. The world's depth is untouched: an elevated app stays elevated. */
-    --kui-border-color: var(--tone-border);
+    /* No glass, no pane: the near-opaque fallback takes the ordinary surface dress back — the
+       surface's own edge, no rim. The world's depth is untouched: an elevated app stays
+       elevated.
+
+       Spelled exactly as the resting rule spells it (§19, corrected 2026-08-06). It used to
+       name `var(--tone-border)` directly, which WAS "the ordinary dress" until the look axis
+       existed and stopped being it the day `filled` shipped: a glass card in a filled app fell
+       back to the tone hairline while every other card on the page wore the softer look edge,
+       so removing transparency singled out exactly the surface that had asked for it. The
+       fallback still resolves --tone-border wherever no look is stamped. */
+    --kui-border-color: var(--look-surface-border, var(--tone-border));
     background-image: none;
   }
 }
