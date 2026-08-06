@@ -26,6 +26,71 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     expect(computed(el, "color")).toBe(tokenOn(el, "--color-text"));
   });
 
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: the filled look trades the hairline for the lightest well (§19)`, () => {
+      // The surface family's answer to look="filled": fill one neutral step up, border gone.
+      // Lightest of the three-family hierarchy (surface, field, mark) — asserted per family
+      // in each member's own file.
+      const el = mounted(<Card>Body</Card>, {
+        theme: { look: "filled", appearance },
+        select: ".kui-surface",
+      });
+      expect(computed(el, "background-color")).toBe(colorOn(el, "var(--neutral-2)"));
+      expect(computed(el, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+    });
+
+    it(`${appearance}: outlined is the identity — byte-identical to a world without the axis (§19)`, () => {
+      const bare = render(<Card>Body</Card>);
+      const outlined = mounted(<Card>Body</Card>, {
+        theme: { look: "outlined", appearance },
+        select: ".kui-surface",
+      });
+      const reference = mounted(<Card>Body</Card>, { theme: { appearance }, select: ".kui-surface" });
+      for (const prop of ["background-color", "border-top-color"]) {
+        expect(computed(outlined, prop)).toBe(computed(reference, prop));
+      }
+      if (appearance === "light") {
+        // And the un-themed document resolves the same chrome the outlined scope does.
+        expect(computed(bare, "background-color")).toBe(computed(outlined, "background-color"));
+        expect(computed(bare, "border-top-color")).toBe(computed(outlined, "border-top-color"));
+      }
+    });
+  }
+
+  it("a bare appearance scope re-prices the look — a dark section is not white (§19, §5)", () => {
+    // The defect this law was written against, caught by eye in the preview: a look role holds
+    // a COLOUR, and a var() inside a custom property substitutes where it is DECLARED. Emitted
+    // only at :root, `--look-surface-fill: var(--color-surface)` baked WHITE, and every dark
+    // region that was not itself a look scope inherited it — white cards, white fields, white
+    // marks, in a dark app. Theme hid it by stamping data-look beside data-appearance; this
+    // law uses the UN-THEMED path on purpose, which is the one the emitted stylesheet promises
+    // works standalone. It fails against the pre-fix generator.
+    const host = render(
+      <div data-appearance="dark">
+        <Card>Body</Card>
+      </div>,
+    );
+    const el = host.querySelector<HTMLElement>(".kui-surface")!;
+    const themed = mounted(<Card>Body</Card>, {
+      theme: { appearance: "dark" },
+      select: ".kui-surface",
+    });
+    expect(computed(el, "background-color")).toBe(computed(themed, "background-color"));
+    // And the negative control: it must NOT be the light seal.
+    const light = render(<Card>Body</Card>);
+    expect(computed(el, "background-color")).not.toBe(computed(light, "background-color"));
+  });
+
+  it("a glass card keeps the pane's own edge in the filled look — the material wins (§19, §10)", () => {
+    const el = mounted(<Card material="regular">Body</Card>, {
+      theme: { look: "filled" },
+      select: ".kui-surface",
+    });
+    expect(computed(el, "border-top-color")).toBe(
+      colorOn(el, "var(--material-regular-edge)"),
+    );
+  });
+
   it("exposes no visual opinion: tone and emphasis are not props", () => {
     // The identity attributes are constants the shell writes for the layer, not API. If this
     // ever fails, someone has re-grown a variant on the one component defined by not having

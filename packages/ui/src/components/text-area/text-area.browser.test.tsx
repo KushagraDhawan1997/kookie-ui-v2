@@ -263,6 +263,25 @@ describe("the placeholder is a designed role, not a UA default (§7, §15)", () 
   });
 });
 
+describe("the look axis dresses the well — the field family answers once (§19)", () => {
+  it("filled matches TextField exactly: one family, one designed answer", () => {
+    const area = mounted(<TextArea />, { theme: { look: "filled" }, select: ".kui-textarea" });
+    expect(computed(area, "background-color")).toBe(tokenOn(area, "--neutral-3"));
+    expect(computed(area, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+  });
+
+  it("outlined is the identity — byte-identical to the bare render", () => {
+    const bare = render(<TextArea />);
+    const outlined = mounted(<TextArea />, {
+      theme: { look: "outlined" },
+      select: ".kui-textarea",
+    });
+    for (const prop of ["background-color", "border-top-color"]) {
+      expect(computed(outlined, prop)).toBe(computed(bare, prop));
+    }
+  });
+});
+
 describe("the app's identities reach it without it knowing (§5, §10)", () => {
   it("a well casts no shadow — flat in BOTH worlds (§5, reversed 2026-08-06)", () => {
     // Same reversal as TextField's: a field is a well, wells are content of a plane rather

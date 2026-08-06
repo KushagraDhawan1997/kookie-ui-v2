@@ -184,6 +184,20 @@
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
 
+  /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each
+     one-look family declared before the axis existed. A look role holds a COLOUR, so it
+     repeats in every appearance scope like every other colour role — see the dark block. */
+  --look-surface-fill: var(--color-surface);
+  --look-surface-fill-hover: var(--color-surface-hover);
+  --look-surface-fill-active: var(--color-surface-active);
+  --look-surface-border: initial;
+  --look-field-fill: var(--color-surface);
+  --look-field-border: initial;
+  --look-mark-fill: var(--color-surface);
+  --look-mark-fill-hover: var(--color-surface-hover);
+  --look-mark-fill-active: var(--color-surface-active);
+  --look-mark-border: initial;
+
   /* colour, generated (§7) — light mode */
   /* neutral */
   --neutral-1: #fcfcfc;
@@ -1086,6 +1100,16 @@
   /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
      var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
   --surface-chrome: var(--shadow-2);
+  --look-surface-fill: var(--color-surface);
+  --look-surface-fill-hover: var(--color-surface-hover);
+  --look-surface-fill-active: var(--color-surface-active);
+  --look-surface-border: initial;
+  --look-field-fill: var(--color-surface);
+  --look-field-border: initial;
+  --look-mark-fill: var(--color-surface);
+  --look-mark-fill-hover: var(--color-surface-hover);
+  --look-mark-fill-active: var(--color-surface-active);
+  --look-mark-border: initial;
 }
 
 [data-appearance="dark"] {
@@ -1538,6 +1562,42 @@
   /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
      var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
   --surface-chrome: inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-2);
+  --look-surface-fill: var(--color-surface);
+  --look-surface-fill-hover: var(--color-surface-hover);
+  --look-surface-fill-active: var(--color-surface-active);
+  --look-surface-border: initial;
+  --look-field-fill: var(--color-surface);
+  --look-field-border: initial;
+  --look-mark-fill: var(--color-surface);
+  --look-mark-fill-hover: var(--color-surface-hover);
+  --look-mark-fill-active: var(--color-surface-active);
+  --look-mark-border: initial;
+}
+
+[data-look="outlined"] {
+  --look-surface-fill: var(--color-surface);
+  --look-surface-fill-hover: var(--color-surface-hover);
+  --look-surface-fill-active: var(--color-surface-active);
+  --look-surface-border: initial;
+  --look-field-fill: var(--color-surface);
+  --look-field-border: initial;
+  --look-mark-fill: var(--color-surface);
+  --look-mark-fill-hover: var(--color-surface-hover);
+  --look-mark-fill-active: var(--color-surface-active);
+  --look-mark-border: initial;
+}
+
+[data-look="filled"] {
+  --look-surface-fill: var(--neutral-2);
+  --look-surface-fill-hover: var(--neutral-3);
+  --look-surface-fill-active: var(--neutral-4);
+  --look-surface-border: transparent;
+  --look-field-fill: var(--neutral-3);
+  --look-field-border: transparent;
+  --look-mark-fill: var(--neutral-4);
+  --look-mark-fill-hover: var(--neutral-5);
+  --look-mark-fill-active: var(--neutral-6);
+  --look-mark-border: transparent;
 }
 
 @supports (color: color(display-p3 0 0 0)) {

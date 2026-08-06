@@ -16,6 +16,10 @@ export type Pointer = "fine" | "coarse" | "auto";
 /** §10 — do surfaces sit up. The semantic is elevation-as-identity; shadow row 2 is merely
     its current resolution. An app choice made once, never a per-card knob. */
 export type Surfaces = "flat" | "elevated";
+/** §19 — the resting dress of the one-look families (surfaces, fields, marks): does the app
+    draw their boundary as a hairline or as a darkened well. Border on a CONTROL is rank
+    (Button's `bordered`) and stays a prop; this axis never touches ranked chrome. */
+export type Look = "outlined" | "filled";
 
 export type ThemeProps = {
   appearance?: Appearance;
@@ -24,6 +28,7 @@ export type ThemeProps = {
   contrast?: Contrast;
   pointer?: Pointer;
   surfaces?: Surfaces;
+  look?: Look;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -32,7 +37,10 @@ export type ThemeProps = {
 };
 
 type Resolved = Required<
-  Pick<ThemeProps, "appearance" | "density" | "radius" | "contrast" | "pointer" | "surfaces">
+  Pick<
+    ThemeProps,
+    "appearance" | "density" | "radius" | "contrast" | "pointer" | "surfaces" | "look"
+  >
 >;
 
 const DEFAULTS: Resolved = {
@@ -42,6 +50,7 @@ const DEFAULTS: Resolved = {
   contrast: "normal",
   pointer: "auto",
   surfaces: "flat",
+  look: "outlined",
 };
 
 /**
@@ -82,8 +91,9 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       contrast: props.contrast ?? parent.contrast,
       pointer: props.pointer ?? parent.pointer,
       surfaces: props.surfaces ?? parent.surfaces,
+      look: props.look ?? parent.look,
     }),
-    // The six fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
+    // The seven fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
     // ancestor axis moves, including ones this scope overrides — depending on the identity
     // would rebuild `resolved` (and so re-render every consumer below) on changes that
     // cannot reach it.
@@ -94,12 +104,14 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       props.contrast,
       props.pointer,
       props.surfaces,
+      props.look,
       parent.appearance,
       parent.density,
       parent.radius,
       parent.contrast,
       parent.pointer,
       parent.surfaces,
+      parent.look,
     ],
   );
 
@@ -119,6 +131,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     ...(contrastSet ? { "data-contrast": resolved.contrast } : {}),
     "data-pointer": resolved.pointer,
     "data-surfaces": resolved.surfaces,
+    "data-look": resolved.look,
   };
 
   // kui-theme makes the element a query container (§2): responsive props measure the nearest

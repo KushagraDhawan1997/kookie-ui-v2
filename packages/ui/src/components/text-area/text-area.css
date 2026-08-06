@@ -42,12 +42,15 @@
      shared layer swaps to the -hover/-active sources on interaction, and leaving them unset
      would make the declaration invalid at computed-value time exactly when you point at the
      box. A field's fill does not move; the border and the ring carry its states. */
-  --kui-ct-fill-src: var(--color-surface);
-  --kui-ct-fill-src-hover: var(--color-surface);
-  --kui-ct-fill-src-active: var(--color-surface);
+  --kui-ct-fill-src: var(--look-field-fill);
+  --kui-ct-fill-src-hover: var(--look-field-fill);
+  --kui-ct-fill-src-active: var(--look-field-fill);
   /* The role, not the colour: the shared disabled remap re-points --tone-label, so the value
      goes flat with the box and this file needs no disabled branch of its own. */
   --kui-ct-label-color: var(--tone-label);
+
+  /* The look's edge (§19) is the shared layer's field-family rule in recipes.css — a
+     component sheet never mentions the painted variable (the checkbox audit's law). */
 
   /* No box-shadow, and that is a decision (§5, reversed 2026-08-06): a field is a well, and
      wells stay flat in an elevated world — the same sentence as text-field.css. */

@@ -72,7 +72,20 @@
    context they set for their children. */
 
 .kui-surface[data-emphasis="quiet"] {
-  --kui-sf-fill-src: var(--color-surface);
+  /* Through the look axis (§19): outlined resolves the seal it always resolved; filled
+     trades it for the darkened well. Quiet only — the tone-forward rungs are ranked chrome
+     and dress never touches rank. */
+  --kui-sf-fill-src: var(--look-surface-fill);
+}
+
+/* The look's edge, routed AROUND [data-bordered]'s shared rule rather than through it: that
+   rule also serves Button, whose border is rank, not dress (§19). `:where()` keeps this at
+   (0,2,0) so the material blocks below still win on glass by source order — a pane's edge is
+   what the material IS, in either look. Outlined emits `initial`, so the fallback resolves
+   var(--tone-border) AT THE ELEMENT — the material edge's own pattern — which is what keeps
+   contrast="high" and the state remaps reaching the edge exactly as before. */
+.kui-surface[data-emphasis="quiet"]:where([data-bordered]) {
+  --kui-border-color: var(--look-surface-border, var(--tone-border));
 }
 
 .kui-surface[data-emphasis="medium"] {
@@ -113,13 +126,13 @@
    sources, so a glass card does not flash opaque under the pointer. */
 @media (hover: hover) {
   .kui-surface:where(button, a):hover {
-    background-color: var(--kui-sf-fill-hover, var(--color-surface-hover));
+    background-color: var(--kui-sf-fill-hover, var(--look-surface-fill-hover));
   }
 }
 
 /* Press is unguarded and instant: on touch it is the only feedback there is. */
 .kui-surface:where(button, a):active {
-  background-color: var(--kui-sf-fill-active, var(--color-surface-active));
+  background-color: var(--kui-sf-fill-active, var(--look-surface-fill-active));
 }
 
 /* The one ring, shared with every control (§8). */
@@ -170,15 +183,15 @@
 .kui-surface[data-material="regular"],
 .kui-surface[data-material="thick"] {
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
-  --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-opaque-alpha), transparent);
-  --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-opaque-alpha), transparent);
+  --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-opaque-alpha), transparent);
+  --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-opaque-alpha), transparent);
 }
 
 @supports (backdrop-filter: blur(1px)) {
   .kui-surface[data-material="thin"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thin-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thin-alpha-hover), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thin-alpha-active), transparent);
+    --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-thin-alpha-hover), transparent);
+    --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thin-alpha-active), transparent);
     backdrop-filter: var(--material-thin-filter);
     /* The pane's own edge and lighting (§10, 2026-08-05): the tone border on glass read as a
        sticker — pigment on a pane of light. The edge is now the material's, a translucent
@@ -190,8 +203,8 @@
   }
   .kui-surface[data-material="regular"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-regular-alpha-hover), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-regular-alpha-active), transparent);
+    --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-regular-alpha-hover), transparent);
+    --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-regular-alpha-active), transparent);
     backdrop-filter: var(--material-regular-filter);
     /* Edge, rim and separation — the pane's own; see the thin block (§10). */
     --kui-border-color: var(--material-regular-edge, var(--tone-border));
@@ -199,8 +212,8 @@
   }
   .kui-surface[data-material="thick"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thick-alpha-hover), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thick-alpha-active), transparent);
+    --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-thick-alpha-hover), transparent);
+    --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thick-alpha-active), transparent);
     backdrop-filter: var(--material-thick-filter);
     /* Edge, rim and separation — the pane's own; see the thin block (§10). */
     --kui-border-color: var(--material-thick-edge, var(--tone-border));
@@ -213,8 +226,8 @@
   .kui-surface[data-material="regular"],
   .kui-surface[data-material="thick"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-opaque-alpha), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-opaque-alpha), transparent);
+    --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-opaque-alpha), transparent);
+    --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-opaque-alpha), transparent);
     backdrop-filter: none;
     /* No glass, no pane: the near-opaque fallback takes the ordinary surface dress back —
        tone border, no rim. The world's depth is untouched: an elevated app stays elevated. */

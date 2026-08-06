@@ -191,6 +191,53 @@ describe("neutral off, accent on — the family identity, not a per-component co
   });
 });
 
+describe("the look axis reaches it through the family, with no rule of its own (§19)", () => {
+  // Radio ships one declaration (its circle) and answers the app's dress anyway, because the
+  // wiring is on `.kui-mark` in the shared layer. This law is the promotion's dividend stated
+  // as a test: the values are the checkbox's, byte for byte, and radio.css never says "look".
+  const radio = (theme: object) =>
+    render(
+      <Theme {...theme}>
+        <RadioGroup>
+          <Radio value="a" />
+        </RadioGroup>
+      </Theme>,
+    );
+
+  it("filled: the darkest well of the hierarchy, and no hairline", () => {
+    const el = radio({ look: "filled" });
+    const mark = markOf(el);
+    expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--neutral-4)"));
+    expect(computed(mark, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+  });
+
+  it("outlined is the identity — byte-identical to the bare render", () => {
+    const bare = markOf(
+      render(
+        <RadioGroup>
+          <Radio value="a" />
+        </RadioGroup>,
+      ),
+    );
+    const outlined = markOf(radio({ look: "outlined" }));
+    for (const prop of ["background-color", "border-top-color"]) {
+      expect(computed(outlined, prop)).toBe(computed(bare, prop));
+    }
+  });
+
+  it("resolves to exactly what a checkbox resolves to — one family, one answer", () => {
+    // The claim the promotion makes. If either component ever grows its own look rule, these
+    // two diverge here first.
+    for (const look of ["outlined", "filled"] as const) {
+      const mark = markOf(radio({ look }));
+      const box = mounted(<Checkbox />, { theme: { look }, select: ".kui-checkbox" });
+      for (const prop of ["background-color", "border-top-color"]) {
+        expect(computed(mark, prop), `${look}/${prop}`).toBe(computed(box, prop));
+      }
+    }
+  });
+});
+
 describe("the group owns the selection (§11)", () => {
   it("one value: selecting is the group's state, and exactly one radio wears it", () => {
     const host = render(
