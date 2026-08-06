@@ -20,6 +20,7 @@ import {
   lightness,
   lowChromaThreshold,
   markEdgeStep,
+  trackWellStep,
   solidBand,
   solidPinBounds,
   lowChromaStateScale,
@@ -508,6 +509,15 @@ export function colorDeclarations(
   // --color-border deliberately does not (audit D2: |Lc| 22.8 light, 10.3 dark). Per-mode
   // steps from color-config, the focus-ring precedent; the law beside the invalid edge's.
   out.push(decl("mark-edge", `var(--neutral-${markEdgeStep[mode]})`));
+
+  // The track well (§7, §11, decided 2026-08-06 with Slider) — the low neutral bed a value
+  // runs in: the slider's track now, the switch's off-track and progress/meter when they
+  // land. §11's "track low" is the checkbox's "neutral off" one control over, and neutral
+  // needs a role here for the same reason the mark edge did: the component stamps `accent`
+  // for its fill, so its off part can only be neutral through a tone-independent role.
+  // Deliberately quieter than the mark edge — a well is a region the fill moves through,
+  // not a hairline identity, and every platform ships it subtle.
+  out.push(decl("color-track", `var(--neutral-${trackWellStep[mode]})`));
 
   return out;
 }

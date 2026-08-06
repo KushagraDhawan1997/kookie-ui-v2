@@ -194,6 +194,43 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
   });
 });
 
+describe("the mark family lives in the shared layer, once (§4, promoted 2026-08-06)", () => {
+  // The box rules sat in checkbox.css under a comment saying the THIRD member would move
+  // them (TextArea's rule for the field family). Radio and the slider thumb are the second
+  // and third; this pins the promotion so the family cannot quietly re-grow per component —
+  // which is exactly how four ladders in one visual weight class start to drift.
+
+  it("the shared layer declares the box, the target, the resting identity and the ON state", () => {
+    expect(recipes).toContain(".kui-mark {");
+    expect(block(recipes, ".kui-mark {")).toContain("var(--kui-ct-mark)");
+    expect(block(recipes, ".kui-mark {")).toContain("--tone-border: var(--mark-edge)");
+    expect(recipes).toContain(".kui-mark:where(:not(.kui-control *))::after");
+    expect(recipes).toContain('.kui-mark:where([data-checked], [data-indeterminate])');
+  });
+
+  it("no component stylesheet sizes a mark's box or re-points the mark edge", () => {
+    // A component may still READ the mark token for its own shape (Radio's circle is
+    // calc(mark / 2)); what it must not do is restate the family's box or its identity.
+    for (const p of allStylesheets("components")) {
+      const css = sheet(p);
+      expect(css, `${p} re-sizes the mark box`).not.toMatch(
+        /(?:inline-size|block-size|width|height):\s*var\(--kui-ct-mark\)/,
+      );
+      expect(css, `${p} re-points the mark edge`).not.toContain("--mark-edge");
+    }
+  });
+
+  it("a mark inside another control never grows its own target — the container owns the question", () => {
+    // Generalised from the slot-only exclusion when the slider thumb arrived: a thumb sits
+    // inside a control whose whole box is already the target (the root rides the height
+    // ladder), and a second expander is how the audit measured a target larger than the
+    // field holding it (D4). The exclusion is structural — `.kui-control *` — so it covers
+    // the slot case and the thumb case with one sentence.
+    expect(recipes).toContain(".kui-mark:where(:not(.kui-control *))::after");
+    expect(recipes).not.toContain(":not([data-slot] > *)");
+  });
+});
+
 describe("the icon box is a mechanism, declared once (§4, ENGINEERING §4)", () => {
   it("no component restates it — including for adornments in a slot wrapper", () => {
     // A field's icons sit inside `[data-slot]`, so they are grandchildren of the control and

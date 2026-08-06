@@ -926,6 +926,62 @@ describe("the tone-independent hairline (§7, §11)", () => {
   });
 });
 
+describe("the slider's track: a designed raw ladder held to its thumb (§4, §11)", () => {
+  const value = (decl: string | undefined) => parseFloat(decl!.match(/[\d.]+/)![0]);
+  const trackAt = (i: number) =>
+    value(block(":root").match(new RegExp(`--slider-track-${i}:\\s*([^;]+);`))?.[1]);
+  const markIn = (scope: string, i: number) =>
+    value(block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1]);
+
+  it("emits all four steps, scaled, monotone across the index", () => {
+    const values = [1, 2, 3, 4].map(trackAt);
+    expect(increasing(values)).toBe(true);
+    for (let i = 1; i <= 4; i++) {
+      expect(block(":root").match(new RegExp(`--slider-track-${i}:\\s*([^;]+);`))?.[1]).toContain(
+        "var(--scale)",
+      );
+    }
+  });
+
+  it("never outweighs its thumb — under half the mark at every size, in BOTH pointer worlds", () => {
+    // The track is the bed the thumb runs in, and a bed thicker than half its handle reads as
+    // a bar with a bead stuck to it. The ladder is pointer-invariant while the mark is not, so
+    // the coarse world is where this could silently fail: the fine fraction (~0.25) loosens
+    // there, and this pins that it never crosses the half.
+    for (const world of [":root", '[data-pointer="coarse"]']) {
+      for (let i = 1; i <= 4; i++) {
+        expect(trackAt(i), `${world}/size ${i}`).toBeLessThan(markIn(world, i) / 2);
+      }
+    }
+  });
+
+  it("no density and no pointer scope re-prices it — the coarse target is the control's height", () => {
+    // iOS holds its track at 4pt against a 28pt thumb: the finger's allowance is the box, not
+    // the line. If a scope ever re-declares this family, that is a decision, not a drift.
+    for (const level of ["compact", "comfortable"] as const) {
+      expect(block(`[data-density="${level}"]`)).not.toContain("--slider-track-");
+    }
+    for (const world of ['[data-pointer="fine"]', '[data-pointer="coarse"]']) {
+      expect(block(world)).not.toContain("--slider-track-");
+    }
+  });
+});
+
+describe("the track well (§7, §11) — the low neutral bed a value runs in", () => {
+  it("is declared in every appearance scope, like the hairline it sits beside", () => {
+    for (const scope of [":root", '[data-appearance="light"]', '[data-appearance="dark"]']) {
+      expect(block(scope), `${scope} has no --color-track`).toContain("--color-track:");
+    }
+  });
+
+  it("resolves through a neutral step, never a raw hex — contrast reaches it through the scale", () => {
+    // The role exists because §11's "track low" is the checkbox's "neutral off" one control
+    // over, and a component that stamps `accent` for its fill can only say neutral through a
+    // tone-independent role. A raw hex here would go deaf to contrast="high".
+    expect(declaration("color-track")).toMatch(/^var\(--neutral-\d+\)$/);
+  });
+});
+
 describe("no var() dangles — every reference the generator writes, it also declares (§6, §13)", () => {
   // The generator aliases by NAME in several places — ROLES maps fourteen role names onto
   // `--{tone}-{role}`, the semantic families point at palette steps — and a typo'd name would

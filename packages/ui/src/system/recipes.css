@@ -224,13 +224,159 @@
   aspect-ratio: 1;
 }
 
-/* ── The size index: one join, six families (§4) ─────────────────────────────────────────── */
+/* ── The mark family: the box, the target, the resting identity (§4, §6, §11) ────────────────
+   Promoted out of checkbox.css on 2026-08-06, the day the family reached its THIRD member
+   (Radio and the slider thumb landed together) — the rule TextArea's LOG set for the field
+   family, applied here as it was written to be. A mark is the painted box of a control that
+   IS its own mark, sitting beside a label rather than containing one: checkbox, radio, the
+   slider thumb, and the switch track when it ships. Its box is the line box, never the height
+   ladder's — one line of the label it sits beside, which is why it grows on a phone with
+   nothing designed twice (§17's handheld band raises the type and the mark rides it).
+
+   These rules sit AFTER the hosted-control section on purpose: the hosted-mark override below
+   ties it at (0,3,0) and must win on source order. */
+
+.kui-mark {
+  /* The height ladder is the box of a control that CONTAINS a label; this one is the label's
+     neighbour. Both dimensions from one token — a mark is square by construction, and what
+     tells a checkbox from a radio is the corner, which each shape states for itself. */
+  min-height: 0;
+  inline-size: var(--kui-ct-mark);
+  block-size: var(--kui-ct-mark);
+  /* The skeleton pads for a label; a mark has none, and its glyph fills the box. */
+  padding: 0;
+  /* In a row beside its label, the mark must not absorb the row's slack. */
+  flex: none;
+  border-radius: var(--kui-ct-mark-radius);
+
+  /* The resting identity (§11): the surface seal, and the MARK EDGE — the family's own
+     tone-independent hairline (§7, audit D2: a mark's unchecked state has no identity but
+     this line, and the quiet --color-border sits far under the non-text floor). Re-pointing
+     --tone-border rather than declaring the painted variable, and that is load-bearing: the
+     shared state remaps (disabled, invalid) rewrite the TONE roles, and a component that
+     reaches past them makes itself unreachable by every state law written once for everybody. */
+  --kui-ct-fill-src: var(--color-surface);
+  --kui-ct-fill-src-hover: var(--color-surface-hover);
+  --kui-ct-fill-src-active: var(--color-surface-active);
+  --tone-border: var(--mark-edge);
+
+  /* The target's anchor: no wrapper exists, and the pseudo below is not one. */
+  position: relative;
+}
+
+/* ── The target: a control of its size, painted or not (§4, §16) ─────────────────────────────
+   A mark's painted box is smaller than the thing you aim at, and §16 refused invisible
+   pseudo-expansion because its safe extent "depends on neighbour gaps, which CSS cannot
+   read". What makes it legitimate here is that the extent is not guessed: it is --kui-ct-h,
+   the box the Button beside it occupies at the same size index, capped at the touch floor —
+   past 44 a target buys nothing and starts taking from its neighbours, which is precisely
+   the silent overlap that got expansion rejected. With the cap the widest reach in any of
+   the 24 cells is 11px, and what makes a STACK safe is the spacing rule that reach obliges:
+   marks in a stack need 12 real pixels (§4, audit D1 — law-mounted with a negative control).
+
+   Both pointer worlds: a fine cell's mark is 16-26px, under WCAG 2.5.8's minimum at the
+   small sizes, and "a mouse is precise" is not what that criterion says.
+
+   The border term is not optional (audit D3): an absolutely positioned box resolves its
+   insets against the PADDING box, and the mark wears a real border — without the subtraction
+   the rendered target is 2 x --border-width short of the rule in every cell.
+
+   Scoped out of every mark that sits INSIDE another control (`:where` keeps the class's own
+   specificity) — generalised from the slot-only exclusion when the slider thumb arrived: a
+   hosted mark's container owns the target question (§4's hosted rule for a slot; the slider
+   root's own control-height box for a thumb), and a second expander on the same element is
+   how the audit measured a 36px target inside a 32px field (D4). A mark that merely sits in
+   a label, a form or a Card keeps its own reach — nothing there is holding it. */
+.kui-mark:where(:not(.kui-control *))::after {
+  content: "";
+  position: absolute;
+  inset: calc(
+    (var(--kui-ct-mark) - min(var(--kui-ct-h), var(--touch-target-min))) / 2 - var(--border-width)
+  );
+}
+
+/* ── Hosted in another control's slot: it stays a mark (§4, audit D4) ────────────────────────
+   The hosted-control rule pins `height` to the slot's derived box — right for a Button,
+   wrong for the one control whose box IS its mark: a checkbox in a field's trailing slot
+   rendered 20 x 24, its corner holding two fractions of two axes. Both axes come from ONE
+   expression — the mark, floored by the hosted box where the slot is genuinely tighter — so
+   it is square by construction, or it is not there. Same specificity as the hosted rule,
+   later in the cascade on purpose; that ordering is the override. */
+.kui-control > [data-slot] > .kui-mark {
+  height: min(var(--kui-ct-mark), var(--kui-ct-hosted-height));
+  min-height: 0;
+  inline-size: min(var(--kui-ct-mark), var(--kui-ct-hosted-height));
+}
+
+/* ── Disabled reaches the resting fill (§8, audit D6) ────────────────────────────────────────
+   The shared disabled arm rewrites the TONE roles, and the resting fill deliberately is not
+   one — it is the surface seal, so a disabled unchecked mark computed byte-identical to a
+   live one. Re-pointing the fill at --tone-soft hands it to the arm (soft remaps to
+   neutral-3 with everything else), so this rule names no state colour of its own and a
+   change to the disabled remap reaches it for free. */
+.kui-mark[data-disabled] {
+  --kui-ct-fill-src: var(--tone-soft);
+  --kui-ct-fill-src-hover: var(--tone-soft);
+  --kui-ct-fill-src-active: var(--tone-soft);
+}
+
+/* ── The on state (§11): the binary controls' one identity ───────────────────────────────────
+   Emphasis ranks actions and a binary control is not one; what it has instead is two states,
+   and the ON state is the accent identity §11's table names for the whole family — checkbox,
+   radio, switch when it ships. Written once here because it IS one identity: the element
+   stamps `accent`, so the fill resolves through the tone indirection like every control's.
+   Inert on the slider thumb, which is a mark with no checked state — its fill is the resting
+   identity above, always.
+
+   All three interaction sources on purpose (the field's lesson, §8): the shared layer swaps
+   to -hover/-active on interaction, and a state that declared only its resting fill would
+   fall back to transparent under the pointer.
+
+   `:where()` so this rule carries the specificity of the class alone (0,1,0) and LOSES to
+   the shared state remaps at (0,2,0): being ticked is dress, being invalid or disabled is a
+   state, and a state outranks dress. Written with `:is()` once, it tied with the invalid
+   remap and won on source order — a checked invalid checkbox looked entirely fine. */
+.kui-mark:where([data-checked], [data-indeterminate]) {
+  --kui-ct-fill-src: var(--tone-solid);
+  --kui-ct-fill-src-hover: var(--tone-solid-hover);
+  --kui-ct-fill-src-active: var(--tone-solid-active);
+  /* The edge disappears INTO the fill rather than being removed: a border-less checked box
+     would be a pixel smaller than the resting one and the row would shift on every click. */
+  --tone-border: var(--tone-solid);
+  /* The glyph takes the fill's APCA-chosen pairing (§7), like any label on a solid. */
+  --kui-ct-label-color: var(--tone-contrast);
+}
+
+/* ── The glyph is the box, not the icon ladder (§4) ──────────────────────────────────────────
+   The icon box is the LABEL cluster's number, designed for a glyph sitting next to text
+   inside a control; a checkmark inside a 16px mark has no room for a 16px icon. The artwork
+   carries its own optical inset instead — Material's answer, where icon and container are
+   both 18. `currentColor` through the label pairing, so the rule never knows which state it
+   is in. Sits later in source order than the shared icon rule, which is the override. */
+.kui-mark > svg {
+  inline-size: 100%;
+  block-size: 100%;
+  color: var(--kui-ct-label-color);
+  flex: none;
+}
+
+/* Off means no glyph at all — not a faint one. The indicator stays mounted (one DOM shape in
+   every state, and motion has something to animate when it lands), so the resting state has
+   to say "nothing" itself. */
+.kui-mark > svg[data-unchecked] {
+  visibility: hidden;
+}
+
+/* ── The size index: one join, seven families (§4) ───────────────────────────────────────── */
 
 /* The sixth is the MARK (§4, added 2026-08-05 with Checkbox): the painted box of a control
    that IS its own mark, sitting beside a label rather than containing one — checkbox, radio,
    switch track, slider thumb. It joins here rather than in a component because it is a size
-   join, which is what this block is; the mark's BOX rules stay in checkbox.css until the
-   family's third member promotes them (the rule TextArea's LOG set for the field family).
+   join, which is what this block is; the mark's BOX rules lived in checkbox.css until the
+   family's third member promoted them into this layer (2026-08-06, Radio + the slider thumb
+   — the rule TextArea's LOG set for the field family; see the mark family section above).
+   The seventh is the slider's TRACK thickness, the family's own designed raw ladder — inert
+   on every control that has no track, like the mark vars on every control that has no mark.
    Its corner is the family's own band (§6, corrected 2026-08-05): it rode --radius-control-N
    for half a day, which made it hold a fraction of a box a mark does not have — 0.250 -> 0.385
    across the index, and 0.462 at comfortable size 4, a circle in all but name reached by an
@@ -250,6 +396,7 @@
   --kui-ct-slot-inset: var(--slot-inset-1);
   --kui-ct-mark: var(--mark-1);
   --kui-ct-mark-radius: var(--radius-mark-1);
+  --kui-ct-track: var(--slider-track-1);
 }
 .kui-control[data-size="2"] {
   --kui-ct-h: var(--control-height-2);
@@ -264,6 +411,7 @@
   --kui-ct-slot-inset: var(--slot-inset-2);
   --kui-ct-mark: var(--mark-2);
   --kui-ct-mark-radius: var(--radius-mark-2);
+  --kui-ct-track: var(--slider-track-2);
 }
 .kui-control[data-size="3"] {
   --kui-ct-h: var(--control-height-3);
@@ -278,6 +426,7 @@
   --kui-ct-slot-inset: var(--slot-inset-3);
   --kui-ct-mark: var(--mark-3);
   --kui-ct-mark-radius: var(--radius-mark-3);
+  --kui-ct-track: var(--slider-track-3);
 }
 .kui-control[data-size="4"] {
   --kui-ct-h: var(--control-height-4);
@@ -292,6 +441,7 @@
   --kui-ct-slot-inset: var(--slot-inset-4);
   --kui-ct-mark: var(--mark-4);
   --kui-ct-mark-radius: var(--radius-mark-4);
+  --kui-ct-track: var(--slider-track-4);
 }
 
 /* ── The emphasis ladder: loudness, not construction (§9) ────────────────────────────────── */

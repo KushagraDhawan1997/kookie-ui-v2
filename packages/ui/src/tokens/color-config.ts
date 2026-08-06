@@ -201,6 +201,21 @@ export type Mode = keyof typeof lightness;
 export const markEdgeStep = { light: 9, dark: 11 } as const;
 
 /**
+ * §7, §11 — the step the TRACK WELL reads per mode: the low neutral bed a value runs in.
+ * Slider's track now; the switch's off-track and the progress/meter tracks when they land —
+ * the value-control family's second tone-independent role, minted beside `markEdgeStep` for
+ * the same structural reason: the off part of a value control is NEUTRAL by §11's own row
+ * ("track low, fill accent" — the checkbox's "neutral off" one control over), and a component
+ * stylesheet cannot say neutral without naming a family, which the role-not-family law forbids.
+ *
+ * Deliberately NOT held to the mark edge's non-text floor: a well is a region the accent fill
+ * moves through, not a hairline identity — the slider's state is carried by the fill (accent
+ * solid, APCA-passing) and the thumb (mark edge), and every platform ships the remainder
+ * subtle (iOS systemFill, Radix gray-a3). Step 4 in both modes, v0 for the eye pass.
+ */
+export const trackWellStep = { light: 4, dark: 4 } as const;
+
+/**
  * The APCA floors (§7) — WCAG-anchored, so NOT taste numbers: body is the AA-equivalent Lc 60
  * every label pairing must clear, aaa the Lc 75 `contrast="high"` raises it to, nonText the
  * Lc 45 floor for borders, rings and marks (WCAG 1.4.11's territory). One home because the

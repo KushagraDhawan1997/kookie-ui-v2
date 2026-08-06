@@ -100,6 +100,16 @@
   --radius-mark-3: calc(6px * var(--scale));
   --radius-mark-4: calc(6px * var(--scale));
 
+  /* the slider's track thickness (§4, §11) — raw designed px per size, ~0.25 of the fine
+     mark (the palette has nothing between 4 and 8, the mark's own wall one part over).
+     Density- and pointer-invariant: the coarse target is the CONTROL's height, and iOS
+     holds its track at 4pt against a 28pt thumb for the same reason. Emitted once at
+     :root — no scope below re-prices it, so there is nothing to re-declare. */
+  --slider-track-1: calc(4px * var(--scale));
+  --slider-track-2: calc(5px * var(--scale));
+  --slider-track-3: calc(6px * var(--scale));
+  --slider-track-4: calc(7px * var(--scale));
+
   /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until
      2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered
      button at scale 2 kept a 1px hairline while every other length doubled. */
@@ -558,6 +568,7 @@
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
   --mark-edge: var(--neutral-9);
+  --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1009,6 +1020,7 @@
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
   --mark-edge: var(--neutral-9);
+  --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1460,6 +1472,7 @@
   --focus-ring: var(--accent-11);
   --invalid-edge: var(--destructive-11);
   --mark-edge: var(--neutral-11);
+  --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1792,6 +1805,7 @@
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
     --mark-edge: var(--neutral-9);
+    --color-track: var(--neutral-4);
   }
   [data-appearance="light"] {
     /* neutral */
@@ -2057,6 +2071,7 @@
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
     --mark-edge: var(--neutral-9);
+    --color-track: var(--neutral-4);
   }
   [data-appearance="dark"] {
     /* neutral */
@@ -2322,6 +2337,7 @@
     --focus-ring: var(--accent-11);
     --invalid-edge: var(--destructive-11);
     --mark-edge: var(--neutral-11);
+    --color-track: var(--neutral-4);
   }
 }
 

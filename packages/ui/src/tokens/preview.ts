@@ -446,7 +446,7 @@ function checkbox(
   const { size = "2", checked, indeterminate, disabled, invalid, label } = attrs;
   const state = indeterminate ? " data-indeterminate" : checked ? " data-checked" : " data-unchecked";
   const glyph = `<svg viewBox="0 0 16 16" fill="none"${state} aria-hidden="true"><path class="kui-checkbox-check" d="M4 8.5 6.75 11.25 12 5.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path class="kui-checkbox-dash" d="M4.25 8h7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-  const box = `<span class="kui-control kui-checkbox" data-size="${size}" data-tone="accent" data-bordered${
+  const box = `<span class="kui-control kui-mark kui-checkbox" data-size="${size}" data-tone="accent" data-bordered${
     indeterminate ? " data-indeterminate" : checked ? " data-checked" : ""
   }${disabled ? " data-disabled" : ""}${invalid ? ' aria-invalid="true"' : ""} role="checkbox">${glyph}</span>`;
   // The label is a SIBLING, never children: a mark sits beside its label, and the row that
@@ -509,6 +509,117 @@ function checkboxSection(mode: Mode): string {
             ["Ship it on Friday", "Notify the team", "Archive the old branch"]
               .map((l, i) => checkbox({ checked: i === 0, label: l }))
               .join(""),
+          ),
+        ),
+    )}
+  </section>`;
+}
+
+function radio(
+  attrs: {
+    size?: string;
+    checked?: boolean;
+    disabled?: boolean;
+    invalid?: boolean;
+    label?: string;
+  } = {},
+): string {
+  const { size = "2", checked, disabled, invalid, label } = attrs;
+  const state = checked ? " data-checked" : " data-unchecked";
+  const glyph = `<svg viewBox="0 0 16 16" fill="none"${state} aria-hidden="true"><circle cx="8" cy="8" r="3.5" fill="currentColor"/></svg>`;
+  const box = `<span class="kui-control kui-mark kui-radio" data-size="${size}" data-tone="accent" data-bordered${
+    checked ? " data-checked" : ""
+  }${disabled ? " data-disabled" : ""}${invalid ? ' aria-invalid="true"' : ""} role="radio">${glyph}</span>`;
+  return label
+    ? kuiBox(
+        { display: "flex", gap: "3", align: "flex-start", flexShrink: "0" },
+        `${box}${text(Number(size), label)}`,
+      )
+    : box;
+}
+
+function radioSection(mode: Mode): string {
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
+  const row = (body: string) =>
+    kuiBox({ display: "grid", columns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "5" }, body);
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo(
+        "the size index - the checkbox's box exactly, worn as a circle (§4, §6)",
+        row(SIZES.map((n) => radio({ size: n, checked: true, label: `size ${n}` })).join("")),
+      ) +
+        demo(
+          "states - the family identity, resolved by the shared layer (§11)",
+          row(
+            [
+              radio({ label: "off" }),
+              radio({ checked: true, label: "on" }),
+              radio({ invalid: true, label: "invalid" }),
+              radio({ disabled: true, label: "disabled" }),
+              radio({ checked: true, disabled: true, label: "on + disabled" }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "a group - one value, and the circle holds at every radius level: flip the select",
+          kuiBox(
+            { display: "flex", direction: "column", gap: "5" },
+            ["Starter", "Pro", "Enterprise"]
+              .map((l, i) => radio({ checked: i === 1, label: l }))
+              .join(""),
+          ),
+        ),
+    )}
+  </section>`;
+}
+
+function slider(
+  attrs: { size?: string; value?: number; disabled?: boolean; width?: string } = {},
+): string {
+  const { size = "2", value = 40, disabled, width = "220px" } = attrs;
+  // Static stand-in for Base UI's inline geometry (edge alignment: the handle's extremes sit
+  // flush with the rail's ends), so the page judges the dress the shipped component wears.
+  const thumb = `<div class="kui-mark kui-slider-thumb" style="position: absolute; inset-inline-start: calc(${value} * (100% - var(--kui-ct-mark)) / 100); top: 50%; translate: 0 -50%"></div>`;
+  const fill = `<div class="kui-slider-fill" style="width: ${value}%"></div>`;
+  return `<div class="kui-control kui-slider" data-size="${size}" data-tone="accent"${
+    disabled ? " data-disabled" : ""
+  } style="width: ${width}" role="slider" aria-valuenow="${value}"><div class="kui-slider-control"><div class="kui-slider-track">${fill}${thumb}</div></div></div>`;
+}
+
+function sliderSection(mode: Mode): string {
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo(
+        "the size index - the root rides the height ladder, the thumb the mark ladder, the track its own (§4)",
+        kuiBox(
+          { display: "flex", direction: "column", gap: "5" },
+          SIZES.map((n) => slider({ size: n, value: 25 + Number(n) * 12 })).join(""),
+        ),
+      ) +
+        demo(
+          "states - track low, fill accent; disabled greys through the one remap (§11)",
+          kuiBox(
+            { display: "flex", direction: "column", gap: "5" },
+            [
+              slider({ value: 15 }),
+              slider({ value: 65 }),
+              slider({ value: 95 }),
+              slider({ value: 50, disabled: true }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "beside its family - one weight class: the handle IS the checkbox's box (§4)",
+          kuiBox(
+            { display: "flex", gap: "5", align: "center" },
+            checkbox({ size: "2", checked: true }) + radio({ size: "2", checked: true }) + slider({ size: "2", value: 60 }),
           ),
         ),
     )}
@@ -938,6 +1049,8 @@ export function generatePreview(): string {
     <a href="#field">field</a>
     <a href="#textarea">textarea</a>
     <a href="#checkbox">checkbox</a>
+    <a href="#radio">radio</a>
+    <a href="#slider">slider</a>
     <a href="#type">type</a>
     <a href="#layout">layout</a>
     <a href="#roles">roles</a>
@@ -1022,6 +1135,16 @@ ${textAreaSection("dark")}
 <p class="note">The first control whose painted box is <em>not</em> the height ladder (\u00a74). A checkbox does not contain a label, it sits <em>beside</em> one, so it takes the <strong>mark family</strong> — one ladder shared by checkbox, radio, switch track and slider thumb, because four separately designed ladders in one visual weight class drift apart. The ladder is the <em>line box</em>: a mark occupies exactly one line of its label, which is why it aligns with the text by construction and why it grows on a phone with nothing designed twice — flip the <em>pointer</em> select and the marks rise because \u00a717's handheld band raised the type. The invisible target is a control of its size, capped at the 44 floor, so a checkbox is exactly as large a thing to aim at as the Button beside it while staying a 20px square: click a few pixels above a box on this page and it still toggles. At <em>radius=full</em> the corner caps below a circle, because a circular checkbox is a radio and shape is role semantics (\u00a76) \u2014 flip the radius select and compare it with the pills. Every number here is v0 for the eye pass.</p>
 ${checkboxSection("light")}
 ${checkboxSection("dark")}
+
+<h1 id="radio">Radio — the shape sibling</h1>
+<p class="note">The mark family's second member, and the landing (with the slider's thumb) that promoted the family's rules into the shared layer — the box, the invisible target, the seal-and-edge resting identity and the accent ON state are now written once and worn by every mark (§4). What is Radio's own is the <strong>circle</strong>: shape is role semantics here (§6) — a circular checkbox reads as a radio and a square radio reads as a checkbox — so the radius axis never reaches it. Flip the radius select to <em>none</em>: every corner on this page squares except these. Selection belongs to the group (one name, one value); the label is a sibling, and a stacked group keeps the 12px rule with <code>gap="5"</code> like the checkbox list above.</p>
+${radioSection("light")}
+${radioSection("dark")}
+
+<h1 id="slider">Slider — the control is the target</h1>
+<p class="note">Track low, fill accent (§11). The ROOT is the control: it rides the height ladder, so the whole box is the thing you press — 44 tall on the coarse default path with <em>no new target mechanism</em> — flip the pointer select and the strip grows while the line holds. The <strong>thumb is the mark family's third member</strong>: the same circle a radio paints, one line of the label's type, resting as every mark rests (the seal wearing the mark edge). The <strong>track</strong> is the family's off part — neutral through the new <code>--color-track</code> role, which the switch's off-track and progress will share — at a designed thickness (~0.25 of the fine mark; the space palette has nothing between 4 and 8, the mark's own wall one part over). The fill is <code>--tone-solid</code> under the stamped accent, so disabled greys everything through the one shared remap. Geometry here is a static stand-in for Base UI's inline positioning; the dress is the shipped stylesheet. All v0 for the eye pass.</p>
+${sliderSection("light")}
+${sliderSection("dark")}
 
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">
@@ -1116,7 +1239,7 @@ ${brandSection("dark")}
   // and it should still take. The real component gets this from Base UI; this is the static
   // page standing in for it, and it moves the same attributes the stylesheet reads.
   document.addEventListener("click", (e) => {
-    const mark = e.target.closest(".kui-checkbox");
+    const mark = e.target.closest(".kui-checkbox, .kui-radio");
     if (!mark || mark.hasAttribute("data-disabled")) return;
     const on = !(mark.hasAttribute("data-checked") || mark.hasAttribute("data-indeterminate"));
     for (const el of [mark, mark.querySelector("svg")]) {
