@@ -9,6 +9,7 @@
 import { describe, expect, it } from "vitest";
 
 import { computed, render } from "../../test/browser.tsx";
+import type { RenderElement } from "../../system/render.ts";
 import { Box } from "./box.tsx";
 
 describe("a prop becomes a rendered value (§2)", () => {
@@ -105,7 +106,7 @@ describe("the boundary between props and the DOM (§3)", () => {
       $$typeof: Symbol.for("react.lazy"),
       _payload: inner,
       _init: (payload: unknown) => payload,
-    } as unknown as React.ReactElement;
+    } as unknown as RenderElement;
 
     const el = render(<Box p="4" render={lazy} />);
     // Pre-fix this threw `Cannot read properties of undefined (reading 'ref')` and nothing
