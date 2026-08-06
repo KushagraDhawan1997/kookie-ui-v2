@@ -9,6 +9,7 @@
 import { describe, expect, it } from "vitest";
 
 import { computed, render } from "../../test/browser.tsx";
+import type { RenderElement } from "../../system/render.ts";
 import { Box } from "./box.tsx";
 
 describe("a prop becomes a rendered value (§2)", () => {
@@ -84,6 +85,33 @@ describe("the boundary between props and the DOM (§3)", () => {
 
   it("render targets an element you already have instead of adding a wrapper", () => {
     const el = render(<Box p="4" render={<section className="mine" />} />);
+    expect(el.tagName).toBe("SECTION");
+    expect(el.className.split(" ").sort()).toEqual(["kui-box", "mine"]);
+    expect(computed(el, "padding-top")).toBe("12px");
+  });
+
+  it("render survives the RSC boundary, where the element arrives as a lazy node (§5)", () => {
+    // The shape React's Flight deserializer actually hands a client component when a SERVER
+    // component creates the element and passes it as a prop: `$$typeof: react.lazy`, no
+    // `props`, `isValidElement` false. Built here rather than mocked loosely, because the
+    // whole defect was that `render.props` is undefined on precisely this object — reading
+    // any other shape would assert nothing.
+    //
+    // This is DEV-ONLY in React (facebook/react#32392): the production Flight build sends a
+    // real element. So `next build` was clean while `next dev` could not render one route,
+    // which is exactly how it shipped — and why the law matters more than the fix. The
+    // scenario is unreachable from a browser test otherwise; there is no RSC boundary here.
+    const inner = <section className="mine" />;
+    const lazy = {
+      $$typeof: Symbol.for("react.lazy"),
+      _payload: inner,
+      _init: (payload: unknown) => payload,
+    } as unknown as RenderElement;
+
+    const el = render(<Box p="4" render={lazy} />);
+    // Pre-fix this threw `Cannot read properties of undefined (reading 'ref')` and nothing
+    // below ran. Post-fix the escape behaves exactly as it does with a plain element — which
+    // is the real claim: the boundary is invisible to the API.
     expect(el.tagName).toBe("SECTION");
     expect(el.className.split(" ").sort()).toEqual(["kui-box", "mine"]);
     expect(computed(el, "padding-top")).toBe("12px");

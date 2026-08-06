@@ -286,6 +286,22 @@ describe("the boundary (§3, §13)", () => {
     expect(clicks).toBe(1);
   });
 
+  it("card-as-LINK wears no UA underline either — the invariant has two sites (§8, §10)", () => {
+    // "No interactive element of ours wears the browser's link underline" is declared in two
+    // stylesheets — recipes.css for controls, surfaces.css for the card-as-button arm — and
+    // until 2026-08-06 only the control site had a law. Deleting surfaces.css's
+    // `text-decoration: none` left the whole suite green while `<Card render={<a/>}>`, the
+    // composition surfaces.css names by hand as THE pattern, underlined its entire contents.
+    //
+    // The house precedent is the focus-ring and box-shadow pair: when a single-site fact
+    // becomes a multi-site one, grow a law that reads the VALUE at every site rather than
+    // count rules in one file. This is the surface half; button.browser.test.tsx is the
+    // control half.
+    const el = render(<Card render={<a href="/post" />}>Read the post</Card>);
+    expect(el.tagName).toBe("A");
+    expect(computed(el, "text-decoration-line")).toBe("none");
+  });
+
   it("render composes: an article that is a card keeps the shell (§5)", () => {
     const el = render(
       <Card render={<article aria-label="post" />} size="2">

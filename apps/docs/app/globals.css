@@ -1,0 +1,11 @@
+/* Docs-app base — consumer CSS, deliberately this small. The page paints --neutral-1 (§10:
+   surfaces seal ABOVE the page; the page itself is step 1) and reads the foreground context.
+   Everything visible beyond this file is @kookie-ui/react — the docs are the first real
+   consumer, and the stance is that they use nothing else. */
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--neutral-1);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}

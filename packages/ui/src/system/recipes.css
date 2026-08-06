@@ -84,6 +84,12 @@
   line-height: var(--kui-ct-line);
   letter-spacing: var(--kui-ct-tracking);
   font-weight: var(--font-weight-medium);
+  /* A control's label never underlines. Inert on a <button>; load-bearing for the render
+     escape, where the element is an <a> and the UA's link underline rode into the control
+     dress unexamined — the audit fixed the anchor's SEMANTICS (type, role, aria-disabled)
+     and nobody asked about its clothes. Found by the docs app's nav, the first real
+     link-as-button consumer (2026-08-05). A link that should read as a link is Link's job. */
+  text-decoration: none;
 
   /* The rungs publish their fills as SOURCES (--kui-ct-fill-src-*); the painted value reads
      through this chain so material (§10) can re-derive every state from the same source —

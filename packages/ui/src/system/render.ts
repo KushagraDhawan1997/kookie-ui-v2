@@ -29,6 +29,34 @@ export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCa
   };
 }
 
+/** React's own symbol for a lazy node. Read through `Symbol.for`, which is the registry
+    lookup — the same symbol object React created, not a private import. */
+const REACT_LAZY = Symbol.for("react.lazy");
+
+/**
+ * The element a `render` prop is really pointing at (§5, added 2026-08-06).
+ *
+ * **An element created in a Server Component and passed across the RSC boundary does not
+ * arrive as an element.** React's Flight deserializer wraps it in a lazy node — `$$typeof`
+ * is `react.lazy`, `props` is `undefined`, and `isValidElement` is false — so
+ * `render.props` threw `Cannot read properties of undefined` and took the whole page down
+ * at hydration. It is a known React bug (facebook/react#32392), and its worst property is
+ * that it fires in DEVELOPMENT ONLY: the production Flight build hands over a real element,
+ * so `next build` was clean while `next dev` could not render a single route. That is how
+ * this shipped — the docs app was only ever exercised through `next start`.
+ *
+ * `React.Children.toArray` is the unwrap, and it is deliberately the whole mechanism: it
+ * resolves a lazy child as part of its documented flattening, so this reaches the element
+ * through a PUBLIC api rather than by reading `_payload` / `_init` off React's internals.
+ * Base UI's own escape carries the identical workaround, citing the identical issue — which
+ * is the same contrast the note above draws about merging: where upstream handles a case
+ * and we do not, that is a defect of ours, not a house convention.
+ */
+function unwrapLazy(render: RenderElement): RenderElement {
+  if ((render as { $$typeof?: symbol } | null)?.$$typeof !== REACT_LAZY) return render;
+  return React.Children.toArray(render)[0] as RenderElement;
+}
+
 /**
  * The `render` escape, merged rather than overwritten (§3, §5, ENGINEERING §5).
  *
@@ -57,7 +85,8 @@ export function composeRender(
   merged: RenderProps & { ref?: React.Ref<never> | undefined },
   children?: React.ReactNode,
 ): React.ReactElement {
-  const own = render.props;
+  const target = unwrapLazy(render);
+  const own = target.props;
   const ownRef = (own as { ref?: React.Ref<never> }).ref;
   const next: Record<string, unknown> = {
     ...merged,
@@ -70,7 +99,7 @@ export function composeRender(
   if (children !== undefined) next.children = children;
   if (ownRef) next.ref = mergeRefs(merged.ref, ownRef);
 
-  return React.cloneElement(render, next);
+  return React.cloneElement(target, next);
 }
 
 /**

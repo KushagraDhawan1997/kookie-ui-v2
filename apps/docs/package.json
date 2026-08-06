@@ -2,5 +2,26 @@
   "name": "docs",
   "private": true,
   "type": "module",
-  "description": "Docs app stub. Framework undecided (Next/Astro/Vite); chosen when the first component needs a showcase."
+  "description": "KookieUI docs. Bare Next.js as the rendering substrate; every visible pixel is @kookie-ui/react. No docs framework and no third-party UI — a design system whose docs are built on someone else's system argues against itself (decided 2026-08-05, Kushagra; LOG).",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint app next.config.ts && tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@kookie-ui/react": "workspace:*",
+    "next": "^16.3.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "eslint": "^9.30.0",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.0"
+  }
 }
