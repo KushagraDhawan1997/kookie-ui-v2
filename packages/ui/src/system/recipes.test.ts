@@ -150,6 +150,36 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     }
   });
 
+  it("component dress never uses :is() — a state must outrank it, not tie with it", () => {
+    // Checkbox audit defect (b), made structural (2026-08-06): its checked rule used :is(),
+    // which KEEPS its arguments' specificity — tying with the shared invalid remap and
+    // winning on source order, so a checked invalid checkbox looked healthy. :where() zeroes
+    // the dress selector's weight, and the state arms (plain specificity, shared layer) then
+    // outrank every component rule by construction. In a component sheet everything is
+    // skeleton or dress, so the law is total there; the shared layer's own :is() use is
+    // deliberate — its states are exactly what must carry weight.
+    for (const p of allStylesheets("components")) {
+      expect(sheet(p), `${p} uses :is() — dress that can tie with a state remap`).not.toContain(
+        ":is(",
+      );
+    }
+  });
+
+  it("a component that ships a stylesheet ships its mounted laws — the file must exist", () => {
+    // Decided 2026-08-06 (Kushagra): the 2026-08-03 standard's blind spot was structural —
+    // nothing asserted a browser test FILE exists, so Spinner shipped CSS with zero mounted
+    // laws and every walk-based law happily audited its stylesheet while its geometry claims
+    // stayed prose. The law is about the file, deliberately: what the laws inside it must
+    // assert cannot be walked, but "some exist" can be.
+    for (const p of allStylesheets("components")) {
+      const dir = p.slice(0, p.lastIndexOf("/"));
+      const tests = walkFiles(dir, ".browser.test.tsx");
+      expect(tests, `${dir} ships ${p.split("/").pop()!} but no browser test file`).not.toEqual(
+        [],
+      );
+    }
+  });
+
   it("every Base UI entry a component imports is pre-bundled for the browser suite (ENGINEERING §7)", () => {
     // An entry discovered mid-run is optimized in a second pass and holds a different React
     // than the page, so every hook inside it reads null — how @base-ui/react/input failed the
@@ -440,9 +470,11 @@ describe("the ring and the chrome are designed once, applied wherever they land 
   });
 
   it("every box-shadow reads the world's chrome — depth is never a component's own idea", () => {
-    // The elevated world dresses surfaces AND the controls that are built like them (a field is
-    // a bordered box on the page). What no stylesheet may do is invent its own depth: the moment
-    // a rule names --shadow-N directly, the fenced resource has become an axis again (§13).
+    // The elevated world dresses actual SURFACES, and nothing else (§5, reversed 2026-08-06:
+    // fields lifted with the cards for two days, but a field is a well — content of a plane,
+    // not a plane above one — and its sheets dropped the chrome). What no stylesheet may do is
+    // invent its own depth: the moment a rule names --shadow-N directly, the fenced resource
+    // has become an axis again (§13).
     let found = 0;
     for (const [file, css] of sheets) {
       for (const match of css.matchAll(/box-shadow:\s*([^;]+);/g)) {
@@ -451,7 +483,9 @@ describe("the ring and the chrome are designed once, applied wherever they land 
       }
       expect(css, `${file} reaches past the chrome to the palette`).not.toContain("--shadow-");
     }
-    expect(found).toBeGreaterThanOrEqual(2);
+    // Exactly the surface layer's one declaration: a SECOND consumer appearing is a decision,
+    // not a drift, and it should fail here first.
+    expect(found).toBe(1);
   });
 });
 

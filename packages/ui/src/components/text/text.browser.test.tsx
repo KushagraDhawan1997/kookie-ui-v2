@@ -6,7 +6,9 @@
  */
 import type * as React from "react";
 import { afterEach, describe, expect, it } from "vitest";
-import { page } from "@vitest/browser/context";
+import { page } from "vitest/browser";
+
+import { VIEWPORT } from "../../test/viewport.ts";
 
 import { Theme } from "../../theme/theme.tsx";
 import {
@@ -180,7 +182,7 @@ describe("the NARROW band: a short line cuts the display steps (§15, §17, spli
   //
   // The viewport is resized for real rather than simulated: a media query is the mechanism,
   // and a law that stubs the mechanism it is testing proves nothing.
-  const WIDE = { width: 1280, height: 800 };
+  const WIDE = VIEWPORT;
   const NARROW = { width: 375, height: 800 };
 
   async function at(size: { width: number; height: number }, read: () => string[]) {

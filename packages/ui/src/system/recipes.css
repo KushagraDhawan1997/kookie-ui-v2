@@ -185,6 +185,18 @@
   height: var(--kui-ct-hosted-height);
 }
 
+/* The slot-inset promise is written against the hosted BOX, and a slot that shrink-wraps
+   keeps it only for a control that FILLS that box. A button does; a mark does not (§4 sizes
+   it by its own family, smaller than the hosted height), and it sat closer to the container's
+   edge than to its top and bottom — the vertical residue had nowhere to appear horizontally.
+   The slot claims the full hosted box and centres what it holds, so every hosted control is
+   equidistant by construction. Guarded on holding a control: an icon wants the field's normal
+   text inset, and a filling control's width already meets the minimum, byte-identical. */
+.kui-control > [data-slot]:has(> .kui-control) {
+  min-inline-size: var(--kui-ct-hosted-height);
+  justify-content: center;
+}
+
 /* Touch: the hit area is the CONTAINER's content box, never the 44 target directly (§16).
    A nested control that grew to 44 inside a 36px size-1 field would be a larger target than
    the thing containing it, and would overlap whatever sits above and below in a stacked form —

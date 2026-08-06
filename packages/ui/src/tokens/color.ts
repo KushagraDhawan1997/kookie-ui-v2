@@ -30,6 +30,7 @@ import {
   type Mode,
   type ToneName,
 } from "./color-config.ts";
+import { surfaceColor } from "./config.ts";
 
 const toRgb = converter("rgb");
 const toOklch = converter("oklch");
@@ -172,11 +173,26 @@ export type Scale = {
   isLowChroma: boolean;
 };
 
-/** The page backdrop each mode's alpha ramp composites over. */
-export function pageBackdrop(mode: Mode): string {
-  return mode === "light"
-    ? "#ffffff"
-    : formatHex(toGamut(oklch(lightness.dark[0]!, 0.004, tones.neutral.hue)))!;
+/**
+ * The backdrop each mode's alpha ramp composites over — the SURFACE SEAL, not the page
+ * (decided 2026-08-06, Kushagra). An alpha fill's usual home is a sealed surface — a card, a
+ * field — so the ramp solves against what it actually sits on. Before this the two modes told
+ * different stories (light solved against white ≡ the seal; dark against a hand-made page
+ * approximation the law then re-used, a tautology), and the page colour was stated three
+ * near-identical ways. Now the seal is read from config's surfaceColor: a literal is used
+ * directly, and dark's `var(--neutral-2)` resolves through the same generator that emits it,
+ * so the backdrop and the seal cannot drift apart.
+ */
+const backdropCache: Partial<Record<Mode, string>> = {};
+export function alphaBackdrop(mode: Mode): string {
+  const rest: string = surfaceColor[mode].rest;
+  if (!rest.startsWith("var(")) return rest;
+  if (!backdropCache[mode]) {
+    const step = Number(rest.match(/--neutral-(\d+)/)![1]!);
+    backdropCache[mode] = buildScaleFor(resolveTone(tones.neutral), mode, "srgb", "normal", true)
+      .steps[step - 1]!;
+  }
+  return backdropCache[mode]!;
 }
 
 export type ToneSpec = {
@@ -237,6 +253,7 @@ export function buildScaleFor(
   mode: Mode,
   gamut: Gamut = "srgb",
   contrast_: ContrastLevel = "normal",
+  stepsOnly = false,
 ): Scale {
   const hc = contrast_ === "high" ? contrastHigh[mode] : null;
   /** The most chroma this hue can hold at this lightness, inside the target gamut. */
@@ -356,10 +373,12 @@ export function buildScaleFor(
     gamut,
   );
 
-  const backdrop = pageBackdrop(mode);
+  // stepsOnly exists for alphaBackdrop's own neutral lookup: the seal is a neutral step, the
+  // steps do not depend on the backdrop, and skipping the alpha solve breaks the cycle.
+  const backdrop = stepsOnly ? "" : alphaBackdrop(mode);
   return {
     steps,
-    alpha: steps.map((hex) => alphaOver(hex, backdrop)),
+    alpha: stepsOnly ? [] : steps.map((hex) => alphaOver(hex, backdrop)),
     solid,
     solidHover,
     solidActive,

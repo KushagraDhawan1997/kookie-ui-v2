@@ -21,6 +21,7 @@ import {
   layoutSpace,
   letterSpacing,
   lineHeight,
+  material,
   radiusLevels,
   radiusOverlay,
   radiusSurface,
@@ -54,6 +55,11 @@ function block(selector: string) {
   if (end === -1) throw new Error(`unterminated rule for "${selector}"`);
   return css.slice(start, end);
 }
+
+/** A declaration read out of an arbitrary scope block — two mark-family describes had grown
+    private near-copies of this regex machinery (audit straggler, merged 2026-08-06). */
+const inScope = (scope: string, name: string) =>
+  block(scope).match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
 
 /** Reads a declaration out of a scope: `:root` by default, or a density block. */
 function declaration(name: string, level: "default" | "compact" | "comfortable" = "default") {
@@ -774,10 +780,8 @@ describe("the mark family is the line box, and nothing designed twice (§4)", ()
   // Checkbox, radio, switch track and slider thumb are one visual weight class, and four
   // separately designed ladders in one weight class drift. The ladder is an identity rather
   // than a ratio: a mark occupies exactly one line of the label it sits beside.
-  const markIn = (scope: string, i: number) =>
-    block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1];
-  const lineIn = (scope: string, i: number) =>
-    block(scope).match(new RegExp(`--line-height-${i}:\\s*([^;]+);`))?.[1];
+  const markIn = (scope: string, i: number) => inScope(scope, `mark-${i}`);
+  const lineIn = (scope: string, i: number) => inScope(scope, `line-height-${i}`);
 
   it("resolves to the line box at :root and in the fine world", () => {
     for (const scope of [":root", '[data-pointer="fine"]']) {
@@ -825,10 +829,8 @@ describe("a mark's corner holds a fraction of ITS OWN box (§6)", () => {
   // comfortable size 4 — a circle in all but name, arrived at by an axis rather than a theme,
   // which is why the `full` ceiling never saw it. Fractions, not values: the picks are taste.
   const value = (decl: string | undefined) => parseFloat(decl!.match(/[\d.]+/)![0]);
-  const markIn = (scope: string, i: number) =>
-    value(block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1]);
-  const cornerIn = (scope: string, i: number) =>
-    value(block(scope).match(new RegExp(`--radius-mark-${i}:\\s*([^;]+);`))?.[1]);
+  const markIn = (scope: string, i: number) => value(inScope(scope, `mark-${i}`));
+  const cornerIn = (scope: string, i: number) => value(inScope(scope, `radius-mark-${i}`));
 
   for (const level of ["small", "medium", "large", "full"] as const) {
     it(`holds 0.05-0.40 of the box at every size, level ${level}, both pointer worlds`, () => {
@@ -997,6 +999,42 @@ describe("no var() dangles — every reference the generator writes, it also dec
     const dangling = [...referenced].filter((name) => !declared.has(name));
     expect(dangling, `referenced but never declared: ${dangling.join(", ")}`).toEqual([]);
   });
+});
+
+
+describe("the material ladder is monotone in every lever (§10)", () => {
+  // config.ts has stated this invariant in prose since the ladder shipped ("Monotone across
+  // thicknesses must hold per column, not just at rest, so thickness still reads as one
+  // dimension mid-interaction") — and nothing asserted it. Asserted from the config because
+  // the claim is about the designed SET; the emitted spelling is covered by the drift law.
+  const THICKNESSES = ["thin", "regular", "thick"] as const;
+  const rises = (values: readonly number[]) => {
+    for (let i = 1; i < values.length; i++) expect(values[i]!).toBeGreaterThan(values[i - 1]!);
+  };
+  for (const mode of ["light", "dark"] as const) {
+    it(`${mode}: thickness rises per column, states rise per thickness, high defends harder`, () => {
+      for (const key of ["alpha", "alphaHigh"] as const) {
+        for (const col of [0, 1, 2]) {
+          rises(THICKNESSES.map((th) => material[mode][th][key][col]!));
+        }
+        for (const th of THICKNESSES) rises(material[mode][th][key]);
+      }
+      // The pane's own light: edge and rim rise with thickness (thicker glass catches more),
+      // and the blur radius rises — thickness is one dimension in the filter too.
+      for (const part of ["edge", "rim"] as const) {
+        rises(THICKNESSES.map((th) => material[mode][th][part]));
+      }
+      rises(THICKNESSES.map((th) => Number(material[mode][th].filter.match(/blur\((\d+)px/)![1]!)));
+      // alphaHigh is MORE opaque than normal at every cell and never reaches the seal: past
+      // ~.9-and-change you should have used solid, and three thicknesses must stay three.
+      for (const th of THICKNESSES) {
+        material[mode][th].alpha.forEach((a, i) => {
+          expect(material[mode][th].alphaHigh[i]!).toBeGreaterThan(a);
+        });
+        expect(material[mode][th].alphaHigh[2]!).toBeLessThan(100);
+      }
+    });
+  }
 });
 
 describe("generated output is not hand-edited (ENGINEERING §7)", () => {

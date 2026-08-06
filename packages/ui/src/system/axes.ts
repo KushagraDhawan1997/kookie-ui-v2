@@ -9,7 +9,13 @@
 import type { ToneName } from "../tokens/color-config.ts";
 
 /** §4 — an index, not a measurement. Closed, because a scale with an escape is not a scale.
-    A value list too, because the laws walk the index and were each spelling it out. */
+    A value list too, because the laws walk the index and were each spelling it out.
+
+    ONE union across three unrelated ladders, deliberately (decided 2026-08-06): Button and
+    the fields read it as the control height index, Card as the surface padding + corner
+    index, Checkbox as the mark index. They share a numeral, not a scale — which is exactly
+    what "an index, not a measurement" means, so splitting the type would encode in the API a
+    sameness the system never promised. */
 export const SIZES = ["1", "2", "3", "4"] as const;
 export type Size = (typeof SIZES)[number];
 

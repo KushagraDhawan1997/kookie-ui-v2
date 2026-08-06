@@ -7,8 +7,15 @@ import { converter, formatHex } from "culori";
 import { describe, expect, it } from "vitest";
 
 import {
-  apcaFloors, lightness, lowChromaThreshold, tones, type Mode, type ToneName } from "./color-config.ts";
-import { markEdgeStep } from "./color-config.ts";
+  apcaFloors,
+  lightness,
+  lowChromaThreshold,
+  markEdgeStep,
+  tones,
+  type Mode,
+  type ToneName,
+} from "./color-config.ts";
+import { surfaceColor } from "./config.ts";
 import {
   apcaLc,
   buildScale,
@@ -16,7 +23,6 @@ import {
   colorDeclarations,
   contrastHighDeclarations,
   cuspLightness,
-  pageBackdrop,
   resolveTone,
   toneFromColor,
 } from "./color.ts";
@@ -497,9 +503,21 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
 });
 
 describe("the alpha ramp composites back to its step (§10)", () => {
-  it("every alpha value lands on its solid step over the page backdrop", () => {
+  // De-tautologized 2026-08-06: this law used to composite against the emitter's own
+  // pageBackdrop — the same value the solve consumed, so a divergence between the backdrop
+  // and what the fill actually sits on was invisible by construction. The backdrop now
+  // derives HERE from config's surfaceColor (the seal the ramp officially composites over,
+  // decided 2026-08-06): a literal is used directly, dark's var(--neutral-2) resolves
+  // through the generated scale. If the emitter's backdrop ever diverges from the seal,
+  // this recomposition misses its step.
+  const seal = (mode: Mode): string => {
+    const rest: string = surfaceColor[mode].rest;
+    if (!rest.startsWith("var(")) return rest;
+    return buildScale("neutral", mode).steps[Number(rest.match(/--neutral-(\d+)/)![1]!) - 1]!;
+  };
+  it("every alpha value lands on its solid step over the seal it sits on", () => {
     for (const mode of MODES) {
-      const backdrop = toRgb(pageBackdrop(mode))!;
+      const backdrop = toRgb(seal(mode))!;
       for (const tone of TONES) {
         const s = buildScale(tone, mode);
         s.alpha.forEach((value, i) => {

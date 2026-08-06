@@ -26,10 +26,26 @@ import { Slider } from "./slider.tsx";
 
 const px = (v: string) => parseFloat(v);
 
-/** Base UI resolves the edge-aligned geometry after first layout — until then the thumb (and
- * its input) sit `visibility: hidden`, and a hidden input refuses focus. Interaction laws
- * wait for the settled frame; a law that focused the pre-settled input would skip itself. */
-const settled = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+/**
+ * Base UI resolves the edge-aligned geometry after first layout — until then the thumb (and
+ * its input) sit `visibility: hidden`, and a hidden input refuses focus. A law that read the
+ * pre-settled frame would skip itself, so every geometry and interaction law waits here first.
+ *
+ * It waits on the CONDITION, not on a frame count (corrected 2026-08-06). Two `requestAnimation
+ * Frame`s is the same wrong shape as the checkbox scan that ran off-viewport: it looks like a
+ * wait and is really a guess, and under a full-suite load the measurement lands after them
+ * roughly two runs in five — a law that fails 40% of the time in CI and passes alone teaches
+ * nobody anything. Polling the thumb's own visibility is the real signal, and the deadline
+ * THROWS rather than proceeding: never measure a frame that has not arrived.
+ */
+async function settled(host: Element): Promise<void> {
+  const thumb = thumbOf(host);
+  for (let i = 0; i < 200; i++) {
+    if (getComputedStyle(thumb).visibility !== "hidden") return;
+    await new Promise((r) => requestAnimationFrame(r));
+  }
+  throw new Error("slider never settled: the thumb stayed hidden for 200 frames");
+}
 
 const rootOf = (el: Element): HTMLElement =>
   (el.querySelector(".kui-slider") ?? el) as HTMLElement;
@@ -164,7 +180,7 @@ describe("track low, fill accent (§11)", () => {
     // the fill and handle positions after first layout — the law waits for the settled frame
     // rather than asserting against the pre-measurement one.
     const el = slider({ defaultValue: 50 });
-    await settled();
+    await settled(el);
     const track = trackOf(el).getBoundingClientRect();
     const fill = el.querySelector(".kui-slider-fill")!.getBoundingClientRect();
     const thumb = thumbOf(el).getBoundingClientRect();
@@ -195,7 +211,7 @@ describe("states arrive from the shared layer (§8)", () => {
 
   it("the ring lands on the thumb, real and token-valued, when the hidden input holds focus", async () => {
     const el = slider();
-    await settled();
+    await settled(el);
     const thumb = thumbOf(el);
     expect(getComputedStyle(thumb).outlineStyle).toBe("none");
     const input = thumb.querySelector("input")!;
@@ -213,7 +229,7 @@ describe("states arrive from the shared layer (§8)", () => {
     // wiring is bypassed — the vacuity this suite forbids.
     const { userEvent } = await import("vitest/browser");
     const el = slider({ defaultValue: 40, step: 5 });
-    await settled();
+    await settled(el);
     const input = thumbOf(el).querySelector("input")!;
     expect(input.type).toBe("range");
     expect(px(input.value)).toBe(40);

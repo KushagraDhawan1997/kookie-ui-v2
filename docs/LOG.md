@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-06 Fields leave the elevated world: a well casts no shadow
+
+For two days `surfaces="elevated"` lifted TextField and TextArea with the cards, on the sentence "a text field is a bordered box sitting on the page — it lifts with the cards, or the identity is only half applied" (2026-08-04). Kushagra kept pulling the thread — first the membership question (why fields and not button or checkbox), then the vocabulary (the prop says *surfaces* and a field is a control) — and the sentence turned out to be asserted, not judged. Elevation separates a plane from what is behind it. A field is a **well**: something you look and type into, content of a plane, not a plane above one — and a recessed thing casting a drop shadow is physically incoherent. The platforms already agree: Material's fields are filled or outlined, never raised; no OS shades an input. The floating search bar one might cite is a promoted toolbar *containing* an input — a shell, not a form field.
+
+The membership criterion is now one sentence in §5: elevation dresses boxes that establish a plane of their own. Button's box is the action, a mark's is the state, a field's is a well — all three stay flat, each pinned by a mounted negative law under `surfaces="elevated"` (Material's raised buttons are the cautionary counterexample: shadow-as-loudness, fused into the rank ladder). The box-shadow walk re-pins the consumer count at exactly one — the surface layer — so a second consumer is a decision that fails a law first, not a drift.
+
+Rejected: keeping fields in and renaming the prop around them — the set was wrong, not just the word. Recorded beside it: an elevated world *deepening* the well (an inset shadow) is a coherent future taste question; a lift never was.
+
+## 2026-08-06 One Size union across three ladders, on purpose
+
+The architecture review flagged that the exported `Size` serves three unrelated scales — Button and the fields read it as the control height index, Card as the surface padding + corner index (default "3" against everyone else's "2"), Checkbox as the mark index. They share a numeral, not a scale. Kushagra's call: keep the one union. §4 already defines a size as "an index, not a measurement" — the index never promised that two components at size 2 share a box, only that each family resolves its own designed ladder at that step. Splitting the type would encode in the API a sameness the system never claimed, and cost a breaking rename across every component for a distinction the resolved tokens already carry.
+
+Rejected: `ControlSize` / `SurfaceSize` / `MarkSize` as distinct public unions — more honest-looking at the call site, but the honesty is false precision (all three are the same closed "1"–"4" set), and the day a family needs a different index count the union splits then, with the evidence in hand. Recorded in `system/axes.ts` beside the type; here so it stays closed.
+
+## 2026-08-06 The alpha ramp composites over the seal, and its law stops grading its own homework
+
+The recomposition law took its backdrop from the emitter's own `pageBackdrop` — the same value the alpha solve consumed — so the law was a tautology: it could verify the arithmetic but never notice the backdrop being the wrong colour. And it quietly was. The page colour existed as three near-identical statements (`surfaceColor.light.rest` `#ffffff`, `pageBackdrop`'s own white / hand-built dark approximation, and the generated `--neutral-1`), and the two modes told different stories: light solved against white — which happens to be the seal — while dark solved against a page approximation, which is why dark's neutral overlay hexes came out faintly pink (`#fff0f1` for a grey ramp).
+
+Kushagra's call: the ramp officially sits on the **surface seal**, not the page — an alpha fill's usual home is a card or a field, both sealed. `alphaBackdrop` now reads config's `surfaceColor` (a literal directly; dark's `var(--neutral-2)` resolved through the same generator that emits it, via a steps-only build that breaks the solve's cycle), and the law derives the seal independently from config, so an emitter/seal divergence now fails CI. Dark's ramp re-solved: 98 declarations moved by a hair, the pink cast gone; light was already seal-based and did not move. Budget 18,137 → 18,129.
+
+Rejected: compositing against the page (`--neutral-1`) — it matches the word "page" but not where alpha fills live, and dark's seal (`--neutral-2`) is the surface story §10 already tells; leaving the tolerance recorded — the deltas were invisible, but a law that cannot fail is the audit's oldest finding.
+
 ## 2026-08-06 Slider: the control is the target, and the track needs two things the system did not have
 
 Repetition's fourth entry, landing with Radio (below). Three questions were genuinely open, and two of them minted something.

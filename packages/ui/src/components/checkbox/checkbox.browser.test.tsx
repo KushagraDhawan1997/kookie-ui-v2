@@ -344,6 +344,13 @@ describe("the glyph is the box, not the icon ladder (§4)", () => {
 });
 
 describe("what it inherits from the shared layer, and what it must not (§8)", () => {
+  it("stays flat in an elevated world — a mark's box is the state, not a plane (§5)", () => {
+    // The negative half of elevation's membership criterion (decided 2026-08-06): the
+    // shadow ladder is surface-scale lengths, and nothing is ever behind a mark.
+    const el = mounted(<Checkbox />, { theme: { surfaces: "elevated" } });
+    expect(computed(markOf(el), "box-shadow")).toBe("none");
+  });
+
   it("takes the one focus ring, keyboard-only, like every control", () => {
     const el = render(<Checkbox />);
     el.focus();
@@ -501,6 +508,31 @@ describe("hosted in a slot, it stays a mark (§4, decided 2026-08-06 — audit D
       const { w, h } = markBox(mark);
       expect(w).toBe(h);
       expect(h).toBeLessThanOrEqual(px(tokenOn(el, "--mark-2")));
+    });
+  }
+
+  for (const pointer of POINTERS) {
+    it(`${pointer}: equidistant — the gap to the field's edge is the gap above and below`, () => {
+      // The slot-inset promise ("the same number on all four sides") is written against the
+      // hosted BOX. A button fills that box; a mark does not, so it gains the residue
+      // vertically while the shrink-wrapped slot held the horizontal gap at bare slot-inset —
+      // the mark sat closer to the field's edge than to its top and bottom. The slot claims
+      // the full hosted box and centres what it holds; these gaps are equal by construction.
+      const el = render(
+        <Theme pointer={pointer}>
+          <TextField size="2" trailing={<Checkbox size="2" />} />
+        </Theme>,
+      );
+      const field = el.querySelector(".kui-field")!;
+      const mark = el.querySelector(".kui-checkbox")!;
+      const f = field.getBoundingClientRect();
+      const m = mark.getBoundingClientRect();
+      const border = px(getComputedStyle(field).borderRightWidth);
+      const right = f.right - border - m.right;
+      const top = m.top - (f.top + border);
+      const bottom = f.bottom - border - m.bottom;
+      expect(Math.abs(right - top)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(top - bottom)).toBeLessThanOrEqual(0.5);
     });
   }
 

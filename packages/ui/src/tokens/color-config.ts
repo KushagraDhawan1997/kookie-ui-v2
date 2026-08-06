@@ -5,6 +5,11 @@
  *
  * Everything here is authored; nothing is a borrowed value. The generator turns it into
  * twelve steps per tone per mode with one law.
+ *
+ * The boundary with config.ts, declared (2026-08-06): this file holds what the OKLCH
+ * generator CONSUMES — hues, ladders, deltas, floors, per-mode step picks. Colour-looking
+ * literals the generator never reads (glass alphas, shadow rows, the surface seal) live in
+ * config.ts: a value lives by which machinery reads it.
  */
 
 /**
