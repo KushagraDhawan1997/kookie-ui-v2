@@ -16,13 +16,22 @@
 export const APPEARANCE_KEY = "kui-appearance";
 export const CONTRAST_KEY = "kui-contrast";
 
+/**
+ * The read is guarded SEPARATELY from the stamp, which is the whole shape of this script.
+ *
+ * Wrapping the two together — one try/catch around everything — meant that a browser which
+ * throws on storage access (Safari "Block all cookies" and friends) skipped the
+ * `setAttribute` calls as well, so the page was left with no `data-appearance` at all and a
+ * dark-OS visitor silently got the light `:root` fallback. The stored choice is the only
+ * part that can fail; `matchMedia` needs no permission and always answers. So: read
+ * defensively, then stamp unconditionally.
+ */
 export const appearanceScript = `(function () {
-  try {
-    var e = document.documentElement;
-    var a = localStorage.getItem(${JSON.stringify(APPEARANCE_KEY)});
-    var dark = a === "light" ? false : a === "dark" ? true : matchMedia("(prefers-color-scheme: dark)").matches;
-    e.setAttribute("data-appearance", dark ? "dark" : "light");
-    var c = localStorage.getItem(${JSON.stringify(CONTRAST_KEY)});
-    if (c === "high" || c === "normal") e.setAttribute("data-contrast", c);
-  } catch (err) {}
+  var e = document.documentElement;
+  var read = function (k) { try { return localStorage.getItem(k); } catch (err) { return null; } };
+  var a = read(${JSON.stringify(APPEARANCE_KEY)});
+  var dark = a === "light" ? false : a === "dark" ? true : matchMedia("(prefers-color-scheme: dark)").matches;
+  e.setAttribute("data-appearance", dark ? "dark" : "light");
+  var c = read(${JSON.stringify(CONTRAST_KEY)});
+  if (c === "high" || c === "normal") e.setAttribute("data-contrast", c);
 })();`;
