@@ -121,6 +121,23 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     }
   });
 
+  it("no stylesheet outside tokens.css DECLARES a look role — the axis has one home (§19)", () => {
+    // Membership in a look family is CONSUMPTION of the role; a sheet that declared one
+    // would be a second author of the app's dress. The two sanctioned exceptions are the
+    // shared layer's state arms, which stand the field role down (`initial`) so a state
+    // outranks the dress — an arm, not a value: nothing outside tokens.css may put a COLOUR
+    // in a look role.
+    for (const p of allStylesheets()) {
+      const code = sheet(p).replace(/\/\*[\s\S]*?\*\//g, " ");
+      for (const m of code.matchAll(/--look-[\w-]+\s*:\s*([^;]+);/g)) {
+        expect(m[1]!.trim(), `${p} declares ${m[0]!.trim()}`).toBe("initial");
+      }
+      if (p.includes("components/")) {
+        expect(code, `${p} declares a look role`).not.toMatch(/--look-[\w-]+\s*:/);
+      }
+    }
+  });
+
   it("every component stylesheet the walk finds is shipped by the entry point", () => {
     // The reverse direction of "nothing ships a stylesheet the tests cannot see" below: that
     // law pins entry → suite, so a sheet the entry ships is one the laws see — but a component
@@ -203,7 +220,13 @@ describe("the mark family lives in the shared layer, once (§4, promoted 2026-08
   it("the shared layer declares the box, the target, the resting identity and the ON state", () => {
     expect(recipes).toContain(".kui-mark {");
     expect(block(recipes, ".kui-mark {")).toContain("var(--kui-ct-mark)");
-    expect(block(recipes, ".kui-mark {")).toContain("--tone-border: var(--mark-edge)");
+    // The resting edge routes through the look axis (§19) and lands on the mark edge when the
+    // app takes the outlined look — the role stands down (`initial`) and this fallback is what
+    // resolves, at the element, where the tone system lives. Both halves asserted: the family
+    // still owns the identity, and the identity is still the mark edge.
+    expect(block(recipes, ".kui-mark {")).toContain(
+      "--tone-border: var(--look-mark-border, var(--mark-edge))",
+    );
     expect(recipes).toContain(".kui-mark:where(:not(.kui-control *))::after");
     expect(recipes).toContain('.kui-mark:where([data-checked], [data-indeterminate])');
   });

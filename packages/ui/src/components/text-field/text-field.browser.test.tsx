@@ -373,6 +373,44 @@ describe("the slots are forced anatomy, and they behave like slots (§10)", () =
   });
 });
 
+describe("the look axis dresses the well, and states outrank it (§19)", () => {
+  it("filled: the fill darkens one step past the surface family, the border withdraws", () => {
+    const el = mounted(<TextField />, { theme: { look: "filled" }, select: ".kui-field" });
+    expect(computed(el, "background-color")).toBe(colorOn(el, "var(--neutral-3)"));
+    expect(computed(el, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+  });
+
+  it("outlined is the identity — byte-identical to the bare render", () => {
+    const bare = render(<TextField />);
+    const outlined = mounted(<TextField />, {
+      theme: { look: "outlined" },
+      select: ".kui-field",
+    });
+    for (const prop of ["background-color", "border-top-color"]) {
+      expect(computed(outlined, prop)).toBe(computed(bare, prop));
+    }
+  });
+
+  it("invalid outranks dress: the error edge returns through filled's transparent border", () => {
+    // The shared invalid arm stands the look role down (`initial`), so the family rule's
+    // fallback resolves the re-pointed --tone-border at the element. Without that arm the
+    // state would be swallowed exactly where the user needs it.
+    const el = mounted(<TextField aria-invalid="true" />, {
+      theme: { look: "filled" },
+      select: ".kui-field",
+    });
+    expect(computed(el, "border-top-color")).toBe(colorOn(el, "var(--invalid-edge)"));
+  });
+
+  it("disabled outranks dress too: the flattened edge returns the same way", () => {
+    const el = mounted(<TextField disabled />, {
+      theme: { look: "filled" },
+      select: ".kui-field",
+    });
+    expect(computed(el, "border-top-color")).toBe(colorOn(el, "var(--neutral-6)"));
+  });
+});
+
 describe("the app's identities reach the field without it knowing (§5, §10)", () => {
   it("a well casts no shadow — flat in BOTH worlds (§5, reversed 2026-08-06)", () => {
     // The first cut lifted fields with the cards ("depth is the app's identity"), and the

@@ -260,11 +260,19 @@
      this line, and the quiet --color-border sits far under the non-text floor). Re-pointing
      --tone-border rather than declaring the painted variable, and that is load-bearing: the
      shared state remaps (disabled, invalid) rewrite the TONE roles, and a component that
-     reaches past them makes itself unreachable by every state law written once for everybody. */
-  --kui-ct-fill-src: var(--color-surface);
-  --kui-ct-fill-src-hover: var(--color-surface-hover);
-  --kui-ct-fill-src-active: var(--color-surface-active);
-  --tone-border: var(--mark-edge);
+     reaches past them makes itself unreachable by every state law written once for everybody.
+
+     Both channels resolve through the LOOK axis (§19), and the family answers once for all
+     three members — checkbox, radio, the slider thumb — which is the promotion paying off:
+     the axis was wired to `.kui-checkbox` while the family lived in that file, and landing it
+     here is one rule instead of three. Outlined emits `initial`, so the fallback resolves the
+     seal and the mark edge AT THIS ELEMENT, mode-correct and still reachable by the state
+     remaps (the material edge's pattern, §10). Filled trades both for the darkest well in the
+     hierarchy — surfaces lightest, fields one darker, marks darkest. */
+  --kui-ct-fill-src: var(--look-mark-fill);
+  --kui-ct-fill-src-hover: var(--look-mark-fill-hover);
+  --kui-ct-fill-src-active: var(--look-mark-fill-active);
+  --tone-border: var(--look-mark-border, var(--mark-edge));
 
   /* The target's anchor: no wrapper exists, and the pseudo below is not one. */
   position: relative;
@@ -484,6 +492,20 @@
   --kui-border-color: var(--tone-border);
 }
 
+/* ── The look's edge for the FIELD family (§19) ──────────────────────────────────────────────
+   Routed AROUND [data-bordered] rather than through it: that rule also serves Button, whose
+   border is rank, not dress, and the look axis never touches ranked chrome. Named members
+   until the third field-shaped control promotes the family (TextArea's rule) — and here, not
+   in the component sheets, because a component never mentions the painted variable (the
+   checkbox audit's law). Outlined emits `initial`: the fallback resolves var(--tone-border)
+   AT THE ELEMENT — the material edge's pattern — so the state remaps below and
+   contrast="high" keep reaching the edge. Filled is transparent, and the state arms re-point
+   the role itself: state outranks dress. */
+.kui-field,
+.kui-textarea {
+  --kui-border-color: var(--look-field-border, var(--tone-border));
+}
+
 /* ── States: uniform steps on the ramp, one global rule (§8) ─────────────────────────────── */
 
 /* Hover only exists where hovering does. A touch device synthesises the state on tap and holds
@@ -540,6 +562,12 @@
   --tone-border: var(--neutral-6);
   --tone-label: var(--neutral-8);
   --tone-contrast: var(--neutral-8);
+  /* State outranks dress (§19): under look="filled" a field's resting border is transparent,
+     which would swallow the remap above. `initial` stands the role down, so the family
+     rule's fallback resolves the re-pointed --tone-border at this element; under outlined
+     this is a no-op. Marks need no arm — their border IS --tone-border, and this rule
+     already wins that battle at (0,2,0). */
+  --look-field-border: initial;
 }
 
 /* Invalid is a TONE REMAP too, and for the same reason disabled is one (§8): the control keeps
@@ -573,6 +601,9 @@
 .kui-control:has(> :is([data-invalid], [aria-invalid="true"])) {
   --tone-border: var(--invalid-edge);
   --focus-ring: var(--invalid-edge);
+  /* State outranks dress (§19) — same sentence as the disabled arm above: filled's
+     transparent resting border must not swallow the error edge. */
+  --look-field-border: initial;
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,

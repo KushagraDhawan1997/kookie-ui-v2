@@ -32,6 +32,7 @@ import {
   layoutSpace,
   letterSpacing,
   lineHeight,
+  look,
   markRadius,
   markSteps,
   material,
@@ -157,6 +158,11 @@ export function generateTokens(): string {
   lines.push("", "  /* surface padding (§10) — picks into layout space, so density reaches cards through one lever */");
   lines.push(...surfacePaddingFamily());
 
+  lines.push("", "  /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each");
+  lines.push("     one-look family declared before the axis existed. A look role holds a COLOUR, so it");
+  lines.push("     repeats in every appearance scope like every other colour role — see the dark block. */");
+  lines.push(...lookWorld("outlined"));
+
   lines.push("", "  /* colour, generated (§7) — light mode */");
   lines.push(...colorDeclarations("light"));
 
@@ -173,6 +179,7 @@ export function generateTokens(): string {
     `[data-appearance="light"] {`,
     ...colorDeclarations("light"),
     ...surfaceWorld("light"),
+    ...lookWorld("outlined"),
     "}",
     "",
   );
@@ -180,13 +187,34 @@ export function generateTokens(): string {
   // The surface declarations repeat inside the dark scope because a var() resolves where it
   // is declared: --color-text baked at :root would carry the LIGHT neutral-12 into a dark
   // subtree (the same lesson --focus-ring taught in §8).
+  //
+  // The look roles repeat for exactly that reason, and they were MISSING here for half a day
+  // (caught by eye in the preview, 2026-08-06): a look role holds a colour — the seal, a
+  // neutral step — so declaring it only at :root baked the LIGHT value and every dark section
+  // that was not ALSO a look scope inherited a white field, a white card and a white mark.
+  // Through Theme this never showed, because Theme stamps data-look beside data-appearance on
+  // one element (§5's co-location) and the [data-look] blocks below re-declare there; the
+  // preview's hand-written `data-appearance="dark"` sections are the un-themed path, and they
+  // are what the promise "an appearance scope works standalone" is about. Consequence stated
+  // rather than hidden: a bare appearance scope carries the DEFAULT look, so a raw
+  // `[data-appearance]` div inside a filled app resets to outlined until it stamps a look —
+  // Theme always stamps both, which is why the sanctioned path cannot hit it.
   lines.push(
     `[data-appearance="dark"] {`,
     ...colorDeclarations("dark"),
     ...surfaceWorld("dark"),
+    ...lookWorld("outlined"),
     "}",
     "",
   );
+
+  // The look axis (§19) — an app identity: the resting dress of the one-look families.
+  // `outlined` re-declares the :root identity for the same reason `light` does: an outlined
+  // Theme nested inside a filled region must escape by declaration, and Theme renders a div
+  // that :root can never match. No per-appearance duplication: every value is a var()
+  // reference resolved at the element, where the appearance scope already decided the mode.
+  lines.push(`[data-look="outlined"] {`, ...lookWorld("outlined"), "}", "");
+  lines.push(`[data-look="filled"] {`, ...lookWorld("filled"), "}", "");
 
   // P3 rides on top of the sRGB values rather than replacing them, so a narrow-gamut display
   // keeps a complete system. It is worth the bytes where sRGB constrains a hue most: sky,
@@ -550,6 +578,19 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */`,
     decl("surface-chrome", surfaceChrome[mode]),
   ];
+}
+
+/** The look axis (§19): one family's resting dress, as roles the member sheets consume.
+ *  Role names derive from the config keys — `--look-<family>-<slot>` — so a family or slot
+ *  added in config exists in the emitted CSS by construction. */
+function lookWorld(name: keyof typeof look): string[] {
+  const out: string[] = [];
+  for (const [family, slots] of Object.entries(look[name])) {
+    for (const [slot, value] of Object.entries(slots) as [string, string][]) {
+      out.push(decl(`look-${family}-${slot}`, value));
+    }
+  }
+  return out;
 }
 
 /** The radius palette for one level (§6). Steps 1-5 control, 6-9 surfaces, 10 the overlay. */

@@ -705,6 +705,39 @@ function surfaceSection(mode: Mode): string {
           )}</button>`,
         ) +
         demo(
+          "the look axis - outlined vs filled, one Theme line; Button identical in both: rank, not dress (\u00a719)",
+          kuiBox(
+            { display: "flex", gap: "5", align: "flex-start" },
+            (["outlined", "filled"] as const)
+              .map(
+                (l) =>
+                  `<div data-look="${l}" style="flex: 1">${kuiBox(
+                    { display: "flex", direction: "column", gap: "4" },
+                    `<strong>${l}</strong>` +
+                      card(
+                        kuiBox(
+                          { display: "flex", direction: "column", gap: "4" },
+                          `${field({ placeholder: "Email" })}${textarea({ placeholder: "Message" })}${kuiBox(
+                            // A GRID with definite tracks, not a flex row — the live Box defect
+                            // the checkbox section already documents: a .kui-box is an
+                            // inline-size container (§2), so a Box asked to shrink-wrap computes
+                            // to ZERO and its label spills over its neighbour's. All three mark
+                            // members sit here on purpose: one shared rule dresses them, so a
+                            // divergence shows up in this row first.
+                            { display: "grid", columns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "3" },
+                            `${checkbox({ label: "remember" })}${radio({ label: "daily" })}${radio({ checked: true, label: "weekly" })}`,
+                          )}${slider({ width: "100%" })}${kuiBox(
+                            { display: "grid", columns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "3" },
+                            `${button({ tone: "accent", emphasis: "loud" }, "Send")}${button({ bordered: true }, "Cancel")}`,
+                          )}`,
+                        ),
+                      ),
+                  )}</div>`,
+              )
+              .join(""),
+          ),
+        ) +
+        demo(
           "the shadow palette - a resource; only the elevated world and escapes reach it (\u00a713)",
           kuiBox(
             { display: "flex", gap: "6", align: "flex-start" },
@@ -1072,6 +1105,9 @@ export function generatePreview(): string {
   <label>density
       <select id="density">${LEVELS.map((l) => `<option${l === "default" ? " selected" : ""}>${l}</option>`).join("")}</select>
     </label>
+  <label>look
+      <select id="look"><option selected>outlined</option><option>filled</option></select>
+    </label>
   </div>
 </div></header>
 <main>
@@ -1283,6 +1319,17 @@ ${brandSection("dark")}
   document.getElementById("density").addEventListener("change", (e) => {
     document.documentElement.dataset.density = e.target.value;
     readout();
+  });
+
+  // Page-wide look (§19), the app identity a real Theme sets once. Stamped on the root AND on
+  // every [data-appearance] scope, for the reason the contrast toggle does the same: a look
+  // role holds a colour, so the appearance blocks declare the DEFAULT look's values, and a
+  // root-only stamp would be overridden inside every dark section. Theme has this for free by
+  // co-locating both attributes on one element; this page arranges it by hand.
+  document.getElementById("look").addEventListener("change", (e) => {
+    for (const el of [document.documentElement, ...document.querySelectorAll("[data-appearance]")]) {
+      el.dataset.look = e.target.value;
+    }
   });
 
   // The coarse matrix (§16) — and, since 2026-08-05, the handheld type band with it (§17):

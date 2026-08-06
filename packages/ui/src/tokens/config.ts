@@ -638,6 +638,65 @@ export const surfaceColor = {
   dark: { rest: "var(--neutral-2)", hover: "var(--neutral-3)", active: "var(--neutral-4)" },
 } as const;
 
+/**
+ * §19 — the look axis: the resting dress of the one-look families. An app identity chosen
+ * once at Theme (`look`), never a per-component knob — the same tier as `surfaces`.
+ *
+ * The criterion is the border's JOB (decided 2026-08-06): on a control, a border is RANK —
+ * Button's `bordered` half-step reorders loudness between call sites and stays a prop; on a
+ * one-look family it ranks nothing (a form where one field is louder than the next names
+ * nothing), so it is DRESS, and dress belongs to the app. Each family resolves the axis on
+ * its own terms — the sentence emphasis already has — which is also the membership law:
+ * a family is dressed because its sheet consumes these roles, and only for that reason.
+ *
+ * `outlined` is the identity: exactly the chrome each family declared before the axis
+ * existed, so the default is byte-identical to a world without it. `filled` trades the
+ * hairline for a darkened well, one neutral step apart per family — surfaces lightest,
+ * fields one darker, marks darkest (Kushagra's hierarchy, 2026-08-06). The field has no
+ * hover slots on purpose: its fill does not move, the border and ring carry its states.
+ * The FILL values are var() references that bake at the Theme element (§6, substitution-at-
+ * declaration) — correct by co-location, because Theme stamps data-look beside
+ * data-appearance on one element. The BORDERS cannot bake there: the tone system lives on
+ * the component ([data-tone], the invalid/disabled remaps, contrast="high"), so outlined's
+ * border is `initial` — the role stands down and the consumption site's fallback
+ * (var(--tone-border), var(--mark-edge)) resolves AT THE ELEMENT. The material edge's own
+ * pattern (§10), reused. Neutral only by the tone-set rule: an accent-tinted value joins as
+ * a value on this axis the day a real app wants it, never as a second prop. v0, eye pass
+ * pending.
+ */
+export const look = {
+  outlined: {
+    surface: {
+      fill: "var(--color-surface)",
+      "fill-hover": "var(--color-surface-hover)",
+      "fill-active": "var(--color-surface-active)",
+      border: "initial",
+    },
+    field: { fill: "var(--color-surface)", border: "initial" },
+    mark: {
+      fill: "var(--color-surface)",
+      "fill-hover": "var(--color-surface-hover)",
+      "fill-active": "var(--color-surface-active)",
+      border: "initial",
+    },
+  },
+  filled: {
+    surface: {
+      fill: "var(--neutral-2)",
+      "fill-hover": "var(--neutral-3)",
+      "fill-active": "var(--neutral-4)",
+      border: "transparent",
+    },
+    field: { fill: "var(--neutral-3)", border: "transparent" },
+    mark: {
+      fill: "var(--neutral-4)",
+      "fill-hover": "var(--neutral-5)",
+      "fill-active": "var(--neutral-6)",
+      border: "transparent",
+    },
+  },
+} as const;
+
 /** §15 — closed weight set; `light` deferred until something needs it. */
 export const fontWeight = { regular: 400, medium: 500, semibold: 600, bold: 700 } as const;
 

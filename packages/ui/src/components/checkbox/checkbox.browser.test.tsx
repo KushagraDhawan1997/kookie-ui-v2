@@ -343,6 +343,36 @@ describe("the glyph is the box, not the icon ladder (§4)", () => {
   });
 });
 
+describe("the look axis dresses the resting box, never the tick (§19)", () => {
+  it("filled: the darkest well of the hierarchy, and no hairline", () => {
+    const el = mounted(<Checkbox />, { theme: { look: "filled" } });
+    const mark = markOf(el);
+    expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--neutral-4)"));
+    expect(computed(mark, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+  });
+
+  it("outlined is the identity — byte-identical to the bare render", () => {
+    const bare = markOf(render(<Checkbox />));
+    const outlined = markOf(mounted(<Checkbox />, { theme: { look: "outlined" } }));
+    for (const prop of ["background-color", "border-top-color"]) {
+      expect(computed(outlined, prop)).toBe(computed(bare, prop));
+    }
+  });
+
+  it("checked is an identity, not dress: identical in both looks", () => {
+    const outlined = markOf(mounted(<Checkbox defaultChecked />, { theme: { look: "outlined" } }));
+    const filled = markOf(mounted(<Checkbox defaultChecked />, { theme: { look: "filled" } }));
+    for (const prop of ["background-color", "border-top-color"]) {
+      expect(computed(filled, prop)).toBe(computed(outlined, prop));
+    }
+  });
+
+  it("invalid outranks dress: the error edge shows through filled's transparent border", () => {
+    const el = mounted(<Checkbox aria-invalid="true" />, { theme: { look: "filled" } });
+    expect(computed(markOf(el), "border-top-color")).toBe(colorOn(el, "var(--invalid-edge)"));
+  });
+});
+
 describe("what it inherits from the shared layer, and what it must not (§8)", () => {
   it("stays flat in an elevated world — a mark's box is the state, not a plane (§5)", () => {
     // The negative half of elevation's membership criterion (decided 2026-08-06): the

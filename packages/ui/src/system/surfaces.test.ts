@@ -36,7 +36,12 @@ describe("the surface layer carries each axis once and never multiplies them (§
         const occurrences = surfaces.match(new RegExp(`\\[${axis}="${value}"\\]`, "g")) ?? [];
         // Material legitimately appears three times: fallback base, real recipe under
         // @supports, reduced-transparency override — three environments, not three designs.
-        expect(occurrences.length).toBe(axis === "data-material" ? 3 : 1);
+        // Quiet appears twice since the look axis (§19): its fill and its edge are the two
+        // channels the axis dresses, and the edge needs its own rule to route around
+        // [data-bordered] (which also serves Button's rank border).
+        expect(occurrences.length).toBe(
+          axis === "data-material" ? 3 : value === "quiet" ? 2 : 1,
+        );
       }
     }
   });
@@ -52,8 +57,14 @@ describe("the surface layer carries each axis once and never multiplies them (§
   });
 
   it("the default surface seals — alpha belongs to the tone-forward rungs and material", () => {
+    // One hop longer since the look axis (§19): quiet reads the look role, and outlined —
+    // the default — maps the role to the seal. Both hops asserted, so the identity claim
+    // ("the default look is exactly the old chrome") is checked end-to-end, not assumed.
     expect(block(surfaces, '[data-emphasis="quiet"]')).toContain(
-      "--kui-sf-fill-src: var(--color-surface)",
+      "--kui-sf-fill-src: var(--look-surface-fill)",
+    );
+    expect(block(raw("tokens/tokens.css"), '[data-look="outlined"]')).toContain(
+      "--look-surface-fill: var(--color-surface)",
     );
     expect(surfaces).not.toContain("--tone-a1");
   });
@@ -114,8 +125,10 @@ describe("card-as-button: the element brings the interactivity (§10)", () => {
     const outside = surfaces.slice(0, guardStart) + surfaces.slice(guardEnd + 2);
     expect(outside).not.toContain(":hover");
     expect(outside).toContain(":active");
-    expect(surfaces).toContain("--color-surface-hover");
-    expect(surfaces).toContain("--color-surface-active");
+    // The interactive steps route through the look roles since §19 (outlined maps them to
+    // --color-surface-hover/-active in tokens.css, asserted in the seal law above).
+    expect(surfaces).toContain("--look-surface-fill-hover");
+    expect(surfaces).toContain("--look-surface-fill-active");
   });
 });
 

@@ -40,6 +40,10 @@ const DENSITIES = ["compact", "default", "comfortable"] as const;
 const RADII = ["none", "small", "medium", "large", "full"] as const;
 const POINTERS = ["auto", "fine", "coarse"] as const;
 const SURFACES = ["flat", "elevated"] as const;
+// §19, added to the page the day the axis shipped: `look` is the resting DRESS of the
+// one-look families (surfaces, fields, marks), its `filled` end is v0, and v0 values are
+// judged here. A picker the page lacks is an axis the eye pass cannot reach.
+const LOOKS = ["outlined", "filled"] as const;
 const CONTRASTS = ["auto", "normal", "high"] as const satisfies readonly ContrastChoice[];
 // The app restates the tone list (the package exports the type, not the value) — docs land,
 // where a stale entry fails visibly on this very page.
@@ -182,6 +186,7 @@ export function MatrixExplorer() {
   const [radius, setRadius] = React.useState<NonNullable<ThemeProps["radius"]>>("medium");
   const [pointer, setPointer] = React.useState<NonNullable<ThemeProps["pointer"]>>("auto");
   const [surfaces, setSurfaces] = React.useState<NonNullable<ThemeProps["surfaces"]>>("flat");
+  const [look, setLook] = React.useState<NonNullable<ThemeProps["look"]>>("outlined");
   const { contrast } = useAppearance();
 
   return (
@@ -203,6 +208,7 @@ export function MatrixExplorer() {
         <Picker label="radius" value={radius} options={RADII} onChange={setRadius} />
         <Picker label="pointer" value={pointer} options={POINTERS} onChange={setPointer} />
         <Picker label="surfaces" value={surfaces} options={SURFACES} onChange={setSurfaces} />
+        <Picker label="look" value={look} options={LOOKS} onChange={setLook} />
         <Picker label="contrast" value={contrast} options={CONTRASTS} onChange={setContrast} />
       </Stack>
 
@@ -213,6 +219,7 @@ export function MatrixExplorer() {
           radius={radius}
           pointer={pointer}
           surfaces={surfaces}
+          look={look}
           render={<section />}
         >
           <Stack gap="4">
@@ -227,7 +234,7 @@ export function MatrixExplorer() {
         </Theme>
       ))}
 
-      <Theme radius={radius} pointer={pointer} surfaces={surfaces} render={<section />}>
+      <Theme radius={radius} pointer={pointer} surfaces={surfaces} look={look} render={<section />}>
         <Stack gap="4">
           <Heading size="3">tone × emphasis</Heading>
           <Text size="2" emphasis="medium" render={<p />}>
@@ -270,7 +277,7 @@ export function MatrixExplorer() {
           Theme it sat permanently at the root's `auto`, so clicking `coarse` moved every
           control and left the ramp on the desktop ladder — with the page's own prose,
           "coarse also lifts the handheld type band", printed directly above it. */}
-      <Theme radius={radius} pointer={pointer} surfaces={surfaces} render={<section />}>
+      <Theme radius={radius} pointer={pointer} surfaces={surfaces} look={look} render={<section />}>
         <Stack gap="4">
           <Heading size="3">type</Heading>
           <Stack gap="2">

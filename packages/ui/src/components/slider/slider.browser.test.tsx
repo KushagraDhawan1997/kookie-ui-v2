@@ -18,6 +18,7 @@ import {
   colorOn,
   computed,
   forEachCell,
+  mounted,
   render,
   tokenOn,
 } from "../../test/browser.tsx";
@@ -130,6 +131,30 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
       expect(computed(thumb, "border-top-color")).toBe(colorOn(el, "var(--mark-edge)"));
     });
   }
+
+  for (const look of ["outlined", "filled"] as const) {
+    it(`${look}: the thumb takes the family's dress, identical to a checkbox (§19)`, () => {
+      // The third member proving the axis landed on the family rather than on a component:
+      // slider.css says nothing about `look`, and the thumb still answers the app's identity —
+      // the same computed pair a checkbox of any size resolves.
+      const thumb = thumbOf(slider({}, { look }));
+      const box = mounted(<Checkbox />, { theme: { look }, select: ".kui-checkbox" });
+      for (const prop of ["background-color", "border-top-color"]) {
+        expect(computed(thumb, prop), prop).toBe(computed(box, prop));
+      }
+    });
+  }
+
+  it("the track stays outside the axis — an edgeless well has no trade to make (§19)", () => {
+    // Deliberate scope, not an omission: the look axis trades a border for a fill, and the
+    // track never had a border. If it ever moves with the look, that is a decision.
+    const outlined = trackOf(slider({}, { look: "outlined" }));
+    const filled = trackOf(slider({}, { look: "filled" }));
+    expect(computed(filled, "background-color")).toBe(computed(outlined, "background-color"));
+    expect(computed(filled, "background-color")).toBe(
+      colorOn(rootOf(slider({}, { look: "filled" })), "var(--color-track)"),
+    );
+  });
 
   it("grows no target of its own — the root's box owns the question", () => {
     // A thumb with its own expander would out-target the control holding it (the audit's D4

@@ -22,6 +22,26 @@ describe("the axes render as attributes (§5)", () => {
     expect(el.getAttribute("data-radius")).toBe("large");
   });
 
+  it("look stamps its default and a nested Theme escapes by declaration (§19)", () => {
+    // Always stamped — unlike contrast there is no platform signal to leave room for, and
+    // the outlined scope must exist for a nested outlined Theme to escape a filled ancestor.
+    expect(render(<Theme />).getAttribute("data-look")).toBe("outlined");
+    const outer = render(
+      <Theme look="filled">
+        <Theme density="compact" />
+      </Theme>,
+    );
+    expect(outer.getAttribute("data-look")).toBe("filled");
+    const inner = outer.querySelector(".kui-theme")!;
+    expect(inner.getAttribute("data-look")).toBe("filled");
+    const escaped = render(
+      <Theme look="filled">
+        <Theme look="outlined" />
+      </Theme>,
+    ).querySelector(".kui-theme")!;
+    expect(escaped.getAttribute("data-look")).toBe("outlined");
+  });
+
   it("contrast is stamped only when it was chosen, so prefers-contrast can still reach it (§7)", () => {
     // The generated platform-signal guard is `:not([data-contrast="normal"])`. An unconfigured
     // Theme that stamped `normal` anyway would exclude itself from the media query it is

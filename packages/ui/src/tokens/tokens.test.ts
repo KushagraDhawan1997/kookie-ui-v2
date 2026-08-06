@@ -13,6 +13,7 @@ import {
   controlGap,
   defaultRadiusLevel,
   density,
+  look,
   handheldMedia,
   fontSize,
   narrowMedia,
@@ -32,6 +33,7 @@ import {
   type DensitySet,
   type RadiusLevel,
 } from "./config.ts";
+import { allStylesheets, sheet } from "../test/stylesheets.ts";
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { generateTokens } from "./generate.ts";
 
@@ -979,6 +981,86 @@ describe("the track well (§7, §11) — the low neutral bed a value runs in", (
     // over, and a component that stamps `accent` for its fill can only say neutral through a
     // tone-independent role. A raw hex here would go deaf to contrast="high".
     expect(declaration("color-track")).toMatch(/^var\(--neutral-\d+\)$/);
+  });
+});
+
+describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
+  it("both scopes exist and carry every role config names — derived, not hand-listed", () => {
+    // :root carries the outlined identity for the un-themed document, and BOTH appearance
+    // scopes repeat it — a look role holds a colour, and a var() inside a custom property
+    // substitutes where it is DECLARED, so a role emitted only at :root baked the LIGHT seal
+    // and every dark section that was not itself a look scope inherited a white card, field
+    // and mark (found by eye in the preview, 2026-08-06; the mounted proof is in card's
+    // laws). The two [data-look] scopes exist so a nested Theme escapes by declaration.
+    for (const [name, families] of Object.entries(look)) {
+      const scopes = [
+        `[data-look="${name}"]`,
+        ...(name === "outlined"
+          ? [":root", '[data-appearance="light"]', '[data-appearance="dark"]']
+          : []),
+      ];
+      for (const scope of scopes) {
+        const body = block(scope);
+        for (const [family, slots] of Object.entries(families)) {
+          for (const [slot, value] of Object.entries(slots)) {
+            expect(body, `${scope} lacks look-${family}-${slot}`).toContain(
+              `--look-${family}-${slot}: ${value};`,
+            );
+          }
+        }
+      }
+    }
+  });
+
+  it("outlined's borders stand down — `initial`, so the tone system resolves at the element", () => {
+    // The load-bearing spelling (§6): a var(--tone-border) here would SUBSTITUTE at the Theme
+    // element, where no tone exists — guaranteed-invalid — and every outlined border would
+    // silently be transparent, which is exactly how the first cut failed. `initial` makes the
+    // consumption-site fallback fire where the tone lives: on the component. Asserted against
+    // the EMITTED text, not the config object, so the generator is in the loop.
+    for (const family of Object.keys(look.outlined)) {
+      for (const scope of [":root", '[data-look="outlined"]']) {
+        expect(block(scope), `${scope}/${family}`).toContain(`--look-${family}-border: initial;`);
+      }
+    }
+  });
+
+  it("filled darkens by the hierarchy: surface lightest, field one past it, mark darkest", () => {
+    // Read off the emitted declarations rather than the config: what ships is what is judged.
+    const step = (family: string, slot: string) => {
+      const decl = block('[data-look="filled"]').match(
+        new RegExp(`--look-${family}-${slot}:\\s*([^;]+);`),
+      )?.[1];
+      const m = /^var\(--neutral-(\d+)\)$/.exec(decl ?? "");
+      expect(m, `look-${family}-${slot} is not a neutral step: ${decl}`).toBeTruthy();
+      return Number(m![1]);
+    };
+    expect(step("surface", "fill")).toBeLessThan(step("field", "fill"));
+    expect(step("field", "fill")).toBeLessThan(step("mark", "fill"));
+    // The interactive steps walk upward from their family's rest, so a press is visible.
+    for (const family of ["surface", "mark"]) {
+      expect(step(family, "fill-hover")).toBeGreaterThan(step(family, "fill"));
+      expect(step(family, "fill-active")).toBeGreaterThan(step(family, "fill-hover"));
+    }
+    // And every border withdraws — filled's boundary is the well itself.
+    for (const family of Object.keys(look.filled)) {
+      expect(block('[data-look="filled"]')).toContain(`--look-${family}-border: transparent;`);
+    }
+  });
+
+  it("every role the sheets consume is emitted, and every role emitted is consumed", () => {
+    // The direction the dangling-var law below cannot see: it closes tokens.css over ITSELF,
+    // so a role the hand-authored layers read but the generator never writes resolves to
+    // nothing at runtime and passes every other law — and a role nobody reads is dead bytes
+    // and a false promise. Both sets are computed, never listed.
+    const emitted = new Set(
+      [...block('[data-look="filled"]').matchAll(/--(look-[\w-]+):/g)].map((m) => m[1]!),
+    );
+    // `sheet()` strips comments, so a role merely NAMED in prose cannot satisfy either set.
+    const sheets = allStylesheets().map(sheet).join("\n");
+    const consumed = new Set([...sheets.matchAll(/var\(\s*--(look-[\w-]+)/g)].map((m) => m[1]!));
+    expect([...consumed].filter((n) => !emitted.has(n)), "consumed but never emitted").toEqual([]);
+    expect([...emitted].filter((n) => !consumed.has(n)), "emitted but nothing reads it").toEqual([]);
   });
 });
 

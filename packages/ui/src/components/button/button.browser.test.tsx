@@ -334,6 +334,29 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
 });
 
 describe("the boundary (§3, §13)", () => {
+  it("belongs to no dressed family: byte-identical across looks — border is RANK here (§19)", () => {
+    // The negative half of the look axis's membership law. Button's border is the emphasis
+    // half-step (quiet < quiet+bordered < medium < …), a call-site decision; if the app's
+    // dress could move it, the ranking the call sites wrote would shift under them.
+    for (const emphasis of ["loud", "medium", "quiet"] as const) {
+      const outlined = mounted(
+        <Button emphasis={emphasis} bordered>
+          Label
+        </Button>,
+        { theme: { look: "outlined" }, select: ".kui-button" },
+      );
+      const filled = mounted(
+        <Button emphasis={emphasis} bordered>
+          Label
+        </Button>,
+        { theme: { look: "filled" }, select: ".kui-button" },
+      );
+      for (const prop of ["background-color", "border-top-color", "color"]) {
+        expect(computed(filled, prop), `${emphasis} ${prop}`).toBe(computed(outlined, prop));
+      }
+    }
+  });
+
   it("stays flat in an elevated world — a control's box is the action, not a plane (§5)", () => {
     // The negative half of elevation's membership criterion (decided 2026-08-06): the
     // elevated identity dresses boxes that establish a plane of their own, and a button's
