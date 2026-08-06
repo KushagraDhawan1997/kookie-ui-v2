@@ -504,6 +504,31 @@ describe("hosted in a slot, it stays a mark (§4, decided 2026-08-06 — audit D
     });
   }
 
+  for (const pointer of POINTERS) {
+    it(`${pointer}: equidistant — the gap to the field's edge is the gap above and below`, () => {
+      // The slot-inset promise ("the same number on all four sides") is written against the
+      // hosted BOX. A button fills that box; a mark does not, so it gains the residue
+      // vertically while the shrink-wrapped slot held the horizontal gap at bare slot-inset —
+      // the mark sat closer to the field's edge than to its top and bottom. The slot claims
+      // the full hosted box and centres what it holds; these gaps are equal by construction.
+      const el = render(
+        <Theme pointer={pointer}>
+          <TextField size="2" trailing={<Checkbox size="2" />} />
+        </Theme>,
+      );
+      const field = el.querySelector(".kui-field")!;
+      const mark = el.querySelector(".kui-checkbox")!;
+      const f = field.getBoundingClientRect();
+      const m = mark.getBoundingClientRect();
+      const border = px(getComputedStyle(field).borderRightWidth);
+      const right = f.right - border - m.right;
+      const top = m.top - (f.top + border);
+      const bottom = f.bottom - border - m.bottom;
+      expect(Math.abs(right - top)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(top - bottom)).toBeLessThanOrEqual(0.5);
+    });
+  }
+
   it("gives up its own reach in a slot — one target, and it is the container's rule", () => {
     // Standalone, the mark grows its own invisible target. Hosted, §4's hosted-control rule
     // owns the question (container-matched, coarse only), and a second expander on the same
