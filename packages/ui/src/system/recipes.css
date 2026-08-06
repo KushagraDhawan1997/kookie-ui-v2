@@ -247,6 +247,15 @@
      neighbour. Both dimensions from one token — a mark is square by construction, and what
      tells a checkbox from a radio is the corner, which each shape states for itself. */
   min-height: 0;
+  /* The ladder is the PAINTED box, so the border has to sit inside it (audit R1, 2026-08-06).
+     border-box was declared on .kui-control, which every mark was until the slider thumb —
+     the first mark that is a descendant part rather than the control itself. It wears a real
+     border and resolved content-box, so it painted 2px larger than the checkbox beside it at
+     every size (16/20/24/26 against 18/22/26/28), and its border-radius of half the TOKEN left
+     a flat run on each edge instead of a circle. Both governing laws were blind the same way:
+     getComputedStyle().height reports the content box in either mode, so 16 === 16 while the
+     paint was 16 against 18. A no-op for checkbox and radio, which already had it. */
+  box-sizing: border-box;
   inline-size: var(--kui-ct-mark);
   block-size: var(--kui-ct-mark);
   /* The skeleton pads for a label; a mark has none, and its glyph fills the box. */

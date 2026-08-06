@@ -78,11 +78,60 @@ describe("the root is the control, and the height ladder is the target (§4, §1
   });
 
   it("carries the 44 target on the coarse default path, and the 24 floor everywhere", () => {
+    // Rewritten to measure the box that ANSWERS a press, not the box that declares a height
+    // (audit R4, 2026-08-06). Base UI's handlers live on .kui-slider-control, which stretched
+    // to the root's CONTENT box — two border widths short — so the live strip was 43px inside
+    // a 44px control and 23px inside the 24px cell, under the WCAG 2.5.8 minimum this repo
+    // pins as a non-negotiable. The old law read getComputedStyle(root).height, saw 44 and 24,
+    // and could never fail while the pressable box was 43 and 23.
+    //
+    // Two instruments, because each covers the other's blind spot. The rect comparison runs in
+    // all 24 cells and needs no viewport, so it cannot be defeated by where the page scrolled.
+    // The hit-test proves the box is genuinely pressable — not covered, not pointer-events
+    // none — and runs on the two cells that carry the actual claims, because elementFromPoint
+    // is viewport-relative and 24 stacked cells run off the bottom of the page.
+    const pressBox = (el: HTMLElement) =>
+      rootOf(el).querySelector<HTMLElement>(".kui-slider-control")!.getBoundingClientRect();
+
+    const scanRows = (el: HTMLElement) => {
+      const root = rootOf(el);
+      root.scrollIntoView({ block: "center" });
+      const r = root.getBoundingClientRect();
+      // Anything not fully on screen would make elementFromPoint answer null for rows that are
+      // really there, so the scan refuses to run rather than reporting a short count. A prior
+      // audit shipped a law that scanned off-viewport and passed 24 cells measuring nothing.
+      if (r.top < 0 || r.bottom > window.innerHeight) {
+        throw new Error("slider target scan ran off-viewport");
+      }
+      let live = 0;
+      for (let y = Math.ceil(r.top); y < r.bottom; y++) {
+        const hit = document.elementFromPoint(r.left + r.width / 2, y + 0.5);
+        if (!hit) throw new Error("slider target scan hit nothing");
+        if (root.contains(hit) && hit.closest(".kui-slider-control")) live++;
+      }
+      return live;
+    };
+
     const coarse = slider({ size: "2" }, { pointer: "coarse" });
     expect(px(getComputedStyle(rootOf(coarse)).height)).toBe(44);
+    expect(Math.round(pressBox(coarse).height), "the coarse default path").toBe(44);
+    expect(scanRows(coarse), "44 rows genuinely answer a press").toBe(44);
+
+    // The floor cell: the smallest box the system can produce, which is exactly 24 and so has
+    // no slack at all — this is the cell that shipped at 23.
+    const floor = slider({ size: "1" }, { pointer: "fine", density: "compact" });
+    expect(Math.round(pressBox(floor).height), "the 24px floor cell").toBe(24);
+    expect(scanRows(floor), "24 rows genuinely answer a press").toBe(24);
+
     forEachCell(({ pointer, density, size }) => {
       const el = slider({ size }, { pointer, density });
-      expect(px(getComputedStyle(rootOf(el)).height)).toBeGreaterThanOrEqual(24);
+      const where = `${pointer}/${density}/${size}`;
+      const declared = px(getComputedStyle(rootOf(el)).height);
+      expect(declared, where).toBeGreaterThanOrEqual(24);
+      // The floor is about the box that answers a press, never the box that declares a height.
+      const pressed = Math.round(pressBox(el).height);
+      expect(pressed, `${where}: pressable box under the 24px floor`).toBeGreaterThanOrEqual(24);
+      expect(pressed, `${where}: pressable box short of the control`).toBe(declared);
     });
   });
 
@@ -95,12 +144,17 @@ describe("the root is the control, and the height ladder is the target (§4, §1
 describe("the thumb is the mark family's third member (§4, §6)", () => {
   for (const size of SIZES) {
     it(`size ${size}: the thumb IS the mark — the same box a checkbox of this size paints`, () => {
+      // Read as the PAINTED box (audit R1, 2026-08-06). This compared
+      // getComputedStyle().height, which reports the CONTENT box in either box-sizing mode —
+      // so it read 16 === 16 while the thumb painted 18 against the checkbox's 16, because the
+      // thumb was the first mark that is not itself a .kui-control and so missed border-box.
+      // getBoundingClientRect is the border box, which is the thing a user sees and aims at.
       const el = slider({ size });
-      const thumb = thumbOf(el);
-      const checkbox = render(<Checkbox size={size} />);
-      const styles = getComputedStyle(thumb);
-      expect(px(styles.height)).toBe(px(getComputedStyle(checkbox).height));
-      expect(px(styles.width)).toBe(px(styles.height));
+      const thumb = thumbOf(el).getBoundingClientRect();
+      const checkbox = render(<Checkbox size={size} />).getBoundingClientRect();
+      expect(thumb.height, `size ${size} block`).toBe(checkbox.height);
+      expect(thumb.width, `size ${size} inline`).toBe(checkbox.width);
+      expect(thumb.width, "a mark is square by construction").toBe(thumb.height);
     });
   }
 

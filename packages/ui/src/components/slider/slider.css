@@ -22,8 +22,17 @@
 .kui-slider-control {
   /* Fill the root's whole box: the control part is what Base UI hit-tests for track presses,
      so its box IS the target the height ladder promises (§16). Stretch, because the skeleton
-     centers its children and a centered child takes only its content height. */
+     centers its children and a centered child takes only its content height.
+
+     And stretch over the BORDER, not just to it (audit R4, 2026-08-06). `stretch` fills the
+     parent's content box, which is the root minus two border widths, so the strip that
+     actually answers a press was one pixel short of the ladder in every cell — 43px live
+     inside a 44px control, and 23px inside the 24px cell, which is under the WCAG 2.5.8
+     minimum this repo pins as a non-negotiable. The negative margin gives those two rows
+     back. Both target laws read getComputedStyle(root).height and saw 44 and 24, one
+     indirection away from the element Base UI hit-tests, so neither could ever fail. */
   align-self: stretch;
+  margin-block: calc(-1 * var(--border-width));
   display: flex;
   align-items: center;
   inline-size: 100%;
