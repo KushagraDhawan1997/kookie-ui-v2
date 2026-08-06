@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-
 import { Box, type BoxProps } from "../box/box.tsx";
 
 /**
@@ -18,9 +16,6 @@ export type FlexProps = Omit<BoxProps, "display" | "columns" | "rows" | "areas" 
  * A flex container, typed to flexbox's vocabulary (§3). Sugar over Box: preset `display`,
  * narrowed props, zero CSS of its own.
  */
-export const Flex = React.forwardRef<HTMLElement, FlexProps>(function Flex(
-  { display = "flex", ...props },
-  ref,
-) {
-  return <Box ref={ref} display={display} {...props} />;
-});
+export function Flex({ display = "flex", ...props }: FlexProps) {
+  return <Box display={display} {...props} />;
+}

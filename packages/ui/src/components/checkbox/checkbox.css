@@ -1,0 +1,24 @@
+/* Checkbox adds the tri-state's glyph picks and nothing else (§2, §4, §11).
+ *
+ * The size join, the focus ring, the disabled and invalid remaps and the cursor all arrive
+ * from system/recipes.css because a checkbox is a control — and since 2026-08-06 the MARK
+ * family's own rules (the line-box sizing, the invisible target, the hosted floor, the
+ * resting seal-and-edge identity, the accent ON state, the glyph-is-the-box rule) live there
+ * too: the family reached its third member (Radio and the slider thumb), which is the rule
+ * TextArea's LOG set for promoting a family upward. What is left here is what only a
+ * CHECKBOX has: a third state, and the two glyphs that spell it.
+ */
+
+/* The tri-state, decided entirely in CSS: both glyphs ship, and the state attribute picks.
+   A checkbox with a dash is not a checkbox with a faded tick — indeterminate is its own
+   meaning ("some of the things below this are on"), and the platform carries it on the hidden
+   input, so this is only its rendering. */
+.kui-checkbox-dash {
+  visibility: hidden;
+}
+.kui-checkbox > svg[data-indeterminate] > .kui-checkbox-dash {
+  visibility: visible;
+}
+.kui-checkbox > svg[data-indeterminate] > .kui-checkbox-check {
+  visibility: hidden;
+}

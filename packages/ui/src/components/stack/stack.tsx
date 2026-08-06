@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-
 import { Box, type BoxProps } from "../box/box.tsx";
 
 /**
@@ -18,6 +16,6 @@ export type StackProps = Omit<
  * Vertical flow with a gap — the most common layout in any interface, named for its intent (§3).
  * Sugar over Box: preset column flexbox, narrowed props, zero CSS of its own.
  */
-export const Stack = React.forwardRef<HTMLElement, StackProps>(function Stack(props, ref) {
-  return <Box ref={ref} display="flex" direction="column" {...props} />;
-});
+export function Stack(props: StackProps) {
+  return <Box display="flex" direction="column" {...props} />;
+}

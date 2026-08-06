@@ -5,6 +5,11 @@
  *
  * Everything here is authored; nothing is a borrowed value. The generator turns it into
  * twelve steps per tone per mode with one law.
+ *
+ * The boundary with config.ts, declared (2026-08-06): this file holds what the OKLCH
+ * generator CONSUMES — hues, ladders, deltas, floors, per-mode step picks. Colour-looking
+ * literals the generator never reads (glass alphas, shadow rows, the surface seal) live in
+ * config.ts: a value lives by which machinery reads it.
  */
 
 /**
@@ -175,3 +180,73 @@ export const tones = {
 
 export type ToneName = keyof typeof tones;
 export type Mode = keyof typeof lightness;
+
+/**
+ * §7, §11 — the step the MARK EDGE reads per mode (worn by Checkbox now; Radio, Switch and
+ * Slider when they land; decided 2026-08-06, Kushagra — "a new darker colour just for
+ * checkboxes and switches, nothing else changes").
+ *
+ * A mark is the only control whose resting identity is its hairline alone — a field has a
+ * seal and a value, a card has a body, but an unchecked checkbox IS its border. The shared
+ * `--color-border` (neutral 7) sits at |Lc| 22.8 light / 10.3 dark against the surface, far
+ * under the system's own non-text floor of 45 (color.test.ts), so the resting state of every
+ * form's every checkbox failed WCAG 1.4.11 (audit D2). These are the FIRST steps per mode
+ * that clear the floor against both the surface and the page, measured through the shipped
+ * generator: light 9 (Lc 58.8 / 57.0), dark 11 (66.5 / 66.9 — dark's step 9 misses at 42).
+ * Material's unchecked outlines sit in the same territory in both modes.
+ *
+ * Deliberately NOT a re-step of --color-border itself: Separator, the field family and the
+ * card seal keep the quiet hairline — their identity does not rest on it.
+ */
+export const markEdgeStep = { light: 9, dark: 11 } as const;
+
+/**
+ * §7, §11 — the step the TRACK WELL reads per mode: the low neutral bed a value runs in.
+ * Slider's track now; the switch's off-track and the progress/meter tracks when they land —
+ * the value-control family's second tone-independent role, minted beside `markEdgeStep` for
+ * the same structural reason: the off part of a value control is NEUTRAL by §11's own row
+ * ("track low, fill accent" — the checkbox's "neutral off" one control over), and a component
+ * stylesheet cannot say neutral without naming a family, which the role-not-family law forbids.
+ *
+ * Deliberately NOT held to the mark edge's non-text floor: a well is a region the accent fill
+ * moves through, not a hairline identity — the slider's state is carried by the fill (accent
+ * solid, APCA-passing) and the thumb (mark edge), and every platform ships the remainder
+ * subtle (iOS systemFill, Radix gray-a3). Step 4 in both modes, v0 for the eye pass.
+ */
+export const trackWellStep = { light: 4, dark: 4 } as const;
+
+/**
+ * The APCA floors (§7) — WCAG-anchored, so NOT taste numbers: body is the AA-equivalent Lc 60
+ * every label pairing must clear, aaa the Lc 75 `contrast="high"` raises it to, nonText the
+ * Lc 45 floor for borders, rings and marks (WCAG 1.4.11's territory). One home because the
+ * generator READS them (the state-direction flip is gated on the label law) and the laws
+ * assert against them — and they were spelled five separate times across the two. Lowering
+ * one is an accessibility decision, not tuning; a law pins the values themselves.
+ */
+export const apcaFloors = { body: 60, aaa: 75, nonText: 45 } as const;
+
+/**
+ * The mud-guard (§7): states keep at least this fraction of the resting chroma, which is what
+ * stops an excursion from washing a hue out or driving it olive. This is the number the amber
+ * decision reasons about by name (LOG 2026-08-05 — the cusp halts travel at .032 against the
+ * .035 floor, refused by .003) and it lived as a local const inside the state solve.
+ */
+export const chromaFloor = 0.75;
+
+/**
+ * The ink fade (§7, §15): a chroma family has ONE designed text colour (step 11), and the
+ * lower type rungs fade the ink itself — the material trick applied to text. Percentages are
+ * v0, judged in the preview; the eye pass edits them here, not in the emitter.
+ */
+export const inkMix = { muted: 74, faint: 52 } as const;
+
+/**
+ * The per-mode step the focus ring and the invalid edge read (§8) — the third and first
+ * members of the family markEdgeStep completed: a role whose job is a contrast guarantee
+ * against the page picks its step per mode, because dark's solid band cannot keep the promise
+ * (step 9 on a near-black page is |Lc| 22, the shipped WCAG 2.4.11 failure of 2026-08-03;
+ * step 11 is the band designed to be legible against the page). `solid` rather than a number
+ * in light: the ring IS the brand colour where the brand colour already clears the floor.
+ */
+export const focusRingStep = { light: "solid", dark: "11" } as const;
+export const invalidEdgeStep = { light: "solid", dark: "11" } as const;

@@ -39,25 +39,37 @@ export const windowClassQueries: Record<WindowClass, string> = {
   wide: `(min-width: ${windowClass.regularMax})`,
 };
 
+/** One MediaQueryList per query per document, built on first client use and shared by every
+ *  subscriber — a list is live (`.matches` tracks the viewport by itself), so there is
+ *  nothing per-instance about it, and `classify` runs as the store snapshot on EVERY render
+ *  of every consumer. Lazy because the module loads during SSR, where `window` does not
+ *  exist and nothing calls this: the cache is browser-only by construction, so it is not
+ *  cross-request module state. */
+let mqls: Record<WindowClass, MediaQueryList> | undefined;
+const lists = () =>
+  (mqls ??= {
+    narrow: window.matchMedia(windowClassQueries.narrow),
+    regular: window.matchMedia(windowClassQueries.regular),
+    wide: window.matchMedia(windowClassQueries.wide),
+  });
+
 /** Boundaries land downward: at exactly a boundary both neighbouring queries match (each
  *  is inclusive), and the smaller class is asked first — the same direction the narrow
  *  type band's inclusive max-width resolves, so 48rem is `narrow` in both systems. */
 function classify(): WindowClass {
-  if (window.matchMedia(windowClassQueries.narrow).matches) return "narrow";
-  if (window.matchMedia(windowClassQueries.regular).matches) return "regular";
+  const m = lists();
+  if (m.narrow.matches) return "narrow";
+  if (m.regular.matches) return "regular";
   return "wide";
 }
 
 function subscribe(onChange: () => void): () => void {
   // Both boundary queries, not all three: a class change is a boundary crossing, and two
   // boundaries have two edges. Listening to `regular` too would only fire duplicates.
-  const lists = [
-    window.matchMedia(windowClassQueries.narrow),
-    window.matchMedia(windowClassQueries.wide),
-  ];
-  for (const l of lists) l.addEventListener("change", onChange);
+  const m = lists();
+  for (const l of [m.narrow, m.wide]) l.addEventListener("change", onChange);
   return () => {
-    for (const l of lists) l.removeEventListener("change", onChange);
+    for (const l of [m.narrow, m.wide]) l.removeEventListener("change", onChange);
   };
 }
 

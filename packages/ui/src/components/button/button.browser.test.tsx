@@ -4,34 +4,15 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { Theme } from "../../theme/theme.tsx";
 import { coarse, density } from "../../tokens/config.ts";
-import { computed, render } from "../../test/browser.tsx";
+import { SIZES, colorOn, computed, mounted, ownColor, render } from "../../test/browser.tsx";
 import { Card } from "../card/card.tsx";
 import { TextField as TextFieldForButtonTest } from "../text-field/text-field.tsx";
 import { Button } from "./button.tsx";
 
-/** Resolve a token the way a component does — through an element, not through the text. */
-function tokenOn(el: Element, name: string): string {
-  const probe = document.createElement("div");
-  probe.style.color = `var(${name})`;
-  el.append(probe);
-  const value = getComputedStyle(probe).color;
-  probe.remove();
-  return value;
-}
-
-/** Read a custom property declared ON this element. tokenOn() appends a CHILD probe, which
-    cannot see a property registered `inherits: false` — as --kui-ct-fill and its state siblings
-    now are, so a glass control stops painting its veil onto controls nested inside it. */
-function ownToken(el: Element, name: string): string {
-  const probe = document.createElement("div");
-  probe.style.color = getComputedStyle(el).getPropertyValue(name).trim();
-  el.append(probe);
-  const value = getComputedStyle(probe).color;
-  probe.remove();
-  return value;
-}
+/** Every token this file resolves is a colour, and the harness's tokenOn reads lengths — so
+    the name stays, one line over the shared probe. */
+const tokenOn = (el: Element, name: string): string => colorOn(el, `var(${name})`);
 
 describe("the size index joins five scales at one number (§4)", () => {
   it("resolves height, padding, gap, radius and type together", () => {
@@ -57,20 +38,12 @@ describe("the size index joins five scales at one number (§4)", () => {
   });
 
   it("follows the density and pointer worlds it is rendered in (§12, §16)", () => {
-    const compact = render(
-      <Theme density="compact">
-        <Button size="2">Label</Button>
-      </Theme>,
-    );
-    expect(computed(compact.querySelector("button")!, "min-height")).toBe("28px");
+    const compact = mounted(<Button size="2">Label</Button>, { theme: { density: "compact" } });
+    expect(computed(compact, "min-height")).toBe("28px");
 
-    const touch = render(
-      <Theme pointer="coarse">
-        <Button size="2">Label</Button>
-      </Theme>,
-    );
+    const touch = mounted(<Button size="2">Label</Button>, { theme: { pointer: "coarse" } });
     // The default path: default density, size 2, coarse — the 44 target, in geometry (§16).
-    expect(computed(touch.querySelector("button")!, "min-height")).toBe("44px");
+    expect(computed(touch, "min-height")).toBe("44px");
   });
 });
 
@@ -174,16 +147,6 @@ describe("states are stylesheet work, and the DOM stays honest (§8, ENGINEERING
 });
 
 describe("material is a fill modifier: the rung's own fill, made translucent (§10, §11)", () => {
-  /** Resolve any CSS color expression the way the stylesheet would — through the element. */
-  function colorOn(el: Element, expr: string): string {
-    const probe = document.createElement("div");
-    probe.style.color = expr;
-    el.append(probe);
-    const value = getComputedStyle(probe).color;
-    probe.remove();
-    return value;
-  }
-
   it("solid is the absence of a material — the default writes no attribute", () => {
     expect(render(<Button>Label</Button>).dataset.material).toBeUndefined();
     expect(render(<Button material="solid">Label</Button>).dataset.material).toBeUndefined();
@@ -234,10 +197,10 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
         Label
       </Button>,
     );
-    expect(ownToken(el, "--kui-ct-fill-hover")).toBe(
+    expect(ownColor(el, "--kui-ct-fill-hover")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-thin-alpha-hover), transparent)"),
     );
-    expect(ownToken(el, "--kui-ct-fill-active")).toBe(
+    expect(ownColor(el, "--kui-ct-fill-active")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-soft-active) var(--material-thin-alpha-active), transparent)"),
     );
   });
@@ -315,13 +278,13 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
         Save
       </Button>,
     );
-    // The spinner is itself an svg, so "the icon is gone" has to exclude it by name.
-    expect(idle.querySelectorAll("svg:not(.kui-spinner)").length).toBe(1);
-    expect(busy.querySelectorAll("svg:not(.kui-spinner)").length).toBe(0);
+    // The spinner hosts an svg of its own, so "the icon is gone" has to exclude it by name.
+    expect(idle.querySelectorAll("svg:not(.kui-spinner-svg)").length).toBe(1);
+    expect(busy.querySelectorAll("svg:not(.kui-spinner-svg)").length).toBe(0);
     expect(computed(busy, "width")).toBe(computed(idle, "width"));
 
     const spinner = busy.querySelector(".kui-spinner")!;
-    const icon = idle.querySelector("svg:not(.kui-spinner)")!;
+    const icon = idle.querySelector("svg:not(.kui-spinner-svg)")!;
     expect(computed(spinner, "width")).toBe(computed(icon, "width"));
   });
 
@@ -371,6 +334,19 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
 });
 
 describe("the boundary (§3, §13)", () => {
+  it("stays flat in an elevated world — a control's box is the action, not a plane (§5)", () => {
+    // The negative half of elevation's membership criterion (decided 2026-08-06): the
+    // elevated identity dresses boxes that establish a plane of their own, and a button's
+    // box is the action. Loud, the most surface-like rung, is the one to distrust.
+    const el = mounted(
+      <Button tone="accent" emphasis="loud">
+        Label
+      </Button>,
+      { theme: { surfaces: "elevated" } },
+    );
+    expect(computed(el, "box-shadow")).toBe("none");
+  });
+
   it("forwards the escape hatches and keeps its own classes", () => {
     const el = render(
       <Button className="mine" style={{ letterSpacing: "3px" }}>
@@ -434,14 +410,13 @@ describe("the boundary (§3, §13)", () => {
     // the blue family always did), so the solid stopped being evidence the day the accent
     // became hue-authored (2026-08-05). The soft tint differs by mode for every tone.
     const light = render(<Button tone="accent" emphasis="medium">L</Button>);
-    const dark = render(
-      <Theme appearance="dark">
-        <Button tone="accent" emphasis="medium">
-          L
-        </Button>
-      </Theme>,
+    const dark = mounted(
+      <Button tone="accent" emphasis="medium">
+        L
+      </Button>,
+      { theme: { appearance: "dark" } },
     );
-    expect(computed(dark.querySelector("button")!, "background-color")).not.toBe(
+    expect(computed(dark, "background-color")).not.toBe(
       computed(light, "background-color"),
     );
   });
@@ -473,7 +448,7 @@ describe("a control refuses outer spacing at the type level (non-negotiable, §3
 
 describe("iconOnly is a square box with a required name (§4, decided 2026-08-04)", () => {
   it("squares the box at every size, and the glyph is the content", () => {
-    for (const size of ["1", "2", "3", "4"] as const) {
+    for (const size of SIZES) {
       const el = render(
         <Button size={size} iconOnly aria-label="Search">
           <svg />
@@ -561,44 +536,34 @@ describe("a bare pill edge pads wider, per side (§4, §6, decided 2026-08-05)",
   const pill = (b: Element) => [computed(b, "padding-left"), computed(b, "padding-right")];
 
   it("a text-only pill pads wider on both sides; the correction does not exist at other levels", () => {
-    const full = render(
-      <Theme radius="full">
-        <Button size="2">Save</Button>
-      </Theme>,
-    ).querySelector("button")!;
+    const full = mounted(<Button size="2">Save</Button>, { theme: { radius: "full" } });
     expect(pill(full)).toEqual([
       `${density.default.pxPill[1]}px`,
       `${density.default.pxPill[1]}px`,
     ]);
 
-    const medium = render(
-      <Theme radius="medium">
-        <Button size="2">Save</Button>
-      </Theme>,
-    ).querySelector("button")!;
+    const medium = mounted(<Button size="2">Save</Button>, { theme: { radius: "medium" } });
     expect(pill(medium)).toEqual([`${density.default.px[1]}px`, `${density.default.px[1]}px`]);
   });
 
   it("a slotted edge keeps the plain padding; the bare edge opposite still compensates", () => {
-    const leading = render(
-      <Theme radius="full">
-        <Button size="2" leading={<svg />}>
-          Save
-        </Button>
-      </Theme>,
-    ).querySelector("button")!;
+    const leading = mounted(
+      <Button size="2" leading={<svg />}>
+        Save
+      </Button>,
+      { theme: { radius: "full" } },
+    );
     expect(pill(leading)).toEqual([
       `${density.default.px[1]}px`,
       `${density.default.pxPill[1]}px`,
     ]);
 
-    const trailing = render(
-      <Theme radius="full">
-        <Button size="2" trailing={<svg />}>
-          Save
-        </Button>
-      </Theme>,
-    ).querySelector("button")!;
+    const trailing = mounted(
+      <Button size="2" trailing={<svg />}>
+        Save
+      </Button>,
+      { theme: { radius: "full" } },
+    );
     expect(pill(trailing)).toEqual([
       `${density.default.pxPill[1]}px`,
       `${density.default.px[1]}px`,
@@ -608,29 +573,24 @@ describe("a bare pill edge pads wider, per side (§4, §6, decided 2026-08-05)",
   it("follows the pointer and density worlds — the full cells are raw, so every cell must exist", () => {
     // Unlike the control radii there is no palette indirection carrying `full` into a pointer
     // world: a missing cell would silently fall back to the fine value under coarse.
-    const touch = render(
-      <Theme pointer="coarse" radius="full">
-        <Button size="2">Save</Button>
-      </Theme>,
-    ).querySelector("button")!;
+    const touch = mounted(<Button size="2">Save</Button>, {
+      theme: { pointer: "coarse", radius: "full" },
+    });
     expect(computed(touch, "padding-left")).toBe(`${coarse.default.pxPill[1]}px`);
 
-    const compact = render(
-      <Theme density="compact" radius="full">
-        <Button size="3">Save</Button>
-      </Theme>,
-    ).querySelector("button")!;
+    const compact = mounted(<Button size="3">Save</Button>, {
+      theme: { density: "compact", radius: "full" },
+    });
     expect(computed(compact, "padding-left")).toBe(`${density.compact.pxPill[2]}px`);
   });
 
   it("iconOnly stays square: the pill padding never reaches it", () => {
-    const el = render(
-      <Theme radius="full">
-        <Button iconOnly aria-label="Search">
-          <svg />
-        </Button>
-      </Theme>,
-    ).querySelector("button")!;
+    const el = mounted(
+      <Button iconOnly aria-label="Search">
+        <svg />
+      </Button>,
+      { theme: { radius: "full" } },
+    );
     expect(computed(el, "padding-left")).toBe("0px");
     const box = el.getBoundingClientRect();
     expect(Math.abs(box.width - box.height)).toBeLessThanOrEqual(1);

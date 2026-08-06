@@ -49,8 +49,8 @@
      goes flat with the box and this file needs no disabled branch of its own. */
   --kui-ct-label-color: var(--tone-label);
 
-  /* Depth is the app's identity, never the component's (§5, §10). */
-  box-shadow: var(--kui-surface-chrome, none);
+  /* No box-shadow, and that is a decision (§5, reversed 2026-08-06): a field is a well, and
+     wells stay flat in an elevated world — the same sentence as text-field.css. */
 
   /* The one resize axis that cannot break a layout: horizontal resize makes the element wider
      than the column that owns it, so the handle offers height only. `none` and `both` are one

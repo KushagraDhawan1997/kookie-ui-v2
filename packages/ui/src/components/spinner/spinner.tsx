@@ -1,6 +1,8 @@
 import * as React from "react";
 
-export type SpinnerProps = Omit<React.ComponentPropsWithoutRef<"svg">, "children">;
+export type SpinnerProps = Omit<React.ComponentPropsWithoutRef<"span">, "children"> & {
+  ref?: React.Ref<HTMLSpanElement>;
+};
 
 /** Eight spokes on a 24-unit grid: a 2-wide rounded bar from radius 4.5 out to radius 10. */
 const SPOKES = Array.from({ length: 8 }, (_, i) => ({
@@ -10,6 +12,21 @@ const SPOKES = Array.from({ length: 8 }, (_, i) => ({
   opacity: (1 - (i / 8) * 0.85).toFixed(2),
 }));
 
+// The elements too, not just the data: every input is a module constant, and a loading
+// control re-renders its spinner with every parent render.
+const SPOKE_RECTS = SPOKES.map(({ angle, opacity }) => (
+  <rect
+    key={angle}
+    x="11"
+    y="2"
+    width="2"
+    height="5.5"
+    rx="1"
+    opacity={opacity}
+    transform={`rotate(${angle} 12 12)`}
+  />
+));
+
 /**
  * A busy indicator (§8): eight spokes with a fading trail, ticking one spoke at a time.
  *
@@ -17,6 +34,11 @@ const SPOKES = Array.from({ length: 8 }, (_, i) => ({
  * wedges and this shape is parallel-sided bars — the earlier gradient version was the wrong
  * primitive, not a tuning problem. The eight rects are static: they rasterise once and then
  * animate as a single composited rotation, so the per-frame cost is one transform regardless.
+ *
+ * The rotation rides an HTML wrapper, not the svg root (LOG 2026-08-06): HTML transforms
+ * composite everywhere, an SVG element's runs on the main thread in some engines, and a busy
+ * indicator that freezes when the main thread blocks fails its one job. The wrapper owns the
+ * icon box, the animation and the ref; the svg only fills it.
  *
  * It fills with `currentColor`, so it is the label's colour in every tone, emphasis and
  * appearance without referencing a token of its own. Inside a control it takes the icon box
@@ -26,30 +48,17 @@ const SPOKES = Array.from({ length: 8 }, (_, i) => ({
  * Decorative by default: `aria-hidden`, because the control that owns it carries `aria-busy`
  * and announcing the same state twice is noise.
  */
-export const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(function Spinner(
-  { className, ...props },
-  ref,
-) {
+export function Spinner({ className, ref, ...props }: SpinnerProps) {
   return (
-    <svg
+    <span
       ref={ref}
-      viewBox="0 0 24 24"
       aria-hidden
       className={className ? `kui-spinner ${className}` : "kui-spinner"}
       {...props}
     >
-      {SPOKES.map(({ angle, opacity }) => (
-        <rect
-          key={angle}
-          x="11"
-          y="2"
-          width="2"
-          height="5.5"
-          rx="1"
-          opacity={opacity}
-          transform={`rotate(${angle} 12 12)`}
-        />
-      ))}
-    </svg>
+      <svg viewBox="0 0 24 24" className="kui-spinner-svg">
+        {SPOKE_RECTS}
+      </svg>
+    </span>
   );
-});
+}

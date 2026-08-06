@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import {
   coarse,
   controlGap,
+  defaultRadiusLevel,
   density,
   handheldMedia,
   fontSize,
@@ -20,6 +21,7 @@ import {
   layoutSpace,
   letterSpacing,
   lineHeight,
+  material,
   radiusLevels,
   radiusOverlay,
   radiusSurface,
@@ -53,6 +55,11 @@ function block(selector: string) {
   if (end === -1) throw new Error(`unterminated rule for "${selector}"`);
   return css.slice(start, end);
 }
+
+/** A declaration read out of an arbitrary scope block — two mark-family describes had grown
+    private near-copies of this regex machinery (audit straggler, merged 2026-08-06). */
+const inScope = (scope: string, name: string) =>
+  block(scope).match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
 
 /** Reads a declaration out of a scope: `:root` by default, or a density block. */
 function declaration(name: string, level: "default" | "compact" | "comfortable" = "default") {
@@ -767,6 +774,267 @@ describe("multiplier wiring matches §12's table", () => {
       expect(declaration(`radius-${i}`)).not.toContain("var(--density)");
     }
   });
+});
+
+describe("the mark family is the line box, and nothing designed twice (§4)", () => {
+  // Checkbox, radio, switch track and slider thumb are one visual weight class, and four
+  // separately designed ladders in one weight class drift. The ladder is an identity rather
+  // than a ratio: a mark occupies exactly one line of the label it sits beside.
+  const markIn = (scope: string, i: number) => inScope(scope, `mark-${i}`);
+  const lineIn = (scope: string, i: number) => inScope(scope, `line-height-${i}`);
+
+  it("resolves to the line box at :root and in the fine world", () => {
+    for (const scope of [":root", '[data-pointer="fine"]']) {
+      for (let i = 1; i <= 4; i++) {
+        expect(markIn(scope, i), `${scope} mark ${i}`).toBe(lineIn(":root", i));
+      }
+    }
+  });
+
+  it("rises in the coarse world because the TYPE rose — the handheld band, not a second ladder", () => {
+    // The whole argument for sourcing the family from type: Spectrum grows every component
+    // 1.25x on touch, and this arrives at the same place with no coarse ladder to maintain.
+    for (const scope of ['[data-pointer="coarse"]']) {
+      for (let i = 1; i <= 4; i++) {
+        const band = typeBands.handheld[i - 1]!;
+        expect(markIn(scope, i), `${scope} mark ${i}`).toBe(lineIn(":root", band));
+        expect(parseFloat(markIn(scope, i)!.match(/[\d.]+/)![0])).toBeGreaterThan(
+          parseFloat(markIn(":root", i)!.match(/[\d.]+/)![0]),
+        );
+      }
+    }
+  });
+
+  it("is declared in FULL in every pointer scope — a partial re-declaration inherits the world above", () => {
+    for (const scope of [":root", '[data-pointer="fine"]', '[data-pointer="coarse"]']) {
+      for (let i = 1; i <= 4; i++) expect(markIn(scope, i), `${scope} is missing mark ${i}`).toBeDefined();
+    }
+  });
+
+  it("never rides density — a mark sits beside a label, and the label does not move either (§4)", () => {
+    for (const level of ["compact", "comfortable"] as const) {
+      expect(block(`[data-density="${level}"]`)).not.toContain("--mark-");
+    }
+  });
+
+  it("takes --scale like every other length", () => {
+    for (let i = 1; i <= 4; i++) expect(markIn(":root", i)).toContain("var(--scale)");
+  });
+});
+
+describe("a mark's corner holds a fraction of ITS OWN box (§6)", () => {
+  // The law that did not exist when the corner shipped, and the one that would have caught it:
+  // it rode --radius-control-N, which is designed against the HEIGHT ladder and is density-
+  // indexed, so the fraction climbed 0.250 -> 0.385 across the index and reached 0.462 at
+  // comfortable size 4 — a circle in all but name, arrived at by an axis rather than a theme,
+  // which is why the `full` ceiling never saw it. Fractions, not values: the picks are taste.
+  const value = (decl: string | undefined) => parseFloat(decl!.match(/[\d.]+/)![0]);
+  const markIn = (scope: string, i: number) => value(inScope(scope, `mark-${i}`));
+  const cornerIn = (scope: string, i: number) => value(inScope(scope, `radius-mark-${i}`));
+
+  for (const level of ["small", "medium", "large", "full"] as const) {
+    it(`holds 0.05-0.40 of the box at every size, level ${level}, both pointer worlds`, () => {
+      const scope = level === defaultRadiusLevel ? ":root" : `[data-radius="${level}"]`;
+      for (const world of [":root", '[data-pointer="coarse"]']) {
+        for (let i = 1; i <= 4; i++) {
+          const fraction = cornerIn(scope, i) / markIn(world, i);
+          // A wide band on purpose: how ROUND a mark is at a given level is the theme's call
+          // (`small` runs 0.08-0.13, `large` about 0.31-0.38), and this only catches a corner
+          // that has stopped being a corner. The law carrying the actual complaint is the
+          // spread one below — a level may be tight or round, but not both at once.
+          expect(fraction, `${level}/${world}/size ${i} is ${fraction.toFixed(3)} of its box`)
+            .toBeGreaterThanOrEqual(0.05);
+          expect(fraction).toBeLessThan(0.4);
+        }
+      }
+    });
+
+    it(`varies by under 1.4x across the index at ${level}, in BOTH pointer worlds`, () => {
+      // The complaint that found the bug, stated as a law (Kushagra, by eye: "size 4 looks
+      // much more rounded than size 1"). The shipped ladder spread 0.250 -> 0.385, a 54%
+      // monotonic climb.
+      //
+      // Both worlds, because the first spelling of this law pinned the denominator to :root
+      // (audit D7) while the sibling laws above and below iterated the coarse scope — so the
+      // world the phone actually renders was asserted nowhere, and it ships a 1.3846 spread.
+      // The ceiling is 1.4 rather than the 1.34 first written: the coarse spread is a
+      // non-monotonic one-notch wobble (size 2 tightest, size 3 roundest, size 4 back at
+      // size 1's fraction), not the climb the complaint named, and the palette's granularity
+      // cannot do better without a designed raw ladder that would go deaf to the radius
+      // levels. Flagged for the eye pass with the rest of the corner numbers.
+      const scope = level === defaultRadiusLevel ? ":root" : `[data-radius="${level}"]`;
+      for (const world of [":root", '[data-pointer="coarse"]']) {
+        const fractions = [1, 2, 3, 4].map((i) => cornerIn(scope, i) / markIn(world, i));
+        expect(
+          Math.max(...fractions) / Math.min(...fractions),
+          `${level} in ${world}`,
+        ).toBeLessThan(1.4);
+      }
+    });
+  }
+
+  it("is never half the box — half IS a circle, and a circular checkbox is a radio", () => {
+    for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
+      const scope = level === defaultRadiusLevel ? ":root" : `[data-radius="${level}"]`;
+      for (const world of [":root", '[data-pointer="coarse"]']) {
+        for (let i = 1; i <= 4; i++) {
+          expect(cornerIn(scope, i), `${level}/${world}/${i}`).toBeLessThan(markIn(world, i) / 2);
+        }
+      }
+    }
+  });
+
+  it("holds at `large` when the theme says `full` — a corner stops getting rounder, never retreats", () => {
+    // The surface band's own sentence (§6), one band over.
+    for (let i = 1; i <= 4; i++) {
+      expect(cornerIn('[data-radius="full"]', i)).toBe(cornerIn('[data-radius="large"]', i));
+    }
+  });
+
+  it("`none` still squares it — a kill switch with an exception is not a kill switch (§6)", () => {
+    for (let i = 1; i <= 4; i++) expect(cornerIn('[data-radius="none"]', i)).toBe(0);
+  });
+
+  it("DENSITY never touches it, because density never touches the box it rounds", () => {
+    // The half of the defect no theme could have exposed: --radius-control-N is density-indexed,
+    // so an axis that leaves the mark's box alone was re-cutting its corner.
+    for (const level of ["compact", "comfortable"] as const) {
+      expect(block(`[data-density="${level}"]`)).not.toContain("--radius-mark-");
+    }
+  });
+
+  it("is re-declared in every radius level's own scope (substitution-at-declaration, §6)", () => {
+    for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
+      expect(block(`[data-radius="${level}"]`), `${level} inherits a baked corner`).toContain(
+        "--radius-mark-1:",
+      );
+    }
+  });
+});
+
+describe("the tone-independent hairline (§7, §11)", () => {
+  it("is declared in every appearance scope, so a dark subtree does not inherit a light edge", () => {
+    for (const scope of [":root", '[data-appearance="light"]', '[data-appearance="dark"]']) {
+      expect(block(scope), `${scope} has no --color-border`).toContain("--color-border:");
+    }
+  });
+
+  it("resolves through neutral's own border role, never a raw step", () => {
+    // A role, not a coincidence (§13): if this ever became --neutral-7 directly, a contrast
+    // shift that moved the family's border would leave this one behind.
+    expect(declaration("color-border")).toBe("var(--neutral-border)");
+  });
+});
+
+describe("the slider's track: a designed raw ladder held to its thumb (§4, §11)", () => {
+  const value = (decl: string | undefined) => parseFloat(decl!.match(/[\d.]+/)![0]);
+  const trackAt = (i: number) =>
+    value(block(":root").match(new RegExp(`--slider-track-${i}:\\s*([^;]+);`))?.[1]);
+  const markIn = (scope: string, i: number) =>
+    value(block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1]);
+
+  it("emits all four steps, scaled, monotone across the index", () => {
+    const values = [1, 2, 3, 4].map(trackAt);
+    expect(increasing(values)).toBe(true);
+    for (let i = 1; i <= 4; i++) {
+      expect(block(":root").match(new RegExp(`--slider-track-${i}:\\s*([^;]+);`))?.[1]).toContain(
+        "var(--scale)",
+      );
+    }
+  });
+
+  it("never outweighs its thumb — under half the mark at every size, in BOTH pointer worlds", () => {
+    // The track is the bed the thumb runs in, and a bed thicker than half its handle reads as
+    // a bar with a bead stuck to it. The ladder is pointer-invariant while the mark is not, so
+    // the coarse world is where this could silently fail: the fine fraction (~0.25) loosens
+    // there, and this pins that it never crosses the half.
+    for (const world of [":root", '[data-pointer="coarse"]']) {
+      for (let i = 1; i <= 4; i++) {
+        expect(trackAt(i), `${world}/size ${i}`).toBeLessThan(markIn(world, i) / 2);
+      }
+    }
+  });
+
+  it("no density and no pointer scope re-prices it — the coarse target is the control's height", () => {
+    // iOS holds its track at 4pt against a 28pt thumb: the finger's allowance is the box, not
+    // the line. If a scope ever re-declares this family, that is a decision, not a drift.
+    for (const level of ["compact", "comfortable"] as const) {
+      expect(block(`[data-density="${level}"]`)).not.toContain("--slider-track-");
+    }
+    for (const world of ['[data-pointer="fine"]', '[data-pointer="coarse"]']) {
+      expect(block(world)).not.toContain("--slider-track-");
+    }
+  });
+});
+
+describe("the track well (§7, §11) — the low neutral bed a value runs in", () => {
+  it("is declared in every appearance scope, like the hairline it sits beside", () => {
+    for (const scope of [":root", '[data-appearance="light"]', '[data-appearance="dark"]']) {
+      expect(block(scope), `${scope} has no --color-track`).toContain("--color-track:");
+    }
+  });
+
+  it("resolves through a neutral step, never a raw hex — contrast reaches it through the scale", () => {
+    // The role exists because §11's "track low" is the checkbox's "neutral off" one control
+    // over, and a component that stamps `accent` for its fill can only say neutral through a
+    // tone-independent role. A raw hex here would go deaf to contrast="high".
+    expect(declaration("color-track")).toMatch(/^var\(--neutral-\d+\)$/);
+  });
+});
+
+describe("no var() dangles — every reference the generator writes, it also declares (§6, §13)", () => {
+  // The generator aliases by NAME in several places — ROLES maps fourteen role names onto
+  // `--{tone}-{role}`, the semantic families point at palette steps — and a typo'd name would
+  // emit `var(--tone-foo)`, resolve to nothing at runtime, and pass every law that greps for
+  // the token it MEANT to write (the thing a name-grep can never catch, ENGINEERING §6). The
+  // whole file is closed over its own vocabulary: tokens.css consumes no name it does not
+  // declare, so the set of references minus the set of declarations must be empty.
+  it("every var(--x) in tokens.css has a declaration in tokens.css", () => {
+    // Comments stripped first — the law fired on its own first run against an emitted comment
+    // explaining that the mark family is "resolved rather than var(--line-height-N)". A law a
+    // comment can satisfy is not a law, and one a comment can FAIL is not one either.
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, " ");
+    const declared = new Set([...code.matchAll(/--([\w-]+)\s*:/g)].map((m) => m[1]!));
+    const referenced = new Set([...code.matchAll(/var\(\s*--([\w-]+)/g)].map((m) => m[1]!));
+    const dangling = [...referenced].filter((name) => !declared.has(name));
+    expect(dangling, `referenced but never declared: ${dangling.join(", ")}`).toEqual([]);
+  });
+});
+
+
+describe("the material ladder is monotone in every lever (§10)", () => {
+  // config.ts has stated this invariant in prose since the ladder shipped ("Monotone across
+  // thicknesses must hold per column, not just at rest, so thickness still reads as one
+  // dimension mid-interaction") — and nothing asserted it. Asserted from the config because
+  // the claim is about the designed SET; the emitted spelling is covered by the drift law.
+  const THICKNESSES = ["thin", "regular", "thick"] as const;
+  const rises = (values: readonly number[]) => {
+    for (let i = 1; i < values.length; i++) expect(values[i]!).toBeGreaterThan(values[i - 1]!);
+  };
+  for (const mode of ["light", "dark"] as const) {
+    it(`${mode}: thickness rises per column, states rise per thickness, high defends harder`, () => {
+      for (const key of ["alpha", "alphaHigh"] as const) {
+        for (const col of [0, 1, 2]) {
+          rises(THICKNESSES.map((th) => material[mode][th][key][col]!));
+        }
+        for (const th of THICKNESSES) rises(material[mode][th][key]);
+      }
+      // The pane's own light: edge and rim rise with thickness (thicker glass catches more),
+      // and the blur radius rises — thickness is one dimension in the filter too.
+      for (const part of ["edge", "rim"] as const) {
+        rises(THICKNESSES.map((th) => material[mode][th][part]));
+      }
+      rises(THICKNESSES.map((th) => Number(material[mode][th].filter.match(/blur\((\d+)px/)![1]!)));
+      // alphaHigh is MORE opaque than normal at every cell and never reaches the seal: past
+      // ~.9-and-change you should have used solid, and three thicknesses must stay three.
+      for (const th of THICKNESSES) {
+        material[mode][th].alpha.forEach((a, i) => {
+          expect(material[mode][th].alphaHigh[i]!).toBeGreaterThan(a);
+        });
+        expect(material[mode][th].alphaHigh[2]!).toBeLessThan(100);
+      }
+    });
+  }
 });
 
 describe("generated output is not hand-edited (ENGINEERING §7)", () => {

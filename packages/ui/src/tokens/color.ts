@@ -4,15 +4,23 @@
  * The browser does zero colour maths at runtime: everything here runs at build time and emits
  * plain values. Nothing is a borrowed value and nothing is hand-placed per hue.
  */
+import { decl } from "./emit.ts";
 import { converter, formatHex, inGamut } from "culori";
 
 import {
   chromaCurve,
+  apcaFloors,
+  chromaFloor,
   contrastHigh,
   contrastHighBands,
+  focusRingStep,
+  inkMix,
+  invalidEdgeStep,
   labelPosition,
   lightness,
   lowChromaThreshold,
+  markEdgeStep,
+  trackWellStep,
   solidBand,
   solidPinBounds,
   lowChromaStateScale,
@@ -22,6 +30,7 @@ import {
   type Mode,
   type ToneName,
 } from "./color-config.ts";
+import { surfaceColor } from "./config.ts";
 
 const toRgb = converter("rgb");
 const toOklch = converter("oklch");
@@ -164,11 +173,26 @@ export type Scale = {
   isLowChroma: boolean;
 };
 
-/** The page backdrop each mode's alpha ramp composites over. */
-export function pageBackdrop(mode: Mode): string {
-  return mode === "light"
-    ? "#ffffff"
-    : formatHex(toGamut(oklch(lightness.dark[0]!, 0.004, tones.neutral.hue)))!;
+/**
+ * The backdrop each mode's alpha ramp composites over — the SURFACE SEAL, not the page
+ * (decided 2026-08-06, Kushagra). An alpha fill's usual home is a sealed surface — a card, a
+ * field — so the ramp solves against what it actually sits on. Before this the two modes told
+ * different stories (light solved against white ≡ the seal; dark against a hand-made page
+ * approximation the law then re-used, a tautology), and the page colour was stated three
+ * near-identical ways. Now the seal is read from config's surfaceColor: a literal is used
+ * directly, and dark's `var(--neutral-2)` resolves through the same generator that emits it,
+ * so the backdrop and the seal cannot drift apart.
+ */
+const backdropCache: Partial<Record<Mode, string>> = {};
+export function alphaBackdrop(mode: Mode): string {
+  const rest: string = surfaceColor[mode].rest;
+  if (!rest.startsWith("var(")) return rest;
+  if (!backdropCache[mode]) {
+    const step = Number(rest.match(/--neutral-(\d+)/)![1]!);
+    backdropCache[mode] = buildScaleFor(resolveTone(tones.neutral), mode, "srgb", "normal", true)
+      .steps[step - 1]!;
+  }
+  return backdropCache[mode]!;
 }
 
 export type ToneSpec = {
@@ -229,6 +253,7 @@ export function buildScaleFor(
   mode: Mode,
   gamut: Gamut = "srgb",
   contrast_: ContrastLevel = "normal",
+  stepsOnly = false,
 ): Scale {
   const hc = contrast_ === "high" ? contrastHigh[mode] : null;
   /** The most chroma this hue can hold at this lightness, inside the target gamut. */
@@ -286,7 +311,6 @@ export function buildScaleFor(
   // out to near-white going up (shedding 54% of its chroma) and went olive going down. So the
   // excursion runs as far as it can while the hue still holds most of its saturation, and the
   // direction is chosen by which way affords more of that travel.
-  const CHROMA_FLOOR = 0.75;
   const spread = hc ? hc.stateSpread : 1;
   const scaleFor = isLowChroma ? lowChromaStateScale : spread;
   const desired = solidStateDeltas.active * scaleFor;
@@ -294,7 +318,7 @@ export function buildScaleFor(
     let best = 0;
     for (let d = 0.01; d <= desired; d += 0.005) {
       const l = restL + dir * d;
-      if (l !== clampL(l) || available(l) < restC * CHROMA_FLOOR) break;
+      if (l !== clampL(l) || available(l) < restC * chromaFloor) break;
       best = d;
     }
     return best;
@@ -312,7 +336,7 @@ export function buildScaleFor(
   // is what says so. Both laws hold; membership in the tone set is what gives.
   const preferredReach = reach(preferred);
   const oppositeReach = reach(-preferred);
-  const labelFloor = hc ? 75 : 60;
+  const labelFloor = hc ? apcaFloors.aaa : apcaFloors.body;
   const flippedStillClears = (() => {
     const t = Math.min(oppositeReach, desired);
     if (t <= preferredReach) return false;
@@ -349,10 +373,12 @@ export function buildScaleFor(
     gamut,
   );
 
-  const backdrop = pageBackdrop(mode);
+  // stepsOnly exists for alphaBackdrop's own neutral lookup: the seal is a neutral step, the
+  // steps do not depend on the backdrop, and skipping the alpha solve breaks the cycle.
+  const backdrop = stepsOnly ? "" : alphaBackdrop(mode);
   return {
     steps,
-    alpha: steps.map((hex) => alphaOver(hex, backdrop)),
+    alpha: stepsOnly ? [] : steps.map((hex) => alphaOver(hex, backdrop)),
     solid,
     solidHover,
     solidActive,
@@ -392,13 +418,13 @@ export function contrastHighDeclarations(mode: Mode, gamut: Gamut = "srgb"): str
     const s = buildScale(tone, mode, gamut, "high");
     const normal = buildScale(tone, mode, gamut, "normal");
     for (const i of [...contrastHighBands.border, ...contrastHighBands.text]) {
-      out.push(`  --${tone}-${i + 1}: ${s.steps[i]};`);
+      out.push(decl(`${tone}-${i + 1}`, s.steps[i]!));
     }
-    if (s.solid !== normal.solid) out.push(`  --${tone}-solid: ${s.solid};`);
+    if (s.solid !== normal.solid) out.push(decl(`${tone}-solid`, s.solid));
     out.push(
-      `  --${tone}-solid-hover: ${s.solidHover};`,
-      `  --${tone}-solid-active: ${s.solidActive};`,
-      `  --${tone}-label: ${s.label};`,
+      decl(`${tone}-solid-hover`, s.solidHover),
+      decl(`${tone}-solid-active`, s.solidActive),
+      decl(`${tone}-label`, s.label),
     );
   }
   return out;
@@ -416,21 +442,21 @@ export function colorDeclarations(
   for (const tone of scales) {
     const s = buildScale(tone, mode, gamut, contrast);
     out.push(`  /* ${tone} */`);
-    s.steps.forEach((hex, i) => out.push(`  --${tone}-${i + 1}: ${hex};`));
+    s.steps.forEach((hex, i) => out.push(decl(`${tone}-${i + 1}`, hex)));
     // The alpha ramp stays sRGB in both blocks: its solve assumes sRGB channel compositing,
     // and its job is differentiating nested surfaces, where the wider gamut buys nothing.
-    if (gamut === "srgb") s.alpha.forEach((v, i) => out.push(`  --${tone}-a${i + 1}: ${v};`));
+    if (gamut === "srgb") s.alpha.forEach((v, i) => out.push(decl(`${tone}-a${i + 1}`, v)));
     out.push(
-      `  --${tone}-soft: var(--${tone}-3);`,
-      `  --${tone}-soft-hover: var(--${tone}-4);`,
-      `  --${tone}-soft-active: var(--${tone}-5);`,
-      `  --${tone}-solid: ${s.solid};`,
-      `  --${tone}-solid-hover: ${s.solidHover};`,
-      `  --${tone}-solid-active: ${s.solidActive};`,
-      `  --${tone}-border: var(--${tone}-7);`,
-      `  --${tone}-text: var(--${tone}-11);`,
-      `  --${tone}-label: ${s.label};`,
-      `  --${tone}-contrast: ${s.contrast};`,
+      decl(`${tone}-soft`, `var(--${tone}-3)`),
+      decl(`${tone}-soft-hover`, `var(--${tone}-4)`),
+      decl(`${tone}-soft-active`, `var(--${tone}-5)`),
+      decl(`${tone}-solid`, s.solid),
+      decl(`${tone}-solid-hover`, s.solidHover),
+      decl(`${tone}-solid-active`, s.solidActive),
+      decl(`${tone}-border`, `var(--${tone}-7)`),
+      decl(`${tone}-text`, `var(--${tone}-11)`),
+      decl(`${tone}-label`, s.label),
+      decl(`${tone}-contrast`, s.contrast),
       // The ink ladder (§15) — what the type emphasis rungs read when this family is chosen.
       // Neutral's three inks are designed steps: a gray scale has twelve grays. A chroma
       // family has exactly ONE designed text colour (11; 12 is the high-contrast variant,
@@ -439,14 +465,14 @@ export function colorDeclarations(
       // to text. Mix percentages are v0, judged in the preview.
       ...(tone === "neutral"
         ? [
-            `  --${tone}-ink: var(--${tone}-12);`,
-            `  --${tone}-ink-muted: var(--${tone}-11);`,
-            `  --${tone}-ink-faint: var(--${tone}-10);`,
+            decl(`${tone}-ink`, `var(--${tone}-12)`),
+            decl(`${tone}-ink-muted`, `var(--${tone}-11)`),
+            decl(`${tone}-ink-faint`, `var(--${tone}-10)`),
           ]
         : [
-            `  --${tone}-ink: var(--${tone}-11);`,
-            `  --${tone}-ink-muted: color-mix(in oklab, var(--${tone}-11) 74%, transparent);`,
-            `  --${tone}-ink-faint: color-mix(in oklab, var(--${tone}-11) 52%, transparent);`,
+            decl(`${tone}-ink`, `var(--${tone}-11)`),
+            decl(`${tone}-ink-muted`, `color-mix(in oklab, var(--${tone}-11) ${inkMix.muted}%, transparent)`),
+            decl(`${tone}-ink-faint`, `color-mix(in oklab, var(--${tone}-11) ${inkMix.faint}%, transparent)`),
           ]),
     );
   }
@@ -463,7 +489,7 @@ export function colorDeclarations(
   // "≥3:1 against adjacent surfaces" law was never actually written (found 2026-08-03). Step 11
   // is the band designed to be legible against the page, and it clears the same floor light's
   // solid already did: 74.7 light, 66.3 dark, against --neutral-1.
-  out.push(`  --focus-ring: var(${mode === "dark" ? "--accent-11" : "--accent-solid"});`);
+  out.push(decl("focus-ring", `var(--accent-${focusRingStep[mode]})`));
 
   // The edge a control wears while it is INVALID — both its border and its ring (§8, decided
   // 2026-08-04). One token because it is one answer: "this control is wrong" is a single
@@ -475,7 +501,23 @@ export function colorDeclarations(
   // luminance — APCA 23.9 light and 9.8 dark against the field fill, versus 22.8 / 10.3 for the
   // resting border it replaces. In dark, being invalid LOWERED contrast. Step 9 clears the
   // Lc 45 non-text floor in light (65.4) but not in dark (36.1); step 11 does (65.2).
-  out.push(`  --invalid-edge: var(${mode === "dark" ? "--destructive-11" : "--destructive-solid"});`);
+  out.push(decl("invalid-edge", `var(--destructive-${invalidEdgeStep[mode]})`));
+
+  // The mark edge (§7, §11, decided 2026-08-06) — the resting outline of a control that IS its
+  // hairline: checkbox now, radio/switch/slider when they land. Its own role because a mark's
+  // unchecked state has no other identity, so it must clear the non-text floor the quiet
+  // --color-border deliberately does not (audit D2: |Lc| 22.8 light, 10.3 dark). Per-mode
+  // steps from color-config, the focus-ring precedent; the law beside the invalid edge's.
+  out.push(decl("mark-edge", `var(--neutral-${markEdgeStep[mode]})`));
+
+  // The track well (§7, §11, decided 2026-08-06 with Slider) — the low neutral bed a value
+  // runs in: the slider's track now, the switch's off-track and progress/meter when they
+  // land. §11's "track low" is the checkbox's "neutral off" one control over, and neutral
+  // needs a role here for the same reason the mark edge did: the component stamps `accent`
+  // for its fill, so its off part can only be neutral through a tone-independent role.
+  // Deliberately quieter than the mark edge — a well is a region the fill moves through,
+  // not a hairline identity, and every platform ships it subtle.
+  out.push(decl("color-track", `var(--neutral-${trackWellStep[mode]})`));
 
   return out;
 }

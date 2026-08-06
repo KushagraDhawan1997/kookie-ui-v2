@@ -2,27 +2,23 @@
  * The surface layer's laws (§10), same shape as recipes.test.ts one level up: the axes are
  * carried once by the shared file, no rule pairs one axis with another, and the component
  * that fronts it adds nothing — Card ships no stylesheet at all, which is the additivity
- * claim (§2) at its limit.
+ * claim (§2) at its limit. Parsing comes from test/stylesheets.ts: block()/from() are loud
+ * on a missing selector, so a renamed rule fails these laws instead of blinding them.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { GLASS_MATERIALS } from "../components/button/button.tsx";
+import { GLASS_MATERIALS, RUNGS } from "./axes.ts";
 
 import { tones } from "../tokens/color-config.ts";
+import { block, from, raw, sheet } from "../test/stylesheets.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const surfaces = readFileSync(join(here, "./surfaces.css"), "utf8");
-const stripped = surfaces.replace(/\/\*[\s\S]*?\*\//g, "");
+const surfaces = sheet("system/surfaces.css");
 
 const TONE_NAMES = Object.keys(tones);
-const RUNGS = ["loud", "medium", "quiet"];
-// Derived from the exported type, not restated: §9's axis table drifted to three values
-// while the code shipped four, and a local literal here would have kept the ladder's hole
-// invisible to CI. Adding a thickness now fails these laws until the layer supports it.
-const MATERIALS = [...GLASS_MATERIALS];
 
 describe("Card owns no CSS at all (§2, §10)", () => {
   it("has no stylesheet — the surface layer is the whole of what a Card looks like", () => {
@@ -34,10 +30,10 @@ describe("the surface layer carries each axis once and never multiplies them (§
   it("every rung and material is defined exactly once, for every surface ever", () => {
     for (const [axis, values] of [
       ["data-emphasis", RUNGS],
-      ["data-material", MATERIALS],
+      ["data-material", GLASS_MATERIALS],
     ] as const) {
       for (const value of values) {
-        const occurrences = stripped.match(new RegExp(`\\[${axis}="${value}"\\]`, "g")) ?? [];
+        const occurrences = surfaces.match(new RegExp(`\\[${axis}="${value}"\\]`, "g")) ?? [];
         // Material legitimately appears three times: fallback base, real recipe under
         // @supports, reduced-transparency override — three environments, not three designs.
         expect(occurrences.length).toBe(axis === "data-material" ? 3 : 1);
@@ -46,19 +42,20 @@ describe("the surface layer carries each axis once and never multiplies them (§
   });
 
   it("no rule pairs one axis with another", () => {
-    expect(stripped).not.toMatch(/\[data-(emphasis|material|tone|size)="[a-z0-9]+"\]\[data-(emphasis|material|tone|size)=/);
+    expect(surfaces).not.toMatch(/\[data-(emphasis|material|tone|size)="[a-z0-9]+"\]\[data-(emphasis|material|tone|size)=/);
   });
 
   it("rungs name roles, never a tone family", () => {
-    for (const name of TONE_NAMES) expect(stripped).not.toContain(`--${name}-`);
-    expect(stripped).toContain("--tone-a3");
-    expect(stripped).toContain("--tone-solid");
+    for (const name of TONE_NAMES) expect(surfaces).not.toContain(`--${name}-`);
+    expect(surfaces).toContain("--tone-a3");
+    expect(surfaces).toContain("--tone-solid");
   });
 
   it("the default surface seals — alpha belongs to the tone-forward rungs and material", () => {
-    const quiet = stripped.slice(stripped.indexOf('[data-emphasis="quiet"]'));
-    expect(quiet.slice(0, quiet.indexOf("}"))).toContain("--kui-sf-fill-src: var(--color-surface)");
-    expect(stripped).not.toContain("--tone-a1");
+    expect(block(surfaces, '[data-emphasis="quiet"]')).toContain(
+      "--kui-sf-fill-src: var(--color-surface)",
+    );
+    expect(surfaces).not.toContain("--tone-a1");
   });
 });
 
@@ -68,17 +65,15 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // is an app identity: Theme surfaces="elevated" dresses every surface with one rule, on
     // the element that owns the radius. Flat remains the default and byte-identical to a
     // world where the rule does not exist.
-    expect(stripped).not.toContain("data-elevation");
-    const occurrences = stripped.match(/box-shadow/g) ?? [];
+    expect(surfaces).not.toContain("data-elevation");
+    const occurrences = surfaces.match(/box-shadow/g) ?? [];
     expect(occurrences).toHaveLength(1);
     // The world scopes declare; .kui-surface paints. Routing it through a custom property is
     // what lets `flat` escape an elevated ancestor — a descendant selector had no reset, so a
     // nested flat Theme matched nothing and the outer rule still reached the inner cards.
-    const elevated = stripped.slice(stripped.indexOf('[data-surfaces="elevated"]'));
-    const body = elevated.slice(0, elevated.indexOf("}"));
+    const body = block(surfaces, '[data-surfaces="elevated"]');
     expect(body).toContain("--kui-surface-chrome: var(--surface-chrome)");
-    const flat = stripped.slice(stripped.indexOf('[data-surfaces="flat"]'));
-    expect(flat.slice(0, flat.indexOf("}"))).toContain("--kui-surface-chrome: none");
+    expect(block(surfaces, '[data-surfaces="flat"]')).toContain("--kui-surface-chrome: none");
     // Add depth, change nothing else: the edge stays --tone-border, so it keeps its
     // sharpness and contrast="high" reaches it through the tone system. Two dead ends are
     // pinned here: no ring (two lines) and no raw-alpha border (soft, contrast-blind).
@@ -88,44 +83,44 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
 
 describe("material resolves through tokens only (§10)", () => {
   it("backdrop-filter exists only inside @supports, with the near-sealed fallback outside it", () => {
-    const guardStart = stripped.indexOf("@supports (backdrop-filter");
+    const guardStart = surfaces.indexOf("@supports (backdrop-filter");
     expect(guardStart).toBeGreaterThan(-1);
-    const before = stripped.slice(0, guardStart);
+    const before = surfaces.slice(0, guardStart);
     expect(before).not.toContain("backdrop-filter:");
     expect(before).toContain("--material-opaque-alpha");
   });
 
   it("prefers-reduced-transparency forces the near-seal and kills the blur (§10)", () => {
-    const media = stripped.slice(stripped.indexOf("@media (prefers-reduced-transparency: reduce)"));
+    const media = from(surfaces, "@media (prefers-reduced-transparency: reduce)");
     expect(media).toContain("--material-opaque-alpha");
     expect(media).toContain("backdrop-filter: none");
     // Cascade order is the mechanism: the accessibility override must come AFTER the recipe.
-    expect(stripped.indexOf("@media (prefers-reduced-transparency")).toBeGreaterThan(
-      stripped.indexOf("@supports (backdrop-filter"),
+    expect(surfaces.indexOf("@media (prefers-reduced-transparency")).toBeGreaterThan(
+      surfaces.indexOf("@supports (backdrop-filter"),
     );
   });
 });
 
 describe("card-as-button: the element brings the interactivity (§10)", () => {
   it("the interactive block keys on element semantics, never on a prop", () => {
-    expect(stripped).toContain(":where(button, a)");
-    expect(stripped).not.toContain("data-interactive");
+    expect(surfaces).toContain(":where(button, a)");
+    expect(surfaces).not.toContain("data-interactive");
   });
 
   it("hover is guarded by (hover: hover); press is not, and reads the surface steps", () => {
-    const guardStart = stripped.indexOf("@media (hover: hover)");
+    const guardStart = surfaces.indexOf("@media (hover: hover)");
     expect(guardStart).toBeGreaterThan(-1);
-    const guardEnd = stripped.indexOf("\n}", stripped.indexOf("}", guardStart));
-    const outside = stripped.slice(0, guardStart) + stripped.slice(guardEnd + 2);
+    const guardEnd = surfaces.indexOf("\n}", surfaces.indexOf("}", guardStart));
+    const outside = surfaces.slice(0, guardStart) + surfaces.slice(guardEnd + 2);
     expect(outside).not.toContain(":hover");
     expect(outside).toContain(":active");
-    expect(stripped).toContain("--color-surface-hover");
-    expect(stripped).toContain("--color-surface-active");
+    expect(surfaces).toContain("--color-surface-hover");
+    expect(surfaces).toContain("--color-surface-active");
   });
 });
 
 describe("the shadow palette is a resource, not an axis (§13)", () => {
-  const tokens = readFileSync(join(here, "../tokens/tokens.css"), "utf8");
+  const tokens = raw("tokens/tokens.css");
 
   it("four rows, once per appearance scope, and row 1 is the only inset", () => {
     // Three scopes, not two: :root carries the un-themed document, [data-appearance="light"]
@@ -147,7 +142,7 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     // reach the palette through `style`. The elevated world consumes the palette THROUGH
     // --surface-chrome (which composes var(--shadow-2) in tokens.css): shadow = elevation,
     // one lighting model, row 2 the single source of truth for elevated depth.
-    expect(stripped).not.toContain("--shadow-");
+    expect(surfaces).not.toContain("--shadow-");
     expect(tokens).toContain("--surface-chrome: var(--shadow-2)");
     expect(tokens).toContain("inset 0 1px 0");
   });
@@ -155,10 +150,12 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
 
 describe("a surface sets foreground context (§10)", () => {
   it("the skeleton reads --color-text, and the tone-forward rungs re-scope it", () => {
-    expect(stripped).toContain("color: var(--color-text)");
-    const medium = stripped.slice(stripped.indexOf('[data-emphasis="medium"]'));
-    expect(medium.slice(0, medium.indexOf("}"))).toContain("--color-text: var(--tone-text)");
-    const loud = stripped.slice(stripped.indexOf('[data-emphasis="loud"]'));
-    expect(loud.slice(0, loud.indexOf("}"))).toContain("--color-text: var(--tone-contrast)");
+    expect(surfaces).toContain("color: var(--color-text)");
+    expect(block(surfaces, '[data-emphasis="medium"]')).toContain(
+      "--color-text: var(--tone-text)",
+    );
+    expect(block(surfaces, '[data-emphasis="loud"]')).toContain(
+      "--color-text: var(--tone-contrast)",
+    );
   });
 });

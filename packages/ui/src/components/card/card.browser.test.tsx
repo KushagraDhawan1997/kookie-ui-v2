@@ -6,36 +6,20 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
-import { computed, render } from "../../test/browser.tsx";
+import { APPEARANCES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Spinner } from "../spinner/spinner.tsx";
 import { Card } from "./card.tsx";
 
-/** Resolve a token the way a component does — through an element, not through the text. */
-function tokenOn(el: Element, name: string): string {
-  const probe = document.createElement("div");
-  probe.style.color = `var(${name})`;
-  el.append(probe);
-  const value = getComputedStyle(probe).color;
-  probe.remove();
-  return value;
-}
-
-/** Resolve any CSS color expression the way the surface would — through an element. */
-function bgOn(el: Element, expr: string): string {
-  const probe = document.createElement("div");
-  probe.style.backgroundColor = expr;
-  el.append(probe);
-  const value = getComputedStyle(probe).backgroundColor;
-  probe.remove();
-  return value;
-}
+/** Every token this file resolves is a colour, and the harness's tokenOn reads lengths — so
+    the name stays, one line over the shared probe. */
+const tokenOn = (el: Element, name: string): string => colorOn(el, `var(${name})`);
 
 describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
   it("is always the sealed bordered surface, and nothing casts a shadow", () => {
     const el = render(<Card>Body</Card>);
-    expect(computed(el, "background-color")).toBe(bgOn(el, "var(--color-surface)"));
+    expect(computed(el, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
     expect(computed(el, "box-shadow")).toBe("none");
     expect(computed(el, "backdrop-filter")).toBe("none");
@@ -73,17 +57,9 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     // The bug this pins: --radius-surface-N declared only in :root stays baked to the medium
     // palette (substitution-at-declaration), so a nested small Theme re-priced the palette
     // and the card's corner ignored it.
-    const small = render(
-      <Theme radius="small">
-        <Card>B</Card>
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-card")!;
+    const small = mounted(<Card>B</Card>, { theme: { radius: "small" } });
     expect(computed(small, "border-top-left-radius")).toBe("8px");
-    const none = render(
-      <Theme radius="none">
-        <Card>B</Card>
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-card")!;
+    const none = mounted(<Card>B</Card>, { theme: { radius: "none" } });
     expect(computed(none, "border-top-left-radius")).toBe("0px");
   });
 
@@ -91,17 +67,9 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     // Density reaches the card through the layout-space layer (§3, §12; the per-family sets
     // that shipped the same morning were superseded by the layer the same day) — otherwise
     // a compact Theme adjusted every control while its cards kept default air.
-    const compact = render(
-      <Theme density="compact">
-        <Card>B</Card>
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-card")!;
+    const compact = mounted(<Card>B</Card>, { theme: { density: "compact" } });
     expect(computed(compact, "padding-top")).toBe("16px");
-    const comfortable = render(
-      <Theme density="comfortable">
-        <Card>B</Card>
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-card")!;
+    const comfortable = mounted(<Card>B</Card>, { theme: { density: "comfortable" } });
     expect(computed(comfortable, "padding-top")).toBe("32px");
   });
 });
@@ -142,7 +110,7 @@ describe("material is backdrop defense, opt-in (§10)", () => {
   it("a material fill is the shell's own seal made translucent — the modifier, applied (§10)", () => {
     const thin = render(<Card material="thin">B</Card>);
     expect(computed(thin, "background-color")).toBe(
-      bgOn(thin, "color-mix(in srgb, var(--color-surface) var(--material-thin-alpha), transparent)"),
+      colorOn(thin, "color-mix(in srgb, var(--color-surface) var(--material-thin-alpha), transparent)"),
     );
     expect(computed(thin, "background-color")).not.toMatch(/^rgb\(/);
   });
@@ -154,7 +122,7 @@ describe("material is backdrop defense, opt-in (§10)", () => {
       </Card>,
     );
     const inner = outer.querySelector<HTMLElement>('[data-testid="inner"]')!;
-    expect(computed(inner, "background-color")).toBe(bgOn(inner, "var(--color-surface)"));
+    expect(computed(inner, "background-color")).toBe(colorOn(inner, "var(--color-surface)"));
     expect(computed(inner, "backdrop-filter")).toBe("none");
   });
 });
@@ -200,12 +168,7 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
   it("the elevated world dresses the shell; flat stays shadowless; no Card API exists (§5, §10)", () => {
     const flat = render(<Card>B</Card>);
     expect(computed(flat, "box-shadow")).toBe("none");
-    const elevated = render(
-      <Theme surfaces="elevated">
-        <Card>B</Card>
-      </Theme>,
-    );
-    const el = elevated.querySelector<HTMLElement>(".kui-card")!;
+    const el = mounted(<Card>B</Card>, { theme: { surfaces: "elevated" } });
     // Depth IS the palette: the elevated card wears exactly row 2 — one lighting model.
     const probe = document.createElement("div");
     probe.style.boxShadow = "var(--shadow-2)";
@@ -224,12 +187,7 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
 
   it("follows appearance: the same Card resolves differently under a dark Theme", () => {
     const light = render(<Card>B</Card>);
-    const dark = render(
-      <Theme appearance="dark">
-        <Card>B</Card>
-      </Theme>,
-    );
-    const darkCard = dark.querySelector<HTMLElement>(".kui-card")!;
+    const darkCard = mounted(<Card>B</Card>, { theme: { appearance: "dark" } });
     expect(computed(darkCard, "color")).not.toBe(computed(light, "color"));
     expect(computed(darkCard, "border-top-color")).not.toBe(computed(light, "border-top-color"));
   });
@@ -372,14 +330,9 @@ describe("the seal's three rungs are three different colours, in both modes (§1
   // In dark, --color-surface and --color-surface-hover were both var(--neutral-2) — the same
   // token, so the same pixels — and an interactive card had no hover feedback at all for the
   // entire dark world. The name was there; the colour was not.
-  for (const appearance of ["light", "dark"] as const) {
+  for (const appearance of APPEARANCES) {
     it(`resolves rest, hover and active apart under appearance="${appearance}"`, () => {
-      const el = render(
-        <Theme appearance={appearance}>
-          <Card id="probe" />
-        </Theme>,
-      );
-      const card = el.querySelector("#probe")!;
+      const card = mounted(<Card />, { theme: { appearance } });
       const [rest, hover, active] = ["--color-surface", "--color-surface-hover", "--color-surface-active"].map(
         (token) => computed(card, token),
       );

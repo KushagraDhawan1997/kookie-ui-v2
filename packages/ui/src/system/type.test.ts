@@ -4,17 +4,17 @@
  * through a token. The mounted half — what the engine actually computes through a Theme —
  * lives in components/text/text.browser.test.tsx (the 2026-08-03 audit standard).
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { tones } from "../tokens/color-config.ts";
 import { fontSize } from "../tokens/config.ts";
+import { sheet } from "../test/stylesheets.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const css = readFileSync(join(here, "./type.css"), "utf8");
-const stripped = css.replace(/\/\*[\s\S]*?\*\//g, "");
+const stripped = sheet("system/type.css");
 
 describe("Text and Heading own no CSS at all (§2, §15)", () => {
   it("neither ships a stylesheet — the type layer is the whole of what they look like", () => {

@@ -11,6 +11,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { generateLayoutCss } from "../system/layout-css.ts";
+import { decl, indent } from "./emit.ts";
 import { tones, type ToneName } from "./color-config.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
@@ -31,12 +32,15 @@ import {
   layoutSpace,
   letterSpacing,
   lineHeight,
+  markRadius,
+  markSteps,
   material,
   motion,
   radiusLevels,
   radiusOverlay,
   radiusSurface,
   shadow,
+  sliderTrack,
   space,
   surfaceChrome,
   surfaceColor,
@@ -56,7 +60,7 @@ const zoom = (px: number) => `calc(${px}px * var(--scale))`;
 
 export function generateTokens(): string {
   const lines: string[] = [];
-  const put = (name: string, value: string) => lines.push(`  --${name}: ${value};`);
+  const put = (name: string, value: string) => lines.push(decl(name, value));
 
   lines.push(HEADER, ":root {");
 
@@ -86,6 +90,35 @@ export function generateTokens(): string {
 
   lines.push("", "  /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */");
   iconSize.forEach((px, i) => put(`icon-size-${i + 1}`, zoom(px)));
+
+  lines.push(
+    "",
+    "  /* the mark family (§4) — the painted box of a control that IS its own mark: checkbox,",
+    "     radio, switch track, slider thumb. ONE ladder, and it is the line box: a mark occupies",
+    "     exactly one line of the label it sits beside. Emitted as the resolved length rather",
+    "     than var(--line-height-N) so a band re-pricing type cannot leave a mark behind — the",
+    "     pointer worlds re-declare it below, which is where the coarse rise comes from. */",
+  );
+  lines.push(...markFamily(markSteps));
+
+  lines.push(
+    "",
+    "  /* and the mark's own corner (§6) — its own picks into the palette, because riding",
+    "     --radius-control-N made it hold a fraction of a box a mark does not have (0.250 ->",
+    "     0.385 across the index, and 0.462 at comfortable size 4, a circle in all but name).",
+    "     Density never touches it: the box it rounds does not move either. */",
+  );
+  lines.push(...markRadiusFamily(defaultRadiusLevel));
+
+  lines.push(
+    "",
+    "  /* the slider's track thickness (§4, §11) — raw designed px per size, ~0.25 of the fine",
+    "     mark (the palette has nothing between 4 and 8, the mark's own wall one part over).",
+    "     Density- and pointer-invariant: the coarse target is the CONTROL's height, and iOS",
+    "     holds its track at 4pt against a 28pt thumb for the same reason. Emitted once at",
+    "     :root — no scope below re-prices it, so there is nothing to re-declare. */",
+  );
+  sliderTrack.forEach((px, i) => lines.push(decl(`slider-track-${i + 1}`, zoom(px))));
 
   lines.push(
     "",
@@ -161,13 +194,13 @@ export function generateTokens(): string {
   lines.push(
     "@supports (color: color(display-p3 0 0 0)) {",
     "  :root {",
-    ...colorDeclarations("light", "p3").map((l) => `  ${l}`),
+    ...indent(colorDeclarations("light", "p3")),
     "  }",
     `  [data-appearance="light"] {`,
-    ...colorDeclarations("light", "p3").map((l) => `  ${l}`),
+    ...indent(colorDeclarations("light", "p3")),
     "  }",
     `  [data-appearance="dark"] {`,
-    ...colorDeclarations("dark", "p3").map((l) => `  ${l}`),
+    ...indent(colorDeclarations("dark", "p3")),
     "  }",
     "}",
     "",
@@ -179,7 +212,7 @@ export function generateTokens(): string {
   for (const gamut of ["srgb", "p3"] as const) {
     const wrap = (body: string[]) =>
       gamut === "p3"
-        ? ["@supports (color: color(display-p3 0 0 0)) {", ...body.map((l) => `  ${l}`), "}"]
+        ? ["@supports (color: color(display-p3 0 0 0)) {", ...indent(body), "}"]
         : body;
     for (const mode of ["light", "dark"] as const) {
       // Light needs BOTH bases. :root carries the un-themed document, but Theme renders a div,
@@ -196,13 +229,10 @@ export function generateTokens(): string {
       // override here could never do. srgb pass only: none of this varies by gamut.
       if (gamut === "srgb") {
         for (const t of ["thin", "regular", "thick"] as const) {
-          const [rest, hover, active] = material[mode][t].alphaHigh;
           decls.push(
-            `  --material-${t}-alpha: ${rest}%;`,
-            `  --material-${t}-alpha-hover: ${hover}%;`,
-            `  --material-${t}-alpha-active: ${active}%;`,
-            `  --material-${t}-edge: initial;`,
-            `  --material-${t}-rim: initial;`,
+            ...materialAlpha(t, material[mode][t].alphaHigh),
+            decl(`material-${t}-edge`, "initial"),
+            decl(`material-${t}-rim`, "initial"),
           );
         }
       }
@@ -218,7 +248,7 @@ export function generateTokens(): string {
           "}",
           `@media (prefers-contrast: more) {`,
           `  ${auto} {`,
-          ...decls.map((l) => `  ${l}`),
+          ...indent(decls),
           "  }",
           "}",
         ]),
@@ -262,6 +292,7 @@ export function generateTokens(): string {
       `[data-radius="${level}"] {`,
       ...radiusPalette(level),
       ...surfaceRadiusFamily(),
+      ...markRadiusFamily(level),
       "}",
       "",
     );
@@ -319,7 +350,7 @@ export function generateTokens(): string {
   lines.push(...pointerWorld("coarse", coarse));
   lines.push(
     `@media ${handheldMedia} {`,
-    ...pointerWorld("auto", coarse).map((l) => (l === "" ? l : `  ${l}`)),
+    ...indent(pointerWorld("auto", coarse)),
     "}",
     "",
   );
@@ -349,7 +380,7 @@ export function generateTokens(): string {
   lines.push(
     `@media ${narrowMedia} {`,
     "  :root {",
-    ...bandTypePalette(typeBands.narrow, narrow).map((l) => `  ${l}`),
+    ...indent(bandTypePalette(typeBands.narrow, narrow)),
     "  }",
     "}",
     "",
@@ -379,11 +410,14 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
   // nothing inherits. Neither world touches steps 8-9: width is the narrow band's question,
   // and a pointer says nothing about how wide the window is.
   const bandSteps = moved(typeBands.handheld);
-  const band = bandTypePalette(
-    pointer === "fine" ? fontSize.map((_, i) => i + 1) : typeBands.handheld,
-    bandSteps,
-  );
-  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, ...band, "}", "");
+  const picks = pointer === "fine" ? fontSize.map((_, i) => i + 1) : typeBands.handheld;
+  const band = bandTypePalette(picks, bandSteps);
+  // The mark family rides the band rather than being designed twice (§4): a checkbox is one
+  // line of its label in both worlds, so the coarse rise is the type rise and nothing else.
+  // Re-declared here in full — all four steps, not just the moved ones — because these are
+  // resolved lengths, and a scope that declares nothing inherits the world above it.
+  const marks = markFamily(picks);
+  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, ...band, ...marks, "}", "");
   for (const d of Object.keys(sets) as DensityLevel[]) {
     if (d === "default") continue;
     out.push(`${P}[data-density="${d}"] {`, ...controlFamily(sets[d]), "}", "");
@@ -403,8 +437,22 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
   return out;
 }
 
-/** Every role a component may read, bound to one tone family (§7). */
-const ROLES = [
+/** The material alpha triple, spelled once: surfaceWorld() and the contrast="high" loop both
+ * emit these three names, and until 2026-08-06 each spelled them by hand — renaming the family
+ * meant finding both. */
+const materialAlpha = (name: string, alpha: readonly number[]): string[] => {
+  const [rest, hover, active] = alpha;
+  return [
+    decl(`material-${name}-alpha`, `${rest}%`),
+    decl(`material-${name}-alpha-hover`, `${hover}%`),
+    decl(`material-${name}-alpha-active`, `${active}%`),
+  ];
+};
+
+/** Every role a component may read, bound to one tone family (§7). Exported for the
+ * preview, which builds its role table and accent swap FROM this list — an exhaustive
+ * switch, so adding a role here fails the preview build until the page can show it. */
+export const ROLES = [
   "soft",
   "soft-hover",
   "soft-active",
@@ -426,7 +474,7 @@ const ROLES = [
 ] as const;
 
 function toneRoles(tone: ToneName): string[] {
-  return ROLES.map((role) => `  --tone-${role}: var(--${tone}-${role});`);
+  return ROLES.map((role) => decl(`tone-${role}`, `var(--${tone}-${role})`));
 }
 
 /**
@@ -439,18 +487,18 @@ function toneRoles(tone: ToneName): string[] {
 function surfaceWorld(mode: "light" | "dark"): string[] {
   const m = material[mode];
   const glass = (name: "thin" | "regular" | "thick") => {
-    const [rest, hover, active] = m[name].alpha;
     return [
-      `  --material-${name}-alpha: ${rest}%;`,
-      `  --material-${name}-alpha-hover: ${hover}%;`,
-      `  --material-${name}-alpha-active: ${active}%;`,
-      `  --material-${name}-filter: ${m[name].filter};`,
+      ...materialAlpha(name, m[name].alpha),
+      decl(`material-${name}-filter`, m[name].filter),
       // The pane's own edge and lighting (§10, 2026-08-05): a hairline of light, not pigment,
       // and a top rim catch painted as a background layer — NOT a shadow, so depth stays the
       // app's identity (surfaces="elevated") and the one-box-shadow law never learns glass
       // exists. A flat world's glass has edge and glint, no lift.
-      `  --material-${name}-edge: rgb(255 255 255 / ${m[name].edge});`,
-      `  --material-${name}-rim: linear-gradient(rgb(255 255 255 / ${m[name].rim}) 0 var(--border-width), transparent var(--border-width));`,
+      decl(`material-${name}-edge`, `rgb(255 255 255 / ${m[name].edge})`),
+      decl(
+        `material-${name}-rim`,
+        `linear-gradient(rgb(255 255 255 / ${m[name].rim}) 0 var(--border-width), transparent var(--border-width))`,
+      ),
     ];
   };
   return [
@@ -468,58 +516,83 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     ...glass("thin"),
     ...glass("regular"),
     ...glass("thick"),
-    `  --material-opaque-alpha: ${material.fallbackAlpha}%;`,
+    decl("material-opaque-alpha", `${material.fallbackAlpha}%`),
     "",
     `  /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.`,
     `     Three rungs, the type ladder's resolutions: loud reads text, medium muted, quiet`,
     `     faint. Faint is BELOW body-copy contrast by design (a placeholder, a timestamp) —`,
     `     it must never carry a reading-length line, which is the call site's law. */`,
-    `  --color-text: var(--neutral-12);`,
-    `  --color-text-muted: var(--neutral-11);`,
-    `  --color-text-faint: var(--neutral-10);`,
+    decl("color-text", "var(--neutral-12)"),
+    decl("color-text-muted", "var(--neutral-11)"),
+    decl("color-text-faint", "var(--neutral-10)"),
     "",
     `  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's`,
     `     job alone. Paper above the page, so a card is visible where it lives. The hover and`,
     `     active steps serve the card-as-button pattern: the seal darkening under the pointer. */`,
-    `  --color-surface: ${surfaceColor[mode].rest};`,
-    `  --color-surface-hover: ${surfaceColor[mode].hover};`,
-    `  --color-surface-active: ${surfaceColor[mode].active};`,
+    decl("color-surface", surfaceColor[mode].rest),
+    decl("color-surface-hover", surfaceColor[mode].hover),
+    decl("color-surface-active", surfaceColor[mode].active),
+    "",
+    `  /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in`,
+    `     THIS family"; this answers "the edge of a thing that has no family" — a Separator, and`,
+    `     the resting box of a control whose tone belongs to its ON state alone (Checkbox, Radio,`,
+    `     Switch: neutral off, accent on). Without it, such a control has to choose between`,
+    `     stamping accent and wearing a tinted edge at rest, or stamping neutral and having no`,
+    `     way to name accent when it is checked — and naming a FAMILY in a component stylesheet`,
+    `     is what the role-not-family law forbids. Neutral's own border role, exposed. */`,
+    decl("color-border", "var(--neutral-border)"),
     "",
     `  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;`,
     `     elevation stays deleted. Row 1 is the inset well. */`,
-    ...shadow[mode].map((row, i) => `  --shadow-${i + 1}: ${row};`),
+    ...shadow[mode].map((row, i) => decl(`shadow-${i + 1}`, row)),
     "",
     `  /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is`,
     `     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */`,
-    `  --surface-chrome: ${surfaceChrome[mode]};`,
+    decl("surface-chrome", surfaceChrome[mode]),
   ];
 }
 
 /** The radius palette for one level (§6). Steps 1-5 control, 6-9 surfaces, 10 the overlay. */
 function radiusPalette(level: RadiusLevel): string[] {
   const { steps, full } = radiusLevels[level];
-  const out = steps.map((px, i) => `  --radius-${i}: ${px === 0 ? "0px" : zoom(px)};`);
-  out.push(`  --radius-full: ${full === 0 ? "0px" : `${full}px`};`);
+  const out = steps.map((px, i) => decl(`radius-${i}`, px === 0 ? "0px" : zoom(px)));
+  out.push(decl("radius-full", full === 0 ? "0px" : `${full}px`));
   return out;
 }
 
 /** Surface radii (§6, §10): size-indexed picks into the surface band, plus the flat overlay. */
 function surfaceRadiusFamily(): string[] {
   return [
-    ...radiusSurface.map((step, i) => `  --radius-surface-${i + 1}: var(--radius-${step});`),
-    `  --radius-overlay: var(--radius-${radiusOverlay});`,
+    ...radiusSurface.map((step, i) => decl(`radius-surface-${i + 1}`, `var(--radius-${step})`)),
+    decl("radius-overlay", `var(--radius-${radiusOverlay})`),
   ];
+}
+
+/** The mark corner (§6) for one radius level: the family's own picks, density-invariant.
+ *
+ * At `full` it holds at `large`'s values, which is the surface band's own sentence one band
+ * over — full means a corner stops getting rounder, never that it retreats — and here it is
+ * also what keeps a checkbox from becoming a radio. The control band cannot serve this: it
+ * states the capsule at `full` and, more quietly, it is DENSITY-indexed, so an axis that never
+ * touches the mark's box was moving the mark's corner (0.462 of the box at comfortable size 4,
+ * measured; the `full` ceiling could not see it because no theme was involved). */
+function markRadiusFamily(level: RadiusLevel): string[] {
+  const steps = radiusLevels[level === "full" ? "large" : level].steps;
+  return markRadius.map((pick, i) => {
+    const px = steps[pick]!;
+    return decl(`radius-mark-${i + 1}`, px === 0 ? "0px" : zoom(px));
+  });
 }
 
 /** Layout space for one density level (§3, §12): designed picks into the untouched palette. */
 function layoutSpaceFamily(level: DensityLevel): string[] {
-  return layoutSpace[level].map((step, i) => `  --layout-space-${i + 1}: var(--space-${step});`);
+  return layoutSpace[level].map((step, i) => decl(`layout-space-${i + 1}`, `var(--space-${step})`));
 }
 
 /** Surface padding (§10): fixed picks into layout space — density speaks through the layer. */
 function surfacePaddingFamily(): string[] {
   return surfacePadding.map(
-    (step, i) => `  --surface-p-${i + 1}: var(--layout-space-${step});`,
+    (step, i) => decl(`surface-p-${i + 1}`, `var(--layout-space-${step})`),
   );
 }
 
@@ -534,16 +607,16 @@ function surfacePaddingFamily(): string[] {
 function controlRadiusFamily(set: DensitySet, level: RadiusLevel): string[] {
   if (level === "full")
     return set.radius.map(
-      (_, i) => `  --radius-control-${i + 1}: calc(var(--control-height-${i + 1}) / 2);`,
+      (_, i) => decl(`radius-control-${i + 1}`, `calc(var(--control-height-${i + 1}) / 2)`),
     );
-  return set.radius.map((step, i) => `  --radius-control-${i + 1}: var(--radius-${step});`);
+  return set.radius.map((step, i) => decl(`radius-control-${i + 1}`, `var(--radius-${step})`));
 }
 
 /** The four size-indexed control tokens for one designed set (§12, §16). No gap here: the
  * icon-label gap is the label cluster's (§4), size- and pointer-indexed but never density's. */
 function controlFamily(set: DensitySet): string[] {
   const out: string[] = [];
-  const put = (name: string, value: string) => out.push(`  --${name}: ${value};`);
+  const put = (name: string, value: string) => out.push(decl(name, value));
 
   set.height.forEach((px, i) => put(`control-height-${i + 1}`, zoom(px)));
   // Raw px, alongside the height it has to hold a fraction of — NOT a pick into the space
@@ -574,13 +647,13 @@ function controlFamily(set: DensitySet): string[] {
 
 /** The icon-label gap for one pointer world (§4, §12): size-indexed, density-invariant. */
 function controlGapFamily(world: keyof typeof controlGap): string[] {
-  return controlGap[world].map((step, i) => `  --control-gap-${i + 1}: var(--space-${step});`);
+  return controlGap[world].map((step, i) => decl(`control-gap-${i + 1}`, `var(--space-${step})`));
 }
 
 /** The pill padding for one designed set (§4, §6): what a bare edge pads under `radius="full"`.
  * Raw zoomed lengths, like px — the full level has no palette step to point these at. */
 function pillFamily(set: DensitySet): string[] {
-  return set.pxPill.map((px, i) => `  --control-px-pill-${i + 1}: ${zoom(px)};`);
+  return set.pxPill.map((px, i) => decl(`control-px-pill-${i + 1}`, zoom(px)));
 }
 
 /** The steps a band actually MOVES — every index whose pick is not the identity. Derived
@@ -590,6 +663,16 @@ function moved(picks: readonly number[]): number[] {
   return picks.flatMap((step, i) => (step === i + 1 ? [] : [i]));
 }
 
+/** The mark ladder (§4) for one set of type picks: `--mark-N` is the line box of the step the
+ * band actually renders, so the marks rise on a phone for the same reason the label does.
+ * `picks` is the band's mapping — the identity in the fine world, `typeBands.handheld` in the
+ * coarse one. Resolved to a length here rather than pointing at `--line-height-N`, because a
+ * var() bakes where it is declared (§6): a :root-level indirection would carry the desktop
+ * line box into the coarse scope, which is the one place this family has to move. */
+function markFamily(picks: readonly number[]): string[] {
+  return markSteps.map((_, i) => decl(`mark-${i + 1}`, zoom(lineHeight[picks[i]! - 1]!)));
+}
+
 /** One band of the type palette (§15, §17), over the steps it moves: each pick re-prices the
  * step's designed TRIPLE — font-size, line height, letter spacing move together or not at
  * all. `indices` is passed rather than derived so the fine-pointer ESCAPE can emit the
@@ -597,9 +680,9 @@ function moved(picks: readonly number[]): number[] {
 function bandTypePalette(picks: readonly number[], indices: readonly number[]): string[] {
   const at = (i: number) => picks[i]! - 1;
   return [
-    ...indices.map((i) => `  --font-size-${i + 1}: ${zoom(fontSize[at(i)]!)};`),
-    ...indices.map((i) => `  --line-height-${i + 1}: ${zoom(lineHeight[at(i)]!)};`),
-    ...indices.map((i) => `  --letter-spacing-${i + 1}: ${letterSpacing[at(i)]!}em;`),
+    ...indices.map((i) => decl(`font-size-${i + 1}`, zoom(fontSize[at(i)]!))),
+    ...indices.map((i) => decl(`line-height-${i + 1}`, zoom(lineHeight[at(i)]!))),
+    ...indices.map((i) => decl(`letter-spacing-${i + 1}`, `${letterSpacing[at(i)]!}em`)),
   ];
 }
 

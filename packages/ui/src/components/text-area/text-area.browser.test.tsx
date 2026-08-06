@@ -10,30 +10,18 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
-import { computed, render } from "../../test/browser.tsx";
+import { SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { TextArea } from "./text-area.tsx";
 
-/** Resolve a token the way the component does — through an element in the same scope. */
-function tokenOn(el: Element, name: string): string {
-  const probe = document.createElement("div");
-  probe.style.color = `var(${name})`;
-  el.parentElement!.append(probe);
-  const value = getComputedStyle(probe).color;
-  probe.remove();
-  return value;
-}
+/** Differs from the harness placement on purpose: a <textarea> renders no children, so the
+    probe must sit BESIDE the element — the parent is the nearest scope that can host it. */
+const tokenOn = (el: Element, name: string): string =>
+  colorOn(el.parentElement!, `var(${name})`);
 
-/** Resolve any colour expression the way the stylesheet would, in this element's scope. */
-function bgOn(el: Element, expr: string): string {
-  const probe = document.createElement("div");
-  probe.style.backgroundColor = expr;
-  el.parentElement!.append(probe);
-  const value = getComputedStyle(probe).backgroundColor;
-  probe.remove();
-  return value;
-}
+/** Same sibling placement, for whole colour expressions. */
+const bgOn = (el: Element, expr: string): string => colorOn(el.parentElement!, expr);
 
 const px = (v: string) => parseFloat(v);
 
@@ -45,9 +33,8 @@ const px = (v: string) => parseFloat(v);
  * and bgOn only normalises the resulting colour string.
  */
 function stateFill(el: Element, state: "hover" | "active"): string {
-  const styles = getComputedStyle(el);
-  const derived = styles.getPropertyValue(`--kui-ct-fill-${state}`).trim();
-  return bgOn(el, derived || styles.getPropertyValue(`--kui-ct-fill-src-${state}`).trim());
+  const derived = computed(el, `--kui-ct-fill-${state}`);
+  return bgOn(el, derived || computed(el, `--kui-ct-fill-src-${state}`));
 }
 
 const onPlaceholder = (el: Element, prop: string): string =>
@@ -59,7 +46,7 @@ describe("padding is the dimension, and it is ONE inset (§4, reversed 2026-08-0
   // TextField — and the residue read as an accident the moment a second line existed: 13px at
   // the sides, 9px above, chosen by nobody. Every real textarea is a multi-row paragraph, so
   // the paragraph wins outright: the frame is the side padding, all four sides.
-  for (const size of ["1", "2", "3", "4"] as const) {
+  for (const size of SIZES) {
     it(`the frame is uniform at size ${size} — block padding IS the side padding`, () => {
       const el = render(<TextArea size={size} rows={3} />);
       expect(computed(el, "padding-top")).toBe(computed(el, "padding-left"));
@@ -119,12 +106,7 @@ describe("padding is the dimension, and it is ONE inset (§4, reversed 2026-08-0
     // vertically the curve has flattened to under half a pixel where the text starts. So at
     // full the sides take the pill value and the block keeps the plain inset — Kushagra's
     // call, judged in the preview.
-    const host = render(
-      <Theme radius="full">
-        <TextArea size="2" rows={3} />
-      </Theme>,
-    );
-    const el = host.querySelector<HTMLElement>(".kui-textarea")!;
+    const el = mounted(<TextArea size="2" rows={3} />, { theme: { radius: "full" } });
     const plain = render(<TextArea size="2" rows={3} />);
     expect(px(computed(el, "padding-left"))).toBeGreaterThan(px(computed(plain, "padding-left")));
     expect(computed(el, "padding-top")).toBe(computed(plain, "padding-top"));
@@ -282,7 +264,9 @@ describe("the placeholder is a designed role, not a UA default (§7, §15)", () 
 });
 
 describe("the app's identities reach it without it knowing (§5, §10)", () => {
-  it("the elevated world lifts it; flat casts nothing", () => {
+  it("a well casts no shadow — flat in BOTH worlds (§5, reversed 2026-08-06)", () => {
+    // Same reversal as TextField's: a field is a well, wells are content of a plane rather
+    // than a plane above one, and the elevated set is actual surfaces only.
     expect(computed(render(<TextArea />), "box-shadow")).toBe("none");
     const host = render(
       <Theme surfaces="elevated">
@@ -290,11 +274,7 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
       </Theme>,
     );
     const el = host.querySelector<HTMLElement>(".kui-textarea")!;
-    const probe = document.createElement("div");
-    probe.style.boxShadow = "var(--surface-chrome)";
-    host.append(probe);
-    expect(computed(el, "box-shadow")).toBe(computed(probe, "box-shadow"));
-    probe.remove();
+    expect(computed(el, "box-shadow")).toBe("none");
     // @ts-expect-error — depth is an app identity; nothing chooses a shadow
     void (<TextArea shadow="2" />);
   });
@@ -315,11 +295,7 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
 
   it("resolves differently under a dark Theme — both directions of every axis", () => {
     const light = render(<TextArea />);
-    const dark = render(
-      <Theme appearance="dark">
-        <TextArea />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-textarea")!;
+    const dark = mounted(<TextArea />, { theme: { appearance: "dark" } });
     expect(computed(dark, "background-color")).not.toBe(computed(light, "background-color"));
     expect(computed(dark, "border-top-color")).not.toBe(computed(light, "border-top-color"));
     expect(computed(dark, "background-color")).toBe(bgOn(dark, "var(--color-surface)"));
@@ -340,11 +316,7 @@ describe("the zoom floor rides the pointer axis (§4, §16)", () => {
   });
 
   it("and is the identity on a fine pointer — nothing is paid where nothing zooms", () => {
-    const fine = render(
-      <Theme pointer="fine">
-        <TextArea size="1" />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-textarea")!;
+    const fine = mounted(<TextArea size="1" />, { theme: { pointer: "fine" } });
     expect(px(computed(fine, "font-size"))).toBeLessThan(16);
     // One element means the floor moves the box's own type where it applies; the line height
     // keeps its token, so the sizes still answer the index where the floor is inert.
@@ -386,12 +358,7 @@ describe("a capsule is half the HEIGHT TOKEN, not half the rendered box (§6, de
 
   it("a fixed-height control renders the identical capsule the clamp used to produce", () => {
     // The change must be invisible where 9999 was giving the right answer.
-    const host = render(
-      <Theme radius="full">
-        <Button size="2">Label</Button>
-      </Theme>,
-    );
-    const button = host.querySelector<HTMLElement>(".kui-button")!;
+    const button = mounted(<Button size="2">Label</Button>, { theme: { radius: "full" } });
     expect(px(computed(button, "border-top-left-radius"))).toBeCloseTo(
       px(computed(button, "min-height")) / 2,
       1,
@@ -419,11 +386,7 @@ describe("a capsule is half the HEIGHT TOKEN, not half the rendered box (§6, de
   });
 
   it("every other radius level is untouched — the rule exists only where the capsule does", () => {
-    const medium = render(
-      <Theme radius="medium">
-        <TextArea size="2" rows={4} />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-textarea")!;
+    const medium = mounted(<TextArea size="2" rows={4} />, { theme: { radius: "medium" } });
     expect(px(computed(medium, "border-top-left-radius"))).toBeLessThan(
       px(computed(medium, "min-height")) / 2,
     );

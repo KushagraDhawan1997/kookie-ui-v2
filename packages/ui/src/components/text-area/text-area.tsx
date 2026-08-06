@@ -3,7 +3,7 @@
 import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
-import type { Material, Size } from "../button/button.tsx";
+import type { Material, Size } from "../../system/axes.ts";
 
 export type TextAreaProps = Omit<
   React.ComponentPropsWithoutRef<"textarea">,
@@ -21,6 +21,7 @@ export type TextAreaProps = Omit<
   /** §10 — backdrop defense, opt-in: zero CSS of its own, the control layer's material block
       re-derives the fill from whatever the component declared. */
   material?: Material;
+  ref?: React.Ref<HTMLTextAreaElement>;
 };
 
 /**
@@ -50,10 +51,13 @@ export type TextAreaProps = Omit<
  * Disabled likewise: whichever route sets it (our prop, or Field.Root computing it at the
  * control), it lands here as the native attribute, and the shared remap reads `:disabled`.
  */
-export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
-  { size = "2", material = "solid", className, ...props },
+export function TextArea({
+  size = "2",
+  material = "solid",
+  className,
   ref,
-) {
+  ...props
+}: TextAreaProps) {
   return (
     <BaseInput
       ref={ref as React.Ref<HTMLElement>}
@@ -73,4 +77,4 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(fun
       {...(props as unknown as React.ComponentPropsWithoutRef<"input">)}
     />
   );
-});
+}

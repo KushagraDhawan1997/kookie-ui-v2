@@ -54,6 +54,7 @@
     "culori": "^4.0.2",
     "eslint": "^9.30.0",
     "lightningcss": "^1.30.0",
+    "pako": "2.1.0",
     "playwright": "^1.62.1",
     "publint": "^0.3.23",
     "react": "^19.1.0",

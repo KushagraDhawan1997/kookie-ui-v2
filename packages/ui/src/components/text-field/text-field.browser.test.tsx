@@ -11,42 +11,28 @@ import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
 import { density } from "../../tokens/config.ts";
-import { computed, render } from "../../test/browser.tsx";
+import { SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "./text-field.tsx";
 
-/** Resolve a token the way the component does — through an element in the same scope. */
-function tokenOn(el: Element, name: string): string {
-  const probe = document.createElement("div");
-  probe.style.color = `var(${name})`;
-  el.append(probe);
-  const value = getComputedStyle(probe).color;
-  probe.remove();
-  return value;
-}
+const px = (v: string) => parseFloat(v);
 
-/** Resolve any colour expression the way the stylesheet would, in this element's scope. */
-function bgOn(el: Element, expr: string): string {
-  const probe = document.createElement("div");
-  probe.style.backgroundColor = expr;
-  el.append(probe);
-  const value = getComputedStyle(probe).backgroundColor;
-  probe.remove();
-  return value;
-}
+/** Every token this file resolves is a colour, and the harness's tokenOn reads lengths — so
+    the name stays, one line over the shared probe. */
+const tokenOn = (el: Element, name: string): string => colorOn(el, `var(${name})`);
 
 /**
  * The fill a state rule would actually paint, resolved the way the cascade resolves it.
  *
- * `bgOn` alone cannot answer this: the derived fills are registered `inherits: false` (so a
+ * `colorOn` alone cannot answer this: the derived fills are registered `inherits: false` (so a
  * glass control never paints its veil onto controls nested inside it), and the probe is a
  * CHILD — it sees nothing, falls through to the inheriting source, and reports the seal for
  * every material in the system. So read the derived value off the element itself, and fall
  * back to the source exactly as `var(--kui-fill-X, var(--kui-fill-src-X))` does.
  */
 function stateFill(el: Element, state: "hover" | "active"): string {
-  const derived = getComputedStyle(el).getPropertyValue(`--kui-ct-fill-${state}`).trim();
-  return bgOn(el, derived || `var(--kui-ct-fill-src-${state})`);
+  const derived = computed(el, `--kui-ct-fill-${state}`);
+  return colorOn(el, derived || `var(--kui-ct-fill-src-${state})`);
 }
 
 const inputOf = (el: HTMLElement) => el.querySelector("input")!;
@@ -78,18 +64,10 @@ describe("the wrapper is the control, and it joins the size index (§4)", () => 
   });
 
   it("follows the density and pointer worlds, like every control (§12, §16)", () => {
-    const compact = render(
-      <Theme density="compact">
-        <TextField size="2" />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-field")!;
+    const compact = mounted(<TextField size="2" />, { theme: { density: "compact" } });
     expect(computed(compact, "min-height")).toBe("28px");
 
-    const touch = render(
-      <Theme pointer="coarse">
-        <TextField size="2" />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-field")!;
+    const touch = mounted(<TextField size="2" />, { theme: { pointer: "coarse" } });
     expect(computed(touch, "min-height")).toBe("44px");
   });
 });
@@ -110,7 +88,7 @@ describe("a field and a button at the same index are the same box (§2, §4)", (
     "border-top-width",
   ];
 
-  for (const size of ["1", "2", "3", "4"] as const) {
+  for (const size of SIZES) {
     it(`agrees on every box property at size ${size}`, () => {
       const button = render(<Button size={size}>Label</Button>);
       const field = render(<TextField size={size} />);
@@ -162,7 +140,7 @@ describe("one treatment: a field has no loudness (§9, §11)", () => {
 
   it("the fill is the opaque seal, and it does not move when you point at it", () => {
     const el = render(<TextField />);
-    expect(computed(el, "background-color")).toBe(bgOn(el, "var(--color-surface)"));
+    expect(computed(el, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
     expect(computed(el, "background-color")).not.toContain("rgba");
 
     // The trap this pins, which no rendered screenshot would catch: the shared layer paints
@@ -172,8 +150,8 @@ describe("one treatment: a field has no loudness (§9, §11)", () => {
     // would fall back to transparent. So resolve the interaction chains the way the hover and
     // press rules will, and assert they land on the same seal rather than on nothing.
     const rest = computed(el, "background-color");
-    expect(bgOn(el, "var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover))")).toBe(rest);
-    expect(bgOn(el, "var(--kui-ct-fill-active, var(--kui-ct-fill-src-active))")).toBe(rest);
+    expect(colorOn(el, "var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover))")).toBe(rest);
+    expect(colorOn(el, "var(--kui-ct-fill-active, var(--kui-ct-fill-src-active))")).toBe(rest);
   });
 
   it("wears a caret, not a hand, and its text stays selectable", () => {
@@ -396,20 +374,17 @@ describe("the slots are forced anatomy, and they behave like slots (§10)", () =
 });
 
 describe("the app's identities reach the field without it knowing (§5, §10)", () => {
-  it("the elevated world lifts it; flat casts nothing", () => {
+  it("a well casts no shadow — flat in BOTH worlds (§5, reversed 2026-08-06)", () => {
+    // The first cut lifted fields with the cards ("depth is the app's identity"), and the
+    // sentence was asserted, not judged: elevation separates a plane from what is BEHIND it,
+    // and a field is a well — content of a plane, not a plane above one. A recessed thing
+    // cannot cast a drop shadow. Material fields are filled or outlined, never raised; no
+    // platform shades an input. The elevated set is actual surfaces only.
     const flat = render(<TextField />);
     expect(computed(flat, "box-shadow")).toBe("none");
 
-    const elevated = render(
-      <Theme surfaces="elevated">
-        <TextField />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-field")!;
-    const probe = document.createElement("div");
-    probe.style.boxShadow = "var(--surface-chrome)";
-    elevated.append(probe);
-    expect(computed(elevated, "box-shadow")).toBe(computed(probe, "box-shadow"));
-    probe.remove();
+    const elevated = mounted(<TextField />, { theme: { surfaces: "elevated" } });
+    expect(computed(elevated, "box-shadow")).toBe("none");
     // @ts-expect-error — depth is an app identity; no field chooses a shadow
     void (<TextField shadow="2" />);
   });
@@ -420,23 +395,19 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // The veil is the field's OWN fill made translucent — the fill-modifier model, reached
     // through the shared control layer without text-field.css naming material once.
     expect(computed(glass, "background-color")).toBe(
-      bgOn(glass, "color-mix(in srgb, var(--color-surface) var(--material-regular-alpha), transparent)"),
+      colorOn(glass, "color-mix(in srgb, var(--color-surface) var(--material-regular-alpha), transparent)"),
     );
     expect(computed(glass, "background-color")).not.toMatch(/^rgb\(/);
   });
 
   it("resolves differently under a dark Theme — both directions of every axis", () => {
     const light = render(<TextField />);
-    const dark = render(
-      <Theme appearance="dark">
-        <TextField />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-field")!;
+    const dark = mounted(<TextField />, { theme: { appearance: "dark" } });
     expect(computed(dark, "background-color")).not.toBe(computed(light, "background-color"));
     expect(computed(dark, "border-top-color")).not.toBe(computed(light, "border-top-color"));
     // The dark seal and its own surface token, not a light value leaking through a var that
     // resolved where it was declared.
-    expect(computed(dark, "background-color")).toBe(bgOn(dark, "var(--color-surface)"));
+    expect(computed(dark, "background-color")).toBe(colorOn(dark, "var(--color-surface)"));
   });
 });
 
@@ -514,9 +485,7 @@ describe("a control hosted in a slot is sized by its container (§4, decided 202
   // relationship — pick a size index — and the mapping it was asked to infer was non-uniform
   // and undefined at size 1. Everything here is measured geometry, because that is the entire
   // subject: what the numbers ARE is the decision.
-  const px = (v: string) => parseFloat(v);
-
-  for (const size of ["1", "2", "3", "4"] as const) {
+  for (const size of SIZES) {
     it(`fits inside the field at size ${size}, with equal air on all four sides`, () => {
       const field = render(
         <TextField size={size} trailing={<Button>Show</Button>} defaultValue="hunter2" />,
@@ -553,11 +522,9 @@ describe("a control hosted in a slot is sized by its container (§4, decided 202
   });
 
   it("re-sizes with density, because both numbers ride the control family (§12)", () => {
-    const compact = render(
-      <Theme density="compact">
-        <TextField size="2" trailing={<Button>Show</Button>} />
-      </Theme>,
-    );
+    const compact = mounted(<TextField size="2" trailing={<Button>Show</Button>} />, {
+      theme: { density: "compact" },
+    });
     const dflt = render(<TextField size="2" trailing={<Button>Show</Button>} />);
     const h = (root: HTMLElement) => px(computed(root.querySelector<HTMLElement>(".kui-button")!, "height"));
     expect(h(compact)).toBeLessThan(h(dflt));
@@ -569,38 +536,26 @@ describe("a bare pill edge pads wider, and only a bare edge (§4, §6, decided 2
   // corner curve directly pads wider on that side alone. A leading icon or a trailing control
   // already stands between the text and the curve, so those sides keep what they had.
   it("a bare field compensates both sides; every other radius level is untouched", () => {
-    const full = render(
-      <Theme radius="full">
-        <TextField size="2" />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-field")!;
+    const full = mounted(<TextField size="2" />, { theme: { radius: "full" } });
     expect(computed(full, "padding-left")).toBe(`${density.default.pxPill[1]}px`);
     expect(computed(full, "padding-right")).toBe(`${density.default.pxPill[1]}px`);
 
-    const medium = render(
-      <Theme radius="medium">
-        <TextField size="2" />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-field")!;
+    const medium = mounted(<TextField size="2" />, { theme: { radius: "medium" } });
     expect(computed(medium, "padding-left")).toBe(`${density.default.px[1]}px`);
   });
 
   it("the Password case: leading text compensates, the trailing control keeps the slot inset", () => {
-    const field = render(
-      <Theme radius="full">
-        <TextField size="2" trailing={<Button size="1">Show</Button>} />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-field")!;
+    const field = mounted(<TextField size="2" trailing={<Button size="1">Show</Button>} />, {
+      theme: { radius: "full" },
+    });
     expect(computed(field, "padding-left")).toBe(`${density.default.pxPill[1]}px`);
     expect(computed(field, "padding-right")).toBe(`${density.default.slotInset[1]}px`);
   });
 
   it("the Search case: a leading icon keeps the plain padding under a pill", () => {
-    const field = render(
-      <Theme radius="full">
-        <TextField size="2" leading={<svg />} />
-      </Theme>,
-    ).querySelector<HTMLElement>(".kui-field")!;
+    const field = mounted(<TextField size="2" leading={<svg />} />, {
+      theme: { radius: "full" },
+    });
     expect(computed(field, "padding-left")).toBe(`${density.default.px[1]}px`);
   });
 });

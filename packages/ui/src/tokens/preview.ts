@@ -14,10 +14,17 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { tones, type Mode, type ToneName } from "./color-config.ts";
+import { inkMix, tones, type Mode, type ToneName } from "./color-config.ts";
 import { buildScale, buildScaleFor, toneFromColor, type Scale } from "./color.ts";
 
 import { density, fontSize, lineHeight, radiusLevels, type DensityLevel } from "./config.ts";
+import { ROLES } from "./generate.ts";
+import { SIZES } from "../system/axes.ts";
+import { tiers } from "../system/props.ts";
+
+/** The tier boundaries in px, for the readout script: the rem values are authored in
+    system/props.ts and a preview page has no rem context of its own at build time. */
+const remPx = (rem: string): number => parseFloat(rem) * 16;
 import { resolveBoxProps, type BoxStyleProps } from "../system/resolve.ts";
 
 /**
@@ -83,7 +90,7 @@ function spinner(style = ""): string {
     const opacity = (1 - (i / 8) * 0.85).toFixed(2);
     return `<rect x="11" y="2" width="2" height="5.5" rx="1" opacity="${opacity}" transform="rotate(${i * 45} 12 12)"/>`;
   }).join("");
-  return `<svg viewBox="0 0 24 24" aria-hidden class="kui-spinner"${style ? ` style="${style}"` : ""}>${spokes}</svg>`;
+  return `<span aria-hidden class="kui-spinner"${style ? ` style="${style}"` : ""}><svg viewBox="0 0 24 24" class="kui-spinner-svg">${spokes}</svg></span>`;
 }
 
 /**
@@ -160,21 +167,38 @@ function buttonMatrix(
  * `--tone-*` at the button, which sits below, the buttons inside simply pick it up. That is
  * §7's rebindable-accent claim doing real work rather than being asserted.
  */
+/** One role, one literal value off a built Scale — the swap's half of the generator's ROLES
+ * contract. Exhaustive over the union: the hand-kept ten-name list this replaces had already
+ * drifted (a swapped brand accent kept the theme's ink ladder and alpha fill), and a role
+ * added to ROLES now fails compilation here until the swap can express it. */
+function roleValue(s: Scale, role: (typeof ROLES)[number]): string {
+  switch (role) {
+    case "soft": return s.steps[2]!;
+    case "soft-hover": return s.steps[3]!;
+    case "soft-active": return s.steps[4]!;
+    case "solid": return s.solid;
+    case "solid-hover": return s.solidHover;
+    case "solid-active": return s.solidActive;
+    case "border": return s.steps[6]!;
+    case "text": return s.steps[10]!;
+    case "label": return s.label;
+    case "contrast": return s.contrast;
+    // A chroma family's inks: the one designed text colour, then the fade (§7, §15) — the
+    // mix spelled from the same config number the generator reads.
+    case "ink": return s.steps[10]!;
+    case "ink-muted": return `color-mix(in oklab, ${s.steps[10]!} ${inkMix.muted}%, transparent)`;
+    case "ink-faint": return `color-mix(in oklab, ${s.steps[10]!} ${inkMix.faint}%, transparent)`;
+    case "a3": return s.alpha[2]!;
+    default: {
+      const unmapped: never = role;
+      throw new Error(`accentSwap cannot express role: ${String(unmapped)}`);
+    }
+  }
+}
+
 function accentSwap(name: string, hex: string, mode: Mode): string {
   const t = toneFromColor(hex);
-  const vars = (s: Scale) =>
-    [
-      `--accent-soft: ${s.steps[2]}`,
-      `--accent-soft-hover: ${s.steps[3]}`,
-      `--accent-soft-active: ${s.steps[4]}`,
-      `--accent-solid: ${s.solid}`,
-      `--accent-solid-hover: ${s.solidHover}`,
-      `--accent-solid-active: ${s.solidActive}`,
-      `--accent-border: ${s.steps[6]}`,
-      `--accent-text: ${s.steps[10]}`,
-      `--accent-label: ${s.label}`,
-      `--accent-contrast: ${s.contrast}`,
-    ].join("; ");
+  const vars = (s: Scale) => ROLES.map((r) => `--accent-${r}: ${roleValue(s, r)}`).join("; ");
   // Class rules rather than an inline style: a baked inline value is unreachable by the
   // page-wide contrast toggle, which made these blocks the one place contrast="high"
   // silently did nothing. The high variant is baked beside the normal one instead.
@@ -206,7 +230,7 @@ function typeSection(): string {
     .map((s) =>
       kuiBox(
         { display: "flex", gap: "4", align: "baseline" },
-        `<span ${anno}>${s} — ${fontSize[s - 1]}/${lineHeight[s - 1]}</span>${text(s, "The quick brown fox jumps over the lazy dog")}`,
+        `<span ${anno} data-ramp-step="${s}">${s} — ${fontSize[s - 1]}/${lineHeight[s - 1]}</span>${text(s, "The quick brown fox jumps over the lazy dog")}`,
       ),
     )
     .join("");
@@ -306,7 +330,7 @@ function fieldSection(mode: Mode): string {
       { display: "flex", direction: "column", gap: "7" },
       demo(
         "the size index - one join, shared with every control (\u00a74)",
-        row(SIZES.map((n) => field({ size: String(n), placeholder: `size ${n}` })).join("")),
+        row(SIZES.map((n) => field({ size: n, placeholder: `size ${n}` })).join("")),
       ) +
         demo(
           "states - the border carries them; the fill never moves (\u00a78)",
@@ -380,8 +404,8 @@ function textAreaSection(mode: Mode): string {
         row(
           SIZES.map((n) =>
             [
-              field({ size: String(n), placeholder: `field ${n}` }),
-              textarea({ size: String(n), rows: 3, placeholder: `size ${n}` }),
+              field({ size: n, placeholder: `field ${n}` }),
+              textarea({ size: n, rows: 3, placeholder: `size ${n}` }),
             ].join(""),
           ).join(""),
         ),
@@ -404,6 +428,199 @@ function textAreaSection(mode: Mode): string {
             { display: "flex", gap: "5", wrap: "wrap", p: "7" },
             ["thin", "regular", "thick"].map((m) => textarea({ material: m, rows: 3, placeholder: m })).join(""),
           )}</div>`,
+        ),
+    )}
+  </section>`;
+}
+
+function checkbox(
+  attrs: {
+    size?: string;
+    checked?: boolean;
+    indeterminate?: boolean;
+    disabled?: boolean;
+    invalid?: boolean;
+    label?: string;
+  } = {},
+): string {
+  const { size = "2", checked, indeterminate, disabled, invalid, label } = attrs;
+  const state = indeterminate ? " data-indeterminate" : checked ? " data-checked" : " data-unchecked";
+  const glyph = `<svg viewBox="0 0 16 16" fill="none"${state} aria-hidden="true"><path class="kui-checkbox-check" d="M4 8.5 6.75 11.25 12 5.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path class="kui-checkbox-dash" d="M4.25 8h7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const box = `<span class="kui-control kui-mark kui-checkbox" data-size="${size}" data-tone="accent" data-bordered${
+    indeterminate ? " data-indeterminate" : checked ? " data-checked" : ""
+  }${disabled ? " data-disabled" : ""}${invalid ? ' aria-invalid="true"' : ""} role="checkbox">${glyph}</span>`;
+  // The label is a SIBLING, never children: a mark sits beside its label, and the row that
+  // owns them both is what spaces them (the non-negotiable). Judge the alignment here — the
+  // mark is one line box, so its top edge should sit exactly on the label's.
+  return label
+    ? kuiBox(
+        { display: "flex", gap: "3", align: "flex-start", flexShrink: "0" },
+        `${box}${text(Number(size), label)}`,
+      )
+    : box;
+}
+
+function checkboxSection(mode: Mode): string {
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
+  // A GRID with definite tracks, not a flex row, and the reason is a live system defect rather
+  // than taste: every .kui-box is a `container-type: inline-size` query container (§2), so its
+  // contents never contribute to its own inline size — a Box asked to shrink-wrap (a flex-row
+  // item, inline-flex, max-content) computes to ZERO and its content spills. Definite tracks
+  // hand each pair a width, which is the one thing containment does not take away. Recorded
+  // for a fix; a demo must not model a workaround silently.
+  const row = (body: string) =>
+    kuiBox({ display: "grid", columns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "5" }, body);
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo(
+        "the size index - one line of the label it sits beside, never the height ladder (\u00a74)",
+        row(SIZES.map((n) => checkbox({ size: n, checked: true, label: `size ${n}` })).join("")),
+      ) +
+        demo(
+          "states - neutral off, accent on (\u00a711); indeterminate is a third meaning, not a faded tick",
+          row(
+            [
+              checkbox({ label: "off" }),
+              checkbox({ checked: true, label: "on" }),
+              checkbox({ indeterminate: true, label: "mixed" }),
+              checkbox({ invalid: true, label: "invalid" }),
+              checkbox({ disabled: true, label: "disabled" }),
+              checkbox({ checked: true, disabled: true, label: "on + disabled" }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "hosted in a field's slot - it stays square, and the field's rule owns the target (\u00a74)",
+          row(
+            field({ size: "2", placeholder: "notify me", trailing: checkbox({ size: "2", checked: true }) }) +
+              field({ size: "3", placeholder: "remember", trailing: checkbox({ size: "3" }) }),
+          ),
+        ) +
+        demo(
+          "a stacked list - marks need 12px of air, and this gap holds it at every density (\u00a74)",
+          kuiBox(
+            // gap 5, not 4: the rule is 12 REAL pixels between stacked marks, and the compact
+            // density resolves gap 4 to 8px. Step 5 is the smallest index that clears the rule
+            // at all three densities (12 / 16 / 24).
+            { display: "flex", direction: "column", gap: "5" },
+            ["Ship it on Friday", "Notify the team", "Archive the old branch"]
+              .map((l, i) => checkbox({ checked: i === 0, label: l }))
+              .join(""),
+          ),
+        ),
+    )}
+  </section>`;
+}
+
+function radio(
+  attrs: {
+    size?: string;
+    checked?: boolean;
+    disabled?: boolean;
+    invalid?: boolean;
+    label?: string;
+  } = {},
+): string {
+  const { size = "2", checked, disabled, invalid, label } = attrs;
+  const state = checked ? " data-checked" : " data-unchecked";
+  const glyph = `<svg viewBox="0 0 16 16" fill="none"${state} aria-hidden="true"><circle cx="8" cy="8" r="3.5" fill="currentColor"/></svg>`;
+  const box = `<span class="kui-control kui-mark kui-radio" data-size="${size}" data-tone="accent" data-bordered${
+    checked ? " data-checked" : ""
+  }${disabled ? " data-disabled" : ""}${invalid ? ' aria-invalid="true"' : ""} role="radio">${glyph}</span>`;
+  return label
+    ? kuiBox(
+        { display: "flex", gap: "3", align: "flex-start", flexShrink: "0" },
+        `${box}${text(Number(size), label)}`,
+      )
+    : box;
+}
+
+function radioSection(mode: Mode): string {
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
+  const row = (body: string) =>
+    kuiBox({ display: "grid", columns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "5" }, body);
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo(
+        "the size index - the checkbox's box exactly, worn as a circle (§4, §6)",
+        row(SIZES.map((n) => radio({ size: n, checked: true, label: `size ${n}` })).join("")),
+      ) +
+        demo(
+          "states - the family identity, resolved by the shared layer (§11)",
+          row(
+            [
+              radio({ label: "off" }),
+              radio({ checked: true, label: "on" }),
+              radio({ invalid: true, label: "invalid" }),
+              radio({ disabled: true, label: "disabled" }),
+              radio({ checked: true, disabled: true, label: "on + disabled" }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "a group - one value, and the circle holds at every radius level: flip the select",
+          kuiBox(
+            { display: "flex", direction: "column", gap: "5" },
+            ["Starter", "Pro", "Enterprise"]
+              .map((l, i) => radio({ checked: i === 1, label: l }))
+              .join(""),
+          ),
+        ),
+    )}
+  </section>`;
+}
+
+function slider(
+  attrs: { size?: string; value?: number; disabled?: boolean; width?: string } = {},
+): string {
+  const { size = "2", value = 40, disabled, width = "220px" } = attrs;
+  // Static stand-in for Base UI's inline geometry (edge alignment: the handle's extremes sit
+  // flush with the rail's ends), so the page judges the dress the shipped component wears.
+  const thumb = `<div class="kui-mark kui-slider-thumb" style="position: absolute; inset-inline-start: calc(${value} * (100% - var(--kui-ct-mark)) / 100); top: 50%; translate: 0 -50%"></div>`;
+  const fill = `<div class="kui-slider-fill" style="width: ${value}%"></div>`;
+  return `<div class="kui-control kui-slider" data-size="${size}" data-tone="accent"${
+    disabled ? " data-disabled" : ""
+  } style="width: ${width}" role="slider" aria-valuenow="${value}"><div class="kui-slider-control"><div class="kui-slider-track">${fill}${thumb}</div></div></div>`;
+}
+
+function sliderSection(mode: Mode): string {
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${mode}</h2>
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo(
+        "the size index - the root rides the height ladder, the thumb the mark ladder, the track its own (§4)",
+        kuiBox(
+          { display: "flex", direction: "column", gap: "5" },
+          SIZES.map((n) => slider({ size: n, value: 25 + Number(n) * 12 })).join(""),
+        ),
+      ) +
+        demo(
+          "states - track low, fill accent; disabled greys through the one remap (§11)",
+          kuiBox(
+            { display: "flex", direction: "column", gap: "5" },
+            [
+              slider({ value: 15 }),
+              slider({ value: 65 }),
+              slider({ value: 95 }),
+              slider({ value: 50, disabled: true }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "beside its family - one weight class: the handle IS the checkbox's box (§4)",
+          kuiBox(
+            { display: "flex", gap: "5", align: "center" },
+            checkbox({ size: "2", checked: true }) + radio({ size: "2", checked: true }) + slider({ size: "2", value: 60 }),
+          ),
         ),
     )}
   </section>`;
@@ -577,20 +794,33 @@ function colorSection(mode: Mode): string {
 
 /**
  * The role layer written out: what each token resolves to and what consumes it. Components
- * only ever touch this column, never the numbered steps (§7).
+ * only ever touch this column, never the numbered steps (§7). The rows DERIVE from the
+ * generator's own ROLES list — the hand-kept copy this replaces was already lying (the ink
+ * trio shipped 2026-08-04 and never appeared here). Annotating a role is still hand work;
+ * FORGETTING one is now a type error, which is the difference that matters.
  */
+const ROLE_NOTES: Record<(typeof ROLES)[number], [string, string]> = {
+  soft: ["step 3", "medium emphasis, resting fill"],
+  "soft-hover": ["step 4", "medium emphasis, hover (+1 step)"],
+  "soft-active": ["step 5", "medium emphasis, pressed (+2 steps)"],
+  border: ["step 7", "the bordered boolean, separators"],
+  solid: ["step 9, or step 12 when low chroma", "loud emphasis, resting fill"],
+  "solid-hover": ["generated, away from the label", "loud emphasis, hover"],
+  "solid-active": ["generated, away from the label", "loud emphasis, pressed"],
+  contrast: ["white or black, chosen by APCA", "the label ON a loud fill"],
+  text: ["step 11", "links and prose on a tint"],
+  label: ["generated between 11 and 12", "control labels — a label is not a link"],
+  ink: ["step 12 (neutral) or step 11 (chroma)", "loud type — the rung's per-family text"],
+  "ink-muted": ["step 11, or the ink faded to 74%", "medium type on a chosen tone"],
+  "ink-faint": ["step 10, or the ink faded to 52%", "quiet type — timestamps, placeholders"],
+  a3: ["step 3 as alpha over the page", "the tone-forward surface fill (Callout)"],
+};
+
 const ROLE_MAP: Array<[string, string, string]> = [
   ["--tone-1, -2", "steps 1-2", "page and app backgrounds"],
-  ["--tone-soft", "step 3", "medium emphasis, resting fill"],
-  ["--tone-soft-hover", "step 4", "medium emphasis, hover (+1 step)"],
-  ["--tone-soft-active", "step 5", "medium emphasis, pressed (+2 steps)"],
-  ["--tone-border", "step 7", "the bordered boolean, separators"],
-  ["--tone-solid", "step 9, or step 12 when low chroma", "loud emphasis, resting fill"],
-  ["--tone-solid-hover", "generated, away from the label", "loud emphasis, hover"],
-  ["--tone-solid-active", "generated, away from the label", "loud emphasis, pressed"],
-  ["--tone-contrast", "white or black, chosen by APCA", "the label ON a loud fill"],
-  ["--tone-text", "step 11", "links and prose on a tint"],
-  ["--tone-label", "generated between 11 and 12", "control labels — a label is not a link"],
+  ...ROLES.map(
+    (r): [string, string, string] => [`--tone-${r}`, ...ROLE_NOTES[r]],
+  ),
   ["--tone-a1 … -a12", "each step as alpha over the page", "nested surfaces, fills over media"],
 ];
 
@@ -671,10 +901,9 @@ function sweepFull(mode: Mode): string {
 }
 
 const LEVELS = Object.keys(density) as DensityLevel[];
-const SIZES = [1, 2, 3, 4] as const;
 
 /** A fake control: the real tokens, an icon square, a label at the size's own font step. */
-const control = (size: number) => `
+const control = (size: string) => `
       <div class="control" data-size="${size}" style="
         height: var(--control-height-${size});
         padding-inline: var(--control-px-${size});
@@ -819,6 +1048,9 @@ export function generatePreview(): string {
     <a href="#button">button</a>
     <a href="#field">field</a>
     <a href="#textarea">textarea</a>
+    <a href="#checkbox">checkbox</a>
+    <a href="#radio">radio</a>
+    <a href="#slider">slider</a>
     <a href="#type">type</a>
     <a href="#layout">layout</a>
     <a href="#roles">roles</a>
@@ -876,7 +1108,7 @@ ${BRANDS.slice(0, 5)
   .join("")}
 
 <p class="note">The size index, at the default rung — five scales moving on one number (§4).</p>
-<div class="row-controls">${SIZES.map((s) => button({ size: String(s) }, `Size ${s}`)).join("")}</div>
+<div class="row-controls">${SIZES.map((s) => button({ size: s }, `Size ${s}`)).join("")}</div>
 <p class="note">Loading never hides the label: the spinner takes the icon's box when there is one, and joins the text when there is not (§8).</p>
 <div class="row-controls">
   ${button({ emphasis: "loud", tone: "accent" }, "Save")}
@@ -899,10 +1131,25 @@ ${fieldSection("dark")}
 ${textAreaSection("light")}
 ${textAreaSection("dark")}
 
+<h1 id="checkbox">Checkbox — the mark family</h1>
+<p class="note">The first control whose painted box is <em>not</em> the height ladder (\u00a74). A checkbox does not contain a label, it sits <em>beside</em> one, so it takes the <strong>mark family</strong> — one ladder shared by checkbox, radio, switch track and slider thumb, because four separately designed ladders in one visual weight class drift apart. The ladder is the <em>line box</em>: a mark occupies exactly one line of its label, which is why it aligns with the text by construction and why it grows on a phone with nothing designed twice — flip the <em>pointer</em> select and the marks rise because \u00a717's handheld band raised the type. The invisible target is a control of its size, capped at the 44 floor, so a checkbox is exactly as large a thing to aim at as the Button beside it while staying a 20px square: click a few pixels above a box on this page and it still toggles. At <em>radius=full</em> the corner caps below a circle, because a circular checkbox is a radio and shape is role semantics (\u00a76) \u2014 flip the radius select and compare it with the pills. Every number here is v0 for the eye pass.</p>
+${checkboxSection("light")}
+${checkboxSection("dark")}
+
+<h1 id="radio">Radio — the shape sibling</h1>
+<p class="note">The mark family's second member, and the landing (with the slider's thumb) that promoted the family's rules into the shared layer — the box, the invisible target, the seal-and-edge resting identity and the accent ON state are now written once and worn by every mark (§4). What is Radio's own is the <strong>circle</strong>: shape is role semantics here (§6) — a circular checkbox reads as a radio and a square radio reads as a checkbox — so the radius axis never reaches it. Flip the radius select to <em>none</em>: every corner on this page squares except these. Selection belongs to the group (one name, one value); the label is a sibling, and a stacked group keeps the 12px rule with <code>gap="5"</code> like the checkbox list above.</p>
+${radioSection("light")}
+${radioSection("dark")}
+
+<h1 id="slider">Slider — the control is the target</h1>
+<p class="note">Track low, fill accent (§11). The ROOT is the control: it rides the height ladder, so the whole box is the thing you press — 44 tall on the coarse default path with <em>no new target mechanism</em> — flip the pointer select and the strip grows while the line holds. The <strong>thumb is the mark family's third member</strong>: the same circle a radio paints, one line of the label's type, resting as every mark rests (the seal wearing the mark edge). The <strong>track</strong> is the family's off part — neutral through the new <code>--color-track</code> role, which the switch's off-track and progress will share — at a designed thickness (~0.25 of the fine mark; the space palette has nothing between 4 and 8, the mark's own wall one part over). The fill is <code>--tone-solid</code> under the stamped accent, so disabled greys everything through the one shared remap. Geometry here is a static stand-in for Base UI's inline positioning; the dress is the shipped stylesheet. All v0 for the eye pass.</p>
+${sliderSection("light")}
+${sliderSection("dark")}
+
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">
-  ${[1, 2, 3, 4].map((s) => spinner(`--kui-icon: var(--icon-size-${s})`)).join("")}
-  ${spinner("--kui-icon: 96px")}
+  ${SIZES.map((s) => spinner(`--kui-ct-icon: var(--icon-size-${s})`)).join("")}
+  ${spinner("--kui-ct-icon: 96px")}
 </div>
 
 <h1 id="type">Text &amp; Heading — the ramp, worn (§15)</h1>
@@ -986,6 +1233,23 @@ ${brandSection("dark")}
   // environment where the press state would silently never fire on an iPhone.
   document.addEventListener("touchstart", () => {}, { passive: true });
 
+  // The marks toggle, and on this page that is not a nicety: a checkbox's TARGET is invisible
+  // (§4 — a control of its size, capped at 44, around a 16-26px box), so "does the hit area
+  // feel right" cannot be judged by looking at it. Click a few pixels above or beside a box
+  // and it should still take. The real component gets this from Base UI; this is the static
+  // page standing in for it, and it moves the same attributes the stylesheet reads.
+  document.addEventListener("click", (e) => {
+    const mark = e.target.closest(".kui-checkbox, .kui-radio");
+    if (!mark || mark.hasAttribute("data-disabled")) return;
+    const on = !(mark.hasAttribute("data-checked") || mark.hasAttribute("data-indeterminate"));
+    for (const el of [mark, mark.querySelector("svg")]) {
+      el.toggleAttribute("data-checked", on);
+      el.toggleAttribute("data-unchecked", !on);
+      el.removeAttribute("data-indeterminate");
+    }
+    mark.setAttribute("aria-checked", String(on));
+  });
+
   document.getElementById("sf").addEventListener("change", (e) => {
     // Theme stamps data-surfaces on its own node; the page's bare sections stand in for
     // nested Themes, same as the contrast toggle above.
@@ -1047,12 +1311,33 @@ ${brandSection("dark")}
   readout();
 
   // Live slot readout per rig: width and which tier is active, so "slot not window" is
-  // visible rather than argued. Thresholds are the tiers: sm 30rem = 480px, md 48rem = 768px.
+  // visible rather than argued. Thresholds are the tiers, read from the same table the
+  // resolver and the CSS generator walk (system/props.ts) — the preview restating them as
+  // 480/768 literals was the exact hand-kept-second-list shape §4 built that table to end.
+  // The ramp annotation reads the RENDERED text (2026-08-06): it used to print the base
+  // palette pair baked at build time, so flipping the pointer select to coarse (the handheld
+  // band) or squeezing under 768px (the narrow band) moved the text while the numbers lied.
+  const syncRamp = () => {
+    for (const anno of document.querySelectorAll("[data-ramp-step]")) {
+      const sample = anno.parentElement.querySelector(".kui-text");
+      const cs = getComputedStyle(sample);
+      anno.textContent =
+        anno.dataset.rampStep + " — " + parseFloat(cs.fontSize) + "/" + parseFloat(cs.lineHeight);
+    }
+  };
+  syncRamp();
+  window.addEventListener("resize", syncRamp);
+  new MutationObserver(syncRamp).observe(document.body, {
+    attributes: true,
+    subtree: true,
+    attributeFilter: ["data-pointer", "data-density"],
+  });
+
   for (const rig of document.querySelectorAll(".rig")) {
     const label = rig.previousElementSibling.querySelector(".w");
     new ResizeObserver((entries) => {
       const w = Math.round(entries[0].contentRect.width);
-      const tier = w >= 768 ? "md" : w >= 480 ? "sm" : "base";
+      const tier = w >= ${remPx(tiers.md)} ? "md" : w >= ${remPx(tiers.sm)} ? "sm" : "base";
       label.textContent = w + "px — tier " + tier + (tier === "md" ? " (drag narrower)" : "");
     }).observe(rig);
   }

@@ -3,25 +3,9 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
+import type { Emphasis, Material, Size, SlotName, Tone } from "../../system/axes.ts";
 import { filled } from "../../system/render.ts";
-import type { ToneName } from "../../tokens/color-config.ts";
 import { Spinner } from "../spinner/spinner.tsx";
-
-/** §4 — an index, not a measurement. Closed, because a scale with an escape is not a scale. */
-export type Size = "1" | "2" | "3" | "4";
-/** §7 — the tone families, derived from the config rather than restated (the audit lesson:
-    a local literal here kept ladder holes invisible to CI). A component never names a
-    colour, only a family; the semantic core plus the basic categorical set live in
-    color-config.ts and widen there. */
-export type Tone = ToneName;
-/** §9 — loudness, three rungs, because a rung that is not visibly distinct is not a rung. */
-export type Emphasis = "loud" | "medium" | "quiet";
-/** §10 — backdrop defense: three designed thicknesses, like the emphasis ladder. `solid` is
-    not a member — it is the seal, the absence of any material (the default, always safe). */
-export const MATERIALS = ["solid", "thin", "regular", "thick"] as const;
-export type Material = (typeof MATERIALS)[number];
-/** The thicknesses that actually paint a veil — `solid` is the absence of one. */
-export const GLASS_MATERIALS = MATERIALS.filter((m) => m !== "solid");
 
 type ButtonBase = Omit<
   React.ComponentPropsWithoutRef<"button">,
@@ -60,6 +44,7 @@ type ButtonBase = Omit<
   render?: React.ReactElement;
   className?: string;
   style?: React.CSSProperties;
+  ref?: React.Ref<HTMLButtonElement>;
 };
 
 /**
@@ -95,27 +80,25 @@ export type ButtonProps = ButtonBase & (IconOnly | { iconOnly?: false | undefine
  * Defaults are `medium` and `neutral` (§11): nothing is loud-and-accent by accident, so a
  * screen has one focal point unless somebody deliberately asks for a second.
  */
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  {
-    size = "2",
-    tone = "neutral",
-    emphasis = "medium",
-    bordered = false,
-    material = "solid",
-    loading = false,
-    disabled = false,
-    focusableWhenDisabled,
-    iconOnly,
-    nativeButton,
-    render,
-    leading: leadingSlot,
-    trailing,
-    children,
-    className,
-    ...props
-  },
+export function Button({
+  size = "2",
+  tone = "neutral",
+  emphasis = "medium",
+  bordered = false,
+  material = "solid",
+  loading = false,
+  disabled = false,
+  focusableWhenDisabled,
+  iconOnly,
+  nativeButton,
+  render,
+  leading: leadingSlot,
+  trailing,
+  children,
+  className,
   ref,
-) {
+  ...props
+}: ButtonProps) {
   // Base UI branches its ENTIRE a11y contract on `nativeButton`, which defaults to true, and
   // we never forwarded it — so `render={<a/>}`, a composition our own laws bless, shipped
   // `type="button"` on an anchor (where `type` means the linked resource's MIME type) and, when
@@ -134,7 +117,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   // component: the pill-padding rule keys "this edge starts with a slot" on it (§4, §6), and a
   // control hosted in a trailing slot gets §4's slot-inset geometry through the same selector —
   // which TextField had and Button, without the wrapper, silently did not.
-  const slot = (content: React.ReactNode, which: "leading" | "trailing") =>
+  const slot = (content: React.ReactNode, which: SlotName) =>
     filled(content) ? <span data-slot={which}>{content}</span> : null;
 
   return (
@@ -168,4 +151,4 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       {slot(trailing, "trailing")}
     </BaseButton>
   );
-});
+}

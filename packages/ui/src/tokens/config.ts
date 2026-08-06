@@ -5,6 +5,12 @@
  *
  * Step counts differ per family on purpose: each is set by that family's dynamic
  * range and perception, never copied across families (§6, "three count ceilings").
+ *
+ * The boundary with color-config.ts, declared (2026-08-06): color-config.ts holds what the
+ * OKLCH GENERATOR consumes — hues, ladders, deltas, floors, per-mode step picks. This file
+ * holds everything else, INCLUDING literal colour strings that bypass the generator (the
+ * glass edge/rim alphas, the shadow rows, the surface seal): a value lives by which machinery
+ * reads it, not by whether it looks like a colour.
  */
 
 /** §3 — space palette. Hybrid curve: fine and near-linear at the bottom, geometric at the top. */
@@ -188,9 +194,10 @@ export const coarse = {
  * §16 — the touch floor (Apple HIG 44pt; Material 48dp; fingerpad anthropometry). Raw px on
  * purpose: a physical floor, not a length that zooms.
  *
- * A §13 resource with no stylesheet consumer: the `max()` reserve this was minted for was
- * dropped (§16), so nothing reads it but its own drift test. Kept as the published number an
- * app can reach for; do NOT reintroduce a runtime reserve on the strength of it.
+ * A §13 resource whose first stylesheet consumer arrived 2026-08-05: the mark family's hit
+ * target reads `min(--kui-ct-h, var(--touch-target-min))` (checkbox.css — the §4 pseudo-element
+ * reach). The `max()` RESERVE this was originally minted for stays dropped (§16); do NOT
+ * reintroduce a runtime reserve on the strength of the token existing.
  */
 export const touchTargetMin = 44;
 
@@ -347,6 +354,91 @@ export const controlGap = {
   fine: [2, 3, 3, 4],
   coarse: [3, 4, 4, 5],
 } as const;
+
+/**
+ * §4 — the MARK family: the painted box of a control that IS its own mark. A checkbox, a
+ * radio, a switch's track, a slider's thumb — four controls whose visible box is not a
+ * container for a label but the mark itself, sitting BESIDE one.
+ *
+ * It is one ladder because four separately designed ladders in the same visual weight class
+ * will drift, and a checkbox beside a switch in one form has to read as the same size of
+ * thing. The derivations off it are identities, never ratios (Kushagra, 2026-08-05: "I don't
+ * like fraction" — the same objection that moved control padding off the space palette a day
+ * earlier):
+ *
+ *   checkbox side = radio diameter = slider thumb = mark(n)
+ *   switch track height                           = mark(n + 1)
+ *
+ * The one-index shift is what every peer system arrives at by hand: Radix's switch heights
+ * (16/20/24) ARE their checkbox ladder (14/16/20) moved up a step, and Material's switch
+ * track is 32 against an 18 checkbox. An index shift is a move this system already makes —
+ * density shifts layout-space picks, the handheld band shifts type steps.
+ *
+ * **The ladder is the line box**, and that is why there are no numbers here. A mark occupies
+ * exactly one line of the label it sits beside, so `--mark-N` resolves to `--line-height-N`.
+ * Three things follow that no designed ladder would have given for free: the mark aligns with
+ * its label by construction and never disturbs the text rhythm; it grows on a phone because
+ * §17's handheld band raises the type, which is the honest version of what Spectrum does by
+ * scaling every component 1.25x on touch; and there is nothing to keep in sync.
+ *
+ * The space palette was the first thing tried and it cannot hold this. Across a mark's entire
+ * plausible range (14-30px) the palette offers exactly two rungs — 16 and 24 — so a four-step
+ * ladder either repeats steps (16, 16, 24, 24) or overshoots (12, 16, 24, 32). That is the
+ * control-padding failure verbatim, one family over, and Radix hit the same wall from the
+ * other side: their switch size 2 is `calc(var(--space-5) * 5/6)` because they needed 20 and
+ * the palette does not have it.
+ *
+ * Rendered: 16/20/24/26 fine, 20/24/26/28 coarse. Peer check — Material paints 18 (one size),
+ * Radix 14/16/20, Fluent 16/20.
+ */
+export const markSteps = [1, 2, 3, 4] as const;
+
+/**
+ * §6 — the mark's own corner, as STEPS into the radius palette (corrected 2026-08-05).
+ *
+ * It first rode `--radius-control-N`, and that was the fraction bug a third time (after the
+ * control corner itself and control padding). Those radii are designed to hold ~0.2 of the
+ * HEIGHT ladder, and a mark is not on that ladder — so the corner held a fraction of a box the
+ * control does not have. Measured against the shipped marks: 0.250 -> 0.385 across the index at
+ * default density (Kushagra, by eye: "size 4 looks much more rounded than size 1"), and 0.462
+ * at comfortable size 4, which is a circle in all but name — the one thing a checkbox must
+ * never be (§6), reached by an AXIS rather than by a theme, so the `full` ceiling never saw it.
+ *
+ * Its own picks fix both halves. The fraction is a PER-LEVEL band (corrected 2026-08-06,
+ * audit D13 — the first spelling claimed 0.17-0.25 "across every level", which is only the
+ * default level's range): small runs 0.08-0.13, medium 0.17-0.25, large and full 0.25-0.38,
+ * across both pointer worlds. What holds everywhere is the pair of invariants the laws carry
+ * — no cell reaches half its box, and the spread across the size index stays under 1.4x per
+ * level per world. It is DENSITY-INVARIANT like the mark itself: an airier form does not
+ * change what a checkbox is, and the corner of an unchanged box has nothing to answer to.
+ *
+ * Steps rather than raw px, so the Theme radius levels still reach it — `none` must square a
+ * mark like it squares everything else (§6's kill switch), and `small` and `large` should move
+ * it. At `full` the band holds at `large`'s values, which is the surface band's own sentence
+ * (§6: full means it stops getting rounder, never that it retreats) and is what keeps a
+ * checkbox from becoming a radio.
+ *
+ * The residual spread is the palette's granularity: holding 0.25 exactly would need a 5 at
+ * size 2 and a 6.5 at size 4, which the palette does not have and which a raw ladder could
+ * only buy by going deaf to the levels.
+ */
+export const markRadius = [1, 1, 2, 2] as const;
+
+/**
+ * §4, §11 — the slider's track thickness, raw designed px per size. The space palette was
+ * asked first, as it must be, and refuses this family the same way it refused the mark and
+ * control padding: a track's plausible ladder wants 4/5/6/7, and between 4 and 8 the palette
+ * has nothing, so a pick either repeats a step or doubles between sizes 2 and 3. A designed
+ * raw number per size is the established answer (`height`, `px`, `pxPill`).
+ *
+ * The values hold ~0.25 of the FINE mark across the index (4/16, 5/20, 6/24, 7/26) — the
+ * constant-fraction discipline the corner and padding laws already enforce, applied to the
+ * one dimension a track has. Density- and pointer-invariant like the mark it serves: the
+ * coarse world's extra target comes from the CONTROL's height (the slider root is a control
+ * of its size and the whole box is pressable), not from a fatter line — iOS holds its track
+ * at 4pt against a 28pt thumb for the same reason. v0, judged in the preview.
+ */
+export const sliderTrack = [4, 5, 6, 7] as const;
 
 /**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and

@@ -16,7 +16,11 @@ import {
   Box,
   Button,
   Card,
+  Checkbox,
   Flex,
+  Radio,
+  RadioGroup,
+  Slider,
   Heading,
   Stack,
   Text,
@@ -114,9 +118,16 @@ function SizeRow({ size }: { size: Size }) {
       <Button size={size} loading>
         Saving
       </Button>
+      {/* An explicit width, like the TextArea beside it. A TextField cannot currently shrink
+          below its input's intrinsic width (the UA's `size=20`, ~174px) because the wrapper
+          sets no `min-width` — an open package decision in DECISIONS' list, not something to
+          settle from a docs page. Stating the width here keeps the row from overflowing the
+          window, which on a judging surface matters: a page that scrolls sideways is a page
+          where the coarse cells cannot be seen at phone width. */}
       <TextField
         size={size}
         placeholder="Search the docs…"
+        style={{ width: "220px" }}
         leading={<SearchIcon />}
         trailing={
           <Button size={size} iconOnly emphasis="quiet" aria-label="Clear">
@@ -128,6 +139,41 @@ function SizeRow({ size }: { size: Size }) {
       <Card size={size}>
         <Text size="2">Card {size}</Text>
       </Card>
+    </Flex>
+  );
+}
+
+/**
+ * The mark family gets its own row (§4). Three reasons, and only the first is layout: packed
+ * into the controls row it pushed the line past the window, and a judging surface that
+ * scrolls sideways hides the very coarse cells it exists to show. It also reads better —
+ * these are a family, sharing a box, a target and an ON state, and they are compared against
+ * each other more often than against a Button. And they are the one row where the SPACING is
+ * itself under judgement: adjacent marks need twelve real pixels between their invisible
+ * target boxes, so the row is gap 5, the smallest index that holds it at every density.
+ *
+ * `aria-label` throughout because none has a visible label here; a real form uses
+ * `Field.Label` or a `<label htmlFor>`, which is the package's stated position.
+ */
+function MarkRow({ size }: { size: Size }) {
+  return (
+    <Flex gap="5" align="center" wrap="wrap">
+      <Box width="56px">
+        <Text size="1" emphasis="medium">
+          marks {size}
+        </Text>
+      </Box>
+      <Checkbox size={size} defaultChecked aria-label={`Checkbox checked, size ${size}`} />
+      <Checkbox size={size} aria-label={`Checkbox unchecked, size ${size}`} />
+      <Checkbox size={size} indeterminate aria-label={`Checkbox indeterminate, size ${size}`} />
+      <Checkbox size={size} disabled defaultChecked aria-label={`Checkbox disabled, size ${size}`} />
+      <RadioGroup defaultValue="a" aria-label={`Radio group, size ${size}`}>
+        <Flex gap="5" align="center">
+          <Radio size={size} value="a" aria-label={`Radio selected, size ${size}`} />
+          <Radio size={size} value="b" aria-label={`Radio unselected, size ${size}`} />
+        </Flex>
+      </RadioGroup>
+      <Slider size={size} defaultValue={40} aria-label={`Slider, size ${size}`} style={{ width: "140px" }} />
     </Flex>
   );
 }
@@ -173,6 +219,9 @@ export function MatrixExplorer() {
             <Heading size="3">{density}</Heading>
             {SIZES.map((size) => (
               <SizeRow key={size} size={size} />
+            ))}
+            {SIZES.map((size) => (
+              <MarkRow key={size} size={size} />
             ))}
           </Stack>
         </Theme>

@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
-import type { Material, Size } from "../button/button.tsx";
+import type { Material, Size } from "../../system/axes.ts";
 
 export type CardProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
@@ -17,6 +17,7 @@ export type CardProps = Omit<
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
 /**
@@ -33,10 +34,16 @@ export type CardProps = Omit<
  * The identity attributes below are constants, not props: the shell still resolves through
  * the shared surface layer like every surface, it just never lets a call site choose.
  */
-export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
-  { size = "3", material = "solid", render, className, style, children, ...props },
+export function Card({
+  size = "3",
+  material = "solid",
+  render,
+  className,
+  style,
+  children,
   ref,
-) {
+  ...props
+}: CardProps) {
   const merged = {
     ref,
     "data-size": size,
@@ -57,4 +64,4 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
   if (render) return composeRender(render, merged as never, children);
 
   return <div {...(merged as React.ComponentPropsWithRef<"div">)}>{children}</div>;
-});
+}

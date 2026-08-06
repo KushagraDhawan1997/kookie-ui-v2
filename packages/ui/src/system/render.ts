@@ -69,9 +69,12 @@ function unwrapLazy(render: RenderElement): RenderElement {
  *          so a Theme with no children emptied the element it rendered into.
  *   Card   passed `children` unconditionally: `<Card render={<article>Post body</article>}/>`
  *          SSR'd as an empty padded article.
- *   Box    put the forwardRef ref in unconditionally, and coerceRef yields null rather than
- *          undefined when none was passed — so it was copied and destroyed the render
- *          element's own ref. `<Box render={<div ref={r}/>}/>` left r.current null forever.
+ *   Box    put the ref in unconditionally, and forwardRef (then the wrapper on every component)
+ *          hands the function null rather than undefined when no ref was passed — so it was
+ *          copied and destroyed the render element's own ref. `<Box render={<div ref={r}/>}/>`
+ *          left r.current null forever. The 2026-08-06 React 19 migration retired forwardRef —
+ *          a plain ref prop is undefined when absent, which the special case tolerates — but
+ *          the merge stays: a PRESENT ref on both sides still needs both to win.
  *
  * Base UI's own escape merges (useRenderElement via useMergedRefs), which is the contrast that
  * makes this a defect rather than a house convention. Consumer values win on `style`, matching
