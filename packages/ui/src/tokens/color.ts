@@ -19,7 +19,7 @@ import {
   labelPosition,
   lightness,
   lowChromaThreshold,
-  markEdgeStep,
+  controlEdgeLc,
   trackWellStep,
   solidBand,
   solidPinBounds,
@@ -229,6 +229,49 @@ export function toneFromColor(css: string): ToneSpec {
 /** A tone is authored either as a brand colour or, for greys, as a hue and a vividness. */
 export type ToneInput = ToneSpec | { color: string };
 
+/**
+ * The control edge (§7, §11, decided 2026-08-07) — the resting hairline of a control whose
+ * identity needs it under the outlined look: the mark family (an unchecked checkbox IS its
+ * border — audit D2) and the field family (an outlined field's fill is the seal it sits on,
+ * so the border is likewise all there is). SOLVED to `controlEdgeLc`, never picked from the
+ * ladder: dark has no rung near the floor — step 9 misses at Lc 42.1 and the scale folds
+ * back before 11 — so picking rungs shipped a resting ring at Lc 66.5, which Kushagra read,
+ * correctly, as a high-contrast value at rest. The `--accent-label` precedent, generalised.
+ *
+ * Binary search on the neutral recipe's lightness for the value that JUST clears the target
+ * against the harder of the two beds it sits on (the seal and the page). Chroma is the
+ * neutral tint at the border band's fraction — a hairline is a tinted grey like every other
+ * neutral, not a pure one. Monotonic in L away from the bed, so bisection is exact.
+ */
+function solveControlEdge(mode: Mode, gamut: Gamut, target: number): string {
+  const page = buildScaleFor(resolveTone(tones.neutral), mode, "srgb", "normal", true).steps[0]!;
+  const seal = alphaBackdrop(mode);
+  const { hue, vividness } = resolveTone(tones.neutral);
+  const grey = (l: number, g: Gamut) => {
+    const cMax = toGamut(oklch(l, 0.4, hue), "srgb").c;
+    return format(toGamut(oklch(l, cMax * vividness, hue), g), g);
+  };
+  const worst = (l: number) =>
+    Math.min(Math.abs(apcaLc(grey(l, "srgb"), seal)), Math.abs(apcaLc(grey(l, "srgb"), page)));
+  // Light beds: darker edge = more contrast, so search downward from the bed; dark: upward.
+  let lo: number;
+  let hi: number;
+  if (mode === "light") {
+    lo = 0.02; hi = 0.99; // worst(lo) high, worst(hi) ~0 — find the LIGHTEST l clearing target
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (worst(mid) >= target) lo = mid; else hi = mid;
+    }
+    return grey(lo, gamut);
+  }
+  lo = 0.02; hi = 0.99; // dark: worst(hi) high — find the DARKEST l clearing target
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    if (worst(mid) >= target) hi = mid; else lo = mid;
+  }
+  return grey(hi, gamut);
+}
+
 export function resolveTone(input: ToneInput): ToneSpec {
   return "color" in input ? toneFromColor(input.color) : input;
 }
@@ -427,6 +470,11 @@ export function contrastHighDeclarations(mode: Mode, gamut: Gamut = "srgb"): str
       decl(`${tone}-label`, s.label),
     );
   }
+  // The control edge's high-contrast answer is DESIGNED, not inherited from a band (§7,
+  // 2026-08-07): solved one tier up, so the request strengthens every control boundary the
+  // same amount. Before this, dark's pick moved only because its step happened to sit in a
+  // re-priced band, and light's never moved at all.
+  out.push(decl("control-edge", solveControlEdge(mode, gamut, controlEdgeLc.high)));
   return out;
 }
 
@@ -503,12 +551,11 @@ export function colorDeclarations(
   // Lc 45 non-text floor in light (65.4) but not in dark (36.1); step 11 does (65.2).
   out.push(decl("invalid-edge", `var(--destructive-${invalidEdgeStep[mode]})`));
 
-  // The mark edge (§7, §11, decided 2026-08-06) — the resting outline of a control that IS its
-  // hairline: checkbox now, radio/switch/slider when they land. Its own role because a mark's
-  // unchecked state has no other identity, so it must clear the non-text floor the quiet
-  // --color-border deliberately does not (audit D2: |Lc| 22.8 light, 10.3 dark). Per-mode
-  // steps from color-config, the focus-ring precedent; the law beside the invalid edge's.
-  out.push(decl("mark-edge", `var(--neutral-${markEdgeStep[mode]})`));
+  // The control edge (§7, §11, 2026-08-07; supersedes the mark edge's per-mode step picks) —
+  // solved to the non-text floor rather than picked from the ladder, because dark has no rung
+  // near it and the nearest passing pick read as high-contrast at rest. Worn by the mark
+  // family and, under the outlined look, the field family. See solveControlEdge.
+  out.push(decl("control-edge", solveControlEdge(mode, gamut, controlEdgeLc.normal)));
 
   // The track well (§7, §11, decided 2026-08-06 with Slider) — the low neutral bed a value
   // runs in: the slider's track now, the switch's off-track and progress/meter when they

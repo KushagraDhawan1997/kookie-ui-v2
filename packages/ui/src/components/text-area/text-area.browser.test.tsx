@@ -144,7 +144,11 @@ describe("one treatment: the field family's identity (§9, §11)", () => {
   it("the border is painted, and it is the affordance — bordered by identity", () => {
     const el = render(<TextArea />);
     expect(computed(el, "border-top-width")).toBe("1px");
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
+    // The CONTROL EDGE since 2026-08-07 (§7 — solved to the non-text floor): an outlined
+    // field's fill is the seal it sits on, so its border is all that identifies it, and it
+    // now wears the same solved hairline a checkbox does instead of the quiet card border
+    // that measured 1.35:1 against a 3:1 requirement.
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--control-edge"));
   });
 
   it("offers the one resize axis that cannot break a layout, as raw CSS", () => {
@@ -185,7 +189,7 @@ describe("validity is state, never a prop (§8)", () => {
     el.setAttribute("data-invalid", "");
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
     el.removeAttribute("data-invalid");
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--control-edge"));
   });
 
   it("the ring moves with the border — the invalid state's own reversal of one-ring (§8)", () => {

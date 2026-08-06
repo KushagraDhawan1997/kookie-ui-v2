@@ -8,6 +8,61 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 The control edge: solved, shared, and the reading of the guidance that reshaped it
+
+Started as taste — Kushagra: *"the mark control's border in outline mode is a little too dark.
+It is what I would expect to be when high contrast is on."* Measured, he was right twice over.
+The dark ring sat at `#bcbec0`, Lc 66.5 against a floor of 45, because the pick-the-first-
+passing-rung rule met a ladder that folds back between steps 9 and 11: step 9 misses the floor
+by 2.9, and the next rung over the fold overshoots it by 21. And the surrounding borders it was
+judged against sit at 1.35:1 (light) and ~1.5:1 (dark) — under the 3:1 the floor encodes — so
+the one conforming boundary in the library read as an outlier: shadcn's checkbox measures
+1.24:1, which is the norm this was being compared to.
+
+**The argument that settled scope was his:** matching the ring down to the field breaks the
+checkbox (D2's whole point); accepting filled as soft while holding outlined to the floor is
+incoherent ("if we accept filled as soft, outline has no reason to comply"); so *read the
+guidance again*. APCA's non-text tiers answered it: **Lc 45 is for fine detail — hairlines;
+Lc 30 is for large solid shapes; 15 is bare discernibility.** A hairline and a fill are
+different classes with different floors. So outlined (identity = a 1px line) owes 45, filled
+(identity = a solid well) owes 30 — filled keeps its idea AND a conformance path, and the
+"one floor for everything" I had been arguing was simply wrong. Filled's fills are still short
+of their 30 and stay open; today shipped the outlined half.
+
+**What shipped.** `--control-edge` supersedes `--mark-edge`: SOLVED, not picked — binary
+search on the neutral recipe's lightness for the value that just clears `controlEdgeLc.normal`
+(46, the floor plus rounding margin) against both the seal and the page. Light `#a3a6aa`
+(46.3), dark `#95999c` (46.1) — the dark ring calms from a third-of-the-way-to-white to just
+past the floor, which was the original complaint. Consumers: the mark family as before, and
+now the FIELD family under outlined (`.kui-field, .kui-textarea` re-point `--tone-border`,
+the mark family's own pattern, so the state remaps keep winning) — an outlined field's fill
+is the seal it sits on, so its border is all that identifies it: D2's criterion applied
+honestly, and the consistency he asked for. Field, area, checkbox and radio now resolve ONE
+boundary, law-tested component-against-component with the card as the negative control.
+Cards and separators keep the quiet hairline.
+
+**Generated colours are not a new pattern** (his check before agreeing): every step in the
+palette is already solved output, and `--accent-label` is already generated between rungs 11
+and 12 for exactly this no-rung-where-needed reason. And the solve composes with the tone
+axis: it searches lightness, which is what APCA measures, so run on the accent recipe it
+yields an accent-tinted boundary at the same guarantee — that is how an accent variant would
+land if ever wanted.
+
+**The laws grew both directions.** The old floor law could not fail upward — any
+sufficiently dark grey passed — which is exactly how the overshoot shipped. The new one holds
+floor AND ceiling (target + 4 Lc of two-bed slack), reads the EMITTED hex so the solve is in
+the loop, and a config law pins the target itself to `apcaFloors.nonText` + 2, because the
+ceiling law reads the target and would follow a drifted one — mutation-tested at target 66,
+caught. `contrast="high"` re-solves at 60: designed, where before dark moved by band accident
+and light never moved (R9's half-truth made whole). Hosted-control note, stated not hidden: a
+control in a field's slot inherits the field's `--tone-border` and wears the boundary too.
+
+Rejected: matching the ring down to the quiet border (breaks D2 in dark, ~0 Lc); one floor
+for hairlines and fills (contradicts the guidance's own tiers); accepting the overshoot as
+"floor-bound" (it was rung-bound, not floor-bound).
+
+---
+
 ## 2026-08-07 The slider leaves the look axis entirely — and the membership test grows its second half
 
 Kushagra, from the regenerated preview: *"Slider has basically no reason to subscribe to look

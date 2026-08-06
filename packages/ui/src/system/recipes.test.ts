@@ -224,13 +224,13 @@ describe("the mark family lives in the shared layer, once (§4, promoted 2026-08
     // the look axis (narrowed 2026-08-07 — a mark that IS a control is dressed, a mark that is
     // a PART of one is not). Both halves asserted: the family still owns the resting identity,
     // and that identity is still the mark edge.
-    expect(block(recipes, ".kui-mark {")).toContain("--tone-border: var(--mark-edge)");
+    expect(block(recipes, ".kui-mark {")).toContain("--tone-border: var(--control-edge)");
     // And the dress is a SEPARATE rule, reached by the hosted-mark selector. Asserted here so
     // the narrowing cannot be undone by folding the two blocks back together — which would
     // silently re-dress the slider thumb.
     expect(recipes).toContain(".kui-mark:where(:not(.kui-control *)) {");
     expect(block(recipes, ".kui-mark:where(:not(.kui-control *)) {")).toContain(
-      "--tone-border: var(--look-mark-border, var(--mark-edge))",
+      "--tone-border: var(--look-mark-border, var(--control-edge))",
     );
     expect(recipes).toContain(".kui-mark:where(:not(.kui-control *))::after");
     expect(recipes).toContain('.kui-mark:where([data-checked], [data-indeterminate])');
@@ -244,7 +244,7 @@ describe("the mark family lives in the shared layer, once (§4, promoted 2026-08
       expect(css, `${p} re-sizes the mark box`).not.toMatch(
         /(?:inline-size|block-size|width|height):\s*var\(--kui-ct-mark\)/,
       );
-      expect(css, `${p} re-points the mark edge`).not.toContain("--mark-edge");
+      expect(css, `${p} re-points the mark edge`).not.toContain("--control-edge");
     }
   });
 

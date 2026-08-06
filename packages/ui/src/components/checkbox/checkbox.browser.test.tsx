@@ -243,7 +243,7 @@ describe("a mark's corner holds a fraction of its own box (§6)", () => {
 
 describe("neutral off, accent on (§11)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: the resting box wears the MARK EDGE, and it clears the non-text floor`, () => {
+    it(`${appearance}: the resting box wears the CONTROL EDGE, and it clears the non-text floor`, () => {
       // "Neutral off" has to survive the element stamping data-tone="accent" for its ON state,
       // and a role token is what makes that possible without a component naming a family. The
       // role moved off --color-border on 2026-08-06 (audit D2): a mark's unchecked state has
@@ -255,7 +255,7 @@ describe("neutral off, accent on (§11)", () => {
         </Theme>,
       );
       const mark = markOf(el);
-      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--mark-edge)"));
+      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--control-edge)"));
       expect(computed(mark, "border-top-color")).not.toBe(colorOn(el, "var(--color-border)"));
       expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
     });
@@ -348,7 +348,7 @@ describe("the look axis dresses the resting box, never the tick (§19)", () => {
     // Rewritten 2026-08-06. The old spelling asserted the fill equalled `var(--neutral-4)` and
     // the border equalled transparent — both true, both useless: the first compared the mark
     // to the name its author had typed, and the second asserted the defect. `filled` was
-    // deleting --mark-edge, the boundary audit D2 minted BECAUSE an unchecked box is nothing
+    // deleting --control-edge, the boundary audit D2 minted BECAUSE an unchecked box is nothing
     // but its hairline, dropping it to |Lc| 0.0 against the card. Now judged against the
     // other end of the axis, and against the guarantee D2 bought.
     const filled = markOf(mounted(<Checkbox />, { theme: { look: "filled", appearance } }));

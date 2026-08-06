@@ -10,7 +10,7 @@ import {
   apcaFloors,
   lightness,
   lowChromaThreshold,
-  markEdgeStep,
+  controlEdgeLc,
   tones,
   type Mode,
   type ToneName,
@@ -634,35 +634,52 @@ describe("the soft ladder is §8's +1/+2 rule, in the emitted declarations (§7,
   });
 });
 
-describe("the mark edge clears the non-text floor, in both modes (§7, §11, WCAG 1.4.11)", () => {
-  // The audit's D2, as the law whose absence let it ship: an unchecked checkbox is the one
-  // control whose resting identity is its hairline alone, and the shared --color-border
-  // (neutral 7) sat at |Lc| 22.8 light / 10.3 dark against the surface — the system had
-  // written this exact floor for the focus ring and the invalid edge and never pointed it at
-  // the border a mark actually rests on. Per-mode steps, chosen as the FIRST that clear the
-  // floor against both the surface and the page; the picks live in color-config.ts so the
-  // generator and this law read one source. Mutation-checked: step 7 fails in both modes,
-  // and dark's own step 9 fails at 42.
-  const NON_TEXT = apcaFloors.nonText;
+describe("the control edge clears the non-text floor and no more than it must (§7, §11, WCAG 1.4.11)", () => {
+  // D2's law, rewritten for the SOLVED edge (2026-08-07). The step-picked version guaranteed
+  // the floor and nothing else, and dark's ladder made that a trap: the first passing rung
+  // sat at Lc 66.5 — a resting ring Kushagra read, correctly, as a high-contrast value. So
+  // the law grows a ceiling: the edge must clear the target against BOTH beds, and must not
+  // overshoot it by more than the solve's own tolerance, or picking-by-accident has crept
+  // back in. Both directions read the EMITTED hex, so the solve is in the loop.
+  const hexOf = (mode: (typeof MODES)[number], name: string) => {
+    const line = colorDeclarations(mode).find((l) => l.includes(`--${name}:`))!;
+    return line.match(/#[0-9a-fA-F]{6}/)![0];
+  };
 
   for (const mode of MODES) {
-    it(`holds in ${mode}, against the surface and the page`, () => {
+    it(`holds in ${mode}, against the surface and the page — floor AND ceiling`, () => {
       const neutral = buildScale("neutral", mode);
-      const edge = neutral.steps[markEdgeStep[mode] - 1]!;
+      const edge = hexOf(mode, "control-edge");
       const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
-      for (const surface of surfaces) {
-        expect(Math.abs(apcaLc(edge, surface)), `${mode} mark edge vs ${surface}`).toBeGreaterThanOrEqual(
-          NON_TEXT,
-        );
-      }
+      const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
+      expect(worst, `${mode} under the target`).toBeGreaterThanOrEqual(controlEdgeLc.normal);
+      // The ceiling: just above the target, never the next rung over a fold. 4 Lc of slack
+      // covers the two-bed solve (the binding bed lands exactly; the other sits above it).
+      expect(worst, `${mode} overshoots — the solve has regressed to a pick`).toBeLessThanOrEqual(
+        controlEdgeLc.normal + 4,
+      );
+    });
+
+    it(`${mode}: the high-contrast variant is a designed tier, not a band accident`, () => {
+      const line = contrastHighDeclarations(mode).find((l) => l.includes("--control-edge:"))!;
+      const edge = line.match(/#[0-9a-fA-F]{6}/)![0];
+      const neutral = buildScale("neutral", mode);
+      const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
+      const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
+      expect(worst).toBeGreaterThanOrEqual(controlEdgeLc.high);
+      expect(worst).toBeLessThanOrEqual(controlEdgeLc.high + 4);
     });
   }
 
-  it("and the emitted token is the step the law just checked", () => {
-    for (const mode of MODES) {
-      const emitted = colorDeclarations(mode).find((l) => l.includes("--mark-edge:"));
-      expect(emitted).toContain(`var(--neutral-${markEdgeStep[mode]})`);
-    }
+  it("the config's own targets stay anchored to the floor", () => {
+    // The floor is WCAG-anchored (apcaFloors.nonText = 45, the 3:1 non-text equivalent);
+    // the solve target must sit on it, not drift under it in a tuning pass.
+    expect(controlEdgeLc.normal).toBeGreaterThan(apcaFloors.nonText);
+    // And BOUNDED by it: the target is the floor plus rounding margin, nothing more. Without
+    // this, raising both targets together recreates the picked-rung overshoot with the law
+    // suite green — the ceiling laws above read the config, so they follow a drifted target.
+    expect(controlEdgeLc.normal).toBeLessThanOrEqual(apcaFloors.nonText + 2);
+    expect(controlEdgeLc.high).toBeGreaterThan(controlEdgeLc.normal);
   });
 });
 

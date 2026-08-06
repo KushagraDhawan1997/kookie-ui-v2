@@ -182,28 +182,37 @@ export type ToneName = keyof typeof tones;
 export type Mode = keyof typeof lightness;
 
 /**
- * §7, §11 — the step the MARK EDGE reads per mode (worn by Checkbox now; Radio, Switch and
- * Slider when they land; decided 2026-08-06, Kushagra — "a new darker colour just for
- * checkboxes and switches, nothing else changes").
+ * §7, §11 — the Lc targets the CONTROL EDGE is SOLVED to, per contrast level (decided
+ * 2026-08-07, Kushagra; supersedes `markEdgeStep`, the per-mode step picks of 2026-08-06).
  *
- * A mark is the only control whose resting identity is its hairline alone — a field has a
- * seal and a value, a card has a body, but an unchecked checkbox IS its border. The shared
- * `--color-border` (neutral 7) sits at |Lc| 22.8 light / 10.3 dark against the surface, far
- * under the system's own non-text floor of 45 (color.test.ts), so the resting state of every
- * form's every checkbox failed WCAG 1.4.11 (audit D2). These are the FIRST steps per mode
- * that clear the floor against both the surface and the page, measured through the shipped
- * generator: light 9 (Lc 58.8 / 57.0), dark 11 (66.5 / 66.9 — dark's step 9 misses at 42).
- * Material's unchecked outlines sit in the same territory in both modes.
+ * The control edge is the resting hairline of a control whose identity needs it under the
+ * outlined look: checkbox and radio (an unchecked mark IS its border — audit D2), and the
+ * field family (an outlined field's fill is the seal it sits on, so its border is likewise
+ * all there is). Cards and separators keep the quiet `--color-border`: a card has a body,
+ * and its identity does not rest on its edge.
  *
- * Deliberately NOT a re-step of --color-border itself: Separator, the field family and the
- * card seal keep the quiet hairline — their identity does not rest on it.
+ * SOLVED, not picked, and the dark ring is why (Kushagra: "it is what I would expect to be
+ * when high contrast is on"). The floor is 45 (`apcaFloors.nonText` — APCA's fine-detail
+ * tier, the WCAG 3:1 equivalent for thin lines). Light's ladder has a step just past it
+ * (9, Lc 58.8) but dark's does not: step 9 misses at 42.1 and the scale folds back before
+ * 11, so the nearest passing rung was Lc 66.5 — a third of the way to white, reading as
+ * high-contrast at rest. Picking rungs couples the guarantee to where the rungs happen to
+ * fall; solving decouples it. The generator binary-searches the neutral recipe's lightness
+ * for the value that just clears the target against BOTH the seal and the page, the
+ * `--accent-label` precedent (generated between steps for exactly this reason).
+ *
+ * `normal` sits one point above the floor so rounding cannot land under it. `high` is the
+ * fine-detail tier up (~where the old dark pick sat, per Kushagra's own reading of it), and
+ * emitting it in the contrast="high" scopes makes the edge's HC answer DESIGNED — before
+ * this, dark's pick moved under HC only because its step accidentally sat in a re-priced
+ * band, and light's never moved at all (audit R9's half-truth).
  */
-export const markEdgeStep = { light: 9, dark: 11 } as const;
+export const controlEdgeLc = { normal: 46, high: 60 } as const;
 
 /**
  * §7, §11 — the step the TRACK WELL reads per mode: the low neutral bed a value runs in.
  * Slider's track now; the switch's off-track and the progress/meter tracks when they land —
- * the value-control family's second tone-independent role, minted beside `markEdgeStep` for
+ * the value-control family's second tone-independent role, minted beside the mark edge (now the solved control edge) for
  * the same structural reason: the off part of a value control is NEUTRAL by §11's own row
  * ("track low, fill accent" — the checkbox's "neutral off" one control over), and a component
  * stylesheet cannot say neutral without naming a family, which the role-not-family law forbids.
@@ -242,7 +251,7 @@ export const inkMix = { muted: 74, faint: 52 } as const;
 
 /**
  * The per-mode step the focus ring and the invalid edge read (§8) — the third and first
- * members of the family markEdgeStep completed: a role whose job is a contrast guarantee
+ * members of the family the control edge completed: a role whose job is a contrast guarantee
  * against the page picks its step per mode, because dark's solid band cannot keep the promise
  * (step 9 on a near-black page is |Lc| 22, the shipped WCAG 2.4.11 failure of 2026-08-03;
  * step 11 is the band designed to be legible against the page). `solid` rather than a number

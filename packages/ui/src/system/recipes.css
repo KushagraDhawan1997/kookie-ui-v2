@@ -277,7 +277,7 @@
   --kui-ct-fill-src: var(--color-surface);
   --kui-ct-fill-src-hover: var(--color-surface-hover);
   --kui-ct-fill-src-active: var(--color-surface-active);
-  --tone-border: var(--mark-edge);
+  --tone-border: var(--control-edge);
 
   /* The target's anchor: no wrapper exists, and the pseudo below is not one. */
   position: relative;
@@ -307,7 +307,7 @@
   --kui-ct-fill-src: var(--look-mark-fill);
   --kui-ct-fill-src-hover: var(--look-mark-fill-hover);
   --kui-ct-fill-src-active: var(--look-mark-fill-active);
-  --tone-border: var(--look-mark-border, var(--mark-edge));
+  --tone-border: var(--look-mark-border, var(--control-edge));
 }
 
 /* ── The target: a control of its size, painted or not (§4, §16) ─────────────────────────────
@@ -535,6 +535,17 @@
    the role itself: state outranks dress. */
 .kui-field,
 .kui-textarea {
+  /* And under the outlined look, the field family wears the CONTROL EDGE (§7, 2026-08-07,
+     Kushagra: "I'm not ok with the inconsistency"): an outlined field's fill is the seal it
+     sits on, so its border is all that identifies it — the mark family's D2 argument, one
+     family over — and it now resolves the same solved hairline a checkbox wears, so the two
+     match by construction instead of sitting 40 Lc apart. Re-pointed through --tone-border,
+     the mark family's own pattern, which keeps the state remaps (invalid, disabled) winning
+     at their higher specificity exactly as before. Filled is untouched: there the fill
+     identifies the field and the dress edge stays soft. A control hosted in a field's slot
+     inherits this tone-border and wears the control boundary too, which is stated rather
+     than accidental. */
+  --tone-border: var(--control-edge);
   --kui-border-color: var(--look-field-border, var(--tone-border));
 }
 

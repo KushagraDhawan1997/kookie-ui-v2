@@ -178,11 +178,11 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
   }
 
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: rests as every mark rests — the seal wearing the mark edge`, () => {
+    it(`${appearance}: rests as every mark rests — the seal wearing the control edge`, () => {
       const el = slider({}, { appearance });
       const thumb = thumbOf(el);
       expect(computed(thumb, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
-      expect(computed(thumb, "border-top-color")).toBe(colorOn(el, "var(--mark-edge)"));
+      expect(computed(thumb, "border-top-color")).toBe(colorOn(el, "var(--control-edge)"));
     });
   }
 

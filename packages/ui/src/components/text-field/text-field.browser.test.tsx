@@ -13,6 +13,8 @@ import { Theme } from "../../theme/theme.tsx";
 import { density } from "../../tokens/config.ts";
 import { APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
+import { Card } from "../card/card.tsx";
+import { Checkbox } from "../checkbox/checkbox.tsx";
 import { TextField } from "./text-field.tsx";
 
 const px = (v: string) => parseFloat(v);
@@ -60,7 +62,26 @@ describe("the wrapper is the control, and it joins the size index (§4)", () => 
     expect(computed(input, "background-color")).toBe("rgba(0, 0, 0, 0)");
     // The border is the wrapper's, and it is really painted — a field is bordered by identity.
     expect(computed(el, "border-top-width")).toBe("1px");
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
+    // The CONTROL EDGE since 2026-08-07 (§7 — solved to the non-text floor): an outlined
+    // field's fill is the seal it sits on, so its border is all that identifies it, and it
+    // now wears the same solved hairline a checkbox does instead of the quiet card border
+    // that measured 1.35:1 against a 3:1 requirement.
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--control-edge"));
+  });
+
+  it.each(APPEARANCES)("%s: a field's border IS a checkbox's ring — one control boundary (§7)", (appearance) => {
+    // The consistency Kushagra asked for on 2026-08-07, as a law rather than a coincidence of
+    // picks: under the outlined look, everything whose identity is its hairline wears the ONE
+    // solved control edge, so a form reads as one system. Asserted component-against-component
+    // — neither side can drift alone — and against the role, so both really resolve the solve.
+    const field = mounted(<TextField />, { theme: { appearance }, select: ".kui-field" });
+    const mark = mounted(<Checkbox />, { theme: { appearance }, select: ".kui-checkbox" });
+    expect(computed(field, "border-top-color")).toBe(computed(mark, "border-top-color"));
+    expect(computed(field, "border-top-color")).toBe(colorOn(field, "var(--control-edge)"));
+    // The negative control: the card behind them keeps the quiet hairline — a container's
+    // identity does not rest on its edge, so the two boundaries must genuinely differ.
+    const card = mounted(<Card>B</Card>, { theme: { appearance }, select: ".kui-surface" });
+    expect(computed(card, "border-top-color")).not.toBe(computed(field, "border-top-color"));
   });
 
   it("follows the density and pointer worlds, like every control (§12, §16)", () => {
@@ -217,7 +238,7 @@ describe("validity is state, never a prop (§8)", () => {
     inputOf(el).setAttribute("data-invalid", "");
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
     inputOf(el).removeAttribute("data-invalid");
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-border"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--control-edge"));
   });
 
   it("the value stays legible; the box carries the state, border AND ring (§8)", () => {

@@ -1126,7 +1126,7 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
     // Reversed 2026-08-06 (Kushagra, by eye): `filled` set every border to `transparent` on
     // the theory that a fill REPLACES a hairline. It does not — "filled surfaces can have
     // slight border, but their main pull is filled bg, not border" — and the trade had three
-    // measured costs: an unchecked mark lost the boundary --mark-edge was minted for (audit
+    // measured costs: an unchecked mark lost the boundary --control-edge was minted for (audit
     // D2), a read-only field lost its fill by design and its border by dress and so painted
     // nothing at all, and contrast="high" had no edge left anywhere to strengthen.
     //

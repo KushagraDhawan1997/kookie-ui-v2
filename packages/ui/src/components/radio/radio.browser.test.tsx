@@ -117,7 +117,7 @@ describe("the circle is role semantics, and the radius axis never reaches it (§
 
 describe("neutral off, accent on — the family identity, not a per-component copy (§11)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: rests as the seal wearing the mark edge`, () => {
+    it(`${appearance}: rests as the seal wearing the control edge`, () => {
       const el = render(
         <Theme appearance={appearance}>
           <RadioGroup>
@@ -126,7 +126,7 @@ describe("neutral off, accent on — the family identity, not a per-component co
         </Theme>,
       );
       const mark = el.querySelector(".kui-radio")!;
-      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--mark-edge)"));
+      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--control-edge)"));
       expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
     });
 

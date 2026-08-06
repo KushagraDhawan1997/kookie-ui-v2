@@ -581,7 +581,7 @@
   --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
-  --mark-edge: var(--neutral-9);
+  --control-edge: #a3a6aa;
   --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -1048,7 +1048,7 @@
   --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
-  --mark-edge: var(--neutral-9);
+  --control-edge: #a3a6aa;
   --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -1525,7 +1525,7 @@
   --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
   --focus-ring: var(--accent-11);
   --invalid-edge: var(--destructive-11);
-  --mark-edge: var(--neutral-11);
+  --control-edge: #95999c;
   --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -1909,7 +1909,7 @@
     --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
-    --mark-edge: var(--neutral-9);
+    --control-edge: color(display-p3 0.6431 0.6525 0.6646);
     --color-track: var(--neutral-4);
   }
   [data-appearance="light"] {
@@ -2175,7 +2175,7 @@
     --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
-    --mark-edge: var(--neutral-9);
+    --control-edge: color(display-p3 0.6431 0.6525 0.6646);
     --color-track: var(--neutral-4);
   }
   [data-appearance="dark"] {
@@ -2441,7 +2441,7 @@
     --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
     --focus-ring: var(--accent-11);
     --invalid-edge: var(--destructive-11);
-    --mark-edge: var(--neutral-11);
+    --control-edge: color(display-p3 0.5865 0.5976 0.6116);
     --color-track: var(--neutral-4);
   }
 }
@@ -2528,6 +2528,7 @@
   --info-solid-hover: #0081dd;
   --info-solid-active: #006ebe;
   --info-label: #0e2439;
+  --control-edge: #878b8f;
   --material-thin-alpha: 55%;
   --material-thin-alpha-hover: 62%;
   --material-thin-alpha-active: 69%;
@@ -2630,6 +2631,7 @@
     --info-solid-hover: #0081dd;
     --info-solid-active: #006ebe;
     --info-label: #0e2439;
+    --control-edge: #878b8f;
     --material-thin-alpha: 55%;
     --material-thin-alpha-hover: 62%;
     --material-thin-alpha-active: 69%;
@@ -2733,6 +2735,7 @@
   --info-solid-hover: #0081dd;
   --info-solid-active: #006ebe;
   --info-label: #e6effa;
+  --control-edge: #b0b3b5;
   --material-thin-alpha: 60%;
   --material-thin-alpha-hover: 67%;
   --material-thin-alpha-active: 74%;
@@ -2835,6 +2838,7 @@
     --info-solid-hover: #0081dd;
     --info-solid-active: #006ebe;
     --info-label: #e6effa;
+    --control-edge: #b0b3b5;
     --material-thin-alpha: 60%;
     --material-thin-alpha-hover: 67%;
     --material-thin-alpha-active: 74%;
@@ -2939,6 +2943,7 @@
     --info-solid-hover: color(display-p3 0 0.4425 0.8637);
     --info-solid-active: color(display-p3 0 0.3738 0.7368);
     --info-label: color(display-p3 0.0542 0.1374 0.2416);
+    --control-edge: color(display-p3 0.5339 0.545 0.5592);
   }
   @media (prefers-contrast: more) {
     :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -3023,6 +3028,7 @@
       --info-solid-hover: color(display-p3 0 0.4425 0.8637);
       --info-solid-active: color(display-p3 0 0.3738 0.7368);
       --info-label: color(display-p3 0.0542 0.1374 0.2416);
+      --control-edge: color(display-p3 0.5339 0.545 0.5592);
     }
   }
 }
@@ -3110,6 +3116,7 @@
     --info-solid-hover: color(display-p3 0 0.4425 0.8637);
     --info-solid-active: color(display-p3 0 0.3738 0.7368);
     --info-label: color(display-p3 0.9057 0.9381 0.9794);
+    --control-edge: color(display-p3 0.6915 0.6997 0.71);
   }
   @media (prefers-contrast: more) {
     [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -3194,6 +3201,7 @@
       --info-solid-hover: color(display-p3 0 0.4425 0.8637);
       --info-solid-active: color(display-p3 0 0.3738 0.7368);
       --info-label: color(display-p3 0.9057 0.9381 0.9794);
+      --control-edge: color(display-p3 0.6915 0.6997 0.71);
     }
   }
 }
