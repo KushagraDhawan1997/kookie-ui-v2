@@ -8,6 +8,9 @@
 import { describe, expect, it } from "vitest";
 
 import { Box } from "../components/box/box.tsx";
+import { Card } from "../components/card/card.tsx";
+import { Checkbox } from "../components/checkbox/checkbox.tsx";
+import { TextField } from "../components/text-field/text-field.tsx";
 import { APPEARANCES, computed, mounted, render } from "../test/browser.tsx";
 import { density, radiusLevels } from "../tokens/config.ts";
 import { Theme } from "./theme.tsx";
@@ -40,6 +43,49 @@ describe("the axes render as attributes (§5)", () => {
       </Theme>,
     ).querySelector(".kui-theme")!;
     expect(escaped.getAttribute("data-look")).toBe("outlined");
+  });
+
+  describe("a filled component's edge answers contrast=high (§7, §19)", () => {
+    // THE law for the reachability guarantee, and it is deliberately an OUTCOME law mounted in
+    // a browser rather than a check on which step the config picked.
+    //
+    // The first version of this guarantee was checked by asserting the chosen edge step was a
+    // member of `contrastHighBands.border`. That law passed and the guarantee was false:
+    // the band indexes the LADDER (0-based) while token names are 1-based, so
+    // contrastHighBands.border = [5, 6, 7] emits as --neutral-6/7/8 and the --neutral-5 edges
+    // picked for the surface and field families were never re-declared under high contrast at
+    // all. The law compared 1-indexed names to 0-indexed positions and agreed with the bug —
+    // the exact defect class the 2026-08-06 look audit was about, committed while fixing it.
+    //
+    // Reading the computed edge off a real component in both contrast states cannot be fooled
+    // that way: it does not care whether the answer arrives by band membership, by the
+    // stand-down arm, or by something not invented yet.
+    const CASES = [
+      { name: "surface", ui: <Card>Body</Card>, select: ".kui-surface" },
+      { name: "field", ui: <TextField />, select: ".kui-field" },
+      { name: "mark", ui: <Checkbox />, select: ".kui-checkbox" },
+    ] as const;
+
+    for (const appearance of APPEARANCES) {
+      for (const { name, ui, select } of CASES) {
+        it(`${appearance}/${name}: the edge moves when high contrast is asked for`, () => {
+          const edge = (contrast: "normal" | "high") =>
+            computed(
+              mounted(ui, { theme: { look: "filled", appearance, contrast }, select }),
+              "border-top-color",
+            );
+          const normal = edge("normal");
+          const high = edge("high");
+          expect(normal, "a filled edge that is not painted cannot be strengthened").not.toBe(
+            "rgba(0, 0, 0, 0)",
+          );
+          expect(
+            high,
+            `${name}'s filled edge is inert under contrast="high" — the escape does nothing here`,
+          ).not.toBe(normal);
+        });
+      }
+    }
   });
 
   it("contrast is stamped only when it was chosen, so prefers-contrast can still reach it (§7)", () => {

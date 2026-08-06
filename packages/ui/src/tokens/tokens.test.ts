@@ -1018,34 +1018,147 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
     // silently be transparent, which is exactly how the first cut failed. `initial` makes the
     // consumption-site fallback fire where the tone lives: on the component. Asserted against
     // the EMITTED text, not the config object, so the generator is in the loop.
-    for (const family of Object.keys(look.outlined)) {
+    // Derived from the config's own slots, not from the family list: the track family has a
+    // fill and no border, because a well genuinely has no edge to stand down (§19, and the
+    // one part of "the track is edgeless" that survived the axis reaching it). Hand-listing
+    // the families made this law demand a border the design does not have.
+    for (const [family, slots] of Object.entries(look.outlined)) {
+      if (!("border" in slots)) continue;
       for (const scope of [":root", '[data-look="outlined"]']) {
         expect(block(scope), `${scope}/${family}`).toContain(`--look-${family}-border: initial;`);
       }
     }
   });
 
-  it("filled darkens by the hierarchy: surface lightest, field one past it, mark darkest", () => {
-    // Read off the emitted declarations rather than the config: what ships is what is judged.
-    const step = (family: string, slot: string) => {
-      const decl = block('[data-look="filled"]').match(
-        new RegExp(`--look-${family}-${slot}:\\s*([^;]+);`),
-      )?.[1];
-      const m = /^var\(--neutral-(\d+)\)$/.exec(decl ?? "");
-      expect(m, `look-${family}-${slot} is not a neutral step: ${decl}`).toBeTruthy();
-      return Number(m![1]);
-    };
-    expect(step("surface", "fill")).toBeLessThan(step("field", "fill"));
-    expect(step("field", "fill")).toBeLessThan(step("mark", "fill"));
-    // The interactive steps walk upward from their family's rest, so a press is visible.
-    for (const family of ["surface", "mark"]) {
-      expect(step(family, "fill-hover")).toBeGreaterThan(step(family, "fill"));
-      expect(step(family, "fill-active")).toBeGreaterThan(step(family, "fill-hover"));
+  it("outlined is the identity for every slot — nothing filled introduces leaks into the default", () => {
+    // `outlined` may only ever name a role that existed before the axis, or stand down. The
+    // track's arrival (2026-08-06) is the case that needed saying: it joined the axis, and the
+    // default path must still resolve the untouched well role at the element.
+    for (const [family, slots] of Object.entries(look.outlined)) {
+      for (const value of Object.values(slots)) {
+        expect(
+          value === "initial" || /^var\(--(color|tone|mark)-[\w-]+\)$/.test(value),
+          `outlined/${family} introduces a value of its own: ${value}`,
+        ).toBe(true);
+      }
     }
-    // And every border withdraws — filled's boundary is the well itself.
-    for (const family of Object.keys(look.filled)) {
-      expect(block('[data-look="filled"]')).toContain(`--look-${family}-border: transparent;`);
+  });
+
+  // Resolving a filled role to its neutral step is TWO hops through the emitted text, and the
+  // second hop is the whole point: `[data-look="filled"]` can only hold mode-blind mappings
+  // (co-location — see the generator), so the step lives in the appearance scope. Reading only
+  // the first hop is what let `filled` ship resolving to dark's own seal.
+  const filledStep = (mode: "light" | "dark", family: string, slot: string) => {
+    const scope = mode === "light" ? ":root" : '[data-appearance="dark"]';
+    const role = block('[data-look="filled"]').match(
+      new RegExp(`--look-${family}-${slot}:\\s*var\\(--(dress-[\\w-]+)\\);`),
+    )?.[1];
+    expect(role, `look-${family}-${slot} does not resolve through a dress role`).toBeTruthy();
+    const decl = block(scope).match(new RegExp(`--${role}:\\s*([^;]+);`))?.[1];
+    const m = /^var\(--neutral-(\d+)\)$/.exec(decl ?? "");
+    expect(m, `${role} is not a neutral step in ${mode}: ${decl}`).toBeTruthy();
+    return Number(m![1]);
+  };
+
+  // The seal and the well, read the same way — the two values `filled` collided with.
+  const roleStep = (mode: "light" | "dark", role: string) => {
+    const scope = mode === "light" ? ":root" : '[data-appearance="dark"]';
+    const decl = block(scope).match(new RegExp(`--${role}:\\s*([^;]+);`))?.[1];
+    return /^var\(--neutral-(\d+)\)$/.exec(decl ?? "")?.[1];
+  };
+
+  it.each(["light", "dark"] as const)(
+    "%s: filled darkens by the hierarchy — surface lightest, field past it, mark darkest",
+    (mode) => {
+      expect(filledStep(mode, "surface", "fill")).toBeLessThan(filledStep(mode, "field", "fill"));
+      expect(filledStep(mode, "field", "fill")).toBeLessThanOrEqual(
+        filledStep(mode, "mark", "fill"),
+      );
+      // The interactive steps walk upward from their family's rest, so a press is visible.
+      for (const family of ["surface", "mark"]) {
+        expect(filledStep(mode, family, "fill-hover")).toBeGreaterThan(
+          filledStep(mode, family, "fill"),
+        );
+        expect(filledStep(mode, family, "fill-active")).toBeGreaterThan(
+          filledStep(mode, family, "fill-hover"),
+        );
+      }
+    },
+  );
+
+  it.each(["light", "dark"] as const)(
+    "%s: filled never lands ON the thing it is supposed to sit against",
+    (mode) => {
+      // THE law this axis shipped without, and the one defect it would have caught twice.
+      // Every previous look law compared a component to the token name its author had just
+      // typed; none compared it to its BED. So `filled` shipped resolving the surface family
+      // to --neutral-2/3/4 — which in dark IS --color-surface and its two states, making
+      // `filled` byte-identical to `outlined` and reducing the axis to deleting a hairline —
+      // and the mark family to --neutral-4, which is --color-track in BOTH modes, so a
+      // filled slider's handle was its own rail at 1.000:1.
+      //
+      // Stated as the general rule rather than the two instances: a dressed fill must differ
+      // from the fill of whatever it is painted on top of.
+      // A part's bed is the part BEHIND IT IN THE SAME LOOK, which is the subtlety that makes
+      // this law worth writing carefully: under `filled` the thumb no longer rides
+      // --color-track, it rides the dressed track, so comparing it to the outlined well would
+      // fail on a slider that is in fact perfectly readable. Each look is judged in its own
+      // world; `outlined` is checked separately below, where the roles are the pre-axis ones.
+      const seal = roleStep(mode, "color-surface");
+      for (const slot of ["fill", "fill-hover", "fill-active"]) {
+        if (seal !== undefined) {
+          expect(
+            String(filledStep(mode, "surface", slot)),
+            `filled surface/${slot} IS the seal in ${mode} — the axis does nothing here`,
+          ).not.toBe(seal);
+        }
+      }
+      expect(
+        filledStep(mode, "mark", "fill"),
+        `the filled thumb IS its filled rail in ${mode} — invisible at 1.000:1`,
+      ).not.toBe(filledStep(mode, "track", "fill"));
+      // And the mark must clear its other bed, the filled surface a checkbox sits on.
+      expect(filledStep(mode, "mark", "fill")).not.toBe(filledStep(mode, "surface", "fill"));
+    },
+  );
+
+  it.each(["light", "dark"] as const)("%s: filled keeps a boundary at all", (mode) => {
+    // Reversed 2026-08-06 (Kushagra, by eye): `filled` set every border to `transparent` on
+    // the theory that a fill REPLACES a hairline. It does not — "filled surfaces can have
+    // slight border, but their main pull is filled bg, not border" — and the trade had three
+    // measured costs: an unchecked mark lost the boundary --mark-edge was minted for (audit
+    // D2), a read-only field lost its fill by design and its border by dress and so painted
+    // nothing at all, and contrast="high" had no edge left anywhere to strengthen.
+    //
+    // Whether the edge is REACHABLE by contrast="high" is asserted as an outcome, in a mounted
+    // law (theme.browser.test.tsx) — see the note there on why it cannot be checked here.
+    for (const [family, slots] of Object.entries(look.filled)) {
+      if (!("border" in slots)) continue;
+      expect(filledStep(mode, family, "border")).toBeGreaterThan(0);
     }
+  });
+
+  it("contrast=high stands every filled edge down, so the tone system resolves it", () => {
+    // The mechanism half of the reachability guarantee; the outcome half is mounted.
+    // `initial` is what the material's edge already does under high contrast, for the same
+    // reason: the fallback has to resolve AT THE ELEMENT, where the tone lives.
+    // Light is emitted as a selector LIST — :root carries the un-themed document and the
+    // attribute scope carries Theme's div, because Theme never matches :root (§7).
+    for (const scope of [
+      ':root[data-contrast="high"], [data-appearance="light"][data-contrast="high"]',
+      '[data-appearance="dark"][data-contrast="high"]',
+    ]) {
+      for (const [family, slots] of Object.entries(look.filled)) {
+        if (!("border" in slots)) continue;
+        expect(block(scope), `${scope}/${family}`).toContain(`--look-${family}-border: initial;`);
+      }
+    }
+  });
+
+  it("no filled role is transparent — the axis is a fill question, not a trade", () => {
+    // Mutation guard for the reversal above: this is the exact string the old design shipped,
+    // and it must not come back by way of a "simplification".
+    expect(block('[data-look="filled"]')).not.toContain("transparent");
   });
 
   it("every role the sheets consume is emitted, and every role emitted is consumed", () => {

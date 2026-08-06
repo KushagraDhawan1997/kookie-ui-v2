@@ -27,16 +27,29 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
   });
 
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: the filled look trades the hairline for the lightest well (§19)`, () => {
-      // The surface family's answer to look="filled": fill one neutral step up, border gone.
-      // Lightest of the three-family hierarchy (surface, field, mark) — asserted per family
-      // in each member's own file.
-      const el = mounted(<Card>Body</Card>, {
+    it(`${appearance}: the filled look fills the card and keeps a softer edge (§19)`, () => {
+      // Rewritten 2026-08-06, and the rewrite is the point. The old spelling asserted
+      // `background-color === var(--neutral-2)` and `border-top-color === transparent` — a
+      // comparison against the token name its author had just typed, which is why it passed
+      // for a day while `filled` did nothing at all in dark: --neutral-2 IS dark's seal, so
+      // the law and the bug agreed with each other.
+      //
+      // The axis is now judged the only way an axis can be: against its OTHER END.
+      const filled = mounted(<Card>Body</Card>, {
         theme: { look: "filled", appearance },
         select: ".kui-surface",
       });
-      expect(computed(el, "background-color")).toBe(colorOn(el, "var(--neutral-2)"));
-      expect(computed(el, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+      const outlined = mounted(<Card>Body</Card>, {
+        theme: { look: "outlined", appearance },
+        select: ".kui-surface",
+      });
+      expect(
+        computed(filled, "background-color"),
+        `filled resolves to outlined's fill in ${appearance} — the axis paints nothing`,
+      ).not.toBe(computed(outlined, "background-color"));
+      // And the boundary survives the dress (Kushagra, 2026-08-06: a filled surface may keep
+      // a slight border — the fill is the pull, not the absence of an edge).
+      expect(computed(filled, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
     });
 
     it(`${appearance}: outlined is the identity — byte-identical to a world without the axis (§19)`, () => {

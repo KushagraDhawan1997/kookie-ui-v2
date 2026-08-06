@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
 import { density } from "../../tokens/config.ts";
-import { SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
+import { APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "./text-field.tsx";
 
@@ -374,10 +374,40 @@ describe("the slots are forced anatomy, and they behave like slots (§10)", () =
 });
 
 describe("the look axis dresses the well, and states outrank it (§19)", () => {
-  it("filled: the fill darkens one step past the surface family, the border withdraws", () => {
-    const el = mounted(<TextField />, { theme: { look: "filled" }, select: ".kui-field" });
-    expect(computed(el, "background-color")).toBe(colorOn(el, "var(--neutral-3)"));
-    expect(computed(el, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+  it.each(APPEARANCES)("%s: filled fills the well and keeps a softer edge", (appearance) => {
+    // Rewritten 2026-08-06 with the rest of the axis's laws. The border assertion in
+    // particular was asserting a defect: with the edge gone, a READ-ONLY filled field painted
+    // nothing whatsoever — readOnly drops the seal by design (it is the invitation to type
+    // that goes, not the value), so the border was the only thing left bounding it, and the
+    // dress deleted that too. See the readOnly x look law below, which no cell used to cover.
+    const filled = mounted(<TextField />, {
+      theme: { look: "filled", appearance },
+      select: ".kui-field",
+    });
+    const outlined = mounted(<TextField />, {
+      theme: { look: "outlined", appearance },
+      select: ".kui-field",
+    });
+    expect(
+      computed(filled, "background-color"),
+      `filled resolves to outlined's fill in ${appearance}`,
+    ).not.toBe(computed(outlined, "background-color"));
+    expect(computed(filled, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+  });
+
+  it.each(APPEARANCES)("%s: a read-only filled field still paints something", (appearance) => {
+    // The cell nobody looped (audit 2026-08-06). readOnly x look was two independent axes and
+    // no law crossed them, so an invisible control shipped: transparent fill by design meeting
+    // transparent border by dress. The law reads BOTH channels, because either one alone is
+    // satisfied by the broken state.
+    const el = mounted(<TextField readOnly defaultValue="x" />, {
+      theme: { look: "filled", appearance },
+      select: ".kui-field",
+    });
+    const painted =
+      computed(el, "background-color") !== "rgba(0, 0, 0, 0)" ||
+      computed(el, "border-top-color") !== "rgba(0, 0, 0, 0)";
+    expect(painted, "a read-only filled field is invisible — no fill and no edge").toBe(true);
   });
 
   it("outlined is the identity — byte-identical to the bare render", () => {

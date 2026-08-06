@@ -197,6 +197,7 @@
   --look-mark-fill-hover: var(--color-surface-hover);
   --look-mark-fill-active: var(--color-surface-active);
   --look-mark-border: initial;
+  --look-track-fill: initial;
 
   /* colour, generated (§7) — light mode */
   /* neutral */
@@ -648,6 +649,22 @@
   /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
      var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
   --surface-chrome: var(--shadow-2);
+
+  /* the look axis's filled pigment (§19), per appearance: an index means the opposite
+     thing in the two modes, so the ladders are not each other's copy. The edges sit
+     inside contrastHighBands.border, which is what keeps contrast="high" able to reach
+     a filled component's boundary at all. */
+  --dress-surface-fill: var(--neutral-2);
+  --dress-surface-fill-hover: var(--neutral-3);
+  --dress-surface-fill-active: var(--neutral-4);
+  --dress-surface-edge: var(--neutral-5);
+  --dress-field-fill: var(--neutral-3);
+  --dress-field-edge: var(--neutral-5);
+  --dress-mark-fill: var(--neutral-4);
+  --dress-mark-fill-hover: var(--neutral-5);
+  --dress-mark-fill-active: var(--neutral-6);
+  --dress-mark-edge: var(--neutral-7);
+  --dress-track-fill: var(--neutral-6);
 }
 
 [data-appearance="light"] {
@@ -1100,6 +1117,22 @@
   /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
      var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
   --surface-chrome: var(--shadow-2);
+
+  /* the look axis's filled pigment (§19), per appearance: an index means the opposite
+     thing in the two modes, so the ladders are not each other's copy. The edges sit
+     inside contrastHighBands.border, which is what keeps contrast="high" able to reach
+     a filled component's boundary at all. */
+  --dress-surface-fill: var(--neutral-2);
+  --dress-surface-fill-hover: var(--neutral-3);
+  --dress-surface-fill-active: var(--neutral-4);
+  --dress-surface-edge: var(--neutral-5);
+  --dress-field-fill: var(--neutral-3);
+  --dress-field-edge: var(--neutral-5);
+  --dress-mark-fill: var(--neutral-4);
+  --dress-mark-fill-hover: var(--neutral-5);
+  --dress-mark-fill-active: var(--neutral-6);
+  --dress-mark-edge: var(--neutral-7);
+  --dress-track-fill: var(--neutral-6);
   --look-surface-fill: var(--color-surface);
   --look-surface-fill-hover: var(--color-surface-hover);
   --look-surface-fill-active: var(--color-surface-active);
@@ -1110,6 +1143,7 @@
   --look-mark-fill-hover: var(--color-surface-hover);
   --look-mark-fill-active: var(--color-surface-active);
   --look-mark-border: initial;
+  --look-track-fill: initial;
 }
 
 [data-appearance="dark"] {
@@ -1562,6 +1596,22 @@
   /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
      var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
   --surface-chrome: inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-2);
+
+  /* the look axis's filled pigment (§19), per appearance: an index means the opposite
+     thing in the two modes, so the ladders are not each other's copy. The edges sit
+     inside contrastHighBands.border, which is what keeps contrast="high" able to reach
+     a filled component's boundary at all. */
+  --dress-surface-fill: var(--neutral-3);
+  --dress-surface-fill-hover: var(--neutral-4);
+  --dress-surface-fill-active: var(--neutral-5);
+  --dress-surface-edge: var(--neutral-5);
+  --dress-field-fill: var(--neutral-4);
+  --dress-field-edge: var(--neutral-5);
+  --dress-mark-fill: var(--neutral-5);
+  --dress-mark-fill-hover: var(--neutral-6);
+  --dress-mark-fill-active: var(--neutral-7);
+  --dress-mark-edge: var(--neutral-7);
+  --dress-track-fill: var(--neutral-2);
   --look-surface-fill: var(--color-surface);
   --look-surface-fill-hover: var(--color-surface-hover);
   --look-surface-fill-active: var(--color-surface-active);
@@ -1572,6 +1622,7 @@
   --look-mark-fill-hover: var(--color-surface-hover);
   --look-mark-fill-active: var(--color-surface-active);
   --look-mark-border: initial;
+  --look-track-fill: initial;
 }
 
 [data-look="outlined"] {
@@ -1585,19 +1636,21 @@
   --look-mark-fill-hover: var(--color-surface-hover);
   --look-mark-fill-active: var(--color-surface-active);
   --look-mark-border: initial;
+  --look-track-fill: initial;
 }
 
 [data-look="filled"] {
-  --look-surface-fill: var(--neutral-2);
-  --look-surface-fill-hover: var(--neutral-3);
-  --look-surface-fill-active: var(--neutral-4);
-  --look-surface-border: transparent;
-  --look-field-fill: var(--neutral-3);
-  --look-field-border: transparent;
-  --look-mark-fill: var(--neutral-4);
-  --look-mark-fill-hover: var(--neutral-5);
-  --look-mark-fill-active: var(--neutral-6);
-  --look-mark-border: transparent;
+  --look-surface-fill: var(--dress-surface-fill);
+  --look-surface-fill-hover: var(--dress-surface-fill-hover);
+  --look-surface-fill-active: var(--dress-surface-fill-active);
+  --look-surface-border: var(--dress-surface-edge);
+  --look-field-fill: var(--dress-field-fill);
+  --look-field-border: var(--dress-field-edge);
+  --look-mark-fill: var(--dress-mark-fill);
+  --look-mark-fill-hover: var(--dress-mark-fill-hover);
+  --look-mark-fill-active: var(--dress-mark-fill-active);
+  --look-mark-border: var(--dress-mark-edge);
+  --look-track-fill: var(--dress-track-fill);
 }
 
 @supports (color: color(display-p3 0 0 0)) {
@@ -2498,6 +2551,9 @@
   --material-thick-alpha-active: 97%;
   --material-thick-edge: initial;
   --material-thick-rim: initial;
+  --look-surface-border: initial;
+  --look-field-border: initial;
+  --look-mark-border: initial;
 }
 @media (prefers-contrast: more) {
   :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -2597,6 +2653,9 @@
     --material-thick-alpha-active: 97%;
     --material-thick-edge: initial;
     --material-thick-rim: initial;
+    --look-surface-border: initial;
+    --look-field-border: initial;
+    --look-mark-border: initial;
   }
 }
 
@@ -2697,6 +2756,9 @@
   --material-thick-alpha-active: 97%;
   --material-thick-edge: initial;
   --material-thick-rim: initial;
+  --look-surface-border: initial;
+  --look-field-border: initial;
+  --look-mark-border: initial;
 }
 @media (prefers-contrast: more) {
   [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -2796,6 +2858,9 @@
     --material-thick-alpha-active: 97%;
     --material-thick-edge: initial;
     --material-thick-rim: initial;
+    --look-surface-border: initial;
+    --look-field-border: initial;
+    --look-mark-border: initial;
   }
 }
 

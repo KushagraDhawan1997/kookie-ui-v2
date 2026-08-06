@@ -21,6 +21,7 @@ import {
   cursor,
   defaultRadiusLevel,
   density,
+  dress,
   typeBands,
   focusRing,
   fontFamily,
@@ -167,6 +168,7 @@ export function generateTokens(): string {
   lines.push(...colorDeclarations("light"));
 
   lines.push(...surfaceWorld("light"));
+  lines.push(...dressWorld("light"));
 
   lines.push("}", "");
 
@@ -179,6 +181,7 @@ export function generateTokens(): string {
     `[data-appearance="light"] {`,
     ...colorDeclarations("light"),
     ...surfaceWorld("light"),
+    ...dressWorld("light"),
     ...lookWorld("outlined"),
     "}",
     "",
@@ -203,6 +206,7 @@ export function generateTokens(): string {
     `[data-appearance="dark"] {`,
     ...colorDeclarations("dark"),
     ...surfaceWorld("dark"),
+    ...dressWorld("dark"),
     ...lookWorld("outlined"),
     "}",
     "",
@@ -211,8 +215,20 @@ export function generateTokens(): string {
   // The look axis (§19) — an app identity: the resting dress of the one-look families.
   // `outlined` re-declares the :root identity for the same reason `light` does: an outlined
   // Theme nested inside a filled region must escape by declaration, and Theme renders a div
-  // that :root can never match. No per-appearance duplication: every value is a var()
-  // reference resolved at the element, where the appearance scope already decided the mode.
+  // that :root can never match.
+  //
+  // ONE block per look, never one per (look x appearance), and that is what forces the
+  // `--dress-*` indirection above. Co-location is the reason: Theme stamps data-look beside
+  // data-appearance on a single element, so a compound `[data-appearance="dark"][data-look]`
+  // would resolve for Theme and MISS the supported un-themed path, where a raw `[data-look]`
+  // div hangs under an appearance ancestor and matches neither compound. So these blocks may
+  // only hold mode-blind mappings, and every value here is a var() reference resolved at the
+  // element — where the appearance scope has already decided what the mode's pigment is.
+  //
+  // `filled` shipped 2026-08-06 with raw --neutral-N steps here instead, which is the same
+  // mistake one level down: a step is not mode-blind. In dark, --neutral-2/3/4 ARE the seal
+  // and its two states, so the surface family resolved byte-identically to `outlined` and the
+  // axis only deleted the card's hairline. The steps now live per appearance in dressWorld().
   lines.push(`[data-look="outlined"] {`, ...lookWorld("outlined"), "}", "");
   lines.push(`[data-look="filled"] {`, ...lookWorld("filled"), "}", "");
 
@@ -262,6 +278,25 @@ export function generateTokens(): string {
             decl(`material-${t}-edge`, "initial"),
             decl(`material-${t}-rim`, "initial"),
           );
+        }
+        // The look axis yields its EDGE for the same reason the material does, and by the same
+        // mechanism (§19, 2026-08-06). A dress edge is deliberately soft — that is the whole
+        // point of `filled` — and a user who asks for high contrast is asking for the tone
+        // system's boundary, not the app's taste. `initial` stands the role down and each
+        // consumption site's fallback (var(--tone-border), var(--mark-edge)) resolves AT THE
+        // ELEMENT, where the tone lives; a scope-level colour here could never do that.
+        //
+        // Written because the alternative silently did not work. The first cut picked the soft
+        // steps out of `contrastHighBands.border` and claimed that made them reachable — but
+        // that band is indexed into the LADDER while token names are 1-based, so
+        // contrastHighBands.border = [5, 6, 7] emits as --neutral-6/7/8, and the chosen
+        // --neutral-5 edges were never re-declared at all. The law that "proved" it compared
+        // 1-indexed names against 0-indexed positions and passed on the mismatch. The
+        // replacement law asserts the OUTCOME — the edge a component computes must change when
+        // contrast="high" is set — so it holds whichever mechanism delivers it, and cannot be
+        // satisfied by an off-by-one.
+        for (const [family, slots] of Object.entries(look.filled)) {
+          if ("border" in slots) decls.push(decl(`look-${family}-border`, "initial"));
         }
       }
       const high = bases.map((b) => `${b}[data-contrast="high"]`).join(", ");
@@ -588,6 +623,35 @@ function lookWorld(name: keyof typeof look): string[] {
   for (const [family, slots] of Object.entries(look[name])) {
     for (const [slot, value] of Object.entries(slots) as [string, string][]) {
       out.push(decl(`look-${family}-${slot}`, value));
+    }
+  }
+  return out;
+}
+
+/** §19 — what `filled` paints in ONE mode, as the pigment behind the look roles.
+ *
+ *  This is the half of the axis that cannot live in the `[data-look]` blocks. Those are one
+ *  block each by design (co-location — see the emission site), so they can only ever hold
+ *  mode-blind mappings; a neutral STEP is not mode-blind, because the ramp runs the opposite
+ *  way in the two appearances. So the steps land here, in the appearance scopes, and the look
+ *  block reads them by name. Same shape as the seal: `--color-surface` is a role for exactly
+ *  this reason, and `filled` needed one too and shipped without it.
+ *
+ *  Emitted in every appearance scope for the reason every colour role is — a var() bakes
+ *  where it is DECLARED, so a single :root copy would carry light's pigment into every dark
+ *  region that is not itself a look scope. That is the half-day bug of 2026-08-06, and these
+ *  roles are held to the rule the look roles were then held to. */
+function dressWorld(mode: "light" | "dark"): string[] {
+  const out: string[] = [
+    "",
+    `  /* the look axis's filled pigment (§19), per appearance: an index means the opposite`,
+    `     thing in the two modes, so the ladders are not each other's copy. The edges sit`,
+    `     inside contrastHighBands.border, which is what keeps contrast="high" able to reach`,
+    `     a filled component's boundary at all. */`,
+  ];
+  for (const [family, slots] of Object.entries(dress[mode])) {
+    for (const [slot, step] of Object.entries(slots) as [string, number][]) {
+      out.push(decl(`dress-${family}-${slot}`, `var(--neutral-${step})`));
     }
   }
   return out;

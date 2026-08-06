@@ -145,15 +145,36 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     });
   }
 
-  it("the track stays outside the axis — an edgeless well has no trade to make (§19)", () => {
-    // Deliberate scope, not an omission: the look axis trades a border for a fill, and the
-    // track never had a border. If it ever moves with the look, that is a decision.
-    const outlined = trackOf(slider({}, { look: "outlined" }));
-    const filled = trackOf(slider({}, { look: "filled" }));
-    expect(computed(filled, "background-color")).toBe(computed(outlined, "background-color"));
-    expect(computed(filled, "background-color")).toBe(
-      colorOn(rootOf(slider({}, { look: "filled" })), "var(--color-track)"),
+  it.each(APPEARANCES)("%s: the track joins the axis — the well is dressed too (§19)", (appearance) => {
+    // REVERSED 2026-08-06 (Kushagra, from the preview: "slider doesn't respect outline at all
+    // rn"). The exclusion was argued as "the axis trades a border for a fill and the track
+    // never had a border" — true of the trade, and the trade is exactly what stopped being
+    // the design. Once `filled` became a fill question, an untouched rail was simply the one
+    // part of the slider that ignored the app's identity. The old law's own comment set the
+    // bar for this: "if it ever moves with the look, that is a decision."
+    const outlined = trackOf(slider({}, { look: "outlined", appearance }));
+    const filled = trackOf(slider({}, { look: "filled", appearance }));
+    expect(computed(filled, "background-color")).not.toBe(computed(outlined, "background-color"));
+    // Outlined stays the identity: the untouched well role, resolved at the element.
+    expect(computed(outlined, "background-color")).toBe(
+      colorOn(rootOf(slider({}, { look: "outlined", appearance })), "var(--color-track)"),
     );
+  });
+
+  it.each(APPEARANCES)("%s: the thumb is never its own rail", (appearance) => {
+    // The defect the exclusion caused, and the reason the reversal is worth its bytes. The
+    // thumb reads --look-mark-fill and the track read --color-track, and BOTH resolved to
+    // --neutral-4 in both appearances — so a filled slider's handle was its rail at 1.000:1,
+    // a control that cannot be seen or aimed at. Neither the mark laws nor the track law could
+    // see it: each compared its own element to the token name its author had typed, and the
+    // two were never compared to EACH OTHER.
+    for (const look of ["outlined", "filled"] as const) {
+      const el = slider({}, { look, appearance });
+      expect(
+        computed(thumbOf(el), "background-color"),
+        `${look}/${appearance}: the thumb is invisible on its own track`,
+      ).not.toBe(computed(trackOf(el), "background-color"));
+    }
   });
 
   it("grows no target of its own — the root's box owns the question", () => {

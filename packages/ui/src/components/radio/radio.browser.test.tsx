@@ -204,11 +204,16 @@ describe("the look axis reaches it through the family, with no rule of its own (
       </Theme>,
     );
 
-  it("filled: the darkest well of the hierarchy, and no hairline", () => {
-    const el = radio({ look: "filled" });
-    const mark = markOf(el);
-    expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--neutral-4)"));
-    expect(computed(mark, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+  it.each(APPEARANCES)("%s: filled dresses the box and KEEPS the mark's edge", (appearance) => {
+    // The checkbox's law, one member over — same rewrite, same reason (see that file). A radio
+    // is even more dependent on its hairline: unchecked, the ring IS the entire control.
+    const filled = markOf(radio({ look: "filled", appearance }));
+    const outlined = markOf(radio({ look: "outlined", appearance }));
+    expect(
+      computed(filled, "background-color"),
+      `filled resolves to outlined's fill in ${appearance}`,
+    ).not.toBe(computed(outlined, "background-color"));
+    expect(computed(filled, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
   });
 
   it("outlined is the identity — byte-identical to the bare render", () => {

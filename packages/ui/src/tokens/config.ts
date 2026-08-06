@@ -679,21 +679,74 @@ export const look = {
       "fill-active": "var(--color-surface-active)",
       border: "initial",
     },
+    track: { fill: "initial" },
   },
   filled: {
     surface: {
-      fill: "var(--neutral-2)",
-      "fill-hover": "var(--neutral-3)",
-      "fill-active": "var(--neutral-4)",
-      border: "transparent",
+      fill: "var(--dress-surface-fill)",
+      "fill-hover": "var(--dress-surface-fill-hover)",
+      "fill-active": "var(--dress-surface-fill-active)",
+      border: "var(--dress-surface-edge)",
     },
-    field: { fill: "var(--neutral-3)", border: "transparent" },
+    field: { fill: "var(--dress-field-fill)", border: "var(--dress-field-edge)" },
     mark: {
-      fill: "var(--neutral-4)",
-      "fill-hover": "var(--neutral-5)",
-      "fill-active": "var(--neutral-6)",
-      border: "transparent",
+      fill: "var(--dress-mark-fill)",
+      "fill-hover": "var(--dress-mark-fill-hover)",
+      "fill-active": "var(--dress-mark-fill-active)",
+      border: "var(--dress-mark-edge)",
     },
+    track: { fill: "var(--dress-track-fill)" },
+  },
+} as const;
+
+/**
+ * §19 — what `filled` actually paints, PER APPEARANCE. The look block above is one block on
+ * purpose (co-location: Theme stamps data-look beside data-appearance on a single element,
+ * and a raw `[data-look]` div must resolve under any ancestor appearance), so it can hold
+ * only mode-blind mappings. The mode-specific pigment has to arrive by indirection, exactly
+ * the way `--color-surface` already carries the seal — which is what these roles are.
+ *
+ * They exist because sharing one set of neutral INDICES across both modes is a bug this
+ * system has now shipped three times. `surfaceColor` records the second instance in its own
+ * comment (dark's hover equalled its rest, because the steps were hard-coded for both modes
+ * while the dark seal sat at --neutral-2). The look axis was the third and worst: `filled`
+ * asked for --neutral-2/3/4 on the surface family, and in DARK those are precisely
+ * --color-surface/-hover/-active, so `filled` resolved byte-identically to `outlined` and the
+ * axis did nothing but delete the card's border. An index is not a colour; it means the
+ * opposite thing in the two modes, and only a per-mode table can say which.
+ *
+ * The direction is stated rather than implied. In light a higher step is DARKER, in dark it
+ * is LIGHTER — so "recessed" and "raised" are opposite arithmetic per mode, and the ladders
+ * below are not each other's copy. A filled card is one step off the seal in both modes; a
+ * field and a mark sit further from their bed; the TRACK moves the other way from everything
+ * else, because a well is the one part that reads as sunk INTO its surface.
+ *
+ * The edges are deliberately inside `contrastHighBands.border` ([5, 6, 7]). That is what
+ * keeps `contrast="high"` reaching a filled component's boundary for free: the role holds a
+ * var() reference, the high-contrast pass re-declares those very steps, and substitution at
+ * the element does the rest. A softer edge outside the band would have been an accessibility
+ * escape that silently stopped working — which is the shape of the defect this replaces,
+ * where `filled` set `border: transparent` and left contrast="high" nothing to strengthen.
+ *
+ * Kushagra's calls, 2026-08-06, judged against the preview's outlined/filled pair: a filled
+ * surface KEEPS a border ("filled surfaces can have slight border, but their main pull is
+ * filled bg, not border"), so `filled` is no longer a trade — the fill is the signal and the
+ * hairline merely softens. v0, eye pass pending.
+ */
+export const dress = {
+  light: {
+    surface: { fill: 2, "fill-hover": 3, "fill-active": 4, edge: 5 },
+    field: { fill: 3, edge: 5 },
+    mark: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 7 },
+    // Darker than the card it is cut into: in light, sunk means further DOWN the ramp.
+    track: { fill: 6 },
+  },
+  dark: {
+    surface: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 5 },
+    field: { fill: 4, edge: 5 },
+    mark: { fill: 5, "fill-hover": 6, "fill-active": 7, edge: 7 },
+    // Darker than the card, which in dark means further UP toward the page, not down it.
+    track: { fill: 2 },
   },
 } as const;
 

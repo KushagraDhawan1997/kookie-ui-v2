@@ -10,7 +10,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
-import { SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
+import { APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { TextArea } from "./text-area.tsx";
@@ -264,10 +264,31 @@ describe("the placeholder is a designed role, not a UA default (§7, §15)", () 
 });
 
 describe("the look axis dresses the well — the field family answers once (§19)", () => {
-  it("filled matches TextField exactly: one family, one designed answer", () => {
-    const area = mounted(<TextArea />, { theme: { look: "filled" }, select: ".kui-textarea" });
-    expect(computed(area, "background-color")).toBe(tokenOn(area, "--neutral-3"));
-    expect(computed(area, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+  it.each(APPEARANCES)("%s: filled matches TextField exactly — one family, one answer", (appearance) => {
+    // The law's own title named a comparison it did not make: it asserted --neutral-3 and a
+    // transparent border, so it would have passed with TextField resolving to something else
+    // entirely, and it agreed with `filled` painting no edge. It now compares the two members
+    // to EACH OTHER, which is the family claim, and to the axis's other end, which is the
+    // claim the axis makes.
+    const area = mounted(<TextArea />, {
+      theme: { look: "filled", appearance },
+      select: ".kui-textarea",
+    });
+    const field = mounted(<TextField />, {
+      theme: { look: "filled", appearance },
+      select: ".kui-field",
+    });
+    for (const prop of ["background-color", "border-top-color"]) {
+      expect(computed(area, prop), `the field family disagrees with itself on ${prop}`).toBe(
+        computed(field, prop),
+      );
+    }
+    const outlined = mounted(<TextArea />, {
+      theme: { look: "outlined", appearance },
+      select: ".kui-textarea",
+    });
+    expect(computed(area, "background-color")).not.toBe(computed(outlined, "background-color"));
+    expect(computed(area, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
   });
 
   it("outlined is the identity — byte-identical to the bare render", () => {

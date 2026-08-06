@@ -39,8 +39,21 @@
   block-size: var(--kui-ct-track);
   /* The family's off part (§11 "track low"): neutral through the tone-independent well role,
      because the element stamps `accent` for its fill and the off part must not tint with it —
-     the checkbox's "neutral off", one control over. */
-  background-color: var(--color-track);
+     the checkbox's "neutral off", one control over.
+
+     The well answers the LOOK axis (§19, reversed 2026-08-06). It was excluded at first on
+     the sentence "a well is already edgeless, so it has no border-versus-fill trade to make",
+     which was true of the trade and wrong about the axis: once `filled` stopped being a trade
+     and became a fill question, an untouched rail was simply the one part of the slider that
+     ignored the app's identity. It also had a measured cost — the thumb reads --look-mark-fill
+     and the track read --color-track, and BOTH resolved to --neutral-4 in both appearances, so
+     a filled slider's handle was its own rail at 1.000:1. The well now moves AWAY from the
+     mark family rather than the mark family moving off a value that suits it: under `filled`
+     the rail sinks (darker than the card in both modes, which is opposite arithmetic per mode
+     — see config's dress table) and the handle stays where it reads. Outlined emits `initial`,
+     so this fallback resolves the untouched well role at the element and the default path is
+     byte-identical to a world without the axis. */
+  background-color: var(--look-track-fill, var(--color-track));
   /* The capsule stated as the rule (§6's own correction): half the box, never 9999px riding
      CSS clamping against a rendered height. */
   border-radius: calc(var(--kui-ct-track) / 2);

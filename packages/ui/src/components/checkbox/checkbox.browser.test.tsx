@@ -344,11 +344,23 @@ describe("the glyph is the box, not the icon ladder (§4)", () => {
 });
 
 describe("the look axis dresses the resting box, never the tick (§19)", () => {
-  it("filled: the darkest well of the hierarchy, and no hairline", () => {
-    const el = mounted(<Checkbox />, { theme: { look: "filled" } });
-    const mark = markOf(el);
-    expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--neutral-4)"));
-    expect(computed(mark, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+  it.each(APPEARANCES)("%s: filled dresses the box and KEEPS the mark's edge", (appearance) => {
+    // Rewritten 2026-08-06. The old spelling asserted the fill equalled `var(--neutral-4)` and
+    // the border equalled transparent — both true, both useless: the first compared the mark
+    // to the name its author had typed, and the second asserted the defect. `filled` was
+    // deleting --mark-edge, the boundary audit D2 minted BECAUSE an unchecked box is nothing
+    // but its hairline, dropping it to |Lc| 0.0 against the card. Now judged against the
+    // other end of the axis, and against the guarantee D2 bought.
+    const filled = markOf(mounted(<Checkbox />, { theme: { look: "filled", appearance } }));
+    const outlined = markOf(mounted(<Checkbox />, { theme: { look: "outlined", appearance } }));
+    expect(
+      computed(filled, "background-color"),
+      `filled resolves to outlined's fill in ${appearance}`,
+    ).not.toBe(computed(outlined, "background-color"));
+    expect(
+      computed(filled, "border-top-color"),
+      "an unchecked mark with no edge is not a control, it is a gap",
+    ).not.toBe("rgba(0, 0, 0, 0)");
   });
 
   it("outlined is the identity — byte-identical to the bare render", () => {
