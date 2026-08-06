@@ -214,21 +214,30 @@ export function MatrixExplorer() {
         </Stack>
       </Theme>
 
-      <Stack gap="4" render={<section />}>
-        <Heading size="3">type</Heading>
-        <Stack gap="2">
-          {(["9", "8", "7", "6", "5", "4", "3", "2", "1"] as const).map((step) => (
-            <Flex key={step} gap="4" align="baseline">
-              <Box width="56px">
-                <Text size="1" emphasis="medium">
-                  {step}
-                </Text>
-              </Box>
-              <Text size={step}>The quick brown fox jumps over the lazy dog</Text>
-            </Flex>
-          ))}
+      {/* The type ramp takes the pointer Theme like everything else on the page, and the
+          omission was not cosmetic: this section is the ONLY place the type scale is shown
+          as type, and the handheld band rides the pointer axis's own [data-pointer] scopes
+          (§17 — pinning `pointer` is how phone type gets judged on a desktop). Outside a
+          Theme it sat permanently at the root's `auto`, so clicking `coarse` moved every
+          control and left the ramp on the desktop ladder — with the page's own prose,
+          "coarse also lifts the handheld type band", printed directly above it. */}
+      <Theme radius={radius} pointer={pointer} surfaces={surfaces} render={<section />}>
+        <Stack gap="4">
+          <Heading size="3">type</Heading>
+          <Stack gap="2">
+            {(["9", "8", "7", "6", "5", "4", "3", "2", "1"] as const).map((step) => (
+              <Flex key={step} gap="4" align="baseline">
+                <Box width="56px">
+                  <Text size="1" emphasis="medium">
+                    {step}
+                  </Text>
+                </Box>
+                <Text size={step}>The quick brown fox jumps over the lazy dog</Text>
+              </Flex>
+            ))}
+          </Stack>
         </Stack>
-      </Stack>
+      </Theme>
     </Stack>
   );
 }
