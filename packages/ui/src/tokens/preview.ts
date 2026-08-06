@@ -711,7 +711,14 @@ function surfaceSection(mode: Mode): string {
             (["outlined", "filled"] as const)
               .map(
                 (l) =>
-                  `<div data-look="${l}" style="flex: 1">${kuiBox(
+                  // A real Theme co-locates every axis it resolves on ONE element, and the hc
+                  // scopes select on that pairing ([data-appearance][data-contrast]) — a bare
+                  // data-look div is a scope Theme can never produce, and it escapes the
+                  // high-contrast stand-down (measured 2026-08-07: the pinned filled card kept
+                  // the dress edge while every root-level card sharpened). So the panel stamps
+                  // data-appearance too and the toggles co-stamp it like any other scope;
+                  // data-look-pinned exempts it from the page-wide look select alone.
+                  `<div data-appearance="${mode}" data-look="${l}" data-look-pinned style="flex: 1">${kuiBox(
                     { display: "flex", direction: "column", gap: "4" },
                     `<strong>${l}</strong>` +
                       card(
@@ -1327,7 +1334,9 @@ ${brandSection("dark")}
   // root-only stamp would be overridden inside every dark section. Theme has this for free by
   // co-locating both attributes on one element; this page arranges it by hand.
   document.getElementById("look").addEventListener("change", (e) => {
-    for (const el of [document.documentElement, ...document.querySelectorAll("[data-appearance]")]) {
+    // :not([data-look-pinned]) — the §19 demo's panels pin their own look (they ARE the
+    // outlined-vs-filled comparison); every other axis toggle still reaches them.
+    for (const el of [document.documentElement, ...document.querySelectorAll("[data-appearance]:not([data-look-pinned])")]) {
       el.dataset.look = e.target.value;
     }
   });
