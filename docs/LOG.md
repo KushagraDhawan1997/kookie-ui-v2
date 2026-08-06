@@ -8,6 +8,38 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 Forced colors is declined, not deferred — and declining it is the accessible answer
+
+Audit finding R3, carried unfixed since the Radio/Slider round because its scope was a
+decision rather than a repair. Kushagra: "our library is too premature to solve it."
+
+The defect is real and was re-measured before the call, not taken on the audit's word.
+Emulating `forced-colors: active`, a radio's selected and unselected states resolve to the
+same visible thing: the accent fill is forced to Canvas white and the indicator dot stays
+white, so the one mark distinguishing them disappears into the backplate. Screen readers are
+unaffected — the hidden input still carries `checked` — which is what makes this precisely a
+sighted-low-vision failure, on the users the setting exists for.
+
+What decided it was not cost. Forced colors is **all-or-nothing per page**: the browser
+substitutes the user's palette everywhere at once. So a radio taught to answer it, sitting in
+a form beside a slider and a field that were not, produces a screen where some controls are
+legible and others are not — and the user has no way to know which of the two they are looking
+at. Half-support is worse than none, and this library has ten controls and a material to get
+through before the answer would be uniform. Rejected accordingly: patching Radio alone (the
+finding's literal fix), and patching the mark family alone (its natural boundary, which still
+leaves fields and buttons out).
+
+Recorded in §19's open list rather than left in REVIEW, because REVIEW is where findings go and
+this is now a property of the system: a known, measured, accepted gap. The point of writing it
+down is that three audit rounds have now found it, and the next one should recognise it instead
+of raising it again.
+
+Not to be confused with the contrast axis, which is supported and unrelated: `contrast="high"`
+and `prefers-contrast: more` shift our own values within our own palette (§7). Forced colors
+takes the palette away.
+
+---
+
 ## 2026-08-06 `filled` stops being a trade, the track joins the axis, and every look law is rewritten to compare something
 
 The look axis was audited the day it shipped (ultracode, 38 agents, adversarially verified — REVIEW.md carries the record). The machinery came back clean: ten roles in five scopes and nowhere else, the cascade resolving, `initial` behaving at every consumption site, the P3 rewrite reaching through, nested Themes escaping both ways, and `outlined` byte-identical to the bare render for all six dressed members in both appearances. **Every value `filled` shipped was wrong, and not one of the axis's laws could see it.**
