@@ -406,27 +406,35 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     // The first spelling asserted opacity and cursor, neither of which could be wrong (audit
     // D6): the resting fill is the surface seal, not a tone role, so the shared arm could not
     // reach it and a disabled unchecked checkbox computed byte-identical to a live one.
+    // Widened 2026-08-06 to loop the LOOK as well as the appearance. It had cells for one axis
+    // the state interacts with and not the other, so `filled` — which re-points the very fill
+    // this arm has to override — was never once disabled in a test. A state must outrank dress
+    // in both worlds or the rule is only half true.
     for (const appearance of APPEARANCES) {
-      const off = render(
-        <Theme appearance={appearance}>
-          <Checkbox disabled />
-        </Theme>,
-      );
-      const on = render(
-        <Theme appearance={appearance}>
-          <Checkbox disabled defaultChecked />
-        </Theme>,
-      );
-      for (const el of [off, on]) {
-        expect(computed(markOf(el), "background-color"), appearance).toBe(colorOn(el, "var(--neutral-3)"));
-        expect(computed(markOf(el), "opacity")).toBe("1");
+      for (const look of ["outlined", "filled"] as const) {
+        const at = (props: { disabled?: boolean; defaultChecked?: boolean }) =>
+          render(
+            <Theme appearance={appearance} look={look}>
+              <Checkbox {...props} />
+            </Theme>,
+          );
+        const where = `${appearance}/${look}`;
+        const off = at({ disabled: true });
+        const on = at({ disabled: true, defaultChecked: true });
+        for (const el of [off, on]) {
+          expect(computed(markOf(el), "background-color"), where).toBe(
+            colorOn(el, "var(--neutral-3)"),
+          );
+          expect(computed(markOf(el), "opacity"), where).toBe("1");
+        }
+        // The claim that matters: disabled is DISTINCT from live, in every world. Under a dress
+        // that moves the resting fill, "the arm reaches the fill" and "the arm reaches the
+        // fill it needs to" are different sentences, and only this one is the rule.
+        const live = at({});
+        expect(computed(markOf(off), "background-color"), where).not.toBe(
+          computed(markOf(live), "background-color"),
+        );
       }
-      const live = render(
-        <Theme appearance={appearance}>
-          <Checkbox />
-        </Theme>,
-      );
-      expect(computed(markOf(off), "background-color")).not.toBe(computed(markOf(live), "background-color"));
     }
     const el = render(<Checkbox disabled />);
     // The arrow, not `not-allowed`: §8 refuses a cursor no native platform uses. Read through

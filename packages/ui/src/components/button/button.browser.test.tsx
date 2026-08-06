@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import type { RenderElement } from "../../system/render.ts";
 import { coarse, density } from "../../tokens/config.ts";
-import { SIZES, colorOn, computed, mounted, ownColor, render } from "../../test/browser.tsx";
+import { APPEARANCES, SIZES, colorOn, computed, mounted, ownColor, render } from "../../test/browser.tsx";
 import { Card } from "../card/card.tsx";
 import { TextField as TextFieldForButtonTest } from "../text-field/text-field.tsx";
 import { Button } from "./button.tsx";
@@ -339,21 +339,35 @@ describe("the boundary (§3, §13)", () => {
     // The negative half of the look axis's membership law. Button's border is the emphasis
     // half-step (quiet < quiet+bordered < medium < …), a call-site decision; if the app's
     // dress could move it, the ranking the call sites wrote would shift under them.
-    for (const emphasis of ["loud", "medium", "quiet"] as const) {
-      const outlined = mounted(
-        <Button emphasis={emphasis} bordered>
-          Label
-        </Button>,
-        { theme: { look: "outlined" }, select: ".kui-button" },
-      );
-      const filled = mounted(
-        <Button emphasis={emphasis} bordered>
-          Label
-        </Button>,
-        { theme: { look: "filled" }, select: ".kui-button" },
-      );
-      for (const prop of ["background-color", "border-top-color", "color"]) {
-        expect(computed(filled, prop), `${emphasis} ${prop}`).toBe(computed(outlined, prop));
+    // Widened 2026-08-06: it read the RESTING box only, so the app's dress could have moved a
+    // Button's hover or press with the suite green — and the surface family's interactive
+    // steps DO ride the look, which is exactly the leak this law exists to catch one component
+    // over. The state sources are read rather than the states simulated: hover and active live
+    // in the stylesheet keyed on :hover/:active, and these are the variables those rules
+    // resolve, so a look that reached them is visible here without synthesising a pointer.
+    const PROPS = ["background-color", "border-top-color", "color"] as const;
+    const SOURCES = ["--kui-ct-fill-src", "--kui-ct-fill-src-hover", "--kui-ct-fill-src-active"];
+    for (const appearance of APPEARANCES) {
+      for (const emphasis of ["loud", "medium", "quiet"] as const) {
+        const at = (look: "outlined" | "filled") =>
+          mounted(
+            <Button emphasis={emphasis} bordered>
+              Label
+            </Button>,
+            { theme: { look, appearance }, select: ".kui-button" },
+          );
+        const outlined = at("outlined");
+        const filled = at("filled");
+        for (const prop of PROPS) {
+          expect(computed(filled, prop), `${appearance}/${emphasis} ${prop}`).toBe(
+            computed(outlined, prop),
+          );
+        }
+        for (const name of SOURCES) {
+          expect(ownColor(filled, name), `${appearance}/${emphasis} ${name}`).toBe(
+            ownColor(outlined, name),
+          );
+        }
       }
     }
   });

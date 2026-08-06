@@ -862,3 +862,41 @@ describe("slot content reaches the accessibility tree (§4, added 2026-08-05)", 
     expect(inputOf(render(<TextField />)).getAttribute("aria-describedby")).toBe(null);
   });
 });
+
+describe("late binding: the look's edge resolves at the ELEMENT, not the Theme (§6, §19)", () => {
+  // Blind spot from the look audit. The `initial` spelling had exactly one guard, and it
+  // asserted the STRING "initial" appears in the emitted text — so it pinned the mechanism the
+  // docs credit, while the failure that spelling exists to prevent had no law at all.
+  //
+  // And the critic's other half is confirmed rather than repaired: that documented failure is
+  // UNREACHABLE today. Tried directly — set outlined's field border to `var(--tone-border)` in
+  // config, regenerate, run — and the suite stays green, because the shared state arms already
+  // stand the role down, so the frozen value never survives to paint. A law for it would be a
+  // law for nothing.
+  //
+  // What IS reachable, and had no law: those arms are the only thing making a state outrank
+  // the dress, and nothing checked them per LOOK. So the assertion is the outcome the arms
+  // exist to produce — invalid must move the edge, in both looks and both appearances.
+  // Mutation-tested by deleting the invalid arm: both `filled` cells fail.
+  for (const look of ["outlined", "filled"] as const) {
+    for (const appearance of APPEARANCES) {
+      it(`${look}/${appearance}: a state re-pointing the tone still reaches the edge`, () => {
+        const at = (invalid: boolean) =>
+          mounted(invalid ? <TextField aria-invalid="true" /> : <TextField />, {
+            theme: { look, appearance },
+            select: ".kui-field",
+          });
+        const valid = at(false);
+        const invalid = at(true);
+        expect(computed(valid, "border-top-color"), "a field with no edge proves nothing").not.toBe(
+          "rgba(0, 0, 0, 0)",
+        );
+        expect(
+          computed(invalid, "border-top-color"),
+          "the edge is frozen at the Theme scope — a state cannot reach it",
+        ).not.toBe(computed(valid, "border-top-color"));
+        expect(computed(invalid, "border-top-color")).toBe(tokenOn(invalid, "--tone-border"));
+      });
+    }
+  }
+});

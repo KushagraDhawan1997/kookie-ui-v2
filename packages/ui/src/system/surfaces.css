@@ -153,10 +153,15 @@
    Every axis in this system escapes the same way: each scope re-declares its own value. */
 
 [data-surfaces="elevated"] {
-  /* Depth comes from the palette (--surface-chrome composes var(--shadow-2)); the border stays
-     the same --tone-border every surface wears — which keeps the edge sharp and lets
-     contrast="high" reach it through the tone system for free. The top edge reads lighter
-     because every palette shadow falls downward. */
+  /* Depth comes from the palette (--surface-chrome composes var(--shadow-2)); the border is
+     whatever the surface already wears, which keeps the edge sharp and leaves it reachable by
+     contrast="high". The top edge reads lighter because every palette shadow falls downward.
+
+     That used to read "the same --tone-border every surface wears", and the look axis made it
+     false: elevation now has TWO compositions, shadow + the tone hairline under `outlined` and
+     shadow + the softer dress edge under `filled`. Elevation deliberately does not re-assert
+     an edge of its own — a lifted card in a filled app is still a filled card — so this rule
+     adds depth and nothing else, which is why it is one declaration. */
   --kui-surface-chrome: var(--surface-chrome);
 }
 

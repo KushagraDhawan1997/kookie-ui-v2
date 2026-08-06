@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cdp } from "vitest/browser";
 
 import { Theme } from "../../theme/theme.tsx";
-import { APPEARANCES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
+import { APPEARANCES, colorOn, computed, mounted, ownColor, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Spinner } from "../spinner/spinner.tsx";
@@ -59,10 +59,28 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
         theme: { look: "outlined", appearance },
         select: ".kui-surface",
       });
-      const reference = mounted(<Card>Body</Card>, { theme: { appearance }, select: ".kui-surface" });
-      for (const prop of ["background-color", "border-top-color"]) {
-        expect(computed(outlined, prop)).toBe(computed(reference, prop));
-      }
+
+      // Rewritten 2026-08-06. This compared `look="outlined"` against a Theme with no `look`
+      // at all — but Theme ALWAYS stamps the default, so both renders were the same DOM with
+      // the same attribute, and in dark (where the un-themed branch below does not run) the
+      // law could not fail no matter what the axis did.
+      //
+      // "Identity" means the chrome each family declared BEFORE the axis existed, so it is
+      // asserted against those pre-axis roles directly. This can fail, and once would have:
+      // the Radio/Slider merge briefly gave outlined's entries filled's values.
+      expect(computed(outlined, "background-color")).toBe(colorOn(outlined, "var(--color-surface)"));
+      expect(computed(outlined, "border-top-color")).toBe(tokenOn(outlined, "--tone-border"));
+
+      // And filled must NOT satisfy the same assertion, or "identity" is a claim about a
+      // constant rather than about this end of the axis.
+      const filled = mounted(<Card>Body</Card>, {
+        theme: { look: "filled", appearance },
+        select: ".kui-surface",
+      });
+      expect(computed(filled, "background-color")).not.toBe(
+        colorOn(filled, "var(--color-surface)"),
+      );
+
       if (appearance === "light") {
         // And the un-themed document resolves the same chrome the outlined scope does.
         expect(computed(bare, "background-color")).toBe(computed(outlined, "background-color"));
@@ -478,6 +496,32 @@ describe("reduced transparency takes the pane away, not the app's dress (§10, �
       // dress until the look axis existed; under `filled` it made the one surface that asked
       // for less transparency the only surface wearing the tone hairline.
       expect(computed(glass, "border-top-color")).toBe(computed(plain, "border-top-color"));
+    });
+  }
+});
+
+describe("every slot the axis emits is actually reached (§19)", () => {
+  // Blind spot from the look audit: four of the axis's roles were read by NO law. The resting
+  // fill and edge had laws; the interactive slots — the ones that only exist because a Card
+  // can be a button — had none, so `filled` could have left a card's hover and press sitting
+  // on `outlined`'s values and every test would have agreed. Read as the source variables the
+  // :hover/:active rules resolve, which is where a look that failed to reach them shows up
+  // without synthesising a pointer.
+  const SLOTS = ["--look-surface-fill", "--look-surface-fill-hover", "--look-surface-fill-active"];
+
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: the surface family's interactive slots move with the look`, () => {
+      const at = (look: "outlined" | "filled") =>
+        mounted(<Card>Body</Card>, { theme: { look, appearance }, select: ".kui-surface" });
+      const outlined = at("outlined");
+      const filled = at("filled");
+      for (const slot of SLOTS) {
+        const a = ownColor(outlined, slot);
+        const b = ownColor(filled, slot);
+        expect(a, `${slot} resolves to nothing under outlined`).not.toBe("");
+        expect(b, `${slot} resolves to nothing under filled`).not.toBe("");
+        expect(b, `${slot} is identical in both looks — the axis does not reach it`).not.toBe(a);
+      }
     });
   }
 });
