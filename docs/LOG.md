@@ -8,6 +8,35 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 Filled's wells stay soft, and high contrast is the accommodation — argued to rest with measurements on both sides
+
+The control-edge day ended on filled. The wells measure single-digit Lc against their beds
+(the APCA implementation clamps under-10 to 0.00, which briefly overstated this as "zero" —
+method note from the audit, relearned). Against APCA's advisory discernibility tier of 15
+that is a real shortfall, and I proposed solving the fills up to it. Kushagra pushed back
+three times, and each push held:
+
+- *"In what world is this low contrast"* — with preview screenshots. Both true: a large soft
+  well is plainly visible to typical vision on a bright screen, AND marginal for the low-vision
+  users the tier protects. The tiers are calibrated for the margins, not the median eye.
+- *"That 30 applies to hairline"* — the tier split held for borders (45 fine detail / 30 large)
+  but the FILL owes at most the discernibility tier, because the fill does not carry meaning:
+  the label, placeholder and caret identify the field. WCAG 1.4.11 does not bind it.
+- *"Isn't this what high contrast is for?"* — rejected for the outlined border (the normative
+  rule binds the default), accepted here (advisory tier, identity carried elsewhere) — WITH the
+  requirement that the setting actually deliver. Measured: it does, already. The morning's
+  look-border stand-down makes contrast="high" drop filled's soft dress edge and resolve the
+  solved control/field edges at their HC tier — light field border #e0e1e2 → #a3a6aa, dark
+  checkbox #46484a → #b0b3b5 — law-tested in the mounted HC suite before this entry was
+  written. Nothing needed building; the mechanism composed.
+
+The position, stated once: **outlined conforms at rest through its boundary (normative, solved
+45/30); filled reads as filled at rest, is identified by its content, and conforms under
+contrast="high", which restores strong boundaries.** The soft filled fill is a decision, not a
+finding; the audits that keep rediscovering it should land here.
+
+---
+
 ## 2026-08-07 The control edge: solved, shared, and the reading of the guidance that reshaped it
 
 Started as taste — Kushagra: *"the mark control's border in outline mode is a little too dark.
