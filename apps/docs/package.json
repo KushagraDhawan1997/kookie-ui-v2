@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint app next.config.ts && tsc -p tsconfig.json"
+    "lint": "eslint app next.config.ts && tsc -p tsconfig.json",
+    "test": "vitest run"
   },
   "dependencies": {
     "@kookie-ui/react": "workspace:*",
@@ -20,6 +21,7 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "eslint": "^9.30.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.0"
   }
 }

@@ -66,18 +66,40 @@ const write = (key: string, value: string | null) => {
   }
 };
 
+/**
+ * The choice made in THIS page view, which outranks storage while it is set.
+ *
+ * Guarding the storage calls stops the crash but does not, on its own, make the toggle work
+ * where storage is denied: the readers re-derive from storage, so a write that could not
+ * persist is a write the next read cannot see, and clicking "Dark" changed nothing at all
+ * for exactly the privacy-blocking visitors the guard was added for. Memory is the session's
+ * truth; storage is how a session is remembered. A `storage` event clears it, because an
+ * explicit change from another tab is newer than what this one last chose.
+ */
+let sessionAppearance: AppearanceChoice | null = null;
+let sessionContrast: ContrastChoice | null = null;
+
 const appearanceChoice = (): AppearanceChoice => {
+  if (sessionAppearance) return sessionAppearance;
   const s = read(APPEARANCE_KEY);
   return s === "light" || s === "dark" ? s : "system";
 };
 
 const contrastChoice = (): ContrastChoice => {
+  if (sessionContrast) return sessionContrast;
   const s = read(CONTRAST_KEY);
   return s === "high" || s === "normal" ? s : "auto";
 };
 
-/** Re-derive the <html> attributes from storage + the platform — the script's logic, live. */
-const apply = () => {
+/**
+ * Re-derive the `<html>` attributes from storage + the platform — the script's logic, live.
+ *
+ * Exported because it is the store's half of a rule that has two implementations, and the
+ * law that holds them together (appearance.test.ts) has to be able to run this half against
+ * the same stubbed environment it runs the script string in. Naming it in the module's
+ * surface is honest about that: two readers of one state, checked against each other.
+ */
+export const apply = () => {
   const el = document.documentElement;
   const a = appearanceChoice();
   const dark = a === "system" ? matchMedia("(prefers-color-scheme: dark)").matches : a === "dark";
@@ -89,19 +111,31 @@ const apply = () => {
   else el.setAttribute("data-contrast", c);
 };
 
-/* Persist first, then APPLY — and the order is why both are guarded rather than wrapped
-   together. Unguarded, a throwing write skipped apply() and emit() entirely, so on a
-   storage-exhausted origin clicking "Dark" did nothing at all while "System" kept working
-   (it takes the removeItem branch): a toggle that looks half-alive. Applying is the part
-   the user asked for; persisting is the part that makes it survive a reload. Losing the
-   second must never cost the first. */
+/** Clears the session override. Exported for the laws alone: the override is module state
+    that deliberately outlives a render, so a test cell would otherwise inherit the previous
+    cell's choice — there is no such thing as a second page view in one process. */
+export function resetSessionForTest() {
+  sessionAppearance = null;
+  sessionContrast = null;
+}
+
+/* Record the choice, persist it best-effort, then APPLY — in that order, and none of the
+   three may be skipped by the failure of another. Unguarded, a throwing write skipped
+   apply() and emit() entirely, so clicking "Dark" did nothing while "System" kept working
+   (it takes the removeItem branch): a toggle that looks half-alive. Guarding alone was not
+   enough either — apply() re-derives from storage, so a write that could not persist was
+   invisible to the very next read, and the toggle stayed dead for exactly the visitors the
+   guard was for. Hence the session override above. Applying is what the user asked for;
+   persisting is what survives a reload, and losing the second must not cost the first. */
 export function setAppearance(choice: AppearanceChoice) {
+  sessionAppearance = choice;
   write(APPEARANCE_KEY, choice === "system" ? null : choice);
   apply();
   emit();
 }
 
 export function setContrast(choice: ContrastChoice) {
+  sessionContrast = choice;
   write(CONTRAST_KEY, choice === "auto" ? null : choice);
   apply();
   emit();
@@ -126,6 +160,10 @@ export function useAppearance() {
     // needs to catch up.
     const onStorage = (e: StorageEvent) => {
       if (e.key === APPEARANCE_KEY || e.key === CONTRAST_KEY || e.key === null) {
+        // The other tab's choice is newer than this tab's — drop the session override so the
+        // readers fall back through to what was actually stored.
+        if (e.key !== CONTRAST_KEY) sessionAppearance = null;
+        if (e.key !== APPEARANCE_KEY) sessionContrast = null;
         apply();
         emit();
       }
