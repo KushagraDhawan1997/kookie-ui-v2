@@ -4,7 +4,7 @@ import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
 import type { Emphasis, Material, Size, SlotName, Tone } from "../../system/axes.ts";
-import { filled } from "../../system/render.ts";
+import { filled, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import { Spinner } from "../spinner/spinner.tsx";
 
 type ButtonBase = Omit<
@@ -41,7 +41,7 @@ type ButtonBase = Omit<
    * getting it wrong is silent. See the note on the `render` escape below.
    */
   nativeButton?: boolean;
-  render?: React.ReactElement;
+  render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
@@ -106,7 +106,19 @@ export function Button({
   // focusable, unannounced dead link. With it false, Base UI emits role + aria-disabled
   // instead. Inferred from the render element, overridable for the custom-component case we
   // cannot inspect.
-  const isNativeButton = nativeButton ?? (render === undefined || render.type === "button");
+  //
+  // `render` is unwrapped FIRST (§5, 2026-08-06). An element created in a Server Component
+  // crosses the RSC boundary as a lazy node — `props` undefined, `type` undefined,
+  // `isValidElement` false — so both readers below get the wrong answer from it, silently and
+  // in dev only. Measured against the shipped code: `render={<button className="mine"/>}` from
+  // a server component rendered `class="kui-control kui-button"` with the caller's `mine`
+  // DROPPED, and `role="button"` stamped onto a real <button>, with Base UI logging a warning
+  // that the element it was told about is not the element it got. The fix that landed for
+  // composeRender's readers (371f5b4) never reached here, because Button forwards to Base UI
+  // rather than composing, and so was the one component that inspects a render element
+  // without first asking what it is.
+  const target = render === undefined ? undefined : unwrapLazy(render);
+  const isNativeButton = nativeButton ?? (target === undefined || target.type === "button");
   // The Spinner takes the icon's place when there is one — same box, zero shift — and joins
   // the label when there is not. The label never goes: a button that stops saying what it is
   // doing is worse than one that changes width (§8).
@@ -123,7 +135,7 @@ export function Button({
   return (
     <BaseButton
       ref={ref}
-      render={render}
+      render={target}
       nativeButton={isNativeButton}
       // Loading blocks activation WITHOUT the native attribute: focusableWhenDisabled is forced
       // true here, which sends Base UI down the aria-disabled branch, and activation is stopped

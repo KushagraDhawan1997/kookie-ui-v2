@@ -51,8 +51,14 @@ const REACT_LAZY = Symbol.for("react.lazy");
  * Base UI's own escape carries the identical workaround, citing the identical issue — which
  * is the same contrast the note above draws about merging: where upstream handles a case
  * and we do not, that is a defect of ours, not a house convention.
+ *
+ * Exported since 2026-08-06, because `composeRender` was not the only reader. A component that
+ * hands its `render` straight to Base UI still has to ask the element what it IS — Button
+ * infers `nativeButton` from `render.type` — and on a lazy node every such question answers
+ * wrong, silently. Anything that inspects or forwards a `render` element goes through here
+ * first; the merge is a separate concern below.
  */
-function unwrapLazy(render: RenderElement): RenderElement {
+export function unwrapLazy(render: RenderElement): RenderElement {
   if ((render as { $$typeof?: symbol } | null)?.$$typeof !== REACT_LAZY) return render;
   return React.Children.toArray(render)[0] as RenderElement;
 }

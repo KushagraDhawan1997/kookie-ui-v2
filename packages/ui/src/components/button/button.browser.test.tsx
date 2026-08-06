@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 
+import type { RenderElement } from "../../system/render.ts";
 import { coarse, density } from "../../tokens/config.ts";
 import { SIZES, colorOn, computed, mounted, ownColor, render } from "../../test/browser.tsx";
 import { Card } from "../card/card.tsx";
@@ -402,6 +403,31 @@ describe("the boundary (§3, §13)", () => {
     // 2026-08-05 a link-as-button wore that underline into the control dress — the docs
     // nav shipped underlined "buttons" before any law asked. Computed, per the standing rule.
     expect(computed(el, "text-decoration-line")).toBe("none");
+  });
+
+  it("render survives the RSC boundary — Button inspects the element, so it must unwrap it (§5)", () => {
+    // Box's law one component over, and Button needed its own because it does not compose:
+    // it hands `render` to Base UI and separately READS it, to infer `nativeButton`. The
+    // 371f5b4 fix reached every composeRender caller and missed the one reader.
+    //
+    // Same hand-built Flight shape as box.browser.test.tsx — `$$typeof: react.lazy`, no
+    // `props`, no `type` — because there is no RSC boundary in a browser test and any looser
+    // mock would assert nothing. Dev-only in React (facebook/react#32392), which is exactly
+    // what let it ship: `next build` sends a real element and stays clean.
+    const lazy = {
+      $$typeof: Symbol.for("react.lazy"),
+      _payload: <button className="mine" />,
+      _init: (payload: unknown) => payload,
+    } as unknown as RenderElement;
+
+    const el = render(<Button render={lazy}>Go</Button>);
+    // Pre-fix, measured: class was "kui-control kui-button" — the caller's own class silently
+    // DROPPED — and role="button" was stamped on a real <button>, because `render.type` read
+    // `undefined` off the lazy node so nativeButton inferred false. Base UI logged a warning
+    // saying the element it was told about was not the element it received.
+    expect(el.tagName).toBe("BUTTON");
+    expect(el.className.split(" ")).toContain("mine");
+    expect(el.getAttribute("role")).toBe(null);
   });
 
   it("and a disabled link says so, instead of being a focusable dead end (§1)", () => {
