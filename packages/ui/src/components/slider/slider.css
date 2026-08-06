@@ -59,10 +59,37 @@
      a filled slider's handle was its own rail at 1.000:1. The well now moves AWAY from the
      mark family rather than the mark family moving off a value that suits it: under `filled`
      the rail sinks (darker than the card in both modes, which is opposite arithmetic per mode
-     — see config's dress table) and the handle stays where it reads. Outlined emits `initial`,
-     so this fallback resolves the untouched well role at the element and the default path is
-     byte-identical to a world without the axis. */
+     — see config's dress table) and the handle stays where it reads.
+
+     Outlined is the ONE place in the axis that does not resolve to the pre-axis value, and it
+     is deliberate (2026-08-07): the rail is DRAWN there — a transparent channel bounded by the
+     hairline below — because a grey bar in both worlds was exactly why the slider looked the
+     same either way. Stated here rather than left to be discovered, since `outlined is the
+     identity` holds everywhere else and a reader is entitled to assume it holds here. */
   background-color: var(--look-track-fill, var(--color-track));
+  /* And the rail carries an EDGE, which is what makes `outlined` mean something here
+     (Kushagra, 2026-08-07: "I meant the rail, not the handle"). Under `outlined` the well is
+     drawn rather than filled — a hairline around an empty channel — and under `filled` it is a
+     sunk bar with the softer dress edge. Before this the rail was a solid grey bar in BOTH
+     worlds, which is why the slider was the one control that looked the same either way.
+
+     Two things fall out that are worth stating, because they were the open complaints. The
+     edge routes through the tone system, so a slider finally answers contrast="high" in the
+     outlined world — it had NOTHING that moved there, measured: rail, handle fill and handle
+     edge all byte-identical between normal and high. And an empty channel is what a well
+     actually looks like on every platform that draws one.
+
+     border-box, because the ladder is the painted thickness: a 4px rail with a hairline added
+     outside it would paint 6px and stop being the designed number (the thumb's own R1 lesson,
+     one part over). */
+  box-sizing: border-box;
+  /* The fallback is --color-border, not --tone-border: the element stamps `accent` for its
+     filled part, and a well that tinted with it would stop being the neutral off part (§11's
+     "track low", the checkbox's "neutral off" one control over). --color-border was minted for
+     exactly this — a hairline with no family. It also has to be a REAL colour rather than
+     `transparent`: outlined emits `initial`, and so does the contrast="high" stand-down, so a
+     transparent fallback made the rail edge vanish in precisely the two states that need it. */
+  border: var(--border-width) solid var(--look-track-border, var(--color-border));
   /* The capsule stated as the rule (§6's own correction): half the box, never 9999px riding
      CSS clamping against a rendered height.
 
