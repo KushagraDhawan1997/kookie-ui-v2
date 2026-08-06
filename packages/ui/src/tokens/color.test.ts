@@ -636,13 +636,16 @@ describe("the soft ladder is §8's +1/+2 rule, in the emitted declarations (§7,
   });
 });
 
-describe("the control edge clears the non-text floor and no more than it must (§7, §11, WCAG 1.4.11)", () => {
-  // D2's law, rewritten for the SOLVED edge (2026-08-07). The step-picked version guaranteed
-  // the floor and nothing else, and dark's ladder made that a trap: the first passing rung
-  // sat at Lc 66.5 — a resting ring Kushagra read, correctly, as a high-contrast value. So
-  // the law grows a ceiling: the edge must clear the target against BOTH beds, and must not
-  // overshoot it by more than the solve's own tolerance, or picking-by-accident has crept
-  // back in. Both directions read the EMITTED hex, so the solve is in the loop.
+describe("the control edge renders its stated targets, and the floors bind under high contrast (§5, §7, WCAG 1.4.11)", () => {
+  // D2's law, rewritten twice the same day. First for the SOLVED edge: the step-picked
+  // version guaranteed a floor and nothing else, and dark's ladder made that a trap — the
+  // first passing rung sat at Lc 66.5, a resting ring Kushagra read, correctly, as a
+  // high-contrast value. Then for the MODE SPLIT (Kushagra: "taste over APCA rules in
+  // standard"): the normal-mode assertions below are DRIFT checks — the emitted hex must be
+  // the config's stated taste value, floor and ceiling around the target, so neither the
+  // solve nor a hand edit can move the rendered edge away from the stated number. They are
+  // not a conformance guarantee; that lives in the high-contrast law, where the floors bind.
+  // Both directions read the EMITTED hex, so the solve is in the loop.
   const hexOf = (mode: (typeof MODES)[number], name: string) => {
     const line = colorDeclarations(mode).find((l) => l.includes(`--${name}:`))!;
     return line.match(/#[0-9a-fA-F]{6}/)![0];
@@ -656,12 +659,12 @@ describe("the control edge clears the non-text floor and no more than it must (�
 
   for (const mode of MODES) {
     for (const { role, lc } of FAMILIES) {
-      it(`${mode}/${role}: holds against the surface and the page — floor AND ceiling`, () => {
+      it(`${mode}/${role}: renders the stated taste value against both beds — floor AND ceiling`, () => {
         const neutral = buildScale("neutral", mode);
         const edge = hexOf(mode, role);
         const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
         const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
-        expect(worst, `${mode} ${role} under the target`).toBeGreaterThanOrEqual(lc.normal);
+        expect(worst, `${mode} ${role} under its stated target`).toBeGreaterThanOrEqual(lc.normal);
         expect(worst, `${mode} ${role} overshoots — the solve regressed to a pick`).toBeLessThanOrEqual(
           lc.normal + 4,
         );
@@ -679,16 +682,15 @@ describe("the control edge clears the non-text floor and no more than it must (�
     }
   }
 
-  it("the config's own targets stay anchored to their floors", () => {
-    // Each family's target is its floor plus rounding margin, nothing more. Without the
-    // ceiling half, raising a target recreates the picked-rung overshoot with the suite
-    // green — the ceiling laws above read the target and would follow it.
-    expect(controlEdgeLc.mark.normal).toBeGreaterThan(apcaFloors.nonText);
-    expect(controlEdgeLc.mark.normal).toBeLessThanOrEqual(apcaFloors.nonText + 2);
-    expect(controlEdgeLc.field.normal).toBeGreaterThan(apcaFloors.nonTextLarge);
-    expect(controlEdgeLc.field.normal).toBeLessThanOrEqual(apcaFloors.nonTextLarge + 2);
-    // The high tiers step upward, and the field's high answer is the mark's resting one —
-    // one ladder, offset by size class.
+  it("the floors bind the HIGH targets; the normal targets are taste (the 2026-08-07 mode split)", () => {
+    // Kushagra: "APCA rule checks for high contrast mode, taste over APCA rules in
+    // standard" — scope, borders and fills. So the anchor law moved: nothing here holds a
+    // normal target to a floor (the eye pass may move it anywhere), and contrast="high" is
+    // the conformance surface, so ITS targets are the anchored ones. Every family's high
+    // answer clears the fine-detail floor, and steps up from its own resting value so the
+    // setting always does something.
+    expect(controlEdgeLc.mark.high).toBeGreaterThanOrEqual(apcaFloors.nonText);
+    expect(controlEdgeLc.field.high).toBeGreaterThanOrEqual(apcaFloors.nonText);
     expect(controlEdgeLc.mark.high).toBeGreaterThan(controlEdgeLc.mark.normal);
     expect(controlEdgeLc.field.high).toBeGreaterThan(controlEdgeLc.field.normal);
   });});

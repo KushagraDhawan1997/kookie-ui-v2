@@ -192,29 +192,35 @@ export type Mode = keyof typeof lightness;
  * and its identity does not rest on its edge.
  *
  * SOLVED, not picked, and the dark ring is why (Kushagra: "it is what I would expect to be
- * when high contrast is on"). The floor is 45 (`apcaFloors.nonText` — APCA's fine-detail
- * tier, the WCAG 3:1 equivalent for thin lines). Light's ladder has a step just past it
- * (9, Lc 58.8) but dark's does not: step 9 misses at 42.1 and the scale folds back before
- * 11, so the nearest passing rung was Lc 66.5 — a third of the way to white, reading as
- * high-contrast at rest. Picking rungs couples the guarantee to where the rungs happen to
+ * when high contrast is on"). Light's ladder has a step near the fine-detail tier (9, Lc
+ * 58.8) but dark's does not: step 9 misses at 42.1 and the scale folds back before 11, so
+ * the nearest passing rung was Lc 66.5 — a third of the way to white, reading as
+ * high-contrast at rest. Picking rungs couples the value to where the rungs happen to
  * fall; solving decouples it. The generator binary-searches the neutral recipe's lightness
  * for the value that just clears the target against BOTH the seal and the page, the
  * `--accent-label` precedent (generated between steps for exactly this reason).
  *
- * `normal` sits one point above the floor so rounding cannot land under it. `high` is the
- * fine-detail tier up (~where the old dark pick sat, per Kushagra's own reading of it), and
- * emitting it in the contrast="high" scopes makes the edge's HC answer DESIGNED — before
- * this, dark's pick moved under HC only because its step accidentally sat in a re-priced
- * band, and light's never moved at all (audit R9's half-truth).
+ * THE MODE SPLIT (§5, §7 — decided 2026-08-07, Kushagra: "APCA rule checks for high
+ * contrast mode, taste over APCA rules in standard"; scope: borders and fills). `normal`
+ * is a TASTE value: it happens to sit near an APCA tier today, but no law anchors it to a
+ * floor, and the eye pass edits it freely — the number is a knob, the solve merely the
+ * renderer that turns it into a hex the ladder cannot supply. The rulers had already split
+ * on one hex (the light ring clears its APCA target while measuring 2.44:1 in WCAG 2
+ * terms; the pick it replaced measured 3.17:1) — chasing both is chasing neither. `high`
+ * is where the floors BIND: law-pinned to `apcaFloors.nonText`, emitted in the
+ * contrast="high" scopes — the setting is the conformance surface for WCAG 1.4.11, and the
+ * look-border stand-down routes `filled` through these same solved edges. OUTSIDE the
+ * split, keeping their standard-mode floors: text, the focus ring, and the invalid edge —
+ * signals, not dress.
  */
 export const controlEdgeLc = {
-  /** The mark family: a checkbox-sized ring is fine detail — the 45 tier. */
+  /** The mark family: high is the tier above fine detail; normal is the v0 taste value. */
   mark: { normal: 46, high: 60 },
   /** The field family: a field is a LARGE element (Kushagra, 2026-08-07 — "Text Field +
-      Area being much larger than checkbox, they appear very dark"), so its boundary is
-      held to APCA's large-element tier of 30, not the hairline tier. Its high-contrast
-      answer steps up to the fine-detail tier — a field under contrast="high" wears what a
-      mark wears at rest, one ladder, offset by size class. */
+      Area being much larger than checkbox, they appear very dark"), so its resting value
+      sits a tier below the mark's and its high-contrast answer is the fine-detail tier —
+      a field under contrast="high" wears what a mark wears at rest, one ladder, offset by
+      size class. */
   field: { normal: 31, high: 46 },
 } as const;
 
@@ -236,10 +242,13 @@ export const trackWellStep = { light: 4, dark: 4 } as const;
 /**
  * The APCA floors (§7) — WCAG-anchored, so NOT taste numbers: body is the AA-equivalent Lc 60
  * every label pairing must clear, aaa the Lc 75 `contrast="high"` raises it to, nonText the
- * Lc 45 floor for borders, rings and marks (WCAG 1.4.11's territory). One home because the
- * generator READS them (the state-direction flip is gated on the label law) and the laws
- * assert against them — and they were spelled five separate times across the two. Lowering
- * one is an accessibility decision, not tuning; a law pins the values themselves.
+ * Lc 45 floor for the focus ring and the invalid edge (WCAG 1.4.11's territory). WHERE they
+ * bind changed 2026-08-07 (the mode split, above): resting borders and fills answer to taste
+ * in standard mode, so nonText binds a control edge only in the contrast="high" scopes; text
+ * and the two signal roles keep their standard-mode floors. One home because the generator
+ * READS them (the state-direction flip is gated on the label law) and the laws assert
+ * against them — and they were spelled five separate times across the two. Lowering one is
+ * an accessibility decision, not tuning; a law pins the values themselves.
  */
 export const apcaFloors = {
   body: 60,

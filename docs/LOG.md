@@ -8,6 +8,45 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 The contrast rule splits by mode: taste rules standard, APCA rules high contrast — borders and fills only
+
+The rule, verbatim from Kushagra: "APCA rule checks for high contrast mode, taste over APCA
+rules in standard." Scope confirmed as **borders and fills**; text pairings, the focus ring
+and the invalid edge stay floor-checked in standard mode — signals, not dress, and a signal
+that only works under an opt-in setting is not a signal.
+
+Two unresolved tensions from the previous day forced it, and it dissolves both:
+
+- **The two rulers split on one hex.** The solved light control edge (`#a3a6aa`) clears its
+  APCA target of 46 while measuring 2.44:1 in WCAG 2 terms — under the normative 3:1 that the
+  step-pick it replaced cleared at 3.17. The divergence is largest exactly where we work
+  (light greys on white); a value cannot be optimised to two disagreeing meters, and the day
+  had already spent hours discovering that each fix by one meter reopened the other.
+- **Filled's borders were picked steps beside outlined's solved ones** ("WHY THE FUCK ARENT
+  THEY APCA") — an inconsistency with no principle to arbitrate it as long as "standard mode
+  owes APCA" was the claim, because filled's whole point is to identify by fill, and holding
+  its border to a border-contrast floor un-makes the look.
+
+The resolution is not "solve more"; it is naming where each authority governs. Standard mode
+is DRESS: the resting border and fill values — solved edges and picked dress steps alike —
+are taste, judged in the preview, held to no floor, and the eye pass may move any of them.
+`contrast="high"` is CONFORMANCE: its solved edge targets are the ones law-anchored to
+`apcaFloors`, and the look-border stand-down already routes filled through those same edges,
+so both looks conform under the setting built for exactly this. The anchor law moved
+accordingly (the normal targets' floor assertions deleted; the high targets now pinned ≥ the
+fine-detail floor and strictly above their own resting values, so the setting always does
+something). The normal-mode emitted-hex law survives as a drift check — the generator must
+render the stated number — explicitly relabeled as not-a-floor.
+
+Rejected: solving filled's dress edges to a faint APCA target (the previous evening's open
+proposal — it would have made filled "consistent" by extending APCA's authority into exactly
+the territory taste was about to reclaim); re-solving the standard edges to WCAG 2 ratios or
+to max(APCA, 3:1) (same move, other meter); and pulling the focus ring or invalid edge into
+the split (they carry state, not identity — WCAG 2.4.11/1.4.11 bind the default for those,
+and their existing standard-mode laws are untouched).
+
+---
+
 ## 2026-08-07 Filled's wells stay soft, and high contrast is the accommodation — argued to rest with measurements on both sides
 
 The control-edge day ended on filled. The wells measure single-digit Lc against their beds
