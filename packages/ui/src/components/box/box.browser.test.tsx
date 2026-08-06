@@ -89,6 +89,33 @@ describe("the boundary between props and the DOM (§3)", () => {
     expect(computed(el, "padding-top")).toBe("12px");
   });
 
+  it("render survives the RSC boundary, where the element arrives as a lazy node (§5)", () => {
+    // The shape React's Flight deserializer actually hands a client component when a SERVER
+    // component creates the element and passes it as a prop: `$$typeof: react.lazy`, no
+    // `props`, `isValidElement` false. Built here rather than mocked loosely, because the
+    // whole defect was that `render.props` is undefined on precisely this object — reading
+    // any other shape would assert nothing.
+    //
+    // This is DEV-ONLY in React (facebook/react#32392): the production Flight build sends a
+    // real element. So `next build` was clean while `next dev` could not render one route,
+    // which is exactly how it shipped — and why the law matters more than the fix. The
+    // scenario is unreachable from a browser test otherwise; there is no RSC boundary here.
+    const inner = <section className="mine" />;
+    const lazy = {
+      $$typeof: Symbol.for("react.lazy"),
+      _payload: inner,
+      _init: (payload: unknown) => payload,
+    } as unknown as React.ReactElement;
+
+    const el = render(<Box p="4" render={lazy} />);
+    // Pre-fix this threw `Cannot read properties of undefined (reading 'ref')` and nothing
+    // below ran. Post-fix the escape behaves exactly as it does with a plain element — which
+    // is the real claim: the boundary is invisible to the API.
+    expect(el.tagName).toBe("SECTION");
+    expect(el.className.split(" ").sort()).toEqual(["kui-box", "mine"]);
+    expect(computed(el, "padding-top")).toBe("12px");
+  });
+
   it("Box does not paint: shadow is not a prop — layout components stay layout (§3)", () => {
     // The palette is reached through `style` (the honest escape) or the Theme world, never
     // through a Box prop; the prop shipped for a day and died as a taxonomy leak.
