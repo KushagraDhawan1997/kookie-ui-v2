@@ -42,7 +42,9 @@ const BODY = apcaFloors.body;
     the single home from becoming a single silent lever. Changing a floor is an accessibility
     decision that must edit a law. */
 it("the APCA floors are the standard's numbers", () => {
-  expect(apcaFloors).toEqual({ body: 60, aaa: 75, nonText: 45 });
+  // 45 = fine-detail non-text (the WCAG 3:1 equivalent); 30 = APCA's tier for LARGE/solid
+  // non-text, added 2026-08-07 when the field family's boundary moved to it.
+  expect(apcaFloors).toEqual({ body: 60, aaa: 75, nonText: 45, nonTextLarge: 30 });
 });
 
 const L = (hex: string) => toOklch(hex)!.l;
@@ -645,43 +647,51 @@ describe("the control edge clears the non-text floor and no more than it must (�
     const line = colorDeclarations(mode).find((l) => l.includes(`--${name}:`))!;
     return line.match(/#[0-9a-fA-F]{6}/)![0];
   };
+  const FAMILIES = [
+    { role: "control-edge", lc: controlEdgeLc.mark },
+    // One tier down for the field family (2026-08-07): a field is a LARGE element, and the
+    // guidance holds large non-text to 30 where fine detail owes 45.
+    { role: "field-edge", lc: controlEdgeLc.field },
+  ] as const;
 
   for (const mode of MODES) {
-    it(`holds in ${mode}, against the surface and the page — floor AND ceiling`, () => {
-      const neutral = buildScale("neutral", mode);
-      const edge = hexOf(mode, "control-edge");
-      const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
-      const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
-      expect(worst, `${mode} under the target`).toBeGreaterThanOrEqual(controlEdgeLc.normal);
-      // The ceiling: just above the target, never the next rung over a fold. 4 Lc of slack
-      // covers the two-bed solve (the binding bed lands exactly; the other sits above it).
-      expect(worst, `${mode} overshoots — the solve has regressed to a pick`).toBeLessThanOrEqual(
-        controlEdgeLc.normal + 4,
-      );
-    });
+    for (const { role, lc } of FAMILIES) {
+      it(`${mode}/${role}: holds against the surface and the page — floor AND ceiling`, () => {
+        const neutral = buildScale("neutral", mode);
+        const edge = hexOf(mode, role);
+        const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
+        const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
+        expect(worst, `${mode} ${role} under the target`).toBeGreaterThanOrEqual(lc.normal);
+        expect(worst, `${mode} ${role} overshoots — the solve regressed to a pick`).toBeLessThanOrEqual(
+          lc.normal + 4,
+        );
+      });
 
-    it(`${mode}: the high-contrast variant is a designed tier, not a band accident`, () => {
-      const line = contrastHighDeclarations(mode).find((l) => l.includes("--control-edge:"))!;
-      const edge = line.match(/#[0-9a-fA-F]{6}/)![0];
-      const neutral = buildScale("neutral", mode);
-      const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
-      const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
-      expect(worst).toBeGreaterThanOrEqual(controlEdgeLc.high);
-      expect(worst).toBeLessThanOrEqual(controlEdgeLc.high + 4);
-    });
+      it(`${mode}/${role}: the high-contrast variant is a designed tier, not a band accident`, () => {
+        const line = contrastHighDeclarations(mode).find((l) => l.includes(`--${role}:`))!;
+        const edge = line.match(/#[0-9a-fA-F]{6}/)![0];
+        const neutral = buildScale("neutral", mode);
+        const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
+        const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
+        expect(worst).toBeGreaterThanOrEqual(lc.high);
+        expect(worst).toBeLessThanOrEqual(lc.high + 4);
+      });
+    }
   }
 
-  it("the config's own targets stay anchored to the floor", () => {
-    // The floor is WCAG-anchored (apcaFloors.nonText = 45, the 3:1 non-text equivalent);
-    // the solve target must sit on it, not drift under it in a tuning pass.
-    expect(controlEdgeLc.normal).toBeGreaterThan(apcaFloors.nonText);
-    // And BOUNDED by it: the target is the floor plus rounding margin, nothing more. Without
-    // this, raising both targets together recreates the picked-rung overshoot with the law
-    // suite green — the ceiling laws above read the config, so they follow a drifted target.
-    expect(controlEdgeLc.normal).toBeLessThanOrEqual(apcaFloors.nonText + 2);
-    expect(controlEdgeLc.high).toBeGreaterThan(controlEdgeLc.normal);
-  });
-});
+  it("the config's own targets stay anchored to their floors", () => {
+    // Each family's target is its floor plus rounding margin, nothing more. Without the
+    // ceiling half, raising a target recreates the picked-rung overshoot with the suite
+    // green — the ceiling laws above read the target and would follow it.
+    expect(controlEdgeLc.mark.normal).toBeGreaterThan(apcaFloors.nonText);
+    expect(controlEdgeLc.mark.normal).toBeLessThanOrEqual(apcaFloors.nonText + 2);
+    expect(controlEdgeLc.field.normal).toBeGreaterThan(apcaFloors.nonTextLarge);
+    expect(controlEdgeLc.field.normal).toBeLessThanOrEqual(apcaFloors.nonTextLarge + 2);
+    // The high tiers step upward, and the field's high answer is the mark's resting one —
+    // one ladder, offset by size class.
+    expect(controlEdgeLc.mark.high).toBeGreaterThan(controlEdgeLc.mark.normal);
+    expect(controlEdgeLc.field.high).toBeGreaterThan(controlEdgeLc.field.normal);
+  });});
 
 describe("the invalid edge clears the non-text floor, in both modes (§8, WCAG 1.4.11)", () => {
   // The shipped invalid border was --destructive-border, i.e. step 7 — and step 7 shares its

@@ -582,6 +582,7 @@
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
   --control-edge: #a3a6aa;
+  --field-edge: #c0c2c5;
   --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -1049,6 +1050,7 @@
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
   --control-edge: #a3a6aa;
+  --field-edge: #c0c2c5;
   --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -1526,6 +1528,7 @@
   --focus-ring: var(--accent-11);
   --invalid-edge: var(--destructive-11);
   --control-edge: #95999c;
+  --field-edge: #777b7e;
   --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -1910,6 +1913,7 @@
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
     --control-edge: color(display-p3 0.6431 0.6525 0.6646);
+    --field-edge: color(display-p3 0.7561 0.7625 0.7706);
     --color-track: var(--neutral-4);
   }
   [data-appearance="light"] {
@@ -2176,6 +2180,7 @@
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
     --control-edge: color(display-p3 0.6431 0.6525 0.6646);
+    --field-edge: color(display-p3 0.7561 0.7625 0.7706);
     --color-track: var(--neutral-4);
   }
   [data-appearance="dark"] {
@@ -2442,6 +2447,7 @@
     --focus-ring: var(--accent-11);
     --invalid-edge: var(--destructive-11);
     --control-edge: color(display-p3 0.5865 0.5976 0.6116);
+    --field-edge: color(display-p3 0.4701 0.48 0.4926);
     --color-track: var(--neutral-4);
   }
 }
@@ -2529,6 +2535,7 @@
   --info-solid-active: #006ebe;
   --info-label: #0e2439;
   --control-edge: #878b8f;
+  --field-edge: #a3a6aa;
   --material-thin-alpha: 55%;
   --material-thin-alpha-hover: 62%;
   --material-thin-alpha-active: 69%;
@@ -2632,6 +2639,7 @@
     --info-solid-active: #006ebe;
     --info-label: #0e2439;
     --control-edge: #878b8f;
+    --field-edge: #a3a6aa;
     --material-thin-alpha: 55%;
     --material-thin-alpha-hover: 62%;
     --material-thin-alpha-active: 69%;
@@ -2736,6 +2744,7 @@
   --info-solid-active: #006ebe;
   --info-label: #e6effa;
   --control-edge: #b0b3b5;
+  --field-edge: #95999c;
   --material-thin-alpha: 60%;
   --material-thin-alpha-hover: 67%;
   --material-thin-alpha-active: 74%;
@@ -2839,6 +2848,7 @@
     --info-solid-active: #006ebe;
     --info-label: #e6effa;
     --control-edge: #b0b3b5;
+    --field-edge: #95999c;
     --material-thin-alpha: 60%;
     --material-thin-alpha-hover: 67%;
     --material-thin-alpha-active: 74%;
@@ -2944,6 +2954,7 @@
     --info-solid-active: color(display-p3 0 0.3738 0.7368);
     --info-label: color(display-p3 0.0542 0.1374 0.2416);
     --control-edge: color(display-p3 0.5339 0.545 0.5592);
+    --field-edge: color(display-p3 0.6431 0.6525 0.6646);
   }
   @media (prefers-contrast: more) {
     :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -3029,6 +3040,7 @@
       --info-solid-active: color(display-p3 0 0.3738 0.7368);
       --info-label: color(display-p3 0.0542 0.1374 0.2416);
       --control-edge: color(display-p3 0.5339 0.545 0.5592);
+      --field-edge: color(display-p3 0.6431 0.6525 0.6646);
     }
   }
 }
@@ -3117,6 +3129,7 @@
     --info-solid-active: color(display-p3 0 0.3738 0.7368);
     --info-label: color(display-p3 0.9057 0.9381 0.9794);
     --control-edge: color(display-p3 0.6915 0.6997 0.71);
+    --field-edge: color(display-p3 0.5865 0.5976 0.6116);
   }
   @media (prefers-contrast: more) {
     [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -3202,6 +3215,7 @@
       --info-solid-active: color(display-p3 0 0.3738 0.7368);
       --info-label: color(display-p3 0.9057 0.9381 0.9794);
       --control-edge: color(display-p3 0.6915 0.6997 0.71);
+      --field-edge: color(display-p3 0.5865 0.5976 0.6116);
     }
   }
 }

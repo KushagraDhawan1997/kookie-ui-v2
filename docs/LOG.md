@@ -29,6 +29,18 @@ different classes with different floors. So outlined (identity = a 1px line) owe
 "one floor for everything" I had been arguing was simply wrong. Filled's fills are still short
 of their 30 and stay open; today shipped the outlined half.
 
+**Amended the same day, in the preview: the field family sits one tier DOWN.** The first cut
+put fields on the mark's 45 — "one boundary, they match" — and Kushagra rejected it on sight:
+*"Text Field + Area being much larger than checkbox, they appear very dark. I think we should
+stick to 30 floor for field and areas."* The guidance supports it: 45 is the fine-detail tier,
+and 30 is the tier for LARGE elements — at equal colour, the long border of a large box reads
+far heavier than a small ring. So `--field-edge` is the same solve at `controlEdgeLc.field`
+(31; high 46 — a field under contrast="high" wears what a mark wears at rest, one ladder
+offset by size class). Light `#c0c2c5`, dark `#777b7e`. The consistency law became an ORDER
+law: ring strongest, field one tier down, card under both, three distinct — a collapse in
+either direction fails. `apcaFloors` gained `nonTextLarge: 30` and the config law pins each
+family's target to its own floor.
+
 **What shipped.** `--control-edge` supersedes `--mark-edge`: SOLVED, not picked — binary
 search on the neutral recipe's lightness for the value that just clears `controlEdgeLc.normal`
 (46, the floor plus rounding margin) against both the seal and the page. Light `#a3a6aa`

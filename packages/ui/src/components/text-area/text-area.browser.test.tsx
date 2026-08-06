@@ -144,11 +144,12 @@ describe("one treatment: the field family's identity (§9, §11)", () => {
   it("the border is painted, and it is the affordance — bordered by identity", () => {
     const el = render(<TextArea />);
     expect(computed(el, "border-top-width")).toBe("1px");
-    // The CONTROL EDGE since 2026-08-07 (§7 — solved to the non-text floor): an outlined
-    // field's fill is the seal it sits on, so its border is all that identifies it, and it
-    // now wears the same solved hairline a checkbox does instead of the quiet card border
-    // that measured 1.35:1 against a 3:1 requirement.
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--control-edge"));
+    // The FIELD EDGE since 2026-08-07 (§7 — solved to APCA's large-element tier of 30): an
+    // outlined field's fill is the seal it sits on, so its border is all that identifies it.
+    // One tier below the mark's ring, because a field is a large element and the guidance
+    // holds large non-text to 30 where fine detail owes 45 — at equal colour the long border
+    // of a big box reads far heavier than a mark's ring (Kushagra, judged in the preview).
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--field-edge"));
   });
 
   it("offers the one resize axis that cannot break a layout, as raw CSS", () => {
@@ -189,7 +190,7 @@ describe("validity is state, never a prop (§8)", () => {
     el.setAttribute("data-invalid", "");
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
     el.removeAttribute("data-invalid");
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--control-edge"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--field-edge"));
   });
 
   it("the ring moves with the border — the invalid state's own reversal of one-ring (§8)", () => {

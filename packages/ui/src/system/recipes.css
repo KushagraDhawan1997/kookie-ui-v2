@@ -538,14 +538,15 @@
   /* And under the outlined look, the field family wears the CONTROL EDGE (§7, 2026-08-07,
      Kushagra: "I'm not ok with the inconsistency"): an outlined field's fill is the seal it
      sits on, so its border is all that identifies it — the mark family's D2 argument, one
-     family over — and it now resolves the same solved hairline a checkbox wears, so the two
-     match by construction instead of sitting 40 Lc apart. Re-pointed through --tone-border,
+     family over — and it resolves the SAME SOLVE one APCA tier down (a field is a large
+     element, so its boundary owes the 30 tier where a mark's fine-detail ring owes 45), so the two
+     sit on one solved ladder instead of 40 Lc apart. Re-pointed through --tone-border,
      the mark family's own pattern, which keeps the state remaps (invalid, disabled) winning
      at their higher specificity exactly as before. Filled is untouched: there the fill
      identifies the field and the dress edge stays soft. A control hosted in a field's slot
      inherits this tone-border and wears the control boundary too, which is stated rather
      than accidental. */
-  --tone-border: var(--control-edge);
+  --tone-border: var(--field-edge);
   --kui-border-color: var(--look-field-border, var(--tone-border));
 }
 

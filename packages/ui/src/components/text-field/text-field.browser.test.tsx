@@ -62,26 +62,31 @@ describe("the wrapper is the control, and it joins the size index (§4)", () => 
     expect(computed(input, "background-color")).toBe("rgba(0, 0, 0, 0)");
     // The border is the wrapper's, and it is really painted — a field is bordered by identity.
     expect(computed(el, "border-top-width")).toBe("1px");
-    // The CONTROL EDGE since 2026-08-07 (§7 — solved to the non-text floor): an outlined
-    // field's fill is the seal it sits on, so its border is all that identifies it, and it
-    // now wears the same solved hairline a checkbox does instead of the quiet card border
-    // that measured 1.35:1 against a 3:1 requirement.
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--control-edge"));
+    // The FIELD EDGE since 2026-08-07 (§7 — solved to APCA's large-element tier of 30): an
+    // outlined field's fill is the seal it sits on, so its border is all that identifies it.
+    // One tier below the mark's ring, because a field is a large element and the guidance
+    // holds large non-text to 30 where fine detail owes 45 — at equal colour the long border
+    // of a big box reads far heavier than a mark's ring (Kushagra, judged in the preview).
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--field-edge"));
   });
 
-  it.each(APPEARANCES)("%s: a field's border IS a checkbox's ring — one control boundary (§7)", (appearance) => {
-    // The consistency Kushagra asked for on 2026-08-07, as a law rather than a coincidence of
-    // picks: under the outlined look, everything whose identity is its hairline wears the ONE
-    // solved control edge, so a form reads as one system. Asserted component-against-component
-    // — neither side can drift alone — and against the role, so both really resolve the solve.
+  it.each(APPEARANCES)("%s: one solved ladder of boundaries — mark, then field, then card (§7)", (appearance) => {
+    // Rewritten same day it was written: the first form said field == ring, and Kushagra
+    // rejected it in the preview — at equal colour, the long border of a large box reads far
+    // heavier than a mark's ring, and APCA agrees (large non-text owes 30 where fine detail
+    // owes 45). So the claim is an ORDER, not an identity: the ring is the strongest boundary,
+    // the field's sits one tier down, the card's quiet hairline under both — and each resolves
+    // its own solved role, so none of the three is a rung accident.
+    const border = (el: HTMLElement) => computed(el, "border-top-color");
     const field = mounted(<TextField />, { theme: { appearance }, select: ".kui-field" });
     const mark = mounted(<Checkbox />, { theme: { appearance }, select: ".kui-checkbox" });
-    expect(computed(field, "border-top-color")).toBe(computed(mark, "border-top-color"));
-    expect(computed(field, "border-top-color")).toBe(colorOn(field, "var(--control-edge)"));
-    // The negative control: the card behind them keeps the quiet hairline — a container's
-    // identity does not rest on its edge, so the two boundaries must genuinely differ.
     const card = mounted(<Card>B</Card>, { theme: { appearance }, select: ".kui-surface" });
-    expect(computed(card, "border-top-color")).not.toBe(computed(field, "border-top-color"));
+
+    expect(border(field)).toBe(colorOn(field, "var(--field-edge)"));
+    expect(border(mark)).toBe(colorOn(mark, "var(--control-edge)"));
+    // Three distinct tiers — a collapse in either direction is a design regression.
+    expect(border(field)).not.toBe(border(mark));
+    expect(border(field)).not.toBe(border(card));
   });
 
   it("follows the density and pointer worlds, like every control (§12, §16)", () => {
@@ -238,7 +243,7 @@ describe("validity is state, never a prop (§8)", () => {
     inputOf(el).setAttribute("data-invalid", "");
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
     inputOf(el).removeAttribute("data-invalid");
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--control-edge"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--field-edge"));
   });
 
   it("the value stays legible; the box carries the state, border AND ring (§8)", () => {

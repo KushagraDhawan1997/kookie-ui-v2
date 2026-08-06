@@ -207,7 +207,16 @@ export type Mode = keyof typeof lightness;
  * this, dark's pick moved under HC only because its step accidentally sat in a re-priced
  * band, and light's never moved at all (audit R9's half-truth).
  */
-export const controlEdgeLc = { normal: 46, high: 60 } as const;
+export const controlEdgeLc = {
+  /** The mark family: a checkbox-sized ring is fine detail — the 45 tier. */
+  mark: { normal: 46, high: 60 },
+  /** The field family: a field is a LARGE element (Kushagra, 2026-08-07 — "Text Field +
+      Area being much larger than checkbox, they appear very dark"), so its boundary is
+      held to APCA's large-element tier of 30, not the hairline tier. Its high-contrast
+      answer steps up to the fine-detail tier — a field under contrast="high" wears what a
+      mark wears at rest, one ladder, offset by size class. */
+  field: { normal: 31, high: 46 },
+} as const;
 
 /**
  * §7, §11 — the step the TRACK WELL reads per mode: the low neutral bed a value runs in.
@@ -232,7 +241,16 @@ export const trackWellStep = { light: 4, dark: 4 } as const;
  * assert against them — and they were spelled five separate times across the two. Lowering
  * one is an accessibility decision, not tuning; a law pins the values themselves.
  */
-export const apcaFloors = { body: 60, aaa: 75, nonText: 45 } as const;
+export const apcaFloors = {
+  body: 60,
+  aaa: 75,
+  /** APCA's fine-detail non-text tier — thin lines, pictograms. The WCAG 3:1 equivalent. */
+  nonText: 45,
+  /** APCA's tier for LARGE/solid semantic non-text. A big element is identifiable with less
+      boundary contrast than a small one; the guidance says so explicitly, and it is why a
+      field's border and a checkbox's ring are held to different floors (2026-08-07). */
+  nonTextLarge: 30,
+} as const;
 
 /**
  * The mud-guard (§7): states keep at least this fraction of the resting chroma, which is what
