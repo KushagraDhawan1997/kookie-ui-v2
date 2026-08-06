@@ -385,3 +385,46 @@ describe("the API's closed edges (§3)", () => {
     expect(thumbOf(el).querySelector("input")!.getAttribute("aria-label")).toBe("Volume");
   });
 });
+
+describe("the rail is a well, and the radius axis DOES reach it (§6, audit R8)", () => {
+  // Fixed 2026-08-07 (Kushagra: "we need to fix this"). The rail's corner was
+  // calc(track / 2) — a designed px with no palette token anywhere in the chain — so it stayed
+  // a capsule under `radius="none"` while the root, Button, Checkbox and TextField all squared
+  // off. §6 claimed exactly two corners escape the kill switch, the radio and the thumb, both
+  // on role-legibility grounds. The rail was a silent third, escaping by arithmetic rather
+  // than by argument, and nothing in LOG's exhaustive slider entry ever mentioned it.
+  const LEVELS = ["none", "small", "medium", "large", "full"] as const;
+
+  for (const size of SIZES) {
+    it(`size ${size}: squares at none, and keeps its capsule everywhere else`, () => {
+      const none = slider({ size }, { radius: "none" });
+      expect(
+        px(computed(trackOf(none), "border-top-left-radius")),
+        "the kill switch does not reach the rail",
+      ).toBe(0);
+      // The fill rides the rail's corner, so it must square with it or the accent part paints
+      // a rounded cap inside a square well.
+      expect(px(computed(none.querySelector(".kui-slider-fill")!, "border-top-left-radius"))).toBe(0);
+
+      // Everywhere else the end cap is HALF THE RAIL, unchanged by the level — a well's cap is
+      // a property of its own thickness, not a pick into the box palette. These cells render
+      // byte-identically to the pre-fix build, which is what makes `min()` the whole fix.
+      for (const level of LEVELS.filter((l) => l !== "none")) {
+        const el = slider({ size }, { radius: level });
+        const half = px(computed(trackOf(el), "block-size")) / 2;
+        expect(
+          px(computed(trackOf(el), "border-top-left-radius")),
+          `${level}/size ${size}: the cap is no longer half the rail`,
+        ).toBeCloseTo(half, 1);
+      }
+    });
+  }
+
+  it("and the two role circles still escape, which is the exception §6 actually names", () => {
+    // The negative control for the law above: squaring the rail must NOT have squared the
+    // thumb, whose circle is role semantics and survives `none` on purpose.
+    const el = slider({}, { radius: "none" });
+    const thumb = px(computed(thumbOf(el), "border-top-left-radius"));
+    expect(thumb, "the thumb lost its circle").toBeGreaterThan(0);
+  });
+});

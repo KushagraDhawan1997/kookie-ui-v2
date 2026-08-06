@@ -8,6 +8,43 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 The rail squares off — an exception has to be argued, not merely unreached
+
+Audit R8, fixed rather than documented away (Kushagra: "we need to fix this").
+
+§6's kill switch says `radius="none"` squares everything, with exactly two named exceptions:
+the radio and the slider thumb, both circles because shape is role semantics — a square radio
+reads as a checkbox, and a square handle reads as a bead that stuck. The claim "these two
+corners are the ONLY two the radius axis never reaches" appears in §6 twice, in LOG and in
+CLAUDE.md, and it was false. The slider RAIL was a third: its cap is `calc(track / 2)`, and
+`--kui-ct-track` resolves to a designed raw px with no palette token anywhere in the chain, so
+nothing about the radius level could ever reach it. Measured under `none`, both pointer worlds,
+every size: rail 2 / 2.5 / 3 / 3.5px while the root, Button, Checkbox and TextField all read 0.
+
+The case for keeping it was real and was rejected. Every platform ships a rounded rail even in
+a square theme, and square end caps on a 4px well do look broken — so "argue the cap as role,
+the way the two circles are argued, and correct the count in four places" was a legitimate
+option and is what the audit itself proposed. What decided it against: those two exceptions
+were each argued from a confusion the square would CAUSE (a square radio is a checkbox), and no
+such confusion exists here — nobody mistakes a square-ended rail for another control. It was
+never an exception anyone chose. It was a value the axis could not reach, and discovering that
+after the fact is not the same as having decided it. A theme that promises square corners
+should not keep one rounded thing on the page because of how a token happened to be spelled.
+
+The fix needs no new token: `min(calc(var(--kui-ct-track) / 2), var(--kui-ct-radius))`. At every
+level that has a corner the control radius dwarfs half a 4-7px rail, so all those cells render
+byte-identically and the capsule is untouched; at `none` the control radius is 0 and the rail
+squares with everything else. The cap stays a property of the rail's own thickness rather than
+becoming a pick into the box palette, which is right — a well is not a box.
+
+The law that replaces the missing one checks both halves, because only checking `none` would
+let a future "simplification" reprice every level: square at `none`, and exactly half the rail
+at every other level, per size. Its negative control is the thumb, which must still be round
+under `none` — squaring the rail must not have squared the handle. Mutation-tested by restoring
+the bare `calc()`: all four sizes fail.
+
+---
+
 ## 2026-08-07 Forced colors is declined, not deferred — and declining it is the accessible answer
 
 Audit finding R3, carried unfixed since the Radio/Slider round because its scope was a
@@ -136,7 +173,7 @@ Rejected: a thumb-level expander (above); track thickness as a mark fraction ("I
 
 Repetition's third entry. Radio is the checkbox's shape sibling and brought almost nothing of its own — which is the finding: with the slider thumb landing in the same change, the mark family reached three members, and TextArea's promotion rule fired exactly as written. The box, the invisible target, the hosted floor, the seal-and-edge resting identity, the disabled fill arm, the accent ON state and the glyph-is-the-box rule moved from checkbox.css into `system/recipes.css` as `.kui-mark` rules; checkbox.css keeps the tri-state's glyph picks, radio.css keeps one declaration. The ON state is written once for the binary controls (`:where([data-checked], [data-indeterminate])`, still losing to the state remaps — the precedence question travels with the rule), so Switch inherits the whole apparatus the day its stylesheet exists. A structural law pins the promotion: no component stylesheet may size a mark's box or re-point the mark edge. Laws that mounted the family's geometry through Checkbox needed not one edit, which is the promotion demonstrating it changed nothing.
 
-**The circle is the entry's one real decision.** §6's kill switch says `none` squares everything, and a radio under `radius="none"` would be a square — indistinguishable from the checkbox beside it in any form that has both. The checkbox already decided this question from the other side: its corner caps below the capsule at `full` because "a circular checkbox reads as a radio — shape is role semantics, and role legibility outranks theme uniformity." Mirrored, the same sentence forbids the square radio. So a radio (and a slider thumb, for the platform's reason — a round handle on a rail is what a handle is) is a circle at every radius level, stated as `calc(mark / 2)` — the capsule as the rule, §6's own correction — and the breach is narrow and named: the kill switch owns every corner that is dress; these two corners are role, and they are the only two. Law-tested at every level in both pointer worlds, `none` included.
+**The circle is the entry's one real decision.** §6's kill switch says `none` squares everything, and a radio under `radius="none"` would be a square — indistinguishable from the checkbox beside it in any form that has both. The checkbox already decided this question from the other side: its corner caps below the capsule at `full` because "a circular checkbox reads as a radio — shape is role semantics, and role legibility outranks theme uniformity." Mirrored, the same sentence forbids the square radio. So a radio (and a slider thumb, for the platform's reason — a round handle on a rail is what a handle is) is a circle at every radius level, stated as `calc(mark / 2)` — the capsule as the rule, §6's own correction — and the breach is narrow and named: the kill switch owns every corner that is dress; these two corners are role, and they are the only two. Law-tested at every level in both pointer worlds, `none` included. (The count was wrong until 2026-08-07: the RAIL escaped too, by arithmetic rather than argument — see that day's entry.)
 
 The group: Base UI's `RadioGroup`, wrapped with zero CSS and no class — selection, `name`, roving focus are the platform's; layout is the caller's Stack (`gap="5"` holds the 12px stacking rule at every density), with `render` left open so the group can BE the Stack. `readOnly` refused on both Radio and the group, inheriting the checkbox's LOG-recorded refusal.
 

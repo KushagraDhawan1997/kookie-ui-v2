@@ -64,8 +64,20 @@
      byte-identical to a world without the axis. */
   background-color: var(--look-track-fill, var(--color-track));
   /* The capsule stated as the rule (§6's own correction): half the box, never 9999px riding
-     CSS clamping against a rendered height. */
-  border-radius: calc(var(--kui-ct-track) / 2);
+     CSS clamping against a rendered height.
+
+     And the radius LEVEL reaches it (audit R8, fixed 2026-08-07). The bare half-thickness was
+     computed from a designed px with no palette token in the chain, so the rail stayed a
+     capsule at `radius="none"` — 2 to 3.5px of curve while the root, Button, Checkbox and
+     TextField all squared off. §6 claimed exactly two corners escape the axis; the rail was a
+     silent third.
+
+     `min()` is the whole fix and it needs no new token: at every level that HAS a corner the
+     control radius is far larger than half a 4-7px rail, so the capsule survives untouched and
+     these cells render byte-identically; at `none` the control radius is 0 and the rail squares
+     off with everything else. The end cap stays a designed property of the rail rather than a
+     pick into the palette, which is what it should be — it is a well, not a box. */
+  border-radius: min(calc(var(--kui-ct-track) / 2), var(--kui-ct-radius));
   /* The containing block for the thumb and the vertical fill — Base UI positions both. */
   position: relative;
 }
