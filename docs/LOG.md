@@ -38,6 +38,17 @@ fine-detail floor and strictly above their own resting values, so the setting al
 something). The normal-mode emitted-hex law survives as a drift check — the generator must
 render the stated number — explicitly relabeled as not-a-floor.
 
+**The rule grew its second clause the same day (Kushagra: "we still decide them based on
+contrast, we still run checks, but not to validate, but to catch how off we are — it's
+always good to know").** Taste is still contrast-informed — the numbers are how the values
+are reasoned about; what changed is only what a bad number DOES. So the suite gained a
+report: every run prints where each resting border and fill sits against its advisory tier,
+on both meters (APCA Lc and the WCAG 2 ratio, because they disagree exactly where this
+palette works), asserting only that the measurement happened. A slide toward invisible shows
+up in the test output the day it ships, instead of surfacing as a preview argument later.
+The report writes to stdout directly — the runner drops intercepted console output for
+passing tests, and a report that only prints on failure never prints.
+
 Rejected: solving filled's dress edges to a faint APCA target (the previous evening's open
 proposal — it would have made filled "consistent" by extending APCA's authority into exactly
 the territory taste was about to reclaim); re-solving the standard edges to WCAG 2 ratios or

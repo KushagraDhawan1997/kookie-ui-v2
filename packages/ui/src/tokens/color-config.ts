@@ -211,7 +211,9 @@ export type Mode = keyof typeof lightness;
  * contrast="high" scopes — the setting is the conformance surface for WCAG 1.4.11, and the
  * look-border stand-down routes `filled` through these same solved edges. OUTSIDE the
  * split, keeping their standard-mode floors: text, the focus ring, and the invalid edge —
- * signals, not dress.
+ * signals, not dress. Second clause: taste stays contrast-INFORMED — the suite prints a
+ * per-run report of every resting border and fill against its advisory tier, on both
+ * meters, to catch how off we are without failing on it.
  */
 export const controlEdgeLc = {
   /** The mark family: high is the tier above fine detail; normal is the v0 taste value. */

@@ -15,7 +15,7 @@ import {
   type Mode,
   type ToneName,
 } from "./color-config.ts";
-import { surfaceColor } from "./config.ts";
+import { dress, surfaceColor } from "./config.ts";
 import {
   apcaLc,
   buildScale,
@@ -694,6 +694,71 @@ describe("the control edge renders its stated targets, and the floors bind under
     expect(controlEdgeLc.mark.high).toBeGreaterThan(controlEdgeLc.mark.normal);
     expect(controlEdgeLc.field.high).toBeGreaterThan(controlEdgeLc.field.normal);
   });});
+
+describe("the standard-mode dress report — measured to know, never to validate (§5, §7)", () => {
+  // The mode split's second clause (Kushagra, 2026-08-07: "we still run checks, but not to
+  // validate, but to catch how off we are, its always good to know"). Standard mode's resting
+  // borders and fills are taste, so nothing here can fail on a contrast number — but every
+  // run prints where each one sits, on BOTH meters, because the meters disagree exactly where
+  // this palette works (light greys on white: the solved ring clears APCA 46 while measuring
+  // 2.44:1 in WCAG 2 terms). A slide toward invisible should be visible in the test output
+  // the day it happens, not discovered in a preview argument later. The only assertions are
+  // that every measurement is a real number — a row that stops measuring is a bug, a row
+  // that measures low is information.
+  const wcagRatio = (a: string, b: string) => {
+    const lum = (hex: string) => {
+      const { r, g, b: bl } = toRgb(hex)!;
+      const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+      return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(bl);
+    };
+    const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+    return (hi! + 0.05) / (lo! + 0.05);
+  };
+
+  for (const mode of MODES) {
+    it(`prints where ${mode}'s resting dress sits against the tiers`, () => {
+      const neutral = buildScale("neutral", mode);
+      const step = (n: number) => neutral.steps[n - 1]!;
+      const page = step(1);
+      const seal = mode === "dark" ? step(2) : "#ffffff";
+      const emitted = (name: string) =>
+        colorDeclarations(mode)
+          .find((l) => l.includes(`--${name}:`))!
+          .match(/#[0-9a-fA-F]{6}/)![0];
+      const d = dress[mode];
+
+      // Each row: the colour, what it is measured against, and the advisory tier that gives
+      // the number a scale — 45 fine detail, 30 large non-text, 15 bare discernibility.
+      const rows: Array<[label: string, fg: string, bg: string, tier: number]> = [
+        ["outlined control-edge vs worst bed", emitted("control-edge"), Math.abs(apcaLc(emitted("control-edge"), seal)) < Math.abs(apcaLc(emitted("control-edge"), page)) ? seal : page, apcaFloors.nonText],
+        ["outlined field-edge vs worst bed", emitted("field-edge"), Math.abs(apcaLc(emitted("field-edge"), seal)) < Math.abs(apcaLc(emitted("field-edge"), page)) ? seal : page, apcaFloors.nonTextLarge],
+        ["filled surface edge vs its fill", step(d.surface.edge), step(d.surface.fill), 15],
+        ["filled surface fill vs page", step(d.surface.fill), page, 15],
+        ["filled field edge vs its fill", step(d.field.edge), step(d.field.fill), 15],
+        ["filled field fill vs seal", step(d.field.fill), seal, 15],
+        ["filled mark edge vs its fill", step(d.mark.edge), step(d.mark.fill), 15],
+        ["filled mark fill vs seal", step(d.mark.fill), seal, 15],
+      ];
+
+      for (const [label, fg, bg, tier] of rows) {
+        const lc = Math.abs(apcaLc(fg, bg));
+        const ratio = wcagRatio(fg, bg);
+        expect(Number.isFinite(lc), label).toBe(true);
+        expect(Number.isFinite(ratio), label).toBe(true);
+        const delta = lc - tier;
+        // The APCA implementation clamps |Lc| < 10 to 0 — say so, or the report re-creates
+        // the "it's zero????" confusion the 2026-08-07 LOG entry records.
+        const lcText =
+          lc === 0 && fg !== bg
+            ? `Lc <10 (clamped; tier ${tier})`
+            : `Lc ${lc.toFixed(1)} (tier ${tier}, ${delta >= 0 ? "+" : ""}${delta.toFixed(1)})`;
+        // process.stdout directly: the runner intercepts console.* and drops it for passing
+        // tests, and a report that only prints on failure is a report that never prints.
+        process.stdout.write(`[dress ${mode}] ${label}: ${fg} — ${lcText} | wcag ${ratio.toFixed(2)}:1\n`);
+      }
+    });
+  }
+});
 
 describe("the invalid edge clears the non-text floor, in both modes (§8, WCAG 1.4.11)", () => {
   // The shipped invalid border was --destructive-border, i.e. step 7 — and step 7 shares its
