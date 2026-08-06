@@ -8,6 +8,12 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-06 One Size union across three ladders, on purpose
+
+The architecture review flagged that the exported `Size` serves three unrelated scales — Button and the fields read it as the control height index, Card as the surface padding + corner index (default "3" against everyone else's "2"), Checkbox as the mark index. They share a numeral, not a scale. Kushagra's call: keep the one union. §4 already defines a size as "an index, not a measurement" — the index never promised that two components at size 2 share a box, only that each family resolves its own designed ladder at that step. Splitting the type would encode in the API a sameness the system never claimed, and cost a breaking rename across every component for a distinction the resolved tokens already carry.
+
+Rejected: `ControlSize` / `SurfaceSize` / `MarkSize` as distinct public unions — more honest-looking at the call site, but the honesty is false precision (all three are the same closed "1"–"4" set), and the day a family needs a different index count the union splits then, with the evidence in hand. Recorded in `system/axes.ts` beside the type; here so it stays closed.
+
 ## 2026-08-06 The alpha ramp composites over the seal, and its law stops grading its own homework
 
 The recomposition law took its backdrop from the emitter's own `pageBackdrop` — the same value the alpha solve consumed — so the law was a tautology: it could verify the arithmetic but never notice the backdrop being the wrong colour. And it quietly was. The page colour existed as three near-identical statements (`surfaceColor.light.rest` `#ffffff`, `pageBackdrop`'s own white / hand-built dark approximation, and the generated `--neutral-1`), and the two modes told different stories: light solved against white — which happens to be the seal — while dark solved against a page approximation, which is why dark's neutral overlay hexes came out faintly pink (`#fff0f1` for a grey ramp).
