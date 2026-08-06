@@ -433,9 +433,11 @@ describe("the ring and the chrome are designed once, applied wherever they land 
   });
 
   it("every box-shadow reads the world's chrome — depth is never a component's own idea", () => {
-    // The elevated world dresses surfaces AND the controls that are built like them (a field is
-    // a bordered box on the page). What no stylesheet may do is invent its own depth: the moment
-    // a rule names --shadow-N directly, the fenced resource has become an axis again (§13).
+    // The elevated world dresses actual SURFACES, and nothing else (§5, reversed 2026-08-06:
+    // fields lifted with the cards for two days, but a field is a well — content of a plane,
+    // not a plane above one — and its sheets dropped the chrome). What no stylesheet may do is
+    // invent its own depth: the moment a rule names --shadow-N directly, the fenced resource
+    // has become an axis again (§13).
     let found = 0;
     for (const [file, css] of sheets) {
       for (const match of css.matchAll(/box-shadow:\s*([^;]+);/g)) {
@@ -444,7 +446,9 @@ describe("the ring and the chrome are designed once, applied wherever they land 
       }
       expect(css, `${file} reaches past the chrome to the palette`).not.toContain("--shadow-");
     }
-    expect(found).toBeGreaterThanOrEqual(2);
+    // Exactly the surface layer's one declaration: a SECOND consumer appearing is a decision,
+    // not a drift, and it should fail here first.
+    expect(found).toBe(1);
   });
 });
 

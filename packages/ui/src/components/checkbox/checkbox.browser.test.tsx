@@ -344,6 +344,13 @@ describe("the glyph is the box, not the icon ladder (§4)", () => {
 });
 
 describe("what it inherits from the shared layer, and what it must not (§8)", () => {
+  it("stays flat in an elevated world — a mark's box is the state, not a plane (§5)", () => {
+    // The negative half of elevation's membership criterion (decided 2026-08-06): the
+    // shadow ladder is surface-scale lengths, and nothing is ever behind a mark.
+    const el = mounted(<Checkbox />, { theme: { surfaces: "elevated" } });
+    expect(computed(markOf(el), "box-shadow")).toBe("none");
+  });
+
   it("takes the one focus ring, keyboard-only, like every control", () => {
     const el = render(<Checkbox />);
     el.focus();

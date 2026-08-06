@@ -334,6 +334,19 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
 });
 
 describe("the boundary (§3, §13)", () => {
+  it("stays flat in an elevated world — a control's box is the action, not a plane (§5)", () => {
+    // The negative half of elevation's membership criterion (decided 2026-08-06): the
+    // elevated identity dresses boxes that establish a plane of their own, and a button's
+    // box is the action. Loud, the most surface-like rung, is the one to distrust.
+    const el = mounted(
+      <Button tone="accent" emphasis="loud">
+        Label
+      </Button>,
+      { theme: { surfaces: "elevated" } },
+    );
+    expect(computed(el, "box-shadow")).toBe("none");
+  });
+
   it("forwards the escape hatches and keeps its own classes", () => {
     const el = render(
       <Button className="mine" style={{ letterSpacing: "3px" }}>

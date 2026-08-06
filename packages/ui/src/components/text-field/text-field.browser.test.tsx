@@ -374,16 +374,17 @@ describe("the slots are forced anatomy, and they behave like slots (§10)", () =
 });
 
 describe("the app's identities reach the field without it knowing (§5, §10)", () => {
-  it("the elevated world lifts it; flat casts nothing", () => {
+  it("a well casts no shadow — flat in BOTH worlds (§5, reversed 2026-08-06)", () => {
+    // The first cut lifted fields with the cards ("depth is the app's identity"), and the
+    // sentence was asserted, not judged: elevation separates a plane from what is BEHIND it,
+    // and a field is a well — content of a plane, not a plane above one. A recessed thing
+    // cannot cast a drop shadow. Material fields are filled or outlined, never raised; no
+    // platform shades an input. The elevated set is actual surfaces only.
     const flat = render(<TextField />);
     expect(computed(flat, "box-shadow")).toBe("none");
 
     const elevated = mounted(<TextField />, { theme: { surfaces: "elevated" } });
-    const probe = document.createElement("div");
-    probe.style.boxShadow = "var(--surface-chrome)";
-    elevated.append(probe);
-    expect(computed(elevated, "box-shadow")).toBe(computed(probe, "box-shadow"));
-    probe.remove();
+    expect(computed(elevated, "box-shadow")).toBe("none");
     // @ts-expect-error — depth is an app identity; no field chooses a shadow
     void (<TextField shadow="2" />);
   });

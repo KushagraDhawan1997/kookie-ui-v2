@@ -264,7 +264,9 @@ describe("the placeholder is a designed role, not a UA default (§7, §15)", () 
 });
 
 describe("the app's identities reach it without it knowing (§5, §10)", () => {
-  it("the elevated world lifts it; flat casts nothing", () => {
+  it("a well casts no shadow — flat in BOTH worlds (§5, reversed 2026-08-06)", () => {
+    // Same reversal as TextField's: a field is a well, wells are content of a plane rather
+    // than a plane above one, and the elevated set is actual surfaces only.
     expect(computed(render(<TextArea />), "box-shadow")).toBe("none");
     const host = render(
       <Theme surfaces="elevated">
@@ -272,11 +274,7 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
       </Theme>,
     );
     const el = host.querySelector<HTMLElement>(".kui-textarea")!;
-    const probe = document.createElement("div");
-    probe.style.boxShadow = "var(--surface-chrome)";
-    host.append(probe);
-    expect(computed(el, "box-shadow")).toBe(computed(probe, "box-shadow"));
-    probe.remove();
+    expect(computed(el, "box-shadow")).toBe("none");
     // @ts-expect-error — depth is an app identity; nothing chooses a shadow
     void (<TextArea shadow="2" />);
   });

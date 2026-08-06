@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-06 Fields leave the elevated world: a well casts no shadow
+
+For two days `surfaces="elevated"` lifted TextField and TextArea with the cards, on the sentence "a text field is a bordered box sitting on the page — it lifts with the cards, or the identity is only half applied" (2026-08-04). Kushagra kept pulling the thread — first the membership question (why fields and not button or checkbox), then the vocabulary (the prop says *surfaces* and a field is a control) — and the sentence turned out to be asserted, not judged. Elevation separates a plane from what is behind it. A field is a **well**: something you look and type into, content of a plane, not a plane above one — and a recessed thing casting a drop shadow is physically incoherent. The platforms already agree: Material's fields are filled or outlined, never raised; no OS shades an input. The floating search bar one might cite is a promoted toolbar *containing* an input — a shell, not a form field.
+
+The membership criterion is now one sentence in §5: elevation dresses boxes that establish a plane of their own. Button's box is the action, a mark's is the state, a field's is a well — all three stay flat, each pinned by a mounted negative law under `surfaces="elevated"` (Material's raised buttons are the cautionary counterexample: shadow-as-loudness, fused into the rank ladder). The box-shadow walk re-pins the consumer count at exactly one — the surface layer — so a second consumer is a decision that fails a law first, not a drift.
+
+Rejected: keeping fields in and renaming the prop around them — the set was wrong, not just the word. Recorded beside it: an elevated world *deepening* the well (an inset shadow) is a coherent future taste question; a lift never was.
+
 ## 2026-08-06 One Size union across three ladders, on purpose
 
 The architecture review flagged that the exported `Size` serves three unrelated scales — Button and the fields read it as the control height index, Card as the surface padding + corner index (default "3" against everyone else's "2"), Checkbox as the mark index. They share a numeral, not a scale. Kushagra's call: keep the one union. §4 already defines a size as "an index, not a measurement" — the index never promised that two components at size 2 share a box, only that each family resolves its own designed ladder at that step. Splitting the type would encode in the API a sameness the system never claimed, and cost a breaking rename across every component for a distinction the resolved tokens already carry.
