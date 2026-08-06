@@ -8,6 +8,53 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 The slider leaves the look axis entirely — and the membership test grows its second half
+
+Kushagra, from the regenerated preview: *"Slider has basically no reason to subscribe to look
+axis, like button has no role. We'll see this repeat with progress."* Plus the observation that
+finally made the shape visible: *"in light mode, the rail looks fine, but in dark, the filled
+mode has a weird rail. Its basically invisible."*
+
+He was right about the rail, and it was my doing: pinning the thumb to the seal a few hours
+earlier forced dark's filled rail down to the page step to avoid becoming the thumb's own
+colour, and a rail at `--neutral-1` inside a filled card at `--neutral-3` is very nearly
+nothing. That was the third symptom in a row from one wrong premise, so the premise went.
+
+**Three passes, all arguing about the parts, none about the thing.** The rail was excluded at
+first on "an edgeless well has no border-versus-fill trade to make" — a statement about the
+part, which stopped being true the moment `filled` stopped being a trade, so the rail was let
+IN. It was then DRAWN as an outline — `outlined` applied to a path by analogy with surfaces —
+and read as a bead resting on nothing. The thumb then left on its own merits, and the rail
+followed it into the corner described above. Each fix was locally reasonable and the direction
+was wrong every time.
+
+**The rule that survives is about what a slider IS.** The axis dresses things whose resting
+state is a *surface with a boundary* — a card, a field, a checkbox — because for those, "how
+does this app draw a resting surface" is a question with an answer. A slider has no resting
+surface. It is a rail, a fill and a grip: an instrument, every part shaped by what it does
+rather than by the app's identity. Button belongs to no dressed family on exactly this
+argument, which is the connection Kushagra drew, and Progress will land here too — a bar is a
+rail with no grip.
+
+**So the membership test grows a second half.** §19 said "membership IS role consumption": a
+family is dressed because its sheet consumes the roles, and only for that reason. That is the
+MECHANICAL half and it is still true — it is what makes membership checkable. What was missing
+is the DESIGN half: a family should consume them only if its resting state is a surface. The
+mechanical half alone is what let a slider into the axis twice, because "this part could read a
+role" is always true of any part that paints.
+
+The law asserts all five painted parts together — rail, rail edge, fill, thumb, thumb edge —
+across both looks, with a checkbox in the same app as the negative control so it cannot pass in
+a world where `look` has stopped working altogether. Together rather than one each, because a
+component leaves an axis completely or it does not leave it, and a law checking only the rail
+would have missed the thumb, which was dressed until the previous commit. Mutation-tested by
+pointing the rail back at a look role: five laws fail.
+
+Unchanged by any of this, and now the slider's only open defect: the thumb ignores `invalid`
+and `disabled`.
+
+---
+
 ## 2026-08-07 The thumb leaves the look axis — the mark family shares its box, not its dress
 
 Kushagra, after the drawn-rail revert: *"I further think the handle / thumb also shouldn't

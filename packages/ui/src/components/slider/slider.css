@@ -50,19 +50,27 @@
      because the element stamps `accent` for its fill and the off part must not tint with it —
      the checkbox's "neutral off", one control over.
 
-     The well answers the LOOK axis (§19, reversed 2026-08-06). It was excluded at first on
-     the sentence "a well is already edgeless, so it has no border-versus-fill trade to make",
-     which was true of the trade and wrong about the axis: once `filled` stopped being a trade
-     and became a fill question, an untouched rail was simply the one part of the slider that
-     ignored the app's identity. It also had a measured cost — the thumb reads --look-mark-fill
-     and the track read --color-track, and BOTH resolved to --neutral-4 in both appearances, so
-     a filled slider's handle was its own rail at 1.000:1. The well now moves AWAY from the
-     mark family rather than the mark family moving off a value that suits it: under `filled`
-     the rail sinks (darker than the card in both modes, which is opposite arithmetic per mode
-     — see config's dress table) and the handle stays where it reads. Outlined emits `initial`,
-     so this fallback resolves the untouched well role at the element and the default path is
-     byte-identical to a world without the axis. */
-  background-color: var(--look-track-fill, var(--color-track));
+     THE SLIDER IS OUTSIDE THE LOOK AXIS, whole (§19, settled 2026-08-07). Kushagra: "slider
+     has basically no reason to subscribe to look axis, like button has no role."
+
+     It took three passes to land, and the wrong turns are worth keeping because the next value
+     control will meet the same fork. The rail was excluded at first on a narrow argument — "an
+     edgeless well has no border-versus-fill trade to make" — which stopped being true the day
+     `filled` stopped being a trade, so the rail was let IN. Then it was drawn as an outline,
+     which was `outlined` applied to a path by analogy with surfaces, and it looked wrong on
+     sight. Then the thumb left the axis on its own merits, and dark's rail had to be pushed to
+     the page step to stay off the thumb's colour — at which point a filled slider's rail was
+     very nearly invisible on its card, which is what finally showed the shape of the mistake.
+
+     The rule that survives is about what a slider IS, not about what its parts can trade. The
+     axis dresses things whose resting state is a surface with a boundary: a card, a field, a
+     checkbox — for those, "how does this app draw a resting surface" is a question with an
+     answer. A slider has no resting surface. It is a rail, a fill and a grip: an instrument,
+     and every part of it is shaped by what it does rather than by the app's identity. Button
+     belongs to no dressed family for the same reason, and Progress will land here too — a bar
+     is a rail with no grip. So: no --look-* role is consumed anywhere in this file, the rail
+     is the untouched well role in both looks, and a law pins every part unmoved across them. */
+  background-color: var(--color-track);
   /* The capsule stated as the rule (§6's own correction): half the box, never 9999px riding
      CSS clamping against a rendered height.
 

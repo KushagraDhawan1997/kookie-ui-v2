@@ -1113,11 +1113,11 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
           ).not.toBe(seal);
         }
       }
-      expect(
-        filledStep(mode, "mark", "fill"),
-        `the filled thumb IS its filled rail in ${mode} — invisible at 1.000:1`,
-      ).not.toBe(filledStep(mode, "track", "fill"));
-      // And the mark must clear its other bed, the filled surface a checkbox sits on.
+      // The thumb-versus-rail collision this used to guard now cannot arise from the axis at
+      // all: the slider left it entirely (2026-08-07), so neither part has a dress to drift
+      // with. The mounted law in slider.browser.test.tsx still measures the two against each
+      // other, which is where that claim belongs — it is about painted colour, not about roles.
+      // The mark must clear its other bed, the filled surface a checkbox sits on.
       expect(filledStep(mode, "mark", "fill")).not.toBe(filledStep(mode, "surface", "fill"));
     },
   );

@@ -197,7 +197,6 @@
   --look-mark-fill-hover: var(--color-surface-hover);
   --look-mark-fill-active: var(--color-surface-active);
   --look-mark-border: initial;
-  --look-track-fill: initial;
 
   /* colour, generated (§7) — light mode */
   /* neutral */
@@ -664,7 +663,6 @@
   --dress-mark-fill-hover: var(--neutral-5);
   --dress-mark-fill-active: var(--neutral-6);
   --dress-mark-edge: var(--neutral-7);
-  --dress-track-fill: var(--neutral-6);
 }
 
 [data-appearance="light"] {
@@ -1132,7 +1130,6 @@
   --dress-mark-fill-hover: var(--neutral-5);
   --dress-mark-fill-active: var(--neutral-6);
   --dress-mark-edge: var(--neutral-7);
-  --dress-track-fill: var(--neutral-6);
   --look-surface-fill: var(--color-surface);
   --look-surface-fill-hover: var(--color-surface-hover);
   --look-surface-fill-active: var(--color-surface-active);
@@ -1143,7 +1140,6 @@
   --look-mark-fill-hover: var(--color-surface-hover);
   --look-mark-fill-active: var(--color-surface-active);
   --look-mark-border: initial;
-  --look-track-fill: initial;
 }
 
 [data-appearance="dark"] {
@@ -1611,7 +1607,6 @@
   --dress-mark-fill-hover: var(--neutral-6);
   --dress-mark-fill-active: var(--neutral-7);
   --dress-mark-edge: var(--neutral-7);
-  --dress-track-fill: var(--neutral-1);
   --look-surface-fill: var(--color-surface);
   --look-surface-fill-hover: var(--color-surface-hover);
   --look-surface-fill-active: var(--color-surface-active);
@@ -1622,7 +1617,6 @@
   --look-mark-fill-hover: var(--color-surface-hover);
   --look-mark-fill-active: var(--color-surface-active);
   --look-mark-border: initial;
-  --look-track-fill: initial;
 }
 
 [data-look="outlined"] {
@@ -1636,7 +1630,6 @@
   --look-mark-fill-hover: var(--color-surface-hover);
   --look-mark-fill-active: var(--color-surface-active);
   --look-mark-border: initial;
-  --look-track-fill: initial;
 }
 
 [data-look="filled"] {
@@ -1650,7 +1643,6 @@
   --look-mark-fill-hover: var(--dress-mark-fill-hover);
   --look-mark-fill-active: var(--dress-mark-fill-active);
   --look-mark-border: var(--dress-mark-edge);
-  --look-track-fill: var(--dress-track-fill);
 }
 
 @supports (color: color(display-p3 0 0 0)) {

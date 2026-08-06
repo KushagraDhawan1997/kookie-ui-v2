@@ -213,19 +213,43 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     );
   });
 
-  it.each(APPEARANCES)("%s: the track joins the axis — the well is dressed too (§19)", (appearance) => {
-    // REVERSED 2026-08-06 (Kushagra, from the preview: "slider doesn't respect outline at all
-    // rn"). The exclusion was argued as "the axis trades a border for a fill and the track
-    // never had a border" — true of the trade, and the trade is exactly what stopped being
-    // the design. Once `filled` became a fill question, an untouched rail was simply the one
-    // part of the slider that ignored the app's identity. The old law's own comment set the
-    // bar for this: "if it ever moves with the look, that is a decision."
-    const outlined = trackOf(slider({}, { look: "outlined", appearance }));
-    const filled = trackOf(slider({}, { look: "filled", appearance }));
-    expect(computed(filled, "background-color")).not.toBe(computed(outlined, "background-color"));
-    // Outlined stays the identity: the untouched well role, resolved at the element.
-    expect(computed(outlined, "background-color")).toBe(
-      colorOn(rootOf(slider({}, { look: "outlined", appearance })), "var(--color-track)"),
+  it.each(APPEARANCES)("%s: the WHOLE slider is outside the look axis (§19)", (appearance) => {
+    // Settled 2026-08-07 after three passes, and the reversals are recorded in LOG because the
+    // next value control meets the same fork. Kushagra: "slider has basically no reason to
+    // subscribe to look axis, like button has no role."
+    //
+    // The axis dresses things whose resting state is a surface with a boundary — a card, a
+    // field, a checkbox — where "how does this app draw a resting surface" has an answer. A
+    // slider has no resting surface: it is a rail, a fill and a grip, an instrument shaped by
+    // what it does. Progress will land here too.
+    //
+    // Every painted part, both looks, asserted together: a component leaves an axis completely
+    // or it does not leave it, and a law that checked only the rail would have missed the thumb
+    // (which was dressed until the day before this) and vice versa.
+    const parts = (look: "outlined" | "filled") => {
+      const el = slider({}, { look, appearance });
+      return {
+        rail: computed(trackOf(el), "background-color"),
+        railEdge: computed(trackOf(el), "border-top-color"),
+        fill: computed(el.querySelector(".kui-slider-fill")!, "background-color"),
+        thumb: computed(thumbOf(el), "background-color"),
+        thumbEdge: computed(thumbOf(el), "border-top-color"),
+      };
+    };
+    const outlined = parts("outlined");
+    const filled = parts("filled");
+    for (const key of Object.keys(outlined) as (keyof typeof outlined)[]) {
+      expect(filled[key], `the app's look reached the slider's ${key}`).toBe(outlined[key]);
+    }
+    // The negative control: the axis must still be doing its job elsewhere in the same app, or
+    // this law passes in a world where `look` simply stopped working.
+    const box = (look: "outlined" | "filled") =>
+      computed(
+        mounted(<Checkbox />, { theme: { look, appearance }, select: ".kui-checkbox" }),
+        "background-color",
+      );
+    expect(box("filled"), "the checkbox stopped answering the app's identity").not.toBe(
+      box("outlined"),
     );
   });
 

@@ -679,7 +679,6 @@ export const look = {
       "fill-active": "var(--color-surface-active)",
       border: "initial",
     },
-    track: { fill: "initial" },
   },
   filled: {
     surface: {
@@ -695,7 +694,6 @@ export const look = {
       "fill-active": "var(--dress-mark-fill-active)",
       border: "var(--dress-mark-edge)",
     },
-    track: { fill: "var(--dress-track-fill)" },
   },
 } as const;
 
@@ -738,22 +736,11 @@ export const dress = {
     surface: { fill: 2, "fill-hover": 3, "fill-active": 4, edge: 5 },
     field: { fill: 3, edge: 5 },
     mark: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 7 },
-    // Darker than the card it is cut into: in light, sunk means further DOWN the ramp.
-    track: { fill: 6 },
   },
   dark: {
     surface: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 5 },
     field: { fill: 4, edge: 5 },
     mark: { fill: 5, "fill-hover": 6, "fill-active": 7, edge: 7 },
-    // Darker than the card, which in dark means further UP toward the page, not down it.
-    //
-    // Step 1, not 2, and the reason is the thumb (2026-08-07). The thumb left the look axis —
-    // a grip keeps its identity while the app's dress changes — so it is now the SEAL in both
-    // looks, and dark's seal is --neutral-2. A filled rail at 2 would therefore be the handle's
-    // own colour again: exactly the 1.000:1 collision the track joined the axis to fix, walked
-    // back in through the other door. The rail sits at the page step instead, which reads as a
-    // deeper well inside a filled card (itself at 3) and leaves the handle a clear step above it.
-    track: { fill: 1 },
   },
 } as const;
 
