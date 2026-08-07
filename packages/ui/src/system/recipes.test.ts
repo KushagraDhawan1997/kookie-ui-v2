@@ -497,23 +497,31 @@ describe("the ring and the chrome are designed once, applied wherever they land 
     expect(found).toBeGreaterThanOrEqual(3);
   });
 
-  it("every box-shadow reads the world's chrome — depth is never a component's own idea", () => {
-    // The elevated world dresses actual SURFACES, and nothing else (§5, reversed 2026-08-06:
-    // fields lifted with the cards for two days, but a field is a well — content of a plane,
-    // not a plane above one — and its sheets dropped the chrome). What no stylesheet may do is
+  it("every box-shadow reads a world chrome role — depth is never a component's own idea", () => {
+    // Depth belongs to the world (§5): surfaces cast through --kui-surface-chrome, and since
+    // 2026-08-07 raised controls cast through --kui-control-chrome (the four-worlds frame,
+    // §19 — the deliberate reversal of "a button stays flat"). What no stylesheet may do is
     // invent its own depth: the moment a rule names --shadow-N directly, the fenced resource
     // has become an axis again (§13).
     let found = 0;
     for (const [file, css] of sheets) {
       for (const match of css.matchAll(/box-shadow:\s*([^;]+);/g)) {
         found += 1;
-        expect(match[1]!, `${file} paints a shadow of its own`).toContain("--kui-surface-chrome");
+        expect(match[1]!, `${file} paints a shadow of its own`).toMatch(
+          /--kui-(surface-chrome|ct-cast)/,
+        );
       }
       expect(css, `${file} reaches past the chrome to the palette`).not.toContain("--shadow-");
     }
-    // Exactly the surface layer's one declaration: a SECOND consumer appearing is a decision,
-    // not a drift, and it should fail here first.
-    expect(found).toBe(1);
+    // Exactly two declarations — the surface layer's and the control layer's. A THIRD
+    // consumer appearing is a decision, not a drift, and it should fail here first.
+    expect(found).toBe(2);
+    // The control indirection stays honest end-to-end: the cast the button paints is the
+    // rung's statement, and a lit rung's cast IS the world chrome — nothing in between may
+    // substitute its own value.
+    const recipesCss = sheets.find(([file]) => file.endsWith("recipes.css"))![1];
+    expect(recipesCss).toContain("--kui-ct-cast: var(--kui-control-chrome, none)");
+    expect(recipesCss).toContain("--kui-ct-light: var(--kui-control-light, none)");
   });
 });
 

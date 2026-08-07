@@ -41,6 +41,8 @@ import {
   radiusLevels,
   radiusOverlay,
   radiusSurface,
+  controlChrome,
+  controlLight,
   shadow,
   sliderTrack,
   space,
@@ -606,12 +608,16 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("color-border", "var(--neutral-border)"),
     "",
     `  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;`,
-    `     elevation stays deleted. Row 1 is the inset well. */`,
+    `     elevation stays deleted. Row 1 is the inset well, row 2 the control drop. */`,
     ...shadow[mode].map((row, i) => decl(`shadow-${i + 1}`, row)),
     "",
-    `  /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is`,
-    `     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */`,
+    `  /* the elevated world's dressing (§5, §10, §19) — composed FROM the palette: surface`,
+    `     depth is var(--shadow-3), control depth var(--shadow-2); dark adds only the`,
+    `     rim-lights. The edge stays --tone-border. The control light is the CATCH half:`,
+    `     background-image layers, not shadow, so flat can declare none (§10's rim). */`,
     decl("surface-chrome", surfaceChrome[mode]),
+    decl("control-chrome", controlChrome[mode]),
+    decl("control-light", controlLight[mode]),
   ];
 }
 

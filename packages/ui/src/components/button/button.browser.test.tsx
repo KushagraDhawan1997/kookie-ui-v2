@@ -372,17 +372,72 @@ describe("the boundary (§3, §13)", () => {
     }
   });
 
-  it("stays flat in an elevated world — a control's box is the action, not a plane (§5)", () => {
-    // The negative half of elevation's membership criterion (decided 2026-08-06): the
-    // elevated identity dresses boxes that establish a plane of their own, and a button's
-    // box is the action. Loud, the most surface-like rung, is the one to distrust.
+  it("is LIT in an elevated world: casts the control row, catches light on top (§5, §19)", () => {
+    // DELIBERATE REVERSAL of the 2026-08-06 "stays flat" negative law (the four-worlds
+    // frame, 2026-08-07): in a world with a light source a raised control casts and
+    // catches. The cast must be exactly the palette's control row — no button owns a
+    // shadow of its own — and the catch is a gradient, not a shadow.
     const el = mounted(
       <Button tone="accent" emphasis="loud">
         Label
       </Button>,
       { theme: { surfaces: "elevated" } },
     );
-    expect(computed(el, "box-shadow")).toBe("none");
+    const probe = document.createElement("div");
+    probe.style.boxShadow = "var(--shadow-2)";
+    el.append(probe);
+    expect(computed(el, "box-shadow")).toBe(computed(probe, "box-shadow"));
+    probe.remove();
+    expect(computed(el, "background-image")).toContain("linear-gradient");
+  });
+
+  it("stays flat in a flat world, and quiet stays bare even when elevated (§5, §19)", () => {
+    // Flat is byte-identical to a world where the light rules do not exist — the default
+    // path cannot regress. And quiet has nothing to light: no fill, no cast, no catch.
+    const flat = mounted(
+      <Button tone="accent" emphasis="loud">
+        Label
+      </Button>,
+      { theme: { surfaces: "flat" } },
+    );
+    expect(computed(flat, "box-shadow")).toBe("none");
+    expect(computed(flat, "background-image")).toBe("none");
+    const quiet = mounted(
+      <Button tone="accent" emphasis="quiet">
+        Label
+      </Button>,
+      { theme: { surfaces: "elevated" } },
+    );
+    expect(computed(quiet, "box-shadow")).toBe("none");
+    expect(computed(quiet, "background-image")).toBe("none");
+  });
+
+  it("one light for every tone, and disabled stands it down (§5, §19)", () => {
+    // The catch paints OVER the fill, so it is tone-independent by construction — a law
+    // that fails if a per-tone gradient ever appears. A disabled control makes no promise:
+    // it neither hovers above the page nor catches light.
+    const accent = mounted(
+      <Button tone="accent" emphasis="loud">
+        A
+      </Button>,
+      { theme: { surfaces: "elevated" } },
+    );
+    const destructive = mounted(
+      <Button tone="destructive" emphasis="medium">
+        B
+      </Button>,
+      { theme: { surfaces: "elevated" } },
+    );
+    expect(computed(accent, "background-image")).toBe(computed(destructive, "background-image"));
+    expect(computed(accent, "box-shadow")).toBe(computed(destructive, "box-shadow"));
+    const disabled = mounted(
+      <Button tone="accent" emphasis="loud" disabled>
+        C
+      </Button>,
+      { theme: { surfaces: "elevated" } },
+    );
+    expect(computed(disabled, "box-shadow")).toBe("none");
+    expect(computed(disabled, "background-image")).toBe("none");
   });
 
   it("forwards the escape hatches and keeps its own classes", () => {

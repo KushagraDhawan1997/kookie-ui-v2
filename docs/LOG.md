@@ -8,6 +8,55 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 The palette gains the control row and one anatomy; the elevated world lights its buttons
+
+The four-worlds frame's first build, and its shape was corrected twice by Kushagra before a
+line was written — both corrections recorded because each killed a design that was locally
+reasonable and wrong.
+
+**First correction: the world token was named into the wrong namespace.** The plan proposed
+`--kui-ct-chrome` — the control layer's private registered stems, where `inherits: false`
+registration can silently kill inheritance: the documented `--kui-h` trap, nearly
+re-committed by the author who documented it. This is the incident that minted the
+refute-before-presenting working rule (CLAUDE.md). The token is `--kui-control-chrome`,
+sibling of `--kui-surface-chrome`, world namespace.
+
+**Second correction, his refutation verbatim: "Designing new shadow for buttons creates
+exception in the world... why not have more shadow tokens?"** The plan had the button's cast
+as a bespoke value living only inside the chrome role — which is TWO sources of shadow
+truth, and a shadow escapes and blocks could never reach. Row 1 being the inset well made
+the original "compose row 1" idea wrong on sight (it would press the button INTO the page),
+and the fix is the palette growing, not a side-channel: **five rows, ordered by height** —
+1 the well, 2 the new control drop, 3-5 the old 2-4 renumbered while nothing is published.
+
+**The redesign: one anatomy, five heights.** Every drop row is a CONTACT line (small
+offset, near-zero blur — what reads sharp) plus an AMBIENT halo (negative spread — what
+reads raised), x always 0, ambient offset strictly growing with the row; a law asserts the
+anatomy per row per mode, so "simplify to one blur" fails before it ships. Dark keeps the
+geometry and raises alpha. v0, judged in the preview.
+
+**The button lights up, and the wiring is the rung's.** `surfaces="elevated"` now declares
+`--control-chrome` (cast: `var(--shadow-2)`, dark prepends the rim-light — the surface
+chrome's sentence one scale down) and `--control-light` (catch + seat: two gradient layers
+painted over whatever fill the rung chose, tone-independent by construction, NOT a shadow —
+flat declares `none`, the material rim's reasoning). The rung-once law rejected a
+selector-level join (`.kui-button[data-emphasis=...]` would have been a second mention of
+the rung), which forced the better shape: loud and medium map `--kui-ct-cast`/`--kui-ct-light`
+to the world tokens INSIDE the emphasis ladder, quiet maps `none` — declared, not omitted,
+so a quiet button inside a louder surface cannot inherit an ancestor's cast. The 2026-08-06
+"a button stays flat" negative law is DELIBERATELY REVERSED: its replacement asserts the
+elevated loud button's computed shadow equals row 2 exactly, the catch is a gradient, flat
+is byte-identical to today, quiet unlit, one light across all tones, disabled standing both
+down. Material stands the catch down and keeps the cast (a gradient on a veil repaints the
+material's own face; depth is the app's, even for a pane).
+
+Deferred, stated: the slider thumb joins when the mark family's light is designed; the
+tone-tinted cast under a loud button (systematic versions exist — shadow colour mixed from
+the fill — but they break "no button owns a shadow" uniformity; decide after the neutral
+version is judged).
+
+---
+
 ## 2026-08-07 The four worlds: the identity axes get their meanings, and taste gets its frame
 
 Kushagra opened it from the elevated dark preview — the filled card's top rim-light reading

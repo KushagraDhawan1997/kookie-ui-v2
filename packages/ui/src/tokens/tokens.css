@@ -640,15 +640,20 @@
   --color-border: var(--neutral-border);
 
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
-     elevation stays deleted. Row 1 is the inset well. */
-  --shadow-1: inset 0 1px 2px rgb(0 0 0 / 0.1);
-  --shadow-2: 0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-3: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-4: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+     elevation stays deleted. Row 1 is the inset well, row 2 the control drop. */
+  --shadow-1: inset 0 1px 1px rgb(0 0 0 / 0.12), inset 0 2px 4px rgb(0 0 0 / 0.06);
+  --shadow-2: 0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+  --shadow-3: 0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 3px 8px -3px rgb(0 0 0 / 0.11);
+  --shadow-4: 0 2px 2px -1px rgb(0 0 0 / 0.11), 0 8px 16px -5px rgb(0 0 0 / 0.12);
+  --shadow-5: 0 3px 3px -1.5px rgb(0 0 0 / 0.11), 0 16px 32px -8px rgb(0 0 0 / 0.14);
 
-  /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
-     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
-  --surface-chrome: var(--shadow-2);
+  /* the elevated world's dressing (§5, §10, §19) — composed FROM the palette: surface
+     depth is var(--shadow-3), control depth var(--shadow-2); dark adds only the
+     rim-lights. The edge stays --tone-border. The control light is the CATCH half:
+     background-image layers, not shadow, so flat can declare none (§10's rim). */
+  --surface-chrome: var(--shadow-3);
+  --control-chrome: var(--shadow-2);
+  --control-light: linear-gradient(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0) 55%), linear-gradient(rgb(0 0 0 / 0) 45%, rgb(0 0 0 / 0.04));
 
   /* the look axis's filled pigment (§19), per appearance: an index means the opposite
      thing in the two modes, so the ladders are not each other's copy. The edges sit
@@ -1108,15 +1113,20 @@
   --color-border: var(--neutral-border);
 
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
-     elevation stays deleted. Row 1 is the inset well. */
-  --shadow-1: inset 0 1px 2px rgb(0 0 0 / 0.1);
-  --shadow-2: 0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-3: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-4: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+     elevation stays deleted. Row 1 is the inset well, row 2 the control drop. */
+  --shadow-1: inset 0 1px 1px rgb(0 0 0 / 0.12), inset 0 2px 4px rgb(0 0 0 / 0.06);
+  --shadow-2: 0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+  --shadow-3: 0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 3px 8px -3px rgb(0 0 0 / 0.11);
+  --shadow-4: 0 2px 2px -1px rgb(0 0 0 / 0.11), 0 8px 16px -5px rgb(0 0 0 / 0.12);
+  --shadow-5: 0 3px 3px -1.5px rgb(0 0 0 / 0.11), 0 16px 32px -8px rgb(0 0 0 / 0.14);
 
-  /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
-     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
-  --surface-chrome: var(--shadow-2);
+  /* the elevated world's dressing (§5, §10, §19) — composed FROM the palette: surface
+     depth is var(--shadow-3), control depth var(--shadow-2); dark adds only the
+     rim-lights. The edge stays --tone-border. The control light is the CATCH half:
+     background-image layers, not shadow, so flat can declare none (§10's rim). */
+  --surface-chrome: var(--shadow-3);
+  --control-chrome: var(--shadow-2);
+  --control-light: linear-gradient(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0) 55%), linear-gradient(rgb(0 0 0 / 0) 45%, rgb(0 0 0 / 0.04));
 
   /* the look axis's filled pigment (§19), per appearance: an index means the opposite
      thing in the two modes, so the ladders are not each other's copy. The edges sit
@@ -1586,15 +1596,20 @@
   --color-border: var(--neutral-border);
 
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
-     elevation stays deleted. Row 1 is the inset well. */
-  --shadow-1: inset 0 1px 2px rgb(0 0 0 / 0.45);
-  --shadow-2: 0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-  --shadow-3: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-  --shadow-4: 0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.45);
+     elevation stays deleted. Row 1 is the inset well, row 2 the control drop. */
+  --shadow-1: inset 0 1px 1px rgb(0 0 0 / 0.5), inset 0 2px 4px rgb(0 0 0 / 0.25);
+  --shadow-2: 0 1px 1px -0.5px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.35);
+  --shadow-3: 0 1px 1px -0.5px rgb(0 0 0 / 0.45), 0 3px 8px -3px rgb(0 0 0 / 0.4);
+  --shadow-4: 0 2px 2px -1px rgb(0 0 0 / 0.45), 0 8px 16px -5px rgb(0 0 0 / 0.45);
+  --shadow-5: 0 3px 3px -1.5px rgb(0 0 0 / 0.45), 0 16px 32px -8px rgb(0 0 0 / 0.5);
 
-  /* the elevated world's dressing (§5, §10) — composed FROM the palette: depth is
-     var(--shadow-2); dark adds only the rim-light. The edge stays --tone-border. */
-  --surface-chrome: inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-2);
+  /* the elevated world's dressing (§5, §10, §19) — composed FROM the palette: surface
+     depth is var(--shadow-3), control depth var(--shadow-2); dark adds only the
+     rim-lights. The edge stays --tone-border. The control light is the CATCH half:
+     background-image layers, not shadow, so flat can declare none (§10's rim). */
+  --surface-chrome: inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-3);
+  --control-chrome: inset 0 1px 0 rgb(255 255 255 / 0.06), var(--shadow-2);
+  --control-light: linear-gradient(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.01) 55%), linear-gradient(rgb(0 0 0 / 0) 45%, rgb(0 0 0 / 0.09));
 
   /* the look axis's filled pigment (§19), per appearance: an index means the opposite
      thing in the two modes, so the ladders are not each other's copy. The edges sit

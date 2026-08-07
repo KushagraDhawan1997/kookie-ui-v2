@@ -163,10 +163,19 @@
      an edge of its own — a lifted card in a filled app is still a filled card — so this rule
      adds depth and nothing else, which is why it is one declaration. */
   --kui-surface-chrome: var(--surface-chrome);
+  /* The world's light reaches raised CONTROLS too (§5 amended 2026-08-07, §19's four-worlds
+     frame): the cast (--control-chrome, the palette's control row) and the catch
+     (--control-light, gradient layers — light from above painted over whatever fill the
+     rung chose). Consumed by the control layer; declared here because the WORLD owns its
+     light, the same sentence as the surface chrome one line up. */
+  --kui-control-chrome: var(--control-chrome);
+  --kui-control-light: var(--control-light);
 }
 
 [data-surfaces="flat"] {
   --kui-surface-chrome: none;
+  --kui-control-chrome: none;
+  --kui-control-light: none;
 }
 
 .kui-surface {

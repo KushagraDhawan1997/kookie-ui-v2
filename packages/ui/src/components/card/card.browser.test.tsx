@@ -266,9 +266,10 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
     const flat = render(<Card>B</Card>);
     expect(computed(flat, "box-shadow")).toBe("none");
     const el = mounted(<Card>B</Card>, { theme: { surfaces: "elevated" } });
-    // Depth IS the palette: the elevated card wears exactly row 2 — one lighting model.
+    // Depth IS the palette: the elevated card wears exactly row 3 — one lighting model.
+    // (Row 3 since 2026-08-07: the ladder gained the control drop at row 2 and renumbered.)
     const probe = document.createElement("div");
-    probe.style.boxShadow = "var(--shadow-2)";
+    probe.style.boxShadow = "var(--shadow-3)";
     el.append(probe);
     expect(computed(el, "box-shadow")).toBe(computed(probe, "box-shadow"));
     probe.remove();

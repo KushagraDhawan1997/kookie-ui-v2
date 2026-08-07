@@ -85,6 +85,14 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     const body = block(surfaces, '[data-surfaces="elevated"]');
     expect(body).toContain("--kui-surface-chrome: var(--surface-chrome)");
     expect(block(surfaces, '[data-surfaces="flat"]')).toContain("--kui-surface-chrome: none");
+    // The world's light reaches controls too (§5 amended 2026-08-07): the control cast and
+    // catch are declared in the SAME scopes, and flat stands both down — the escape logic
+    // above holds for controls by the same mechanism, or not at all.
+    expect(body).toContain("--kui-control-chrome: var(--control-chrome)");
+    expect(body).toContain("--kui-control-light: var(--control-light)");
+    const flat = block(surfaces, '[data-surfaces="flat"]');
+    expect(flat).toContain("--kui-control-chrome: none");
+    expect(flat).toContain("--kui-control-light: none");
     // Add depth, change nothing else: the edge stays --tone-border, so it keeps its
     // sharpness and contrast="high" reaches it through the tone system. Two dead ends are
     // pinned here: no ring (two lines) and no raw-alpha border (soft, contrast-blind).
@@ -135,28 +143,54 @@ describe("card-as-button: the element brings the interactivity (§10)", () => {
 describe("the shadow palette is a resource, not an axis (§13)", () => {
   const tokens = raw("tokens/tokens.css");
 
-  it("four rows, once per appearance scope, and row 1 is the only inset", () => {
+  it("five rows, once per appearance scope, and row 1 is the only inset", () => {
     // Three scopes, not two: :root carries the un-themed document, [data-appearance="light"]
     // is the escape a nested light Theme needs (added 2026-08-03 — light lived only at :root,
     // so a light section inside a dark app stayed dark), and [data-appearance="dark"] is the
-    // dark world. The count is per scope, not per mode.
-    for (const i of [1, 2, 3, 4]) {
+    // dark world. The count is per scope, not per mode. Five rows since 2026-08-07: row 2 is
+    // the control drop (the palette had no rung at button scale, and a bespoke shadow hidden
+    // inside a chrome role would have been a second source of shadow truth — Kushagra's
+    // refutation, LOG), rows 3-5 are the old 2-4 renumbered.
+    for (const i of [1, 2, 3, 4, 5]) {
       const occurrences = tokens.match(new RegExp(`--shadow-${i}:`, "g")) ?? [];
       expect(occurrences.length).toBe(3);
     }
-    expect(tokens).not.toContain("--shadow-5");
+    expect(tokens).not.toContain("--shadow-6");
     for (const line of tokens.split("\n").filter((l) => /--shadow-\d:/.test(l))) {
       expect(line.includes("inset")).toBe(line.includes("--shadow-1:"));
     }
   });
 
-  it("the palette's only stylesheet consumer is the elevated world rule", () => {
+  it("every drop row is the contact-plus-ambient anatomy, one light source, depth by offset", () => {
+    // The 2026-08-07 redesign in one law: a drop row is TWO layers — a contact line (small
+    // offset, tight blur: what reads sharp) and an ambient halo (negative spread: what reads
+    // raised) — and the ladder is ordered by height, so each row's ambient offset strictly
+    // grows. x is 0 everywhere: the light source does not move sideways, in either mode.
+    for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
+      const body = block(tokens, scope);
+      let prevOffset = 0;
+      for (const i of [2, 3, 4, 5]) {
+        const line = body.split("\n").find((l) => l.includes(`--shadow-${i}:`))!;
+        const layers = line.slice(line.indexOf(":") + 1).split("), ");
+        expect(layers.length, `row ${i} is two layers`).toBe(2);
+        for (const layer of layers) expect(layer.trimStart().startsWith("0 ")).toBe(true);
+        expect(layers[1]!).toMatch(/ -\d+(\.\d+)?px rgb/); // ambient pulls in: negative spread
+        const ambientOffset = parseFloat(layers[1]!.trim().split(" ")[1]!);
+        expect(ambientOffset, `row ${i} sits higher than row ${i - 1}`).toBeGreaterThan(prevOffset);
+        prevOffset = ambientOffset;
+      }
+    }
+  });
+
+  it("the palette's only stylesheet consumers are the world chrome roles", () => {
     // Box's shadow prop died as a taxonomy leak (layout components do not paint); escapes
     // reach the palette through `style`. The elevated world consumes the palette THROUGH
-    // --surface-chrome (which composes var(--shadow-2) in tokens.css): shadow = elevation,
-    // one lighting model, row 2 the single source of truth for elevated depth.
+    // its chrome roles — --surface-chrome composes var(--shadow-3), --control-chrome
+    // var(--shadow-2) — so there is exactly one source of shadow truth and tuning a row
+    // tunes every consumer of that height.
     expect(surfaces).not.toContain("--shadow-");
-    expect(tokens).toContain("--surface-chrome: var(--shadow-2)");
+    expect(tokens).toContain("--surface-chrome: var(--shadow-3)");
+    expect(tokens).toContain("--control-chrome: var(--shadow-2)");
     expect(tokens).toContain("inset 0 1px 0");
   });
 });

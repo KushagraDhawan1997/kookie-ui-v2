@@ -574,34 +574,39 @@ export const layoutSpace = {
 export const surfacePadding = [4, 5, 6, 7] as const;
 
 /**
- * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04). Four rows on the
- * system's one index shape; 1 is the inset well, 2-4 lift. No semantic component may read
- * these — elevation stayed deleted, and Box's shadow prop died with it (layout components
- * do not paint). Escapes and blocks reach the palette through `style`; the elevated world
- * consumes it through --surface-chrome. Dark rows run heavier: dark pages swallow shadow.
+ * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04; redesigned and
+ * widened to FIVE rows 2026-08-07 with the four-worlds frame, §19). One ladder ordered by
+ * height: 1 is the inset well, 2 is the CONTROL row (small drop, button scale — added
+ * because the palette had no rung at control scale, and a bespoke shadow hidden inside a
+ * chrome role would have been a second source of shadow truth), 3-5 lift further (the old
+ * 2-4, renumbered while nothing is published). No semantic component may read these —
+ * escapes and blocks reach the palette through `style`; the elevated world consumes it
+ * through the chrome roles (--surface-chrome, --control-chrome). Dark rows run heavier:
+ * dark pages swallow shadow.
  */
 export const shadow = {
-  // SHARP by construction, not by taste adjectives (researched 2026-08-04). Three rules:
-  //
-  // 1. NEGATIVE SPREAD on the reaching layer — it pulls the shadow in under the element so
-  //    depth drops BELOW instead of haloing sideways. This is the entire difference between
-  //    crisp (shadcn/Tailwind) and foggy (2015 Material); rows 2-4 take Tailwind's sm/md/lg
-  //    geometry verbatim, because row 2 is literally the card shadow judged sharp by eye.
-  // 2. One light source: x is always 0, y grows with the row.
-  // 3. Depth is offset growth, never more fog — blur stays proportional to offset.
+  // SHARP by construction (researched 2026-08-04; anatomy redesigned 2026-08-07): every
+  // drop row is the same TWO-PART anatomy at a different height — a CONTACT line (small
+  // offset, near-zero blur, the crisp dark line right under the edge) plus an AMBIENT halo
+  // (larger offset/blur, negative spread, low alpha). The contact line is what reads sharp;
+  // the ambient is what reads raised. Rules that survive from the first design: one light
+  // source (x always 0, y grows with the row), negative spread on the reaching layer, depth
+  // as offset growth rather than fog. v0 values, judged in the preview.
   light: [
-    "inset 0 1px 2px rgb(0 0 0 / 0.1)",
-    "0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
-    "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-    "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+    "inset 0 1px 1px rgb(0 0 0 / 0.12), inset 0 2px 4px rgb(0 0 0 / 0.06)",
+    "0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 2px 4px -2px rgb(0 0 0 / 0.07)",
+    "0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 3px 8px -3px rgb(0 0 0 / 0.11)",
+    "0 2px 2px -1px rgb(0 0 0 / 0.11), 0 8px 16px -5px rgb(0 0 0 / 0.12)",
+    "0 3px 3px -1.5px rgb(0 0 0 / 0.11), 0 16px 32px -8px rgb(0 0 0 / 0.14)",
   ],
   // Same geometry — the light source does not move at night — with alpha carrying the load,
   // because a dark page swallows shadow.
   dark: [
-    "inset 0 1px 2px rgb(0 0 0 / 0.45)",
-    "0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4)",
-    "0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4)",
-    "0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.45)",
+    "inset 0 1px 1px rgb(0 0 0 / 0.5), inset 0 2px 4px rgb(0 0 0 / 0.25)",
+    "0 1px 1px -0.5px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.35)",
+    "0 1px 1px -0.5px rgb(0 0 0 / 0.45), 0 3px 8px -3px rgb(0 0 0 / 0.4)",
+    "0 2px 2px -1px rgb(0 0 0 / 0.45), 0 8px 16px -5px rgb(0 0 0 / 0.45)",
+    "0 3px 3px -1.5px rgb(0 0 0 / 0.45), 0 16px 32px -8px rgb(0 0 0 / 0.5)",
   ],
 } as const;
 
@@ -617,8 +622,46 @@ export const shadow = {
  * drop shadow cannot express — the inset top rim-light a dark fill needs. v0, by eye.
  */
 export const surfaceChrome = {
+  light: "var(--shadow-3)",
+  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-3)",
+} as const;
+
+/**
+ * §5, §19 — the elevated world reaches CONTROLS (decided 2026-08-07, the four-worlds frame;
+ * deliberately reverses the 2026-08-06 "a button stays flat" negative law). Elevation's
+ * membership sentence splits by what light does: the CAST still dresses only boxes that
+ * establish a plane (cards — surfaceChrome above), but in a world with a light source a
+ * raised control is lit too — it casts the palette's control row and CATCHES light on its
+ * top. A field stays unlit (a well is content of a plane); marks and the slider thumb wait
+ * until the mark family's own light is designed.
+ *
+ * controlChrome is the cast: the one shadow every solid control shares, composed from the
+ * palette's control row — never a bespoke value, so escapes reach the same shadow at
+ * --shadow-2 and there is exactly one source of shadow truth. Dark prepends the rim-light,
+ * the surface chrome's own sentence one scale down.
+ */
+export const controlChrome = {
   light: "var(--shadow-2)",
-  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-2)",
+  dark: "inset 0 1px 0 rgb(255 255 255 / 0.06), var(--shadow-2)",
+} as const;
+
+/**
+ * The CATCH half (§19): light from above, painted as background-image layers over whatever
+ * fill the rung chose — tone-independent by construction, one recipe lights every tone.
+ * Layer 1 is the catch (white fading from the top edge), layer 2 the seat (a faint dark
+ * settle at the bottom). NOT a shadow: flat worlds declare `none`, and a gradient list can
+ * hold it where a shadow list cannot (the material rim's own reasoning, §10). The light
+ * never moves with state — the fill steps beneath it. v0 alphas, judged in the preview.
+ */
+export const controlLight = {
+  // The two layers OVERLAP through the middle (catch fades to zero at 55%, seat starts
+  // rising at 45%) — the first cut ended the catch at 45% and started the seat at 62%,
+  // which cut the fill into three zones whose boundaries read as LINES on a pale medium
+  // fill (Kushagra, on sight). A gradient may never leave a visible shelf: every stop
+  // sits where its layer's alpha is already near zero.
+  light:
+    "linear-gradient(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0) 55%), linear-gradient(rgb(0 0 0 / 0) 45%, rgb(0 0 0 / 0.04))",
+  dark: "linear-gradient(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.01) 55%), linear-gradient(rgb(0 0 0 / 0) 45%, rgb(0 0 0 / 0.09))",
 } as const;
 
 /**

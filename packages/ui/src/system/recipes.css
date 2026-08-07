@@ -499,6 +499,11 @@
   /* The APCA-chosen label for this fill (§7). Interaction states move AWAY from it, so they
      are strictly more legible than rest and only rest has to clear the bar. */
   --kui-ct-label-color: var(--tone-contrast);
+  /* The elevated world's light is part of the rung (§5 amended 2026-08-07, §19): a rung
+     with a solid fill casts the palette's control row and catches light on top. The world
+     tokens resolve to none in a flat world, so this line is inert on the default path. */
+  --kui-ct-cast: var(--kui-control-chrome, none);
+  --kui-ct-light: var(--kui-control-light, none);
 }
 
 [data-emphasis="medium"] {
@@ -507,6 +512,8 @@
   --kui-ct-fill-src-active: var(--tone-soft-active);
   /* A control label is not a link: --tone-label sits between steps 11 and 12 (§7). */
   --kui-ct-label-color: var(--tone-label);
+  --kui-ct-cast: var(--kui-control-chrome, none);
+  --kui-ct-light: var(--kui-control-light, none);
 }
 
 [data-emphasis="quiet"] {
@@ -516,6 +523,10 @@
   --kui-ct-fill-src-hover: var(--tone-soft);
   --kui-ct-fill-src-active: var(--tone-soft-hover);
   --kui-ct-label-color: var(--tone-label);
+  /* Nothing to light — and declared, not omitted, so a quiet control inside a louder
+     surface cannot inherit the ancestor's cast (every rung fully declares its tokens). */
+  --kui-ct-cast: none;
+  --kui-ct-light: none;
 }
 
 /* ── Containment, orthogonal to loudness (§10) ───────────────────────────────────────────── */
@@ -575,6 +586,20 @@
   outline-offset: var(--focus-ring-offset);
 }
 
+/* ── The elevated world reaches controls (§5 amended 2026-08-07, §19) ────────────────────────
+   In a world with a light source a raised control is lit: it CASTS the palette's control row
+   and CATCHES light on its top — gradient layers painted over whatever fill the rung chose,
+   so every tone is lit by the same rule. Which rungs are lit is the RUNG's own statement
+   (--kui-ct-cast / --kui-ct-light in the emphasis ladder above: solid-fill rungs map the
+   world tokens, quiet maps none), so the rung-once law keeps holding and this rule is
+   emphasis-blind. The light never moves with state — the fill steps beneath it. Flat worlds
+   declare none for both, so the default render is byte-identical to a world without these
+   rules. Button today; the slider thumb joins when the mark family's light is designed. */
+.kui-button {
+  box-shadow: var(--kui-ct-cast, none);
+  background-image: var(--kui-ct-light, none);
+}
+
 /* Disabled is a TONE remap, never opacity (§8): opacity stacks on tinted surfaces and voids
    every generated contrast guarantee, where remapping the family keeps a designed, testable
    pair. Rewriting --tone-* rather than --kui-ct-fill means quiet stays bare and every rung keeps
@@ -612,6 +637,12 @@
      this is a no-op. Marks need no arm — their border IS --tone-border, and this rule
      already wins that battle at (0,2,0). */
   --look-field-border: initial;
+  /* And the elevated light stands down the same way (§5, 2026-08-07): a disabled control
+     makes no promise, so it neither hovers above the page nor catches light. `initial`
+     makes the world tokens guaranteed-invalid here; the consumption sites fall back to
+     none. In a flat world this is a no-op. */
+  --kui-control-chrome: initial;
+  --kui-control-light: initial;
 }
 
 /* Invalid is a TONE REMAP too, and for the same reason disabled is one (§8): the control keeps
@@ -681,6 +712,10 @@
   --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-opaque-alpha), transparent);
   --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-opaque-alpha), transparent);
   --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-opaque-alpha), transparent);
+  /* Material outranks light on glass (§10, §19): a gradient painted on a veil repaints the
+     material's own face, so the catch stands down. The CAST stays — depth is the app's,
+     even for a pane (the surface materials' own sentence). */
+  --kui-ct-light: none;
 }
 
 @supports (backdrop-filter: blur(1px)) {

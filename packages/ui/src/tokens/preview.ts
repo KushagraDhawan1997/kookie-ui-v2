@@ -736,10 +736,10 @@ function surfaceSection(mode: Mode): string {
           "The shadow palette — a resource; only the elevated world and escapes reach it <code>\u00a713</code>",
           kuiBox(
             { display: "flex", gap: "6", align: "flex-start" },
-            ["1", "2", "3", "4"]
+            ["1", "2", "3", "4", "5"]
               .map(
                 (n) =>
-                  `<div style="flex: 1; background: var(--color-surface); border: 1px solid var(--neutral-4); border-radius: var(--radius-surface-3); padding: var(--space-6); box-shadow: var(--shadow-${n})">Shadow ${n}${n === "1" ? " — the well" : ""}</div>`,
+                  `<div style="flex: 1; background: var(--color-surface); border: 1px solid var(--neutral-4); border-radius: var(--radius-surface-3); padding: var(--space-6); box-shadow: var(--shadow-${n})">Shadow ${n}${n === "1" ? " — the well" : n === "2" ? " — the control" : n === "3" ? " — the card" : ""}</div>`,
               )
               .join(""),
           ),
