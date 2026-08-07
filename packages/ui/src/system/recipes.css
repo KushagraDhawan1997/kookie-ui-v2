@@ -578,6 +578,16 @@
      than accidental. */
   --tone-border: var(--field-edge);
   --kui-border-color: var(--look-field-border, var(--tone-border));
+  /* The field REJOINS elevation — at control scale (§5, the third flip, 2026-08-07,
+     Kushagra: fields "need the same shadow elevation button got"). What 2026-08-06
+     rejected was SURFACE-scale depth: fields lifting with the cards. Control-scale light
+     did not exist then; under the four-worlds frame a field is a raised CONTROL, and it
+     casts the same row 2 every raised control casts — never the card's row (shadcn and
+     Stripe ship exactly this posture). Routed like the button's: the world token stands
+     down in flat, inside panes (one lift), and under the disabled arm. No catch — a field
+     has no solid fill to light. */
+  --kui-ct-cast: var(--kui-control-chrome, none);
+  box-shadow: var(--kui-ct-cast, none);
 }
 
 /* ── States: uniform steps on the ramp, one global rule (§8) ─────────────────────────────── */

@@ -468,17 +468,21 @@ describe("the look axis dresses the well, and states outrank it (§19)", () => {
 });
 
 describe("the app's identities reach the field without it knowing (§5, §10)", () => {
-  it("a well casts no shadow — flat in BOTH worlds (§5, reversed 2026-08-06)", () => {
-    // The first cut lifted fields with the cards ("depth is the app's identity"), and the
-    // sentence was asserted, not judged: elevation separates a plane from what is BEHIND it,
-    // and a field is a well — content of a plane, not a plane above one. A recessed thing
-    // cannot cast a drop shadow. Material fields are filled or outlined, never raised; no
-    // platform shades an input. The elevated set is actual surfaces only.
+  it("casts the CONTROL row in an elevated world — the third flip, at the right scale (§5)", () => {
+    // 2026-08-04 lifted fields with the cards; 2026-08-06 reversed it (a well is content of
+    // a plane); 2026-08-07 rejoins at CONTROL scale, which is what both earlier rounds were
+    // missing: control-scale light did not exist. A field is a raised control, so it casts
+    // exactly what the button casts — row 2 through the world token — never the card's row.
     const flat = render(<TextField />);
     expect(computed(flat, "box-shadow")).toBe("none");
 
     const elevated = mounted(<TextField />, { theme: { surfaces: "elevated" } });
-    expect(computed(elevated, "box-shadow")).toBe("none");
+    const probe = document.createElement("div");
+    probe.style.boxShadow = "var(--control-chrome)";
+    elevated.append(probe);
+    expect(computed(elevated, "box-shadow")).toBe(computed(probe, "box-shadow"));
+    expect(computed(elevated, "box-shadow")).not.toBe("none");
+    probe.remove();
     // @ts-expect-error — depth is an app identity; no field chooses a shadow
     void (<TextField shadow="2" />);
   });

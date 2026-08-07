@@ -309,9 +309,9 @@ describe("the look axis dresses the well — the field family answers once (§19
 });
 
 describe("the app's identities reach it without it knowing (§5, §10)", () => {
-  it("a well casts no shadow — flat in BOTH worlds (§5, reversed 2026-08-06)", () => {
-    // Same reversal as TextField's: a field is a well, wells are content of a plane rather
-    // than a plane above one, and the elevated set is actual surfaces only.
+  it("casts the CONTROL row in an elevated world, flat in flat — TextField's third flip (§5)", () => {
+    // The family answers together: a field is a raised control since 2026-08-07, and it
+    // casts row 2 through the world token — flat worlds stay shadowless.
     expect(computed(render(<TextArea />), "box-shadow")).toBe("none");
     const host = render(
       <Theme surfaces="elevated">
@@ -319,7 +319,7 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
       </Theme>,
     );
     const el = host.querySelector<HTMLElement>(".kui-textarea")!;
-    expect(computed(el, "box-shadow")).toBe("none");
+    expect(computed(el, "box-shadow")).not.toBe("none");
     // @ts-expect-error — depth is an app identity; nothing chooses a shadow
     void (<TextArea shadow="2" />);
   });

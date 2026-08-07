@@ -513,12 +513,13 @@ describe("the ring and the chrome are designed once, applied wherever they land 
       }
       expect(css, `${file} reaches past the chrome to the palette`).not.toContain("--shadow-");
     }
-    // Exactly three declarations — the surface layer's, the control layer's, and the
-    // slider thumb's ALWAYS-ON cast (2026-08-07, the kill switch's second named exception:
-    // a grip that does not sit above its rail stops reading as a grip, so it reads the
-    // palette row's VALUE rather than the world switch). A FOURTH consumer appearing is a
-    // decision, not a drift, and it should fail here first.
-    expect(found).toBe(3);
+    // Exactly four declarations — the surface layer's, the control layer's, the field
+    // family's (the third flip: a field is a raised control and casts the control row,
+    // 2026-08-07), and the slider thumb's ALWAYS-ON cast (the kill switch's second named
+    // exception: a grip that does not sit above its rail stops reading as a grip, so it
+    // reads the palette row's VALUE rather than the world switch). A FIFTH consumer
+    // appearing is a decision, not a drift, and it should fail here first.
+    expect(found).toBe(4);
     // The control indirection stays honest end-to-end: the cast the button paints is the
     // rung's statement, and a lit rung's cast IS the world chrome — nothing in between may
     // substitute its own value.

@@ -8,6 +8,25 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 Fields rejoin elevation at control scale — the third flip, and why it is not a waffle
+
+Kushagra: *"I would argue that text field + area also need the same shadow elevation button
+got."* This re-opens a twice-decided question, so the record has to say why the third
+answer differs from both earlier ones rather than merely overruling them. 2026-08-04
+lifted fields WITH THE CARDS — surface-scale depth, the sentence "it lifts with the cards"
+asserted, not judged. 2026-08-06 reversed it on the well argument: elevation separates a
+plane from what is behind it, and a field is content of a plane. Both rounds were arguing
+about SURFACE elevation, because that was the only elevation that existed. The four-worlds
+frame minted control-scale light, and under it a field is a raised CONTROL: it casts the
+button's row 2 through the same world token — never the card's row 3, which is what the
+2026-08-06 rejection was actually rejecting. shadcn and Stripe ship exactly this posture
+(a small input shadow beside the same button shadow). Flat worlds, panes (one lift),
+and the disabled arm all stand it down through the existing plumbing; no catch, because a
+field has no solid fill to light. The negative laws reversed to positive ones; the
+box-shadow consumer count re-pins at four.
+
+---
+
 ## 2026-08-07 The thumb leaves the family's square: a vertical capsule
 
 Kushagra: *"sliders thumb should be longer vertically."* The grip's fourth departure from
