@@ -170,12 +170,27 @@
      light, the same sentence as the surface chrome one line up. */
   --kui-control-chrome: var(--control-chrome);
   --kui-control-light: var(--control-light);
+  /* Elevation meets the material at two seams (§10, 2026-08-07). What a pane CASTS is the
+     app's shadow transmitted — the surface row faded per thickness, generator-derived from
+     the palette — handed here so the glass rules below can re-point their chrome; flat
+     declares none, so glass never floats in a flat world. And under a sun a pane CATCHES
+     harder: -rim remaps to the brighter -rim-lifted (both live in the appearance scopes —
+     this block stays mode-blind, the look axis's own rule). */
+  --kui-surface-chrome-thin: var(--surface-chrome-thin);
+  --kui-surface-chrome-regular: var(--surface-chrome-regular);
+  --kui-surface-chrome-thick: var(--surface-chrome-thick);
+  --material-thin-rim: var(--material-thin-rim-lifted);
+  --material-regular-rim: var(--material-regular-rim-lifted);
+  --material-thick-rim: var(--material-thick-rim-lifted);
 }
 
 [data-surfaces="flat"] {
   --kui-surface-chrome: none;
   --kui-control-chrome: none;
   --kui-control-light: none;
+  --kui-surface-chrome-thin: none;
+  --kui-surface-chrome-regular: none;
+  --kui-surface-chrome-thick: none;
 }
 
 .kui-surface {
@@ -196,6 +211,21 @@
 .kui-surface[data-material="thin"],
 .kui-surface[data-material="regular"],
 .kui-surface[data-material="thick"] {
+  /* The rim must sit UNDER the translucent edge, not beside it (Kushagra, 2026-08-07: "why
+     am I seeing this thicker top border") — backgrounds originate at the padding box by
+     default, which parked the rim line just below the border: two stacked lines reading as
+     one thick edge, the exact dead end §5's chrome notes record for the inset ring. From
+     the border box, the rim and the edge composite into one brighter line. */
+  background-origin: border-box;
+  /* One lift per pane (§10, 2026-08-07 — Kushagra, from the preview: buttons on dark glass
+     cast "an extremely dark shadow"): dark's shadow alphas are heavy because a dark PAGE
+     swallows them, but a pane swallows nothing — the backdrop shows through and the cast
+     lands on it like ink. So a material surface stands the control cast down for its whole
+     subtree: the pane is the raised thing, its contents sit flush on it (the platform's own
+     posture — controls on glass carry no shadow). The CATCH stays: it paints over the
+     control's own fill, which glass never changes. Inherited, so it needs no selector into
+     the control layer; a control outside a pane is untouched. */
+  --kui-control-chrome: none;
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-opaque-alpha), transparent);
@@ -208,30 +238,34 @@
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thin-alpha-active), transparent);
     backdrop-filter: var(--material-thin-filter);
     /* The pane's own edge and lighting (§10, 2026-08-05): the tone border on glass read as a
-       sticker — pigment on a pane of light. The edge is now the material's, a translucent
-       hairline; the chrome adds the top rim catch and the pane's separation (glass floats by
-       definition, so this wins over whatever the surface world declared by being ON the
-       element rather than inherited from a scope). */
+       sticker — pigment on a pane of light. The edge is the material's, a translucent
+       hairline; the rim is its top light catch. And its CAST is the app's shadow
+       TRANSMITTED (§10's 2026-08-07 seam): the chrome re-points to the faded row the
+       elevated scope hands down — an element-level declaration beating the inherited one —
+       and resolves none in a flat world, where glass has edge and glint, no lift. */
     --kui-border-color: var(--material-thin-edge, var(--tone-border));
     background-image: var(--material-thin-rim, none);
+    --kui-surface-chrome: var(--kui-surface-chrome-thin, none);
   }
   .kui-surface[data-material="regular"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-regular-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-regular-alpha-active), transparent);
     backdrop-filter: var(--material-regular-filter);
-    /* Edge, rim and separation — the pane's own; see the thin block (§10). */
+    /* Edge, rim and transmitted cast — see the thin block (§10). */
     --kui-border-color: var(--material-regular-edge, var(--tone-border));
     background-image: var(--material-regular-rim, none);
+    --kui-surface-chrome: var(--kui-surface-chrome-regular, none);
   }
   .kui-surface[data-material="thick"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-thick-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thick-alpha-active), transparent);
     backdrop-filter: var(--material-thick-filter);
-    /* Edge, rim and separation — the pane's own; see the thin block (§10). */
+    /* Edge, rim and transmitted cast — see the thin block (§10). */
     --kui-border-color: var(--material-thick-edge, var(--tone-border));
     background-image: var(--material-thick-rim, none);
+    --kui-surface-chrome: var(--kui-surface-chrome-thick, none);
   }
 }
 
@@ -255,5 +289,9 @@
        fallback still resolves --tone-border wherever no look is stamped. */
     --kui-border-color: var(--look-surface-border, var(--tone-border));
     background-image: none;
+    /* A sealed pane is no longer glass, so it stops transmitting: explicit `inherit` takes
+       the WORLD's chrome back (full shadow when elevated, none when flat), undoing the
+       element-level transmission re-point above. */
+    --kui-surface-chrome: inherit;
   }
 }

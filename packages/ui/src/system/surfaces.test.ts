@@ -93,6 +93,15 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     const flat = block(surfaces, '[data-surfaces="flat"]');
     expect(flat).toContain("--kui-control-chrome: none");
     expect(flat).toContain("--kui-control-light: none");
+    // Elevation meets the material at two seams (§10, 2026-08-07): the elevated scope hands
+    // each thickness its transmitted cast and remaps the rim to the lifted glint; flat
+    // stands the cast down (glass never floats in a flat world) and leaves the resting rim.
+    for (const t of ["thin", "regular", "thick"]) {
+      expect(body).toContain(`--kui-surface-chrome-${t}: var(--surface-chrome-${t})`);
+      expect(body).toContain(`--material-${t}-rim: var(--material-${t}-rim-lifted)`);
+      expect(flat).toContain(`--kui-surface-chrome-${t}: none`);
+      expect(flat).not.toContain(`--material-${t}-rim:`);
+    }
     // Add depth, change nothing else: the edge stays --tone-border, so it keeps its
     // sharpness and contrast="high" reaches it through the tone system. Two dead ends are
     // pinned here: no ring (two lines) and no raw-alpha border (soft, contrast-blind).
@@ -180,6 +189,44 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
         prevOffset = ambientOffset;
       }
     }
+  });
+
+  it("a pane's cast is the surface row transmitted — derived, never authored (§10)", () => {
+    // Glass passes light, so its shadow is row 3 with every layer's alpha scaled by the
+    // thickness's transmission factor. The law re-derives each faded row from the palette
+    // and the config factor: a hand-authored glass shadow — a second source of shadow
+    // truth, the exact thing Kushagra's refutation killed for buttons — fails here.
+    for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
+      const body = block(tokens, scope);
+      const row = body.split("\n").find((l) => l.includes("--shadow-3:"))!;
+      for (const [t, factor] of [["thin", 0.35], ["regular", 0.55], ["thick", 0.75]] as const) {
+        const line = body.split("\n").find((l) => l.includes(`--surface-chrome-${t}:`))!;
+        const expected = row
+          .slice(row.indexOf(":") + 1)
+          .replace(/\/ ([0-9.]+)\)/g, (_, a) => `/ ${Number((parseFloat(a) * factor).toFixed(3))})`)
+          .trim()
+          .replace(/;$/, "");
+        expect(line.slice(line.indexOf(":") + 1).trim().replace(/;$/, "")).toBe(expected);
+      }
+    }
+  });
+
+  it("the lifted rim outshines the resting rim, per thickness per mode, and high contrast empties both (§10)", () => {
+    for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
+      const body = block(tokens, scope);
+      for (const t of ["thin", "regular", "thick"]) {
+        const alpha = (name: string) => {
+          const line = body.split("\n").find((l) => l.includes(`--material-${t}-${name}:`))!;
+          return parseFloat(line.match(/255 \/ ([0-9.]+)\)/)![1]!);
+        };
+        expect(alpha("rim-lifted"), `${scope} ${t}`).toBeGreaterThan(alpha("rim"));
+      }
+    }
+    // The elevated remap points -rim at -rim-lifted, so HC must empty the lifted variant
+    // too or the setting would resurrect the glint it just removed.
+    expect(tokens).toContain("--material-thin-rim-lifted: initial");
+    expect(tokens).toContain("--material-regular-rim-lifted: initial");
+    expect(tokens).toContain("--material-thick-rim-lifted: initial");
   });
 
   it("the palette's only stylesheet consumers are the world chrome roles", () => {

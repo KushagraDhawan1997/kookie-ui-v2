@@ -8,6 +8,52 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 Elevation reaches the material: a pane transmits the shadow it is given and catches the light above it
+
+Kushagra, after the button light landed: *"What about material? How does elevated affect
+material? It has to be deeper than what it is."* He was right that it was shallow: an
+elevated glass card wore the identical row 3 an opaque card wears, and the material's rim
+never changed between worlds — the glass was a painted effect, not a substance light
+responds to. The liquid-glass observation from the four-worlds day, applied: what makes
+blur read as material is exactly this response.
+
+Two seams, both config, both through the elevated scope so flat is untouched by construction:
+
+- **Transmission (the cast).** Glass passes light, so a pane's shadow is the surface row
+  FADED per thickness — `transmission: thin 0.35 / regular 0.55 / thick 0.75` (v0), the
+  generator deriving each faded row from the palette row by scaling its alphas. Derived,
+  never authored: a hand-written glass shadow would be the second source of shadow truth
+  the button-shadow refutation killed, and the law re-derives every faded row to hold it.
+  The re-point rides the element (`--kui-surface-chrome: var(--kui-surface-chrome-<t>)`,
+  world-declared, none in flat), and both re-seal paths — no backdrop-filter support, and
+  reduced transparency — take the world's full chrome back with explicit `inherit`: a
+  sealed pane is not glass and stops transmitting.
+- **The lifted rim (the catch).** Under a sun the pane's edge catches harder: `rimLifted`
+  per thickness and mode, remapped in the elevated scope (`-rim` → `-rim-lifted`, mode-blind
+  block, pigment in the appearance scopes — the look axis's rule). `contrast="high"` empties
+  the lifted variant beside the resting one, or the remap would resurrect the glint the
+  setting had just removed.
+
+A stale claim died on the way: the config comment still said separation "composes
+var(--shadow-2) on its own authority, so glass floats even in a flat world" — the weld
+DECISIONS records as reversed 2026-08-05. The comment now states the reversal.
+
+Two defects the preview caught the same hour, both fixed as rules rather than values:
+
+- **The rim was two lines pretending to be one border.** Backgrounds originate at the
+  padding box, so the rim's 1px line sat just BELOW the translucent edge — the "paints
+  inside the border strip — two lines" dead end §5's chrome notes already record, rebuilt
+  in the material. `background-origin: border-box` slides the rim under the edge; they
+  composite into one brighter line.
+- **One lift per pane.** Buttons on dark glass cast "an extremely dark shadow": dark's
+  alphas assume a dark page that swallows them, and a pane swallows nothing — the bright
+  backdrop shows through and the cast lands on it like ink. A material surface stands the
+  control cast down for its subtree (inherited, no selector reaching into the control
+  layer); the pane is the raised thing, its contents sit flush, the catch stays. iOS's own
+  posture for controls on glass.
+
+---
+
 ## 2026-08-07 The palette gains the control row and one anatomy; the elevated world lights its buttons
 
 The four-worlds frame's first build, and its shape was corrected twice by Kushagra before a

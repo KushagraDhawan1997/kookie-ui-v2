@@ -394,6 +394,23 @@ describe("the boundary (§3, §13)", () => {
     expect(computed(el, "background-image")).toContain("linear-gradient");
   });
 
+  it("one lift per pane: inside a material surface the cast stands down, the catch stays (§10)", () => {
+    // Dark's shadow alphas assume a dark page that swallows them; a pane swallows nothing —
+    // the backdrop shows through and the cast lands on it like ink (judged in the preview,
+    // 2026-08-07). The pane is the raised thing; its contents sit flush on it.
+    const el = mounted(
+      <Card material="thin">
+        <Button tone="accent" emphasis="loud">
+          Label
+        </Button>
+      </Card>,
+      { theme: { surfaces: "elevated" } },
+    );
+    const button = el.querySelector("button")!;
+    expect(computed(button, "box-shadow")).toBe("none");
+    expect(computed(button, "background-image")).toContain("linear-gradient");
+  });
+
   it("stays flat in a flat world, and quiet stays bare even when elevated (§5, §19)", () => {
     // Flat is byte-identical to a world where the light rules do not exist — the default
     // path cannot regress. And quiet has nothing to light: no fill, no cast, no catch.

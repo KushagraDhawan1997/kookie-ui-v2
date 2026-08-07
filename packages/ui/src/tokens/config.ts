@@ -518,24 +518,38 @@ export const material = {
   // "cheap"): the body (alpha + filter), its own EDGE (a translucent hairline of light — the
   // opaque tone border on glass was the sticker), the RIM (a top inner highlight; the scene's
   // one light source falls downward, the same model the shadow palette commits to), and
-  // SEPARATION (a pane with content behind it is above it — it composes var(--shadow-2) on its
-  // own authority, so glass floats even in a flat world). Edge and rim are white alphas per
-  // thickness, rising with it: thicker glass catches more light. All v0, judged in the preview.
+  // SEPARATION — which stays the APP's (surfaces="elevated"), never the pane's: a flat
+  // world's glass has edge and glint, no lift (the weld was built and reversed 2026-08-05).
+  // Edge and rim are white alphas per thickness, rising with it: thicker glass catches more
+  // light. All v0, judged in the preview.
+  //
+  // THE TWO SEAMS WHERE ELEVATION MEETS THE MATERIAL (§10, decided 2026-08-07 — the
+  // four-worlds frame applied to glass; what makes blur read as substance is light
+  // RESPONDING to it): under a sun, a pane CATCHES harder — `rimLifted` is the elevated
+  // world's brighter glint per thickness — and what a pane CASTS is the app's shadow
+  // TRANSMITTED: glass passes light, so its shadow is the surface row faded by
+  // `transmission` (thin passes most, thick least; the generator derives the faded rows
+  // from the palette, so there is still exactly one source of shadow truth).
   // alphaHigh is contrast="high"'s answer per thickness: MORE opaque, never fully — the
   // ladder keeps its three visibly distinct thicknesses, each just defending harder. The
   // near-opaque fallbackAlpha below stays what reduced-transparency means; high contrast is
   // a different preference and gets its own designed row (judged 2026-08-05, Kushagra: the
   // first cut reused fallbackAlpha and collapsed all three thicknesses into one).
   light: {
-    thin: { alpha: [30, 38, 46], alphaHigh: [55, 62, 69], filter: "blur(5px) saturate(130%) brightness(1.02)", edge: 0.5, rim: 0.35 },
-    regular: { alpha: [64, 72, 80], alphaHigh: [82, 87, 92], filter: "blur(16px) saturate(165%) brightness(1.06)", edge: 0.6, rim: 0.45 },
-    thick: { alpha: [88, 92, 95], alphaHigh: [94, 96, 97], filter: "blur(32px) saturate(210%) brightness(1.12)", edge: 0.7, rim: 0.55 },
+    thin: { alpha: [30, 38, 46], alphaHigh: [55, 62, 69], filter: "blur(5px) saturate(130%) brightness(1.02)", edge: 0.5, rim: 0.35, rimLifted: 0.42 },
+    regular: { alpha: [64, 72, 80], alphaHigh: [82, 87, 92], filter: "blur(16px) saturate(165%) brightness(1.06)", edge: 0.6, rim: 0.45, rimLifted: 0.52 },
+    thick: { alpha: [88, 92, 95], alphaHigh: [94, 96, 97], filter: "blur(32px) saturate(210%) brightness(1.12)", edge: 0.7, rim: 0.55, rimLifted: 0.62 },
   },
   dark: {
-    thin: { alpha: [38, 46, 54], alphaHigh: [60, 67, 74], filter: "blur(5px) saturate(130%) brightness(0.95)", edge: 0.1, rim: 0.06 },
-    regular: { alpha: [71, 78, 85], alphaHigh: [86, 90, 94], filter: "blur(16px) saturate(165%) brightness(0.88)", edge: 0.14, rim: 0.1 },
-    thick: { alpha: [92, 94, 96], alphaHigh: [95, 96, 97], filter: "blur(32px) saturate(210%) brightness(0.78)", edge: 0.18, rim: 0.14 },
+    thin: { alpha: [38, 46, 54], alphaHigh: [60, 67, 74], filter: "blur(5px) saturate(130%) brightness(0.95)", edge: 0.1, rim: 0.06, rimLifted: 0.12 },
+    regular: { alpha: [71, 78, 85], alphaHigh: [86, 90, 94], filter: "blur(16px) saturate(165%) brightness(0.88)", edge: 0.14, rim: 0.1, rimLifted: 0.18 },
+    thick: { alpha: [92, 94, 96], alphaHigh: [95, 96, 97], filter: "blur(32px) saturate(210%) brightness(0.78)", edge: 0.18, rim: 0.14, rimLifted: 0.24 },
   },
+  /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
+      passes light, so its cast is the surface row FADED — thin passes most, thick least,
+      and even thick keeps less than a solid slab. Mode-independent: transmission is a
+      property of the pane, not of the night. v0, judged in the preview. */
+  transmission: { thin: 0.35, regular: 0.55, thick: 0.75 },
   /** Where backdrop-filter is unavailable or transparency is reduced: near-opaque, still a mix
       so a whisper of the backdrop survives where that is safe. */
   fallbackAlpha: 95,

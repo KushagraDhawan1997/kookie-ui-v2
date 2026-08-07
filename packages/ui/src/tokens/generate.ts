@@ -279,6 +279,9 @@ export function generateTokens(): string {
             ...materialAlpha(t, material[mode][t].alphaHigh),
             decl(`material-${t}-edge`, "initial"),
             decl(`material-${t}-rim`, "initial"),
+            // The elevated remap points -rim at -rim-lifted, so the lifted variant must
+            // stand down here too or high contrast would resurrect the glint it just removed.
+            decl(`material-${t}-rim-lifted`, "initial"),
           );
         }
         // The look axis yields its EDGE for the same reason the material does, and by the same
@@ -505,6 +508,11 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
 /** The material alpha triple, spelled once: surfaceWorld() and the contrast="high" loop both
  * emit these three names, and until 2026-08-06 each spelled them by hand — renaming the family
  * meant finding both. */
+/** §10's transmission seam: a shadow row with every layer's alpha scaled by what the pane
+    lets through. Derivation, not authorship — the palette row stays the one source. */
+const fadeShadow = (row: string, factor: number): string =>
+  row.replace(/\/ ([0-9.]+)\)/g, (_, a: string) => `/ ${Number((parseFloat(a) * factor).toFixed(3))})`);
+
 const materialAlpha = (name: string, alpha: readonly number[]): string[] => {
   const [rest, hover, active] = alpha;
   return [
@@ -564,6 +572,12 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
         `material-${name}-rim`,
         `linear-gradient(rgb(255 255 255 / ${m[name].rim}) 0 var(--border-width), transparent var(--border-width))`,
       ),
+      // The elevated world's brighter glint (§10's catch seam, 2026-08-07): under a sun the
+      // pane's edge catches harder. The elevated scope remaps -rim to this; flat never does.
+      decl(
+        `material-${name}-rim-lifted`,
+        `linear-gradient(rgb(255 255 255 / ${m[name].rimLifted}) 0 var(--border-width), transparent var(--border-width))`,
+      ),
     ];
   };
   return [
@@ -618,6 +632,13 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("surface-chrome", surfaceChrome[mode]),
     decl("control-chrome", controlChrome[mode]),
     decl("control-light", controlLight[mode]),
+    `  /* transmission (§10, 2026-08-07) — what a PANE casts is the app's shadow passed`,
+    `     through glass: the surface row faded per thickness, DERIVED from the palette so`,
+    `     there is exactly one source of shadow truth. Consumed only where the elevated`,
+    `     scope hands it to a material surface; flat declares none. */`,
+    ...(["thin", "regular", "thick"] as const).map((t) =>
+      decl(`surface-chrome-${t}`, fadeShadow(shadow[mode][2]!, material.transmission[t])),
+    ),
   ];
 }
 

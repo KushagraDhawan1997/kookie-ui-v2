@@ -283,6 +283,28 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
     void (<Card shadow="2">B</Card>);
   });
 
+  it("a glass card transmits the world's shadow and catches its light (§10, 2026-08-07)", () => {
+    // The two seams, mounted: elevated glass casts the FADED row (weaker than the solid
+    // card's, still a shadow), catches the LIFTED rim (brighter than flat glass's resting
+    // glint), and flat glass never floats — edge and glint, no lift.
+    const solid = mounted(<Card>B</Card>, { theme: { surfaces: "elevated" } });
+    const glass = mounted(<Card material="thin">B</Card>, { theme: { surfaces: "elevated" } });
+    const flatGlass = mounted(<Card material="thin">B</Card>, { theme: { surfaces: "flat" } });
+    const probe = document.createElement("div");
+    probe.style.boxShadow = "var(--surface-chrome-thin)";
+    glass.append(probe);
+    expect(computed(glass, "box-shadow")).toBe(computed(probe, "box-shadow"));
+    probe.remove();
+    expect(computed(glass, "box-shadow")).not.toBe("none");
+    expect(computed(glass, "box-shadow")).not.toBe(computed(solid, "box-shadow"));
+    expect(computed(flatGlass, "box-shadow")).toBe("none");
+    // The catch: both worlds paint a rim, and they differ — the elevated one is the lifted
+    // variant. A remap that silently stopped resolving would fail the not-none half first.
+    expect(computed(glass, "background-image")).not.toBe("none");
+    expect(computed(flatGlass, "background-image")).not.toBe("none");
+    expect(computed(glass, "background-image")).not.toBe(computed(flatGlass, "background-image"));
+  });
+
   it("follows appearance: the same Card resolves differently under a dark Theme", () => {
     const light = render(<Card>B</Card>);
     const darkCard = mounted(<Card>B</Card>, { theme: { appearance: "dark" } });
