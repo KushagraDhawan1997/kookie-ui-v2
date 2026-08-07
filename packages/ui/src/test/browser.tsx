@@ -28,6 +28,7 @@ import { density } from "../tokens/config.ts";
 // that file in step; a sheet missing here makes laws pass against an empty cascade.
 import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
+import progressCss from "../components/progress/progress.css?raw";
 import radioCss from "../components/radio/radio.css?raw";
 import separatorCss from "../components/separator/separator.css?raw";
 import sliderCss from "../components/slider/slider.css?raw";
@@ -56,6 +57,7 @@ export function installStyles(): void {
     spinnerCss,
     buttonCss,
     checkboxCss,
+    progressCss,
     radioCss,
     separatorCss,
     sliderCss,

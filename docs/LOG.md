@@ -8,6 +8,27 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-08 Progress ships without a size axis — the ladder was asked first and refused
+
+§19 predicted this component twice before it existed ("a bar is a rail with no grip"), and the prediction held for everything except the one number a bar has. Well = `--color-track`, fill = `--tone-solid` under a stamped accent identity, outside the look axis by the instrument rule, no target mechanism because nothing hits it — all four arrived by derivation, none needed a decision. What needed one was the thickness, and the answer is an absence.
+
+**The rail's ladder was asked first, as the rule requires, and it refused.** `--slider-track-N` (4/5/6/7) is designed as ~0.25 of the fine MARK — a constant fraction of the thumb it serves. A bar has no thumb, so riding it would size the bar against a box the component does not have. That is verbatim §6's sentence about the checkbox corner, which rode `--radius-control-N` and thereby held a fraction of a height ladder a mark is not on; it is also the wall control padding hit, and the mark ladder, and the slider track itself. **Fifth instance of one mistake, and the first one caught before shipping rather than after** — reached this time by inheritance (take the neighbour's ladder) instead of by arithmetic (divide by the neighbour's box), which is why it was worth naming as its own shape.
+
+So the shape is Separator's: one designed thickness (`--progress-track` = 6, v0), extent from the container, no index. 6 rather than the default rail's 5 because a rail carries a grip that lends it presence a bar must find in its own weight — and inside the rail ladder's range (4–7), so a bar and a rail still read as one kind of line.
+
+**Withholding is the additive direction, and that is what made the call makeable without a taste pass.** Adding `size` later costs nothing; removing it is an API break. The counter-argument was NOT refuted, only deferred, and it is recorded open rather than buried: `--mark-N` *is* `--line-height-N`, so the rail ladder is equally "a quarter of a line of text", and a bar sits in text flow under a label where that reading is perfectly good. If the index is granted, the honest move is a rename — `--slider-track-N` → `--track-N`, one ladder with two consumers — because a shared thing wearing one consumer's name is what the `--kui-h` collision was.
+
+**Rejected on the way:**
+
+- **Progress as a `.kui-control`.** It is how Slider gets the ladder, and it is how Slider gets its 44px target — which is exactly why it is wrong here. The skeleton is the interactive one (a height that IS a target, a button cursor, a label's type, a border, `user-select: none`); opting in would mean overriding most of what opting in declares, and standing a 44px box on the coarse path around a 6px line. The class is its own.
+- **A size join in `progress.css`.** Structurally impossible and correctly so: a walked law forbids `data-size` in any component stylesheet, and a second law pins `[data-size="N"]` to exactly one occurrence in the shared layer. The three joins that exist (`.kui-control`, `.kui-surface`, `.kui-type`) each live in a *system* layer keyed on a family class, and Progress is not a family. The architecture said no before the design did.
+- **Base UI's `Progress.Track` part.** It exists to be the positioned parent of the indicator, and the root already is one. Two elements, not three — a div with no job is anatomy, and the anatomy criterion (§10) admits it only where something non-visual forces it. Same test refuses `Progress.Label` and `Progress.Value`: a label is `aria-label` or a `<Text>` with an `id`, a formatted value is a `<Text>`, and both would be layout bought as anatomy.
+- **Deferring indeterminate to the motion system.** The collision was assumed and does not exist. §8's law bans a `transition` — the easing of a state CHANGE, which is what the motion system was deferred to design. A sweeping segment is motion that IS the content: the Spinner's category, already shipped, already reduced-motion-answered. So it takes the Spinner's answer too — slowed, never stopped, because a busy indicator that stops moving is information lost. Nothing here reads `--motion-duration` or `--motion-easing`; the motion system still lands on an empty field.
+
+`tone` is left closed and recorded open: a failed upload in `destructive` is the exact vocabulary the six-tone widening exists for, and Slider's refusal does not transfer (it was priced on EMPHASIS — "a form where one slider is louder than the next names nothing" — not on hue). Adding an axis to a component whose §11 row was written the same day is assignment, not derivation.
+
++115 bytes gzipped for the component, the token and the laws. Twenty-six mounted laws, each falsified against a sabotaged stylesheet before it was accepted — including the two vacuity guards the Slider round taught (a radius law that would pass if `radius` did nothing, a look law that would pass if `look` did nothing).
+
 ## 2026-08-08 Separator ships as two tokens and a role — and its API questions close by inheritance
 
 Built ahead of Progress (Kushagra's call — the cheapest component left, since §11 promised its row "a border token" and `--color-border` has existed since Checkbox minted it). The component is Base UI's `role="separator"` div wearing `--color-border` at `--border-width`; +63 bytes gzipped, seven mounted laws, and every structural law took it on arrival via the walks — which is what the walks were built to do.

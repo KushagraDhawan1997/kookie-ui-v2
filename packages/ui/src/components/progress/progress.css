@@ -1,0 +1,88 @@
+/* Progress (§11, §19): the well and the fill, and nothing else.
+ *
+ * §19 predicted this file twice before it existed — "a bar is a rail with no grip" — and the
+ * prediction is what the sheet had to earn rather than assume. What it inherits from the rail
+ * is the pairing (a neutral well, an accent level) and the exclusion from the look axis (an
+ * instrument has no resting surface to dress, so no --look-* role is consumed here). What it
+ * does NOT inherit is the rail's size-indexed thickness: that ladder holds ~0.25 of the MARK,
+ * and a bar has no mark, so riding it would size a box against a thing the component does not
+ * have — §6's checkbox-corner sentence, one family over. One designed thickness instead.
+ *
+ * Not a `.kui-control`. The skeleton is the interactive one — a height ladder that IS a target,
+ * a button cursor, a label's type, a border, `user-select: none`. A bar answers no pointer and
+ * takes no focus, so opting in would mean overriding most of what opting in declares, and a
+ * 44px-tall box on the coarse path for a 6px line. The class is its own. */
+
+.kui-progress {
+  /* The one layout fact, the rail's for the rail's reason: a bar has no intrinsic width, so
+     shrink-wrapping collapses it to nothing. The Box that owns the row constrains it. */
+  inline-size: 100%;
+  block-size: var(--progress-track);
+  /* The family's off part (§11 "track low"): neutral through the tone-independent well role,
+     because the element stamps `accent` for its fill and the well must not tint with it — the
+     checkbox's "neutral off", two controls over. This is the second consumer --color-track was
+     minted for (2026-08-06, with Slider), which is why no new role appears here. */
+  background-color: var(--color-track);
+  /* The end cap is a designed property of the WELL, not a pick into the palette — the rail's
+     own sentence. `min()` is why the radius LEVEL still reaches it (audit R8's fix, inherited
+     rather than re-learned): at every level that HAS a corner, the control radius exceeds half
+     a 6px bar, so those cells are the plain capsule; at `radius="none"` the control radius is
+     0 and the bar squares off with everything else on the page. The index is 2 because that is
+     the system's default size everywhere, and because min() saturates — any index would give
+     the identical capsule, and every index gives 0 at `none`. */
+  border-radius: min(calc(var(--progress-track) / 2), var(--radius-control-2));
+  /* The fill is clipped by the well rather than trusted to match its corner: the indeterminate
+     segment travels past both ends, and a lozenge sliding out of a capsule is what `overflow`
+     is for. Also the containing block for that segment. */
+  overflow: hidden;
+  position: relative;
+  /* A bar is not a flexible item. A squeezed Stack distributing shortfall must not thin the
+     one element whose thickness is the whole information — Separator's `flex: none`, for
+     Separator's reason, on the block axis this time. */
+  flex: none;
+}
+
+.kui-progress-fill {
+  /* Base UI writes the determinate geometry inline (`width: N%`, `height: inherit`), so what
+     this rule owns is the paint and the shape. `block-size` is stated anyway: the inline
+     height only exists on the determinate branch — an indeterminate indicator gets `{}` — and
+     a fill with no height is an invisible bar that still reports a value to AT. */
+  block-size: 100%;
+  /* The accent part (§11 "fill accent"), through the tone indirection like every fill in the
+     system, so a rebound accent moves it with everything else. */
+  background-color: var(--tone-solid);
+  border-radius: inherit;
+}
+
+/* Indeterminate: a segment sweeping the well, because the task has no measurable extent.
+ *
+ * This is an ANIMATION, not a transition, and the distinction is the whole reason it may ship
+ * while §8 holds every transition at zero: a transition eases a state CHANGE (hover, press,
+ * disable) and is what the motion system was deferred to design; this is motion that IS the
+ * content, the same category as the Spinner — a busy indicator whose stillness would be a lie.
+ * The zeroed-transition law is untouched, and deliberately so: nothing here reads
+ * --motion-duration or --motion-easing, so the motion system still lands on an empty field. */
+.kui-progress-fill[data-indeterminate] {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 40%;
+  animation: kui-progress-sweep 1.6s linear infinite;
+}
+
+@keyframes kui-progress-sweep {
+  from {
+    inset-inline-start: -40%;
+  }
+  to {
+    inset-inline-start: 100%;
+  }
+}
+
+/* Slowed, never stopped — the Spinner's answer, for the Spinner's reason (§8): a busy
+   indicator that stops moving is information lost, and the vestibular guidance targets large
+   motion rather than a segment crossing a 6px line. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-progress-fill[data-indeterminate] {
+    animation-duration: 4s;
+  }
+}

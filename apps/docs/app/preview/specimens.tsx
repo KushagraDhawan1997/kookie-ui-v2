@@ -14,12 +14,14 @@
  */
 import * as React from "react";
 import {
+  Box,
   Button,
   Card,
   Checkbox,
   Flex,
   Grid,
   Heading,
+  Progress,
   Radio,
   RadioGroup,
   Separator,
@@ -304,6 +306,80 @@ function HeadingSection() {
   );
 }
 
+function ProgressSection() {
+  return (
+    <Stack gap="6">
+      {/* The one thing to judge here is the THICKNESS, because it is the one designed number
+          and it has no axis to hide behind: 6px, chosen one step above the default rail's 5
+          on the argument that a bar has no grip to lend it presence. Flip density and pointer
+          in the panel — nothing here may move, which is the claim the absent size axis rests
+          on. Flip `look`: nothing moves there either (§19, the instrument rule). Flip radius
+          to `none` and the caps square with everything else on the page. */}
+      <SpecTable
+        wide
+        cols={["Empty", "Part way", "Nearly done", "Complete"]}
+        rows={[
+          {
+            label: "value",
+            cells: [
+              <Progress key="1" value={0} aria-label="Empty" />,
+              <Progress key="2" value={35} aria-label="Part way" />,
+              <Progress key="3" value={85} aria-label="Nearly done" />,
+              <Progress key="4" value={100} aria-label="Complete" />,
+            ],
+          },
+          {
+            label: "min/max",
+            cells: [
+              <Progress key="1" value={0} min={0} max={8} aria-label="0 of 8" />,
+              <Progress key="2" value={3} min={0} max={8} aria-label="3 of 8" />,
+              <Progress key="3" value={7} min={0} max={8} aria-label="7 of 8" />,
+              <Progress key="4" value={8} min={0} max={8} aria-label="8 of 8" />,
+            ],
+          },
+        ]}
+      />
+      {/* Indeterminate, and beside a Spinner on purpose: they are the same category of motion
+          (content, not a state change) and should read as one system's answer to "busy". */}
+      <Card size="3">
+        <Stack gap="4">
+          <Flex gap="3" align="center">
+            <Spinner />
+            <Text size="2" weight="medium">Indeterminate — the task has no measurable extent</Text>
+          </Flex>
+          <Progress value={null} aria-label="Loading" />
+          <Text size="1" emphasis="quiet">
+            Slowed under prefers-reduced-motion, never stopped — a busy indicator that stops
+            moving is information lost.
+          </Text>
+        </Stack>
+      </Card>
+      {/* The bar in the composition it actually ships in: a label row above, the bar below,
+          the Stack's gap carrying the distance. The bar brings no spacing of its own. */}
+      <Card size="3">
+        <Stack gap="3">
+          <Flex justify="between" align="center">
+            <Text size="2" weight="medium">Uploading assets</Text>
+            <Text size="2" emphasis="medium">62%</Text>
+          </Flex>
+          <Progress value={62} aria-label="Uploading assets" />
+        </Stack>
+      </Card>
+      {/* Extent is the container's: a narrower Box gives a narrower bar, no prop involved.
+          The explicit width is the sanctioned escape for the recorded Box collapse (§2) —
+          stating a width is one of the three routes containment leaves open. */}
+      <Flex gap="4" align="center">
+        <Box style={{ width: "120px" }}>
+          <Progress value={45} aria-label="Narrow" />
+        </Box>
+        <Box style={{ width: "240px" }}>
+          <Progress value={45} aria-label="Wider" />
+        </Box>
+      </Flex>
+    </Stack>
+  );
+}
+
 function RadioSection() {
   return (
     <Stack gap="6">
@@ -540,6 +616,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "card", name: "Card", body: <CardSection /> },
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "heading", name: "Heading", body: <HeadingSection /> },
+  { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
   { id: "separator", name: "Separator", body: <SeparatorSection /> },
   { id: "slider", name: "Slider", body: <SliderSection /> },

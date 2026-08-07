@@ -45,6 +45,7 @@ import {
   controlLight,
   shadow,
   sliderTrack,
+  progressTrack,
   space,
   switchInset,
   switchW,
@@ -125,6 +126,16 @@ export function generateTokens(): string {
     "     :root — no scope below re-prices it, so there is nothing to re-declare. */",
   );
   sliderTrack.forEach((px, i) => lines.push(decl(`slider-track-${i + 1}`, zoom(px))));
+
+  lines.push(
+    "",
+    "  /* and the progress bar's thickness (§11) — ONE value, no index: the ladder above holds",
+    "     a fraction of the MARK, and a bar has no mark, so riding it would round a box the",
+    "     component does not have (§6's checkbox-corner sentence, one family over). Separator's",
+    "     shape instead: one designed thickness, extent from the container. Emitted at :root",
+    "     alone — nothing below re-prices a value no axis reaches. */",
+  );
+  put("progress-track", zoom(progressTrack));
 
   lines.push(
     "",
