@@ -111,12 +111,12 @@
   --slider-track-4: calc(7px * var(--scale));
 
   /* the thumb's inline width (§4, §6, 2026-08-07) — the grip leaves the family's square:
-     block stays the mark ladder, inline narrows to a vertical capsule. Raw designed px,
+     block stays the mark ladder, inline WIDENS to a horizontal capsule. Raw designed px,
      pointer-invariant: the coarse rise arrives through the block axis. */
-  --slider-thumb-w-1: calc(10px * var(--scale));
-  --slider-thumb-w-2: calc(12px * var(--scale));
-  --slider-thumb-w-3: calc(14px * var(--scale));
-  --slider-thumb-w-4: calc(16px * var(--scale));
+  --slider-thumb-w-1: calc(24px * var(--scale));
+  --slider-thumb-w-2: calc(30px * var(--scale));
+  --slider-thumb-w-3: calc(36px * var(--scale));
+  --slider-thumb-w-4: calc(40px * var(--scale));
 
   /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until
      2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered

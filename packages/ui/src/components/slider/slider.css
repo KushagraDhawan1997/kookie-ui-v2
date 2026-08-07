@@ -99,14 +99,16 @@
 }
 
 .kui-slider-thumb {
-  /* The grip leaves the family's square (§4, §6, 2026-08-07, Kushagra: "longer vertically"):
-     BLOCK stays the mark ladder — one weight class beside a checkbox, and the coarse rise
-     still arrives through it — while the inline axis narrows to a designed width, making a
-     VERTICAL CAPSULE. Material 3 took this to a 4px bar; ours is the subtle middle. The
-     capsule stays role semantics exactly as the circle was: the radius axis never reaches
-     it, `none` included — a square handle reads as a bead that stuck. */
+  /* The grip leaves the family's square (§4, §6, 2026-08-07, Kushagra — corrected same
+     day: "it should be wider than it is taller"; the first cut read the direction backwards
+     and shipped a vertical bar for minutes): BLOCK stays the mark ladder — one weight class
+     beside a checkbox, and the coarse rise still arrives through it — while the inline axis
+     WIDENS to a designed width, a HORIZONTAL CAPSULE. The full curve sits on the short
+     axis, so the radius is half the mark, the circle's own number. The capsule stays role
+     semantics exactly as the circle was: the radius axis never reaches it, `none` included
+     — a square handle reads as a bead that stuck. */
   inline-size: var(--kui-ct-thumb-w);
-  border-radius: calc(var(--kui-ct-thumb-w) / 2);
+  border-radius: calc(var(--kui-ct-mark) / 2);
   /* A mark that is not itself a .kui-control paints its own resting identity: the family
      declares the sources (--tone-soft when disabled) and the edge role; this rule resolves
      them. The SOURCE is the thumb's own role since 2026-08-07 (§11, "dark shouldn't be

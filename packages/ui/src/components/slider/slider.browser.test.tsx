@@ -143,17 +143,17 @@ describe("the root is the control, and the height ladder is the target (§4, §1
 
 describe("the thumb is the mark family's third member (§4, §6)", () => {
   for (const size of SIZES) {
-    it(`size ${size}: block is the family's, inline is the grip's own — a vertical capsule`, () => {
+    it(`size ${size}: block is the family's, inline is the grip's own — a horizontal capsule`, () => {
       // Read as the PAINTED box (audit R1, 2026-08-06 — getBoundingClientRect is the border
       // box, the thing a user aims at). The grip left the family's square 2026-08-07
-      // (Kushagra: "longer vertically"): its HEIGHT is still the mark ladder — the one
-      // weight class beside a checkbox — while its width is the designed capsule width,
-      // strictly narrower, from the slider's own set.
+      // (Kushagra, corrected same day: "wider than it is taller"): its HEIGHT is still the
+      // mark ladder — the one weight class beside a checkbox — while its width is the
+      // designed capsule width, strictly wider, from the slider's own set.
       const el = slider({ size });
       const thumb = thumbOf(el).getBoundingClientRect();
       const checkbox = render(<Checkbox size={size} />).getBoundingClientRect();
       expect(thumb.height, `size ${size} block`).toBe(checkbox.height);
-      expect(thumb.width, `size ${size} is taller than wide`).toBeLessThan(thumb.height);
+      expect(thumb.width, `size ${size} is wider than tall`).toBeGreaterThan(thumb.height);
       const probe = document.createElement("div");
       probe.style.width = `var(--slider-thumb-w-${size})`;
       thumbOf(el).append(probe);
@@ -174,12 +174,12 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
 
   for (const level of ["none", "small", "medium", "large", "full"] as const) {
     it(`stays a capsule at radius="${level}" — role semantics, the circle's sentence widened`, () => {
-      // Half the WIDTH, not the height: a vertical capsule's full curve is w/2. The radius
-      // axis still never reaches it, `none` included.
+      // Half the HEIGHT — the short axis, the circle's own number: a horizontal capsule's
+      // full curve is h/2. The radius axis still never reaches it, `none` included.
       const el = slider({}, { radius: level });
       const thumb = thumbOf(el);
       expect(px(computed(thumb, "border-top-left-radius"))).toBeCloseTo(
-        px(getComputedStyle(thumb).width) / 2,
+        px(getComputedStyle(thumb).height) / 2,
         1,
       );
     });

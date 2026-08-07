@@ -27,19 +27,22 @@ box-shadow consumer count re-pins at four.
 
 ---
 
-## 2026-08-07 The thumb leaves the family's square: a vertical capsule
+## 2026-08-07 The thumb leaves the family's square: a horizontal capsule
 
-Kushagra: *"sliders thumb should be longer vertically."* The grip's fourth departure from
-the family on the same argument as the other three (dress, look, world switch): a grip is
-shaped by what it does. Its BLOCK size stays the mark ladder — one weight class beside a
-checkbox, the coarse rise still arriving through the family's own story — and the inline
-axis narrows to `--slider-thumb-w-N`: 10/12/14/16 raw designed px (the fourth family to
-hit the no-palette-rung wall), pointer-invariant because the block axis carries the coarse
-answer. The capsule radius is w/2 and stays role semantics: the radius axis never reaches
-it, `none` included — the circle's sentence widened, not broken. Material 3 took this
-direction to a 4px bar; iOS declined it entirely; ours is the subtle middle, v0 for the
-eye. Base UI measures the element's real width for edge alignment, so positioning needed
-nothing; the preview's static mock switched to the width token.
+Kushagra: the thumb should stretch — and the first cut read the direction BACKWARDS,
+shipping a narrow vertical bar for minutes before the correction: *"I meant to stretch it
+horizontally... it should be wider than it is taller."* Recorded with the mistake because
+the ambiguity was real ("longer vertically" parsed both ways) and the next reader should
+know which way it resolved. The grip's fourth departure from the family on the same
+argument as the other three (dress, look, world switch): a grip is shaped by what it does.
+Its BLOCK size stays the mark ladder — one weight class beside a checkbox, the coarse rise
+still arriving through the family's own story — and the inline axis WIDENS to
+`--slider-thumb-w-N`: 24/30/36/40 raw designed px (the fourth family to hit the
+no-palette-rung wall), pointer-invariant because the block axis carries the coarse answer.
+The capsule radius is h/2 — the short axis, the circle's own number — and stays role
+semantics: the radius axis never reaches it, `none` included. Base UI measures the
+element's real width for edge alignment, so positioning needed nothing; the preview's
+static mock reads the width token.
 
 ---
 

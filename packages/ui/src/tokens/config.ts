@@ -441,16 +441,17 @@ export const markRadius = [1, 1, 2, 2] as const;
 export const sliderTrack = [4, 5, 6, 7] as const;
 
 /**
- * §4, §6 — the thumb's INLINE width per size (decided 2026-08-07, Kushagra: "slider's thumb
- * should be longer vertically"). The grip leaves the family's square: its BLOCK size stays
- * the mark ladder — one weight class beside a checkbox, the family's height story intact —
- * and the inline axis narrows to a vertical capsule (radius = w/2), the direction Material 3
- * took to its extreme (a 4px bar) and iOS declined; ours is the subtle middle. Raw designed
- * px like the track: ~0.55–0.63 of the fine mark, with no palette rung at this scale (the
- * fourth family at that wall). Pointer-invariant: the coarse rise arrives through the BLOCK
- * axis, which rides the mark ladder. v0, judged in the preview.
+ * §4, §6 — the thumb's INLINE width per size (decided 2026-08-07, Kushagra — corrected the
+ * same day: "stretch it horizontally... it should be wider than it is taller"; the first
+ * cut collapsed it into a vertical bar, the opposite read). The grip leaves the family's
+ * square: its BLOCK size stays the mark ladder — one weight class beside a checkbox, the
+ * family's height story intact — and the inline axis WIDENS to a horizontal capsule
+ * (radius = h/2, the full curve on the short axis). ~1.5x the fine mark, raw designed px
+ * like the track (the fourth family with no palette rung at its scale). Pointer-invariant:
+ * the coarse rise arrives through the BLOCK axis, which rides the mark ladder. v0, judged
+ * in the preview.
  */
-export const sliderThumbW = [10, 12, 14, 16] as const;
+export const sliderThumbW = [24, 30, 36, 40] as const;
 
 /**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and
