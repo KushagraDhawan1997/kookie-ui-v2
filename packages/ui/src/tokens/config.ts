@@ -650,8 +650,9 @@ export const surfaceChrome = {
  * membership sentence splits by what light does: the CAST still dresses only boxes that
  * establish a plane (cards — surfaceChrome above), but in a world with a light source a
  * raised control is lit too — it casts the palette's control row and CATCHES light on its
- * top. A field stays unlit (a well is content of a plane); marks and the slider thumb wait
- * until the mark family's own light is designed.
+ * top. A field stays unlit (a well is content of a plane); a CHECKED mark catches the loud
+ * button's gradient — the checked fill is the mark family's loud rung (§11) — and never
+ * casts; the slider thumb waits until its own light is designed.
  *
  * controlChrome is the cast: the one shadow every solid control shares, composed from the
  * palette's control row — never a bespoke value, so escapes reach the same shadow at

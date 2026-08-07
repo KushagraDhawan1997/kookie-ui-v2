@@ -343,6 +343,47 @@ describe("the glyph is the box, not the icon ladder (§4)", () => {
   });
 });
 
+describe("a checked mark is the family's loud rung, and loud rungs catch light (§5, §11)", () => {
+  // The 2026-08-07 decision, mounted: the checked fill is the mark's emphasis (state IS the
+  // mark's rung), so under an elevated world it wears the same gradient a loud button wears
+  // over the same accent solid — one material for a form's solid fills. NO cast: a mark is
+  // a well that fills, never a raised key. Unchecked is a well and wells are not lit.
+  it("checked catches exactly the loud button's light; unchecked never; flat never", () => {
+    const checked = markOf(mounted(<Checkbox defaultChecked />, { theme: { surfaces: "elevated" } }));
+    const button = mounted(
+      <Button tone="accent" emphasis="loud">
+        L
+      </Button>,
+      { theme: { surfaces: "elevated" } },
+    );
+    expect(computed(checked, "background-image")).toContain("linear-gradient");
+    expect(computed(checked, "background-image")).toBe(computed(button, "background-image"));
+    expect(computed(checked, "box-shadow")).toBe("none");
+    const unchecked = markOf(mounted(<Checkbox />, { theme: { surfaces: "elevated" } }));
+    expect(computed(unchecked, "background-image")).toBe("none");
+    const flat = markOf(mounted(<Checkbox defaultChecked />, { theme: { surfaces: "flat" } }));
+    expect(computed(flat, "background-image")).toBe("none");
+  });
+
+  it("disabled stands the catch down, and a mark inside a loud surface does not inherit it", () => {
+    const disabled = markOf(
+      mounted(<Checkbox defaultChecked disabled />, { theme: { surfaces: "elevated" } }),
+    );
+    expect(computed(disabled, "background-image")).toBe("none");
+    // The leak guard: the emphasis ladder's light tokens INHERIT, so an unchecked mark under
+    // ANY loud-emphasis ancestor (the rung selector is bare [data-emphasis]) would wear the
+    // ancestor's light if the mark did not declare its own none at rest. Declared, not
+    // omitted — this is the law that keeps it declared.
+    const hosted = mounted(
+      <div data-emphasis="loud">
+        <Checkbox />
+      </div>,
+      { theme: { surfaces: "elevated" } },
+    );
+    expect(computed(markOf(hosted), "background-image")).toBe("none");
+  });
+});
+
 describe("the look axis dresses the resting box, never the tick (§19)", () => {
   it.each(APPEARANCES)("%s: filled dresses the box and KEEPS the mark's edge", (appearance) => {
     // Rewritten 2026-08-06. The old spelling asserted the fill equalled `var(--neutral-4)` and

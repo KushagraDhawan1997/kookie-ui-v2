@@ -292,6 +292,31 @@ describe("the group owns the selection (§11)", () => {
   });
 });
 
+describe("a selected radio is the family's loud rung, and loud rungs catch light (§5, §11)", () => {
+  it("selected catches in an elevated world; unselected never; no cast on either", () => {
+    // The checkbox's 2026-08-07 law, on the family's second member — one shared ON rule, so
+    // a divergence here is the promotion failing, not a radio bug.
+    const host = mounted(
+      <RadioGroup defaultValue="b">
+        <Radio value="a" />
+        <Radio value="b" />
+      </RadioGroup>,
+      { theme: { surfaces: "elevated" } },
+    );
+    const [a, b] = [...host.querySelectorAll(".kui-radio")];
+    expect(computed(b!, "background-image")).toContain("linear-gradient");
+    expect(computed(a!, "background-image")).toBe("none");
+    expect(computed(b!, "box-shadow")).toBe("none");
+    const flat = mounted(
+      <RadioGroup defaultValue="b">
+        <Radio value="b" />
+      </RadioGroup>,
+      { theme: { surfaces: "flat" } },
+    );
+    expect(computed(flat.querySelector(".kui-radio")!, "background-image")).toBe("none");
+  });
+});
+
 describe("what it inherits from the shared layer (§8)", () => {
   it("the focus ring is the real ring, and it is absent at rest", () => {
     const el = render(

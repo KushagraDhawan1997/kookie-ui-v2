@@ -263,6 +263,12 @@
   /* In a row beside its label, the mark must not absorb the row's slack. */
   flex: none;
   border-radius: var(--kui-ct-mark-radius);
+  /* The catch, declared none at rest and mapped by the ON rule below (§5, §11): an
+     unchecked mark is a well and wells are not lit — declared rather than omitted, because
+     the emphasis ladder's tokens inherit and a mark inside a loud surface would otherwise
+     wear the ancestor rung's light. */
+  --kui-ct-light: none;
+  background-image: var(--kui-ct-light, none);
 
   /* The resting identity (§11): the surface seal, and the MARK EDGE — the family's own
      tone-independent hairline (§7, audit D2: a mark's unchecked state has no identity but
@@ -391,6 +397,11 @@
   --tone-border: var(--tone-solid);
   /* The glyph takes the fill's APCA-chosen pairing (§7), like any label on a solid. */
   --kui-ct-label-color: var(--tone-contrast);
+  /* A checked mark is the family's LOUD rung (§11: state is the mark's emphasis), and rungs
+     with a solid fill catch light (§5, 2026-08-07) — the same gradient the loud button
+     wears, over the same accent solid, so a form's solid fills read as one material. No
+     cast: a mark is a well that fills, never a raised key. */
+  --kui-ct-light: var(--kui-control-light, none);
 }
 
 /* ── The glyph is the box, not the icon ladder (§4) ──────────────────────────────────────────
@@ -598,7 +609,8 @@
    world tokens, quiet maps none), so the rung-once law keeps holding and this rule is
    emphasis-blind. The light never moves with state — the fill steps beneath it. Flat worlds
    declare none for both, so the default render is byte-identical to a world without these
-   rules. Button today; the slider thumb joins when the mark family's light is designed. */
+   rules. Button and the checked marks today (the mark's ON rule maps the catch — a checked
+   fill is the family's loud rung, §11); the slider thumb joins when its light is designed. */
 .kui-button {
   box-shadow: var(--kui-ct-cast, none);
   background-image: var(--kui-ct-light, none);
