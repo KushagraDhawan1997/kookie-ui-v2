@@ -26,6 +26,7 @@ import { density } from "../tokens/config.ts";
 // Every stylesheet the package ships, in the order styles/index.css imports them — order is
 // load-bearing, since the recipes read tokens and components read recipes. Keep this list and
 // that file in step; a sheet missing here makes laws pass against an empty cascade.
+import blockquoteCss from "../components/blockquote/blockquote.css?raw";
 import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import codeCss from "../components/code/code.css?raw";
@@ -57,6 +58,7 @@ export function installStyles(): void {
     surfacesCss,
     typeCss,
     spinnerCss,
+    blockquoteCss,
     buttonCss,
     checkboxCss,
     codeCss,

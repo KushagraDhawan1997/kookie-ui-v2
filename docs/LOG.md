@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-08 Blockquote: the rule is tone-less, and the SPELLING is half the decision
+
++27 bytes gzipped, two declarations, and one thing genuinely open when it started: does a chosen tone tint the quote's rule?
+
+It does not. §11's rule for the type family is that tone re-scopes the ink trio — and the temptation to widen it here is real, because a red quote beside a grey bar looks half-finished at first glance. What settles it is §7's edge order: a quote's rule sits exactly where a separator's sits, under both solved tiers, carrying no identity of its own. That is what `--color-border` was minted to paint, and a law now asserts the two components resolve the same colour. A quote whose BAR carries meaning is a Callout — a tone-forward surface, already on §11's list, and the right component for the job.
+
+**The spelling is the other half, and it is the more dangerous one.** `var(--tone-border, var(--color-border))` reads like the accommodating choice: tinted when a tone is stamped, neutral otherwise. It is not — custom properties inherit, so an unstamped quote inside any stamped ancestor would silently take that ancestor's family. Same shape as the `--kui-h` collision and the transmitted glass cast: a value arriving through the cascade from somewhere nobody was looking. Written as the flat `--color-border`, with a mounted law that nests an unstamped quote inside a `destructive` ancestor and reads the computed border — the sabotage run confirms that law is what fails when the fallback form goes back in.
+
+Everything else came free: the ramp, the weights, the emphasis rungs, the family slot and the zeroed margin are the shared layer's, and `<blockquote>` is the element that arrives with the most UA margin in the set, so the non-negotiable finally gets tested where it actually bites. It anchors at size 3 like Text rather than inheriting its line like Code — a quote is a block, so it states its own step — and the indent is `em`, which makes the atoms' argument a family pattern rather than a one-off.
+
 ## 2026-08-08 Code and Kbd: §11's row said `medium`, and implementing it would have been a bug
 
 The two cheapest components left, and they still forced one correction and one first. +75 bytes gzipped **for both**, because almost everything they look like was already written — the ramp, the weights, the emphasis rungs and the margin reset are the type layer's, and what these atoms add is a family slot and a fill.

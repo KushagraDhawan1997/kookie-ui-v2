@@ -14,6 +14,7 @@
  */
 import * as React from "react";
 import {
+  Blockquote,
   Box,
   Button,
   Card,
@@ -127,6 +128,48 @@ function HostileBed({ children }: { children: React.ReactNode }) {
 }
 
 /* ── Sections, alphabetical ────────────────────────────────────────────────────────────── */
+
+function BlockquoteSection() {
+  return (
+    <Stack gap="6">
+      {/* Two things to judge, both v0: the rule's THICKNESS (--border-width, the system's one
+          hairline — a second one would be a self-invented width) and the indent's ratio to
+          the type. Both hold across the ramp by construction; what the eye decides is whether
+          1em is the right distance and whether a hairline is enough of a bar. */}
+      <Stack gap="5">
+        {(["2", "3", "4", "6"] as const).map((size) => (
+          <Blockquote key={size} size={size}>
+            Taste is the last layer. If the infrastructure is right, taste can be added later.
+          </Blockquote>
+        ))}
+      </Stack>
+      {/* Tone re-scopes the INK and leaves the rule alone (§11's rule for the type family).
+          A quote whose bar carries meaning is a Callout, which is a tone-forward surface. */}
+      <SpecTable
+        wide
+        cols={["Quote"]}
+        rows={(["neutral", "accent", "destructive", "success"] as const).map((tone) => ({
+          label: tone,
+          cells: [
+            <Blockquote key="1" size="2" tone={tone}>
+              The words take the family; the rule stays the quiet hairline.
+            </Blockquote>,
+          ],
+        }))}
+      />
+      {/* The attribution is a SIBLING, not an anatomy slot — nothing non-visual forces one. */}
+      <Card size="3">
+        <Stack gap="3">
+          <Blockquote size="3">
+            An axis is proven by a law that reads a computed token through a mounted Theme in
+            both appearances.
+          </Blockquote>
+          <Text size="1" emphasis="medium">— CLAUDE.md, the standing rule</Text>
+        </Stack>
+      </Card>
+    </Stack>
+  );
+}
 
 function ButtonSection() {
   return (
@@ -676,6 +719,7 @@ function TextFieldSection() {
 }
 
 export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
+  { id: "blockquote", name: "Blockquote", body: <BlockquoteSection /> },
   { id: "button", name: "Button", body: <ButtonSection /> },
   { id: "card", name: "Card", body: <CardSection /> },
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
