@@ -36,10 +36,18 @@
      is for. Also the containing block for that segment. */
   overflow: hidden;
   position: relative;
-  /* A bar is not a flexible item. A squeezed Stack distributing shortfall must not thin the
-     one element whose thickness is the whole information — Separator's `flex: none`, for
-     Separator's reason, on the block axis this time. */
-  flex: none;
+  /* The thickness is floored, NOT frozen — and the difference is a shipped bug's width.
+     `flex: none` was written here first, borrowed from Separator on the reasoning that a
+     squeezed Stack must not thin the one element whose thickness is the whole information.
+     It does hold the block axis. It also freezes the INLINE one, and this element declares
+     `inline-size: 100%`, so as a flex ROW item it took a 100%-of-container basis it could
+     no longer shrink: measured 381px of bar inside a 300px row, overflowing by 81. Separator
+     survives the same spelling only because its inline size is a hairline.
+     `min-block-size` states the actual intent — a floor on the dimension that carries the
+     information — and leaves the row free to squeeze the bar to fit, which is what a bar
+     with no intrinsic width has to allow. The control skeleton floors its height with
+     `min-height` for the same reason (§4: a hard height clips). */
+  min-block-size: var(--progress-track);
 }
 
 .kui-progress-fill {

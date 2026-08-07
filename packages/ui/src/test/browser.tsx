@@ -129,6 +129,29 @@ export const computed = (el: Element, prop: string): string =>
   getComputedStyle(el).getPropertyValue(prop).trim();
 
 /**
+ * The element a law is about, found from a mount — LOUD when nothing matches.
+ *
+ * `mounted({ select })` already throws; the per-file helpers did not, and that gap was worth
+ * a finding (audit 2026-08-08). Four law files carried
+ * `const markOf = (el) => el.querySelector(".kui-checkbox") ?? el`, which reads as "the mark
+ * inside, or the root if the root IS the mark" and is in fact neither: the root carries the
+ * family class, `querySelector` searches DESCENDANTS only, so the query arm never once
+ * matched and every call took the fallback. Rename the class and the helper still hands back
+ * the root — every law in the file keeps passing while no longer identifying its subject.
+ *
+ * This is the node laws' own lesson arriving in the browser project. `test/stylesheets.ts`
+ * exists because ~20 `slice(indexOf(...))` sites went green on a renamed selector; `block()`
+ * throws for exactly this reason. The browser harness had the loud idiom in `mounted` and
+ * nowhere else.
+ */
+export function within(root: Element, selector: string): HTMLElement {
+  if (root.matches(selector)) return root as HTMLElement;
+  const el = root.querySelector<HTMLElement>(selector);
+  if (!el) throw new Error(`within(): nothing matches ${selector}`);
+  return el;
+}
+
+/**
  * Resolve something INSIDE the scope under test, through a real element. The probe goes in as
  * a CHILD of the scope rather than a sibling of it, which is not a detail: every mounted law
  * wraps a `<Theme>`, and a probe appended outside it reads the document scope — a coarse cell

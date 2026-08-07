@@ -21,6 +21,7 @@ import {
   mounted,
   render,
   tokenOn,
+  within,
 } from "../../test/browser.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Slider } from "./slider.tsx";
@@ -49,7 +50,7 @@ async function settled(host: Element): Promise<void> {
 }
 
 const rootOf = (el: Element): HTMLElement =>
-  (el.querySelector(".kui-slider") ?? el) as HTMLElement;
+  within(el, ".kui-slider");
 const thumbOf = (el: Element): HTMLElement => el.querySelector(".kui-slider-thumb")!;
 const trackOf = (el: Element): HTMLElement => el.querySelector(".kui-slider-track")!;
 

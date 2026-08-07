@@ -20,7 +20,9 @@ import {
   mounted,
   tokenOn,
 } from "../../test/browser.tsx";
+import { Button } from "../button/button.tsx";
 import { Flex } from "../flex/flex.tsx";
+import { Stack } from "../stack/stack.tsx";
 import { Progress } from "./progress.tsx";
 
 const RADIUS_LEVELS = ["none", "small", "medium", "large", "full"] as const;
@@ -94,15 +96,50 @@ describe("one thickness, and no axis reaches it (§11 — the size question, rec
     expect([...seen]).toHaveLength(1);
   });
 
-  it("a squeezed row never thins it — flex: none, Separator's rule on the block axis", () => {
-    const { root } = parts(
-      <Flex>
+  it("a squeezed column never thins it — the thickness is the information", () => {
+    // Two 6px bars plus a gap into 20px of column: the shortfall is real, and a bar that
+    // took its share of it would report the same value at a different weight.
+    const col = mounted(
+      <Stack gap="4" style={{ height: "20px", width: "300px" }}>
+        <Progress value={40} />
+        <Progress value={60} />
+      </Stack>,
+      { theme: {} },
+    );
+    const bars = [...col.querySelectorAll<HTMLElement>(".kui-progress")];
+    expect(bars).toHaveLength(2);
+    for (const bar of bars) {
+      expect(bar.getBoundingClientRect().height).toBeCloseTo(
+        parseFloat(tokenOn(bar, "--progress-track")),
+        1,
+      );
+    }
+  });
+
+  it("...but a squeezed ROW still fits it — the floor is on the block axis, not on both", () => {
+    // The law's other direction, and the one that was missing: `flex: none` held the
+    // thickness AND froze a 100%-of-container inline basis, so the bar overflowed a flex row
+    // by 81px in the first cut. A one-sided law passed it. A bar with no intrinsic width has
+    // to be squeezable in the axis it has no opinion about.
+    const row = mounted(
+      <Flex gap="4" style={{ width: "300px" }}>
+        <Button>Cancel</Button>
         <Progress value={40} />
       </Flex>,
-      { theme: {}, select: ".kui-progress" },
+      { theme: {} },
     );
-    expect(computed(root, "flex-shrink")).toBe("0");
-    expect(computed(root, "height")).toBe(tokenOn(root, "--progress-track"));
+    const bar = row.querySelector<HTMLElement>(".kui-progress")!;
+    const button = row.querySelector<HTMLElement>(".kui-button")!;
+    expect(button.getBoundingClientRect().width).toBeGreaterThan(0);
+    expect(bar.getBoundingClientRect().right).toBeLessThanOrEqual(
+      row.getBoundingClientRect().right + 0.5,
+    );
+    // ...and it is still a bar, not a sliver squeezed to nothing.
+    expect(bar.getBoundingClientRect().width).toBeGreaterThan(100);
+    expect(bar.getBoundingClientRect().height).toBeCloseTo(
+      parseFloat(tokenOn(bar, "--progress-track")),
+      1,
+    );
   });
 });
 
