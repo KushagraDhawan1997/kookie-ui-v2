@@ -8,6 +8,47 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 The four worlds: the identity axes get their meanings, and taste gets its frame
+
+Kushagra opened it from the elevated dark preview — the filled card's top rim-light reading
+as diffused lighting — with reference screenshots spanning a glowing split-button, soft
+white buttons with gradient depth, and dark buttons whose fills carry a lighting narrative.
+The ask was explicitly NOT "add these": it was that `outlined`, `filled`, `flat` and
+`elevated` cannot stay visual recipes — "we need to start from what outline or filled even
+mean" — and that flat's sharpening, done while staying honest about Lc, is where Kookie
+separates from peers.
+
+The frame that held (now in §19): `look` answers *what the interface is made of* — drawn
+(regions declared by line; print, blueprint) versus molded (regions declared by material; a
+field is a pressed well, a card a slab) — and `surfaces` answers *does light exist* — flat
+is a diagram, elevated has one sun above, casting down and catching on top. Four worlds,
+each with a stated physics, and every taste value judged against its own world's statement
+rather than against the other worlds. The liquid-glass lesson as read here: a look is a
+physics applied without exception, not an effect; the role machinery was already the
+mechanical half, and the statements are the design half it was missing.
+
+Decisions taken with the frame:
+
+- **The elevated taste pass grows the CATCH half of light** — rim, fill light, seat — as
+  paint only (`background-image`, the shadow list): no filters, no extra elements, no JS.
+  The dark rim-light was the catch's first resident; casting without catching is half a
+  light source.
+- **Sharp is not dark** — flat's modernisation is line consistency (weight, rhythm, corner
+  precision), with the per-run Lc report as the conscience. This is the stated
+  differentiator versus peers.
+- **States stay one vocabulary across all four worlds** — the deep version (drawn states
+  speak in line, molded states in material) is recorded and REFUSED for now; any future
+  bend is per-channel expression of the same fixed signal, never a different signal.
+- **The outer glow is declined as overreach** (the "New" button reference): a resting
+  control never radiates; hero moments are the app's `--shadow-*` escape.
+
+Where the work starts, in order: the elevated world's light (dark-first, where the catch
+reads best — new dress roles in the elevated scope, the material rim's mechanism, flat
+pinned byte-identical by negative law), then flat's line pass, with the eye-pass list
+reorganised per world so each value cites the physics it answers.
+
+---
+
 ## 2026-08-07 Dark's control edges rest softer than light's — the split's first taste edit, and the direction becomes a law
 
 The morning's solve held one Lc target across both modes, and the peer comparison said that

@@ -91,6 +91,7 @@ Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DEC
 ## Working rules
 
 - Every implementation task cites the DECISIONS.md section it implements.
+- Refute a proposal before presenting it (Kushagra, 2026-08-07). Attack your own plan the way the audits attack shipped code — scope reach, inheritance/registration, precedence, which existing law it breaks — and present the plan WITH its strongest objection either killed or answered. The rule earned itself the day it was written: a proposed `--kui-ct-chrome` world token sat in the control layer's private registered namespace, the `--kui-h` silent-inheritance trap re-committed by the author who documented it.
 - Doc–code drift is a bug. If code forces a decision change, the doc amendment ships in the same commit.
 - Follow the build order in DECISIONS.md §14 exactly. Each step has a measurement gate; do not run ahead of a gate.
 - Tests assert system laws (token identity, +1-step rule, APCA, budget), never snapshots.
