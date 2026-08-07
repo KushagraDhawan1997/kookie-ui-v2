@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-08 The component reference is a registry with a coverage law, not twenty pages
+
+`/components` and `/components/[slug]` land as ONE renderer over a data file (`registry.tsx`), which is ENGINEERING §1.1 applied to the docs themselves: the system is data, code is a small interpreter. Adding a component means adding a row. Writing twenty hand-authored pages was the obvious alternative and was rejected for the reason the package rejects per-component recipes — twenty places for one claim to drift, and no way for CI to notice when one of them stops being true.
+
+**The section that carries the argument is `refusals`, and it is the reason this route exists at all.** An API table generated from types can only show what a component HAS. It cannot distinguish "Button has no `variant` because we deleted it, and here is why the deletion is load-bearing" from "Button has no `variant` because nobody got to it" — and that distinction is most of what this system is. So every entry names what it refuses and gives the reason, and a law asserts no entry ships without at least one.
+
+**The coverage law is the playground law's sentence one route over**, and the two are deliberately different failures: `playground.test.ts` says every export is RENDERED, this says every export is EXPLAINED. Eleven components were visible in the playground and undocumented before tonight. It also checks the other direction (no page describing something the package no longer exports) and two anti-rot clauses, because the cheapest way to satisfy a coverage law is an entry that says nothing: a blurb has to be a real sentence, and a refusal list cannot be empty. All three were falsified against a sabotaged registry.
+
+**`tsc` caught a factual error in the prose, which is an argument for docs that compile.** The Theme entry documented an `accentColor` prop. There isn't one — accent is hue-authored in config and baked by the generator, so it is one app-wide identity rather than a per-subtree choice, and the runtime prop I had confidently written up has never existed. A markdown docs site would have shipped that sentence. This one failed the build, and the corrected entry now records the absence as a refusal with its reason.
+
 ## 2026-08-08 Blockquote: the rule is tone-less, and the SPELLING is half the decision
 
 +27 bytes gzipped, two declarations, and one thing genuinely open when it started: does a chosen tone tint the quote's rule?

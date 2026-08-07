@@ -15,8 +15,11 @@ export default function Home() {
         </Text>
       </Stack>
       <Flex gap="3">
-        <Button size="3" tone="accent" emphasis="loud" render={<Link href="/matrix" />}>
-          Open the judging matrix
+        <Button size="3" tone="accent" emphasis="loud" render={<Link href="/components" />}>
+          Browse the components
+        </Button>
+        <Button size="3" emphasis="medium" render={<Link href="/matrix" />}>
+          Judging matrix
         </Button>
         <Button
           size="3"
