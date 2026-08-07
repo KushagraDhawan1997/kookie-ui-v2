@@ -110,6 +110,14 @@
   --slider-track-3: calc(6px * var(--scale));
   --slider-track-4: calc(7px * var(--scale));
 
+  /* the thumb's inline width (§4, §6, 2026-08-07) — the grip leaves the family's square:
+     block stays the mark ladder, inline narrows to a vertical capsule. Raw designed px,
+     pointer-invariant: the coarse rise arrives through the block axis. */
+  --slider-thumb-w-1: calc(10px * var(--scale));
+  --slider-thumb-w-2: calc(12px * var(--scale));
+  --slider-thumb-w-3: calc(14px * var(--scale));
+  --slider-thumb-w-4: calc(16px * var(--scale));
+
   /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until
      2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered
      button at scale 2 kept a 1px hairline while every other length doubled. */
@@ -584,6 +592,7 @@
   --control-edge: #a3a6aa;
   --field-edge: #c0c2c5;
   --color-track: var(--neutral-4);
+  --color-thumb: var(--color-surface);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1067,6 +1076,7 @@
   --control-edge: #a3a6aa;
   --field-edge: #c0c2c5;
   --color-track: var(--neutral-4);
+  --color-thumb: var(--color-surface);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1560,6 +1570,7 @@
   --control-edge: #75787b;
   --field-edge: #525557;
   --color-track: var(--neutral-4);
+  --color-thumb: var(--neutral-12);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1960,6 +1971,7 @@
     --control-edge: color(display-p3 0.6431 0.6525 0.6646);
     --field-edge: color(display-p3 0.7561 0.7625 0.7706);
     --color-track: var(--neutral-4);
+    --color-thumb: var(--color-surface);
   }
   [data-appearance="light"] {
     /* neutral */
@@ -2227,6 +2239,7 @@
     --control-edge: color(display-p3 0.6431 0.6525 0.6646);
     --field-edge: color(display-p3 0.7561 0.7625 0.7706);
     --color-track: var(--neutral-4);
+    --color-thumb: var(--color-surface);
   }
   [data-appearance="dark"] {
     /* neutral */
@@ -2494,6 +2507,7 @@
     --control-edge: color(display-p3 0.4591 0.4688 0.4811);
     --field-edge: color(display-p3 0.3239 0.3311 0.3402);
     --color-track: var(--neutral-4);
+    --color-thumb: var(--neutral-12);
   }
 }
 

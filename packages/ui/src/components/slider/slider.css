@@ -99,14 +99,36 @@
 }
 
 .kui-slider-thumb {
-  /* The circle is ROLE SEMANTICS, Radio's sentence verbatim (§6): the radius axis never
-     reaches it, `none` included — a square handle on a rail reads as a bead that stuck. */
-  border-radius: calc(var(--kui-ct-mark) / 2);
+  /* The grip leaves the family's square (§4, §6, 2026-08-07, Kushagra: "longer vertically"):
+     BLOCK stays the mark ladder — one weight class beside a checkbox, and the coarse rise
+     still arrives through it — while the inline axis narrows to a designed width, making a
+     VERTICAL CAPSULE. Material 3 took this to a 4px bar; ours is the subtle middle. The
+     capsule stays role semantics exactly as the circle was: the radius axis never reaches
+     it, `none` included — a square handle reads as a bead that stuck. */
+  inline-size: var(--kui-ct-thumb-w);
+  border-radius: calc(var(--kui-ct-thumb-w) / 2);
   /* A mark that is not itself a .kui-control paints its own resting identity: the family
-     declares the sources (the seal; --tone-soft when disabled) and the edge role; this rule
-     resolves them. No hover or active step — a handle does not fill, it moves. */
+     declares the sources (--tone-soft when disabled) and the edge role; this rule resolves
+     them. The SOURCE is the thumb's own role since 2026-08-07 (§11, "dark shouldn't be
+     dark"): light keeps the seal, dark goes near-white — a grip must be the most findable
+     object on the rail, and a seal-dark handle on a dark rail was nearly invisible. Routed
+     through -src so the disabled remap keeps winning. No hover or active step — a handle
+     does not fill, it moves. */
+  --kui-ct-fill-src: var(--color-thumb);
+  --kui-ct-fill-src-hover: var(--color-thumb);
+  --kui-ct-fill-src-active: var(--color-thumb);
   background-color: var(--kui-ct-fill-src);
   border: var(--border-width) solid var(--tone-border);
+  /* The thumb casts ALWAYS — flat world included, glass pane included (§5, §6, decided
+     2026-08-07, Kushagra: "slider thumb needs elevation always, it's how it should be").
+     Depth as role semantics, the kill switch's second named exception beside the circle:
+     a grip that does not sit above its rail stops reading as a grip, and every platform
+     ships the handle shadowed in every context. It reads the palette's control row VALUE
+     (--control-chrome) rather than the world switch (--kui-control-chrome), which is
+     exactly what "always" means — and why one-lift-per-pane cannot strip it. No catch:
+     a gradient on a near-white circle is invisible. */
+  --kui-ct-cast: var(--control-chrome, none);
+  box-shadow: var(--kui-ct-cast, none);
 }
 
 /* The ring lands on the thumb — the element the arrows move — not the root: focus is where

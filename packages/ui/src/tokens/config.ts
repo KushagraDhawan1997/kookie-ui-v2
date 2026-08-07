@@ -441,6 +441,18 @@ export const markRadius = [1, 1, 2, 2] as const;
 export const sliderTrack = [4, 5, 6, 7] as const;
 
 /**
+ * §4, §6 — the thumb's INLINE width per size (decided 2026-08-07, Kushagra: "slider's thumb
+ * should be longer vertically"). The grip leaves the family's square: its BLOCK size stays
+ * the mark ladder — one weight class beside a checkbox, the family's height story intact —
+ * and the inline axis narrows to a vertical capsule (radius = w/2), the direction Material 3
+ * took to its extreme (a 4px bar) and iOS declined; ours is the subtle middle. Raw designed
+ * px like the track: ~0.55–0.63 of the fine mark, with no palette rung at this scale (the
+ * fourth family at that wall). Pointer-invariant: the coarse rise arrives through the BLOCK
+ * axis, which rides the mark ladder. v0, judged in the preview.
+ */
+export const sliderThumbW = [10, 12, 14, 16] as const;
+
+/**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and
  * focus are constant facts about a control, not things that get louder as it gets bigger.
  *
@@ -652,7 +664,9 @@ export const surfaceChrome = {
  * raised control is lit too — it casts the palette's control row and CATCHES light on its
  * top. A field stays unlit (a well is content of a plane); a CHECKED mark catches the loud
  * button's gradient — the checked fill is the mark family's loud rung (§11) — and never
- * casts; the slider thumb waits until its own light is designed.
+ * casts; the slider thumb casts ALWAYS — flat world included — as role semantics (§6's
+ * kill-switch exception pattern): a grip that does not sit above its rail stops reading
+ * as a grip. It reads this row's VALUE, not the world switch.
  *
  * controlChrome is the cast: the one shadow every solid control shares, composed from the
  * palette's control row — never a bespoke value, so escapes reach the same shadow at

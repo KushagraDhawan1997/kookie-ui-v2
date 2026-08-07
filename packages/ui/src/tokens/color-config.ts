@@ -249,6 +249,18 @@ export const controlEdgeLc = {
 export const trackWellStep = { light: 4, dark: 4 } as const;
 
 /**
+ * §11 — the THUMB's fill per mode, the value-control family's third tone-independent role
+ * (decided 2026-08-07, Kushagra: "dark shouldn't be dark"). A grip's one job is to be the
+ * most findable object on the rail, and every platform keeps the handle LIGHT in dark mode
+ * (iOS ships it white) — ours went dark as a side effect of pinning the thumb to the seal,
+ * and a seal-dark handle on a dark rail was nearly invisible. Light keeps the seal; dark
+ * takes the near-white end of its own ladder. A role, not a family name at the consumption
+ * site — the slider stamps `accent`, so a neutral fill can only arrive this way (the track
+ * well's own sentence one part over).
+ */
+export const thumbFill = { light: "var(--color-surface)", dark: "var(--neutral-12)" } as const;
+
+/**
  * The APCA floors (§7) — WCAG-anchored, so NOT taste numbers: body is the AA-equivalent Lc 60
  * every label pairing must clear, aaa the Lc 75 `contrast="high"` raises it to, nonText the
  * Lc 45 floor for the focus ring and the invalid edge (WCAG 1.4.11's territory). WHERE they

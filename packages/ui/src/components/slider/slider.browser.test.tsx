@@ -143,18 +143,24 @@ describe("the root is the control, and the height ladder is the target (§4, §1
 
 describe("the thumb is the mark family's third member (§4, §6)", () => {
   for (const size of SIZES) {
-    it(`size ${size}: the thumb IS the mark — the same box a checkbox of this size paints`, () => {
-      // Read as the PAINTED box (audit R1, 2026-08-06). This compared
-      // getComputedStyle().height, which reports the CONTENT box in either box-sizing mode —
-      // so it read 16 === 16 while the thumb painted 18 against the checkbox's 16, because the
-      // thumb was the first mark that is not itself a .kui-control and so missed border-box.
-      // getBoundingClientRect is the border box, which is the thing a user sees and aims at.
+    it(`size ${size}: block is the family's, inline is the grip's own — a vertical capsule`, () => {
+      // Read as the PAINTED box (audit R1, 2026-08-06 — getBoundingClientRect is the border
+      // box, the thing a user aims at). The grip left the family's square 2026-08-07
+      // (Kushagra: "longer vertically"): its HEIGHT is still the mark ladder — the one
+      // weight class beside a checkbox — while its width is the designed capsule width,
+      // strictly narrower, from the slider's own set.
       const el = slider({ size });
       const thumb = thumbOf(el).getBoundingClientRect();
       const checkbox = render(<Checkbox size={size} />).getBoundingClientRect();
       expect(thumb.height, `size ${size} block`).toBe(checkbox.height);
-      expect(thumb.width, `size ${size} inline`).toBe(checkbox.width);
-      expect(thumb.width, "a mark is square by construction").toBe(thumb.height);
+      expect(thumb.width, `size ${size} is taller than wide`).toBeLessThan(thumb.height);
+      const probe = document.createElement("div");
+      probe.style.width = `var(--slider-thumb-w-${size})`;
+      thumbOf(el).append(probe);
+      expect(thumb.width, `size ${size} inline is the designed width`).toBe(
+        probe.getBoundingClientRect().width,
+      );
+      probe.remove();
     });
   }
 
@@ -167,22 +173,48 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
   });
 
   for (const level of ["none", "small", "medium", "large", "full"] as const) {
-    it(`stays a circle at radius="${level}" — role semantics, Radio's sentence verbatim`, () => {
+    it(`stays a capsule at radius="${level}" — role semantics, the circle's sentence widened`, () => {
+      // Half the WIDTH, not the height: a vertical capsule's full curve is w/2. The radius
+      // axis still never reaches it, `none` included.
       const el = slider({}, { radius: level });
       const thumb = thumbOf(el);
       expect(px(computed(thumb, "border-top-left-radius"))).toBeCloseTo(
-        px(getComputedStyle(thumb).height) / 2,
+        px(getComputedStyle(thumb).width) / 2,
         1,
       );
     });
   }
 
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: rests as every mark rests — the seal wearing the control edge`, () => {
+    it(`${appearance}: rests on its own fill role, wearing the control edge`, () => {
+      // The thumb left the seal 2026-08-07 (§11, "dark shouldn't be dark"): a grip must be
+      // the most findable object on the rail, so dark goes near-white — iOS's own posture —
+      // while light keeps the seal through the same role.
       const el = slider({}, { appearance });
       const thumb = thumbOf(el);
-      expect(computed(thumb, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
+      expect(computed(thumb, "background-color")).toBe(colorOn(el, "var(--color-thumb)"));
       expect(computed(thumb, "border-top-color")).toBe(colorOn(el, "var(--control-edge)"));
+      if (appearance === "dark") {
+        // The decision, not the wiring: dark's handle must NOT be the seal it used to wear.
+        expect(computed(thumb, "background-color")).not.toBe(colorOn(el, "var(--color-surface)"));
+        expect(computed(thumb, "background-color")).toBe(colorOn(el, "var(--neutral-12)"));
+      }
+    });
+
+    it(`${appearance}: the thumb casts ALWAYS — flat world included (§5, §6)`, () => {
+      // The kill switch's second named exception, beside the circle: depth as role
+      // semantics. The cast is the palette's control row read as a VALUE, so neither the
+      // flat world nor a glass pane's one-lift rule can strip it.
+      const flat = slider({}, { appearance, surfaces: "flat" });
+      const probe = document.createElement("div");
+      probe.style.boxShadow = "var(--control-chrome)";
+      flat.append(probe);
+      const expected = computed(probe, "box-shadow");
+      expect(computed(thumbOf(flat), "box-shadow")).toBe(expected);
+      expect(computed(thumbOf(flat), "box-shadow")).not.toBe("none");
+      probe.remove();
+      const elevated = slider({}, { appearance, surfaces: "elevated" });
+      expect(computed(thumbOf(elevated), "box-shadow")).not.toBe("none");
     });
   }
 

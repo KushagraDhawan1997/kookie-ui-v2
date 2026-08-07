@@ -570,7 +570,7 @@ function slider(
   const { size = "2", value = 40, disabled, width = "220px" } = attrs;
   // Static stand-in for Base UI's inline geometry (edge alignment: the handle's extremes sit
   // flush with the rail's ends), so the page judges the dress the shipped component wears.
-  const thumb = `<div class="kui-mark kui-slider-thumb" style="position: absolute; inset-inline-start: calc(${value} * (100% - var(--kui-ct-mark)) / 100); top: 50%; translate: 0 -50%"></div>`;
+  const thumb = `<div class="kui-mark kui-slider-thumb" style="position: absolute; inset-inline-start: calc(${value} * (100% - var(--kui-ct-thumb-w)) / 100); top: 50%; translate: 0 -50%"></div>`;
   const fill = `<div class="kui-slider-fill" style="width: ${value}%"></div>`;
   return `<div class="kui-control kui-slider" data-size="${size}" data-tone="accent"${
     disabled ? " data-disabled" : ""

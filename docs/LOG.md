@@ -8,6 +8,55 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 The thumb leaves the family's square: a vertical capsule
+
+Kushagra: *"sliders thumb should be longer vertically."* The grip's fourth departure from
+the family on the same argument as the other three (dress, look, world switch): a grip is
+shaped by what it does. Its BLOCK size stays the mark ladder — one weight class beside a
+checkbox, the coarse rise still arriving through the family's own story — and the inline
+axis narrows to `--slider-thumb-w-N`: 10/12/14/16 raw designed px (the fourth family to
+hit the no-palette-rung wall), pointer-invariant because the block axis carries the coarse
+answer. The capsule radius is w/2 and stays role semantics: the radius axis never reaches
+it, `none` included — the circle's sentence widened, not broken. Material 3 took this
+direction to a 4px bar; iOS declined it entirely; ours is the subtle middle, v0 for the
+eye. Base UI measures the element's real width for edge alignment, so positioning needed
+nothing; the preview's static mock switched to the width token.
+
+---
+
+## 2026-08-07 The thumb casts always and goes light in the dark — the grip's two identities
+
+Kushagra, closing the thumb's deferral: *"Slider thumb needs elevation always, its how it
+should be, and dark shouldn't be dark."* Two decisions, both identity rather than dress.
+
+**The always-on cast is the kill switch's second named exception, beside the circle.** The
+elevated axis says flat worlds declare none, and the thumb breaches that on the same
+argument the radio's circle breaches `radius="none"`: role semantics outrank theme
+uniformity. A grip that does not sit above its rail stops reading as a grip, and every
+platform ships the handle shadowed in every context — iOS's thumb casts inside every app
+identity Apple has. Mechanically the breach IS the spelling: the thumb reads the palette
+row's VALUE (`--control-chrome`) instead of the world switch (`--kui-control-chrome`), so
+the flat world's `none` and the pane's one-lift stand-down simply never reach it. The
+box-shadow consumer-count law re-pins at three with the reason in its comment. No catch —
+a gradient on a near-white circle is invisible.
+
+**The fill left the seal: `--color-thumb`, the value-control family's third role.** Pinning
+the thumb to the seal made dark's handle seal-dark on a dark rail — nearly invisible, the
+exact failure the peer platforms avoid by keeping the handle LIGHT in dark (iOS ships it
+white). Light keeps the seal; dark takes `--neutral-12`. A role, not a family name at the
+consumption site, for the track well's own reason: the element stamps `accent`, so a
+neutral value can only arrive through the role layer. Routed through `--kui-ct-fill-src`
+so the disabled remap keeps winning — and the fill-triple law made the rule declare all
+three states identical, which is the honest spelling of "a handle does not fill, it moves."
+
+Unwound implicitly: the dark-rail contortions that existed to keep the rail off the
+thumb's colour stop being load-bearing (a near-white handle collides with nothing), though
+the rail's current steps stay until the eye pass says otherwise. Still open, unchanged:
+the thumb ignores `invalid` and `disabled` ring colours (the cascade problem LOG already
+records), and the slider remains deaf to `contrast="high"` on the outlined default path.
+
+---
+
 ## 2026-08-07 Elevation reaches the material: a pane transmits the shadow it is given and catches the light above it
 
 Kushagra, after the button light landed: *"What about material? How does elevated affect

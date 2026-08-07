@@ -454,6 +454,7 @@
   --kui-ct-mark: var(--mark-1);
   --kui-ct-mark-radius: var(--radius-mark-1);
   --kui-ct-track: var(--slider-track-1);
+  --kui-ct-thumb-w: var(--slider-thumb-w-1);
 }
 .kui-control[data-size="2"] {
   --kui-ct-h: var(--control-height-2);
@@ -469,6 +470,7 @@
   --kui-ct-mark: var(--mark-2);
   --kui-ct-mark-radius: var(--radius-mark-2);
   --kui-ct-track: var(--slider-track-2);
+  --kui-ct-thumb-w: var(--slider-thumb-w-2);
 }
 .kui-control[data-size="3"] {
   --kui-ct-h: var(--control-height-3);
@@ -484,6 +486,7 @@
   --kui-ct-mark: var(--mark-3);
   --kui-ct-mark-radius: var(--radius-mark-3);
   --kui-ct-track: var(--slider-track-3);
+  --kui-ct-thumb-w: var(--slider-thumb-w-3);
 }
 .kui-control[data-size="4"] {
   --kui-ct-h: var(--control-height-4);
@@ -499,6 +502,7 @@
   --kui-ct-mark: var(--mark-4);
   --kui-ct-mark-radius: var(--radius-mark-4);
   --kui-ct-track: var(--slider-track-4);
+  --kui-ct-thumb-w: var(--slider-thumb-w-4);
 }
 
 /* ── The emphasis ladder: loudness, not construction (§9) ────────────────────────────────── */
@@ -610,7 +614,8 @@
    emphasis-blind. The light never moves with state — the fill steps beneath it. Flat worlds
    declare none for both, so the default render is byte-identical to a world without these
    rules. Button and the checked marks today (the mark's ON rule maps the catch — a checked
-   fill is the family's loud rung, §11); the slider thumb joins when its light is designed. */
+   fill is the family's loud rung, §11); the thumb casts always, on its own authority —
+   slider.css states the exception. */
 .kui-button {
   box-shadow: var(--kui-ct-cast, none);
   background-image: var(--kui-ct-light, none);

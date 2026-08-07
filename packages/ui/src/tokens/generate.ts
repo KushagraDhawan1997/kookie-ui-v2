@@ -44,6 +44,7 @@ import {
   controlChrome,
   controlLight,
   shadow,
+  sliderThumbW,
   sliderTrack,
   space,
   surfaceChrome,
@@ -123,6 +124,14 @@ export function generateTokens(): string {
     "     :root — no scope below re-prices it, so there is nothing to re-declare. */",
   );
   sliderTrack.forEach((px, i) => lines.push(decl(`slider-track-${i + 1}`, zoom(px))));
+
+  lines.push(
+    "",
+    "  /* the thumb's inline width (§4, §6, 2026-08-07) — the grip leaves the family's square:",
+    "     block stays the mark ladder, inline narrows to a vertical capsule. Raw designed px,",
+    "     pointer-invariant: the coarse rise arrives through the block axis. */",
+  );
+  sliderThumbW.forEach((px, i) => lines.push(decl(`slider-thumb-w-${i + 1}`, zoom(px))));
 
   lines.push(
     "",

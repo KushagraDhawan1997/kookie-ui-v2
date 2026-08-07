@@ -20,6 +20,7 @@ import {
   lightness,
   lowChromaThreshold,
   controlEdgeLc,
+  thumbFill,
   trackWellStep,
   solidBand,
   solidPinBounds,
@@ -570,6 +571,11 @@ export function colorDeclarations(
   // Deliberately quieter than the mark edge — a well is a region the fill moves through,
   // not a hairline identity, and every platform ships it subtle.
   out.push(decl("color-track", `var(--neutral-${trackWellStep[mode]})`));
+
+  // The thumb's fill (§11, 2026-08-07) — the family's third role: a grip must be the most
+  // findable object on the rail, so dark goes near-white (iOS's own posture) where light
+  // keeps the seal. See thumbFill's comment in color-config.ts.
+  out.push(decl("color-thumb", thumbFill[mode]));
 
   return out;
 }
