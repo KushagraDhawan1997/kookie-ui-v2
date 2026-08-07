@@ -556,11 +556,11 @@ export function colorDeclarations(
   // solved to the non-text floor rather than picked from the ladder, because dark has no rung
   // near it and the nearest passing pick read as high-contrast at rest. Worn by the mark
   // family and, under the outlined look, the field family. See solveControlEdge.
-  out.push(decl("control-edge", solveControlEdge(mode, gamut, controlEdgeLc.mark.normal)));
+  out.push(decl("control-edge", solveControlEdge(mode, gamut, controlEdgeLc.mark.normal[mode])));
   // The field family's boundary sits one APCA tier down (2026-08-07): a field is a LARGE
   // element, and the guidance holds large/solid non-text to 30 where fine detail owes 45 —
   // at equal colour, the long border of a big box reads far heavier than a mark's ring.
-  out.push(decl("field-edge", solveControlEdge(mode, gamut, controlEdgeLc.field.normal)));
+  out.push(decl("field-edge", solveControlEdge(mode, gamut, controlEdgeLc.field.normal[mode])));
 
   // The track well (§7, §11, decided 2026-08-06 with Slider) — the low neutral bed a value
   // runs in: the slider's track now, the switch's off-track and progress/meter when they

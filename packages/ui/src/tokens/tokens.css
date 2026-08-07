@@ -1527,8 +1527,8 @@
   --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
   --focus-ring: var(--accent-11);
   --invalid-edge: var(--destructive-11);
-  --control-edge: #95999c;
-  --field-edge: #777b7e;
+  --control-edge: #75787b;
+  --field-edge: #525557;
   --color-track: var(--neutral-4);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
@@ -2446,8 +2446,8 @@
     --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
     --focus-ring: var(--accent-11);
     --invalid-edge: var(--destructive-11);
-    --control-edge: color(display-p3 0.5865 0.5976 0.6116);
-    --field-edge: color(display-p3 0.4701 0.48 0.4926);
+    --control-edge: color(display-p3 0.4591 0.4688 0.4811);
+    --field-edge: color(display-p3 0.3239 0.3311 0.3402);
     --color-track: var(--neutral-4);
   }
 }

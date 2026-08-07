@@ -8,6 +8,33 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 Dark's control edges rest softer than light's — the split's first taste edit, and the direction becomes a law
+
+The morning's solve held one Lc target across both modes, and the peer comparison said that
+is not how a border feels: at the same Lc 46, the ring measures 2.4:1 on white and 6.4:1 on
+the dark page — the WCAG 2 meter's dark-bed inflation agreeing with the eye that a mid-grey
+line GLOWS in a dark UI. Every peer ships dark borders fainter than light ones (Radix and
+shadcn near 1.2–1.5:1 against our 4.3–6.4), and the original complaint that started the
+control-edge work — "what I would expect when high contrast is on" — was a dark-mode
+complaint. So `controlEdgeLc`'s normal targets split per mode, dark under light. The first
+pair (mark 38, field 24 — one notch down) was judged in the preview and still read heavy;
+Kushagra moved both to the tier below: **mark 46 light / 30 dark, field 31 light / 15
+dark**, rendering dark `#95999c → #75787b` and `#777b7e → #525557` — each dark family now
+resting one full APCA tier under its light self (fine detail → large, large →
+discernibility). Light is untouched; `high` stays mode-invariant, because conformance does
+not dim with the lights, and the anchor law now steps `high` above BOTH modes' resting
+values.
+
+This is exactly the edit the mode split exists to permit — a taste value moved by eye with
+the report watching — so the entry is here for the one durable part: the DIRECTION is now a
+law (dark < light per family), while the values stay free. A future "simplify: one target"
+cleanup has to argue with the glow, not just flatten a table.
+
+Even at the softened pair, dark sits above the peers (4.1:1 ring, 2.4:1 field on the WCAG
+meter, where Radix and shadcn ship ~1.2–1.5:1) — the report keeps both meters in every run.
+
+---
+
 ## 2026-08-07 The contrast rule splits by mode: taste rules standard, APCA rules high contrast — borders and fills only
 
 The rule, verbatim from Kushagra: "APCA rule checks for high contrast mode, taste over APCA

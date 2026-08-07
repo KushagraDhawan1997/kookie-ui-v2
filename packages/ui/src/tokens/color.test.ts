@@ -664,9 +664,9 @@ describe("the control edge renders its stated targets, and the floors bind under
         const edge = hexOf(mode, role);
         const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
         const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
-        expect(worst, `${mode} ${role} under its stated target`).toBeGreaterThanOrEqual(lc.normal);
+        expect(worst, `${mode} ${role} under its stated target`).toBeGreaterThanOrEqual(lc.normal[mode]);
         expect(worst, `${mode} ${role} overshoots — the solve regressed to a pick`).toBeLessThanOrEqual(
-          lc.normal + 4,
+          lc.normal[mode] + 4,
         );
       });
 
@@ -691,8 +691,18 @@ describe("the control edge renders its stated targets, and the floors bind under
     // setting always does something.
     expect(controlEdgeLc.mark.high).toBeGreaterThanOrEqual(apcaFloors.nonText);
     expect(controlEdgeLc.field.high).toBeGreaterThanOrEqual(apcaFloors.nonText);
-    expect(controlEdgeLc.mark.high).toBeGreaterThan(controlEdgeLc.mark.normal);
-    expect(controlEdgeLc.field.high).toBeGreaterThan(controlEdgeLc.field.normal);
+    for (const mode of MODES) {
+      expect(controlEdgeLc.mark.high).toBeGreaterThan(controlEdgeLc.mark.normal[mode]);
+      expect(controlEdgeLc.field.high).toBeGreaterThan(controlEdgeLc.field.normal[mode]);
+    }
+  });
+
+  it("dark rests softer than light — the taste decision, not an accident (2026-08-07)", () => {
+    // Equal Lc across modes renders a heavier line in dark (a mid-grey glows on a dark
+    // bed), so dark's resting targets sit under light's by decision. Direction only —
+    // the values themselves are taste and the eye pass moves them freely.
+    expect(controlEdgeLc.mark.normal.dark).toBeLessThan(controlEdgeLc.mark.normal.light);
+    expect(controlEdgeLc.field.normal.dark).toBeLessThan(controlEdgeLc.field.normal.light);
   });});
 
 describe("the standard-mode dress report — measured to know, never to validate (§5, §7)", () => {

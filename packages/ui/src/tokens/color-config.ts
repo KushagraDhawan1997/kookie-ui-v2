@@ -214,16 +214,23 @@ export type Mode = keyof typeof lightness;
  * signals, not dress. Second clause: taste stays contrast-INFORMED — the suite prints a
  * per-run report of every resting border and fill against its advisory tier, on both
  * meters, to catch how off we are without failing on it.
+ *
+ * DARK RESTS SOFTER (decided 2026-08-07, Kushagra — the first taste edit the split
+ * exists to permit). Equal Lc across modes renders a heavier line in dark: a mid-grey
+ * glows against a dark bed (the WCAG 2 meter agrees — the same Lc 46 measures 2.4:1 on
+ * white and 6.4:1 on the dark page), and the peers ship dark borders far fainter than
+ * light ones. So `normal` is per mode, dark one notch under light; `high` stays
+ * mode-invariant, because conformance does not dim with the lights.
  */
 export const controlEdgeLc = {
   /** The mark family: high is the tier above fine detail; normal is the v0 taste value. */
-  mark: { normal: 46, high: 60 },
+  mark: { normal: { light: 46, dark: 30 }, high: 60 },
   /** The field family: a field is a LARGE element (Kushagra, 2026-08-07 — "Text Field +
       Area being much larger than checkbox, they appear very dark"), so its resting value
       sits a tier below the mark's and its high-contrast answer is the fine-detail tier —
       a field under contrast="high" wears what a mark wears at rest, one ladder, offset by
       size class. */
-  field: { normal: 31, high: 46 },
+  field: { normal: { light: 31, dark: 15 }, high: 46 },
 } as const;
 
 /**
