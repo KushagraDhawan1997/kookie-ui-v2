@@ -43,6 +43,14 @@
   inherits: false;
 }
 
+/* The glass cast value must NOT inherit, same lesson one seam over: it is declared on the
+   element wearing [data-material], and a loud button hosted in a glass field's slot would
+   otherwise inherit the field's faded row and cast as if it were itself glass. */
+@property --kui-ct-cast-glass {
+  syntax: "*";
+  inherits: false;
+}
+
 /* Registered as a LENGTH, and that is the whole mechanism. An unregistered custom property
    inherits as a token stream, so `var(--kui-ct-h)` inside it would be substituted on the element
    that USES it — the hosted control, where --kui-ct-h is that control's own height — and the
@@ -517,7 +525,7 @@
   /* The elevated world's light is part of the rung (§5 amended 2026-08-07, §19): a rung
      with a solid fill casts the palette's control row and catches light on top. The world
      tokens resolve to none in a flat world, so this line is inert on the default path. */
-  --kui-ct-cast: var(--kui-control-chrome, none);
+  --kui-ct-cast: var(--kui-ct-cast-glass, var(--kui-control-chrome, none));
   --kui-ct-light: var(--kui-control-light, none);
 }
 
@@ -531,7 +539,7 @@
      fog (judged three times in the preview, 2026-08-07). Gradient light is for saturated
      solid fills; a pale button carries shadow alone, which is what the reference buttons
      this world was designed from do. */
-  --kui-ct-cast: var(--kui-control-chrome, none);
+  --kui-ct-cast: var(--kui-ct-cast-glass, var(--kui-control-chrome, none));
   --kui-ct-light: none;
 }
 
@@ -577,7 +585,10 @@
      inherits this tone-border and wears the control boundary too, which is stated rather
      than accidental. */
   --tone-border: var(--field-edge);
-  --kui-border-color: var(--look-field-border, var(--tone-border));
+  /* The glass edge slots into the chain HERE, outside the material section, so the material
+     rules never name a tone role: undeclared for a solid field, the chain falls through to
+     the look and tone exactly as before. */
+  --kui-border-color: var(--kui-ct-glass-edge, var(--look-field-border, var(--tone-border)));
   /* The field REJOINS elevation — at control scale (§5, the third flip, 2026-08-07,
      Kushagra: fields "need the same shadow elevation button got"). What 2026-08-06
      rejected was SURFACE-scale depth: fields lifting with the cards. Control-scale light
@@ -586,7 +597,7 @@
      Stripe ship exactly this posture). Routed like the button's: the world token stands
      down in flat, inside panes (one lift), and under the disabled arm. No catch — a field
      has no solid fill to light. */
-  --kui-ct-cast: var(--kui-control-chrome, none);
+  --kui-ct-cast: var(--kui-ct-cast-glass, var(--kui-control-chrome, none));
   box-shadow: var(--kui-ct-cast, none);
 }
 
@@ -668,6 +679,7 @@
      this is a no-op. Marks need no arm — their border IS --tone-border, and this rule
      already wins that battle at (0,2,0). */
   --look-field-border: initial;
+  --kui-ct-glass-edge: initial;
   /* And the elevated light stands down the same way (§5, 2026-08-07): a disabled control
      makes no promise, so it neither hovers above the page nor catches light. `initial`
      makes the world tokens guaranteed-invalid here; the consumption sites fall back to
@@ -708,8 +720,10 @@
   --tone-border: var(--invalid-edge);
   --focus-ring: var(--invalid-edge);
   /* State outranks dress (§19) — same sentence as the disabled arm above: filled's
-     transparent resting border must not swallow the error edge. */
+     transparent resting border must not swallow the error edge, and neither must the
+     material's glass edge (2026-08-07). */
   --look-field-border: initial;
+  --kui-ct-glass-edge: initial;
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,
@@ -755,18 +769,65 @@
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thin-alpha-hover), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thin-alpha-active), transparent);
     backdrop-filter: var(--material-thin-filter);
+    /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
+       the control row faded per thickness, handed by the elevated scope — none in flat,
+       none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
+       rungs that already cast consume it (quiet glass stays uncast), and the sealed
+       fallback and reduced-transparency stand it down — a sealed pane is not glass. */
+    --kui-ct-cast-glass: var(--kui-control-chrome-thin, none);
   }
   .kui-control[data-material="regular"] {
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-regular-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-regular-alpha-hover), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-regular-alpha-active), transparent);
     backdrop-filter: var(--material-regular-filter);
+    /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
+       the control row faded per thickness, handed by the elevated scope — none in flat,
+       none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
+       rungs that already cast consume it (quiet glass stays uncast), and the sealed
+       fallback and reduced-transparency stand it down — a sealed pane is not glass. */
+    --kui-ct-cast-glass: var(--kui-control-chrome-regular, none);
   }
   .kui-control[data-material="thick"] {
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thick-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thick-alpha-hover), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thick-alpha-active), transparent);
     backdrop-filter: var(--material-thick-filter);
+    /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
+       the control row faded per thickness, handed by the elevated scope — none in flat,
+       none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
+       rungs that already cast consume it (quiet glass stays uncast), and the sealed
+       fallback and reduced-transparency stand it down — a sealed pane is not glass. */
+    --kui-ct-cast-glass: var(--kui-control-chrome-thick, none);
+  }
+
+  /* The pane parts reach the FIELD family (§10, 2026-08-07, Kushagra: "text field and
+     area was left behind" — the card's fix, one layer down). A field is bordered by
+     identity, and an opaque tone border on a pane of light is the sticker the surface fix
+     named; the pane's own translucent EDGE takes its place, and the RIM — the top light
+     catch, lifted under an elevated sun by the world's remap — paints from the border box
+     so it slides UNDER the edge (the two-stacked-lines dead end, §5). Routed through ONE
+     private name so the state arms can stand the glass edge down with one line: an invalid
+     or disabled glass field wears the state's border, never the material's. Buttons are
+     untouched — borderless by rank, their glass needs no edge. */
+  .kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
+  .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+    background-origin: border-box;
+  }
+  .kui-field:where([data-material="thin"]),
+  .kui-textarea:where([data-material="thin"]) {
+    --kui-ct-glass-edge: var(--material-thin-edge);
+    background-image: var(--material-thin-rim, none);
+  }
+  .kui-field:where([data-material="regular"]),
+  .kui-textarea:where([data-material="regular"]) {
+    --kui-ct-glass-edge: var(--material-regular-edge);
+    background-image: var(--material-regular-rim, none);
+  }
+  .kui-field:where([data-material="thick"]),
+  .kui-textarea:where([data-material="thick"]) {
+    --kui-ct-glass-edge: var(--material-thick-edge);
+    background-image: var(--material-thick-rim, none);
   }
 }
 
@@ -778,5 +839,11 @@
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-opaque-alpha), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-opaque-alpha), transparent);
     backdrop-filter: none;
+    /* No glass, no pane: the glass edge and rim stand down (the field takes its ordinary
+       border back) and the cast returns to the full control row — a sealed pane is not
+       glass and stops transmitting (§10). */
+    --kui-ct-glass-edge: initial;
+    background-image: none;
+    --kui-ct-cast-glass: initial;
   }
 }

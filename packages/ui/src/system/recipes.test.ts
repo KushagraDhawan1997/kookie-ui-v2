@@ -351,11 +351,15 @@ describe("invalid is a state remap, and it belongs to every control (§8)", () =
 });
 
 describe("material on a control: backdrop defense, three environments (§10)", () => {
-  it("each material is defined exactly three times — fallback, recipe, reduced-transparency", () => {
-    // Three environments, not three designs — the same shape the surface layer wears.
+  it("each material appears exactly seven times — three environments plus the field family's pane parts", () => {
+    // Three environments, not three designs — the same shape the surface layer wears —
+    // plus four mentions for the FIELD family's glass parts (2026-08-07): two selectors in
+    // the shared origin rule and two in the per-thickness edge/rim rule, because a field
+    // is bordered by identity and its glass wears the pane's own edge where a button,
+    // borderless by rank, needs none.
     for (const m of GLASS_MATERIALS) {
       const occurrences = recipes.match(new RegExp(`\\[data-material="${m}"\\]`, "g")) ?? [];
-      expect(occurrences).toHaveLength(3);
+      expect(occurrences).toHaveLength(7);
     }
   });
 
@@ -524,7 +528,9 @@ describe("the ring and the chrome are designed once, applied wherever they land 
     // rung's statement, and a lit rung's cast IS the world chrome — nothing in between may
     // substitute its own value.
     const recipesCss = sheets.find(([file]) => file.endsWith("recipes.css"))![1];
-    expect(recipesCss).toContain("--kui-ct-cast: var(--kui-control-chrome, none)");
+    expect(recipesCss).toContain(
+      "--kui-ct-cast: var(--kui-ct-cast-glass, var(--kui-control-chrome, none))",
+    );
     expect(recipesCss).toContain("--kui-ct-light: var(--kui-control-light, none)");
   });
 });

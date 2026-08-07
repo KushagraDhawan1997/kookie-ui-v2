@@ -8,6 +8,38 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 The pane parts reach the field family — the card's material fix, one layer down
+
+Kushagra: *"The text field and text area's material representation is bad. We fixed this
+with card, but seems like text field and area was left behind."* True on all three parts:
+a glass field wore an opaque tone border on a pane of light — the exact sticker the
+2026-08-05 card fix named — no rim, and cast the full control row as if solid.
+
+What landed, all through the material's existing vocabulary:
+
+- **Edge:** the glass field wears `--material-<t>-edge`, routed through ONE private name
+  (`--kui-ct-glass-edge`) slotted into the field's border chain OUTSIDE the material
+  section — which keeps the material rules free of tone names (the material-names-no-colour
+  law caught the first spelling) — and lets the invalid and disabled arms stand it down
+  with one line each: state outranks glass, mounted.
+- **Rim:** the top light catch, painted from the border box so it slides UNDER the edge
+  (the two-stacked-lines dead end, avoided this time on the first try), lifted under an
+  elevated sun by the world's existing remap.
+- **Transmission:** glass CONTROLS cast the control row faded per thickness
+  (`--control-chrome-<t>`, derived from row 2 exactly as the pane's rows derive from row
+  3). Routed through `--kui-ct-cast-glass`, an intermediate only casting rungs consume —
+  the first spelling re-pointed `--kui-ct-cast` directly and would have given a QUIET
+  glass button a shadow (caught by refutation before tests) — and registered
+  `inherits: false`, so a loud button hosted in a glass field's slot does not cast as if
+  it were itself glass. Sealed fallback and reduced transparency stand the glass value
+  down: a sealed pane is not glass.
+
+Buttons deliberately get no glass edge — borderless by rank, their glass needs none. The
+material occurrence law learned the fourth legitimate site (3 environments + the field
+family's pane parts) and re-pinned at seven.
+
+---
+
 ## 2026-08-07 Fields rejoin elevation at control scale — the third flip, and why it is not a waffle
 
 Kushagra: *"I would argue that text field + area also need the same shadow elevation button

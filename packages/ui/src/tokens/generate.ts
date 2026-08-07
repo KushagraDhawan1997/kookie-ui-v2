@@ -648,6 +648,11 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     ...(["thin", "regular", "thick"] as const).map((t) =>
       decl(`surface-chrome-${t}`, fadeShadow(shadow[mode][2]!, material.transmission[t])),
     ),
+    `  /* and the CONTROL row transmitted, for glass controls — a glass field or button casts`,
+    `     fainter for the same reason a pane does (§10, 2026-08-07). */`,
+    ...(["thin", "regular", "thick"] as const).map((t) =>
+      decl(`control-chrome-${t}`, fadeShadow(shadow[mode][1]!, material.transmission[t])),
+    ),
   ];
 }
 

@@ -98,8 +98,10 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // stands the cast down (glass never floats in a flat world) and leaves the resting rim.
     for (const t of ["thin", "regular", "thick"]) {
       expect(body).toContain(`--kui-surface-chrome-${t}: var(--surface-chrome-${t})`);
+      expect(body).toContain(`--kui-control-chrome-${t}: var(--control-chrome-${t})`);
       expect(body).toContain(`--material-${t}-rim: var(--material-${t}-rim-lifted)`);
       expect(flat).toContain(`--kui-surface-chrome-${t}: none`);
+      expect(flat).toContain(`--kui-control-chrome-${t}: none`);
       expect(flat).not.toContain(`--material-${t}-rim:`);
     }
     // Add depth, change nothing else: the edge stays --tone-border, so it keeps its
@@ -198,15 +200,23 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     // truth, the exact thing Kushagra's refutation killed for buttons — fails here.
     for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
       const body = block(tokens, scope);
-      const row = body.split("\n").find((l) => l.includes("--shadow-3:"))!;
-      for (const [t, factor] of [["thin", 0.35], ["regular", 0.55], ["thick", 0.75]] as const) {
-        const line = body.split("\n").find((l) => l.includes(`--surface-chrome-${t}:`))!;
-        const expected = row
-          .slice(row.indexOf(":") + 1)
-          .replace(/\/ ([0-9.]+)\)/g, (_, a) => `/ ${Number((parseFloat(a) * factor).toFixed(3))})`)
-          .trim()
-          .replace(/;$/, "");
-        expect(line.slice(line.indexOf(":") + 1).trim().replace(/;$/, "")).toBe(expected);
+      // Both transmitted families, each from its own row: panes fade row 3, glass CONTROLS
+      // (fields, buttons) fade row 2 — extended 2026-08-07 when the field family got the
+      // pane parts the cards got.
+      for (const [rowName, chrome] of [
+        ["--shadow-3:", "surface-chrome"],
+        ["--shadow-2:", "control-chrome"],
+      ] as const) {
+        const row = body.split("\n").find((l) => l.includes(rowName))!;
+        for (const [t, factor] of [["thin", 0.35], ["regular", 0.55], ["thick", 0.75]] as const) {
+          const line = body.split("\n").find((l) => l.includes(`--${chrome}-${t}:`))!;
+          const expected = row
+            .slice(row.indexOf(":") + 1)
+            .replace(/\/ ([0-9.]+)\)/g, (_, a) => `/ ${Number((parseFloat(a) * factor).toFixed(3))})`)
+            .trim()
+            .replace(/;$/, "");
+          expect(line.slice(line.indexOf(":") + 1).trim().replace(/;$/, "")).toBe(expected);
+        }
       }
     }
   });

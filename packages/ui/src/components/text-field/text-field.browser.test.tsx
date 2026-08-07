@@ -498,6 +498,37 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(glass, "background-color")).not.toMatch(/^rgb\(/);
   });
 
+  it("a glass field wears the PANE's parts: edge, rim, and the transmitted cast (§10)", () => {
+    // The card's material fix, one layer down (Kushagra, 2026-08-07: "text field and area
+    // was left behind"): an opaque tone border on a pane of light is a sticker, so glass
+    // fields wear the material's own translucent edge and top rim — and in an elevated
+    // world they cast the CONTROL row transmitted, fainter than a solid field's.
+    const glass = render(<TextField material="thin" />);
+    expect(computed(glass, "border-top-color")).toBe(colorOn(glass, "var(--material-thin-edge)"));
+    expect(computed(glass, "background-image")).not.toBe("none");
+    expect(computed(glass, "box-shadow")).toBe("none"); // flat: glass never floats
+
+    const elevated = mounted(<TextField material="thin" />, { theme: { surfaces: "elevated" } });
+    const solid = mounted(<TextField />, { theme: { surfaces: "elevated" } });
+    const probe = document.createElement("div");
+    probe.style.boxShadow = "var(--control-chrome-thin)";
+    elevated.append(probe);
+    expect(computed(elevated, "box-shadow")).toBe(computed(probe, "box-shadow"));
+    expect(computed(elevated, "box-shadow")).not.toBe("none");
+    expect(computed(elevated, "box-shadow")).not.toBe(computed(solid, "box-shadow"));
+    probe.remove();
+  });
+
+  it("state outranks glass: an invalid or disabled glass field wears the state's border", () => {
+    // The glass edge routes through one private name exactly so these two arms can stand it
+    // down with one line each — without this, the brightest hairline in the field's world
+    // would keep painting over the error signal.
+    const invalid = render(<TextField material="thin" aria-invalid="true" />);
+    expect(computed(invalid, "border-top-color")).toBe(colorOn(invalid, "var(--invalid-edge)"));
+    const disabled = render(<TextField material="thin" disabled />);
+    expect(computed(disabled, "border-top-color")).toBe(colorOn(disabled, "var(--neutral-6)"));
+  });
+
   it("resolves differently under a dark Theme — both directions of every axis", () => {
     const light = render(<TextField />);
     const dark = mounted(<TextField />, { theme: { appearance: "dark" } });

@@ -179,6 +179,9 @@
   --kui-surface-chrome-thin: var(--surface-chrome-thin);
   --kui-surface-chrome-regular: var(--surface-chrome-regular);
   --kui-surface-chrome-thick: var(--surface-chrome-thick);
+  --kui-control-chrome-thin: var(--control-chrome-thin);
+  --kui-control-chrome-regular: var(--control-chrome-regular);
+  --kui-control-chrome-thick: var(--control-chrome-thick);
   --material-thin-rim: var(--material-thin-rim-lifted);
   --material-regular-rim: var(--material-regular-rim-lifted);
   --material-thick-rim: var(--material-thick-rim-lifted);
@@ -191,6 +194,9 @@
   --kui-surface-chrome-thin: none;
   --kui-surface-chrome-regular: none;
   --kui-surface-chrome-thick: none;
+  --kui-control-chrome-thin: none;
+  --kui-control-chrome-regular: none;
+  --kui-control-chrome-thick: none;
 }
 
 .kui-surface {
@@ -226,6 +232,9 @@
      control's own fill, which glass never changes. Inherited, so it needs no selector into
      the control layer; a control outside a pane is untouched. */
   --kui-control-chrome: none;
+  --kui-control-chrome-thin: none;
+  --kui-control-chrome-regular: none;
+  --kui-control-chrome-thick: none;
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-opaque-alpha), transparent);
