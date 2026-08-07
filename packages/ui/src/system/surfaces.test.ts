@@ -190,7 +190,12 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     // tunes every consumer of that height.
     expect(surfaces).not.toContain("--shadow-");
     expect(tokens).toContain("--surface-chrome: var(--shadow-3)");
-    expect(tokens).toContain("--control-chrome: var(--shadow-2)");
+    // The control chrome composes row 2 plus the crisp inset rim, in BOTH modes (the light
+    // rim landed 2026-08-07 — the top catch that reads as an edge is a line, not a wash).
+    for (const line of tokens.split("\n").filter((l) => l.includes("--control-chrome:"))) {
+      expect(line).toContain("var(--shadow-2)");
+      expect(line).toContain("inset 0 1px 0 rgb(255 255 255");
+    }
     expect(tokens).toContain("inset 0 1px 0");
   });
 });

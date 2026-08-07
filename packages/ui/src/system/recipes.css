@@ -512,8 +512,12 @@
   --kui-ct-fill-src-active: var(--tone-soft-active);
   /* A control label is not a link: --tone-label sits between steps 11 and 12 (§7). */
   --kui-ct-label-color: var(--tone-label);
+  /* Raised, so it casts — but no catch: a white wash over a pastel fill can only read as
+     fog (judged three times in the preview, 2026-08-07). Gradient light is for saturated
+     solid fills; a pale button carries shadow alone, which is what the reference buttons
+     this world was designed from do. */
   --kui-ct-cast: var(--kui-control-chrome, none);
-  --kui-ct-light: var(--kui-control-light, none);
+  --kui-ct-light: none;
 }
 
 [data-emphasis="quiet"] {

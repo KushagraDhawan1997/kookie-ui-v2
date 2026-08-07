@@ -594,7 +594,11 @@ export const shadow = {
   // as offset growth rather than fog. v0 values, judged in the preview.
   light: [
     "inset 0 1px 1px rgb(0 0 0 / 0.12), inset 0 2px 4px rgb(0 0 0 / 0.06)",
-    "0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 2px 4px -2px rgb(0 0 0 / 0.07)",
+    // Row 2's two edge rules (Kushagra, from the preview: "a dark line at top, a light at
+    // bottom"): the CONTACT hugs — no negative spread, so no bright seam opens between the
+    // bottom edge and its own shadow — and the AMBIENT stays strictly below the top edge
+    // (blur − offset − pull-in < 0; at exactly 0 it kisses the edge and reads as a fringe).
+    "0 1px 1px rgb(0 0 0 / 0.1), 0 2px 4px -2.5px rgb(0 0 0 / 0.08)",
     "0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 3px 8px -3px rgb(0 0 0 / 0.11)",
     "0 2px 2px -1px rgb(0 0 0 / 0.11), 0 8px 16px -5px rgb(0 0 0 / 0.12)",
     "0 3px 3px -1.5px rgb(0 0 0 / 0.11), 0 16px 32px -8px rgb(0 0 0 / 0.14)",
@@ -603,7 +607,7 @@ export const shadow = {
   // because a dark page swallows shadow.
   dark: [
     "inset 0 1px 1px rgb(0 0 0 / 0.5), inset 0 2px 4px rgb(0 0 0 / 0.25)",
-    "0 1px 1px -0.5px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.35)",
+    "0 1px 1px rgb(0 0 0 / 0.45), 0 2px 4px -2.5px rgb(0 0 0 / 0.35)",
     "0 1px 1px -0.5px rgb(0 0 0 / 0.45), 0 3px 8px -3px rgb(0 0 0 / 0.4)",
     "0 2px 2px -1px rgb(0 0 0 / 0.45), 0 8px 16px -5px rgb(0 0 0 / 0.45)",
     "0 3px 3px -1.5px rgb(0 0 0 / 0.45), 0 16px 32px -8px rgb(0 0 0 / 0.5)",
@@ -641,7 +645,12 @@ export const surfaceChrome = {
  * the surface chrome's own sentence one scale down.
  */
 export const controlChrome = {
-  light: "var(--shadow-2)",
+  // BOTH modes carry the crisp inset rim (researched 2026-08-07: Primer's shadow-highlight,
+  // the tactile-button recipes — the top catch that reads as a machined edge is a 1px inset
+  // LINE, not a gradient wash; light shipped without it and its buttons read as fills with
+  // shadows rather than objects). The rim lives in the chrome, so every rung that casts
+  // also catches the edge — the gradient is a separate, loud-only statement.
+  light: "inset 0 1px 0 rgb(255 255 255 / 0.25), var(--shadow-2)",
   dark: "inset 0 1px 0 rgb(255 255 255 / 0.06), var(--shadow-2)",
 } as const;
 
@@ -660,8 +669,8 @@ export const controlLight = {
   // fill (Kushagra, on sight). A gradient may never leave a visible shelf: every stop
   // sits where its layer's alpha is already near zero.
   light:
-    "linear-gradient(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0) 55%), linear-gradient(rgb(0 0 0 / 0) 45%, rgb(0 0 0 / 0.04))",
-  dark: "linear-gradient(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.01) 55%), linear-gradient(rgb(0 0 0 / 0) 45%, rgb(0 0 0 / 0.09))",
+    "linear-gradient(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0) 62%), linear-gradient(rgb(0 0 0 / 0) 38%, rgb(0 0 0 / 0.05))",
+  dark: "linear-gradient(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.01) 62%), linear-gradient(rgb(0 0 0 / 0) 38%, rgb(0 0 0 / 0.10))",
 } as const;
 
 /**

@@ -383,10 +383,13 @@ describe("the boundary (§3, §13)", () => {
       </Button>,
       { theme: { surfaces: "elevated" } },
     );
+    // The cast is exactly the world's control chrome (which the node laws pin to row 2
+    // plus the inset rim) — no button owns a shadow of its own.
     const probe = document.createElement("div");
-    probe.style.boxShadow = "var(--shadow-2)";
+    probe.style.boxShadow = "var(--control-chrome)";
     el.append(probe);
     expect(computed(el, "box-shadow")).toBe(computed(probe, "box-shadow"));
+    expect(computed(el, "box-shadow")).not.toBe("none");
     probe.remove();
     expect(computed(el, "background-image")).toContain("linear-gradient");
   });
@@ -423,13 +426,23 @@ describe("the boundary (§3, §13)", () => {
       { theme: { surfaces: "elevated" } },
     );
     const destructive = mounted(
-      <Button tone="destructive" emphasis="medium">
+      <Button tone="destructive" emphasis="loud">
         B
       </Button>,
       { theme: { surfaces: "elevated" } },
     );
     expect(computed(accent, "background-image")).toBe(computed(destructive, "background-image"));
     expect(computed(accent, "box-shadow")).toBe(computed(destructive, "box-shadow"));
+    // Medium is raised, so it casts — but a white wash over a pastel fill reads as fog, so
+    // the catch is loud's alone (judged in the preview, three rounds).
+    const medium = mounted(
+      <Button tone="accent" emphasis="medium">
+        M
+      </Button>,
+      { theme: { surfaces: "elevated" } },
+    );
+    expect(computed(medium, "box-shadow")).toBe(computed(accent, "box-shadow"));
+    expect(computed(medium, "background-image")).toBe("none");
     const disabled = mounted(
       <Button tone="accent" emphasis="loud" disabled>
         C
