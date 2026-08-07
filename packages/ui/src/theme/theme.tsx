@@ -13,8 +13,10 @@ export type Contrast = "normal" | "high";
     desktop. There is no separate `device` prop: coarse means handheld (dropped 2026-08-05,
     LOG records what to bring back if a touch-at-a-distance case ever needs the two apart). */
 export type Pointer = "fine" | "coarse" | "auto";
-/** §10 — do surfaces sit up. The semantic is elevation-as-identity; shadow row 2 is merely
-    its current resolution. An app choice made once, never a per-card knob. */
+/** §10 — do surfaces sit up, and (since 2026-08-07) do raised controls catch light. The
+    semantic is elevation-as-identity; the palette rows behind it — 3 for surfaces, 2 for
+    controls — are merely its current resolution. An app choice made once, never a per-card
+    knob. */
 export type Surfaces = "flat" | "elevated";
 /** §19 — the resting dress of the one-look families (surfaces, fields, marks): does the app
     draw their boundary as a hairline or as a darkened well. Border on a CONTROL is rank

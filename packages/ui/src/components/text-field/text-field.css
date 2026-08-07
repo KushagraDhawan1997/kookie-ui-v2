@@ -43,9 +43,18 @@
      never mentions the painted variable (the checkbox audit's law), so the field-family
      rule in recipes.css routes --kui-border-color through --look-field-border there. */
 
-  /* No box-shadow, and that is a decision (§5, reversed 2026-08-06): a field is a WELL —
-     content of a plane, not a plane above one — and a recessed thing cannot cast a drop
-     shadow. The elevated world lifts actual surfaces; a field inside it stays flat. */
+  /* No box-shadow in THIS file, and that is still a decision (§5): depth is never a
+     component's own idea. What changed is which depth a field gets — the third flip, and it
+     is the shared layer's to make, not this one's.
+
+     2026-08-04 fields lifted with the cards. 2026-08-06 that was reversed on the plane
+     criterion: a field is a WELL, content of a plane rather than a plane above one, and a
+     recessed thing cannot cast a drop shadow. 2026-08-07 they rejoined at CONTROL scale,
+     which is a different claim and not a reversal of the reasoning — what 2026-08-06
+     rejected was fields lifting like cards, and control-scale light did not exist yet. A
+     field is a raised control and casts the control row, never the card's; shadcn and
+     Stripe ship exactly this. The rule lives in recipes.css with the rest of the field
+     family. */
 }
 
 /* And the same sentence again, for the fill the shared layer DERIVES (fixed 2026-08-05). The

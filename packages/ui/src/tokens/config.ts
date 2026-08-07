@@ -643,8 +643,12 @@ export const shadow = {
 
 /**
  * §5/§10 — the elevated world's dressing, COMPOSED from the palette, never restating it:
- * shadow = elevation, one lighting model, and row 2 is its single source of truth — tune
- * `shadow[..][1]` and every elevated surface follows. The edge is NOT special: elevated
+ * shadow = elevation, one lighting model, and row 3 is its single source of truth — tune
+ * `shadow[..][2]` and every elevated SURFACE follows. (Row 3, not 2, since the palette gained
+ * the control drop at row 2 and renumbered, 2026-08-07 — this line still said `[1]` for a day
+ * afterwards, which pointed whoever came to tune a card's depth at every button, field and
+ * slider handle instead. controlChrome below is the one that reads row 2.) The edge is NOT
+ * special: elevated
  * surfaces keep the same `--tone-border` as flat ones — which is what keeps them sharp and
  * what lets contrast="high" reach the edge through the tone system, free (two earlier
  * attempts failed: an inset ring painted inside the transparent border and read as two

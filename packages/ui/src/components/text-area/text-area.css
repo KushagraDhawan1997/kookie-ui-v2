@@ -52,8 +52,9 @@
   /* The look's edge (§19) is the shared layer's field-family rule in recipes.css — a
      component sheet never mentions the painted variable (the checkbox audit's law). */
 
-  /* No box-shadow, and that is a decision (§5, reversed 2026-08-06): a field is a well, and
-     wells stay flat in an elevated world — the same sentence as text-field.css. */
+  /* No box-shadow in this file, and that is still a decision (§5): a field's depth is the
+     shared layer's, and since 2026-08-07 it is the CONTROL row rather than the card's — the
+     third flip, told in full in text-field.css beside the same absence. */
 
   /* The one resize axis that cannot break a layout: horizontal resize makes the element wider
      than the column that owns it, so the handle offers height only. `none` and `both` are one
