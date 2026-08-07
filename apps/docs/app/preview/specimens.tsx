@@ -22,6 +22,7 @@ import {
   Heading,
   Radio,
   RadioGroup,
+  Separator,
   Slider,
   Spinner,
   Stack,
@@ -344,6 +345,32 @@ function RadioSection() {
   );
 }
 
+function SeparatorSection() {
+  return (
+    <Stack gap="6">
+      {/* Horizontal: the rule fills the block that owns it, and the Stack's gap is the
+          distance — the separator brings no spacing of its own. */}
+      <Card size="3">
+        <Stack gap="4">
+          <Text size="2" weight="medium">Shipped components</Text>
+          <Separator />
+          <Text size="2" emphasis="medium">Eleven controls, two type slots, one hairline.</Text>
+          <Separator />
+          <Text size="1" emphasis="quiet">The quiet hairline — --color-border, never the solved control edge.</Text>
+        </Stack>
+      </Card>
+      {/* Vertical: stretches to the flex row that owns it — the toolbar idiom. */}
+      <Flex gap="4" align="center">
+        <Text size="2">Docs</Text>
+        <Separator orientation="vertical" />
+        <Text size="2">Components</Text>
+        <Separator orientation="vertical" />
+        <Text size="2" emphasis="medium">Source</Text>
+      </Flex>
+    </Stack>
+  );
+}
+
 function SliderSection() {
   return (
     <SpecTable
@@ -514,6 +541,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
+  { id: "separator", name: "Separator", body: <SeparatorSection /> },
   { id: "slider", name: "Slider", body: <SliderSection /> },
   { id: "spinner", name: "Spinner", body: <SpinnerSection /> },
   { id: "switch", name: "Switch", body: <SwitchSection /> },
