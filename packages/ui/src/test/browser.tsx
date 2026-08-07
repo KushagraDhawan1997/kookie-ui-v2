@@ -29,6 +29,7 @@ import { density } from "../tokens/config.ts";
 import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import radioCss from "../components/radio/radio.css?raw";
+import separatorCss from "../components/separator/separator.css?raw";
 import sliderCss from "../components/slider/slider.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
 import switchCss from "../components/switch/switch.css?raw";
@@ -56,6 +57,7 @@ export function installStyles(): void {
     buttonCss,
     checkboxCss,
     radioCss,
+    separatorCss,
     sliderCss,
     switchCss,
     textFieldCss,

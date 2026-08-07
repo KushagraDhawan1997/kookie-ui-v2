@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-08 Separator ships as two tokens and a role — and its API questions close by inheritance
+
+Built ahead of Progress (Kushagra's call — the cheapest component left, since §11 promised its row "a border token" and `--color-border` has existed since Checkbox minted it). The component is Base UI's `role="separator"` div wearing `--color-border` at `--border-width`; +63 bytes gzipped, seven mounted laws, and every structural law took it on arrival via the walks — which is what the walks were built to do.
+
+Three decisions closed, none requiring new design:
+
+**`orientation` is API here after Slider refused the same word.** The refusal criterion travels, not the refusal: Slider's vertical needs its own designed geometry set (§4's cells, thumb travel, track pricing), and a vertical hairline is the same two tokens with the axes swapped — zero designed values, so the prop costs nothing and the platform stamps `aria-orientation` for free. A refusal priced on design cost does not bind a case with no design cost.
+
+**Radix's `decorative` is omitted.** A purely visual rule that must hide from AT is not a Separator — it is a styled Box, the escape that already exists. One component, one meaning; the prop would be a second spelling of "this is not what the component says it is."
+
+**Extent is the container's, stated as the outer-spacing sentence applied to length.** No `size`, no length prop: horizontal fills the block that owns it, vertical stretches to the flex row (`align-self: stretch`), and `flex: none` keeps a distributing Stack from squeezing the rule toward zero. An inset separator is the parent's layout, exactly as spacing is.
+
+The paint is deliberately the QUIET hairline, law-asserted negatively (background ≠ `--control-edge` in both appearances): the edge order (§7, 2026-08-07) pins separators with cards under both solved tiers, and this is the first component to consume that sentence as its whole identity.
+
 ## 2026-08-08 The slider thumb goes back to a circle — the capsule reverted on sight
 
 The horizontal capsule (2026-08-07, `--slider-thumb-w-N` at 24/30/36/40) was judged in the preview beside the shipped set and reverted: too wide (Kushagra, by eye — the same eye that asked for it, one day later). The thumb is back on the family's square, both axes `mark(n)`, radius half the mark — Radio's own statement, and the platform's posture (iOS, Material and Radix all ship the handle round).

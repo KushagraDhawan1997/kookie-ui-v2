@@ -42,6 +42,7 @@ export default defineConfig({
             "@base-ui/react/input",
             "@base-ui/react/radio",
             "@base-ui/react/radio-group",
+            "@base-ui/react/separator",
             "@base-ui/react/slider",
             "@base-ui/react/switch",
           ],

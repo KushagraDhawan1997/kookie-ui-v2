@@ -1,0 +1,25 @@
+/* The separator (§11): the quiet hairline, drawn as its own element.
+ *
+ * One paint and one thickness, both already designed: `--color-border`, the tone-less resting
+ * hairline, and `--border-width`, the scaled width every border in the system resolves — so a
+ * separator at scale 2 thickens with the hairlines it sits among. Deliberately not the solved
+ * `--control-edge`/`--field-edge`: the edge order (§7) puts the quiet hairline UNDER both
+ * solved tiers, and a separator, like a card, has no identity resting on its line.
+ *
+ * Length is the container's, never the component's — the outer-spacing sentence applied to
+ * extent. Horizontal fills the width it is given (block flow, or a flex column's stretch);
+ * vertical stretches to the flex row that owns it. `flex: none` because a hairline is not a
+ * flexible item: a Stack distributing shortfall must never squeeze the rule toward zero. */
+.kui-separator {
+  background: var(--color-border);
+  flex: none;
+}
+
+.kui-separator[data-orientation="horizontal"] {
+  block-size: var(--border-width);
+}
+
+.kui-separator[data-orientation="vertical"] {
+  inline-size: var(--border-width);
+  align-self: stretch;
+}
