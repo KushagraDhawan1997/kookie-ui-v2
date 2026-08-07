@@ -32,8 +32,8 @@ import {
   type Tone,
 } from "@kookie-ui/react";
 
-import { setContrast, useAppearance, type ContrastChoice } from "../appearance";
-import { PlusIcon, SearchIcon, XIcon } from "../icons";
+import { setContrast, useAppearance, type ContrastChoice } from "../../appearance";
+import { PlusIcon, SearchIcon, XIcon } from "../../icons";
 
 const SIZES = ["1", "2", "3", "4"] as const satisfies readonly Size[];
 const DENSITIES = ["compact", "default", "comfortable"] as const;
