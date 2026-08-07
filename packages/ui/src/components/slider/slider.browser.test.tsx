@@ -143,24 +143,16 @@ describe("the root is the control, and the height ladder is the target (§4, §1
 
 describe("the thumb is the mark family's third member (§4, §6)", () => {
   for (const size of SIZES) {
-    it(`size ${size}: block is the family's, inline is the grip's own — a horizontal capsule`, () => {
+    it(`size ${size}: the family's square box — same painted size as the checkbox beside it`, () => {
       // Read as the PAINTED box (audit R1, 2026-08-06 — getBoundingClientRect is the border
-      // box, the thing a user aims at). The grip left the family's square 2026-08-07
-      // (Kushagra, corrected same day: "wider than it is taller"): its HEIGHT is still the
-      // mark ladder — the one weight class beside a checkbox — while its width is the
-      // designed capsule width, strictly wider, from the slider's own set.
+      // box, the thing a user aims at). The grip is BACK ON the family's square (the capsule
+      // tried 2026-08-07, reverted 2026-08-08 — Kushagra, by eye: too wide): both axes the
+      // mark ladder, the one weight class beside a checkbox, no designed set of its own.
       const el = slider({ size });
       const thumb = thumbOf(el).getBoundingClientRect();
       const checkbox = render(<Checkbox size={size} />).getBoundingClientRect();
       expect(thumb.height, `size ${size} block`).toBe(checkbox.height);
-      expect(thumb.width, `size ${size} is wider than tall`).toBeGreaterThan(thumb.height);
-      const probe = document.createElement("div");
-      probe.style.width = `var(--slider-thumb-w-${size})`;
-      thumbOf(el).append(probe);
-      expect(thumb.width, `size ${size} inline is the designed width`).toBe(
-        probe.getBoundingClientRect().width,
-      );
-      probe.remove();
+      expect(thumb.width, `size ${size} is square`).toBe(thumb.height);
     });
   }
 
@@ -173,9 +165,9 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
   });
 
   for (const level of ["none", "small", "medium", "large", "full"] as const) {
-    it(`stays a capsule at radius="${level}" — role semantics, the circle's sentence widened`, () => {
-      // Half the HEIGHT — the short axis, the circle's own number: a horizontal capsule's
-      // full curve is h/2. The radius axis still never reaches it, `none` included.
+    it(`stays a circle at radius="${level}" — role semantics, Radio's own sentence`, () => {
+      // Half the box — a square mark at h/2 IS a circle. The radius axis never reaches it,
+      // `none` included: a square handle reads as a bead that stuck.
       const el = slider({}, { radius: level });
       const thumb = thumbOf(el);
       expect(px(computed(thumb, "border-top-left-radius"))).toBeCloseTo(

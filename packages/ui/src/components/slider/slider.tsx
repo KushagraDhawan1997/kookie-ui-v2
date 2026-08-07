@@ -42,12 +42,11 @@ export type SliderProps = Omit<
  * The whole box is the control — the root takes the size index and the control height, so a
  * slider stands exactly as tall a target as the Button beside it (44 on the coarse default
  * path, the 24 floor everywhere, §16) with no mechanism of its own: pressing anywhere in
- * that box moves the nearest thumb. The THUMB is the family's third member — `mark(n)` tall,
- * one line of the label's type, widened since 2026-08-07 into a horizontal capsule on its own
- * `--slider-thumb-w-N` ladder, and resting as every mark rests (its own fill role and the
+ * that box moves the nearest thumb. The THUMB is the family's third member — `mark(n)` square,
+ * one line of the label's type, a CIRCLE (the capsule tried 2026-08-07 was reverted 2026-08-08,
+ * too wide by eye), and resting as every mark rests (its own fill role and the
  * mark edge) — so a slider's handle and the checkbox above it in one form read as the same
- * size of thing by construction. The family's claim is the weight class, which is a claim
- * about height; the inline axis is the grip's own. The track is the family's off part: neutral through the
+ * size of thing by construction. The track is the family's off part: neutral through the
  * `--color-track` role, §11's "track low"; the fill is `--tone-solid` under the stamped
  * accent identity, so it greys through the shared disabled remap like every fill.
  *

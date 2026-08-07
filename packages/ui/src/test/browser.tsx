@@ -31,6 +31,7 @@ import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import radioCss from "../components/radio/radio.css?raw";
 import sliderCss from "../components/slider/slider.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
+import switchCss from "../components/switch/switch.css?raw";
 import textAreaCss from "../components/text-area/text-area.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
 import layoutCss from "../system/layout.css?raw";
@@ -56,6 +57,7 @@ export function installStyles(): void {
     checkboxCss,
     radioCss,
     sliderCss,
+    switchCss,
     textFieldCss,
     textAreaCss,
   ].join("\n");

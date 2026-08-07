@@ -390,8 +390,16 @@ export const controlGap = {
  *
  * Rendered: 16/20/24/26 fine, 20/24/26/28 coarse. Peer check — Material paints 18 (one size),
  * Radix 14/16/20, Fluent 16/20.
+ *
+ * FIVE entries for a four-size index (2026-08-08, with Switch): the fifth exists because the
+ * switch's track is mark(n + 1), and at size 4 that identity points one step past the ladder's
+ * top. `--mark-5` is the same sentence as the other four — the line box of type step 5 — and
+ * the handheld band prices it like the rest, which is where the recorded wrinkle comes from:
+ * the band collapses steps 4 and 5 onto one value, so under coarse a size-4 switch stands
+ * exactly as tall as the size-4 checkbox beside it. Accepted, not papered over: the identity
+ * holds in the fine world, and the coarse collapse is the type band's own fact.
  */
-export const markSteps = [1, 2, 3, 4] as const;
+export const markSteps = [1, 2, 3, 4, 5] as const;
 
 /**
  * §6 — the mark's own corner, as STEPS into the radius palette (corrected 2026-08-05).
@@ -441,17 +449,31 @@ export const markRadius = [1, 1, 2, 2] as const;
 export const sliderTrack = [4, 5, 6, 7] as const;
 
 /**
- * §4, §6 — the thumb's INLINE width per size (decided 2026-08-07, Kushagra — corrected the
- * same day: "stretch it horizontally... it should be wider than it is taller"; the first
- * cut collapsed it into a vertical bar, the opposite read). The grip leaves the family's
- * square: its BLOCK size stays the mark ladder — one weight class beside a checkbox, the
- * family's height story intact — and the inline axis WIDENS to a horizontal capsule
- * (radius = h/2, the full curve on the short axis). ~1.5x the fine mark, raw designed px
- * like the track (the fourth family with no palette rung at its scale). Pointer-invariant:
- * the coarse rise arrives through the BLOCK axis, which rides the mark ladder. v0, judged
- * in the preview.
+ * §4, §6 — the switch's inline width, ONE designed ladder indexed by the TRACK'S mark step
+ * (2 through 5), not by the size index. The track's height is mark(n + 1), so the width is
+ * designed against the mark the track actually is — and both pointer worlds then derive
+ * their cells through the same band picks that price the marks, so nothing is designed
+ * twice: fine size n reads entry (n + 1) − 2, coarse size n reads entry pick(n + 1) − 2,
+ * and a coarse switch widens exactly one entry for the same reason it rises one step.
+ *
+ * Rendered widths against their tracks: fine 34/40/44/48 over 20/24/26/28, coarse
+ * 40/44/48/48 over 24/26/28/28 — every cell holds 1.67–1.71 of its height, beside iOS's
+ * 1.65, Material's 1.63, Radix's 1.75. The peers publish fractions; these are designed
+ * numbers that happen to sit in that band (the mark family's own rule: identities and
+ * designed values, never a ratio in the chain). Raw px like the slider ladders — the fifth
+ * family with no palette rung at its scale. v0, judged in the preview.
  */
-export const sliderThumbW = [24, 30, 36, 40] as const;
+export const switchW = [34, 40, 44, 48] as const;
+
+/**
+ * §4 — the switch thumb's inset from its track, one designed value. The pre-scoping's own
+ * sentence ("the THUMB is that track minus a designed inset") made literal: thumb diameter
+ * = track − 2 × inset, all sizes, both worlds. Deriving the inset from the mark ladder was
+ * tried on paper and refused: thumb = mark(n) reads as an identity but the coarse band's
+ * 4/5 collapse drives the inset to ZERO at size 4 — a thumb flush with its track — so the
+ * inset is the designed constant and the diameter is what derives. v0.
+ */
+export const switchInset = 2;
 
 /**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and

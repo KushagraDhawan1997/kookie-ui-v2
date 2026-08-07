@@ -90,6 +90,7 @@
   --mark-2: calc(20px * var(--scale));
   --mark-3: calc(24px * var(--scale));
   --mark-4: calc(26px * var(--scale));
+  --mark-5: calc(28px * var(--scale));
 
   /* and the mark's own corner (§6) — its own picks into the palette, because riding
      --radius-control-N made it hold a fraction of a box a mark does not have (0.250 ->
@@ -110,13 +111,18 @@
   --slider-track-3: calc(6px * var(--scale));
   --slider-track-4: calc(7px * var(--scale));
 
-  /* the thumb's inline width (§4, §6, 2026-08-07) — the grip leaves the family's square:
-     block stays the mark ladder, inline WIDENS to a horizontal capsule. Raw designed px,
-     pointer-invariant: the coarse rise arrives through the block axis. */
-  --slider-thumb-w-1: calc(24px * var(--scale));
-  --slider-thumb-w-2: calc(30px * var(--scale));
-  --slider-thumb-w-3: calc(36px * var(--scale));
-  --slider-thumb-w-4: calc(40px * var(--scale));
+  /* the switch's inline width (§4, §6, 2026-08-08) — ONE ladder indexed by the track's
+     mark step (the track is mark(n + 1)), priced per pointer world through the SAME band
+     picks that price the marks: a coarse switch widens one entry for the same reason it
+     rises one step, nothing designed twice. The pointer worlds re-declare it below. */
+  --switch-w-1: calc(34px * var(--scale));
+  --switch-w-2: calc(40px * var(--scale));
+  --switch-w-3: calc(44px * var(--scale));
+  --switch-w-4: calc(48px * var(--scale));
+
+  /* and its thumb's inset (§4) — one designed value, all sizes, both worlds: the thumb
+     is the track minus this, so the diameter derives and the gap never does. */
+  --switch-inset: calc(2px * var(--scale));
 
   /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until
      2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered
@@ -3904,6 +3910,11 @@
   --mark-2: calc(20px * var(--scale));
   --mark-3: calc(24px * var(--scale));
   --mark-4: calc(26px * var(--scale));
+  --mark-5: calc(28px * var(--scale));
+  --switch-w-1: calc(34px * var(--scale));
+  --switch-w-2: calc(40px * var(--scale));
+  --switch-w-3: calc(44px * var(--scale));
+  --switch-w-4: calc(48px * var(--scale));
 }
 
 [data-pointer="fine"][data-density="compact"] {
@@ -4150,6 +4161,11 @@
   --mark-2: calc(24px * var(--scale));
   --mark-3: calc(26px * var(--scale));
   --mark-4: calc(28px * var(--scale));
+  --mark-5: calc(28px * var(--scale));
+  --switch-w-1: calc(40px * var(--scale));
+  --switch-w-2: calc(44px * var(--scale));
+  --switch-w-3: calc(48px * var(--scale));
+  --switch-w-4: calc(48px * var(--scale));
 }
 
 [data-pointer="coarse"][data-density="compact"] {
@@ -4397,6 +4413,11 @@
     --mark-2: calc(24px * var(--scale));
     --mark-3: calc(26px * var(--scale));
     --mark-4: calc(28px * var(--scale));
+    --mark-5: calc(28px * var(--scale));
+    --switch-w-1: calc(40px * var(--scale));
+    --switch-w-2: calc(44px * var(--scale));
+    --switch-w-3: calc(48px * var(--scale));
+    --switch-w-4: calc(48px * var(--scale));
   }
 
   [data-pointer="auto"][data-density="compact"] {

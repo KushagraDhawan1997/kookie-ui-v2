@@ -2,8 +2,8 @@
  * (§2, §4, §11). The size join, the disabled and invalid remaps, the cursor and the target
  * all arrive from system/recipes.css: the ROOT is the control, so the height ladder is the
  * hit area (44 on the coarse default path, §16) and no new target mechanism exists here.
- * The thumb is a mark (family rules shared); its capsule is stated below beside Radio's
- * circle, for Radio's reason. */
+ * The thumb is a mark (family rules shared); its circle is stated below beside Radio's,
+ * for Radio's reason. */
 
 .kui-slider {
   /* The skeleton pads for a label; a track runs the full box, ends included. */
@@ -99,15 +99,11 @@
 }
 
 .kui-slider-thumb {
-  /* The grip leaves the family's square (§4, §6, 2026-08-07, Kushagra — corrected same
-     day: "it should be wider than it is taller"; the first cut read the direction backwards
-     and shipped a vertical bar for minutes): BLOCK stays the mark ladder — one weight class
-     beside a checkbox, and the coarse rise still arrives through it — while the inline axis
-     WIDENS to a designed width, a HORIZONTAL CAPSULE. The full curve sits on the short
-     axis, so the radius is half the mark, the circle's own number. The capsule stays role
-     semantics exactly as the circle was: the radius axis never reaches it, `none` included
-     — a square handle reads as a bead that stuck. */
-  inline-size: var(--kui-ct-thumb-w);
+  /* A CIRCLE on the mark ladder (§4, §6 — the capsule tried 2026-08-07, reverted 2026-08-08,
+     Kushagra: too wide by eye): the family's square box, radius half the mark — Radio's own
+     statement, for the platform's reason (every platform ships the handle round). The circle
+     is role semantics: the radius axis never reaches it, `none` included — a square handle
+     reads as a bead that stuck. */
   border-radius: calc(var(--kui-ct-mark) / 2);
   /* A mark that is not itself a .kui-control paints its own resting identity: the family
      declares the sources (--tone-soft when disabled) and the edge role; this rule resolves

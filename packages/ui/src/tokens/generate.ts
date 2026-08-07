@@ -44,9 +44,10 @@ import {
   controlChrome,
   controlLight,
   shadow,
-  sliderThumbW,
   sliderTrack,
   space,
+  switchInset,
+  switchW,
   surfaceChrome,
   surfaceColor,
   surfacePadding,
@@ -127,11 +128,19 @@ export function generateTokens(): string {
 
   lines.push(
     "",
-    "  /* the thumb's inline width (§4, §6, 2026-08-07) — the grip leaves the family's square:",
-    "     block stays the mark ladder, inline WIDENS to a horizontal capsule. Raw designed px,",
-    "     pointer-invariant: the coarse rise arrives through the block axis. */",
+    "  /* the switch's inline width (§4, §6, 2026-08-08) — ONE ladder indexed by the track's",
+    "     mark step (the track is mark(n + 1)), priced per pointer world through the SAME band",
+    "     picks that price the marks: a coarse switch widens one entry for the same reason it",
+    "     rises one step, nothing designed twice. The pointer worlds re-declare it below. */",
   );
-  sliderThumbW.forEach((px, i) => lines.push(decl(`slider-thumb-w-${i + 1}`, zoom(px))));
+  lines.push(...switchFamily(markSteps));
+
+  lines.push(
+    "",
+    "  /* and its thumb's inset (§4) — one designed value, all sizes, both worlds: the thumb",
+    "     is the track minus this, so the diameter derives and the gap never does. */",
+  );
+  put("switch-inset", zoom(switchInset));
 
   lines.push(
     "",
@@ -494,7 +503,11 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
   // Re-declared here in full — all four steps, not just the moved ones — because these are
   // resolved lengths, and a scope that declares nothing inherits the world above it.
   const marks = markFamily(picks);
-  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, ...band, ...marks, "}", "");
+  // The switch's width rides the same picks (§4): its track is mark(n + 1), so the world
+  // that re-prices the marks re-prices the width through the identical mapping — declared
+  // in full beside them, for the same a-scope-that-declares-nothing-inherits reason.
+  const switchWidths = switchFamily(picks);
+  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, ...band, ...marks, ...switchWidths, "}", "");
   for (const d of Object.keys(sets) as DensityLevel[]) {
     if (d === "default") continue;
     out.push(`${P}[data-density="${d}"] {`, ...controlFamily(sets[d]), "}", "");
@@ -817,6 +830,17 @@ function moved(picks: readonly number[]): number[] {
  * line box into the coarse scope, which is the one place this family has to move. */
 function markFamily(picks: readonly number[]): string[] {
   return markSteps.map((_, i) => decl(`mark-${i + 1}`, zoom(lineHeight[picks[i]! - 1]!)));
+}
+
+/** The switch's width ladder (§4) for one set of type picks. `switchW` is designed against
+ * the mark the track IS — entries for mark steps 2 through 5 — and size n's cell reads the
+ * entry for the step the band renders at n + 1. The fine world's picks are the identity, so
+ * it reads the ladder straight; the coarse world's picks are the handheld band's, so a
+ * switch widens exactly one entry where its track rose exactly one step, and the size-4
+ * collapse (steps 4 and 5 priced alike) reaches the width for the same reason it reaches
+ * the height. */
+function switchFamily(picks: readonly number[]): string[] {
+  return switchW.map((_, i) => decl(`switch-w-${i + 1}`, zoom(switchW[picks[i + 1]! - 2]!)));
 }
 
 /** One band of the type palette (§15, §17), over the steps it moves: each pick re-prices the

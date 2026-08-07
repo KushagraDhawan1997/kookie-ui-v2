@@ -570,7 +570,7 @@ function slider(
   const { size = "2", value = 40, disabled, width = "220px" } = attrs;
   // Static stand-in for Base UI's inline geometry (edge alignment: the handle's extremes sit
   // flush with the rail's ends), so the page judges the dress the shipped component wears.
-  const thumb = `<div class="kui-mark kui-slider-thumb" style="position: absolute; inset-inline-start: calc(${value} * (100% - var(--kui-ct-thumb-w)) / 100); top: 50%; translate: 0 -50%"></div>`;
+  const thumb = `<div class="kui-mark kui-slider-thumb" style="position: absolute; inset-inline-start: calc(${value} * (100% - var(--kui-ct-mark)) / 100); top: 50%; translate: 0 -50%"></div>`;
   const fill = `<div class="kui-slider-fill" style="width: ${value}%"></div>`;
   return `<div class="kui-control kui-slider" data-size="${size}" data-tone="accent"${
     disabled ? " data-disabled" : ""
@@ -608,6 +608,59 @@ function sliderSection(mode: Mode): string {
           kuiBox(
             { display: "flex", gap: "5", align: "center" },
             checkbox({ size: "2", checked: true }) + radio({ size: "2", checked: true }) + slider({ size: "2", value: 60 }),
+          ),
+        ),
+    )}
+  </section>`;
+}
+
+function kswitch(
+  attrs: { size?: string; checked?: boolean; disabled?: boolean; invalid?: boolean; label?: string } = {},
+): string {
+  const { size = "2", checked, disabled, invalid, label } = attrs;
+  const state = checked ? " data-checked" : " data-unchecked";
+  const thumb = `<span class="kui-switch-thumb"${state}${disabled ? " data-disabled" : ""}></span>`;
+  const box = `<span class="kui-control kui-mark kui-switch" data-size="${size}" data-tone="accent" data-bordered${state}${
+    disabled ? " data-disabled" : ""
+  }${invalid ? ' aria-invalid="true"' : ""} role="switch">${thumb}</span>`;
+  return label
+    ? kuiBox(
+        { display: "flex", gap: "3", align: "flex-start", flexShrink: "0" },
+        `${box}${text(Number(size), label)}`,
+      )
+    : box;
+}
+
+function switchSection(mode: Mode): string {
+  const demo = (title: string, body: string) =>
+    kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
+  const row = (body: string) =>
+    kuiBox({ display: "grid", columns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "5" }, body);
+  return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>
+    <h2>${cap(mode)}</h2>
+    ${kuiBox(
+      { display: "flex", direction: "column", gap: "7" },
+      demo(
+        "The size index — the track is mark(n + 1); judge the width ladder here, it is v0 <code>§4</code>",
+        row(SIZES.map((n) => kswitch({ size: n, checked: true, label: `Size ${n}` })).join("")),
+      ) +
+        demo(
+          "States — off is the track well, on the accent identity; the grip never tints <code>§11</code>",
+          row(
+            [
+              kswitch({ label: "Off" }),
+              kswitch({ checked: true, label: "On" }),
+              kswitch({ invalid: true, label: "Invalid" }),
+              kswitch({ disabled: true, label: "Disabled" }),
+              kswitch({ checked: true, disabled: true, label: "On + disabled" }),
+            ].join(""),
+          ),
+        ) +
+        demo(
+          "Beside its family — one index up: switch(n) stands level with checkbox(n + 1), and the capsule holds at every radius level (flip the select; under coarse, size 4 stands level with its own checkbox — the band's collapse, §4)",
+          kuiBox(
+            { display: "flex", gap: "5", align: "center" },
+            kswitch({ size: "1", checked: true }) + checkbox({ size: "2", checked: true }) + kswitch({ size: "2" }) + radio({ size: "2", checked: true }),
           ),
         ),
     )}
@@ -1080,6 +1133,7 @@ export function generatePreview(): string {
     <a href="#checkbox">Checkbox</a>
     <a href="#radio">Radio</a>
     <a href="#slider">Slider</a>
+    <a href="#switch">Switch</a>
     <a href="#type">Type</a>
     <a href="#layout">Layout</a>
     <a href="#roles">Roles</a>
@@ -1177,6 +1231,11 @@ ${radioSection("dark")}
 <p class="note">Track low, fill accent (§11). The ROOT is the control: it rides the height ladder, so the whole box is the thing you press — 44 tall on the coarse default path with <em>no new target mechanism</em> — flip the pointer select and the strip grows while the line holds. The <strong>thumb is the mark family's third member</strong>: the same circle a radio paints, one line of the label's type, resting as every mark rests (the seal wearing the mark edge). The <strong>track</strong> is the family's off part — neutral through the new <code>--color-track</code> role, which the switch's off-track and progress will share — at a designed thickness (~0.25 of the fine mark; the space palette has nothing between 4 and 8, the mark's own wall one part over). The fill is <code>--tone-solid</code> under the stamped accent, so disabled greys everything through the one shared remap. Geometry here is a static stand-in for Base UI's inline positioning; the dress is the shipped stylesheet. All v0 for the eye pass.</p>
 ${sliderSection("light")}
 ${sliderSection("dark")}
+
+<h1 id="switch">Switch — the shifted member</h1>
+<p class="note">The mark family's fourth member, one index UP: the track is <code>mark(n + 1)</code>, the identity every peer builds by hand (§4). The <strong>width is the one new designed ladder</strong> — indexed by the mark the track IS, priced per pointer world through the same band picks that price the marks, so a coarse switch widens one entry for the same reason it rises one step (1.67&ndash;1.71 of its height in every cell; iOS 1.65, Material 1.63, Radix 1.75). Off is the <code>--color-track</code> WELL with the edge melted into it — not the dressed seal, so the whole control sits <strong>outside the look axis</strong> like the slider (§19: an instrument, a channel and a grip). On is the family's accent identity through the shared ON rule, catching the elevated world's light like every loud rung. The <strong>thumb is the track minus one designed inset</strong> (2px), wears <code>--color-thumb</code>, and casts always — the grip exception, inherited with the role. The capsule and its circle are role semantics: flip the radius select to <code>none</code> and everything on this page squares while these two hold (§6). Width, inset and the well pairing are all v0 for the eye pass.</p>
+${switchSection("light")}
+${switchSection("dark")}
 
 <p class="note">The Spinner alone, at each icon box and blown up — eight static spokes with a fading trail, rotated as a whole by a stepped tick. Judge it at 16px, which is where it actually lives; the large one is only here to show the shape.</p>
 <div class="row-controls">

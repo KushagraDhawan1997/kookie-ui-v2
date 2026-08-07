@@ -1,0 +1,132 @@
+/* Switch adds its capsule, its well, and its thumb — the parts only a switch has (§2, §4,
+ * §6, §11, §19).
+ *
+ * Everything else arrives shared: the box and its one-index shift live in the size join
+ * (recipes.css — a component stylesheet must not size a mark's box), the invisible target,
+ * the hosted floor, the disabled and invalid remaps, the focus ring, the cursor and the
+ * accent ON state are the mark family's, and the checked capsule catching the elevated
+ * world's light is the family's own loud-rung rule. This file never mentions a size.
+ */
+
+.kui-switch {
+  /* The long axis: the family's square, widened. One designed ladder indexed by the mark
+     the track IS (see config), priced per pointer world through the band picks — so the
+     coarse world widens the switch one entry for the same reason it raises it one step. */
+  inline-size: var(--kui-ct-sw-w);
+
+  /* The capsule is ROLE SEMANTICS, not dress, so the radius axis never reaches it — `none`
+     included (§6). The chain that forces it: the slider thumb holds its circle because a
+     square grip reads as a bead that stuck (its capsule day was reverted, LOG 2026-08-08);
+     the switch's thumb is the same grip one control over, so it holds its circle; and a
+     circle can only nest in a curve — a round thumb in a square channel reads as a bead in
+     a rail, which is a SLIDER. The rail's own escape
+     (min() against the control radius) does not transfer: half a 20-28px track dwarfs the
+     control radius at every mid level, so min() would flatten the capsule exactly where the
+     rail's never moved. Stated as the rule — half the mark — the radio's own sentence. */
+  border-radius: calc(var(--kui-ct-mark) / 2);
+}
+
+/* The OFF state is a WELL, not a dressed surface (§11 "track low", §19 — decided with the
+   role: "the switch's off-track and progress/meter inherit it"). The family's resting
+   identity is the seal wearing the mark edge, and the look axis dresses that identity —
+   both are for a mark you read as a small empty surface. An off switch is not read, it is
+   felt for: the channel the thumb has not crossed, every platform's own grey. So the fill
+   is the tone-independent well role in both looks, like the slider rail one control over,
+   and the switch leaves the look axis with it (the negative law is in the test file).
+
+   Scoped to [data-unchecked] so the shared ON rule (:where, equal specificity, EARLIER
+   source) is never fought: checked resolves the accent solid untouched. Static across
+   hover and press like the rail — a well does not step; the state that changes is the
+   thumb's side. All three sources, the field's lesson (§8): the shared layer swaps to
+   -hover/-active under the pointer, and a rule that declared only rest would fall back
+   to the dress rule's values mid-interaction.
+
+   The edge melts INTO the well rather than being removed (the checked rule's own sentence):
+   a borderless off switch would be two pixels smaller than its checked self and the row
+   would shift on every toggle. The disabled and invalid remaps sit at (0,2,0) and outrank
+   all of this — a state outranks dress. */
+.kui-switch:where([data-unchecked]) {
+  --kui-ct-fill-src: var(--color-track);
+  --kui-ct-fill-src-hover: var(--color-track);
+  --kui-ct-fill-src-active: var(--color-track);
+  --tone-border: var(--color-track);
+}
+
+/* The thumb: the grip, and the one moving part (§4, §6, §11). A circle — the slider thumb's
+   role sentence, so the radius axis never reaches it either — whose diameter is the track
+   minus the designed inset on every side: the pre-scoping's identity, made literal.
+
+   Positioned against the PADDING box (an absolutely positioned box resolves insets there —
+   audit D3's lesson, reused rather than relearned), so the inset subtracts the border the
+   track wears: the visual gap is --switch-inset from the painted edge in every state.
+
+   Its fill is --color-thumb, the value-control grip's own role (§11, "dark shouldn't be
+   dark"): light keeps the seal, dark goes near-white, because a grip must be the most
+   findable object on its rail. Routed through the -src chain so the disabled remap's shape
+   stays the shared one. No hover or active step — a grip does not fill, it moves. No border:
+   the shadow is what lifts it off the well, and a hairline the colour of whatever sits
+   behind a MOVING part is a halo in one of its two homes. */
+.kui-switch-thumb {
+  position: absolute;
+  /* BOTH block ends, and no stated height: the diameter derives from the channel it sits in
+     (track − 2 × inset, exactly the pre-scoping's sentence) rather than restating the track's
+     arithmetic — one fact, not two that must agree. In the one place the family shrinks the
+     box under the token (the hosted floor), a stated height would overflow the slot; this
+     cannot. aspect-ratio closes the square, and 50% on a square is the circle stated as a
+     property of its own box — the ellipse trap that bans 50% on the capsule has no square
+     to bite. */
+  inset-block: calc(var(--switch-inset) - var(--border-width));
+  inset-inline-start: calc(var(--switch-inset) - var(--border-width));
+  aspect-ratio: 1;
+  border-radius: 50%;
+  --kui-ct-fill-src: var(--color-thumb);
+  --kui-ct-fill-src-hover: var(--color-thumb);
+  --kui-ct-fill-src-active: var(--color-thumb);
+  background-color: var(--kui-ct-fill-src);
+  /* The grip casts ALWAYS — flat world included (§5, §6): the slider thumb's exception,
+     inherited with the role rather than re-argued, and mechanically the same reading — the
+     palette row's VALUE, not the world switch, which is what "always" means. No catch: a
+     gradient on a near-white grip is invisible. */
+  --kui-ct-cast: var(--control-chrome, none);
+  box-shadow: var(--kui-ct-cast, none);
+}
+
+/* Checked, the thumb crosses: same inset, other end. Position, not transform, because no
+   transition ships until the motion system lands (§8) — the jump is instant either way, and
+   the motion pass will own how this travels. Base UI stamps the state on the thumb itself,
+   so the rule never reaches back up to the root. */
+.kui-switch-thumb:where([data-checked]) {
+  inset-inline-start: auto;
+  inset-inline-end: calc(var(--switch-inset) - var(--border-width));
+}
+
+/* "Always" is about the WORLD, never about state (§5, audit 2026-08-07 — the disabled
+   slider handle walked out of the shared arm the same way): the thumb is not a .kui-mark,
+   so the family's stand-down cannot reach it, and a dead grip makes no promise — the CAST
+   stands down here.
+
+   The FILL deliberately does not (corrected 2026-08-08, judged in the playground the day it
+   shipped): the first cut sent the thumb to the same remapped --tone-soft the track takes,
+   and the grip vanished into its own channel — "Disabled" and "On, disabled" rendered as one
+   indistinguishable grey capsule. The thumb's position IS the switch's state; it is the tick,
+   and the family's own disabled rule never erases a tick (a disabled checked checkbox keeps
+   its glyph). So the grip keeps --color-thumb — iOS's and Material's own posture, and the
+   "most findable object on the rail" sentence surviving the state — while the dimmed track
+   and the dropped shadow are what say dead. */
+.kui-switch-thumb:where([data-disabled]) {
+  --kui-ct-cast: none;
+}
+
+/* Hosted in a slot it stays a SWITCH (§4, the checkbox's D4 one member over): the family's
+   hosted floor sets BOTH axes to one square expression — right for the marks that are
+   squares, wrong for the one that is not, where it renders a checkbox with a thumb in it.
+   The width keeps the TRAVEL instead: w = floored height + (designed w − designed h), so
+   the identity holds untouched wherever the slot is not genuinely tighter, and a tighter
+   slot shortens the channel without stretching its aspect. Same (0,3,0) as the hosted
+   floor, later on source order — the family's own override pattern. The thumb needs no
+   rule at all: its diameter derives from the box it sits in. */
+.kui-control > [data-slot] > .kui-switch {
+  inline-size: calc(
+    min(var(--kui-ct-mark), var(--kui-ct-hosted-height)) + var(--kui-ct-sw-w) - var(--kui-ct-mark)
+  );
+}

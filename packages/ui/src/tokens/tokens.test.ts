@@ -785,9 +785,11 @@ describe("the mark family is the line box, and nothing designed twice (§4)", ()
   const markIn = (scope: string, i: number) => inScope(scope, `mark-${i}`);
   const lineIn = (scope: string, i: number) => inScope(scope, `line-height-${i}`);
 
-  it("resolves to the line box at :root and in the fine world", () => {
+  it("resolves to the line box at :root and in the fine world — all FIVE steps (§4)", () => {
+    // Five, not four, since 2026-08-08: the switch's track is mark(n + 1), so size 4 points
+    // one step past the old top and --mark-5 is the line box of type step 5, same sentence.
     for (const scope of [":root", '[data-pointer="fine"]']) {
-      for (let i = 1; i <= 4; i++) {
+      for (let i = 1; i <= 5; i++) {
         expect(markIn(scope, i), `${scope} mark ${i}`).toBe(lineIn(":root", i));
       }
     }
@@ -796,20 +798,24 @@ describe("the mark family is the line box, and nothing designed twice (§4)", ()
   it("rises in the coarse world because the TYPE rose — the handheld band, not a second ladder", () => {
     // The whole argument for sourcing the family from type: Spectrum grows every component
     // 1.25x on touch, and this arrives at the same place with no coarse ladder to maintain.
+    // Step 5 is the exception the band itself makes: handheld prices steps 4 and 5 alike,
+    // so --mark-5 HOLDS rather than rises — which is exactly the recorded wrinkle (a coarse
+    // size-4 switch stands as tall as the checkbox beside it), asserted rather than skipped.
     for (const scope of ['[data-pointer="coarse"]']) {
-      for (let i = 1; i <= 4; i++) {
+      for (let i = 1; i <= 5; i++) {
         const band = typeBands.handheld[i - 1]!;
         expect(markIn(scope, i), `${scope} mark ${i}`).toBe(lineIn(":root", band));
-        expect(parseFloat(markIn(scope, i)!.match(/[\d.]+/)![0])).toBeGreaterThan(
-          parseFloat(markIn(":root", i)!.match(/[\d.]+/)![0]),
-        );
+        const coarse = parseFloat(markIn(scope, i)!.match(/[\d.]+/)![0]);
+        const fine = parseFloat(markIn(":root", i)!.match(/[\d.]+/)![0]);
+        if (i === 5) expect(coarse, "the band's own collapse").toBe(fine);
+        else expect(coarse).toBeGreaterThan(fine);
       }
     }
   });
 
   it("is declared in FULL in every pointer scope — a partial re-declaration inherits the world above", () => {
     for (const scope of [":root", '[data-pointer="fine"]', '[data-pointer="coarse"]']) {
-      for (let i = 1; i <= 4; i++) expect(markIn(scope, i), `${scope} is missing mark ${i}`).toBeDefined();
+      for (let i = 1; i <= 5; i++) expect(markIn(scope, i), `${scope} is missing mark ${i}`).toBeDefined();
     }
   });
 
@@ -820,7 +826,63 @@ describe("the mark family is the line box, and nothing designed twice (§4)", ()
   });
 
   it("takes --scale like every other length", () => {
-    for (let i = 1; i <= 4; i++) expect(markIn(":root", i)).toContain("var(--scale)");
+    for (let i = 1; i <= 5; i++) expect(markIn(":root", i)).toContain("var(--scale)");
+  });
+});
+
+describe("the switch's width ladder rides the band, and nothing is designed twice (§4)", () => {
+  const widthIn = (scope: string, i: number) => inScope(scope, `switch-w-${i}`);
+  const value = (decl: string | undefined) => parseFloat(decl!.match(/[\d.]+/)![0]);
+
+  it("emits all four cells in every pointer scope, scaled, monotone across the index", () => {
+    for (const scope of [":root", '[data-pointer="fine"]', '[data-pointer="coarse"]']) {
+      const values = [1, 2, 3, 4].map((i) => value(widthIn(scope, i)));
+      for (let i = 1; i <= 4; i++) {
+        expect(widthIn(scope, i), `${scope} is missing switch-w ${i}`).toContain("var(--scale)");
+        if (i > 1) expect(values[i - 1]!, `${scope} not monotone at ${i}`).toBeGreaterThanOrEqual(values[i - 2]!);
+      }
+    }
+  });
+
+  it("the coarse cell IS the fine ladder one entry up — the mark's own derivation, not a second design", () => {
+    // switchW is indexed by the track's mark step and both worlds read it through the band
+    // picks, so coarse size n must equal fine size n+1 with the top cell repeating where
+    // the band collapses. If this fails, someone gave a pointer world its own numbers.
+    for (let i = 1; i <= 3; i++) {
+      expect(value(widthIn('[data-pointer="coarse"]', i))).toBe(
+        value(widthIn('[data-pointer="fine"]', i + 1)),
+      );
+    }
+    expect(value(widthIn('[data-pointer="coarse"]', 4))).toBe(
+      value(widthIn('[data-pointer="fine"]', 4)),
+    );
+  });
+
+  it("every cell is wider than its own track — 1.5x to 2x, the capsule's working band", () => {
+    // The track at size n is mark(n + 1) in the same world. Under 1.5 the thumb has almost
+    // no travel and the control reads as a checkbox; past 2 it reads as a slider. The
+    // designed cells sit at 1.67-1.71 (peers: iOS 1.65, Material 1.63, Radix 1.75) but the
+    // LAW pins the band, not the taste — the numbers are v0, judged in the preview.
+    const markIn = (scope: string, i: number) =>
+      value(block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1]);
+    for (const world of ['[data-pointer="fine"]', '[data-pointer="coarse"]'] as const) {
+      for (let i = 1; i <= 4; i++) {
+        const ratio = value(widthIn(world, i)) / markIn(world, i + 1);
+        expect(ratio, `${world}/size ${i}`).toBeGreaterThan(1.5);
+        expect(ratio, `${world}/size ${i}`).toBeLessThan(2);
+      }
+    }
+  });
+
+  it("never rides density — the box it widens does not move either", () => {
+    for (const level of ["compact", "comfortable"] as const) {
+      expect(block(`[data-density="${level}"]`)).not.toContain("--switch-w-");
+    }
+  });
+
+  it("the thumb's inset is one designed value, emitted once, scaled", () => {
+    expect(declaration("switch-inset")).toContain("var(--scale)");
+    expect(css.match(/--switch-inset:/g)).toHaveLength(1);
   });
 });
 

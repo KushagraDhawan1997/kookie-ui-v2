@@ -243,7 +243,8 @@
    (Radio and the slider thumb landed together) — the rule TextArea's LOG set for the field
    family, applied here as it was written to be. A mark is the painted box of a control that
    IS its own mark, sitting beside a label rather than containing one: checkbox, radio, the
-   slider thumb, and the switch track when it ships. Its box is the line box, never the height
+   slider thumb, and the switch track (shipped 2026-08-08, one index up — the join's shifted
+   entry below). Its box is the line box, never the height
    ladder's — one line of the label it sits beside, which is why it grows on a phone with
    nothing designed twice (§17's handheld band raises the type and the mark rides it).
 
@@ -393,7 +394,7 @@
 /* ── The on state (§11): the binary controls' one identity ───────────────────────────────────
    Emphasis ranks actions and a binary control is not one; what it has instead is two states,
    and the ON state is the accent identity §11's table names for the whole family — checkbox,
-   radio, switch when it ships. Written once here because it IS one identity: the element
+   radio, switch. Written once here because it IS one identity: the element
    stamps `accent`, so the fill resolves through the tone indirection like every control's.
    Inert on the slider thumb, which is a mark with no checked state — its fill is the resting
    identity above, always.
@@ -452,6 +453,13 @@
    — the rule TextArea's LOG set for the field family; see the mark family section above).
    The seventh is the slider's TRACK thickness, the family's own designed raw ladder — inert
    on every control that has no track, like the mark vars on every control that has no mark.
+   The eighth is the mark family's SHIFTED entry (§4, 2026-08-08, with Switch): the switch's
+   track is mark(n + 1) — the identity every peer arrives at by hand — so each block also
+   prices the step above itself (--kui-ct-mark-up) and the switch's own inline width
+   (--kui-ct-sw-w, one designed ladder priced per pointer world through the band picks).
+   Both inert on everything that is not a switch; the re-point that consumes them sits just
+   after this join, because the join declares --kui-ct-mark at the same specificity and the
+   shift has to win the tie on source order.
    Its corner is the family's own band (§6, corrected 2026-08-05): it rode --radius-control-N
    for half a day, which made it hold a fraction of a box a mark does not have — 0.250 -> 0.385
    across the index, and 0.462 at comfortable size 4, a circle in all but name reached by an
@@ -472,7 +480,8 @@
   --kui-ct-mark: var(--mark-1);
   --kui-ct-mark-radius: var(--radius-mark-1);
   --kui-ct-track: var(--slider-track-1);
-  --kui-ct-thumb-w: var(--slider-thumb-w-1);
+  --kui-ct-mark-up: var(--mark-2);
+  --kui-ct-sw-w: var(--switch-w-1);
 }
 .kui-control[data-size="2"] {
   --kui-ct-h: var(--control-height-2);
@@ -488,7 +497,8 @@
   --kui-ct-mark: var(--mark-2);
   --kui-ct-mark-radius: var(--radius-mark-2);
   --kui-ct-track: var(--slider-track-2);
-  --kui-ct-thumb-w: var(--slider-thumb-w-2);
+  --kui-ct-mark-up: var(--mark-3);
+  --kui-ct-sw-w: var(--switch-w-2);
 }
 .kui-control[data-size="3"] {
   --kui-ct-h: var(--control-height-3);
@@ -504,7 +514,8 @@
   --kui-ct-mark: var(--mark-3);
   --kui-ct-mark-radius: var(--radius-mark-3);
   --kui-ct-track: var(--slider-track-3);
-  --kui-ct-thumb-w: var(--slider-thumb-w-3);
+  --kui-ct-mark-up: var(--mark-4);
+  --kui-ct-sw-w: var(--switch-w-3);
 }
 .kui-control[data-size="4"] {
   --kui-ct-h: var(--control-height-4);
@@ -520,7 +531,21 @@
   --kui-ct-mark: var(--mark-4);
   --kui-ct-mark-radius: var(--radius-mark-4);
   --kui-ct-track: var(--slider-track-4);
-  --kui-ct-thumb-w: var(--slider-thumb-w-4);
+  --kui-ct-mark-up: var(--mark-5);
+  --kui-ct-sw-w: var(--switch-w-4);
+}
+
+/* The shifted member consumes its entry (§4, 2026-08-08): the switch's track IS a mark, one
+   index up — so the whole family apparatus (the box, the invisible target, the hosted floor,
+   the identity, the ON state) reads the shifted value with no rule of its own. Stated in THIS
+   layer because a component stylesheet must not size a mark's box (the recipes.test law), and
+   stated AFTER the join because the join declares --kui-ct-mark at the same (0,2,0): this
+   wins the tie on source order, which is the override. At coarse size 4 the shift is inert —
+   the handheld band prices type steps 4 and 5 alike, so --mark-5 ≡ --mark-4 there and a
+   switch stands exactly as tall as the checkbox beside it (§4's recorded wrinkle, accepted
+   with the band rather than papered over by a bespoke coarse ladder). */
+.kui-control.kui-switch {
+  --kui-ct-mark: var(--kui-ct-mark-up);
 }
 
 /* ── The emphasis ladder: loudness, not construction (§9) ────────────────────────────────── */

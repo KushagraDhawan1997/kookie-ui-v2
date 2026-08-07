@@ -43,6 +43,7 @@ export default defineConfig({
             "@base-ui/react/radio",
             "@base-ui/react/radio-group",
             "@base-ui/react/slider",
+            "@base-ui/react/switch",
           ],
         },
         test: {
