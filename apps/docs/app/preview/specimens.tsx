@@ -18,9 +18,11 @@ import {
   Button,
   Card,
   Checkbox,
+  Code,
   Flex,
   Grid,
   Heading,
+  Kbd,
   Progress,
   Radio,
   RadioGroup,
@@ -284,6 +286,68 @@ function CheckboxSection() {
           </Flex>
         ))}
       </Stack>
+    </Stack>
+  );
+}
+
+function CodeSection() {
+  return (
+    <Stack gap="6">
+      {/* The claim to judge: an inline atom with no `size` takes the line it sits in. Every
+          row below sets the step on the TEXT only — the chips and caps are bare. If one of
+          them ever stops matching its sentence, this is where it shows. */}
+      <Stack gap="3">
+        {SIZES.map((size) => (
+          <Text key={size} size={size}>
+            Run <Code>pnpm run ci</Code> before claiming a task done, or press <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd> to search.
+          </Text>
+        ))}
+      </Stack>
+      {/* Tone reaches BOTH of an atom's colours — the fill as well as the ink — which is the
+          one place this family diverges from Text (a chip has a second thing to tint). */}
+      <SpecTable
+        cols={["Code", "Kbd"]}
+        rows={TONES.map((tone) => ({
+          label: tone,
+          cells: [
+            <Code key="1" size="2" tone={tone}>--tone-soft</Code>,
+            <Kbd key="2" size="2" tone={tone}>Esc</Kbd>,
+          ],
+        }))}
+      />
+      {/* Emphasis is the INK's axis here, not the fill's: the wash holds while the glyphs
+          step down. A chip whose fill climbed the ladder would be reading one axis two ways. */}
+      <SpecTable
+        cols={["loud", "medium", "quiet"]}
+        rows={[
+          {
+            label: "code",
+            cells: [
+              <Code key="1" size="2" emphasis="loud">const x = 1</Code>,
+              <Code key="2" size="2" emphasis="medium">const x = 1</Code>,
+              <Code key="3" size="2" emphasis="quiet">const x = 1</Code>,
+            ],
+          },
+          {
+            label: "kbd",
+            cells: [
+              <Kbd key="1" size="2" emphasis="loud">Shift</Kbd>,
+              <Kbd key="2" size="2" emphasis="medium">Shift</Kbd>,
+              <Kbd key="3" size="2" emphasis="quiet">Shift</Kbd>,
+            ],
+          },
+        ]}
+      />
+      {/* The wrapped-chip case: an inline fill paints only its first fragment by default, so
+          this narrow column is the specimen that would catch it regressing. */}
+      <Card size="3">
+        <Box style={{ maxWidth: "220px" }}>
+          <Text size="2">
+            The flag is <Code>--experimental-strip-types</Code> and it wraps here on purpose.
+          </Text>
+        </Box>
+      </Card>
     </Stack>
   );
 }
@@ -615,6 +679,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "button", name: "Button", body: <ButtonSection /> },
   { id: "card", name: "Card", body: <CardSection /> },
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
+  { id: "code", name: "Code and Kbd", body: <CodeSection /> },
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },

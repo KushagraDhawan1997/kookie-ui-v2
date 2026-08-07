@@ -1,0 +1,24 @@
+/* A key cap (§11's inert atoms, §15): Code plus an edge.
+ *
+ * The atom's facts are restated here rather than shared, and that is the family rule rather
+ * than an oversight: TextArea repeated the field family's facts self-keyed because the SECOND
+ * member self-keys and the THIRD promotes (LOG 2026-08-05). Badge and Tag are the atoms still
+ * to land; whichever ships first pulls this box into a layer of its own. */
+
+.kui-kbd {
+  font-family: var(--font-mono);
+  background-color: var(--tone-soft);
+  border-radius: var(--radius-control-1);
+  /* The one line that is not Code's. Tone-aware, not one of the solved tiers: `--control-edge`
+     and `--field-edge` were solved for controls whose identity RESTS on the edge (an unchecked
+     checkbox IS its hairline, §7's edge order), and a cap has a fill to carry it. No shadow —
+     the classic "just a tiny inset shadow" case, refused where depth is the app's (§5). */
+  border: var(--border-width) solid var(--tone-border);
+  /* The border eats into the same optical breathing room, so the inline padding gives it back
+     rather than leaving a cap tighter than the chip beside it. Relative to the cap's own type
+     for the reason code.css states at length. */
+  padding-inline: 0.4em;
+  padding-block: 0.12em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}

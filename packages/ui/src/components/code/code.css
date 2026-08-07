@@ -1,0 +1,37 @@
+/* Inline code (§11's inert atoms, §15): the type layer's third family slot, wearing a fill.
+ *
+ * Almost all of what a code chip looks like is already written: `.kui-type` zeroes the margin
+ * and points the colour at the foreground role, and the ramp, the weights and the emphasis
+ * rungs are the shared layer's. What is here is the two facts that are this atom's own — the
+ * mono family and §11's "subtle fill" — plus the inline-fill correction nobody gets for free.
+ *
+ * The fill is an IDENTITY, not a rung (Card's sentence at atom scale). Emphasis resolves for
+ * type as foreground roles, which is the resolution this family takes; a chip whose FILL also
+ * climbed the ladder would be reading one axis two ways in one element. */
+
+.kui-code {
+  font-family: var(--font-mono);
+  /* §11's "subtle fill", through the tone indirection so a chosen family tints the chip as
+     well as its ink — an atom that carries a fill has a second thing to tint, which is the
+     one place this family diverges from Text. The default is stamped `neutral`, so this
+     resolves to the neutral wash without the component ever naming a family (§7). */
+  background-color: var(--tone-soft);
+  border-radius: var(--radius-control-1);
+  /* Relative to the chip's OWN type, and deliberately so: this is the first length in the
+     package that is not a token, and the argument is the mark family's own. A mark is one
+     line of its label because its box is a property of the type beside it; a chip's breathing
+     room is a property of the glyphs inside it. The alternatives were both worse and both
+     already have a scar in this repo: one designed constant goes wrong across a 12->56px ramp
+     (a size-9 chip with a size-1 gap), and nine picks into a palette that has nothing between
+     2 and 4 is the fraction wall the mark ladder, control padding and the slider track each
+     hit. `em` needs no ladder and is correct at all nine steps by construction.
+     Not px, so the tokens-only law is untouched — but stated here rather than left for a
+     reader to notice, because the law's regex is not the rule, the non-negotiable is. */
+  padding-inline: 0.35em;
+  padding-block: 0.12em;
+  /* An inline box that wraps paints its fill on the FIRST fragment only, so a chip broken
+     across two lines loses its background on the second half — the one thing an inline fill
+     gets wrong by default, and invisible until a narrow column produces it. */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
