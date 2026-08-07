@@ -470,6 +470,32 @@ describe("the boundary (§3, §13)", () => {
     expect(computed(disabled, "background-image")).toBe("none");
   });
 
+  it.each(["thin", "regular", "thick"] as const)(
+    "a disabled %s-glass button stands its cast down too (audit 2026-08-07)",
+    (material) => {
+      // The law above used a SOLID button and passed while this was broken. A glass control
+      // resolves its cast through --kui-ct-cast-glass, which sits first in the chain and reads
+      // the three per-thickness world names — so standing --kui-control-chrome down never
+      // reached it, and a dead glass button computed a shadow byte-identical to its live self.
+      const live = mounted(
+        <Button tone="accent" emphasis="loud" material={material}>
+          Save
+        </Button>,
+        { theme: { surfaces: "elevated" } },
+      );
+      const dead = mounted(
+        <Button tone="accent" emphasis="loud" material={material} disabled>
+          Save
+        </Button>,
+        { theme: { surfaces: "elevated" } },
+      );
+      // The negative control: without it, a glass button that stopped casting entirely would
+      // satisfy the real assertion and hide a different bug.
+      expect(computed(live, "box-shadow"), `${material} glass never casts`).not.toBe("none");
+      expect(computed(dead, "box-shadow")).toBe("none");
+    },
+  );
+
   it("forwards the escape hatches and keeps its own classes", () => {
     const el = render(
       <Button className="mine" style={{ letterSpacing: "3px" }}>

@@ -8,6 +8,94 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-07 Two escapes that only went one way — the audit of the elevation work
+
+The ten commits above were audited adversarially and came back with two defects of the same
+shape, plus doc drift that is still open. Both fixes are recorded here because both are about
+a rule this system already had and had stopped applying, not about a new value.
+
+**The rule: every scope declares its own value, and a value that can only get louder has no
+way back down.** Stated at the top of the elevated world's own block — a descendant selector
+had no reset, so `flat` could not escape an elevated ancestor — and then broken by the same
+block eight lines later. The lifted glint was wired as `--material-thin-rim:
+var(--material-thin-rim-lifted)`: a re-declaration of the GENERATED name. `elevated` could
+raise it and `flat` had nothing left to point at, since the resting value and the name that
+would carry it back are the same name (and `initial` deletes the rim rather than resting it).
+So a nested flat Theme kept the brighter line. It escaped review because it usually
+self-corrects for an unrelated reason — a nested Theme normally stamps `data-appearance`, and
+that scope re-declares the generated name at the element — leaving the hole open exactly where
+appearance is INHERITED, which is how apps/docs mounts its root and therefore how every Theme
+under it resolves. The rim now rides a `--kui-` pointer like every other value in those two
+blocks, and the law asserts BOTH ends; it previously asserted that `flat` declared nothing,
+pinning the bug as if it were the design. One thing the pointer taught: it must fall back to
+the generated name at the consumption site, because the un-themed document has no
+`[data-surfaces]` scope above it and a bare `<Card material>` lost its glint entirely — caught
+within the hour by TextField's own law, which mounts without a Theme on purpose.
+
+**The rule, second instance: "always" is about the world, never about state.** The thumb casts
+in every context by role semantics (§6's kill switch, second named exception), and the way that
+is spelled is reading the palette row's VALUE rather than the world switch — which is correct,
+and which also walked it out of the shared disabled arm, since that arm stands the world switch
+down. A dead handle kept its full shadow and its white top line: the one control in the system
+that stayed lifted while disabled, sitting beside a disabled Button that had correctly gone
+flat. The stand-down is stated on the mark FAMILY rather than on the thumb, so the switch
+inherits it the day it ships, and at (0,2,0) so it beats the thumb's own declaration.
+
+Both laws were falsified against the pre-fix code before being accepted — five cells, all
+failing, all for the reason claimed.
+
+The audit's three remaining defects closed the same night, and the first two are one rule
+again — **the fallback chain is the mechanism, so every arm of it has to be reachable.**
+
+**A pane's cast leaked into everything inside it.** The glass rules re-pointed
+`--kui-surface-chrome` — the name the WORLD declares on the Theme element and every surface
+reads by INHERITANCE. That inheritance is the delivery mechanism, not an accident, so writing
+the faded row onto it handed that row to the whole subtree: a plain opaque card inside a glass
+card cast a third of its shadow in light, and in dark also lost the rim-light, because the
+transmitted row carries no inset. Worth recording what does NOT work, because it is the
+obvious move: registering `--kui-surface-chrome` as non-inheriting kills elevation outright —
+the world's value would never reach a card at all. The fix is a second name that does not
+inherit (`--kui-sf-cast`), holding the pane's own value and consulted FIRST, which is exactly
+the shape the control layer had already arrived at the day before (`--kui-ct-cast-glass`). The
+surface layer had the same problem and never got the same answer. Reduced transparency's
+stand-down moved with it, and that line is now load-bearing rather than decorative: it used to
+spell `--kui-surface-chrome: inherit`, which reads the PARENT ELEMENT rather than the world —
+harmless while transparency-reduction was global, and wrong the moment the pane's cast lived
+in its own name.
+
+**A disabled glass control still floated**, 12 of 16 cells. The disabled arm stood down
+`--kui-control-chrome`, which is the SECOND item in the chain; a glass control resolves through
+`--kui-ct-cast-glass` first, and that reads three per-thickness names the arm never touched. So
+a dead glass button computed a shadow byte-identical to its live self, next to a dead solid one
+that had correctly gone flat. The stand-down names the three world rows rather than the glass
+value, and that is a specificity fact rather than a preference: two of the arm's three
+selectors outrank the glass rules, but the `:has()` arm — the one that answers a field whose
+own input is disabled, which is precisely the TextField case — ties at (0,2,0) and loses on
+source order.
+
+**And the transmission law could not fail.** It rebuilt its expected value with `fadeShadow`'s
+own `.replace(/\/ ([0-9.]+)\)/g, …)`, character for character, which asks whether the generator
+ran the function and never whether the function does anything. Demonstrated rather than
+argued: respelling one palette row as `rgba(0, 0, 0, 0.1)` — valid CSS, not matched by that
+pattern — makes the generator return the row unfaded, and the old law passes, because it
+computes the same unfaded string. The law now parses alphas independently (handling the comma
+and percentage forms the generator does not), and asserts three things the copy could not: the
+derived row is not the row it came from, every alpha is the source times the factor, and the
+ladder is ordered thin < regular < thick < solid. Its tolerance is one unit in the last emitted
+decimal, stated with its reason — `0.11 x 0.35` lands on 0.0384999… in binary, so a half-step
+window fails on float representation rather than on anything real.
+
+Ten new mounted laws, every one falsified first: nine against the unfixed stylesheets, and the
+sealed-pane law against a build with the fix applied but the reduced-transparency arm left
+alone. One law was thrown away in the process for being unfalsifiable — a sealed pane nested in
+a glass pane, which cannot exist, because transparency-reduction seals both.
+
+Still open in DECISIONS' list: the stale prose the renumber left behind — the tuning comments
+that still name row 2 for cards, the two field stylesheets that still state as a decision that
+a field never casts, and the "exactly one box-shadow" line above a system with four.
+
+---
+
 ## 2026-08-07 The pane parts reach the field family — the card's material fix, one layer down
 
 Kushagra: *"The text field and text area's material representation is bad. We fixed this

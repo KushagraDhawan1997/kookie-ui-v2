@@ -30,6 +30,25 @@
   inherits: false;
 }
 
+/* And the pane's own CAST needs the same guard, for the same reason one property over
+   (audit 2026-08-07). The glass rules used to re-point --kui-surface-chrome itself, which is
+   the variable the WORLD declares on the Theme element and every surface reads by
+   inheritance — that inheritance is the delivery mechanism, not an accident. Re-pointing it
+   on a glass card handed the faded row to everything inside: a plain opaque card in a glass
+   card cast a third of its shadow in light, and in dark also lost the rim-light, because the
+   transmitted row carries no inset.
+
+   Registering --kui-surface-chrome as non-inheriting is NOT the fix and is worth stating so
+   nobody tries it: the world's value would then never reach a card at all and nothing would
+   cast anything. The fix is a second name that does not inherit, holding the pane's own
+   value and consulted FIRST — exactly the shape the control layer already uses for the same
+   problem (--kui-ct-cast-glass in recipes.css). A surface that is not glass never declares
+   it, so it falls through to the world's value. */
+@property --kui-sf-cast {
+  syntax: "*";
+  inherits: false;
+}
+
 .kui-surface {
   box-sizing: border-box;
   /* The rungs publish their fills as SOURCES; the painted value reads through this chain so
@@ -143,8 +162,9 @@
 
 /* ── The elevated world (§5, §10): an app identity, never a per-card knob ─────────────────────
    Theme `surfaces="elevated"` is the ONLY thing in the system that puts a shadow on a
-   component. `elevated` is the semantic — surfaces sit up — and shadow row 2 is merely its
-   current resolution.
+   component. `elevated` is the semantic — surfaces sit up, and since 2026-08-07 raised
+   controls are lit too — and the palette rows behind it are merely its current resolution:
+   row 3 for a surface, row 2 for a control.
 
    It escapes by DECLARATION, like density, radius and appearance, rather than by a descendant
    selector. Written as `[data-surfaces="elevated"] .kui-surface { box-shadow: ... }` it had no
@@ -153,7 +173,7 @@
    Every axis in this system escapes the same way: each scope re-declares its own value. */
 
 [data-surfaces="elevated"] {
-  /* Depth comes from the palette (--surface-chrome composes var(--shadow-2)); the border is
+  /* Depth comes from the palette (--surface-chrome composes var(--shadow-3)); the border is
      whatever the surface already wears, which keeps the edge sharp and leaves it reachable by
      contrast="high". The top edge reads lighter because every palette shadow falls downward.
 
@@ -174,17 +194,28 @@
      app's shadow transmitted — the surface row faded per thickness, generator-derived from
      the palette — handed here so the glass rules below can re-point their chrome; flat
      declares none, so glass never floats in a flat world. And under a sun a pane CATCHES
-     harder: -rim remaps to the brighter -rim-lifted (both live in the appearance scopes —
-     this block stays mode-blind, the look axis's own rule). */
+     harder: the rim resolves to the brighter -rim-lifted (both live in the appearance
+     scopes — this block stays mode-blind, the look axis's own rule).
+
+     The rim goes through a --kui- pointer like every other value in this block, and that is
+     the fix for a real escape hole (audit 2026-08-07). The first cut re-declared the
+     GENERATED name — `--material-thin-rim: var(--material-thin-rim-lifted)` — which is the
+     one thing this file's own opening note forbids: a value that only ever gets louder has
+     no way back down, so `flat` could not restore it (there is nothing left to point at, and
+     `initial` deletes the rim rather than resting it). A nested flat Theme inside an elevated
+     one kept the lifted glint, and it only looked correct because a nested Theme usually
+     stamps data-appearance, whose scope re-declares the generated name at the element. Where
+     appearance is inherited — apps/docs' own root, so every Theme under it — nothing
+     re-declared it and the brighter line survived into the flat scope. */
   --kui-surface-chrome-thin: var(--surface-chrome-thin);
   --kui-surface-chrome-regular: var(--surface-chrome-regular);
   --kui-surface-chrome-thick: var(--surface-chrome-thick);
   --kui-control-chrome-thin: var(--control-chrome-thin);
   --kui-control-chrome-regular: var(--control-chrome-regular);
   --kui-control-chrome-thick: var(--control-chrome-thick);
-  --material-thin-rim: var(--material-thin-rim-lifted);
-  --material-regular-rim: var(--material-regular-rim-lifted);
-  --material-thick-rim: var(--material-thick-rim-lifted);
+  --kui-material-thin-rim: var(--material-thin-rim-lifted);
+  --kui-material-regular-rim: var(--material-regular-rim-lifted);
+  --kui-material-thick-rim: var(--material-thick-rim-lifted);
 }
 
 [data-surfaces="flat"] {
@@ -197,12 +228,25 @@
   --kui-control-chrome-thin: none;
   --kui-control-chrome-regular: none;
   --kui-control-chrome-thick: none;
+  /* Not `none`: a flat world's glass keeps its edge and its glint and loses only the lift
+     (the weld was built and reversed 2026-08-05). So flat RESTS the rim rather than removing
+     it — the resting value is what the appearance scope generated, and contrast="high" empties
+     both variants there, so an emptied token arrives here guaranteed-invalid and the consuming
+     var() falls through to `none` on its own. */
+  --kui-material-thin-rim: var(--material-thin-rim);
+  --kui-material-regular-rim: var(--material-regular-rim);
+  --kui-material-thick-rim: var(--material-thick-rim);
 }
 
 .kui-surface {
-  /* Still exactly one box-shadow in the system, and the flat default still resolves to `none`
-     — byte-identical in effect to a world where the elevated rule does not exist. */
-  box-shadow: var(--kui-surface-chrome, none);
+  /* Still one box-shadow in this layer, and the flat default still resolves to `none` —
+     byte-identical in effect to a world where the elevated rule does not exist.
+
+     Two hops since the audit (2026-08-07): the pane's OWN cast first, which only a glass
+     surface declares and which cannot inherit, then the world's, which every surface reads
+     by inheritance and no element re-points. Ordering is the whole mechanism — a glass pane
+     transmits, everything else takes the world's value untouched. */
+  box-shadow: var(--kui-sf-cast, var(--kui-surface-chrome, none));
 }
 
 /* ── Material: a fill modifier, not a fill (§10) ─────────────────────────────────────────────
@@ -248,13 +292,21 @@
     backdrop-filter: var(--material-thin-filter);
     /* The pane's own edge and lighting (§10, 2026-08-05): the tone border on glass read as a
        sticker — pigment on a pane of light. The edge is the material's, a translucent
-       hairline; the rim is its top light catch. And its CAST is the app's shadow
-       TRANSMITTED (§10's 2026-08-07 seam): the chrome re-points to the faded row the
-       elevated scope hands down — an element-level declaration beating the inherited one —
-       and resolves none in a flat world, where glass has edge and glint, no lift. */
+       hairline; the rim is its top light catch, taken from the WORLD so an elevated app
+       glints brighter (the pointer both scopes declare, not the generated name — see the
+       elevated block). And its CAST is the app's shadow TRANSMITTED (§10's 2026-08-07 seam):
+       the chrome re-points to the faded row the elevated scope hands down — an element-level
+       declaration beating the inherited one — and resolves none in a flat world, where glass
+       has edge and glint, no lift.
+
+       The rim's second fallback is the un-themed document, and it is load-bearing: a bare
+       `<Card material>` outside any Theme has no [data-surfaces] scope above it, so the
+       pointer never resolves and the pane lost its glint entirely — caught by TextField's
+       own law the hour the pointer landed. The generated name still answers there, because
+       tokens.css carries :root alongside the two appearance scopes for exactly this case. */
     --kui-border-color: var(--material-thin-edge, var(--tone-border));
-    background-image: var(--material-thin-rim, none);
-    --kui-surface-chrome: var(--kui-surface-chrome-thin, none);
+    background-image: var(--kui-material-thin-rim, var(--material-thin-rim, none));
+    --kui-sf-cast: var(--kui-surface-chrome-thin, none);
   }
   .kui-surface[data-material="regular"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-alpha), transparent);
@@ -263,8 +315,8 @@
     backdrop-filter: var(--material-regular-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     --kui-border-color: var(--material-regular-edge, var(--tone-border));
-    background-image: var(--material-regular-rim, none);
-    --kui-surface-chrome: var(--kui-surface-chrome-regular, none);
+    background-image: var(--kui-material-regular-rim, var(--material-regular-rim, none));
+    --kui-sf-cast: var(--kui-surface-chrome-regular, none);
   }
   .kui-surface[data-material="thick"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-alpha), transparent);
@@ -273,8 +325,8 @@
     backdrop-filter: var(--material-thick-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     --kui-border-color: var(--material-thick-edge, var(--tone-border));
-    background-image: var(--material-thick-rim, none);
-    --kui-surface-chrome: var(--kui-surface-chrome-thick, none);
+    background-image: var(--kui-material-thick-rim, var(--material-thick-rim, none));
+    --kui-sf-cast: var(--kui-surface-chrome-thick, none);
   }
 }
 
@@ -298,9 +350,16 @@
        fallback still resolves --tone-border wherever no look is stamped. */
     --kui-border-color: var(--look-surface-border, var(--tone-border));
     background-image: none;
-    /* A sealed pane is no longer glass, so it stops transmitting: explicit `inherit` takes
-       the WORLD's chrome back (full shadow when elevated, none when flat), undoing the
-       element-level transmission re-point above. */
-    --kui-surface-chrome: inherit;
+    /* A sealed pane is no longer glass, so it stops transmitting: dropping its own cast lets
+       the chain fall through to the WORLD's chrome (full shadow when elevated, none when
+       flat), undoing the element-level transmission above.
+
+       This used to read `--kui-surface-chrome: inherit`, which was the same defect the cast
+       guard above now prevents, wearing a different hat: `inherit` takes the PARENT
+       ELEMENT's value, not the world's, so a sealed pane inside a glass pane took its
+       parent's faded row. `initial` on the unregistered-value side of a registered
+       non-inheriting property is guaranteed-invalid, so the fallback resolves — no reference
+       to any element but this one. */
+    --kui-sf-cast: initial;
   }
 }

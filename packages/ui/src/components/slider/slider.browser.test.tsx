@@ -377,6 +377,23 @@ describe("states arrive from the shared layer (§8)", () => {
       expect(computed(thumbOf(el), "background-color")).toBe(colorOn(el, "var(--neutral-3)"));
       expect(computed(rootOf(el), "opacity")).toBe("1");
     });
+
+    for (const surfaces of ["flat", "elevated"] as const) {
+      it(`${appearance}/${surfaces}: a dead grip stops hovering — disabled takes the cast (audit 2026-08-07)`, () => {
+        // "The thumb casts ALWAYS" is a statement about the WORLD, not about state. Reading the
+        // palette row's VALUE is what makes it survive a flat app and a glass pane — and it also
+        // walked the thumb out of the shared disabled arm, which stands the world switch down.
+        // So this was the one control in the system that stayed lifted while dead: full shadow,
+        // white top line, sitting next to a disabled Button that had correctly gone flat.
+        //
+        // Both worlds, because the bug was invisible in neither: flat is where "always" does the
+        // work, elevated is where every other control also casts.
+        const live = slider({}, { appearance, surfaces });
+        const dead = slider({ disabled: true }, { appearance, surfaces });
+        expect(computed(thumbOf(live), "box-shadow")).not.toBe("none");
+        expect(computed(thumbOf(dead), "box-shadow")).toBe("none");
+      });
+    }
   }
 
   it("the ring lands on the thumb, real and token-valued, when the hidden input holds focus", async () => {

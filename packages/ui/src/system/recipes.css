@@ -368,16 +368,26 @@
   inline-size: min(var(--kui-ct-mark), var(--kui-ct-hosted-height));
 }
 
-/* ── Disabled reaches the resting fill (§8, audit D6) ────────────────────────────────────────
+/* ── Disabled reaches the resting fill AND the depth (§8, audit D6) ──────────────────────────
    The shared disabled arm rewrites the TONE roles, and the resting fill deliberately is not
    one — it is the surface seal, so a disabled unchecked mark computed byte-identical to a
    live one. Re-pointing the fill at --tone-soft hands it to the arm (soft remaps to
    neutral-3 with everything else), so this rule names no state colour of its own and a
-   change to the disabled remap reaches it for free. */
+   change to the disabled remap reaches it for free.
+
+   The cast lands here for the same reason, one axis over (audit 2026-08-07): the arm on
+   .kui-control stands --kui-control-chrome down, which reaches every rung that reads the
+   WORLD — and the slider thumb deliberately does not, because it casts always (§6's kill
+   switch, slider.css). "Always" is about the world switch, never about state: a dead grip
+   makes no promise and must not hover, and it was the one control in the system that stayed
+   lifted while disabled. Stated on the FAMILY rather than on the thumb so the switch inherits
+   it the day it ships, and at (0,2,0) so it beats the thumb's own (0,1,0) declaration. Inert
+   for checkbox and radio, which cast nothing. */
 .kui-mark[data-disabled] {
   --kui-ct-fill-src: var(--tone-soft);
   --kui-ct-fill-src-hover: var(--tone-soft);
   --kui-ct-fill-src-active: var(--tone-soft);
+  --kui-ct-cast: none;
 }
 
 /* ── The on state (§11): the binary controls' one identity ───────────────────────────────────
@@ -686,6 +696,21 @@
      none. In a flat world this is a no-op. */
   --kui-control-chrome: initial;
   --kui-control-light: initial;
+  /* The three glass rows too, and they are not optional (audit 2026-08-07). A glass control
+     resolves its cast through --kui-ct-cast-glass, which sits FIRST in the chain and reads
+     these names — so standing down --kui-control-chrome alone never reached it, and a
+     disabled glass button or field computed a shadow byte-identical to its enabled self,
+     beside a disabled solid one that had correctly gone flat. 12 of 16 cells.
+
+     These names rather than --kui-ct-cast-glass itself, and that is a specificity fact, not
+     a preference: two of this rule's three selectors outrank the (0,2,0) glass rules, but
+     the `:has()` arm — the one that answers a field whose own input is disabled, which is
+     exactly the TextField case — ties at (0,2,0) and loses on source order to the @supports
+     block below. These three are declared only by the world scopes and inherited, so
+     re-declaring them here wins everywhere with no contest at all. */
+  --kui-control-chrome-thin: initial;
+  --kui-control-chrome-regular: initial;
+  --kui-control-chrome-thick: initial;
 }
 
 /* Invalid is a TONE REMAP too, and for the same reason disabled is one (§8): the control keeps
@@ -817,17 +842,17 @@
   .kui-field:where([data-material="thin"]),
   .kui-textarea:where([data-material="thin"]) {
     --kui-ct-glass-edge: var(--material-thin-edge);
-    background-image: var(--material-thin-rim, none);
+    background-image: var(--kui-material-thin-rim, var(--material-thin-rim, none));
   }
   .kui-field:where([data-material="regular"]),
   .kui-textarea:where([data-material="regular"]) {
     --kui-ct-glass-edge: var(--material-regular-edge);
-    background-image: var(--material-regular-rim, none);
+    background-image: var(--kui-material-regular-rim, var(--material-regular-rim, none));
   }
   .kui-field:where([data-material="thick"]),
   .kui-textarea:where([data-material="thick"]) {
     --kui-ct-glass-edge: var(--material-thick-edge);
-    background-image: var(--material-thick-rim, none);
+    background-image: var(--kui-material-thick-rim, var(--material-thick-rim, none));
   }
 }
 

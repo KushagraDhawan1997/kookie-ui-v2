@@ -529,6 +529,25 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(disabled, "border-top-color")).toBe(colorOn(disabled, "var(--neutral-6)"));
   });
 
+  it.each(["thin", "regular", "thick"] as const)(
+    "a disabled %s-glass field sits flat in an elevated world (audit 2026-08-07)",
+    (material) => {
+      // The arm above ran in a FLAT theme, where the shadow is `none` whether the state
+      // reaches it or not — so it passed with the state never reaching it. The field is also
+      // the harder half of this defect: its disabled selector is the `:has()` arm, which ties
+      // with the glass rules on specificity and loses on source order, so the fix has to stand
+      // down the three world names rather than the glass value itself.
+      const live = mounted(<TextField material={material} />, {
+        theme: { surfaces: "elevated" },
+      });
+      const dead = mounted(<TextField material={material} disabled />, {
+        theme: { surfaces: "elevated" },
+      });
+      expect(computed(live, "box-shadow"), `${material} glass never casts`).not.toBe("none");
+      expect(computed(dead, "box-shadow")).toBe("none");
+    },
+  );
+
   it("resolves differently under a dark Theme — both directions of every axis", () => {
     const light = render(<TextField />);
     const dark = mounted(<TextField />, { theme: { appearance: "dark" } });

@@ -2,8 +2,8 @@
  * (§2, §4, §11). The size join, the disabled and invalid remaps, the cursor and the target
  * all arrive from system/recipes.css: the ROOT is the control, so the height ladder is the
  * hit area (44 on the coarse default path, §16) and no new target mechanism exists here.
- * The thumb is a mark (family rules shared); its circle is stated below beside Radio's,
- * for Radio's reason. */
+ * The thumb is a mark (family rules shared); its capsule is stated below beside Radio's
+ * circle, for Radio's reason. */
 
 .kui-slider {
   /* The skeleton pads for a label; a track runs the full box, ends included. */
@@ -128,7 +128,13 @@
      ships the handle shadowed in every context. It reads the palette's control row VALUE
      (--control-chrome) rather than the world switch (--kui-control-chrome), which is
      exactly what "always" means — and why one-lift-per-pane cannot strip it. No catch:
-     a gradient on a near-white circle is invisible. */
+     a gradient on a near-white grip is invisible.
+
+     "Always" is about the WORLD, not about state (audit 2026-08-07): reading the palette
+     value also walked the thumb out of the shared disabled arm, which stands the world
+     switch down, so a dead handle kept its full shadow and its white top line — the one
+     control in the system that stayed lifted while disabled. The stand-down is stated on the
+     mark family (.kui-mark[data-disabled] in recipes.css), which wins here on specificity. */
   --kui-ct-cast: var(--control-chrome, none);
   box-shadow: var(--kui-ct-cast, none);
 }

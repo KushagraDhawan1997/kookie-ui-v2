@@ -485,6 +485,100 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     );
     expect(computed(nested.querySelector("#probe")!, "box-shadow")).not.toBe("none");
   });
+
+  it.each(["thin", "regular", "thick"] as const)(
+    "a plain card inside %s glass keeps the WORLD's shadow, not the pane's (audit 2026-08-07)",
+    (material) => {
+      // The pane's transmitted cast used to be written onto --kui-surface-chrome itself — the
+      // variable the world declares on the Theme element and every surface reads by
+      // INHERITANCE. Re-pointing it on a glass card handed the faded row to the whole subtree,
+      // so an opaque card inside a glass card cast about a third of its shadow in light, and
+      // in dark also lost the rim-light the transmitted row does not carry.
+      //
+      // Both appearances, because dark loses a different thing than light does.
+      for (const appearance of APPEARANCES) {
+        const alone = mounted(<Card>B</Card>, {
+          theme: { appearance, surfaces: "elevated" },
+          select: ".kui-surface",
+        });
+        const nested = mounted(
+          <Card material={material}>
+            <Card id="inner">B</Card>
+          </Card>,
+          { theme: { appearance, surfaces: "elevated" } },
+        );
+        const inner = nested.querySelector<HTMLElement>("#inner")!;
+        const outer = nested;
+        expect(
+          computed(inner, "box-shadow"),
+          `${appearance}/${material}: the inner card took the pane's cast`,
+        ).toBe(computed(alone, "box-shadow"));
+        // And the pane still transmits — the guard must not cost the glass card its own
+        // faded shadow, which was correct all along.
+        expect(computed(outer, "box-shadow")).not.toBe("none");
+        expect(computed(outer, "box-shadow")).not.toBe(computed(alone, "box-shadow"));
+      }
+    },
+  );
+
+  it("a sealed pane stops transmitting and takes the world's full shadow (§10)", async () => {
+    // A sealed pane is not glass, so it must give the transmitted cast back. This is the half
+    // of the guard that is easy to get wrong twice: the pane's own cast now lives in a
+    // separate non-inheriting name, so the reduced-transparency arm has to clear THAT name —
+    // clearing the world's, or the old `inherit` spelling, leaves the faded row in place and
+    // a sealed card floats a third as high as the solid card beside it.
+    await cdp().send("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
+    });
+    try {
+      const solid = mounted(<Card>B</Card>, {
+        theme: { surfaces: "elevated" },
+        select: ".kui-surface",
+      });
+      const sealed = mounted(<Card material="thin">B</Card>, {
+        theme: { surfaces: "elevated" },
+        select: ".kui-surface",
+      });
+      expect(computed(sealed, "backdrop-filter")).toBe("none"); // the pane really is sealed
+      expect(computed(solid, "box-shadow")).not.toBe("none"); // and the world really is lit
+      expect(computed(sealed, "box-shadow")).toBe(computed(solid, "box-shadow"));
+    } finally {
+      await cdp().send("Emulation.setEmulatedMedia", { features: [] });
+    }
+  });
+
+  it("the escape reaches the pane's own light too, with appearance inherited (audit 2026-08-07)", () => {
+    // The escape was asserted for the SHADOW and never for the glint, and the glint was the
+    // half that could not escape: the elevated scope re-declared the generated --material-*-rim
+    // rather than a --kui- pointer, so `flat` had nothing to point back at and simply declared
+    // nothing. A nested flat Theme kept the brighter lifted rim.
+    //
+    // appearance="inherit" is what makes this reproduce and is not an exotic setting — it is
+    // how apps/docs mounts its root, so every Theme underneath it inherits too. With an
+    // appearance stamped, the appearance scope re-declares the generated name AT the element
+    // and papers over the hole; the bug then hides behind an axis it has nothing to do with.
+    const nested = render(
+      <Theme appearance="inherit" surfaces="elevated">
+        <Card material="regular" id="lifted" />
+        <Theme surfaces="flat">
+          <Card material="regular" id="rested" />
+        </Theme>
+      </Theme>,
+    );
+    const lifted = computed(nested.querySelector("#lifted")!, "background-image");
+    const rested = computed(nested.querySelector("#rested")!, "background-image");
+    // Both worlds paint a glint — flat glass keeps edge and light, and loses only the lift.
+    expect(rested).not.toBe("none");
+    expect(lifted).not.toBe("none");
+    expect(rested, "the nested flat pane kept the elevated glint").not.toBe(lifted);
+    // And it rests at exactly the value a top-level flat app resolves — escaping is going
+    // back, not going somewhere third.
+    const topLevel = mounted(<Card material="regular" />, {
+      theme: { appearance: "inherit", surfaces: "flat" },
+      select: ".kui-surface",
+    });
+    expect(rested).toBe(computed(topLevel, "background-image"));
+  });
 });
 
 describe("reduced transparency takes the pane away, not the app's dress (§10, §19)", () => {
