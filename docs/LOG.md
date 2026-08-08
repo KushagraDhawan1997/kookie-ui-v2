@@ -8,7 +8,15 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
-## 2026-08-08 Containment becomes opt-in — a plain Box is a plain box again
+## 2026-08-08 The mono atoms take a discount — same line, smaller glyphs
+
+Kushagra, judging Code and Kbd: mono reads bigger at the same font-size (wider advance, taller x-height), and the line-height half already felt right — so the correction lands on the glyph size alone. `monoScale` (v0: 0.925, between GitHub's 85% and Radix's 0.9em, judged in the playground) multiplies into the atoms' font-size in both size arms; line-height keeps the step's line box, letter-spacing keeps the step's em and follows the glyphs by construction.
+
+The mechanism is one indirection in the type join rather than a second ramp: every size arm's font-size becomes `calc(token * --kui-ty-scale)`, registered non-inheriting at 1 — the identity for every member, and the mono atoms stand it down to `var(--mono-scale)`. Non-inheriting is the point, applied before it bit rather than after (the `--kui-h` lesson): a Text nested inside a Code takes its full step. The inherited-size arm is the same factor spelled `em`, which reads the parent's size — exactly what an unset size means.
+
+Rejected: `font-size-adjust` (normalizes x-height by specification, but the correct aspect value depends on which font the SYSTEM STACK resolved on this machine, and config cannot know that); per-step designed mono sizes (a second nine-value ramp to maintain for one optical fact); and doing nothing (the chip visibly outweighed its own sentence, which is what prompted the call).
+
+One law fix rode along: the harness's `tokenOn` resolves through a width probe, which rejects a unitless number as invalid and answers `0px` for a healthy token — `numberOn` (an opacity probe) joins it, found because the first spelling of the new laws asserted against a token that read as zero.
 
 The 2026-08-05 live defect closes as a reversal of §2's blanket mark: `container-type: inline-size` leaves `.kui-box` and moves behind `.kui-box[data-container]`, stamped by a new `container` prop on Box (and through it Flex, Grid, Stack). The defect was never a bug in the mechanism — it was the mechanism's price paid in the wrong places. Inline-size containment removes a box's contents from its own width by specification (the no-loop rule container queries are built on), so every Box asked to shrink-wrap — a flex-row item being the most ordinary spelling in the library — computed to zero. The playground's own Layout section shipped broken the day it landed, which was the "decide against a real break, not on principle" condition being met.
 

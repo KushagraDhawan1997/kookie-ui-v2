@@ -886,3 +886,14 @@ export const fontFamily = {
   heading: "var(--font-body)",
   mono: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
 } as const;
+
+/**
+ * §15 — the mono optical correction (2026-08-08, Kushagra; v0 for the eye pass). Mono faces
+ * run wider with a taller x-height, so at the same font-size they read a step large beside
+ * the body face (GitHub prose sets 85%, Radix Themes 0.9em). Applied to the mono atoms'
+ * FONT-SIZE only, in both size arms (inherited and stated) — the line box stays the step's,
+ * so vertical rhythm never moves. Rejected: `font-size-adjust` (the principled x-height
+ * normalizer, but the right aspect constant depends on which platform font the system stack
+ * resolved, which config cannot know).
+ */
+export const monoScale = 0.925;

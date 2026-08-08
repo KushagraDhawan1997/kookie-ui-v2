@@ -181,6 +181,11 @@ export function probeIn<T>(
 export const tokenOn = (scope: Element, name: string): string =>
   probeIn(scope, (el) => (el.style.width = `var(${name})`), (s) => s.width);
 
+/** A NUMBER token as the scope resolves it — through opacity, because the width probe above
+    rejects a unitless value as invalid and answers 0px for a perfectly healthy token. */
+export const numberOn = (scope: Element, name: string): number =>
+  parseFloat(probeIn(scope, (el) => (el.style.opacity = `var(${name})`), (s) => s.opacity));
+
 /** A colour expression as the scope resolves it. */
 export const colorOn = (scope: Element, expr: string): string =>
   probeIn(scope, (el) => (el.style.backgroundColor = expr), (s) => s.backgroundColor);

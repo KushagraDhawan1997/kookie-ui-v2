@@ -30,7 +30,13 @@ describe("a size step joins the three paired scales at one index (§15)", () => 
     for (let step = 1; step <= fontSize.length; step++) {
       const blocks = stripped.match(new RegExp(`\\[data-size="${step}"\\][^}]*}`, "g")) ?? [];
       expect(blocks.length).toBe(1);
-      for (const family of ["font-size", "line-height", "letter-spacing"]) {
+      // Font-size rides through the optical-scale indirection (§15, 2026-08-08 — identity
+      // at 1, the mono atoms' discount otherwise); the other two pairs never see it, which
+      // is half the design: the line box and tracking are the step's own.
+      expect(blocks[0]).toContain(
+        `font-size: calc(var(--font-size-${step}) * var(--kui-ty-scale))`,
+      );
+      for (const family of ["line-height", "letter-spacing"]) {
         expect(blocks[0]).toContain(`${family}: var(--${family}-${step})`);
       }
     }

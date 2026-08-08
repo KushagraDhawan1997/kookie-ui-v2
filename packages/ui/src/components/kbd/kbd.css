@@ -7,6 +7,10 @@
 
 .kui-kbd {
   font-family: var(--font-mono);
+  /* The mono optical correction, Code's own two lines (§15; the family rule keeps them
+     restated until the third atom promotes). */
+  --kui-ty-scale: var(--mono-scale);
+  font-size: calc(1em * var(--kui-ty-scale));
   background-color: var(--tone-soft);
   border-radius: var(--radius-control-1);
   /* The one line that is not Code's. Tone-aware, not one of the solved tiers: `--control-edge`

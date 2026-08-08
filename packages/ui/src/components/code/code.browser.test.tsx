@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, colorOn, computed, mounted, tokenOn } from "../../test/browser.tsx";
+import { APPEARANCES, colorOn, computed, mounted, numberOn, tokenOn } from "../../test/browser.tsx";
 import { Text } from "../text/text.tsx";
 import { Code } from "./code.tsx";
 
@@ -39,10 +39,13 @@ describe("the mono family is the atom's own, and the rest is the shared layer's 
 });
 
 describe("an unset size means the line it sits in, and that is the default (§15)", () => {
-  it("bare, it takes its parent's step rather than a step of its own", () => {
+  it("bare, it takes its parent's step rather than a step of its own — at the mono discount", () => {
     // The failure this forbids: Text defaults to size 3, so a Code that copied that default
     // would jump a size-1 caption to 16px and nobody would call it a bug — they would just
-    // stop using the component inside small text.
+    // stop using the component inside small text. The factor is the mono optical correction
+    // (§15, 2026-08-08): mono glyphs read a step large at the same size, so the chip renders
+    // at --mono-scale of the line it sits in, read from the token so a re-judged factor
+    // never rots this law.
     const host = mounted(
       <Text size="1">
         run <Code>pnpm ci</Code>
@@ -50,39 +53,80 @@ describe("an unset size means the line it sits in, and that is the default (§15
       { theme: {}, select: ".kui-code" },
     );
     expect(host.hasAttribute("data-size")).toBe(false);
-    expect(computed(host, "font-size")).toBe(tokenOn(host, "--font-size-1"));
+    const scale = numberOn(host, "--mono-scale");
+    expect(scale).toBeGreaterThan(0);
+    expect(scale).toBeLessThan(1);
+    expect(parseFloat(computed(host, "font-size"))).toBeCloseTo(
+      parseFloat(tokenOn(host, "--font-size-1")) * scale,
+      1,
+    );
   });
 
-  it("inside size 6 it is size 6 — the inheritance is real, not a coincidence at one step", () => {
+  it("inside size 6 it is size 6 scaled — the inheritance is real, not a coincidence at one step", () => {
     const host = mounted(
       <Text size="6">
         run <Code>pnpm ci</Code>
       </Text>,
       { theme: {}, select: ".kui-code" },
     );
-    expect(computed(host, "font-size")).toBe(tokenOn(host, "--font-size-6"));
+    expect(parseFloat(computed(host, "font-size"))).toBeCloseTo(
+      parseFloat(tokenOn(host, "--font-size-6")) * numberOn(host, "--mono-scale"),
+      1,
+    );
   });
 
-  it("a stated size wins, and resolves the step EXACTLY as Text resolves it", () => {
+  it("a stated size resolves the step as Text does — same line box, glyphs at the discount", () => {
     // Compared against Text rather than against the tokens, and the difference matters twice.
     // It is the stronger claim — one type system, one resolution, which is the whole reason
     // this atom ships no ramp of its own. And `--letter-spacing-2` is `0em`, which a probe
     // reads as `0px` while the engine computes `normal`: asserting against the token would
-    // have failed on a correct component, and asserting a step where the token is non-zero
-    // would have hidden the ones where it is not.
+    // have failed on a correct component. Line-height and letter-spacing are EQUAL — the
+    // mono correction reaches font-size alone, so a chip sits in unmoved rhythm — and
+    // font-size is Text's times --mono-scale, both directions of §15's split.
     for (const size of ["1", "2", "6", "9"] as const) {
       const code = mounted(<Code size={size}>pnpm ci</Code>, { theme: {} });
       const text = mounted(<Text size={size}>pnpm ci</Text>, { theme: {} });
-      for (const prop of ["font-size", "line-height", "letter-spacing"]) {
-        expect(computed(code, prop), `size ${size}: ${prop} diverged from Text`).toBe(
-          computed(text, prop),
-        );
+      expect(computed(code, "line-height"), `size ${size}: line-height diverged from Text`).toBe(
+        computed(text, "line-height"),
+      );
+      const scale = numberOn(code, "--mono-scale");
+      expect(
+        parseFloat(computed(code, "font-size")),
+        `size ${size}: font-size is not Text's at the mono discount`,
+      ).toBeCloseTo(parseFloat(computed(text, "font-size")) * scale, 1);
+      // Letter-spacing is the step's EM value, so in px it follows the discounted glyphs —
+      // tracking is a property of the rendered letters, the em-padding argument one property
+      // over. Same em, smaller px: asserted as the ratio, with the zero steps compared raw
+      // (0em computes as `normal`, which has no ratio to take).
+      const ls = computed(text, "letter-spacing");
+      if (ls === "normal" || parseFloat(ls) === 0) {
+        expect(computed(code, "letter-spacing"), `size ${size}`).toBe(ls);
+      } else {
+        expect(
+          parseFloat(computed(code, "letter-spacing")) / parseFloat(computed(code, "font-size")),
+          `size ${size}: letter-spacing em diverged from Text's`,
+        ).toBeCloseTo(parseFloat(ls) / parseFloat(computed(text, "font-size")), 4);
       }
     }
     // ...and the steps are genuinely different, so the equality above is not holding trivially.
     const one = mounted(<Code size="1">x</Code>, { theme: {} });
     const nine = mounted(<Code size="9">x</Code>, { theme: {} });
     expect(computed(one, "font-size")).not.toBe(computed(nine, "font-size"));
+  });
+
+  it("the discount stops at the chip — Text nested inside a Code takes its full step", () => {
+    // The registration half (§2's silent-inheritance lesson, applied before it bit): the
+    // scale is non-inheriting with initial 1, so a type member INSIDE a mono atom resolves
+    // its step undiscounted rather than quietly wearing the chip's factor.
+    const host = mounted(
+      <Code size="3">
+        <Text size="3" render={<span />}>
+          plain again
+        </Text>
+      </Code>,
+      { theme: {}, select: ".kui-text" },
+    );
+    expect(computed(host, "font-size")).toBe(tokenOn(host, "--font-size-3"));
   });
 });
 

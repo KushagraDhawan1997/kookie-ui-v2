@@ -17,6 +17,19 @@
   color: var(--color-text);
 }
 
+/* The optical scale the size join multiplies into FONT-SIZE alone (§15, 2026-08-08): 1 for
+   every member — the join resolves byte-identically to the bare token — except the mono
+   atoms, which stand it down to var(--mono-scale) because mono glyphs read a step large at
+   the same size. Line-height and letter-spacing never see it: the line box is the step's,
+   so a scaled chip sits in unmoved rhythm. Registered non-inheriting with initial 1 so a
+   member's stand-down stops at its own element — Text nested inside a Code takes the full
+   step, not the chip's discount (the silent-inheritance trap, §2's own lesson). */
+@property --kui-ty-scale {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
 /* The family is the Theme's slot (§5), never a stack written here. `--font-heading` chains
    to the body stack until an app sets it, so the split costs nothing by default. A quote is
    body copy set apart, so it joins the body slot rather than growing a third one — the slot
@@ -30,47 +43,47 @@
 }
 
 .kui-type[data-size="1"] {
-  font-size: var(--font-size-1);
+  font-size: calc(var(--font-size-1) * var(--kui-ty-scale));
   line-height: var(--line-height-1);
   letter-spacing: var(--letter-spacing-1);
 }
 .kui-type[data-size="2"] {
-  font-size: var(--font-size-2);
+  font-size: calc(var(--font-size-2) * var(--kui-ty-scale));
   line-height: var(--line-height-2);
   letter-spacing: var(--letter-spacing-2);
 }
 .kui-type[data-size="3"] {
-  font-size: var(--font-size-3);
+  font-size: calc(var(--font-size-3) * var(--kui-ty-scale));
   line-height: var(--line-height-3);
   letter-spacing: var(--letter-spacing-3);
 }
 .kui-type[data-size="4"] {
-  font-size: var(--font-size-4);
+  font-size: calc(var(--font-size-4) * var(--kui-ty-scale));
   line-height: var(--line-height-4);
   letter-spacing: var(--letter-spacing-4);
 }
 .kui-type[data-size="5"] {
-  font-size: var(--font-size-5);
+  font-size: calc(var(--font-size-5) * var(--kui-ty-scale));
   line-height: var(--line-height-5);
   letter-spacing: var(--letter-spacing-5);
 }
 .kui-type[data-size="6"] {
-  font-size: var(--font-size-6);
+  font-size: calc(var(--font-size-6) * var(--kui-ty-scale));
   line-height: var(--line-height-6);
   letter-spacing: var(--letter-spacing-6);
 }
 .kui-type[data-size="7"] {
-  font-size: var(--font-size-7);
+  font-size: calc(var(--font-size-7) * var(--kui-ty-scale));
   line-height: var(--line-height-7);
   letter-spacing: var(--letter-spacing-7);
 }
 .kui-type[data-size="8"] {
-  font-size: var(--font-size-8);
+  font-size: calc(var(--font-size-8) * var(--kui-ty-scale));
   line-height: var(--line-height-8);
   letter-spacing: var(--letter-spacing-8);
 }
 .kui-type[data-size="9"] {
-  font-size: var(--font-size-9);
+  font-size: calc(var(--font-size-9) * var(--kui-ty-scale));
   line-height: var(--line-height-9);
   letter-spacing: var(--letter-spacing-9);
 }

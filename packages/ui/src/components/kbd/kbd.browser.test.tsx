@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, colorOn, computed, mounted, tokenOn } from "../../test/browser.tsx";
+import { APPEARANCES, colorOn, computed, mounted, numberOn, tokenOn } from "../../test/browser.tsx";
 import { Code } from "../code/code.tsx";
 import { Kbd } from "./kbd.tsx";
 
@@ -63,8 +63,14 @@ describe("it inherits the atom's typography rules, not a second set (§15)", () 
   it("an unset size takes the line it sits in, and a stated one joins the paired scales", () => {
     const bare = mounted(<Kbd>⌘K</Kbd>, { theme: {} });
     expect(bare.hasAttribute("data-size")).toBe(false);
+    // Font-size wears the mono optical correction (§15, 2026-08-08) — Code's own rule, and
+    // asserting it HERE is what catches the family drifting apart — while the line box stays
+    // the step's, exactly like the chip.
     const sized = mounted(<Kbd size="2">⌘K</Kbd>, { theme: {} });
-    expect(computed(sized, "font-size")).toBe(tokenOn(sized, "--font-size-2"));
+    expect(parseFloat(computed(sized, "font-size"))).toBeCloseTo(
+      parseFloat(tokenOn(sized, "--font-size-2")) * numberOn(sized, "--mono-scale"),
+      1,
+    );
     expect(computed(sized, "line-height")).toBe(tokenOn(sized, "--line-height-2"));
   });
 

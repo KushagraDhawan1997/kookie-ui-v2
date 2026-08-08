@@ -25,6 +25,7 @@ import {
   typeBands,
   focusRing,
   fontFamily,
+  monoScale,
   fontSize,
   fontWeight,
   handheldMedia,
@@ -94,6 +95,7 @@ export function generateTokens(): string {
   put("font-body", fontFamily.body);
   put("font-heading", fontFamily.heading);
   put("font-mono", fontFamily.mono);
+  put("mono-scale", String(monoScale));
 
   lines.push("", "  /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */");
   iconSize.forEach((px, i) => put(`icon-size-${i + 1}`, zoom(px)));

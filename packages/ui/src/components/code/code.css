@@ -11,6 +11,15 @@
 
 .kui-code {
   font-family: var(--font-mono);
+  /* The mono optical correction (§15): mono glyphs read a step large at the same size, so
+     the atom stands the type join's scale down to the designed factor — the join multiplies
+     it into font-size for the stated-size arm, and the em spelling below is the same factor
+     for the inherited arm (em reads the PARENT'S size, which is exactly what an unset size
+     means). The line box is untouched in both arms; only the glyphs shrink. When a size IS
+     stated the join's [data-size] declaration wins this font-size on specificity, so the
+     two arms never fight. */
+  --kui-ty-scale: var(--mono-scale);
+  font-size: calc(1em * var(--kui-ty-scale));
   /* §11's "subtle fill", through the tone indirection so a chosen family tints the chip as
      well as its ink — an atom that carries a fill has a second thing to tint, which is the
      one place this family diverges from Text. The default is stamped `neutral`, so this

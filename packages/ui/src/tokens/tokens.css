@@ -74,6 +74,7 @@
   --font-body: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --font-heading: var(--font-body);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --mono-scale: 0.925;
 
   /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */
   --icon-size-1: calc(16px * var(--scale));
