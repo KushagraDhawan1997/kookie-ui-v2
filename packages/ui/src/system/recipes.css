@@ -381,9 +381,19 @@
    WORLD — and the slider thumb deliberately does not, because it casts always (§6's kill
    switch, slider.css). "Always" is about the world switch, never about state: a dead grip
    makes no promise and must not hover, and it was the one control in the system that stayed
-   lifted while disabled. Stated on the FAMILY rather than on the thumb so the switch inherits
-   it the day it ships, and at (0,2,0) so it beats the thumb's own (0,1,0) declaration. Inert
-   for checkbox and radio, which cast nothing. */
+   lifted while disabled. Stated on the FAMILY rather than on the thumb, and at (0,2,0) so it
+   beats the SLIDER thumb's own (0,1,0) declaration — that thumb is itself a .kui-mark, so
+   both declarations land on one element and specificity settles it. Inert for checkbox and
+   radio, which cast nothing.
+
+   It does NOT reach the switch's thumb, and the prediction that it would ("so the switch
+   inherits it the day it ships") was falsified by the commit that shipped Switch: that thumb
+   is a CHILD (.kui-switch-thumb), not a member, so no weight here can reach it and switch.css
+   restates the stand-down on its own element. Corrected 2026-08-08 — the comment had survived
+   the day it was disproved and contradicted switch.css about one mechanism.
+
+   The FILL arm below is the family's, and the two grips are outside it: a grip is the tick,
+   and greying it erases the reading rather than dimming it (slider.css, switch.css). */
 .kui-mark[data-disabled] {
   --kui-ct-fill-src: var(--tone-soft);
   --kui-ct-fill-src-hover: var(--tone-soft);
@@ -443,7 +453,7 @@
   visibility: hidden;
 }
 
-/* ── The size index: one join, seven families (§4) ───────────────────────────────────────── */
+/* ── The size index: one join, eight families (§4) ───────────────────────────────────────── */
 
 /* The sixth is the MARK (§4, added 2026-08-05 with Checkbox): the painted box of a control
    that IS its own mark, sitting beside a label rather than containing one — checkbox, radio,

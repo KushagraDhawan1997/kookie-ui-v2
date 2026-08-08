@@ -110,6 +110,31 @@ describe("the shifted member: the track is mark(n + 1), by identity (§4)", () =
     });
   });
 
+  it("the rendered width IS its own cell of the ladder — the join is read, not assumed", () => {
+    // The law the audit of 2026-08-08 found missing, and the reason it was missing is the
+    // one this repo keeps relearning: every OTHER width assertion here is relative. The
+    // cross-world equalities above are invariant under a uniform join error (one join
+    // serves both pointer worlds, so a wrong pick moves both sides), the band ratio is
+    // pinned on the TOKENS in tokens.test.ts and never sees the join, and `w > h * 1.5`
+    // has no upper bound. Collapsing all four entries of the size join onto --switch-w-4
+    // rendered every switch 48px wide and the whole suite stayed green.
+    //
+    // So this reads the size join's only output the way the height law reads its own:
+    // the painted box against the token that size is supposed to pick. It is the single
+    // place `--kui-ct-sw-w` is proved to carry the right cell.
+    forEachCell(({ pointer, density, size }) => {
+      const el = render(
+        <Theme pointer={pointer} density={density}>
+          <Switch size={size} />
+        </Theme>,
+      );
+      expect(box(markOf(el)).w, `${pointer}/${density}/${size}`).toBeCloseTo(
+        px(tokenOn(el, `--switch-w-${size}`)),
+        1,
+      );
+    });
+  });
+
   it("the target is a control of its size capped at the touch floor, in all 24 cells", () => {
     forEachCell(({ pointer, density, size }) => {
       const el = render(
@@ -119,10 +144,21 @@ describe("the shifted member: the track is mark(n + 1), by identity (§4)", () =
       );
       const height = px(tokenOn(el, `--control-height-${size}`));
       const floor = px(tokenOn(el, "--touch-target-min"));
-      expect(
-        px(getComputedStyle(markOf(el), "::after").height),
-        `${pointer}/${density}/${size}`,
-      ).toBeCloseTo(Math.min(height, floor), 1);
+      const cell = `${pointer}/${density}/${size}`;
+      const after = getComputedStyle(markOf(el), "::after");
+      expect(px(after.height), cell).toBeCloseTo(Math.min(height, floor), 1);
+      // And the INLINE extent, which had no law until audit 2026-08-08 (§16, §4). The family's
+      // expander is one uniform `inset` shorthand written for a square box; the switch is the
+      // first mark that is not square, so the same inset grows the target on both axes and the
+      // reach past each inline edge is a number nobody stated. §16 permits invisible expansion
+      // only because "the extent is not guessed" — it is the box a control of that size already
+      // occupies — so the inline extent owes the same sentence: the target may not reach past
+      // the painted width by more than it reaches past the painted height.
+      const painted = box(markOf(el));
+      const blockReach = px(after.height) - painted.h;
+      const inlineReach = px(after.width) - painted.w;
+      expect(inlineReach, `${cell}: the target reaches further sideways than it does vertically`)
+        .toBeCloseTo(blockReach, 1);
     });
   });
 
@@ -153,6 +189,45 @@ describe("the shifted member: the track is mark(n + 1), by identity (§4)", () =
     expect(getComputedStyle(sw, "::after").content).toBe("none");
     // And the thumb derives from the box it sits in, so it cannot overflow a floored cell.
     expect(box(thumbOf(el)).h).toBeLessThan(h);
+  });
+
+  it("a genuinely tighter slot shortens the channel WITHOUT stretching its aspect (§4)", () => {
+    // The law above mounts the one pairing where the hosted rule is inert: a size-1 track
+    // fits a size-2 slot, so `min(mark, hosted-height)` returns the mark and both variable
+    // halves of the expression cancel. Deleting the floor outright, or dropping its
+    // travel-compensation term (which renders a hosted switch 59% too wide and stretches
+    // the field around it), passed every law in this file — audit 2026-08-08.
+    //
+    // The claim the CSS actually makes is a RELATION between two renders, so it is measured
+    // as one rather than rebuilt from the tokens the CSS itself consumes: whatever the slot
+    // takes off the height, it takes off the width too. Travel — the distance the thumb
+    // crosses — is what must survive, and travel is (w − h).
+    let floored = 0;
+    forEachCell(({ pointer, density, size }) => {
+      // A field one index BELOW the switch it hosts is the tight case; sizes 2-4 give the
+      // field a smaller rung to be.
+      if (size === "1") return;
+      const fieldSize = String(Number(size) - 1) as typeof size;
+      const host = render(
+        <Theme pointer={pointer} density={density}>
+          <TextField size={fieldSize} trailing={<Switch size={size} />} />
+          <Switch size={size} />
+        </Theme>,
+      );
+      const [hosted, bare] = Array.from(host.querySelectorAll(".kui-switch")).map(box);
+      const cell = `${pointer}/${density}/field ${fieldSize} + switch ${size}`;
+      if (hosted!.h >= bare!.h) return; // the slot is roomy here; the floor is a no-op by design
+      floored += 1;
+      expect(bare!.h - hosted!.h, `${cell}: the width did not follow the height`).toBeCloseTo(
+        bare!.w - hosted!.w,
+        1,
+      );
+      // And it stays a switch rather than becoming the square the family's floor would make.
+      expect(hosted!.w, `${cell}: aspect lost`).toBeGreaterThan(hosted!.h * 1.5);
+    });
+    // Without this the law is a scan over cells that may all skip — the vacuity the 2026-08-06
+    // fix batch shipped once already (an overlap scan off-viewport, 24 cells passing on null).
+    expect(floored, "no cell actually floored — the law measured nothing").toBeGreaterThan(0);
   });
 });
 
@@ -210,6 +285,35 @@ describe("the thumb is the track minus the designed inset, and it crosses (§4)"
     // The CENTER crosses the midline — the thumb itself is half the track wide, so its left
     // edge never can (the first spelling of this law asked for exactly that and was wrong).
     expect(thumb.left + thumb.width / 2).toBeGreaterThan(track.left + track.width / 2);
+  });
+
+  it("the grip fills its channel and still has somewhere to go — the inset's own bounds", () => {
+    // Every other law about the inset computes its expectation FROM --switch-inset, the same
+    // token the stylesheet consumes, so the value itself was anchored to nothing: set it to
+    // 8px and each of those laws agrees with the new number while the grip becomes a pea in a
+    // trough. Audit 2026-08-08 — the width has had a band pinned on it since the day it
+    // shipped (tokens.test.ts, 1.5-2x) and the inset never did.
+    //
+    // Two bounds, both about what the part IS rather than what it measures. A grip is the
+    // control's face, so it must occupy most of its channel — under ~0.7 it reads as a bead in
+    // a rail, which is a slider. And a switch is travel, so the distance it crosses must be
+    // worth crossing: at least a third of its own diameter, or the two states differ by a
+    // nudge. Both hold in all 24 cells with room to spare; they exist to catch a designed
+    // value drifting far, not to pin it.
+    forEachCell(({ pointer, density, size }) => {
+      const el = render(
+        <Theme pointer={pointer} density={density}>
+          <Switch size={size} />
+        </Theme>,
+      );
+      const track = box(markOf(el));
+      const thumb = box(thumbOf(el));
+      const cell = `${pointer}/${density}/${size}`;
+      expect(thumb.h / track.h, `${cell}: the grip is a bead in a trough`).toBeGreaterThan(0.7);
+      expect(thumb.h, `${cell}: the grip overflows its channel`).toBeLessThan(track.h);
+      const travel = track.w - track.h;
+      expect(travel / thumb.w, `${cell}: the states differ by a nudge`).toBeGreaterThan(0.33);
+    });
   });
 
   it("clicking toggles — the platform's switch, not a styled div", () => {
@@ -281,6 +385,45 @@ describe("off is a WELL, on is the family's accent identity (§11)", () => {
       expect(computed(thumbOf(el), "box-shadow"), "a dead grip makes no promise").toBe("none");
     });
   }
+
+  it("stays melted when DEAD — a dimmed channel must not become a drawn one (§8)", () => {
+    // The two shared state arms both outrank the melt (the mark family's fill arm at (0,2,0),
+    // the control layer's --tone-border at (0,2,0), against the melt's (0,1,0)), so a disabled
+    // off switch grew a hairline the live one does not have: the only off switch in the system
+    // with a visible boundary, and a state that ADVANCES where every other disabled control
+    // recedes. Audit 2026-08-08.
+    //
+    // Asserted as the melt's own property — edge equals fill — rather than against a colour,
+    // so it keeps holding whatever the disabled well dims to.
+    //
+    // BOTH ends of the channel (caught in the playground the day after): the first fix was
+    // scoped [data-unchecked], so an ON disabled switch kept the drawn hairline the off one
+    // had just lost — the same two arms, one state over.
+    for (const appearance of APPEARANCES) {
+      const host = render(
+        <Theme appearance={appearance}>
+          <Switch />
+          <Switch disabled />
+          <Switch disabled defaultChecked />
+        </Theme>,
+      );
+      const [live, dead, deadOn] = Array.from(host.querySelectorAll(".kui-switch"));
+      for (const [el, name] of [
+        [dead, "off"],
+        [deadOn, "on"],
+      ] as const) {
+        expect(
+          computed(el!, "border-top-color"),
+          `${appearance}: the dead ${name} well is drawn`,
+        ).toBe(computed(el!, "background-color"));
+      }
+      // And it really is the DISABLED look, not the live one leaking through — the state still
+      // has to say something, it just says it with the fill.
+      expect(computed(dead!, "background-color"), `${appearance}: disabled did not dim`).not.toBe(
+        computed(live!, "background-color"),
+      );
+    }
+  });
 
   it("a state outranks dress: invalid shows the invalid edge over the melted one (§8)", () => {
     for (const appearance of APPEARANCES) {
@@ -405,6 +548,74 @@ describe("one form, one family — the switch beside its siblings (§4)", () => 
       expect(computed(sw, "box-shadow"), appearance).toBe(computed(sl, "box-shadow"));
     }
   });
+
+  it("...and they stay one role when DEAD — the state the claim above never rendered", () => {
+    // The law above asserts one role at REST, which is the state in which the two grips were
+    // never going to differ. Under `disabled` they did, in opposite directions: the switch's
+    // kept --color-thumb (the same-day correction — the grip is the tick, and a tick is never
+    // erased) while the slider's, being a .kui-mark, took the family's --tone-soft arm and in
+    // dark landed NEARER BLACK THAN ITS OWN RAIL. Audit 2026-08-08; closed by giving the
+    // slider the switch's answer (slider.css), because the argument was always about grips.
+    for (const appearance of APPEARANCES) {
+      const host = render(
+        <Theme appearance={appearance}>
+          <Switch disabled />
+          <Slider defaultValue={50} disabled />
+        </Theme>,
+      );
+      const sw = host.querySelector(".kui-switch-thumb")!;
+      const sl = host.querySelector(".kui-slider-thumb")!;
+      expect(computed(sw, "background-color"), `${appearance} disabled fill`).toBe(
+        computed(sl, "background-color"),
+      );
+      // Both stand the cast down: "always" is about the world, never about state.
+      expect(computed(sw, "box-shadow"), `${appearance} disabled cast`).toBe("none");
+      expect(computed(sl, "box-shadow"), `${appearance} disabled cast`).toBe("none");
+      // And the grip is still findable against the rail it sits on — the whole reason
+      // --color-thumb was minted, which the family's grey arm had been undoing.
+      const rail = host.querySelector(".kui-slider-track")!;
+      expect(computed(sl, "background-color"), `${appearance} grip vs rail`).not.toBe(
+        computed(rail, "background-color"),
+      );
+    }
+  });
+});
+
+describe("the off well answers contrast=high — a conformance surface reaches every resting boundary (§7)", () => {
+  // The well had no high-contrast answer at all (audit 2026-08-08). For the SLIDER that was an
+  // argued exemption — a well is a region the APCA-passing fill moves through. An off switch
+  // has no fill portion: the well IS the control, so `contrast="high"` reached nothing, and in
+  // light that left a ~1.2:1 track under a white thumb on a white page.
+  //
+  // Read off the rendered control in both contrast states rather than off the token, so it
+  // does not matter whether the answer arrives by band membership, by re-pointing the role, or
+  // by something not invented yet — the idiom theme.browser.test.tsx arrived at for the same
+  // class of bug (§7, 2026-08-07).
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: the off track and its melted edge both move`, () => {
+      const at = (contrast: "normal" | "high") => {
+        const el = mounted(<Switch />, { theme: { appearance, contrast }, select: ".kui-switch" });
+        return {
+          fill: computed(el, "background-color"),
+          edge: computed(el, "border-top-color"),
+          thumb: computed(el.querySelector(".kui-switch-thumb")!, "background-color"),
+        };
+      };
+      const normal = at("normal");
+      const high = at("high");
+      expect(high.fill, `${appearance}: the well is deaf to the conformance axis`).not.toBe(
+        normal.fill,
+      );
+      expect(high.edge, `${appearance}: the melted edge is deaf`).not.toBe(normal.edge);
+      // The melt survives the strengthening: an off switch that grew a hairline under high
+      // contrast would be the one off switch in the system with a visible boundary, and would
+      // shift the row by 2px on toggle — the reason the edge melts rather than being removed.
+      expect(high.edge, `${appearance}: high contrast unmelted the edge`).toBe(high.fill);
+      // And the grip is what the user actually reads position from, so it must separate from
+      // the strengthened well too — the light/white-on-white case that made this a defect.
+      expect(high.thumb, `${appearance}: grip vs strengthened well`).not.toBe(high.fill);
+    });
+  }
 });
 
 describe("what it inherits from the shared layer (§8)", () => {

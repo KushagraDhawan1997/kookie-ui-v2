@@ -33,11 +33,22 @@ import {
   type DensitySet,
   type RadiusLevel,
 } from "./config.ts";
-import { allStylesheets, sheet } from "../test/stylesheets.ts";
+import { allStylesheets, sheet, stripped } from "../test/stylesheets.ts";
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { generateTokens } from "./generate.ts";
 
 const css = generateTokens();
+/**
+ * The same sheet with its prose removed, for the laws that ask what the generator WROTE.
+ *
+ * The emitted stylesheet documents itself, so any grep over the raw text is a grep over the
+ * comments too — and this file records the rule two describes down ("a law a comment can
+ * satisfy is not a law, and one a comment can FAIL is not one either") while three of its own
+ * absence checks and its one occurrence COUNT read the raw string. Audit 2026-08-08. Laws that
+ * ask about structure (`@media` heads, declaration bodies) keep reading `css`, because those
+ * are code either way.
+ */
+const code = stripped(css);
 const increasing = (xs: readonly number[]) => xs.every((v, i) => i === 0 || v > xs[i - 1]!);
 
 /** WCAG 2.2 SC 2.5.8 Target Size (Minimum), Level AA. Not 44 — that is SC 2.5.5, Level AAA. */
@@ -62,6 +73,32 @@ function block(selector: string) {
     private near-copies of this regex machinery (audit straggler, merged 2026-08-06). */
 const inScope = (scope: string, name: string) =>
   block(scope).match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
+
+/**
+ * EVERY block that scopes this density level, not the first one.
+ *
+ * `block()` returns the first selector match, and the bare `[data-density="compact"] {` is
+ * emitted before the pointer worlds — so a law written against it reads one scope and calls
+ * it all of them. The families that answer density inside a pointer world
+ * (`[data-pointer="coarse"][data-density="compact"]`) were invisible to the "never rides
+ * density" laws, and injecting a density-riding switch width into exactly those cells kept
+ * the whole suite green: audit 2026-08-08, the third instance of a law one scope short of
+ * the thing that could be wrong.
+ */
+function everyDensityBlock(level: "compact" | "comfortable"): { selector: string; body: string }[] {
+  const marker = `[data-density="${level}"] {`;
+  const found: { selector: string; body: string }[] = [];
+  for (let at = css.indexOf(marker); at !== -1; at = css.indexOf(marker, at + 1)) {
+    const open = css.indexOf("{", at);
+    const close = css.indexOf("}", open);
+    if (close === -1) throw new Error(`unterminated density rule at ${at}`);
+    // Back up to the start of the selector so the failure message names the real scope.
+    const lineStart = css.lastIndexOf("\n", at) + 1;
+    found.push({ selector: css.slice(lineStart, open).trim(), body: css.slice(open + 1, close) });
+  }
+  if (found.length === 0) throw new Error(`no [data-density="${level}"] rule — the law asserts nothing`);
+  return found;
+}
 
 /** Reads a declaration out of a scope: `:root` by default, or a density block. */
 function declaration(name: string, level: "default" | "compact" | "comfortable" = "default") {
@@ -171,7 +208,7 @@ describe("density is a designed set, not a multiplier (§12)", () => {
   });
 
   it("carries no density multiplier anywhere", () => {
-    expect(css).not.toContain("var(--density)");
+    expect(code).not.toContain("var(--density)");
   });
 
   it("emits the default level as a real block — an escape that does nothing is not an escape", () => {
@@ -372,7 +409,7 @@ describe("the inline padding holds a fraction of its box (§4, §12)", () => {
     // --scale. A raw px emitted without zoom() would silently drop a control's padding out of
     // the one geometry that answers the scale escape (§13).
     expect(declaration("control-px-4")).toBe(`calc(${density.default.px[3]}px * var(--scale))`);
-    expect(css).not.toContain("--control-px-1: var(--space-");
+    expect(code).not.toContain("--control-px-1: var(--space-");
   });
 });
 
@@ -668,7 +705,7 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
   const level = (name: RadiusLevel) => block(`[data-radius="${name}"]`);
 
   it("carries no radius factor anywhere", () => {
-    expect(css).not.toContain("var(--radius-factor)");
+    expect(code).not.toContain("var(--radius-factor)");
   });
 
   it("declares the whole palette at EVERY level, the default included", () => {
@@ -821,7 +858,9 @@ describe("the mark family is the line box, and nothing designed twice (§4)", ()
 
   it("never rides density — a mark sits beside a label, and the label does not move either (§4)", () => {
     for (const level of ["compact", "comfortable"] as const) {
-      expect(block(`[data-density="${level}"]`)).not.toContain("--mark-");
+      for (const { selector, body } of everyDensityBlock(level)) {
+        expect(body, `${selector} moves the mark ladder`).not.toContain("--mark-");
+      }
     }
   });
 
@@ -875,14 +914,20 @@ describe("the switch's width ladder rides the band, and nothing is designed twic
   });
 
   it("never rides density — the box it widens does not move either", () => {
+    // Every density-scoped block, including the six inside the pointer worlds. The width is
+    // emitted at `:root` and in `pointerWorld()` and never in the bare density block, so the
+    // first spelling of this law asserted absence in the one scope the family cannot appear
+    // in — green by construction (audit 2026-08-08).
     for (const level of ["compact", "comfortable"] as const) {
-      expect(block(`[data-density="${level}"]`)).not.toContain("--switch-w-");
+      for (const { selector, body } of everyDensityBlock(level)) {
+        expect(body, `${selector} moves the switch width`).not.toContain("--switch-w-");
+      }
     }
   });
 
   it("the thumb's inset is one designed value, emitted once, scaled", () => {
     expect(declaration("switch-inset")).toContain("var(--scale)");
-    expect(css.match(/--switch-inset:/g)).toHaveLength(1);
+    expect(code.match(/--switch-inset:/g)).toHaveLength(1);
   });
 });
 

@@ -735,6 +735,28 @@ describe("the standard-mode dress report — measured to know, never to validate
         colorDeclarations(mode)
           .find((l) => l.includes(`--${name}:`))!
           .match(/#[0-9a-fA-F]{6}/)![0];
+      /**
+       * A role whose emitted value is a REFERENCE rather than a literal, resolved one hop.
+       *
+       * The two value-control roles point at the palette instead of carrying a hex, so
+       * `emitted()` — which reads the hex out of the declaration — throws on them. Resolving
+       * from the generator's own output keeps the report honest: re-point `--color-track` at
+       * a different step and this follows, where a hard-coded step would keep printing the
+       * old one and the report would quietly describe a palette that is no longer shipped.
+       */
+      const role = (name: string): string => {
+        const value = colorDeclarations(mode)
+          .find((l) => l.includes(`--${name}:`))!
+          .split(":")[1]!
+          .replace(";", "")
+          .trim();
+        const hex = value.match(/#[0-9a-fA-F]{6}/);
+        if (hex) return hex[0];
+        const neutral = value.match(/var\(--neutral-(\d+)\)/);
+        if (neutral) return step(Number(neutral[1]));
+        if (value === "var(--color-surface)") return seal;
+        throw new Error(`the dress report cannot resolve --${name}: ${value}`);
+      };
       const d = dress[mode];
 
       // Each row: the colour, what it is measured against, and the advisory tier that gives
@@ -748,6 +770,15 @@ describe("the standard-mode dress report — measured to know, never to validate
         ["filled field fill vs seal", step(d.field.fill), seal, 15],
         ["filled mark edge vs its fill", step(d.mark.edge), step(d.mark.fill), 15],
         ["filled mark fill vs seal", step(d.mark.fill), seal, 15],
+        // The value-control family's two roles, added 2026-08-08. They were the faintest
+        // resting dress in the system and the report named neither — which is how an OFF
+        // switch (a control made ENTIRELY of the well, with the grip as its only other
+        // surface) shipped at ~1.2:1 against the page in light with a white grip on it. The
+        // rows are advisory like the rest; what makes them matter is that these two are the
+        // only resting colours a whole control can consist of, so "a well is subtle by
+        // design" stops being a complete answer the moment nothing else is painted.
+        ["well vs page", role("color-track"), page, 15],
+        ["grip vs well", role("color-thumb"), role("color-track"), 15],
       ];
 
       for (const [label, fg, bg, tier] of rows) {

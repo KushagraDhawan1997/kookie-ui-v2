@@ -63,6 +63,57 @@ So the shape is Separator's: one designed thickness (`--progress-track` = 6, v0)
 
 +115 bytes gzipped for the component, the token and the laws. Twenty-six mounted laws, each falsified against a sabotaged stylesheet before it was accepted — including the two vacuity guards the Slider round taught (a radius law that would pass if `radius` did nothing, a look law that would pass if `look` did nothing).
 
+## 2026-08-08 The melt has to survive a state, and four gaps the audit left below its cut
+
+Follow-up to the audit above, taking the findings that sat under its verification cap.
+
+**A dimmed channel must not become a drawn one.** The switch's off state melts its edge into
+the well, and the melt sat at (0,1,0) while BOTH shared state arms outrank it — the mark
+family's sends the fill to `--tone-soft`, the control layer's sends `--tone-border` to
+`--neutral-6`. So a disabled off switch wore a visible hairline that the LIVE one does not
+have: the only off switch in the system with a boundary, and a state that ADVANCES where
+every other disabled control recedes. The fix restates the edge as the FILL it melts into
+rather than as a colour, so it follows the dimmed well wherever the family arm takes it.
+Why the family arm is right for the other marks and wrong here: a checkbox IS its hairline,
+so greying the hairline is greying the control; a switch is a channel, and dimming a channel
+must not draw it. Rejected: exempting the switch from the border remap entirely (the state
+still has to say something — it says it with the fill); dimming the well and keeping the
+resting `--color-track` edge (a live-coloured edge on a dead fill is the same mismatch
+pointing the other way).
+
+**And four gaps that were about coverage rather than behaviour.** The slider thumb's corner
+law ran at one size in one pointer world and compared the corner to half the HEIGHT — which
+the capsule it guards satisfies exactly as a circle does, so the shape reverted on 2026-08-08
+had been passing it unchanged; it is spelled like Radio's and Switch's now, and DECISIONS §6's
+"all four law-tested at every level in both worlds" stops being true of three. The switch's
+inset had no bound at all: every law measuring the grip computed its expectation FROM the
+inset, so the value was anchored to nothing and 8px would have kept them all green — two
+bounds now say what the part IS (a grip fills most of its channel; travel is worth crossing)
+rather than what it measures, the width's own posture since the day it shipped. Four laws in
+tokens.test.ts read the raw emitted sheet, comments included, one of them an occurrence COUNT
+— in the file that records "a law a comment can satisfy is not a law, and one a comment can
+FAIL is not one either". And the docs app proved its two appearance implementations agree
+while proving that neither reaches a page: rendered shell laws now assert the pre-paint script
+lands in the head, that a route sits inside the Theme with appearance left to `<html>`, and
+that a page-shaped route wears the chrome — including the 404, which is the one Next reaches
+by itself and the one that broke. Both were falsified against the broken tree before being
+trusted. The structural half lists `/preview` as the deliberate bare-viewport route, so the
+next one is a decision rather than an omission.
+
+The playground gained the field family's glass (a shipped axis on two components with no
+specimen, on a page claiming every axis, with the hostile bed already built) and a Layout
+section for Box/Flex/Grid/Stack — one section, not four, because they answer one question
+between them and four stubs would each show the same grey tiles.
+
+## 2026-08-08 The audit after Switch: the well answers high contrast, and the grips agree when dead
+
+An ultracode audit of the Switch commit and the playground commit. Thirty raised, sixteen verified adversarially, and the shape of the package-side findings is the shape of the last three audits: **five of six were laws that could not fail.** The two design questions that came out of it are recorded here; the law fixes are in the commit and need no argument.
+
+**A resting well owes the conformance axis an answer once a control can be made entirely of it.** `--color-track` was never re-declared in the `contrast="high"` blocks, so an off switch was byte-identical with the setting on and off in both appearances — and in light that is a ~1.2:1 track carrying a white grip on a white page, i.e. a control whose only separation from the background is a 0.1-alpha drop shadow. The slider had an argued exemption for the same role ("a well is a region the APCA-passing fill moves through"), and the audit's real finding is that the argument does not transfer rather than that it was wrong: a slider's state is carried by its fill and its thumb, both held to floors, while an OFF switch has no fill portion at all. So `trackWellStepHigh` joins the config at step 6 in both modes, and the standing rule keeps both clauses intact — taste rules the resting value in standard mode (step 4 stays), `contrast="high"` is where it must move. Rejected: solving the well to an APCA target the way `--control-edge` is solved (a hairline's one job is its own contrast; a well is a region whose neighbours already clear their own floors, so a band step states the same intent without inventing a second solver); strengthening the grip instead of the well (fixes light, does nothing in dark, and puts the fix on the part that moves).
+
+**A grip keeps its fill when dead — the switch's argument was always about grips, not about switches.** The same-day correction that shipped with Switch (the thumb keeps `--color-thumb` under `disabled`; only the cast stands down) was written as a switch decision, and the slider thumb — being a `.kui-mark` — kept taking the family's `--tone-soft` arm. Measured: in dark the two grips that DECISIONS §5 and the switch's own law call one role landed at opposite ends of the lightness scale, the slider's sitting darker than its own rail, which is precisely the invisible handle that minting `--color-thumb` existed to prevent, returning under one state. The slider now takes the switch's answer. The reason it generalises is that the argument never mentioned switches: a grip's POSITION is the value, so greying it erases the reading rather than dimming it — the same sentence that stops the family's disabled rule erasing a checked checkbox's glyph. Rejected: greying both (reverses a judgment made in the playground a day earlier, and the dark-rail case is a real invisibility, not a taste); keeping the divergence and amending the docs (the two controls would have needed a stated reason to differ, and the audit could not construct one — "a switch's grip carries state, a slider's carries position" is a distinction without a consequence, since both are read by position).
+
+**And the law that could not fail is now a class, not an incident.** The five: the switch's width ladder had no mounted law naming its token at all (collapsing every size onto one width kept 882/882 green); the hosted-slot law mounted the single cell where the mechanism it names is a no-op; the slider's square-grip law ran in 1 of 24 cells, so re-shipping the reverted capsule on every coarse cell passed; the token density law read the one scope the family cannot appear in; and two structural laws matched on strings that the first component to actually do the forbidden thing did not contain. The pattern is narrower than "assert computed values" — every one of them asserted a real computed value, in a cell or a spelling where the defect could not appear. The addendum: **choose the cell that can fail, and prove it by making it fail.** Each fix here was falsified against the shipped tree before it was accepted, and one law was written to count how many cells it actually exercised, because a scan that skips every cell passes.
 ## 2026-08-08 Separator ships as two tokens and a role — and its API questions close by inheritance
 
 Built ahead of Progress (Kushagra's call — the cheapest component left, since §11 promised its row "a border token" and `--color-border` has existed since Checkbox minted it). The component is Base UI's `role="separator"` div wearing `--color-border` at `--border-width`; +63 bytes gzipped, seven mounted laws, and every structural law took it on arrival via the walks — which is what the walks were built to do.

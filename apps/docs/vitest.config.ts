@@ -11,9 +11,15 @@ import { defineConfig } from "vitest/config";
  * against stubs. The rendered result is the package's business and already has laws there.
  */
 export default defineConfig({
+  // Next's tsconfig says `jsx: preserve` because Next owns the transform; Vitest does not,
+  // so the runtime is stated here. Needed since 2026-08-08, when the shell laws started
+  // rendering the layouts rather than reading them.
+  esbuild: { jsx: "automatic" },
   test: {
     name: "docs",
-    include: ["app/**/*.test.ts"],
+    // .tsx as well: a law that renders a layout is JSX, and the app's only laws until
+    // 2026-08-08 were logic-against-stubs, which .ts covered.
+    include: ["app/**/*.test.{ts,tsx}"],
     environment: "node",
   },
 });

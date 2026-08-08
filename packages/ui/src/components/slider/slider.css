@@ -135,6 +135,29 @@
   box-shadow: var(--kui-ct-cast, none);
 }
 
+/* The grip keeps its fill when dead (§5, §11 — decided 2026-08-08, the switch's same-day
+   correction applied to the control it was written about second).
+
+   The family's disabled arm sends every mark's fill to --tone-soft, which is right for a
+   checkbox or a radio: those ARE small surfaces, and standing the surface down is what dead
+   looks like. A grip is not a surface — it is the tick. Its POSITION is the value, so
+   greying it is erasing the reading, exactly the argument that kept --color-thumb on the
+   switch's thumb the day Switch shipped. Audit 2026-08-08 measured the two grips the docs
+   call one role landing at opposite ends of the lightness scale under one state: in dark the
+   switch's was near-white and the slider's near-black, sitting DARKER than its own rail —
+   reintroducing under `disabled` precisely the invisible handle that minting --color-thumb
+   existed to fix (the sentence four rules up).
+
+   (0,2,0) to tie with .kui-mark[data-disabled] and win on source order, the family's own
+   override pattern — the thumb IS a .kui-mark, so :where() would lose. Only the FILL is
+   restored: the cast still stands down through the family arm, because a dead grip makes no
+   promise and must not hover. */
+.kui-slider-thumb[data-disabled] {
+  --kui-ct-fill-src: var(--color-thumb);
+  --kui-ct-fill-src-hover: var(--color-thumb);
+  --kui-ct-fill-src-active: var(--color-thumb);
+}
+
 /* The ring lands on the thumb — the element the arrows move — not the root: focus is where
    the keyboard acts. `:has(input:focus-visible)` because the focusable is the hidden range
    input Base UI nests inside the handle. The tokens are the law: an invalid slider's ring
