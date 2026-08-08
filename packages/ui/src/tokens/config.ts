@@ -897,3 +897,13 @@ export const fontFamily = {
  * resolved, which config cannot know).
  */
 export const monoScale = 0.925;
+
+/**
+ * §15 — the key cap's own factor (2026-08-08, Kushagra; v0 for the eye pass). Kbd left the
+ * mono slot the day after joining it: a mono cell draws symbols like ⌘ compact to fit its
+ * fixed advance, which is why the command glyph read too small — and the platform sets
+ * shortcuts in the UI sans (macOS menus), as does Radix (0.75–0.8em in a padded cap). So
+ * the cap wears the BODY family with a deeper discount than the chip's: small glyphs in a
+ * roomy cap is what makes a key read as a key rather than as highlighted text.
+ */
+export const kbdScale = 0.85;

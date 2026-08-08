@@ -75,6 +75,7 @@
   --font-heading: var(--font-body);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --mono-scale: 0.925;
+  --kbd-scale: 0.85;
 
   /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */
   --icon-size-1: calc(16px * var(--scale));

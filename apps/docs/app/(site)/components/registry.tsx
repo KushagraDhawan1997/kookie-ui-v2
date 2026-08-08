@@ -325,7 +325,7 @@ export const ENTRIES: Entry[] = [
     family: "Type",
     spec: "§11, §15",
     blurb:
-      "A key cap: Code plus an edge, which is the whole difference. The hairline is the tone-aware border rather than one of the solved edge tiers — those were solved for controls whose identity rests on the edge, and a cap has a fill to carry it.",
+      "A key cap: Code's fill and tone facts in the BODY family and a centered, floored cap box — a key names a key, it does not quote code, and the sans draws ⌘ full-size where a mono cell draws it compact. The hairline is the tone-aware border rather than one of the solved edge tiers — those were solved for controls whose identity rests on the edge, and a cap has a fill to carry it.",
     axes: [
       { name: "size", values: "1–9, optional", note: "unset inherits the line, like Code" },
       { name: "emphasis", values: "loud | medium | quiet", note: "the ink's axis" },

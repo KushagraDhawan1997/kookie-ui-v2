@@ -25,6 +25,7 @@ import {
   typeBands,
   focusRing,
   fontFamily,
+  kbdScale,
   monoScale,
   fontSize,
   fontWeight,
@@ -96,6 +97,7 @@ export function generateTokens(): string {
   put("font-heading", fontFamily.heading);
   put("font-mono", fontFamily.mono);
   put("mono-scale", String(monoScale));
+  put("kbd-scale", String(kbdScale));
 
   lines.push("", "  /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */");
   iconSize.forEach((px, i) => put(`icon-size-${i + 1}`, zoom(px)));

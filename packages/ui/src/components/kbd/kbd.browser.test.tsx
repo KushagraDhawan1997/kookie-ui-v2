@@ -8,14 +8,26 @@ import { describe, expect, it } from "vitest";
 
 import { APPEARANCES, colorOn, computed, mounted, numberOn, tokenOn } from "../../test/browser.tsx";
 import { Code } from "../code/code.tsx";
+import { Text } from "../text/text.tsx";
 import { Kbd } from "./kbd.tsx";
 
-describe("Kbd is Code plus an edge, and the edge is the whole difference (§11)", () => {
+describe("Kbd shares the chip's fill and tone facts, in its OWN family (§11, §15)", () => {
+  it("wears the BODY family, and left the mono slot on purpose — the two must differ", () => {
+    // The 2026-08-08 reversal, judged in the playground: a mono cell draws ⌘ compact to
+    // fit its fixed advance, and the platform sets shortcuts in the UI sans. Asserted in
+    // both directions so neither a cap quietly back on mono nor a chip quietly on sans
+    // survives.
+    const kbd = mounted(<Kbd>⌘K</Kbd>, { theme: {} });
+    const code = mounted(<Code>⌘K</Code>, { theme: {} });
+    expect(computed(kbd, "font-family")).toBe(computed(mounted(<Text>x</Text>, { theme: {} }), "font-family"));
+    expect(computed(kbd, "font-family")).not.toBe(computed(code, "font-family"));
+  });
+
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: same family, same fill, same corner as the chip beside it`, () => {
+    it(`${appearance}: same fill, same ink, same corner as the chip beside it`, () => {
       const kbd = mounted(<Kbd>⌘K</Kbd>, { theme: { appearance } });
       const code = mounted(<Code>⌘K</Code>, { theme: { appearance } });
-      for (const prop of ["font-family", "background-color", "color", "border-top-left-radius"]) {
+      for (const prop of ["background-color", "color", "border-top-left-radius"]) {
         expect(computed(kbd, prop), `${appearance}: the cap's ${prop} drifted from the chip`).toBe(
           computed(code, prop),
         );
@@ -63,15 +75,56 @@ describe("it inherits the atom's typography rules, not a second set (§15)", () 
   it("an unset size takes the line it sits in, and a stated one joins the paired scales", () => {
     const bare = mounted(<Kbd>⌘K</Kbd>, { theme: {} });
     expect(bare.hasAttribute("data-size")).toBe(false);
-    // Font-size wears the mono optical correction (§15, 2026-08-08) — Code's own rule, and
-    // asserting it HERE is what catches the family drifting apart — while the line box stays
-    // the step's, exactly like the chip.
+    // Font-size wears the cap's OWN factor (§15, 2026-08-08 — deeper than the chip's, and
+    // the two are asserted apart below so one config line collapsing them is caught) while
+    // a stated size keeps the join's line box.
     const sized = mounted(<Kbd size="2">⌘K</Kbd>, { theme: {} });
+    const scale = numberOn(sized, "--kbd-scale");
+    expect(scale).toBeGreaterThan(0);
+    expect(scale).toBeLessThan(numberOn(sized, "--mono-scale"));
     expect(parseFloat(computed(sized, "font-size"))).toBeCloseTo(
-      parseFloat(tokenOn(sized, "--font-size-2")) * numberOn(sized, "--mono-scale"),
+      parseFloat(tokenOn(sized, "--font-size-2")) * scale,
       1,
     );
     expect(computed(sized, "line-height")).toBe(tokenOn(sized, "--line-height-2"));
+  });
+
+  it("the cap is a key, not highlighted text: centered glyphs in a floored box that never wraps", () => {
+    // The geometry that landed with the family move (§15, 2026-08-08). The floor is read as
+    // the rendered ratio, not the declaration: a one-glyph cap must stand at least its
+    // min-inline-size wide, which is what stops K from shrink-wrapping into a sliver.
+    const one = mounted(<Kbd>K</Kbd>, { theme: {} });
+    expect(computed(one, "white-space")).toBe("nowrap");
+    expect(computed(one, "text-align")).toBe("center");
+    const width = parseFloat(computed(one, "width"));
+    const font = parseFloat(computed(one, "font-size"));
+    expect(width, "a one-glyph cap shrink-wrapped below its floor").toBeGreaterThanOrEqual(
+      1.6 * font - 0.5,
+    );
+  });
+
+  it("an inherited cap stays inside the line it sits in — the line does not spread", () => {
+    // The cap owns a snug line-height in its own em BECAUSE the inherited one is the step's
+    // raw px box, and padding stacked on that spreads the paragraph. Asserted as the whole
+    // claim: a line with a cap in it is exactly as tall as the same line without.
+    // Run where it is tightest — the small steps, whose line boxes leave the least room
+    // above the baseline for the cap's padding and border.
+    for (const size of ["1", "2", "3"] as const) {
+      const host = mounted(
+        <div>
+          <Text size={size} render={<p />} id="with">
+            press <Kbd>⌘K</Kbd> to search
+          </Text>
+          <Text size={size} render={<p />} id="without">
+            press K to search
+          </Text>
+        </div>,
+        { theme: {} },
+      );
+      const h = (id: string) =>
+        host.querySelector<HTMLElement>(`#${id}`)!.getBoundingClientRect().height;
+      expect(h("with"), `size ${size}: the cap spread its own line`).toBeCloseTo(h("without"), 1);
+    }
   });
 
   it("its padding tracks its own type, and it is WIDER than the chip's — the border eats room", () => {

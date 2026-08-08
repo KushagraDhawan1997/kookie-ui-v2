@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-08 Kbd leaves the mono slot — a key cap names a key, it does not quote code
+
+Kushagra, judging the caps in the playground against Radix's: the ⌘ read too small, and the cause was the family, not the discount. A monospace cell draws every glyph inside one fixed advance, so symbol glyphs like ⌘ are drawn compact to fit — the discount shrank an already-compact drawing. Radix's cap turned out to be SANS (`--default-font-family` at 0.75em in a padded cap, read from their stylesheet), and the platform agrees: macOS menus set shortcuts in SF Pro. So the cap wears the body family, and "Kbd is Code plus an edge" — one day old — narrows to the fill, the tone indirection and the join membership; the family and the box are the cap's own.
+
+With the family move came the cap geometry and its own factor. `kbdScale` (v0: 0.85, deeper than the chip's 0.925 — small glyphs in a roomy cap are what make a key read as a KEY; the two factors are law-asserted apart so a config edit collapsing them is caught). `inline-block` + `min-inline-size: 1.6em` + centered text, so a one-glyph K stands near-square instead of shrink-wrapping into a sliver; `white-space: nowrap` because a key never wraps, which also retires `box-decoration-break` (no second fragment to lose). And a snug own line-height, because the inherited one is the step's raw px box and a cap that stacks padding on it spreads its own paragraph — found by the law measuring line heights with and without a cap at the small steps, which caught two padding values before one fit.
+
+Rejected: keeping mono and raising only Kbd's scale (the ⌘ stays proportionally compact at any size — the drawing is the problem); a designed px cap ladder (nine values for one em relationship, the fraction wall again).
+
 ## 2026-08-08 The mono atoms take a discount — same line, smaller glyphs
 
 Kushagra, judging Code and Kbd: mono reads bigger at the same font-size (wider advance, taller x-height), and the line-height half already felt right — so the correction lands on the glyph size alone. `monoScale` (v0: 0.925, between GitHub's 85% and Radix's 0.9em, judged in the playground) multiplies into the atoms' font-size in both size arms; line-height keeps the step's line box, letter-spacing keeps the step's em and follows the glyphs by construction.
