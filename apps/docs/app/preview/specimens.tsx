@@ -469,10 +469,40 @@ function TextAreaSection() {
       rows={SIZES.map((size) => ({
         label: `size ${size}`,
         cells: [
-          <TextArea key="1" size={size} rows={2} placeholder="Write a note…" />,
-          <TextArea key="2" size={size} rows={2} defaultValue="A paragraph of feedback." />,
-          <TextArea key="3" size={size} rows={2} defaultValue="Too short." aria-invalid="true" />,
-          <TextArea key="4" size={size} rows={2} defaultValue="Locked" disabled />,
+          // Every specimen carries its own name (audit 2026-08-08): the mark sections all
+          // passed aria-label and the two field sections passed nothing, so 24 controls on
+          // this page had an empty accessible name — a placeholder is the accname spec's
+          // last-resort fallback, and three of these four columns do not even have one.
+          <TextArea
+            key="1"
+            size={size}
+            rows={2}
+            placeholder="Write a note…"
+            aria-label={`Note, size ${size}, empty`}
+          />,
+          <TextArea
+            key="2"
+            size={size}
+            rows={2}
+            defaultValue="A paragraph of feedback."
+            aria-label={`Note, size ${size}, with a value`}
+          />,
+          <TextArea
+            key="3"
+            size={size}
+            rows={2}
+            defaultValue="Too short."
+            aria-invalid="true"
+            aria-label={`Note, size ${size}, invalid`}
+          />,
+          <TextArea
+            key="4"
+            size={size}
+            rows={2}
+            defaultValue="Locked"
+            disabled
+            aria-label={`Note, size ${size}, disabled`}
+          />,
         ],
       }))}
     />
@@ -487,11 +517,18 @@ function TextFieldSection() {
       rows={SIZES.map((size) => ({
         label: `size ${size}`,
         cells: [
-          <TextField key="1" size={size} placeholder="you@company.com" />,
+          // Named for the same reason TextArea's are, one section over.
+          <TextField
+            key="1"
+            size={size}
+            placeholder="you@company.com"
+            aria-label={`Email, size ${size}, empty`}
+          />,
           <TextField
             key="2"
             size={size}
             placeholder="Search…"
+            aria-label={`Search, size ${size}, with slots`}
             leading={<SearchIcon />}
             trailing={
               <Button size={size} iconOnly emphasis="quiet" aria-label="Clear">
@@ -499,9 +536,27 @@ function TextFieldSection() {
               </Button>
             }
           />,
-          <TextField key="3" size={size} defaultValue="not-an-email" aria-invalid="true" />,
-          <TextField key="4" size={size} defaultValue="Locked" disabled />,
-          <TextField key="5" size={size} defaultValue="ku-8841-veda" readOnly />,
+          <TextField
+            key="3"
+            size={size}
+            defaultValue="not-an-email"
+            aria-invalid="true"
+            aria-label={`Email, size ${size}, invalid`}
+          />,
+          <TextField
+            key="4"
+            size={size}
+            defaultValue="Locked"
+            disabled
+            aria-label={`Email, size ${size}, disabled`}
+          />,
+          <TextField
+            key="5"
+            size={size}
+            defaultValue="ku-8841-veda"
+            readOnly
+            aria-label={`Reference, size ${size}, read only`}
+          />,
         ],
       }))}
     />
