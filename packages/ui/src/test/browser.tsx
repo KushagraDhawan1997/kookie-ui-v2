@@ -26,8 +26,12 @@ import { density } from "../tokens/config.ts";
 // Every stylesheet the package ships, in the order styles/index.css imports them — order is
 // load-bearing, since the recipes read tokens and components read recipes. Keep this list and
 // that file in step; a sheet missing here makes laws pass against an empty cascade.
+import blockquoteCss from "../components/blockquote/blockquote.css?raw";
 import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
+import codeCss from "../components/code/code.css?raw";
+import kbdCss from "../components/kbd/kbd.css?raw";
+import progressCss from "../components/progress/progress.css?raw";
 import radioCss from "../components/radio/radio.css?raw";
 import separatorCss from "../components/separator/separator.css?raw";
 import sliderCss from "../components/slider/slider.css?raw";
@@ -54,8 +58,12 @@ export function installStyles(): void {
     surfacesCss,
     typeCss,
     spinnerCss,
+    blockquoteCss,
     buttonCss,
     checkboxCss,
+    codeCss,
+    kbdCss,
+    progressCss,
     radioCss,
     separatorCss,
     sliderCss,
@@ -119,6 +127,29 @@ export function mounted(
 
 export const computed = (el: Element, prop: string): string =>
   getComputedStyle(el).getPropertyValue(prop).trim();
+
+/**
+ * The element a law is about, found from a mount — LOUD when nothing matches.
+ *
+ * `mounted({ select })` already throws; the per-file helpers did not, and that gap was worth
+ * a finding (audit 2026-08-08). Four law files carried
+ * `const markOf = (el) => el.querySelector(".kui-checkbox") ?? el`, which reads as "the mark
+ * inside, or the root if the root IS the mark" and is in fact neither: the root carries the
+ * family class, `querySelector` searches DESCENDANTS only, so the query arm never once
+ * matched and every call took the fallback. Rename the class and the helper still hands back
+ * the root — every law in the file keeps passing while no longer identifying its subject.
+ *
+ * This is the node laws' own lesson arriving in the browser project. `test/stylesheets.ts`
+ * exists because ~20 `slice(indexOf(...))` sites went green on a renamed selector; `block()`
+ * throws for exactly this reason. The browser harness had the loud idiom in `mounted` and
+ * nowhere else.
+ */
+export function within(root: Element, selector: string): HTMLElement {
+  if (root.matches(selector)) return root as HTMLElement;
+  const el = root.querySelector<HTMLElement>(selector);
+  if (!el) throw new Error(`within(): nothing matches ${selector}`);
+  return el;
+}
 
 /**
  * Resolve something INSIDE the scope under test, through a real element. The probe goes in as

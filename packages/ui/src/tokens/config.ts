@@ -449,6 +449,29 @@ export const markRadius = [1, 1, 2, 2] as const;
 export const sliderTrack = [4, 5, 6, 7] as const;
 
 /**
+ * §11 — the progress bar's thickness. ONE designed value, no size index, and the absence of
+ * the index is the decision (2026-08-08, shipped with Progress).
+ *
+ * The ladder above was asked first and refused, for the reason §6 used to kill the checkbox's
+ * corner: its values hold ~0.25 of the FINE MARK, and a progress bar has no mark. Riding it
+ * would make the bar hold a fraction of a box the component does not have — the fraction bug's
+ * fifth instance, reached this time by inheritance rather than by arithmetic. Separator is the
+ * precedent that fits instead: a line whose thickness is one designed value and whose extent is
+ * the container's (§11 gives that row no axes at all).
+ *
+ * Withholding is also the reversible direction. Adding `size` later is additive; removing it is
+ * an API break — so the open question ("does a bar have a size step, and does that promote the
+ * track into a FAMILY the way the mark family promoted?") is recorded in DECISIONS rather than
+ * spent here.
+ *
+ * 6 rather than the default rail's 5: a rail carries a grip, which lends it presence a bar has
+ * to find in its own weight. It sits inside the rail ladder's designed range (4-7) rather than
+ * outside it, so a bar and a rail still read as the same kind of line. v0, judged in the
+ * playground — iOS holds 4pt, Material 4dp, Radix's middle size 6px.
+ */
+export const progressTrack = 6;
+
+/**
  * §4, §6 — the switch's inline width, ONE designed ladder indexed by the TRACK'S mark step
  * (2 through 5), not by the size index. The track's height is mark(n + 1), so the width is
  * designed against the mark the track actually is — and both pointer worlds then derive

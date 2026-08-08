@@ -24,6 +24,7 @@ import {
   probeIn,
   render,
   tokenOn,
+  within,
 } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
@@ -32,7 +33,7 @@ import { Checkbox } from "./checkbox.tsx";
 const px = (v: string) => parseFloat(v);
 
 /** The mark element, whether the law mounted it bare or inside a <Theme>. */
-const markOf = (el: Element): Element => el.querySelector(".kui-checkbox") ?? el;
+const markOf = (el: Element): HTMLElement => within(el, ".kui-checkbox");
 
 /** The mark itself: what the user sees, in both axes (it is square by construction). */
 function markBox(el: Element): { w: number; h: number } {
@@ -434,15 +435,6 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     expect(computed(markOf(el), "box-shadow")).toBe("none");
   });
 
-  it("takes the one focus ring, keyboard-only, like every control", () => {
-    const el = render(<Checkbox />);
-    el.focus();
-    // The ring is `:focus-visible`, so a programmatic focus on a non-text control may or may
-    // not qualify; what this law pins is that the checkbox does not opt OUT of the shared rule
-    // by declaring an outline of its own.
-    expect(computed(el, "outline-style")).not.toBe("auto");
-  });
-
   it("goes flat through the tone remap when disabled — the FILL, not just the chrome (§8)", () => {
     // The first spelling asserted opacity and cursor, neither of which could be wrong (audit
     // D6): the resting fill is the surface seal, not a tone role, so the shared arm could not
@@ -510,7 +502,7 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     // shared ring could be deleted outright and it passed. This one names the ring: solid,
     // the system width, the system colour, and nothing before focus arrives.
     const el = render(<Checkbox />);
-    const mark = markOf(el) as HTMLElement;
+    const mark = markOf(el);
     expect(getComputedStyle(mark).outlineStyle).toBe("none");
     mark.focus();
     const focused = getComputedStyle(mark);
@@ -648,7 +640,7 @@ describe("hosted in a slot, it stays a mark (§4, decided 2026-08-06 — audit D
         <Checkbox size="2" />
       </label>,
     );
-    const mark = el.querySelector(".kui-checkbox") ?? el;
+    const mark = within(el, ".kui-checkbox");
     expect(getComputedStyle(mark, "::after").content).not.toBe("none");
   });
 });

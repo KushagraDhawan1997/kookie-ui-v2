@@ -67,8 +67,8 @@
      checkbox — for those, "how does this app draw a resting surface" is a question with an
      answer. A slider has no resting surface. It is a rail, a fill and a grip: an instrument,
      and every part of it is shaped by what it does rather than by the app's identity. Button
-     belongs to no dressed family for the same reason, and Progress will land here too — a bar
-     is a rail with no grip. So: no --look-* role is consumed anywhere in this file, the rail
+     belongs to no dressed family for the same reason, and Progress landed here 2026-08-08 — a
+     bar is a rail with no grip. So: no --look-* role is consumed anywhere in this file, the rail
      is the untouched well role in both looks, and a law pins every part unmoved across them. */
   background-color: var(--color-track);
   /* The capsule stated as the rule (§6's own correction): half the box, never 9999px riding

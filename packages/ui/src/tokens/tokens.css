@@ -111,6 +111,13 @@
   --slider-track-3: calc(6px * var(--scale));
   --slider-track-4: calc(7px * var(--scale));
 
+  /* and the progress bar's thickness (§11) — ONE value, no index: the ladder above holds
+     a fraction of the MARK, and a bar has no mark, so riding it would round a box the
+     component does not have (§6's checkbox-corner sentence, one family over). Separator's
+     shape instead: one designed thickness, extent from the container. Emitted at :root
+     alone — nothing below re-prices a value no axis reaches. */
+  --progress-track: calc(6px * var(--scale));
+
   /* the switch's inline width (§4, §6, 2026-08-08) — ONE ladder indexed by the track's
      mark step (the track is mark(n + 1)), priced per pointer world through the SAME band
      picks that price the marks: a coarse switch widens one entry for the same reason it

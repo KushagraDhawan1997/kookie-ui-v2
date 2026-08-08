@@ -5,7 +5,17 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "test": {},
+    // `^test` exists because the docs' laws read files OUTSIDE their own package:
+    // playground.test.ts parses packages/ui/src/index.ts to check that every export is
+    // rendered in /preview. With no edge to the package, turbo hashed apps/docs alone, so
+    // adding an export served a CACHE HIT and the law enforcing "a component ships with its
+    // playground section" silently did not run — found 2026-08-08 shipping Code and Kbd,
+    // where a full `pnpm run test` reported 43 docs tests passing while the two new exports
+    // had no section at all. The edge folds the package's own test hash into the docs', and
+    // it is the honest direction too: the docs' laws are downstream of the package.
+    "test": {
+      "dependsOn": ["^test"]
+    },
     "lint": {},
     "measure": {
       "dependsOn": ["build"]

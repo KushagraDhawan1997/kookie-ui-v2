@@ -30,6 +30,9 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
             which inline-size containment collapses to zero width (see the note in
             appearance-toggle.tsx). The toggle is the grown item that absorbs the
             middle, so nav and chips sit at the edges without a wrapper. */}
+        <Button size="1" emphasis="quiet" render={<Link href="/components" />}>
+          Components
+        </Button>
         <Button size="1" emphasis="quiet" render={<Link href="/preview" />}>
           Preview
         </Button>

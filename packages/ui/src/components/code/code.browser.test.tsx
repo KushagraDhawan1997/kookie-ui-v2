@@ -1,0 +1,151 @@
+/**
+ * Code's laws, mounted (§11, §15). Written to the 2026-08-03 standard: computed values
+ * through a real `<Theme>`, both appearances where colour is the claim, each law falsified
+ * against a sabotaged stylesheet before it was accepted.
+ *
+ * The claim under most of them is the CHEAP one — that this atom adds almost nothing, because
+ * the type layer already resolves the ramp, the weights and the emphasis rungs. A law that
+ * only checked Code's own two declarations would leave that claim unasserted, and the whole
+ * reason the component is small is that the claim is true.
+ */
+import { describe, expect, it } from "vitest";
+
+import { APPEARANCES, colorOn, computed, mounted, tokenOn } from "../../test/browser.tsx";
+import { Text } from "../text/text.tsx";
+import { Code } from "./code.tsx";
+
+describe("the mono family is the atom's own, and the rest is the shared layer's (§15)", () => {
+  it("wears --font-mono, where Text wears --font-body", () => {
+    const code = mounted(<Code>npm i</Code>, { theme: {} });
+    const text = mounted(<Text>npm i</Text>, { theme: {} });
+    // Read off the element, not off the document: the Theme is a real scope and a slot it
+    // rebound has to be the one the atom picks up. `||` was written here first and deleted —
+    // a fallback to the element's own computed value makes the assertion satisfy itself,
+    // which is the vacuity the audits keep finding.
+    const mono = computed(code, "--font-mono");
+    expect(mono).not.toBe("");
+    expect(computed(code, "font-family")).toBe(mono);
+    // And the comparison that cannot pass by accident: whatever the two resolve to, they must
+    // differ — a chip that inherited the body stack would look right beside prose and be
+    // wrong about the one thing it exists to say.
+    expect(computed(code, "font-family")).not.toBe(computed(text, "font-family"));
+  });
+
+  it("the margin is zero, from .kui-type — a <code> arrives with none, but render can bring some", () => {
+    const el = mounted(<Code render={<p />}>npm i</Code>, { theme: {} });
+    expect(computed(el, "margin-top")).toBe("0px");
+    expect(computed(el, "margin-bottom")).toBe("0px");
+  });
+});
+
+describe("an unset size means the line it sits in, and that is the default (§15)", () => {
+  it("bare, it takes its parent's step rather than a step of its own", () => {
+    // The failure this forbids: Text defaults to size 3, so a Code that copied that default
+    // would jump a size-1 caption to 16px and nobody would call it a bug — they would just
+    // stop using the component inside small text.
+    const host = mounted(
+      <Text size="1">
+        run <Code>pnpm ci</Code>
+      </Text>,
+      { theme: {}, select: ".kui-code" },
+    );
+    expect(host.hasAttribute("data-size")).toBe(false);
+    expect(computed(host, "font-size")).toBe(tokenOn(host, "--font-size-1"));
+  });
+
+  it("inside size 6 it is size 6 — the inheritance is real, not a coincidence at one step", () => {
+    const host = mounted(
+      <Text size="6">
+        run <Code>pnpm ci</Code>
+      </Text>,
+      { theme: {}, select: ".kui-code" },
+    );
+    expect(computed(host, "font-size")).toBe(tokenOn(host, "--font-size-6"));
+  });
+
+  it("a stated size wins, and resolves the step EXACTLY as Text resolves it", () => {
+    // Compared against Text rather than against the tokens, and the difference matters twice.
+    // It is the stronger claim — one type system, one resolution, which is the whole reason
+    // this atom ships no ramp of its own. And `--letter-spacing-2` is `0em`, which a probe
+    // reads as `0px` while the engine computes `normal`: asserting against the token would
+    // have failed on a correct component, and asserting a step where the token is non-zero
+    // would have hidden the ones where it is not.
+    for (const size of ["1", "2", "6", "9"] as const) {
+      const code = mounted(<Code size={size}>pnpm ci</Code>, { theme: {} });
+      const text = mounted(<Text size={size}>pnpm ci</Text>, { theme: {} });
+      for (const prop of ["font-size", "line-height", "letter-spacing"]) {
+        expect(computed(code, prop), `size ${size}: ${prop} diverged from Text`).toBe(
+          computed(text, prop),
+        );
+      }
+    }
+    // ...and the steps are genuinely different, so the equality above is not holding trivially.
+    const one = mounted(<Code size="1">x</Code>, { theme: {} });
+    const nine = mounted(<Code size="9">x</Code>, { theme: {} });
+    expect(computed(one, "font-size")).not.toBe(computed(nine, "font-size"));
+  });
+});
+
+describe("the padding is a property of the glyphs, not of the layout (§3, §15)", () => {
+  it("it tracks the type across the ramp — the whole reason it is not a token", () => {
+    // A designed constant would hold ONE of these and be wrong at the other end of a 12->56px
+    // ramp. The law reads the ratio rather than the value, which is the thing that was chosen.
+    const small = mounted(<Code size="1">x</Code>, { theme: {} });
+    const large = mounted(<Code size="8">x</Code>, { theme: {} });
+    const ratio = (el: HTMLElement) =>
+      parseFloat(computed(el, "padding-left")) / parseFloat(computed(el, "font-size"));
+    expect(ratio(small)).toBeCloseTo(ratio(large), 3);
+    // ...and the two are genuinely different sizes, so the ratio is not holding trivially.
+    expect(parseFloat(computed(large, "padding-left"))).toBeGreaterThan(
+      parseFloat(computed(small, "padding-left")) * 2,
+    );
+  });
+
+  it("a wrapped chip keeps its fill on both fragments", () => {
+    expect(computed(mounted(<Code>x</Code>, { theme: {} }), "box-decoration-break")).toBe("clone");
+  });
+});
+
+describe("the fill is an identity and the tone reaches BOTH of the chip's colours (§7, §11)", () => {
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: bare, it is the neutral wash and the neutral ink`, () => {
+      const el = mounted(<Code>npm i</Code>, { theme: { appearance } });
+      expect(el.dataset.tone).toBe("neutral");
+      expect(computed(el, "background-color")).toBe(colorOn(el, "var(--neutral-soft)"));
+      expect(computed(el, "color")).toBe(colorOn(el, "var(--neutral-ink)"));
+    });
+
+    it(`${appearance}: a chosen tone moves the fill AND the ink — an atom with a fill has two`, () => {
+      // The half that is easy to ship broken: `.kui-type[data-tone]` re-scopes the INK trio,
+      // so a chip could take a destructive tone, turn its text red and keep a grey box. The
+      // fill reads the same indirection, and this is the law that says so.
+      const el = mounted(<Code tone="destructive">rm -rf</Code>, { theme: { appearance } });
+      const neutral = mounted(<Code>rm -rf</Code>, { theme: { appearance } });
+      expect(computed(el, "background-color")).toBe(colorOn(el, "var(--destructive-soft)"));
+      expect(computed(el, "color")).toBe(colorOn(el, "var(--destructive-ink)"));
+      expect(computed(el, "background-color")).not.toBe(computed(neutral, "background-color"));
+      expect(computed(el, "color")).not.toBe(computed(neutral, "color"));
+    });
+
+    it(`${appearance}: the fill does NOT climb the emphasis ladder — that axis is the ink's`, () => {
+      // §11's "medium" for this row named a FILL rung under the control resolution. The type
+      // family resolves emphasis as foreground roles, and one axis read two ways in one
+      // element is the incoherence §9 deleted `variant` to avoid.
+      const loud = mounted(<Code emphasis="loud">x</Code>, { theme: { appearance } });
+      const quiet = mounted(<Code emphasis="quiet">x</Code>, { theme: { appearance } });
+      expect(computed(quiet, "background-color")).toBe(computed(loud, "background-color"));
+      expect(computed(quiet, "color")).not.toBe(computed(loud, "color"));
+    });
+  }
+});
+
+describe("it is inert — an atom with no states (§11)", () => {
+  it("no cursor of its own, no focus ring, no shadow, in either world", () => {
+    for (const surfaces of ["flat", "elevated"] as const) {
+      const el = mounted(<Code>x</Code>, { theme: { surfaces } });
+      expect(computed(el, "box-shadow"), `${surfaces} lifted an inert atom`).toBe("none");
+      expect(computed(el, "cursor")).not.toBe(tokenOn(el, "--cursor-button"));
+      expect(computed(el, "outline-style")).toBe("none");
+    }
+  });
+});

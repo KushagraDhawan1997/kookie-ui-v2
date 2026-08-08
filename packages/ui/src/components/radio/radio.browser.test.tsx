@@ -23,6 +23,7 @@ import {
   mounted,
   render,
   tokenOn,
+  within,
 } from "../../test/browser.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { TextField } from "../text-field/text-field.tsx";
@@ -30,7 +31,7 @@ import { Radio, RadioGroup } from "./radio.tsx";
 
 const px = (v: string) => parseFloat(v);
 
-const markOf = (el: Element): Element => el.querySelector(".kui-radio") ?? el;
+const markOf = (el: Element): HTMLElement => within(el, ".kui-radio");
 
 function markBox(el: Element): { w: number; h: number } {
   const styles = getComputedStyle(el);

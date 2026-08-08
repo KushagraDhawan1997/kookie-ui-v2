@@ -14,13 +14,17 @@
  */
 import * as React from "react";
 import {
+  Blockquote,
   Box,
   Button,
   Card,
   Checkbox,
+  Code,
   Flex,
   Grid,
   Heading,
+  Kbd,
+  Progress,
   Radio,
   RadioGroup,
   Separator,
@@ -124,6 +128,48 @@ function HostileBed({ children }: { children: React.ReactNode }) {
 }
 
 /* ── Sections, alphabetical ────────────────────────────────────────────────────────────── */
+
+function BlockquoteSection() {
+  return (
+    <Stack gap="6">
+      {/* Two things to judge, both v0: the rule's THICKNESS (--border-width, the system's one
+          hairline — a second one would be a self-invented width) and the indent's ratio to
+          the type. Both hold across the ramp by construction; what the eye decides is whether
+          1em is the right distance and whether a hairline is enough of a bar. */}
+      <Stack gap="5">
+        {(["2", "3", "4", "6"] as const).map((size) => (
+          <Blockquote key={size} size={size}>
+            Taste is the last layer. If the infrastructure is right, taste can be added later.
+          </Blockquote>
+        ))}
+      </Stack>
+      {/* Tone re-scopes the INK and leaves the rule alone (§11's rule for the type family).
+          A quote whose bar carries meaning is a Callout, which is a tone-forward surface. */}
+      <SpecTable
+        wide
+        cols={["Quote"]}
+        rows={(["neutral", "accent", "destructive", "success"] as const).map((tone) => ({
+          label: tone,
+          cells: [
+            <Blockquote key="1" size="2" tone={tone}>
+              The words take the family; the rule stays the quiet hairline.
+            </Blockquote>,
+          ],
+        }))}
+      />
+      {/* The attribution is a SIBLING, not an anatomy slot — nothing non-visual forces one. */}
+      <Card size="3">
+        <Stack gap="3">
+          <Blockquote size="3">
+            An axis is proven by a law that reads a computed token through a mounted Theme in
+            both appearances.
+          </Blockquote>
+          <Text size="1" emphasis="medium">— CLAUDE.md, the standing rule</Text>
+        </Stack>
+      </Card>
+    </Stack>
+  );
+}
 
 function ButtonSection() {
   return (
@@ -287,6 +333,68 @@ function CheckboxSection() {
   );
 }
 
+function CodeSection() {
+  return (
+    <Stack gap="6">
+      {/* The claim to judge: an inline atom with no `size` takes the line it sits in. Every
+          row below sets the step on the TEXT only — the chips and caps are bare. If one of
+          them ever stops matching its sentence, this is where it shows. */}
+      <Stack gap="3">
+        {SIZES.map((size) => (
+          <Text key={size} size={size}>
+            Run <Code>pnpm run ci</Code> before claiming a task done, or press <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd> to search.
+          </Text>
+        ))}
+      </Stack>
+      {/* Tone reaches BOTH of an atom's colours — the fill as well as the ink — which is the
+          one place this family diverges from Text (a chip has a second thing to tint). */}
+      <SpecTable
+        cols={["Code", "Kbd"]}
+        rows={TONES.map((tone) => ({
+          label: tone,
+          cells: [
+            <Code key="1" size="2" tone={tone}>--tone-soft</Code>,
+            <Kbd key="2" size="2" tone={tone}>Esc</Kbd>,
+          ],
+        }))}
+      />
+      {/* Emphasis is the INK's axis here, not the fill's: the wash holds while the glyphs
+          step down. A chip whose fill climbed the ladder would be reading one axis two ways. */}
+      <SpecTable
+        cols={["loud", "medium", "quiet"]}
+        rows={[
+          {
+            label: "code",
+            cells: [
+              <Code key="1" size="2" emphasis="loud">const x = 1</Code>,
+              <Code key="2" size="2" emphasis="medium">const x = 1</Code>,
+              <Code key="3" size="2" emphasis="quiet">const x = 1</Code>,
+            ],
+          },
+          {
+            label: "kbd",
+            cells: [
+              <Kbd key="1" size="2" emphasis="loud">Shift</Kbd>,
+              <Kbd key="2" size="2" emphasis="medium">Shift</Kbd>,
+              <Kbd key="3" size="2" emphasis="quiet">Shift</Kbd>,
+            ],
+          },
+        ]}
+      />
+      {/* The wrapped-chip case: an inline fill paints only its first fragment by default, so
+          this narrow column is the specimen that would catch it regressing. */}
+      <Card size="3">
+        <Box style={{ maxWidth: "220px" }}>
+          <Text size="2">
+            The flag is <Code>--experimental-strip-types</Code> and it wraps here on purpose.
+          </Text>
+        </Box>
+      </Card>
+    </Stack>
+  );
+}
+
 function HeadingSection() {
   return (
     <Stack gap="4">
@@ -301,6 +409,80 @@ function HeadingSection() {
           </Heading>
         </Grid>
       ))}
+    </Stack>
+  );
+}
+
+function ProgressSection() {
+  return (
+    <Stack gap="6">
+      {/* The one thing to judge here is the THICKNESS, because it is the one designed number
+          and it has no axis to hide behind: 6px, chosen one step above the default rail's 5
+          on the argument that a bar has no grip to lend it presence. Flip density and pointer
+          in the panel — nothing here may move, which is the claim the absent size axis rests
+          on. Flip `look`: nothing moves there either (§19, the instrument rule). Flip radius
+          to `none` and the caps square with everything else on the page. */}
+      <SpecTable
+        wide
+        cols={["Empty", "Part way", "Nearly done", "Complete"]}
+        rows={[
+          {
+            label: "value",
+            cells: [
+              <Progress key="1" value={0} aria-label="Empty" />,
+              <Progress key="2" value={35} aria-label="Part way" />,
+              <Progress key="3" value={85} aria-label="Nearly done" />,
+              <Progress key="4" value={100} aria-label="Complete" />,
+            ],
+          },
+          {
+            label: "min/max",
+            cells: [
+              <Progress key="1" value={0} min={0} max={8} aria-label="0 of 8" />,
+              <Progress key="2" value={3} min={0} max={8} aria-label="3 of 8" />,
+              <Progress key="3" value={7} min={0} max={8} aria-label="7 of 8" />,
+              <Progress key="4" value={8} min={0} max={8} aria-label="8 of 8" />,
+            ],
+          },
+        ]}
+      />
+      {/* Indeterminate, and beside a Spinner on purpose: they are the same category of motion
+          (content, not a state change) and should read as one system's answer to "busy". */}
+      <Card size="3">
+        <Stack gap="4">
+          <Flex gap="3" align="center">
+            <Spinner />
+            <Text size="2" weight="medium">Indeterminate — the task has no measurable extent</Text>
+          </Flex>
+          <Progress value={null} aria-label="Loading" />
+          <Text size="1" emphasis="quiet">
+            Slowed under prefers-reduced-motion, never stopped — a busy indicator that stops
+            moving is information lost.
+          </Text>
+        </Stack>
+      </Card>
+      {/* The bar in the composition it actually ships in: a label row above, the bar below,
+          the Stack's gap carrying the distance. The bar brings no spacing of its own. */}
+      <Card size="3">
+        <Stack gap="3">
+          <Flex justify="between" align="center">
+            <Text size="2" weight="medium">Uploading assets</Text>
+            <Text size="2" emphasis="medium">62%</Text>
+          </Flex>
+          <Progress value={62} aria-label="Uploading assets" />
+        </Stack>
+      </Card>
+      {/* Extent is the container's: a narrower Box gives a narrower bar, no prop involved.
+          The explicit width is the sanctioned escape for the recorded Box collapse (§2) —
+          stating a width is one of the three routes containment leaves open. */}
+      <Flex gap="4" align="center">
+        <Box style={{ width: "120px" }}>
+          <Progress value={45} aria-label="Narrow" />
+        </Box>
+        <Box style={{ width: "240px" }}>
+          <Progress value={45} aria-label="Wider" />
+        </Box>
+      </Flex>
     </Stack>
   );
 }
@@ -682,11 +864,14 @@ function LayoutSection() {
 }
 
 export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
+  { id: "blockquote", name: "Blockquote", body: <BlockquoteSection /> },
   { id: "button", name: "Button", body: <ButtonSection /> },
   { id: "card", name: "Card", body: <CardSection /> },
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
+  { id: "code", name: "Code and Kbd", body: <CodeSection /> },
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
+  { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
   { id: "separator", name: "Separator", body: <SeparatorSection /> },
   { id: "slider", name: "Slider", body: <SliderSection /> },

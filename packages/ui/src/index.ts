@@ -1,9 +1,13 @@
 // Public surface of @kookie-ui/react. Every export here is a decision (ENGINEERING.md §1.6).
+export { Blockquote, type BlockquoteProps } from "./components/blockquote/blockquote.tsx";
 export { Box, type BoxProps } from "./components/box/box.tsx";
 export { Button, type ButtonProps } from "./components/button/button.tsx";
 export { Card, type CardProps } from "./components/card/card.tsx";
 export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx";
+export { Code, type CodeProps } from "./components/code/code.tsx";
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
+export { Kbd, type KbdProps } from "./components/kbd/kbd.tsx";
+export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
 export { Slider, type SliderProps } from "./components/slider/slider.tsx";

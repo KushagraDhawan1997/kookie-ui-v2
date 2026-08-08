@@ -18,8 +18,11 @@
 }
 
 /* The family is the Theme's slot (§5), never a stack written here. `--font-heading` chains
-   to the body stack until an app sets it, so the split costs nothing by default. */
-.kui-text {
+   to the body stack until an app sets it, so the split costs nothing by default. A quote is
+   body copy set apart, so it joins the body slot rather than growing a third one — the slot
+   list lives here because a family slot is the layer's mechanism, not a component's. */
+.kui-text,
+.kui-blockquote {
   font-family: var(--font-body);
 }
 .kui-heading {

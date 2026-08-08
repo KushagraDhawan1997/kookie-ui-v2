@@ -1,0 +1,23 @@
+/* A pulled quote (§11, §15): two declarations, and the shared type layer does the rest.
+ *
+ * `.kui-type` already zeroes the UA margin a <blockquote> arrives with (the non-negotiable —
+ * components never own outer spacing) and points the colour at the foreground role; the ramp,
+ * the weights, the emphasis rungs and the body family slot are all the layer's. What is here
+ * is the rule and the indent, which are the only two things that make a quote a quote. */
+
+.kui-blockquote {
+  /* The quiet hairline, and TONE-LESS deliberately. A chosen tone re-scopes the ink trio and
+     nothing else (§11's rule for this whole family), so a red quote is red words beside a
+     neutral rule — a quote whose BAR carries meaning is a Callout, a tone-forward surface.
+     §7's edge order puts this line exactly where a separator's sits: under both solved tiers,
+     carrying no identity of its own, which is what `--color-border` was minted to paint.
+     `var(--tone-border, ...)` was the obvious alternative and is unsafe: custom properties
+     inherit, so an unstamped quote inside a stamped ancestor would silently take the
+     ancestor's family — the action-at-a-distance trap this repo has paid for twice. */
+  border-inline-start: var(--border-width) solid var(--color-border);
+  /* Relative to the quote's own type, for the reason code.css states at length: the distance
+     between a rule and the words it sets apart is a property of the words, and a designed
+     constant would be an indent at size 1 and a hairline gap at size 9. v0 — the ratio is the
+     decision, the number is for the eye pass. */
+  padding-inline-start: 1em;
+}

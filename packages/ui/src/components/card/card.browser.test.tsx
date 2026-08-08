@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cdp } from "vitest/browser";
 
 import { Theme } from "../../theme/theme.tsx";
-import { APPEARANCES, colorOn, computed, mounted, ownColor, render } from "../../test/browser.tsx";
+import { APPEARANCES, colorOn, computed, mounted, ownColor, render, within } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Spinner } from "../spinner/spinner.tsx";
@@ -381,7 +381,7 @@ describe("the control size join does not reach a surface (§4, §10)", () => {
       </Card>,
     );
     const bare = render(<Spinner />);
-    const spinner = inCard.querySelector(".kui-spinner") ?? inCard.firstElementChild!;
+    const spinner = within(inCard, ".kui-spinner");
     expect(computed(spinner, "width")).toBe(computed(bare, "width"));
   });
 
