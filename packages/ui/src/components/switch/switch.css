@@ -64,8 +64,16 @@
 
    So only the EDGE is restated, and it is restated as the fill it melts into rather than as a
    colour — the dimmed well arrives from the family arm, and this follows it wherever it goes.
-   (0,3,0) to clear both arms. */
-.kui-switch[data-unchecked][data-disabled] {
+   (0,3,0) to clear both arms.
+
+   BOTH ends of the channel (2026-08-08, caught in the playground the day after the off fix):
+   the argument never mentioned which side the thumb sits on. Live, the checked edge melts
+   into the accent fill by the family's own checked rule; dead, the family arm dims the fill
+   and the control arm draws the edge — the same two arms, the same drawn channel, one state
+   over. Spelled as a pair because the state attribute is what carries the third simple
+   selector, and `:is()` is banned in component sheets. */
+.kui-switch[data-unchecked][data-disabled],
+.kui-switch[data-checked][data-disabled] {
   --tone-border: var(--tone-soft);
 }
 

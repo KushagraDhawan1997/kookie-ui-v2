@@ -394,17 +394,28 @@ describe("off is a WELL, on is the family's accent identity (§11)", () => {
     //
     // Asserted as the melt's own property — edge equals fill — rather than against a colour,
     // so it keeps holding whatever the disabled well dims to.
+    //
+    // BOTH ends of the channel (caught in the playground the day after): the first fix was
+    // scoped [data-unchecked], so an ON disabled switch kept the drawn hairline the off one
+    // had just lost — the same two arms, one state over.
     for (const appearance of APPEARANCES) {
       const host = render(
         <Theme appearance={appearance}>
           <Switch />
           <Switch disabled />
+          <Switch disabled defaultChecked />
         </Theme>,
       );
-      const [live, dead] = Array.from(host.querySelectorAll(".kui-switch"));
-      expect(computed(dead!, "border-top-color"), `${appearance}: the dead well is drawn`).toBe(
-        computed(dead!, "background-color"),
-      );
+      const [live, dead, deadOn] = Array.from(host.querySelectorAll(".kui-switch"));
+      for (const [el, name] of [
+        [dead, "off"],
+        [deadOn, "on"],
+      ] as const) {
+        expect(
+          computed(el!, "border-top-color"),
+          `${appearance}: the dead ${name} well is drawn`,
+        ).toBe(computed(el!, "background-color"));
+      }
       // And it really is the DISABLED look, not the live one leaking through — the state still
       // has to say something, it just says it with the fill.
       expect(computed(dead!, "background-color"), `${appearance}: disabled did not dim`).not.toBe(
