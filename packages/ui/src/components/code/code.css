@@ -25,7 +25,7 @@
      one place this family diverges from Text. The default is stamped `neutral`, so this
      resolves to the neutral wash without the component ever naming a family (§7). */
   background-color: var(--tone-soft);
-  border-radius: var(--radius-control-1);
+  border-radius: var(--radius-atom);
   /* Relative to the chip's OWN type, and deliberately so: this is the first length in the
      package that is not a token, and the argument is the mark family's own. A mark is one
      line of its label because its box is a property of the type beside it; a chip's breathing

@@ -148,6 +148,35 @@ describe("the padding is a property of the glyphs, not of the layout (§3, §15)
   it("a wrapped chip keeps its fill on both fragments", () => {
     expect(computed(mounted(<Code>x</Code>, { theme: {} }), "box-decoration-break")).toBe("clone");
   });
+
+  it("the corner tracks the type across the ramp, like the padding beside it (§6)", () => {
+    // The fraction wall's sixth instance, caught in the playground (2026-08-08, Kushagra):
+    // the chip wore --radius-control-1, a level pick priced for the height ladder the atom
+    // is not on, so size 9 wore size 1's 4px. The atom corner is EM — same ratio at every
+    // step, and the steps genuinely differ.
+    const small = mounted(<Code size="1">x</Code>, { theme: {} });
+    const large = mounted(<Code size="8">x</Code>, { theme: {} });
+    const ratio = (el: HTMLElement) =>
+      parseFloat(computed(el, "border-top-left-radius")) / parseFloat(computed(el, "font-size"));
+    expect(ratio(small)).toBeCloseTo(ratio(large), 3);
+    expect(ratio(small)).toBeGreaterThan(0);
+    expect(parseFloat(computed(large, "border-top-left-radius"))).toBeGreaterThan(
+      parseFloat(computed(small, "border-top-left-radius")) * 2,
+    );
+  });
+
+  it("the corner answers the radius AXIS — none squares it, and the levels order (§6)", () => {
+    const corner = (radius: "none" | "small" | "medium" | "large" | "full") =>
+      parseFloat(
+        computed(mounted(<Code size="3">x</Code>, { theme: { radius } }), "border-top-left-radius"),
+      );
+    expect(corner("none")).toBe(0);
+    const [s, m, l, f] = [corner("small"), corner("medium"), corner("large"), corner("full")];
+    expect(s).toBeGreaterThan(0);
+    expect(m).toBeGreaterThan(s);
+    expect(l).toBeGreaterThan(m);
+    expect(f).toBeGreaterThan(l);
+  });
 });
 
 describe("the fill is an identity and the tone reaches BOTH of the chip's colours (§7, §11)", () => {

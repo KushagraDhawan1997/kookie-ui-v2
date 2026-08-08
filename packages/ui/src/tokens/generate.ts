@@ -37,6 +37,7 @@ import {
   lineHeight,
   look,
   markRadius,
+  radiusAtom,
   markSteps,
   material,
   motion,
@@ -120,6 +121,14 @@ export function generateTokens(): string {
     "     Density never touches it: the box it rounds does not move either. */",
   );
   lines.push(...markRadiusFamily(defaultRadiusLevel));
+  lines.push(
+    "",
+    "  /* The atom corner (§6, §15): EM, one value per radius level — the atoms' box is a",
+    "     property of their glyphs, so a palette pick would hold a fraction of a box they do",
+    "     not have (the mark family's lesson, reached by inheritance). Resolves at USE, so",
+    "     each atom prices the corner against its own font. Density never touches it. */",
+  );
+  lines.push(...atomRadiusFamily(defaultRadiusLevel));
 
   lines.push(
     "",
@@ -394,6 +403,7 @@ export function generateTokens(): string {
       ...radiusPalette(level),
       ...surfaceRadiusFamily(),
       ...markRadiusFamily(level),
+      ...atomRadiusFamily(level),
       "}",
       "",
     );
@@ -750,6 +760,14 @@ function surfaceRadiusFamily(): string[] {
  * states the capsule at `full` and, more quietly, it is DENSITY-indexed, so an axis that never
  * touches the mark's box was moving the mark's corner (0.462 of the box at comfortable size 4,
  * measured; the `full` ceiling could not see it because no theme was involved). */
+/** The atom corner (§6, §15): one designed EM per level — see config's radiusAtom. The em
+ *  is emitted as raw text, so it substitutes at USE and resolves against the consuming
+ *  atom's own font-size; nothing here may wrap it in a var() that would bake it early. */
+function atomRadiusFamily(level: RadiusLevel): string[] {
+  const em = radiusAtom[level];
+  return [decl("radius-atom", em === 0 ? "0px" : `${em}em`)];
+}
+
 function markRadiusFamily(level: RadiusLevel): string[] {
   const steps = radiusLevels[level === "full" ? "large" : level].steps;
   return markRadius.map((pick, i) => {

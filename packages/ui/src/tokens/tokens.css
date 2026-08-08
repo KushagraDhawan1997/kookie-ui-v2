@@ -103,6 +103,12 @@
   --radius-mark-3: calc(6px * var(--scale));
   --radius-mark-4: calc(6px * var(--scale));
 
+  /* The atom corner (§6, §15): EM, one value per radius level — the atoms' box is a
+     property of their glyphs, so a palette pick would hold a fraction of a box they do
+     not have (the mark family's lesson, reached by inheritance). Resolves at USE, so
+     each atom prices the corner against its own font. Density never touches it. */
+  --radius-atom: 0.25em;
+
   /* the slider's track thickness (§4, §11) — raw designed px per size, ~0.25 of the fine
      mark (the palette has nothing between 4 and 8, the mark's own wall one part over).
      Density- and pointer-invariant: the coarse target is the CONTROL's height, and iOS
@@ -3468,6 +3474,7 @@
   --radius-mark-2: 0px;
   --radius-mark-3: 0px;
   --radius-mark-4: 0px;
+  --radius-atom: 0px;
 }
 
 [data-radius="small"] {
@@ -3492,6 +3499,7 @@
   --radius-mark-2: calc(2px * var(--scale));
   --radius-mark-3: calc(3px * var(--scale));
   --radius-mark-4: calc(3px * var(--scale));
+  --radius-atom: 0.15em;
 }
 
 [data-radius="medium"] {
@@ -3516,6 +3524,7 @@
   --radius-mark-2: calc(4px * var(--scale));
   --radius-mark-3: calc(6px * var(--scale));
   --radius-mark-4: calc(6px * var(--scale));
+  --radius-atom: 0.25em;
 }
 
 [data-radius="large"] {
@@ -3540,6 +3549,7 @@
   --radius-mark-2: calc(6px * var(--scale));
   --radius-mark-3: calc(8px * var(--scale));
   --radius-mark-4: calc(8px * var(--scale));
+  --radius-atom: 0.35em;
 }
 
 [data-radius="full"] {
@@ -3564,6 +3574,7 @@
   --radius-mark-2: calc(6px * var(--scale));
   --radius-mark-3: calc(8px * var(--scale));
   --radius-mark-4: calc(8px * var(--scale));
+  --radius-atom: 0.75em;
 }
 
 [data-radius="none"][data-density="compact"] {

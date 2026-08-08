@@ -907,3 +907,16 @@ export const monoScale = 0.925;
  * roomy cap is what makes a key read as a key rather than as highlighted text.
  */
 export const kbdScale = 0.9;
+
+/**
+ * §6, §15 — the atom corner (2026-08-08, Kushagra: every sized component's corner scales
+ * with it, and the atoms' did not — Code at size 9 wore the same 4px as size 1). The atoms
+ * are not on the height ladder, so a control-band pick would hold a fraction of a box they
+ * do not have (the fraction wall's sixth instance, caught by inheritance again); their box
+ * is a property of their glyphs — the em argument the family already made for padding and
+ * the cap floor — so the corner is EM, one designed value per radius level (Radix reaches
+ * the same place as `radius-factor * 0.35em`). The raw em text substitutes at USE, so each
+ * atom's corner prices against its own font by construction; density never touches it.
+ * `full` pills a one-line chip (~half the cap's face). v0 for the eye pass.
+ */
+export const radiusAtom = { none: 0, small: 0.15, medium: 0.25, large: 0.35, full: 0.75 } as const;

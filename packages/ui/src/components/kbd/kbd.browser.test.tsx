@@ -24,14 +24,22 @@ describe("Kbd shares the chip's fill and tone facts, in its OWN family (§11, §
   });
 
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: same fill, same ink, same corner as the chip beside it`, () => {
+    it(`${appearance}: same fill, same ink, same corner RATIO as the chip beside it`, () => {
       const kbd = mounted(<Kbd>⌘K</Kbd>, { theme: { appearance } });
       const code = mounted(<Code>⌘K</Code>, { theme: { appearance } });
-      for (const prop of ["background-color", "color", "border-top-left-radius"]) {
+      for (const prop of ["background-color", "color"]) {
         expect(computed(kbd, prop), `${appearance}: the cap's ${prop} drifted from the chip`).toBe(
           computed(code, prop),
         );
       }
+      // The corner is the atom family's em (§6), so the two agree as a RATIO of their own
+      // fonts — the px differ exactly as the scales do, which is the em doing its job.
+      const ratio = (el: HTMLElement) =>
+        parseFloat(computed(el, "border-top-left-radius")) / parseFloat(computed(el, "font-size"));
+      expect(ratio(kbd), `${appearance}: the cap's corner em drifted from the chip's`).toBeCloseTo(
+        ratio(code),
+        3,
+      );
     });
 
     it(`${appearance}: the cap has a hairline where the chip has none`, () => {

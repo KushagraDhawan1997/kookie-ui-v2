@@ -21,7 +21,7 @@
   --kui-ty-scale: var(--kbd-scale);
   font-size: calc(1em * var(--kui-ty-scale));
   background-color: var(--tone-soft);
-  border-radius: var(--radius-control-1);
+  border-radius: var(--radius-atom);
   /* Tone-aware, not one of the solved tiers: `--control-edge` and `--field-edge` were
      solved for controls whose identity RESTS on the edge (an unchecked checkbox IS its
      hairline, §7's edge order), and a cap has a fill to carry it. */

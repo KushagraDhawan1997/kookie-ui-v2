@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-08 The atom corner is em — the fraction wall's sixth instance, caught by inheritance
+
+Kushagra, in the playground: every sized component's corner scales with it, and the atoms' did not — Code and Kbd wore `--radius-control-1` at every step, so a size-9 chip carried size 1's 4px. The shape of the mistake is the one DECISIONS §6 keeps naming: a corner riding a band priced for a box the component does not have. The checkbox did it with the control band (a fraction of a HEIGHT ladder a mark is not on), Progress nearly did it with the rail ladder, and here it arrived by inheritance again — take the control band's smallest pick because it looked right at the default size.
+
+The fix is the atoms' own band with the atoms' own unit: `--radius-atom`, one designed em per radius level, because the atom family had already made the em argument twice (the padding, the cap's floor) — the box is a property of the glyphs, so the corner is too. Emitted as raw em TEXT, which is the load-bearing detail: a raw length substitutes at USE and resolves against each consuming atom's own font, so one declaration prices every step of the ramp and both scales correctly by construction — no per-size cells, no second ladder. The axis still reaches it (`none` squares a chip, levels order, `full` near-pills a one-line chip), density never does, and Kbd agrees with Code as a ratio of their own fonts rather than in px, which is the em doing its job.
+
+Rejected: per-size atom radius cells (nine values per level for one em relationship); keeping the control pick and capping it (the mark family already proved the cap cannot see the axis that moves the fraction); and `--radius-mark-N` (the mark band is px picks for fixed boxes — an atom's box follows a 12–56px type ramp).
+
 ## 2026-08-08 The cap gets a face and a lift — two same-day reversals, both judged on sight
 
 Follow-up to the family move below, both Kushagra's calls from the playground.
