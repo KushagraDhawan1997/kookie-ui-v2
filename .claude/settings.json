@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm run ci)",
+      "Bash(pnpm run ci *)",
+      "Bash(pnpm run test)",
+      "Bash(pnpm run test *)",
+      "Bash(pnpm run lint)",
+      "Bash(pnpm run lint *)",
+      "Bash(pnpm run build)",
+      "Bash(pnpm run build *)",
+      "Bash(pnpm run measure)",
+      "Bash(pnpm run measure *)",
+      "Bash(pnpm run tokens)",
+      "Bash(pnpm run tokens *)",
+      "Bash(pnpm run preview)",
+      "Bash(pnpm run preview *)",
+      "Bash(pnpm --filter @kookie-ui/react run test *)",
+      "Bash(pnpm --filter @kookie-ui/react run lint *)",
+      "Bash(pnpm --filter @kookie-ui/react run build *)",
+      "Bash(pnpm --filter @kookie-ui/react run measure *)",
+      "Bash(pnpm --filter @kookie-ui/react run tokens *)",
+      "Bash(pnpm --filter @kookie-ui/react run preview *)",
+      "Bash(pnpm exec vitest run *)",
+      "Bash(pnpm vitest run *)",
+      "Bash(node scripts/measure-css.mjs)",
+      "Bash(open packages/ui/preview/density.html)",
+      "Bash(open preview/density.html)",
+      "Bash(open http://localhost:*)"
+    ]
+  }
+}

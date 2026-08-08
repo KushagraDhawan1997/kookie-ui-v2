@@ -24,6 +24,7 @@ import {
   Stack,
   Text,
   Theme,
+  windowClassQueries,
   type ThemeProps,
 } from "@kookie-ui/react";
 
@@ -72,18 +73,27 @@ function Chips<T extends string>({
 }) {
   // Label above chips, the Radix Theme Panel's own arrangement. Column items stretch, so
   // no containment collapse; the label is bare Text (a span, not a query container).
+  //
+  // The group and the pressed state are stated in the markup, not left to the fill (audit
+  // 2026-08-08). Selection was carried ONLY by tone/emphasis — which resolve to colour — so
+  // the current value of every axis was undeterminable to assistive technology (WCAG 4.1.2),
+  // and the pointer and contrast groups each offered an "auto" chip with nothing to tell them
+  // apart. `aria-pressed` reaches the element because ButtonProps extends the native button's
+  // props: the omission was the call site's, not the package's.
+  const groupId = `env-${label.replace(/\s+/g, "-").toLowerCase()}`;
   return (
     <Stack gap="2">
-      <Text size="1" emphasis="quiet">
+      <Text size="1" emphasis="quiet" id={groupId}>
         {label}
       </Text>
-      <Flex gap="1" align="center" wrap="wrap">
+      <Flex gap="1" align="center" wrap="wrap" role="group" aria-labelledby={groupId}>
         {options.map((option) => (
           <Button
             key={option}
             size="1"
             tone={value === option ? "accent" : "neutral"}
             emphasis={value === option ? "loud" : "medium"}
+            aria-pressed={value === option}
             onClick={() => onChange(option)}
           >
             {option}
@@ -108,8 +118,8 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
     (Object.keys(AXES) as (keyof Env)[]).some((k) => env[k] !== DEFAULT_ENV[k]);
   return (
     <Box
+      className="pv-panel"
       style={{
-        position: "fixed",
         insetInlineEnd: "24px",
         insetBlockStart: "24px",
         width: "300px",
@@ -185,6 +195,30 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
   );
 }
 
+/**
+ * The panel's lane, and the one media query on this page.
+ *
+ * The first cut pinned a 300px fixed panel against a hard-coded 364px inline-end reservation
+ * at EVERY viewport. Below ~390px the content lane computed to zero behind a panel covering
+ * most of the screen, and at exactly 768px — the system's own `narrow` boundary, shipped
+ * five days earlier and law-pinned — the lane was 380px against max-content grid tracks that
+ * do not shrink, so the page scrolled sideways under the panel (audit 2026-08-08).
+ *
+ * The boundary is IMPORTED, never retyped: `windowClassQueries.narrow` derives from
+ * `windowClass.narrowMax` in the package's config, so this page cannot drift from the class
+ * the rest of the system means by "narrow" (§18). Below it the panel stops being an overlay
+ * and becomes what it is on a phone — a block at the top of the page — which is also the only
+ * arrangement that leaves the specimen tables their full width.
+ */
+const LANE_CSS = `
+.pv-panel { position: fixed; }
+.pv-lane { padding-inline-end: 364px; }
+@media ${windowClassQueries.narrow} {
+  .pv-panel { position: static; width: auto; max-height: none; margin-block-end: var(--layout-space-6); }
+  .pv-lane { padding-inline-end: 0; }
+}
+`;
+
 export function PreviewApp() {
   const [env, setEnv] = React.useState<Env>(DEFAULT_ENV);
 
@@ -201,10 +235,10 @@ export function PreviewApp() {
           not dark specimens floating on a light bed. The panel lives INSIDE the canvas
           Theme on purpose: its glass has to seal against the world it controls — a light
           toolbar over a pinned-dark canvas is unreadable murk (found on sight). */}
+      <style>{LANE_CSS}</style>
       <Box style={{ background: "var(--neutral-1)", color: "var(--color-text)", minHeight: "100dvh" }}>
         <EnvPanel env={env} onChange={setEnv} />
-        {/* The end padding reserves the fixed panel's lane (24 + 300 + 24). */}
-        <Box px="6" pb="9" style={{ paddingInlineEnd: "364px" }}>
+        <Box px="6" pb="9" className="pv-lane">
           <Box style={{ maxWidth: "1120px", marginInline: "auto" }}>
             <Stack gap="8" pt="7">
               <Stack gap="2">

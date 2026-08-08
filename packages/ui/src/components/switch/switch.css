@@ -52,6 +52,23 @@
   --tone-border: var(--color-track);
 }
 
+/* Dead, the well is still a well (§8, §11 — audit 2026-08-08).
+
+   The melt above sits at (0,1,0) and the two shared state arms both outrank it: the mark
+   family's sends the FILL to --tone-soft, and the control layer's sends --tone-border to
+   --neutral-6. Together they gave a disabled off switch a visible hairline that the LIVE one
+   does not have — the one off switch in the system with a boundary, and a state that advances
+   instead of receding, which is backwards for the only state that means "you cannot touch
+   this". A checkbox greying its edge is right because a checkbox IS its hairline; a switch is
+   a channel, and dimming a channel must not draw it.
+
+   So only the EDGE is restated, and it is restated as the fill it melts into rather than as a
+   colour — the dimmed well arrives from the family arm, and this follows it wherever it goes.
+   (0,3,0) to clear both arms. */
+.kui-switch[data-unchecked][data-disabled] {
+  --tone-border: var(--tone-soft);
+}
+
 /* The thumb: the grip, and the one moving part (§4, §6, §11). A circle — the slider thumb's
    role sentence, so the radius axis never reaches it either — whose diameter is the track
    minus the designed inset on every side: the pre-scoping's identity, made literal.

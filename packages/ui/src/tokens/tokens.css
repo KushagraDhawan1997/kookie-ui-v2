@@ -2616,6 +2616,7 @@
   --info-label: #0e2439;
   --control-edge: #878b8f;
   --field-edge: #a3a6aa;
+  --color-track: var(--neutral-6);
   --material-thin-alpha: 55%;
   --material-thin-alpha-hover: 62%;
   --material-thin-alpha-active: 69%;
@@ -2723,6 +2724,7 @@
     --info-label: #0e2439;
     --control-edge: #878b8f;
     --field-edge: #a3a6aa;
+    --color-track: var(--neutral-6);
     --material-thin-alpha: 55%;
     --material-thin-alpha-hover: 62%;
     --material-thin-alpha-active: 69%;
@@ -2831,6 +2833,7 @@
   --info-label: #e6effa;
   --control-edge: #b0b3b5;
   --field-edge: #95999c;
+  --color-track: var(--neutral-6);
   --material-thin-alpha: 60%;
   --material-thin-alpha-hover: 67%;
   --material-thin-alpha-active: 74%;
@@ -2938,6 +2941,7 @@
     --info-label: #e6effa;
     --control-edge: #b0b3b5;
     --field-edge: #95999c;
+    --color-track: var(--neutral-6);
     --material-thin-alpha: 60%;
     --material-thin-alpha-hover: 67%;
     --material-thin-alpha-active: 74%;
@@ -3047,6 +3051,7 @@
     --info-label: color(display-p3 0.0542 0.1374 0.2416);
     --control-edge: color(display-p3 0.5339 0.545 0.5592);
     --field-edge: color(display-p3 0.6431 0.6525 0.6646);
+    --color-track: var(--neutral-6);
   }
   @media (prefers-contrast: more) {
     :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -3133,6 +3138,7 @@
       --info-label: color(display-p3 0.0542 0.1374 0.2416);
       --control-edge: color(display-p3 0.5339 0.545 0.5592);
       --field-edge: color(display-p3 0.6431 0.6525 0.6646);
+      --color-track: var(--neutral-6);
     }
   }
 }
@@ -3222,6 +3228,7 @@
     --info-label: color(display-p3 0.9057 0.9381 0.9794);
     --control-edge: color(display-p3 0.6915 0.6997 0.71);
     --field-edge: color(display-p3 0.5865 0.5976 0.6116);
+    --color-track: var(--neutral-6);
   }
   @media (prefers-contrast: more) {
     [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -3308,6 +3315,7 @@
       --info-label: color(display-p3 0.9057 0.9381 0.9794);
       --control-edge: color(display-p3 0.6915 0.6997 0.71);
       --field-edge: color(display-p3 0.5865 0.5976 0.6116);
+      --color-track: var(--neutral-6);
     }
   }
 }
