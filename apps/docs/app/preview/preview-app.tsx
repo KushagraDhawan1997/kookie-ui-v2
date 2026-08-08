@@ -20,6 +20,7 @@ import {
   Card,
   Flex,
   Heading,
+  Separator,
   Stack,
   Text,
   Theme,
@@ -58,8 +59,6 @@ const AXES: { [K in keyof Env]: readonly Env[K][] } = {
 };
 
 const CONTRASTS = ["auto", "normal", "high"] as const satisfies readonly ContrastChoice[];
-
-const hairline = "1px solid var(--color-border)";
 
 function Chips<T extends string>({
   label,
@@ -172,6 +171,7 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
             onChange={(surfaces) => onChange({ ...env, surfaces })}
           />
           <Chips label="contrast" value={contrast} options={CONTRASTS} onChange={setContrast} />
+          <Separator />
           <Flex gap="1" align="center">
             <Button
               size="1"
@@ -252,18 +252,18 @@ export function PreviewApp() {
                 </Text>
               </Stack>
               {SECTIONS.map((section) => (
-                <Stack
-                  key={section.id}
-                  gap="6"
-                  pt="7"
-                  style={{ borderTop: hairline }}
-                  render={<section id={section.id} />}
-                >
-                  <Heading size="4" render={<h2 />}>
-                    {section.name}
-                  </Heading>
-                  {section.body}
-                </Stack>
+                // The boundary is the component, not a borrowed borderTop — the playground
+                // dogfoods the hairline it demonstrates. Its own Separator section sits a
+                // few boundaries down the very rules that frame it.
+                <React.Fragment key={section.id}>
+                  <Separator />
+                  <Stack gap="6" render={<section id={section.id} />}>
+                    <Heading size="4" render={<h2 />}>
+                      {section.name}
+                    </Heading>
+                    {section.body}
+                  </Stack>
+                </React.Fragment>
               ))}
             </Stack>
           </Box>
