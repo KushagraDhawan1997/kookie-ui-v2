@@ -63,6 +63,32 @@ function block(selector: string) {
 const inScope = (scope: string, name: string) =>
   block(scope).match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
 
+/**
+ * EVERY block that scopes this density level, not the first one.
+ *
+ * `block()` returns the first selector match, and the bare `[data-density="compact"] {` is
+ * emitted before the pointer worlds — so a law written against it reads one scope and calls
+ * it all of them. The families that answer density inside a pointer world
+ * (`[data-pointer="coarse"][data-density="compact"]`) were invisible to the "never rides
+ * density" laws, and injecting a density-riding switch width into exactly those cells kept
+ * the whole suite green: audit 2026-08-08, the third instance of a law one scope short of
+ * the thing that could be wrong.
+ */
+function everyDensityBlock(level: "compact" | "comfortable"): { selector: string; body: string }[] {
+  const marker = `[data-density="${level}"] {`;
+  const found: { selector: string; body: string }[] = [];
+  for (let at = css.indexOf(marker); at !== -1; at = css.indexOf(marker, at + 1)) {
+    const open = css.indexOf("{", at);
+    const close = css.indexOf("}", open);
+    if (close === -1) throw new Error(`unterminated density rule at ${at}`);
+    // Back up to the start of the selector so the failure message names the real scope.
+    const lineStart = css.lastIndexOf("\n", at) + 1;
+    found.push({ selector: css.slice(lineStart, open).trim(), body: css.slice(open + 1, close) });
+  }
+  if (found.length === 0) throw new Error(`no [data-density="${level}"] rule — the law asserts nothing`);
+  return found;
+}
+
 /** Reads a declaration out of a scope: `:root` by default, or a density block. */
 function declaration(name: string, level: "default" | "compact" | "comfortable" = "default") {
   const scope = level === "default" ? block(":root") : block(`[data-density="${level}"]`);
@@ -821,7 +847,9 @@ describe("the mark family is the line box, and nothing designed twice (§4)", ()
 
   it("never rides density — a mark sits beside a label, and the label does not move either (§4)", () => {
     for (const level of ["compact", "comfortable"] as const) {
-      expect(block(`[data-density="${level}"]`)).not.toContain("--mark-");
+      for (const { selector, body } of everyDensityBlock(level)) {
+        expect(body, `${selector} moves the mark ladder`).not.toContain("--mark-");
+      }
     }
   });
 
@@ -875,8 +903,14 @@ describe("the switch's width ladder rides the band, and nothing is designed twic
   });
 
   it("never rides density — the box it widens does not move either", () => {
+    // Every density-scoped block, including the six inside the pointer worlds. The width is
+    // emitted at `:root` and in `pointerWorld()` and never in the bare density block, so the
+    // first spelling of this law asserted absence in the one scope the family cannot appear
+    // in — green by construction (audit 2026-08-08).
     for (const level of ["compact", "comfortable"] as const) {
-      expect(block(`[data-density="${level}"]`)).not.toContain("--switch-w-");
+      for (const { selector, body } of everyDensityBlock(level)) {
+        expect(body, `${selector} moves the switch width`).not.toContain("--switch-w-");
+      }
     }
   });
 

@@ -238,13 +238,43 @@ describe("the mark family lives in the shared layer, once (§4, promoted 2026-08
 
   it("no component stylesheet sizes a mark's box or re-points the mark edge", () => {
     // A component may still READ the mark token for its own shape (Radio's circle is
-    // calc(mark / 2)); what it must not do is restate the family's box or its identity.
+    // calc(mark / 2)) or COMPUTE a different box from it (the switch's hosted width keeps
+    // travel: mark, its own width and the hosted height in one expression); what it must not
+    // do is restate the family's box AS its own.
+    //
+    // Both halves of this law were string-blind until audit 2026-08-08, and Switch is the
+    // sheet that made both holes load-bearing:
+    //  - the box half matched only a BARE `var(--kui-ct-mark)` after the colon, so
+    //    `block-size: calc(var(--kui-ct-mark))` — the D4 defect verbatim, a 20x24 hosted
+    //    checkbox — passed 57/57. It is read as a variable SET now: a sizing declaration
+    //    whose only variables are the mark and its shifted sibling is a restatement,
+    //    whatever arithmetic is wrapped around it.
+    //  - the edge half grepped for `--control-edge`, but the family's edge is `--tone-border`
+    //    POINTED at it (recipes.css), so a component re-points the edge by naming a token
+    //    this law never looked for. It reads the declaration that actually carries the edge.
+    const MARK_VARS = ["--kui-ct-mark", "--kui-ct-mark-up"];
     for (const p of allStylesheets("components")) {
       const css = sheet(p);
-      expect(css, `${p} re-sizes the mark box`).not.toMatch(
-        /(?:inline-size|block-size|width|height):\s*var\(--kui-ct-mark\)/,
-      );
+      for (const decl of css.matchAll(/(?:inline-size|block-size|width|height):\s*([^;]+);/g)) {
+        const vars = [...decl[1]!.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]!);
+        if (vars.length === 0) continue;
+        expect(
+          vars.every((v) => MARK_VARS.includes(v)),
+          `${p} restates the mark box: ${decl[0]!.trim()}`,
+        ).toBe(false);
+      }
       expect(css, `${p} re-points the mark edge`).not.toContain("--control-edge");
+      for (const decl of css.matchAll(/--tone-border:\s*([^;]+);/g)) {
+        // The one argued exception (§4, §19): the switch's OFF state melts the edge into the
+        // well, because a switch's resting identity is a channel felt for rather than a small
+        // surface read — the same sentence that took it off the look axis. Removing the edge
+        // instead of melting it would shrink the track 2px on every toggle. Named here rather
+        // than merely unreached, the radius axis's own rule (e9d7e62).
+        expect(
+          p.endsWith("switch/switch.css") && decl[1]!.trim() === "var(--color-track)",
+          `${p} re-points the mark edge: ${decl[0]!.trim()}`,
+        ).toBe(true);
+      }
     }
   });
 
