@@ -333,8 +333,8 @@ export const ENTRIES: Entry[] = [
     ],
     refusals: [
       {
-        name: "a shadow",
-        why: "The classic 'just a tiny inset shadow' case, and the most tempting place in the set to reach for it. Depth is the app's, set once by Theme.",
+        name: "a world-switched shadow",
+        why: "The cap casts ALWAYS — flat world included — because a key cap is a picture of a raised physical object, so depth here is role semantics (the slider and switch grips' own exception), never the app's elevation dial. What stays refused is the cast moving with Theme surfaces.",
       },
     ],
     example: (

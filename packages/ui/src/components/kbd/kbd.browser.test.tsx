@@ -62,12 +62,19 @@ describe("Kbd shares the chip's fill and tone facts, in its OWN family (§11, §
   }
 });
 
-describe("a key cap is not a raised object (§5 — the elevation deletion, held where it is tempting)", () => {
-  it("no shadow, in either world — the classic 'just a tiny inset shadow' case, refused", () => {
+describe("a key cap IS a raised object (§5 — the day-one refusal reversed 2026-08-08)", () => {
+  it("casts ALWAYS, both worlds — the grips' exception, inherited for the same reason", () => {
+    // A cap is a picture of a raised physical key, so depth is role semantics here, not the
+    // app's dial: it reads the palette row's VALUE (--control-chrome), never the world
+    // switch, so flat and elevated render the identical cast — the equality is the claim.
+    const casts: string[] = [];
     for (const surfaces of ["flat", "elevated"] as const) {
       const el = mounted(<Kbd>⌘K</Kbd>, { theme: { surfaces } });
-      expect(computed(el, "box-shadow"), `${surfaces} lifted the cap`).toBe("none");
+      const cast = computed(el, "box-shadow");
+      expect(cast, `${surfaces}: the cap went flat`).not.toBe("none");
+      casts.push(cast);
     }
+    expect(casts[0], "the cast moved with the world — 'always' broke").toBe(casts[1]);
   });
 });
 
@@ -107,9 +114,12 @@ describe("it inherits the atom's typography rules, not a second set (§15)", () 
     // The cap owns a snug line-height in its own em BECAUSE the inherited one is the step's
     // raw px box, and padding stacked on that spreads the paragraph. Asserted as the whole
     // claim: a line with a cap in it is exactly as tall as the same line without.
-    // Run where it is tightest — the small steps, whose line boxes leave the least room
-    // above the baseline for the cap's padding and border.
-    for (const size of ["1", "2", "3"] as const) {
+    // The trade as PRICED 2026-08-08 (Kushagra: the flush cap read cramped — a keycap has a
+    // face, not just a line): the cap's designed box outweighs strict line rhythm, so a
+    // line holding a cap may grow by a bounded sliver — `middle` splits it symmetrically —
+    // and the bound is what this law holds, so the cap cannot quietly outgrow it. GitHub's
+    // caps make the same trade.
+    for (const size of ["1", "2", "3", "4"] as const) {
       const host = mounted(
         <div>
           <Text size={size} render={<p />} id="with">
@@ -123,8 +133,19 @@ describe("it inherits the atom's typography rules, not a second set (§15)", () 
       );
       const h = (id: string) =>
         host.querySelector<HTMLElement>(`#${id}`)!.getBoundingClientRect().height;
-      expect(h("with"), `size ${size}: the cap spread its own line`).toBeCloseTo(h("without"), 1);
+      const spread = h("with") - h("without");
+      expect(spread, `size ${size}: the cap's spread outgrew its bound`).toBeLessThanOrEqual(3);
     }
+  });
+
+  it("the cap has a face: taller than its own glyph line by the designed padding", () => {
+    // The cramped-fix's positive direction, so a future tuning cannot quietly crush the
+    // cap back to a bare line: the rendered BORDER box (padding and border are the face)
+    // stands at least 1.4x its font.
+    const el = mounted(<Kbd>⌘K</Kbd>, { theme: {} });
+    expect(el.getBoundingClientRect().height).toBeGreaterThanOrEqual(
+      1.4 * parseFloat(computed(el, "font-size")),
+    );
   });
 
   it("its padding tracks its own type, and it is WIDER than the chip's — the border eats room", () => {

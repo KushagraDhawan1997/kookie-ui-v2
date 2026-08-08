@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-08 The cap gets a face and a lift — two same-day reversals, both judged on sight
+
+Follow-up to the family move below, both Kushagra's calls from the playground.
+
+**The face.** At bare line-height the cap read cramped — a keycap has a face, not just a line. Real block padding and `vertical-align: middle` give it one, and the trade is priced rather than dodged: a cap this tall cannot also fit inside every line box, so a line holding a cap may grow by a bounded sliver (law-held at ≤3px, split symmetrically by `middle`; GitHub's caps make the same trade). The earlier law said "never spreads" and had already forced the cap down to line-height 1 — that law was holding the wrong thing, rhythm over the object, and the judgment reversed the priority. A floor law lands with it so a future tuning cannot crush the face back.
+
+**The lift.** "No shadow" was the day-one refusal — the classic tiny-inset-shadow case, §5's most tempting spot — and it reversed on sight for the grips' own reason: a key cap is a PICTURE of a raised physical object, so depth here is role semantics, not the app's elevation dial. It reads `--control-chrome`'s VALUE (never the world switch — flat and elevated render the identical cast, law-asserted as an equality), and the row's inset light catch turns out to be exactly a keycap's top face. Sixth box-shadow consumer; the count law moved and names it. What stays refused is the cast moving with `Theme surfaces` — the registry entry now says precisely that.
+
 ## 2026-08-08 Kbd leaves the mono slot — a key cap names a key, it does not quote code
 
 Kushagra, judging the caps in the playground against Radix's: the ⌘ read too small, and the cause was the family, not the discount. A monospace cell draws every glyph inside one fixed advance, so symbol glyphs like ⌘ are drawn compact to fit — the discount shrank an already-compact drawing. Radix's cap turned out to be SANS (`--default-font-family` at 0.75em in a padded cap, read from their stylesheet), and the platform agrees: macOS menus set shortcuts in SF Pro. So the cap wears the body family, and "Kbd is Code plus an edge" — one day old — narrows to the fill, the tone indirection and the join membership; the family and the box are the cap's own.

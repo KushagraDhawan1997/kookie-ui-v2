@@ -24,9 +24,15 @@
   border-radius: var(--radius-control-1);
   /* Tone-aware, not one of the solved tiers: `--control-edge` and `--field-edge` were
      solved for controls whose identity RESTS on the edge (an unchecked checkbox IS its
-     hairline, §7's edge order), and a cap has a fill to carry it. No shadow — the classic
-     "just a tiny inset shadow" case, refused where depth is the app's (§5). */
+     hairline, §7's edge order), and a cap has a fill to carry it. */
   border: var(--border-width) solid var(--tone-border);
+  /* The cap casts ALWAYS (2026-08-08, Kushagra — reversing the day-one refusal on sight):
+     a key cap is a picture of a RAISED physical object, so depth here is role semantics,
+     the grips' own exception one family over — and the control row's inset light catch is
+     exactly a keycap's top face. Reads the palette row's VALUE (--control-chrome), never
+     the world switch, which is what "always" means; the sixth consumer, counted by law. */
+  --kui-ct-cast: var(--control-chrome, none);
+  box-shadow: var(--kui-ct-cast, none);
   /* The cap geometry (2026-08-08, with the family move): a key never wraps, a one-glyph
      key sits centered in a near-square cap rather than shrink-wrapping into a sliver, and
      the block box is what lets min-inline-size apply at all (it does not reach a plain
@@ -37,11 +43,15 @@
   white-space: nowrap;
   min-inline-size: 1.6em;
   text-align: center;
-  /* Snug in the line it sits in: an inherited line-height is the STEP'S box (a raw px
-     token), and a cap that adds padding on top of it spreads its own line — measured at
-     the small steps, where the line box has the least room. Stated in the cap's own em;
-     a STATED size takes the join's pairing as before (the join outranks this). */
-  line-height: 1;
-  padding-inline: 0.4em;
-  padding-block: 0.05em;
+  /* The cap's vertical presence (2026-08-08, Kushagra: glyphs at bare line-height read
+     cramped — a keycap has a face, not just a line). The trade is priced, not dodged: a
+     cap this tall cannot also fit inside the two smallest line boxes, so sizes 1-2 may
+     spread their line by a bounded sliver (law-measured) while size 3 up sits flush.
+     `middle` splits that overflow symmetrically so it reads as a centered object rather
+     than a tall baseline-rider. A STATED size takes the join's line pairing (the join
+     outranks the line-height here). */
+  line-height: 1.2;
+  vertical-align: middle;
+  padding-inline: 0.5em;
+  padding-block: 0.12em;
 }
