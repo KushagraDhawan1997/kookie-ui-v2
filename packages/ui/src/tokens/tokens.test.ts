@@ -33,11 +33,22 @@ import {
   type DensitySet,
   type RadiusLevel,
 } from "./config.ts";
-import { allStylesheets, sheet } from "../test/stylesheets.ts";
+import { allStylesheets, sheet, stripped } from "../test/stylesheets.ts";
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { generateTokens } from "./generate.ts";
 
 const css = generateTokens();
+/**
+ * The same sheet with its prose removed, for the laws that ask what the generator WROTE.
+ *
+ * The emitted stylesheet documents itself, so any grep over the raw text is a grep over the
+ * comments too — and this file records the rule two describes down ("a law a comment can
+ * satisfy is not a law, and one a comment can FAIL is not one either") while three of its own
+ * absence checks and its one occurrence COUNT read the raw string. Audit 2026-08-08. Laws that
+ * ask about structure (`@media` heads, declaration bodies) keep reading `css`, because those
+ * are code either way.
+ */
+const code = stripped(css);
 const increasing = (xs: readonly number[]) => xs.every((v, i) => i === 0 || v > xs[i - 1]!);
 
 /** WCAG 2.2 SC 2.5.8 Target Size (Minimum), Level AA. Not 44 — that is SC 2.5.5, Level AAA. */
@@ -197,7 +208,7 @@ describe("density is a designed set, not a multiplier (§12)", () => {
   });
 
   it("carries no density multiplier anywhere", () => {
-    expect(css).not.toContain("var(--density)");
+    expect(code).not.toContain("var(--density)");
   });
 
   it("emits the default level as a real block — an escape that does nothing is not an escape", () => {
@@ -398,7 +409,7 @@ describe("the inline padding holds a fraction of its box (§4, §12)", () => {
     // --scale. A raw px emitted without zoom() would silently drop a control's padding out of
     // the one geometry that answers the scale escape (§13).
     expect(declaration("control-px-4")).toBe(`calc(${density.default.px[3]}px * var(--scale))`);
-    expect(css).not.toContain("--control-px-1: var(--space-");
+    expect(code).not.toContain("--control-px-1: var(--space-");
   });
 });
 
@@ -694,7 +705,7 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
   const level = (name: RadiusLevel) => block(`[data-radius="${name}"]`);
 
   it("carries no radius factor anywhere", () => {
-    expect(css).not.toContain("var(--radius-factor)");
+    expect(code).not.toContain("var(--radius-factor)");
   });
 
   it("declares the whole palette at EVERY level, the default included", () => {
@@ -916,7 +927,7 @@ describe("the switch's width ladder rides the band, and nothing is designed twic
 
   it("the thumb's inset is one designed value, emitted once, scaled", () => {
     expect(declaration("switch-inset")).toContain("var(--scale)");
-    expect(css.match(/--switch-inset:/g)).toHaveLength(1);
+    expect(code.match(/--switch-inset:/g)).toHaveLength(1);
   });
 });
 

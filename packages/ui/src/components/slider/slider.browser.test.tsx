@@ -181,24 +181,34 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
   });
 
   for (const level of ["none", "small", "medium", "large", "full"] as const) {
-    it(`stays a circle at radius="${level}" — role semantics, Radio's own sentence`, () => {
-      // Half the box — a square mark at h/2 IS a circle. The radius axis never reaches it,
-      // `none` included: a square handle reads as a bead that stuck.
-      const el = slider({}, { radius: level });
-      const thumb = thumbOf(el);
-      expect(px(computed(thumb, "border-top-left-radius"))).toBeCloseTo(
-        px(getComputedStyle(thumb).height) / 2,
-        1,
-      );
-      // Half the HEIGHT is what a capsule satisfies too, so the corner alone cannot tell the
-      // two apart — the reverted shape passed this law unchanged (audit 2026-08-08). The box
-      // is asserted here as well, so a capsule reintroduced at one radius level (below the
-      // reach of the default-radius square law above) fails on the level it was hidden in.
-      expect(px(getComputedStyle(thumb).width), `${level} squareness`).toBeCloseTo(
-        px(getComputedStyle(thumb).height),
-        1,
-      );
-    });
+    for (const pointer of POINTERS) {
+      it(`stays a circle at radius="${level}", ${pointer} pointer — role semantics, Radio's own sentence`, () => {
+        // Half the box — a square mark at h/2 IS a circle. The radius axis never reaches it,
+        // `none` included: a square handle reads as a bead that stuck.
+        //
+        // Every level x every size x both worlds, which is what DECISIONS §6 has claimed of all
+        // four role-corner exceptions all along — Radio's and Switch's laws were already spelled
+        // this way and this one was not, so the claim was true of three of the four (audit
+        // 2026-08-08). The pointer loop is the load-bearing half: coarse is where the mark
+        // ladder's numbers differ.
+        for (const size of SIZES) {
+          const el = slider({ size }, { radius: level, pointer });
+          const thumb = thumbOf(el);
+          const cell = `${level}/${pointer}/${size}`;
+          expect(px(computed(thumb, "border-top-left-radius")), cell).toBeCloseTo(
+            px(getComputedStyle(thumb).height) / 2,
+            1,
+          );
+          // Half the HEIGHT is what a capsule satisfies too, so the corner alone cannot tell
+          // the two apart — the reverted shape passed this law unchanged. The box is asserted
+          // with it, so a capsule reintroduced at one level fails on the level it hid in.
+          expect(px(getComputedStyle(thumb).width), `${cell} squareness`).toBeCloseTo(
+            px(getComputedStyle(thumb).height),
+            1,
+          );
+        }
+      });
+    }
   }
 
   for (const appearance of APPEARANCES) {

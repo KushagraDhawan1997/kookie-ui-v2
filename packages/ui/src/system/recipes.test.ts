@@ -264,14 +264,21 @@ describe("the mark family lives in the shared layer, once (§4, promoted 2026-08
         ).toBe(false);
       }
       expect(css, `${p} re-points the mark edge`).not.toContain("--control-edge");
+      // The one argued exception (§4, §19): the switch's OFF state melts the edge into the
+      // well, because a switch's resting identity is a channel felt for rather than a small
+      // surface read — the same sentence that took it off the look axis. Removing the edge
+      // instead of melting it would shrink the track 2px on every toggle. Named here rather
+      // than merely unreached, the radius axis's own rule (e9d7e62).
+      //
+      // TWO spellings, because the melt has to survive a state: at rest it is the well role,
+      // and under `disabled` it is whatever the family's arm dimmed the well TO (--tone-soft),
+      // since the shared arms outrank the resting melt and were drawing a hairline on the dead
+      // switch that the live one does not have. Both are the same sentence — the edge is the
+      // fill — so both are allowed and nothing else is.
+      const MELT = ["var(--color-track)", "var(--tone-soft)"];
       for (const decl of css.matchAll(/--tone-border:\s*([^;]+);/g)) {
-        // The one argued exception (§4, §19): the switch's OFF state melts the edge into the
-        // well, because a switch's resting identity is a channel felt for rather than a small
-        // surface read — the same sentence that took it off the look axis. Removing the edge
-        // instead of melting it would shrink the track 2px on every toggle. Named here rather
-        // than merely unreached, the radius axis's own rule (e9d7e62).
         expect(
-          p.endsWith("switch/switch.css") && decl[1]!.trim() === "var(--color-track)",
+          p.endsWith("switch/switch.css") && MELT.includes(decl[1]!.trim()),
           `${p} re-points the mark edge: ${decl[0]!.trim()}`,
         ).toBe(true);
       }

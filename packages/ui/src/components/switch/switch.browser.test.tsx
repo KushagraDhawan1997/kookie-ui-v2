@@ -286,6 +286,35 @@ describe("the thumb is the track minus the designed inset, and it crosses (§4)"
     expect(thumb.left + thumb.width / 2).toBeGreaterThan(track.left + track.width / 2);
   });
 
+  it("the grip fills its channel and still has somewhere to go — the inset's own bounds", () => {
+    // Every other law about the inset computes its expectation FROM --switch-inset, the same
+    // token the stylesheet consumes, so the value itself was anchored to nothing: set it to
+    // 8px and each of those laws agrees with the new number while the grip becomes a pea in a
+    // trough. Audit 2026-08-08 — the width has had a band pinned on it since the day it
+    // shipped (tokens.test.ts, 1.5-2x) and the inset never did.
+    //
+    // Two bounds, both about what the part IS rather than what it measures. A grip is the
+    // control's face, so it must occupy most of its channel — under ~0.7 it reads as a bead in
+    // a rail, which is a slider. And a switch is travel, so the distance it crosses must be
+    // worth crossing: at least a third of its own diameter, or the two states differ by a
+    // nudge. Both hold in all 24 cells with room to spare; they exist to catch a designed
+    // value drifting far, not to pin it.
+    forEachCell(({ pointer, density, size }) => {
+      const el = render(
+        <Theme pointer={pointer} density={density}>
+          <Switch size={size} />
+        </Theme>,
+      );
+      const track = box(markOf(el));
+      const thumb = box(thumbOf(el));
+      const cell = `${pointer}/${density}/${size}`;
+      expect(thumb.h / track.h, `${cell}: the grip is a bead in a trough`).toBeGreaterThan(0.7);
+      expect(thumb.h, `${cell}: the grip overflows its channel`).toBeLessThan(track.h);
+      const travel = track.w - track.h;
+      expect(travel / thumb.w, `${cell}: the states differ by a nudge`).toBeGreaterThan(0.33);
+    });
+  });
+
   it("clicking toggles — the platform's switch, not a styled div", () => {
     const el = render(<Switch size="2" />);
     const root = markOf(el) as HTMLElement;
@@ -355,6 +384,34 @@ describe("off is a WELL, on is the family's accent identity (§11)", () => {
       expect(computed(thumbOf(el), "box-shadow"), "a dead grip makes no promise").toBe("none");
     });
   }
+
+  it("stays melted when DEAD — a dimmed channel must not become a drawn one (§8)", () => {
+    // The two shared state arms both outrank the melt (the mark family's fill arm at (0,2,0),
+    // the control layer's --tone-border at (0,2,0), against the melt's (0,1,0)), so a disabled
+    // off switch grew a hairline the live one does not have: the only off switch in the system
+    // with a visible boundary, and a state that ADVANCES where every other disabled control
+    // recedes. Audit 2026-08-08.
+    //
+    // Asserted as the melt's own property — edge equals fill — rather than against a colour,
+    // so it keeps holding whatever the disabled well dims to.
+    for (const appearance of APPEARANCES) {
+      const host = render(
+        <Theme appearance={appearance}>
+          <Switch />
+          <Switch disabled />
+        </Theme>,
+      );
+      const [live, dead] = Array.from(host.querySelectorAll(".kui-switch"));
+      expect(computed(dead!, "border-top-color"), `${appearance}: the dead well is drawn`).toBe(
+        computed(dead!, "background-color"),
+      );
+      // And it really is the DISABLED look, not the live one leaking through — the state still
+      // has to say something, it just says it with the fill.
+      expect(computed(dead!, "background-color"), `${appearance}: disabled did not dim`).not.toBe(
+        computed(live!, "background-color"),
+      );
+    }
+  });
 
   it("a state outranks dress: invalid shows the invalid edge over the melted one (§8)", () => {
     for (const appearance of APPEARANCES) {
