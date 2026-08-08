@@ -41,7 +41,7 @@
      token), and a cap that adds padding on top of it spreads its own line — measured at
      the small steps, where the line box has the least room. Stated in the cap's own em;
      a STATED size takes the join's pairing as before (the join outranks this). */
-  line-height: 1.2;
+  line-height: 1;
   padding-inline: 0.4em;
   padding-block: 0.05em;
 }

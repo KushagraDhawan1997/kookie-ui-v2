@@ -906,4 +906,4 @@ export const monoScale = 0.925;
  * the cap wears the BODY family with a deeper discount than the chip's: small glyphs in a
  * roomy cap is what makes a key read as a key rather than as highlighted text.
  */
-export const kbdScale = 0.85;
+export const kbdScale = 0.9;
