@@ -130,7 +130,7 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
       render={<aside aria-label="Environment" />}
     >
       <Card size="2">
-        <Stack gap="5">
+        <Stack gap="4">
           <Heading size="2" render={<h2 />}>
             Environment
           </Heading>
@@ -243,15 +243,14 @@ export function PreviewApp() {
               cap bought nothing but a ragged void between the specimens and the panel — the
               page read unconstrained because most of it was empty width (Kushagra, 2026-08-08). */}
           <Box style={{ maxWidth: "60rem", marginInline: "auto" }}>
-            <Stack gap="8" pt="7">
-              <Stack gap="2">
-                <Heading size="6" render={<h1 />}>
+            <Stack gap="8" pt="8">
+              <Stack gap="3">
+                <Heading size="7" render={<h1 />}>
                   Playground
                 </Heading>
-                <Text size="2" emphasis="medium" render={<p />} style={{ maxWidth: "44rem" }}>
+                <Text size="3" emphasis="medium" render={<p />} style={{ maxWidth: "36rem" }}>
                   Every shipped component, every axis. The panel moves whole worlds — including
-                  its own — and the specimens below are ordinary call sites that never pick a
-                  colour.
+                  its own — and the specimens are ordinary call sites that never pick a colour.
                 </Text>
               </Stack>
               {SECTIONS.map((section) => (
