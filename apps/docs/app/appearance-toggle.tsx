@@ -16,12 +16,11 @@ const LABELS: Record<AppearanceChoice, string> = {
  * rather than a segmented control the package does not have yet. Until hydration the server
  * snapshot shows "system" active; useSyncExternalStore corrects it without a mismatch.
  *
- * `flexGrow="1"` is load-bearing, not taste: every Box is a size-query container
- * (container-type: inline-size, §2), and inline-size containment sizes the element as if it
- * had no contents — so a Flex sitting as a row-flex item shrink-to-fits to ZERO width. A
- * grown item takes its width from space distribution instead of content measurement, which
- * is the one sizing route containment leaves open. The docs header is where this cost of the
- * container decision first bit a real consumer (recorded in DECISIONS' open questions).
+ * `flexGrow="1"` is now taste, not load-bearing: it dates from when every Box was a
+ * size-query container and a Flex as a row-flex item collapsed to zero width — the defect
+ * this header was the first real consumer to hit. Containment went opt-in 2026-08-08 (§2,
+ * the `container` prop), so a plain Flex here would hug its content; the grown item stays
+ * because absorbing the middle is the layout this header wants.
  */
 export function AppearanceToggle() {
   const { choice } = useAppearance();

@@ -40,7 +40,7 @@ describe("typed sugar presets the display and adds nothing else (§3)", () => {
 
   it("responsive props ride through unchanged, because there is only one mechanism", () => {
     const outer = render(
-      <Flex width="900px">
+      <Flex container width="900px">
         <Stack gap={{ initial: "1", md: "6" }} id="child" />
       </Flex>,
     );

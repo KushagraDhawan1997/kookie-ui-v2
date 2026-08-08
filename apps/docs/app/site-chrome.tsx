@@ -26,10 +26,10 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
             KookieUI
           </Link>
         </Heading>
-        {/* Flat on purpose: a nested Flex group would be a Box as a row-flex item,
-            which inline-size containment collapses to zero width (see the note in
-            appearance-toggle.tsx). The toggle is the grown item that absorbs the
-            middle, so nav and chips sit at the edges without a wrapper. */}
+        {/* Flat on purpose — originally forced (a nested Flex group collapsed to zero
+            width under the old blanket containment; opt-in since 2026-08-08, §2), kept
+            because it works: the toggle is the grown item that absorbs the middle, so
+            nav and chips sit at the edges without a wrapper. */}
         <Button size="1" emphasis="quiet" render={<Link href="/components" />}>
           Components
         </Button>

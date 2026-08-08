@@ -99,11 +99,20 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "p / m / px / py …", values: "layout space steps", note: "the density-aware layer, never the raw palette" },
       { name: "any prop", values: "value | { initial, sm, md, lg }", note: "container-query tiers, compiled to variable remaps" },
+      {
+        name: "container",
+        values: "boolean",
+        note: "makes THIS Box the region responsive values inside it measure; absent, they measure the nearest marked ancestor, ultimately the Theme root",
+      },
     ],
     refusals: [
       {
         name: "utility classes",
         why: "Values ride inline custom properties into fixed arbitration rules, so tokens and raw strings cost the same and the stylesheet never grows with the value set.",
+      },
+      {
+        name: "containment by default",
+        why: "It shipped that way and was the recorded zero-width defect: a measurable box can never size itself around its contents (the no-loop rule container queries are built on), so every Box in a flex row collapsed to nothing. A plain Box hugs like a div; `container` opts in, and belongs on things layout already sizes — a sidebar with a width, a growing column, a grid cell. A container Box left to shrink-wrap renders 0px wide, and dev builds warn when it happens.",
       },
     ],
     example: (

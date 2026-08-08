@@ -451,12 +451,10 @@ function checkbox(
 function checkboxSection(mode: Mode): string {
   const demo = (title: string, body: string) =>
     kuiBox({ display: "flex", direction: "column", gap: "4" }, `<h3>${title}</h3>${body}`);
-  // A GRID with definite tracks, not a flex row, and the reason is a live system defect rather
-  // than taste: every .kui-box is a `container-type: inline-size` query container (§2), so its
-  // contents never contribute to its own inline size — a Box asked to shrink-wrap (a flex-row
-  // item, inline-flex, max-content) computes to ZERO and its content spills. Definite tracks
-  // hand each pair a width, which is the one thing containment does not take away. Recorded
-  // for a fix; a demo must not model a workaround silently.
+  // A GRID with definite tracks, not a flex row. This began as the workaround for the
+  // blanket-containment defect (every .kui-box was a query container and collapsed to zero
+  // as a flex-row item); containment went opt-in 2026-08-08 (§2, the `container` prop) and a
+  // flex row would render fine now — the grid simply remains the better rig for a matrix.
   const row = (body: string) =>
     kuiBox({ display: "grid", columns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "5" }, body);
   return `<section class="mode ${mode}"${mode === "dark" ? ' data-appearance="dark"' : ""}>

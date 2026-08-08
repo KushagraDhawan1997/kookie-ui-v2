@@ -220,6 +220,9 @@
   grid-template-rows: var(--kui-gtr);
   grid-template-areas: var(--kui-gta);
   grid-auto-flow: var(--kui-gaf);
+}
+
+.kui-box[data-container] {
   container-type: inline-size;
 }
 

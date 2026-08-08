@@ -71,14 +71,20 @@ export function generateLayoutCss(): string {
 
   lines.push(".kui-box {");
   for (const longhand of all) lines.push(`  ${longhand}: ${chain(longhand, 0)};`);
-  // A tier asks "how wide is my slot", so every Box is a query container for its children.
-  // inline-size only: containment on the block axis would break height-from-content.
-  lines.push("  container-type: inline-size;", "}", "");
+  lines.push("}", "");
 
-  // Theme is a container too (§2, decided 2026-08-02): a Box is a container for its CHILDREN,
-  // never for itself, so the outermost Box in a tree had no tier context and silently sat at
-  // base values. With Theme measurable, the rule is "inside a Theme, tiers always work" — and
-  // a nested regional Theme is the more correct slot for its subtree anyway. The one caveat:
+  // Containment is OPT-IN (§2, decided 2026-08-08 — it shipped on every Box and was the
+  // recorded live defect): inline-size containment removes the box's contents from its own
+  // width, so a blanket-marked Box computed to ZERO wherever layout asked it to shrink-wrap —
+  // a flex-row item being the most ordinary spelling. A tier still asks "how wide is my slot",
+  // but the slot is the nearest ancestor that OPTED IN via the `container` prop, falling back
+  // to the Theme root — one measurable ancestor is what the mechanism needs, not a mark on
+  // every box. inline-size only: containment on the block axis would break height-from-content.
+  lines.push(".kui-box[data-container] {", "  container-type: inline-size;", "}", "");
+
+  // Theme IS always a container (§2, decided 2026-08-02; unchanged by the 2026-08-08 opt-in):
+  // it is the guaranteed outermost measurable ancestor, so a tier always has something to
+  // read — worst case the whole themed area, which behaves like the window. The one caveat:
   // inline-size containment means a Theme's width cannot come from its contents, so a Theme
   // rendered onto a shrink-to-fit element (flex child at width:auto, inline-block) collapses.
   lines.push(".kui-theme {", "  container-type: inline-size;", "}", "");

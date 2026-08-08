@@ -6,11 +6,14 @@
  * var — was asserted nowhere. Everything here goes end to end: a prop goes in and a computed
  * pixel value comes out.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { computed, render } from "../../test/browser.tsx";
 import type { RenderElement } from "../../system/render.ts";
 import { Box } from "./box.tsx";
+import { Flex } from "../flex/flex.tsx";
+import { Grid } from "../grid/grid.tsx";
+import { Stack } from "../stack/stack.tsx";
 
 describe("a prop becomes a rendered value (§2)", () => {
   it("a bare index resolves through the space palette", () => {
@@ -44,7 +47,7 @@ describe("a prop becomes a rendered value (§2)", () => {
 describe("responsive objects arbitrate by container (§2)", () => {
   it("a narrow slot keeps the base value", () => {
     const outer = render(
-      <Box width="200px">
+      <Box container width="200px">
         <Box p={{ initial: "1", md: "6" }} id="child" />
       </Box>,
     );
@@ -53,7 +56,7 @@ describe("responsive objects arbitrate by container (§2)", () => {
 
   it("a wide slot takes the tier value", () => {
     const outer = render(
-      <Box width="900px">
+      <Box container width="900px">
         <Box p={{ initial: "1", md: "6" }} id="child" />
       </Box>,
     );
@@ -62,11 +65,62 @@ describe("responsive objects arbitrate by container (§2)", () => {
 
   it("a structural prop switches layout on the same pipe", () => {
     const outer = render(
-      <Box width="900px">
+      <Box container width="900px">
         <Box display={{ initial: "flex", md: "grid" }} id="child" />
       </Box>,
     );
     expect(computed(outer.querySelector("#child")!, "display")).toBe("grid");
+  });
+});
+
+describe("containment is opt-in — the `container` prop (§2, decided 2026-08-08)", () => {
+  it("the prop is the only road to containment, asserted in both directions", () => {
+    expect(computed(render(<Box />), "container-type")).toBe("normal");
+    expect(computed(render(<Box container />), "container-type")).toBe("inline-size");
+  });
+
+  it("the typed sugar passes it through — a Flex, Grid or Stack can be the measured region", () => {
+    expect(computed(render(<Flex container />), "container-type")).toBe("inline-size");
+    expect(computed(render(<Grid container />), "container-type")).toBe("inline-size");
+    expect(computed(render(<Stack container />), "container-type")).toBe("inline-size");
+  });
+
+  it("`container` never reaches the DOM as a React unknown-prop — it travels as data-container", () => {
+    const el = render(<Box container />);
+    expect(el.getAttribute("container")).toBeNull();
+    expect(el.hasAttribute("data-container")).toBe(true);
+  });
+
+  it("dev builds warn when a container Box collapses, and stay quiet when it cannot (§2)", async () => {
+    // The one composition the opt-in cannot save: a container asked to shrink-wrap. The
+    // warning is the third layer of the guidance (JSDoc, registry, this) and the only one
+    // that fires at the moment it breaks. Falsified by flipping either fixture.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      render(
+        <div style={{ display: "flex", width: "600px" }}>
+          <Box container>collapses</Box>
+        </div>,
+      );
+      await vi.waitFor(() => {
+        expect(warn.mock.calls.some(([msg]) => String(msg).includes("0px wide"))).toBe(true);
+      });
+
+      warn.mockClear();
+      render(
+        <div style={{ display: "flex", width: "600px" }}>
+          <Box container flexGrow="1">
+            grows
+          </Box>
+          <Box>plain, hugs fine</Box>
+        </div>,
+      );
+      // Passive effects for the quiet case need a flush too, or this half asserts nothing.
+      await new Promise((r) => setTimeout(r, 50));
+      expect(warn.mock.calls.some(([msg]) => String(msg).includes("0px wide"))).toBe(false);
+    } finally {
+      warn.mockRestore();
+    }
   });
 });
 

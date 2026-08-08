@@ -8,7 +8,23 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
-## 2026-08-08 The component reference is a registry with a coverage law, not twenty pages
+## 2026-08-08 Containment becomes opt-in — a plain Box is a plain box again
+
+The 2026-08-05 live defect closes as a reversal of §2's blanket mark: `container-type: inline-size` leaves `.kui-box` and moves behind `.kui-box[data-container]`, stamped by a new `container` prop on Box (and through it Flex, Grid, Stack). The defect was never a bug in the mechanism — it was the mechanism's price paid in the wrong places. Inline-size containment removes a box's contents from its own width by specification (the no-loop rule container queries are built on), so every Box asked to shrink-wrap — a flex-row item being the most ordinary spelling in the library — computed to zero. The playground's own Layout section shipped broken the day it landed, which was the "decide against a real break, not on principle" condition being met.
+
+**The insight that unlocked it: the mechanism needs ONE measurable ancestor, not a mark on every box.** A tier reads the nearest ancestor container, and Theme has been a container since 2026-08-02 — so with no nearer mark, a responsive value measures the themed area, which behaves like the window: the graceful floor, not a failure. Marking every Box bought nothing except the guarantee that the nearest ancestor was always one element away — and paid for it with the collapse everywhere.
+
+**Rejected:**
+
+- **Automatic marking, keyed on the Box's own responsive props.** The mark serves the box's CHILDREN, never the box itself, so its own props carry no signal about whether anything inside will measure it. There is nothing honest to automate on.
+- **A hidden inner wrapper carrying the mark.** Preserves shrink-wrap on the outer element, but doubles every Box's element count for a feature most Boxes never use — §8's element discipline applied to the layout engine.
+- **The blanket status quo plus documentation.** A library whose plainest composition renders invisible cannot be documented into correctness.
+
+The ecosystem check ran before the call: no peer defaults containment onto a layout primitive. Tailwind v4 ships container queries in core and still requires the explicit `@container` class per element; shadcn's blocks mark each measuring card by hand; Mantine/Radix/Chakra mark nothing. The prop is the same shape with a type.
+
+**The meaning shift is the real cost, named:** a responsive value used to measure its immediate parent Box; it now measures the nearest opted-in ancestor. Call sites that relied on an unmarked immediate parent being the boundary need the prop added there. Today that is nobody — the reason to decide this before the component set grows. The "wrapping re-targets" open item narrows with it: a plain wrapper is now transparent to measurement (law-pinned), and only a deliberate `container` wrapper re-targets.
+
+**The trade does not vanish; it moves behind the prop and gets three warnings.** A container Box still cannot hug its contents — width must arrive from outside (`width`, `flexGrow`, a grid track, a stretching column; guidance in one sentence: put `container` on things layout already sizes). The prop's JSDoc states it, the registry's Box entry records it, and dev builds warn at the moment a container Box with children renders 0px wide — the only layer that fires when it actually breaks. Laws pin both directions and were falsified against the re-added blanket mark: four failed, each naming the exact regression.
 
 `/components` and `/components/[slug]` land as ONE renderer over a data file (`registry.tsx`), which is ENGINEERING §1.1 applied to the docs themselves: the system is data, code is a small interpreter. Adding a component means adding a row. Writing twenty hand-authored pages was the obvious alternative and was rejected for the reason the package rejects per-component recipes — twenty places for one claim to drift, and no way for CI to notice when one of them stops being true.
 

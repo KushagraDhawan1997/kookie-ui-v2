@@ -85,40 +85,55 @@ describe("@property { inherits: false } stops the value cascading (§2)", () => 
 describe("container tiers arbitrate by slot, not by window (§2)", () => {
   it("a narrow container keeps the base value even on a wide screen", () => {
     const host = mount(
-      `<div class="kui-box" style="width: 200px"><div id="child" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div></div>`,
+      `<div class="kui-box" data-container style="width: 200px"><div id="child" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div></div>`,
     );
     expect(computed(host.querySelector("#child")!, "padding-top")).toBe("4px");
   });
 
   it("a wide container takes the tier value", () => {
     const host = mount(
-      `<div class="kui-box" style="width: 900px"><div id="child" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div></div>`,
+      `<div class="kui-box" data-container style="width: 900px"><div id="child" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div></div>`,
     );
     expect(computed(host.querySelector("#child")!, "padding-top")).toBe("40px");
   });
 
   it("a tier falls back down the chain when its own value is unset", () => {
     const host = mount(
-      `<div class="kui-box" style="width: 900px"><div id="child" class="kui-box" style="--kui-p: 4px; --kui-p-sm: 20px"></div></div>`,
+      `<div class="kui-box" data-container style="width: 900px"><div id="child" class="kui-box" style="--kui-p: 4px; --kui-p-sm: 20px"></div></div>`,
     );
     expect(computed(host.querySelector("#child")!, "padding-top")).toBe("20px");
   });
 
   it("a Box with no ancestor container stays at its base values — tiers read the SLOT", () => {
-    // The sharp edge, pinned: a tier reads the nearest ancestor query container, and a Box is
-    // a container for its CHILDREN, never for itself. The outermost Box in a tree therefore
-    // has no tier context at all — found when the preview's grid rig sat at one column at
-    // every width. Decided 2026-08-02: Theme's element is a container too (.kui-theme), so in
-    // an app this edge only exists OUTSIDE any Theme — which is what this law pins.
+    // The sharp edge, pinned: a tier reads the nearest ancestor query container, and since
+    // 2026-08-08 a Box is a container only when it OPTS IN (and then for its children, never
+    // for itself). Decided 2026-08-02: Theme's element is always a container (.kui-theme), so
+    // in an app this edge only exists OUTSIDE any Theme — which is what this law pins.
     const host = mount(
       `<div style="width: 900px"><div id="probe" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div></div>`,
     );
     expect(computed(host.querySelector("#probe")!, "padding-top")).toBe("4px");
   });
 
+  it("a plain Box is NOT a measuring boundary — the tier reads PAST it to the opted-in ancestor", () => {
+    // The meaning shift the 2026-08-08 opt-in bought, stated as its own law: before, every
+    // Box was a boundary and a narrow plain wrapper would have pinned this probe to base.
+    // Now the narrow wrapper is transparent to measurement and the wide marked ancestor
+    // answers — which is what "opt-in" MEANS, so it is asserted in the direction that would
+    // catch the blanket mark coming back.
+    const host = mount(
+      `<div class="kui-box" data-container style="width: 900px">
+        <div class="kui-box" style="width: 200px">
+          <div id="probe" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div>
+        </div>
+      </div>`,
+    );
+    expect(computed(host.querySelector("#probe")!, "padding-top")).toBe("40px");
+  });
+
   it("structural props ride the same pipe, which is why this is not a spacing mechanism", () => {
     const host = mount(
-      `<div class="kui-box" style="width: 900px"><div id="child" class="kui-box" style="--kui-fd: column; --kui-fd-md: row"></div></div>`,
+      `<div class="kui-box" data-container style="width: 900px"><div id="child" class="kui-box" style="--kui-fd: column; --kui-fd-md: row"></div></div>`,
     );
     expect(computed(host.querySelector("#child")!, "flex-direction")).toBe("row");
   });
@@ -129,15 +144,15 @@ describe("what containment does and does not cost (§2)", () => {
     // The commonly-claimed container-query trap, checked rather than believed: only
     // `container-type: size` freezes the block axis. Ours is inline-size.
     const host = mount(
-      `<div class="kui-box" id="probe"><div style="height: 300px"></div></div>`,
+      `<div class="kui-box" data-container id="probe"><div style="height: 300px"></div></div>`,
     );
     expect(computed(host.querySelector("#probe")!, "height")).toBe("300px");
   });
 
   it("a container inside a container reads ITS slot, not the outer one", () => {
     const host = mount(
-      `<div class="kui-box" style="width: 900px">
-        <div class="kui-box" style="width: 300px">
+      `<div class="kui-box" data-container style="width: 900px">
+        <div class="kui-box" data-container style="width: 300px">
           <div id="probe" class="kui-box" style="--kui-p: 4px; --kui-p-md: 40px"></div>
         </div>
       </div>`,
@@ -155,7 +170,7 @@ describe("what containment does and does not cost (§2)", () => {
     // engine ever changes that, this law is where it shows up rather than in someone's app.
     const host = mount(
       `<div style="padding: 100px">
-        <div class="kui-box" style="width: 400px">
+        <div class="kui-box" data-container style="width: 400px">
           <div id="fixed" style="position: fixed; inset: 0"></div>
           <div id="abs" style="position: absolute; inset: 0"></div>
         </div>
@@ -166,14 +181,31 @@ describe("what containment does and does not cost (§2)", () => {
     expect(computed(host.querySelector("#abs")!, "width")).toBe(viewport);
   });
 
-  it("the real cost, pinned: a bare Box as a flex item shrink-wraps to nothing", () => {
-    // Inline-size containment makes the box contribute zero intrinsic inline size, so a flex
-    // item at width:auto collapses regardless of content. The escape is any explicit width,
-    // flexGrow, or flexBasis — documented in §2. If an engine change ever makes this pass
-    // differently, the doc needs rewriting, which is why it is pinned.
+  it("a bare Box as a flex item hugs its content — the 2026-08-05 live defect, closed", () => {
+    // The defect this whole opt-in exists to close: with containment on every Box, this
+    // rendered 0px and its content spilled. A plain Box now behaves exactly like a plain
+    // div in the same seat — asserted against one, so the law fails if containment (or
+    // anything else) ever splits their sizing again.
     const host = mount(
       `<div style="display: flex; width: 600px">
-        <div id="probe" class="kui-box">content that would normally size this</div>
+        <div id="probe" class="kui-box">content that sizes this</div>
+        <div id="plain">content that sizes this</div>
+      </div>`,
+    );
+    const probe = parseFloat(computed(host.querySelector("#probe")!, "width"));
+    expect(probe).toBeGreaterThan(0);
+    expect(probe).toBeCloseTo(parseFloat(computed(host.querySelector("#plain")!, "width")), 1);
+  });
+
+  it("the real cost, pinned where it now lives: a CONTAINER Box asked to shrink-wrap is 0px", () => {
+    // Inline-size containment makes the box contribute zero intrinsic inline size, so a
+    // container flex item at width:auto collapses regardless of content. Not a bug — the
+    // no-loop rule the measuring feature is built on. The escape is any width from outside:
+    // explicit width, flexGrow, flexBasis, a grid track, a stretching column (§2). If an
+    // engine change ever makes this pass differently, the doc needs rewriting.
+    const host = mount(
+      `<div style="display: flex; width: 600px">
+        <div id="probe" class="kui-box" data-container>content that would normally size this</div>
       </div>`,
     );
     expect(computed(host.querySelector("#probe")!, "width")).toBe("0px");
@@ -182,10 +214,21 @@ describe("what containment does and does not cost (§2)", () => {
   it("and flexGrow is the one-prop escape", () => {
     const host = mount(
       `<div style="display: flex; width: 600px">
-        <div id="probe" class="kui-box" style="--kui-fg: 1">content</div>
+        <div id="probe" class="kui-box" data-container style="--kui-fg: 1">content</div>
       </div>`,
     );
     expect(computed(host.querySelector("#probe")!, "width")).toBe("600px");
+  });
+
+  it("containment exists exactly where it was asked for — both directions, computed", () => {
+    const host = mount(
+      `<div>
+        <div id="plain" class="kui-box"></div>
+        <div id="marked" class="kui-box" data-container></div>
+      </div>`,
+    );
+    expect(computed(host.querySelector("#plain")!, "container-type")).toBe("normal");
+    expect(computed(host.querySelector("#marked")!, "container-type")).toBe("inline-size");
   });
 });
 
