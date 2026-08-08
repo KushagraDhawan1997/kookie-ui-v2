@@ -18,9 +18,11 @@
 }
 
 /* The optical scale the size join multiplies into FONT-SIZE alone (§15, 2026-08-08): 1 for
-   every member — the join resolves byte-identically to the bare token — except the mono
-   atoms, which stand it down to var(--mono-scale) because mono glyphs read a step large at
-   the same size. Line-height and letter-spacing never see it: the line box is the step's,
+   every member — the join resolves byte-identically to the bare token — except the two
+   atoms, which each stand it down to their OWN factor, for their own reason. Code takes
+   var(--mono-scale) because mono glyphs read a step large at the same size; Kbd takes the
+   deeper var(--kbd-scale) for cap aesthetics rather than metrics — it left the mono slot for
+   the body family the day it shipped, so there is no one "mono discount" the atoms share. Line-height and letter-spacing never see it: the line box is the step's,
    so a scaled chip sits in unmoved rhythm. Registered non-inheriting with initial 1 so a
    member's stand-down stops at its own element — Text nested inside a Code takes the full
    step, not the chip's discount (the silent-inheritance trap, §2's own lesson). */

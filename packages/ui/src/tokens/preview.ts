@@ -697,8 +697,9 @@ function surfaceSection(mode: Mode): string {
       { display: "flex", direction: "column", gap: "2" },
       `<strong>${title}</strong><div ${muted}>${desc}</div>`,
     );
-  // Stacks stretch (the default): a kui-box is an inline-size container, so in a
-  // shrink-to-fit context its width cannot come from its contents and it collapses.
+  // Stacks stretch (the default), which is what fills the card. It is no longer load-bearing:
+  // containment went opt-in 2026-08-08 (§2, the `container` prop), so a plain kui-box hugs its
+  // content in a shrink-to-fit context instead of collapsing.
   const cardBody = (title: string, desc: string, buttons: string) =>
     kuiBox(
       { display: "flex", direction: "column", gap: "4" },
@@ -774,12 +775,13 @@ function surfaceSection(mode: Mode): string {
                         kuiBox(
                           { display: "flex", direction: "column", gap: "4" },
                           `${field({ placeholder: "Email" })}${textarea({ placeholder: "Message" })}${kuiBox(
-                            // A GRID with definite tracks, not a flex row — the live Box defect
-                            // the checkbox section already documents: a .kui-box is an
-                            // inline-size container (§2), so a Box asked to shrink-wrap computes
-                            // to ZERO and its label spills over its neighbour's. All three mark
-                            // members sit here on purpose: one shared rule dresses them, so a
-                            // divergence shows up in this row first.
+                            // A GRID with definite tracks, not a flex row — a layout choice
+                            // now, not a workaround. It began as the blanket-containment
+                            // workaround the checkbox section records; containment went opt-in
+                            // 2026-08-08 (§2, the `container` prop), these boxes are plain, and
+                            // a flex row would render fine. All three mark members sit here on
+                            // purpose: one shared rule dresses them, so a divergence shows up
+                            // in this row first.
                             { display: "grid", columns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "3" },
                             `${checkbox({ label: "Remember" })}${radio({ label: "Daily" })}${radio({ checked: true, label: "Weekly" })}`,
                           )}${slider({ width: "100%" })}${kuiBox(

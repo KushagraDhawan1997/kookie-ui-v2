@@ -57,3 +57,68 @@ describe("every exported component appears in the playground", () => {
     });
   }
 });
+
+/**
+ * A shipped STATE owes a specimen too (audit 2026-08-09).
+ *
+ * The export walk above proves a component is on the page; it cannot see that a state the
+ * shared layer paints is rendered nowhere. The invalid-CHECKED wash shipped 2026-08-08
+ * "judged in the playground" — and every Invalid cell in the three mark matrices was
+ * UNCHECKED, the one case the arm deliberately does not touch, so the decision's own judging
+ * surface could not show it.
+ *
+ * The requirement is DERIVED, not listed: the law reads the shipped stylesheet, and only asks
+ * for the specimens if the rule is actually there. Delete the CSS arm and the law stops
+ * asking; ship the arm without a specimen and it fails.
+ */
+describe("a state the shared layer paints has a specimen (§8)", () => {
+  const recipes = readFileSync(
+    join(here, "../../../../packages/ui/src/system/recipes.css"),
+    "utf8",
+  ).replace(/\/\*[\s\S]*?\*\//g, " ");
+  const sources = readdirSync(here)
+    .filter((f) => f.endsWith(".tsx"))
+    .map((f) => readFileSync(join(here, f), "utf8"))
+    .join("\n");
+
+  const marksHaveCheckedInvalidRule = /\.kui-mark[^{]*data-checked[^{]*(data-invalid|aria-invalid)/.test(
+    recipes,
+  );
+
+  it("the mark family's checked+invalid rule is what makes this law ask", () => {
+    // Stated so the derivation is visible: if this is ever false the assertions below are
+    // vacuous BY DESIGN, and this line is where a reader finds that out.
+    expect(marksHaveCheckedInvalidRule).toBe(true);
+  });
+
+  for (const component of ["Checkbox", "Switch"]) {
+    it(`${component} renders a specimen that is BOTH checked and invalid`, () => {
+      if (!marksHaveCheckedInvalidRule) return;
+      // One tag carrying both attributes — the state the rule paints, not two cells that
+      // each carry half of it.
+      const tags = sources.match(new RegExp(`<${component}\\b[^>]*>`, "g")) ?? [];
+      const both = tags.filter(
+        (t) => /aria-invalid/.test(t) && /(defaultChecked|checked)/.test(t),
+      );
+      expect(
+        both.length,
+        `no <${component}> specimen is checked AND invalid — the wash cannot be judged`,
+      ).toBeGreaterThan(0);
+    });
+  }
+
+  it("Radio renders one too — where its checked state actually lives, on the GROUP", () => {
+    if (!marksHaveCheckedInvalidRule) return;
+    // Radio is the member whose selected state is not its own prop: RadioGroup owns the
+    // value, so the specimen is a group with a defaultValue wrapping an invalid radio. A
+    // law that demanded both attributes on the <Radio> tag would be asking for markup the
+    // component does not have — the shape of the assertion has to follow the component.
+    const groups =
+      sources.match(/<RadioGroup\b[^>]*defaultValue[^>]*>[\s\S]{0,400}?<\/RadioGroup>/g) ?? [];
+    const withInvalid = groups.filter((g) => /<Radio\b[^>]*aria-invalid/.test(g));
+    expect(
+      withInvalid.length,
+      "no selected RadioGroup contains an invalid Radio — the wash cannot be judged",
+    ).toBeGreaterThan(0);
+  });
+});

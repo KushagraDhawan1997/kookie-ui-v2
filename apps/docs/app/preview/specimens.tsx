@@ -327,7 +327,7 @@ function CheckboxSection() {
   return (
     <Stack gap="6">
       <SpecTable
-        cols={["Off", "On", "Mixed", "Invalid", "Disabled", "On, disabled"]}
+        cols={["Off", "On", "Mixed", "Invalid", "On, invalid", "Disabled", "On, disabled"]}
         rows={SIZES.map((size) => ({
           label: `size ${size}`,
           cells: [
@@ -335,6 +335,7 @@ function CheckboxSection() {
             <Checkbox key="2" size={size} defaultChecked aria-label="On" />,
             <Checkbox key="3" size={size} indeterminate aria-label="Mixed" />,
             <Checkbox key="4" size={size} aria-invalid="true" aria-label="Invalid" />,
+            <Checkbox key="4b" size={size} aria-invalid="true" defaultChecked aria-label="On, invalid" />,
             <Checkbox key="5" size={size} disabled aria-label="Disabled" />,
             <Checkbox key="6" size={size} defaultChecked disabled aria-label="On disabled" />,
           ],
@@ -527,7 +528,7 @@ function RadioSection() {
   return (
     <Stack gap="6">
       <SpecTable
-        cols={["Selected", "Unselected", "Invalid", "Disabled"]}
+        cols={["Selected", "Unselected", "Invalid", "Selected, invalid", "Disabled"]}
         rows={SIZES.map((size) => ({
           label: `size ${size}`,
           cells: [
@@ -539,6 +540,9 @@ function RadioSection() {
             </RadioGroup>,
             <RadioGroup key="3" aria-label="Invalid">
               <Radio size={size} value="a" aria-invalid="true" aria-label="Invalid" />
+            </RadioGroup>,
+            <RadioGroup key="3b" defaultValue="a" aria-label="Selected, invalid">
+              <Radio size={size} value="a" aria-invalid="true" aria-label="Selected, invalid" />
             </RadioGroup>,
             <RadioGroup key="4" disabled defaultValue="a" aria-label="Disabled">
               <Radio size={size} value="a" aria-label="Disabled" />
@@ -667,13 +671,14 @@ function SwitchSection() {
   return (
     <Stack gap="6">
       <SpecTable
-        cols={["Off", "On", "Invalid", "Disabled", "On, disabled"]}
+        cols={["Off", "On", "Invalid", "On, invalid", "Disabled", "On, disabled"]}
         rows={SIZES.map((size) => ({
           label: `size ${size}`,
           cells: [
             <Switch key="1" size={size} aria-label="Off" />,
             <Switch key="2" size={size} defaultChecked aria-label="On" />,
             <Switch key="3" size={size} aria-invalid="true" aria-label="Invalid" />,
+            <Switch key="3b" size={size} aria-invalid="true" defaultChecked aria-label="On, invalid" />,
             <Switch key="4" size={size} disabled aria-label="Disabled" />,
             <Switch key="5" size={size} defaultChecked disabled aria-label="On disabled" />,
           ],

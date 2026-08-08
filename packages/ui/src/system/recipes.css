@@ -423,6 +423,14 @@
   --kui-ct-fill-src-hover: var(--tone-soft);
   --kui-ct-fill-src-active: var(--tone-soft);
   --kui-ct-cast: none;
+  /* The GLYPH stands down with the fill (audit 2026-08-09). "Dead outranks wrong" held for
+     the fill alone: the invalid arm above declares --kui-ct-label-color as the destructive
+     FAMILY token, and the shared control arm can only rewrite tone ROLES, so a dead invalid
+     tick kept full-strength red — measured 3.8x the contrast of a plain dead tick and louder
+     than a LIVE sound one, which is the rule exactly inverted. Stated as the role, never a
+     literal, so the shared arm's remap (--tone-contrast -> --neutral-8) reaches it and one
+     change to the disabled palette still moves everything. */
+  --kui-ct-label-color: var(--tone-contrast);
 }
 
 /* ── The on state (§11): the binary controls' one identity ───────────────────────────────────

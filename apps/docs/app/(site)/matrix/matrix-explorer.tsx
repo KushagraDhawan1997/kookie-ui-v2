@@ -71,10 +71,11 @@ function Picker<T extends string>({
   options: readonly T[];
   onChange: (next: T) => void;
 }) {
-  // A row inside a Stack, never an item in a row-Flex: a Box as a shrink-to-fit flex item
-  // collapses to zero width under inline-size containment (§2's container decision — see the
-  // open-questions entry this page earned). Column items stretch, so the row is full width,
-  // and the label takes an explicit width because it is a Box inside a row itself.
+  // A row inside a Stack: column items stretch, so the row is full width, and the label takes
+  // an explicit width so the first column does not shift as its text changes. The collapse
+  // this comment used to explain is CLOSED — containment went opt-in 2026-08-08 (§2, the
+  // `container` prop), so a plain Box hugs its content like a div wherever layout shrink-wraps
+  // it; only a `container` Box pays that price now.
   return (
     <Flex gap="1" align="center">
       <Box width="88px" px="2">

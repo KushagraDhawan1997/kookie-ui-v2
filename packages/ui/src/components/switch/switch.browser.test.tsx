@@ -672,3 +672,26 @@ describe("the API's closed edges (§3)", () => {
     expect(document.getElementById(labelledBy!)?.textContent).toBe("Wi-Fi");
   });
 });
+
+
+describe("the shared invalid wash reaches the TRACK too (§8, §11 — audit 2026-08-09)", () => {
+  // The third member of the arm. Recorded with it: an invalid checked switch has no glyph to
+  // carry the state, so the wash lands on the channel alone — whether that reads is a design
+  // question standing open (the measured convergence with the OFF well), and this law pins
+  // only the mechanism it has today, so a change to the design changes the law with it.
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: an ON invalid switch washes its track`, () => {
+      const host = render(
+        <Theme appearance={appearance}>
+          <Switch defaultChecked aria-invalid="true" />
+          <Switch defaultChecked />
+        </Theme>,
+      );
+      const [invalid, sound] = Array.from(host.querySelectorAll<HTMLElement>(".kui-switch"));
+      expect(computed(invalid!, "background-color"), `${appearance}: track`).toBe(
+        colorOn(host, "var(--destructive-soft)"),
+      );
+      expect(computed(invalid!, "background-color")).not.toBe(computed(sound!, "background-color"));
+    });
+  }
+});

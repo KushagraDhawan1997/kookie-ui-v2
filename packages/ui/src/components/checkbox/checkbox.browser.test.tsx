@@ -538,6 +538,32 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     }
   });
 
+  it("dead outranks wrong in the GLYPH too, not only the fill (§8, audit 2026-08-09)", () => {
+    // The half the first spelling missed: the invalid arm declares --kui-ct-label-color as a
+    // destructive FAMILY token, and the shared disabled arm rewrites tone ROLES, so it could
+    // not reach it — a dead invalid tick rendered the same full-strength red as the LIVE one
+    // (measured 3.8x a plain dead tick's contrast, and louder than a live sound tick). The
+    // law reads the glyph's colour, which is what currentColor paints.
+    for (const appearance of APPEARANCES) {
+      const host = render(
+        <Theme appearance={appearance}>
+          <Checkbox aria-invalid="true" defaultChecked disabled />
+          <Checkbox defaultChecked disabled />
+          <Checkbox aria-invalid="true" defaultChecked />
+        </Theme>,
+      );
+      const [deadWrong, dead, liveWrong] = Array.from(
+        host.querySelectorAll<HTMLElement>(".kui-checkbox"),
+      );
+      expect(computed(deadWrong!, "color"), `${appearance}: the dead tick shouts`).toBe(
+        computed(dead!, "color"),
+      );
+      // ...and the live invalid tick is genuinely different, so the equality above is not
+      // holding because every tick happens to match.
+      expect(computed(liveWrong!, "color")).not.toBe(computed(dead!, "color"));
+    }
+  });
+
   it("dead outranks wrong: disabled AND invalid reads dead first (§8)", () => {
     // The invalid fill arm sits BEFORE the disabled arm in source on purpose, losing the
     // (0,2,0) tie — a control you cannot touch must recede, whatever else is true of it.

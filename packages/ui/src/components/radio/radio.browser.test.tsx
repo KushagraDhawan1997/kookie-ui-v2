@@ -390,3 +390,34 @@ describe("the API's closed edges (§3)", () => {
     expect(document.getElementById(labelledBy!)?.textContent).toBe("Pro");
   });
 });
+
+
+describe("the shared invalid wash reaches THIS member too (§8, §11 — audit 2026-08-09)", () => {
+  // The arm is written on .kui-mark, so it is one rule for checkbox, radio and the switch
+  // track — and only checkbox.browser.test.tsx asserted it, which means narrowing the
+  // selector to .kui-checkbox would have left the family silently unwashed with every suite
+  // green. The family's promotion is only real if each member proves it.
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: a selected invalid radio takes the destructive wash, not the accent solid`, () => {
+      const host = render(
+        <Theme appearance={appearance}>
+          <RadioGroup defaultValue="a" aria-label="invalid">
+            <Radio value="a" aria-invalid="true" />
+          </RadioGroup>
+          <RadioGroup defaultValue="a" aria-label="sound">
+            <Radio value="a" />
+          </RadioGroup>
+        </Theme>,
+      );
+      const [invalid, sound] = Array.from(host.querySelectorAll<HTMLElement>(".kui-radio"));
+      expect(computed(invalid!, "background-color"), `${appearance}: fill`).toBe(
+        colorOn(host, "var(--destructive-soft)"),
+      );
+      expect(computed(invalid!, "background-color")).not.toBe(computed(sound!, "background-color"));
+      // The dot is the glyph, and it takes the family's designed label-on-soft pairing.
+      expect(computed(invalid!, "color"), `${appearance}: glyph`).toBe(
+        colorOn(host, "var(--destructive-label)"),
+      );
+    });
+  }
+});

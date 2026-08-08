@@ -104,6 +104,38 @@ describe("it inherits the atom's typography rules, not a second set (§15)", () 
     expect(computed(sized, "line-height")).toBe(tokenOn(sized, "--line-height-2"));
   });
 
+  it("the cap's corner answers the radius AXIS — none squares it, and it is never zero at rest (§6)", () => {
+    // The comparison law above reads the corner as a RATIO of Code's, which is the right claim
+    // about the em and the wrong instrument for the axis: it is satisfied by any corner Code
+    // also has — including a hard-coded `0.35em`, which equals `medium` and therefore agrees
+    // with the chip at the default level while the axis reaches nothing (sabotage: 997/997
+    // green). §6 enumerates exactly four corners the radius axis never reaches and says "no
+    // fifth without this paragraph growing a sentence"; this is what stops the cap becoming a
+    // silent fifth. Read on the cap ITSELF, so nothing about Code can make it pass.
+    const corner = (radius: "none" | "small" | "medium" | "large" | "full") =>
+      parseFloat(
+        computed(mounted(<Kbd size="3">⌘K</Kbd>, { theme: { radius } }), "border-top-left-radius"),
+      );
+    expect(corner("none")).toBe(0);
+    const [s, m, l, f] = [corner("small"), corner("medium"), corner("large"), corner("full")];
+    expect(s).toBeGreaterThan(0);
+    expect(m).toBeGreaterThan(s);
+    expect(l).toBeGreaterThan(m);
+    expect(f).toBeGreaterThan(l);
+  });
+
+  it("and that corner is EM — it tracks the cap's own type across the ramp (§6, §15)", () => {
+    const small = mounted(<Kbd size="1">x</Kbd>, { theme: {} });
+    const large = mounted(<Kbd size="8">x</Kbd>, { theme: {} });
+    const ratio = (el: HTMLElement) =>
+      parseFloat(computed(el, "border-top-left-radius")) / parseFloat(computed(el, "font-size"));
+    expect(ratio(small)).toBeCloseTo(ratio(large), 3);
+    expect(ratio(small)).toBeGreaterThan(0);
+    expect(parseFloat(computed(large, "border-top-left-radius"))).toBeGreaterThan(
+      parseFloat(computed(small, "border-top-left-radius")) * 2,
+    );
+  });
+
   it("the cap is a key, not highlighted text: centered glyphs in a floored box that never wraps", () => {
     // The geometry that landed with the family move (§15, 2026-08-08). The floor is read as
     // the rendered ratio, not the declaration: a one-glyph cap must stand at least its
