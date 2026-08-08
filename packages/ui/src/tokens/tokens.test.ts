@@ -1361,3 +1361,36 @@ describe("generated output is not hand-edited (ENGINEERING §7)", () => {
     expect(committed).toBe(generateLayoutCss());
   });
 });
+
+describe("the stacking frame (§20)", () => {
+  const layout = generateLayoutCss();
+
+  /** Every flat rule whose selector names the theme element. The regex skips at-rule preludes
+      (their "body" contains braces), which is fine: .kui-theme rules are all top-level. Loud:
+      the filter must find both known rules or the walk is reading nothing. */
+  const themeRules = () => {
+    const rules = [...layout.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .map((m) => ({ selector: m[1]!.trim(), body: m[2]! }))
+      .filter((r) => r.selector.includes(".kui-theme"));
+    if (rules.length < 2) throw new Error("theme-rule walk found too little — parser is blind");
+    return rules;
+  };
+
+  it("the DOM-outermost theme is a stacking context, spelled with isolation and nothing else", () => {
+    const frame = themeRules().find((r) => r.selector === ".kui-theme:not(.kui-theme *)");
+    if (!frame) throw new Error("the frame rule is gone — portals lose the paint-above guarantee");
+    // ONE declaration: the frame must never grow a side effect (a z-index would make the theme
+    // participate in an outer context's ordering; anything else is a breaker, next law).
+    expect(frame.body.trim()).toBe("isolation: isolate;");
+  });
+
+  it("no theme rule ever declares a backdrop-root or containing-block breaker", () => {
+    // opacity < 1 makes the theme a backdrop root (glass inside it stops blurring the page —
+    // measured 2026-08-08, opacity .99 was the sabotage control that killed the blur);
+    // transform/filter/will-change/contain each trap position:fixed descendants or both.
+    // `container-type` is required and is NOT `contain:` — the regex bounds the word.
+    for (const rule of themeRules()) {
+      expect(rule.body).not.toMatch(/(?<![-\w])(?:opacity|transform|filter|will-change|contain)\s*:/);
+    }
+  });
+});

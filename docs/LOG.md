@@ -8,6 +8,18 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-09 Portals close: content re-themes through context, and the outermost theme becomes the stacking frame
+
+The groundwork for every floating component (Menu first), closed by measurement rather than argument. The failure was demonstrated before the mechanism existed: a card portalled to `document.body` inside a dark/compact/elevated Theme rendered as a correct-looking light-mode card — white fill, wrong corner, wrong padding, no shadow — because every token keys on attributes the portal landed outside of. And the stacking half was demonstrated the same way: a `z-index: 50` header inside the theme painted over the body-level portal.
+
+**Portalled content re-themes** by wrapping in a bare `<Theme>`: React context crosses portals, CSS attributes do not, so the wrapper re-resolves and re-stamps every axis where the portal lands. Measured byte-identical to an in-flow twin under the hostile axis set, under `contrast="high"`, and under `appearance="inherit"` with the html-stamped dark apps/docs actually uses. Radix Themes ships the same shape in production — the cross-browser evidence a Chromium-pinned suite cannot supply itself.
+
+**The frame** is `isolation: isolate` on the DOM-outermost `.kui-theme` (`:not(.kui-theme *)` — the fact is CSS-expressible, so no React sentinel). App z-indexes resolve inside the app; portals, later siblings, paint above by DOM order; nobody memorises a number. Measured free: zero new composited layers, no style/layout delta on an 8,000-element page, fixed positioning untrapped (the CSSWG resolution removing container-type's containing block has shipped in all engines), glass byte-identical — with `opacity: .99` as the sabotage control that proved the blur instrument could see damage.
+
+The laws came falsified: deleting the frame rule re-demonstrates the covered-portal bug (2 laws fail), un-wrapping the portal re-demonstrates the white-card bug (2 laws fail), respelling isolation as opacity fails the node spelling law, and a build assertion pins the rule's survival through Lightning's minifier, which no browser law covers (they read committed CSS). One constraint from the adversarial review stands as a dev warning + JSDoc: **the root Theme must never render onto `<body>`** — portals would land inside it and the frame inverts silently; a sentinel would fail identically, so this is portalling's own constraint, not the selector's.
+
+Rejected: **the z-index ladder** (MUI 1000–1500, Mantine 100–400, shadcn `z-50` — memorised numbers, breakable top rung, and shadcn only needs one because it takes Radix's primitives without Radix Themes' frame); **portalling into the Theme element** (re-inherits the clipping problem portals exist to escape — a Theme on a scrolling sidebar clips its own menus); **Radix's `position: relative; z-index: 0` spelling** (same stacking effect, plus an unwanted positioning anchor); **a React is-root context sentinel** (adds a field for a fact CSS can state). Recorded as a tie, not solved: third-party 999999 widgets beat every approach equally.
+
 ## 2026-08-09 Motion's grammar is chosen: physics, not clips — judged on a switch and a button
 
 The motion system's deferral (§8, 2026-08-02) ends its *direction* question, judged side by side on a throwaway page (plain HTML in a scratchpad, iOS proportions, none of our tokens — deliberately not the package) holding one switch and one button built both ways. Kushagra's verdict on the switch: "no competition." No code ships; §8's zeroed-transition law stands until the system is designed against these principles.

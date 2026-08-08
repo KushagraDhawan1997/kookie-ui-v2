@@ -34,8 +34,30 @@ export type ThemeProps = {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  /** Put the theme on an element you already have, rather than adding a wrapper (§5). */
+  /** Put the theme on an element you already have, rather than adding a wrapper (§5).
+      Never `<body>` or `<html>`: portals land at `document.body`, and a theme ON the body
+      contains its own portals — the stacking frame inverts silently and an app z-index
+      covers every popup (§20). A dev-build warning fires if you do. */
   render?: RenderElement;
+};
+
+/** Same fold as Box's container warning: bundlers replace NODE_ENV, production drops it. */
+const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
+
+/** §20 — the one Theme placement the stacking frame cannot survive. A portal's home is
+    `document.body`; a theme rendered ONTO body (or html) makes every portal its DOM
+    descendant, so "portals paint above the app" quietly becomes a z-index war again. */
+const warnOnBodyMount = (node: HTMLElement | null) => {
+  if (!DEV || !node) return;
+  // Tag, not identity against document.body: identity would go quiet exactly where the
+  // mistake is made (frameworks own THE body; a test can only ever mount a nested one).
+  if (node.tagName === "BODY" || node.tagName === "HTML") {
+    console.warn(
+      "[kookie-ui] <Theme> is mounted on <body>/<html>. Portalled popups land inside this " +
+        "theme, so the stacking frame cannot hold them above app content (§20). Mount the " +
+        "theme on an element inside <body> instead.",
+    );
+  }
 };
 
 type Resolved = Required<
@@ -139,7 +161,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
   // kui-theme makes the element a query container (§2): responsive props measure the nearest
   // ancestor Box OR Theme, so a tiered Box directly under a Theme has a slot to read.
   const themeClass = className ? `kui-theme ${className}` : "kui-theme";
-  const merged = { ...attrs, className: themeClass, style };
+  const merged = { ...attrs, className: themeClass, style, ref: warnOnBodyMount };
 
   return (
     <ThemeContext.Provider value={ctx}>

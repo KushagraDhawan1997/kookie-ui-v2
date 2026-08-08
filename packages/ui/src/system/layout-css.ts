@@ -89,6 +89,17 @@ export function generateLayoutCss(): string {
   // rendered onto a shrink-to-fit element (flex child at width:auto, inline-block) collapses.
   lines.push(".kui-theme {", "  container-type: inline-size;", "}", "");
 
+  // The stacking frame (§20, decided 2026-08-08): the DOM-outermost theme is a stacking
+  // context, so every z-index inside the app resolves inside it and a body-level portal —
+  // a later sibling — always paints above, with no number ladder for call sites to memorise.
+  // DOM-outermost by selector, not a React sentinel: the fact is CSS-expressible, and a
+  // portalled Theme wrapper at body level matching too is harmless (it is a later sibling).
+  // `isolation` and ONLY `isolation`: relative+z-index:0 (Radix's spelling) would also make
+  // the theme a positioning anchor, and opacity/transform/filter/will-change each break
+  // something real — a backdrop root under the glass, or a containing block trapping
+  // position:fixed. A node law pins the spelling.
+  lines.push(".kui-theme:not(.kui-theme *) {", "  isolation: isolate;", "}", "");
+
   tierNames.forEach((_, i) => {
     lines.push(`@container (min-width: ${tiers[tierNames[i]!]}) {`, "  .kui-box {");
     for (const longhand of all) lines.push(`    ${longhand}: ${chain(longhand, i + 1)};`);

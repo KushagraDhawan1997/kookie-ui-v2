@@ -21,6 +21,16 @@ if (code.length === 0) {
 }
 console.log(`styles.css: ${code.length} bytes (raw)`);
 
+// The stacking frame (§20) must survive minification. The browser laws read the COMMITTED
+// sheets, so nothing else proves the Lightning path — a toolchain upgrade that mangled or
+// dropped the `:not()` selector would pass every law while shipping a frame that never
+// isolates. Lightning may respell whitespace but not the selector or declaration.
+const css = code.toString();
+if (!/\.kui-theme:not\(\.kui-theme \*\)\s*\{\s*isolation:\s*isolate/.test(css)) {
+  console.error("build: the stacking frame rule did not survive minification (§20)");
+  process.exit(1);
+}
+
 // Publish-correctness assertions: the exports map points here; a rename or hashed
 // filename from a toolchain change must fail the build, not the consumer.
 for (const file of ["../dist/index.js", "../dist/index.d.ts"]) {

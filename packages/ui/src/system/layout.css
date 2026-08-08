@@ -230,6 +230,10 @@
   container-type: inline-size;
 }
 
+.kui-theme:not(.kui-theme *) {
+  isolation: isolate;
+}
+
 @container (min-width: 30rem) {
   .kui-box {
     padding-block-start: var(--kui-pt-sm, var(--kui-py-sm, var(--kui-p-sm, var(--kui-pt, var(--kui-py, var(--kui-p))))));
