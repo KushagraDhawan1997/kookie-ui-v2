@@ -345,8 +345,8 @@ function CodeSection() {
       <Stack gap="3">
         {SIZES.map((size) => (
           <Text key={size} size={size}>
-            Run <Code>pnpm run ci</Code> before claiming a task done, or press <Kbd>⌘</Kbd>
-            <Kbd>K</Kbd> to search.
+            Run <Code>pnpm run ci</Code> before claiming a task done, or press <Kbd>⌘K</Kbd> to
+            search.
           </Text>
         ))}
       </Stack>

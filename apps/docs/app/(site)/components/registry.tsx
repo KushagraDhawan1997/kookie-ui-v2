@@ -339,7 +339,7 @@ export const ENTRIES: Entry[] = [
     ],
     example: (
       <Text size="3">
-        Press <Kbd>⌘</Kbd> <Kbd>K</Kbd> to search, <Kbd>Esc</Kbd> to dismiss.
+        Press <Kbd>⌘K</Kbd> to search, <Kbd>Esc</Kbd> to dismiss.
       </Text>
     ),
   },
