@@ -919,4 +919,4 @@ export const kbdScale = 0.9;
  * atom's corner prices against its own font by construction; density never touches it.
  * `full` pills a one-line chip (~half the cap's face). v0 for the eye pass.
  */
-export const radiusAtom = { none: 0, small: 0.15, medium: 0.25, large: 0.35, full: 0.75 } as const;
+export const radiusAtom = { none: 0, small: 0.2, medium: 0.35, large: 0.45, full: 0.75 } as const;
