@@ -88,6 +88,8 @@ Done: scaffold (1), token pipeline including the colour generator (2), Box and t
 
 Read order: `docs/THESIS.md` (why it exists, the governance tiers) → `docs/DECISIONS.md` (the spec) → `docs/REVIEW.md` (audit + resolution log) → `docs/ENGINEERING.md` (how we build) → `docs/LOG.md` (dated decision log: why it became this, what was rejected).
 
+`docs/handovers/` is a separate genus and NOT part of that order: one plain-English file per unattended session, written for the human reviewing that branch. It is the only place allowed to repeat what the four docs already say, because the reader has not been in the room. It is never a source of truth — where a handover and a governance doc disagree, the governance doc is right and the handover is stale. Nothing is read out of one and into code.
+
 `DECISIONS.md` is what the system is now; `LOG.md` is how it got there. A choice that was genuinely open and got closed — a reversal, a measurement that moved a decision, a rejected alternative worth staying rejected — earns a LOG entry in the same commit. Tuning does not.
 
 ## Non-negotiables
