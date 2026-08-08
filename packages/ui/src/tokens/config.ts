@@ -460,8 +460,10 @@ export const sliderTrack = [4, 5, 6, 7] as const;
  * 40/44/48/48 over 24/26/28/28 — every cell holds 1.67–1.71 of its height, beside iOS's
  * 1.65, Material's 1.63, Radix's 1.75. The peers publish fractions; these are designed
  * numbers that happen to sit in that band (the mark family's own rule: identities and
- * designed values, never a ratio in the chain). Raw px like the slider ladders — the fifth
- * family with no palette rung at its scale. v0, judged in the preview.
+ * designed values, never a ratio in the chain). Raw px like the slider TRACK ladder — the
+ * fourth family with no palette rung at its scale, not the fifth: the count was written
+ * against a tree that still had `sliderThumbW`, which the same commit deleted when the grip
+ * went back to the family's square (audit 2026-08-08). v0, judged in the preview.
  */
 export const switchW = [34, 40, 44, 48] as const;
 
