@@ -296,6 +296,60 @@ describe("the mark family lives in the shared layer, once (§4, promoted 2026-08
   });
 });
 
+describe("the row family lives in the shared layer, once (§21, declared with Menu 2026-08-09)", () => {
+  // Declared family-first rather than promoted on the third member (the mark family's own
+  // argument): §11 had already named menu item, command item, list item and sidebar button
+  // as one family, and four separately designed rows in one visual weight class drift.
+
+  it("the shared layer declares the box, the lit state and the checked ink", () => {
+    expect(recipes).toContain(".kui-row {");
+    // Full-width and start-aligned — the two facts that make a control a row. Geometry is
+    // deliberately ABSENT: the row rides the control cells through the ordinary size join,
+    // so a height or padding declared here would be the drift this family exists to prevent.
+    const box = block(recipes, ".kui-row {");
+    expect(box).toContain("inline-size: 100%");
+    expect(box).toContain("justify-content: flex-start");
+    expect(box).not.toMatch(/min-block-size|block-size:|height:|padding/);
+    // The lit row reads the state attribute (keyboard and pointer unified by Base UI), and
+    // a submenu's open trigger stays lit by the same rule.
+    expect(recipes).toContain(".kui-row[data-highlighted]:not([data-disabled])");
+    expect(recipes).toContain(".kui-row[data-popup-open]:not([data-disabled])");
+    // Checked speaks accent, and BOTH precedence facts are the law (each was a live bug
+    // for an hour on ship day): the :not([data-disabled]) sits INSIDE the :where() —
+    // accent-label is not a tone role, so the disabled arm's remap cannot reach it and
+    // the rule must stand itself down for a dead checked row to dim; and the rule sits
+    // AFTER the emphasis ladder — a row stamps quiet, the quiet rung declares the label
+    // color at the same (0,1,0), and source order is what lets checked win that tie.
+    const checked = ".kui-row:where([data-checked]:not([data-disabled]))";
+    expect(recipes).toContain(checked);
+    expect(block(recipes, checked)).toContain("--kui-ct-label-color: var(--accent-label)");
+    expect(recipes.indexOf(checked)).toBeGreaterThan(recipes.indexOf('[data-emphasis="quiet"]'));
+  });
+
+  it("rows opt out of raw hover, inside the one guard — the highlight is the single source", () => {
+    // The stand-down must live INSIDE the (hover: hover) block: outside it, the rule would
+    // repaint the rest fill on touch devices' synthesized hover, which is exactly the stuck
+    // state the guard exists to prevent. Read positionally against the guard's close.
+    const guardStart = recipes.indexOf("@media (hover: hover)");
+    expect(guardStart).toBeGreaterThan(-1);
+    const guardEnd = recipes.indexOf("\n}", guardStart);
+    const guard = recipes.slice(guardStart, guardEnd);
+    expect(guard).toContain(".kui-row:hover:not([data-highlighted], [data-disabled], [data-loading])");
+    // And it stands DOWN to the rest fill — not a new colour, not transparent (quiet's rest
+    // is transparent today, but the rule must keep saying "rest", not restating its value).
+    const standDown = block(recipes, ".kui-row:hover:not([data-highlighted], [data-disabled], [data-loading])");
+    expect(standDown).toContain("background-color: var(--kui-ct-fill, var(--kui-ct-fill-src))");
+  });
+
+  it("no component stylesheet re-grows the family — the box and the lit state stay here", () => {
+    for (const p of allStylesheets("components")) {
+      const css = sheet(p);
+      expect(css, `${p} restates the row box`).not.toContain(".kui-row {");
+      expect(css, `${p} restates the lit state`).not.toContain("[data-highlighted]");
+    }
+  });
+});
+
 describe("the icon box is a mechanism, declared once (§4, ENGINEERING §4)", () => {
   it("no component restates it — including for adornments in a slot wrapper", () => {
     // A field's icons sit inside `[data-slot]`, so they are grandchildren of the control and
@@ -501,7 +555,15 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // Every state change is instant on both pointer worlds. When motion lands, this law is
     // replaced by the motion system's own — and press must stay instant: an eased press
     // loses the race against a ~60ms tap and the control reads as dead on a phone.
-    expect(recipes).not.toContain("transition");
+    //
+    // Widened from recipes.css to EVERY hand-authored sheet (2026-08-09, with Menu): the
+    // claim was always about the package, but the law read one file — a transition in
+    // menu.css or a component sheet would have shipped against a green suite. (The word
+    // itself is banned, so `prefers-reduced-transparency` etc. stay clear of the net:
+    // matched as a property name with its colon.)
+    for (const file of allStylesheets()) {
+      expect(sheet(file), file).not.toMatch(/[^-\w]transition(-[a-z]+)?\s*:/);
+    }
   });
 
   it("disabled remaps the family and never reaches for opacity (§8)", () => {

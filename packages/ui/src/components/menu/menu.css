@@ -1,0 +1,47 @@
+/* Menu (§21, §22). The popup is a surface (its fill, edge, dress and cast are the surface
+   layer's + the floating chrome); the rows are the row family's (recipes.css). What is left
+   for this sheet is exactly the menu's own facts: its corner, the panel's one
+   padding, the width floor, and the two row variants that stand interactivity down. */
+
+.kui-menu-popup {
+  /* The smallest surface corner for the smallest surface (§6). The overlay band was tried
+     first (§11 said "floating") and read far too round on sight (Kushagra, 2026-08-09):
+     --radius-overlay is 24px priced against a DIALOG's box, and a menu panel holds a much
+     larger fraction of it — the fraction wall's shape, caught at the eye pass this time.
+     surface-1 is also the concentric answer: row corner (~6) + panel padding (4) ≈ 10. */
+  --kui-sf-radius: var(--radius-surface-1);
+  /* One designed padding (§22) — the panel does not answer the size index, its rows do. */
+  --kui-sf-p: var(--menu-p);
+  /* Never narrower than the designed floor OR the trigger that opened it (§22): the
+     size-match argument applied to geometry. --anchor-width is the positioner's own
+     measurement; the inner fallback keeps the declaration valid where no positioner
+     exists (the agreement law's in-flow twin). */
+  min-width: max(var(--menu-min-w), var(--anchor-width, var(--menu-min-w)));
+  /* Long menus scroll inside the panel; the positioner reports the room that is left. */
+  max-height: var(--available-height, none);
+  overflow-y: auto;
+  /* Base UI focuses the popup itself on open. The ring is a keyboard affordance for
+     CONTROLS; a panel holding focus is a mode, and its rows carry the highlight. */
+  outline: none;
+}
+
+/* A separator inside a menu is the ordinary Separator (the part is refused — it would
+   rename existing vocabulary). Full-bleed, because a rule that stops at the panel's
+   padding reads as a broken border: the panel's own interior layout, not outer spacing. */
+.kui-menu-popup > .kui-separator {
+  margin-block: var(--menu-p);
+  margin-inline: calc(-1 * var(--menu-p));
+}
+
+/* A group label reads, it does not act: the row skeleton gave it the grid (gutter, type
+   step, height — aligned with its items at every cell); this stands the control-ness down. */
+.kui-menu-label {
+  pointer-events: none;
+  color: var(--color-text-faint);
+}
+
+/* The checkable rows' reserved gutter (§21): the indicator stays mounted, so checked and
+   unchecked rows align — visibility keeps the box, which is the point. */
+.kui-menu-item > [data-slot][data-unchecked] {
+  visibility: hidden;
+}

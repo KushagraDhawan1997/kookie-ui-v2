@@ -23,6 +23,18 @@ import {
   Grid,
   Heading,
   Kbd,
+  Menu,
+  MenuTrigger,
+  MenuContent,
+  MenuItem,
+  MenuGroup,
+  MenuLabel,
+  MenuCheckboxItem,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSub,
+  MenuSubTrigger,
+  MenuSubContent,
   Progress,
   Radio,
   RadioGroup,
@@ -52,6 +64,9 @@ export type Entry = {
   axes: { name: string; values: string; note: string }[];
   /** What it refuses, and why. The system's argument. */
   refusals: { name: string; why: string }[];
+  /** Parts of a compound component (§22): exports explained here rather than on stub pages
+      of their own. The coverage law accepts either home, and holds part blurbs to a floor. */
+  parts?: { part: string; blurb: string }[];
   /** A live specimen. */
   example: React.ReactNode;
 };
@@ -341,6 +356,82 @@ export const ENTRIES: Entry[] = [
       <Text size="3">
         Press <Kbd>⌘K</Kbd> to search, <Kbd>Esc</Kbd> to dismiss.
       </Text>
+    ),
+  },
+  {
+    slug: "menu",
+    name: "Menu",
+    family: "Surface",
+    spec: "§20, §21, §22",
+    blurb:
+      "A floating list of actions: the first portalled component and the row family's first member. The popup is a Card that floats — same seal, same edge, the smallest surface corner (the dialog-scale overlay corner was tried and rejected by eye) — and it casts in BOTH surfaces worlds, because a shadow under a floating pane is information about overlap, not the expression the app switch governs. The part vocabulary follows shadcn/ui's dropdown-menu (MIT), adopted with credit; behavior is Base UI's menu end to end.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "on the root, like Button — a size-4 trigger must not open a size-2 dropdown; rows price from the same control cells" },
+      { name: "material (Content)", values: "solid | thin | regular | thick", note: "Card's own prop: opaque by default, glass opt-in — and a glass menu still casts the floating chrome in a flat world" },
+      { name: "tone (Item)", values: "destructive", note: "a union of one — the single meaning a row may carry; not a palette, and widening it is a decision, never a default" },
+      { name: "side / align / sideOffset (Content)", values: "designed defaults", note: "bottom / start / 4 — the only positioning vocabulary that is public" },
+    ],
+    refusals: [
+      {
+        name: "emphasis on rows",
+        why: "A menu is a list of peers: emphasis ranks actions, and ranking rows inside a dropdown names nothing — the TextField sentence one family over. Quiet is the family's fixed identity, stamped, not chosen.",
+      },
+      {
+        name: "Shortcut",
+        why: "A keyboard hint is the row's trailing slot holding a <Kbd> — both already exist, and a part that renames existing vocabulary earns no row.",
+      },
+      {
+        name: "MenuSeparator",
+        why: "Base UI's menu separator is a re-export of the standalone one; ours would be too. Use <Separator> — the menu's stylesheet spaces it inside the popup.",
+      },
+      {
+        name: "inset",
+        why: "Icon-less rows aligning with icon'd neighbours is geometry's job, not a per-row prop the caller must remember: checkable rows keep their indicator mounted so the gutter reserves. Recorded open for plain items.",
+      },
+      {
+        name: "Arrow, Backdrop, Viewport, LinkItem, collision knobs",
+        why: "Menus don't point; light-dismiss needs no scrim; long menus scroll inside the panel via the positioner's own measurements; navigation rows arrive with Sidebar; collision handling is a designed default.",
+      },
+    ],
+    parts: [
+        { part: "MenuTrigger", blurb: "The button that opens the menu — usually render={<Button/>}, so the trigger IS a Kookie Button" },
+        { part: "MenuContent", blurb: "The floating panel: portals, positions, re-applies the theme (§20) and wears the surface identity" },
+        { part: "MenuItem", blurb: "One action row — the row family's member: control cells, quiet identity, highlight not hover" },
+        { part: "MenuGroup", blurb: "Groups rows so a label can name them; wires the group's accessible name automatically" },
+        { part: "MenuLabel", blurb: "A heading for a group: the row skeleton for alignment, with the control-ness stood down" },
+        { part: "MenuCheckboxItem", blurb: "A toggleable row — the family's selected state; its indicator stays mounted so the gutter holds" },
+        { part: "MenuRadioGroup", blurb: "Holds one chosen value among its radio rows; the value API is Base UI's, unchanged" },
+        { part: "MenuRadioItem", blurb: "One choice in a radio group, marked by the mounted dot indicator when chosen" },
+        { part: "MenuSub", blurb: "A nested menu's root: state and wiring only, no element of its own, like the root" },
+        { part: "MenuSubTrigger", blurb: "The row that opens a child menu; stays lit while it is open, chevron is its own statement" },
+        { part: "MenuSubContent", blurb: "The child panel: opens outward, first row aligned with its trigger — geometry is the system's" },
+    ],
+    example: (
+      <Menu>
+        <MenuTrigger render={<Button emphasis="medium">Actions</Button>} />
+        <MenuContent>
+          <MenuGroup>
+            <MenuLabel>File</MenuLabel>
+            <MenuItem trailing={<Kbd>⌘D</Kbd>}>Duplicate</MenuItem>
+            <MenuItem>Rename</MenuItem>
+          </MenuGroup>
+          <Separator />
+          <MenuCheckboxItem defaultChecked>Show hidden</MenuCheckboxItem>
+          <MenuRadioGroup defaultValue="name">
+            <MenuRadioItem value="name">Sort by name</MenuRadioItem>
+            <MenuRadioItem value="date">Sort by date</MenuRadioItem>
+          </MenuRadioGroup>
+          <Separator />
+          <MenuSub>
+            <MenuSubTrigger>Export as</MenuSubTrigger>
+            <MenuSubContent>
+              <MenuItem>PNG</MenuItem>
+              <MenuItem>SVG</MenuItem>
+            </MenuSubContent>
+          </MenuSub>
+          <MenuItem tone="destructive">Delete…</MenuItem>
+        </MenuContent>
+      </Menu>
     ),
   },
   {

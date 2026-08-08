@@ -40,6 +40,7 @@ export default defineConfig({
             "@base-ui/react/button",
             "@base-ui/react/checkbox",
             "@base-ui/react/input",
+            "@base-ui/react/menu",
             "@base-ui/react/progress",
             "@base-ui/react/radio",
             "@base-ui/react/radio-group",

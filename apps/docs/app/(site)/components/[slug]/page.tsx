@@ -87,6 +87,23 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
         </Stack>
       </Section>
 
+      {entry.parts ? (
+        <Section title="Parts">
+          <Stack gap="4">
+            {entry.parts.map((p) => (
+              <Stack key={p.part} gap="2">
+                <Code size="2" weight="medium">
+                  {p.part}
+                </Code>
+                <Text size="2" emphasis="medium" render={<p />}>
+                  {p.blurb}
+                </Text>
+              </Stack>
+            ))}
+          </Stack>
+        </Section>
+      ) : null}
+
       <Section title="What it refuses, and why">
         <Stack gap="5">
           {entry.refusals.map((refusal) => (

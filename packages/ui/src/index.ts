@@ -7,6 +7,7 @@ export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx
 export { Code, type CodeProps } from "./components/code/code.tsx";
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
 export { Kbd, type KbdProps } from "./components/kbd/kbd.tsx";
+export { Menu, MenuTrigger, MenuContent, MenuItem, MenuGroup, MenuLabel, MenuCheckboxItem, MenuRadioGroup, MenuRadioItem, MenuSub, MenuSubTrigger, MenuSubContent, type MenuProps, type MenuTriggerProps, type MenuContentProps, type MenuItemProps, type MenuGroupProps, type MenuLabelProps, type MenuCheckboxItemProps, type MenuRadioGroupProps, type MenuRadioItemProps, type MenuSubProps, type MenuSubTriggerProps, type MenuSubContentProps } from "./components/menu/menu.tsx";
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";

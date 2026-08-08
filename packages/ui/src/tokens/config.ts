@@ -648,6 +648,24 @@ export const layoutSpace = {
 export const surfacePadding = [4, 5, 6, 7] as const;
 
 /**
+ * §22 — the menu popup's interior padding, ONE pick into layout space (the surfacePadding
+ * sentence at popup scale: density reaches it through the layer, no set of its own). One
+ * value and not a size-indexed family: the popup deliberately stamps no data-size — its
+ * rows answer the size axis, the panel's breathing room does not (v0; if the eye pass
+ * disagrees, this becomes picks like surfacePadding). Index 2 = 4px at default density.
+ */
+export const menuPadding = 2;
+
+/**
+ * §22 — the popup's minimum width, raw px through --scale (the switchW precedent: no
+ * palette rung lives at this scale). The rendered floor is max(this, the trigger's own
+ * width via --anchor-width): a menu is never narrower than the thing that opened it —
+ * the size-match argument applied to geometry — and never comically narrow under an
+ * icon-only trigger. ≈ shadcn's 8rem. v0.
+ */
+export const menuMinWidth = 112;
+
+/**
  * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04; redesigned and
  * widened to FIVE rows 2026-08-07 with the four-worlds frame, §19). One ladder ordered by
  * height: 1 is the inset well, 2 is the CONTROL row (small drop, button scale — added
@@ -753,6 +771,29 @@ export const controlLight = {
     "linear-gradient(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0) 62%), linear-gradient(rgb(0 0 0 / 0) 38%, rgb(0 0 0 / 0.05))",
   dark: "linear-gradient(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.01) 62%), linear-gradient(rgb(0 0 0 / 0) 38%, rgb(0 0 0 / 0.10))",
 } as const;
+
+/**
+ * §21/§22 — the FLOATING chrome: the third chrome role, and the first one BOTH worlds
+ * declare. A shadow under a card is expression (ranks it against siblings — the app's
+ * `surfaces` choice), a shadow under a menu is information (the popup genuinely covers
+ * other content, and the cast states "above, not part of") — and facts don't turn off
+ * with the style switch (Kushagra, 2026-08-09: "shadow is information"). Elevated reads
+ * row 4 — one step past the surface lift, because a floating pane sits above even the
+ * lifted cards — with dark's inset rim, surfaceChrome's sentence one row up. Flat is
+ * DERIVED, never a second authored shadow: the same row through `fadeShadow` at the
+ * factor below (the §10 transmission precedent), quieter because a flat world states
+ * depth rather than simulating it — but never none, because overlap is a fact in every
+ * world. v0, judged in the playground in both worlds and both modes.
+ */
+export const floatingChrome = {
+  light: "var(--shadow-4)",
+  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-4)",
+} as const;
+
+/** How much of the floating cast a FLAT world keeps (0..1). Applied to the palette row by
+    the generator — one source of shadow truth, the flat value can never drift from the
+    elevated one. v0. */
+export const floatingFlatFactor = 0.5;
 
 /**
  * §10 — the seal: what an opaque surface is filled with. Paper ABOVE the page, never the

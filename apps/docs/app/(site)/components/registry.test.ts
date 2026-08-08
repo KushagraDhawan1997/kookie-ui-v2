@@ -37,6 +37,16 @@ function exportedComponents(): string[] {
 const documented = [...registry.matchAll(/^\s{4}name: "([A-Za-z]+)",$/gm)].map((m) => m[1]!);
 const slugs = [...registry.matchAll(/^\s{4}slug: "([a-z-]+)",$/gm)].map((m) => m[1]!);
 
+/** Parts of a compound component (§22, amended with Menu 2026-08-09): an export may be
+    EXPLAINED inside its parent's entry rather than on a page of its own — no library ships
+    a standalone MenuLabel page, and eleven stub entries is the box-ticking rot the second
+    describe below exists to prevent. A part is still held to the anti-stub bar (its blurb
+    has a floor), and the reverse direction still binds (a part must be a real export). */
+const parts = [...registry.matchAll(/^\s{8}\{ part: "([A-Za-z]+)", blurb: "((?:[^"\\]|\\.)*)" \}/gm)].map(
+  (m) => ({ name: m[1]!, blurb: m[2]! }),
+);
+const partNames = parts.map((p) => p.name);
+
 describe("every exported component has a reference entry", () => {
   const components = exportedComponents();
 
@@ -52,16 +62,23 @@ describe("every exported component has a reference entry", () => {
   for (const name of exportedComponents()) {
     it(`${name} is documented`, () => {
       expect(
-        documented.includes(name),
-        `${name} is exported by the package but has no entry in registry.tsx`,
+        documented.includes(name) || partNames.includes(name),
+        `${name} is exported by the package but has no entry (and is no entry's part) in registry.tsx`,
       ).toBe(true);
     });
   }
 
+  it("a name has ONE home — an entry of its own or a parent's parts list, never both", () => {
+    for (const name of partNames) {
+      expect(documented, `${name} is both an entry and a part`).not.toContain(name);
+    }
+  });
+
   it("no entry documents something the package does not export", () => {
     // The other direction: a renamed or deleted export must not leave a page behind that
-    // describes a component nobody can import.
+    // describes a component nobody can import. Parts are held to it too.
     for (const name of documented) expect(components).toContain(name);
+    for (const name of partNames) expect(components).toContain(name);
   });
 
   it("slugs are unique, and there is one per entry", () => {
@@ -74,10 +91,22 @@ describe("an entry that says nothing is worse than no entry", () => {
   // Coverage laws rot into box-ticking: the cheapest way to satisfy the law above is an entry
   // with an empty blurb and no refusals. These make that route fail instead.
   it("every blurb is a real sentence, not a placeholder", () => {
-    const blurbs = [...registry.matchAll(/blurb:\s*\n?\s*"((?:[^"\\]|\\.)*)"/g)].map((m) => m[1]!);
+    // Anchored at the entry's own indent (4 spaces): a part's inline blurb lives at 8 and
+    // has its own law above — counting it here would double-book the same string.
+    const blurbs = [...registry.matchAll(/^\s{4}blurb:\s*\n?\s*"((?:[^"\\]|\\.)*)"/gm)].map((m) => m[1]!);
     expect(blurbs).toHaveLength(documented.length);
     for (const blurb of blurbs) {
       expect(blurb.length, `a blurb is too short to be saying anything: "${blurb}"`).toBeGreaterThan(80);
+    }
+  });
+
+  it("a part's blurb is a real description, and the parse itself is proven live", () => {
+    // The vacuity guard is load-bearing: `parts` is a regex over source, and a reformat
+    // that broke it would silently re-demand twelve stub entries' absence — i.e. nothing.
+    // Menu ships ≥ 10 parts, so a parse finding fewer is a broken parse, not a design.
+    expect(parts.length).toBeGreaterThanOrEqual(10);
+    for (const p of parts) {
+      expect(p.blurb.length, `part ${p.name}'s blurb says nothing: "${p.blurb}"`).toBeGreaterThan(40);
     }
   });
 

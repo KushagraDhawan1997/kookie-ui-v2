@@ -46,6 +46,10 @@ import {
   radiusSurface,
   controlChrome,
   controlLight,
+  floatingChrome,
+  floatingFlatFactor,
+  menuMinWidth,
+  menuPadding,
   shadow,
   sliderTrack,
   progressTrack,
@@ -202,6 +206,11 @@ export function generateTokens(): string {
 
   lines.push("", "  /* surface padding (§10) — picks into layout space, so density reaches cards through one lever */");
   lines.push(...surfacePaddingFamily());
+
+  lines.push("", "  /* the menu popup (§22) — padding is a layout-space pick (re-declared per density scope,");
+  lines.push("     the surface-padding trap), the width floor rides --scale alone so it lives here only. */");
+  lines.push(...menuFamily());
+  lines.push(decl("menu-min-w", zoom(menuMinWidth)));
 
   lines.push("", "  /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each");
   lines.push("     one-look family declared before the axis existed. A look role holds a COLOUR, so it");
@@ -386,6 +395,7 @@ export function generateTokens(): string {
       ...controlFamily(density[level]),
       ...layoutSpaceFamily(level),
       ...surfacePaddingFamily(),
+      ...menuFamily(),
       "}",
       "",
     );
@@ -691,6 +701,11 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     ...(["thin", "regular", "thick"] as const).map((t) =>
       decl(`control-chrome-${t}`, fadeShadow(shadow[mode][1]!, material.transmission[t])),
     ),
+    `  /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance`,
+    `     because BOTH worlds declare one (overlap is information, not expression): elevated`,
+    `     reads row 4, flat is the same row faded — derived, one source of shadow truth. */`,
+    decl("floating-chrome-elevated", floatingChrome[mode]),
+    decl("floating-chrome-flat", fadeShadow(shadow[mode][3]!, floatingFlatFactor)),
   ];
 }
 
@@ -786,6 +801,12 @@ function surfacePaddingFamily(): string[] {
   return surfacePadding.map(
     (step, i) => decl(`surface-p-${i + 1}`, `var(--layout-space-${step})`),
   );
+}
+
+/** Menu padding (§22): one pick into layout space — a var() bakes where it is declared, so
+    this re-emits in every density scope exactly like surface padding does. */
+function menuFamily(): string[] {
+  return [decl("menu-p", `var(--layout-space-${menuPadding})`)];
 }
 
 /** The control radii for one designed set at one level (§6). At `full` the band is the rule

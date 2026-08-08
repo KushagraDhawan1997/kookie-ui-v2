@@ -400,7 +400,7 @@ A Button references `--radius-control-2`, never `--radius-2` directly.
 
 ### Boundaries
 
-- Stepped radius families exist for **both** kinds of component, differently sized on purpose. Controls: `--radius-control-1..4`, density-indexed (section 12). Surfaces: `--radius-surface-1..4`, size-indexed only (amended 2026-08-04, Kushagra — a size-1 card and a size-4 card should not wear the same corner; the original "a card has no size index" premise died when Card grew one for padding). Density never touches a surface corner — density reaches a card through padding (layout space); the corner follows the size index alone. Size 3 anchors at each level's old flat value, so the default card never moved. Overlay stays flat: a dialog has one size.
+- Stepped radius families exist for **both** kinds of component, differently sized on purpose. Controls: `--radius-control-1..4`, density-indexed (section 12). Surfaces: `--radius-surface-1..4`, size-indexed only (amended 2026-08-04, Kushagra — a size-1 card and a size-4 card should not wear the same corner; the original "a card has no size index" premise died when Card grew one for padding). Density never touches a surface corner — density reaches a card through padding (layout space); the corner follows the size index alone. Size 3 anchors at each level's old flat value, so the default card never moved. Overlay stays flat: a dialog has one size. (Menu tried it for an hour on 2026-08-09 and was rejected by eye — a menu is not at dialog scale, §22; the band stays unclaimed until Dialog.)
 - **Do not auto-derive radius from height.** `calc(height * ratio)` re-imports the non-linearity. Each control-radius is a designed value placed on the curve, hand-tuned references.
 - **Control radius is part of the density set** (section 12). Density changes visual size enough that a fixed corner reads boxy at the airy end, so each density level places its own control radii — still designed points, never derived from the height.
 
@@ -917,7 +917,7 @@ Resting position for each component across the four axes. Dash = axis not expose
 | Callout | neutral | medium | flat | solid | tone-forward, inline |
 | Banner | neutral | medium | flat | solid | tone-forward, full-width |
 | Popover / HoverCard | neutral | quiet + bordered | floating | solid | thin/thick opt-in |
-| Menu / Dropdown | neutral | quiet + bordered | floating | solid | thin/thick opt-in |
+| Menu / Dropdown | neutral | quiet + bordered | floating | solid | thin/thick opt-in — SHIPPED 2026-08-09 (§22): popup = Card's stamped identity + kui-floating, surface-1 corner (overlay rejected by eye), casts in both worlds |
 | Tooltip | neutral (inverted) | - | floating | solid | exception: high-contrast inverted |
 | Dialog | neutral | quiet | overlay | solid | panel stays solid; the backdrop carries scrim + blur |
 | Sheet / Drawer | neutral | quiet | overlay | solid | content scrolls under: strong material candidate |
@@ -929,7 +929,7 @@ Resting position for each component across the four axes. Dash = axis not expose
 |---|---|---|---|---|---|
 | Clickable Card | neutral | quiet + bordered | raised | solid | quiet hover overlay atop the raised surface |
 | Table row | neutral | quiet | flat | solid | transparent -> hover 3 -> press 4; selected = accent |
-| List / Menu item | neutral | quiet | flat | solid | active = accent |
+| List / Menu item | neutral | quiet | flat | solid | active = accent — the ROW FAMILY (§21), shipped with Menu 2026-08-09: rides the control cells, emphasis refused, highlighted-not-hover, checked = accent |
 | Command item | neutral | quiet | flat | solid | |
 | Sidebar button | neutral | quiet | flat | solid | active = accent |
 | Accordion trigger | neutral | quiet | flat | solid | |
@@ -953,7 +953,7 @@ Resting position for each component across the four axes. Dash = axis not expose
 
 - **Material is `solid` for everything** in the defaults, and is available on every component that can float, buttons included. `thin`/`thick` are always opt-in, correct only over media or scrolling content. The Apple-rollback lesson hard-coded into the resting state.
 - **Tone is neutral for everything** except the genuine accent-default spots: Checkbox/Radio/Switch (on), Link, and the active state of interactive surfaces. Status surfaces (Callout, Banner, Toast) are tone-*forward* by intent but still default to neutral hue until a color is set.
-- **Elevation is deleted (2026-08-03)** — the `elev` column in these tables is historical; no component takes it and nothing casts a shadow. What survives of its logic is the stacking rule: one glass per stack (section 10).
+- **Elevation is deleted (2026-08-03)** — the `elev` column in these tables is historical; no component takes it, and what survives of its logic is the stacking rule: one glass per stack (section 10). **Amended 2026-08-09 (§22): "nothing casts" now carries the overlap clause** — *overlap is not expression; a floating layer always states its coverage* — so a FLOATING surface (Menu, and the popover family after it) casts in BOTH worlds through the floating chrome role, flat included. In-flow surfaces are unchanged: flat still means none.
 - **The primary action is always explicit.** No component defaults to `loud + accent`. The loud tinted thing is opt-in so the system guarantees one focal point per context instead of hoping you self-police.
 
 ### Progress has no size axis, and the absence is the decision (2026-08-08, shipped with the component)
@@ -1353,6 +1353,44 @@ The DOM-outermost `.kui-theme` declares `isolation: isolate`. Every z-index insi
 ### The one placement the frame cannot survive
 
 **The root Theme must never be rendered onto `<body>` or `<html>`** (`render={<body/>}`, a natural Next.js spelling). Portals land at `document.body`; a theme ON the body makes every portal its own DOM descendant, the portalled wrapper stops matching the outermost selector, and the frame inverts silently — a React sentinel would fail identically, so this is a constraint of portalling itself, not of the CSS detection. A dev-build warning fires on the tag (the Box `container` warning's shape); the JSDoc on `render` names it. Also recorded: a document with no Theme has no frame — un-themed pages get browser-default stacking, honestly.
+
+**First consumer: Menu (2026-08-09, §22)** — `MenuContent` owns the re-theming wrapper, and its agreement law (portalled ≡ in-flow, hostile axes + `contrast="high"`) is the enforcement ENGINEERING §2.1's portalling clause names.
+
+---
+
+## 21. The row family: interactive rows in a list (2026-08-09, shipped with Menu)
+
+Menu item, command item, list item, sidebar button — §11 had already named them one family with one sentence (neutral, quiet, active = accent), and this section is that sentence designed. A row is a **control wearing a container** (§10): full width, start-aligned, the one control state machine, riding the EXISTING control cells — height (as `min-height`), padding, gap, icon box, font, `--radius-control-N` — so a menu row beside a button reads as the same size of thing with zero geometry of its own. Declared family-first rather than promoted on the third member, the mark family's own argument: four separately designed rows in one visual weight class WILL drift, and the spec had already promised they are one thing.
+
+**Emphasis is refused on rows (Kushagra, 2026-08-09).** Button carries emphasis because actions rank; a menu is a list of peers, and emphasis-as-differentiator inside a list names nothing — the TextField sentence one family over. Quiet is the family's fixed identity, STAMPED by the component (`data-emphasis="quiet"`, Card's stamped-identity precedent), so rest/hover/press arrive from the quiet rung with nothing re-declared.
+
+**The lit row is `data-highlighted`, never `:hover`.** Base UI unifies pointer and keyboard into one highlight; a row that also answered raw hover would keep a pointer-rested row lit after the keyboard moved on — two cursors on one menu. The family styles the attribute, and a guard-block rule stands the shared hover fill back down on rows (higher specificity, inside the one `(hover: hover)` guard, so touch synthesis stays handled). `[data-popup-open]` lights a submenu's trigger row by the same rule. Press stays the shared unguarded `:active`.
+
+**Selected speaks accent, written once** — `.kui-row:where([data-checked])`, the mark family's ON sentence. Two precedence facts are the design: it sits AFTER the emphasis ladder (a row stamps quiet, and the quiet rung declares the label color at the same specificity — source order is what lets checked win), and the `:not([data-disabled])` lives INSIDE the `:where()` because the accent ink is named directly rather than through a tone role, so the disabled arm's remap cannot reach it — the rule stands itself down instead, and a dead checked row dims. Naming the accent family in the shared layer is the focus ring's precedent (§8): selection answers one question system-wide.
+
+**Rows wear content dress: regular weight, stated by the family (Kushagra, 2026-08-09, same day).** The control skeleton's medium is a BUTTON-label decision, and it reached every row through `kui-control` — the TextField value's sentence one family over (a value is content; so is a line in a list you read). Every platform menu agrees. Stated once in the row block; a member that ever needs medium re-declares it as its own fact.
+
+**What varies per member is designed picks, never props** — and Menu's pick is "the control family's own cells", deliberately: inventing per-member numbers before the eye pass is a value nobody judged, and re-pointing four join lines later is the reversible direction. **What is never shared is behavior**: a menu item is roving focus and typeahead, a sidebar item is a link, a select option is a listbox option — the family shares paint, never machines (the Checkbox/Radio cut). Open, recorded: a "current" state for navigation rows (arrives with Sidebar), and the family's public face — if Sidebar lives in kookie-blocks, its rows need to reach this recipe through something the package exports.
+
+---
+
+## 22. Menu (2026-08-09)
+
+The first floating component: the §20 groundwork's first consumer and the row family's first. **The part vocabulary and composition shape follow shadcn/ui's dropdown-menu (MIT), adopted with credit** — Root/Trigger/Content/Item/CheckboxItem/RadioGroup/RadioItem/Group/Label/Sub(+SubTrigger/SubContent), flat exports (`Menu`, `MenuTrigger`, …; a namespace export would silently escape the coverage laws). Behavior is Base UI's menu end to end.
+
+**The corner is `--radius-surface-1`, and the overlay band's first consumer it is NOT (corrected same day, Kushagra by eye).** It shipped for an hour on `--radius-overlay` per §11's "floating" — and 24px is priced against a DIALOG's box, so the menu panel held a far larger fraction of it: the fraction wall's seventh instance, the first caught at the eye pass rather than by law or arithmetic. The smallest surface takes the smallest surface corner, which is also the concentric answer — row corner (~6) + panel padding (4) ≈ surface-1 (10) — which is why a highlighted row nests the shell's curve instead of leaving slivers. Judged perfect at large/size-3. Recorded open, not built: the row corner grows with `size` while the panel corner holds, so if a size-4 menu ever reads square-shelled, the panel corner rides the size index through the surface band — one line. The overlay band returns to unclaimed; Dialog is its real first consumer.
+
+**`MenuContent` is the fold**: Portal → bare `<Theme>` (§20) → Positioner → Popup, so no call site assembles plumbing and the re-theming cannot be forgotten. The Popup is a surface wearing Card's exact stamped identity (neutral, quiet, bordered, `material` opt-in — a glass menu is the case the blur machinery was built for) plus `kui-floating`. It stamps NO `data-size`: the panel's padding is one designed value (`--menu-p`, a layout-space pick re-baked per density) — its ROWS answer the index. Public positioning vocabulary: `side`/`align`/`sideOffset` with designed defaults (bottom/start/4); everything else is a designed default, not API. Width: `max(--menu-min-w, --anchor-width)` — never narrower than the designed floor or the trigger that opened it.
+
+**Menu takes `size` like Button (Kushagra, reversing the withhold proposal): a size-4 button must not open a size-2 dropdown.** The root provides the index through context (it crosses the portal); every row stamps it on its own element, where the size join fires. The trigger is `render={<Button/>}` — the caller matches the two size props; the menu cannot read its trigger's.
+
+**The popup casts in BOTH worlds — the elevation rule's overlap clause (amends §5/§10/§11's "nothing casts"):** *overlap is not expression; a floating layer always states its coverage.* A shadow under a card ranks it against siblings — the app's `surfaces` choice, and flat says none. A shadow under a menu is information: the popup genuinely covers content. So the **floating chrome** is the third chrome role and the first one `flat` also declares — elevated reads palette row 4 (dark adds the inset rim), flat is the SAME row generator-faded (`floatingFlatFactor`, the transmission precedent — derived, one source of truth, never none). The paint re-points the surface layer's ONE cast site (`.kui-surface.kui-floating`, last in the sheet — source order is the mechanism), so the box-shadow count law holds at six, and it wins every fight on purpose: a glass floating pane casts the floating chrome (coverage outranks transmission — the transmitted tokens are none in flat, where a glass menu must still cast), and a sealed pane still states its coverage. The glass-transmission × floating product (should a thin floating pane cast a faded floating chrome?) is recorded open.
+
+**Rows carry the vocabulary; the surface stays neutral.** `tone="destructive"` on an item — a union of ONE, resolved by the existing tone indirection with zero new CSS; a wider palette on rows is a decision, never a default. Checkable items ship day one because they ARE the family's selected state; their indicators (the checkbox's own stroked artwork) stay mounted, so the gutter reserves in both states — which is most of shadcn's `inset` answered by geometry rather than a prop (the rest — plain items beside checkable ones — is recorded open).
+
+**Refused, and the refusals are the API** (registry carries them): `Shortcut` (a keyboard hint is the trailing slot holding a `Kbd`), `MenuSeparator` (Base UI's is a re-export of the standalone; use `Separator` — menu.css spaces it full-bleed inside the panel), `Arrow`, `Backdrop`, `Viewport` (the panel scrolls via the positioner's own `--available-height`), `LinkItem` (waits for Sidebar), collision knobs, `modal`/`openOnHover` (designed defaults). Motion: instant like everything else — designed in its own track; Menu is its first retrofit when it lands.
+
+**The registry grew a `parts` concept with this component** (the one law amendment): a compound component's exports are explained inside the parent's entry rather than on stub pages — the coverage law accepts either home, holds part blurbs to a floor, forbids a name living in both lists, and proves its own parse against Menu's ≥10 parts.
 
 ---
 

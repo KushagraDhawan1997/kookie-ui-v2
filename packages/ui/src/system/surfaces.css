@@ -190,6 +190,10 @@
      light, the same sentence as the surface chrome one line up. */
   --kui-control-chrome: var(--control-chrome);
   --kui-control-light: var(--control-light);
+  /* The FLOATING chrome (§22) — the third role, and the first one flat also declares: a
+     shadow under a floating pane is INFORMATION (it genuinely covers content), not the
+     expression this world switch otherwise governs. Elevated gets the full row-4 value. */
+  --kui-floating-chrome: var(--floating-chrome-elevated);
   /* Elevation meets the material at two seams (§10, 2026-08-07). What a pane CASTS is the
      app's shadow transmitted — the surface row faded per thickness, generator-derived from
      the palette — handed here so the glass rules below can re-point their chrome; flat
@@ -220,6 +224,11 @@
 
 [data-surfaces="flat"] {
   --kui-surface-chrome: none;
+  /* NOT none — the §11 amendment made mechanical ("overlap is not expression; a floating
+     layer always states its coverage", 2026-08-09). A flat world quiets the cast (the
+     generator fades the same palette row — one source of truth), it never removes it:
+     a border-only popup over busy content merges into what it covers. */
+  --kui-floating-chrome: var(--floating-chrome-flat);
   --kui-control-chrome: none;
   --kui-control-light: none;
   --kui-surface-chrome-thin: none;
@@ -362,4 +371,17 @@
        to any element but this one. */
     --kui-sf-cast: initial;
   }
+}
+
+/* The floating paint (§22) — LAST in this file on purpose, and a re-point of the surface
+   layer's ONE box-shadow site rather than a second one (the count law holds at six). Same
+   specificity as the glass casts above, so source order decides — and a floating pane must
+   win every one of those fights: against the transmitted glass cast (a glass menu in a flat
+   world still casts — the transmitted tokens are none there, and coverage is a fact even
+   where expression is off), and against the reduced-transparency stand-down (a sealed pane
+   stops TRANSMITTING; a sealed floating pane still states its coverage). The second
+   fallback covers the un-themed document — no world scope, so the pointer never resolves —
+   which behaves as flat, the material rim's own precedent. */
+.kui-surface.kui-floating {
+  --kui-sf-cast: var(--kui-floating-chrome, var(--floating-chrome-flat, none));
 }

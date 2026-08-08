@@ -123,6 +123,34 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // pinned here: no ring (two lines) and no raw-alpha border (soft, contrast-blind).
     expect(body).not.toContain("border-color");
   });
+
+  it("the floating chrome is declared by BOTH worlds, and flat's is a value, never none (§22)", () => {
+    // The §11 amendment made mechanical (2026-08-09): a shadow under a floating pane is
+    // INFORMATION about overlap, not the expression this switch governs — so flat quiets
+    // the cast (the generator fades the same palette row) but may never remove it. A flat
+    // scope declaring `none` here is the defect this law exists to catch.
+    const body = block(surfaces, '[data-surfaces="elevated"]');
+    const flat = block(surfaces, '[data-surfaces="flat"]');
+    expect(body).toContain("--kui-floating-chrome: var(--floating-chrome-elevated)");
+    expect(flat).toContain("--kui-floating-chrome: var(--floating-chrome-flat)");
+    expect(flat).not.toContain("--kui-floating-chrome: none");
+  });
+
+  it("the floating paint re-points the ONE cast site and sits last, so it wins every fight (§22)", () => {
+    // Same specificity as the glass transmission rules and the reduced-transparency
+    // stand-down — source order is the whole mechanism, so the rule must come after BOTH:
+    // a glass floating pane casts the floating chrome (not the transmitted row — coverage
+    // is a fact even where expression is off), and a sealed floating pane still casts.
+    const paint = surfaces.indexOf(".kui-surface.kui-floating");
+    expect(paint).toBeGreaterThan(-1);
+    expect(paint).toBeGreaterThan(surfaces.indexOf("prefers-reduced-transparency"));
+    expect(paint).toBeGreaterThan(surfaces.lastIndexOf('[data-material="thick"]'));
+    const body = block(surfaces, ".kui-surface.kui-floating");
+    // A re-point of --kui-sf-cast, never a second box-shadow (the count law's six holds),
+    // and the second fallback covers the un-themed document, which behaves as flat.
+    expect(body).toContain("--kui-sf-cast: var(--kui-floating-chrome, var(--floating-chrome-flat, none))");
+    expect(body).not.toContain("box-shadow");
+  });
 });
 
 describe("material resolves through tokens only (§10)", () => {
@@ -292,6 +320,34 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
           expect(thick![i]!, `${scope} ${chrome} thick < solid`).toBeLessThan(sourceAlphas[i]!);
         });
       }
+    }
+  });
+
+  it("flat's floating cast is the elevated row actually faded, in both appearances (§22)", () => {
+    // The transmission law's sentence one role over: flat is DERIVED from the same palette
+    // row elevated reads (row 4), through the same fadeShadow seam, so the two cannot
+    // drift. Asserted with the independent alpha parse — the fade did something, every
+    // alpha is source x factor, geometry unchanged — because the copied-regex version of
+    // this law is the one the 2026-08-07 audit demonstrated agreeing with a broken fade.
+    for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
+      const body = block(tokens, scope);
+      const source = valueOf(body, "--shadow-4");
+      const sourceAlphas = alphasOf(source);
+      expect(sourceAlphas.length).toBeGreaterThan(0);
+      // Elevated composes the row by reference (dark prepends its rim), one source of truth.
+      expect(valueOf(body, "--floating-chrome-elevated")).toContain("var(--shadow-4)");
+      const flat = valueOf(body, "--floating-chrome-flat");
+      expect(flat, `${scope} flat floating cast is the unfaded row`).not.toBe(source);
+      const got = alphasOf(flat);
+      expect(got.length, "flat kept every layer").toBe(sourceAlphas.length);
+      got.forEach((a, i) => {
+        expect(
+          Math.abs(a - sourceAlphas[i]! * 0.5),
+          `${scope} floating-flat layer ${i}: ${a} is not ${sourceAlphas[i]} x 0.5`,
+        ).toBeLessThan(0.001);
+        expect(a).toBeGreaterThan(0);
+      });
+      expect(flat.replace(/rgba?\([^)]*\)/g, "C")).toBe(source.replace(/rgba?\([^)]*\)/g, "C"));
     }
   });
 

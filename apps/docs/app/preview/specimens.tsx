@@ -33,6 +33,18 @@ import {
   Grid,
   Heading,
   Kbd,
+  Menu,
+  MenuTrigger,
+  MenuContent,
+  MenuItem,
+  MenuGroup,
+  MenuLabel,
+  MenuCheckboxItem,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSub,
+  MenuSubTrigger,
+  MenuSubContent,
   Progress,
   Radio,
   RadioGroup,
@@ -583,6 +595,96 @@ function RadioSection() {
   );
 }
 
+function MenuSection() {
+  /** One canonical content set, reused at every size so the judgment is about the cells,
+      not the words: a file menu with groups, checkables, a submenu and a destructive tail. */
+  const content = (
+    <>
+      <MenuGroup>
+        <MenuLabel>File</MenuLabel>
+        <MenuItem trailing={<Kbd size="1">⌘D</Kbd>}>Duplicate</MenuItem>
+        <MenuItem>Rename</MenuItem>
+        <MenuItem disabled>Move to…</MenuItem>
+      </MenuGroup>
+      <Separator />
+      <MenuCheckboxItem defaultChecked>Show hidden files</MenuCheckboxItem>
+      <MenuCheckboxItem>Compact list</MenuCheckboxItem>
+      <Separator />
+      <MenuRadioGroup defaultValue="name">
+        <MenuLabel>Sort by</MenuLabel>
+        <MenuRadioItem value="name">Name</MenuRadioItem>
+        <MenuRadioItem value="date">Date modified</MenuRadioItem>
+      </MenuRadioGroup>
+      <Separator />
+      <MenuSub>
+        <MenuSubTrigger>Export as</MenuSubTrigger>
+        <MenuSubContent>
+          <MenuItem>PNG</MenuItem>
+          <MenuItem>SVG</MenuItem>
+          <MenuItem>PDF</MenuItem>
+        </MenuSubContent>
+      </MenuSub>
+      <MenuItem tone="destructive">Delete…</MenuItem>
+    </>
+  );
+
+  return (
+    <Stack gap="6">
+      {/* Size row: the menu answers the index its trigger wears — open each and judge the
+          rows against the button beside it (§22: a size-4 button never opens a size-2
+          dropdown). Click to open; menus are judged live, not pinned. */}
+      <SpecTable
+        cols={["Trigger + menu"]}
+        rows={SIZES.map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <Menu key="m" size={size}>
+              <MenuTrigger render={<Button size={size} emphasis="medium">Actions</Button>} />
+              <MenuContent>{content}</MenuContent>
+            </Menu>,
+          ],
+        }))}
+      />
+      {/* Glass: the popup floats over content by definition, which is the case the material
+          was built for — and a glass menu still casts the floating chrome in a flat world. */}
+      <Demo label="Materials — over the hostile backdrop">
+        <HostileBed>
+          <Menu>
+            <MenuTrigger render={<Button emphasis="medium">Solid</Button>} />
+            <MenuContent>{content}</MenuContent>
+          </Menu>
+          <Menu>
+            <MenuTrigger render={<Button emphasis="medium">Thin glass</Button>} />
+            <MenuContent material="thin">{content}</MenuContent>
+          </Menu>
+          <Menu>
+            <MenuTrigger render={<Button emphasis="medium">Thick glass</Button>} />
+            <MenuContent material="thick">{content}</MenuContent>
+          </Menu>
+        </HostileBed>
+      </Demo>
+      {/* The §6 judging surface: the panel's surface-1 corner beside the card's surface-3 — open the menu
+          over the card and read the two radii as one system. */}
+      <Demo label="Composed — a document header, menu beside its card">
+        <Box maxWidth="26rem">
+          <Card size="3">
+            <Flex justify="space-between" align="center" gap="4">
+              <Stack gap="1">
+                <Text size="2" weight="medium">Q3 planning.md</Text>
+                <Text size="1" emphasis="medium">Edited 2 hours ago</Text>
+              </Stack>
+              <Menu>
+                <MenuTrigger render={<Button emphasis="quiet" iconOnly aria-label="Actions"><PlusIcon /></Button>} />
+                <MenuContent align="end">{content}</MenuContent>
+              </Menu>
+            </Flex>
+          </Card>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
 function SeparatorSection() {
   return (
     <Stack gap="6">
@@ -1073,6 +1175,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
   { id: "heading", name: "Heading", body: <HeadingSection /> },
+  { id: "menu", name: "Menu", body: <MenuSection /> },
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
   { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },

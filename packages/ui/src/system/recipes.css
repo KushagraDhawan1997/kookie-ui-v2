@@ -485,6 +485,53 @@
   visibility: hidden;
 }
 
+/* ── The row family: interactive rows in a list (§21, 2026-08-09, shipped with Menu) ─────
+
+   Menu item, command item, list item, sidebar button — §11 names them one family, and this
+   block is that sentence in CSS: a full-width control that reuses the control state machine
+   ("a control wearing a container", §10) and rides the EXISTING control cells — height (as
+   min-height), padding, gap, icon box, font, corner — so a menu row beside a button reads
+   as the same size of thing with zero geometry of its own. What varies per member is
+   designed picks, never props; what is never shared is behavior (a menu item and a sidebar
+   link are different machines — the Checkbox/Radio cut, one box two machines).
+
+   Emphasis is REFUSED on rows (Kushagra, 2026-08-09): a menu is a list of peers, and
+   emphasis-as-differentiator inside a list names nothing — the TextField sentence one
+   family over. Quiet is the family's fixed identity, STAMPED by the component (Card's
+   stamped-identity precedent, ENGINEERING §2.1), so rest/hover/press arrive from the
+   quiet rung with no rung re-declared here (the rung-once law holds). */
+
+.kui-row {
+  display: flex;
+  inline-size: 100%;
+  justify-content: flex-start;
+  text-align: start;
+  /* Content dress, not button dress (§21, Kushagra 2026-08-09 — the TextField value's
+     sentence one family over): the skeleton's medium is a BUTTON-label decision, and a
+     row is a line in a list you read. Every platform menu sets its items regular. */
+  font-weight: var(--font-weight-regular);
+}
+
+/* A shortcut hint or chevron sits at the far edge, not beside the label — the row's own
+   layout fact, not a per-call-site margin (components never own outer spacing; this is
+   inner). */
+.kui-row > [data-slot="trailing"] {
+  margin-inline-start: auto;
+}
+
+/* THE LIT ROW IS data-highlighted, NEVER :hover (§21). Base UI unifies pointer and keyboard
+   into one highlight (pointer hover sets it too), and a row that also answered raw :hover
+   would keep a pointer-rested row lit after the keyboard moved on — two cursors on one
+   menu. So the highlight rule reads the state attribute, and the rule below inside the
+   hover guard STANDS DOWN the shared :hover fill on rows (back to the rest fill) so the
+   attribute is the single source. [data-popup-open] keeps a submenu's trigger row lit
+   while its child menu is open — the row is "in use", not hovered. Press stays the shared
+   :active rule's — unguarded, the only feedback touch has. */
+.kui-row[data-highlighted]:not([data-disabled]),
+.kui-row[data-popup-open]:not([data-disabled]) {
+  background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
+}
+
 /* ── The size index: one join, eight families (§4) ───────────────────────────────────────── */
 
 /* The sixth is the MARK (§4, added 2026-08-05 with Checkbox): the painted box of a control
@@ -633,6 +680,21 @@
   --kui-ct-light: none;
 }
 
+/* Selected speaks accent, written once for every member of the row family (§21): the ON
+   ink, the mark family's checked sentence one family over. Placed AFTER the emphasis
+   ladder on purpose — a row stamps its quiet identity, and the quiet rung declares the
+   label color at the same (0,1,0), so source order is what lets checked win that tie;
+   `:where()` keeps the specificity down, and the :not([data-disabled])
+   INSIDE it is what dims a dead checked row: the accent ink is named directly (not a tone
+   role), so the disabled arm's role remap cannot reach it — the rule must stand itself
+   down instead (the mark family reaches the same end by stamping its tone). Naming the accent FAMILY in the shared layer is the focus ring's own precedent
+   (§8): selection, like focus, answers one question system-wide, so a destructive row
+   that is also checked still checks in accent. The SVG indicator inherits the ink through
+   currentColor. */
+.kui-row:where([data-checked]:not([data-disabled])) {
+  --kui-ct-label-color: var(--accent-label);
+}
+
 /* ── Containment, orthogonal to loudness (§10) ───────────────────────────────────────────── */
 
 [data-bordered] {
@@ -687,6 +749,16 @@
 @media (hover: hover) {
   .kui-control:hover:not([data-disabled], [data-loading]) {
     background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
+  }
+
+  /* Rows opt OUT of raw hover (§21): their lit state is Base UI's data-highlighted — which
+     pointer hover also sets — so this stands the shared rule above back down to the rest
+     fill on a row the highlight has left. Higher specificity on purpose: (0,4,0) beats the
+     shared (0,3,0), and the highlight rule outside this guard repaints [data-highlighted]
+     rows regardless. Keyboard-correct by construction: arrow away from a pointer-rested
+     row and it un-lights. */
+  .kui-row:hover:not([data-highlighted], [data-disabled], [data-loading]) {
+    background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
   }
 }
 
