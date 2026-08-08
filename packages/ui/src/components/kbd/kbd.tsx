@@ -27,17 +27,24 @@ export type KbdProps = Omit<
 };
 
 /**
- * A key cap (§11's inert atoms, §15): Code plus an edge, which is the whole difference.
+ * A key cap (§11's inert atoms, §15): Code's fill and tone facts, in its own family and box.
  *
- * §11 gives the two atoms one row because they are one treatment — a mono glyph on a subtle
- * fill — and the key cap's extra is a hairline that says the thing is a physical key rather
- * than a quoted value. It is the tone-aware `--tone-border`, not the solved control or field
- * edge: those tiers exist for controls whose identity RESTS on their edge (§7's edge order),
- * and a cap has a fill to carry it.
+ * It shipped as "Code plus an edge" and left that identity the next day (2026-08-08): a mono
+ * cell draws symbols like ⌘ compact to fit its fixed advance, and the platform sets shortcuts
+ * in the UI sans (macOS menus; Radix's cap is sans too). So the cap wears `--font-body` at its
+ * own `kbdScale`, in a box exactly one line tall (`block-size: 1lh`) — which is what gives it
+ * a face without ever spreading the line it sits in. What it still shares with the chip: the
+ * subtle fill, the tone indirection, and the type join.
  *
- * No shadow, and that is the elevation deletion holding where a peer library would reach for
- * it: a key cap is the classic "just a tiny inset shadow" case, and depth here is the app's
- * (`surfaces`), never a component's own idea.
+ * The hairline says the thing is a physical key rather than a quoted value. It is the
+ * tone-aware `--tone-border`, not the solved control or field edge: those tiers exist for
+ * controls whose identity RESTS on their edge (§7's edge order), and a cap has a fill to
+ * carry it.
+ *
+ * **It casts always** — flat world included (2026-08-08, reversing the day-one refusal): a key
+ * cap is a picture of a raised physical object, so depth here is role semantics, the slider and
+ * switch grips' own exception. It reads `--control-chrome`'s VALUE, never the world switch, so
+ * `surfaces` cannot move it.
  *
  * **The stylesheet repeats Code's facts on purpose.** TextArea set the rule (LOG 2026-08-05):
  * the SECOND member of a family self-keys, the THIRD promotes it into the shared layer. Badge

@@ -37,12 +37,22 @@ import { resolveBoxProps, type BoxStyleProps } from "../system/resolve.ts";
  * page (the runner cannot parse JSX), so what the layout section proves is the whole
  * mechanism minus the element wrapper the browser suite already covers.
  */
-function kuiBox(props: BoxStyleProps, body: string): string {
+function kuiBox(
+  props: BoxStyleProps,
+  body: string,
+  opts: { container?: boolean } = {},
+): string {
   const { style } = resolveBoxProps(props);
   const inline = Object.entries(style)
     .map(([k, v]) => `${k}: ${v}`)
     .join("; ");
-  return `<div class="kui-box" style="${inline}">${body}</div>`;
+  // Containment is opt-in since 2026-08-08 (§2), and this page bypasses the React component
+  // that stamps the attribute — so the rigs must stamp it themselves or they measure nothing.
+  // They did not, and the whole responsive section rendered one column at every width while
+  // its own caption printed a tier (audit 2026-08-08): the exact symptom §2 records as
+  // closed in 2026-08-02, reintroduced by the reversal on the one surface it did not open.
+  const flag = opts.container ? " data-container" : "";
+  return `<div class="kui-box"${flag} style="${inline}">${body}</div>`;
 }
 
 /**
@@ -1262,6 +1272,7 @@ ${kuiBox(
     },
     Array.from({ length: 8 }, (_, i) => `<div class="cell">${i + 1}</div>`).join(""),
   ),
+  { container: true },
 )}
 </div>
 
@@ -1274,6 +1285,7 @@ ${kuiBox(
     { display: "flex", direction: { initial: "column", md: "row" }, gap: "3", p: "4" },
     ["nav", "content", "aside"].map((n) => `<div class="cell" style="flex: 1">${n}</div>`).join(""),
   ),
+  { container: true },
 )}
 </div>
 

@@ -122,6 +122,71 @@ describe("containment is opt-in — the `container` prop (§2, decided 2026-08-0
       warn.mockRestore();
     }
   });
+
+  it("and it warns when the collapse arrives AFTER mount — content, or a parent turning into a row", async () => {
+    // The gap the audit found (2026-08-08): the effect ran once, guarded by hasChildNodes()
+    // and keyed on a boolean that never changes, so the two ordinary async shapes were
+    // silent — an empty container Box that fills from a fetch, and a laid-out one whose
+    // parent becomes a flex row later. Both are asserted here because they have DIFFERENT
+    // root causes (the child guard, and the one-shot effect) and one fix does not imply
+    // the other.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const fired = () => warn.mock.calls.some(([m]) => String(m).includes("0px wide"));
+    try {
+      const host = render(
+        <div style={{ display: "flex", width: "600px" }}>
+          <Box container id="late" />
+        </div>,
+      );
+      await new Promise((r) => setTimeout(r, 30));
+      expect(fired(), "an EMPTY container Box must not warn — it has not collapsed").toBe(false);
+      host.querySelector("#late")!.append(document.createTextNode("arrived from a fetch"));
+      await vi.waitFor(() => expect(fired()).toBe(true));
+
+      warn.mockClear();
+      const second = render(
+        <div style={{ width: "600px" }}>
+          <Box container id="row">
+            content that sized it
+          </Box>
+        </div>,
+      );
+      await new Promise((r) => setTimeout(r, 30));
+      expect(fired(), "a block-context container Box is fine — it is handed a width").toBe(false);
+      (second as HTMLElement).style.display = "flex";
+      await vi.waitFor(() => expect(fired()).toBe(true));
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it("and it stays quiet for a Box that is not laid out at all — a hidden panel is not a collapse", async () => {
+    // The false-positive half (audit 2026-08-08): the old guard read the element's own
+    // `display`, and CSS display does not inherit — an element under a display:none
+    // ancestor still computes `block`, so a closed accordion, an inactive tab panel or a
+    // mounted-but-hidden dialog emitted one bogus warning per container Box, telling the
+    // developer to "fix" a Box that is correct.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      render(
+        <div style={{ display: "none" }}>
+          <Box container>hidden, not collapsed</Box>
+        </div>,
+      );
+      render(
+        <div hidden>
+          <Box container>also hidden</Box>
+        </div>,
+      );
+      await new Promise((r) => setTimeout(r, 50));
+      expect(
+        warn.mock.calls.some(([m]) => String(m).includes("0px wide")),
+        "an unrendered Box was reported as collapsed",
+      ).toBe(false);
+    } finally {
+      warn.mockRestore();
+    }
+  });
 });
 
 describe("the boundary between props and the DOM (§3)", () => {

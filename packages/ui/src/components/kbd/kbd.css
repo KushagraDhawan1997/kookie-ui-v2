@@ -39,19 +39,32 @@
      inline). All in the cap's own em — the glyphs price the cap, the em-padding argument
      one property over. box-decoration-break left with the inline model: an unwrappable
      block has no second fragment to lose. */
-  display: inline-block;
+  /* The cap IS one line box tall — `1lh`, resolved against the line-height it inherits (an
+     unset size) or the one the join states (a stated size). That is what makes the face free
+     of consequence: a designed em box could not track the type ramp's own line ratio, which
+     falls from 1.33 at step 1 to 1.107 at step 9, so a constant em cap fitted the small
+     steps and overflowed the large ones — measured at 13px of line growth at step 9, against
+     a bound of 3 that only held because the law looped sizes 1-4 (audit 2026-08-08). Height
+     from the line box cannot drift from the line box.
+
+     `vertical-align: top` with that height is the second half: the box fills the line box it
+     already matches, so the line cannot grow. `middle` was the first spelling and is wrong
+     here — it centres the box on the baseline plus half an x-height, which pushes a
+     line-tall box past the strut and reintroduces the growth this removes. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  block-size: 1lh;
+  vertical-align: top;
   white-space: nowrap;
   min-inline-size: 1.6em;
-  text-align: center;
   /* The cap's vertical presence (2026-08-08, Kushagra: glyphs at bare line-height read
-     cramped — a keycap has a face, not just a line). The trade is priced, not dodged: a
-     cap this tall cannot also fit inside the two smallest line boxes, so sizes 1-2 may
-     spread their line by a bounded sliver (law-measured) while size 3 up sits flush.
-     `middle` splits that overflow symmetrically so it reads as a centered object rather
-     than a tall baseline-rider. A STATED size takes the join's line pairing (the join
-     outranks the line-height here). */
-  line-height: 1.2;
-  vertical-align: middle;
+     cramped — a keycap has a face, not just a line). The face is now the LINE BOX itself
+     (see block-size above), so there is no block padding to price and no spread to bound:
+     the glyph is the discounted type centred in a box exactly one line tall. Inline padding
+     stays the cap's own em — the glyphs price their own breathing room, the family's
+     argument for every horizontal length it owns. */
   padding-inline: 0.5em;
-  padding-block: 0.12em;
+  padding-block: 0;
 }

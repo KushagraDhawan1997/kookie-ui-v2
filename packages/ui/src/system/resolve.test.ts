@@ -6,6 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 
+import { raw, walkFiles } from "../test/stylesheets.ts";
+import { generatePreview } from "../tokens/preview.ts";
 import { space } from "../tokens/config.ts";
 import { boxProps } from "./props.ts";
 import { resolveBoxProps } from "./resolve.ts";
@@ -107,6 +109,48 @@ describe("no row emits a shorthand into a space another row also feeds (§2, req
       [boxProps.overflow, [boxProps.overflowX, boxProps.overflowY]],
     ] as const) {
       for (const longhand of longhands) expect(longhand.precedence).toBeGreaterThan(shorthand.precedence);
+    }
+  });
+});
+
+describe("the runtime touches no ambient global (§13, audit 2026-08-08)", () => {
+  it("no shipped source reads `process` except through the guarded DEV constant", () => {
+    // The defect this pins: `process.env.NODE_ENV` on Box's RENDER path was the package's
+    // only reference to `process`, and it survived tsdown into dist — so a browser-native
+    // ESM consumer (no bundler to define it) threw `ReferenceError: process is not defined`
+    // on every Box, Flex, Grid and Stack. A bare read is now illegal; the one legal form
+    // carries its own `typeof` guard, which is what makes it safe where `process` is absent.
+    const offenders: string[] = [];
+    for (const file of walkFiles(".", ".ts").concat(walkFiles(".", ".tsx"))) {
+      if (file.includes(".test.")) continue;
+      const code = raw(file).replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
+      for (const match of code.matchAll(/process\s*\.\s*env/g)) {
+        const line = code.slice(0, match.index).split("\n").length;
+        const guarded = /typeof\s+process\s*[!=]==\s*["']undefined["']/.test(
+          code.slice(Math.max(0, match.index! - 200), match.index!),
+        );
+        if (!guarded) offenders.push(`${file}:${line}`);
+      }
+    }
+    expect(offenders, "an unguarded `process.env` read reaches the browser").toEqual([]);
+  });
+});
+
+describe("the package preview measures what it claims to measure (§2, audit 2026-08-08)", () => {
+  it("every responsive rig on the page sits in an opted-in container", () => {
+    // The defect: `kuiBox` bypasses the React component (the runner cannot parse JSX), so
+    // when containment went opt-in the generated page kept no query container at all — the
+    // "responsive mechanism, live" section rendered ONE column at every width while its own
+    // caption printed a tier. Verbatim the symptom §2 records as closed in 2026-08-02,
+    // reintroduced on the one surface the reversal did not open. The page is gitignored and
+    // unpublished, which is exactly why nothing else would ever have caught it.
+    const html = generatePreview();
+    const rigs = html.split('<div class="rig">').slice(1);
+    expect(rigs.length, "the responsive section vanished").toBeGreaterThanOrEqual(2);
+    for (const [i, rig] of rigs.entries()) {
+      expect(rig.slice(0, rig.indexOf("</div>")), `rig ${i + 1} has no query container`).toContain(
+        "data-container",
+      );
     }
   });
 });

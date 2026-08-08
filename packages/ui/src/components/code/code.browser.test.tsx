@@ -11,6 +11,7 @@
 import { describe, expect, it } from "vitest";
 
 import { APPEARANCES, colorOn, computed, mounted, numberOn, tokenOn } from "../../test/browser.tsx";
+import { Kbd } from "../kbd/kbd.tsx";
 import { Text } from "../text/text.tsx";
 import { Code } from "./code.tsx";
 
@@ -112,6 +113,33 @@ describe("an unset size means the line it sits in, and that is the default (§15
     const one = mounted(<Code size="1">x</Code>, { theme: {} });
     const nine = mounted(<Code size="9">x</Code>, { theme: {} });
     expect(computed(one, "font-size")).not.toBe(computed(nine, "font-size"));
+  });
+
+  it("the discount holds at EVERY step of the ramp, for both atoms (§15)", () => {
+    // The gap the audit found: the only guard on steps 3,4,5,7,8 was a `toContain` on the
+    // stylesheet SOURCE in type.test.ts, which is blind to a shadowing declaration — adding
+    // one `font-size: var(--font-size-5)` line after the correct one rendered a size-5 chip
+    // 8% oversized and left every one of the ~1000 tests green. This walks the whole ramp
+    // through computed values, both atoms, each against its own factor.
+    for (const size of ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const) {
+      const text = mounted(<Text size={size}>x</Text>, { theme: {} });
+      const base = parseFloat(computed(text, "font-size"));
+      const code = mounted(<Code size={size}>x</Code>, { theme: {} });
+      const kbd = mounted(<Kbd size={size}>x</Kbd>, { theme: {} });
+      expect(parseFloat(computed(code, "font-size")), `Code at step ${size}`).toBeCloseTo(
+        base * numberOn(code, "--mono-scale"),
+        1,
+      );
+      expect(parseFloat(computed(kbd, "font-size")), `Kbd at step ${size}`).toBeCloseTo(
+        base * numberOn(kbd, "--kbd-scale"),
+        1,
+      );
+      // The line box is the step's own at every step — the half of the split that keeps
+      // vertical rhythm, asserted where the discount is asserted so neither can drift alone.
+      expect(computed(code, "line-height"), `Code line at step ${size}`).toBe(
+        computed(text, "line-height"),
+      );
+    }
   });
 
   it("the discount stops at the chip — Text nested inside a Code takes its full step", () => {
