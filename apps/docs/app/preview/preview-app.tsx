@@ -239,7 +239,10 @@ export function PreviewApp() {
       <Box style={{ background: "var(--neutral-1)", color: "var(--color-text)", minHeight: "100dvh" }}>
         <EnvPanel env={env} onChange={setEnv} />
         <Box px="6" pb="9" className="pv-lane">
-          <Box style={{ maxWidth: "1120px", marginInline: "auto" }}>
+          {/* 60rem, not the earlier 1120px: the densest table is ~850px intrinsic, so the wider
+              cap bought nothing but a ragged void between the specimens and the panel — the
+              page read unconstrained because most of it was empty width (Kushagra, 2026-08-08). */}
+          <Box style={{ maxWidth: "60rem", marginInline: "auto" }}>
             <Stack gap="8" pt="7">
               <Stack gap="2">
                 <Heading size="6" render={<h1 />}>

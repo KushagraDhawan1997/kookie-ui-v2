@@ -7,10 +7,10 @@
  * the axes this system actually has: emphasis rungs, tones, sizes, states. Components we do
  * not ship yet simply do not appear; nothing is tabbed, everything is flat.
  *
- * Layout discipline (the one real constraint): a kui Box is an inline-size query container,
- * so it collapses to zero width wherever it must shrink-wrap (the recorded §2 defect). Table
- * cells are therefore bare controls in definite grid tracks wherever possible; composite
- * cells get 1fr tracks, never max-content.
+ * Layout discipline: containment is OPT-IN since 2026-08-08 (§2, the `container` prop), so a
+ * plain Box hugs its content like a div and the old rule — "a Box collapses to zero wherever
+ * it must shrink-wrap" — now applies only to a Box that opted in. The definite grid tracks
+ * throughout this file predate that and stay as layout choices, not workarounds.
  */
 import * as React from "react";
 import {
@@ -104,22 +104,25 @@ function SpecTable({ cols, rows, wide = false }: { cols: string[]; rows: Row[]; 
 /**
  * The hostile bed for glass: material is judged over something that fights back, never over
  * the page. THE image — the same backdrop.jpg the package preview judges against, so the two
- * surfaces argue about one photograph. Tall on purpose: glass needs varied luminance behind
- * it before thin/regular/thick read as different materials.
+ * surfaces argue about one photograph. Tall enough for varied luminance behind the glass
+ * (thin/regular/thick need it to read as different materials), no taller — the first cut ran
+ * 320px with the specimens loose in a corner, and the bed read as a photo the controls had
+ * wandered onto rather than a specimen (2026-08-08). Centered both axes for the same reason.
  */
 function HostileBed({ children }: { children: React.ReactNode }) {
   return (
     <Flex
       align="center"
+      justify="center"
       gap="5"
       wrap="wrap"
-      p="7"
+      p="6"
       style={{
         backgroundImage: "url(/backdrop.jpg)",
         backgroundSize: "cover",
         backgroundPosition: "center",
         borderRadius: "var(--radius-surface-3)",
-        minHeight: "320px",
+        minHeight: "240px",
       }}
     >
       {children}
@@ -465,7 +468,10 @@ function ProgressSection() {
           the Stack's gap carrying the distance. The bar brings no spacing of its own. */}
       <Card size="3">
         <Stack gap="3">
-          <Flex justify="between" align="center">
+          {/* `justify` is raw justify-content (§3): the value is the CSS keyword, and
+              "between" — Radix's shorthand — resolves to nothing. Committed here first;
+              the label and its percentage rendered glued together. */}
+          <Flex justify="space-between" align="center">
             <Text size="2" weight="medium">Uploading assets</Text>
             <Text size="2" emphasis="medium">62%</Text>
           </Flex>
@@ -473,15 +479,14 @@ function ProgressSection() {
         </Stack>
       </Card>
       {/* Extent is the container's: a narrower Box gives a narrower bar, no prop involved.
-          The explicit width is the sanctioned escape for the recorded Box collapse (§2) —
-          stating a width is one of the three routes containment leaves open. */}
-      <Flex gap="4" align="center">
-        <Box style={{ width: "120px" }}>
-          <Progress value={45} aria-label="Narrow" />
-        </Box>
-        <Box style={{ width: "240px" }}>
-          <Progress value={45} aria-label="Wider" />
-        </Box>
+          The widths exist to give the demo two different containers to prove it. */}
+      <Flex gap="6" align="end">
+        {(["120px", "240px"] as const).map((w) => (
+          <Stack key={w} gap="2" style={{ width: w }}>
+            <Text size="1" emphasis="quiet">{w} box</Text>
+            <Progress value={45} aria-label={`Bar in a ${w} box`} />
+          </Stack>
+        ))}
       </Flex>
     </Stack>
   );
@@ -510,10 +515,9 @@ function RadioSection() {
           ],
         }))}
       />
-      {/* Definite tracks, not pairs loose in a row Flex: a labelled pair is a kui Box, and a
-          Box asked to shrink-wrap as a flex item collapses to zero width (the §2 defect this
-          file's header warns about — committed here anyway, caught on sight: three radios
-          stacked on top of their own labels). */}
+      {/* Definite tracks for even rhythm between the pairs. (Historical: under the old
+          blanket containment a labelled pair in a row Flex collapsed to zero — committed
+          here, caught on sight; opt-in since 2026-08-08 makes loose pairs legal too.) */}
       <RadioGroup defaultValue="pro" aria-label="Plan">
         <Grid columns="repeat(3, minmax(150px, max-content))" gapX="5" align="center">
           {["Starter", "Pro", "Enterprise"].map((label) => (
@@ -732,7 +736,7 @@ function TextFieldSection() {
           <TextField
             key="1"
             size={size}
-            placeholder="you@company.com"
+            placeholder="Email"
             aria-label={`Email, size ${size}, empty`}
           />,
           <TextField
@@ -807,6 +811,9 @@ function TextFieldSection() {
  * of it at once.
  */
 const Tile = ({ children }: { children?: React.ReactNode }) => (
+  // No stated width: a plain Box hugs its content since containment went opt-in (§2,
+  // 2026-08-08). These tiles shipped collapsed to slivers under the blanket mark — the
+  // real break that closed the decision — so their natural fit here IS the specimen.
   <Box
     p="3"
     style={{ background: "var(--neutral-3)", borderRadius: "var(--radius-surface-1)" }}
@@ -828,9 +835,7 @@ function LayoutSection() {
       </Stack>
       <Stack gap="3">
         <Text size="1" emphasis="quiet">Stack — the column, gap from the same scale</Text>
-        {/* Deliberately narrow: a Stack's items stretch, which is the arrangement that never
-            meets the §2 containment collapse. The Flex row above is the one that would, and
-            its items are Boxes with real padding rather than shrink-wrapping tiles. */}
+        {/* A Stack's items stretch — the column hands each tile its width. */}
         <Stack gap="2" style={{ maxWidth: "260px" }}>
           <Tile>First</Tile>
           <Tile>Second</Tile>
@@ -851,13 +856,56 @@ function LayoutSection() {
             <Box
               key={p}
               p={p}
-              style={{ background: "var(--neutral-3)", borderRadius: "var(--radius-surface-1)" }}
+              style={{
+                width: "140px",
+                background: "var(--neutral-3)",
+                borderRadius: "var(--radius-surface-1)",
+              }}
             >
-              <Box style={{ background: "var(--neutral-6)", height: "24px", width: "56px" }} />
+              {/* The filler stretches to the content box, so the visible frame around it IS
+                  the padding being demonstrated. */}
+              <Box style={{ background: "var(--neutral-6)", height: "24px" }} />
               <Text size="1" emphasis="medium">p={p}</Text>
             </Box>
           ))}
         </Flex>
+      </Stack>
+      <Stack gap="3">
+        <Text size="1" emphasis="quiet">
+          Box container — the region a responsive value measures (§2, opt-in)
+        </Text>
+        {/* One responsive value, two marked regions: the inner Box asks its nearest
+            `container` ancestor how wide it is, so the same p={"{ initial: 2, sm: 7 }"}
+            renders tight in the narrow region and airy in the wide one — on the same
+            screen, which is what container-keyed means. The stated widths on the marked
+            Boxes are the prop's own rule: a container's width comes from outside. */}
+        <Stack gap="3">
+          {(["220px", "560px"] as const).map((w) => (
+            <Box
+              key={w}
+              container
+              width={w}
+              style={{
+                background: "var(--neutral-3)",
+                borderRadius: "var(--radius-surface-1)",
+              }}
+            >
+              <Box p={{ initial: "2", sm: "7" }}>
+                <Box
+                  p="2"
+                  style={{
+                    background: "var(--neutral-6)",
+                    borderRadius: "var(--radius-surface-1)",
+                  }}
+                >
+                  <Text size="1">
+                    p={"{ initial: 2, sm: 7 }"} in a {w} container
+                  </Text>
+                </Box>
+              </Box>
+            </Box>
+          ))}
+        </Stack>
       </Stack>
     </Stack>
   );
