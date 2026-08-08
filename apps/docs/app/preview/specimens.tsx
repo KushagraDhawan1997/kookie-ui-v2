@@ -14,6 +14,7 @@
  */
 import * as React from "react";
 import {
+  Box,
   Button,
   Card,
   Checkbox,
@@ -511,9 +512,10 @@ function TextAreaSection() {
 
 function TextFieldSection() {
   return (
-    <SpecTable
-      wide
-      cols={["Empty", "Slots", "Invalid", "Disabled", "Read only"]}
+    <Stack gap="6">
+      <SpecTable
+        wide
+        cols={["Empty", "Slots", "Invalid", "Disabled", "Read only"]}
       rows={SIZES.map((size) => ({
         label: `size ${size}`,
         cells: [
@@ -559,7 +561,96 @@ function TextFieldSection() {
           />,
         ],
       }))}
-    />
+      />
+      {/* The field family's glass, which had no specimen at all until 2026-08-08 — a shipped
+          axis on two of the eleven components, on a page that claims every axis, with the
+          hostile bed already built one section up and only Button and Card ever entering it.
+          The slots matter here: an adornment sits ON the veil, which is where a wrong slot
+          colour shows. */}
+      <HostileBed>
+        {(["thin", "regular", "thick"] as const).map((m) => (
+          <TextField
+            key={m}
+            size="2"
+            material={m}
+            placeholder={m[0]!.toUpperCase() + m.slice(1)}
+            aria-label={`Glass field, ${m}`}
+            leading={<SearchIcon />}
+            style={{ width: "170px" }}
+          />
+        ))}
+      </HostileBed>
+    </Stack>
+  );
+}
+
+/**
+ * The four layout primitives, in ONE section rather than four (2026-08-08).
+ *
+ * They had no section at all, on a page claiming every shipped component — four of the
+ * sixteen value exports, and the four this page's own layout discipline is written about.
+ * They share one section because they answer one question between them (how a box is placed
+ * and spaced) and because four separate stubs would each show the same grey tiles: the
+ * alphabetical rule is about finding things, and nobody looks up Stack without Flex.
+ *
+ * Every distance here is a layout-space step, never a pixel — the point of the specimen is
+ * that the numbers come from the density scope, so switching density in the panel moves all
+ * of it at once.
+ */
+const Tile = ({ children }: { children?: React.ReactNode }) => (
+  <Box
+    p="3"
+    style={{ background: "var(--neutral-3)", borderRadius: "var(--radius-surface-1)" }}
+  >
+    <Text size="1">{children ?? "Box"}</Text>
+  </Box>
+);
+
+function LayoutSection() {
+  return (
+    <Stack gap="6">
+      <Stack gap="3">
+        <Text size="1" emphasis="quiet">Flex — direction, gap, alignment</Text>
+        <Flex gap="3" align="center" wrap="wrap">
+          <Tile>One</Tile>
+          <Tile>Two</Tile>
+          <Tile>Three</Tile>
+        </Flex>
+      </Stack>
+      <Stack gap="3">
+        <Text size="1" emphasis="quiet">Stack — the column, gap from the same scale</Text>
+        {/* Deliberately narrow: a Stack's items stretch, which is the arrangement that never
+            meets the §2 containment collapse. The Flex row above is the one that would, and
+            its items are Boxes with real padding rather than shrink-wrapping tiles. */}
+        <Stack gap="2" style={{ maxWidth: "260px" }}>
+          <Tile>First</Tile>
+          <Tile>Second</Tile>
+        </Stack>
+      </Stack>
+      <Stack gap="3">
+        <Text size="1" emphasis="quiet">Grid — definite tracks, gapX and gapY apart</Text>
+        <Grid columns="repeat(3, minmax(0, 1fr))" gapX="4" gapY="2">
+          {["A", "B", "C", "D", "E", "F"].map((n) => (
+            <Tile key={n}>{n}</Tile>
+          ))}
+        </Grid>
+      </Stack>
+      <Stack gap="3">
+        <Text size="1" emphasis="quiet">Box — padding across the layout-space steps</Text>
+        <Flex gap="3" align="start" wrap="wrap">
+          {(["2", "4", "6"] as const).map((p) => (
+            <Box
+              key={p}
+              p={p}
+              style={{ background: "var(--neutral-3)", borderRadius: "var(--radius-surface-1)" }}
+            >
+              <Box style={{ background: "var(--neutral-6)", height: "24px", width: "56px" }} />
+              <Text size="1" emphasis="medium">p={p}</Text>
+            </Box>
+          ))}
+        </Flex>
+      </Stack>
+    </Stack>
   );
 }
 
@@ -568,6 +659,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "card", name: "Card", body: <CardSection /> },
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "heading", name: "Heading", body: <HeadingSection /> },
+  { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
   { id: "slider", name: "Slider", body: <SliderSection /> },
   { id: "spinner", name: "Spinner", body: <SpinnerSection /> },
