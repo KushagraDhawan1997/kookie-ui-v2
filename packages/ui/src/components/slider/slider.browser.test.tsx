@@ -14,6 +14,7 @@ import { Theme } from "../../theme/theme.tsx";
 import {
   APPEARANCES,
   DENSITIES,
+  POINTERS,
   SIZES,
   colorOn,
   computed,
@@ -143,17 +144,32 @@ describe("the root is the control, and the height ladder is the target (§4, §1
 
 describe("the thumb is the mark family's third member (§4, §6)", () => {
   for (const size of SIZES) {
-    it(`size ${size}: the family's square box — same painted size as the checkbox beside it`, () => {
-      // Read as the PAINTED box (audit R1, 2026-08-06 — getBoundingClientRect is the border
-      // box, the thing a user aims at). The grip is BACK ON the family's square (the capsule
-      // tried 2026-08-07, reverted 2026-08-08 — Kushagra, by eye: too wide): both axes the
-      // mark ladder, the one weight class beside a checkbox, no designed set of its own.
-      const el = slider({ size });
-      const thumb = thumbOf(el).getBoundingClientRect();
-      const checkbox = render(<Checkbox size={size} />).getBoundingClientRect();
-      expect(thumb.height, `size ${size} block`).toBe(checkbox.height);
-      expect(thumb.width, `size ${size} is square`).toBe(thumb.height);
-    });
+    for (const pointer of POINTERS) {
+      it(`${pointer}/size ${size}: the family's square box — same painted size as the checkbox beside it`, () => {
+        // Read as the PAINTED box (audit R1, 2026-08-06 — getBoundingClientRect is the border
+        // box, the thing a user aims at). The grip is BACK ON the family's square (the capsule
+        // tried 2026-08-07, reverted 2026-08-08 — Kushagra, by eye: too wide): both axes the
+        // mark ladder, the one weight class beside a checkbox, no designed set of its own.
+        //
+        // BOTH pointer worlds since audit 2026-08-08: this ran through the bare `slider()`
+        // helper, which stamps no Theme, so it only ever entered fine/default — and the
+        // sibling radius law below compares the corner to height/2, which a horizontal
+        // capsule satisfies exactly as a circle does. Re-shipping the reverted capsule on
+        // every coarse cell passed the whole suite. Coarse is where the mark ladder's
+        // numbers differ, and it was the world neither shape law entered.
+        const el = slider({ size }, { pointer });
+        const thumb = thumbOf(el).getBoundingClientRect();
+        const checkbox = render(
+          <Theme pointer={pointer}>
+            <Checkbox size={size} />
+          </Theme>,
+        )
+          .querySelector(".kui-checkbox")!
+          .getBoundingClientRect();
+        expect(thumb.height, `${pointer}/${size} block`).toBe(checkbox.height);
+        expect(thumb.width, `${pointer}/${size} is square`).toBe(thumb.height);
+      });
+    }
   }
 
   it("rises on a coarse pointer because the type rose — the family's one coarse story", () => {
@@ -172,6 +188,14 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
       const thumb = thumbOf(el);
       expect(px(computed(thumb, "border-top-left-radius"))).toBeCloseTo(
         px(getComputedStyle(thumb).height) / 2,
+        1,
+      );
+      // Half the HEIGHT is what a capsule satisfies too, so the corner alone cannot tell the
+      // two apart — the reverted shape passed this law unchanged (audit 2026-08-08). The box
+      // is asserted here as well, so a capsule reintroduced at one radius level (below the
+      // reach of the default-radius square law above) fails on the level it was hidden in.
+      expect(px(getComputedStyle(thumb).width), `${level} squareness`).toBeCloseTo(
+        px(getComputedStyle(thumb).height),
         1,
       );
     });
@@ -361,12 +385,22 @@ describe("track low, fill accent (§11)", () => {
 
 describe("states arrive from the shared layer (§8)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: disabled greys the fill AND the thumb through the one remap`, () => {
+    it(`${appearance}: disabled greys the FILL through the one remap — and never the grip`, () => {
+      // The fill is a surface and stands down with every other surface in the system. The GRIP
+      // does not, since 2026-08-08: a grip is the tick, and its position is the value, so
+      // greying it erases the reading rather than dimming it — the argument that kept
+      // --color-thumb on the switch's thumb the day Switch shipped, applied here when the
+      // audit measured the two grips landing at opposite ends of the lightness scale under
+      // one state. In dark the remapped grip was darker than its own rail: the invisible
+      // handle that minting --color-thumb existed to prevent, returning under `disabled`.
       const el = slider({ disabled: true, defaultValue: 50 }, { appearance });
       expect(computed(el.querySelector(".kui-slider-fill")!, "background-color")).toBe(
         colorOn(el, "var(--neutral-3)"),
       );
-      expect(computed(thumbOf(el), "background-color")).toBe(colorOn(el, "var(--neutral-3)"));
+      expect(computed(thumbOf(el), "background-color")).toBe(colorOn(el, "var(--color-thumb)"));
+      expect(computed(thumbOf(el), "background-color")).not.toBe(
+        computed(el.querySelector(".kui-slider-track")!, "background-color"),
+      );
       expect(computed(rootOf(el), "opacity")).toBe("1");
     });
 

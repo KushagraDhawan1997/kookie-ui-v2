@@ -22,6 +22,7 @@ import {
   controlEdgeLc,
   thumbFill,
   trackWellStep,
+  trackWellStepHigh,
   solidBand,
   solidPinBounds,
   lowChromaStateScale,
@@ -477,6 +478,11 @@ export function contrastHighDeclarations(mode: Mode, gamut: Gamut = "srgb"): str
   // re-priced band, and light's never moved at all.
   out.push(decl("control-edge", solveControlEdge(mode, gamut, controlEdgeLc.mark.high)));
   out.push(decl("field-edge", solveControlEdge(mode, gamut, controlEdgeLc.field.high)));
+  // The track well answers the axis too (§7, 2026-08-08). It is the only resting role a
+  // control can be made ENTIRELY of — an off switch is its well — so leaving it out of this
+  // block left one control deaf to the one setting the system calls the conformance surface.
+  // See trackWellStepHigh for why a band step and not a solve.
+  out.push(decl("color-track", `var(--neutral-${trackWellStepHigh[mode]})`));
   return out;
 }
 

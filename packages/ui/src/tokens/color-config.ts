@@ -241,12 +241,36 @@ export const controlEdgeLc = {
  * ("track low, fill accent" — the checkbox's "neutral off" one control over), and a component
  * stylesheet cannot say neutral without naming a family, which the role-not-family law forbids.
  *
- * Deliberately NOT held to the mark edge's non-text floor: a well is a region the accent fill
- * moves through, not a hairline identity — the slider's state is carried by the fill (accent
- * solid, APCA-passing) and the thumb (mark edge), and every platform ships the remainder
- * subtle (iOS systemFill, Radix gray-a3). Step 4 in both modes, v0 for the eye pass.
+ * Deliberately NOT held to the mark edge's non-text floor IN STANDARD MODE: a well is a region
+ * the accent fill moves through, not a hairline identity — the slider's state is carried by the
+ * fill (accent solid, APCA-passing) and the thumb (mark edge), and every platform ships the
+ * remainder subtle (iOS systemFill, Radix gray-a3). Step 4 in both modes, v0 for the eye pass.
+ * That is the standing rule's first clause: a resting fill is DRESS, held to no floor
+ * (Kushagra, 2026-08-07 — "taste over APCA rules in standard").
  */
 export const trackWellStep = { light: 4, dark: 4 } as const;
+
+/**
+ * §7 — the same well under `contrast="high"`, which is the rule's SECOND clause: high contrast
+ * is the conformance surface, and every resting boundary the user can ask to strengthen must
+ * actually move there.
+ *
+ * The well had no high-contrast answer at all until audit 2026-08-08, and Switch is what made
+ * that a conformance hole rather than a taste one. The slider's exemption was argued as "a well
+ * is a region the APCA-passing fill moves through" — true of a slider, where the fill and the
+ * thumb carry the state. An OFF switch has no fill portion: the well IS the whole control. So
+ * `--color-track` was byte-identical across the contrast axis in both appearances, and in light
+ * that left a ~1.2:1 track under a white thumb on a white page — a control distinguished from
+ * its background by nothing but a 0.1-alpha drop shadow, with no setting a user could reach.
+ *
+ * Step 6 rather than a solve: unlike the control edge (a hairline, whose one job is its own
+ * contrast, so it is binary-searched to `controlEdgeLc`), the well is a REGION, and its
+ * neighbours — the accent fill it hosts and the near-white grip that crosses it — are already
+ * held to their own floors. What it owes is separation from the page, which a band step gives
+ * directly: 6 sits inside `contrastHighBands.border`, so it is itself re-priced under high
+ * contrast and the well moves twice. v0 for the eye pass, like its standard-mode sibling.
+ */
+export const trackWellStepHigh = { light: 6, dark: 6 } as const;
 
 /**
  * §11 — the THUMB's fill per mode, the value-control family's third tone-independent role
