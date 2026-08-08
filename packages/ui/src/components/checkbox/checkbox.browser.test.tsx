@@ -497,6 +497,60 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     }
   });
 
+  it("invalid takes a CHECKED fill as the wash, not the shout (§8, §11 — decided 2026-08-08)", () => {
+    // An accent tick inside a destructive border was two chromatic signals arguing on one
+    // control (the ring's own argument); Material's full error solid shouts. The error takes
+    // the control the way disabled does: destructive's SOFT wash, the family's designed
+    // label-on-soft pairing on the glyph, and the solid's light catch stood down.
+    for (const appearance of APPEARANCES) {
+      const el = render(
+        <Theme appearance={appearance} surfaces="elevated">
+          <Checkbox aria-invalid="true" defaultChecked />
+          <Checkbox defaultChecked />
+          <Checkbox aria-invalid="true" />
+        </Theme>,
+      );
+      const [invalid, sound, restingInvalid] = Array.from(
+        el.querySelectorAll<HTMLElement>(".kui-checkbox"),
+      );
+      expect(computed(invalid!, "background-color"), `${appearance}: fill`).toBe(
+        colorOn(el, "var(--destructive-soft)"),
+      );
+      expect(computed(invalid!, "background-color"), `${appearance}: still the accent`).not.toBe(
+        computed(sound!, "background-color"),
+      );
+      // The glyph inherits the label pairing through currentColor.
+      expect(computed(invalid!, "color"), `${appearance}: glyph`).toBe(
+        colorOn(el, "var(--destructive-label)"),
+      );
+      // A gradient over a wash is fog — the light stands down even in the elevated world.
+      // The sound solid CATCHES it there (the positive control, or this assertion is vacuous).
+      expect(
+        computed(sound!, "background-image"),
+        `${appearance}: the positive control lost its light — the stand-down assertion is vacuous`,
+      ).not.toBe("none");
+      expect(computed(invalid!, "background-image"), `${appearance}: light`).toBe("none");
+      // UNCHECKED invalid keeps its seal: the resting box has nothing to re-fill.
+      expect(
+        computed(restingInvalid!, "background-color"),
+        `${appearance}: the resting box turned red`,
+      ).not.toBe(colorOn(el, "var(--destructive-soft)"));
+    }
+  });
+
+  it("dead outranks wrong: disabled AND invalid reads dead first (§8)", () => {
+    // The invalid fill arm sits BEFORE the disabled arm in source on purpose, losing the
+    // (0,2,0) tie — a control you cannot touch must recede, whatever else is true of it.
+    const host = render(
+      <Theme>
+        <Checkbox aria-invalid="true" defaultChecked disabled />
+        <Checkbox defaultChecked disabled />
+      </Theme>,
+    );
+    const [both, dead] = Array.from(host.querySelectorAll<HTMLElement>(".kui-checkbox"));
+    expect(computed(both!, "background-color")).toBe(computed(dead!, "background-color"));
+  });
+
   it("the focus ring is the real ring, and it is absent at rest (§8, audit D9)", () => {
     // The first spelling asserted outline-style !== "auto", which "none" satisfies — the
     // shared ring could be deleted outright and it passed. This one names the ring: solid,

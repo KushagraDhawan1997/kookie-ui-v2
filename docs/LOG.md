@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-08 An invalid tick goes red as the wash — finishing the two-signals argument
+
+Kushagra, on the playground's invalid columns: a checked invalid mark rendered a confident accent tick inside a destructive border, and it read wrong. It WAS the system's own unfinished argument — 2026-08-04 made the focus ring destructive on invalid because "two chromatic signals arguing on one control" outweighed peer consistency, and the fill was the one property that sentence never reached.
+
+The ecosystem was checked before the shape was chosen, sources read rather than remembered: Material 3 paints the checked error box in the full error solid (Flutter's own M3 defaults: `selected + error → colors.error`, glyph `onError`) and Spectrum does the same through its negative-900 box paint; Chakra keeps the accent fill inside a red border (where we were); Apple, Radix and Ant never paint the control at all. Material's answer was rejected as a shout — and Kushagra's design instinct named the alternative directly: **if the error takes the fill, it takes it the way disabled does** — the SOFT wash. So the arm sends a checked mark's fill to destructive's soft trio, the glyph to the family's designed label-on-soft pairing, and stands the solid's light catch down (a gradient over a wash is fog — the medium button's sentence). Checked only: a resting invalid mark keeps its seal and edge, because an empty box has nothing to re-fill.
+
+Precedence carries the design: `:where()` on the checked pair keeps the arm at (0,2,0) so state outranks dress, and it sits BEFORE the disabled arm in source, losing that tie on purpose — dead outranks wrong. One shared arm covers checkbox, radio and the switch track; the whole family's suites passed without an edit, and the new laws were falsified by deleting the arm (with a vacuity guard: the sound solid must still catch light in the elevated world, or the stand-down assertion asserts nothing).
+
 ## 2026-08-08 The atom corner is em — the fraction wall's sixth instance, caught by inheritance
 
 Kushagra, in the playground: every sized component's corner scales with it, and the atoms' did not — Code and Kbd wore `--radius-control-1` at every step, so a size-9 chip carried size 1's 4px. The shape of the mistake is the one DECISIONS §6 keeps naming: a corner riding a band priced for a box the component does not have. The checkbox did it with the control band (a fraction of a HEIGHT ladder a mark is not on), Progress nearly did it with the rail ladder, and here it arrived by inheritance again — take the control band's smallest pick because it looked right at the default size.

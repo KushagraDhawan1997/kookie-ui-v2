@@ -369,6 +369,30 @@
   inline-size: min(var(--kui-ct-mark), var(--kui-ct-hosted-height));
 }
 
+/* ── Invalid reaches a CHECKED mark's fill — as the wash, not the shout (§8, §11) ───────────
+   Decided 2026-08-08 (Kushagra, judged in the playground): an accent tick inside a
+   destructive border is two chromatic signals arguing on one control — the ring's own
+   argument, one property over — but Material's answer (the full error SOLID) shouts. The
+   error takes the control the way disabled does: the SOFT wash, destructive's own, with the
+   family's designed label-on-soft pairing carrying the glyph. The light stands down — a
+   gradient over a wash is fog (§19, the medium button's sentence).
+
+   CHECKED only: an unchecked invalid mark keeps its seal and wears the edge from the shared
+   invalid arm below — the resting box has nothing to re-fill (Material's unselected error is
+   also border-only). The destructive family is named directly, the disabled arm's own
+   precedent one block down; the EDGE stays the shared arm's --invalid-edge.
+
+   Precedence, all three ends: `:where()` on the checked pair keeps this at (0,2,0), so it
+   BEATS the checked dress at (0,1,0), and sitting BEFORE the disabled arm in source it
+   LOSES the (0,2,0) tie to it — a control that is both dead and wrong reads dead first. */
+.kui-mark:where([data-checked], [data-indeterminate]):is([data-invalid], [aria-invalid="true"]) {
+  --kui-ct-fill-src: var(--destructive-soft);
+  --kui-ct-fill-src-hover: var(--destructive-soft-hover);
+  --kui-ct-fill-src-active: var(--destructive-soft-active);
+  --kui-ct-label-color: var(--destructive-label);
+  --kui-ct-light: none;
+}
+
 /* ── Disabled reaches the resting fill AND the depth (§8, audit D6) ──────────────────────────
    The shared disabled arm rewrites the TONE roles, and the resting fill deliberately is not
    one — it is the surface seal, so a disabled unchecked mark computed byte-identical to a
