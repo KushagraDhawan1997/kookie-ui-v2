@@ -978,8 +978,14 @@ export const dress = {
   },
 } as const;
 
-/** §15 — closed weight set; `light` deferred until something needs it. */
-export const fontWeight = { regular: 400, medium: 500, semibold: 600, bold: 700 } as const;
+/**
+ * §15 — closed weight set; `light` deferred until something needs it, and `bold` (700)
+ * REMOVED 2026-08-09 (Kushagra: "we don.t use bold, we shouldn.t"). Semibold tops the ladder
+ * and every heading rests there; hierarchy is size and the ink roles, both already designed.
+ * The token goes with the value — an emitted `--font-weight-bold` nothing may consume is a
+ * lever waiting to be pulled by hand, which is the fenced-resource mistake §13 exists to stop.
+ */
+export const fontWeight = { regular: 400, medium: 500, semibold: 600 } as const;
 
 /** §15 — three family slots. Theme props are the only place a stack is written. */
 export const fontFamily = {

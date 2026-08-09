@@ -7,8 +7,22 @@ import type { Emphasis, Tone } from "../../system/axes.ts";
 
 /** §15 — the full ramp: type's dynamic range is wider than the control family's (§4). */
 export type TypeSize = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
-/** §15 — the closed weight set; token names, never numbers. */
-export type Weight = "regular" | "medium" | "semibold" | "bold";
+/**
+ * §15 — the closed weight set; token names, never numbers.
+ *
+ * THREE, not four: `bold` (700) is refused (2026-08-09, Kushagra — "we don't use bold, we
+ * shouldn't"). Semibold is the top of the ladder and the resting weight of every heading, so
+ * hierarchy is carried by SIZE and the ink roles, which is where this system already puts it.
+ * A 700 face beside a 600 one at the same step is a fifth way to say "important" competing
+ * with three that are already designed.
+ *
+ * Refused in the TYPE, not merely re-defaulted: a value left in the union is a value every
+ * call site can re-introduce, and the decision would then hold only by memory (ENGINEERING
+ * §1.3 — types are the refusals, enforced). An app that genuinely needs 700 has `style`, the
+ * §13 escape every fenced resource uses; the set widens by config the day something real
+ * forces it, which is the tone set's own rule.
+ */
+export type Weight = "regular" | "medium" | "semibold";
 
 export type TextProps = Omit<
   React.ComponentPropsWithoutRef<"span">,

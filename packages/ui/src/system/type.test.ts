@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { tones } from "../tokens/color-config.ts";
-import { fontSize } from "../tokens/config.ts";
+import { fontSize, fontWeight } from "../tokens/config.ts";
 import { sheet } from "../test/stylesheets.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -43,11 +43,23 @@ describe("a size step joins the three paired scales at one index (§15)", () => 
   });
 
   it("every weight reads its token, exactly once", () => {
-    for (const weight of ["regular", "medium", "semibold", "bold"]) {
+    // DERIVED from config, not restated (2026-08-09): the list was a literal four here, so
+    // deleting `bold` from the set left this law still demanding a rule for it — a law that
+    // fails on the fix rather than on the defect. Now the set is the config's.
+    for (const weight of Object.keys(fontWeight)) {
       const blocks = stripped.match(new RegExp(`\\[data-weight="${weight}"\\][^}]*}`, "g")) ?? [];
       expect(blocks.length).toBe(1);
       expect(blocks[0]).toContain(`font-weight: var(--font-weight-${weight})`);
     }
+  });
+
+  it("and NO weight outside the set has a rule — bold is refused, not merely unused (§15)", () => {
+    // The other direction, and the one that matters after a removal: re-adding a `bold` block
+    // (or any weight the config does not name) has to fail, or the refusal holds by memory.
+    const declared = new Set(Object.keys(fontWeight));
+    const inSheet = [...stripped.matchAll(/\[data-weight="([a-z]+)"\]/g)].map((m) => m[1]!);
+    expect([...new Set(inSheet)].filter((w) => !declared.has(w))).toEqual([]);
+    expect(declared.has("bold"), "bold is back in the config — §15 refused it").toBe(false);
   });
 
   it("the emphasis ladder resolves to the three foreground roles, each rung once (§9, §15)", () => {

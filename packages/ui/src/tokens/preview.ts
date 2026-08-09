@@ -242,7 +242,7 @@ function typeSection(): string {
       { display: "flex", direction: "column", gap: "4" },
       kuiBox(
         { display: "flex", direction: "column", gap: "2" },
-        `<h2 class="kui-type kui-heading" data-size="6" data-weight="bold" data-emphasis="loud">One ramp, two consumers</h2>${text(
+        `<h2 class="kui-type kui-heading" data-size="6" data-weight="semibold" data-emphasis="loud">One ramp, two consumers</h2>${text(
           3,
           "Heading and Text share the size index and the paired scales; only the family slot and the resting weight differ. Neither carries a tone — this paragraph is reading the surface's foreground context.",
         )}${text(2, "The muted aside is emphasis, one rung down the same ladder.", "regular", "medium")}`,

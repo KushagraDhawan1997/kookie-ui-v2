@@ -87,7 +87,7 @@ export const ENTRIES: Entry[] = [
       "Body copy set apart by a rule and an indent. Everything about how it reads comes from the shared type layer; what it adds is the quiet hairline down its leading edge and the indent that keeps the words off it.",
     axes: [
       { name: "size", values: "1–9", note: "anchors at 3 — a quote is a block, so it states its own step" },
-      { name: "weight", values: "regular | medium | semibold | bold", note: "token names, never numbers" },
+      { name: "weight", values: "regular | medium | semibold", note: "token names, never numbers" },
       { name: "emphasis", values: "loud | medium | quiet", note: "the foreground roles; rests loud" },
       { name: "tone", values: "any family", note: "re-scopes the ink trio — and only the ink" },
     ],
@@ -323,7 +323,7 @@ export const ENTRIES: Entry[] = [
       "The heading family slot on the same nine-step ramp Text uses. Visual size and outline level are independent axes on purpose: size prices the type, render names the document structure.",
     axes: [
       { name: "size", values: "1–9", note: "defaults to 6 — the level a section actually reaches for" },
-      { name: "weight", values: "regular | medium | semibold | bold", note: "defaults to bold" },
+      { name: "weight", values: "regular | medium | semibold", note: "defaults to semibold — 700 is refused (§15)" },
       { name: "emphasis", values: "loud | medium | quiet", note: "the foreground roles" },
       { name: "tone", values: "any family", note: "re-scopes the ink trio" },
     ],
@@ -715,13 +715,14 @@ export const ENTRIES: Entry[] = [
       "Body copy. A step on the ramp joins three designed pairs — font size, line height, letter spacing — at one index, and the family is the Theme's body slot. It renders a span: flow is the layout layer's job, so a paragraph is render={<p/>}.",
     axes: [
       { name: "size", values: "1–9", note: "defaults to 3, the anchor step" },
-      { name: "weight", values: "regular | medium | semibold | bold", note: "token names, never numbers" },
+      { name: "weight", values: "regular | medium | semibold", note: "token names, never numbers" },
       { name: "emphasis", values: "loud | medium | quiet", note: "rests LOUD — full contrast is the accessible resting state for reading" },
       { name: "tone", values: "any family", note: "re-scopes the ladder onto the family's ink trio" },
     ],
     refusals: [
       { name: "a colour prop", why: "tone says the meaning and the theme resolves the pigment. A raw colour rides style, spelled where review sees it." },
       { name: "margin", why: "Type owns no outer spacing; the margin is zeroed whatever element render names." },
+      { name: "bold (700)", why: "Semibold tops the ladder and every heading rests there. Hierarchy is size and the ink roles, both already designed; a fourth weight is a fifth way to say the same thing. The token is gone too, so nothing can reach it by hand." },
     ],
     example: (
       <Stack gap="2">

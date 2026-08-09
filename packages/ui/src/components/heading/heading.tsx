@@ -35,7 +35,7 @@ export type HeadingProps = Omit<
  */
 export function Heading({
   size = "6",
-  weight = "bold",
+  weight = "semibold",
   emphasis = "loud",
   tone,
   render,

@@ -1157,13 +1157,15 @@ function TextSection() {
           </Grid>
         ))}
       </Stack>
+      {/* Three rungs, not four — bold is refused (§15, 2026-08-09). A heading rests at the top
+          of this ladder, so nothing in the system is heavier than the last cell here. */}
       <SpecTable
         wide
-        cols={["Regular", "Medium", "Semibold", "Bold"]}
+        cols={["Regular", "Medium", "Semibold"]}
         rows={[
           {
             label: "weight",
-            cells: (["regular", "medium", "semibold", "bold"] as const).map((w) => (
+            cells: (["regular", "medium", "semibold"] as const).map((w) => (
               <Text key={w} size="3" weight={w}>The quick brown fox</Text>
             )),
           },

@@ -125,6 +125,3 @@
 .kui-type[data-weight="semibold"] {
   font-weight: var(--font-weight-semibold);
 }
-.kui-type[data-weight="bold"] {
-  font-weight: var(--font-weight-bold);
-}

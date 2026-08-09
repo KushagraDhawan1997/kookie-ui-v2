@@ -70,7 +70,6 @@
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --font-weight-bold: 700;
   --font-body: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --font-heading: var(--font-body);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

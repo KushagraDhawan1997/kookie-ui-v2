@@ -223,11 +223,24 @@ describe("the NARROW band: a short line cuts the display steps (§15, §17, spli
 });
 
 describe("weight takes token names, never numbers (§15)", () => {
-  it("Text rests regular, Heading rests bold, and the prop moves both", () => {
+  it("Text rests regular, Heading rests semibold, and the prop moves both", () => {
     expect(computed(render(<Text>t</Text>), "font-weight")).toBe("400");
-    expect(computed(render(<Heading>h</Heading>), "font-weight")).toBe("700");
+    expect(computed(render(<Heading>h</Heading>), "font-weight")).toBe("600");
     expect(computed(render(<Text weight="semibold">t</Text>), "font-weight")).toBe("600");
     expect(computed(render(<Heading weight="medium">h</Heading>), "font-weight")).toBe("500");
+  });
+
+  it("700 is unreachable — a heading's resting weight is the TOP of the ladder (§15)", () => {
+    // The mounted half of the refusal. `bold` is gone from the union, so the only way back to
+    // 700 is a hand-written declaration; this asserts the ladder's ceiling is what ships, in
+    // both families and at both ends of the ramp.
+    for (const el of [
+      <Text size="9" weight="semibold">t</Text>,
+      <Heading size="9">h</Heading>,
+      <Heading size="1">h</Heading>,
+    ]) {
+      expect(Number(computed(render(el), "font-weight"))).toBeLessThanOrEqual(600);
+    }
   });
 });
 
