@@ -38,8 +38,9 @@ type Env = {
   density: NonNullable<ThemeProps["density"]>;
   pointer: NonNullable<ThemeProps["pointer"]>;
   radius: NonNullable<ThemeProps["radius"]>;
-  look: NonNullable<ThemeProps["look"]>;
-  surfaces: NonNullable<ThemeProps["surfaces"]>;
+  surfaceLook: NonNullable<ThemeProps["surfaceLook"]>;
+  controlLook: NonNullable<ThemeProps["controlLook"]>;
+  depth: NonNullable<ThemeProps["depth"]>;
 };
 
 /** DERIVED from the package, never restated (2026-08-09): this panel held its own copy of
@@ -52,8 +53,9 @@ const DEFAULT_ENV: Env = {
   density: themeDefaults.density,
   pointer: themeDefaults.pointer,
   radius: themeDefaults.radius,
-  look: themeDefaults.look,
-  surfaces: themeDefaults.surfaces,
+  surfaceLook: themeDefaults.surfaceLook,
+  controlLook: themeDefaults.controlLook,
+  depth: themeDefaults.depth,
 };
 
 const AXES: { [K in keyof Env]: readonly Env[K][] } = {
@@ -61,8 +63,9 @@ const AXES: { [K in keyof Env]: readonly Env[K][] } = {
   density: ["compact", "default", "comfortable"],
   pointer: ["auto", "fine", "coarse"],
   radius: ["none", "small", "medium", "large", "full"],
-  look: ["outlined", "filled"],
-  surfaces: ["flat", "elevated"],
+  surfaceLook: ["outlined", "filled"],
+  controlLook: ["outlined", "filled"],
+  depth: ["flat", "elevated"],
 };
 
 const CONTRASTS = ["auto", "normal", "high"] as const satisfies readonly ContrastChoice[];
@@ -90,14 +93,13 @@ function Chips<T extends string>({
   const groupId = `env-${label.replace(/\s+/g, "-").toLowerCase()}`;
   return (
     <Stack gap="2">
-      <Text size="1" emphasis="quiet" id={groupId}>
+      <Text size="2" emphasis="quiet" id={groupId}>
         {label}
       </Text>
       <Flex gap="1" align="center" wrap="wrap" role="group" aria-labelledby={groupId}>
         {options.map((option) => (
           <Button
             key={option}
-            size="1"
             tone={value === option ? "accent" : "neutral"}
             emphasis={value === option ? "loud" : "medium"}
             aria-pressed={value === option}
@@ -129,7 +131,7 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
       style={{
         insetInlineEnd: "24px",
         insetBlockStart: "24px",
-        width: "300px",
+        width: "340px",
         maxHeight: "calc(100dvh - 48px)",
         overflowY: "auto",
         zIndex: 10,
@@ -166,22 +168,27 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
             onChange={(radius) => onChange({ ...env, radius })}
           />
           <Chips
-            label="look"
-            value={env.look}
-            options={AXES.look}
-            onChange={(look) => onChange({ ...env, look })}
+            label="surface look"
+            value={env.surfaceLook}
+            options={AXES.surfaceLook}
+            onChange={(surfaceLook) => onChange({ ...env, surfaceLook })}
           />
           <Chips
-            label="surfaces"
-            value={env.surfaces}
-            options={AXES.surfaces}
-            onChange={(surfaces) => onChange({ ...env, surfaces })}
+            label="control look"
+            value={env.controlLook}
+            options={AXES.controlLook}
+            onChange={(controlLook) => onChange({ ...env, controlLook })}
+          />
+          <Chips
+            label="depth"
+            value={env.depth}
+            options={AXES.depth}
+            onChange={(depth) => onChange({ ...env, depth })}
           />
           <Chips label="contrast" value={contrast} options={CONTRASTS} onChange={setContrast} />
           <Separator />
           <Flex gap="1" align="center">
             <Button
-              size="1"
               emphasis="quiet"
               bordered
               disabled={!dirty}
@@ -192,7 +199,7 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
             >
               Reset
             </Button>
-            <Button size="1" emphasis="quiet" render={<Link href="/" />}>
+            <Button emphasis="quiet" render={<Link href="/" />}>
               Docs
             </Button>
           </Flex>
@@ -219,7 +226,7 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
  */
 const LANE_CSS = `
 .pv-panel { position: fixed; }
-.pv-lane { padding-inline-end: 364px; }
+.pv-lane { padding-inline-end: 404px; }
 @media ${windowClassQueries.narrow} {
   .pv-panel { position: static; width: auto; max-height: none; margin-block-end: var(--layout-space-6); }
   .pv-lane { padding-inline-end: 0; }
@@ -235,8 +242,9 @@ export function PreviewApp() {
       density={env.density}
       pointer={env.pointer}
       radius={env.radius}
-      look={env.look}
-      surfaces={env.surfaces}
+      surfaceLook={env.surfaceLook}
+      controlLook={env.controlLook}
+      depth={env.depth}
     >
       {/* The canvas paints a page itself so a pinned appearance is a real page, not dark
           specimens floating on a light bed. The panel lives INSIDE the canvas Theme on
