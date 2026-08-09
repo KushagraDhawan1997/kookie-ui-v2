@@ -230,6 +230,10 @@
   container-type: inline-size;
 }
 
+.kui-theme.kui-portal {
+  container-type: normal;
+}
+
 .kui-theme:not(.kui-theme *) {
   isolation: isolate;
 }

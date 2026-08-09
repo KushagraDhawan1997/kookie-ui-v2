@@ -23,8 +23,12 @@
   --kui-sf-p: var(--kui-menu-pad);
   /* Never narrower than the designed floor (§22). */
   min-width: var(--menu-min-w);
-  /* Long menus scroll inside the panel; the positioner reports the room that is left. */
+  /* Long menus scroll inside the panel, and a wide one is bounded by the room the
+     positioner reports rather than pushed off the viewport (§22, audit 2026-08-09: the
+     height half shipped and the width half did not, so a menu wider than the space beside
+     its trigger spilled and added a page scrollbar). */
   max-height: var(--available-height, none);
+  max-width: var(--available-width, none);
   overflow-y: auto;
   /* Base UI focuses the popup itself on open. The ring is a keyboard affordance for
      CONTROLS; a panel holding focus is a mode, and its rows carry the highlight. */
@@ -45,8 +49,16 @@
 
 /* A separator inside a menu is the ordinary Separator (the part is refused — it would
    rename existing vocabulary). Full-bleed, because a rule that stops at the panel's
-   padding reads as a broken border: the panel's own interior layout, not outer spacing. */
-.kui-menu-popup > .kui-separator {
+   padding reads as a broken border: the panel's own interior layout, not outer spacing.
+
+   Inside a GROUP too (audit 2026-08-09): the child combinator alone meant a separator between
+   rows of one group — the shape the registry's own example is one edit away from — silently
+   kept its ordinary inline margins and stopped short of the panel edge on both sides. A group
+   is a transparent wrapper with zero geometry, so its children sit at the panel's own inset;
+   the rule follows the anatomy rather than the nesting depth. Named rather than made
+   descendant-wide, because a Separator inside a call site's own Box is that Box's business. */
+.kui-menu-popup > .kui-separator,
+.kui-menu-popup > [role="group"] > .kui-separator {
   margin-block: var(--kui-menu-pad);
   margin-inline: calc(-1 * var(--kui-menu-pad));
 }

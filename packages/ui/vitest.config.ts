@@ -39,6 +39,7 @@ export default defineConfig({
             "react/jsx-dev-runtime",
             "@base-ui/react/button",
             "@base-ui/react/checkbox",
+            "@base-ui/react/direction-provider",
             "@base-ui/react/input",
             "@base-ui/react/menu",
             "@base-ui/react/progress",

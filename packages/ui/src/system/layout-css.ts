@@ -89,6 +89,17 @@ export function generateLayoutCss(): string {
   // rendered onto a shrink-to-fit element (flex child at width:auto, inline-block) collapses.
   lines.push(".kui-theme {", "  container-type: inline-size;", "}", "");
 
+  // ...except at a portal's landing spot (§20, 2026-08-09). That wrapper is a body-level box
+  // the AUTHOR never wrote, so making it a query container silently re-targets every
+  // responsive tier inside the popup at the viewport — measured, a tiered Box computed 48px
+  // of padding portalled against 2px in flow, inside a 138px panel. The author's own opted-in
+  // container is bypassed by DOM relocation rather than being absent, which is not the case
+  // §2's "fall back to the Theme root" floor was written for. With no eligible container the
+  // tiers resolve to `initial`, which is the honest answer for a small panel and the same
+  // behaviour the subtree would have had with no wrapper at all. Making the POPUP the
+  // container was rejected: it re-creates the 2026-08-08 shrink-wrap collapse.
+  lines.push(".kui-theme.kui-portal {", "  container-type: normal;", "}", "");
+
   // The stacking frame (§20, decided 2026-08-08): the DOM-outermost theme is a stacking
   // context, so every z-index inside the app resolves inside it and a body-level portal —
   // a later sibling — always paints above, with no number ladder for call sites to memorise.
