@@ -518,4 +518,41 @@ describe("groups and labels: the wiring is Base UI's, the dress is the row's", (
     expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-faint)"));
     expect(computed(label, "pointer-events")).toBe("none");
   });
+
+  /* The shadcn shape — a label as a direct child of Content, above the first group — is what
+     this component's header says it adopted, and Base UI's GroupLabel throws unconditionally
+     without a group context, in BOTH builds. Mounted OPEN, because the throw fires when the
+     portal renders, not at mount: a render-only check walks straight past it. Falsified by
+     restoring the bare `BaseMenu.GroupLabel`, which takes the whole root down here. */
+  it("a label outside a group is a heading, not a crash (§22)", () => {
+    const { popup } = openMenu({}, (
+      <>
+        <MenuLabel>My Account</MenuLabel>
+        <MenuItem>Profile</MenuItem>
+      </>
+    ));
+    const label = popup.querySelector<HTMLElement>(".kui-menu-label");
+    if (!label) throw new Error("standalone label missing");
+    // Same dress as the in-group label — the skeleton is the row's either way.
+    expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-faint)"));
+    expect(computed(label, "pointer-events")).toBe("none");
+    expect(computed(label, "min-height")).toBe(tokenOn(popup, "--control-height-2"));
+    // It is a heading, not a menu row: nothing announces it as an item.
+    expect(label.getAttribute("role")).toBeNull();
+    // And the rows around it still work — the popup did not lose its subtree.
+    expect(popup.querySelectorAll(".kui-menu-item").length).toBe(1);
+  });
+
+  it("a label inside a radio group keeps the group wiring (§22)", () => {
+    const { popup } = openMenu({}, (
+      <MenuRadioGroup defaultValue="a">
+        <MenuLabel>Sort by</MenuLabel>
+        <MenuRadioItem value="a">Name</MenuRadioItem>
+      </MenuRadioGroup>
+    ));
+    const group = popup.querySelector<HTMLElement>('[role="group"]');
+    const label = popup.querySelector<HTMLElement>(".kui-menu-label");
+    if (!group || !label) throw new Error("radio group or label missing");
+    expect(group.getAttribute("aria-labelledby")).toBe(label.id);
+  });
 });

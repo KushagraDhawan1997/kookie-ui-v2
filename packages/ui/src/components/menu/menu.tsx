@@ -239,6 +239,25 @@ export function MenuItem({ tone, leading, trailing, children, className, ...prop
 
 /* ── Groups and labels ────────────────────────────────────────────────────────────────── */
 
+/**
+ * Is there a group above this label? (§22, added 2026-08-09.)
+ *
+ * Base UI's `GroupLabel` throws unconditionally when its group context is missing — in BOTH
+ * builds, not as a dev guard — and the throw fires when the user OPENS the menu, not at
+ * mount, because the portal renders nothing while closed. So a label outside a group walked
+ * past every render-only check and took the whole React root down on the first click.
+ *
+ * That shape is not exotic: it is the one this file's header advertises. shadcn/ui's
+ * canonical dropdown puts `<DropdownMenuLabel>` as a direct child of Content above the first
+ * group, and Radix's Label is a plain div with no group requirement — the group association
+ * is Base UI's addition. Adopting a vocabulary with credit and then crashing on its
+ * canonical shape is not a refusal, it is a landmine, so MenuLabel answers both placements:
+ * inside a group it stays Base UI's part and keeps the automatic `aria-labelledby` wiring
+ * that placement earns; outside one it is a plain heading div, losing only an association it
+ * never had.
+ */
+const MenuInGroupContext = React.createContext(false);
+
 export type MenuGroupProps = {
   children?: React.ReactNode;
   className?: string;
@@ -248,7 +267,11 @@ export type MenuGroupProps = {
 
 /** Base UI wires the group's aria-labelledby to a nested MenuLabel. Zero CSS. */
 export function MenuGroup(props: MenuGroupProps) {
-  return <BaseMenu.Group {...props} />;
+  return (
+    <MenuInGroupContext.Provider value>
+      <BaseMenu.Group {...props} />
+    </MenuInGroupContext.Provider>
+  );
 }
 
 export type MenuLabelProps = {
@@ -258,16 +281,14 @@ export type MenuLabelProps = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
-/** A heading for a group of rows. Wears the row skeleton so its text and gutter align
-    with the items below it at every (size × density × pointer) cell — then menu.css
-    stands the interactivity down (faint ink, regular weight, no pointer). */
+/** A heading for rows. Wears the row skeleton so its text lines up with the items below it
+    at every (size × density × pointer) cell — then menu.css stands the interactivity down
+    (faint ink, regular weight, no pointer). Legal in a group and legal on its own; see
+    MenuInGroupContext for why both. */
 export function MenuLabel({ className, ...props }: MenuLabelProps) {
-  return (
-    <BaseMenu.GroupLabel
-      {...rowProps(React.use(MenuSizeContext), undefined, "kui-menu-label", className)}
-      {...props}
-    />
-  );
+  const skeleton = rowProps(React.use(MenuSizeContext), undefined, "kui-menu-label", className);
+  if (!React.use(MenuInGroupContext)) return <div {...skeleton} {...props} />;
+  return <BaseMenu.GroupLabel {...skeleton} {...props} />;
 }
 
 /* ── Checkable rows: the family's selected state (§21 — selected speaks accent). The
@@ -340,7 +361,13 @@ export type MenuRadioGroupProps = {
 };
 
 export function MenuRadioGroup(props: MenuRadioGroupProps) {
-  return <BaseMenu.RadioGroup {...props} />;
+  // A radio group is a group: Base UI wires its label the same way, so a MenuLabel inside
+  // one takes the part, not the fallback.
+  return (
+    <MenuInGroupContext.Provider value>
+      <BaseMenu.RadioGroup {...props} />
+    </MenuInGroupContext.Provider>
+  );
 }
 
 export type MenuRadioItemProps = {

@@ -398,7 +398,7 @@ export const ENTRIES: Entry[] = [
         { part: "MenuContent", blurb: "The floating panel: portals, positions, re-applies the theme (§20) and wears the surface identity" },
         { part: "MenuItem", blurb: "One action row — the row family's member: control cells, quiet identity, highlight not hover" },
         { part: "MenuGroup", blurb: "Groups rows so a label can name them; wires the group's accessible name automatically" },
-        { part: "MenuLabel", blurb: "A heading for a group: the row skeleton for alignment, with the control-ness stood down" },
+        { part: "MenuLabel", blurb: "A heading for rows: the row skeleton for alignment, with the control-ness stood down — legal inside a group, where it names it, and legal on its own" },
         { part: "MenuCheckboxItem", blurb: "A toggleable row — the family's selected state; its indicator stays mounted so the gutter holds" },
         { part: "MenuRadioGroup", blurb: "Holds one chosen value among its radio rows; the value API is Base UI's, unchanged" },
         { part: "MenuRadioItem", blurb: "One choice in a radio group, marked by the mounted dot indicator when chosen" },
