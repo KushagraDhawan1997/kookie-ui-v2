@@ -103,7 +103,14 @@ type Resolved = Required<
   >
 >;
 
-const DEFAULTS: Resolved = {
+/**
+ * What a Theme resolves when nobody chooses (§5). EXPORTED since 2026-08-09, the day the
+ * radius default moved to `full` and two docs surfaces kept rendering `medium`: the preview's
+ * environment panel and /matrix each held their own copy of these six values, which is the
+ * two-homes drift in the one place whose job is showing what the system does. A consumer
+ * that needs a concrete starting value derives it from here; nobody restates it.
+ */
+export const themeDefaults: Resolved = {
   appearance: "light",
   density: "default",
   radius: "full",
@@ -122,7 +129,7 @@ const DEFAULTS: Resolved = {
  */
 type Ctx = Resolved & { contrastSet: boolean; rooted: boolean };
 
-const ThemeContext = React.createContext<Ctx>({ ...DEFAULTS, contrastSet: false, rooted: false });
+const ThemeContext = React.createContext<Ctx>({ ...themeDefaults, contrastSet: false, rooted: false });
 
 export const useTheme = (): Resolved => React.use(ThemeContext);
 

@@ -26,6 +26,7 @@ import {
   Theme,
   windowClassQueries,
   type ThemeProps,
+  themeDefaults,
 } from "@kookie-ui/react";
 
 import { setContrast, useAppearance, type ContrastChoice } from "../appearance";
@@ -40,13 +41,18 @@ type Env = {
   surfaces: NonNullable<ThemeProps["surfaces"]>;
 };
 
+/** DERIVED from the package, never restated (2026-08-09): this panel held its own copy of
+    all six axis defaults, and the day `full` became the system default the playground — the
+    one surface whose job is showing what the system does — kept opening at `medium`.
+    `appearance` is the one deliberate override: the preview sits inside the docs' own
+    appearance and starts by inheriting it. */
 const DEFAULT_ENV: Env = {
   appearance: "inherit",
-  density: "default",
-  pointer: "auto",
-  radius: "medium",
-  look: "outlined",
-  surfaces: "flat",
+  density: themeDefaults.density,
+  pointer: themeDefaults.pointer,
+  radius: themeDefaults.radius,
+  look: themeDefaults.look,
+  surfaces: themeDefaults.surfaces,
 };
 
 const AXES: { [K in keyof Env]: readonly Env[K][] } = {

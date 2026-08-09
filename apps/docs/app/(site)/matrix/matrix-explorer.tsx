@@ -30,6 +30,7 @@ import {
   type ThemeProps,
   type Size,
   type Tone,
+  themeDefaults,
 } from "@kookie-ui/react";
 
 import { setContrast, useAppearance, type ContrastChoice } from "../../appearance";
@@ -184,7 +185,7 @@ function MarkRow({ size }: { size: Size }) {
 }
 
 export function MatrixExplorer() {
-  const [radius, setRadius] = React.useState<NonNullable<ThemeProps["radius"]>>("medium");
+  const [radius, setRadius] = React.useState<NonNullable<ThemeProps["radius"]>>(themeDefaults.radius);
   const [pointer, setPointer] = React.useState<NonNullable<ThemeProps["pointer"]>>("auto");
   const [surfaces, setSurfaces] = React.useState<NonNullable<ThemeProps["surfaces"]>>("flat");
   const [look, setLook] = React.useState<NonNullable<ThemeProps["look"]>>("outlined");

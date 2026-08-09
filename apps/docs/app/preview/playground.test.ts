@@ -107,6 +107,24 @@ describe("a state the shared layer paints has a specimen (§8)", () => {
     });
   }
 
+  it("the environment panel DERIVES its defaults — a docs copy of an axis default is drift", () => {
+    // Earned 2026-08-09: `full` became the system's default radius and this panel — the one
+    // surface whose whole job is showing what the system does — kept opening at `medium`,
+    // because it held its own copy of all six axis defaults. /matrix held a seventh. A
+    // literal here is indistinguishable from the truth until the truth moves.
+    const app = readFileSync(join(here, "preview-app.tsx"), "utf8");
+    const block = app.slice(app.indexOf("const DEFAULT_ENV"), app.indexOf("const AXES"));
+    expect(block, "DEFAULT_ENV is not where this law thinks").toContain("appearance");
+    for (const axis of ["density", "pointer", "radius", "look", "surfaces"]) {
+      expect(block, `${axis} restates a default instead of deriving it`).toContain(
+        `${axis}: themeDefaults.${axis}`,
+      );
+    }
+    // `appearance` is the one deliberate literal: the preview starts by inheriting the docs'
+    // own appearance, which is a choice this panel makes rather than a default it copies.
+    expect(block).toContain('appearance: "inherit"');
+  });
+
   it("Radio renders one too — where its checked state actually lives, on the GROUP", () => {
     if (!marksHaveCheckedInvalidRule) return;
     // Radio is the member whose selected state is not its own prop: RadioGroup owns the
