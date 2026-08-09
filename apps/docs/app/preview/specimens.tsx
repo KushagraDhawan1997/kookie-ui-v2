@@ -839,7 +839,7 @@ function MenuSection() {
               </Stack>
               <Menu>
                 <MenuTrigger render={<Button emphasis="quiet" iconOnly aria-label="Actions"><PlusIcon /></Button>} />
-                <MenuContent align="end">{content}</MenuContent>
+                <MenuContent>{content}</MenuContent>
               </Menu>
             </Flex>
           </Card>
@@ -900,7 +900,7 @@ function SelectSection() {
           ],
         }))}
       />
-      {/* Empty vs chosen: the placeholder INVITES in the faint role; a value is content. */}
+      {/* Empty vs chosen: the placeholder INVITES in the muted role; a value is content. */}
       <Demo label="Placeholder, value, disabled">
         <Flex gap="4" align="center">
           <Select items={items}>
@@ -1180,7 +1180,7 @@ function TextSection() {
             cells: [
               <Text key="1" size="3">Body text rests at full contrast.</Text>,
               <Text key="2" size="3" emphasis="medium">The muted role — secondary description.</Text>,
-              <Text key="3" size="3" emphasis="quiet">The faint role — captions, placeholders.</Text>,
+              <Text key="3" size="3" emphasis="quiet">The faint role — the exception rung, below the reading floor.</Text>,
             ],
           },
         ]}
