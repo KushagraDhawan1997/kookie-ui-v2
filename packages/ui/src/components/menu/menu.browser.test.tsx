@@ -25,7 +25,9 @@ import {
   MenuSubContent,
 } from "./menu.tsx";
 import { Button } from "../button/button.tsx";
+import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
+import { Separator } from "../separator/separator.tsx";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
 import {
   render,
@@ -579,6 +581,88 @@ describe("behavior: the platform's menu, not a styled div", () => {
     // inference must not flip for the ordinary case.
     expect(trigger.hasAttribute("disabled")).toBe(true);
     expect(trigger.getAttribute("role")).toBeNull();
+  });
+});
+
+/* ── The panel's interior (§22) ───────────────────────────────────────────────────────── */
+
+describe("what the panel does to what is inside it (§22)", () => {
+  /* The child combinator alone meant a separator inside a GROUP kept its ordinary inline
+     margins and stopped short of the panel edge — the registry's own example is one edit
+     away from that shape. Asserted as the two computing IDENTICALLY rather than as a number,
+     so the designed inset stays the single source. Falsified by dropping the group arm. */
+  it("a separator bleeds to the panel edge, in a group or out of one", () => {
+    const { popup } = openMenu({}, (
+      <>
+        <MenuItem>Alpha</MenuItem>
+        <Separator />
+        <MenuGroup>
+          <MenuItem>Beta</MenuItem>
+          <Separator />
+          <MenuItem>Gamma</MenuItem>
+        </MenuGroup>
+      </>
+    ));
+    const [loose, grouped] = [...popup.querySelectorAll<HTMLElement>(".kui-separator")];
+    if (!loose || !grouped) throw new Error("both separators must mount");
+    const inset = computed(loose, "margin-left");
+    // Calibration: the full bleed is a real negative inset, not a no-op both sides share.
+    expect(parseFloat(inset), "nothing to bleed").toBeLessThan(0);
+    expect(computed(grouped, "margin-left")).toBe(inset);
+    expect(computed(grouped, "margin-right")).toBe(computed(loose, "margin-right"));
+    // And it reaches: both rules land on the panel's own padding edge.
+    expect(Math.abs(grouped.getBoundingClientRect().left - popup.getBoundingClientRect().left))
+      .toBeLessThanOrEqual(parseFloat(computed(popup, "border-left-width")) + 0.5);
+  });
+
+  /* The height half of the positioner's measurements shipped and the width half did not, so
+     a menu wider than the room beside its trigger spilled off the viewport. Falsified by
+     deleting the max-width declaration. */
+  it("the panel is bounded by the room the positioner reports, in BOTH axes", () => {
+    const { popup } = openMenu({});
+    for (const [axis, prop] of [
+      ["width", "max-width"],
+      ["height", "max-height"],
+    ] as const) {
+      popup.style.setProperty(`--available-${axis}`, "137px");
+      expect(computed(popup, prop), axis).toBe("137px");
+    }
+  });
+
+  /* The wrapper is a body-level box the author never wrote, so it must not become the query
+     container for the popup's contents (§2, §20). Falsified by deleting the
+     `.kui-theme.kui-portal` rule — the tiered Box then reads the viewport and takes `md`. */
+  it("a portalled subtree resolves tiers to `initial`, not to the viewport (§2)", () => {
+    let inFlow: HTMLElement | null = null;
+    const tiered = <Box p={{ initial: "1", md: "9" }} />;
+    const { popup } = openMenu({}, (
+      <>
+        <MenuItem>Alpha</MenuItem>
+        {tiered}
+      </>
+    ));
+    const scope = popup.closest<HTMLElement>(".kui-theme");
+    if (!scope) throw new Error("the portal scope is missing");
+    expect(computed(scope, "container-type")).toBe("normal");
+
+    // The viewport is wide enough that a container-reading Box WOULD take `md` — without
+    // this the law would pass on a narrow window for the wrong reason.
+    render(
+      <Theme>
+        <Box container style={{ width: 2000 }}>
+          <Box ref={(n: HTMLDivElement | null) => void (inFlow = n)} p={{ initial: "1", md: "9" }} />
+        </Box>
+      </Theme>,
+    );
+    const wide = inFlow as HTMLElement | null;
+    if (!wide) throw new Error("the in-flow control never mounted");
+    expect(computed(wide, "padding-top"), "the control must take the md tier").toBe(
+      tokenOn(popup, "--layout-space-9"),
+    );
+
+    const portalled = popup.querySelector<HTMLElement>(".kui-box");
+    if (!portalled) throw new Error("the tiered box never mounted in the popup");
+    expect(computed(portalled, "padding-top")).toBe(tokenOn(popup, "--layout-space-1"));
   });
 });
 
