@@ -108,6 +108,48 @@ function declaration(name: string, level: "default" | "compact" | "comfortable" 
   return scope.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
 }
 
+describe("the platform-signal guard agrees with what Theme stamps (§7, added 2026-08-09)", () => {
+  // A mechanism with two implementations owes a law that they AGREE (ENGINEERING, the docs
+  // audit's own clause). This one has exactly two: Theme stamps `data-contrast` ONLY when the
+  // axis was chosen, so a node that never asked carries no attribute — and the generated
+  // high-contrast block guards its `prefers-contrast: more` arm with
+  // `:not([data-contrast="normal"])` so it still matches that node. The Theme half was
+  // law-pinned (theme.browser.test.tsx); the EMITTED half was not, so a guard respelled to
+  // `[data-contrast="high"]` — or to a bare selector — would silently either kill the
+  // platform signal or make `contrast="normal"` unable to opt out of it, with the whole suite
+  // green. The system shipped a version of exactly this defect once already: the block was
+  // `:root`-scoped while Theme renders a div, and `prefers-contrast: more` could never fire
+  // in dark (audit 2026-08-03).
+  const guarded = generateTokens()
+    .split("\n")
+    .filter((line) => line.includes(":not([data-contrast="));
+
+  it("every prefers-contrast arm excludes the opt-out, and nothing else", () => {
+    expect(guarded.length, "the guard exists at all").toBeGreaterThan(0);
+    for (const line of guarded) {
+      // The exclusion is `normal` — the value a Theme writes ONLY when someone asked for it.
+      // `high` here would mean the media query re-applies over an explicit high contrast;
+      // anything else would mean the opt-out no longer opts out.
+      expect(line.match(/:not\(\[data-contrast="([^"]+)"\]\)/g)?.every((m) => m.includes('"normal"')))
+        .toBe(true);
+    }
+  });
+
+  it("the guard is only ever used inside the platform-signal media query", () => {
+    // A guarded selector outside `prefers-contrast: more` would apply high-contrast values to
+    // every unconfigured theme in the world.
+    const css = generateTokens();
+    for (const line of guarded) {
+      const before = css.slice(0, css.indexOf(line));
+      const openedMedia = before.lastIndexOf("@media (prefers-contrast: more)");
+      expect(openedMedia, `guarded selector outside the media query: ${line}`).toBeGreaterThan(-1);
+      // ...and that media block has not been closed before this line: no `}` at column 0
+      // between them, which is how this file closes a top-level block.
+      expect(before.slice(openedMedia).includes("\n}\n")).toBe(false);
+    }
+  });
+});
+
 describe("step counts are set per family, not copied across families (§6)", () => {
   it("space spans 12 steps, radius 11 at every level, type 9, controls 4 at every density", () => {
     expect(space).toHaveLength(12);

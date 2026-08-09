@@ -692,8 +692,14 @@ function MenuSection() {
 }
 
 function SelectSection() {
-  /** One canonical option set at every size: groups, a separator, a disabled row — the
-      menu section's discipline, so the judgment is about the cells. */
+  /** One canonical option set at every size: two groups and a disabled row — the menu
+      section's discipline, so the judgment is about the cells.
+
+      No Separator between the groups (audit 2026-08-09). It was here, and it was the shape
+      that proved the composition is illegal: the panel IS the listbox, a listbox may hold
+      only options and groups, and an accessibility scan reported exactly that — from
+      library markup a consumer cannot fix from outside. The GROUP is the divider a listbox
+      has, and it divides in the accessibility tree too. */
   const content = (
     <>
       <SelectGroup>
@@ -704,7 +710,6 @@ function SelectSection() {
           Cherry (out of season)
         </SelectItem>
       </SelectGroup>
-      <Separator />
       <SelectGroup>
         <SelectLabel>Vegetables</SelectLabel>
         <SelectItem value="carrot">Carrot</SelectItem>
@@ -754,7 +759,10 @@ function SelectSection() {
           </Select>
         </Flex>
       </Demo>
-      {/* Glass panel over the hostile backdrop — the floating chrome must survive it. */}
+      {/* Glass panel over the hostile backdrop — the floating chrome must survive it. The
+          TRIGGER's own material is here too (2026-08-09): it is the case the axis exists
+          for, and until the prop shipped this bed showed an opaque white dropdown beside a
+          translucent TextField, which is the defect rather than the specimen. */}
       <Demo label="Materials — over the hostile backdrop">
         <HostileBed>
           <Select items={items}>
@@ -765,7 +773,42 @@ function SelectSection() {
             <SelectTrigger placeholder="Thin glass" />
             <SelectContent material="thin">{content}</SelectContent>
           </Select>
+          <Select items={items}>
+            <SelectTrigger placeholder="Glass trigger" material="regular" />
+            <SelectContent material="regular">{content}</SelectContent>
+          </Select>
+          <TextField placeholder="…and the field beside it" material="regular" />
         </HostileBed>
+      </Demo>
+      {/* The two width facts, judged together (audit 2026-08-09): a trigger grows to fit its
+          chosen value unless something bounds it, and an unbreakable option wraps inside the
+          panel instead of pushing out of it. */}
+      <Demo label="Width — a long value, bounded and unbounded">
+        <Stack gap="3">
+          <Flex gap="4" align="center">
+            <Select
+              defaultValue="long"
+              items={{ long: "someone.with.a.long.name@example-company.com" }}
+            >
+              <SelectTrigger placeholder="Unbounded" />
+              <SelectContent>
+                <SelectItem value="long">someone.with.a.long.name@example-company.com</SelectItem>
+              </SelectContent>
+            </Select>
+          </Flex>
+          <Box maxWidth="14rem">
+            <Select
+              defaultValue="long"
+              items={{ long: "someone.with.a.long.name@example-company.com" }}
+            >
+              <SelectTrigger placeholder="Bounded — ellipsizes" />
+              <SelectContent>
+                <SelectItem value="long">someone.with.a.long.name@example-company.com</SelectItem>
+                <SelectItem value="short">Short</SelectItem>
+              </SelectContent>
+            </Select>
+          </Box>
+        </Stack>
       </Demo>
       {/* Composed: the form row the field identity exists for — one family, two controls. */}
       <Demo label="Composed — a form row">
