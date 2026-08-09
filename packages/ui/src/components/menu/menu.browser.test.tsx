@@ -582,6 +582,65 @@ describe("behavior: the platform's menu, not a styled div", () => {
   });
 });
 
+/* ── The submenu's seam (§22) ─────────────────────────────────────────────────────────── */
+
+describe("a submenu meets its parent panel where §22 says it does", () => {
+  /* Both claims were false in every cell and neither had a law: the offsets were hardcoded
+     JS numbers against a padding that MOVES with density (2/4/8), and the panel's border was
+     never in the arithmetic at all. Density is the axis that breaks it, so the law walks all
+     three — the one-cell lesson. Falsified by putting the constants back. */
+  it("the child's first row is level with its trigger row, every density (§22)", async () => {
+    for (const density of DENSITIES) {
+      render(
+        <Theme density={density}>
+          <div style={{ display: "flex", justifyContent: "center", paddingTop: 200 }}>
+            <Menu defaultOpen>
+              <MenuTrigger render={<Button>Open</Button>} />
+              <MenuContent>
+                <MenuItem>Alpha</MenuItem>
+                <MenuSub defaultOpen>
+                  <MenuSubTrigger>Export as</MenuSubTrigger>
+                  <MenuSubContent>
+                    <MenuItem>PNG</MenuItem>
+                  </MenuSubContent>
+                </MenuSub>
+              </MenuContent>
+            </Menu>
+          </div>
+        </Theme>,
+      );
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await new Promise((r) => setTimeout(r, 60));
+
+      const panels = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")];
+      if (panels.length < 2) throw new Error(`${density}: the child panel never mounted`);
+      const [parent, child] = panels.slice(-2) as [HTMLElement, HTMLElement];
+      const trigger = parent.querySelector<HTMLElement>('[aria-haspopup="menu"]');
+      const firstRow = child.querySelector<HTMLElement>(".kui-menu-item");
+      if (!trigger || !firstRow) throw new Error(`${density}: subject missing`);
+
+      // Calibration: the seam is a real distance in this cell, so an offset of zero would
+      // be visibly wrong rather than accidentally right.
+      const seam =
+        parseFloat(computed(parent, "padding-top")) +
+        parseFloat(computed(parent, "border-top-width"));
+      expect(seam, `${density}: nothing to align`).toBeGreaterThan(0);
+
+      expect(
+        Math.abs(firstRow.getBoundingClientRect().top - trigger.getBoundingClientRect().top),
+        `${density}: the child's first row must sit level with its trigger`,
+      ).toBeLessThanOrEqual(1);
+
+      // "Sits flush against its parent panel" — against the PANEL, not against the row,
+      // which sits inside the panel's own padding.
+      expect(
+        Math.abs(child.getBoundingClientRect().left - parent.getBoundingClientRect().right),
+        `${density}: the child must sit flush against the parent panel`,
+      ).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
 /* ── The focused row (§8, §21) ────────────────────────────────────────────────────────── */
 
 describe("a focused row's ring survives the panel that scrolls it (§8)", () => {
