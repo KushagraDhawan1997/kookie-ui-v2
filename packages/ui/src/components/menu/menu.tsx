@@ -149,15 +149,26 @@ export type MenuContentProps = {
     family for --tone-border, the fill is the seal, quiet + bordered is §11's row for
     Menu. NO data-size: the panel's padding does not answer the index (its rows do), and
     stamping it would put the surface size join above menu.css's own declarations. */
-function popupProps(material: MenuContentProps["material"], className?: string) {
+function popupProps(
+  material: MenuContentProps["material"],
+  anchored: boolean,
+  className?: string,
+) {
+  // `kui-menu-anchored` is what carries the --anchor-width floor (§22), and ONLY a top-level
+  // panel wears it. A submenu's anchor is its trigger ROW, which is inline-size: 100% of the
+  // parent panel — so the floor that means "never narrower than the button you pressed" read
+  // as "never narrower than the panel you came from", and it compounded: measured 446.59 ->
+  // 437 -> 427 across three levels, a panel holding one character 427px wide (audit
+  // 2026-08-09). The argument for the floor is Button-shaped and does not survive the move.
+  const identity = anchored
+    ? "kui-surface kui-floating kui-menu-popup kui-menu-anchored"
+    : "kui-surface kui-floating kui-menu-popup";
   return {
     "data-tone": "neutral",
     "data-emphasis": "quiet",
     "data-bordered": true,
     ...(material && material !== "solid" ? { "data-material": material } : {}),
-    className: className
-      ? `kui-surface kui-floating kui-menu-popup ${className}`
-      : "kui-surface kui-floating kui-menu-popup",
+    className: className ? `${identity} ${className}` : identity,
   } as const;
 }
 
@@ -176,7 +187,7 @@ export function MenuContent({
       <Theme>
         <BaseMenu.Positioner side={side} align={align} sideOffset={sideOffset}>
           <BaseMenu.Popup
-            {...popupProps(material, className)}
+            {...popupProps(material, true, className)}
             {...(style !== undefined ? { style } : {})}
             {...(ref !== undefined ? { ref } : {})}
           >
@@ -470,7 +481,7 @@ export function MenuSubContent({ material = "solid", children, className, style,
       <Theme>
         <BaseMenu.Positioner sideOffset={0} alignOffset={SUB_ALIGN_OFFSET}>
           <BaseMenu.Popup
-            {...popupProps(material, className)}
+            {...popupProps(material, false, className)}
             {...(style !== undefined ? { style } : {})}
             {...(ref !== undefined ? { ref } : {})}
           >

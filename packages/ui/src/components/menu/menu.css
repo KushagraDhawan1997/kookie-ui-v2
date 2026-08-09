@@ -12,17 +12,26 @@
   --kui-sf-radius: var(--radius-surface-1);
   /* One designed padding (§22) — the panel does not answer the size index, its rows do. */
   --kui-sf-p: var(--menu-p);
-  /* Never narrower than the designed floor OR the trigger that opened it (§22): the
-     size-match argument applied to geometry. --anchor-width is the positioner's own
-     measurement; the inner fallback keeps the declaration valid where no positioner
-     exists (the agreement law's in-flow twin). */
-  min-width: max(var(--menu-min-w), var(--anchor-width, var(--menu-min-w)));
+  /* Never narrower than the designed floor (§22). */
+  min-width: var(--menu-min-w);
   /* Long menus scroll inside the panel; the positioner reports the room that is left. */
   max-height: var(--available-height, none);
   overflow-y: auto;
   /* Base UI focuses the popup itself on open. The ring is a keyboard affordance for
      CONTROLS; a panel holding focus is a mode, and its rows carry the highlight. */
   outline: none;
+}
+
+/* Never narrower than the TRIGGER that opened it either (§22) — the size-match argument
+   applied to geometry, and the reason it is scoped to the anchored panel rather than stated
+   above: only a top-level popup's anchor is a trigger. A submenu's anchor is its trigger
+   ROW, which is inline-size: 100% of the panel it sits in, so the same declaration read
+   "never narrower than the panel you came from" and compounded down the chain — measured
+   446.59 -> 437 -> 427 across three levels, a panel holding one character 427px wide (audit
+   2026-08-09). --anchor-width is the positioner's own measurement; the inner fallback keeps
+   the declaration valid where no positioner exists (the agreement law's in-flow twin). */
+.kui-menu-popup.kui-menu-anchored {
+  min-width: max(var(--menu-min-w), var(--anchor-width, var(--menu-min-w)));
 }
 
 /* A separator inside a menu is the ordinary Separator (the part is refused — it would

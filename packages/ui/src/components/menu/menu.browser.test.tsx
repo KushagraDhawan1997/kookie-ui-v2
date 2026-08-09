@@ -118,7 +118,7 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
       <Theme {...theme}>
         <div
           ref={(n: HTMLDivElement | null) => void (popupTwin = n)}
-          className="kui-surface kui-floating kui-menu-popup"
+          className="kui-surface kui-floating kui-menu-popup kui-menu-anchored"
           data-tone="neutral"
           data-emphasis="quiet"
           data-bordered="true"
@@ -286,6 +286,42 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
     expect(computed(popup, "padding-top")).toBe(tokenOn(popup, "--menu-p"));
     expect(popup.getBoundingClientRect().width).toBeGreaterThanOrEqual(
       parseFloat(tokenOn(popup, "--menu-min-w")),
+    );
+  });
+
+  /* The floor's ANCHOR half, which had no law at all: the shipped assertion above is entailed
+     by the max() floor, so deleting the --anchor-width term left the whole suite green (audit
+     2026-08-09). Both directions, because the defect was that the term reached a panel it
+     should not: a wide TRIGGER must widen its menu, and a wide PARENT PANEL must not widen
+     its submenu. --anchor-width is supplied directly rather than awaited, so the law states
+     the rule instead of racing the positioner's first measurement. */
+  it("a wide trigger widens its menu; a wide panel does not widen its submenu (§22)", () => {
+    const { popup } = openMenu({});
+    const floor = parseFloat(tokenOn(popup, "--menu-min-w"));
+    const wide = `${floor + 240}px`;
+
+    // The anchored panel takes the anchor when it is wider than the floor...
+    popup.style.setProperty("--anchor-width", wide);
+    expect(computed(popup, "min-width")).toBe(wide);
+    // ...and keeps the floor when the anchor is narrower — max(), not "whatever the anchor is".
+    popup.style.setProperty("--anchor-width", "10px");
+    expect(parseFloat(computed(popup, "min-width"))).toBe(floor);
+
+    // The child panel ignores it entirely: its anchor is a row, not a trigger.
+    const { popup: sub } = openMenu({}, (
+      <MenuSub defaultOpen>
+        <MenuSubTrigger>Export as</MenuSubTrigger>
+        <MenuSubContent>
+          <MenuItem>PNG</MenuItem>
+        </MenuSubContent>
+      </MenuSub>
+    ));
+    const child = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop()!;
+    if (child === sub && !child.querySelector(".kui-menu-item")) throw new Error("no child panel");
+    expect(child.classList.contains("kui-menu-anchored")).toBe(false);
+    child.style.setProperty("--anchor-width", wide);
+    expect(parseFloat(computed(child, "min-width")), "a submenu must not inherit panel width").toBe(
+      floor,
     );
   });
 
