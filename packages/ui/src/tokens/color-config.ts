@@ -146,10 +146,19 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
 export const tones = {
   /** Not a brand colour: a hue and a near-zero chroma, which is all a tinted grey is. */
   neutral: { hue: 250, vividness: 0.04 },
-  /** The user's brand colour. A pinned hex is reproduced exactly as step 9 in light mode
-      (§7); hue-authored here so the preview's accent IS the blue family (Kushagra,
-      2026-08-05) — one definition, so the two can never drift apart. */
-  accent: { hue: 250, vividness: 1 },
+  /** The user's brand colour, and it is GREY (2026-08-10, Kushagra). Neutral's own recipe
+      verbatim rather than a second near-zero number, so accent ≡ neutral by construction —
+      the accent ≡ blue identity this line used to carry, pointed one family over.
+
+      Nothing in the generator needed an exception: `lowChromaThreshold` (0.18) already says
+      that below it a scale cannot carry prominence by saturation, so `--accent-solid` resolves
+      to step 12 instead of step 9, and that rule is keyed on chroma rather than on the NAME
+      neutral precisely so a desaturated brand is caught by it. A grey brand's primary button
+      is therefore near-black in light and near-white in dark, which is what a grey brand means.
+
+      To go back to a brand hue this is one line: `{ hue: 250, vividness: 1 }` is the blue that
+      was here, and any `{ hue, vividness }` or `{ color: "#hex" }` works the same way. */
+  accent: { hue: 250, vividness: 0.04 },
   destructive: { color: "#E5484D" },
   blue: { hue: 250, vividness: 1 },
   green: { hue: 150, vividness: 1 },
@@ -320,6 +329,27 @@ export const chromaFloor = 0.75;
  * v0, judged in the preview; the eye pass edits them here, not in the emitter.
  */
 export const inkMix = { muted: 74, faint: 52 } as const;
+
+/**
+ * The BOUNDARY's hover step (§8, 2026-08-10, Kushagra: *"there's no hover darkening of border
+ * on text field or checkbox"*).
+ *
+ * States are uniform steps on the ramp — and for two families that rule reached nothing at all,
+ * because the shared hover rule steps the FILL and those two families do not have a fill that
+ * moves. A field's is pinned by an invariant of its own (its states are the border and the
+ * ring, which was true of `invalid` and of nothing else); a mark's steps so faintly that the
+ * box reads unchanged. Measured before it was fixed: a hovered TextField and TextArea computed
+ * byte-identical to their resting selves, in both appearances.
+ *
+ * Stated as a MIX toward the family's own ink rather than as a picked step, because the two
+ * solved edges (`--control-edge`, `--field-edge`) sit BETWEEN ladder rungs by construction —
+ * they were binary-searched against APCA tiers, so "+1 step" has no meaning on them — and
+ * because a mix carries the tone with it: a destructive field darkens its own red edge, and
+ * dark mode moves toward its light ink without a second number. v0, judged in the playground;
+ * this is dress, so it answers to the eye in standard mode and to `contrast="high"` for
+ * conformance (the 2026-08-07 rule).
+ */
+export const edgeHoverMix = 14;
 
 /**
  * The per-mode step the focus ring and the invalid edge read (§8) — the third and first

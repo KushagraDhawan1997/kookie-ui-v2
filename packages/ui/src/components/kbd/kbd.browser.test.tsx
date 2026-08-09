@@ -60,9 +60,12 @@ describe("Kbd shares the chip's fill and tone facts, in its OWN family (§11, §
     });
 
     it(`${appearance}: a tone moves all three of its colours`, () => {
-      const toned = mounted(<Kbd tone="accent">⌘K</Kbd>, { theme: { appearance } });
+      // `blue`, not `accent` (2026-08-10): accent is a configured identity that may equal any
+      // other family — it was blue until today and is neutral now — so it cannot be the probe
+      // in a law whose whole claim is that the toned chip differs from the bare one.
+      const toned = mounted(<Kbd tone="blue">⌘K</Kbd>, { theme: { appearance } });
       const bare = mounted(<Kbd>⌘K</Kbd>, { theme: { appearance } });
-      expect(computed(toned, "border-top-color")).toBe(colorOn(toned, "var(--accent-border)"));
+      expect(computed(toned, "border-top-color")).toBe(colorOn(toned, "var(--blue-border)"));
       expect(computed(toned, "border-top-color")).not.toBe(computed(bare, "border-top-color"));
       expect(computed(toned, "background-color")).not.toBe(computed(bare, "background-color"));
       expect(computed(toned, "color")).not.toBe(computed(bare, "color"));
@@ -76,10 +79,10 @@ describe("a key cap IS a raised object (§5 — the day-one refusal reversed 202
     // app's dial: it reads the palette row's VALUE (--control-chrome), never the world
     // switch, so flat and elevated render the identical cast — the equality is the claim.
     const casts: string[] = [];
-    for (const surfaces of ["flat", "elevated"] as const) {
-      const el = mounted(<Kbd>⌘K</Kbd>, { theme: { surfaces } });
+    for (const depth of ["flat", "elevated"] as const) {
+      const el = mounted(<Kbd>⌘K</Kbd>, { theme: { depth } });
       const cast = computed(el, "box-shadow");
-      expect(cast, `${surfaces}: the cap went flat`).not.toBe("none");
+      expect(cast, `${depth}: the cap went flat`).not.toBe("none");
       casts.push(cast);
     }
     expect(casts[0], "the cast moved with the world — 'always' broke").toBe(casts[1]);

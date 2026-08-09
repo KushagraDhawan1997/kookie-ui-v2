@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-10 The look axis splits in two, because one answer could not say "plain card, filled inputs"
+
+Kushagra opened a taste pass with a proposal — `look` should be separate for controls and surfaces — and it was refuted twice before it was accepted, which is why the accepted version is narrower than any of the three shapes it went through.
+
+**The refutations, in order.** First: §19 defines the look as ONE physics applied without exception, the per-family resolution already exists inside the single axis, and `surfaces` (the depth prop) had the only good name a second axis could want — so a split buys combinations, not resolution. Second, when the proposal became *take Card off the axis instead*: the exits granted to the slider, switch and progress bar are all "this thing has no resting surface", and a card is the most resting surface in the library, so it cannot use that door; the honest version of that idea is the split spelled as a subtraction. Third, when it became *one object-valued prop*: partial overrides need merge semantics no other Theme axis has, and an inline object literal is a fresh identity every render — the memo bug of 2026-08-06, re-committed as an API.
+
+**What settled it was a screenshot, not an argument.** A white card holding grey filled inputs — the most ordinary form on the web — and it was unreachable, because `filled` moved the card to `--neutral-2` and the field to `--neutral-3`, one step apart, which is mush. Kushagra's own sentence for what he could not build: *"I can't create enough contrast… I need a way to distinguish between what is background, and what is foreground."* Card leaving the axis would have delivered exactly that picture and was still refused, because it forecloses the tinted surfaces `filled` is meant to grow into — and that is the one thing an app is most likely to want from this axis next.
+
+**A claim I made and withdrew, because the correction matters more than the claim.** I argued the split forces the emitted greys into a 2×2 table — that a filled control's step must depend on whether the surface behind it is filled. It does not, for the case that motivated the split: a light grey input reads correctly on a white card with today's values untouched. The coupling is real only in the both-filled cell, which was already mush before the split and is a taste question about which steps `dress` picks. So the split ships with **no colour changes at all**, and both-filled stays on the eye-pass list.
+
+`depth` is the rename that made room: the prop had been `surfaces`, which names the family it dresses rather than the question it answers, while §19's own four-worlds frame states that question as *"does light exist"*. Nothing is published, so the rename is free.
+
+Rejected: the object-valued prop and the Card exit (above); a `look="filled"` string shorthand meaning both (it makes the grey-on-grey world the shortest thing to type); a compound `[data-surface-look][data-control-look]` selector (the two axes are answered separately, so each block declares only its own families — a law now asserts the families partition, because two blocks writing one role would make the losing prop silently inert); and `surfaceLook`/`controlLook` as camelCase was accepted rather than avoided, on the `iconOnly` precedent.
+
+---
+
 ## 2026-08-10 The lit row's tick was the third thing standing on a fill that moved without it
 
 Kushagra, on a Select open at `contrast="high"` in the playground: the accent tick against the solid row *"looks weird"* — should high contrast keep a lighter background and darken the label instead, the way a medium-emphasis button does?
@@ -129,6 +145,22 @@ The inline channel was declared, listed in the transition, riding the spring —
 **Cost: +887 bytes gzipped** (21,684 → 22,571) for the whole motion system — both curves, the floating family's durations, the seed, and Menu's entry and exit. The curves are most of it; they are large strings that gzip well, and they are the thing that was judged, so the sample counts are not trimmed to save bytes. Nine sabotage passes, each one caught by the law that names it. One law was passing vacuously — its default panel happened to land on a whole pixel, so the subpixel claim was never tested — and now picks the cell where the rounding actually broke a row, with a calibration assertion that fails if that cell ever stops having a fraction to lose.
 
 **Left open on purpose:** every other component. The grammar is settled and the tokens exist; what a switch's thumb, a button's press or a field's focus do with it are transcriptions of recipes already judged in the lab, but they are eye-pass work. Select is nearest and deliberately gets nothing today — it wears `kui-floating`, so the machinery is one line away, but a select opening is a different gesture from a menu opening and has not been judged.
+
+---
+
+## 2026-08-10 The brand goes grey, and four laws that proved an axis against `accent` go red
+
+Kushagra: *"Can you set it for app?"* — accent, permanently, to grey.
+
+**One config line, and the generator needed no exception.** `accent` is `{ hue: 250, vividness: 0.04 }` now: neutral's own recipe verbatim rather than a second near-zero number, so the identity that made `accent ≡ blue` points one family over instead of being deleted. §7's `lowChromaThreshold` already says that below 0.18 a scale cannot carry prominence by saturation and `--accent-solid` resolves to step 12 rather than step 9 — **and that rule is keyed on chroma rather than on the name "neutral" precisely so a desaturated brand is caught by it.** It was written for this case a week before the case arrived. The primary button is near-black in light and near-white in dark, which is what a grey brand means; `lowChromaStateScale` (2.1) is what keeps its three states apart, since a grey has only lightness to separate them.
+
+What changed is that this branch is no longer hypothetical. It is now the default path for every primary button, checked mark and focus ring in the system, so the widened state deltas and the step-12 solid are exercised by the suite's ordinary cells rather than by neutral alone.
+
+**Five laws broke, and all five broke the same way: they proved something by contrasting `accent` with `neutral`.** One config law asserted `accent.vividness > lowChromaThreshold` while claiming in its own name to key "on vividness, not on the name" — a claim it could never have tested, because a generator branch written as `tone === "neutral"` passes that assertion too. Four mounted laws asserted that a toned Button or Kbd differs from a bare one, with `accent` as the toned probe.
+
+**The rule they earn: `accent` is a CONFIGURED identity and is never a valid probe for "these two differ".** It equalled blue by construction until today and equals neutral by construction now; a law that needs two things to be different must name a chroma family, which cannot collapse into neutral without someone editing it on purpose. The config law is rewritten to build two scales from constructed vividness values either side of the threshold, so it measures the mechanism instead of the palette; the mounted four use `blue`. This is the 2026-08-03 lesson in a new place — a law one indirection short of the thing it claims to check — except here the indirection was the palette rather than the DOM.
+
++58 bytes gzipped, re-recorded.
 
 ---
 

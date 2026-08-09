@@ -133,8 +133,27 @@ describe("prominence comes from chroma or from lightness (§7)", () => {
   });
 
   it("keys on vividness, not on the name — a desaturated brand accent gets the same fix", () => {
-    expect(resolveTone(tones.neutral).vividness).toBeLessThan(lowChromaThreshold);
-    expect(resolveTone(tones.accent).vividness).toBeGreaterThan(lowChromaThreshold);
+    // Rewritten 2026-08-10, the day `accent` became grey. The old spelling proved "not on the
+    // name" by contrasting the configured neutral (below the threshold) with the configured
+    // accent (above it) — which is a claim about what the palette happens to be, not about
+    // what the generator does, and it failed the moment the palette changed. It could also
+    // never have caught the defect it was written for: a branch keyed on `tone === "neutral"`
+    // passes both of those assertions.
+    //
+    // The rule is now read off CONSTRUCTED tones — one hue, two vividness values either side
+    // of the threshold, neither of them named in the config — so the law measures the
+    // mechanism and holds whatever accent is set to.
+    for (const mode of MODES) {
+      const desaturated = buildScaleFor({ hue: 250, vividness: 0.04 }, mode);
+      const chromatic = buildScaleFor({ hue: 250, vividness: 1 }, mode);
+      expect(desaturated.isLowChroma).toBe(true);
+      expect(desaturated.solid).toBe(desaturated.steps[11]);
+      expect(chromatic.isLowChroma).toBe(false);
+      expect(chromatic.solid).toBe(chromatic.steps[8]);
+    }
+    // And the threshold is the thing being crossed, not a coincidence of those two numbers.
+    expect(0.04).toBeLessThan(lowChromaThreshold);
+    expect(1).toBeGreaterThan(lowChromaThreshold);
   });
 
   it("keeps rest, hover and press visibly apart, and a grey further apart than a hue", () => {
