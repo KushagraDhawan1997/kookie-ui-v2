@@ -28,9 +28,29 @@ import type { Size, SlotName } from "../../system/axes.ts";
 
 /** Gap between the trigger's edge and the popup. */
 const SIDE_OFFSET = 4;
-/** Submenus sit flush against their parent panel and align their first row with the
-    trigger row: pulled up by the popup's own padding (must track `menuPadding`). */
-const SUB_ALIGN_OFFSET = -4;
+/**
+ * A submenu's seam with its parent panel (§22, measured rather than designed since
+ * 2026-08-09).
+ *
+ * It shipped as a hardcoded -4, with a comment saying it "must track `menuPadding`" — which
+ * it cannot, because `--menu-p` is a layout-space pick that MOVES with density (2/4/8) and a
+ * JS constant does not. It also ignored the panel's border. Measured, the first row aligned
+ * with its trigger in NONE of the six density x pointer cells, and "sits flush against its
+ * parent panel" was false everywhere: the child overlapped the parent by padding + border.
+ *
+ * Both offsets are one measurement — the parent panel's own top padding and border, read at
+ * position time, so density changes track live rather than at next mount. Read off the DOM
+ * instead of parsing the token, because the padding is `max(--menu-p, ring reach)` and
+ * re-deriving that here would be the audits' own lesson (a law, or a constant, that
+ * reconstructs the author's arithmetic is one indirection short of the thing that can be
+ * wrong). Base UI evaluates the function form on every position pass.
+ */
+const panelSeam = (trigger: HTMLElement | null): number => {
+  const panel = trigger?.closest<HTMLElement>(".kui-menu-popup");
+  if (!panel) return 0;
+  const cs = getComputedStyle(panel);
+  return parseFloat(cs.paddingTop) + parseFloat(cs.borderTopWidth);
+};
 
 /* ── Size context: the menu answers `size` like Button (Kushagra, 2026-08-09 — a size-4
       button must not open a size-2 dropdown). One provider on the root; every row stamps
@@ -490,6 +510,11 @@ export function MenuRadioItem({ trailing, children, className, ...props }: MenuR
 
 /* ── Submenus ─────────────────────────────────────────────────────────────────────────── */
 
+/** The submenu's own trigger — the anchor whose panel the seam is measured from. */
+const MenuSubTriggerContext = React.createContext<React.RefObject<HTMLElement | null> | null>(
+  null,
+);
+
 export type MenuSubProps = {
   open?: boolean;
   defaultOpen?: boolean;
@@ -498,7 +523,9 @@ export type MenuSubProps = {
 };
 
 export function MenuSub({ open, defaultOpen, onOpenChange, children }: MenuSubProps) {
+  const triggerRef = React.useRef<HTMLElement | null>(null);
   return (
+    <MenuSubTriggerContext.Provider value={triggerRef}>
     <BaseMenu.SubmenuRoot
       {...(open !== undefined ? { open } : {})}
       {...(defaultOpen !== undefined ? { defaultOpen } : {})}
@@ -506,6 +533,7 @@ export function MenuSub({ open, defaultOpen, onOpenChange, children }: MenuSubPr
     >
       {children}
     </BaseMenu.SubmenuRoot>
+    </MenuSubTriggerContext.Provider>
   );
 }
 
@@ -522,11 +550,22 @@ export type MenuSubTriggerProps = {
 /** A row that opens a child menu. The chevron is the row's own statement (trailing slot,
     the icon box prices it); while the child is open the row stays lit via
     [data-popup-open] — the shared row rule, not a menu-specific one. */
-export function MenuSubTrigger({ leading, children, className, ...props }: MenuSubTriggerProps) {
+export function MenuSubTrigger({
+  leading,
+  children,
+  className,
+  ref,
+  ...props
+}: MenuSubTriggerProps) {
+  // The child panel measures its seam from the panel this row sits in (§22).
+  const captured = React.use(MenuSubTriggerContext);
   return (
     <BaseMenu.SubmenuTrigger
       {...rowProps(React.use(MenuSizeContext), undefined, "kui-menu-item", className)}
       {...props}
+      ref={mergeRefs(ref, (node: HTMLElement | null) => {
+        if (captured) captured.current = node;
+      })}
     >
       {slot(leading, "leading")}
       {children}
@@ -562,10 +601,14 @@ export type MenuSubContentProps = {
 /** The child panel. No positioning props on purpose: a submenu's geometry is the system's
     (opens outward, first row aligned with its trigger), not a call-site choice. */
 export function MenuSubContent({ material = "solid", children, className, style, ref }: MenuSubContentProps) {
+  const trigger = React.use(MenuSubTriggerContext);
+  // One measurement, both axes: flush against the parent PANEL (not against the row, which
+  // sits inside the panel's padding), and the child's first row level with the trigger row.
+  const seam = () => panelSeam(trigger?.current ?? null);
   return (
     <BaseMenu.Portal>
       <PortalScope>
-        <BaseMenu.Positioner sideOffset={0} alignOffset={SUB_ALIGN_OFFSET}>
+        <BaseMenu.Positioner sideOffset={seam} alignOffset={() => -seam()}>
           <BaseMenu.Popup
             {...popupProps(material, false, className)}
             {...(style !== undefined ? { style } : {})}
