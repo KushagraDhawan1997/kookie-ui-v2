@@ -58,6 +58,42 @@ const warnOnBodyMount = (node: HTMLElement | null) => {
         "theme on an element inside <body> instead.",
     );
   }
+  warnOnFramedAncestor(node);
+};
+
+/**
+ * §20's SECOND unsurvivable placement (added 2026-08-09, audit).
+ *
+ * `isolation: isolate` makes the outermost `.kui-theme` a stacking context whose own
+ * `z-index` is `auto` — it paints at step 8. An ancestor that is positioned with a POSITIVE
+ * z-index paints at step 9, and step 9 beats step 8 regardless of DOM order, so a
+ * body-level portal lands underneath app content: exactly the failure the frame exists to
+ * prevent, and the frame cannot see it, because a stacking context says nothing about where
+ * it paints among its own siblings.
+ *
+ * CSS cannot fix it — the frame cannot reach outside itself — so the answer is the same one
+ * §20 already gives the body case: a dev-build warning at the one moment the shape is
+ * visible. Measured boundary, and the warning matches it exactly: `z-index: 1+` inverts;
+ * `z-index: 0` does NOT (the shell becomes a stacking context at step 8 too and loses on DOM
+ * order, so Tailwind's `z-0` is safe), and neither does a stacking context created without a
+ * z-index (`isolation`, `transform`, `opacity`). Warning on those would be noise, and a
+ * warning that cries wolf is one nobody reads.
+ */
+const warnOnFramedAncestor = (node: HTMLElement) => {
+  // Only the frame itself: a nested Theme is not the stacking context and has no claim.
+  if (!node.matches?.(".kui-theme:not(.kui-theme *)")) return;
+  for (let el: HTMLElement | null = node; el && el !== document.body; el = el.parentElement) {
+    const cs = getComputedStyle(el);
+    const z = Number.parseInt(cs.zIndex, 10);
+    if (cs.position === "static" || !Number.isFinite(z) || z <= 0) continue;
+    console.warn(
+      `[kookie-ui] <Theme> sits inside a positioned element with z-index: ${z} ` +
+        `(<${el.tagName.toLowerCase()}>). The stacking frame cannot lift portalled popups ` +
+        "above it — they will paint underneath app content (§20). Remove the z-index, or " +
+        "set it to 0, or move the Theme outside that element.",
+    );
+    return;
+  }
 };
 
 type Resolved = Required<

@@ -202,6 +202,58 @@ describe("the stacking frame (§20)", () => {
     }
   });
 
+  /* §20's SECOND unsurvivable placement (audit 2026-08-09). `isolation: isolate` gives the
+     outermost theme a z-index of `auto`, so it paints at step 8; a positioned ancestor with a
+     POSITIVE z-index paints at step 9 and wins regardless of DOM order, putting every
+     portalled popup underneath app content. CSS cannot reach outside the frame, so the answer
+     is detection — and the warning has to match the measured boundary exactly, or it is noise:
+     z-index 0 does NOT invert the frame (the shell lands at step 8 too and loses on DOM
+     order), and neither does a stacking context created without a z-index. Falsified by
+     deleting the `warnOnFramedAncestor` call. */
+  it("warns when a positioned ancestor with z-index kills the frame (§20)", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const framed = (c: unknown[][]) => c.filter((x) => String(x[0]).includes("stacking frame"));
+    try {
+      render(
+        <div style={{ position: "relative", zIndex: 10 }}>
+          <Theme />
+        </div>,
+      );
+      expect(framed(warn.mock.calls).length, "z-index: 10 must warn").toBe(1);
+
+      // The shapes that are SAFE, each measured before being exempted. A warning that fires
+      // on `z-0` or on any stacking context would be ignored within a week.
+      for (const [label, style] of [
+        ["z-index: 0", { position: "relative", zIndex: 0 }],
+        ["bare relative", { position: "relative" }],
+        ["isolate", { isolation: "isolate" }],
+        ["transform", { transform: "translateZ(0)" }],
+        ["static with z-index", { zIndex: 10 }],
+      ] as const) {
+        warn.mockClear();
+        render(
+          <div style={style as React.CSSProperties}>
+            <Theme />
+          </div>,
+        );
+        expect(framed(warn.mock.calls), `${label} must stay silent`).toEqual([]);
+      }
+
+      // A NESTED theme has no claim on the frame — only the outermost one is the context.
+      warn.mockClear();
+      render(
+        <Theme>
+          <div style={{ position: "relative", zIndex: 10 }}>
+            <Theme />
+          </div>
+        </Theme>,
+      );
+      expect(framed(warn.mock.calls), "a nested theme is not the frame").toEqual([]);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   it("the frame does not trap position:fixed — a fixed child stays viewport-positioned", () => {
     let fixed: HTMLElement | null = null;
     render(
