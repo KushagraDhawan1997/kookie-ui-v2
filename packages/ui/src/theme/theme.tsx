@@ -84,11 +84,28 @@ const DEFAULTS: Resolved = {
  * as `:not([data-contrast="normal"])`, which only works if an unconfigured Theme stamps no
  * attribute at all — so the flag decides whether the attribute is written (§7).
  */
-type Ctx = Resolved & { contrastSet: boolean };
+type Ctx = Resolved & { contrastSet: boolean; rooted: boolean };
 
-const ThemeContext = React.createContext<Ctx>({ ...DEFAULTS, contrastSet: false });
+const ThemeContext = React.createContext<Ctx>({ ...DEFAULTS, contrastSet: false, rooted: false });
 
 export const useTheme = (): Resolved => React.use(ThemeContext);
+
+/**
+ * Is there a real `<Theme>` above this point? (§20, added 2026-08-09.)
+ *
+ * `useTheme()` cannot answer it: the default context is a full `Resolved` set, so an
+ * un-themed tree and a tree under `<Theme appearance="light">` are indistinguishable — which
+ * is exactly what made the portal wrapper a defect. A wrapper that re-stamps every axis is
+ * right when a React Theme chose those axes and wrong when nobody did, because the axes are
+ * then carried on the DOM (`<html data-appearance="dark">`, the standalone path the emitted
+ * stylesheet promises and `card.browser.test.tsx` law-enforces) and `<html>` is an ancestor
+ * of the portal's landing spot already. Measured before the fix: a dark, elevated, compact
+ * document opened a white, flat, default-density menu.
+ *
+ * Not exported from the package: a consumer has no use for it, and the question it answers is
+ * about our own portalling, not about the theme.
+ */
+export const useThemeRooted = (): boolean => React.use(ThemeContext).rooted;
 
 /**
  * Scopes the design tokens (§5). Nestable, and inherits every prop it is not given, which is
@@ -141,7 +158,10 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
 
   const contrastSet = props.contrast !== undefined || parent.contrastSet;
 
-  const ctx = React.useMemo<Ctx>(() => ({ ...resolved, contrastSet }), [resolved, contrastSet]);
+  const ctx = React.useMemo<Ctx>(
+    () => ({ ...resolved, contrastSet, rooted: true }),
+    [resolved, contrastSet],
+  );
 
   // `inherit` means "whatever the nearest ancestor resolved to", so it emits no attribute of
   // its own and lets the outer scope keep applying.

@@ -150,6 +150,50 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
     expect(surfaceFacts(bare.popupTwin)).not.toEqual(surfaceFacts(popupTwin));
   });
 
+  /* The UN-THEMED path (§20, audit 2026-08-09): axes carried on the DOM, no React <Theme>
+     anywhere — the standalone path the emitted stylesheet promises and card.browser.test.tsx
+     already law-enforces. The wrapper used to re-stamp its context DEFAULTS here, and could
+     not tell "nobody chose an appearance" from "someone chose light": measured, a dark
+     document opened a white menu. Falsified by making PortalScope render <Theme> always. */
+  it("a document that stamps its axes on <html> opens a menu that agrees (§20)", () => {
+    document.documentElement.setAttribute("data-appearance", "dark");
+    document.documentElement.setAttribute("data-surfaces", "elevated");
+    document.documentElement.setAttribute("data-density", "compact");
+    try {
+      // No <Theme> in the tree at all — the whole point.
+      render(
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>Open</Button>} />
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+          </MenuContent>
+        </Menu>,
+      );
+      const popups = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
+      const popup = popups[popups.length - 1];
+      if (!popup) throw new Error("the popup never mounted");
+      const row = popup.querySelector<HTMLElement>(".kui-menu-item");
+      if (!row) throw new Error("no row");
+
+      // The in-flow twin under the SAME document stamps — no Theme on either side.
+      let cardEl: HTMLElement | null = null;
+      render(<Card ref={(n: HTMLDivElement | null) => void (cardEl = n)}>plain</Card>);
+      const card = cardEl as HTMLElement | null;
+      if (!card) throw new Error("card twin never mounted");
+
+      // Dark: the popup's seal is the document's, not the default context's white.
+      expect(computed(popup, "background-color")).toBe(computed(card, "background-color"));
+      // Elevated: the floating cast is the elevated row, not the flat fade.
+      expect(computed(popup, "box-shadow")).not.toBe("none");
+      // Compact: the row takes the document's density cell, not `default`.
+      expect(computed(row, "min-height")).toBe(tokenOn(popup, "--control-height-2"));
+      expect(computed(row, "min-height")).toBe(tokenOn(card, "--control-height-2"));
+    } finally {
+      document.documentElement.removeAttribute("data-surfaces");
+      document.documentElement.removeAttribute("data-density");
+    }
+  });
+
   it("carries contrast=high through the portal", () => {
     const { popup } = openMenu({ appearance: "light", contrast: "high" });
     const { popupTwin } = twin({ appearance: "light", contrast: "high" });
