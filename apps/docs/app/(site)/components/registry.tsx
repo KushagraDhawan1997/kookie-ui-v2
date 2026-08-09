@@ -454,9 +454,18 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "on the root, like Button and Menu — the trigger and its option rows price from one index" },
       { name: "material (Content)", values: "solid | thin | regular | thick", note: "Card's own prop: opaque by default, glass opt-in — a glass panel still casts the floating chrome" },
+      { name: "material (Trigger)", values: "solid | thin | regular | thick", note: "the field family's own opt-in, stamped here rather than inherited: membership delivers the glass RULES, and something still has to stamp the attribute they read — without it a form over a photograph put translucent TextFields beside an opaque dropdown" },
       { name: "items", values: "Record<value, label>", note: "value → label for the CLOSED trigger: Base UI resolves labels from mounted options, and a panel that never opened has none — pass it whenever a defaultValue can paint first" },
     ],
     refusals: [
+      {
+        name: "readOnly",
+        why: "Researched, not undesigned: HTML states `readonly` does not apply to `<select>`, so there is no native appearance to inherit and no expectation to meet. It shipped accepted for a day — Base UI refused to open while this system drew nothing at all, byte-identical to a live trigger including the hand cursor, while assistive technology was correctly told it was read-only. A value that must submit but cannot change is a disabled trigger beside a hidden input, or the value rendered as Text.",
+      },
+      {
+        name: "a Separator inside the panel",
+        why: "The panel IS the listbox, and a listbox may contain only options and groups — a separator in it is markup an accessibility scan reports as a violation, from library markup a consumer cannot fix. Radix and shadcn keep theirs by making it aria-hidden; Separator already refused `decorative` on the stance that a rule hiding from assistive technology is a styled Box, so the same rule cannot return through this door. Groups divide options in the accessibility tree as well as on screen.",
+      },
       {
         name: "emphasis / tone on the trigger",
         why: "A form control does not rank and does not editorialize — the TextField sentence: loudness orders actions, and a form where one field shouts is a form pointing at itself.",
@@ -483,7 +492,7 @@ export const ENTRIES: Entry[] = [
         { part: "SelectContent", blurb: "The floating panel: portals, positions, re-applies the theme (§20) and wears the surface identity, always floored at its trigger's width" },
         { part: "SelectItem", blurb: "One option row — the row family's member; its mounted indicator reserves the gutter and wears the accent solid when chosen" },
         { part: "SelectGroup", blurb: "Groups option rows so a label can name them; wires the group's accessible name automatically" },
-        { part: "SelectLabel", blurb: "A heading for option rows: the row skeleton for alignment with the control-ness stood down — legal in a group and on its own" },
+        { part: "SelectLabel", blurb: "A heading for option rows: the row skeleton gives it the same inset every row has, with the control-ness stood down — legal in a group and on its own. It sits OUT-dented from the option text below it by the width of the tick's reserved gutter, which is macOS's own posture and deliberate" },
     ],
     example: (
       <Select defaultValue="banana" items={{ apple: "Apple", banana: "Banana", carrot: "Carrot", leek: "Leek" }}>

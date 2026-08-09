@@ -37,14 +37,14 @@ const SIDE_OFFSET = 4;
  * 2026-08-09).
  *
  * It shipped as a hardcoded -4, with a comment saying it "must track `menuPadding`" — which
- * it cannot, because `--menu-p` is a layout-space pick that MOVES with density (2/4/8) and a
+ * it cannot, because `--floating-p` is a layout-space pick that MOVES with density (2/4/8) and a
  * JS constant does not. It also ignored the panel's border. Measured, the first row aligned
  * with its trigger in NONE of the six density x pointer cells, and "sits flush against its
  * parent panel" was false everywhere: the child overlapped the parent by padding + border.
  *
  * Both offsets are one measurement — the parent panel's own top padding and border, read at
  * position time, so density changes track live rather than at next mount. Read off the DOM
- * instead of parsing the token, because the padding is `max(--menu-p, ring reach)` and
+ * instead of parsing the token, because the padding is `max(--floating-p, ring reach)` and
  * re-deriving that here would be the audits' own lesson (a law, or a constant, that
  * reconstructs the author's arithmetic is one indirection short of the thing that can be
  * wrong). Base UI evaluates the function form on every position pass.
