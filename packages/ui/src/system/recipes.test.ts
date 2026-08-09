@@ -326,6 +326,19 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     expect(recipes.indexOf(checked)).toBeGreaterThan(recipes.indexOf('[data-emphasis="quiet"]'));
   });
 
+  it("the row stand-down sits AFTER the shared hover rule — it wins on order, not weight", () => {
+    // The comment here used to claim (0,4,0) over (0,3,0). It is a TIE: `:not()` takes the
+    // specificity of its most specific argument rather than summing its list, so both rules
+    // are (0,3,0) and the later one wins. The arithmetic was standing in for a guarantee
+    // nothing checked; this checks it. Anchored through indexOf on strings proven present,
+    // because a missing anchor would otherwise make the comparison pass at -1.
+    const shared = ".kui-control:hover:not([data-disabled], [data-loading])";
+    const rowDown = ".kui-row:hover:not([data-highlighted], [data-disabled], [data-loading])";
+    expect(recipes, "the shared hover rule is not where this law thinks").toContain(shared);
+    expect(recipes, "the row stand-down is not where this law thinks").toContain(rowDown);
+    expect(recipes.indexOf(rowDown)).toBeGreaterThan(recipes.indexOf(shared));
+  });
+
   it("rows opt out of raw hover, inside the one guard — the highlight is the single source", () => {
     // The stand-down must live INSIDE the (hover: hover) block: outside it, the rule would
     // repaint the rest fill on touch devices' synthesized hover, which is exactly the stuck

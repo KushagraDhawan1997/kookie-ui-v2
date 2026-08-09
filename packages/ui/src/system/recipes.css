@@ -774,10 +774,18 @@
 
   /* Rows opt OUT of raw hover (§21): their lit state is Base UI's data-highlighted — which
      pointer hover also sets — so this stands the shared rule above back down to the rest
-     fill on a row the highlight has left. Higher specificity on purpose: (0,4,0) beats the
-     shared (0,3,0), and the highlight rule outside this guard repaints [data-highlighted]
-     rows regardless. Keyboard-correct by construction: arrow away from a pointer-rested
-     row and it un-lights. */
+     fill on a row the highlight has left. Keyboard-correct by construction: arrow away from
+     a pointer-rested row and it un-lights.
+
+     It wins on SOURCE ORDER, not specificity (corrected 2026-08-09, audit; the comment here
+     and DECISIONS §21 both claimed "(0,4,0) beats the shared (0,3,0)"). `:not()` takes the
+     specificity of its most specific ARGUMENT — it does not sum its list — so
+     `.kui-control:hover:not([data-disabled], [data-loading])` and
+     `.kui-row:hover:not([data-highlighted], [data-disabled], [data-loading])` are BOTH
+     (0,3,0), a tie the later rule wins. That is a real mechanism and the same one the
+     checked rule uses one block up, but it is a fragile one to leave undocumented: moving
+     this rule above the shared one silently restores the two-cursor bug. A node law pins the
+     order, which is what the false arithmetic was standing in for. */
   .kui-row:hover:not([data-highlighted], [data-disabled], [data-loading]) {
     background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
   }
