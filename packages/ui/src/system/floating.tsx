@@ -24,25 +24,73 @@ export type FloatingDirection = {
   measure: (node: HTMLElement | null) => void;
 };
 
+/** The attributes a direction change can arrive on. `dir` is the platform's own spelling and
+    `lang` rides with it in every i18n library's switch, so observing both costs nothing and
+    catches the idiom as it is actually written. */
+const DIRECTION_ATTRS = ["dir", "lang", "style", "class"];
+
 export const FloatingDirectionContext = React.createContext<FloatingDirection>({
   direction: "ltr",
   measure: () => {},
 });
 
 /**
- * The root half of the direction mechanism (§20): one measurement, taken in a ref callback
- * at commit, feeding both layers. The trigger's computed direction IS the ambient one —
- * the same read whether the app spelled it `dir` on an ancestor or `direction` in CSS,
- * which an attribute-only check would get wrong. LTR apps never see a state change, and
- * the server renders the ltr branch the client's first render also produces.
+ * The root half of the direction mechanism (§20): the trigger's computed direction IS the
+ * ambient one — the same read whether the app spelled it `dir` on an ancestor or `direction`
+ * in CSS, which an attribute-only check would get wrong. LTR apps never see a state change,
+ * and the server renders the ltr branch the client's first render also produces.
+ *
+ * It KEEPS measuring (fixed 2026-08-09, audit). One measurement in the ref callback is taken
+ * at commit, and every library that switches language at runtime — the whole react-i18next /
+ * next-intl idiom — sets `document.documentElement.dir` in an EFFECT, which runs strictly
+ * after the render that would have re-measured. So the one read landed before the change and
+ * never happened again: measured, a page switched to Arabic in place opened its panel at
+ * 534-672px where the correct answer was 339-600px, mirrored trigger and un-mirrored panel,
+ * and it did not recover on close and reopen. Worse than doing nothing, because the stale
+ * `dir` the wrapper stamps OVERRIDES the document direction that portalled content would
+ * otherwise have inherited correctly — removing the stamp from a stale panel fixed it
+ * instantly, which is what proved the stamp was the thing that was wrong.
+ *
+ * A MutationObserver on the document element rather than a resize/interval poll: direction is
+ * an attribute change, so the platform already has the event. Scoped to the one element every
+ * such library writes to, and to the attributes a direction change can ride on, so an app that
+ * never changes direction pays one observer and zero callbacks.
  */
 export function useAmbientDirection(): FloatingDirection {
   const [direction, setDirection] = React.useState<TextDirection>("ltr");
-  const measure = React.useCallback((node: HTMLElement | null) => {
-    if (!node) return;
-    const ambient = getComputedStyle(node).direction === "rtl" ? "rtl" : "ltr";
+  const node = React.useRef<HTMLElement | null>(null);
+
+  const read = React.useCallback(() => {
+    const el = node.current;
+    if (!el) return;
+    const ambient = getComputedStyle(el).direction === "rtl" ? "rtl" : "ltr";
     setDirection((prev) => (prev === ambient ? prev : ambient));
   }, []);
+
+  const measure = React.useCallback(
+    (el: HTMLElement | null) => {
+      node.current = el;
+      read();
+    },
+    [read],
+  );
+
+  // Deliberately un-keyed: this runs after EVERY commit, which is what catches the direction
+  // being changed on an ancestor the component re-rendered under. `read` sets state only when
+  // the value actually differs, so a stable direction costs one style read and no re-render.
+  React.useEffect(read);
+
+  // And the observer catches the other half — a direction change with no React render at all,
+  // which is the common case (a language switcher writing to <html> outside the tree).
+  React.useEffect(() => {
+    const observer = new MutationObserver(read);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: DIRECTION_ATTRS,
+    });
+    return () => observer.disconnect();
+  }, [read]);
+
   return React.useMemo<FloatingDirection>(() => ({ direction, measure }), [direction, measure]);
 }
 
