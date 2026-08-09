@@ -526,6 +526,18 @@
      the skeleton's min-height/padding-block on source order, the family's own mechanism. */
   min-height: auto;
   padding-block: calc(var(--kui-ct-row-inset) - var(--border-width));
+  /* A row is `inline-size: 100%` of a panel that is itself capped at the room the positioner
+     reports, and until this line nothing stopped its CONTENT from being wider than both
+     (audit 2026-08-09). Ordinary text wraps and is fine; one unbreakable run — an address, a
+     path, an id, a url — has no break opportunity, so it pushed past the row's own box, gave
+     the panel a horizontal scrollbar, and left every row's painted fill at the panel's width:
+     measured 90px of overflow in a 220px panel, and once scrolled, the highlighted row's
+     background, corner and focus ring all stopped short of the words they were highlighting.
+     `anywhere` rather than `break-word` because only `anywhere` also shrinks the row's
+     min-content contribution, which is what keeps the PANEL from being widened by the same
+     string before the cap can bite. Lossless: the text still reads, on as many lines as it
+     needs, which is what a row that does not ride the height ladder can afford. */
+  overflow-wrap: anywhere;
 }
 
 /* A shortcut hint or chevron sits at the far edge, not beside the label — the row's own
@@ -604,6 +616,7 @@
   --kui-ct-icon: var(--icon-size-1);
   --kui-ct-slot-inset: var(--slot-inset-1);
   --kui-ct-row-inset: var(--row-inset-1);
+  --kui-ct-row-radius: var(--radius-row-1);
   --kui-ct-mark: var(--mark-1);
   --kui-ct-mark-radius: var(--radius-mark-1);
   --kui-ct-track: var(--slider-track-1);
@@ -622,6 +635,7 @@
   --kui-ct-icon: var(--icon-size-2);
   --kui-ct-slot-inset: var(--slot-inset-2);
   --kui-ct-row-inset: var(--row-inset-2);
+  --kui-ct-row-radius: var(--radius-row-2);
   --kui-ct-mark: var(--mark-2);
   --kui-ct-mark-radius: var(--radius-mark-2);
   --kui-ct-track: var(--slider-track-2);
@@ -640,6 +654,7 @@
   --kui-ct-icon: var(--icon-size-3);
   --kui-ct-slot-inset: var(--slot-inset-3);
   --kui-ct-row-inset: var(--row-inset-3);
+  --kui-ct-row-radius: var(--radius-row-3);
   --kui-ct-mark: var(--mark-3);
   --kui-ct-mark-radius: var(--radius-mark-3);
   --kui-ct-track: var(--slider-track-3);
@@ -658,6 +673,7 @@
   --kui-ct-icon: var(--icon-size-4);
   --kui-ct-slot-inset: var(--slot-inset-4);
   --kui-ct-row-inset: var(--row-inset-4);
+  --kui-ct-row-radius: var(--radius-row-4);
   --kui-ct-mark: var(--mark-4);
   --kui-ct-mark-radius: var(--radius-mark-4);
   --kui-ct-track: var(--slider-track-4);
@@ -676,6 +692,18 @@
    with the band rather than papered over by a bespoke coarse ladder). */
 .kui-control.kui-switch {
   --kui-ct-mark: var(--kui-ct-mark-up);
+}
+
+/* And the row family consumes ITS entry, for the same reason and in the same place (§6, §21,
+   audit 2026-08-09). A row left the height ladder, so `--radius-control-N` — which at
+   `radius="full"` states half `--control-height-N` — was handing it half a box it does not
+   have: 18/20/24/28 declared onto rows that can only paint 12/14/17/19, and the floating
+   panel's concentric corner (row corner + panel padding) inherited the whole error in 21 of
+   24 cells. `--radius-row-N` is the identity at every other level, so nothing but `full`
+   moves. Stated after the join and at (0,2,0) for the switch's reason exactly: the join
+   declares --kui-ct-radius at the same specificity, and this wins the tie on source order. */
+.kui-control.kui-row {
+  --kui-ct-radius: var(--kui-ct-row-radius);
 }
 
 /* ── The emphasis ladder: loudness, not construction (§9) ────────────────────────────────── */
