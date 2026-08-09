@@ -54,3 +54,12 @@
 .kui-menu-item > [data-slot][data-unchecked] {
   visibility: hidden;
 }
+
+/* The chevron points the way the menu opens, and a submenu opens toward the inline END —
+   so under RTL it opens LEFT and a rightward glyph lies (§20, 2026-08-09). Mirrored rather
+   than re-drawn: one path, one transform, and the affordance stays the same shape. The
+   ancestor form works because the portal's landing spot always states its direction; nothing
+   else in a row is mirrored, because nothing else in a row is directional. */
+[dir="rtl"] .kui-menu-chevron {
+  transform: scaleX(-1);
+}

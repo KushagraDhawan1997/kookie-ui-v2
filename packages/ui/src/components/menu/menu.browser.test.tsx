@@ -581,6 +581,126 @@ describe("behavior: the platform's menu, not a styled div", () => {
   });
 });
 
+/* ── Direction (§20) ──────────────────────────────────────────────────────────────────── */
+
+describe("direction crosses the portal, in both layers (§20)", () => {
+  /** Mount inside an RTL subtree — the mixed-direction shape, where CSS direction does NOT
+      reach a body-level portal on its own. */
+  function inRtlSubtree(ui: React.ReactNode) {
+    const host = render(
+      <Theme>
+        <div dir="rtl">{ui}</div>
+      </Theme>,
+    );
+    const popups = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
+    const popup = popups[popups.length - 1];
+    if (!popup) throw new Error("the popup never mounted");
+    return { host, popup };
+  }
+
+  it("a portalled panel takes its author's direction, not the document's (§20)", () => {
+    const { host, popup } = inRtlSubtree(
+      <Menu defaultOpen>
+        <MenuTrigger render={<Button>Open</Button>} />
+        <MenuContent>
+          <MenuItem trailing={<span>⌘D</span>}>Duplicate</MenuItem>
+        </MenuContent>
+      </Menu>,
+    );
+    // Calibration: the app really is RTL, and the document really is not — without both,
+    // the assertion below could pass for the wrong reason.
+    expect(computed(host.querySelector("div[dir]")!, "direction")).toBe("rtl");
+    expect(computed(document.body, "direction")).toBe("ltr");
+
+    expect(computed(popup, "direction")).toBe("rtl");
+    // And the row's trailing slot moved to the physical LEFT — the margin is logical, so
+    // this is the mirroring actually arriving rather than the attribute merely being set.
+    const row = popup.querySelector<HTMLElement>(".kui-menu-item")!;
+    const trailing = row.querySelector<HTMLElement>('[data-slot="trailing"]')!;
+    const rowBox = row.getBoundingClientRect();
+    const slotBox = trailing.getBoundingClientRect();
+    expect(slotBox.left - rowBox.left).toBeLessThan(rowBox.width / 2);
+  });
+
+  it("an LTR app is unmoved — the trailing slot stays at the physical right", () => {
+    const { popup } = openMenu({}, <MenuItem trailing={<span>⌘D</span>}>Duplicate</MenuItem>);
+    expect(computed(popup, "direction")).toBe("ltr");
+    const row = popup.querySelector<HTMLElement>(".kui-menu-item")!;
+    const trailing = row.querySelector<HTMLElement>('[data-slot="trailing"]')!;
+    const rowBox = row.getBoundingClientRect();
+    const slotBox = trailing.getBoundingClientRect();
+    expect(slotBox.left - rowBox.left).toBeGreaterThan(rowBox.width / 2);
+  });
+
+  it("the chevron points the way the submenu opens", () => {
+    const { popup } = inRtlSubtree(
+      <Menu defaultOpen>
+        <MenuTrigger render={<Button>Open</Button>} />
+        <MenuContent>
+          <MenuSub>
+            <MenuSubTrigger>Export as</MenuSubTrigger>
+            <MenuSubContent>
+              <MenuItem>PNG</MenuItem>
+            </MenuSubContent>
+          </MenuSub>
+        </MenuContent>
+      </Menu>,
+    );
+    const chevron = popup.querySelector<HTMLElement>(".kui-menu-chevron");
+    if (!chevron) throw new Error("chevron missing");
+    // A mirrored glyph, not a re-drawn one: the transform is the whole mechanism.
+    expect(computed(chevron, "transform")).toBe("matrix(-1, 0, 0, 1, 0, 0)");
+    // The LTR control leaves it alone.
+    const { popup: ltr } = openMenu({}, (
+      <MenuSub>
+        <MenuSubTrigger>Export as</MenuSubTrigger>
+        <MenuSubContent>
+          <MenuItem>PNG</MenuItem>
+        </MenuSubContent>
+      </MenuSub>
+    ));
+    expect(computed(ltr.querySelector(".kui-menu-chevron")!, "transform")).toBe("none");
+  });
+
+  it("a submenu opens toward the inline end — leftward under RTL (§20)", async () => {
+    async function sides(dir: "ltr" | "rtl") {
+      const host = render(
+        <Theme>
+          <div dir={dir} style={{ display: "flex", justifyContent: "center" }}>
+            <Menu defaultOpen>
+              <MenuTrigger render={<Button>Open</Button>} />
+              <MenuContent>
+                <MenuSub defaultOpen>
+                  <MenuSubTrigger>Export as</MenuSubTrigger>
+                  <MenuSubContent>
+                    <MenuItem>PNG</MenuItem>
+                  </MenuSubContent>
+                </MenuSub>
+              </MenuContent>
+            </Menu>
+          </div>
+        </Theme>,
+      );
+      // The settled-frame lesson: Base UI positions after first layout, and the direction
+      // itself lands one commit late (it is measured off the trigger).
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await new Promise((r) => setTimeout(r, 60));
+      const panels = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")];
+      if (panels.length < 2) throw new Error(`${dir}: the child panel never mounted`);
+      const [parent, child] = panels.slice(-2) as [HTMLElement, HTMLElement];
+      return { host, parent: parent.getBoundingClientRect(), child: child.getBoundingClientRect() };
+    }
+
+    const ltr = await sides("ltr");
+    expect(ltr.child.left, "ltr: the child opens to the right").toBeGreaterThan(ltr.parent.left);
+
+    const rtl = await sides("rtl");
+    // Before DirectionProvider was rendered, this measured child.left 875 against
+    // parent.right 880 — the same rightward open as LTR, overlapping the parent panel.
+    expect(rtl.child.left, "rtl: the child opens to the left").toBeLessThan(rtl.parent.left);
+  });
+});
+
 /* ── Group semantics ──────────────────────────────────────────────────────────────────── */
 
 describe("groups and labels: the wiring is Base UI's, the dress is the row's", () => {
