@@ -10,8 +10,17 @@
      larger fraction of it — the fraction wall's shape, caught at the eye pass this time.
      surface-1 is also the concentric answer: row corner (~6) + panel padding (4) ≈ 10. */
   --kui-sf-radius: var(--radius-surface-1);
-  /* One designed padding (§22) — the panel does not answer the size index, its rows do. */
-  --kui-sf-p: var(--menu-p);
+  /* One designed padding (§22) — the panel does not answer the size index, its rows do —
+     FLOORED at the focus ring's own reach (§8, audit 2026-08-09). `overflow-y: auto` below
+     makes this panel a scroll container, which clips descendant ink at the PADDING box in
+     both axes, and the ring a row paints reaches `width + offset` outside its border box. At
+     compact density --menu-p is 2px against a 4px reach, so the ring's vertical sides never
+     painted on any row and the first and last rows also lost their outer band; default sat
+     at exactly 0px of slack, which is a coincidence rather than a clearance. The floor moves
+     only the compact cell (2 -> 4) and buys default a real one. Stated as the ring's own
+     tokens, not as a number, so re-tuning the ring cannot silently re-break the panel. */
+  --kui-menu-pad: max(var(--menu-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+  --kui-sf-p: var(--kui-menu-pad);
   /* Never narrower than the designed floor (§22). */
   min-width: var(--menu-min-w);
   /* Long menus scroll inside the panel; the positioner reports the room that is left. */
@@ -38,8 +47,8 @@
    rename existing vocabulary). Full-bleed, because a rule that stops at the panel's
    padding reads as a broken border: the panel's own interior layout, not outer spacing. */
 .kui-menu-popup > .kui-separator {
-  margin-block: var(--menu-p);
-  margin-inline: calc(-1 * var(--menu-p));
+  margin-block: var(--kui-menu-pad);
+  margin-inline: calc(-1 * var(--kui-menu-pad));
 }
 
 /* A group label reads, it does not act: the row skeleton gave it the grid (gutter, type
