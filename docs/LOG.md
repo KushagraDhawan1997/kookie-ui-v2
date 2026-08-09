@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-09 Motion reaches the control layer, and the press keeps its 2026-08-03 finding by splitting it
+
+Menu's exit stays open (entry below); everything else moved. Button, checkbox, radio, switch, the fields and the shared skeleton, for **+506 bytes gzipped** — the whole control layer, because the clock is stated once and each family says only how far it moves.
+
+**The finding that zeroed motion for six days is intact, and the two clocks are what saved it.** An eased press never reaches its colour inside a ~60ms tap, so the control reads dead on a phone. The resolution is not a compromise: a press's PAINT is instant, exactly as that finding demands, and only its GEOMETRY rides a spring. `--kui-ct-paint` is one variable every control reads — hover shortens it, press sets it to zero — so a state can restate the clock without restating which properties are paint. A tap gets its colour on the first frame and its travel is a physical fact underneath.
+
+**Three things the pass forced structurally, each caught by a law rather than by eye.**
+
+*The switch thumb had to be drawn by both its edges.* `inset-inline-end: auto` cannot be animated to, so a thumb pinned by one edge could only ever teleport. Both ends are lengths now, and the lean it takes while held lives in those same two properties — which is principle 4 made mechanical: deformation sharing the travel's channels cannot sequence after it. `aspect-ratio: 1` came off with them: the four insets close the square by construction, and left in place it silently outranked the lean, so the grip could not stretch at all. Its own law caught that — it stretched the thumb and measured no stretch. The corner went from `50%` to a stated half-height at the same time, because 50% of a leaning (non-square) box is an ellipse.
+
+*A mark must not state a resting transform.* `scale: 1` looks like harmless symmetry with Button's, and any non-`none` transform value makes the element a containing block AND a stacking context — so every mark became one, and a later sibling's target expander began painting over an earlier sibling's paint. That is exactly the hit-test the 12px stacking rule exists to prevent (§16), and **five laws failed at once**. Button states its identity and a mark does not; `none` interpolates as the identity anyway, so the squash still springs and the stacking context exists only while the mark is actually held.
+
+*And the harness had to learn stillness.* The moment states became eased, six appearance laws started reading the first frame of a transition instead of the value they name — the colour a hover is leaving, not the one it is arriving at. Nothing about those laws was wrong; they were reading a moving thing at a moment they never chose. So the harness holds the page still by default and a law that is ABOUT motion calls `inMotion()`. That default immediately proved itself twice: three motion-as-content laws (Spinner, indeterminate Progress) had to announce themselves, which is the right shape — and my own new switch-shape law failed until I took `inMotion()` OFF it, because with the clock live a `getBoundingClientRect` right after a change returns the animated value, not the target. **The same instrument error, three times in one session, in both directions.**
+
+**Judged calls worth keeping.** The ring lands only where it answers something — after a Tab the eye must FIND focus; after a click it already knows, so that would be decoration. `:focus-visible` draws the line for free everywhere except text inputs, where browsers match it on click too, so those are named out by element. Glyphs draw IN and never OUT: nobody watches a tick un-draw, and watching a deselected radio deflate puts the eye on what was just abandoned. Hover warms in 80ms and cools in 220 — arriving is something the user did, leaving is something they stopped doing.
+
+**Fifteen sabotage passes, fourteen caught first time.** The one that got through is worth recording: the law asking whether a transition channel names a motion token passed `scale 150ms var(--motion-spring-stiff)`, because the channel does name one — its EASING. A law that checks for the presence of a token is not checking the thing the token was supposed to replace; it strips the `var()` references first now and asserts nothing time-shaped survives.
+
+**Deliberately NOT shipped:** the hover LIFT and the button's shadow crossfade, both judged good in the lab. They need the flat/elevated shadow ruling that is still open (LOG), and a lift with no shadow to cast reads as nothing in a flat world. The lively spring stays unemitted for the same reason — its only judged consumer was that crossfade.
+
+---
+
 ## 2026-08-09 Motion ships, on Menu alone — and the exit is a dissolve, not the entry reversed
 
 The grammar was chosen and judged in a scratch demo (entry below this one). What was still open was whether it survives the real component, where Base UI owns the popup's position and lifecycle. It does. Built as a throwaway route first — `apps/docs/app/motion-lab`, the real `<Menu>` three times over with three different exits and nothing else different — on Kushagra's own instruction: *"do it in a way where its easy to reject and experiment, like a sandbox, and when lock down how it works, we can then do it correct way."*
@@ -28,6 +50,12 @@ The no-offset spelling that followed was worse — Kushagra, on sight: *"It look
 
 **The seed wanted to be the trigger's own height and cannot be.** `--anchor-height` is exactly the right number — a menu's seed is its button, a submenu's is its row — and the positioner publishes it ASYNCHRONOUSLY, because floating-ui resolves a promise. On the frame the seed has to apply, the variable is unset; every rule reading it is invalid at computed-value time; and invalid does not mean "fall back to the cascade", it means the property takes its INITIAL value. Measured: the panel's corner collapsed to 0px. `--floating-seed` is a designed constant now, and that is the better answer anyway — a seed is not a small photograph of the trigger. At a menu's inception the shape it will take is unknown, which is the whole reason it is a circle.
 
+**And then the entry was still visibly wrong, with every static law green — because a property can be perfectly specified and still have nowhere to go.** Kushagra, on the third look: *"it starts at a certain width, left to the trigger, then it goes down and it shrinks, and then when it reaches the correct vertical position it expands again."*
+
+The inline channel was declared, listed in the transition, riding the spring — and `min-width: max(--floating-min-w, --anchor-width)` beat it outright. The seed frame stood the floor down; the frame after it did not, so the panel **snapped to 112px the instant the seed ended and stayed there for the whole entry**. Traced frame by frame: `w=40 → 112` in one step, then 112 for every remaining frame while only the height and the lean moved. What unfurled was a wide bar growing taller, which is precisely what it looked like. The floor means "a *settled* panel is never narrower than the trigger you pressed"; a panel mid-unfurl is deliberately narrower than everything, and is not settled — it is stood down for the whole flight now, and the flight is released on the LAST channel to land rather than the first.
+
+**The lesson is a new shape, and it is the 2026-08-03 lesson's other half.** That one said a law must read a computed value rather than a declaration. This one says a computed value read at ONE MOMENT is still not enough for anything that moves: at the seed frame the width was 40px and correct, at rest it was 112px and correct, and the entry between them was broken. Nothing that samples a single instant can tell a channel that travelled from one that was pinned at its destination. There is now one law in the file that watches real frames — click, sample across the whole entry, and assert both axes report more than two distinct sizes with no single frame covering a fifth of the distance. It is the only law here that could have caught this, and it caught the release-timing variant too.
+
 **Two defects found by writing the laws, both invisible to the eye and both real.**
 
 *The measurement started the animation backwards.* Reading `offsetWidth` flushes style, which makes whatever is computed at that instant the baseline the transition machinery compares against. Removing the seed attribute to measure, then putting it back, therefore read as seed → natural (a real change: the browser began animating the panel AWAY from its seed) and then natural → seed. The panel spent its first frames travelling the wrong way. Transitions are pinned off across the whole measurement window now, so both flushes are inert.
@@ -41,6 +69,20 @@ The no-offset spelling that followed was worse — Kushagra, on sight: *"It look
 **Cost: +887 bytes gzipped** (21,684 → 22,571) for the whole motion system — both curves, the floating family's durations, the seed, and Menu's entry and exit. The curves are most of it; they are large strings that gzip well, and they are the thing that was judged, so the sample counts are not trimmed to save bytes. Nine sabotage passes, each one caught by the law that names it. One law was passing vacuously — its default panel happened to land on a whole pixel, so the subpixel claim was never tested — and now picks the cell where the rounding actually broke a row, with a calibration assertion that fails if that cell ever stops having a fraction to lose.
 
 **Left open on purpose:** every other component. The grammar is settled and the tokens exist; what a switch's thumb, a button's press or a field's focus do with it are transcriptions of recipes already judged in the lab, but they are eye-pass work. Select is nearest and deliberately gets nothing today — it wears `kui-floating`, so the machinery is one line away, but a select opening is a different gesture from a menu opening and has not been judged.
+
+---
+
+## 2026-08-09 The house style gets written down — five references, seven rules
+
+Kushagra, with five screenshots: *"The real screens have a type hierarchy problem too. See these, I want this vibe, and lets record it somewhere."* The set: Rauno Freiberg's site, Pangram Pangram's foundry pages, and two Awwwards boards.
+
+**Why record it at all.** "Taste is the last layer" has been this project's rule since 2026-08-04, and it was quietly being read as "taste is undefined". It is not — the references share one grammar, and two consecutive passes at the playground failed on the same points, which is what an unwritten brief produces. It is now DECISIONS §15, "Composition: the house style": seven rules, the reference set named so a later reader can look at the same thing. No law enforces it and none can; it is a brief, not a token.
+
+**The diagnosis it produced was one number.** The card titles were size 3 over a size-2 body — 16px over 14px, a ratio of 1.14. The references run 1.5–1.8× on a card and 3–4× on a page hero. 1.14 is not a hierarchy, it is a rounding error, and no amount of weight or colour fixes a ratio. Titles went to size 5 (1.43×) and the page's own heading to 7. **This is also the second time in one day that the answer to "make this rank higher" was a bigger step rather than a heavier face** — the same sentence that removed bold, arrived at from the opposite direction.
+
+**The device the screens were missing is the eyebrow.** Every reference puts a tiny quiet label above its big heading — "Winners", "Academy", "Update" — and it is not decoration: it names the KIND of thing, which is what frees the heading below to be a sentence ("Choose a plan.") instead of a label ("Plan"). Rejected on the way: uppercase and letterspacing on the eyebrow, which is the same idea wearing a costume — the ramp already has a bottom step and a faint ink role, and using them keeps it inside the system.
+
+**And meta left the prose.** "Roughly 2 minutes left · started 4 minutes ago" was a caption doing the work of a table. Facts now sit in labelled rows on hairlines — label left in medium, value right — which is Awwwards' course-card arrangement and reads as structure rather than as an aside.
 
 ---
 

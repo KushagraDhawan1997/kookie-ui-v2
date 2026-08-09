@@ -260,7 +260,7 @@ export function PreviewApp() {
             <Stack gap="8" pt="8">
               <Stack gap="6">
                 <Stack gap="3">
-                  <Heading size="7" render={<h1 />}>
+                  <Heading size="8" render={<h1 />}>
                     Playground
                   </Heading>
                   <Text size="3" emphasis="medium" render={<p />} style={{ maxWidth: "36rem" }}>
@@ -302,7 +302,7 @@ export function PreviewApp() {
                 <React.Fragment key={section.id}>
                   <Separator />
                   <Stack gap="6" render={<section id={section.id} />}>
-                    <Heading size="5" render={<h2 />}>
+                    <Heading size="6" render={<h2 />}>
                       {section.name}
                     </Heading>
                     {section.body}

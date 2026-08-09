@@ -19,15 +19,17 @@
  * 1. Ordinary call sites only. No colour is picked, no length is invented, nothing reaches
  *    past a prop the package ships. Where a fragment needs a distance it uses a layout Stack's
  *    gap, and where it needs a width it states one on a Box — the two escapes §3 sanctions.
- * 2. One type relationship, everywhere, and it is a LADDER of four steps — page 7, section 5,
- *    card title 3, body 2, caption 1 (2026-08-09, second taste pass). The first cut set both
- *    the page's section headings and the cards' titles at size 4, which is not a small
- *    inconsistency: a section and the cards inside it were the same size and the same weight,
- *    so the page had no structure above the card. Every step is now one level of nesting, and
- *    a card title at 16px over 14px body is the relationship the whole board is built on.
- * 2b. Nothing is bold. Semibold tops the ladder (§15, 2026-08-09) — headings say "heading" by
- *    size and the ink roles, not by weight, and a 700 face at 18px in a 24px card was the
- *    loudest thing on a page whose subject is restraint.
+ 2. The house style is DECISIONS §15's, not this file's — read it there. What it means here:
+ *    the ladder is page 8, showcase section 7, component section 6, card title 5, body 2,
+ *    caption and eyebrow 1, so a card title sits 1.43x over its own body and the page's own
+ *    heading sits 2.5x over that. Two passes got this wrong in the same direction: first a
+ *    section and the cards inside it were the same size, then the cards' titles were 1.14x
+ *    their body, which is a rounding error rather than a hierarchy.
+ * 2b. Every card opens with an EYEBROW — a size-1 quiet label naming the kind of thing that
+ *    follows — which is what lets the heading below be a sentence ("Delete this workspace?",
+ *    "Choose a plan.") instead of a label ("Plan"). It carries information or it is absent.
+ * 2c. Nothing is bold. Semibold tops the ladder (§15, 2026-08-09) — headings say "heading" by
+ *    size and the ink roles, never by weight.
  * 3. Real words. "Delete workspace" and "acme-production", never "Label" and "Item one".
  */
 import * as React from "react";
@@ -113,13 +115,25 @@ function Field({
   );
 }
 
-/** A card's own header: title, one supporting line, and optionally something on the right.
-    Every fragment opens with this, which is what makes the set read as one product. */
+/**
+ * A card's own header — DECISIONS §15 "Composition: the house style" made concrete.
+ *
+ * `eyebrow` is the structural device: a size-1 quiet label naming the KIND of thing that
+ * follows, which is what lets the heading under it be a statement rather than a label. It
+ * carries information or it is not passed.
+ *
+ * The title is size 5 against a size-2 body — a 1.43× jump. It was size 3 over size 2, which
+ * is 1.14×, and 1.14× is not a hierarchy (Kushagra, 2026-08-09, with the reference set). The
+ * gap under the eyebrow is tight and the gap under the whole header is generous: space around
+ * a heading is asymmetric, because a heading belongs to what follows it.
+ */
 function CardHeader({
+  eyebrow,
   title,
   description,
   action,
 }: {
+  eyebrow?: string;
   title: string;
   description?: string;
   action?: React.ReactNode;
@@ -127,7 +141,12 @@ function CardHeader({
   return (
     <Flex justify="space-between" align="flex-start" gap="4">
       <Stack gap="2">
-        <Heading size="3" render={<h3 />}>
+        {eyebrow ? (
+          <Text size="1" emphasis="quiet">
+            {eyebrow}
+          </Text>
+        ) : null}
+        <Heading size="5" render={<h3 />} style={{ textWrap: "balance" }}>
           {title}
         </Heading>
         {description ? (
@@ -138,6 +157,24 @@ function CardHeader({
       </Stack>
       {action}
     </Flex>
+  );
+}
+
+/** A meta row: a fact about the thing, label left and value right, divided by a hairline from
+    the row above it. The references put every fact here rather than into the prose. */
+function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <Stack gap="4">
+      <Separator />
+      <Flex justify="space-between" align="baseline" gap="4">
+        <Text size="1" weight="medium">
+          {label}
+        </Text>
+        <Text size="1" emphasis="medium">
+          {children}
+        </Text>
+      </Flex>
+    </Stack>
   );
 }
 
@@ -190,14 +227,11 @@ function SignIn() {
   return (
     <Card size="3">
       <Stack gap="6">
-        <Stack gap="2">
-          <Heading size="3" render={<h3 />}>
-            Sign in
-          </Heading>
-          <Text size="2" emphasis="medium">
-            Use your work account to continue to Kookie.
-          </Text>
-        </Stack>
+        <CardHeader
+          eyebrow="Kookie"
+          title="Sign in to your workspace."
+          description="Use your work account. Single sign-on is available on Scale."
+        />
         <Stack gap="5">
           <Field label="Email" htmlFor="sc-email">
             <TextField
@@ -250,13 +284,17 @@ function ConfirmDelete() {
   return (
     <Card size="3">
       <Stack gap="6">
+        {/* The eyebrow is doing real work here: it names the object being destroyed, which the
+            heading then does not have to carry, so the heading gets to be the question. */}
         <Stack gap="2">
-          <Heading size="3" render={<h3 />}>
+          <Text size="1" emphasis="quiet">
+            acme-production
+          </Text>
+          <Heading size="5" render={<h3 />} style={{ textWrap: "balance" }}>
             Delete this workspace?
           </Heading>
           <Text size="2" emphasis="medium">
-            Every project, member, and API key in <Code>acme-production</Code> goes with it.
-            This cannot be undone.
+            Every project, member, and API key goes with it. This cannot be undone.
           </Text>
         </Stack>
         <Field label="Type the workspace name to confirm" htmlFor="sc-confirm">
@@ -282,7 +320,8 @@ function Notifications() {
     <Card size="3">
       <Stack gap="6">
         <CardHeader
-          title="Notifications"
+          eyebrow="Preferences"
+          title="Notifications."
           description="Choose what reaches you, and where."
           action={
             <Button emphasis="quiet" iconOnly aria-label="Notification history">
@@ -342,7 +381,8 @@ function DeployStatus() {
     <Card size="3">
       <Stack gap="6">
         <CardHeader
-          title="Production deploy"
+          eyebrow="acme-production"
+          title="Deploying to production."
           action={
             <Menu>
               <MenuTrigger
@@ -378,9 +418,15 @@ function DeployStatus() {
             </Text>
           </Flex>
           <Progress value={62} aria-label="Build progress" />
-          <Text size="1" emphasis="quiet">
-            Roughly 2 minutes left · started 4 minutes ago
-          </Text>
+        </Stack>
+        {/* Facts about the deploy live in labelled rows on hairlines, not in a prose caption
+            under the bar — the reference set's own arrangement (§15 house style, rule 5). */}
+        <Stack gap="4">
+          <MetaRow label="Commit">
+            <Code size="1">50ba95b</Code>
+          </MetaRow>
+          <MetaRow label="Branch">main</MetaRow>
+          <MetaRow label="Remaining">about 2 minutes</MetaRow>
         </Stack>
         <Flex gap="3">
           <Button emphasis="medium">View logs</Button>
@@ -399,7 +445,11 @@ function NewProject() {
   return (
     <Card size="3">
       <Stack gap="6">
-        <CardHeader title="New project" description="Projects hold deploys, domains and keys." />
+        <CardHeader
+          eyebrow="Workspace"
+          title="Start a new project."
+          description="Projects hold deploys, domains and keys."
+        />
         <Stack gap="5">
           <Field label="Name" htmlFor="sc-p-name">
             <TextField id="sc-p-name" defaultValue="acme-production" />
@@ -454,7 +504,11 @@ function PlanPicker() {
   return (
     <Card size="3">
       <Stack gap="6">
-        <CardHeader title="Plan" description="Changes take effect on your next invoice." />
+        <CardHeader
+          eyebrow="Billing"
+          title="Choose a plan."
+          description="Changes take effect on your next invoice."
+        />
         <RadioGroup defaultValue="pro" aria-label="Plan">
           <Stack gap="5">
             {(
@@ -504,8 +558,12 @@ function PlanPicker() {
             aria-label="Seats"
           />
         </Stack>
+        <Stack gap="4">
+          <MetaRow label="Billed monthly">${seats * 20}</MetaRow>
+          <MetaRow label="Renews">1 September</MetaRow>
+        </Stack>
         <Button tone="accent" emphasis="loud">
-          Update plan — ${seats * 20} / month
+          Update plan
         </Button>
       </Stack>
     </Card>
@@ -518,7 +576,7 @@ function Composer() {
   return (
     <Card size="3">
       <Stack gap="5">
-        <CardHeader title="New message" description="Everyone in #engineering will see it." />
+        <CardHeader eyebrow="#engineering" title="New message." />
         <TextArea
           rows={3}
           aria-label="Message"
@@ -682,9 +740,15 @@ export function Showcase() {
   return (
     <Stack gap="6" render={<section id="showcase" />}>
       <style>{SHOWCASE_CSS}</style>
+      {/* The page's one editorial header, and the house style's own shape: eyebrow, a heading
+          that is a sentence, then the paragraph. Space under the eyebrow is tight, space under
+          the header is generous — a heading belongs to what follows it. */}
       <Stack gap="2">
-        <Heading size="5" render={<h2 />}>
-          Real screens
+        <Text size="1" emphasis="quiet">
+          Compositions
+        </Text>
+        <Heading size="7" render={<h2 />} style={{ textWrap: "balance" }}>
+          Real screens, built only from what ships.
         </Heading>
         <Text size="2" emphasis="medium" style={{ maxWidth: "36rem" }}>
           Ordinary call sites, composed the way a consumer would compose them. Move any axis in
