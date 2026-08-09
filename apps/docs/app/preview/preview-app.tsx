@@ -263,7 +263,7 @@ export function PreviewApp() {
                   <Heading size="8" render={<h1 />}>
                     Playground
                   </Heading>
-                  <Text size="3" emphasis="medium" render={<p />} style={{ maxWidth: "36rem" }}>
+                  <Text emphasis="medium" render={<p />} style={{ maxWidth: "36rem" }}>
                     Every shipped component, every axis — and, first, real screens made only of
                     them. The panel moves whole worlds, including its own, and nothing on this
                     page picks a colour or invents a length.
@@ -277,8 +277,8 @@ export function PreviewApp() {
                     and a second, unlabelled wrap of the same buttons read as stray links under
                     the lede rather than as an index. One idiom, twice. */}
                 <Stack gap="2" render={<nav aria-label="Sections" />}>
-                  <Text size="1" emphasis="quiet" id="pv-jump">
-                    jump to
+                  <Text size="2" emphasis="quiet" id="pv-jump">
+                    Jump to
                   </Text>
                   <Flex gap="1" wrap="wrap" aria-labelledby="pv-jump">
                     {[{ id: "showcase", name: "Real screens" }, ...SECTIONS].map((section) => (
@@ -302,7 +302,7 @@ export function PreviewApp() {
                 <React.Fragment key={section.id}>
                   <Separator />
                   <Stack gap="6" render={<section id={section.id} />}>
-                    <Heading size="6" render={<h2 />}>
+                    <Heading size="7" render={<h2 />}>
                       {section.name}
                     </Heading>
                     {section.body}

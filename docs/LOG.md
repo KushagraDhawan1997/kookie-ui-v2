@@ -26,7 +26,19 @@ Menu's exit stays open (entry below); everything else moved. Button, checkbox, r
 
 **Fifteen sabotage passes, fourteen caught first time.** The one that got through is worth recording: the law asking whether a transition channel names a motion token passed `scale 150ms var(--motion-spring-stiff)`, because the channel does name one — its EASING. A law that checks for the presence of a token is not checking the thing the token was supposed to replace; it strips the `var()` references first now and asserts nothing time-shaped survives.
 
-**Deliberately NOT shipped:** the hover LIFT and the button's shadow crossfade, both judged good in the lab. They need the flat/elevated shadow ruling that is still open (LOG), and a lift with no shadow to cast reads as nothing in a flat world. The lively spring stays unemitted for the same reason — its only judged consumer was that crossfade.
+**Three same-day corrections, all from Kushagra's eye, all naming something the laws could not see.**
+
+*The button did not rise.* I had withheld the hover LIFT on the argument that it needs the open flat/elevated shadow ruling — *"its different to the key one, key one also raises on hover."* Wrong on the facts: the lift is geometry and the cast is chrome, and only the second one is blocked. One pixel, guarded by `hover: hover`, and it brought the LIVELY spring with it — which turned out to be the more important half. Geometry now has two clocks the way paint does: a press is short and stiff (it must beat a ~60ms tap) and everything else is the object RECOVERING — rising to a pointer, settling back, a squashed mark springing out — which is long and lively. One clock for both flattens the strike and the recovery into a single gesture.
+
+*The switch was being squashed.* — *"why does switch even have scale on press?"* The mark family's squash reached it because a switch IS a mark by family, and the reason it should not is the family's own split: a checkbox and a radio ARE their glyph's box, so a press has nowhere to go but into the box; a switch is a channel with a grip in it, and squashing the channel moves the very thing the thumb is crossing.
+
+*And the thumb barely leaned.* — *"switch might travel but it doesnt scale the thumb like our example did, why did we spend hours refining that?"* Two faults under one symptom. The lean was 3px against a 20px grip, a seventh of it, where the judged demo stretched about 38% — invisible, and the whole reason the switch was the benchmark. And it was keyed on the THUMB's own `:active`, which matches the element being activated and its ANCESTORS but never its descendants: pressing anywhere on the track except the grip itself did nothing at all. Both fixed; the lean hangs off the root now.
+
+**Six sabotage passes on that batch, and NONE of the four state-behaviour ones were caught the first time.** The reason is worth stating plainly: `:active` is the one interaction state a headless harness cannot genuinely produce, so every law in reach was reading a declaration — and a declaration cannot tell you a rule never matches. `:hover` CAN be produced (`userEvent.hover`), which is why the rise now has a law that moves a real pointer, and it is the law that caught the missing lift. The press states are covered structurally instead, with the limitation written down rather than papered over.
+
+**And the instrument trap fired twice more, in both directions.** My switch-shape law failed until I took `inMotion()` OFF it — with the clock live, a `getBoundingClientRect` right after a change returns the animated value, not the target. Then the hover law failed for the mirror reason: it read the rise 0ms into a 550ms clock and saw nothing. Three times in one session, twice by the author who wrote the rule down.
+
+**Deliberately NOT shipped:** the button's shadow crossfade. It needs the flat/elevated ruling that is still open, and unlike the lift it genuinely cannot be faked — a cast that does not exist has nothing to step.
 
 ---
 
@@ -69,6 +81,20 @@ The inline channel was declared, listed in the transition, riding the spring —
 **Cost: +887 bytes gzipped** (21,684 → 22,571) for the whole motion system — both curves, the floating family's durations, the seed, and Menu's entry and exit. The curves are most of it; they are large strings that gzip well, and they are the thing that was judged, so the sample counts are not trimmed to save bytes. Nine sabotage passes, each one caught by the law that names it. One law was passing vacuously — its default panel happened to land on a whole pixel, so the subpixel claim was never tested — and now picks the cell where the rounding actually broke a row, with a calibration assertion that fails if that cell ever stops having a fraction to lose.
 
 **Left open on purpose:** every other component. The grammar is settled and the tokens exist; what a switch's thumb, a button's press or a field's focus do with it are transcriptions of recipes already judged in the lab, but they are eye-pass work. Select is nearest and deliberately gets nothing today — it wears `kui-floating`, so the machinery is one line away, but a select opening is a different gesture from a menu opening and has not been judged.
+
+---
+
+## 2026-08-09 The house style corrected: the floor rises to 16px, size 1 is retired, the eyebrow is refused
+
+Kushagra, hours after the house style was first written: *"Still feels too small, the type I mean, even body… size 1 should be forbidden unless for specific cases like footer text… Low entropy, and I dont like entropy. Kookie UI prefers succinct, self explanatory titles, no eyebrows."*
+
+**The argument for writing any of this down got sharper in the same message, and it belongs in the record: _"I can control spacing using density, but the type is on the consumer."_** Every distance in this system answers to an axis — `density` re-prices the layout scale, `pointer` the control ladder — so a call site that touches neither still gets coherent spacing. Type has no such axis. `size` is a free index at every call site, which means the only thing between this system and nine opinions per screen is a written rule. That is the whole justification for §15's house style existing, and it was missing from the first draft.
+
+**Two of the seven rules were reversed the same day they were written, and both for the same reason: they came off the reference sheet rather than out of this system.** The eyebrow — a size-1 label above a big heading, naming the kind of thing that follows — is two elements doing one element's job, and it exists to let the heading be clever. A title that has to be set up was not succinct enough. With it went the sentence-with-a-period headline: "Notifications" beats "Preferences" over "Notifications." Recording the reversal rather than editing it away, because the reference set is still the right posture and a later reader needs to know exactly which parts of it were not adopted.
+
+**The ladder is now five steps and a floor.** Page 8, section 7, card title 6, body 3, label and meta 2. Body moved 14 → 16, which is the change that made everything else legible; card titles moved 20 → 24 to hold 1.5× over the new body. **Size 1 is retired from composed surfaces**: 12px is for genuinely marginal text — a footer, a legal line, a dense reference table's own chrome — and never for "this matters less", which is what the muted and faint ink roles already say at 14 or 16. A screen reaching for 12px to make room has a spacing problem, not a type problem.
+
+Found while applying it: a `Code` chip inside a paragraph breaks across lines like any other word, and `acme-` over `production` reads as a rendering fault rather than as a value. The name moved into the field's label, where nothing can break it. Not a component defect — a composition rule, and one the house style implies rather than states.
 
 ---
 

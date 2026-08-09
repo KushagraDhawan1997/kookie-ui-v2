@@ -19,17 +19,17 @@
  * 1. Ordinary call sites only. No colour is picked, no length is invented, nothing reaches
  *    past a prop the package ships. Where a fragment needs a distance it uses a layout Stack's
  *    gap, and where it needs a width it states one on a Box — the two escapes §3 sanctions.
- 2. The house style is DECISIONS §15's, not this file's — read it there. What it means here:
- *    the ladder is page 8, showcase section 7, component section 6, card title 5, body 2,
- *    caption and eyebrow 1, so a card title sits 1.43x over its own body and the page's own
- *    heading sits 2.5x over that. Two passes got this wrong in the same direction: first a
- *    section and the cards inside it were the same size, then the cards' titles were 1.14x
- *    their body, which is a rounding error rather than a hierarchy.
- * 2b. Every card opens with an EYEBROW — a size-1 quiet label naming the kind of thing that
- *    follows — which is what lets the heading below be a sentence ("Delete this workspace?",
- *    "Choose a plan.") instead of a label ("Plan"). It carries information or it is absent.
- * 2c. Nothing is bold. Semibold tops the ladder (§15, 2026-08-09) — headings say "heading" by
- *    size and the ink roles, never by weight.
+ * 2. The house style is DECISIONS §15's, not this file's — read it there. What it means here:
+ *    five steps and only five — page 8, section 7, card title 6, body 3, label and meta 2 — so
+ *    a card title sits 1.5x over its own body and the page sits 2.5x over that. Size 1 is not
+ *    used: 12px is for genuinely marginal text, and "less important" is what the muted and
+ *    faint ink roles are for. Three passes got this ladder wrong before it was written down.
+ * 2b. No eyebrows, and no run-up headings. A title says what the thing is in as few words as
+ *    carry it — "Notifications", not "Preferences" over "Notifications." (2026-08-09, Kushagra,
+ *    reversing the eyebrow the same day it landed: it came off a reference sheet rather than
+ *    out of this system, and it is two elements doing one element's job.)
+ * 2c. Nothing is bold. Semibold tops the ladder (§15) — headings say "heading" by size and the
+ *    ink roles, never by weight.
  * 3. Real words. "Delete workspace" and "acme-production", never "Label" and "Item one".
  */
 import * as React from "react";
@@ -106,11 +106,7 @@ function Field({
         {label}
       </Text>
       {children}
-      {hint ? (
-        <Text size="1" emphasis="quiet">
-          {hint}
-        </Text>
-      ) : null}
+      {hint ? <Text size="2" emphasis="quiet">{hint}</Text> : null}
     </Stack>
   );
 }
@@ -118,22 +114,22 @@ function Field({
 /**
  * A card's own header — DECISIONS §15 "Composition: the house style" made concrete.
  *
- * `eyebrow` is the structural device: a size-1 quiet label naming the KIND of thing that
- * follows, which is what lets the heading under it be a statement rather than a label. It
- * carries information or it is not passed.
+ * Title at size 6 against a size-3 body: 24 over 16, a 1.5x jump. It has been size 3 over
+ * size 2 (1.14x, a rounding error) and then size 5 over size 2; the third pass is the one that
+ * moved the BODY too, because the floor of this ladder is 16px and not 14 (Kushagra,
+ * 2026-08-09: "still feels too small, the type I mean, even body").
  *
- * The title is size 5 against a size-2 body — a 1.43× jump. It was size 3 over size 2, which
- * is 1.14×, and 1.14× is not a hierarchy (Kushagra, 2026-08-09, with the reference set). The
- * gap under the eyebrow is tight and the gap under the whole header is generous: space around
- * a heading is asymmetric, because a heading belongs to what follows it.
+ * There is no eyebrow. It shipped for exactly one commit and was refused: a title carries its
+ * own subject, and a size-1 label above it is a second element doing the first one's job.
+ *
+ * The gap under the title is tight and the gap under the whole header is generous — space
+ * around a heading is asymmetric, because a heading belongs to what follows it.
  */
 function CardHeader({
-  eyebrow,
   title,
   description,
   action,
 }: {
-  eyebrow?: string;
   title: string;
   description?: string;
   action?: React.ReactNode;
@@ -141,19 +137,10 @@ function CardHeader({
   return (
     <Flex justify="space-between" align="flex-start" gap="4">
       <Stack gap="2">
-        {eyebrow ? (
-          <Text size="1" emphasis="quiet">
-            {eyebrow}
-          </Text>
-        ) : null}
-        <Heading size="5" render={<h3 />} style={{ textWrap: "balance" }}>
+        <Heading size="6" render={<h3 />} style={{ textWrap: "balance" }}>
           {title}
         </Heading>
-        {description ? (
-          <Text size="2" emphasis="medium">
-            {description}
-          </Text>
-        ) : null}
+        {description ? <Text emphasis="medium">{description}</Text> : null}
       </Stack>
       {action}
     </Flex>
@@ -167,10 +154,10 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
     <Stack gap="4">
       <Separator />
       <Flex justify="space-between" align="baseline" gap="4">
-        <Text size="1" weight="medium">
+        <Text size="2" weight="medium">
           {label}
         </Text>
-        <Text size="1" emphasis="medium">
+        <Text size="2" emphasis="medium">
           {children}
         </Text>
       </Flex>
@@ -194,10 +181,10 @@ function SettingRow({
   return (
     <Flex justify="space-between" align="center" gap="5">
       <Stack gap="1">
-        <Text size="2" weight="medium" render={<label htmlFor={id} />}>
+        <Text weight="medium" render={<label htmlFor={id} />}>
           {label}
         </Text>
-        <Text size="1" emphasis="medium">
+        <Text size="2" emphasis="medium">
           {description}
         </Text>
       </Stack>
@@ -225,11 +212,10 @@ const rowMenu = (
     field, a checkbox and two stacked buttons agree about weight. */
 function SignIn() {
   return (
-    <Card size="3">
+    <Card size="4">
       <Stack gap="6">
         <CardHeader
-          eyebrow="Kookie"
-          title="Sign in to your workspace."
+          title="Sign in"
           description="Use your work account. Single sign-on is available on Scale."
         />
         <Stack gap="5">
@@ -253,11 +239,9 @@ function SignIn() {
         <Flex justify="space-between" align="center" gap="4">
           <Flex gap="3" align="center">
             <Checkbox id="sc-remember" defaultChecked />
-            <Text size="2" render={<label htmlFor="sc-remember" />}>
-              Keep me signed in
-            </Text>
+            <Text render={<label htmlFor="sc-remember" />}>Keep me signed in</Text>
           </Flex>
-          <Button size="1" emphasis="quiet" render={<a href="#showcase" />}>
+          <Button emphasis="quiet" render={<a href="#showcase" />}>
             Forgot password?
           </Button>
         </Flex>
@@ -282,22 +266,20 @@ function SignIn() {
     the separation, which is what a Stack gap is for. */
 function ConfirmDelete() {
   return (
-    <Card size="3">
+    <Card size="4">
       <Stack gap="6">
-        {/* The eyebrow is doing real work here: it names the object being destroyed, which the
-            heading then does not have to carry, so the heading gets to be the question. */}
         <Stack gap="2">
-          <Text size="1" emphasis="quiet">
-            acme-production
-          </Text>
-          <Heading size="5" render={<h3 />} style={{ textWrap: "balance" }}>
-            Delete this workspace?
+          <Heading size="6" render={<h3 />} style={{ textWrap: "balance" }}>
+            Delete workspace
           </Heading>
-          <Text size="2" emphasis="medium">
+          {/* The name moved out of the sentence and into the label: a Code chip mid-paragraph
+              breaks across lines like any other word, and "acme-" over "production" reads as
+              a rendering fault. A chip belongs where it cannot be broken. */}
+          <Text emphasis="medium">
             Every project, member, and API key goes with it. This cannot be undone.
           </Text>
         </Stack>
-        <Field label="Type the workspace name to confirm" htmlFor="sc-confirm">
+        <Field label="Type acme-production to confirm" htmlFor="sc-confirm">
           <TextField id="sc-confirm" placeholder="acme-production" />
         </Field>
         <Flex gap="3" justify="flex-end">
@@ -317,11 +299,10 @@ function ConfirmDelete() {
     only place in the playground where a stack of switch rows can be judged as a stack. */
 function Notifications() {
   return (
-    <Card size="3">
+    <Card size="4">
       <Stack gap="6">
         <CardHeader
-          eyebrow="Preferences"
-          title="Notifications."
+          title="Notifications"
           description="Choose what reaches you, and where."
           action={
             <Button emphasis="quiet" iconOnly aria-label="Notification history">
@@ -378,11 +359,10 @@ function Notifications() {
     progress bar has neighbours to be wrong beside. */
 function DeployStatus() {
   return (
-    <Card size="3">
+    <Card size="4">
       <Stack gap="6">
         <CardHeader
-          eyebrow="acme-production"
-          title="Deploying to production."
+          title="Production deploy"
           action={
             <Menu>
               <MenuTrigger
@@ -404,18 +384,14 @@ function DeployStatus() {
         />
         <Flex gap="3" align="center">
           <Spinner />
-          <Text size="2" emphasis="medium">
+          <Text emphasis="medium">
             Building <Code>main@50ba95b</Code>
           </Text>
         </Flex>
         <Stack gap="3">
           <Flex justify="space-between" align="baseline">
-            <Text size="2" weight="medium">
-              14 of 23 packages
-            </Text>
-            <Text size="2" emphasis="medium">
-              62%
-            </Text>
+            <Text weight="medium">14 of 23 packages</Text>
+            <Text emphasis="medium">62%</Text>
           </Flex>
           <Progress value={62} aria-label="Build progress" />
         </Stack>
@@ -423,7 +399,7 @@ function DeployStatus() {
             under the bar — the reference set's own arrangement (§15 house style, rule 5). */}
         <Stack gap="4">
           <MetaRow label="Commit">
-            <Code size="1">50ba95b</Code>
+            <Code size="2">50ba95b</Code>
           </MetaRow>
           <MetaRow label="Branch">main</MetaRow>
           <MetaRow label="Remaining">about 2 minutes</MetaRow>
@@ -443,11 +419,10 @@ function DeployStatus() {
     field family that does not agree with itself shows up immediately. */
 function NewProject() {
   return (
-    <Card size="3">
+    <Card size="4">
       <Stack gap="6">
         <CardHeader
-          eyebrow="Workspace"
-          title="Start a new project."
+          title="New project"
           description="Projects hold deploys, domains and keys."
         />
         <Stack gap="5">
@@ -502,11 +477,10 @@ function NewProject() {
 function PlanPicker() {
   const [seats, setSeats] = React.useState(12);
   return (
-    <Card size="3">
+    <Card size="4">
       <Stack gap="6">
         <CardHeader
-          eyebrow="Billing"
-          title="Choose a plan."
+          title="Plan"
           description="Changes take effect on your next invoice."
         />
         <RadioGroup defaultValue="pro" aria-label="Plan">
@@ -522,14 +496,12 @@ function PlanPicker() {
                 <Radio value={value} id={`sc-plan-${value}`} />
                 <Stack gap="1" flexGrow="1">
                   <Flex justify="space-between" gap="4">
-                    <Text size="2" weight="medium" render={<label htmlFor={`sc-plan-${value}`} />}>
+                    <Text weight="medium" render={<label htmlFor={`sc-plan-${value}`} />}>
                       {label}
                     </Text>
-                    <Text size="2" emphasis="medium">
-                      {price}
-                    </Text>
+                    <Text emphasis="medium">{price}</Text>
                   </Flex>
-                  <Text size="1" emphasis="medium">
+                  <Text size="2" emphasis="medium">
                     {description}
                   </Text>
                 </Stack>
@@ -543,12 +515,8 @@ function PlanPicker() {
             own documented answer, and the visible number is a readout beside it. */}
         <Stack gap="3">
           <Flex justify="space-between" align="baseline">
-            <Text size="2" weight="medium">
-              Seats
-            </Text>
-            <Text size="2" emphasis="medium">
-              {seats}
-            </Text>
+            <Text weight="medium">Seats</Text>
+            <Text emphasis="medium">{seats}</Text>
           </Flex>
           <Slider
             value={seats}
@@ -574,9 +542,9 @@ function PlanPicker() {
     fragment that judges whether a textarea and a row of icon buttons share a family. */
 function Composer() {
   return (
-    <Card size="3">
+    <Card size="4">
       <Stack gap="5">
-        <CardHeader eyebrow="#engineering" title="New message." />
+        <CardHeader title="New message" description="Everyone in #engineering will see it." />
         <TextArea
           rows={3}
           aria-label="Message"
@@ -592,8 +560,8 @@ function Composer() {
             </Button>
           </Flex>
           <Flex gap="3" align="center">
-            <Text size="1" emphasis="quiet">
-              <Kbd size="1">⌘</Kbd> <Kbd size="1">⏎</Kbd> to send
+            <Text size="2" emphasis="quiet">
+              <Kbd size="2">⌘</Kbd> <Kbd size="2">⏎</Kbd> to send
             </Text>
             <Button tone="accent" emphasis="loud" iconOnly aria-label="Send">
               <ArrowUpIcon />
@@ -625,7 +593,7 @@ function Workspace() {
   ] as const;
 
   return (
-    <Card size="3">
+    <Card size="4">
       <Grid className="sc-shell" gapX="6" gapY="6" style={{ alignItems: "start" }}>
         {/* The sidebar: quiet buttons in a Stack, the selected one a rung up. Nothing here
             is a nav component — the system does not ship one, and this is what a consumer
@@ -678,14 +646,14 @@ function Workspace() {
                   <Flex align="center" gap="4">
                     <Checkbox id={`sc-m-${id}`} defaultChecked={i === 0} />
                     <Stack gap="1" flexGrow="1" minWidth="0">
-                      <Text size="2" weight="medium" render={<label htmlFor={`sc-m-${id}`} />}>
+                      <Text weight="medium" render={<label htmlFor={`sc-m-${id}`} />}>
                         {name}
                       </Text>
-                      <Text size="1" emphasis="medium">
+                      <Text size="2" emphasis="medium">
                         {email}
                       </Text>
                     </Stack>
-                    <Text size="1" emphasis="quiet">
+                    <Text size="2" emphasis="quiet">
                       {role}
                     </Text>
                     <Menu>
@@ -705,10 +673,10 @@ function Workspace() {
           </Box>
 
           <Flex justify="space-between" align="center" gap="4">
-            <Text size="1" emphasis="quiet">
+            <Text size="2" emphasis="quiet">
               4 of 12 members · 8 seats left
             </Text>
-            <Button size="1" emphasis="quiet" bordered>
+            <Button size="2" emphasis="quiet" bordered>
               Load more
             </Button>
           </Flex>
@@ -740,17 +708,13 @@ export function Showcase() {
   return (
     <Stack gap="6" render={<section id="showcase" />}>
       <style>{SHOWCASE_CSS}</style>
-      {/* The page's one editorial header, and the house style's own shape: eyebrow, a heading
-          that is a sentence, then the paragraph. Space under the eyebrow is tight, space under
-          the header is generous — a heading belongs to what follows it. */}
+      {/* Section title, then the paragraph. No eyebrow and no run-up: the title says what the
+          section is, and space under it is tight while space above it is the page's own. */}
       <Stack gap="2">
-        <Text size="1" emphasis="quiet">
-          Compositions
-        </Text>
         <Heading size="7" render={<h2 />} style={{ textWrap: "balance" }}>
-          Real screens, built only from what ships.
+          Real screens
         </Heading>
-        <Text size="2" emphasis="medium" style={{ maxWidth: "36rem" }}>
+        <Text emphasis="medium" style={{ maxWidth: "36rem" }}>
           Ordinary call sites, composed the way a consumer would compose them. Move any axis in
           the panel and every screen here answers at once — this is where "does it look right
           beside the others" gets settled, and the tables below are where single cells do.
