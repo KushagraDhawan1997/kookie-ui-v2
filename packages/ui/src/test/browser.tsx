@@ -32,6 +32,7 @@ import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import codeCss from "../components/code/code.css?raw";
 import kbdCss from "../components/kbd/kbd.css?raw";
 import menuCss from "../components/menu/menu.css?raw";
+import selectCss from "../components/select/select.css?raw";
 import progressCss from "../components/progress/progress.css?raw";
 import radioCss from "../components/radio/radio.css?raw";
 import separatorCss from "../components/separator/separator.css?raw";
@@ -65,6 +66,7 @@ export function installStyles(): void {
     codeCss,
     kbdCss,
     menuCss,
+  selectCss,
     progressCss,
     radioCss,
     separatorCss,

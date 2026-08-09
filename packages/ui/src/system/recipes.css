@@ -734,9 +734,9 @@
    named directly (not a tone role), so the disabled arm's remap cannot reach it — the
    :not([data-disabled]) on the row is what stands it down, letting a dead tick fall back to
    the dimmed inherited ink. The SVG glyph takes it through currentColor. Base UI stamps
-   data-checked on the indicator element itself, which is what keys this without a
-   row-level hop. */
-.kui-row:where(:not([data-disabled])) > [data-slot][data-checked] {
+   data-checked on a menu indicator and data-selected on a select indicator — two spellings
+   of the family's one selected state, keyed here without a row-level hop. */
+.kui-row:where(:not([data-disabled])) > [data-slot]:where([data-checked], [data-selected]) {
   color: var(--accent-solid);
 }
 

@@ -35,6 +35,12 @@ import {
   MenuSub,
   MenuSubTrigger,
   MenuSubContent,
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectGroup,
+  SelectLabel,
   Progress,
   Radio,
   RadioGroup,
@@ -436,6 +442,65 @@ export const ENTRIES: Entry[] = [
           <MenuItem tone="destructive">Delete…</MenuItem>
         </MenuContent>
       </Menu>
+    ),
+  },
+  {
+    slug: "select",
+    name: "Select",
+    family: "Surface",
+    spec: "§20, §21, §23",
+    blurb:
+      "A form control that holds a choice — the floating family's second member, and the proof the first one generalised: the fold, the row family, the concentric corner and the floating chrome all arrive from Menu's mechanisms with nothing re-designed. What is new is the TRIGGER, a field-shaped button: it wears the field identity, so a Select beside a TextField reads as one family — same seal, same edge, same height — while staying a real button with a combobox's accessibility contract. Base UI renders the hidden input, so a Select submits with a form like the native element it replaces. Part vocabulary follows shadcn/ui's select (MIT), adopted with credit.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "on the root, like Button and Menu — the trigger and its option rows price from one index" },
+      { name: "material (Content)", values: "solid | thin | regular | thick", note: "Card's own prop: opaque by default, glass opt-in — a glass panel still casts the floating chrome" },
+      { name: "items", values: "Record<value, label>", note: "value → label for the CLOSED trigger: Base UI resolves labels from mounted options, and a panel that never opened has none — pass it whenever a defaultValue can paint first" },
+    ],
+    refusals: [
+      {
+        name: "emphasis / tone on the trigger",
+        why: "A form control does not rank and does not editorialize — the TextField sentence: loudness orders actions, and a form where one field shouts is a form pointing at itself.",
+      },
+      {
+        name: "SelectValue as a part",
+        why: "A part whose only job is to stand where the value goes earns a prop, not an element — the trigger renders the value itself and takes `placeholder`.",
+      },
+      {
+        name: "render / children on the trigger",
+        why: "The value IS the trigger's content, and a re-rooted trigger would re-open the accessibility question Base UI already answers with a real button wearing role=combobox.",
+      },
+      {
+        name: "item-aligned positioning (and the scroll arrows)",
+        why: "Base UI's default overlaps the trigger macOS-style and needs scroll-arrow parts plus a different height model. The panel takes the dropdown geometry the menu designed; the macOS mode is recorded open, whole, for when a real shell wants it.",
+      },
+      {
+        name: "multiple",
+        why: "A multi-select is a different control wearing the same name — different value display, different indicator language, different form semantics. Widening is a decision, never a default.",
+      },
+    ],
+    parts: [
+        { part: "SelectTrigger", blurb: "The field-shaped button reporting the choice: seal, edge and height from the field family, chevron as its own muted statement" },
+        { part: "SelectContent", blurb: "The floating panel: portals, positions, re-applies the theme (§20) and wears the surface identity, always floored at its trigger's width" },
+        { part: "SelectItem", blurb: "One option row — the row family's member; its mounted indicator reserves the gutter and wears the accent solid when chosen" },
+        { part: "SelectGroup", blurb: "Groups option rows so a label can name them; wires the group's accessible name automatically" },
+        { part: "SelectLabel", blurb: "A heading for option rows: the row skeleton for alignment with the control-ness stood down — legal in a group and on its own" },
+    ],
+    example: (
+      <Select defaultValue="banana" items={{ apple: "Apple", banana: "Banana", carrot: "Carrot", leek: "Leek" }}>
+        <SelectTrigger placeholder="Pick one" />
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Fruit</SelectLabel>
+            <SelectItem value="apple">Apple</SelectItem>
+            <SelectItem value="banana">Banana</SelectItem>
+          </SelectGroup>
+          <SelectGroup>
+            <SelectLabel>Vegetables</SelectLabel>
+            <SelectItem value="carrot">Carrot</SelectItem>
+            <SelectItem value="leek">Leek</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
     ),
   },
   {

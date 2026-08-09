@@ -48,8 +48,8 @@ import {
   controlLight,
   floatingChrome,
   floatingFlatFactor,
-  menuMinWidth,
-  menuPadding,
+  floatingMinWidth,
+  floatingPadding,
   shadow,
   sliderTrack,
   progressTrack,
@@ -209,8 +209,8 @@ export function generateTokens(): string {
 
   lines.push("", "  /* the menu popup (§22) — padding is a layout-space pick (re-declared per density scope,");
   lines.push("     the surface-padding trap), the width floor rides --scale alone so it lives here only. */");
-  lines.push(...menuFamily());
-  lines.push(decl("menu-min-w", zoom(menuMinWidth)));
+  lines.push(...floatingPanelFamily());
+  lines.push(decl("floating-min-w", zoom(floatingMinWidth)));
 
   lines.push("", "  /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each");
   lines.push("     one-look family declared before the axis existed. A look role holds a COLOUR, so it");
@@ -395,7 +395,7 @@ export function generateTokens(): string {
       ...controlFamily(density[level]),
       ...layoutSpaceFamily(level),
       ...surfacePaddingFamily(),
-      ...menuFamily(),
+      ...floatingPanelFamily(),
       "}",
       "",
     );
@@ -812,10 +812,10 @@ function surfacePaddingFamily(): string[] {
   );
 }
 
-/** Menu padding (§22): one pick into layout space — a var() bakes where it is declared, so
-    this re-emits in every density scope exactly like surface padding does. */
-function menuFamily(): string[] {
-  return [decl("menu-p", `var(--layout-space-${menuPadding})`)];
+/** The floating panel's padding (§22, §23): one pick into layout space — a var() bakes where
+    it is declared, so this re-emits in every density scope exactly like surface padding does. */
+function floatingPanelFamily(): string[] {
+  return [decl("floating-p", `var(--layout-space-${floatingPadding})`)];
 }
 
 /** The control radii for one designed set at one level (§6). At `full` the band is the rule

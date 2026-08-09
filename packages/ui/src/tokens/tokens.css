@@ -219,8 +219,8 @@
 
   /* the menu popup (§22) — padding is a layout-space pick (re-declared per density scope,
      the surface-padding trap), the width floor rides --scale alone so it lives here only. */
-  --menu-p: var(--layout-space-2);
-  --menu-min-w: calc(112px * var(--scale));
+  --floating-p: var(--layout-space-2);
+  --floating-min-w: calc(112px * var(--scale));
 
   /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each
      one-look family declared before the axis existed. A look role holds a COLOUR, so it
@@ -3400,7 +3400,7 @@
   --surface-p-2: var(--layout-space-5);
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
-  --menu-p: var(--layout-space-2);
+  --floating-p: var(--layout-space-2);
 }
 
 [data-density="default"] {
@@ -3444,7 +3444,7 @@
   --surface-p-2: var(--layout-space-5);
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
-  --menu-p: var(--layout-space-2);
+  --floating-p: var(--layout-space-2);
 }
 
 [data-density="comfortable"] {
@@ -3488,7 +3488,7 @@
   --surface-p-2: var(--layout-space-5);
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
-  --menu-p: var(--layout-space-2);
+  --floating-p: var(--layout-space-2);
 }
 
 [data-radius="none"] {

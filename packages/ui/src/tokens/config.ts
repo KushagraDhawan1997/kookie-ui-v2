@@ -672,22 +672,25 @@ export const layoutSpace = {
 export const surfacePadding = [4, 5, 6, 7] as const;
 
 /**
- * §22 — the menu popup's interior padding, ONE pick into layout space (the surfacePadding
- * sentence at popup scale: density reaches it through the layer, no set of its own). One
- * value and not a size-indexed family: the popup deliberately stamps no data-size — its
- * rows answer the size axis, the panel's breathing room does not (v0; if the eye pass
- * disagrees, this becomes picks like surfacePadding). Index 2 = 4px at default density.
+ * §22, §23 — the FLOATING panel's interior padding, ONE pick into layout space (the
+ * surfacePadding sentence at panel scale: density reaches it through the layer, no set of
+ * its own). Renamed from menuPadding on the second consumer (Select, 2026-08-09): the fact
+ * was never the menu's — every floating panel breathes by it, and a select popup consuming
+ * a menu-named token would be the two-homes drift wearing a component's name. One value
+ * and not a size-indexed family: the panel's rows answer the size axis, its breathing room
+ * does not (v0). Index 2 = 4px at default density.
  */
-export const menuPadding = 2;
+export const floatingPadding = 2;
 
 /**
- * §22 — the popup's minimum width, raw px through --scale (the switchW precedent: no
- * palette rung lives at this scale). The rendered floor is max(this, the trigger's own
- * width via --anchor-width): a menu is never narrower than the thing that opened it —
- * the size-match argument applied to geometry — and never comically narrow under an
- * icon-only trigger. ≈ shadcn's 8rem. v0.
+ * §22, §23 — the floating panel's minimum width, raw px through --scale (the switchW
+ * precedent: no palette rung lives at this scale). The rendered floor is max(this, the
+ * trigger's own width via --anchor-width): a panel is never narrower than the thing that
+ * opened it — the size-match argument applied to geometry — and never comically narrow
+ * under an icon-only trigger. ≈ shadcn's 8rem. Renamed from menuMinWidth with the padding
+ * above. v0.
  */
-export const menuMinWidth = 112;
+export const floatingMinWidth = 112;
 
 /**
  * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04; redesigned and

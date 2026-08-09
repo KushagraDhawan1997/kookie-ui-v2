@@ -1,0 +1,87 @@
+/* Select (§21, §23). The trigger is a FIELD-shaped control (it wears .kui-field, which IS
+   the field family's promotion on its third member: seal, edge, look, material and the state
+   arms all arrive from the family's rules); the popup and rows repeat the menu's facts
+   self-keyed, because the SECOND member self-keys and the third promotes (the Kbd/Code
+   rule). What is left here is exactly the select's own facts: a field that acts like a
+   button, a value that never wraps, and the panel's floor being always anchored. */
+
+/* The trigger reads like the TextField beside it in a form — that is the point of joining
+   the family — but it is PRESSED, not entered: a button's cursor and a label you cannot
+   select, the two field facts that assumed a caret, stood back down. Focus needs nothing:
+   the field's ring is keyed on its input holding focus (inert here — there is no input),
+   so the skeleton's :focus-visible ring applies, which is right — a trigger's focus is a
+   keyboard affordance, not a mode. */
+/* (0,2,0) on purpose — text-field.css states the caret facts at .kui-field (0,1,0), and a
+   tie here would hang the trigger's identity on import order; the same doubled-class trick
+   that file uses for its own fill pin. */
+.kui-control.kui-select-trigger {
+  cursor: var(--cursor-button);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* The value never wraps and never grows the box: a select trigger is one line reporting one
+   choice, and a long option ellipsizes exactly as it would in the panel's own trigger row. */
+.kui-select-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: start;
+}
+
+/* An empty select INVITES, like an empty field: the placeholder is the faint role, whose
+   definition names this case (§15) — muted stays the slot colour (the chevron), because an
+   adornment informs while a placeholder invites. Base UI stamps the state on the value. */
+.kui-select-value[data-placeholder] {
+  color: var(--color-text-faint);
+}
+
+/* ── The panel: the menu popup's facts, self-keyed (§22's sentences, §23's member) ─────── */
+
+.kui-select-popup {
+  /* The panel's padding, FLOORED at the focus ring's reach — the scroll container clips
+     descendant ink at the padding box, and a row's ring reaches width + offset past its
+     border box (the menu's audit, inherited whole). */
+  --kui-select-pad: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+  --kui-sf-p: var(--kui-select-pad);
+  /* The concentric corner's own half of the arithmetic (§6): the floating size join in
+     surfaces.css derives the corner from this hook plus the rows' control corner. */
+  --kui-floating-p: var(--kui-select-pad);
+  /* ALWAYS anchored — a select has no submenus, so the anchor floor lives on the panel
+     itself rather than on a variant class: never narrower than the designed floor OR the
+     trigger that opened it, which for a select is also what aligns option text with the
+     value it replaces. */
+  min-width: max(var(--floating-min-w), var(--anchor-width, var(--floating-min-w)));
+  /* Long lists scroll inside the panel; wide ones are bounded by the room the positioner
+     reports rather than pushed off the viewport. */
+  max-height: var(--available-height, none);
+  max-width: var(--available-width, none);
+  overflow-y: auto;
+  /* Base UI focuses the popup on open; the rows carry the highlight (§22's sentence). */
+  outline: none;
+}
+
+/* A separator between option groups is the ordinary Separator, full-bleed — inside a group
+   too, since a group is a transparent wrapper with zero geometry (the menu's audit). */
+.kui-select-popup > .kui-separator,
+.kui-select-popup > [role="group"] > .kui-separator {
+  margin-block: var(--kui-select-pad);
+  margin-inline: calc(-1 * var(--kui-select-pad));
+}
+
+/* A group label reads, it does not act — the row skeleton gives it the type step and side
+   padding so its text starts on the plain rows' vertical; this stands the control-ness down. */
+.kui-select-label {
+  pointer-events: none;
+  color: var(--color-text-faint);
+}
+
+/* The reserved gutter (§21): the indicator stays mounted so chosen and unchosen rows align —
+   visibility keeps the box. Base UI stamps data-selected only when true, so absence is the
+   unchosen state; safe to key on, because the indicator is the only leading slot a select
+   row has (SelectItem takes no leading prop). */
+.kui-select-item > [data-slot="leading"]:not([data-selected]) {
+  visibility: hidden;
+}

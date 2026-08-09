@@ -483,9 +483,9 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
 
   it("padding and min-width are the menu's own designed tokens", () => {
     const { popup } = openMenu({});
-    expect(computed(popup, "padding-top")).toBe(tokenOn(popup, "--menu-p"));
+    expect(computed(popup, "padding-top")).toBe(tokenOn(popup, "--floating-p"));
     expect(popup.getBoundingClientRect().width).toBeGreaterThanOrEqual(
-      parseFloat(tokenOn(popup, "--menu-min-w")),
+      parseFloat(tokenOn(popup, "--floating-min-w")),
     );
   });
 
@@ -497,7 +497,7 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
      the rule instead of racing the positioner's first measurement. */
   it("a wide trigger widens its menu; a wide panel does not widen its submenu (§22)", () => {
     const { popup } = openMenu({});
-    const floor = parseFloat(tokenOn(popup, "--menu-min-w"));
+    const floor = parseFloat(tokenOn(popup, "--floating-min-w"));
     const wide = `${floor + 240}px`;
 
     // The anchored panel takes the anchor when it is wider than the floor...
@@ -896,7 +896,7 @@ describe("a focused row's ring survives the panel that scrolls it (§8)", () => 
      the left and right of every row, and the first row's top band gone too. Density is the
      axis that moves it, so the law walks all three; the assertion is the ring's EXTENT
      against the padding box rather than a colour, because the ring was painting correctly
-     and being cut. Falsified by restoring `--kui-sf-p: var(--menu-p)`. */
+     and being cut. Falsified by restoring `--kui-sf-p: var(--floating-p)`. */
   it("the ring's outer extent lies inside the panel's padding box, every density", () => {
     for (const density of DENSITIES) {
       const { popup, items } = openMenu({ density });

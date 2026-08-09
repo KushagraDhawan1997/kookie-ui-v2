@@ -28,8 +28,8 @@ import {
   radiusSurface,
   space,
   surfacePadding,
-  menuPadding,
-  menuMinWidth,
+  floatingPadding,
+  floatingMinWidth,
   touchTargetMin,
   type DensityLevel,
   type DensitySet,
@@ -360,17 +360,17 @@ describe("layout space: the density-aware layer over the untouched palette (§3,
     }
   });
 
-  it("the menu popup's padding reads the layer and re-bakes per density; its width floor rides scale (§22)", () => {
+  it("the floating panel's padding reads the layer and re-bakes per density; its width floor rides scale (§22, §23)", () => {
     // The surface-padding sentence at popup scale: one pick, re-emitted in every density
     // scope because a var() bakes where it is declared. The width floor is a raw designed
     // px through --scale (no palette rung at popup scale — the switchW argument), declared
     // once: nothing in it varies by density.
     for (const level of ["default", "compact", "comfortable"] as const) {
-      expect(declaration("menu-p", level)).toBe(`var(--layout-space-${menuPadding})`);
+      expect(declaration("floating-p", level)).toBe(`var(--layout-space-${floatingPadding})`);
     }
-    expect(declaration("menu-min-w")).toBe(`calc(${menuMinWidth}px * var(--scale))`);
+    expect(declaration("floating-min-w")).toBe(`calc(${floatingMinWidth}px * var(--scale))`);
     for (const level of ["compact", "comfortable"] as const) {
-      expect(block(`[data-density="${level}"]`)).not.toContain("--menu-min-w");
+      expect(block(`[data-density="${level}"]`)).not.toContain("--floating-min-w");
     }
   });
 });

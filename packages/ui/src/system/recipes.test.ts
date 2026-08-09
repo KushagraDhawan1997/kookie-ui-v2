@@ -330,7 +330,7 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     // solid). The precedence fact survives the move: the accent is named directly, not a
     // tone role, so the disabled arm's remap cannot reach it — the :not([data-disabled])
     // on the ROW is what stands a dead tick down to the dimmed inherited ink.
-    const checked = ".kui-row:where(:not([data-disabled])) > [data-slot][data-checked]";
+    const checked = ".kui-row:where(:not([data-disabled])) > [data-slot]:where([data-checked], [data-selected])";
     expect(recipes).toContain(checked);
     expect(block(recipes, checked)).toContain("color: var(--accent-solid)");
     // And no row rule paints the LABEL accent anymore — the reversal in the negative.

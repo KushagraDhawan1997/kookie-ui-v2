@@ -44,6 +44,7 @@ export default defineConfig({
             "@base-ui/react/menu",
             "@base-ui/react/progress",
             "@base-ui/react/radio",
+            "@base-ui/react/select",
             "@base-ui/react/radio-group",
             "@base-ui/react/separator",
             "@base-ui/react/slider",

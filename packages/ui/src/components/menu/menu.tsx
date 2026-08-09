@@ -19,8 +19,12 @@ import * as React from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
-import { Theme, useThemeRooted } from "../../theme/theme.tsx";
 import { filled, mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import {
+  FloatingDirectionContext,
+  PortalScope,
+  useAmbientDirection,
+} from "../../system/floating.tsx";
 import type { Size, SlotName } from "../../system/axes.ts";
 
 /* ── Designed constants (§22, v0 — the switchInset precedent: Base UI takes numbers, so
@@ -80,19 +84,6 @@ const MenuSizeContext = React.createContext<Size>("2");
       once, in a ref callback at commit; LTR apps never see a state change, and the server
       renders the ltr branch that the client's first render also produces. */
 
-type TextDirection = "ltr" | "rtl";
-
-type MenuDirection = {
-  direction: TextDirection;
-  /** Attached to the trigger — the one in-flow node a menu owns. */
-  measure: (node: HTMLElement | null) => void;
-};
-
-const MenuDirectionContext = React.createContext<MenuDirection>({
-  direction: "ltr",
-  measure: () => {},
-});
-
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
 export type MenuProps = {
@@ -106,19 +97,13 @@ export type MenuProps = {
 
 /** Renders no DOM — state and wiring only (Base UI Root, the size context, direction). */
 export function Menu({ size = "2", open, defaultOpen, onOpenChange, children }: MenuProps) {
-  const [direction, setDirection] = React.useState<TextDirection>("ltr");
-  const measure = React.useCallback((node: HTMLElement | null) => {
-    if (!node) return;
-    const ambient = getComputedStyle(node).direction === "rtl" ? "rtl" : "ltr";
-    setDirection((prev) => (prev === ambient ? prev : ambient));
-  }, []);
-  const dir = React.useMemo<MenuDirection>(() => ({ direction, measure }), [direction, measure]);
+  const dir = useAmbientDirection();
 
   return (
     <MenuSizeContext.Provider value={size}>
-      <MenuDirectionContext.Provider value={dir}>
+      <FloatingDirectionContext.Provider value={dir}>
         {/* Base UI positions from its own direction context, not from CSS (§20). */}
-        <DirectionProvider direction={direction}>
+        <DirectionProvider direction={dir.direction}>
           <BaseMenu.Root
             {...(open !== undefined ? { open } : {})}
             {...(defaultOpen !== undefined ? { defaultOpen } : {})}
@@ -127,7 +112,7 @@ export function Menu({ size = "2", open, defaultOpen, onOpenChange, children }: 
             {children}
           </BaseMenu.Root>
         </DirectionProvider>
-      </MenuDirectionContext.Provider>
+      </FloatingDirectionContext.Provider>
     </MenuSizeContext.Provider>
   );
 }
@@ -173,7 +158,7 @@ export type MenuTriggerProps = {
 export function MenuTrigger({ render, nativeButton, ref, ...props }: MenuTriggerProps) {
   // The trigger is the one node a menu owns that stands in ordinary flow, so it is where the
   // ambient direction is read (§20). Both refs get the node — the caller's is not spent.
-  const { measure } = React.use(MenuDirectionContext);
+  const { measure } = React.use(FloatingDirectionContext);
   // Base UI branches its ENTIRE a11y contract on `nativeButton`, which defaults to true —
   // the Button defect of 2026-08-03, re-shipped here and caught by the audit 2026-08-09.
   // Unforwarded, `render={<a href/>}` emitted `type="button"` on an anchor (where `type` is
@@ -217,33 +202,8 @@ export type MenuContentProps = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
-/**
- * The portal's landing spot (§20).
- *
- * A portalled subtree loses every CSS attribute its author wrote above it, so the wrapper
- * re-stamps them — but only when a React `<Theme>` actually chose them. With no Theme in the
- * tree the axes are carried on the DOM instead (`<html data-appearance="dark">`, the
- * standalone path the emitted stylesheet promises and `card.browser.test.tsx` law-enforces),
- * and `<html>` is an ancestor of `document.body`, so they reach the portal already. A
- * wrapper that stamped anyway could not tell "nobody chose an appearance" from "someone
- * chose light", and overrode all six: measured, a dark/elevated/compact document opened a
- * white/flat/default menu, the exact "light card in a dark app" §20 was written to prevent
- * (audit 2026-08-09).
- *
- * The element exists in both branches because `dir` needs somewhere to live either way.
- */
-function PortalScope({ children }: { children: React.ReactNode }) {
-  // `dir` is stamped in BOTH branches and always, not only when rtl: it is the ambient
-  // direction the trigger measured, and stating it is what keeps a portalled panel from
-  // silently taking the document's direction instead of its author's (§20).
-  const { direction } = React.use(MenuDirectionContext);
-  const scope = (
-    <div className="kui-portal" dir={direction}>
-      {children}
-    </div>
-  );
-  return useThemeRooted() ? <Theme render={scope} /> : scope;
-}
+/* The portal's landing spot and the direction mechanism live in system/floating.tsx (§20) —
+   promoted on the second consumer (Select, 2026-08-09). */
 
 /** The popup's surface identity — Card's constants (§10): the tone indirection needs a
     family for --tone-border, the fill is the seal, quiet + bordered is §11's row for

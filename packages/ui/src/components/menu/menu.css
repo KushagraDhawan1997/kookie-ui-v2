@@ -8,15 +8,15 @@
      FLOORED at the focus ring's own reach (§8, audit 2026-08-09). `overflow-y: auto` below
      makes this panel a scroll container, which clips descendant ink at the PADDING box in
      both axes, and the ring a row paints reaches `width + offset` outside its border box. At
-     compact density --menu-p is 2px against a 4px reach, so the ring's vertical sides never
+     compact density --floating-p is 2px against a 4px reach, so the ring's vertical sides never
      painted on any row and the first and last rows also lost their outer band; default sat
      at exactly 0px of slack, which is a coincidence rather than a clearance. The floor moves
      only the compact cell (2 -> 4) and buys default a real one. Stated as the ring's own
      tokens, not as a number, so re-tuning the ring cannot silently re-break the panel. */
-  --kui-menu-pad: max(var(--menu-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+  --kui-menu-pad: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
   --kui-sf-p: var(--kui-menu-pad);
   /* Never narrower than the designed floor (§22). */
-  min-width: var(--menu-min-w);
+  min-width: var(--floating-min-w);
   /* Long menus scroll inside the panel, and a wide one is bounded by the room the
      positioner reports rather than pushed off the viewport (§22, audit 2026-08-09: the
      height half shipped and the width half did not, so a menu wider than the space beside
@@ -48,7 +48,7 @@
    2026-08-09). --anchor-width is the positioner's own measurement; the inner fallback keeps
    the declaration valid where no positioner exists (the agreement law's in-flow twin). */
 .kui-menu-popup.kui-menu-anchored {
-  min-width: max(var(--menu-min-w), var(--anchor-width, var(--menu-min-w)));
+  min-width: max(var(--floating-min-w), var(--anchor-width, var(--floating-min-w)));
 }
 
 /* A separator inside a menu is the ordinary Separator (the part is refused — it would

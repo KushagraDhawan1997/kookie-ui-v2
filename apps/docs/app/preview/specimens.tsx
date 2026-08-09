@@ -58,6 +58,12 @@ import {
   TextField,
   type Size,
   type Tone,
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectGroup,
+  SelectLabel,
 } from "@kookie-ui/react";
 
 import { PlusIcon, SearchIcon, XIcon } from "../icons";
@@ -663,8 +669,8 @@ function MenuSection() {
           </Menu>
         </HostileBed>
       </Demo>
-      {/* The §6 judging surface: the panel's surface-1 corner beside the card's surface-3 — open the menu
-          over the card and read the two radii as one system. */}
+      {/* The §6 judging surface: the panel's CONCENTRIC corner (rows' corner + padding) beside
+          the card's surface-3 — open the menu over the card and read the radii as one system. */}
       <Demo label="Composed — a document header, menu beside its card">
         <Box maxWidth="26rem">
           <Card size="3">
@@ -678,6 +684,110 @@ function MenuSection() {
                 <MenuContent align="end">{content}</MenuContent>
               </Menu>
             </Flex>
+          </Card>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
+function SelectSection() {
+  /** One canonical option set at every size: groups, a separator, a disabled row — the
+      menu section's discipline, so the judgment is about the cells. */
+  const content = (
+    <>
+      <SelectGroup>
+        <SelectLabel>Fruit</SelectLabel>
+        <SelectItem value="apple">Apple</SelectItem>
+        <SelectItem value="banana">Banana</SelectItem>
+        <SelectItem value="cherry" disabled>
+          Cherry (out of season)
+        </SelectItem>
+      </SelectGroup>
+      <Separator />
+      <SelectGroup>
+        <SelectLabel>Vegetables</SelectLabel>
+        <SelectItem value="carrot">Carrot</SelectItem>
+        <SelectItem value="leek">Leek</SelectItem>
+      </SelectGroup>
+    </>
+  );
+  const items = {
+    apple: "Apple",
+    banana: "Banana",
+    cherry: "Cherry (out of season)",
+    carrot: "Carrot",
+    leek: "Leek",
+  };
+
+  return (
+    <Stack gap="6">
+      {/* Size row, each beside the TextField it must read as one family with (§23: the
+          trigger wears the field identity — same seal, edge, height, corner). */}
+      <SpecTable
+        cols={["Select", "TextField beside it"]}
+        rows={SIZES.map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <Select key="s" size={size} defaultValue="banana" items={items}>
+              <SelectTrigger placeholder="Pick one" />
+              <SelectContent>{content}</SelectContent>
+            </Select>,
+            <TextField key="t" size={size} placeholder="Type here" />,
+          ],
+        }))}
+      />
+      {/* Empty vs chosen: the placeholder INVITES in the faint role; a value is content. */}
+      <Demo label="Placeholder, value, disabled">
+        <Flex gap="4" align="center">
+          <Select items={items}>
+            <SelectTrigger placeholder="Pick a fruit" />
+            <SelectContent>{content}</SelectContent>
+          </Select>
+          <Select defaultValue="apple" items={items}>
+            <SelectTrigger placeholder="Pick a fruit" />
+            <SelectContent>{content}</SelectContent>
+          </Select>
+          <Select defaultValue="apple" items={items} disabled>
+            <SelectTrigger placeholder="Pick a fruit" />
+            <SelectContent>{content}</SelectContent>
+          </Select>
+        </Flex>
+      </Demo>
+      {/* Glass panel over the hostile backdrop — the floating chrome must survive it. */}
+      <Demo label="Materials — over the hostile backdrop">
+        <HostileBed>
+          <Select items={items}>
+            <SelectTrigger placeholder="Solid" />
+            <SelectContent>{content}</SelectContent>
+          </Select>
+          <Select items={items}>
+            <SelectTrigger placeholder="Thin glass" />
+            <SelectContent material="thin">{content}</SelectContent>
+          </Select>
+        </HostileBed>
+      </Demo>
+      {/* Composed: the form row the field identity exists for — one family, two controls. */}
+      <Demo label="Composed — a form row">
+        <Box maxWidth="26rem">
+          <Card size="3">
+            <Stack gap="4">
+              <Stack gap="2">
+                <Text size="1" weight="medium">Name</Text>
+                <TextField placeholder="Project name" />
+              </Stack>
+              <Stack gap="2">
+                <Text size="1" weight="medium">Visibility</Text>
+                <Select defaultValue="private" items={{ private: "Private", team: "Team", public: "Public" }}>
+                  <SelectTrigger placeholder="Choose" />
+                  <SelectContent>
+                    <SelectItem value="private">Private</SelectItem>
+                    <SelectItem value="team">Team</SelectItem>
+                    <SelectItem value="public">Public</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Stack>
+            </Stack>
           </Card>
         </Box>
       </Demo>
@@ -1176,6 +1286,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "menu", name: "Menu", body: <MenuSection /> },
+  { id: "select", name: "Select", body: <SelectSection /> },
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
   { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
