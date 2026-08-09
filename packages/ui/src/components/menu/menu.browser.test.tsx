@@ -35,6 +35,7 @@ import {
   colorOn,
   forEachCell,
   APPEARANCES,
+  DENSITIES,
   type Cell,
 } from "../../test/browser.tsx";
 
@@ -578,6 +579,60 @@ describe("behavior: the platform's menu, not a styled div", () => {
     // inference must not flip for the ordinary case.
     expect(trigger.hasAttribute("disabled")).toBe(true);
     expect(trigger.getAttribute("role")).toBeNull();
+  });
+});
+
+/* ── The focused row (§8, §21) ────────────────────────────────────────────────────────── */
+
+describe("a focused row's ring survives the panel that scrolls it (§8)", () => {
+  /* `overflow-y: auto` makes the popup a scroll container, which clips descendant ink at the
+     PADDING box in BOTH axes (a `visible` on the other axis computes to `auto`). The ring a
+     row paints reaches width+offset outside its border box, so the panel's padding is what
+     decides whether it exists — and at compact density it did not: measured 0 red pixels on
+     the left and right of every row, and the first row's top band gone too. Density is the
+     axis that moves it, so the law walks all three; the assertion is the ring's EXTENT
+     against the padding box rather than a colour, because the ring was painting correctly
+     and being cut. Falsified by restoring `--kui-sf-p: var(--menu-p)`. */
+  it("the ring's outer extent lies inside the panel's padding box, every density", () => {
+    for (const density of DENSITIES) {
+      const { popup, items } = openMenu({ density });
+      const row = items[0]!;
+      row.focus();
+      const reach =
+        parseFloat(computed(row, "outline-width")) + parseFloat(computed(row, "outline-offset"));
+      // Calibration: a ring that does not exist cannot be clipped, and would pass vacuously.
+      expect(reach, `${density}: no ring to contain`).toBeGreaterThan(0);
+      expect(computed(row, "outline-style"), density).toBe("solid");
+
+      const pad = parseFloat(computed(popup, "padding-left"));
+      expect(pad, `${density}: the panel must clear the ring`).toBeGreaterThanOrEqual(reach);
+      // Both axes, because both are clipped — the one-sided-law lesson (Progress, 2026-08-08).
+      expect(parseFloat(computed(popup, "padding-top")), density).toBeGreaterThanOrEqual(reach);
+    }
+  });
+
+  /* The lit row is a signal, not resting dress, so the conformance surface must reach it
+     (§19's rule, amended 2026-08-09). Falsified by deleting the [data-contrast="high"] arm. */
+  it("contrast=high moves the lit fill, in both appearances (§19)", () => {
+    for (const appearance of APPEARANCES) {
+      const normal = openMenu({ appearance });
+      const high = openMenu({ appearance, contrast: "high" });
+      const lit = (m: ReturnType<typeof openMenu>) => {
+        const row = m.items[0]!;
+        row.setAttribute("data-highlighted", "");
+        return computed(row, "background-color");
+      };
+      const before = lit(normal);
+      const after = lit(high);
+      // The ink follows the fill: a fill that moves under ink that does not is the half-fix.
+      expect(computed(high.items[0]!, "color"), appearance).toBe(
+        colorOn(high.popup, "var(--tone-contrast)"),
+      );
+      // Calibration: the normal-mode fill is a real colour, not the transparent rest.
+      expect(before, appearance).toBe(colorOn(normal.popup, "var(--tone-soft)"));
+      expect(after, `${appearance}: high contrast must move the highlight`).not.toBe(before);
+      expect(after, appearance).toBe(colorOn(high.popup, "var(--tone-solid)"));
+    }
   });
 });
 

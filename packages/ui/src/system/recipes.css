@@ -532,6 +532,27 @@
   background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
 }
 
+/* The lit row is a SIGNAL, so contrast="high" reaches it (§19's standing rule, amended
+   2026-08-09). That rule scopes "a resting border or fill is DRESS, held to no floor" while
+   keeping text, the focus ring and the invalid edge floor-checked as signals — and a
+   keyboard highlight was never sorted: it is the row family's answer to the same question
+   the focus ring answers, which puts it on the signal side. Measured before this: the lit
+   fill sat at 1.16:1 light and 1.08:1 in dark against the panel, and the conformance surface
+   moved the panel border (1.98 -> 4.09 in dark) while leaving the highlight byte-identical.
+
+   It goes SOLID, not two rungs up the quiet ladder. That was the first cut and it is not a
+   fix: `soft-active` measured 1.31:1 light and 1.34:1 dark against the panel — still dress,
+   just slightly louder dress, and nowhere near the 3:1 a non-text indicator owes. The solid
+   rung is also what every OS menu does with its highlighted row, so the conformance surface
+   is where the platform's own answer belongs. The label follows the fill to --tone-contrast,
+   because a fill that changes underneath ink that does not is the half-fix that ships.
+   Values are v0, judged in the playground under contrast="high". */
+[data-contrast="high"] .kui-row[data-highlighted]:not([data-disabled]),
+[data-contrast="high"] .kui-row[data-popup-open]:not([data-disabled]) {
+  background-color: var(--tone-solid);
+  --kui-ct-label-color: var(--tone-contrast);
+}
+
 /* ── The size index: one join, eight families (§4) ───────────────────────────────────────── */
 
 /* The sixth is the MARK (§4, added 2026-08-05 with Checkbox): the painted box of a control
