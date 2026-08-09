@@ -751,11 +751,15 @@ describe("behavior: the platform's menu, not a styled div", () => {
 /* ── The panel's interior (§22) ───────────────────────────────────────────────────────── */
 
 describe("what the panel does to what is inside it (§22)", () => {
-  /* The child combinator alone meant a separator inside a GROUP kept its ordinary inline
-     margins and stopped short of the panel edge — the registry's own example is one edit
-     away from that shape. Asserted as the two computing IDENTICALLY rather than as a number,
-     so the designed inset stays the single source. Falsified by dropping the group arm. */
-  it("a separator bleeds to the panel edge, in a group or out of one", () => {
+  /* The separator is INSET to the rows' own extent (reversed 2026-08-09 from a full bleed):
+     it divides rows, and the rows sit inside the panel's padding, so a line wider than they
+     are divides the panel instead. Two facts, and the group arm is why the law exists at all —
+     a group is a transparent wrapper, so a separator between one group's rows must land
+     exactly where a loose one does. Asserted against a ROW rather than a number, so the
+     designed padding stays the single source. Falsified both ways: restoring the negative
+     margin fails the row-extent arm, dropping the group arm from the selector fails the
+     agreement arm. */
+  it("a separator spans the rows, not the panel — in a group or out of one", () => {
     const { popup } = openMenu({}, (
       <>
         <MenuItem>Alpha</MenuItem>
@@ -768,15 +772,27 @@ describe("what the panel does to what is inside it (§22)", () => {
       </>
     ));
     const [loose, grouped] = [...popup.querySelectorAll<HTMLElement>(".kui-separator")];
-    if (!loose || !grouped) throw new Error("both separators must mount");
-    const inset = computed(loose, "margin-left");
-    // Calibration: the full bleed is a real negative inset, not a no-op both sides share.
-    expect(parseFloat(inset), "nothing to bleed").toBeLessThan(0);
-    expect(computed(grouped, "margin-left")).toBe(inset);
-    expect(computed(grouped, "margin-right")).toBe(computed(loose, "margin-right"));
-    // And it reaches: both rules land on the panel's own padding edge.
-    expect(Math.abs(grouped.getBoundingClientRect().left - popup.getBoundingClientRect().left))
-      .toBeLessThanOrEqual(parseFloat(computed(popup, "border-left-width")) + 0.5);
+    const row = popup.querySelector<HTMLElement>(".kui-menu-item");
+    if (!loose || !grouped || !row) throw new Error("both separators and a row must mount");
+    // Calibration: the panel's padding is a real distance, so "spans the rows" and "spans
+    // the panel" are distinguishable answers in this cell.
+    expect(parseFloat(computed(popup, "padding-left")), "nothing to inset").toBeGreaterThan(0);
+    // The rows' extent, both edges, both separators.
+    const rowBox = row.getBoundingClientRect();
+    for (const [name, el] of [["loose", loose], ["grouped", grouped]] as const) {
+      const box = el.getBoundingClientRect();
+      expect(Math.abs(box.left - rowBox.left), `${name} starts where a row does`).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(box.right - rowBox.right), `${name} ends where a row does`).toBeLessThanOrEqual(0.5);
+    }
+    // And BOTH keep the panel's own rhythm above and below — which is now the only thing
+    // the group arm of the selector supplies, so asserting it on the loose one alone left
+    // that arm unfalsifiable (caught by its own sabotage pass: dropping the group arm from
+    // the selector left this law green). A law about one member of a two-member rule is
+    // half a law, the same lesson the Progress axis taught.
+    for (const [name, el] of [["loose", loose], ["grouped", grouped]] as const) {
+      expect(computed(el, "margin-top"), `${name} rhythm above`).toBe(computed(popup, "padding-top"));
+      expect(computed(el, "margin-bottom"), `${name} rhythm below`).toBe(computed(popup, "padding-top"));
+    }
   });
 
   /* The height half of the positioner's measurements shipped and the width half did not, so

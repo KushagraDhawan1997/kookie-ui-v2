@@ -377,7 +377,7 @@ function checkGlyph() {
       <path
         d="M4 8.5 6.75 11.25 12 5.75"
         stroke="currentColor"
-        strokeWidth="1.25"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -543,7 +543,7 @@ export function MenuSubTrigger({
           <path
             d="M6 4.5 L8.7 7.2 Q9.5 8 8.7 8.8 L6 11.5"
             stroke="currentColor"
-            strokeWidth="1.25"
+            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />

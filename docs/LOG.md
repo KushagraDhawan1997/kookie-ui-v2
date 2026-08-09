@@ -30,6 +30,14 @@ Two things were considered and rejected before the fix landed. **Refusing to mov
 
 ---
 
+## 2026-08-09 The menu separator stops bleeding — a rule divides rows, not the panel
+
+Kushagra, judging the flip's output: "the separator goes end to end… it should respect the padding no?" It shipped breaking out of the panel's padding by a negative margin, argued as "a rule that stops at the panel's padding reads as a broken border."
+
+The argument that beats it is about SCOPE: a separator divides rows, and the rows sit inside the panel's padding, so a line wider than the rows is dividing the panel — claiming an extent it does not have. It was also the single place in the system where a Separator escaped its container's inset; everywhere else it spans the content box like any other child, which is what §1's no-outer-spacing rule buys. The radius default moving to `full` the same hour is what made it visible: against capsule rows and a rounded panel corner, an edge-to-edge line reads as cut off by the container rather than as a divider between groups. Kept rejected: shadcn's `-mx-1` full bleed and iOS's — iOS full-bleeds its ROWS too, which is this same principle reaching a different answer from a different anatomy, and ours are inset.
+
+The law was rewritten with it, and its own sabotage pass caught it being half a law twice over. Restoring the negative margin fails the new row-extent arm — but dropping the GROUP arm from the selector left it green, because with the bleed gone the only thing that arm still supplies is the vertical rhythm, and the rhythm was asserted on the loose separator alone. Both members now, both falsified. A law about one member of a two-member rule is half a law: the Progress-axis lesson, one component over.
+
 ## 2026-08-09 `full` becomes the default radius — and the flip finds the hole §6 predicted
 
 Kushagra's call, one sentence: the theme default is `full`. The flip itself is two lines (config + Theme DEFAULTS — the two homes a law already keeps agreeing). Everything after was the system finding out which of its guarantees were quietly `medium`-shaped.
