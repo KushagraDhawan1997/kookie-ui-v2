@@ -258,7 +258,7 @@ export function PreviewApp() {
               page read unconstrained because most of it was empty width (Kushagra, 2026-08-08). */}
           <Box style={{ maxWidth: "60rem", marginInline: "auto" }}>
             <Stack gap="8" pt="8">
-              <Stack gap="4">
+              <Stack gap="6">
                 <Stack gap="3">
                   <Heading size="7" render={<h1 />}>
                     Playground
@@ -269,21 +269,30 @@ export function PreviewApp() {
                     page picks a colour or invents a length.
                   </Text>
                 </Stack>
-                {/* Nineteen sections and a showcase is more than a page can be scrolled
-                    through by guess. Quiet buttons rendered as anchors: the index is made of
-                    the system too. */}
-                <Flex gap="1" wrap="wrap" render={<nav aria-label="Sections" />}>
-                  {[{ id: "showcase", name: "Real screens" }, ...SECTIONS].map((section) => (
-                    <Button
-                      key={section.id}
-                      size="1"
-                      emphasis="quiet"
-                      render={<a href={`#${section.id}`} />}
-                    >
-                      {section.name}
-                    </Button>
-                  ))}
-                </Flex>
+                {/* Twenty sections is more than a page can be scrolled through by guess.
+                    Quiet buttons rendered as anchors: the index is made of the system too.
+
+                    The label above the chips is the ENVIRONMENT PANEL's own arrangement, reused
+                    (2026-08-09): the page already has an idiom for "a labelled group of chips",
+                    and a second, unlabelled wrap of the same buttons read as stray links under
+                    the lede rather than as an index. One idiom, twice. */}
+                <Stack gap="2" render={<nav aria-label="Sections" />}>
+                  <Text size="1" emphasis="quiet" id="pv-jump">
+                    jump to
+                  </Text>
+                  <Flex gap="1" wrap="wrap" aria-labelledby="pv-jump">
+                    {[{ id: "showcase", name: "Real screens" }, ...SECTIONS].map((section) => (
+                      <Button
+                        key={section.id}
+                        size="1"
+                        emphasis="quiet"
+                        render={<a href={`#${section.id}`} />}
+                      >
+                        {section.name}
+                      </Button>
+                    ))}
+                  </Flex>
+                </Stack>
               </Stack>
               <Showcase />
               {SECTIONS.map((section) => (
@@ -293,7 +302,7 @@ export function PreviewApp() {
                 <React.Fragment key={section.id}>
                   <Separator />
                   <Stack gap="6" render={<section id={section.id} />}>
-                    <Heading size="4" render={<h2 />}>
+                    <Heading size="5" render={<h2 />}>
                       {section.name}
                     </Heading>
                     {section.body}

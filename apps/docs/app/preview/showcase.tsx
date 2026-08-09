@@ -19,9 +19,15 @@
  * 1. Ordinary call sites only. No colour is picked, no length is invented, nothing reaches
  *    past a prop the package ships. Where a fragment needs a distance it uses a layout Stack's
  *    gap, and where it needs a width it states one on a Box — the two escapes §3 sanctions.
- * 2. One type relationship, everywhere: card title `Heading size="4"`, supporting text
- *    `Text size="2" emphasis="medium"`, captions size 1 quiet, controls at the default size 2.
- *    A fragment that needs to break it is telling us something.
+ * 2. One type relationship, everywhere, and it is a LADDER of four steps — page 7, section 5,
+ *    card title 3, body 2, caption 1 (2026-08-09, second taste pass). The first cut set both
+ *    the page's section headings and the cards' titles at size 4, which is not a small
+ *    inconsistency: a section and the cards inside it were the same size and the same weight,
+ *    so the page had no structure above the card. Every step is now one level of nesting, and
+ *    a card title at 16px over 14px body is the relationship the whole board is built on.
+ * 2b. Nothing is bold. Semibold tops the ladder (§15, 2026-08-09) — headings say "heading" by
+ *    size and the ink roles, not by weight, and a 700 face at 18px in a 24px card was the
+ *    loudest thing on a page whose subject is restraint.
  * 3. Real words. "Delete workspace" and "acme-production", never "Label" and "Item one".
  */
 import * as React from "react";
@@ -121,7 +127,7 @@ function CardHeader({
   return (
     <Flex justify="space-between" align="flex-start" gap="4">
       <Stack gap="2">
-        <Heading size="4" render={<h3 />}>
+        <Heading size="3" render={<h3 />}>
           {title}
         </Heading>
         {description ? (
@@ -182,10 +188,10 @@ const rowMenu = (
     field, a checkbox and two stacked buttons agree about weight. */
 function SignIn() {
   return (
-    <Card size="4">
+    <Card size="3">
       <Stack gap="6">
         <Stack gap="2">
-          <Heading size="5" render={<h3 />}>
+          <Heading size="3" render={<h3 />}>
             Sign in
           </Heading>
           <Text size="2" emphasis="medium">
@@ -242,10 +248,10 @@ function SignIn() {
     the separation, which is what a Stack gap is for. */
 function ConfirmDelete() {
   return (
-    <Card size="4">
+    <Card size="3">
       <Stack gap="6">
         <Stack gap="2">
-          <Heading size="4" render={<h3 />}>
+          <Heading size="3" render={<h3 />}>
             Delete this workspace?
           </Heading>
           <Text size="2" emphasis="medium">
@@ -273,7 +279,7 @@ function ConfirmDelete() {
     only place in the playground where a stack of switch rows can be judged as a stack. */
 function Notifications() {
   return (
-    <Card size="4">
+    <Card size="3">
       <Stack gap="6">
         <CardHeader
           title="Notifications"
@@ -333,7 +339,7 @@ function Notifications() {
     progress bar has neighbours to be wrong beside. */
 function DeployStatus() {
   return (
-    <Card size="4">
+    <Card size="3">
       <Stack gap="6">
         <CardHeader
           title="Production deploy"
@@ -391,7 +397,7 @@ function DeployStatus() {
     field family that does not agree with itself shows up immediately. */
 function NewProject() {
   return (
-    <Card size="4">
+    <Card size="3">
       <Stack gap="6">
         <CardHeader title="New project" description="Projects hold deploys, domains and keys." />
         <Stack gap="5">
@@ -446,7 +452,7 @@ function NewProject() {
 function PlanPicker() {
   const [seats, setSeats] = React.useState(12);
   return (
-    <Card size="4">
+    <Card size="3">
       <Stack gap="6">
         <CardHeader title="Plan" description="Changes take effect on your next invoice." />
         <RadioGroup defaultValue="pro" aria-label="Plan">
@@ -510,7 +516,7 @@ function PlanPicker() {
     fragment that judges whether a textarea and a row of icon buttons share a family. */
 function Composer() {
   return (
-    <Card size="4">
+    <Card size="3">
       <Stack gap="5">
         <CardHeader title="New message" description="Everyone in #engineering will see it." />
         <TextArea
@@ -561,7 +567,7 @@ function Workspace() {
   ] as const;
 
   return (
-    <Card size="4">
+    <Card size="3">
       <Grid className="sc-shell" gapX="6" gapY="6" style={{ alignItems: "start" }}>
         {/* The sidebar: quiet buttons in a Stack, the selected one a rung up. Nothing here
             is a nav component — the system does not ship one, and this is what a consumer
@@ -677,7 +683,7 @@ export function Showcase() {
     <Stack gap="6" render={<section id="showcase" />}>
       <style>{SHOWCASE_CSS}</style>
       <Stack gap="2">
-        <Heading size="4" render={<h2 />}>
+        <Heading size="5" render={<h2 />}>
           Real screens
         </Heading>
         <Text size="2" emphasis="medium" style={{ maxWidth: "36rem" }}>

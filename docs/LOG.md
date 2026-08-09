@@ -8,6 +8,62 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-09 Motion ships, on Menu alone — and the exit is a dissolve, not the entry reversed
+
+The grammar was chosen and judged in a scratch demo (entry below this one). What was still open was whether it survives the real component, where Base UI owns the popup's position and lifecycle. It does. Built as a throwaway route first — `apps/docs/app/motion-lab`, the real `<Menu>` three times over with three different exits and nothing else different — on Kushagra's own instruction: *"do it in a way where its easy to reject and experiment, like a sandbox, and when lock down how it works, we can then do it correct way."*
+
+**The exit was the open question and it is answered: DISSOLVE.** Three were built side by side — fold back into the seed (the demo's own, which Kushagra had already called *"not right"*), mirror the entry on a compressed clock (the iOS symmetry argument), and hold the geometry, settle back a hair, dissolve. Kushagra: *"For now, dissolve, otherwise it works beautifully."* The reason it wins is worth keeping: **an entry answers "where did this come from" and an exit answers nothing.** The viewer is already looking at the thing they dismissed, so retracing the path spends 300ms narrating a fact nobody needs. The symmetry that iOS keeps is of PATH, and a dissolve does not contradict it — it declines to travel at all.
+
+**Three shapes were rejected before the shipped one, each for a stated reason.** `interpolate-size: allow-keywords` would have animated `height: auto` with zero JS and no measurement, and it is Chromium-only — unimplemented in Safari and Firefox as of August 2026, which is the wrong half of the market for a system aiming at Apple's bar. The grid `0fr → 1fr` trick is pure CSS and works everywhere, but it forces `max-content` sizing on the rows, which is the unbounded-row defect the Select audit closed four days ago. Animating `scale` instead of the box is the rigid-body failure the whole grammar exists to avoid. So the destination is measured, in ~20 lines that run once per open — inside the sanctioned zone, because opening a panel is already script: Base UI measures the anchor and writes the position, and one more read in the same commit changes nothing about the rule that guards hover, press and focus.
+
+**Then the origin was wrong twice, and the fix was to delete a mechanism rather than add one** (Kushagra, judged in the playground against three real menus): *"if menu opens to right, trajectory should be to go down, then right. And if left, to go down, then left. Currently it seems going direction side first, then down."*
+
+Two faults, one visible symptom. The first is ordering: the tall channel had the longest clock on the reasoning that a panel's height has the furthest to go — true, and the wrong thing to optimise, because **the axis that finishes LAST is the one the eye reads as the direction of travel.** A slow width made every menu unfurl sideways and then drop. The vertical leads now (`fall` 320, `spread` 480), and the tokens are named for their axis rather than for an assumed order.
+
+The second is direction, and it took two dead ends to find the answer. The seed carried a lateral offset — half a seed toward the panel's start edge — which pointed the same way whichever side the panel opened toward, so a right-aligned `⋯` menu emerged from its far corner and crossed the whole panel to get home. The obvious repair is to hold the panel's OUTER box constant (slack on the far side, so the positioner never has to re-solve its position while the box grows) and it **cannot be done**: the popup is a block child of a shrink-to-fit absolutely positioned box, so it is over-constrained and the browser drops the far margin outright — measured, a literal `margin-inline-end: 72px` computed to `0px`, and a start margin fared no better.
+
+The no-offset spelling that followed was worse — Kushagra, on sight: *"It looks terrible now."* Correct, and the reason names the missing half: a seed with no offset sits at the panel's own destination and inflates there, which is morph-in-place, the read this grammar was chosen against. **Motion tells the truth about space, and things come from somewhere** (principle 1); a panel that never travels has stopped telling it.
+
+**What shipped separates the two questions, which is what none of the earlier spellings did.** *Direction* is layout's, and the answer is the absence: the positioner already holds one edge of the panel at every size — the top under a menu, the start edge beside a submenu, whichever inline edge `align` names — so a panel that simply grows unfurls away from the edge nearest the thing it came out of, for free, with no offset needed. *Travel* is paint's: a `translate` carries the seed onto its trigger and closes that distance as the panel grows. A translate cannot re-size the positioner, so it cannot re-solve the panel's position, so it cannot fight the direction — which is exactly what the margin did. `data-side` and `data-align` set only the lean and the pivot; the growth direction is nobody's declaration.
+
+**The seed wanted to be the trigger's own height and cannot be.** `--anchor-height` is exactly the right number — a menu's seed is its button, a submenu's is its row — and the positioner publishes it ASYNCHRONOUSLY, because floating-ui resolves a promise. On the frame the seed has to apply, the variable is unset; every rule reading it is invalid at computed-value time; and invalid does not mean "fall back to the cascade", it means the property takes its INITIAL value. Measured: the panel's corner collapsed to 0px. `--floating-seed` is a designed constant now, and that is the better answer anyway — a seed is not a small photograph of the trigger. At a menu's inception the shape it will take is unknown, which is the whole reason it is a circle.
+
+**Two defects found by writing the laws, both invisible to the eye and both real.**
+
+*The measurement started the animation backwards.* Reading `offsetWidth` flushes style, which makes whatever is computed at that instant the baseline the transition machinery compares against. Removing the seed attribute to measure, then putting it back, therefore read as seed → natural (a real change: the browser began animating the panel AWAY from its seed) and then natural → seed. The panel spent its first frames travelling the wrong way. Transitions are pinned off across the whole measurement window now, so both flushes are inert.
+
+*And it rounded.* `offsetWidth` returns an integer, so a panel that wants 115.33px got pinned to 115 — and a third of a pixel was the entire difference between "Alpha" fitting its row and wrapping to a second line, in one cell of twenty-four. Caught by the row-geometry law, which had nothing to do with motion. A measurement that feeds a length must be as precise as the length.
+
+**The existing laws were reading the wrong moment, and that is the instrument-calibration lesson again.** A synchronous mount reads the entry's FIRST FRAME: Base UI renders `data-starting-style` in the initial commit and drops it a frame later, so every law in the file was grabbing a 40px seed with its body squished to half height. Three of them duly measured it — one asserted a row was 12px against its 24px cell and had been passing for the wrong reason the moment motion existed. The file now has its own `render` that lands the panel at the mount point, shadowing the harness's, so a new law cannot forget to; the motion laws use a separate opener that leaves the entry alone.
+
+**One element was added to the anatomy and it is not a part.** The content has to squish while the box grows — judged twice, both directions, in the demo — and you cannot scale a box's contents without a box holding them. `.kui-floating-body` is invisible to the API, unreachable by the caller, and sanctioned the way Spinner's `<span>` is: mechanically forced, not layout convenience. It also owns the width pin, because text that re-breaks mid-flight is two animations fighting.
+
+**Cost: +887 bytes gzipped** (21,684 → 22,571) for the whole motion system — both curves, the floating family's durations, the seed, and Menu's entry and exit. The curves are most of it; they are large strings that gzip well, and they are the thing that was judged, so the sample counts are not trimmed to save bytes. Nine sabotage passes, each one caught by the law that names it. One law was passing vacuously — its default panel happened to land on a whole pixel, so the subpixel claim was never tested — and now picks the cell where the rounding actually broke a row, with a calibration assertion that fails if that cell ever stops having a fraction to lose.
+
+**Left open on purpose:** every other component. The grammar is settled and the tokens exist; what a switch's thumb, a button's press or a field's focus do with it are transcriptions of recipes already judged in the lab, but they are eye-pass work. Select is nearest and deliberately gets nothing today — it wears `kui-floating`, so the machinery is one line away, but a select opening is a different gesture from a menu opening and has not been judged.
+
+---
+
+## 2026-08-09 Bold is refused: three weights, and hierarchy goes back to size and ink
+
+Kushagra, looking at the playground: *"We don't use bold, we shouldn't, I don't like it."*
+
+**What made it wrong was not the weight, it was the redundancy.** This system already has two designed ways to say a thing is more important than the thing beside it — the size ramp (nine steps) and the emphasis ladder resolved as ink roles (loud/muted/faint, §15). A 700 face is a third, and unlike the other two it is not on a ramp: it is a single step that lands wherever a call site puts it. On the playground it landed on every card title at once, which is how it got noticed — the heaviest thing on a page whose whole subject is restraint.
+
+**Refused in the type, not re-defaulted.** Changing `Heading`'s default from `bold` to `semibold` would have fixed the page and left the decision holding by memory: `weight="bold"` still compiles, so the next call site re-introduces it and nothing fails. `Weight` is now three values (ENGINEERING §1.3 — types are the refusals, enforced). The token goes with it: an emitted `--font-weight-bold` that no component may name is a lever waiting to be pulled by hand, which is the fenced-resource mistake §13 exists to prevent. An app that genuinely needs 700 has `style`, and the set widens by config the day something real forces it — the tone set's own rule.
+
+**The removal caught a law that would have failed on the fix rather than the defect.** `type.test.ts` looped a literal `["regular", "medium", "semibold", "bold"]`, so deleting the weight left the law demanding a rule for a value that no longer exists. It derives the set from `fontWeight` now, and gained the assertion the removal actually needs: no weight OUTSIDE the config's set has a rule, so re-adding a `bold` block fails. Its mounted half asserts 700 is unreachable at both ends of the ramp in both families. Both falsified — a `bold` rule re-added to the stylesheet fails the node law, and a heading defaulted back to 700 fails the browser one. −10 bytes gzipped.
+
+---
+
+## 2026-08-09 The playground's type ladder: a section and the cards inside it were the same size
+
+The second taste pass on the same page, and the fault was structural rather than a value. Section headings and card titles were both `Heading size="4"` at the same weight, so the page had no step between "here is a section of the playground" and "here is a card inside it" — nesting the eye could not see. The ladder is now one step per level of nesting: page 7, section 5, card title 3, body 2, caption 1, with the showcase's cards dropped from size 4 to size 3 so the whole board sits at one padding.
+
+The `jump to` index took the environment panel's own arrangement — a quiet size-1 label above a wrap of chips. The page already had an idiom for "a labelled group of chips", and a second unlabelled wrap of the same buttons read as stray links under the lede rather than as an index. One idiom, used twice, is the cheaper answer than a second one.
+
+---
+
 ## 2026-08-09 The playground gets real screens, in the same page — a matrix cannot show a composition
 
 Kushagra, on the shipped confirm card: *"its not 'extensive' enough… but also, its not tastefully done… I'm not seeing real examples, what a real consumer will use."*
