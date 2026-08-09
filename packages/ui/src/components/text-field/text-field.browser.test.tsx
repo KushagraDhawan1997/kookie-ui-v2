@@ -45,7 +45,9 @@ const onPlaceholder = (el: Element, prop: string): string =>
 
 describe("the wrapper is the control, and it joins the size index (§4)", () => {
   it("resolves height, padding, radius and type from the shared control family", () => {
-    const el = render(<TextField size="3" />);
+    const el = mounted(<TextField size="3" />, { theme: { radius: "medium" } });
+    // radius="medium" pinned: this law states a palette-legible fact, and the DEFAULT
+    // level is `full` since 2026-08-09 (capsules and pill padding — their own laws).
     // The designed set, not a restated number — same reason as the Button law it mirrors.
     expect(computed(el, "min-height")).toBe(`${density.default.height[2]}px`);
     expect(computed(el, "padding-left")).toBe(`${density.default.px[2]}px`);
@@ -664,8 +666,11 @@ describe("a control hosted in a slot is sized by its container (§4, decided 202
   it("an ICON slot keeps the field's own text inset — an icon is not a hosted control", () => {
     // The guard that makes the rule above safe: an icon has no box of its own and wants to line
     // up with the value beside it, so it must NOT get the tighter slot inset.
-    const withIcon = render(<TextField leading={<svg />} />);
-    const plain = render(<TextField />);
+    // Compared at radius="medium", where bare and slotted edges share the plain inset; under
+    // the `full` DEFAULT a bare edge pads the pill while the slotted edge keeps plain — the
+    // pill laws own that split.
+    const withIcon = mounted(<TextField leading={<svg />} />, { theme: { radius: "medium" } });
+    const plain = mounted(<TextField />, { theme: { radius: "medium" } });
     expect(computed(withIcon, "padding-left")).toBe(computed(plain, "padding-left"));
   });
 

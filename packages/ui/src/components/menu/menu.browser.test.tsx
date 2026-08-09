@@ -339,8 +339,11 @@ describe("rows ride the existing control cells in all 24 cells (§21)", () => {
       expect(computed(row, "padding-right"), label).toBe(computed(row, "padding-left"));
       expect(computed(row, "font-size"), label).toBe(tokenOn(popup, `--font-size-${cell.size}`));
       expect(computed(row, "gap"), label).toBe(tokenOn(popup, `--control-gap-${cell.size}`));
+      // --radius-row-N, not --radius-control-N: rows left the height ladder, so at `full`
+      // (the DEFAULT) their capsule is their own — the two tokens are equal at every other
+      // level, which is exactly how naming the wrong one passed until the default flipped.
       expect(computed(row, "border-top-left-radius"), label).toBe(
-        tokenOn(popup, `--radius-control-${cell.size}`),
+        tokenOn(popup, `--radius-row-${cell.size}`),
       );
       // Full width: the row spans the panel's content box exactly.
       expect(row.getBoundingClientRect().width, label).toBeCloseTo(
@@ -1074,7 +1077,7 @@ describe("groups and labels: the wiring is Base UI's, the dress is the row's", (
     const label = popup.querySelector<HTMLElement>(".kui-menu-label");
     if (!group || !label) throw new Error("group or label missing");
     expect(group.getAttribute("aria-labelledby")).toBe(label.id);
-    expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-faint)"));
+    expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-caption)"));
     expect(computed(label, "pointer-events")).toBe("none");
   });
 
@@ -1093,7 +1096,7 @@ describe("groups and labels: the wiring is Base UI's, the dress is the row's", (
     const label = popup.querySelector<HTMLElement>(".kui-menu-label");
     if (!label) throw new Error("standalone label missing");
     // Same dress as the in-group label — the skeleton is the row's either way.
-    expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-faint)"));
+    expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-caption)"));
     expect(computed(label, "pointer-events")).toBe("none");
     expect(label.getBoundingClientRect().height).toBeCloseTo(
       parseFloat(computed(label, "line-height")) + 2 * parseFloat(tokenOn(popup, "--row-inset-2")),

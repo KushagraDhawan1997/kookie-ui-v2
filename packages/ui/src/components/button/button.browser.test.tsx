@@ -15,9 +15,25 @@ import { Button } from "./button.tsx";
     the name stays, one line over the shared probe. */
 const tokenOn = (el: Element, name: string): string => colorOn(el, `var(${name})`);
 
+describe("the DEFAULT radius level renders on the un-themed path (§6, full since 2026-08-09)", () => {
+  it("a bare control is a capsule with pill padding — :root carries the default level's answer", () => {
+    // The flip's first casualty, law-pinned: the capsule band and pill padding were only
+    // emitted into [data-radius] scopes, so a document with no Theme and no stamps rendered
+    // the raw 9999px palette and the plain padding — the exact clamping bug §6 closed on
+    // 2026-08-05, resurrected by making `full` the default. :root now states the default
+    // level's whole answer; deleting that emission fails exactly this law.
+    const el = render(<Button size="2">Label</Button>);
+    const h = parseFloat(computed(el, "min-height"));
+    expect(parseFloat(computed(el, "border-top-left-radius"))).toBeCloseTo(h / 2, 1);
+    expect(computed(el, "padding-left")).toBe(`${density.default.pxPill[1]}px`);
+  });
+});
+
 describe("the size index joins five scales at one number (§4)", () => {
   it("resolves height, padding, gap, radius and type together", () => {
-    const el = render(<Button size="3">Label</Button>);
+    const el = mounted(<Button size="3">Label</Button>, { theme: { radius: "medium" } });
+    // radius="medium" pinned: this law states a palette-legible fact, and the DEFAULT
+    // level is `full` since 2026-08-09 (capsules and pill padding — their own laws).
     // Read off the designed set rather than restated: this law is about the JOIN — that one
     // index pulls every family together — so the number it compares against must be the one
     // the config placed, or the law re-freezes a value the eye pass is meant to move.

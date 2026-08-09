@@ -159,9 +159,9 @@ export function SelectTrigger({
       <span className="kui-field-slot" data-slot={"trailing" satisfies SlotName}>
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path
-            d="M4 6 8 10 12 6"
+            d="M4.5 6 L7.2 8.7 Q8 9.5 8.8 8.7 L11.5 6"
             stroke="currentColor"
-            strokeWidth="1.5"
+            strokeWidth="1.25"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -258,7 +258,7 @@ export function SelectItem({ children, className, ...props }: SelectItemProps) {
           <path
             d="M3.5 8.5 6.5 11.5 12.5 4.5"
             stroke="currentColor"
-            strokeWidth="1.5"
+            strokeWidth="1.25"
             strokeLinecap="round"
             strokeLinejoin="round"
           />

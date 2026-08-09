@@ -106,7 +106,7 @@ type Resolved = Required<
 const DEFAULTS: Resolved = {
   appearance: "light",
   density: "default",
-  radius: "medium",
+  radius: "full",
   contrast: "normal",
   pointer: "auto",
   surfaces: "flat",

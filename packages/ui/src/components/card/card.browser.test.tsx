@@ -143,11 +143,13 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
   it("wears the corner of its size — the surface band is size-indexed (§6)", () => {
     // Decided 2026-08-04: a size-1 card and a size-4 card do not share a corner. Size 3 is
     // the anchor: it kept the old flat value, so the default card never moved.
-    const one = render(<Card size="1">B</Card>);
-    const four = render(<Card size="4">B</Card>);
-    expect(computed(one, "border-top-left-radius")).toBe("10px");
-    expect(computed(render(<Card>B</Card>), "border-top-left-radius")).toBe("16px");
-    expect(computed(four, "border-top-left-radius")).toBe("20px");
+    // At radius="medium" — the band's own numbers; the `full` DEFAULT caps the surface band
+    // at large's values by design (§6), which its own law pins.
+    const at = (node: React.ReactElement) =>
+      render(<Theme radius="medium">{node}</Theme>).querySelector(".kui-surface") as HTMLElement;
+    expect(computed(at(<Card size="1">B</Card>), "border-top-left-radius")).toBe("10px");
+    expect(computed(at(<Card>B</Card>), "border-top-left-radius")).toBe("16px");
+    expect(computed(at(<Card size="4">B</Card>), "border-top-left-radius")).toBe("20px");
   });
 
   it("follows a nested radius Theme — the level blocks re-bake the surface semantics (§6)", () => {

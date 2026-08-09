@@ -197,6 +197,7 @@ export function generateTokens(): string {
   lines.push("", "  /* semantic: control family at the default density (§4, §6, §12); the gap is");
   lines.push("     the label cluster's — size-indexed, never density's (§4) */");
   lines.push(...controlFamily(density.default));
+  lines.push(...defaultLevelAnswer(density.default));
   lines.push(...controlGapFamily("fine"));
 
   lines.push("", "  /* layout space (§3, §12) at the default density — the 1:1 identity map. Every distance");
@@ -436,15 +437,21 @@ export function generateTokens(): string {
   // full cells must state the values themselves, per density and (below) per pointer world.
   for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
     for (const d of Object.keys(density) as DensityLevel[]) {
-      const decls = controlRadiusFamily(density[d], level);
-      if (level === "full") decls.push(...pillFamily(density[d]));
-      lines.push(`[data-radius="${level}"][data-density="${d}"] {`, ...decls, "}", "");
+      lines.push(
+        `[data-radius="${level}"][data-density="${d}"] {`,
+        ...controlRadiusFamily(density[d], level),
+        ...pillAnswer(density[d], level),
+        "}",
+        "",
+      );
     }
-    if (level !== defaultRadiusLevel) {
-      const decls = controlRadiusFamily(density.default, level);
-      if (level === "full") decls.push(...pillFamily(density.default));
-      lines.push(`[data-radius="${level}"] {`, ...decls, "}", "");
-    }
+    lines.push(
+      `[data-radius="${level}"] {`,
+      ...controlRadiusFamily(density.default, level),
+      ...pillAnswer(density.default, level),
+      "}",
+      "",
+    );
   }
 
   // The tone indirection (§7's role layer, §9's axes). A component never names a tone: it
@@ -550,13 +557,9 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
 
   for (const level of Object.keys(radiusLevels) as RadiusLevel[]) {
     for (const d of Object.keys(sets) as DensityLevel[]) {
-      const decls = controlRadiusFamily(sets[d], level);
-      if (level === "full") decls.push(...pillFamily(sets[d]));
-      out.push(`${P}[data-radius="${level}"][data-density="${d}"] {`, ...decls, "}", "");
+      out.push(`${P}[data-radius="${level}"][data-density="${d}"] {`, ...controlRadiusFamily(sets[d], level), ...pillAnswer(sets[d], level), "}", "");
     }
-    const decls = controlRadiusFamily(sets.default, level);
-    if (level === "full") decls.push(...pillFamily(sets.default));
-    out.push(`${P}[data-radius="${level}"] {`, ...decls, "}", "");
+    out.push(`${P}[data-radius="${level}"] {`, ...controlRadiusFamily(sets.default, level), ...pillAnswer(sets.default, level), "}", "");
   }
 
   return out;
@@ -670,6 +673,14 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("color-text", "var(--neutral-12)"),
     decl("color-text-muted", "var(--neutral-11)"),
     decl("color-text-faint", "var(--neutral-10)"),
+    `  /* and the CAPTION, one step below the ladder (minted 2026-08-09, Kushagra: "the group`,
+    `     label should be a tone lighter, lowest emphasis"). A panel's group heading names a`,
+    `     region, it is never read as content — macOS sets its section headers below every`,
+    `     other ink in the menu — so it sits under faint rather than sharing it: faint is the`,
+    `     placeholder's role, and a heading and an invitation are different jobs (the`,
+    `     --color-border precedent: a role is minted when a real consumer needs a value no`,
+    `     existing role may honestly hold). Never a reading-length line, same law as faint. */`,
+    decl("color-text-caption", "var(--neutral-9)"),
     "",
     `  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's`,
     `     job alone. Paper above the page, so a card is visible where it lives. The hover and`,
@@ -826,6 +837,11 @@ function floatingPanelFamily(): string[] {
  * made this exact move already — full re-prices it to designed large corners, never a capsule
  * (§6) — this is the control band's version. Stated per cell, where the heights are declared
  * on the same element, so substitution-at-declaration picks up each world's own ladder. */
+/** The default radius level's answer for one designed set — what controlFamily inlines. */
+function defaultLevelAnswer(set: DensitySet): string[] {
+  return [...controlRadiusFamily(set, defaultRadiusLevel), ...pillAnswer(set, defaultRadiusLevel)];
+}
+
 function controlRadiusFamily(set: DensitySet, level: RadiusLevel): string[] {
   if (level === "full")
     return set.radius.flatMap((_, i) => [
@@ -872,9 +888,15 @@ function controlFamily(set: DensitySet): string[] {
   // height ladder does, so an index could not hold that fraction and the padding drifted to
   // half the box at size 4. See the note on `density` in config.ts.
   set.px.forEach((px, i) => put(`control-px-${i + 1}`, zoom(px)));
-  // The pill padding resolves to the plain padding at every radius level except `full` — this
-  // identity is re-declared wherever px is, so it substitutes against the scope's own value
-  // (substitution-at-declaration, §6). The `full` cells override it with raw designed numbers.
+  // LEVEL-BLIND on purpose (§6, re-settled 2026-08-09 the hour `full` became the default,
+  // after two measured detours — an inheriting binding baked at :root, and a level-flavored
+  // family re-created the density-clobbers-radius race the composition law exists to catch).
+  // A density or pointer scope may never know the radius level: the pill stays the identity
+  // and the radius stays the palette pick, so an outer [data-radius] stamp composes. The
+  // LEVEL answers live where level is stated: every (level x density) cell, every level
+  // block, and :root for the default (below). The one shape this leaves degraded is a raw
+  // [data-density] stamp with NO radius stamp anywhere under a set-dependent default —
+  // recorded in §6; Theme and the html-stamp path co-locate, so no real path hits it.
   set.px.forEach((_, i) => put(`control-px-pill-${i + 1}`, `var(--control-px-${i + 1})`));
   set.radius.forEach((step, i) => {
     put(`radius-control-${i + 1}`, `var(--radius-${step})`);
@@ -910,8 +932,14 @@ function controlGapFamily(world: keyof typeof controlGap): string[] {
 
 /** The pill padding for one designed set (§4, §6): what a bare edge pads under `radius="full"`.
  * Raw zoomed lengths, like px — the full level has no palette step to point these at. */
-function pillFamily(set: DensitySet): string[] {
-  return set.pxPill.map((px, i) => decl(`control-px-pill-${i + 1}`, zoom(px)));
+/** The pill ANSWER for one set at one level (§4, §6): under `full` a bare edge pads the
+    designed raw numbers; at every other level the pill token is the plain padding, stated
+    as the identity reference so it substitutes against the scope's own px. Emitted
+    co-located wherever a scope states a level — never as an inheriting indirection, which
+    bakes where it is declared (measured 2026-08-09). */
+function pillAnswer(set: DensitySet, level: RadiusLevel): string[] {
+  if (level === "full") return set.pxPill.map((px, i) => decl(`control-px-pill-${i + 1}`, zoom(px)));
+  return [1, 2, 3, 4].map((n) => decl(`control-px-pill-${n}`, `var(--control-px-${n})`));
 }
 
 /** The steps a band actually MOVES — every index whose pick is not the identity. Derived

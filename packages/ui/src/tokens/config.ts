@@ -47,8 +47,11 @@ export const radiusLevels = {
 
 export type RadiusLevel = keyof typeof radiusLevels;
 
-/** The level emitted on `:root`; the rest ship as `[data-radius]` blocks. */
-export const defaultRadiusLevel = "medium" satisfies RadiusLevel;
+/** The level emitted on `:root`; the rest ship as `[data-radius]` blocks. FULL is the
+    default since 2026-08-09 (Kushagra): pill controls and capsule rows are the system's
+    resting identity, not an opt-in — the surface band caps at large's values by the
+    level's own design, so cards stay cards while every control rounds fully. */
+export const defaultRadiusLevel = "full" satisfies RadiusLevel;
 
 /**
  * §6, §10 — surface radii are size-indexed picks into the surface band (decided 2026-08-04,
@@ -108,7 +111,7 @@ export const density = {
     pxPill: [12, 14, 17, 20],
     radius: [1, 2, 3, 4],
     slotInset: [3, 3, 4, 4],
-    rowInset: [4, 4, 5, 6],
+    rowInset: [4, 5, 5, 6],
   },
   comfortable: {
     height: [34, 40, 50, 60],
@@ -165,7 +168,9 @@ export type DensitySet = {
    * through the type bands — coarse raises the line, so the same derivation prices both
    * worlds. Per size since the same day it landed (Kushagra: size 4 read "a bit cramped" at
    * a constant inset — air grows GENTLY with the index, flat at sizes 1-2, +1/+2 at the
-   * top, so the ratio still falls as type grows). Fine default lands 24/28/34/38 (one
+   * top, so the ratio still falls as type grows; size 2 re-judged 28 -> 30 the same day —
+   * the full 4px cut read too aggressive beside the 32px button). Fine default lands
+   * 24/30/34/38 (one
    * notch under the buttons at every size, the shadcn/macOS relationship); coarse default
    * lands 36/40/44/48 — size 2 sits 4 under its button's 44, the stated cost of tighter
    * rows on touch, still far above the locked 24 floor. There is NO invented row floor:

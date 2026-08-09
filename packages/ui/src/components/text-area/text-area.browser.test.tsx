@@ -48,7 +48,9 @@ describe("padding is the dimension, and it is ONE inset (§4, reversed 2026-08-0
   // the paragraph wins outright: the frame is the side padding, all four sides.
   for (const size of SIZES) {
     it(`the frame is uniform at size ${size} — block padding IS the side padding`, () => {
-      const el = render(<TextArea size={size} rows={3} />);
+      // At radius="medium": uniformity is a non-full fact — the `full` DEFAULT bumps the
+      // sides only, which the roundness law below pins.
+      const el = mounted(<TextArea size={size} rows={3} />, { theme: { radius: "medium" } });
       expect(computed(el, "padding-top")).toBe(computed(el, "padding-left"));
       expect(computed(el, "padding-top")).toBe(computed(el, "padding-bottom"));
     });
@@ -89,7 +91,7 @@ describe("padding is the dimension, and it is ONE inset (§4, reversed 2026-08-0
       <Theme pointer="coarse" key="p" />,
     ]) {
       const host = render(
-        <world.type {...world.props}>
+        <world.type {...world.props} radius="medium">
           <TextArea size="2" rows={3} />
           <Button size="2">Label</Button>
         </world.type>,
@@ -107,7 +109,7 @@ describe("padding is the dimension, and it is ONE inset (§4, reversed 2026-08-0
     // full the sides take the pill value and the block keeps the plain inset — Kushagra's
     // call, judged in the preview.
     const el = mounted(<TextArea size="2" rows={3} />, { theme: { radius: "full" } });
-    const plain = render(<TextArea size="2" rows={3} />);
+    const plain = mounted(<TextArea size="2" rows={3} />, { theme: { radius: "medium" } });
     expect(px(computed(el, "padding-left"))).toBeGreaterThan(px(computed(plain, "padding-left")));
     expect(computed(el, "padding-top")).toBe(computed(plain, "padding-top"));
     expect(computed(el, "height")).toBe(computed(plain, "height"));

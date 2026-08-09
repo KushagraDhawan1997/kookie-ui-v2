@@ -162,7 +162,7 @@
    carved out is universal rather than occasional). */
 .kui-select-label {
   pointer-events: none;
-  color: var(--color-text-faint);
+  color: var(--color-text-caption);
 }
 
 /* The reserved gutter (§21): the indicator stays mounted so chosen and unchosen rows align —

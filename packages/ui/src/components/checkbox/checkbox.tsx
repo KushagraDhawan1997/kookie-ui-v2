@@ -108,7 +108,7 @@ export function Checkbox({ size = "2", className, ref, ...props }: CheckboxProps
           className="kui-checkbox-check"
           d="M4 8.5 6.75 11.25 12 5.75"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth="1.25"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -116,7 +116,7 @@ export function Checkbox({ size = "2", className, ref, ...props }: CheckboxProps
           className="kui-checkbox-dash"
           d="M4.25 8h7.5"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth="1.25"
           strokeLinecap="round"
         />
       </BaseCheckbox.Indicator>

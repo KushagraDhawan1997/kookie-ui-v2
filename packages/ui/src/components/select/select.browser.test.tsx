@@ -733,7 +733,7 @@ describe("behavior: roles, choosing, forms, labels", () => {
     await settled();
     const label = popup.querySelector<HTMLElement>(".kui-select-label");
     if (!label) throw new Error("standalone label missing");
-    expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-faint)"));
+    expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-caption)"));
     expect(computed(label, "pointer-events")).toBe("none");
     expect(label.getAttribute("role")).toBeNull();
     expect(popup.querySelectorAll(".kui-select-item").length).toBe(1);
