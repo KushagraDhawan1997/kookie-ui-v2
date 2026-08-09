@@ -19,7 +19,7 @@ import * as React from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 
 import { Theme } from "../../theme/theme.tsx";
-import { filled } from "../../system/render.ts";
+import { filled, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
 
 /* ── Designed constants (§22, v0 — the switchInset precedent: Base UI takes numbers, so
@@ -66,9 +66,35 @@ export function Menu({ size = "2", open, defaultOpen, onOpenChange, children }: 
 
 /* ── Trigger ──────────────────────────────────────────────────────────────────────────── */
 
+/**
+ * Does this render target bottom out in a real `<button>`? (§5, 2026-08-09.)
+ *
+ * Button's own one-level check does not transfer, because the element handed to a TRIGGER is
+ * usually a COMPONENT — `render={<Button/>}` has `type === Button`, a function, so a check for
+ * the string "button" answers false for the commonest shape in the library and stands the
+ * native contract down on an ordinary button. The question is one level deeper than Button
+ * ever has to ask it: a component that itself takes a `render` escape is transparent, so
+ * follow that escape (`<Button render={<a href/>}/>` roots in an anchor) and stop at the first
+ * intrinsic element. A component with no escape is opaque and takes Base UI's own default —
+ * the `nativeButton` prop is the escape for the case inspection cannot see.
+ */
+function rootsInButton(el: RenderElement, depth = 0): boolean {
+  const target = unwrapLazy(el);
+  if (typeof target.type === "string") return target.type === "button";
+  const inner = target.props?.render;
+  if (depth < 4 && React.isValidElement(inner)) return rootsInButton(inner as RenderElement, depth + 1);
+  return true;
+}
+
 export type MenuTriggerProps = {
   /** Usually a Kookie Button: `<MenuTrigger render={<Button/>}>Open</MenuTrigger>`. */
-  render?: React.ReactElement<Record<string, unknown>>;
+  render?: RenderElement;
+  /**
+   * Whether the rendered element really is a `<button>`. Inferred from `render` exactly as
+   * Button infers it, and almost never passed — the escape is for a custom component whose
+   * own root is a button, where inspection cannot see through it (§5).
+   */
+  nativeButton?: boolean;
   disabled?: boolean;
   children?: React.ReactNode;
   className?: string;
@@ -76,8 +102,27 @@ export type MenuTriggerProps = {
   ref?: React.Ref<HTMLButtonElement>;
 };
 
-export function MenuTrigger({ render, ...props }: MenuTriggerProps) {
-  return <BaseMenu.Trigger {...(render ? { render } : {})} {...props} />;
+export function MenuTrigger({ render, nativeButton, ...props }: MenuTriggerProps) {
+  // Base UI branches its ENTIRE a11y contract on `nativeButton`, which defaults to true —
+  // the Button defect of 2026-08-03, re-shipped here and caught by the audit 2026-08-09.
+  // Unforwarded, `render={<a href/>}` emitted `type="button"` on an anchor (where `type` is
+  // the linked resource's MIME type) and `disabled` as an inert attribute with no
+  // `aria-disabled`: a focusable, unannounced dead link, the same sentence one component
+  // over. Worse, the blessed nested shape leaked too — `render={<Button render={<a href/>}/>}`
+  // wore Button's correct role="button" AND this component's wrong type="button", two
+  // components disagreeing about one node.
+  //
+  // `render` is unwrapped FIRST (§5): an element created in a Server Component crosses the
+  // RSC boundary as a lazy node whose `type` answers wrong, silently (facebook/react#32392).
+  const target = render === undefined ? undefined : unwrapLazy(render);
+  const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
+  return (
+    <BaseMenu.Trigger
+      {...(target ? { render: target } : {})}
+      nativeButton={isNativeButton}
+      {...props}
+    />
+  );
 }
 
 /* ── Content: the fold (§22). Portal → bare Theme (§20: context crosses portals, CSS

@@ -416,6 +416,89 @@ describe("behavior: the platform's menu, not a styled div", () => {
     });
     expect(document.querySelector(".kui-menu-popup")).not.toBeNull();
   });
+
+  /* The a11y contract Base UI branches on `nativeButton` (audit 2026-08-09). Unforwarded,
+     it defaults true and an anchor trigger shipped `type="button"` plus an inert `disabled`
+     with no `aria-disabled` — the Button defect of 2026-08-03, re-shipped. Read off the DOM,
+     because the attribute is the thing that was wrong; falsified by deleting the
+     `nativeButton={isNativeButton}` line, which restores `type="button"` on both anchors. */
+  it("infers nativeButton from `render`: an anchor trigger is not a button (§5)", () => {
+    render(
+      <Theme>
+        <Menu>
+          <MenuTrigger render={<a href="/settings" />}>Settings</MenuTrigger>
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    const link = document.querySelector<HTMLAnchorElement>('a[href="/settings"]');
+    if (!link) throw new Error("anchor trigger never mounted");
+    // `type` on an <a> is the linked resource's MIME type — a factually wrong attribute.
+    expect(link.hasAttribute("type")).toBe(false);
+    expect(link.getAttribute("role")).toBe("button");
+    expect(link.getAttribute("aria-haspopup")).toBe("menu");
+  });
+
+  it("a disabled anchor trigger is announced disabled, not silently dead (§5)", () => {
+    render(
+      <Theme>
+        <Menu>
+          <MenuTrigger render={<a href="/settings" />} disabled>
+            Settings
+          </MenuTrigger>
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    const link = document.querySelector<HTMLAnchorElement>('a[href="/settings"]');
+    if (!link) throw new Error("anchor trigger never mounted");
+    // `disabled` is inert on an anchor: the non-native branch owes aria-disabled and must
+    // take the element out of the tab order rather than leaving it focusable and dead.
+    expect(link.getAttribute("aria-disabled")).toBe("true");
+    expect(link.hasAttribute("disabled")).toBe(false);
+  });
+
+  it("the nested blessed shape: one anchor, one contract, no disagreement (§5)", () => {
+    render(
+      <Theme>
+        <Menu>
+          <MenuTrigger render={<Button render={<a href="/docs" />}>Docs</Button>} />
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    const link = document.querySelector<HTMLAnchorElement>('a[href="/docs"]');
+    if (!link) throw new Error("nested anchor trigger never mounted");
+    // Before the fix this node wore Button's role="button" AND MenuTrigger's type="button".
+    expect(link.hasAttribute("type")).toBe(false);
+    expect(link.getAttribute("role")).toBe("button");
+  });
+
+  it("a real button trigger keeps the native contract (the negative control)", () => {
+    render(
+      <Theme>
+        <Menu>
+          <MenuTrigger render={<Button>Open</Button>} disabled />
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    const trigger = document.querySelector<HTMLButtonElement>(".kui-button");
+    if (!trigger) throw new Error("trigger never mounted");
+    expect(trigger.tagName).toBe("BUTTON");
+    // A native button takes the inert attribute and NO role/aria-disabled — the branch the
+    // inference must not flip for the ordinary case.
+    expect(trigger.hasAttribute("disabled")).toBe(true);
+    expect(trigger.getAttribute("role")).toBeNull();
+  });
 });
 
 /* ── Group semantics ──────────────────────────────────────────────────────────────────── */

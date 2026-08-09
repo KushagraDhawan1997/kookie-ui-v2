@@ -394,7 +394,7 @@ export const ENTRIES: Entry[] = [
       },
     ],
     parts: [
-        { part: "MenuTrigger", blurb: "The button that opens the menu — usually render={<Button/>}, so the trigger IS a Kookie Button" },
+        { part: "MenuTrigger", blurb: "The button that opens the menu — usually render={<Button/>}, so the trigger IS a Kookie Button; what the render target roots in decides the a11y contract, inferred through the escape rather than assumed" },
         { part: "MenuContent", blurb: "The floating panel: portals, positions, re-applies the theme (§20) and wears the surface identity" },
         { part: "MenuItem", blurb: "One action row — the row family's member: control cells, quiet identity, highlight not hover" },
         { part: "MenuGroup", blurb: "Groups rows so a label can name them; wires the group's accessible name automatically" },
