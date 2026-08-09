@@ -8,6 +8,54 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-10 The lit row's tick was the third thing standing on a fill that moved without it
+
+Kushagra, on a Select open at `contrast="high"` in the playground: the accent tick against the solid row *"looks weird"* — should high contrast keep a lighter background and darken the label instead, the way a medium-emphasis button does?
+
+**The proposal was measured and rejected, and it is worth staying rejected.** Medium's fill is `--tone-soft`, which is byte-identical to the fill the conformance arm replaced: 1.16:1 light and 1.08:1 dark against the panel. Those are the exact numbers from the 2026-08-09 audit that put the lit row on the solid rung in the first place, so a lighter high-contrast fill does not soften the setting — it undoes it, and leaves the highlight below the 3:1 WCAG 1.4.11 owes a non-text indicator. Any pastel lands there by construction: a soft fill is dress, and dress is designed not to shout.
+
+**But the eye had found something real, one element over from where it was pointing.** `--accent-solid` is `#0094fc` in BOTH appearances — one designed pigment, not a per-mode pick — while the solid row it now sits on inverts: near-black in light, near-white in dark. So the same tick measures 5.21:1 in light, where it clears the floor and only offends, and **2.65:1 in dark, where it is under the floor** — a conformance failure on the surface whose entire purpose is clearing floors, shipped by the fix that was written to clear them.
+
+The repair is the previous fix's own sentence applied once more. That arm already reads *"a fill that changes underneath ink that does not is the half-fix that ships"*, and it moved the fill and the label and stopped: the indicator was the third thing riding the same fill, and nothing looked for it. Under `contrast="high"` a lit row's tick now takes `--tone-contrast` alongside its label — 16.5:1 light, 17.6:1 dark — so the row speaks with one voice.
+
+**What the accent gives up is exactly one row**: the one that is both lit and checked. Every other checked row in the panel keeps `--accent-solid`, at rest, in both appearances, in standard mode — and the tick's PRESENCE is what says chosen, never its colour, since an unchecked row has no tick to compare against. Every OS menu resolves it the same way. Rejected alongside the lighter fill: a second, per-mode accent step for this case, which would mint a value to serve one state on one surface when the row's own contrast ink already answers it.
+
+**The law that let it through was two-thirds of a law.** It mounted both appearances, asserted the fill moved and asserted the label followed, and never read the indicator — the one-sided-law lesson (Progress, 2026-08-08) in its three-part form. It reads all three now, and its negative control is an UNLIT tick still wearing the accent, which is what fails if the new arm is ever written without its state guard and swallows every checked row in the panel. Both sabotages were run.
+
+## 2026-08-10 Hover reaches the boundary, the field's ring stays instant because the engine says so, and reduced motion turns out never to have worked
+
+The fields' turn in the motion pass. Three things came out of it and the one that was asked for is the smallest.
+
+**A field and a checkbox had no hover state at all, and it was structural.** Kushagra, on the playground: *"there's no hover darkening of border on text field or checkbox."* Measured before anything was written: a hovered TextField and TextArea computed **byte-identical to their resting selves** — border and fill, both appearances. The shared hover rule steps the FILL, and these are exactly the two families whose fill is deliberately held still: a field's by the invariant it has carried since 2026-08-04 (three sources, then the derived pair, so a glass field stops lightening under the pointer), a mark's because its seal barely moves inside its own box. So "states are uniform steps on the ramp" reached nothing whatsoever for two families, while §8 claimed in writing that a field's states are carried by its border and its ring.
+
+The step is a **mix toward the family's own ink**, not a pick off a ladder, and that is the part worth recording. The two solved edges were binary-searched against APCA tiers, so they sit BETWEEN rungs by construction and "+1 step" has no meaning on them. A mix also carries the tone (a destructive field darkens its own red) and needs no second number for dark, where the ink is light and the boundary steps the way dark actually reads. One config value, v0. It writes the painted name while READING the role, because writing the role would be a cycle; it keeps the glass edge first in the chain, so a material still outranks a pointer resting on the box; and it is held to (0,2,0) so `invalid` and `disabled` still win on source order — being wrong or being dead outranks being pointed at.
+
+**The field's ring emerged from its own edge for about an hour, and the engine refused it.** The story was right: a button's focus came to it *from* somewhere, so its ring contracts into place from outside where the eye can catch it; a field's focus is somewhere you *are*, so its ring should grow out of the box instead of flying at it — same property, opposite travel, and it needs no click-versus-Tab split precisely because an emerging ring points at nothing, which is the split text inputs can never have (`:focus-visible` matches on click for them in every browser).
+
+Kushagra killed it on sight — *"it grows in steps, like so jaggedy"* — and he was reading the mechanism, not the taste. **Chrome resolves `outline-offset` to whole CSS pixels**, so a ring animation renders one frame per pixel of travel however long its clock is. Measured: the field's 2px of room is exactly three values (0px, 1px, 2px) across 49 frames. Three steps is a stutter. The landing survives only because it travels twice as far — 6, 5, 4, 3, 2 — enough to read as movement on the same 260ms. **So the ring's travel is bounded below by the engine at about 4px**, and a field has no room to spare: its only distance is the offset itself. The refusal is now a law that measures the pixel quantisation, so if an engine ever starts interpolating it is worth reopening.
+
+Rejected with it, and worth staying rejected: a colour fade (the common answer — Stripe, shadcn, macOS), because a ring is a truth claim about where keystrokes land and a truth claim does not fade in, and because it mixes paint into a channel that is otherwise pure geometry; Material's thickening outline, because our border sits on the wrapper and a width change moves the value inside it by a pixel. Starting the ring *under* the border — a bigger image, more travel — is recorded unbuilt.
+
+**Then the finding nobody was looking for.** Writing the field's arrival meant the system briefly had two animations instead of one, which meant looking at how the first was suppressed — and it was not.
+
+`:not()` takes the specificity of its most specific *argument* rather than summing its list. So `.kui-control:focus-visible:not(input, textarea, .kui-row)` is (0,3,0), the stand-down `.kui-control:focus-visible { animation: none }` is (0,2,0), and a media query adds nothing. **The focus ring went on landing for every user who had asked their operating system for stillness**, for six days, while §8 claimed in writing that suppression is total.
+
+Two laws had the chance to catch it and neither could. The suppression law walked `transition` declarations — this is an `animation`, because there is no previous `outline-offset` to travel from, so it was never in scope. And even for transitions the law asked only whether a selector was *present* inside the guarded block, never whether it *won*. That is the 2026-08-03 lesson in a new spelling: **the law read the text of the stand-down instead of the value it produces.** Exactly the same shape as the audit finding from 2026-08-08 — a law about one axis of a two-axis mechanism is half a law — except the missing axis here was not an axis of geometry but the second of the two ways CSS moves anything.
+
+**The fix is structural, not arithmetic.** Which arrival a control gets is now a hook, `--kui-ct-ring`, and reduced motion stands the *hook* down rather than the rules that read it — so a recipe and its suppression share a selector, the tie goes to source order, and specificity can never separate them again. The `:not()` is `:where()`-wrapped as well, since the named-out list was always a filter and never a claim to specificity; that spelling is what set the trap.
+
+**The harness can now enter a media query, which it never could.** `asksForStillness()` drives `Emulation.setEmulatedMedia` over CDP, so `prefers-reduced-motion: reduce` genuinely matches and the shipped block is the thing under test. Before this, the entire reduced-motion story in this repo was asserted by reading stylesheet text — every character of which was correct while the ring moved. A media query the suite cannot enter is a media query the suite cannot check.
+
+**And one more instrument lesson, from a failure that only appeared in a full run.** The hover laws move a real pointer, and unmounting a host does not move it back — so the next file mounted at the same coordinates and got a control that was already `:hover` before it read anything. Three radio look-axis laws duly failed, reading a hovered border where they meant a resting one, and passed perfectly when run alone. **Passing alone and failing together is the signature**, and the fix belongs to the harness rather than to the laws: it parks the pointer at the far corner of the pinned viewport after any test that left something hovered. Cheap because it is guarded on an actual `:hover` rather than run for all thousand-odd tests.
+
+Nine mounted laws, every one falsified against the pre-fix code (ten sabotage passes across the day, all caught first time — including the realistic wrong spelling of the ring, written as a `var()` *fallback*, which reads as tidier and quietly lets a hosted button inherit the wrong arrival). Two node laws widened: animations join transitions in the suppression law, and the selectors that declare an arrival must be the selectors that stand it down.
+
+**Also corrected here: a claim that went stale the day before.** §8 still said "exactly one stylesheet moves, and a law names it — `menu.css`", written when the emergence recipe was the only judged motion and left standing when the control layer started moving. Naming sheets stopped being the mechanism then; what replaces it is that a duration cannot be *typed*, `var()` stripped first so an easing that happens to be a motion token cannot launder a hand-written `150ms`.
+
+**Not changed, and the refusal is the rest of the fields' answer.** Nothing else on a field moves. It does not travel or scale under the finger — §8's "a field does nothing" holds, and it is now measured under a real pointer rather than asserted — and the fill stays pinned, restated twice because material's mix ramp is a second thing that can move a fill. A field is the one control the eye rests *inside*. Its states are the border and the ring: the border now steps, and the ring stays still because the engine will not let it move well over two pixels.
+
+---
+
 ## 2026-08-09 Motion reaches the control layer, and the press keeps its 2026-08-03 finding by splitting it
 
 Menu's exit stays open (entry below); everything else moved. Button, checkbox, radio, switch, the fields and the shared skeleton, for **+506 bytes gzipped** — the whole control layer, because the clock is stated once and each family says only how far it moves.
@@ -81,6 +129,30 @@ The inline channel was declared, listed in the transition, riding the spring —
 **Cost: +887 bytes gzipped** (21,684 → 22,571) for the whole motion system — both curves, the floating family's durations, the seed, and Menu's entry and exit. The curves are most of it; they are large strings that gzip well, and they are the thing that was judged, so the sample counts are not trimmed to save bytes. Nine sabotage passes, each one caught by the law that names it. One law was passing vacuously — its default panel happened to land on a whole pixel, so the subpixel claim was never tested — and now picks the cell where the rounding actually broke a row, with a calibration assertion that fails if that cell ever stops having a fraction to lose.
 
 **Left open on purpose:** every other component. The grammar is settled and the tokens exist; what a switch's thumb, a button's press or a field's focus do with it are transcriptions of recipes already judged in the lab, but they are eye-pass work. Select is nearest and deliberately gets nothing today — it wears `kui-floating`, so the machinery is one line away, but a select opening is a different gesture from a menu opening and has not been judged.
+
+---
+
+## 2026-08-10 The docs install Hugeicons — a decision §8 had already made, that the docs had not kept
+
+Kushagra: *"The docs app should only use hugeicons."* Stroke 1.5.
+
+**This closed a gap between the spec and one of its two consumers rather than deciding anything.** DECISIONS §8 has said "Hugeicons is the blessed set — installed by the app (and the docs), never by the library" since the icon box was written. apps/docs was drawing its own strokes instead, and an audit had even *defended* that in 2026-08-06's REVIEW: the "every visible pixel is @kookie-ui/react" stance survived challenge over the hand-drawn icons, on the grounds that §8 names this exact case. Both readings are right about the stance and only one is right about the set: §8 says the app installs its own set, and it also says which set.
+
+**The stance it looked like it breached is narrower than its shorthand.** "No third-party UI" is about COMPONENTS — a design system whose docs run on someone else's buttons argues against itself. An icon is not a component here; §8 refuses to bundle one precisely so the app can choose. The hand-drawn set was the app declining to choose, which was fine at three glyphs and stopped being fine when the playground started showing real screens made of them.
+
+**Wrappers, not re-exports.** Call sites say what a glyph MEANS (`SearchIcon`) rather than which drawing was picked (`Search01Icon`), so swapping a drawing is one edit in one file; and the props that must be right every time — `aria-hidden`, the stroke, and *not* passing `size` — are stated once. `size` is deliberately absent: the control layer sizes a slot's svg through `--kui-ct-icon`, and a `size` prop would emit width/height attributes for the CSS to beat. It does beat them, presentation attributes losing to any declaration, but relying on that is a mechanism nobody wrote down.
+
+**And the number is not pixels.** 1.5 is user units in a 24 viewBox, so the painted stroke is 1.5 × box/24 — 1.0px at the 16px boxes sizes 1 and 2 share, 1.5px only at size 4. Measured in a mounted browser rather than asserted. `absoluteStrokeWidth` cannot fix it: it rescales against the `size` prop this file never passes, so it would silently do nothing. Recorded in §8 with the box, because "stroke width stays open" had been sitting in that paragraph since the icon box was written and is now closed in both places at once — the package's own carets and the docs' set are both 1.5, matching by construction rather than by coincidence.
+
+---
+
+## 2026-08-09 The playground's page becomes the seal, and a card loses its free step of separation
+
+The system paints no page background — no `.kui-theme` rule sets one — so the page colour has always been the app's call, and the preview had quietly been giving every card one free step of contrast against its bed by painting `--neutral-1`. Kushagra asked why light mode was not simply white, then: *"I dont want preview to use neutral 1."*
+
+It is `--color-surface` now: pure white in light, the seal's own colour in dark. Because `surfaces="flat"` is the default, a card's only separation from the page is its hairline — which is the harder bed on purpose. If a surface cannot hold itself there, the surface is what is wrong, and the judging surface should be the one that shows it.
+
+Rejected: `--neutral-2`, a step the other way, which separates cards *more* and hides exactly the failure this page exists to catch; and painting nothing at all, which would have left a pinned-dark canvas as dark specimens floating on the site's light bed.
 
 ---
 
