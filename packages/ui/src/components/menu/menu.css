@@ -63,8 +63,12 @@
   margin-inline: calc(-1 * var(--kui-menu-pad));
 }
 
-/* A group label reads, it does not act: the row skeleton gave it the grid (gutter, type
-   step, height — aligned with its items at every cell); this stands the control-ness down. */
+/* A group label reads, it does not act: the row skeleton gave it the type step, height and
+   side padding, so its text starts on the same vertical as its items' text at every cell —
+   this stands the control-ness down. (It said "gutter" until 2026-08-09; there is no gutter
+   mechanism, and a label does not align with a CHECKABLE row's text, because that row's
+   indicator occupies the leading slot. Alignment with plain rows is what the skeleton buys,
+   and it is what the sentence should have claimed.) */
 .kui-menu-label {
   pointer-events: none;
   color: var(--color-text-faint);

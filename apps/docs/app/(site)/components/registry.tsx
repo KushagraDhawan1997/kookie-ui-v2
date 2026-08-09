@@ -389,6 +389,10 @@ export const ENTRIES: Entry[] = [
         why: "Icon-less rows aligning with icon'd neighbours is geometry's job, not a per-row prop the caller must remember: checkable rows keep their indicator mounted so the gutter reserves. Recorded open for plain items.",
       },
       {
+        name: "modal / openOnHover",
+        why: "Designed defaults, not call-site choices. An open menu IS modal — Base UI's default, and Radix's under shadcn/ui, whose vocabulary this component adopts: a transparent full-viewport press-catcher is what makes light-dismiss work, and locking page scroll keeps the panel attached to the anchor it is positioned against. There is no visible scrim. Rows open on click, never on hover.",
+      },
+      {
         name: "Arrow, Backdrop, Viewport, LinkItem, collision knobs",
         why: "Menus don't point; light-dismiss needs no scrim; long menus scroll inside the panel via the positioner's own measurements; navigation rows arrive with Sidebar; collision handling is a designed default.",
       },
