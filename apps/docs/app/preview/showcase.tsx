@@ -372,7 +372,7 @@ function DeployStatus() {
                   </Button>
                 }
               />
-              <MenuContent align="end">
+              <MenuContent>
                 <MenuItem>Copy deploy URL</MenuItem>
                 <MenuItem>Redeploy</MenuItem>
                 <MenuItem>Promote to production</MenuItem>
@@ -664,7 +664,7 @@ function Workspace() {
                           </Button>
                         }
                       />
-                      <MenuContent align="end">{rowMenu}</MenuContent>
+                      <MenuContent>{rowMenu}</MenuContent>
                     </Menu>
                   </Flex>
                 </Box>
