@@ -854,8 +854,25 @@ export const surfaceColor = {
  * `outlined` is the identity: exactly the chrome each family declared before the axis
  * existed, so the default is byte-identical to a world without it. `filled` trades the
  * hairline for a darkened well, one neutral step apart per family — surfaces lightest,
- * fields one darker, marks darkest (Kushagra's hierarchy, 2026-08-06). The field has no
- * hover slots on purpose: its fill does not move, the border and ring carry its states.
+ * fields one darker, marks darkest (Kushagra's hierarchy, 2026-08-06).
+ *
+ * The field family DID have no hover slots, and the sentence justifying that has since been
+ * measured false for one member (audit 2026-08-09). It read "its fill does not move, the
+ * border and ring carry its states" — true of a text input, where the ring is a MODE keyed on
+ * the caret being inside. Select's trigger is field-shaped and PRESSED: its ring is the
+ * skeleton's `:focus-visible`, so it appears for a keyboard and never for a pointer, and the
+ * trigger computed rest = hover = press = open, byte-identical across seven properties, with
+ * nothing else in the package reading `data-popup-open` on a button. The slots exist now and
+ * the pin stays where it was earned: text-field.css and text-area still pin all three sources
+ * to the resting fill, so a field a caret enters is untouched, and only the member that is
+ * pressed consumes the steps (select.css, law-tested in both directions).
+ *
+ * The steps are DERIVED, not judged: outlined reuses the surface roles verbatim (the same
+ * three the surface and mark families already map), and filled walks the same +1/+2 the two
+ * sibling families walk from their own resting step. The dark ladder ends one past the edge
+ * step, which is the posture `surface` already ships in dark (fill-active 5, edge 5) — the
+ * precedent is what makes this a derivation rather than a fourth opinion. v0 all the same.
+ *
  * The FILL values are var() references that bake at the Theme element (§6, substitution-at-
  * declaration) — correct by co-location, because Theme stamps data-look beside
  * data-appearance on one element. The BORDERS cannot bake there: the tone system lives on
@@ -874,7 +891,12 @@ export const look = {
       "fill-active": "var(--color-surface-active)",
       border: "initial",
     },
-    field: { fill: "var(--color-surface)", border: "initial" },
+    field: {
+      fill: "var(--color-surface)",
+      "fill-hover": "var(--color-surface-hover)",
+      "fill-active": "var(--color-surface-active)",
+      border: "initial",
+    },
     mark: {
       fill: "var(--color-surface)",
       "fill-hover": "var(--color-surface-hover)",
@@ -889,7 +911,12 @@ export const look = {
       "fill-active": "var(--dress-surface-fill-active)",
       border: "var(--dress-surface-edge)",
     },
-    field: { fill: "var(--dress-field-fill)", border: "var(--dress-field-edge)" },
+    field: {
+      fill: "var(--dress-field-fill)",
+      "fill-hover": "var(--dress-field-fill-hover)",
+      "fill-active": "var(--dress-field-fill-active)",
+      border: "var(--dress-field-edge)",
+    },
     mark: {
       fill: "var(--dress-mark-fill)",
       "fill-hover": "var(--dress-mark-fill-hover)",
@@ -936,12 +963,12 @@ export const look = {
 export const dress = {
   light: {
     surface: { fill: 2, "fill-hover": 3, "fill-active": 4, edge: 5 },
-    field: { fill: 3, edge: 5 },
+    field: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 5 },
     mark: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 7 },
   },
   dark: {
     surface: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 5 },
-    field: { fill: 4, edge: 5 },
+    field: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 5 },
     mark: { fill: 5, "fill-hover": 6, "fill-active": 7, edge: 7 },
   },
 } as const;

@@ -828,10 +828,36 @@ function floatingPanelFamily(): string[] {
  * on the same element, so substitution-at-declaration picks up each world's own ladder. */
 function controlRadiusFamily(set: DensitySet, level: RadiusLevel): string[] {
   if (level === "full")
-    return set.radius.map(
-      (_, i) => decl(`radius-control-${i + 1}`, `calc(var(--control-height-${i + 1}) / 2)`),
-    );
-  return set.radius.map((step, i) => decl(`radius-control-${i + 1}`, `var(--radius-${step})`));
+    return set.radius.flatMap((_, i) => [
+      decl(`radius-control-${i + 1}`, `calc(var(--control-height-${i + 1}) / 2)`),
+      ...rowRadius(i, level),
+    ]);
+  return set.radius.flatMap((step, i) => [
+    decl(`radius-control-${i + 1}`, `var(--radius-${step})`),
+    ...rowRadius(i, level),
+  ]);
+}
+
+/** The ROW corner (§6, §21, added 2026-08-09 after the audit) — the control band's own `full`
+ * sentence, for the family that left the height ladder.
+ *
+ * A row's box is its text line plus one designed inset, not `--control-height-N`, so at `full`
+ * the control band handed it half a box it does not have: measured 18/20/24/28 declared against
+ * a row that can only paint 12/14/17/19, and the panel's concentric corner — row corner plus
+ * panel padding — inherited the whole error, missing in 21 of 24 cells by up to 9px. This is the
+ * same defect the control band fixed for a grown textarea and the mark band fixed for a
+ * checkbox: a corner holding a fraction of the wrong box. Third time, one sentence.
+ *
+ * Every other level is the identity, so nothing but `full` moves. The `full` arm names the row's
+ * own two tokens rather than a computed number, because both are re-priced per world (coarse
+ * raises the line through the type bands, density moves the inset) — and both are declared on
+ * the same element this lands on, where var() resolves against that element's computed values
+ * regardless of source order. */
+function rowRadius(i: number, level: RadiusLevel): string[] {
+  const n = i + 1;
+  if (level === "full")
+    return [decl(`radius-row-${n}`, `calc((var(--line-height-${n}) + 2 * var(--row-inset-${n})) / 2)`)];
+  return [decl(`radius-row-${n}`, `var(--radius-control-${n})`)];
 }
 
 /** The four size-indexed control tokens for one designed set (§12, §16). No gap here: the
@@ -850,7 +876,10 @@ function controlFamily(set: DensitySet): string[] {
   // identity is re-declared wherever px is, so it substitutes against the scope's own value
   // (substitution-at-declaration, §6). The `full` cells override it with raw designed numbers.
   set.px.forEach((_, i) => put(`control-px-pill-${i + 1}`, `var(--control-px-${i + 1})`));
-  set.radius.forEach((step, i) => put(`radius-control-${i + 1}`, `var(--radius-${step})`));
+  set.radius.forEach((step, i) => {
+    put(`radius-control-${i + 1}`, `var(--radius-${step})`);
+    put(`radius-row-${i + 1}`, `var(--radius-control-${i + 1})`);
+  });
 
   // The inset a control keeps around anything it hosts in a slot, and the height that leaves
   // for the hosted control. ONE designed number drives both, which is the point: the space
