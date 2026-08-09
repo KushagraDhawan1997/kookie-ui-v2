@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-09 The playground gets real screens, in the same page — a matrix cannot show a composition
+
+Kushagra, on the shipped confirm card: *"its not 'extensive' enough… but also, its not tastefully done… I'm not seeing real examples, what a real consumer will use."*
+
+**The first proposal was two routes** — `/preview` for exhaustive specimens, a new `/examples` for whole screens — and it was rejected on the spot: *"Preview without examples doesnt make sense. See the core of what kookie ui v2 is, no hollow and empty preview."* The rejection is right and worth keeping rejected: a specimen page whose examples live somewhere else is a page nobody judges taste on, because the judgement needs both in one scroll. What shipped is one page with a `Real screens` section ahead of the first component section.
+
+**Why a matrix cannot find these faults.** The confirm card's three defects were a 14px title over a 12px body, size-1 buttons inside a size-3 card, and a full-width rule under a right-aligned pair. Every one of them is a RELATIONSHIP between two components, and a specimen table has exactly one component in the frame by construction. The tables answer "is this cell right"; nothing on the page answered "do these five things look like one designed thing", which is the question the system exists to get right.
+
+**Two cross-family tables landed with it, out of alphabetical order on purpose.** `Sizes` puts every control at one index on one line — five ladders joined at one index (§4), and a control that drifts half a step is invisible in its own table where every neighbour drifted with it. `Tones` prints ten families across every consumer that resolves one. Both sweep an axis ACROSS components, which is the permutation no single component's section can hold.
+
+**The law is the anti-hollow clause, and it is shaped against the cheapest way to satisfy it.** Counting `function X(` would have passed on the file's shared helpers alone, so it counts only fragments the page actually RENDERS, requires the set to reach across seven components in different families, and forbids any fragment from painting a colour of its own — a screen that reaches past the system for a value is the argument failing quietly. Falsified twice against sabotaged sources before it was trusted.
+
+One gap is left visible rather than papered over: a nav row starts its label and a button centres it, so the shell's sidebar uses `style={{ justifyContent: "flex-start" }}`. That is not a missing button prop — it is a nav component the system does not ship yet, and the escape is left in place where it names the gap.
+
+---
+
 ## 2026-08-09 The Select audit: a rule written for one element, applied to a different one — four times in one component
 
 Forty-five agents over Select and everything it touches, every finding re-measured in a mounted browser and handed to a separate agent whose job was to refute it. Thirty-four raised, twenty-four survived, eighteen distinct repairs. Four of them are the SAME shape, and it is the shape the architecture sweep named: a mechanism whose argument was written for one element and then applied to another.

@@ -125,6 +125,54 @@ describe("a state the shared layer paints has a specimen (§8)", () => {
     expect(block).toContain('appearance: "inherit"');
   });
 
+  it("the showcase renders whole screens, not one more specimen", () => {
+    // Earned 2026-08-09 (Kushagra: "preview without examples doesn't make sense", refusing a
+    // second route). The export walk proves every component is ON the page; nothing proved the
+    // page shows any of them DOING anything. A playground of matrices is a spec sheet, and the
+    // faults that actually shipped — a title one step off its body, buttons two rungs under
+    // their card, a rule dividing nothing — are invisible in a matrix by construction.
+    //
+    // The cheapest way to satisfy a law like this is a file that says nothing, so the shape is
+    // asserted, not the presence: several fragments, each holding components from more than
+    // one family, and no colour or length invented anywhere in it.
+    const showcase = readFileSync(join(here, "showcase.tsx"), "utf8");
+
+    // Declared fragments do not count — only the ones the page actually renders. Counting
+    // `function X(` would have passed on this file's shared helpers alone.
+    const declared = new Set(
+      (showcase.match(/^function ([A-Z]\w+)\(/gm) ?? []).map((m) => m.replace(/^function /, "").replace("(", "")),
+    );
+    const start = showcase.indexOf("export function Showcase");
+    expect(start, "the showcase's own entry point is not where this law thinks").toBeGreaterThan(0);
+    const rendered = new Set(
+      (showcase.slice(start).match(/<([A-Z]\w+)\s*\/>/g) ?? [])
+        .map((t) => t.replace(/[<>/\s]/g, ""))
+        .filter((name) => declared.has(name)),
+    );
+    expect(
+      rendered.size,
+      "the showcase is meant to be several whole screens — it renders almost none",
+    ).toBeGreaterThanOrEqual(6);
+
+    // A screen is more than one family in one frame. Any fragment could be a specimen; the
+    // set has to reach across the system.
+    for (const name of ["TextField", "Select", "Switch", "Checkbox", "Menu", "Slider", "Progress"]) {
+      expect(
+        new RegExp(`<${name}[\\s/>]`).test(showcase),
+        `the showcase never uses ${name} — a screen made of half the system is a specimen`,
+      ).toBe(true);
+    }
+
+    // Ordinary call sites only: the fragments argue that the system composes, so a fragment
+    // reaching past it for a colour is the argument failing quietly. Lengths are allowed
+    // (§3 sanctions a stated width on a Box); painted values are not.
+    const painted = showcase.match(/(background|color|border|box-shadow)\s*:/g) ?? [];
+    expect(
+      painted,
+      "a showcase fragment paints something itself — the screens are meant to be ordinary call sites",
+    ).toEqual([]);
+  });
+
   it("Radio renders one too — where its checked state actually lives, on the GROUP", () => {
     if (!marksHaveCheckedInvalidRule) return;
     // Radio is the member whose selected state is not its own prop: RadioGroup owns the

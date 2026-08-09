@@ -30,6 +30,7 @@ import {
 } from "@kookie-ui/react";
 
 import { setContrast, useAppearance, type ContrastChoice } from "../appearance";
+import { Showcase } from "./showcase";
 import { SECTIONS } from "./specimens";
 
 type Env = {
@@ -250,15 +251,34 @@ export function PreviewApp() {
               page read unconstrained because most of it was empty width (Kushagra, 2026-08-08). */}
           <Box style={{ maxWidth: "60rem", marginInline: "auto" }}>
             <Stack gap="8" pt="8">
-              <Stack gap="3">
-                <Heading size="7" render={<h1 />}>
-                  Playground
-                </Heading>
-                <Text size="3" emphasis="medium" render={<p />} style={{ maxWidth: "36rem" }}>
-                  Every shipped component, every axis. The panel moves whole worlds — including
-                  its own — and the specimens are ordinary call sites that never pick a colour.
-                </Text>
+              <Stack gap="4">
+                <Stack gap="3">
+                  <Heading size="7" render={<h1 />}>
+                    Playground
+                  </Heading>
+                  <Text size="3" emphasis="medium" render={<p />} style={{ maxWidth: "36rem" }}>
+                    Every shipped component, every axis — and, first, real screens made only of
+                    them. The panel moves whole worlds, including its own, and nothing on this
+                    page picks a colour or invents a length.
+                  </Text>
+                </Stack>
+                {/* Nineteen sections and a showcase is more than a page can be scrolled
+                    through by guess. Quiet buttons rendered as anchors: the index is made of
+                    the system too. */}
+                <Flex gap="1" wrap="wrap" render={<nav aria-label="Sections" />}>
+                  {[{ id: "showcase", name: "Real screens" }, ...SECTIONS].map((section) => (
+                    <Button
+                      key={section.id}
+                      size="1"
+                      emphasis="quiet"
+                      render={<a href={`#${section.id}`} />}
+                    >
+                      {section.name}
+                    </Button>
+                  ))}
+                </Flex>
               </Stack>
+              <Showcase />
               {SECTIONS.map((section) => (
                 // The boundary is the component, not a borrowed borderTop — the playground
                 // dogfoods the hairline it demonstrates. Its own Separator section sits a

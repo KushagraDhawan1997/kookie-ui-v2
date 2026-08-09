@@ -172,6 +172,157 @@ function Demo({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
+/* ── Cross-family sections ─────────────────────────────────────────────────────────────── */
+
+/**
+ * Every control at one index, in one row (2026-08-09).
+ *
+ * The per-component tables each sweep their own sizes, and not one of them can show the thing
+ * a size index actually promises: that `size="3"` means the same thing to a button, a field, a
+ * select, a checkbox and a switch — five ladders joined at one index (§4). A control that drifts
+ * half a step is invisible in its own table, where every neighbour drifted with it, and obvious
+ * here, where the row has a baseline.
+ *
+ * Four rows, not a grid: the row IS the specimen. Flip density or pointer in the panel and all
+ * four re-price at once — the two axes that move the ladder without touching the index.
+ */
+function SizesSection() {
+  const items = { s: "Small", m: "Medium", l: "Large" };
+  return (
+    <Stack gap="6">
+      {SIZES.map((size) => (
+        <Stack key={size} gap="3">
+          <Text size="1" emphasis="quiet">size {size}</Text>
+          <Flex gap="4" align="center" wrap="wrap">
+            <Button size={size} tone="accent" emphasis="loud">Save</Button>
+            <Button size={size} emphasis="quiet" bordered>Cancel</Button>
+            <Button size={size} iconOnly emphasis="quiet" bordered aria-label={`Search, size ${size}`}>
+              <SearchIcon />
+            </Button>
+            <Box width="8rem">
+              <TextField size={size} placeholder="Name" aria-label={`Name, size ${size}`} />
+            </Box>
+            <Select size={size} defaultValue="m" items={items}>
+              <SelectTrigger placeholder="Pick" aria-label={`Pick, size ${size}`} />
+              <SelectContent>
+                <SelectItem value="s">Small</SelectItem>
+                <SelectItem value="m">Medium</SelectItem>
+                <SelectItem value="l">Large</SelectItem>
+              </SelectContent>
+            </Select>
+            <Menu size={size}>
+              <MenuTrigger render={<Button size={size} emphasis="medium">Actions</Button>} />
+              <MenuContent>
+                <MenuItem>Duplicate</MenuItem>
+                <MenuItem>Rename</MenuItem>
+                <Separator />
+                <MenuItem tone="destructive">Delete</MenuItem>
+              </MenuContent>
+            </Menu>
+            <Checkbox size={size} defaultChecked aria-label={`Checkbox, size ${size}`} />
+            <RadioGroup defaultValue="a" aria-label={`Radio, size ${size}`}>
+              <Radio size={size} value="a" aria-label={`Radio, size ${size}`} />
+            </RadioGroup>
+            <Switch size={size} defaultChecked aria-label={`Switch, size ${size}`} />
+            <Box width="6rem">
+              <Slider size={size} defaultValue={60} aria-label={`Slider, size ${size}`} />
+            </Box>
+            {/* Kbd stands in for the type atoms: it is the one that has a BOX, so it is the
+                one the ladder can be wrong about. Code was here and made the row wrap at
+                sizes 3 and 4, which cost more than it showed. */}
+            <Kbd size={size}>⌘K</Kbd>
+          </Flex>
+        </Stack>
+      ))}
+      {/* The row inside a card, which is where the ladder is actually judged: a toolbar is
+          the composition that puts four families on one line in a real product. */}
+      <Demo label="Composed — one toolbar per size">
+        <Stack gap="4">
+          {SIZES.map((size) => (
+            <Card key={size} size="2">
+              <Flex gap="3" align="center" wrap="wrap">
+                <Box flexGrow="1" minWidth="10rem">
+                  <TextField
+                    size={size}
+                    placeholder="Filter results"
+                    leading={<SearchIcon />}
+                    aria-label={`Filter, size ${size}`}
+                  />
+                </Box>
+                <Select size={size} defaultValue="m" items={items}>
+                  <SelectTrigger placeholder="Sort" aria-label={`Sort, size ${size}`} />
+                  <SelectContent>
+                    <SelectItem value="s">Newest</SelectItem>
+                    <SelectItem value="m">Oldest</SelectItem>
+                    <SelectItem value="l">Name</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button size={size} tone="accent" emphasis="loud" leading={<PlusIcon />}>New</Button>
+              </Flex>
+            </Card>
+          ))}
+        </Stack>
+      </Demo>
+    </Stack>
+  );
+}
+
+/**
+ * The ten families across every component that resolves one (2026-08-09).
+ *
+ * Same argument as the size row: `tone` is one indirection consumed by fills, inks, edges and
+ * chips, and a family whose ink and whose solid disagree is only visible when they are printed
+ * beside each other. The mark family is deliberately absent — §11 gives it one identity
+ * (neutral off, accent on) rather than an axis, so there is nothing here to sweep.
+ */
+function TonesSection() {
+  return (
+    <Stack gap="6">
+      <SpecTable
+        wide
+        cols={["Loud", "Medium", "Quiet + border", "Text", "Code", "Kbd"]}
+        rows={TONES.map((tone) => ({
+          label: tone,
+          cells: [
+            <Button key="1" tone={tone} emphasis="loud">{cap(tone)}</Button>,
+            <Button key="2" tone={tone} emphasis="medium">{cap(tone)}</Button>,
+            <Button key="3" tone={tone} emphasis="quiet" bordered>{cap(tone)}</Button>,
+            <Text key="4" size="2" tone={tone}>{cap(tone)} ink</Text>,
+            <Code key="5" tone={tone}>{tone}</Code>,
+            <Kbd key="6" tone={tone}>⌘{cap(tone)[0]}</Kbd>,
+          ],
+        }))}
+      />
+      {/* Tone as data, in the shape a product uses it: a status line per family, where the
+          question is whether ten of these in one column still read as one system. */}
+      <Demo label="Composed — a status list">
+        <Box maxWidth="30rem">
+          <Card size="3">
+            <Stack gap="4">
+              {(
+                [
+                  ["success", "Deploy succeeded", "Live in 3 regions."],
+                  ["warning", "Certificate expiring", "Renews automatically in 6 days."],
+                  ["destructive", "Build failed", "2 packages did not compile."],
+                  ["info", "New region available", "eu-central-2 is open for preview."],
+                ] as const
+              ).map(([tone, label, description]) => (
+                <Flex key={tone} gap="4" align="flex-start" justify="space-between">
+                  <Stack gap="1">
+                    <Text size="2" weight="medium" tone={tone}>{label}</Text>
+                    <Text size="1" emphasis="medium">{description}</Text>
+                  </Stack>
+                  <Button size="1" tone={tone} emphasis="quiet" bordered>Details</Button>
+                </Flex>
+              ))}
+            </Stack>
+          </Card>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
 /* ── Sections, alphabetical ────────────────────────────────────────────────────────────── */
 
 function BlockquoteSection() {
@@ -307,21 +458,28 @@ function CardSection() {
         </Card>
       </Grid>
       {/* The card doing its job: a plain surface holding real anatomy built from SIBLINGS —
-          heading, body, hairline, actions — because layouts are blocks, not slots. */}
+          heading, body, actions — because layouts are blocks, not slots.
+
+          Rebuilt 2026-08-09 (Kushagra, on the shipped version: "this isn't [tasteful]"). Three
+          faults, all composition rather than component: a 14px title over a 12px body reads as
+          a caption pair, not a heading and its paragraph; size-1 buttons in a size-3 card are
+          two rungs under the box they sit in; and a rule spanning the full card under a
+          right-aligned pair draws a line where nothing is being divided. Title is a Heading,
+          the body is size 2, the buttons take the default, and the distance does the
+          separating — which is what a Stack gap is for. */}
       <Demo label="Composed — a confirm card">
         <Box maxWidth="26rem">
           <Card size="3">
-            <Stack gap="4">
-              <Stack gap="1">
-                <Text size="2" weight="medium">Delete workspace</Text>
-                <Text size="1" emphasis="medium">
+            <Stack gap="6">
+              <Stack gap="2">
+                <Heading size="4" render={<h3 />}>Delete workspace</Heading>
+                <Text size="2" emphasis="medium">
                   Removes every project, member, and API key. This cannot be undone.
                 </Text>
               </Stack>
-              <Separator />
-              <Flex gap="2" justify="flex-end">
-                <Button size="1" emphasis="quiet" bordered>Keep it</Button>
-                <Button size="1" tone="destructive" emphasis="loud">Delete</Button>
+              <Flex gap="3" justify="flex-end">
+                <Button emphasis="quiet" bordered>Keep it</Button>
+                <Button tone="destructive" emphasis="loud">Delete</Button>
               </Flex>
             </Stack>
           </Card>
@@ -1322,6 +1480,11 @@ function LayoutSection() {
 }
 
 export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
+  // Two cross-family sections lead, out of alphabetical order on purpose: they sweep an axis
+  // ACROSS components, which is the permutation no single component's table can hold, and
+  // reading them first is what makes the per-component tables below mean anything.
+  { id: "sizes", name: "Sizes — every control at one index", body: <SizesSection /> },
+  { id: "tones", name: "Tones — ten families, every consumer", body: <TonesSection /> },
   { id: "blockquote", name: "Blockquote", body: <BlockquoteSection /> },
   { id: "button", name: "Button", body: <ButtonSection /> },
   { id: "card", name: "Card", body: <CardSection /> },
