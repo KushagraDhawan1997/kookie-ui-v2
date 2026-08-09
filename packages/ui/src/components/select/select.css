@@ -3,25 +3,73 @@
    arms all arrive from the family's rules); the popup and rows repeat the menu's facts
    self-keyed, because the SECOND member self-keys and the third promotes (the Kbd/Code
    rule). What is left here is exactly the select's own facts: a field that acts like a
-   button, a value that never wraps, and the panel's floor being always anchored. */
+   button, a value that reports one choice on one line, and the panel's floor being always
+   anchored. */
 
 /* The trigger reads like the TextField beside it in a form — that is the point of joining
-   the family — but it is PRESSED, not entered: a button's cursor and a label you cannot
-   select, the two field facts that assumed a caret, stood back down. Focus needs nothing:
-   the field's ring is keyed on its input holding focus (inert here — there is no input),
-   so the skeleton's :focus-visible ring applies, which is right — a trigger's focus is a
-   keyboard affordance, not a mode. */
+   the family — but it is PRESSED, not entered: a button's cursor, a label you cannot select,
+   and a fill that MOVES — the three field facts that assumed a caret, stood back down. Focus
+   needs nothing: the field's ring is keyed on its input holding focus (inert here — there is
+   no input), so the skeleton's :focus-visible ring applies, which is right — a trigger's
+   focus is a keyboard affordance, not a mode.
+
+   The fill was the third and it shipped un-stood-down (audit 2026-08-09). text-field.css pins
+   all three fill sources to one colour and states its reason: "a field's fill does not move
+   at all: the border and the ring carry its states." Both of those carriers are a TEXT
+   INPUT's. The ring here is keyboard-only, and the border moves for nothing but validity — so
+   the trigger computed rest = hover = press = OPEN, byte-identical across seven properties,
+   while Base UI was correctly stamping data-popup-open and data-pressed on it and nothing in
+   the package read either. An open dropdown looked exactly like a closed one.
+
+   Standing it down needed the look axis to publish the two steps the field family had never
+   been asked for (config.ts — the same +1/+2 the surface and mark families already walk from
+   their own resting step). The pin stays where it was earned: a field a caret enters is
+   untouched, and a law asserts BOTH directions, because "the trigger moved" and "the
+   TextField still does not" are two things and only one of them was ever going to be checked.
+
+   --kui-ct-fill-hover/-active are re-declared as well as the two sources, because
+   text-field.css pins the DERIVED pair too — the pair a material mixes from — so a glass
+   trigger would otherwise stay frozen while a solid one moved.
+
+   [data-popup-open] takes the hover step rather than inventing a state of its own: the row
+   family already says this exact sentence for a submenu's trigger row ("the row is in use,
+   not hovered"), and one lit-while-in-use vocabulary across the floating family beats two.
+   Guarded on :not([data-disabled]) like that rule, for the same reason. */
 /* (0,2,0) on purpose — text-field.css states the caret facts at .kui-field (0,1,0), and a
    tie here would hang the trigger's identity on import order; the same doubled-class trick
-   that file uses for its own fill pin. */
+   that file uses for its own fill pin. The four fill lines TIE with that pin at (0,2,0) and
+   win on source order, which index.css and the browser suite install identically — the
+   mechanism the hover stand-down and the switch's shifted mark both already rely on. */
 .kui-control.kui-select-trigger {
   cursor: var(--cursor-button);
   -webkit-user-select: none;
   user-select: none;
+  /* The WHOLE triple, including the resting source this rule does not change — the control
+     contract's own law, and it is right to insist: these three are registered inherits:false,
+     so a rule that re-points two of them leaves the third resolving no source at all and the
+     box paints transparent in that state. Restating the field's resting fill costs nothing
+     and makes the trigger's fill readable in one place instead of two files. */
+  --kui-ct-fill-src: var(--look-field-fill);
+  --kui-ct-fill-src-hover: var(--look-field-fill-hover);
+  --kui-ct-fill-src-active: var(--look-field-fill-active);
+  --kui-ct-fill-hover: var(--kui-ct-fill-src-hover);
+  --kui-ct-fill-active: var(--kui-ct-fill-src-active);
 }
 
-/* The value never wraps and never grows the box: a select trigger is one line reporting one
-   choice, and a long option ellipsizes exactly as it would in the panel's own trigger row. */
+.kui-control.kui-select-trigger[data-popup-open]:not([data-disabled]) {
+  background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
+}
+
+/* The value is one line reporting one choice, and it ellipsizes WHEREVER SOMETHING BOUNDS
+   THE WIDTH — a column, a grid cell, an explicit width. Where nothing does, the trigger grows
+   to fit its longest chosen option, exactly as every other content-sized control in this
+   system does (a Button with the same label measures within 4px of it, and whether these
+   controls should shrink instead is one open decision for all of them rather than this
+   component's). The comment here used to promise truncation unconditionally, which is the
+   more dangerous half of the same fact: a developer who reads it does not bound the width,
+   and their form jumps sideways the first time a user picks a long option — measured
+   54.89px -> 620.56px on a 72-character value, with no ellipsis anywhere in it. Corrected
+   2026-08-09, audit. */
 .kui-select-value {
   flex: 1 1 auto;
   min-width: 0;
@@ -38,6 +86,18 @@
   color: var(--color-text-faint);
 }
 
+/* A dead control's hint must not sit at a live one's contrast — the sentence text-field.css
+   already carries, for the same reason and in the same shape (audit 2026-08-09). The shared
+   disabled arm works by re-pointing the TONE roles, and the rule above names
+   --color-text-faint directly, so the remap had nothing to reach: measured, a disabled
+   trigger's own text went correctly flat while its placeholder stayed at the live value, and
+   in dark the placeholder was the BRIGHTER of the two. Both spellings, because a select is
+   disabled either by our prop (the native attribute) or by an enclosing Field.Root (Base
+   UI's stamp), and only one of those was ever going to be the one someone used. */
+.kui-select-trigger:where(:disabled, [data-disabled]) .kui-select-value[data-placeholder] {
+  color: var(--tone-label);
+}
+
 /* ── The panel: the menu popup's facts, self-keyed (§22's sentences, §23's member) ─────── */
 
 .kui-select-popup {
@@ -47,13 +107,26 @@
   --kui-select-pad: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
   --kui-sf-p: var(--kui-select-pad);
   /* The concentric corner's own half of the arithmetic (§6): the floating size join in
-     surfaces.css derives the corner from this hook plus the rows' control corner. */
+     surfaces.css derives the corner from this hook plus the rows' own corner. */
   --kui-floating-p: var(--kui-select-pad);
   /* ALWAYS anchored — a select has no submenus, so the anchor floor lives on the panel
      itself rather than on a variant class: never narrower than the designed floor OR the
-     trigger that opened it, which for a select is also what aligns option text with the
-     value it replaces. */
-  min-width: max(var(--floating-min-w), var(--anchor-width, var(--floating-min-w)));
+     trigger that opened it, so the options sit under the control that opened them rather
+     than under a panel narrower than it. (It does not put option TEXT on the value's
+     vertical, and this comment used to say it did: every option reserves the tick's gutter,
+     which is 20/24/28/36px of lead the value does not have. Corrected 2026-08-09, audit.)
+
+     Clamped by the room the positioner reports, and that clamp is stated INSIDE the min() —
+     not by the max-width below, which could never win. In CSS a minimum always beats a
+     maximum, so for any trigger wider than the room the anchor arm won and the protection
+     the comment claimed was unreachable: measured 619px against a 300px cap. The max-width
+     stays for the other half — a panel made wide by its own long rows rather than by its
+     trigger. The inner max() keeps the designed floor from being squeezed away when the
+     reported room is absurdly small. */
+  min-width: min(
+    max(var(--floating-min-w), var(--anchor-width, var(--floating-min-w))),
+    max(var(--floating-min-w), var(--available-width, 100vw))
+  );
   /* Long lists scroll inside the panel; wide ones are bounded by the room the positioner
      reports rather than pushed off the viewport. */
   max-height: var(--available-height, none);
@@ -63,16 +136,30 @@
   outline: none;
 }
 
-/* A separator between option groups is the ordinary Separator, full-bleed — inside a group
-   too, since a group is a transparent wrapper with zero geometry (the menu's audit). */
-.kui-select-popup > .kui-separator,
-.kui-select-popup > [role="group"] > .kui-separator {
-  margin-block: var(--kui-select-pad);
-  margin-inline: calc(-1 * var(--kui-select-pad));
-}
+/* A SEPARATOR inside the panel is REFUSED, and the two rules that dressed one are gone with
+   it (audit 2026-08-09). They were the menu's, copied one component over, where they are
+   correct — a menu may contain separators. A select's panel IS the listbox, and a listbox may
+   contain only options and groups, so the composition those rules dressed produced markup an
+   accessibility scan reports as a violation (`Element has children which are not allowed:
+   [role=separator]`) coming from library markup a consumer cannot fix from outside. The
+   playground demonstrated the offending shape.
 
-/* A group label reads, it does not act — the row skeleton gives it the type step and side
-   padding so its text starts on the plain rows' vertical; this stands the control-ness down. */
+   Radix and shadcn both keep a select separator by making it aria-hidden, and that door is
+   deliberately closed here: Separator refused `decorative` on the stance that a rule hiding
+   from assistive technology is a styled Box, so the same rule cannot come back in through
+   this one. What a grouped list actually wants is the GROUP — SelectGroup with a SelectLabel
+   divides options in the accessibility tree as well as on screen, which a hairline never
+   did. */
+
+/* A group label reads, it does not act — the row skeleton gives it the type step and the same
+   side padding every row has, so the heading and the options below it sit on one inset; this
+   stands the control-ness down. It does NOT put the heading on the options' TEXT vertical,
+   and the sentence here claimed it did: every option row reserves the tick's gutter, so
+   option text starts 20/24/28/36px further in at sizes 1-4, identically in all three
+   densities. That out-dent is macOS's own posture and is kept deliberately — what is fixed is
+   the claim (audit 2026-08-09; the menu had to correct this same sentence after its own
+   audit, and this file copied the corrected version into a component where the exception it
+   carved out is universal rather than occasional). */
 .kui-select-label {
   pointer-events: none;
   color: var(--color-text-faint);

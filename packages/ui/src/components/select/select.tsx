@@ -22,7 +22,7 @@ import {
   useAmbientDirection,
 } from "../../system/floating.tsx";
 import { mergeRefs } from "../../system/render.ts";
-import type { Size, SlotName } from "../../system/axes.ts";
+import type { Material, Size, SlotName } from "../../system/axes.ts";
 
 /** Gap between the trigger's edge and the panel — the menu's designed constant, restated
     because the second member self-keys (§23). */
@@ -50,12 +50,27 @@ export type SelectProps = {
   name?: string;
   required?: boolean;
   disabled?: boolean;
-  readOnly?: boolean;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   children?: React.ReactNode;
 };
+
+/**
+ * `readOnly` is REFUSED, and researched rather than designed (§8, 2026-08-09 audit — the
+ * checkbox's own refusal, one family over). HTML states that `readonly` does not apply to
+ * `<select>`: there has never been a read-only dropdown on the platform, so there is no
+ * native appearance to inherit and no user expectation to meet. It shipped accepted for a
+ * day, and Base UI honoured it by refusing to open while this system drew nothing at all —
+ * measured byte-identical to a live trigger across seven properties in both appearances,
+ * hand cursor included, while assistive technology was correctly told it was read-only. Two
+ * audiences, two answers, which is worse than not having the prop.
+ *
+ * The gap it leaves is real and has a platform-shaped answer: a value that must submit but
+ * cannot change is a `disabled` trigger beside a hidden input carrying the value, or the
+ * value rendered as `<Text>` with no control at all. It joins the closed edges rather than
+ * getting an appearance nobody has designed.
+ */
 
 /** Renders no DOM — state and wiring only (Base UI Root, the size context, direction). */
 export function Select({ size = "2", onValueChange, children, ...props }: SelectProps) {
@@ -79,10 +94,27 @@ export function Select({ size = "2", onValueChange, children, ...props }: Select
 
 /* ── Trigger: a field that is pressed, not entered (§23) ──────────────────────────────── */
 
-export type SelectTriggerProps = {
+export type SelectTriggerProps = Omit<
+  React.ComponentPropsWithoutRef<"button">,
+  // The TextField shape (§4): the platform's own props pass through, and only what this
+  // system owns is taken away. Hand-listing them instead — which is how this shipped — closed
+  // the type against `id`, `form`, `tabIndex`, `autoFocus` and the focus handlers while
+  // TypeScript's hyphenated-name exemption waved `aria-*` and `data-*` straight through, so
+  // the list both blocked props that work and admitted props it never declared. `id` in
+  // particular is what `<label for>` needs, and every other component in the package takes it.
+  //
+  // `children` is refused because the VALUE is the content — a trigger with children would be
+  // a trigger that can disagree with what is selected. `type` because a select's trigger is a
+  // button and nothing else; `color`/`className`/`style` because those are the system's.
+  "color" | "className" | "style" | "children" | "type"
+> & {
   /** Shown, in the faint role, while no value is chosen — an empty select INVITES (§15). */
   placeholder?: string;
-  disabled?: boolean;
+  /** §10 — the field family's own opt-in, and the reason it is HERE rather than inherited:
+      membership delivers the glass RULES, but something has to stamp the attribute they read.
+      Four documents said a Select trigger could be glass while nothing could ask for it, so a
+      form over a photograph put translucent text fields beside an opaque white dropdown. */
+  material?: Material;
   className?: string;
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
@@ -98,7 +130,13 @@ export type SelectTriggerProps = {
  * and a trigger that could be re-rooted would re-open the a11y question Base UI already
  * answers with a real button.
  */
-export function SelectTrigger({ placeholder, className, ref, ...props }: SelectTriggerProps) {
+export function SelectTrigger({
+  placeholder,
+  material = "solid",
+  className,
+  ref,
+  ...props
+}: SelectTriggerProps) {
   const size = React.use(SelectSizeContext);
   // The trigger is the one in-flow node a select owns — where ambient direction is read (§20).
   const { measure } = React.use(FloatingDirectionContext);
@@ -108,6 +146,9 @@ export function SelectTrigger({ placeholder, className, ref, ...props }: SelectT
       className={className ? `${cls} ${className}` : cls}
       data-size={size}
       data-tone="neutral"
+      // Solid is the absence of a material, so it writes no attribute (§10, TextField's own
+      // spelling).
+      data-material={material === "solid" ? undefined : material}
       {...props}
       ref={mergeRefs(ref, measure)}
     >
