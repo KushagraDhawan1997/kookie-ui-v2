@@ -238,12 +238,19 @@ export function PreviewApp() {
       look={env.look}
       surfaces={env.surfaces}
     >
-      {/* The canvas paints the page role itself so a pinned appearance is a real page,
-          not dark specimens floating on a light bed. The panel lives INSIDE the canvas
-          Theme on purpose: its glass has to seal against the world it controls — a light
-          toolbar over a pinned-dark canvas is unreadable murk (found on sight). */}
+      {/* The canvas paints a page itself so a pinned appearance is a real page, not dark
+          specimens floating on a light bed. The panel lives INSIDE the canvas Theme on
+          purpose: its glass has to seal against the world it controls — a light toolbar over
+          a pinned-dark canvas is unreadable murk (found on sight).
+
+          The page is the SEAL, not --neutral-1 (2026-08-09, Kushagra). The system paints no
+          page background of its own — no `.kui-theme` rule sets one — so this is the app's
+          call, and it was the one step of separation a card got for free. Taking it away is
+          the harder bed on purpose: white on white in light, and the same colour a card seals
+          with in dark, so a flat card has nothing but its hairline to be a card with. If a
+          surface cannot hold itself there, the surface is what is wrong. */}
       <style>{LANE_CSS}</style>
-      <Box style={{ background: "var(--neutral-1)", color: "var(--color-text)", minHeight: "100dvh" }}>
+      <Box style={{ background: "var(--color-surface)", color: "var(--color-text)", minHeight: "100dvh" }}>
         <EnvPanel env={env} onChange={setEnv} />
         <Box px="6" pb="9" className="pv-lane">
           {/* 60rem, not the earlier 1120px: the densest table is ~850px intrinsic, so the wider
