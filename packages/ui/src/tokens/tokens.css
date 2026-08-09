@@ -179,9 +179,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(3px * var(--scale));
   --slot-inset-2: calc(3px * var(--scale));
   --slot-inset-3: calc(4px * var(--scale));
@@ -230,6 +234,8 @@
   --look-surface-fill-active: var(--color-surface-active);
   --look-surface-border: initial;
   --look-field-fill: var(--color-surface);
+  --look-field-fill-hover: var(--color-surface-hover);
+  --look-field-fill-active: var(--color-surface-active);
   --look-field-border: initial;
   --look-mark-fill: var(--color-surface);
   --look-mark-fill-hover: var(--color-surface-hover);
@@ -723,6 +729,8 @@
   --dress-surface-fill-active: var(--neutral-4);
   --dress-surface-edge: var(--neutral-5);
   --dress-field-fill: var(--neutral-3);
+  --dress-field-fill-hover: var(--neutral-4);
+  --dress-field-fill-active: var(--neutral-5);
   --dress-field-edge: var(--neutral-5);
   --dress-mark-fill: var(--neutral-4);
   --dress-mark-fill-hover: var(--neutral-5);
@@ -1217,6 +1225,8 @@
   --dress-surface-fill-active: var(--neutral-4);
   --dress-surface-edge: var(--neutral-5);
   --dress-field-fill: var(--neutral-3);
+  --dress-field-fill-hover: var(--neutral-4);
+  --dress-field-fill-active: var(--neutral-5);
   --dress-field-edge: var(--neutral-5);
   --dress-mark-fill: var(--neutral-4);
   --dress-mark-fill-hover: var(--neutral-5);
@@ -1227,6 +1237,8 @@
   --look-surface-fill-active: var(--color-surface-active);
   --look-surface-border: initial;
   --look-field-fill: var(--color-surface);
+  --look-field-fill-hover: var(--color-surface-hover);
+  --look-field-fill-active: var(--color-surface-active);
   --look-field-border: initial;
   --look-mark-fill: var(--color-surface);
   --look-mark-fill-hover: var(--color-surface-hover);
@@ -1721,6 +1733,8 @@
   --dress-surface-fill-active: var(--neutral-5);
   --dress-surface-edge: var(--neutral-5);
   --dress-field-fill: var(--neutral-4);
+  --dress-field-fill-hover: var(--neutral-5);
+  --dress-field-fill-active: var(--neutral-6);
   --dress-field-edge: var(--neutral-5);
   --dress-mark-fill: var(--neutral-5);
   --dress-mark-fill-hover: var(--neutral-6);
@@ -1731,6 +1745,8 @@
   --look-surface-fill-active: var(--color-surface-active);
   --look-surface-border: initial;
   --look-field-fill: var(--color-surface);
+  --look-field-fill-hover: var(--color-surface-hover);
+  --look-field-fill-active: var(--color-surface-active);
   --look-field-border: initial;
   --look-mark-fill: var(--color-surface);
   --look-mark-fill-hover: var(--color-surface-hover);
@@ -1744,6 +1760,8 @@
   --look-surface-fill-active: var(--color-surface-active);
   --look-surface-border: initial;
   --look-field-fill: var(--color-surface);
+  --look-field-fill-hover: var(--color-surface-hover);
+  --look-field-fill-active: var(--color-surface-active);
   --look-field-border: initial;
   --look-mark-fill: var(--color-surface);
   --look-mark-fill-hover: var(--color-surface-hover);
@@ -1757,6 +1775,8 @@
   --look-surface-fill-active: var(--dress-surface-fill-active);
   --look-surface-border: var(--dress-surface-edge);
   --look-field-fill: var(--dress-field-fill);
+  --look-field-fill-hover: var(--dress-field-fill-hover);
+  --look-field-fill-active: var(--dress-field-fill-active);
   --look-field-border: var(--dress-field-edge);
   --look-mark-fill: var(--dress-mark-fill);
   --look-mark-fill-hover: var(--dress-mark-fill-hover);
@@ -3373,9 +3393,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(2px * var(--scale));
   --slot-inset-2: calc(3px * var(--scale));
   --slot-inset-3: calc(3px * var(--scale));
@@ -3417,9 +3441,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(3px * var(--scale));
   --slot-inset-2: calc(3px * var(--scale));
   --slot-inset-3: calc(4px * var(--scale));
@@ -3461,9 +3489,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(3px * var(--scale));
   --slot-inset-2: calc(4px * var(--scale));
   --slot-inset-3: calc(5px * var(--scale));
@@ -3618,114 +3650,178 @@
 
 [data-radius="none"][data-density="compact"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="none"][data-density="default"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="none"][data-density="comfortable"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="none"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="small"][data-density="compact"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="small"][data-density="default"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="small"][data-density="comfortable"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="small"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="medium"][data-density="compact"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="medium"][data-density="default"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="medium"][data-density="comfortable"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="large"][data-density="compact"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="large"][data-density="default"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="large"][data-density="comfortable"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="large"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-radius="full"][data-density="compact"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(10px * var(--scale));
   --control-px-pill-2: calc(12px * var(--scale));
   --control-px-pill-3: calc(14px * var(--scale));
@@ -3734,9 +3830,13 @@
 
 [data-radius="full"][data-density="default"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(12px * var(--scale));
   --control-px-pill-2: calc(14px * var(--scale));
   --control-px-pill-3: calc(17px * var(--scale));
@@ -3745,9 +3845,13 @@
 
 [data-radius="full"][data-density="comfortable"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(14px * var(--scale));
   --control-px-pill-2: calc(17px * var(--scale));
   --control-px-pill-3: calc(21px * var(--scale));
@@ -3756,9 +3860,13 @@
 
 [data-radius="full"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(12px * var(--scale));
   --control-px-pill-2: calc(14px * var(--scale));
   --control-px-pill-3: calc(17px * var(--scale));
@@ -3949,9 +4057,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(3px * var(--scale));
   --slot-inset-2: calc(3px * var(--scale));
   --slot-inset-3: calc(4px * var(--scale));
@@ -4002,9 +4114,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(2px * var(--scale));
   --slot-inset-2: calc(3px * var(--scale));
   --slot-inset-3: calc(3px * var(--scale));
@@ -4029,9 +4145,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(3px * var(--scale));
   --slot-inset-2: calc(4px * var(--scale));
   --slot-inset-3: calc(5px * var(--scale));
@@ -4044,121 +4164,189 @@
 
 [data-pointer="fine"][data-radius="none"][data-density="compact"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="none"][data-density="default"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="none"][data-density="comfortable"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="none"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="small"][data-density="compact"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="small"][data-density="default"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="small"][data-density="comfortable"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="small"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="medium"][data-density="compact"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="medium"][data-density="default"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="medium"][data-density="comfortable"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="medium"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="large"][data-density="compact"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-2);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-3);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="large"][data-density="default"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="large"][data-density="comfortable"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="large"] {
   --radius-control-1: var(--radius-1);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-2);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="fine"][data-radius="full"][data-density="compact"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(10px * var(--scale));
   --control-px-pill-2: calc(12px * var(--scale));
   --control-px-pill-3: calc(14px * var(--scale));
@@ -4167,9 +4355,13 @@
 
 [data-pointer="fine"][data-radius="full"][data-density="default"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(12px * var(--scale));
   --control-px-pill-2: calc(14px * var(--scale));
   --control-px-pill-3: calc(17px * var(--scale));
@@ -4178,9 +4370,13 @@
 
 [data-pointer="fine"][data-radius="full"][data-density="comfortable"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(14px * var(--scale));
   --control-px-pill-2: calc(17px * var(--scale));
   --control-px-pill-3: calc(21px * var(--scale));
@@ -4189,9 +4385,13 @@
 
 [data-pointer="fine"][data-radius="full"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(12px * var(--scale));
   --control-px-pill-2: calc(14px * var(--scale));
   --control-px-pill-3: calc(17px * var(--scale));
@@ -4212,9 +4412,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(4px * var(--scale));
   --slot-inset-2: calc(4px * var(--scale));
   --slot-inset-3: calc(5px * var(--scale));
@@ -4265,9 +4469,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(3px * var(--scale));
   --slot-inset-2: calc(4px * var(--scale));
   --slot-inset-3: calc(4px * var(--scale));
@@ -4292,9 +4500,13 @@
   --control-px-pill-3: var(--control-px-3);
   --control-px-pill-4: var(--control-px-4);
   --radius-control-1: var(--radius-3);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-4);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-5);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
   --slot-inset-1: calc(4px * var(--scale));
   --slot-inset-2: calc(5px * var(--scale));
   --slot-inset-3: calc(6px * var(--scale));
@@ -4307,121 +4519,189 @@
 
 [data-pointer="coarse"][data-radius="none"][data-density="compact"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="none"][data-density="default"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="none"][data-density="comfortable"] {
   --radius-control-1: var(--radius-3);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-4);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-5);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="none"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="small"][data-density="compact"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="small"][data-density="default"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="small"][data-density="comfortable"] {
   --radius-control-1: var(--radius-3);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-4);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-5);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="small"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="medium"][data-density="compact"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="medium"][data-density="default"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="medium"][data-density="comfortable"] {
   --radius-control-1: var(--radius-3);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-4);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-5);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="medium"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="large"][data-density="compact"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-3);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-4);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="large"][data-density="default"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="large"][data-density="comfortable"] {
   --radius-control-1: var(--radius-3);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-4);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-5);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="large"] {
   --radius-control-1: var(--radius-2);
+  --radius-row-1: var(--radius-control-1);
   --radius-control-2: var(--radius-3);
+  --radius-row-2: var(--radius-control-2);
   --radius-control-3: var(--radius-4);
+  --radius-row-3: var(--radius-control-3);
   --radius-control-4: var(--radius-5);
+  --radius-row-4: var(--radius-control-4);
 }
 
 [data-pointer="coarse"][data-radius="full"][data-density="compact"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(13px * var(--scale));
   --control-px-pill-2: calc(16px * var(--scale));
   --control-px-pill-3: calc(19px * var(--scale));
@@ -4430,9 +4710,13 @@
 
 [data-pointer="coarse"][data-radius="full"][data-density="default"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(15px * var(--scale));
   --control-px-pill-2: calc(18px * var(--scale));
   --control-px-pill-3: calc(21px * var(--scale));
@@ -4441,9 +4725,13 @@
 
 [data-pointer="coarse"][data-radius="full"][data-density="comfortable"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(17px * var(--scale));
   --control-px-pill-2: calc(20px * var(--scale));
   --control-px-pill-3: calc(24px * var(--scale));
@@ -4452,9 +4740,13 @@
 
 [data-pointer="coarse"][data-radius="full"] {
   --radius-control-1: calc(var(--control-height-1) / 2);
+  --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
   --radius-control-2: calc(var(--control-height-2) / 2);
+  --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
   --radius-control-3: calc(var(--control-height-3) / 2);
+  --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
   --radius-control-4: calc(var(--control-height-4) / 2);
+  --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
   --control-px-pill-1: calc(15px * var(--scale));
   --control-px-pill-2: calc(18px * var(--scale));
   --control-px-pill-3: calc(21px * var(--scale));
@@ -4476,9 +4768,13 @@
     --control-px-pill-3: var(--control-px-3);
     --control-px-pill-4: var(--control-px-4);
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-4);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
     --slot-inset-1: calc(4px * var(--scale));
     --slot-inset-2: calc(4px * var(--scale));
     --slot-inset-3: calc(5px * var(--scale));
@@ -4529,9 +4825,13 @@
     --control-px-pill-3: var(--control-px-3);
     --control-px-pill-4: var(--control-px-4);
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-3);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-4);
+    --radius-row-4: var(--radius-control-4);
     --slot-inset-1: calc(3px * var(--scale));
     --slot-inset-2: calc(4px * var(--scale));
     --slot-inset-3: calc(4px * var(--scale));
@@ -4556,9 +4856,13 @@
     --control-px-pill-3: var(--control-px-3);
     --control-px-pill-4: var(--control-px-4);
     --radius-control-1: var(--radius-3);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-4);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-5);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
     --slot-inset-1: calc(4px * var(--scale));
     --slot-inset-2: calc(5px * var(--scale));
     --slot-inset-3: calc(6px * var(--scale));
@@ -4571,121 +4875,189 @@
 
   [data-pointer="auto"][data-radius="none"][data-density="compact"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-3);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-4);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="none"][data-density="default"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-4);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="none"][data-density="comfortable"] {
     --radius-control-1: var(--radius-3);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-4);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-5);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="none"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-4);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="small"][data-density="compact"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-3);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-4);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="small"][data-density="default"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-4);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="small"][data-density="comfortable"] {
     --radius-control-1: var(--radius-3);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-4);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-5);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="small"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-4);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="medium"][data-density="compact"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-3);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-4);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="medium"][data-density="default"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-4);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="medium"][data-density="comfortable"] {
     --radius-control-1: var(--radius-3);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-4);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-5);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="medium"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-4);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="large"][data-density="compact"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-3);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-4);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="large"][data-density="default"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-4);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="large"][data-density="comfortable"] {
     --radius-control-1: var(--radius-3);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-4);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-5);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="large"] {
     --radius-control-1: var(--radius-2);
+    --radius-row-1: var(--radius-control-1);
     --radius-control-2: var(--radius-3);
+    --radius-row-2: var(--radius-control-2);
     --radius-control-3: var(--radius-4);
+    --radius-row-3: var(--radius-control-3);
     --radius-control-4: var(--radius-5);
+    --radius-row-4: var(--radius-control-4);
   }
 
   [data-pointer="auto"][data-radius="full"][data-density="compact"] {
     --radius-control-1: calc(var(--control-height-1) / 2);
+    --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
     --radius-control-2: calc(var(--control-height-2) / 2);
+    --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
     --radius-control-3: calc(var(--control-height-3) / 2);
+    --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
     --radius-control-4: calc(var(--control-height-4) / 2);
+    --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
     --control-px-pill-1: calc(13px * var(--scale));
     --control-px-pill-2: calc(16px * var(--scale));
     --control-px-pill-3: calc(19px * var(--scale));
@@ -4694,9 +5066,13 @@
 
   [data-pointer="auto"][data-radius="full"][data-density="default"] {
     --radius-control-1: calc(var(--control-height-1) / 2);
+    --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
     --radius-control-2: calc(var(--control-height-2) / 2);
+    --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
     --radius-control-3: calc(var(--control-height-3) / 2);
+    --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
     --radius-control-4: calc(var(--control-height-4) / 2);
+    --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
     --control-px-pill-1: calc(15px * var(--scale));
     --control-px-pill-2: calc(18px * var(--scale));
     --control-px-pill-3: calc(21px * var(--scale));
@@ -4705,9 +5081,13 @@
 
   [data-pointer="auto"][data-radius="full"][data-density="comfortable"] {
     --radius-control-1: calc(var(--control-height-1) / 2);
+    --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
     --radius-control-2: calc(var(--control-height-2) / 2);
+    --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
     --radius-control-3: calc(var(--control-height-3) / 2);
+    --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
     --radius-control-4: calc(var(--control-height-4) / 2);
+    --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
     --control-px-pill-1: calc(17px * var(--scale));
     --control-px-pill-2: calc(20px * var(--scale));
     --control-px-pill-3: calc(24px * var(--scale));
@@ -4716,9 +5096,13 @@
 
   [data-pointer="auto"][data-radius="full"] {
     --radius-control-1: calc(var(--control-height-1) / 2);
+    --radius-row-1: calc((var(--line-height-1) + 2 * var(--row-inset-1)) / 2);
     --radius-control-2: calc(var(--control-height-2) / 2);
+    --radius-row-2: calc((var(--line-height-2) + 2 * var(--row-inset-2)) / 2);
     --radius-control-3: calc(var(--control-height-3) / 2);
+    --radius-row-3: calc((var(--line-height-3) + 2 * var(--row-inset-3)) / 2);
     --radius-control-4: calc(var(--control-height-4) / 2);
+    --radius-row-4: calc((var(--line-height-4) + 2 * var(--row-inset-4)) / 2);
     --control-px-pill-1: calc(15px * var(--scale));
     --control-px-pill-2: calc(18px * var(--scale));
     --control-px-pill-3: calc(21px * var(--scale));
