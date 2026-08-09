@@ -364,9 +364,9 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§20, §21, §22",
     blurb:
-      "A floating list of actions: the first portalled component and the row family's first member. The popup is a Card that floats — same seal, same edge, the smallest surface corner (the dialog-scale overlay corner was tried and rejected by eye) — and it casts in BOTH surfaces worlds, because a shadow under a floating pane is information about overlap, not the expression the app switch governs. The part vocabulary follows shadcn/ui's dropdown-menu (MIT), adopted with credit; behavior is Base UI's menu end to end.",
+      "A floating list of actions: the first portalled component and the row family's first member. The popup is a Card that floats — same seal, same edge, and a CONCENTRIC corner: its rows' own corner plus its padding, derived per size and radius level (two fixed corners were tried and rejected by eye first) — and it casts in BOTH surfaces worlds, because a shadow under a floating pane is information about overlap, not the expression the app switch governs. The part vocabulary follows shadcn/ui's dropdown-menu (MIT), adopted with credit; behavior is Base UI's menu end to end.",
     axes: [
-      { name: "size", values: "1 | 2 | 3 | 4", note: "on the root, like Button — a size-4 trigger must not open a size-2 dropdown; rows price from the same control cells" },
+      { name: "size", values: "1 | 2 | 3 | 4", note: "on the root, like Button — a size-4 trigger must not open a size-2 dropdown; rows take the control cells' padding and type, and their HEIGHT from the text line plus a designed inset, a notch under the button ladder" },
       { name: "material (Content)", values: "solid | thin | regular | thick", note: "Card's own prop: opaque by default, glass opt-in — and a glass menu still casts the floating chrome in a flat world" },
       { name: "tone (Item)", values: "destructive", note: "a union of one — the single meaning a row may carry; not a palette, and widening it is a decision, never a default" },
       { name: "side / align / sideOffset (Content)", values: "designed defaults", note: "bottom / start / 4 — the only positioning vocabulary that is public" },
@@ -403,7 +403,7 @@ export const ENTRIES: Entry[] = [
         { part: "MenuItem", blurb: "One action row — the row family's member: control cells, quiet identity, highlight not hover" },
         { part: "MenuGroup", blurb: "Groups rows so a label can name them; wires the group's accessible name automatically" },
         { part: "MenuLabel", blurb: "A heading for rows: the row skeleton for alignment, with the control-ness stood down — legal inside a group, where it names it, and legal on its own" },
-        { part: "MenuCheckboxItem", blurb: "A toggleable row — the family's selected state; its indicator stays mounted so the gutter holds" },
+        { part: "MenuCheckboxItem", blurb: "A toggleable row — the family's selected state: the tick wears the accent solid while the label stays neutral, and the indicator stays mounted so the gutter holds" },
         { part: "MenuRadioGroup", blurb: "Holds one chosen value among its radio rows; the value API is Base UI's, unchanged" },
         { part: "MenuRadioItem", blurb: "One choice in a radio group, marked by the mounted dot indicator when chosen" },
         { part: "MenuSub", blurb: "A nested menu's root: state and wiring only, no element of its own, like the root" },
