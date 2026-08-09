@@ -11,7 +11,7 @@
  * the value machinery), not a second copy of the family proofs.
  */
 import { describe, expect, it } from "vitest";
-import { userEvent } from "@vitest/browser/context";
+import { userEvent } from "vitest/browser";
 
 import {
   Select,
@@ -24,9 +24,15 @@ import {
 import { TextField } from "../text-field/text-field.tsx";
 import { Card } from "../card/card.tsx";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
-import { render, computed, probeIn, tokenOn, colorOn } from "../../test/browser.tsx";
+import { render, computed, probeIn, tokenOn, colorOn, DENSITIES } from "../../test/browser.tsx";
 
-/** Every axis off its default — a dropped attribute is visible (the §20 constant). */
+/** Every axis off its default — a dropped attribute is visible (the §20 constant).
+ *
+ * `contrast` is in the set (added 2026-08-09, audit): ENGINEERING §2.1 named this file as
+ * enforcing the agreement "high-contrast mode included", and the word did not appear in it —
+ * the set listed six of the seven axes under a comment claiming "every axis off its default".
+ * The claim is now true, which matters because this file is the template the third floating
+ * component's author is pointed at. */
 const HOSTILE: ThemeProps = {
   appearance: "dark",
   density: "compact",
@@ -34,6 +40,7 @@ const HOSTILE: ThemeProps = {
   pointer: "coarse",
   surfaces: "elevated",
   look: "filled",
+  contrast: "high",
 };
 
 const settled = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -154,6 +161,48 @@ describe("the agreement law: portalled ≡ in-flow (§20, §23)", () => {
     expect(computed(popup, "direction"), "the portalled panel takes the app's direction").toBe("rtl");
     expect(host).not.toBeNull();
   });
+
+  it("follows a direction change made AFTER mount — the runtime language switch (§20)", async () => {
+    // The measurement used to be taken once, in the trigger's ref callback at commit. Every
+    // library that switches language at runtime sets document.documentElement.dir in an
+    // EFFECT, which runs strictly after the render that would have re-measured — so the one
+    // read landed before the change and never happened again. Measured: a page switched to
+    // Arabic in place opened its panel at 534-672px where the correct answer was 339-600px,
+    // and it did not recover on close and reopen. Worse than doing nothing, because the stale
+    // stamp OVERRIDES the direction portalled content would otherwise have inherited.
+    const html = document.documentElement;
+    const before = html.getAttribute("dir");
+    try {
+      render(
+        <Theme>
+          <Select defaultOpen defaultValue="a">
+            <SelectTrigger placeholder="Pick" />
+            <SelectContent>
+              <SelectItem value="a">Alpha</SelectItem>
+            </SelectContent>
+          </Select>
+        </Theme>,
+      );
+      await settled();
+      const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
+      const popup = popups[popups.length - 1]!;
+      expect(computed(popup, "direction"), "starts where the document is").toBe("ltr");
+      // The switch, exactly as an i18n library performs it: an attribute write on <html>,
+      // outside React, with no re-render of anything.
+      html.setAttribute("dir", "rtl");
+      await expect
+        .poll(() => computed(popup, "direction"), { timeout: 2000 })
+        .toBe("rtl");
+      // ...and back, so the mechanism is not a one-way latch.
+      html.setAttribute("dir", "ltr");
+      await expect
+        .poll(() => computed(popup, "direction"), { timeout: 2000 })
+        .toBe("ltr");
+    } finally {
+      if (before === null) html.removeAttribute("dir");
+      else html.setAttribute("dir", before);
+    }
+  });
 });
 
 /* ── The trigger: a field that is pressed (§23) ───────────────────────────────────────── */
@@ -243,6 +292,118 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     );
   });
 
+  it("the fill MOVES on the trigger and does NOT on the TextField beside it", async () => {
+    // The half that shipped wrong, and the half that must not break while fixing it. The
+    // trigger inherited the field family's pinned fill, whose stated reason ("the border and
+    // the ring carry its states") is a text input's: measured, rest = hover = press = open.
+    const { trigger, field } = mountPair({});
+    const rest = computed(trigger, "background-color");
+    const fieldRest = computed(field, "background-color");
+    await userEvent.hover(trigger);
+    const hovered = computed(trigger, "background-color");
+    expect(hovered, "pointing at a pressable control says so").not.toBe(rest);
+    // ...and the member that is ENTERED rather than pressed keeps its pin. Hovering the field
+    // directly, not reasoning about which rule ought to win.
+    await userEvent.hover(field);
+    expect(computed(field, "background-color"), "a field a caret enters does not move").toBe(
+      fieldRest,
+    );
+  });
+
+  it("an OPEN trigger does not look like a closed one — with the pointer nowhere near it", async () => {
+    // Opened from the KEYBOARD on purpose. The first spelling of this law clicked, which
+    // leaves the pointer resting on the trigger, so `:hover` alone satisfied it: deleting the
+    // open-state rule entirely left the law green. Caught by its own sabotage pass, which is
+    // the only reason it is worth anything.
+    const host = render(
+      <Theme>
+        <Select>
+          <SelectTrigger placeholder="Pick one" />
+          <SelectContent>
+            <SelectItem value="a">Alpha</SelectItem>
+          </SelectContent>
+        </Select>
+      </Theme>,
+    );
+    const trigger = host.querySelector<HTMLButtonElement>(".kui-select-trigger")!;
+    const closed = computed(trigger, "background-color");
+    trigger.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect.poll(() => trigger.getAttribute("data-popup-open")).not.toBeNull();
+    expect(trigger.matches(":hover"), "nothing is hovering it").toBe(false);
+    expect(computed(trigger, "background-color"), "in use, and it says so").not.toBe(closed);
+  });
+
+  it("a disabled trigger's PLACEHOLDER goes flat with the rest of it", async () => {
+    // The shared disabled arm re-points the tone roles; the placeholder rule names a colour
+    // directly, so nothing reached it. Measured before the fix: the trigger's own text went
+    // to 0.7625 and the placeholder stayed at 0.4680, its live value — and in dark the
+    // placeholder was the brighter of the two.
+    for (const appearance of ["light", "dark"] as const) {
+      const host = render(
+        <Theme appearance={appearance}>
+          <Select disabled>
+            <SelectTrigger placeholder="Pick one" />
+          </Select>
+          <Select>
+            <SelectTrigger placeholder="Pick one" />
+          </Select>
+        </Theme>,
+      );
+      const [dead, live] = [...host.querySelectorAll<HTMLElement>(".kui-select-value")];
+      if (!dead || !live) throw new Error("values missing");
+      expect(computed(dead, "color"), `${appearance}: not the live placeholder`).not.toBe(
+        computed(live, "color"),
+      );
+      // And it goes exactly where the shared remap sends every other dead label.
+      expect(computed(dead, "color")).toBe(colorOn(host, "var(--neutral-8)"));
+    }
+  });
+
+  it("glass is askable, and a glass trigger reads as the glass TextField beside it", () => {
+    // Four documents said the trigger received the material axis by field membership. The
+    // rules did arrive; nothing stamped the attribute they read, and there was no prop to
+    // stamp it with — so a form over a photograph put translucent fields beside an opaque
+    // white dropdown.
+    let field: HTMLElement | null = null;
+    const host = render(
+      <Theme>
+        <Select>
+          <SelectTrigger placeholder="Pick one" material="regular" />
+        </Select>
+        <TextField placeholder="Type here" material="regular" />
+      </Theme>,
+    );
+    const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
+    field = host.querySelector<HTMLElement>(".kui-field:not(.kui-select-trigger)");
+    if (!field) throw new Error("field missing");
+    expect(trigger.getAttribute("data-material")).toBe("regular");
+    expect(computed(trigger, "backdrop-filter")).toBe(computed(field, "backdrop-filter"));
+    expect(computed(trigger, "background-color")).toBe(computed(field, "background-color"));
+    expect(computed(trigger, "border-top-color")).toBe(computed(field, "border-top-color"));
+    // Solid writes no attribute at all (§10) — the negative half, or the law passes on a
+    // component that stamps "solid" and never resolves a material.
+    const plain = mountPair({}).trigger;
+    expect(plain.getAttribute("data-material")).toBeNull();
+    expect(computed(plain, "backdrop-filter")).not.toBe(computed(trigger, "backdrop-filter"));
+  });
+
+  it("takes the props a button takes — `id`, so <label for> works at all", () => {
+    const host = render(
+      <Theme>
+        <label htmlFor="fruit">Fruit</label>
+        <Select>
+          <SelectTrigger id="fruit" placeholder="Pick one" />
+        </Select>
+      </Theme>,
+    );
+    const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
+    expect(trigger.id).toBe("fruit");
+    // The association is the browser's, not ours: clicking the label focuses the control.
+    const label = host.querySelector<HTMLLabelElement>("label")!;
+    expect(label.control).toBe(trigger);
+  });
+
   it("the chevron is a muted adornment in the trigger's own icon box", () => {
     const { trigger } = mountPair({});
     const slot = trigger.querySelector<HTMLElement>('[data-slot="trailing"]');
@@ -250,6 +411,35 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     expect(computed(slot, "color")).toBe(colorOn(trigger, "var(--color-text-muted)"));
     const svg = slot.querySelector("svg")!;
     expect(computed(svg as unknown as HTMLElement, "width")).toBe(tokenOn(trigger, "--icon-size-2"));
+  });
+});
+
+/* ── The closed edges (§23) ───────────────────────────────────────────────────────────── */
+
+describe("what a Select will not do", () => {
+  it("refuses readOnly — the platform has none, so there is nothing to inherit", () => {
+    // Researched, not designed (audit 2026-08-09, the checkbox's own refusal one family
+    // over): HTML states `readonly` does not apply to `<select>`. It shipped ACCEPTED for a
+    // day — Base UI honoured it by refusing to open while this system drew nothing, measured
+    // byte-identical to a live trigger across seven properties in both appearances, hand
+    // cursor included, while assistive technology was correctly told it was read-only. Two
+    // audiences, two answers.
+    // @ts-expect-error — readOnly is refused, not undesigned
+    void (<Select readOnly />);
+  });
+
+  it("refuses children on the trigger — the VALUE is the content", () => {
+    // @ts-expect-error — a trigger with children is a trigger that can disagree with itself
+    void (<SelectTrigger>Alpha</SelectTrigger>);
+  });
+
+  it("exposes no emphasis and no tone on the trigger, and no outer spacing", () => {
+    // @ts-expect-error — loudness ranks actions; a form of fields ranks nothing (§11)
+    void (<SelectTrigger emphasis="loud" />);
+    // @ts-expect-error — the family has one tone, and it is an identity, not an axis
+    void (<SelectTrigger tone="accent" />);
+    // @ts-expect-error — no margin prop on any control (the first non-negotiable)
+    void (<SelectTrigger m="4" />);
   });
 });
 
@@ -306,20 +496,105 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     expect(glass).toBeDefined();
   });
 
-  it("padding is the floating panel's ring-floored pick, and the floor holds against a wide trigger", async () => {
-    const { popup } = openSelect({});
+  // EVERY density, not just the default (audit 2026-08-09). The floor exists for compact,
+  // where the designed padding is 2px against a 4px ring reach; at the default the two are
+  // both 4px, so the assertion was identical with the floor and without it — the one density
+  // this ran at is the one where the mechanism does nothing. Removing the floor entirely left
+  // the whole repository green while a compact panel clipped its top row's focus ring by 2px.
+  for (const density of DENSITIES) {
+    it(`${density}: the panel's padding is floored at the focus ring's reach`, async () => {
+      const { popup } = openSelect({ density });
+      await settled();
+      const floatingP = parseFloat(tokenOn(popup, "--floating-p"));
+      const ring =
+        parseFloat(tokenOn(popup, "--focus-ring-width")) +
+        parseFloat(tokenOn(popup, "--focus-ring-offset"));
+      const pad = parseFloat(computed(popup, "padding-top"));
+      expect(pad).toBeCloseTo(Math.max(floatingP, ring), 1);
+      // And the reason the floor exists, stated as the thing that must be true: the ring a row
+      // paints has to fit inside the scroll container's padding box.
+      expect(pad, "the ring fits inside the clip").toBeGreaterThanOrEqual(ring);
+    });
+  }
+
+  it("the floor is the REAL trigger's width — the positioner's chain, not an injected value", async () => {
+    // This law used to write --anchor-width onto the panel itself and then assert the panel
+    // was at least that wide, which proves the max() parses and nothing else: the chain that
+    // can actually break is positioner measures trigger -> publishes --anchor-width -> panel
+    // matches. The trigger in the old setup was 55px against a 112px floor, so the anchor arm
+    // never won and only the injected number ever exercised it. Sabotaged (drop --anchor-width
+    // from the min-width), a 420px trigger's panel collapses to 112px and the old assertions
+    // both still passed.
+    let wide: HTMLElement | null = null;
+    render(
+      <Theme>
+        <div style={{ width: "420px", display: "flex" }}>
+          <Select defaultOpen>
+            <SelectTrigger
+              placeholder="Pick one"
+              style={{ width: "420px" }}
+              ref={(n: HTMLButtonElement | null) => void (wide = n)}
+            />
+            <SelectContent>
+              <SelectItem value="a">A</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Theme>,
+    );
     await settled();
-    const floatingP = parseFloat(tokenOn(popup, "--floating-p"));
-    const ring =
-      parseFloat(tokenOn(popup, "--focus-ring-width")) +
-      parseFloat(tokenOn(popup, "--focus-ring-offset"));
-    expect(parseFloat(computed(popup, "padding-top"))).toBeCloseTo(Math.max(floatingP, ring), 1);
-    // The anchor floor: never narrower than the designed floor, and a wide trigger widens it.
+    const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
+    const popup = popups[popups.length - 1]!;
+    const triggerWidth = (wide as unknown as HTMLElement).getBoundingClientRect().width;
+    expect(triggerWidth, "the trigger really is wide").toBeGreaterThan(400);
+    expect(
+      popup.getBoundingClientRect().width,
+      "the panel is never narrower than the trigger that opened it",
+    ).toBeGreaterThanOrEqual(triggerWidth - 1);
+    // Still never narrower than the designed floor either.
     expect(popup.getBoundingClientRect().width).toBeGreaterThanOrEqual(
       parseFloat(tokenOn(popup, "--floating-min-w")),
     );
-    popup.style.setProperty("--anchor-width", "300px");
-    expect(popup.getBoundingClientRect().width).toBeGreaterThanOrEqual(300);
+  });
+
+  it("the available room OUTRANKS the anchor — a minimum cannot be capped by a maximum", async () => {
+    // The panel stated max-width: var(--available-width) and min-width: max(floor, anchor).
+    // In CSS a minimum always wins over a maximum, so for any trigger wider than the room the
+    // stated protection was unreachable — measured 619px against a 300px cap. The clamp is
+    // inside the min() now; this law fails against the old spelling.
+    const { popup } = openSelect({});
+    await settled();
+    popup.style.setProperty("--anchor-width", "900px");
+    popup.style.setProperty("--available-width", "300px");
+    expect(popup.getBoundingClientRect().width).toBeLessThanOrEqual(301);
+    // ...and the floor still holds when the room is absurd, so the clamp cannot squeeze it
+    // below the designed minimum.
+    popup.style.setProperty("--available-width", "10px");
+    expect(popup.getBoundingClientRect().width).toBeGreaterThanOrEqual(
+      parseFloat(tokenOn(popup, "--floating-min-w")),
+    );
+  });
+
+  it("the corner is concentric in PAINTED pixels, at every size and level — `full` included", async () => {
+    // The old law read the panel's DECLARED corner against the row's DECLARED corner, and both
+    // were wrong together at `full`: the row was handed half a button's height (a box it does
+    // not have) and the browser clamped it at paint to half the row's own height, while the
+    // panel wrapped the unclamped number. 21 of 24 cells missed by up to 9px. The cap is the
+    // CSS spec's, applied to a MEASURED row height rather than to a re-derivation of the
+    // stylesheet's own arithmetic.
+    for (const radius of ["none", "small", "medium", "large", "full"] as const) {
+      for (const size of ["1", "2", "3", "4"] as const) {
+        const { popup, items } = openSelect({ radius }, undefined, size);
+        await settled();
+        const row = items[0]!;
+        const declared = parseFloat(computed(row, "border-top-left-radius"));
+        const painted = Math.min(declared, row.getBoundingClientRect().height / 2);
+        const pad = parseFloat(computed(popup, "padding-top"));
+        const panel = parseFloat(computed(popup, "border-top-left-radius"));
+        const expected = radius === "none" ? 0 : painted + pad;
+        expect(panel, `${radius} × size ${size}`).toBeCloseTo(expected, 1);
+      }
+    }
   });
 });
 
@@ -339,6 +614,15 @@ describe("selected speaks accent through the indicator", () => {
       expect(computed(beta, "color"), "the label stays the row's ink").toBe(
         computed(alpha, "color"),
       );
+      // The CHOSEN tick is VISIBLE, and this is the half the law was missing (audit
+      // 2026-08-09). Showing the current choice is two facts — the tick is accent AND it is
+      // the only one painted — and only the colour was read here, on a row where hiding does
+      // not change the colour. Changing one word in the hiding rule below hides every tick
+      // including this one, and the whole suite stayed green. It is not a hypothetical: that
+      // rule keys on ONE of the two spellings Base UI uses for selected, while the shared
+      // rule one layer down defensively handles both, so a library rename would silently
+      // empty every panel of its only selection indicator.
+      expect(computed(indicator, "visibility"), "the chosen tick is painted").toBe("visible");
       // The reserved gutter: the unchosen row keeps the box and hides the glyph.
       const ghost = alpha.querySelector<HTMLElement>('[data-slot="leading"]');
       if (!ghost) throw new Error("unchosen indicator missing — keepMounted dropped");
@@ -453,6 +737,63 @@ describe("behavior: roles, choosing, forms, labels", () => {
     expect(computed(label, "pointer-events")).toBe("none");
     expect(label.getAttribute("role")).toBeNull();
     expect(popup.querySelectorAll(".kui-select-item").length).toBe(1);
+  });
+
+  it("an unbreakable option does not push out of the panel", async () => {
+    // A row is inline-size: 100% of a panel that is itself capped at the reported room, and
+    // nothing bounded its CONTENT. Measured before the fix: 90px of horizontal scroll in a
+    // 220px panel, and once scrolled, the highlighted row's fill, corner and focus ring all
+    // stopped short of the words they were highlighting.
+    const host = render(
+      <Theme>
+        <Select defaultOpen>
+          <SelectTrigger placeholder="p" />
+          <SelectContent style={{ maxWidth: "220px" }}>
+            <SelectItem value="a">someone.with.a.long.name@example-company.com</SelectItem>
+            <SelectItem value="b">Short</SelectItem>
+          </SelectContent>
+        </Select>
+      </Theme>,
+    );
+    await settled();
+    const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
+    const popup = popups[popups.length - 1]!;
+    const row = popup.querySelector<HTMLElement>(".kui-select-item")!;
+    expect(popup.scrollWidth - popup.clientWidth, "no sideways scroll").toBeLessThanOrEqual(1);
+    expect(
+      row.scrollWidth - Math.ceil(row.clientWidth),
+      "the text stays inside the row that paints it",
+    ).toBeLessThanOrEqual(1);
+    // The negative control: the same panel with only short labels was never overflowing, so a
+    // law that passes for both is measuring the wrong thing.
+    expect(host).toBeDefined();
+  });
+
+  it("the panel is a listbox, and a listbox holds only options and groups", async () => {
+    // A separator between option groups is refused for exactly this reason (audit
+    // 2026-08-09): a menu may contain one, a listbox may not, and the panel IS the listbox.
+    const { popup } = openSelect({}, (
+      <>
+        <SelectGroup>
+          <SelectLabel>Citrus</SelectLabel>
+          <SelectItem value="a">Lemon</SelectItem>
+        </SelectGroup>
+        <SelectGroup>
+          <SelectLabel>Berries</SelectLabel>
+          <SelectItem value="b">Fig</SelectItem>
+        </SelectGroup>
+      </>
+    ));
+    await settled();
+    expect(popup.getAttribute("role")).toBe("listbox");
+    const illegal = [...popup.children].filter((child) => {
+      const role = child.getAttribute("role");
+      if (role === "option" || role === "group") return false;
+      // A presentational or hidden node is not IN the accessibility tree, so it is not a child
+      // of the listbox as far as the contract is concerned.
+      return !(role === "presentation" || role === "none" || child.hasAttribute("aria-hidden"));
+    });
+    expect(illegal.map((el) => el.getAttribute("role") ?? el.tagName)).toEqual([]);
   });
 
   it("a label inside a group keeps the group wiring", async () => {
