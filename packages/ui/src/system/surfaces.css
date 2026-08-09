@@ -83,6 +83,43 @@
   --kui-sf-radius: var(--radius-surface-4);
 }
 
+/* ── The FLOATING pane's size join (§22, Kushagra 2026-08-09) ────────────────────────────────
+   A floating pane hugs control-scale rows, so its corner is CONCENTRIC: the control corner
+   its content wears at this size, plus its own padding — the two curves share a centre in
+   every (size × radius level) cell by construction, `full` included (the control band
+   states the capsule as h/2 and the pane wraps it exactly). No fixed surface pick can
+   hold instead: the row corner moves with BOTH the size index and the radius level, while
+   a surface pick moves with neither — the shipped surface-1 matched only where the sums
+   happened to coincide (medium × sizes 1-2, large × 3) and read broken everywhere else,
+   judged in the playground. The padding is the COMPONENT's, supplied through the
+   --kui-floating-p hook (the --kui-sf-cast shape: the system declares the fallback, the
+   pane's own sheet supplies the value); the higher specificity over the surface join
+   above is what lets these arms re-state the padding the join would otherwise pick. */
+.kui-surface.kui-floating[data-size="1"] {
+  --kui-sf-p: var(--kui-floating-p, var(--surface-p-1));
+  --kui-sf-radius: calc(var(--radius-control-1) + var(--kui-sf-p));
+}
+.kui-surface.kui-floating[data-size="2"] {
+  --kui-sf-p: var(--kui-floating-p, var(--surface-p-2));
+  --kui-sf-radius: calc(var(--radius-control-2) + var(--kui-sf-p));
+}
+.kui-surface.kui-floating[data-size="3"] {
+  --kui-sf-p: var(--kui-floating-p, var(--surface-p-3));
+  --kui-sf-radius: calc(var(--radius-control-3) + var(--kui-sf-p));
+}
+.kui-surface.kui-floating[data-size="4"] {
+  --kui-sf-p: var(--kui-floating-p, var(--surface-p-4));
+  --kui-sf-radius: calc(var(--radius-control-4) + var(--kui-sf-p));
+}
+
+/* Concentric arithmetic is undefined at zero: at `none` the control corner is already 0,
+   and "0 + padding" would round a square pane by exactly its padding — a bug wearing the
+   formula. None means none. Same (0,3,0) as the arms above — source order is the win,
+   which is why this sits after them (the hover stand-down's own mechanism, law-pinned). */
+[data-radius="none"] .kui-surface.kui-floating {
+  --kui-sf-radius: var(--radius-0);
+}
+
 /* ── The rungs, in surface dressing (§9, §10) ────────────────────────────────────────────────
    Quiet is the SEAL: a surface without a material is opaque — translucency is material's job
    alone, and the alpha-nesting idea died by eye (LOG 2026-08-04: 1.2% per level is invisible;

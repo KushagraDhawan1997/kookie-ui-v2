@@ -100,6 +100,7 @@ export const density = {
     pxPill: [10, 12, 14, 16],
     radius: [1, 2, 2, 3],
     slotInset: [2, 3, 3, 4],
+    rowInset: [2, 2, 3, 4],
   },
   default: {
     height: [28, 32, 40, 48],
@@ -107,6 +108,7 @@ export const density = {
     pxPill: [12, 14, 17, 20],
     radius: [1, 2, 3, 4],
     slotInset: [3, 3, 4, 4],
+    rowInset: [4, 4, 5, 6],
   },
   comfortable: {
     height: [34, 40, 50, 60],
@@ -114,6 +116,7 @@ export const density = {
     pxPill: [14, 17, 21, 25],
     radius: [2, 3, 4, 5],
     slotInset: [3, 4, 5, 6],
+    rowInset: [6, 6, 7, 8],
   },
 } as const;
 
@@ -151,6 +154,24 @@ export type DensitySet = {
    * near a constant fraction precisely because letting it climb made size 4 a capsule.
    */
   readonly slotInset: readonly [number, number, number, number];
+  /**
+   * §21 — the block air a ROW keeps around its one line of text (added 2026-08-09, Kushagra:
+   * the menu read uncomfortably sparse). A row does not ride the height ladder: a button
+   * prices its box for standalone pressing, a row sits in a list, and the desktop systems
+   * that feel right compress rows below button height by dropping the height entirely —
+   * shadcn's item is py + line against an h-9 button, macOS runs ~24px rows under 28px
+   * buttons. So the row's box IS its text line plus this inset (the mark family's own
+   * argument: the box is a property of the type beside it), and the pointer answer arrives
+   * through the type bands — coarse raises the line, so the same derivation prices both
+   * worlds. Per size since the same day it landed (Kushagra: size 4 read "a bit cramped" at
+   * a constant inset — air grows GENTLY with the index, flat at sizes 1-2, +1/+2 at the
+   * top, so the ratio still falls as type grows). Fine default lands 24/28/34/38 (one
+   * notch under the buttons at every size, the shadcn/macOS relationship); coarse default
+   * lands 36/40/44/48 — size 2 sits 4 under its button's 44, the stated cost of tighter
+   * rows on touch, still far above the locked 24 floor. There is NO invented row floor:
+   * size 2 anchors near the target the same way the height ladder's own size 2 does. v0.
+   */
+  readonly rowInset: readonly [number, number, number, number];
 };
 
 /**
@@ -173,6 +194,7 @@ export const coarse = {
     pxPill: [13, 16, 19, 22],
     radius: [2, 3, 3, 4],
     slotInset: [3, 4, 4, 5],
+    rowInset: [6, 6, 7, 8],
   },
   default: {
     height: [36, 44, 52, 60],
@@ -180,6 +202,7 @@ export const coarse = {
     pxPill: [15, 18, 21, 25],
     radius: [2, 3, 4, 5],
     slotInset: [4, 4, 5, 5],
+    rowInset: [8, 8, 9, 10],
   },
   comfortable: {
     height: [40, 48, 58, 68],
@@ -187,6 +210,7 @@ export const coarse = {
     pxPill: [17, 20, 24, 28],
     radius: [3, 4, 5, 5],
     slotInset: [4, 5, 6, 7],
+    rowInset: [10, 10, 11, 12],
   },
 } as const satisfies Record<DensityLevel, DensitySet>;
 
@@ -778,16 +802,17 @@ export const controlLight = {
  * `surfaces` choice), a shadow under a menu is information (the popup genuinely covers
  * other content, and the cast states "above, not part of") — and facts don't turn off
  * with the style switch (Kushagra, 2026-08-09: "shadow is information"). Elevated reads
- * row 4 — one step past the surface lift, because a floating pane sits above even the
- * lifted cards — with dark's inset rim, surfaceChrome's sentence one row up. Flat is
+ * row 5 — the palette's top, because a floating pane sits above everything, lifted cards
+ * included (row 4 shipped first and read too low beside the panel it covers; Kushagra,
+ * same day) — with dark's inset rim, surfaceChrome's sentence two rows up. Flat is
  * DERIVED, never a second authored shadow: the same row through `fadeShadow` at the
  * factor below (the §10 transmission precedent), quieter because a flat world states
  * depth rather than simulating it — but never none, because overlap is a fact in every
  * world. v0, judged in the playground in both worlds and both modes.
  */
 export const floatingChrome = {
-  light: "var(--shadow-4)",
-  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-4)",
+  light: "var(--shadow-5)",
+  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-5)",
 } as const;
 
 /** How much of the floating cast a FLAT world keeps (0..1). Applied to the palette row by

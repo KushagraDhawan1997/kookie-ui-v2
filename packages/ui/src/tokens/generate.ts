@@ -570,6 +570,15 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
 const fadeShadow = (row: string, factor: number): string =>
   row.replace(/\/ ([0-9.]+)\)/g, (_, a: string) => `/ ${Number((parseFloat(a) * factor).toFixed(3))})`);
 
+/** Which palette row the floating chrome rides, read FROM the config value — the flat
+    derivation must fade the same row elevated declares, and a second hand-kept index is the
+    two-homes drift this repo keeps re-catching. Loud: an unparseable value throws. */
+const floatingRow = (): number => {
+  const m = floatingChrome.light.match(/var\(--shadow-([1-5])\)/);
+  if (!m) throw new Error(`floatingChrome.light names no shadow row: "${floatingChrome.light}"`);
+  return Number(m[1]) - 1;
+};
+
 const materialAlpha = (name: string, alpha: readonly number[]): string[] => {
   const [rest, hover, active] = alpha;
   return [
@@ -702,10 +711,10 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       decl(`control-chrome-${t}`, fadeShadow(shadow[mode][1]!, material.transmission[t])),
     ),
     `  /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance`,
-    `     because BOTH worlds declare one (overlap is information, not expression): elevated`,
-    `     reads row 4, flat is the same row faded — derived, one source of shadow truth. */`,
+    `     because BOTH worlds declare one (overlap is information, not expression): flat is`,
+    `     the elevated row faded — derived, one source of shadow truth. */`,
     decl("floating-chrome-elevated", floatingChrome[mode]),
-    decl("floating-chrome-flat", fadeShadow(shadow[mode][3]!, floatingFlatFactor)),
+    decl("floating-chrome-flat", fadeShadow(shadow[mode][floatingRow()]!, floatingFlatFactor)),
   ];
 }
 
@@ -854,6 +863,13 @@ function controlFamily(set: DensitySet): string[] {
   // GROWING past its own size token: a nested control that exceeds the content box stretched
   // the wrapper by 2 x --border-width in 16/16 measured cells.
   set.slotInset.forEach((px, i) => put(`slot-inset-${i + 1}`, zoom(px)));
+
+  // The block air a ROW keeps around its one line of text (§21, 2026-08-09). Per size, but
+  // gently — flat at the bottom, a step at the top (a constant inset read cramped at size 4,
+  // Kushagra, same day): a row's box is its text line plus this — the height ladder is for
+  // controls that stand alone, and the pointer answer arrives through the type bands (coarse
+  // raises the line, the same derivation prices both worlds).
+  set.rowInset.forEach((px, i) => put(`row-inset-${i + 1}`, zoom(px)));
 
   return out;
 }

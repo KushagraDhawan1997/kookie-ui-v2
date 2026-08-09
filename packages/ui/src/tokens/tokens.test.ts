@@ -203,6 +203,37 @@ describe("density is a designed set, not a multiplier (§12)", () => {
     }
   });
 
+  it("the row inset is emitted per size and level, and ordered like every other cell value (§21)", () => {
+    // Per size since the day it landed (a constant inset read cramped at size 4): a row's
+    // box is line + 2 x inset, so this is the whole of what the row family prices; a level
+    // that lost a declaration would send rows to the unstyled fallback silently.
+    for (let i = 0; i < 4; i++) {
+      expect(declaration(`row-inset-${i + 1}`)).toBe(`calc(${density.default.rowInset[i]}px * var(--scale))`);
+      for (const level of ["compact", "comfortable"] as const) {
+        expect(declaration(`row-inset-${i + 1}`, level)).toBe(
+          `calc(${density[level].rowInset[i]}px * var(--scale))`,
+        );
+      }
+    }
+    for (const level of ["compact", "default", "comfortable"] as const) {
+      for (let i = 0; i < 4; i++) {
+        // Air never shrinks as the index grows — gently up, the "less strict" progression.
+        if (i > 0) {
+          expect(density[level].rowInset[i]!).toBeGreaterThanOrEqual(density[level].rowInset[i - 1]!);
+          expect(coarse[level].rowInset[i]!).toBeGreaterThanOrEqual(coarse[level].rowInset[i - 1]!);
+        }
+        // The coarse world prices its own cells, each above its fine sibling — a finger
+        // does not shrink with the font.
+        expect(coarse[level].rowInset[i]!).toBeGreaterThan(density[level].rowInset[i]!);
+      }
+      // Density still orders the cells at every size.
+      for (let i = 0; i < 4; i++) {
+        expect(density.compact.rowInset[i]!).toBeLessThanOrEqual(density.default.rowInset[i]!);
+        expect(density.default.rowInset[i]!).toBeLessThanOrEqual(density.comfortable.rowInset[i]!);
+      }
+    }
+  });
+
   it("keeps every level's own ladder increasing across sizes", () => {
     for (const set of Object.values(density)) {
       expect(increasing(set.height)).toBe(true);

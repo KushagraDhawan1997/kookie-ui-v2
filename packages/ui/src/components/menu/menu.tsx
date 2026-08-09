@@ -247,9 +247,11 @@ function PortalScope({ children }: { children: React.ReactNode }) {
 
 /** The popup's surface identity — Card's constants (§10): the tone indirection needs a
     family for --tone-border, the fill is the seal, quiet + bordered is §11's row for
-    Menu. NO data-size: the panel's padding does not answer the index (its rows do), and
-    stamping it would put the surface size join above menu.css's own declarations. */
+    Menu. data-size IS stamped (reversed 2026-08-09, Kushagra's eye): the panel's corner is
+    concentric — row corner + padding — so it moves with the index its rows answer, and
+    menu.css re-states the padding the surface size join would otherwise pick. */
 function popupProps(
+  size: Size,
   material: MenuContentProps["material"],
   anchored: boolean,
   className?: string,
@@ -264,6 +266,7 @@ function popupProps(
     ? "kui-surface kui-floating kui-menu-popup kui-menu-anchored"
     : "kui-surface kui-floating kui-menu-popup";
   return {
+    "data-size": size,
     "data-tone": "neutral",
     "data-emphasis": "quiet",
     "data-bordered": true,
@@ -287,7 +290,7 @@ export function MenuContent({
       <PortalScope>
         <BaseMenu.Positioner side={side} align={align} sideOffset={sideOffset}>
           <BaseMenu.Popup
-            {...popupProps(material, true, className)}
+            {...popupProps(React.use(MenuSizeContext), material, true, className)}
             {...(style !== undefined ? { style } : {})}
             {...(ref !== undefined ? { ref } : {})}
           >
@@ -610,7 +613,7 @@ export function MenuSubContent({ material = "solid", children, className, style,
       <PortalScope>
         <BaseMenu.Positioner sideOffset={seam} alignOffset={() => -seam()}>
           <BaseMenu.Popup
-            {...popupProps(material, false, className)}
+            {...popupProps(React.use(MenuSizeContext), material, false, className)}
             {...(style !== undefined ? { style } : {})}
             {...(ref !== undefined ? { ref } : {})}
           >

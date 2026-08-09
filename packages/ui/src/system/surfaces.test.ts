@@ -141,11 +141,15 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // stand-down — source order is the whole mechanism, so the rule must come after BOTH:
     // a glass floating pane casts the floating chrome (not the transmitted row — coverage
     // is a fact even where expression is off), and a sealed floating pane still casts.
-    const paint = surfaces.indexOf(".kui-surface.kui-floating");
+    // Anchored on the exact rule OPENING: the floating size join (2026-08-09) begins with
+    // the same characters, so a bare indexOf of the selector finds the join's first arm
+    // and this law would measure the wrong rule's position — the substring trap the loud
+    // parser exists for.
+    const paint = surfaces.indexOf("\n.kui-surface.kui-floating {");
     expect(paint).toBeGreaterThan(-1);
     expect(paint).toBeGreaterThan(surfaces.indexOf("prefers-reduced-transparency"));
     expect(paint).toBeGreaterThan(surfaces.lastIndexOf('[data-material="thick"]'));
-    const body = block(surfaces, ".kui-surface.kui-floating");
+    const body = block(surfaces, "\n.kui-surface.kui-floating {");
     // A re-point of --kui-sf-cast, never a second box-shadow (the count law's six holds),
     // and the second fallback covers the un-themed document, which behaves as flat.
     expect(body).toContain("--kui-sf-cast: var(--kui-floating-chrome, var(--floating-chrome-flat, none))");
@@ -325,17 +329,22 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
 
   it("flat's floating cast is the elevated row actually faded, in both appearances (§22)", () => {
     // The transmission law's sentence one role over: flat is DERIVED from the same palette
-    // row elevated reads (row 4), through the same fadeShadow seam, so the two cannot
-    // drift. Asserted with the independent alpha parse — the fade did something, every
-    // alpha is source x factor, geometry unchanged — because the copied-regex version of
-    // this law is the one the 2026-08-07 audit demonstrated agreeing with a broken fade.
+    // row elevated reads, through the same fadeShadow seam, so the two cannot drift. The
+    // row itself is READ from the emitted elevated value rather than hand-pinned here —
+    // the law's copy of "row 4" went stale the day the chrome moved to row 5 (Kushagra's
+    // eye, 2026-08-09), which is the two-homes drift this suite keeps cataloguing. What
+    // stays asserted: elevated names exactly one palette row by reference, and flat is
+    // that row with every alpha x factor, geometry unchanged — the independent parse,
+    // because the copied-regex version of this law is the one the 2026-08-07 audit
+    // demonstrated agreeing with a broken fade.
     for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
       const body = block(tokens, scope);
-      const source = valueOf(body, "--shadow-4");
+      const elevated = valueOf(body, "--floating-chrome-elevated");
+      const rowRef = elevated.match(/var\((--shadow-[1-5])\)/);
+      if (!rowRef) throw new Error(`floating-chrome-elevated names no palette row: ${elevated}`);
+      const source = valueOf(body, rowRef[1]!);
       const sourceAlphas = alphasOf(source);
       expect(sourceAlphas.length).toBeGreaterThan(0);
-      // Elevated composes the row by reference (dark prepends its rim), one source of truth.
-      expect(valueOf(body, "--floating-chrome-elevated")).toContain("var(--shadow-4)");
       const flat = valueOf(body, "--floating-chrome-flat");
       expect(flat, `${scope} flat floating cast is the unfaded row`).not.toBe(source);
       const got = alphasOf(flat);

@@ -510,6 +510,22 @@
      sentence one family over): the skeleton's medium is a BUTTON-label decision, and a
      row is a line in a list you read. Every platform menu sets its items regular. */
   font-weight: var(--font-weight-regular);
+  /* The row's box is its text LINE plus one designed inset — it does not ride the height
+     ladder (§21, reversed 2026-08-09; Kushagra: the menu read uncomfortably sparse). A
+     button prices its box for standalone pressing; a row sits in a list, and the desktop
+     systems that feel right drop the height entirely and let the line carry the box
+     (shadcn's item is padding + line under an h-9 button; macOS runs ~24px rows under 28px
+     buttons) — the mark family's own argument, one member over: the box is a property of
+     the type beside it. The pointer answer arrives through the type bands (coarse raises
+     the line), so both worlds price through one derivation: fine default 24/28/32/34,
+     coarse default 36/40/42/44 — each a notch under its button, and coarse size 2 sits a
+     stated 4 under the button's 44 (the cost of tighter rows on touch; the locked 24 floor
+     holds everywhere by construction). The border term lives in the spelling (the checkbox
+     target's own audit lesson): box-sizing is border-box, so the padding cedes what the
+     hairline occupies and the rendered box is exactly line + 2 x inset. Wins the tie with
+     the skeleton's min-height/padding-block on source order, the family's own mechanism. */
+  min-height: auto;
+  padding-block: calc(var(--kui-ct-row-inset) - var(--border-width));
 }
 
 /* A shortcut hint or chevron sits at the far edge, not beside the label — the row's own
@@ -587,6 +603,7 @@
   --kui-ct-tracking: var(--letter-spacing-1);
   --kui-ct-icon: var(--icon-size-1);
   --kui-ct-slot-inset: var(--slot-inset-1);
+  --kui-ct-row-inset: var(--row-inset-1);
   --kui-ct-mark: var(--mark-1);
   --kui-ct-mark-radius: var(--radius-mark-1);
   --kui-ct-track: var(--slider-track-1);
@@ -604,6 +621,7 @@
   --kui-ct-tracking: var(--letter-spacing-2);
   --kui-ct-icon: var(--icon-size-2);
   --kui-ct-slot-inset: var(--slot-inset-2);
+  --kui-ct-row-inset: var(--row-inset-2);
   --kui-ct-mark: var(--mark-2);
   --kui-ct-mark-radius: var(--radius-mark-2);
   --kui-ct-track: var(--slider-track-2);
@@ -621,6 +639,7 @@
   --kui-ct-tracking: var(--letter-spacing-3);
   --kui-ct-icon: var(--icon-size-3);
   --kui-ct-slot-inset: var(--slot-inset-3);
+  --kui-ct-row-inset: var(--row-inset-3);
   --kui-ct-mark: var(--mark-3);
   --kui-ct-mark-radius: var(--radius-mark-3);
   --kui-ct-track: var(--slider-track-3);
@@ -638,6 +657,7 @@
   --kui-ct-tracking: var(--letter-spacing-4);
   --kui-ct-icon: var(--icon-size-4);
   --kui-ct-slot-inset: var(--slot-inset-4);
+  --kui-ct-row-inset: var(--row-inset-4);
   --kui-ct-mark: var(--mark-4);
   --kui-ct-mark-radius: var(--radius-mark-4);
   --kui-ct-track: var(--slider-track-4);
@@ -701,19 +721,23 @@
   --kui-ct-light: none;
 }
 
-/* Selected speaks accent, written once for every member of the row family (§21): the ON
-   ink, the mark family's checked sentence one family over. Placed AFTER the emphasis
-   ladder on purpose — a row stamps its quiet identity, and the quiet rung declares the
-   label color at the same (0,1,0), so source order is what lets checked win that tie;
-   `:where()` keeps the specificity down, and the :not([data-disabled])
-   INSIDE it is what dims a dead checked row: the accent ink is named directly (not a tone
-   role), so the disabled arm's role remap cannot reach it — the rule must stand itself
-   down instead (the mark family reaches the same end by stamping its tone). Naming the accent FAMILY in the shared layer is the focus ring's own precedent
-   (§8): selection, like focus, answers one question system-wide, so a destructive row
-   that is also checked still checks in accent. The SVG indicator inherits the ink through
-   currentColor. */
-.kui-row:where([data-checked]:not([data-disabled])) {
-  --kui-ct-label-color: var(--accent-label);
+/* Selected speaks accent, written once for every member of the row family (§21) — and the
+   INDICATOR is what speaks it (reversed 2026-08-09, Kushagra's eye; it shipped as the whole
+   row's label ink for a day). --accent-label is a TEXT ink: it lives between ladder steps
+   11 and 12 because prose owes the APCA body floor, so a checked row read as dark navy
+   emphasis, not as the accent — while a checked CHECKBOX fills with the bright solid one
+   family over. A glyph owes only the 3:1 non-text floor, so the tick can wear the real
+   --accent-solid, the same value the mark family's ON state wears: one selected colour
+   across the system, and the label keeps saying WHAT while the tick says CHOSEN — every
+   platform's own spelling. Naming the accent FAMILY in the shared layer is the focus ring's
+   precedent (§8): selection, like focus, answers one question system-wide. The accent is
+   named directly (not a tone role), so the disabled arm's remap cannot reach it — the
+   :not([data-disabled]) on the row is what stands it down, letting a dead tick fall back to
+   the dimmed inherited ink. The SVG glyph takes it through currentColor. Base UI stamps
+   data-checked on the indicator element itself, which is what keys this without a
+   row-level hop. */
+.kui-row:where(:not([data-disabled])) > [data-slot][data-checked] {
+  color: var(--accent-solid);
 }
 
 /* ── Containment, orthogonal to loudness (§10) ───────────────────────────────────────────── */

@@ -4,12 +4,6 @@
    padding, the width floor, and the two row variants that stand interactivity down. */
 
 .kui-menu-popup {
-  /* The smallest surface corner for the smallest surface (§6). The overlay band was tried
-     first (§11 said "floating") and read far too round on sight (Kushagra, 2026-08-09):
-     --radius-overlay is 24px priced against a DIALOG's box, and a menu panel holds a much
-     larger fraction of it — the fraction wall's shape, caught at the eye pass this time.
-     surface-1 is also the concentric answer: row corner (~6) + panel padding (4) ≈ 10. */
-  --kui-sf-radius: var(--radius-surface-1);
   /* One designed padding (§22) — the panel does not answer the size index, its rows do —
      FLOORED at the focus ring's own reach (§8, audit 2026-08-09). `overflow-y: auto` below
      makes this panel a scroll container, which clips descendant ink at the PADDING box in
@@ -33,6 +27,16 @@
   /* Base UI focuses the popup itself on open. The ring is a keyboard affordance for
      CONTROLS; a panel holding focus is a mode, and its rows carry the highlight. */
   outline: none;
+}
+
+/* The panel's corner is CONCENTRIC — its rows' corner plus this padding (§6, Kushagra
+   2026-08-09: "menu item radius + padding = container radius"; two fixed corners broke on
+   sight first, the overlay band and then surface-1). The DERIVATION lives in the floating
+   family's own size join (surfaces.css) — per-size spellings belong to the shared layer,
+   the switch join's rule — and what the menu supplies is its half of the arithmetic: the
+   pane's padding, through the hook that join consults before the surface band's picks. */
+.kui-menu-popup {
+  --kui-floating-p: var(--kui-menu-pad);
 }
 
 /* Never narrower than the TRIGGER that opened it either (§22) — the size-match argument

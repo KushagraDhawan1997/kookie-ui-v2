@@ -135,6 +135,7 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
         <div
           ref={(n: HTMLDivElement | null) => void (popupTwin = n)}
           className="kui-surface kui-floating kui-menu-popup kui-menu-anchored"
+          data-size="2"
           data-tone="neutral"
           data-emphasis="quiet"
           data-bordered="true"
@@ -201,9 +202,14 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
       expect(computed(popup, "background-color")).toBe(computed(card, "background-color"));
       // Elevated: the floating cast is the elevated row, not the flat fade.
       expect(computed(popup, "box-shadow")).not.toBe("none");
-      // Compact: the row takes the document's density cell, not `default`.
-      expect(computed(row, "min-height")).toBe(tokenOn(popup, "--control-height-2"));
-      expect(computed(row, "min-height")).toBe(tokenOn(card, "--control-height-2"));
+      // Compact: the row takes the document's density cell, not `default` — the row box is
+      // line + 2 x inset (§21, 2026-08-09), and compact's inset (2) differing from default's
+      // (4) is what makes this a real comparison.
+      expect(row.getBoundingClientRect().height).toBeCloseTo(
+        parseFloat(computed(row, "line-height")) + 2 * parseFloat(tokenOn(popup, "--row-inset-2")),
+        1,
+      );
+      expect(tokenOn(popup, "--row-inset-2")).toBe(tokenOn(card, "--row-inset-2"));
     } finally {
       document.documentElement.removeAttribute("data-surfaces");
       document.documentElement.removeAttribute("data-density");
@@ -227,6 +233,7 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
           <div
             ref={(n: HTMLDivElement | null) => void (popupTwin = n)}
             className="kui-surface kui-floating kui-menu-popup kui-menu-anchored"
+            data-size="2"
             data-tone="neutral"
             data-emphasis="quiet"
             data-bordered="true"
@@ -307,7 +314,17 @@ describe("rows ride the existing control cells in all 24 cells (§21)", () => {
     forEachCell((cell) => {
       const { row, popup } = cellRow(cell);
       const label = `${cell.pointer}/${cell.density}/${cell.size}`;
-      expect(computed(row, "min-height"), label).toBe(tokenOn(popup, `--control-height-${cell.size}`));
+      // The ONE departure from the control cells (§21, reversed 2026-08-09 — the menu read
+      // sparse): the row's box is its text line plus the cell's designed inset, never the
+      // height ladder. min-height stands down to auto and the rendered box is asserted as
+      // the SUM off the browser's own line-height — which the type bands move under coarse,
+      // so this one expression prices all 24 cells.
+      // `auto` serializes as 0px on a non-flex-item; both mean "stood down".
+      expect(["auto", "0px"], label).toContain(computed(row, "min-height"));
+      expect(row.getBoundingClientRect().height, label).toBeCloseTo(
+        parseFloat(computed(row, "line-height")) + 2 * parseFloat(tokenOn(popup, `--row-inset-${cell.size}`)),
+        1,
+      );
       // The padding this comment has always named, now asserted (audit 2026-08-09): rows
       // have no leading slot in this mount, so the control skeleton's own side padding
       // applies and the row adds nothing of its own.
@@ -371,6 +388,7 @@ describe("row states are the quiet rung's, driven by the highlight attribute (§
           <MenuItem disabled>Dead</MenuItem>
           <MenuCheckboxItem defaultChecked>Ticked</MenuCheckboxItem>
           <MenuCheckboxItem defaultChecked disabled>Dead ticked</MenuCheckboxItem>
+          <MenuItem>Plain</MenuItem>
         </>
       ));
       const [destructive, dead] = [...popup.querySelectorAll<HTMLElement>(".kui-menu-item")];
@@ -383,13 +401,26 @@ describe("row states are the quiet rung's, driven by the highlight attribute (§
       expect(computed(dead, "cursor")).toBe(
         probeIn(popup, (el) => (el.style.cursor = "var(--cursor-disabled)"), (cs) => cs.cursor),
       );
-      // Checked speaks accent — the family's ON ink, indicator included via currentColor.
-      expect(computed(ticked, "color")).toBe(colorOn(popup, "var(--accent-label)"));
-      // And DEAD checked dims: the :where() spelling is what lets the disabled arm win.
-      expect(computed(deadTicked, "color")).toBe(colorOn(popup, "var(--neutral-8)"));
-      // The reserved gutter: the unchecked twin of a checkable row keeps its slot box.
+      // Checked speaks accent through the INDICATOR (reversed 2026-08-09): the tick wears
+      // the mark family's own bright solid, and the LABEL stays the row's ordinary ink —
+      // the whole-row --accent-label ink read as dark emphasis, not selection.
       const indicator = ticked.querySelector<HTMLElement>('[data-slot="leading"]');
       if (!indicator) throw new Error("indicator slot missing");
+      expect(computed(indicator, "color")).toBe(colorOn(popup, "var(--accent-solid)"));
+      const plain = [...popup.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
+        (el) => el.textContent === "Plain",
+      );
+      if (!plain) throw new Error("plain row missing");
+      expect(computed(ticked, "color"), "a checked LABEL is ordinary ink").toBe(
+        computed(plain, "color"),
+      );
+      // And a DEAD tick dims: the :not([data-disabled]) on the row stands the accent down,
+      // so the indicator falls back to the disabled arm's inherited neutral-8.
+      const deadIndicator = deadTicked.querySelector<HTMLElement>('[data-slot="leading"]');
+      if (!deadIndicator) throw new Error("dead indicator slot missing");
+      expect(computed(deadIndicator, "color")).toBe(colorOn(popup, "var(--neutral-8)"));
+      expect(computed(deadTicked, "color")).toBe(colorOn(popup, "var(--neutral-8)"));
+      // The reserved gutter: the unchecked twin of a checkable row keeps its slot box.
       expect(indicator.getBoundingClientRect().width).toBeGreaterThan(0);
     });
   }
@@ -422,21 +453,32 @@ describe("rows wear content dress, not button dress (§21)", () => {
 /* ── The popup surface (§22) ──────────────────────────────────────────────────────────── */
 
 describe("the popup: smallest surface corner, floating cast in BOTH worlds, glass (§22)", () => {
-  it("border-radius is surface-1 at every radius level — and never the overlay's (judged 2026-08-09)", () => {
-    // The overlay band was the shipped first cut and Kushagra rejected it on sight: 24px is
-    // priced against a DIALOG's box, and a menu panel holds a far larger fraction of it —
-    // the fraction wall, caught at the eye pass. surface-1 is the smallest surface corner
-    // for the smallest surface, and the concentric answer (row corner + panel padding).
-    for (const radius of ["none", "small", "medium", "large", "full"] as const) {
-      const { popup } = openMenu({ radius });
-      const surface1 = tokenOn(popup, "--radius-surface-1");
-      expect(computed(popup, "border-top-left-radius"), radius).toBe(surface1);
-      // The rejected candidate stays rejected: never the overlay corner, where they differ.
-      const overlay = tokenOn(popup, "--radius-overlay");
-      if (overlay !== surface1) {
-        expect(computed(popup, "border-top-left-radius"), radius).not.toBe(overlay);
+  it("the panel corner is CONCENTRIC — row corner + panel padding, in every (size × level) cell", () => {
+    // The third corner in a week, and the first derived one (Kushagra, 2026-08-09): the
+    // overlay band read dialog-round on sight, and the fixed surface-1 that replaced it
+    // only matched where row corner + padding happened to land on it (medium × 1-2,
+    // large × 3) — a fixed pick CANNOT hold, because the row corner moves with BOTH the
+    // size index and the radius level while a surface pick moves with neither. Derived,
+    // the two curves share a centre in every cell by construction. Asserted off the
+    // BROWSER's resolved values on both boxes — not by rebuilding the calc from tokens,
+    // which would be the law agreeing with its own arithmetic (the 2026-08-03 lesson).
+    for (const radius of ["small", "medium", "large", "full"] as const) {
+      for (const size of ["1", "2", "3", "4"] as const) {
+        const { popup, items } = openMenu({ radius }, undefined, size);
+        const row = items[0];
+        if (!row) throw new Error("row missing");
+        const rowCorner = parseFloat(computed(row, "border-top-left-radius"));
+        const pad = parseFloat(computed(popup, "padding-top"));
+        expect(
+          parseFloat(computed(popup, "border-top-left-radius")),
+          `${radius} × size ${size}`,
+        ).toBeCloseTo(rowCorner + pad, 1);
       }
     }
+    // Concentric arithmetic is undefined at zero: `none` means square, not "rounded by
+    // exactly the padding" — the guard the formula needs, asserted where it bites.
+    const { popup } = openMenu({ radius: "none" });
+    expect(computed(popup, "border-top-left-radius")).toBe("0px");
   });
 
   it("padding and min-width are the menu's own designed tokens", () => {
@@ -1053,7 +1095,10 @@ describe("groups and labels: the wiring is Base UI's, the dress is the row's", (
     // Same dress as the in-group label — the skeleton is the row's either way.
     expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-faint)"));
     expect(computed(label, "pointer-events")).toBe("none");
-    expect(computed(label, "min-height")).toBe(tokenOn(popup, "--control-height-2"));
+    expect(label.getBoundingClientRect().height).toBeCloseTo(
+      parseFloat(computed(label, "line-height")) + 2 * parseFloat(tokenOn(popup, "--row-inset-2")),
+      1,
+    );
     // It is a heading, not a menu row: nothing announces it as an item.
     expect(label.getAttribute("role")).toBeNull();
     // And the rows around it still work — the popup did not lose its subtree.

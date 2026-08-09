@@ -309,21 +309,33 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     const box = block(recipes, ".kui-row {");
     expect(box).toContain("inline-size: 100%");
     expect(box).toContain("justify-content: flex-start");
-    expect(box).not.toMatch(/min-block-size|block-size:|height:|padding/);
+    // The row's ONE geometry departure (2026-08-09, reversing "geometry deliberately
+    // absent"): the box is the text line plus a designed inset, not the height ladder —
+    // min-height stands down and the block padding cedes the border term, so the rendered
+    // box is exactly line + 2 x inset. Everything else still arrives through the size join:
+    // no inline padding, no height, no font size may be re-declared here.
+    expect(box).toContain("min-height: auto");
+    expect(box).toContain("padding-block: calc(var(--kui-ct-row-inset) - var(--border-width))");
+    expect(box).not.toMatch(/min-block-size|block-size:|[^-]height: var|padding-inline|font-size/);
+    // Order is load-bearing: the skeleton declares min-height and padding-block at the same
+    // (0,1,0), so the row's stand-down wins on source alone.
+    expect(recipes.indexOf(".kui-row {")).toBeGreaterThan(recipes.indexOf(".kui-control {"));
     // The lit row reads the state attribute (keyboard and pointer unified by Base UI), and
     // a submenu's open trigger stays lit by the same rule.
     expect(recipes).toContain(".kui-row[data-highlighted]:not([data-disabled])");
     expect(recipes).toContain(".kui-row[data-popup-open]:not([data-disabled])");
-    // Checked speaks accent, and BOTH precedence facts are the law (each was a live bug
-    // for an hour on ship day): the :not([data-disabled]) sits INSIDE the :where() —
-    // accent-label is not a tone role, so the disabled arm's remap cannot reach it and
-    // the rule must stand itself down for a dead checked row to dim; and the rule sits
-    // AFTER the emphasis ladder — a row stamps quiet, the quiet rung declares the label
-    // color at the same (0,1,0), and source order is what lets checked win that tie.
-    const checked = ".kui-row:where([data-checked]:not([data-disabled]))";
+    // Checked speaks accent through the INDICATOR (reversed 2026-08-09 from whole-row
+    // --accent-label ink: a text ink lives at steps 11-12 and read as dark emphasis, while
+    // a glyph owes only the non-text floor and can wear the mark family's own bright
+    // solid). The precedence fact survives the move: the accent is named directly, not a
+    // tone role, so the disabled arm's remap cannot reach it — the :not([data-disabled])
+    // on the ROW is what stands a dead tick down to the dimmed inherited ink.
+    const checked = ".kui-row:where(:not([data-disabled])) > [data-slot][data-checked]";
     expect(recipes).toContain(checked);
-    expect(block(recipes, checked)).toContain("--kui-ct-label-color: var(--accent-label)");
-    expect(recipes.indexOf(checked)).toBeGreaterThan(recipes.indexOf('[data-emphasis="quiet"]'));
+    expect(block(recipes, checked)).toContain("color: var(--accent-solid)");
+    // And no row rule paints the LABEL accent anymore — the reversal in the negative.
+    expect(block(recipes, checked)).not.toContain("--kui-ct-label-color");
+    expect(recipes).not.toContain("--kui-ct-label-color: var(--accent-label)");
   });
 
   it("the row stand-down sits AFTER the shared hover rule — it wins on order, not weight", () => {
