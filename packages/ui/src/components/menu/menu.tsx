@@ -18,7 +18,7 @@
 import * as React from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 
-import { Theme } from "../../theme/theme.tsx";
+import { Theme, useThemeRooted } from "../../theme/theme.tsx";
 import { filled, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
 
@@ -145,6 +145,26 @@ export type MenuContentProps = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
+/**
+ * The portal's landing spot (§20).
+ *
+ * A portalled subtree loses every CSS attribute its author wrote above it, so the wrapper
+ * re-stamps them — but only when a React `<Theme>` actually chose them. With no Theme in the
+ * tree the axes are carried on the DOM instead (`<html data-appearance="dark">`, the
+ * standalone path the emitted stylesheet promises and `card.browser.test.tsx` law-enforces),
+ * and `<html>` is an ancestor of `document.body`, so they reach the portal already. A
+ * wrapper that stamped anyway could not tell "nobody chose an appearance" from "someone
+ * chose light", and overrode all six: measured, a dark/elevated/compact document opened a
+ * white/flat/default menu, the exact "light card in a dark app" §20 was written to prevent
+ * (audit 2026-08-09).
+ *
+ * The element exists in both branches because `dir` needs somewhere to live either way.
+ */
+function PortalScope({ children }: { children: React.ReactNode }) {
+  const scope = <div className="kui-portal">{children}</div>;
+  return useThemeRooted() ? <Theme render={scope} /> : scope;
+}
+
 /** The popup's surface identity — Card's constants (§10): the tone indirection needs a
     family for --tone-border, the fill is the seal, quiet + bordered is §11's row for
     Menu. NO data-size: the panel's padding does not answer the index (its rows do), and
@@ -184,7 +204,7 @@ export function MenuContent({
 }: MenuContentProps) {
   return (
     <BaseMenu.Portal>
-      <Theme>
+      <PortalScope>
         <BaseMenu.Positioner side={side} align={align} sideOffset={sideOffset}>
           <BaseMenu.Popup
             {...popupProps(material, true, className)}
@@ -194,7 +214,7 @@ export function MenuContent({
             {children}
           </BaseMenu.Popup>
         </BaseMenu.Positioner>
-      </Theme>
+      </PortalScope>
     </BaseMenu.Portal>
   );
 }
@@ -478,7 +498,7 @@ export type MenuSubContentProps = {
 export function MenuSubContent({ material = "solid", children, className, style, ref }: MenuSubContentProps) {
   return (
     <BaseMenu.Portal>
-      <Theme>
+      <PortalScope>
         <BaseMenu.Positioner sideOffset={0} alignOffset={SUB_ALIGN_OFFSET}>
           <BaseMenu.Popup
             {...popupProps(material, false, className)}
@@ -488,7 +508,7 @@ export function MenuSubContent({ material = "solid", children, className, style,
             {children}
           </BaseMenu.Popup>
         </BaseMenu.Positioner>
-      </Theme>
+      </PortalScope>
     </BaseMenu.Portal>
   );
 }
