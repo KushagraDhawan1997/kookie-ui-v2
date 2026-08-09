@@ -17,9 +17,10 @@
  */
 import * as React from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 
 import { Theme, useThemeRooted } from "../../theme/theme.tsx";
-import { filled, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import { filled, mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
 
 /* ── Designed constants (§22, v0 — the switchInset precedent: Base UI takes numbers, so
@@ -38,6 +39,40 @@ const SUB_ALIGN_OFFSET = -4;
 
 const MenuSizeContext = React.createContext<Size>("2");
 
+/* ── Direction (§20, added 2026-08-09) ──────────────────────────────────────────────────
+      RTL is the third thing a portal drops, after the CSS axes and the stacking frame — and
+      it is dropped TWICE, in two different layers, which is why it needed two mechanisms.
+
+      The CSS half: `dir` is a platform attribute, not a Kookie axis, so the wrapper Theme has
+      nothing to re-stamp. Inside `<div dir="rtl">` the app computed rtl and the portalled
+      popup computed ltr, so a shortcut hint or chevron sat on the wrong side of every row —
+      measured, the trailing slot 82.44px from the row's start edge in both directions.
+
+      The JS half: Base UI's positioning reads direction from its OWN context, whose default is
+      'ltr' and whose only setter is `DirectionProvider` — which nothing in this repo rendered.
+      So even under `<html dir="rtl">`, where CSS direction DOES cross the portal and content
+      mirrored correctly, submenus still opened to the physical right, overlapping the panel
+      they came from.
+
+      One measurement answers both. The trigger is the only element this component owns that
+      stands in ordinary flow, so its computed direction IS the ambient direction — the same
+      read whether the app spelled it `dir` on an ancestor or `direction` in CSS. It is taken
+      once, in a ref callback at commit; LTR apps never see a state change, and the server
+      renders the ltr branch that the client's first render also produces. */
+
+type TextDirection = "ltr" | "rtl";
+
+type MenuDirection = {
+  direction: TextDirection;
+  /** Attached to the trigger — the one in-flow node a menu owns. */
+  measure: (node: HTMLElement | null) => void;
+};
+
+const MenuDirectionContext = React.createContext<MenuDirection>({
+  direction: "ltr",
+  measure: () => {},
+});
+
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
 export type MenuProps = {
@@ -49,17 +84,30 @@ export type MenuProps = {
   children?: React.ReactNode;
 };
 
-/** Renders no DOM — state and wiring only (Base UI Root + the size context). */
+/** Renders no DOM — state and wiring only (Base UI Root, the size context, direction). */
 export function Menu({ size = "2", open, defaultOpen, onOpenChange, children }: MenuProps) {
+  const [direction, setDirection] = React.useState<TextDirection>("ltr");
+  const measure = React.useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    const ambient = getComputedStyle(node).direction === "rtl" ? "rtl" : "ltr";
+    setDirection((prev) => (prev === ambient ? prev : ambient));
+  }, []);
+  const dir = React.useMemo<MenuDirection>(() => ({ direction, measure }), [direction, measure]);
+
   return (
     <MenuSizeContext.Provider value={size}>
-      <BaseMenu.Root
-        {...(open !== undefined ? { open } : {})}
-        {...(defaultOpen !== undefined ? { defaultOpen } : {})}
-        {...(onOpenChange !== undefined ? { onOpenChange } : {})}
-      >
-        {children}
-      </BaseMenu.Root>
+      <MenuDirectionContext.Provider value={dir}>
+        {/* Base UI positions from its own direction context, not from CSS (§20). */}
+        <DirectionProvider direction={direction}>
+          <BaseMenu.Root
+            {...(open !== undefined ? { open } : {})}
+            {...(defaultOpen !== undefined ? { defaultOpen } : {})}
+            {...(onOpenChange !== undefined ? { onOpenChange } : {})}
+          >
+            {children}
+          </BaseMenu.Root>
+        </DirectionProvider>
+      </MenuDirectionContext.Provider>
     </MenuSizeContext.Provider>
   );
 }
@@ -102,7 +150,10 @@ export type MenuTriggerProps = {
   ref?: React.Ref<HTMLButtonElement>;
 };
 
-export function MenuTrigger({ render, nativeButton, ...props }: MenuTriggerProps) {
+export function MenuTrigger({ render, nativeButton, ref, ...props }: MenuTriggerProps) {
+  // The trigger is the one node a menu owns that stands in ordinary flow, so it is where the
+  // ambient direction is read (§20). Both refs get the node — the caller's is not spent.
+  const { measure } = React.use(MenuDirectionContext);
   // Base UI branches its ENTIRE a11y contract on `nativeButton`, which defaults to true —
   // the Button defect of 2026-08-03, re-shipped here and caught by the audit 2026-08-09.
   // Unforwarded, `render={<a href/>}` emitted `type="button"` on an anchor (where `type` is
@@ -121,6 +172,7 @@ export function MenuTrigger({ render, nativeButton, ...props }: MenuTriggerProps
       {...(target ? { render: target } : {})}
       nativeButton={isNativeButton}
       {...props}
+      ref={mergeRefs(ref, measure)}
     />
   );
 }
@@ -161,7 +213,15 @@ export type MenuContentProps = {
  * The element exists in both branches because `dir` needs somewhere to live either way.
  */
 function PortalScope({ children }: { children: React.ReactNode }) {
-  const scope = <div className="kui-portal">{children}</div>;
+  // `dir` is stamped in BOTH branches and always, not only when rtl: it is the ambient
+  // direction the trigger measured, and stating it is what keeps a portalled panel from
+  // silently taking the document's direction instead of its author's (§20).
+  const { direction } = React.use(MenuDirectionContext);
+  const scope = (
+    <div className="kui-portal" dir={direction}>
+      {children}
+    </div>
+  );
   return useThemeRooted() ? <Theme render={scope} /> : scope;
 }
 
@@ -471,7 +531,13 @@ export function MenuSubTrigger({ leading, children, className, ...props }: MenuS
       {slot(leading, "leading")}
       {children}
       <span data-slot="trailing">
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <svg
+          className="kui-menu-chevron"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden
+        >
           <path
             d="M6 4 10 8 6 12"
             stroke="currentColor"

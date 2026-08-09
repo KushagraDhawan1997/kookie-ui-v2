@@ -1340,6 +1340,18 @@ Portal content is wrapped in a bare `<Theme>` **when, and only when, a React `<T
 
 **Rejected: portalling INTO the Theme element** (`Portal container={themeEl}`). It inherits everything with nothing copied — and re-inherits the exact problem portals exist to escape: a Theme on a scrolling sidebar clips the menus opened inside it, and a subtree Theme is a placement this system explicitly sells (§5).
 
+### Rule one and a half: direction crosses too
+
+**Added 2026-08-09 (audit).** A portal drops `dir` exactly as it drops the Kookie axes, and it drops it TWICE — in two layers, which is why RTL needed two mechanisms rather than one.
+
+The **CSS half**: `dir` is a platform attribute, not an axis, so the wrapper Theme had nothing to re-stamp. Inside `<div dir="rtl">` the app computed `rtl` while the portalled popup computed `ltr` — measured identical to the LTR control to the pixel, the trailing slot 82.44px from the row's start edge in both — so every shortcut hint and chevron sat on the wrong side. The **JS half**: Base UI reads direction from its own context (`useDirection()`, defaulting to `'ltr'`, settable only by `DirectionProvider`), which this repo never rendered. So even under `<html dir="rtl">`, where CSS direction *does* reach the portal and content mirrored correctly, submenus still opened to the physical right and overlapped the panel they came from.
+
+**One measurement answers both.** The trigger is the only node a menu owns that stands in ordinary flow, so its computed direction IS the ambient direction — the same read whether the app spelled it `dir` on an ancestor or `direction` in CSS, which no attribute-only check would get right. It is taken once, in a ref callback at commit, and feeds `DirectionProvider` (positioning) and a `dir` stamp on the portal's landing spot (paint). LTR apps never see a state change; the server renders the `ltr` branch the client's first render also produces, so there is nothing to mismatch.
+
+**Not a prop, and `DirectionProvider` is not re-exported.** Direction is ambient, like appearance on the un-themed path: an app states it once on `<html>` or on a pane, and asking every Menu to be told again is the `device` prop's mistake. If a case ever needs the two apart — a deliberately LTR panel inside an RTL app — it arrives as a prop then, with a reason.
+
+**What is mirrored, and what is not.** Only the submenu chevron, because it is the only directional glyph: it points the way the panel opens, and a panel that opens toward the inline end opens LEFT under RTL. One transform on one path, not a second drawing. Row layout needs nothing — the trailing slot's `margin-inline-start: auto` was already logical, which is the payoff for §21 having written it that way.
+
 ### Rule two: the stacking frame
 
 The DOM-outermost `.kui-theme` declares `isolation: isolate`. Every z-index inside the app then resolves inside the app's own stacking context, and a body-level portal — a later sibling — paints above it by DOM order, with no number anywhere. Measured before: a `z-index: 50` header inside the theme covered the portal. Measured after: the portal wins; `position: fixed` descendants stay viewport-positioned (`container-type` no longer creates a containing block — CSSWG resolution, shipped in all three engines); the glass is untouched (backdrop blur byte-identical, with `opacity: .99` as the sabotage control proving the instrument could see damage); zero new composited layers; no measurable style/layout cost on an 8,000-element page.
