@@ -6,6 +6,16 @@
  * its enforcement: the portalled popup (and a row inside it) must compute identical to an
  * in-flow twin wearing the same classes and attributes — the two-implementations rule
  * applied to portals. Every hit on a missing subject THROWS (the vacuity bar).
+ *
+ * WHAT THAT LAW CAN AND CANNOT SEE (stated 2026-08-09, audit). Its fact lists are properties
+ * the token CASCADE delivers, and the wrapper re-stamps the cascade by construction — so on
+ * its own it can only ever catch ONE mistake, a dropped stamp, and it was blind to every
+ * portal defect the audit found. It has since gained the one comparable fact a portal really
+ * does change (`direction`, under an RTL arm — it would have failed before RTL shipped), and
+ * everything else a portal supplies rather than inherits now has its own named law below:
+ * the un-themed path, tier resolution, the anchor-width floor, the submenu seam. An
+ * agreement law is a floor, not the whole enforcement, and pretending otherwise is how nine
+ * of fourteen findings sat behind a green suite.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { flushSync } from "react-dom";
@@ -87,6 +97,8 @@ function surfaceFacts(el: HTMLElement) {
     radius: cs.borderTopLeftRadius,
     padding: cs.paddingTop,
     shadow: cs.boxShadow,
+    // Not cascade-delivered: the wrapper has to carry `dir` itself (§20).
+    direction: cs.direction,
   };
 }
 
@@ -101,6 +113,7 @@ function rowFacts(el: HTMLElement) {
     radius: cs.borderTopLeftRadius,
     color: cs.color,
     bg: cs.backgroundColor,
+    direction: cs.direction,
   };
 }
 
@@ -197,6 +210,83 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
     }
   });
 
+  /* The arm that makes `direction` a real comparison rather than a constant: both sides
+     mount inside an RTL subtree, where CSS direction does NOT reach a body-level portal on
+     its own. Falsified by dropping the wrapper's `dir` stamp. */
+  it("agrees under RTL, where the cascade does not carry the answer (§20)", () => {
+    let popupTwin: HTMLElement | null = null;
+    render(
+      <Theme>
+        <div dir="rtl">
+          <Menu defaultOpen>
+            <MenuTrigger render={<Button>Open</Button>} />
+            <MenuContent>
+              <MenuItem>Alpha</MenuItem>
+            </MenuContent>
+          </Menu>
+          <div
+            ref={(n: HTMLDivElement | null) => void (popupTwin = n)}
+            className="kui-surface kui-floating kui-menu-popup kui-menu-anchored"
+            data-tone="neutral"
+            data-emphasis="quiet"
+            data-bordered="true"
+            style={{ "--anchor-width": "0px" } as React.CSSProperties}
+          />
+        </div>
+      </Theme>,
+    );
+    // By ANATOMY, not by index: the first cut took `popups[length - 2]` and the twin happens
+    // to precede the portal in document order, so it compared the twin against itself and
+    // survived the sabotage pass. An index is not an identification.
+    const popup = document.querySelector<HTMLElement>(".kui-portal .kui-menu-popup");
+    const twinEl = popupTwin as HTMLElement | null;
+    if (!popup || !twinEl) throw new Error("subject or twin missing");
+    if (popup === twinEl) throw new Error("the law is comparing the twin with itself");
+    // Calibration: the twin really is in the RTL subtree, so a passing comparison means the
+    // portal reached rtl rather than both sides sitting at the document's ltr.
+    expect(computed(twinEl, "direction")).toBe("rtl");
+    expect(surfaceFacts(popup)).toEqual(surfaceFacts(twinEl));
+  });
+
+  /* MenuSubContent portals and re-themes too, and NOTHING asserted it: deleting its wrapper
+     left the whole suite green while a submenu inside a themed subtree fell back to the
+     document (audit 2026-08-09). The child panel is compared against its own PARENT panel,
+     which is the twin that matters — two portals, one theme. */
+  it("a submenu re-themes as well as its parent does (§20)", async () => {
+    render(
+      <Theme {...HOSTILE}>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>Open</Button>} />
+          <MenuContent>
+            {/* A plain row in each panel: the sub TRIGGER carries a chevron slot, so
+                comparing it against a slotless child row compares two different anatomies
+                (the pill-side padding rule) rather than two themings. */}
+            <MenuItem>Alpha</MenuItem>
+            <MenuSub defaultOpen>
+              <MenuSubTrigger>Export as</MenuSubTrigger>
+              <MenuSubContent>
+                <MenuItem>PNG</MenuItem>
+              </MenuSubContent>
+            </MenuSub>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const panels = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")];
+    if (panels.length < 2) throw new Error("the child panel never mounted");
+    const [parent, child] = panels.slice(-2) as [HTMLElement, HTMLElement];
+    // Calibration: the hostile axes actually reached the parent, so "identical" is not two
+    // panels agreeing on the defaults.
+    const bare = openMenu({});
+    expect(surfaceFacts(parent)).not.toEqual(surfaceFacts(bare.popup));
+    expect(surfaceFacts(child)).toEqual(surfaceFacts(parent));
+    const childRow = child.querySelector<HTMLElement>(".kui-menu-item");
+    const parentRow = parent.querySelector<HTMLElement>(".kui-menu-item");
+    if (!childRow || !parentRow) throw new Error("rows missing");
+    expect(rowFacts(childRow)).toEqual(rowFacts(parentRow));
+  });
+
   it("carries contrast=high through the portal", () => {
     const { popup } = openMenu({ appearance: "light", contrast: "high" });
     const { popupTwin } = twin({ appearance: "light", contrast: "high" });
@@ -218,8 +308,18 @@ describe("rows ride the existing control cells in all 24 cells (§21)", () => {
       const { row, popup } = cellRow(cell);
       const label = `${cell.pointer}/${cell.density}/${cell.size}`;
       expect(computed(row, "min-height"), label).toBe(tokenOn(popup, `--control-height-${cell.size}`));
-      // Rows have no leading slot in this mount, so the pill-side padding applies (the
-      // control skeleton's own rule — the row adds nothing).
+      // The padding this comment has always named, now asserted (audit 2026-08-09): rows
+      // have no leading slot in this mount, so the control skeleton's own side padding
+      // applies and the row adds nothing of its own.
+      // --control-px-PILL, not --control-px: a side whose content does not start with a
+      // [data-slot] wrapper takes the pill padding (§4), and these rows have no slots. The
+      // two are equal at every radius level except `full`, which is why naming the wrong one
+      // still passed — asserted through the token actually in play, and pinned at `full`
+      // below where they diverge.
+      expect(computed(row, "padding-left"), label).toBe(
+        tokenOn(popup, `--control-px-pill-${cell.size}`),
+      );
+      expect(computed(row, "padding-right"), label).toBe(computed(row, "padding-left"));
       expect(computed(row, "font-size"), label).toBe(tokenOn(popup, `--font-size-${cell.size}`));
       expect(computed(row, "gap"), label).toBe(tokenOn(popup, `--control-gap-${cell.size}`));
       expect(computed(row, "border-top-left-radius"), label).toBe(
@@ -231,6 +331,17 @@ describe("rows ride the existing control cells in all 24 cells (§21)", () => {
         0,
       );
     });
+  });
+
+  it("at radius=full a slotless row takes the PILL padding, not the plain one (§4, §6)", () => {
+    const { popup, items } = openMenu({ radius: "full" });
+    const row = items[0]!;
+    const pill = tokenOn(popup, "--control-px-pill-2");
+    const plain = tokenOn(popup, "--control-px-2");
+    // Calibration: this is the one level where the two diverge — without it the assertion
+    // below is the same tautology the 24-cell law was passing on.
+    expect(pill, "pill and plain must differ at full").not.toBe(plain);
+    expect(computed(row, "padding-left")).toBe(pill);
   });
 });
 
@@ -471,6 +582,14 @@ describe("behavior: the platform's menu, not a styled div", () => {
     if (!sub) throw new Error("sub trigger missing");
     expect(sub.hasAttribute("data-popup-open")).toBe(true);
     expect(computed(sub, "background-color")).toBe(colorOn(popup, "var(--tone-soft)"));
+    // ...and it is [data-popup-open] that does it. Base UI sets data-highlighted on this row
+    // too, so the assertion above passed with the popup-open arm of the rule DELETED (audit
+    // 2026-08-09) — a law naming a mechanism it never reached. Isolated by hand: the
+    // attribute alone, on a row the highlight has left.
+    sub.removeAttribute("data-highlighted");
+    expect(computed(sub, "background-color"), "the popup-open arm must light it alone").toBe(
+      colorOn(popup, "var(--tone-soft)"),
+    );
     // The child panel mounted, re-themed, wearing the same popup identity.
     const panels = document.querySelectorAll(".kui-menu-popup");
     expect(panels.length).toBe(2);
