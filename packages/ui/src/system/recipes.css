@@ -749,6 +749,25 @@
   --kui-ct-light: none;
 }
 
+/* A row reads CONTENT ink (§15, §21 — the weight reversal's other half, completed
+   2026-08-09). `--tone-label` is the BUTTON-label ink: neutral resolves it to a mid grey
+   (#454648 against body copy's #1f1f20) and destructive to #6c3230, a brown — so every menu
+   row read slightly washed and a destructive row read muddy rather than dangerous. The ink
+   TRIO is the type family's own vocabulary and resolves both cases correctly by construction:
+   neutral's ink IS step 12 (`--color-text`, what body copy reads) and a chroma family's ink
+   is its one designed text colour at step 11 (destructive #a64545, an actual red) — which is
+   what Radix, shadcn and macOS all set a destructive row in. A row is a line in a list you
+   read, so it reads Text's ink exactly as it wears Text's weight.
+
+   Placed AFTER the emphasis ladder, and that placement is the mechanism: a row stamps
+   `quiet`, and the quiet rung declares --kui-ct-label-color at the same (0,1,0), so source
+   order is the only thing that lets this win — the checked rule's own sentence, one block
+   down. Stated in the box block first, where it silently lost, which is how this was
+   caught. */
+.kui-row {
+  --kui-ct-label-color: var(--tone-ink);
+}
+
 /* Selected speaks accent, written once for every member of the row family (§21) — and the
    INDICATOR is what speaks it (reversed 2026-08-09, Kushagra's eye; it shipped as the whole
    row's label ink for a day). --accent-label is a TEXT ink: it lives between ladder steps
@@ -903,6 +922,13 @@
   --tone-border: var(--neutral-6);
   --tone-label: var(--neutral-8);
   --tone-contrast: var(--neutral-8);
+  /* The INK trio stands down with them (added 2026-08-09, when the row family moved onto it):
+     a remap that covers one of two ink vocabularies dims whichever controls happen to use
+     that one — the slider-handle shape the 2026-08-07 audit caught. Rows read --tone-ink, and
+     any Text inside a dead control should dim with it. */
+  --tone-ink: var(--neutral-8);
+  --tone-ink-muted: var(--neutral-8);
+  --tone-ink-faint: var(--neutral-8);
   /* State outranks dress (§19): under look="filled" a field's resting border is transparent,
      which would swallow the remap above. `initial` stands the role down, so the family
      rule's fallback resolves the re-pointed --tone-border at this element; under outlined

@@ -338,6 +338,30 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     expect(recipes).not.toContain("--kui-ct-label-color: var(--accent-label)");
   });
 
+  it("a row reads CONTENT ink, and its rule sits after the emphasis ladder (§15, §21)", () => {
+    // The weight reversal's other half (2026-08-09): --tone-label is the button-label ink
+    // (#454648 neutral, #6c3230 destructive — a grey and a brown), and a row is a line in a
+    // list you read. Both facts are the law, because the first spelling declared the ink in
+    // the box block and SILENTLY LOST to the quiet rung at the same (0,1,0).
+    const ink = ".kui-row {";
+    expect(block(recipes.slice(recipes.indexOf('[data-emphasis="quiet"]')), ink)).toContain(
+      "--kui-ct-label-color: var(--tone-ink)",
+    );
+    expect(recipes.lastIndexOf(ink)).toBeGreaterThan(recipes.indexOf('[data-emphasis="quiet"]'));
+    // The box block must NOT also declare it — one home, and the losing spelling stays gone.
+    expect(block(recipes, ".kui-row {")).not.toContain("--kui-ct-label-color");
+  });
+
+  it("the disabled arm stands down BOTH ink vocabularies (§21)", () => {
+    // A remap that covers one of two dims whichever controls happen to use that one — the
+    // slider-handle shape the 2026-08-07 audit caught. Rows read --tone-ink now, so the arm
+    // owes it the same stand-down it always gave --tone-label.
+    const arm = block(recipes, ".kui-control[data-disabled]:not([data-loading]),");
+    for (const role of ["--tone-label", "--tone-ink"]) {
+      expect(arm, `the disabled arm leaves ${role} live`).toContain(`${role}: var(--neutral-8)`);
+    }
+  });
+
   it("the row stand-down sits AFTER the shared hover rule — it wins on order, not weight", () => {
     // The comment here used to claim (0,4,0) over (0,3,0). It is a TIE: `:not()` takes the
     // specificity of its most specific argument rather than summing its list, so both rules

@@ -397,8 +397,22 @@ describe("row states are the quiet rung's, driven by the highlight attribute (§
       const [destructive, dead] = [...popup.querySelectorAll<HTMLElement>(".kui-menu-item")];
       const [ticked, deadTicked] = [...popup.querySelectorAll<HTMLElement>('[role="menuitemcheckbox"]')] as HTMLElement[];
       if (!destructive || !dead || !ticked || !deadTicked) throw new Error("rows missing");
-      // Destructive: the tone indirection re-scopes the label — red ink at rest.
-      expect(computed(destructive, "color")).toBe(colorOn(popup, "var(--destructive-label)"));
+      // Destructive: the tone indirection re-scopes the ink — a real red at rest, the
+      // family's one designed text colour (§15's trio, which the row family reads since
+      // 2026-08-09). NOT --destructive-label, the button-label value: that is #6c3230, a
+      // brown, and the law asserted it for as long as the row was on control dress.
+      expect(computed(destructive, "color")).toBe(colorOn(popup, "var(--destructive-ink)"));
+      // Calibration: the two roles really differ, so naming the wrong one cannot pass.
+      expect(colorOn(popup, "var(--destructive-ink)")).not.toBe(
+        colorOn(popup, "var(--destructive-label)"),
+      );
+      // And a PLAIN row reads body ink, not the button label's grey — the other half of the
+      // same finding, which no law covered at all.
+      const plainRow = [...popup.querySelectorAll<HTMLElement>(".kui-menu-item")].find(
+        (el) => el.textContent === "Plain",
+      );
+      if (!plainRow) throw new Error("plain row missing");
+      expect(computed(plainRow, "color")).toBe(colorOn(popup, "var(--color-text)"));
       // Disabled: the shared arm's remap (neutral-8 label + disabled cursor), zero menu CSS.
       expect(computed(dead, "color")).toBe(colorOn(popup, "var(--neutral-8)"));
       expect(computed(dead, "cursor")).toBe(
