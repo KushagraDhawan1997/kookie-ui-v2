@@ -251,14 +251,15 @@ export function PreviewApp() {
           purpose: its glass has to seal against the world it controls — a light toolbar over
           a pinned-dark canvas is unreadable murk (found on sight).
 
-          The page is the SEAL, not --neutral-1 (2026-08-09, Kushagra). The system paints no
-          page background of its own — no `.kui-theme` rule sets one — so this is the app's
-          call, and it was the one step of separation a card got for free. Taking it away is
-          the harder bed on purpose: white on white in light, and the same colour a card seals
-          with in dark, so a flat card has nothing but its hairline to be a card with. If a
-          surface cannot hold itself there, the surface is what is wrong. */}
+          The page is --neutral-1 (2026-08-10, Kushagra — reversing the seal it was set to on
+          2026-08-09). The system paints no page background of its own — no `.kui-theme` rule
+          sets one — so this is the app's call either way. The seal was the harder bed on
+          purpose (white on white in light, a card's own colour in dark) and the components
+          held it; the reason to go back is that judging a card, a menu and a glass pane needs
+          a page they can sit ON, and a page that is also the seal makes every surface argue
+          with its own bed before it argues with the eye. */}
       <style>{LANE_CSS}</style>
-      <Box style={{ background: "var(--color-surface)", color: "var(--color-text)", minHeight: "100dvh" }}>
+      <Box style={{ background: "var(--neutral-1)", color: "var(--color-text)", minHeight: "100dvh" }}>
         <EnvPanel env={env} onChange={setEnv} />
         <Box px="6" pb="9" className="pv-lane">
           {/* 60rem, not the earlier 1120px: the densest table is ~850px intrinsic, so the wider
