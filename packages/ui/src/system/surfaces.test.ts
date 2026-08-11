@@ -63,7 +63,7 @@ describe("the surface layer carries each axis once and never multiplies them (§
     expect(block(surfaces, '[data-emphasis="quiet"]')).toContain(
       "--kui-sf-fill-src: var(--look-surface-fill)",
     );
-    expect(block(raw("tokens/tokens.css"), '[data-look="outlined"]')).toContain(
+    expect(block(raw("tokens/tokens.css"), '[data-surface-look="outlined"]')).toContain(
       "--look-surface-fill: var(--color-surface)",
     );
     expect(surfaces).not.toContain("--tone-a1");
@@ -73,24 +73,27 @@ describe("the surface layer carries each axis once and never multiplies them (§
 describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§5, §10)", () => {
   it("this layer paints one box-shadow, and the world scopes declare what it reads", () => {
     // The elevation axis stays deleted — nothing chooses shadow at a call site. What exists
-    // is an app identity: Theme surfaces="elevated" dresses every surface with one rule, on
+    // is an app identity: Theme depth="elevated" dresses every surface with one rule, on
     // the element that owns the radius. Flat remains the default and byte-identical to a
     // world where the rule does not exist.
     expect(surfaces).not.toContain("data-elevation");
-    const occurrences = surfaces.match(/box-shadow/g) ?? [];
+    // DECLARATIONS, not mentions (respelled 2026-08-10): the floating entry lists box-shadow
+    // as a transition CHANNEL — the cast fades up as the panel lifts — and a channel name is
+    // not a second place this layer paints a shadow. The colon is what separates them.
+    const occurrences = surfaces.match(/box-shadow\s*:/g) ?? [];
     expect(occurrences).toHaveLength(1);
     // The world scopes declare; .kui-surface paints. Routing it through a custom property is
     // what lets `flat` escape an elevated ancestor — a descendant selector had no reset, so a
     // nested flat Theme matched nothing and the outer rule still reached the inner cards.
-    const body = block(surfaces, '[data-surfaces="elevated"]');
+    const body = block(surfaces, '[data-depth="elevated"]');
     expect(body).toContain("--kui-surface-chrome: var(--surface-chrome)");
-    expect(block(surfaces, '[data-surfaces="flat"]')).toContain("--kui-surface-chrome: none");
+    expect(block(surfaces, '[data-depth="flat"]')).toContain("--kui-surface-chrome: none");
     // The world's light reaches controls too (§5 amended 2026-08-07): the control cast and
     // catch are declared in the SAME scopes, and flat stands both down — the escape logic
     // above holds for controls by the same mechanism, or not at all.
     expect(body).toContain("--kui-control-chrome: var(--control-chrome)");
     expect(body).toContain("--kui-control-light: var(--control-light)");
-    const flat = block(surfaces, '[data-surfaces="flat"]');
+    const flat = block(surfaces, '[data-depth="flat"]');
     expect(flat).toContain("--kui-control-chrome: none");
     expect(flat).toContain("--kui-control-light: none");
     // Elevation meets the material at two seams (§10, 2026-08-07): the elevated scope hands
@@ -129,8 +132,8 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // INFORMATION about overlap, not the expression this switch governs — so flat quiets
     // the cast (the generator fades the same palette row) but may never remove it. A flat
     // scope declaring `none` here is the defect this law exists to catch.
-    const body = block(surfaces, '[data-surfaces="elevated"]');
-    const flat = block(surfaces, '[data-surfaces="flat"]');
+    const body = block(surfaces, '[data-depth="elevated"]');
+    const flat = block(surfaces, '[data-depth="flat"]');
     expect(body).toContain("--kui-floating-chrome: var(--floating-chrome-elevated)");
     expect(flat).toContain("--kui-floating-chrome: var(--floating-chrome-flat)");
     expect(flat).not.toContain("--kui-floating-chrome: none");

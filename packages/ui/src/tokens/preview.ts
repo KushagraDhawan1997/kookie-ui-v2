@@ -14,8 +14,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { inkMix, tones, type Mode, type ToneName } from "./color-config.ts";
-import { buildScale, buildScaleFor, toneFromColor, type Scale } from "./color.ts";
+import { inkLc, tones, type Mode, type ToneName } from "./color-config.ts";
+import { buildScale, buildScaleFor, solveInkFade, toneFromColor, type Scale } from "./color.ts";
 
 import { density, fontSize, lineHeight, radiusLevels, type DensityLevel } from "./config.ts";
 import { ROLES } from "./generate.ts";
@@ -169,7 +169,7 @@ function buttonMatrix(
  * contract. Exhaustive over the union: the hand-kept ten-name list this replaces had already
  * drifted (a swapped brand accent kept the theme's ink ladder and alpha fill), and a role
  * added to ROLES now fails compilation here until the swap can express it. */
-function roleValue(s: Scale, role: (typeof ROLES)[number]): string {
+function roleValue(s: Scale, role: (typeof ROLES)[number], mode: Mode): string {
   switch (role) {
     case "soft": return s.steps[2]!;
     case "soft-hover": return s.steps[3]!;
@@ -184,8 +184,8 @@ function roleValue(s: Scale, role: (typeof ROLES)[number]): string {
     // A chroma family's inks: the one designed text colour, then the fade (§7, §15) — the
     // mix spelled from the same config number the generator reads.
     case "ink": return s.steps[10]!;
-    case "ink-muted": return `color-mix(in oklab, ${s.steps[10]!} ${inkMix.muted}%, transparent)`;
-    case "ink-faint": return `color-mix(in oklab, ${s.steps[10]!} ${inkMix.faint}%, transparent)`;
+    case "ink-muted": return `color-mix(in oklab, ${s.steps[10]!} ${solveInkFade(s.steps[10]!, mode, inkLc.muted)}%, transparent)`;
+    case "ink-faint": return `color-mix(in oklab, ${s.steps[10]!} ${solveInkFade(s.steps[10]!, mode, inkLc.faint)}%, transparent)`;
     case "a3": return s.alpha[2]!;
     default: {
       const unmapped: never = role;
@@ -196,7 +196,7 @@ function roleValue(s: Scale, role: (typeof ROLES)[number]): string {
 
 function accentSwap(name: string, hex: string, mode: Mode): string {
   const t = toneFromColor(hex);
-  const vars = (s: Scale) => ROLES.map((r) => `--accent-${r}: ${roleValue(s, r)}`).join("; ");
+  const vars = (s: Scale) => ROLES.map((r) => `--accent-${r}: ${roleValue(s, r, mode)}`).join("; ");
   // Class rules rather than an inline style: a baked inline value is unreachable by the
   // page-wide contrast toggle, which made these blocks the one place contrast="high"
   // silently did nothing. The high variant is baked beside the normal one instead.
@@ -755,7 +755,7 @@ function surfaceSection(mode: Mode): string {
           )}</button>`,
         ) +
         demo(
-          "The look axis — outlined vs filled, one Theme line; Button identical in both <code>\u00a719</code>",
+          "The look axis — outlined vs filled, asked once of surfaces and once of controls; Button identical in every cell <code>\u00a719</code>",
           kuiBox(
             { display: "flex", gap: "5", align: "flex-start" },
             (["outlined", "filled"] as const)
@@ -768,7 +768,7 @@ function surfaceSection(mode: Mode): string {
                   // the dress edge while every root-level card sharpened). So the panel stamps
                   // data-appearance too and the toggles co-stamp it like any other scope;
                   // data-look-pinned exempts it from the page-wide look select alone.
-                  `<div data-appearance="${mode}" data-look="${l}" data-look-pinned style="flex: 1">${kuiBox(
+                  `<div data-appearance="${mode}" data-surface-look="${l}" data-control-look="${l}" data-look-pinned style="flex: 1">${kuiBox(
                     { display: "flex", direction: "column", gap: "4" },
                     `<strong>${cap(l)}</strong>` +
                       card(
@@ -813,7 +813,7 @@ function surfaceSection(mode: Mode): string {
         ) +
         demo(
           "The same cards in an elevated world — the pane's own chrome wins on the element <code>\u00a710</code>",
-          `<div data-surfaces="elevated"><div style="${hostile}">${kuiBox({ display: "flex", gap: "5", wrap: "wrap", p: "7" }, materials)}</div></div>`,
+          `<div data-depth="elevated"><div style="${hostile}">${kuiBox({ display: "flex", gap: "5", wrap: "wrap", p: "7" }, materials)}</div></div>`,
         ) +
         demo(
           "Material on a control — a fill modifier: tone and loudness survive the glass <code>\u00a710 \u00a711</code>",
@@ -1153,7 +1153,7 @@ export function generatePreview(): string {
   </nav>
   <div class="toggle">
     <label><input type="checkbox" id="icons"> Icons</label>
-    <label><input type="checkbox" id="hc"> contrast="high"</label>\n  <label><input type="checkbox" id="sf"> surfaces="elevated"</label>
+    <label><input type="checkbox" id="hc"> contrast="high"</label>\n  <label><input type="checkbox" id="sf"> depth="elevated"</label>
     <label>radius
       <select id="radius">${Object.keys(radiusLevels)
         .map((l) => `<option${l === "medium" ? " selected" : ""}>${l}</option>`)
@@ -1165,8 +1165,11 @@ export function generatePreview(): string {
   <label>density
       <select id="density">${LEVELS.map((l) => `<option${l === "default" ? " selected" : ""}>${l}</option>`).join("")}</select>
     </label>
-  <label>look
-      <select id="look"><option selected>outlined</option><option>filled</option></select>
+  <label>surface look
+      <select id="surface-look"><option selected>outlined</option><option>filled</option></select>
+    </label>
+  <label>control look
+      <select id="control-look"><option selected>outlined</option><option>filled</option></select>
     </label>
   </div>
 </div></header>
@@ -1186,7 +1189,7 @@ ${LEVELS.map(
 
 <div class="surfaces">
   ${["1", "2", "3", "4"].map((n) => `<div class="surface" style="border-radius: var(--radius-surface-${n})">--radius-surface-${n}</div>`).join("\n  ")}
-  <div class="surface" style="border-radius: var(--radius-overlay)">--radius-overlay (dialog, sheet)</div>
+  ${["1", "2", "3", "4"].map((n) => `<div class="surface" style="border-radius: var(--radius-overlay-${n})">--radius-overlay-${n} (dialog)</div>`).join("\n  ")}
 </div>
 
 <h1 id="button">Button — the axis model</h1>
@@ -1213,7 +1216,7 @@ ${BRANDS.slice(0, 5)
 </div>
 
 <h1 id="card">Card — the shell</h1>
-<p class="note">A shell: one treatment, no variants, no anatomy — <code>size × material</code> and children, and Card ships not one line of its own CSS (§10). A surface without a material is opaque — translucency is material's job alone — and separation between nested surfaces is the border, not the fill. No call site chooses a shadow: the surfaces=\"elevated\" toggle above is the one sanctioned depth, an app identity (§5). Titled layouts are blocks, not components. Padding follows the size index and the page-wide <em>density</em> select above (§12) — a compact app's cards lose air with its controls. The glass values are v0, judged on this page; expect them to move.</p>
+<p class="note">A shell: one treatment, no variants, no anatomy — <code>size × material</code> and children, and Card ships not one line of its own CSS (§10). A surface without a material is opaque — translucency is material's job alone — and separation between nested surfaces is the border, not the fill. No call site chooses a shadow: the depth toggle above is the one sanctioned lift, an app identity (§5). Titled layouts are blocks, not components. Padding follows the size index and the page-wide <em>density</em> select above (§12) — a compact app's cards lose air with its controls. The glass values are v0, judged on this page; expect them to move.</p>
 ${surfaceSection("light")}
 ${surfaceSection("dark")}
 
@@ -1352,11 +1355,11 @@ ${brandSection("dark")}
   });
 
   document.getElementById("sf").addEventListener("change", (e) => {
-    // Theme stamps data-surfaces on its own node; the page's bare sections stand in for
+    // Theme stamps data-depth on its own node; the page's bare sections stand in for
     // nested Themes, same as the contrast toggle above.
     const v = e.target.checked ? "elevated" : "flat";
-    document.documentElement.dataset.surfaces = v;
-    for (const el of document.querySelectorAll("[data-appearance]")) el.dataset.surfaces = v;
+    document.documentElement.dataset.depth = v;
+    for (const el of document.querySelectorAll("[data-appearance]")) el.dataset.depth = v;
   });
 
   document.getElementById("icons").addEventListener("change", (e) => {
@@ -1386,18 +1389,22 @@ ${brandSection("dark")}
     readout();
   });
 
-  // Page-wide look (§19), the app identity a real Theme sets once. Stamped on the root AND on
-  // every [data-appearance] scope, for the reason the contrast toggle does the same: a look
-  // role holds a colour, so the appearance blocks declare the DEFAULT look's values, and a
+  // Page-wide look (§19), the app identity a real Theme sets once — TWO selects since the
+  // 2026-08-10 split, because the cell worth judging is the one a single axis could not
+  // reach: a plain card holding filled fields. Stamped on the root AND on every
+  // [data-appearance] scope, for the reason the contrast toggle does the same: a look role
+  // holds a colour, so the appearance blocks declare the DEFAULT look's values, and a
   // root-only stamp would be overridden inside every dark section. Theme has this for free by
-  // co-locating both attributes on one element; this page arranges it by hand.
-  document.getElementById("look").addEventListener("change", (e) => {
-    // :not([data-look-pinned]) — the §19 demo's panels pin their own look (they ARE the
-    // outlined-vs-filled comparison); every other axis toggle still reaches them.
-    for (const el of [document.documentElement, ...document.querySelectorAll("[data-appearance]:not([data-look-pinned])")]) {
-      el.dataset.look = e.target.value;
-    }
-  });
+  // co-locating every attribute on one element; this page arranges it by hand.
+  for (const [id, key] of [["surface-look", "surfaceLook"], ["control-look", "controlLook"]]) {
+    document.getElementById(id).addEventListener("change", (e) => {
+      // :not([data-look-pinned]) — the §19 demo's panels pin their own look (they ARE the
+      // outlined-vs-filled comparison); every other axis toggle still reaches them.
+      for (const el of [document.documentElement, ...document.querySelectorAll("[data-appearance]:not([data-look-pinned])")]) {
+        el.dataset[key] = e.target.value;
+      }
+    });
+  }
 
   // The coarse matrix (§16) — and, since 2026-08-05, the handheld type band with it (§17):
   // pinning coarse is how phone type is judged on a desktop, there is no separate device

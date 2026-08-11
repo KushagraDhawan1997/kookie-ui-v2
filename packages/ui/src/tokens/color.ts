@@ -14,7 +14,7 @@ import {
   contrastHigh,
   contrastHighBands,
   focusRingStep,
-  inkMix,
+  inkLc,
   invalidEdgeStep,
   labelPosition,
   lightness,
@@ -274,6 +274,49 @@ function solveControlEdge(mode: Mode, gamut: Gamut, target: number): string {
   return grey(hi, gamut);
 }
 
+/**
+ * The ink ladder's fade, solved (§15, 2026-08-10). How much of a family's loud ink is left
+ * standing so the rung lands on its target contrast.
+ *
+ * A percentage in a `color-mix(… , transparent)` IS an alpha, and the browser composites it
+ * against whatever is behind — so the model here is a plain sRGB alpha blend over the bed, not
+ * an oklab interpolation. Contrast falls monotonically as alpha falls (the ink walks toward
+ * the bed it is measured against), so bisection is exact.
+ *
+ * The bed is the HARDER of the seal and the page, `solveControlEdge`'s own rule: a target that
+ * only holds on one of the two surfaces every app puts text on is not a floor.
+ */
+export function solveInkFade(inkHex: string, mode: Mode, target: number): number {
+  const page = buildScaleFor(resolveTone(tones.neutral), mode, "srgb", "normal", true).steps[0]!;
+  const seal = alphaBackdrop(mode);
+  const channels = (hex: string) =>
+    [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
+  const over = (bed: string, a: number) => {
+    const [ir, ig, ib] = channels(inkHex);
+    const [br, bg, bb] = channels(bed);
+    const mix = (i: number, b: number) => Math.round(i * a + b * (1 - a));
+    return `#${[mix(ir, br), mix(ig, bg), mix(ib, bb)]
+      .map((v) => v.toString(16).padStart(2, "0"))
+      .join("")}`;
+  };
+  const worst = (a: number) =>
+    Math.min(Math.abs(apcaLc(over(seal, a), seal)), Math.abs(apcaLc(over(page, a), page)));
+  // At alpha 1 the ink is itself (its loud contrast); at 0 it is the bed (zero). If even the
+  // undiluted ink misses the target, there is nothing to fade — hand back the whole thing
+  // rather than silently emitting a rung that pretends to hit a number it cannot reach.
+  if (worst(1) <= target) return 100;
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    if (worst(mid) >= target) hi = mid;
+    else lo = mid;
+  }
+  // Round UP to whole percent: the target is a floor, and a rounded-down alpha would sit under
+  // it by construction in every family at once.
+  return Math.ceil(hi * 100);
+}
+
 export function resolveTone(input: ToneInput): ToneSpec {
   return "color" in input ? toneFromColor(input.color) : input;
 }
@@ -514,22 +557,30 @@ export function colorDeclarations(
       decl(`${tone}-label`, s.label),
       decl(`${tone}-contrast`, s.contrast),
       // The ink ladder (§15) — what the type emphasis rungs read when this family is chosen.
-      // Neutral's three inks are designed steps: a gray scale has twelve grays. A chroma
-      // family has exactly ONE designed text colour (11; 12 is the high-contrast variant,
-      // and 9/10 are solid fills — the steps below the text step are MORE vivid, not less).
-      // So a chroma family's lower rungs fade the ink itself, the material trick applied
-      // to text. Mix percentages are v0, judged in the preview.
-      ...(tone === "neutral"
-        ? [
-            decl(`${tone}-ink`, `var(--${tone}-12)`),
-            decl(`${tone}-ink-muted`, `var(--${tone}-11)`),
-            decl(`${tone}-ink-faint`, `var(--${tone}-10)`),
-          ]
-        : [
-            decl(`${tone}-ink`, `var(--${tone}-11)`),
-            decl(`${tone}-ink-muted`, `color-mix(in oklab, var(--${tone}-11) ${inkMix.muted}%, transparent)`),
-            decl(`${tone}-ink-faint`, `color-mix(in oklab, var(--${tone}-11) ${inkMix.faint}%, transparent)`),
-          ]),
+      // Loud is the family's ONE designed text colour: neutral 12 (a gray scale has twelve
+      // grays), a chroma family's 11 (12 is its high-contrast variant, and 9/10 are solid
+      // fills — the steps below the text step are MORE vivid, not less).
+      //
+      // The two rungs below it FADE that ink toward transparent, and the amount is solved to
+      // a target contrast rather than picked (2026-08-10, `inkLc`). Neutral goes through the
+      // identical path: it used to take steps 11 and 10, which is how one family's ladder came
+      // to answer a different question from every other family's — measured, its light rungs
+      // sat 26 and 13 apart while the chroma families sat wherever 74% and 52% happened to
+      // land. One rule, ten families, no exception.
+      ...(() => {
+        const loud = tone === "neutral" ? 12 : 11;
+        // Solved off the sRGB rendering of the ink, always — the alpha model is sRGB channel
+        // compositing (the alpha ramp's own note, one role over), and the P3 block must carry
+        // the SAME percentage or the two gamuts would ship two different ladders.
+        const ink = buildScale(tone, mode, "srgb", contrast).steps[loud - 1]!;
+        const fade = (target: number) =>
+          `color-mix(in oklab, var(--${tone}-${loud}) ${solveInkFade(ink, mode, target)}%, transparent)`;
+        return [
+          decl(`${tone}-ink`, `var(--${tone}-${loud})`),
+          decl(`${tone}-ink-muted`, fade(inkLc.muted)),
+          decl(`${tone}-ink-faint`, fade(inkLc.faint)),
+        ];
+      })(),
     );
   }
 

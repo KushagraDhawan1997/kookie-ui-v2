@@ -19,6 +19,8 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+import { themeDefaults } from "@kookie-ui/react";
+
 const here = fileURLToPath(new URL(".", import.meta.url));
 const packageIndex = join(here, "../../../../packages/ui/src/index.ts");
 
@@ -112,10 +114,19 @@ describe("a state the shared layer paints has a specimen (§8)", () => {
     // surface whose whole job is showing what the system does — kept opening at `medium`,
     // because it held its own copy of all six axis defaults. /matrix held a seventh. A
     // literal here is indistinguishable from the truth until the truth moves.
+    //
+    // The AXIS LIST is derived too, since 2026-08-10: it was a hand-written five, and the day
+    // `look` split into `surfaceLook` and `controlLook` the list would have gone on naming an
+    // axis that no longer exists while missing the two that do — the same drift one level up.
     const app = readFileSync(join(here, "preview-app.tsx"), "utf8");
     const block = app.slice(app.indexOf("const DEFAULT_ENV"), app.indexOf("const AXES"));
     expect(block, "DEFAULT_ENV is not where this law thinks").toContain("appearance");
-    for (const axis of ["density", "pointer", "radius", "look", "surfaces"]) {
+    // `appearance` and `contrast` are the two the panel does not own: both live in the docs'
+    // own store (the pre-paint script stamps them on <html>), so the panel reads them rather
+    // than defaulting them. Every other axis must derive.
+    const axes = Object.keys(themeDefaults).filter((a) => a !== "appearance" && a !== "contrast");
+    expect(axes.length, "themeDefaults carries no axes to check").toBeGreaterThan(4);
+    for (const axis of axes) {
       expect(block, `${axis} restates a default instead of deriving it`).toContain(
         `${axis}: themeDefaults.${axis}`,
       );

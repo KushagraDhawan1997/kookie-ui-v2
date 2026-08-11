@@ -48,7 +48,9 @@
    2026-08-09). --anchor-width is the positioner's own measurement; the inner fallback keeps
    the declaration valid where no positioner exists (the agreement law's in-flow twin). */
 .kui-menu-popup.kui-menu-anchored {
-  min-width: max(var(--floating-min-w), var(--anchor-width, var(--floating-min-w)));
+  /* The entry's own anchor measurement first — same sentence as the select floor: the flight
+     measures its target through this floor before floating-ui has written --anchor-width. */
+  min-width: max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w))));
 }
 
 /* A separator inside a menu is the ordinary Separator (the part is refused — it would rename
@@ -71,21 +73,26 @@
    group is a transparent wrapper with zero geometry, so a separator between one group's rows
    must keep the same rhythm as one between groups — the rule follows the anatomy, not the
    nesting depth. Named rather than descendant-wide, because a Separator inside a call site's
-   own Box is that Box's business. */
-.kui-menu-popup > .kui-separator,
-.kui-menu-popup > [role="group"] > .kui-separator {
+   own Box is that Box's business.
+
+   The depth is stated through the BODY (2026-08-09, with motion): the panel's children hang
+   off `.kui-floating-body` now — the element that squishes while the box unfurls — so the
+   child combinator that meant "a row of this panel" has to name it or the rule stops
+   matching. Same anatomy, one element deeper. */
+.kui-floating-body > .kui-separator,
+.kui-floating-body > [role="group"] > .kui-separator {
   margin-block: var(--kui-menu-pad);
 }
 
 /* A group label reads, it does not act: the row skeleton gave it the type step, height and
    side padding, so its text starts on the same vertical as its items' text at every cell —
-   this stands the control-ness down — caption ink, one step under faint (a heading names a region; faint is the placeholder's). (It said "gutter" until 2026-08-09; there is no gutter
+   this stands the control-ness down — MUTED ink (2026-08-10: it was a caption role one step under faint, minted when faint was the placeholder's; the ladder became solved targets that day, the caption role was deleted, and a group heading is exactly what muted is for — real information said quietly). (It said "gutter" until 2026-08-09; there is no gutter
    mechanism, and a label does not align with a CHECKABLE row's text, because that row's
    indicator occupies the leading slot. Alignment with plain rows is what the skeleton buys,
    and it is what the sentence should have claimed.) */
 .kui-menu-label {
   pointer-events: none;
-  color: var(--color-text-caption);
+  color: var(--color-text-muted);
 }
 
 /* The checkable rows' reserved gutter (§21): the indicator stays mounted, so checked and

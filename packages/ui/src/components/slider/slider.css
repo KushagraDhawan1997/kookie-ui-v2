@@ -133,6 +133,38 @@
      mark family (.kui-mark[data-disabled] in recipes.css), which wins here on specificity. */
   --kui-ct-cast: var(--control-chrome, none);
   box-shadow: var(--kui-ct-cast, none);
+  /* The grip's one clock, and the whole travel question answered in the property list: SCALE
+     and nothing else. During a drag the pointer IS the physics — Base UI writes the position
+     inline, and a spring between finger and grip would be lag on a direct manipulation, §8's
+     "motion that IS the content" one instrument over. The clocks are the control layer's own
+     pair, INHERITED from the root (unregistered on purpose), so the release below takes the
+     recovery clock without restating it — the shared press rule's sentence, one element down. */
+  transition: scale var(--kui-ct-move) var(--kui-ct-move-ease);
+}
+
+/* A HELD grip squashes (§8, 2026-08-10 — the mark family's press reaching its last member;
+   until today this file's family rule said the grip "never deforms under a drag", and the
+   half of that sentence worth keeping is the TRAVEL's, stated on the transition above).
+   Keyed on Base UI's own stamp, not `:active`: `data-dragging` lands on the thumb from the
+   first pointerdown frame — thumb press or track grab alike — and survives the pointer
+   leaving the strip mid-drag under capture, which `:active` is not guaranteed to. Held for
+   the drag, exactly like the open trigger holds its press; released, the attribute drops and
+   the inherited recovery clock springs it back. On a RANGE slider the stamp is root state, so
+   both grips squash while either is held — the stamp's granularity, recorded, judged in the
+   playground's range specimen. No resting `scale` is stated, the family's own stacking-rule
+   sentence: the context exists only while the grip is actually held. */
+.kui-slider-thumb[data-dragging]:not([data-disabled]) {
+  scale: var(--press-squash);
+  --kui-ct-move: var(--motion-press);
+  --kui-ct-move-ease: var(--motion-spring-stiff);
+}
+
+/* Stillness for the squash (§8, 2026-08-10): the declaring sheet stands its own clock down,
+   on the declaring selector (checkbox.css carries the doctrine; the mounted law measures it). */
+@media (prefers-reduced-motion: reduce) {
+  .kui-slider-thumb {
+    transition: none;
+  }
 }
 
 /* The grip keeps its fill when dead (§5, §11 — decided 2026-08-08, the switch's same-day

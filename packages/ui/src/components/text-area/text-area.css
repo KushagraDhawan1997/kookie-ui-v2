@@ -102,10 +102,11 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-/* The placeholder is the FAINT role at full opacity (§7, §15) — its definition names this
-   case, and Firefox's 0.54 default would stack a second fade on it. */
+/* The placeholder is the MUTED role at full opacity (§7, §15; faint until 2026-08-10, when
+   faint became the exception rung below the reading floor — a placeholder is information,
+   not something stood down). Firefox's 0.54 default would stack a second fade on it. */
 .kui-textarea::placeholder {
-  color: var(--color-text-faint);
+  color: var(--color-text-muted);
   opacity: 1;
 }
 

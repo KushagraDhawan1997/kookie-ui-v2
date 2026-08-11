@@ -32,8 +32,8 @@ const HOSTILE: ThemeProps = {
   density: "compact",
   radius: "large",
   pointer: "coarse",
-  surfaces: "elevated",
-  look: "filled",
+  depth: "elevated",
+  surfaceLook: "filled",
 };
 
 /** The card facts every axis reaches — fill, edge, corner, rhythm, and the elevated cast. */

@@ -1,0 +1,87 @@
+/* Dialog (§10, §24). The panel is a surface — its fill, edge, dress, padding and glass are
+   surfaces.css's, exactly as a Card's are — so what is left for this sheet is the three
+   facts that are the dialog's own: the SCRIM behind it, the VIEWPORT that centres it, and
+   its CORNER, which comes from the overlay band rather than the surface one.
+
+   It does NOT wear `kui-floating`, and that is a decision rather than an omission. That class
+   means an anchored pane hugging control-scale rows, and it carries two things with it: the
+   concentric corner join (row corner + panel padding — a dialog's content is prose, so there
+   is no row corner to be concentric with) and the floating cast. A dialog does not cast on
+   its own account: its separation is the scrim, which states coverage far more completely
+   than a shadow can — §10 has said so since elevation was deleted, and §22's "a floating
+   layer always states its coverage" is satisfied by the dim, not owed a second mechanism.
+   What it DOES take is the world's ordinary surface chrome, by the same inheritance every
+   card takes it by: in an elevated app a dialog is lifted like the paper it is; in a flat one
+   it is not. Nothing here declares a shadow, which is what makes that true. */
+
+/* ── The scrim: the app goes back ─────────────────────────────────────────────────────────
+   Not a material and not a surface: it paints no fill of its own, defends no foreground, and
+   wears no border. `--scrim-fill` is black at a designed alpha per mode (dark leans harder —
+   a 40% veil over a near-black page moves almost nothing), and the blur is deliberately below
+   the material ladder's thinnest, because a scrim only has to stop the app reading as legible
+   content. It covers the viewport rather than the page: `position: fixed` so a scrolled
+   document cannot show an undimmed strip. */
+.kui-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--scrim-fill);
+  /* The fallback is what `contrast="high"` and reduced transparency both resolve to: the
+     token stands down to `initial` (guaranteed-invalid), so this falls through to `none` at
+     the element and the dim carries the whole job (§24). */
+  backdrop-filter: var(--scrim-filter, none);
+  -webkit-backdrop-filter: var(--scrim-filter, none);
+}
+
+/* Reduced transparency takes the same answer contrast="high" takes — more pigment, no
+   defocus — because the two preferences want the same thing here for different reasons. The
+   material layer's own reduced-transparency rule is one file over and reaches a GLASS panel
+   inside this backdrop independently; this is the backdrop's half. */
+@media (prefers-reduced-transparency: reduce) {
+  .kui-dialog-backdrop {
+    background-color: var(--scrim-fill-high);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* ── The viewport: where the panel stands ─────────────────────────────────────────────────
+   Base UI's scrollable positioning container. It holds the gutter — a layout-space pick, so
+   density reaches it through the one layer every distance goes through — and it scrolls when
+   the panel is taller than the window, which is why the panel itself needs no overflow rule
+   and never traps its own content.
+
+   Centring is `margin: auto` on the panel below rather than `align-items: center` here, and
+   that is the difference between working and clipping: a centred flex item taller than its
+   scroll container overflows equally in both directions and the top half becomes
+   unreachable — the scroll container cannot scroll to it. Auto margins distribute only the
+   space that actually exists, so a tall panel simply starts at the top and scrolls. */
+.kui-dialog-viewport {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  padding: var(--dialog-inset);
+  overflow-y: auto;
+}
+
+/* ── The panel ────────────────────────────────────────────────────────────────────────────
+   Everything it looks like is `.kui-surface`. What is stated here is its box: as wide as the
+   room allows up to the designed maximum for its size index, centred by auto margins, and
+   never taller than it needs to be. */
+.kui-dialog-popup {
+  margin: auto;
+  inline-size: 100%;
+  /* The maximum its size index designed, handed over by the overlay size join in surfaces.css
+     (§24). A MAXIMUM and not a width: the viewport's gutter wins on a narrow window, which is
+     what keeps a size-4 dialog usable on a phone. The join owns the per-size spellings because
+     a component stylesheet may not name `data-size` — the rule that keeps this layer additive,
+     and the one the first cut of this file broke. */
+  max-inline-size: var(--kui-overlay-w);
+  /* Base UI focuses the popup itself when a dialog opens by touch. The ring is a keyboard
+     affordance for CONTROLS; a panel holding focus is a mode, and its own controls carry the
+     ring — the menu popup's sentence one component over. */
+  outline: none;
+}
+
+/* The corner and the width both come from the OVERLAY size join in the shared layer
+   (surfaces.css) — see the note on the panel above. Nothing size-indexed lives in this file,
+   which is the same discipline the floating panes keep. */

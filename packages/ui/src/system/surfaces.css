@@ -8,7 +8,7 @@
  *
  * There is no elevation axis, and no call site ever chooses a shadow. Separation is border
  * and fill; the one sanctioned shadow is the Theme world at the bottom of this file
- * (surfaces="elevated" — an app identity, §5), and a detached component (Popover, Dialog)
+ * (depth="elevated" — an app identity, §5), and a detached component (Popover, Dialog)
  * designs its own detachment when it is built. */
 
 /* ── The skeleton every surface shares (§10) ─────────────────────────────────────────────── */
@@ -121,6 +121,40 @@
   --kui-sf-radius: calc(var(--radius-row-4) + var(--kui-sf-p));
 }
 
+/* ── The OVERLAY pane's size join (§6, §24 — shipped with Dialog 2026-08-10) ─────────────────
+   A pane that COVERS is not a card and not an anchored panel: nothing about it hugs rows, so
+   there is no concentric arithmetic to do, and its corner comes from the radius palette's own
+   overlay band — one step up the surface band, so an overlay is rounder than the card of its
+   size at every level by construction.
+
+   The band went size-indexed the day Dialog took the size index (Kushagra), which is exactly
+   the amendment `--radius-surface-N` got on 2026-08-04: a size-1 pane padded 12px and a size-4
+   pane padded 32px must not wear one corner. Density never touches it — the same sentence, one
+   band over.
+
+   The WIDTH is published here rather than consumed here, and that is the point of the join: a
+   component stylesheet may not name `data-size` (recipes.test.ts walks for it, and the layer
+   absorbing per-size spellings is what keeps component CSS additive), so the join hands the
+   pane its designed maximum and the pane decides what to do with it. A dialog takes it as a
+   `max-inline-size`; a sheet that wants the window's whole width will simply not read it.
+   Padding is the ordinary surface join's, one block up — an overlay breathes like a card. */
+.kui-surface.kui-overlay[data-size="1"] {
+  --kui-sf-radius: var(--radius-overlay-1);
+  --kui-overlay-w: var(--overlay-w-1);
+}
+.kui-surface.kui-overlay[data-size="2"] {
+  --kui-sf-radius: var(--radius-overlay-2);
+  --kui-overlay-w: var(--overlay-w-2);
+}
+.kui-surface.kui-overlay[data-size="3"] {
+  --kui-sf-radius: var(--radius-overlay-3);
+  --kui-overlay-w: var(--overlay-w-3);
+}
+.kui-surface.kui-overlay[data-size="4"] {
+  --kui-sf-radius: var(--radius-overlay-4);
+  --kui-overlay-w: var(--overlay-w-4);
+}
+
 /* Concentric arithmetic is undefined at zero: at `none` the control corner is already 0,
    and "0 + padding" would round a square pane by exactly its padding — a bug wearing the
    formula. None means none. Same (0,3,0) as the arms above — source order is the win,
@@ -207,18 +241,18 @@
 }
 
 /* ── The elevated world (§5, §10): an app identity, never a per-card knob ─────────────────────
-   Theme `surfaces="elevated"` is the ONLY thing in the system that puts a shadow on a
+   Theme `depth="elevated"` is the ONLY thing in the system that puts a shadow on a
    component. `elevated` is the semantic — surfaces sit up, and since 2026-08-07 raised
    controls are lit too — and the palette rows behind it are merely its current resolution:
    row 3 for a surface, row 2 for a control.
 
    It escapes by DECLARATION, like density, radius and appearance, rather than by a descendant
-   selector. Written as `[data-surfaces="elevated"] .kui-surface { box-shadow: ... }` it had no
-   reset, so a nested `surfaces="flat"` Theme matched nothing and the ancestor's rule still
+   selector. Written as `[data-depth="elevated"] .kui-surface { box-shadow: ... }` it had no
+   reset, so a nested `depth="flat"` Theme matched nothing and the ancestor's rule still
    reached the inner cards — a flat inspector panel inside an elevated shell was unbuildable.
    Every axis in this system escapes the same way: each scope re-declares its own value. */
 
-[data-surfaces="elevated"] {
+[data-depth="elevated"] {
   /* Depth comes from the palette (--surface-chrome composes var(--shadow-3)); the border is
      whatever the surface already wears, which keeps the edge sharp and leaves it reachable by
      contrast="high". The top edge reads lighter because every palette shadow falls downward.
@@ -268,7 +302,7 @@
   --kui-material-thick-rim: var(--material-thick-rim-lifted);
 }
 
-[data-surfaces="flat"] {
+[data-depth="flat"] {
   --kui-surface-chrome: none;
   /* NOT none — the §11 amendment made mechanical ("overlap is not expression; a floating
      layer always states its coverage", 2026-08-09). A flat world quiets the cast (the
@@ -355,7 +389,7 @@
        has edge and glint, no lift.
 
        The rim's second fallback is the un-themed document, and it is load-bearing: a bare
-       `<Card material>` outside any Theme has no [data-surfaces] scope above it, so the
+       `<Card material>` outside any Theme has no [data-depth] scope above it, so the
        pointer never resolves and the pane lost its glint entirely — caught by TextField's
        own law the hour the pointer landed. The generated name still answers there, because
        tokens.css carries :root alongside the two appearance scopes for exactly this case. */
@@ -430,4 +464,397 @@
    which behaves as flat, the material rim's own precedent. */
 .kui-surface.kui-floating {
   --kui-sf-cast: var(--kui-floating-chrome, var(--floating-chrome-flat, none));
+}
+
+/* ══ The floating family's ENTRY, promoted from menu.css on its second consumer (§8, §22 —
+   2026-08-10, Kushagra: *"can we apply the same animation to select now?"*) ═══════════════
+   
+   Menu shipped this and Select is the second member, which is normally where CSS self-keys a
+   copy and the third member promotes (TextArea's rule). It promotes now instead, and the
+   reason is that there is nothing here to learn from a second spelling: the mechanism was
+   family-named end to end before Select existed — the JS finds its panel with
+   `closest(".kui-surface.kui-floating")`, the measured box is `--kui-floating-w/-h/-bw`, the wrapper is
+   `.kui-floating-body`, the clocks are `--floating-*`, and both members already publish the
+   same `--kui-floating-p`. The only component-level thing about it was the selector, which
+   was an accident of Menu having shipped first. Copying ~130 lines into select.css would have
+   duplicated every seam, pin and precedence decision made on 2026-08-10 into a second file
+   that can drift from the first — and three of that day's bugs were drift.
+   
+   A select's entry being the same GESTURE as a menu's was the open question (§8 recorded it),
+   and it is answered above by the person who asks for it.
+
+   One hazard the move surfaced, and it is the reason every selector below carries
+   `.kui-surface`: the width floor is `.kui-menu-popup.kui-menu-anchored`, two classes, and the
+   seed's stand-down used to TIE with it and win on source order because both lived in one
+   file. Promoted into a sheet that loads earlier, the same tie now goes the other way and the
+   panel opened at its 112px floor instead of its 40px seed. Stated as specificity rather than
+   as order, so the family's entry cannot be silently outranked by a component stating a
+   resting fact.
+*/
+/* ── Motion (§8, §22 — the emergence recipe, judged 2026-08-09 in the motion lab) ─────────
+ *
+ * A panel does not appear; it BECOMES. It starts as a seed — a circle the size of the
+ * trigger it came out of, because at a menu's inception the shape it will take is not known
+ * yet — and unfurls into its own box. Four channels on the same spring with four durations,
+ * because what makes a moving box read as one object rather than a rigid block is that its
+ * parts arrive at different times: give every channel one duration and the panel is a
+ * photograph being scaled.
+ *
+ * Menu is the FIRST member to state this, so the rules key on `.kui-surface.kui-floating` and not on
+ * the family — the second member self-keys and the third promotes, the rule TextArea set.
+ * What is already the family's is the machinery: the tokens (`--floating-*`), the body
+ * element and the measurement (system/floating.tsx).
+ *
+ * The two lengths are measured, not interpolated to `auto` — `interpolate-size` is Chromium
+ * only. `--kui-floating-w/h` are set for the flight and released on arrival, so a settled
+ * panel sizes itself again. Both fall back to `auto`, which is what a panel computes under
+ * reduced motion and after arrival. */
+.kui-surface.kui-floating {
+  /* The seed's diameter (§22) — one designed constant, and every offset derives from it. It
+     wanted to be the trigger's own height; the positioner publishes that number
+     asynchronously, so on the frame the seed applies it is still unset and every rule reading
+     it takes its INITIAL value instead of the cascaded one (measured: the panel's corner
+     collapsed to 0px). A seed is a system fact, not a photograph of what was pressed. */
+  --kui-seed: var(--floating-seed);
+  inline-size: var(--kui-floating-w, auto);
+  block-size: var(--kui-floating-h, auto);
+  /* The corner the seed occupied — the panel unfurls out of it and settles back toward it on
+     dismissal, rather than toward its own middle. Stated as two halves so `data-side` and
+     `data-align` can each set one. */
+  transform-origin: var(--kui-origin-x, left) var(--kui-origin-y, top);
+  scale: 1;
+  /* The panel's own travel — see the lean block below. Declared here so the seed has
+     somewhere to travel TO. */
+  translate: 0 0;
+  transition:
+    /* the panel FALLS first — the axis that finishes LAST is the one the eye reads as the
+       direction of travel, so a menu drops out of its trigger and then opens sideways */
+    block-size var(--floating-fall) var(--motion-spring),
+    translate var(--floating-fall) var(--motion-spring),
+    /* then it SPREADS */
+    inline-size var(--floating-spread) var(--motion-spring),
+    /* the corner and the settle-scale sit between the two */
+    border-radius var(--floating-corner) var(--motion-spring),
+    scale var(--floating-corner) var(--motion-spring),
+    /* paint is signal, not physics: it eases, it does not spring (§8's two clocks) */
+    opacity var(--floating-reveal) ease-out var(--floating-reveal-delay),
+    box-shadow var(--floating-reveal) ease-out var(--floating-reveal-delay);
+}
+
+/* The origin's two halves, from the same attributes the positioner uses to choose its edge —
+   so the pane settles back into the corner it grew out of, whichever one that was. Written
+   out rather than folded into `:is()`, which is banned in a component sheet (a selector that
+   borrows its most specific argument's weight can tie with a state remap).
+
+   `left`/`right` are physical, so RTL flips what `start` and `end` mean; `--kui-origin-x`
+   defaults to `left`, which is the LTR start edge, and the RTL arms restate both directions
+   rather than only the one that looks wrong. */
+.kui-surface.kui-floating[data-side="top"] {
+  --kui-origin-y: bottom;
+}
+.kui-surface.kui-floating[data-side="bottom"][data-align="end"],
+.kui-surface.kui-floating[data-side="top"][data-align="end"],
+.kui-surface.kui-floating[data-side="left"],
+.kui-surface.kui-floating[data-side="inline-start"] {
+  --kui-origin-x: right;
+}
+.kui-surface.kui-floating[data-side="bottom"][data-align="center"],
+.kui-surface.kui-floating[data-side="top"][data-align="center"] {
+  --kui-origin-x: center;
+}
+.kui-surface.kui-floating[data-side="right"][data-align="end"],
+.kui-surface.kui-floating[data-side="inline-end"][data-align="end"],
+.kui-surface.kui-floating[data-side="left"][data-align="end"],
+.kui-surface.kui-floating[data-side="inline-start"][data-align="end"] {
+  --kui-origin-y: bottom;
+}
+.kui-surface.kui-floating[data-side="right"][data-align="center"],
+.kui-surface.kui-floating[data-side="inline-end"][data-align="center"],
+.kui-surface.kui-floating[data-side="left"][data-align="center"],
+.kui-surface.kui-floating[data-side="inline-start"][data-align="center"] {
+  --kui-origin-y: center;
+}
+[dir="rtl"] .kui-surface.kui-floating[data-side="bottom"][data-align="start"],
+[dir="rtl"] .kui-surface.kui-floating[data-side="top"][data-align="start"] {
+  --kui-origin-x: right;
+}
+[dir="rtl"] .kui-surface.kui-floating[data-side="bottom"][data-align="end"],
+[dir="rtl"] .kui-surface.kui-floating[data-side="top"][data-align="end"] {
+  --kui-origin-x: left;
+}
+
+/* The seed is a SIZE and nothing else — no offset, and that absence is the mechanism.
+   The positioner already holds one edge of the panel (the top under a menu, the start edge
+   beside a submenu, and whichever inline edge `align` names), and it holds that edge at
+   every size. So a panel that simply grows unfurls AWAY from the edge nearest the thing it
+   came out of, in the right direction, for free: down-then-right when it opens to the right,
+   down-then-left when it opens to the left.
+
+   Two spellings were built and thrown away first (2026-08-09, Kushagra: *"the origin has an
+   issue… it seems going direction side first, then down"*). A lateral offset on the seed
+   pointed the same way whichever side the panel opened toward, which is what made a
+   right-aligned menu emerge from its far corner. Holding the outer box constant with margins
+   — slack on the far side so the positioner never needs to re-solve — is the idea that
+   *should* work and cannot: the popup is a block child of a shrink-to-fit absolutely
+   positioned box, so it is over-constrained and the browser drops the end margin outright.
+   Measured, a literal `margin-inline-end: 72px` computed to `0px`.
+
+   `min-inline-size` is stood down for this frame: the width floor means "never narrower than
+   the trigger you pressed", which is a statement about the panel, and the seed is not the
+   panel yet. */
+.kui-surface.kui-floating[data-seed] {
+  /* The lean: the seed does not begin at the panel's own corner, it begins ON the thing it
+     came out of, and closes that distance as it grows (§22, restored 2026-08-09 — the
+     offset-free spelling put the seed at its destination and inflated it there, which is the
+     morph-in-place read the whole grammar was chosen against: motion tells the truth about
+     space, and things come from somewhere).
+
+     A TRANSLATE and never a margin, and that is the whole difference from the spelling that
+     failed. A margin is layout: it re-sizes the positioner, which re-solves the panel's
+     position, which is what sent a right-aligned menu unfurling away from its trigger. A
+     translate is paint — the layout box stays exactly where the positioner put it, so the
+     growth direction is still the positioner's and the lean is purely the journey. */
+  translate: var(--kui-lean-x, 0) var(--kui-lean-y, 0);
+  /* THE TRIGGER'S OWN BOX (§22, 2026-08-10, Kushagra: *"what happened to the idea that it
+     feels like it morphs from the buttons?"* — the lab's other entry, refused on 2026-08-09
+     because the anchor's box arrives asynchronously and the seed frame could not wait for
+     it). The blocker is gone: the entry measures the trigger ITSELF, synchronously, per open
+     — the same measurement the width floor now rides — so the seed is the trigger's width,
+     its height, and its corner, sitting exactly over it. The panel does not appear near the
+     button; it IS the button's silhouette, lifting off and becoming the panel. The designed
+     circle survives as the fallback for a panel whose entry never measured. */
+  inline-size: var(--kui-seed-w, var(--kui-seed));
+  block-size: var(--kui-seed-h, var(--kui-seed));
+  min-inline-size: 0;
+  border-radius: var(--kui-seed-r, calc(var(--kui-seed) / 2));
+  /* OPAQUE from the first frame (2026-08-10, Kushagra: *"but its not over button?"* — it was,
+     measured to the pixel, and invisibly: the circle recipe's fade-in survived the morph, so
+     by the time the panel was opaque enough to SEE it had already grown off the trigger, and
+     the visible entry still began below the button. A morph is the button's own body lifting;
+     a body does not fade in. What still arrives gradually is the LIGHT: the seed is castless
+     — a silhouette sitting flat on the page — and the floating shadow fades up on the reveal
+     clock as the panel lifts, which is elevation gaining honestly rather than a shadow
+     popping in around a button-sized chip. The rows keep their own reveal; the DISSOLVE keeps
+     opacity, so the exit still fades — leaving is not the entry reversed.
+
+     Then the opacity came BACK, keyed to separation (same day, Kushagra: *"opacity 0 until it
+     moves out of the trigger, so that button isn't invisible for that time"*). The opaque seed
+     fixed one lie and told another: the button vanished under a blank chip for the overlap
+     window. So while the panel still overlaps the trigger it is invisible — the BUTTON is the
+     visible thing — and it materialises as it slides clear: the reveal delay holds it at zero
+     for the overlap, and the fade runs while the fall carries it away. The morph read now
+     comes from the EMERGENCE, not from a chip replacing the button. */
+  --kui-sf-cast: none;
+  opacity: 0;
+}
+
+/* Where it leans FROM, per side and per align — onto the trigger under a menu, back into the
+   parent panel beside a submenu, and a half-seed toward the trigger's middle along the axis
+   `align` answers. A submenu never climbs: it emerges level with the row that opened it. */
+.kui-surface.kui-floating[data-side="bottom"] {
+  --kui-lean-y: calc(-1 * (var(--kui-seed-h, var(--kui-seed)) + var(--kui-floating-gap)));
+}
+.kui-surface.kui-floating[data-side="top"] {
+  --kui-lean-y: calc(var(--kui-seed-h, var(--kui-seed)) + var(--kui-floating-gap));
+}
+/* A SUBMENU'S seed does not travel at all (2026-08-10, Kushagra: *"the submenu appears very
+   different"* — it did: the morph made its seed the trigger ROW's box, and a row is
+   inline-size: 100% of its panel, so the lateral lean that had been a 40px nudge became a
+   ~200px flight in from the side, the panel visibly THROWN over its parent. A submenu cannot
+   sit ON the thing it came from without covering the parent panel — so its claim is
+   ADJACENCY: the seed is a row-height sliver, LEVEL with the trigger row (§22's seam already
+   holds the child's first row to it), appearing beside it and growing down into the list.
+   The row hands off to the panel; nothing flies anywhere. The side rules therefore declare
+   no lean — the same absence-is-the-mechanism sentence the aligns learned above. */
+/* No sideways lean at all — and that absence is the morph (2026-08-10). The seed is pinned
+   to the panel's anchored corner, the anchored corner IS the trigger's corner (that is what
+   align start/end means), and the seed is the trigger's own width — so the overlay is exact
+   by construction, for a 32px icon button and a 620px form trigger alike. The half-seed lean
+   this replaces was a circle's compromise: a fixed shape near a variable one needs a judged
+   distance, a matching shape needs none. (Its clamp lived here for two hours; LOG has it.)
+   The submenu sides declare none either — a submenu's claim is adjacency, not overlay
+   (the sliver comment above carries the why). */
+
+/* While the box is deliberately smaller than what it holds, it clips. `overflow-y: auto`
+   computes the OTHER axis to `auto` too, so an unclipped flight is two live scrollbars. */
+.kui-surface.kui-floating[data-unfurling] {
+  overflow: clip;
+  /* And the width FLOOR is stood down for the whole flight, not just the seed frame —
+     which is the bug that made every menu look wrong (Kushagra, playground: *"it starts at a
+     certain width… then it goes down and it shrinks, and then when it reaches the correct
+     vertical position it expands again"*).
+
+     `min-width` is `max(--floating-min-w, --anchor-width)` and it beats an animating `width`
+     outright, so the moment the seed frame ended the panel SNAPPED to 112px and stayed there:
+     the inline channel was declared, listed, sprung — and pinned at its destination from the
+     first visible frame, so what unfurled was a wide bar growing taller. Measured across
+     frames: `w=40 → 112` in one step, then 112 for the rest of the entry.
+
+     The floor means "a settled panel is never narrower than the trigger you pressed". A panel
+     mid-unfurl is deliberately narrower than everything, and is not settled. */
+  min-inline-size: 0;
+}
+
+/* The body unfurls WITH the box. Held static, the panel reads as a shutter opening over a
+   finished page; squished, it reads as one body — judged twice, both directions (LOG). */
+.kui-floating-body {
+  inline-size: var(--kui-floating-bw, auto);
+  transform-origin: top left;
+  transition: scale var(--floating-rise) var(--motion-spring);
+}
+[dir="rtl"] .kui-floating-body {
+  transform-origin: top right;
+}
+
+/* And it is PINNED TO THE EDGE THE BOX IS NOT GROWING FROM (§22, 2026-08-10, Kushagra: *"why
+   does a menu that opens to the left look and perform so different to the one that opens
+   bottom"*).
+
+   This is the whole difference, and it was never about the direction of travel. A block child
+   lays out from its container's inline-start, so the body's origin IS the panel's left edge.
+   When the panel is start-aligned, the left edge is the one standing still and the right edge
+   does the growing: the words sit where they will end up and the box opens around them.
+   When the panel is END-aligned — every `...` button near a right edge, which is most of them
+   — the growing edge and the content's origin are the same edge, so every row travels the
+   panel's whole width on the way in. Measured, at a 209px panel: the body's left edge moved
+   21px start-aligned and 175px end-aligned. One reads as a panel opening; the other reads as
+   the text being dragged in sideways, which is exactly what it is.
+
+   Pinned by absolute positioning rather than an auto margin, because the same fault exists on
+   the block axis (a `top`-side panel grows upward, so its rows would slide vertically) and an
+   auto margin does not resolve in block flow. Only during the flight: the settled panel is
+   sized BY this body, so it must be in normal flow the moment the box stops being driven.
+   The popup is already a containing block — it declares `scale`, and any non-`none` transform
+   value makes one — but `position: relative` is stated rather than inherited from a side
+   effect two rules up. */
+/* And the PANEL is pinned to its anchored corner inside that held box (§22, 2026-08-10). The
+   positioner keeps the panel's final size for the whole flight so the collision question is
+   asked once — see system/floating.tsx — which means the panel is now smaller than its own
+   container while it opens, and a block child would grow from the container's top-left
+   whatever the positioner decided. Same sentence as the body one rule down, one level up:
+   pinned to the edge the box is NOT growing from, and `pointer-events` re-enabled here because
+   the held box stands them down for the transparent region around the panel. */
+/* The held box is bigger than the panel for the whole flight, so the difference is a
+   transparent region over the page that would otherwise swallow a click. Stood down by the
+   STATE rather than by JS (corrected 2026-08-10): the first spelling set it in the same
+   callback that pins the size and cleared it on `transitionend`, so a panel landed any other
+   way — a law pinning transitions, a cancelled entry — kept a dead region over the page
+   forever. Select's click law found it by timing out. A rule keyed on the attribute goes away
+   exactly when the attribute does. */
+.kui-portal :has(> .kui-surface.kui-floating[data-unfurling]) {
+  pointer-events: none;
+}
+.kui-surface.kui-floating[data-unfurling] {
+  position: absolute;
+  /* AUTO, and the reversal is the record (2026-08-10, both by Kushagra within the hour:
+     *"pointer events none in beginning so that cursor doesnt change"*, then *"we need to
+     cancel pointer events, it annoys"*). The none was built and the stated trade bit
+     immediately: an eager click inside the flight dismissed instead of selecting, and a row
+     the pointer was already resting on could not light as the panel arrived under it. The
+     cursor's brief flip over the trigger — the original complaint — is the lesser annoyance,
+     accepted. This declaration is load-bearing either way: the HELD BOX around the flying
+     panel stands pointer events down (the :has rule above), and the panel must punch back
+     through it or the whole flight is a dead region. */
+  pointer-events: auto;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+}
+.kui-surface.kui-floating[data-unfurling][data-align="end"],
+.kui-surface.kui-floating[data-unfurling][data-side="left"] {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+.kui-surface.kui-floating[data-unfurling][data-side="top"] {
+  inset-block-start: auto;
+  inset-block-end: 0;
+}
+/* Inset by the panel's OWN padding, never by zero (fixed 2026-08-10, Kushagra: *"the inside of
+   the menu jumps after animation finishes"* — and it was in my own probe output an hour
+   earlier, three pixels, while I was reading the column beside it).
+
+   An absolutely positioned box resolves its insets against its containing block's PADDING box,
+   so `inset: 0` lands the body inside the border and OUTSIDE the padding — where normal flow
+   would have put it one padding in. Every row therefore sat a few pixels off for the whole
+   flight and snapped into place on the frame the panel released. Which is the same defect the
+   checkbox target had in 2026-08-06 (an inset resolved against the padding box, short by its
+   border) — an inset is measured from a box, and the box is never the one you were picturing.
+
+   Stated as the pad the panel actually uses rather than the designed token: menu.css widens it
+   to keep a focused row's ring inside the pane, so reading `--floating-p` here would be right
+   in most cells and wrong in the compact ones. */
+.kui-surface.kui-floating[data-unfurling] .kui-floating-body {
+  position: absolute;
+  inset-block-start: var(--kui-floating-p);
+  inset-inline-start: var(--kui-floating-p);
+}
+.kui-surface.kui-floating[data-unfurling][data-align="end"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body {
+  inset-inline-start: auto;
+  inset-inline-end: var(--kui-floating-p);
+}
+.kui-surface.kui-floating[data-unfurling][data-align="center"] .kui-floating-body {
+  inset-inline: var(--kui-floating-p);
+  margin-inline: auto;
+}
+.kui-surface.kui-floating[data-unfurling][data-side="top"] .kui-floating-body {
+  inset-block-start: auto;
+  inset-block-end: var(--kui-floating-p);
+}
+.kui-surface.kui-floating[data-seed] .kui-floating-body {
+  scale: 0.95 0.5;
+}
+
+/* Rows arrive after the box has committed to being a panel — one beat, not a stagger: a
+   staggered list is a slideshow, and every row here is a peer. */
+.kui-surface.kui-floating :where(.kui-row, .kui-separator) {
+  transition: opacity var(--floating-reveal) ease-out var(--floating-reveal-delay);
+}
+.kui-surface.kui-floating[data-seed] :where(.kui-row, .kui-separator) {
+  opacity: 0;
+}
+
+/* The exit is NOT the entry reversed (chosen 2026-08-09 from three built side by side —
+   fold, mirror, dissolve). The pane holds its geometry, settles back a hair toward the
+   anchor and dissolves. An entry answers "where did this come from"; an exit answers
+   nothing, because the viewer is already looking at the thing they dismissed. Decelerating
+   on the stiff spring and never `ease-in`, which ends at maximum velocity and slams. */
+.kui-surface.kui-floating[data-ending-style] {
+  opacity: 0;
+  scale: 0.98;
+  transition:
+    opacity var(--floating-dissolve) ease-in,
+    scale var(--floating-settle) var(--motion-spring-stiff);
+}
+
+/* Base UI asks for instant when the change is not a reveal — reopening into an already-open
+   group, a dismissal the pointer already committed to. */
+.kui-surface.kui-floating[data-instant],
+.kui-surface.kui-floating[data-instant] .kui-floating-body,
+.kui-surface.kui-floating[data-instant] :where(.kui-row, .kui-separator) {
+  transition: none;
+}
+
+/* Suppression is total (§8): no travel, no reveal, no dissolve — the panel is simply there
+   and then simply gone. The measurement is skipped too, so both lengths fall back to auto. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-surface.kui-floating,
+  .kui-floating-body,
+  .kui-surface.kui-floating :where(.kui-row, .kui-separator) {
+    transition: none;
+  }
+  .kui-surface.kui-floating[data-seed],
+  .kui-surface.kui-floating[data-ending-style] {
+    margin: 0;
+    translate: 0 0;
+    scale: 1;
+    opacity: 1;
+    inline-size: var(--kui-floating-w, auto);
+    block-size: var(--kui-floating-h, auto);
+  }
+  .kui-surface.kui-floating[data-seed] .kui-floating-body {
+    scale: 1;
+  }
+  .kui-surface.kui-floating[data-seed] :where(.kui-row, .kui-separator) {
+    opacity: 1;
+  }
 }

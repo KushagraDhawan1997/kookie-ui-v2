@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { SIZES, computed, mounted, tokenOn } from "../../test/browser.tsx";
+import { SIZES, computed, mounted, tokenOn, inMotion} from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Spinner } from "./spinner.tsx";
 
@@ -58,6 +58,11 @@ describe("one busy signal, not two (§8)", () => {
   });
 
   it("ticks spoke to spoke — steps(8), a composited rotation on the HTML wrapper", () => {
+    // Motion-as-content, so this law announces it: the harness holds the page still by
+    // default, which is what keeps every APPEARANCE law from reading a transition's first
+    // frame (test/browser.tsx). A spinner that stops is information lost, and a law about it
+    // has to let it run.
+    inMotion();
     const el = mounted(<Spinner />, { theme: {} });
     expect(computed(el, "animation-timing-function")).toBe("steps(8)");
     expect(computed(el, "animation-iteration-count")).toBe("infinite");

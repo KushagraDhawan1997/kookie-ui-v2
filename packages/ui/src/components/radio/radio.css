@@ -13,3 +13,29 @@
 .kui-radio {
   border-radius: calc(var(--kui-ct-mark) / 2);
 }
+
+/* The dot ARRIVES (§8, judged 2026-08-09) — the checkbox's drawn tick, said the way a filled
+   circle can say it. `transform-box: fill-box` so the scale pivots on the dot rather than on
+   the SVG's own origin, which would slide it out of the mark while it grew.
+
+   In and never out, the tick's sentence: choosing another radio in the group is the ANSWER,
+   and watching the old one deflate would put the eye on what was just abandoned. */
+.kui-radio > svg > circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  scale: 1;
+  transition: scale var(--motion-mark) var(--motion-spring);
+}
+.kui-radio > svg[data-unchecked] > circle {
+  scale: 0;
+  transition-duration: 0s;
+}
+
+/* Stillness for the dot (§8, 2026-08-10): (0,1,2) outruns the shared stand-down's
+   `.kui-control *` on specificity alone — the declaring sheet stands its own clock down, on
+   the declaring selector (checkbox.css carries the doctrine; the mounted law measures it). */
+@media (prefers-reduced-motion: reduce) {
+  .kui-radio > svg > circle {
+    transition: none;
+  }
+}

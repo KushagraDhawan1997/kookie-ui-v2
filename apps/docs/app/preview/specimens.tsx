@@ -29,6 +29,12 @@ import {
   Card,
   Checkbox,
   Code,
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
   Flex,
   Grid,
   Heading,
@@ -605,6 +611,92 @@ function CodeSection() {
             </Text>
           </Card>
         </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
+function DialogSection() {
+  /** One canonical body, opened at every size, so the judgment is about the box — its width,
+      its padding and its corner — rather than about four different sets of words. The content
+      is §15's composition brief, which is also what the parts themselves state: title at the
+      card-title step, description in the muted ink, one task-action zone at the end. */
+  const body = (
+    <>
+      <Stack gap="2">
+        <DialogTitle>Delete workspace</DialogTitle>
+        <DialogDescription>
+          Every project, member and API key goes with it. This cannot be undone.
+        </DialogDescription>
+      </Stack>
+      <Flex gap="3" justify="flex-end">
+        <DialogClose render={<Button emphasis="quiet" bordered>Keep it</Button>} />
+        <DialogClose render={<Button tone="destructive" emphasis="loud">Delete workspace</Button>} />
+      </Flex>
+    </>
+  );
+
+  return (
+    <Stack gap="6">
+      {/* The size row: the index prices the BOX — max width, padding, corner — and never the
+          type inside it. Open each and read the four boxes against one another; the corner is
+          the overlay band, one step rounder than the card of the same size (§24). */}
+      <SpecTable
+        cols={["Trigger + dialog"]}
+        rows={SIZES.map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <Dialog key="d" size={size}>
+              <DialogTrigger render={<Button size={size} emphasis="medium">Delete…</Button>} />
+              <DialogContent>
+                <Stack gap="6">{body}</Stack>
+              </DialogContent>
+            </Dialog>,
+          ],
+        }))}
+      />
+      {/* The scrim is what separates a dialog — no shadow of its own — so the thing to judge
+          here is the app going back, in both appearances and at both contrast settings. The
+          panel answers `material` for the case it floats over media. */}
+      <Demo label="Materials — the panel over its own scrim">
+        <Dialog>
+          <DialogTrigger render={<Button emphasis="medium">Solid</Button>} />
+          <DialogContent>
+            <Stack gap="6">{body}</Stack>
+          </DialogContent>
+        </Dialog>
+        <Dialog>
+          <DialogTrigger render={<Button emphasis="medium">Thin glass</Button>} />
+          <DialogContent material="thin">
+            <Stack gap="6">{body}</Stack>
+          </DialogContent>
+        </Dialog>
+        <Dialog>
+          <DialogTrigger render={<Button emphasis="medium">Thick glass</Button>} />
+          <DialogContent material="thick">
+            <Stack gap="6">{body}</Stack>
+          </DialogContent>
+        </Dialog>
+      </Demo>
+      {/* A dialog holding a form, which is the other half of what dialogs are for: the fields
+          inside answer the app's own control look and density, and the panel is just paper. */}
+      <Demo label="Composed — a rename dialog">
+        <Dialog size="2">
+          <DialogTrigger render={<Button emphasis="medium">Rename project</Button>} />
+          <DialogContent>
+            <Stack gap="6">
+              <Stack gap="2">
+                <DialogTitle>Rename project</DialogTitle>
+                <DialogDescription>Everyone with access will see the new name.</DialogDescription>
+              </Stack>
+              <TextField defaultValue="Q3 planning" aria-label="Project name" />
+              <Flex gap="3" justify="flex-end">
+                <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
+                <DialogClose render={<Button emphasis="loud">Save</Button>} />
+              </Flex>
+            </Stack>
+          </DialogContent>
+        </Dialog>
       </Demo>
     </Stack>
   );
@@ -1492,6 +1584,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "card", name: "Card", body: <CardSection /> },
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
+  { id: "dialog", name: "Dialog", body: <DialogSection /> },
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "menu", name: "Menu", body: <MenuSection /> },
   { id: "select", name: "Select", body: <SelectSection /> },

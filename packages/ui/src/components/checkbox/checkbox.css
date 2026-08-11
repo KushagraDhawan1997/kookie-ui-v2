@@ -22,3 +22,42 @@
 .kui-checkbox > svg[data-indeterminate] > .kui-checkbox-check {
   visibility: hidden;
 }
+
+/* The tick is DRAWN, not switched on (§8, judged 2026-08-09). A checkmark that appears whole
+   is a state being reported; one that draws is the gesture being answered — the stroke starts
+   where the pen would and ends where it stops, which is why the glyph is stroked in the first
+   place (§4).
+
+   It draws IN and never OUT. Un-checking is not the reverse of checking: nobody watches a
+   tick un-draw, and the box is already empty by the time the eye gets there — so the return
+   is instant, and the paint clock's own sentence one layer up (a signal has no mass). */
+.kui-checkbox-check,
+.kui-checkbox-dash {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--motion-mark) var(--motion-spring);
+}
+/* Retracted wherever the glyph is not the one the state means. `data-unchecked` has to be
+   qualified: Base UI stamps it on the INDETERMINATE indicator too — indeterminate is not
+   checked — so the unguarded arm retracted the very dash that state exists to draw. */
+.kui-checkbox > svg[data-unchecked] > .kui-checkbox-check,
+.kui-checkbox > svg[data-unchecked]:not([data-indeterminate]) > .kui-checkbox-dash,
+.kui-checkbox > svg[data-checked] > .kui-checkbox-dash,
+.kui-checkbox > svg[data-indeterminate] > .kui-checkbox-check {
+  stroke-dashoffset: 1;
+  transition-duration: 0s;
+}
+
+/* Stillness for the stroke this sheet sets moving (§8, 2026-08-10). The shared stand-down in
+   recipes.css covers `.kui-control *` at (0,1,0) — a selector in a LATER file ties that and
+   wins on source order, so for six days the tick kept drawing (0.38s, measured) for a user
+   who had asked the OS for stillness. The ring's doctrine, extended to every sheet that
+   declares a clock: the stand-down is spelled on the declaring selector itself, at the end of
+   the file, so the tie goes to the stand-down by construction. The mounted law in
+   system/motion.browser.test.tsx enters the media query and reads the part. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-checkbox-check,
+  .kui-checkbox-dash {
+    transition: none;
+  }
+}

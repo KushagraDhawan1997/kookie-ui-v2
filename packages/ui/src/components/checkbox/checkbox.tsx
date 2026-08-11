@@ -107,6 +107,9 @@ export function Checkbox({ size = "2", className, ref, ...props }: CheckboxProps
         <path
           className="kui-checkbox-check"
           d="M4 8.5 6.75 11.25 12 5.75"
+          /* Normalised so CSS can draw the stroke without measuring it (§8): with pathLength
+             1, a dash array of 1 spans the whole glyph whatever the viewBox or the size. */
+          pathLength={1}
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
@@ -115,6 +118,7 @@ export function Checkbox({ size = "2", className, ref, ...props }: CheckboxProps
         <path
           className="kui-checkbox-dash"
           d="M4.25 8h7.5"
+          pathLength={1}
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"

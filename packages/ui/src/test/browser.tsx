@@ -15,12 +15,14 @@
  * lessons live here now; a law states its fact.
  */
 import type { ReactElement } from "react";
+import { cdp } from "@vitest/browser/context";
 import { afterEach } from "vitest";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 
 import { Theme, type ThemeProps } from "../theme/theme.tsx";
 import { SIZES, type Size } from "../system/axes.ts";
+import { VIEWPORT } from "./viewport.ts";
 import { density } from "../tokens/config.ts";
 
 // Every stylesheet the package ships, in the order styles/index.css imports them — order is
@@ -30,6 +32,7 @@ import blockquoteCss from "../components/blockquote/blockquote.css?raw";
 import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import codeCss from "../components/code/code.css?raw";
+import dialogCss from "../components/dialog/dialog.css?raw";
 import kbdCss from "../components/kbd/kbd.css?raw";
 import menuCss from "../components/menu/menu.css?raw";
 import selectCss from "../components/select/select.css?raw";
@@ -64,6 +67,7 @@ export function installStyles(): void {
     buttonCss,
     checkboxCss,
     codeCss,
+    dialogCss,
     kbdCss,
     menuCss,
   selectCss,
@@ -79,12 +83,138 @@ export function installStyles(): void {
   installed = true;
 }
 
+/**
+ * STILLNESS, and why it is the default (added 2026-08-09, when motion reached the control
+ * layer).
+ *
+ * Almost every law in this suite asks what a control LOOKS like in some state: the invalid
+ * remap's colour, the disabled fill, the ring's extent. The moment those states became eased,
+ * six of them started reading the first frame of a transition instead of the value they name
+ * — the colour a hover is leaving, not the one it is arriving at. Nothing about those laws was
+ * wrong; they were simply reading a moving thing at a moment they never chose.
+ *
+ * So the harness holds the page still, and a law that is ABOUT motion says so by calling
+ * `inMotion()`. That is the honest default: appearance laws get a settled control without
+ * having to know that motion exists, and the ones that do know announce it.
+ */
+let stillness: HTMLStyleElement | null = null;
+let wantsMotion = false;
+let emulating = false;
+
+function holdStill(): void {
+  if (!stillness) {
+    stillness = document.createElement("style");
+    stillness.textContent =
+      "*, *::before, *::after { transition: none !important; animation: none !important; }";
+    document.head.append(stillness);
+  }
+  stillness.disabled = wantsMotion;
+}
+
+/**
+ * Let this test's subject move. Order-free on purpose — it sets a flag the harness honours on
+ * every render for the rest of the test, rather than a switch a later `render` would flip back:
+ * the first spelling was position-dependent, and calling it one line too early silently gave
+ * three laws a frozen page again.
+ */
+export function inMotion(): void {
+  wantsMotion = true;
+  holdStill();
+}
+
+/**
+ * Ask the BROWSER for stillness, the way an operating system does (2026-08-10).
+ *
+ * `inMotion` above and the stylesheet it toggles are the harness deciding whether a law wants a
+ * moving page. This is the other thing entirely: it makes `prefers-reduced-motion: reduce`
+ * genuinely match, so the shipped `@media` block is the thing under test rather than a block of
+ * CSS nobody has ever executed.
+ *
+ * It is worth the CDP round trip because that is exactly what happened. The suppression was
+ * asserted by reading the stylesheet for a `prefers-reduced-motion` rule and checking which
+ * selectors appeared inside it — every character of which was correct while the focus ring went
+ * on landing, because a selector present in the block still has to WIN, and that one lost by
+ * one specificity point to the rule it was written to stand down. A media query the suite
+ * cannot enter is a media query the suite cannot check.
+ *
+ * Reset by the afterEach below, so a law that asks for stillness cannot leave the next file
+ * running in it.
+ */
+export async function asksForStillness(): Promise<void> {
+  emulating = true;
+  await cdp().send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+  });
+}
+
+/**
+ * LANDING a floating panel (promoted from menu.browser.test.tsx 2026-08-10, on its second
+ * consumer — Select).
+ *
+ * Every law about a panel's corner, its rows' geometry or what the portal carried is about a
+ * panel that HAS ARRIVED. A synchronous mount reads the entry's first frame instead: Base UI
+ * renders `data-starting-style` in the initial commit and drops it a frame later, so the popup
+ * such a law grabs is a 40px seed. Menu learned this when motion landed (a row measured 68px
+ * against its 42px cell); Select's laws reported it the moment the same entry reached them —
+ * seven of them at once, reading a mid-flight corner and a mid-flight width.
+ *
+ * It does by hand exactly what the shipped reduced-motion block does — drop the seed, pin the
+ * transitions — rather than waiting out the entry in twenty-four cells. Laws that are ABOUT
+ * the entry use the plain `render` and never come through here.
+ */
+export function settle(popup: HTMLElement): void {
+  popup.removeAttribute("data-starting-style");
+  popup.removeAttribute("data-seed");
+  popup.removeAttribute("data-unfurling");
+  for (const el of [popup, ...popup.querySelectorAll<HTMLElement>("*")]) {
+    el.style.setProperty("transition", "none", "important");
+  }
+}
+
+/** Every floating panel on the page, including ones opened after the initial render. Keyed on
+    the FAMILY class, which is what both members wear and what the entry itself selects. */
+export function settleAll(): void {
+  for (const popup of document.querySelectorAll<HTMLElement>(".kui-floating")) settle(popup);
+}
+
+/** Mount, then land whatever floated. The shape both law files had reinvented. */
+export function renderSettled(ui: ReactElement): HTMLElement {
+  const host = render(ui);
+  settleAll();
+  return host;
+}
+
 /** Live roots, unmounted after each test. Mounts made inside ONE test coexist (laws compare
     across mounts); what no longer happens is a file's every mount accumulating in the body
     for the rest of the run. Registered here so no law file has to remember a hook. */
 const live: { root: Root; host: HTMLElement }[] = [];
 
-afterEach(() => {
+afterEach(async () => {
+  wantsMotion = false;
+  if (emulating) {
+    emulating = false;
+    await cdp().send("Emulation.setEmulatedMedia", { features: [] });
+  }
+  /**
+   * Park the pointer if this test left it resting on something (2026-08-10).
+   *
+   * Unmounting a host does not move the mouse, and the next file mounts at the same
+   * coordinates — so a law that hovered handed the following file a control that was already
+   * `:hover` before it read anything. Three radio look-axis laws failed exactly this way, and
+   * only in a full run: they read a resting border and got the hovered one, which the boundary
+   * step had just made a different colour. Passing alone and failing together is the signature.
+   *
+   * Guarded on an actual hover rather than run unconditionally, because it is a CDP round trip
+   * per test and the suite is over a thousand of them. Parked at the far corner of the pinned
+   * viewport, which no mount reaches.
+   */
+  if (live.some(({ host }) => host.querySelector(":hover"))) {
+    await cdp().send("Input.dispatchMouseEvent", {
+      type: "mouseMoved",
+      x: VIEWPORT.width - 1,
+      y: VIEWPORT.height - 1,
+    });
+  }
   for (const { root, host } of live.splice(0)) {
     root.unmount();
     host.remove();
@@ -100,6 +230,7 @@ afterEach(() => {
  */
 export function render(ui: ReactElement): HTMLElement {
   installStyles();
+  holdStill();
   const host = document.createElement("div");
   document.body.append(host);
   const root = createRoot(host);

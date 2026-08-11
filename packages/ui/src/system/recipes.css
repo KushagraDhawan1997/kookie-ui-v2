@@ -465,6 +465,33 @@
   --kui-ct-light: var(--kui-control-light, none);
 }
 
+/* A pressed mark SQUASHES — it has no depth to sink into, so it takes the press in its own
+   box (§8, 2026-08-09). Scoped exactly like the family's invisible target: a mark standing on
+   its own answers the pointer, and a mark hosted inside another control does not, because the
+   press belongs to whatever contains it. The slider's grip stays outside this RULE but not
+   outside the sentence (2026-08-10): its hold is a drag, so its squash is keyed on Base UI's
+   own `data-dragging` stamp in slider.css — `:active` can strand mid-drag under pointer
+   capture — while the TRAVEL stays unsprung there, because during a drag the pointer is the
+   physics and a spring between finger and grip is lag.
+
+   And the SWITCH is named out (Kushagra, 2026-08-09: *"why does switch even have scale on
+   press?"* — correct, and the reason names the family's own split). A checkbox and a radio ARE
+   their glyph's box, so a press has nowhere to go but into the box itself. A switch is a
+   channel with a grip in it: its press belongs to the THUMB, which leans toward where it is
+   about to travel (switch.css). Squashing the track as well shrinks the channel the thumb is
+   crossing, which is the one thing that cannot be allowed to move while it crosses.
+
+   No resting `scale: 1` here, deliberately — Button states one and a mark must not. Any
+   non-`none` transform value makes the element a containing block AND a stacking context, and
+   a mark's target is a pseudo-element that deliberately paints OUTSIDE its own box: give every
+   mark a stacking context and a later sibling's expander paints over an earlier sibling's
+   paint, which is the exact hit-test the 12px stacking rule exists to prevent (§16, audit
+   2026-08-06). Five laws caught it. `none` interpolates as the identity, so the squash still
+   springs; the context now exists only while the mark is actually held. */
+.kui-mark:where(:not(.kui-control *, .kui-switch)):active:not([data-disabled]) {
+  scale: var(--press-squash);
+}
+
 /* ── The glyph is the box, not the icon ladder (§4) ──────────────────────────────────────────
    The icon box is the LABEL cluster's number, designed for a glyph sitting next to text
    inside a control; a checkmark inside a 16px mark has no room for a 16px icon. The artwork
@@ -579,6 +606,34 @@
 [data-contrast="high"] .kui-row[data-popup-open]:not([data-disabled]) {
   background-color: var(--tone-solid);
   --kui-ct-label-color: var(--tone-contrast);
+}
+
+/* And the TICK follows the fill too (2026-08-10, Kushagra's eye on the playground: an accent
+   tick on a solid row "looks weird"). It is the same half-fix one element over — the rule
+   above moved the fill and the label and left the third thing standing on it, which is the
+   sentence that rule's own comment already states.
+
+   Ugly in light and a real failure in dark. --accent-solid is #0094fc in both modes, so under
+   the conformance surface it lands on a near-black row in light (5.21:1, clears the 3:1 a
+   non-text indicator owes and only offends the eye) and on a near-WHITE one in dark, where it
+   measures 2.65:1 — below the floor, on the one surface whose entire job is clearing floors.
+
+   It takes --tone-contrast, the label's own value: 16.5:1 light, 17.6:1 dark, and the row now
+   speaks with one voice. What the accent loses is exactly one row — the one that is both lit
+   and checked — while every other checked row in the panel keeps it, at rest, in both
+   appearances, in normal contrast. The tick's PRESENCE is what says chosen; its colour never
+   was the signal, since an unchecked row has no tick to read. Every OS menu does this.
+
+   Not routed through the accent rule's own :where() — this has to WIN, and it does on
+   specificity (0,5,0 against that rule's 0,2,0), so its placement here beside the fill it
+   answers is free. Rejected: a lighter high-contrast fill with darkened ink, Button's medium
+   rung (Kushagra's first proposal). Medium's fill IS --tone-soft, which is byte-identical to
+   the lit fill this arm replaced: 1.16:1 light, 1.08:1 dark against the panel — the exact
+   measurement that put the row on the solid rung, so the proposal reopens it. */
+[data-contrast="high"]
+  .kui-row:where([data-highlighted], [data-popup-open]):not([data-disabled])
+  > [data-slot]:where([data-checked], [data-selected]) {
+  color: var(--tone-contrast);
 }
 
 /* ── The size index: one join, eight families (§4) ───────────────────────────────────────── */
@@ -838,9 +893,40 @@
    it until you tap something else, so an unguarded rule leaves every pressed control stuck in
    its hover fill — the single most common way a web control stops feeling native on a phone.
    THESIS §7 calls hover a hardware fact; this is that sentence in CSS. */
+/* ── Motion: the control layer's two clocks (§8, 2026-08-09) ────────────────────────────────
+   PAINT is a signal and rides one variable, so every state can restate the clock without
+   restating the properties: hover warms it fast, the pointer leaving cools it slow, and a
+   press sets it to zero — which is the 2026-08-03 finding kept literally, not compromised.
+   An eased press never reaches its colour inside a ~60ms tap and the control reads dead on a
+   phone; here the colour lands on the first frame and only the GEOMETRY has a clock.
+
+   The geometry channels are declared for every control and used by two families (Button
+   sinks, a mark squashes). Listing them here rather than per component is what keeps the
+   press one sentence: a family states how far it moves, never how long it takes. */
+.kui-control {
+  --kui-ct-paint: var(--motion-hover-out);
+  /* GEOMETRY has the same shape: one clock and one curve, restated by whichever state is
+     live. A press is a hard stop under the finger — short and stiff, and it must beat a ~60ms
+     tap. Everything else the geometry does is the object RECOVERING: rising to meet a pointer,
+     settling back when it leaves, a squashed mark springing out. Long and lively against short
+     and stiff, and giving them one clock flattens both (LOG, judged on the Key button). */
+  --kui-ct-move: var(--motion-rise);
+  --kui-ct-move-ease: var(--motion-spring-lively);
+  transition:
+    background-color var(--kui-ct-paint) var(--motion-easing),
+    border-color var(--kui-ct-paint) var(--motion-easing),
+    color var(--kui-ct-paint) var(--motion-easing),
+    translate var(--kui-ct-move) var(--kui-ct-move-ease),
+    scale var(--kui-ct-move) var(--kui-ct-move-ease);
+}
+
 @media (hover: hover) {
   .kui-control:hover:not([data-disabled], [data-loading]) {
     background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
+    /* Warming is faster than cooling. A symmetric hover reads as a lamp on a switch; this
+       reads as a surface the pointer is heating, and it is the honest asymmetry — arriving is
+       something the user did, leaving is something they stopped doing. */
+    --kui-ct-paint: var(--motion-hover-in);
   }
 
   /* Rows opt OUT of raw hover (§21): their lit state is Base UI's data-highlighted — which
@@ -860,12 +946,67 @@
   .kui-row:hover:not([data-highlighted], [data-disabled], [data-loading]) {
     background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
   }
+
+  /* ── The BOUNDARY steps, for the families whose fill does not (§8, 2026-08-10) ─────────────
+     Kushagra, on the playground: *"there's no hover darkening of border on text field or
+     checkbox"*. There was not, and it was not a tuning miss — the rule above steps the FILL,
+     and these two families are precisely the ones whose fill is held still. A field's is pinned
+     by an invariant it has carried since 2026-08-04 (three sources, then the derived pair, so a
+     glass field stops lightening under the pointer); a mark's steps so faintly inside its own
+     seal that the box reads unchanged. Measured before this was written: a hovered TextField
+     and a hovered TextArea computed byte-identical to their resting selves, border AND fill, in
+     both appearances. §8 has said since it was written that a field's states are carried by the
+     border and the ring — and hover was reaching neither.
+
+     Mixed toward the family's own INK rather than picked off a ladder. The two solved edges sit
+     BETWEEN rungs by construction (binary-searched against APCA tiers), so "+1 step" is not
+     defined on them; a mix also carries the tone — a destructive field darkens its own red —
+     and needs no second number for dark, where the ink is light and the edge therefore steps
+     the way dark actually reads.
+
+     Two precedence facts, both deliberate. It writes the PAINTED name while reading the role,
+     because writing the role would be a cycle — and it keeps the glass edge first in the chain,
+     so a material still outranks a state that is only a pointer resting on the box. And it is
+     `:where()`-wrapped to (0,2,0) so that `invalid` and `disabled`, which re-point the role
+     itself further down this file, still win the tie on source order: being wrong or being dead
+     outranks being pointed at. */
+  .kui-field:hover:not(:where([data-disabled])),
+  .kui-textarea:hover:not(:where([data-disabled])),
+  .kui-mark:hover:not(:where([data-disabled])) {
+    --kui-border-color: var(
+      --kui-ct-glass-edge,
+      color-mix(in oklab, var(--tone-border), var(--tone-ink) var(--edge-hover-mix))
+    );
+  }
+}
+
+/* IN USE, not hovered (§21's sentence, promoted 2026-08-10 on its third member). A control
+   whose popup is open holds the hover step for as long as the panel is: the submenu's trigger
+   row said it first, the select trigger repeated it, and the menu trigger — a Button — is the
+   third (Kushagra: *"dropdown menus trigger also should remain in state where it activated"*).
+   One lit-while-in-use vocabulary across the floating family, stated once. Rows are named out:
+   theirs does more (the solid conformance variant under contrast="high") and stays their own.
+   BEFORE the press rule on purpose — both are (0,2,0), so a trigger actively held shows the
+   press fill over the open one on source order. Unguarded like the row's: being in use is not
+   a pointer fact, and a touch-opened menu must light its trigger too. */
+.kui-control[data-popup-open]:where(:not([data-disabled], .kui-row)) {
+  background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
 }
 
 /* Press is deliberately NOT guarded: it fires on every input, and on touch it is the only
    feedback there is — it is what "quiet fills on touch" (§9) literally means. */
 .kui-control:active:not([data-disabled], [data-loading]) {
   background-color: var(--kui-ct-fill-active, var(--kui-ct-fill-src-active));
+  /* Instant, and this is the 2026-08-03 finding rather than a preference: a tap lasts about
+     60ms, so an eased press never arrives and the control reads dead. Only the paint is
+     zeroed — the geometry keeps its spring, so a pressed button still travels. That separation
+     is what made motion possible here at all. */
+  --kui-ct-paint: 0s;
+  /* And the geometry swaps to the press's own clock: down hard and fast, up long and lively.
+     Restated on the STATE, so the release automatically takes the base clock back — a single
+     duration would make the recovery as abrupt as the strike. */
+  --kui-ct-move: var(--motion-press);
+  --kui-ct-move-ease: var(--motion-spring-stiff);
 }
 
 /* One ring, always accent, keyboard only (§8). `outline` rather than box-shadow: it follows
@@ -873,6 +1014,85 @@
 .kui-control:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
+}
+
+/* The ring ARRIVES, and the DIRECTION it arrives from says what happened (§8, 2026-08-09; the
+   field's half 2026-08-10). One property — `outline-offset` — travelled two ways.
+
+   A button's focus came to it FROM somewhere. After a Tab the eye does not know where, and a
+   ring contracting into place is catchable in peripheral vision where one that simply appears
+   is not. After a click it knows exactly, so the same motion would be decoration — the rule
+   this earned: motion must answer "what does the viewer not yet know?", and when the answer is
+   nothing the change is instant. `:focus-visible` draws that line with no JS — except on
+   text-entry elements, where browsers match it on click too, which is why they are named out.
+
+   A FIELD's ring is instant, and that is now a measured refusal rather than a limitation
+   (2026-08-10). It shipped for an hour emerging from the box's own edge — the same property
+   travelling the opposite way, which is the right story for a focus you ENTER rather than one
+   that arrives — and Kushagra called it on sight: *"it grows in steps, like so jaggedy"*. He
+   was reading the mechanism. Chrome resolves `outline-offset` to whole CSS pixels, so the
+   field's travel (0 to the designed 2px) renders as exactly three values — measured, 0px 1px
+   2px across 49 frames — and three steps over 260ms is a stutter, not a movement. The landing
+   survives only because it travels twice as far: 6px 5px 4px 3px 2px, five steps, which is
+   enough to read as motion on the same clock. That is the whole difference, and it means the
+   ring's travel is bounded below by the mechanism at about 4px. A field cannot have it, since
+   the only room it has is the offset itself.
+
+   `animation` rather than a transition: there is no previous `outline-offset` to travel from,
+   because the ring does not exist until this rule matches. The colour is instant either way —
+   a ring is a truth claim about where keystrokes land, and a truth claim does not fade in. */
+@keyframes kui-ring-land {
+  from {
+    outline-offset: calc(var(--focus-ring-offset) + var(--focus-ring-land));
+  }
+}
+
+/* Which arrival a control gets is a HOOK, not a selector (2026-08-10) — and the hook is what
+   makes the reduced-motion stand-down unloseable. It shipped as a literal `animation` on the
+   rule below and could not be suppressed: `:not()` takes the specificity of its most specific
+   ARGUMENT, so `.kui-row` in that list made the rule (0,3,0) while the stand-down keyed on
+   `.kui-control:focus-visible` was (0,2,0) — and a media query adds nothing. The ring landed
+   for a user who had asked the operating system for stillness, which is exactly the failure
+   §8 calls worse than no suppression at all, and no law caught it because the suppression law
+   read `transition` and this is an `animation`. Measured, then fixed.
+
+   Standing the HOOK down instead puts the recipe and its stand-down on the same selector, so
+   specificity can never separate them again — the `--kui-ct-paint` pattern, one layer over.
+   The `:not()` below is `:where()`-wrapped as well: the list is a filter, not a claim to
+   specificity, and the loud spelling is what set the trap. */
+.kui-control {
+  --kui-ct-ring: kui-ring-land var(--motion-ring) var(--motion-spring-stiff);
+}
+.kui-control:focus-visible:not(:where(input, textarea, .kui-row)) {
+  animation: var(--kui-ct-ring);
+}
+
+/* Suppression, for what THIS sheet sets moving (§8; scope corrected 2026-08-10). This block
+   stands down the clocks recipes.css itself declares — the skeleton's transition and the ring
+   hook — where the tie goes to source order inside one file. It cannot carry the moving parts
+   the component sheets add: those import later, so `.kui-control *` at (0,1,0) is TIED by the
+   switch thumb's selector and OUTRUN by the radio dot's (0,1,2) — measured, the tick kept its
+   0.38s clock under `reduce`. Each declaring sheet now stands its own clock down on its own
+   declaring selector (the ring's same-selector doctrine, one paragraph below, extended across
+   files); the mounted law in motion.browser.test.tsx enters the media query and reads the
+   parts themselves.
+
+   Only the RING's animation is named, never `animation` at large: motion that IS the content
+   keeps its own answer (§8) — a Spinner slows to 3s and an indeterminate bar keeps sweeping,
+   because an indicator that stops moving is information lost, not stillness. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-control,
+  .kui-control *,
+  .kui-mark {
+    transition: none;
+  }
+  /* Every selector that declares an arrival above stands it down here, spelled the same way:
+     same elements, same specificity, later in the file, so the tie goes to source order and
+     the stand-down wins by construction rather than by arithmetic anyone has to redo. A law
+     reads both selector lists and requires them to match. */
+  .kui-control {
+    --kui-ct-ring: none;
+  }
 }
 
 /* ── The elevated world reaches controls (§5 amended 2026-08-07, §19) ────────────────────────

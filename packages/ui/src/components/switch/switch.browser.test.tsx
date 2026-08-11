@@ -25,6 +25,7 @@ import {
   render,
   tokenOn,
   within,
+  inMotion,
 } from "../../test/browser.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Slider } from "../slider/slider.tsx";
@@ -250,11 +251,19 @@ describe("the capsule and its circle are role semantics — the radius axis neve
             px(computed(el, "border-top-left-radius")),
             `track ${level}/${pointer}/${size}`,
           ).toBeCloseTo(track.h / 2, 1);
-          // The thumb's circle is stated relationally — 50% of its own box — so the radius
-          // computes as the percentage; the circle is the percentage AND the square box,
-          // asserted together (an ellipse is exactly what 50% on a non-square would hide).
-          const thumb = el.querySelector(".kui-switch-thumb")!;
-          expect(computed(thumb, "border-top-left-radius"), `thumb ${level}/${pointer}/${size}`).toBe("50%");
+          // The thumb's circle, asserted as a SHAPE rather than as a spelling (rewritten
+          // 2026-08-09, with motion). It said `50%`, which stopped being the spelling the day
+          // the grip learned to lean: while it is stretched it is wider than it is tall, and
+          // 50% of a non-square box is an ellipse — so the corner is now half the DIAMETER,
+          // which keeps the ends round at every width. Reading the literal would have failed
+          // a change that alters nothing about the resting shape, and passed one that did.
+          const thumb = el.querySelector<HTMLElement>(".kui-switch-thumb")!;
+          const grip = box(thumb);
+          expect(grip.w, `thumb square ${level}/${pointer}/${size}`).toBeCloseTo(grip.h, 1);
+          expect(
+            px(computed(thumb, "border-top-left-radius")),
+            `thumb ${level}/${pointer}/${size}`,
+          ).toBeCloseTo(grip.h / 2, 1);
           expect(box(thumb).w, `thumb ${level}/${pointer}/${size} squareness`).toBeCloseTo(box(thumb).h, 1);
         }
       });
@@ -372,7 +381,7 @@ describe("off is a WELL, on is the family's accent identity (§11)", () => {
       // IS the state, so like the checkbox's tick it survives the remap: --color-thumb in
       // every state, and only the shadow says dead.
       const el = render(
-        <Theme appearance={appearance} surfaces="elevated">
+        <Theme appearance={appearance} depth="elevated">
           <Switch disabled defaultChecked />
         </Theme>,
       );
@@ -452,7 +461,12 @@ describe("off is a WELL, on is the family's accent identity (§11)", () => {
 describe("the WHOLE switch is outside the look axis — an instrument, like the slider (§19)", () => {
   it.each(APPEARANCES)("%s: every painted part is byte-identical across looks", (appearance) => {
     const at = (look: "outlined" | "filled") => {
-      const el = mounted(<Switch />, { theme: { look, appearance }, select: ".kui-switch" });
+      // BOTH halves (split 2026-08-10): leaving an axis means leaving all of it, and a switch
+      // sits on surfaces as often as beside fields.
+      const el = mounted(<Switch />, {
+        theme: { surfaceLook: look, controlLook: look, appearance },
+        select: ".kui-switch",
+      });
       return {
         track: computed(el, "background-color"),
         edge: computed(el, "border-top-color"),
@@ -468,7 +482,7 @@ describe("the WHOLE switch is outside the look axis — an instrument, like the 
     // this law cannot pass in a world where `look` simply stopped working.
     const cb = (look: "outlined" | "filled") =>
       computed(
-        mounted(<Checkbox />, { theme: { look, appearance }, select: ".kui-checkbox" }),
+        mounted(<Checkbox />, { theme: { controlLook: look, appearance }, select: ".kui-checkbox" }),
         "background-color",
       );
     expect(cb("filled")).not.toBe(cb("outlined"));
@@ -479,7 +493,7 @@ describe("depth: the grip casts always, the well never, the checked capsule catc
   for (const appearance of APPEARANCES) {
     it(`${appearance}: the thumb casts in a FLAT world — the role's exception, inherited not re-argued`, () => {
       const el = mounted(<Switch />, {
-        theme: { appearance, surfaces: "flat" },
+        theme: { appearance, depth: "flat" },
         select: ".kui-switch",
       });
       const probe = document.createElement("div");
@@ -494,7 +508,7 @@ describe("depth: the grip casts always, the well never, the checked capsule catc
 
   it("the track itself never casts, and checked catches the loud rung's light (elevated world)", () => {
     const host = render(
-      <Theme surfaces="elevated">
+      <Theme depth="elevated">
         <Switch defaultChecked />
         <Switch />
       </Theme>,
@@ -694,4 +708,97 @@ describe("the shared invalid wash reaches the TRACK too (§8, §11 — audit 202
       expect(computed(invalid!, "background-color")).not.toBe(computed(sound!, "background-color"));
     });
   }
+});
+
+/* ── Motion: the thumb crosses, and leans on the way (§8, 2026-08-09) ──────────────────── */
+
+describe("the thumb crosses its channel, drawn by both edges (§8)", () => {
+  const grip = (el: HTMLElement) => el.querySelector<HTMLElement>(".kui-switch-thumb")!;
+
+  it("both inline edges are LENGTHS in both states — `auto` can only teleport", () => {
+    for (const props of [{}, { defaultChecked: true }]) {
+      const el = mounted(<Switch {...props} />, { theme: {}, select: ".kui-switch" });
+      inMotion();
+      const thumb = grip(el);
+      for (const edge of ["inset-inline-start", "inset-inline-end"]) {
+        const value = computed(thumb, edge);
+        expect(value, `${edge} with ${JSON.stringify(props)}`).not.toBe("auto");
+        expect(parseFloat(value), `${edge} must be a real length`).not.toBeNaN();
+      }
+    }
+  });
+
+  it("it actually crosses: the near edge and the far edge swap", () => {
+    const off = grip(mounted(<Switch />, { theme: {}, select: ".kui-switch" }));
+    inMotion();
+    const on = grip(mounted(<Switch defaultChecked />, { theme: {}, select: ".kui-switch" }));
+    inMotion();
+    const near = parseFloat(computed(off, "inset-inline-start"));
+    const far = parseFloat(computed(off, "inset-inline-end"));
+    expect(far, "the channel must be wider than the grip").toBeGreaterThan(near);
+    expect(parseFloat(computed(on, "inset-inline-start"))).toBeCloseTo(far, 1);
+    expect(parseFloat(computed(on, "inset-inline-end"))).toBeCloseTo(near, 1);
+  });
+
+  it("the crossing rides the calm spring, and only the crossing", () => {
+    const thumb = grip(mounted(<Switch />, { theme: {}, select: ".kui-switch" }));
+    inMotion();
+    const listed = computed(thumb, "transition-property").split(",").map((p) => p.trim());
+    expect(listed).toContain("inset-inline-start");
+    expect(listed).toContain("inset-inline-end");
+    // Both edges on the SAME clock and the same curve: deformation shares the travel's own
+    // properties (LOG, principle 4), and two clocks would let the lean finish before the
+    // journey started — the "collapses, then moves" failure the demo was rejected for.
+    const durations = computed(thumb, "transition-duration").split(",").map((d) => d.trim());
+    expect(new Set(durations).size, "the two edges share one clock").toBe(1);
+    expect(computed(thumb, "transition-timing-function"), "a grip has mass").toContain("linear(");
+  });
+
+  it("the press belongs to the thumb, and reaches it from the ROOT (§8)", () => {
+    const el = mounted(<Switch />, { theme: {}, select: ".kui-switch" });
+    // The track must NOT squash. A checkbox and a radio ARE their glyph's box, so a press has
+    // nowhere to go but into the box; a switch is a channel with a grip in it, and shrinking
+    // the channel moves the very thing the thumb is crossing (Kushagra: "why does switch even
+    // have scale on press?").
+    expect(el.matches(".kui-mark"), "a switch is a mark by family").toBe(true);
+    expect(
+      el.matches(".kui-mark:where(:not(.kui-control *, .kui-switch)):active"),
+      "but the family's squash must not reach it",
+    ).toBe(false);
+    // And the lean is keyed on the ROOT's press: `:active` matches the activated element and
+    // its ANCESTORS, never its descendants, so a rule on the thumb alone fired only when the
+    // pointer happened to land on the grip and did nothing anywhere else on the track.
+    const thumb = grip(el);
+    expect(
+      [...document.styleSheets].flatMap((sh) => {
+        try {
+          return [...sh.cssRules];
+        } catch {
+          return [];
+        }
+      }).some((r) => {
+        const selector = (r as CSSStyleRule).selectorText ?? "";
+        return selector.includes(".kui-switch:active") && selector.includes(".kui-switch-thumb");
+      }),
+      "the lean must hang off the switch, not off the thumb",
+    ).toBe(true);
+    expect(parseFloat(computed(thumb, "inset-inline-end")), "and there is room to lean into").toBeGreaterThan(0);
+  });
+
+  it("the grip stays a capsule while it leans — 50% would make it an ellipse", () => {
+    const el = mounted(<Switch />, { theme: {}, select: ".kui-switch" });
+    const thumb = grip(el);
+    const box = thumb.getBoundingClientRect();
+    expect(parseFloat(computed(thumb, "border-top-left-radius"))).toBeCloseTo(box.height / 2, 1);
+    // Stretched, the corner must NOT track the new width — that is the whole reason it is a
+    // stated half-height and not a percentage.
+    // Stretched through the mechanism rather than around it: the far inset is a variable the
+    // lean already moves, so setting it here is the same lever `:active` pulls.
+    thumb.style.setProperty("--kui-sw-far", "0px");
+    expect(parseFloat(computed(thumb, "border-top-left-radius"))).toBeCloseTo(box.height / 2, 1);
+    expect(
+      thumb.getBoundingClientRect().width,
+"and it really did stretch"
+    ).toBeGreaterThan(box.width);
+  });
 });

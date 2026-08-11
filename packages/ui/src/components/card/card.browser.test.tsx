@@ -37,11 +37,11 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
       //
       // The axis is now judged the only way an axis can be: against its OTHER END.
       const filled = mounted(<Card>Body</Card>, {
-        theme: { look: "filled", appearance },
+        theme: { surfaceLook: "filled", appearance },
         select: ".kui-surface",
       });
       const outlined = mounted(<Card>Body</Card>, {
-        theme: { look: "outlined", appearance },
+        theme: { surfaceLook: "outlined", appearance },
         select: ".kui-surface",
       });
       expect(
@@ -56,7 +56,7 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     it(`${appearance}: outlined is the identity — byte-identical to a world without the axis (§19)`, () => {
       const bare = render(<Card>Body</Card>);
       const outlined = mounted(<Card>Body</Card>, {
-        theme: { look: "outlined", appearance },
+        theme: { surfaceLook: "outlined", appearance },
         select: ".kui-surface",
       });
 
@@ -74,7 +74,7 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
       // And filled must NOT satisfy the same assertion, or "identity" is a claim about a
       // constant rather than about this end of the axis.
       const filled = mounted(<Card>Body</Card>, {
-        theme: { look: "filled", appearance },
+        theme: { surfaceLook: "filled", appearance },
         select: ".kui-surface",
       });
       expect(computed(filled, "background-color")).not.toBe(
@@ -115,7 +115,7 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
 
   it("a glass card keeps the pane's own edge in the filled look — the material wins (§19, §10)", () => {
     const el = mounted(<Card material="regular">Body</Card>, {
-      theme: { look: "filled" },
+      theme: { surfaceLook: "filled" },
       select: ".kui-surface",
     });
     expect(computed(el, "border-top-color")).toBe(
@@ -267,7 +267,7 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
   it("the elevated world dresses the shell; flat stays shadowless; no Card API exists (§5, §10)", () => {
     const flat = render(<Card>B</Card>);
     expect(computed(flat, "box-shadow")).toBe("none");
-    const el = mounted(<Card>B</Card>, { theme: { surfaces: "elevated" } });
+    const el = mounted(<Card>B</Card>, { theme: { depth: "elevated" } });
     // Depth IS the palette: the elevated card wears exactly row 3 — one lighting model.
     // (Row 3 since 2026-08-07: the ladder gained the control drop at row 2 and renumbered.)
     const probe = document.createElement("div");
@@ -289,9 +289,9 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
     // The two seams, mounted: elevated glass casts the FADED row (weaker than the solid
     // card's, still a shadow), catches the LIFTED rim (brighter than flat glass's resting
     // glint), and flat glass never floats — edge and glint, no lift.
-    const solid = mounted(<Card>B</Card>, { theme: { surfaces: "elevated" } });
-    const glass = mounted(<Card material="thin">B</Card>, { theme: { surfaces: "elevated" } });
-    const flatGlass = mounted(<Card material="thin">B</Card>, { theme: { surfaces: "flat" } });
+    const solid = mounted(<Card>B</Card>, { theme: { depth: "elevated" } });
+    const glass = mounted(<Card material="thin">B</Card>, { theme: { depth: "elevated" } });
+    const flatGlass = mounted(<Card material="thin">B</Card>, { theme: { depth: "flat" } });
     const probe = document.createElement("div");
     probe.style.boxShadow = "var(--surface-chrome-thin)";
     glass.append(probe);
@@ -468,8 +468,8 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     // Was a descendant selector with no reset, so the nested flat matched nothing and the
     // ancestor's rule still reached these cards. Every other axis escapes by declaration.
     const nested = render(
-      <Theme surfaces="elevated">
-        <Theme surfaces="flat">
+      <Theme depth="elevated">
+        <Theme depth="flat">
           <Card id="probe" />
         </Theme>
       </Theme>,
@@ -479,8 +479,8 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
 
   it("and elevated still elevates, nested inside a flat app", () => {
     const nested = render(
-      <Theme surfaces="flat">
-        <Theme surfaces="elevated">
+      <Theme depth="flat">
+        <Theme depth="elevated">
           <Card id="probe" />
         </Theme>
       </Theme>,
@@ -500,14 +500,14 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
       // Both appearances, because dark loses a different thing than light does.
       for (const appearance of APPEARANCES) {
         const alone = mounted(<Card>B</Card>, {
-          theme: { appearance, surfaces: "elevated" },
+          theme: { appearance, depth: "elevated" },
           select: ".kui-surface",
         });
         const nested = mounted(
           <Card material={material}>
             <Card id="inner">B</Card>
           </Card>,
-          { theme: { appearance, surfaces: "elevated" } },
+          { theme: { appearance, depth: "elevated" } },
         );
         const inner = nested.querySelector<HTMLElement>("#inner")!;
         const outer = nested;
@@ -534,11 +534,11 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     });
     try {
       const solid = mounted(<Card>B</Card>, {
-        theme: { surfaces: "elevated" },
+        theme: { depth: "elevated" },
         select: ".kui-surface",
       });
       const sealed = mounted(<Card material="thin">B</Card>, {
-        theme: { surfaces: "elevated" },
+        theme: { depth: "elevated" },
         select: ".kui-surface",
       });
       expect(computed(sealed, "backdrop-filter")).toBe("none"); // the pane really is sealed
@@ -560,9 +560,9 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     // appearance stamped, the appearance scope re-declares the generated name AT the element
     // and papers over the hole; the bug then hides behind an axis it has nothing to do with.
     const nested = render(
-      <Theme appearance="inherit" surfaces="elevated">
+      <Theme appearance="inherit" depth="elevated">
         <Card material="regular" id="lifted" />
-        <Theme surfaces="flat">
+        <Theme depth="flat">
           <Card material="regular" id="rested" />
         </Theme>
       </Theme>,
@@ -576,7 +576,7 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     // And it rests at exactly the value a top-level flat app resolves — escaping is going
     // back, not going somewhere third.
     const topLevel = mounted(<Card material="regular" />, {
-      theme: { appearance: "inherit", surfaces: "flat" },
+      theme: { appearance: "inherit", depth: "flat" },
       select: ".kui-surface",
     });
     expect(rested).toBe(computed(topLevel, "background-image"));
@@ -598,11 +598,11 @@ describe("reduced transparency takes the pane away, not the app's dress (§10, �
     it(`${appearance}: a glass card's edge matches every other card's under filled`, async () => {
       await emulate([{ name: "prefers-reduced-transparency", value: "reduce" }]);
       const glass = mounted(<Card material="regular">Body</Card>, {
-        theme: { look: "filled", appearance },
+        theme: { surfaceLook: "filled", appearance },
         select: ".kui-surface",
       });
       const plain = mounted(<Card>Body</Card>, {
-        theme: { look: "filled", appearance },
+        theme: { surfaceLook: "filled", appearance },
         select: ".kui-surface",
       });
 
@@ -631,7 +631,7 @@ describe("every slot the axis emits is actually reached (§19)", () => {
   for (const appearance of APPEARANCES) {
     it(`${appearance}: the surface family's interactive slots move with the look`, () => {
       const at = (look: "outlined" | "filled") =>
-        mounted(<Card>Body</Card>, { theme: { look, appearance }, select: ".kui-surface" });
+        mounted(<Card>Body</Card>, { theme: { surfaceLook: look, appearance }, select: ".kui-surface" });
       const outlined = at("outlined");
       const filled = at("filled");
       for (const slot of SLOTS) {

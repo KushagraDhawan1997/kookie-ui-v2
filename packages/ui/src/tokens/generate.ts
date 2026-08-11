@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { decl, indent } from "./emit.ts";
-import { tones, type ToneName } from "./color-config.ts";
+import { edgeHoverMix, tones, type ToneName } from "./color-config.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
   borderWidth,
@@ -36,6 +36,7 @@ import {
   letterSpacing,
   lineHeight,
   look,
+  lookAxes,
   markRadius,
   radiusAtom,
   markSteps,
@@ -49,7 +50,14 @@ import {
   floatingChrome,
   floatingFlatFactor,
   floatingMinWidth,
+  controlMotion,
+  floatingMotion,
+  floatingSeed,
   floatingPadding,
+  overlayWidth,
+  dialogInset,
+  scrim,
+  springs,
   shadow,
   sliderTrack,
   progressTrack,
@@ -71,6 +79,34 @@ const HEADER = `/* GENERATED FILE — do not edit.
    Hand edits are overwritten by the next build and fail the drift test. */`;
 
 const zoom = (px: number) => `calc(${px}px * var(--scale))`;
+
+/**
+ * A damped spring, sampled into a `linear()` easing (§8, 2026-08-09).
+ *
+ * The step response of a second-order system released from rest at 0 toward 1:
+ *
+ *     x(t) = 1 − e^(−ζωt) · ( cos(ω_d·t) + (ζω / ω_d)·sin(ω_d·t) ),   ω_d = ω·√(1 − ζ²)
+ *
+ * `t` is NORMALISED progress, not seconds — which is the whole reason one curve can serve a
+ * 480ms panel and a 140ms press. The endpoints are stated rather than sampled: `linear()`
+ * must start at 0 and end at 1, and a spring's own value at t=1 is merely close to 1, so
+ * sampling the last point would leave a sub-pixel step at the end of every transition.
+ */
+const springCurve = ({ zeta, omega, steps }: { zeta: number; omega: number; steps: number }) => {
+  const damped = omega * Math.sqrt(1 - zeta * zeta);
+  const trim = (n: number, places: number) => String(Number(n.toFixed(places)));
+  const points = [`0`];
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    const x =
+      1 -
+      Math.exp(-zeta * omega * t) *
+        (Math.cos(damped * t) + ((zeta * omega) / damped) * Math.sin(damped * t));
+    points.push(`${trim(x, 3)} ${trim((t * 100), 2)}%`);
+  }
+  points.push("1 100%");
+  return `linear(${points.join(", ")})`;
+};
 
 export function generateTokens(): string {
   const lines: string[] = [];
@@ -104,8 +140,14 @@ export function generateTokens(): string {
   put("mono-scale", String(monoScale));
   put("kbd-scale", String(kbdScale));
 
-  lines.push("", "  /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */");
-  iconSize.forEach((px, i) => put(`icon-size-${i + 1}`, zoom(px)));
+  lines.push(
+    "",
+    "  /* the icon box (§4) — size-indexed and POINTER-indexed (2026-08-10), never density-indexed:",
+    "     a glyph is read at the distance the screen is held, and a compact control is the same",
+    "     control with less air around it. The pointer worlds re-declare it below; :root carries",
+    "     the fine ladder, which is also the un-themed default. */",
+  );
+  lines.push(...iconFamily("fine"));
 
   lines.push(
     "",
@@ -179,11 +221,43 @@ export function generateTokens(): string {
   put("border-width", zoom(borderWidth));
   put("focus-ring-width", zoom(focusRing.width));
   put("focus-ring-offset", zoom(focusRing.offset));
+  // How far a BOUNDARY steps under the pointer, for the two families whose fill does not move
+  // (§8, 2026-08-10). A percentage rather than a colour: the shared layer mixes it into whatever
+  // the tone, the look and the appearance resolved, so one number serves every cell.
+  put("edge-hover-mix", `${edgeHoverMix}%`);
 
-  lines.push("", "  /* motion (§8) — designed values with NO consumer: every transition is zeroed until the");
-  lines.push("     motion system is designed, and a law pins that. Not a shipped transition. */");
+  lines.push("", "  /* motion (§8) — two clocks. Signal (colour, opacity) eases and is short; travel");
+  lines.push("     (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and");
+  lines.push("     reads like mass. The curves are SAMPLED from the model in config, never pasted. */");
   put("motion-duration", motion.duration);
   put("motion-easing", motion.easing);
+  put("motion-spring", springCurve(springs.calm));
+  put("motion-hover-in", `${controlMotion.hoverIn}ms`);
+  put("motion-hover-out", `${controlMotion.hoverOut}ms`);
+  put("motion-press", `${controlMotion.press}ms`);
+  put("motion-rise", `${controlMotion.rise}ms`);
+  put("hover-travel", zoom(controlMotion.hoverTravel));
+  put("motion-mark", `${controlMotion.mark}ms`);
+  put("motion-travel", `${controlMotion.travel}ms`);
+  put("motion-ring", `${controlMotion.ring}ms`);
+  put("focus-ring-land", zoom(controlMotion.ringLand));
+  put("press-travel", zoom(controlMotion.pressTravel));
+  put("press-scale", String(controlMotion.pressScale));
+  put("press-squash", String(controlMotion.pressSquash));
+  put("thumb-lean", zoom(controlMotion.thumbLean));
+  put("motion-spring-lively", springCurve(springs.lively));
+  put("motion-spring-stiff", springCurve(springs.stiff));
+
+  lines.push("", "  /* the floating family's own motion (§22) — the emergence recipe's channels. Time, so");
+  lines.push("     no --scale: a panel does not unfurl slower because the interface is zoomed. */");
+  put("floating-seed", zoom(floatingSeed));
+  put("floating-fall", `${floatingMotion.fall}ms`);
+  put("floating-spread", `${floatingMotion.spread}ms`);
+  put("floating-corner", `${floatingMotion.corner}ms`);
+  put("floating-reveal", `${floatingMotion.reveal}ms`);
+  put("floating-reveal-delay", `${floatingMotion.revealDelay}ms`);
+  put("floating-dissolve", `${floatingMotion.dissolve}ms`);
+  put("floating-settle", `${floatingMotion.settle}ms`);
 
   lines.push("", "  /* §8 — pointer feedback; `button` is the contested one, so it is overridable */");
   put("cursor-button", cursor.button);
@@ -212,6 +286,13 @@ export function generateTokens(): string {
   lines.push("     the surface-padding trap), the width floor rides --scale alone so it lives here only. */");
   lines.push(...floatingPanelFamily());
   lines.push(decl("floating-min-w", zoom(floatingMinWidth)));
+
+  lines.push("", "  /* the overlay pane (§24) — a MAXIMUM width per size index, published to the pane by");
+  lines.push("     the surface layer's overlay join, and the gutter a dialog keeps from the window");
+  lines.push("     edge. The widths ride --scale and answer neither density nor pointer: how wide a");
+  lines.push("     modal should be is a question about reading measure, not about air. */");
+  lines.push(...overlayWidth.map((px, i) => decl(`overlay-w-${i + 1}`, zoom(px))));
+  lines.push(...dialogFamily());
 
   lines.push("", "  /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each");
   lines.push("     one-look family declared before the axis existed. A look role holds a COLOUR, so it");
@@ -271,20 +352,30 @@ export function generateTokens(): string {
   // Theme nested inside a filled region must escape by declaration, and Theme renders a div
   // that :root can never match.
   //
-  // ONE block per look, never one per (look x appearance), and that is what forces the
-  // `--dress-*` indirection above. Co-location is the reason: Theme stamps data-look beside
-  // data-appearance on a single element, so a compound `[data-appearance="dark"][data-look]`
-  // would resolve for Theme and MISS the supported un-themed path, where a raw `[data-look]`
-  // div hangs under an appearance ancestor and matches neither compound. So these blocks may
-  // only hold mode-blind mappings, and every value here is a var() reference resolved at the
-  // element — where the appearance scope has already decided what the mode's pigment is.
+  // ONE block per (axis x look), never one per (look x appearance), and that is what forces
+  // the `--dress-*` indirection above. Co-location is the reason: Theme stamps the look
+  // attributes beside data-appearance on a single element, so a compound
+  // `[data-appearance="dark"][data-surface-look]` would resolve for Theme and MISS the
+  // supported un-themed path, where a raw look attribute hangs under an appearance ancestor
+  // and matches neither compound. So these blocks may only hold mode-blind mappings, and every
+  // value here is a var() reference resolved at the element — where the appearance scope has
+  // already decided what the mode's pigment is.
+  //
+  // The two axes (split 2026-08-10) are two independent selectors over disjoint families, NOT
+  // a compound: `surfaceLook` and `controlLook` are answered separately, so each block must
+  // declare only what its own prop owns and leave the other half to whatever declared it. The
+  // families are disjoint by construction (`lookAxes`), so no cell of the 2x2 can have two
+  // rules writing one role — which is what keeps this free of source-order luck.
   //
   // `filled` shipped 2026-08-06 with raw --neutral-N steps here instead, which is the same
   // mistake one level down: a step is not mode-blind. In dark, --neutral-2/3/4 ARE the seal
   // and its two states, so the surface family resolved byte-identically to `outlined` and the
   // axis only deleted the card's hairline. The steps now live per appearance in dressWorld().
-  lines.push(`[data-look="outlined"] {`, ...lookWorld("outlined"), "}", "");
-  lines.push(`[data-look="filled"] {`, ...lookWorld("filled"), "}", "");
+  for (const [axis, families] of Object.entries(lookAxes)) {
+    for (const value of Object.keys(look) as (keyof typeof look)[]) {
+      lines.push(`[data-${axis}-look="${value}"] {`, ...lookWorld(value, families), "}", "");
+    }
+  }
 
   // P3 rides on top of the sRGB values rather than replacing them, so a narrow-gamut display
   // keeps a complete system. It is worth the bytes where sRGB constrains a hue most: sky,
@@ -355,6 +446,13 @@ export function generateTokens(): string {
         for (const [family, slots] of Object.entries(look.filled)) {
           if ("border" in slots) decls.push(decl(`look-${family}-border`, "initial"));
         }
+        // The scrim leans the way the glass does (§24): more pigment, and the defocus goes.
+        // A blurred backdrop is a legibility AID for the app behind it and a legibility COST
+        // for the boundary between the two — a user who asked for high contrast is asking for
+        // that boundary, so the dim carries the whole job. `initial` on the filter is the
+        // material edge's own spelling: guaranteed-invalid, so the consuming var()'s fallback
+        // resolves at the element and the backdrop simply stops filtering.
+        decls.push(decl("scrim-fill", scrim[mode].fillHigh), decl("scrim-filter", "initial"));
       }
       const high = bases.map((b) => `${b}[data-contrast="high"]`).join(", ");
       // The platform signal reaches anything that has not explicitly opted out. Theme stamps
@@ -397,6 +495,7 @@ export function generateTokens(): string {
       ...layoutSpaceFamily(level),
       ...surfacePaddingFamily(),
       ...floatingPanelFamily(),
+      ...dialogFamily(),
       "}",
       "",
     );
@@ -549,7 +648,12 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
   // that re-prices the marks re-prices the width through the identical mapping — declared
   // in full beside them, for the same a-scope-that-declares-nothing-inherits reason.
   const switchWidths = switchFamily(picks);
-  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, ...band, ...marks, ...switchWidths, "}", "");
+  // The icon box joins the world (2026-08-10). It does NOT ride the type picks like the marks
+  // do — an icon is drawn on the ecosystem's 16/20/24 grid, and a glyph rastered off-grid
+  // blurs — so it is its own designed ladder per world. Declared in full for the same reason
+  // the marks are: these are resolved lengths, and a scope that declares nothing inherits.
+  const icons = iconFamily(pointer === "fine" ? "fine" : "coarse");
+  out.push(`${P} {`, ...controlFamily(sets.default), ...controlGapFamily(pointer === "fine" ? "fine" : "coarse"), zoomFloor, ...band, ...marks, ...switchWidths, ...icons, "}", "");
   for (const d of Object.keys(sets) as DensityLevel[]) {
     if (d === "default") continue;
     out.push(`${P}[data-density="${d}"] {`, ...controlFamily(sets[d]), "}", "");
@@ -634,7 +738,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       decl(`material-${name}-filter`, m[name].filter),
       // The pane's own edge and lighting (§10, 2026-08-05): a hairline of light, not pigment,
       // and a top rim catch painted as a background layer — NOT a shadow, so depth stays the
-      // app's identity (surfaces="elevated") and the one-box-shadow law never learns glass
+      // app's identity (depth="elevated") and the one-box-shadow law never learns glass
       // exists. A flat world's glass has edge and glint, no lift.
       decl(`material-${name}-edge`, `rgb(255 255 255 / ${m[name].edge})`),
       decl(
@@ -666,21 +770,34 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     ...glass("thick"),
     decl("material-opaque-alpha", `${material.fallbackAlpha}%`),
     "",
+    `  /* the scrim (§10, §24) — the dialog backdrop's dim and blur, and NOT a member of the`,
+    `     material ladder above: a material defends a foreground by mixing that component's`,
+    `     own fill, while this pushes the whole app back so the thing on top of it is`,
+    `     unambiguously the thing you are using. Black in both modes on purpose — a scrim`,
+    `     mixed from the page colour vanishes in dark, which is where dimming needs the most`,
+    `     help, and it is why dark leans harder. contrast="high" and reduced transparency`,
+    `     share one answer (see the high-contrast block): drop the blur, take fillHigh. */`,
+    decl("scrim-fill", scrim[mode].fill),
+    decl("scrim-fill-high", scrim[mode].fillHigh),
+    decl("scrim-filter", scrim[mode].filter),
+    "",
     `  /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.`,
     `     Three rungs, the type ladder's resolutions: loud reads text, medium muted, quiet`,
-    `     faint. Faint is BELOW body-copy contrast by design (a placeholder, a timestamp) —`,
-    `     it must never carry a reading-length line, which is the call site's law. */`,
-    decl("color-text", "var(--neutral-12)"),
-    decl("color-text-muted", "var(--neutral-11)"),
-    decl("color-text-faint", "var(--neutral-10)"),
-    `  /* and the CAPTION, one step below the ladder (minted 2026-08-09, Kushagra: "the group`,
-    `     label should be a tone lighter, lowest emphasis"). A panel's group heading names a`,
-    `     region, it is never read as content — macOS sets its section headers below every`,
-    `     other ink in the menu — so it sits under faint rather than sharing it: faint is the`,
-    `     placeholder's role, and a heading and an invitation are different jobs (the`,
-    `     --color-border precedent: a role is minted when a real consumer needs a value no`,
-    `     existing role may honestly hold). Never a reading-length line, same law as faint. */`,
-    decl("color-text-caption", "var(--neutral-9)"),
+    `     faint. These ARE neutral's inks, referenced rather than restated (2026-08-10): the`,
+    `     tone-less default is the neutral family, so a second spelling here is a second home`,
+    `     for one value — and it was one, right up until the ladder was solved and this block`,
+    `     would have kept the old picked steps.`,
+    ``,
+    `     Muted lands on apcaFloors.body: real information said quietly (a placeholder, a`,
+    `     group label, a timestamp). Faint is BELOW the reading floor on purpose — the`,
+    `     exception rung, for something deliberately stood down, like an option that cannot`,
+    `     be chosen. It must never carry a reading-length line, which is the call site's law.`,
+    `     The CAPTION role was deleted the same day: its two consumers (a menu's and a`,
+    `     select's group label) are exactly what muted is now for, and a fourth ink nothing`,
+    `     reads is the emitted-lever mistake §15 already made once with font-weight-bold. */`,
+    decl("color-text", "var(--neutral-ink)"),
+    decl("color-text-muted", "var(--neutral-ink-muted)"),
+    decl("color-text-faint", "var(--neutral-ink-faint)"),
     "",
     `  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's`,
     `     job alone. Paper above the page, so a card is visible where it lives. The hover and`,
@@ -729,12 +846,17 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
   ];
 }
 
-/** The look axis (§19): one family's resting dress, as roles the member sheets consume.
- *  Role names derive from the config keys — `--look-<family>-<slot>` — so a family or slot
- *  added in config exists in the emitted CSS by construction. */
-function lookWorld(name: keyof typeof look): string[] {
+/** The look axis (§19): the resting dress of one or more families, as roles the member sheets
+ *  consume. Role names derive from the config keys — `--look-<family>-<slot>` — so a family or
+ *  slot added in config exists in the emitted CSS by construction.
+ *
+ *  `families` is what the 2026-08-10 split added: a look scope declares only the families its
+ *  own prop owns, so `surfaceLook` and `controlLook` can disagree. Omitted means all of them,
+ *  which is what the appearance scopes want — those carry the DEFAULT of both halves. */
+function lookWorld(name: keyof typeof look, families?: readonly string[]): string[] {
   const out: string[] = [];
   for (const [family, slots] of Object.entries(look[name])) {
+    if (families && !families.includes(family)) continue;
     for (const [slot, value] of Object.entries(slots) as [string, string][]) {
       out.push(decl(`look-${family}-${slot}`, value));
     }
@@ -779,11 +901,14 @@ function radiusPalette(level: RadiusLevel): string[] {
   return out;
 }
 
-/** Surface radii (§6, §10): size-indexed picks into the surface band, plus the flat overlay. */
+/** Surface and overlay radii (§6, §10, §24): size-indexed picks into their own bands. The
+ *  overlay band leans one step up the surface band — a dialog wears the corner of the card
+ *  one size up (config's radiusOverlay). Both families re-declare in every level block for
+ *  the same reason (substitution-at-declaration, §6). */
 function surfaceRadiusFamily(): string[] {
   return [
     ...radiusSurface.map((step, i) => decl(`radius-surface-${i + 1}`, `var(--radius-${step})`)),
-    decl("radius-overlay", `var(--radius-${radiusOverlay})`),
+    ...radiusOverlay.map((step, i) => decl(`radius-overlay-${i + 1}`, `var(--radius-${step})`)),
   ];
 }
 
@@ -827,6 +952,12 @@ function surfacePaddingFamily(): string[] {
     it is declared, so this re-emits in every density scope exactly like surface padding does. */
 function floatingPanelFamily(): string[] {
   return [decl("floating-p", `var(--layout-space-${floatingPadding})`)];
+}
+
+/** The dialog's gutter from the window edge (§24): one pick into layout space, re-emitted
+    per density scope for the same substitution reason as the two families above. */
+function dialogFamily(): string[] {
+  return [decl("dialog-inset", `var(--layout-space-${dialogInset})`)];
 }
 
 /** The control radii for one designed set at one level (§6). At `full` the band is the rule
@@ -955,6 +1086,14 @@ function moved(picks: readonly number[]): number[] {
  * coarse one. Resolved to a length here rather than pointing at `--line-height-N`, because a
  * var() bakes where it is declared (§6): a :root-level indirection would carry the desktop
  * line box into the coarse scope, which is the one place this family has to move. */
+/** §4 — the icon box for one pointer world. Its own designed ladder rather than a ride on
+ *  the line box (the mark family's mechanism): an icon is drawn on a 16/20/24 grid and a
+ *  glyph rastered off-grid blurs its strokes, so the value has to land on the grid rather
+ *  than wherever a type step puts it. */
+function iconFamily(pointer: "fine" | "coarse"): string[] {
+  return iconSize[pointer].map((px, i) => decl(`icon-size-${i + 1}`, zoom(px)));
+}
+
 function markFamily(picks: readonly number[]): string[] {
   return markSteps.map((_, i) => decl(`mark-${i + 1}`, zoom(lineHeight[picks[i]! - 1]!)));
 }

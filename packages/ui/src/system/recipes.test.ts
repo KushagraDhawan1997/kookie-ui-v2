@@ -336,6 +336,40 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     // And no row rule paints the LABEL accent anymore — the reversal in the negative.
     expect(block(recipes, checked)).not.toContain("--kui-ct-label-color");
     expect(recipes).not.toContain("--kui-ct-label-color: var(--accent-label)");
+
+    // Under contrast="high" that tick stands down with the fill it sits on (2026-08-10): the
+    // accent is one value in both modes, so on the solid rung it lands on near-black in light
+    // and near-white in dark, where it measures 2.65:1 against a 3:1 floor. It has to WIN over
+    // the rule above without being reachable at rest, which is specificity plus the state
+    // guard — assert both, because either one alone is a different rule.
+    const litTick =
+      '[data-contrast="high"]\n  .kui-row:where([data-highlighted], [data-popup-open]):not([data-disabled])\n  > [data-slot]:where([data-checked], [data-selected])';
+    expect(recipes).toContain(litTick);
+    expect(block(recipes, litTick)).toContain("color: var(--tone-contrast)");
+  });
+
+  it("a row reads CONTENT ink, and its rule sits after the emphasis ladder (§15, §21)", () => {
+    // The weight reversal's other half (2026-08-09): --tone-label is the button-label ink
+    // (#454648 neutral, #6c3230 destructive — a grey and a brown), and a row is a line in a
+    // list you read. Both facts are the law, because the first spelling declared the ink in
+    // the box block and SILENTLY LOST to the quiet rung at the same (0,1,0).
+    const ink = ".kui-row {";
+    expect(block(recipes.slice(recipes.indexOf('[data-emphasis="quiet"]')), ink)).toContain(
+      "--kui-ct-label-color: var(--tone-ink)",
+    );
+    expect(recipes.lastIndexOf(ink)).toBeGreaterThan(recipes.indexOf('[data-emphasis="quiet"]'));
+    // The box block must NOT also declare it — one home, and the losing spelling stays gone.
+    expect(block(recipes, ".kui-row {")).not.toContain("--kui-ct-label-color");
+  });
+
+  it("the disabled arm stands down BOTH ink vocabularies (§21)", () => {
+    // A remap that covers one of two dims whichever controls happen to use that one — the
+    // slider-handle shape the 2026-08-07 audit caught. Rows read --tone-ink now, so the arm
+    // owes it the same stand-down it always gave --tone-label.
+    const arm = block(recipes, ".kui-control[data-disabled]:not([data-loading]),");
+    for (const role of ["--tone-label", "--tone-ink"]) {
+      expect(arm, `the disabled arm leaves ${role} live`).toContain(`${role}: var(--neutral-8)`);
+    }
   });
 
   it("a row reads CONTENT ink, and its rule sits after the emphasis ladder (§15, §21)", () => {
@@ -600,18 +634,225 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     expect(outside).toContain(":active");
   });
 
-  it("no transition ships until the motion system is designed (§8, 2026-08-03)", () => {
-    // Every state change is instant on both pointer worlds. When motion lands, this law is
-    // replaced by the motion system's own — and press must stay instant: an eased press
-    // loses the race against a ~60ms tap and the control reads as dead on a phone.
-    //
-    // Widened from recipes.css to EVERY hand-authored sheet (2026-08-09, with Menu): the
-    // claim was always about the package, but the law read one file — a transition in
-    // menu.css or a component sheet would have shipped against a green suite. (The word
-    // itself is banned, so `prefers-reduced-transparency` etc. stay clear of the net:
-    // matched as a property name with its colon.)
+  it("the press keeps its colour instant — the 2026-08-03 finding, in CSS (§8)", () => {
+    // The finding that zeroed every transition for six days: a tap lasts about 60ms, so an
+    // eased press never reaches its colour and the control reads dead on a phone. Motion did
+    // not overturn it, it separated it — the paint clock is one variable, and press sets it to
+    // zero while the geometry keeps its spring. If that variable ever stops being zeroed here,
+    // every control in the library goes soft under the thumb.
+    const press = block(sheet("system/recipes.css"), ".kui-control:active:not([data-disabled], [data-loading])");
+    expect(press).toMatch(/--kui-ct-paint:\s*0s/);
+    const hover = block(sheet("system/recipes.css"), ".kui-control:hover:not([data-disabled], [data-loading])");
+    expect(hover).toContain("var(--motion-hover-in)");
+    // And the press swaps the GEOMETRY clock with it: down hard and fast, up long and lively.
+    // Deleting this pair leaves a press that recovers as abruptly as it strikes, which is one
+    // gesture where there should be two — and no mounted law can see it, because `:active` is
+    // the one interaction state a headless harness cannot genuinely produce.
+    expect(press, "a press strikes on its own clock").toContain("--kui-ct-move: var(--motion-press)");
+    expect(press).toContain("--kui-ct-move-ease: var(--motion-spring-stiff)");
+  });
+
+  it("a press belongs to the family that owns it (§8, 2026-08-09)", () => {
+    const recipes = sheet("system/recipes.css");
+    // The switch is a mark by FAMILY — it rides the mark ladder — and its press is not the
+    // family's. A checkbox and a radio ARE their glyph's box, so a press has nowhere to go but
+    // into the box; a switch is a channel with a grip in it, and squashing the channel moves
+    // the very thing the thumb is crossing (Kushagra, 2026-08-09).
+    // Found by what the rule DECLARES, not by the first selector that looks like it: the mark
+    // family opens with the target expander, which wears the same `:where(:not(…))` shape, and
+    // matching on that read a rule with nothing to do with pressing.
+    const squash = recipes.split("}").find((rule) => rule.includes("--press-squash"));
+    expect(squash, "the squash rule must exist at all").toBeDefined();
+    expect(
+      squash!.slice(squash!.lastIndexOf("*/") + 2, squash!.lastIndexOf("{")),
+      "the switch must be named out of the squash",
+    ).toContain(".kui-switch");
+
+    // The select trigger takes the BUTTON's distances (2026-08-10, Kushagra: "its also an
+    // onclick trigger") — a button in field dress, so its press states the same two tokens
+    // button.css states and invents no number of its own. Structural because `:active`
+    // cannot be produced headlessly; the rise half has a real-pointer law in the select
+    // browser suite.
+    const selectCss = sheet("components/select/select.css");
+    const triggerPress = selectCss
+      .split("}")
+      .find((rule) => rule.includes(".kui-select-trigger:active"));
+    expect(triggerPress, "the trigger must press like a button").toBeDefined();
+    expect(triggerPress!).toContain("var(--press-travel)");
+    expect(triggerPress!).toContain("var(--press-scale)");
+    expect(selectCss).toContain("calc(-1 * var(--hover-travel))");
+
+    // And the switch's own lean hangs off the ROOT, never off the thumb: `:active` matches the
+    // activated element and its ANCESTORS, never its descendants, so a thumb-keyed rule fires
+    // only when the pointer happens to land on the grip.
+    const switchCss = sheet("components/switch/switch.css");
+    expect(switchCss).toContain(".kui-switch:active");
+    for (const rule of switchCss.split("}")) {
+      if (!rule.includes("--thumb-lean")) continue;
+      const selector = rule.slice(rule.lastIndexOf("*/") + 2, rule.lastIndexOf("{"));
+      expect(selector, "the lean must be reached from the switch").toContain(".kui-switch:active");
+    }
+  });
+
+  /**
+   * Resolve the control layer's own hooks before judging a channel (§8).
+   *
+   * `--kui-ct-move` and `--kui-ct-paint` exist so a STATE can restate a clock without
+   * restating which properties it governs — press swaps both, hover swaps one. A law that
+   * stopped at the hook would be checking the indirection instead of the value behind it, so
+   * this substitutes EVERY declaration the sheet gives a hook and requires all of them to
+   * hold: a single arm pointing somewhere it should not is what this is for.
+   */
+  function resolveHooks(sheetBody: string, channel: string): string {
+    return channel.replace(/var\((--kui-ct-[\w-]+)\)/g, (_, name: string) => {
+      const declared = [...sheetBody.matchAll(new RegExp(`${name}:\\s*([^;]+);`, "g"))].map(
+        (m) => m[1]!.trim(),
+      );
+      expect(declared.length, `${name} is used but never declared`).toBeGreaterThan(0);
+      return declared.join(" ");
+    });
+  }
+
+  it("every transition in the package rides a motion token (§8)", () => {
+    // The guard against accretion, and it replaces the whitelist it grew out of. While one
+    // stylesheet moved, naming that sheet was the whole law; now that the control layer moves,
+    // what keeps motion from being invented one component at a time is that a duration cannot
+    // be typed in. A raw `150ms` because it "felt right" fails here.
     for (const file of allStylesheets()) {
-      expect(sheet(file), file).not.toMatch(/[^-\w]transition(-[a-z]+)?\s*:/);
+      for (const declaration of [...sheet(file).matchAll(/[^-\w]transition\s*:([^;]+);/g)]) {
+        const body = declaration[1]!;
+        if (body.trim() === "none") continue;
+        for (const raw of body.split(",")) {
+          const channel = resolveHooks(sheet(file), raw);
+          // The var() references are STRIPPED before the check, which is the whole law: the
+          // first spelling asked whether the channel mentioned a motion token anywhere, and
+          // every channel does — its easing is one. So `scale 150ms var(--motion-spring-stiff)`
+          // passed while carrying exactly the hand-typed duration this exists to forbid.
+          for (const literal of channel.replace(/var\([^)]*\)/g, "").match(/\d*\.?\d+m?s/g) ?? []) {
+            expect(literal, `${file}: ${raw.trim()} — hand-typed duration`).toBe("0s");
+          }
+          expect(channel, `${file}: ${raw.trim()}`).toMatch(/var\(--(motion|floating)-[\w-]+\)|\b0s\b/);
+        }
+      }
+    }
+  });
+
+  it("geometry rides a spring, paint eases — the two clocks, everywhere (§8)", () => {
+    // Widened from the one moving sheet to all of them (2026-08-09). A colour on a spring
+    // reads as a wobble and a box on a bezier reads as a slideshow; the split is what makes
+    // the system read as physical rather than as a set of tastefully chosen curves.
+    // box-shadow is LIGHT, not mass (added 2026-08-10, the morph's opaque seed): the floating
+    // cast fades up as the panel lifts, and light on a spring would wobble.
+    const PAINT = new Set(["background-color", "border-color", "color", "opacity", "fill", "stroke", "box-shadow"]);
+    for (const file of allStylesheets()) {
+      for (const declaration of [...sheet(file).matchAll(/[^-\w]transition\s*:([^;]+);/g)]) {
+        const body = declaration[1]!;
+        if (body.trim() === "none") continue;
+        for (const raw of body.split(",")) {
+          const [property] = raw.trim().split(/\s+/);
+          if (!property) continue;
+          const channel = resolveHooks(sheet(file), raw);
+          if (channel.includes("0s") && !channel.includes("--motion-spring")) continue;
+          if (PAINT.has(property)) {
+            expect(channel, `${file}: ${property} is a signal, it must not spring`).not.toContain("--motion-spring");
+          } else {
+            expect(channel, `${file}: ${property} moves a box, it must spring`).toMatch(
+              /var\(--motion-spring(-stiff|-lively)?\)/,
+            );
+          }
+        }
+      }
+    }
+  });
+
+  it("nothing moves that is not stood down under reduced motion (§8)", () => {
+    // Coverage, not the existence of a block: the cheapest way to satisfy "has a
+    // prefers-reduced-motion rule" is one that stands down something else. This law's own
+    // first comment claimed the shared `.kui-control *` block covered every moving part a
+    // control owns — false by cascade (2026-08-10): a part declared in a later file ties or
+    // outruns it, so each sheet that declares a clock now carries its own stand-down on the
+    // declaring selector, and the `continue` below is that obligation's shape — a file with
+    // transitions either wears the guarded block or declares only inside the shared scope.
+    // The PROOF is mounted (motion.browser.test.tsx enters the media query and reads the
+    // parts); this law keeps the shape.
+    const shared = sheet("system/recipes.css");
+    const guard = shared.indexOf("@media (prefers-reduced-motion: reduce)");
+    expect(guard, "the shared layer must stand its own motion down").toBeGreaterThan(-1);
+    for (const covered of [".kui-control", ".kui-control *", ".kui-mark"]) {
+      expect(shared.slice(guard), covered).toContain(covered);
+    }
+    const COVERED = /\.kui-(control|mark|button|checkbox|radio|switch|field|textarea|slider|row)\b/;
+    for (const file of allStylesheets()) {
+      const body = sheet(file);
+      if (!/[^-\w]transition\s*:/.test(body)) continue;
+      if (body.includes("@media (prefers-reduced-motion: reduce)")) continue;
+      for (const rule of body.split("}")) {
+        if (!/[^-\w]transition\s*:\s*(?!none)/.test(rule)) continue;
+        const selector = rule.slice(rule.lastIndexOf("*/") + 2, rule.lastIndexOf("{")).trim();
+        expect(selector, `${file}: nothing stands this down`).toMatch(COVERED);
+      }
+    }
+  });
+
+  it("and an ANIMATION is stood down too — the half this law was missing (§8, 2026-08-10)", () => {
+    // This law walked `transition` and nothing else, so the focus ring — an `animation`, because
+    // there is no previous outline-offset to travel from — was never in its scope at all. It went
+    // on landing under `prefers-reduced-motion: reduce` for six days. The mounted law in
+    // system/motion.browser.test.tsx is what actually proves the suppression now (it enters the
+    // media query and reads the computed value); this one keeps the SHAPE, so a new animation
+    // cannot be added without joining one of the two answers the system has.
+    for (const file of allStylesheets()) {
+      const body = sheet(file);
+      for (const declaration of [...body.matchAll(/[^-\w]animation\s*:([^;]+);/g)]) {
+        const value = declaration[1]!.trim();
+        if (value === "none") continue;
+        // Answer one: it reads the arrival hook, which the shared layer stands down below.
+        if (value.includes("var(--kui-ct-ring)")) continue;
+        // Answer two: it is motion that IS the content (a spinner, an indeterminate bar), which
+        // keeps its own answer — slowed, never stopped — and therefore owns a guarded block.
+        expect(
+          body,
+          `${file}: \`${value}\` neither reads the hook nor stands itself down`,
+        ).toContain("@media (prefers-reduced-motion: reduce)");
+      }
+    }
+  });
+
+  it("every selector that declares an arrival is a selector that stands it down (§8)", () => {
+    // The agreement the specificity bug needed. Standing the HOOK down rather than the rules
+    // that read it means the recipe and its stand-down share a selector — so the tie goes to
+    // source order and can never again be lost by one point of arithmetic nobody redid. That
+    // only holds while the two lists MATCH, which is what this reads.
+    const guard = recipes.indexOf("@media (prefers-reduced-motion: reduce)");
+    expect(guard).toBeGreaterThan(-1);
+    const declarers = (region: string) =>
+      [...region.matchAll(/([^{}]+)\{[^{}]*--kui-ct-ring\s*:[^{}]*\}/g)]
+        .flatMap((m) => m[1]!.split(","))
+        .map((s) => s.slice(s.lastIndexOf("*/") + 2).trim())
+        .filter(Boolean)
+        .sort();
+    const declared = declarers(recipes.slice(0, guard));
+    const suppressed = declarers(recipes.slice(guard));
+    expect(declared.length, "the arrivals must be declared somewhere").toBeGreaterThan(0);
+    expect(suppressed, `declared on ${declared.join(" / ")}`).toEqual(declared);
+  });
+
+  it("the panel suppresses under reduced motion, and suppression is total (§8)", () => {
+    // A suppression that leaves one channel moving is worse than none: the panel still
+    // lurches, and the user who asked for stillness now gets it in pieces. The law reads the
+    // guarded block itself rather than counting rules, and asserts the seed's every travelling
+    // property is stood down inside it.
+    // Reads the FAMILY's home, not the menu's (2026-08-10): the entry promoted onto
+    // `.kui-floating` when Select became its second consumer, and this law noticing the move —
+    // by finding no guarded block where it used to be — is the promotion being checked rather
+    // than trusted.
+    const body = sheet("system/surfaces.css");
+    const guard = body.indexOf("@media (prefers-reduced-motion: reduce)");
+    expect(guard).toBeGreaterThan(-1);
+    const suppressed = body.slice(guard);
+    expect(suppressed).toMatch(/transition:\s*none/);
+    for (const stood of ["margin", "translate", "scale", "opacity", "inline-size", "block-size"]) {
+      expect(suppressed, stood).toContain(stood);
     }
   });
 

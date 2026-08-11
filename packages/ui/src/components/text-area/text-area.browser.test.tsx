@@ -262,10 +262,10 @@ describe("readOnly drops the well, and keeps everything else (§8)", () => {
 });
 
 describe("the placeholder is a designed role, not a UA default (§7, §15)", () => {
-  it("reads the FAINT role at full opacity", () => {
+  it("reads the MUTED role at full opacity (faint until 2026-08-10, when faint became the exception rung)", () => {
     const el = render(<TextArea placeholder="Notes" />);
-    expect(onPlaceholder(el, "color")).toBe(tokenOn(el, "--color-text-faint"));
-    expect(onPlaceholder(el, "color")).not.toBe(tokenOn(el, "--color-text-muted"));
+    expect(onPlaceholder(el, "color")).toBe(tokenOn(el, "--color-text-muted"));
+    expect(onPlaceholder(el, "color")).not.toBe(tokenOn(el, "--color-text-faint"));
     expect(onPlaceholder(el, "opacity")).toBe("1");
   });
 });
@@ -278,11 +278,11 @@ describe("the look axis dresses the well — the field family answers once (§19
     // to EACH OTHER, which is the family claim, and to the axis's other end, which is the
     // claim the axis makes.
     const area = mounted(<TextArea />, {
-      theme: { look: "filled", appearance },
+      theme: { controlLook: "filled", appearance },
       select: ".kui-textarea",
     });
     const field = mounted(<TextField />, {
-      theme: { look: "filled", appearance },
+      theme: { controlLook: "filled", appearance },
       select: ".kui-field",
     });
     for (const prop of ["background-color", "border-top-color"]) {
@@ -291,7 +291,7 @@ describe("the look axis dresses the well — the field family answers once (§19
       );
     }
     const outlined = mounted(<TextArea />, {
-      theme: { look: "outlined", appearance },
+      theme: { controlLook: "outlined", appearance },
       select: ".kui-textarea",
     });
     expect(computed(area, "background-color")).not.toBe(computed(outlined, "background-color"));
@@ -301,7 +301,7 @@ describe("the look axis dresses the well — the field family answers once (§19
   it("outlined is the identity — byte-identical to the bare render", () => {
     const bare = render(<TextArea />);
     const outlined = mounted(<TextArea />, {
-      theme: { look: "outlined" },
+      theme: { controlLook: "outlined" },
       select: ".kui-textarea",
     });
     for (const prop of ["background-color", "border-top-color"]) {
@@ -316,7 +316,7 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
     // casts row 2 through the world token — flat worlds stay shadowless.
     expect(computed(render(<TextArea />), "box-shadow")).toBe("none");
     const host = render(
-      <Theme surfaces="elevated">
+      <Theme depth="elevated">
         <TextArea />
       </Theme>,
     );

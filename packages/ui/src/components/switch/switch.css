@@ -101,9 +101,27 @@
      property of its own box — the ellipse trap that bans 50% on the capsule has no square
      to bite. */
   inset-block: calc(var(--switch-inset) - var(--border-width));
-  inset-inline-start: calc(var(--switch-inset) - var(--border-width));
-  aspect-ratio: 1;
-  border-radius: 50%;
+  /* BOTH inline ends are lengths, and that is the motion pass's one structural change (§8,
+     judged 2026-08-09 — the switch is the benchmark movement, LOG principle 2).
+
+     `inset-inline-end: auto` cannot be animated to, so a thumb pinned by one edge could only
+     ever teleport. Drawn by BOTH edges it travels — and the deformation below travels in the
+     same two properties, which is the difference between a thumb that leans as it goes and
+     one that collapses, then moves (principle 4: deformation shares the travel's properties,
+     or the two will sequence). `--kui-sw-far` is the far edge's inset, so a state names only
+     which end is near. */
+  --kui-sw-gap: calc(var(--switch-inset) - var(--border-width));
+  --kui-sw-d: calc(var(--kui-ct-mark) - 2 * var(--switch-inset));
+  --kui-sw-far: calc(100% - var(--kui-sw-gap) - var(--kui-sw-d));
+  inset-inline-start: var(--kui-sw-gap);
+  inset-inline-end: var(--kui-sw-far);
+  transition:
+    inset-inline-start var(--motion-travel) var(--motion-spring),
+    inset-inline-end var(--motion-travel) var(--motion-spring);
+  /* Half the diameter, not 50%: while the thumb is leaning it is wider than it is tall, and
+     50% of a non-square box is an ELLIPSE. A stated half-height keeps the ends round and the
+     middle straight, which is what a stretched grip is. */
+  border-radius: calc(var(--kui-sw-d) / 2);
   --kui-ct-fill-src: var(--color-thumb);
   --kui-ct-fill-src-hover: var(--color-thumb);
   --kui-ct-fill-src-active: var(--color-thumb);
@@ -121,8 +139,27 @@
    the motion pass will own how this travels. Base UI stamps the state on the thumb itself,
    so the rule never reaches back up to the root. */
 .kui-switch-thumb:where([data-checked]) {
-  inset-inline-start: auto;
-  inset-inline-end: calc(var(--switch-inset) - var(--border-width));
+  inset-inline-start: var(--kui-sw-far);
+  inset-inline-end: var(--kui-sw-gap);
+}
+
+/* Held, the thumb LEANS toward where it is about to go (§8, judged 2026-08-09; the demo's
+   `--stretch`, and the single most-praised thing in the whole motion pass). The near edge
+   stays planted and the far edge reaches out, so the grip stretches in the direction of
+   travel — then lets go and springs across. It is the same two properties the crossing uses,
+   which is what stops the stretch from finishing before the journey starts.
+
+   Keyed on the ROOT's press, not the thumb's (fixed before shipping): `:active` matches the
+   element being activated and its ANCESTORS, never its descendants — so a rule on the thumb
+   itself only fired when the pointer happened to land on the grip, and pressing anywhere else
+   on the track did nothing at all. The switch is what gets pressed; the thumb is what answers.
+
+   Not guarded by `hover: hover`: press is the only feedback touch has. */
+.kui-switch:active .kui-switch-thumb:where(:not([data-checked])) {
+  inset-inline-end: calc(var(--kui-sw-far) - var(--thumb-lean));
+}
+.kui-switch:active .kui-switch-thumb:where([data-checked]) {
+  inset-inline-start: calc(var(--kui-sw-far) - var(--thumb-lean));
 }
 
 /* "Always" is about the WORLD, never about state (§5, audit 2026-08-07 — the disabled
@@ -154,4 +191,13 @@
   inline-size: calc(
     min(var(--kui-ct-mark), var(--kui-ct-hosted-height)) + var(--kui-ct-sw-w) - var(--kui-ct-mark)
   );
+}
+
+/* Stillness for the grip's travel (§8, 2026-08-10): the declaring sheet stands its own clock
+   down, on the declaring selector (checkbox.css carries the doctrine; the mounted law
+   measures it). The jump still happens — stillness removes the travel, never the state. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-switch-thumb {
+    transition: none;
+  }
 }

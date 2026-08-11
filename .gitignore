@@ -21,3 +21,20 @@ __screenshots__/
 # artifact, not a source file — and in a repo with drift laws, a tracked file that rewrites
 # itself by command is a standing false positive.
 apps/docs/next-env.d.ts
+
+# Licensed fonts — NEVER commit these. Pangram Pangram's Font Starter Pack permits commercial
+# use but forbids redistribution, and a public repo redistributes to everyone who clones it.
+# The licence covers the deployed docs site, not the source tree. Contributors do not get the
+# files; the stack falls back to system-ui for them, which is the package default anyway.
+#
+# Stated as the FILE TYPE rather than one vendor folder's name, because a name-shaped rule only
+# protects the drop you thought of: the Neue Montreal folder was safe and a Neue York folder
+# beside it would not have been. This repo tracks zero font binaries and ships none by design
+# (§15 — the type layer owns family SLOTS, an app supplies the face), so the blanket rule
+# forbids nothing the system wants. A font that ever needs committing is a decision, and
+# `git add -f` is where that decision gets made explicitly.
+*.woff
+*.woff2
+*.otf
+*.ttf
+*.eot

@@ -11,6 +11,7 @@ import {
   lightness,
   lowChromaThreshold,
   controlEdgeLc,
+  inkLc,
   tones,
   type Mode,
   type ToneName,
@@ -26,6 +27,7 @@ import {
   resolveTone,
   toneFromColor,
 } from "./color.ts";
+import { generateTokens } from "./generate.ts";
 
 const toOklch = converter("oklch");
 const toRgb = converter("rgb");
@@ -723,6 +725,113 @@ describe("the control edge renders its stated targets, and the floors bind under
     expect(controlEdgeLc.mark.normal.dark).toBeLessThan(controlEdgeLc.mark.normal.light);
     expect(controlEdgeLc.field.normal.dark).toBeLessThan(controlEdgeLc.field.normal.light);
   });});
+
+describe("the ink ladder renders its stated targets, in every family and both modes (§15)", () => {
+  // THE law for the 2026-08-10 rewrite. The rungs used to be picked — neutral took steps
+  // 12/11/10, every chroma family faded a fixed 74%/52% — so nothing in the system knew what
+  // contrast any of them landed on, and measured, they landed all over: light ran 103/78/65
+  // (a 26-point gap then a 13-point one) while dark ran 94/67/36.
+  //
+  // Read through the EMITTED declaration, never the config: the percentage is solved, so a
+  // law that recomputed it from `inkLc` would agree with any solver, including a broken one.
+  // Composited by hand in sRGB because that is what the browser does with an alpha — a
+  // `color-mix(…, transparent)` IS an alpha, and reading the mix as an oklab interpolation is
+  // the mistake that would make every number here plausible and wrong.
+  const chan = (hex: string) =>
+    [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
+  const over = (ink: string, bed: string, a: number) => {
+    const [ir, ig, ib] = chan(ink);
+    const [br, bg, bb] = chan(bed);
+    const m = (i: number, b: number) => Math.round(i * a + b * (1 - a));
+    return `#${[m(ir, br), m(ig, bg), m(ib, bb)]
+      .map((v) => v.toString(16).padStart(2, "0"))
+      .join("")}`;
+  };
+  const fadeOf = (mode: Mode, tone: ToneName, slot: "muted" | "faint") => {
+    const line = colorDeclarations(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
+    const m = line.match(/var\(--[\w-]+\)\s+(\d+)%/);
+    expect(m, `${tone}-ink-${slot} is not a solved fade: ${line}`).toBeTruthy();
+    return Number(m![1]) / 100;
+  };
+
+  for (const mode of MODES) {
+    for (const tone of TONES) {
+      it(`${mode}/${tone}: muted and faint land on their targets against both beds`, () => {
+        const scale = buildScale(tone, mode);
+        // Neutral's loud is step 12 (a gray scale has twelve grays); a chroma family's is 11,
+        // its one designed text colour. Derived from the same rule the emitter uses, so a
+        // family that changed its loud step fails here rather than being silently re-measured.
+        const ink = scale.steps[(tone === "neutral" ? 12 : 11) - 1]!;
+        const neutral = buildScale("neutral", mode);
+        const beds = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
+        for (const [slot, target] of [
+          ["muted", inkLc.muted],
+          ["faint", inkLc.faint],
+        ] as const) {
+          const a = fadeOf(mode, tone, slot);
+          const worst = Math.min(...beds.map((bed) => Math.abs(apcaLc(over(ink, bed, a), bed))));
+          expect(worst, `${tone} ${slot} sits under its target`).toBeGreaterThanOrEqual(target);
+          // The ceiling is what makes this a target rather than a floor: a fade rounded up
+          // too far, or a rung quietly restored to a picked step, overshoots and fails here.
+          expect(worst, `${tone} ${slot} overshoots — the solve regressed to a pick`).toBeLessThanOrEqual(
+            target + 4,
+          );
+        }
+      });
+    }
+
+    it(`${mode}: loud is NOT solved — it stays the family's own designed text colour`, () => {
+      // Kushagra's call, 2026-08-10, and the law exists because the obvious "finish the job"
+      // edit is to solve all three. Loud is the accessible resting state for reading; putting
+      // the system's most-used ink at the mercy of a target number is the change this refuses.
+      for (const tone of TONES) {
+        const step = tone === "neutral" ? 12 : 11;
+        const line = colorDeclarations(mode).find((l) => l.includes(`--${tone}-ink:`))!;
+        expect(line, `${tone}'s loud ink is not the designed step`).toContain(
+          `var(--${tone}-${step})`,
+        );
+        expect(line, `${tone}'s loud ink was faded`).not.toContain("color-mix");
+      }
+    });
+  }
+
+  it("no family is an exception — every ink rung reaches its value the same way", () => {
+    // The shape the rewrite was FOR. Neutral used to take designed steps while the chroma
+    // families faded, which is how one family's ladder came to answer a different question
+    // from the others'. If neutral ever goes back to picking rungs, this is the law that says
+    // so, and it says it about the mechanism rather than about a measured number.
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        for (const slot of ["muted", "faint"] as const) {
+          const line = colorDeclarations(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
+          expect(line, `${mode}/${tone} ${slot} is not a fade of its own ink`).toMatch(
+            new RegExp(`color-mix\\(in oklab, var\\(--${tone}-\\d+\\) \\d+%, transparent\\)`),
+          );
+        }
+      }
+    }
+  });
+
+  it("the tone-less text roles ARE neutral's inks, referenced rather than restated", () => {
+    // The second home this rewrite closed: `--color-text*` used to spell neutral's steps a
+    // second time, which is exactly how it would have kept the old picked ladder while every
+    // family moved. A law rather than a comment, because the restatement is one edit away.
+    const css = generateTokens();
+    for (const [role, ink] of [
+      ["color-text", "neutral-ink"],
+      ["color-text-muted", "neutral-ink-muted"],
+      ["color-text-faint", "neutral-ink-faint"],
+    ]) {
+      expect(css, `${role} restates a value it should reference`).toContain(
+        `--${role}: var(--${ink});`,
+      );
+    }
+    // And the caption role is GONE (deleted the same day): its two consumers were group
+    // labels, which is what muted is now for, and an emitted ink nothing reads is the
+    // font-weight-bold mistake one axis over.
+    expect(css, "the caption ink came back with no consumer").not.toContain("--color-text-caption");
+  });
+});
 
 describe("the standard-mode dress report — measured to know, never to validate (§5, §7)", () => {
   // The mode split's second clause (Kushagra, 2026-08-07: "we still run checks, but not to

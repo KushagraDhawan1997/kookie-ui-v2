@@ -21,10 +21,22 @@ import {
   SelectGroup,
   SelectLabel,
 } from "./select.tsx";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
+import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { Card } from "../card/card.tsx";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
-import { render, computed, probeIn, tokenOn, colorOn, DENSITIES } from "../../test/browser.tsx";
+import {
+  render as mount,
+  renderSettled as render,
+  inMotion,
+  settleAll,
+  computed,
+  probeIn,
+  tokenOn,
+  colorOn,
+  DENSITIES,
+} from "../../test/browser.tsx";
 
 /** Every axis off its default — a dropped attribute is visible (the §20 constant).
  *
@@ -38,8 +50,8 @@ const HOSTILE: ThemeProps = {
   density: "compact",
   radius: "large",
   pointer: "coarse",
-  surfaces: "elevated",
-  look: "filled",
+  depth: "elevated",
+  surfaceLook: "filled",
   contrast: "high",
 };
 
@@ -66,6 +78,7 @@ function openSelect(theme: ThemeProps, ui?: React.ReactNode, size?: "1" | "2" | 
   const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
   const popup = popups[popups.length - 1];
   if (!popup) throw new Error("the panel never mounted — every law below would assert nothing");
+  settleAll();
   return { host, popup, items: [...popup.querySelectorAll<HTMLElement>(".kui-select-item")] };
 }
 
@@ -248,7 +261,7 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     expect(computed(trigger, "user-select")).toBe("none");
   });
 
-  it("the empty trigger INVITES: placeholder in the faint role; a chosen value in full ink", async () => {
+  it("the empty trigger INVITES: placeholder in the muted role; a chosen value in full ink", async () => {
     const host = render(
       <Theme>
         <Select>
@@ -266,7 +279,9 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     const [empty, chosen] = [...host.querySelectorAll<HTMLElement>(".kui-select-value")];
     if (!empty || !chosen) throw new Error("values missing");
     expect(empty.textContent).toBe("Pick one");
-    expect(computed(empty, "color")).toBe(colorOn(host, "var(--color-text-faint)"));
+    // Muted since 2026-08-10 (the ink ladder became solved targets, and faint dropped below
+    // the reading floor to become the exception rung) — text-field.css carries the argument.
+    expect(computed(empty, "color")).toBe(colorOn(host, "var(--color-text-muted)"));
     expect(chosen.textContent).toBe("Alpha");
     expect(computed(chosen, "color")).not.toBe(computed(empty, "color"));
   });
@@ -456,18 +471,18 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
   });
 
   it("casts in BOTH worlds, and the flat cast is not the elevated one", async () => {
-    const flat = openSelect({ surfaces: "flat" });
+    const flat = openSelect({ depth: "flat" });
     await settled();
     const flatShadow = computed(flat.popup, "box-shadow");
     expect(flatShadow, "a floating pane casts in a flat world").not.toBe("none");
-    const elevated = openSelect({ surfaces: "elevated" });
+    const elevated = openSelect({ depth: "elevated" });
     await settled();
     expect(computed(elevated.popup, "box-shadow")).not.toBe("none");
     expect(computed(elevated.popup, "box-shadow")).not.toBe(flatShadow);
     // The negative control: a flat Card beside it casts nothing.
     let card: HTMLElement | null = null;
     render(
-      <Theme surfaces="flat">
+      <Theme depth="flat">
         <Card ref={(n: HTMLDivElement | null) => void (card = n)}>plain</Card>
       </Theme>,
     );
@@ -475,11 +490,11 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
   });
 
   it("glass keeps the floating cast", async () => {
-    const { popup } = openSelect({ surfaces: "flat" }, undefined);
+    const { popup } = openSelect({ depth: "flat" }, undefined);
     await settled();
     const solid = computed(popup, "box-shadow");
     const glass = render(
-      <Theme surfaces="flat">
+      <Theme depth="flat">
         <Select defaultOpen>
           <SelectTrigger placeholder="p" />
           <SelectContent material="regular">
@@ -733,7 +748,7 @@ describe("behavior: roles, choosing, forms, labels", () => {
     await settled();
     const label = popup.querySelector<HTMLElement>(".kui-select-label");
     if (!label) throw new Error("standalone label missing");
-    expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-caption)"));
+    expect(computed(label, "color")).toBe(colorOn(popup, "var(--color-text-muted)"));
     expect(computed(label, "pointer-events")).toBe("none");
     expect(label.getAttribute("role")).toBeNull();
     expect(popup.querySelectorAll(".kui-select-item").length).toBe(1);
@@ -808,5 +823,306 @@ describe("behavior: roles, choosing, forms, labels", () => {
     const label = popup.querySelector<HTMLElement>(".kui-select-label");
     if (!group || !label) throw new Error("group or label missing");
     expect(group.getAttribute("aria-labelledby")).toBe(label.id);
+  });
+});
+
+describe("the entry is the floating family's, not a copy of it (§8, §22)", () => {
+  /**
+   * Select is the second member, and it gets the panel's entry by MEMBERSHIP: the recipe moved
+   * out of menu.css onto the family class on 2026-08-10, so this file adds no motion CSS at
+   * all. These laws exist to prove that the membership is real — that the panel actually flies,
+   * and that it flies the same way the menu does rather than nearly the same way.
+   */
+  const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+
+  function openFlying() {
+    mount(
+      <Theme>
+        <Select defaultOpen items={{ a: "Alpha", b: "Beta" }}>
+          <SelectTrigger placeholder="Pick one" />
+          <SelectContent>
+            <SelectItem value="a">Alpha</SelectItem>
+            <SelectItem value="b">Beta</SelectItem>
+          </SelectContent>
+        </Select>
+      </Theme>,
+    );
+    inMotion();
+    const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
+    return popups[popups.length - 1]!;
+  }
+
+  it("the first frame is the trigger's own box, and the panel is measured for the flight", () => {
+    // The morph, on the family's second member with zero CSS of its own: the seed is the
+    // field-shaped trigger's silhouette — its width, height and corner — so a select visibly
+    // grows out of the control that opened it.
+    const popup = openFlying();
+    const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
+    const box = trigger.getBoundingClientRect();
+    expect(popup.hasAttribute("data-seed")).toBe(true);
+    const seed = popup.getBoundingClientRect();
+    expect(seed.width).toBeCloseTo(box.width, 1);
+    expect(seed.height).toBeCloseTo(box.height, 1);
+    expect(computed(popup, "border-top-left-radius")).toBe(
+      computed(trigger, "border-top-left-radius"),
+    );
+    // The measurement is what makes the destination animatable at all.
+    expect(parseFloat(popup.style.getPropertyValue("--kui-floating-w"))).toBeGreaterThanOrEqual(
+      box.width - 1,
+    );
+    expect(popup.hasAttribute("data-unfurling")).toBe(true);
+  });
+
+  it("the box actually MOVES across the entry — membership is not the same as motion", async () => {
+    const popup = openFlying();
+    const widths: number[] = [];
+    const deadline = performance.now() + 2000;
+    while (performance.now() < deadline) {
+      widths.push(Math.round(popup.getBoundingClientRect().width));
+      if (!popup.hasAttribute("data-unfurling")) break;
+      await frame();
+    }
+    expect(new Set(widths).size, `it never moved: ${widths.join(",")}`).toBeGreaterThan(2);
+  });
+
+  it("the FIRST open flies to the settled width — the floor is inside the target (§22)", async () => {
+    /**
+     * Kushagra, checking the fixes: *"it opens like this, then it expands after a second."*
+     * The panel's floor is "never narrower than the trigger", spelled through floating-ui's
+     * --anchor-width — which does not exist yet when a first open measures. So the flight
+     * targeted the content-only width (~140px against a ~620px trigger) and the real floor
+     * arrived only at release: the panel felt done, then visibly re-expanded. The entry now
+     * writes the trigger's width itself, before measuring, and both floors consult it first.
+     */
+    mount(
+      <Theme>
+        <Select defaultOpen items={{ a: "Alpha", b: "Beta" }}>
+          <SelectTrigger placeholder="Pick one" style={{ minWidth: "360px" }} />
+          <SelectContent>
+            <SelectItem value="a">Alpha</SelectItem>
+            <SelectItem value="b">Beta</SelectItem>
+          </SelectContent>
+        </Select>
+      </Theme>,
+    );
+    inMotion();
+    const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
+    const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
+    // The rect, not the 360 literal: an open trigger HOLDS THE PRESS, and the press scales it
+    // 0.975 — the anchor floating-ui measures is the scaled box, so the scaled box is the
+    // number every claim below is about. The calibration only needs it wider than the content.
+    const triggerW = trigger.getBoundingClientRect().width;
+    expect(triggerW, "the case needs a trigger wider than the content").toBeGreaterThan(300);
+
+    // The flight's own target, read off the measurement the entry wrote.
+    const target = parseFloat(popup.style.getPropertyValue("--kui-floating-w"));
+    expect(target, "the measured target must include the trigger floor").toBeGreaterThanOrEqual(
+      triggerW - 1,
+    );
+
+    // And the seam: the panel's width the frame the flight ends must BE its settled width —
+    // a floor arriving at release is exactly a jump on that frame.
+    let before = 0;
+    const deadline = performance.now() + 3000;
+    while (performance.now() < deadline) {
+      const w = popup.getBoundingClientRect().width;
+      if (!popup.hasAttribute("data-unfurling")) {
+        expect(w, `it re-expanded at release: ${before} -> ${w}`).toBeCloseTo(before, 0);
+        expect(w, "and it settled at the trigger's width").toBeGreaterThanOrEqual(triggerW - 1);
+        return;
+      }
+      before = w;
+      await tick();
+    }
+    throw new Error("the flight never released");
+  });
+
+  it("a CLICKED open lands where it settles — the floor is the trigger AS HELD (§8, §22, 2026-08-10)", async () => {
+    /**
+     * The law above proves the seam on `defaultOpen` — where the trigger is BORN holding the
+     * press, no scale transition ever runs, and both floors read the same scaled box. That is
+     * the axis that was right. The axis that shipped broken is the one a user actually takes:
+     * click a resting trigger, and the entry measures on the open's first frame, when the
+     * held-press transition has not visibly moved — so the flight floored on the RESTING rect
+     * while floating-ui's settled `--anchor-width` measures the trigger WITH its held
+     * transform. Flight 402, settle 392, a 10px compression the frame the flight ended
+     * (Kushagra's screenshots, measured live). The entry now floors on the trigger AS HELD —
+     * the end value of its running scale transition — so the two floors agree by input.
+     *
+     * If the held press is ever removed from open triggers, the calibration below fails and
+     * this law should be revisited with it: its premise is that an open trigger is scaled.
+     */
+    mount(
+      <Theme>
+        <Select items={{ a: "Alpha", b: "Beta" }}>
+          <SelectTrigger placeholder="Pick one" style={{ minWidth: "360px" }} />
+          <SelectContent>
+            <SelectItem value="a">Alpha</SelectItem>
+            <SelectItem value="b">Beta</SelectItem>
+          </SelectContent>
+        </Select>
+      </Theme>,
+    );
+    inMotion();
+    const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
+    const resting = trigger.getBoundingClientRect().width;
+
+    const { userEvent } = await import("vitest/browser");
+    await userEvent.click(trigger);
+    const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
+
+    let before = 0;
+    const deadline = performance.now() + 3000;
+    while (performance.now() < deadline) {
+      const w = popup.getBoundingClientRect().width;
+      if (before > 0 && !popup.hasAttribute("data-unfurling")) {
+        // Calibration first: the premise. The open trigger must genuinely be held smaller
+        // than its resting self, or this whole law is measuring a press that is not there.
+        const heldW = trigger.getBoundingClientRect().width;
+        expect(heldW, "the held press no longer scales the trigger").toBeLessThan(resting - 1);
+        // The seam: the frame the flight ends, the width must not step.
+        expect(w, `it stepped at release: ${before} -> ${w}`).toBeCloseTo(before, 0);
+        // And the settled floor is the trigger as the eye sees it — the held box.
+        expect(w, "narrower than the held trigger").toBeGreaterThanOrEqual(heldW - 1);
+        return;
+      }
+      if (popup.hasAttribute("data-unfurling")) before = w;
+      await tick();
+    }
+    throw new Error("the clicked flight never released");
+  });
+
+  it("the trigger rises to a real pointer — a button's gesture in field dress (§8)", async () => {
+    /**
+     * Kushagra: *"select trigger should also have same animation as that of buttons no? its
+     * also an onclick trigger."* §8's "a field does nothing" is about the box the eye rests
+     * INSIDE; this is a button wearing field dress, and it takes the button family's
+     * distances. The rise is the half a law can produce (`:hover` is real under userEvent);
+     * the press is covered structurally beside Button's, with the same limitation recorded.
+     */
+    mount(
+      <Theme>
+        <Select items={{ a: "Alpha" }}>
+          <SelectTrigger placeholder="Pick one" />
+          <SelectContent>
+            <SelectItem value="a">Alpha</SelectItem>
+          </SelectContent>
+        </Select>
+      </Theme>,
+    );
+    const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
+    const { userEvent } = await import("vitest/browser");
+    expect(computed(trigger, "translate"), "at rest it sits on the page").toBe("0px");
+    await userEvent.hover(trigger);
+    expect(trigger.matches(":hover"), "the harness must really be hovering").toBe(true);
+    const [, y] = computed(trigger, "translate").split(" ");
+    expect(parseFloat(y ?? "0"), "it must rise toward the pointer").toBeLessThan(0);
+  });
+
+  it("the entry replays on EVERY open, not only the first (§22)", async () => {
+    /**
+     * Kushagra: *"animation on select only once. Next time, its instant."* Two faults hid
+     * behind one symptom. The entry ran in the body's ref callback — once per DOM node — and
+     * nothing re-ran it for an open the framework served without a fresh mount; and on the
+     * reopen path the popup's positioner can still be ZERO-WIDTH when the callback runs, so
+     * the "natural" measurement read the panel as its own padding (10px) and the entry flew
+     * TOWARD it: the panel visibly shrank. The mechanism now begins per OPEN (Base UI's
+     * starting stamp, observed), and refuses any measurement at or under the seed — a real
+     * panel can never be that small, so a tiny reading means "not laid out yet, retry".
+     */
+    mount(
+      <Theme>
+        <Select defaultOpen items={{ a: "Alpha", b: "Beta" }}>
+          <SelectTrigger placeholder="Pick one" />
+          <SelectContent>
+            <SelectItem value="a">Alpha</SelectItem>
+            <SelectItem value="b">Beta</SelectItem>
+          </SelectContent>
+        </Select>
+      </Theme>,
+    );
+    inMotion();
+    const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    const first = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
+
+    // Land the first flight for real — this law is about the SECOND one.
+    let deadline = performance.now() + 3000;
+    while (first.hasAttribute("data-unfurling") && performance.now() < deadline) await tick();
+    expect(first.hasAttribute("data-unfurling"), "the first entry must land").toBe(false);
+
+    const { userEvent } = await import("vitest/browser");
+    await userEvent.keyboard("{Escape}");
+    deadline = performance.now() + 3000;
+    while (document.querySelector(".kui-select-popup:not([hidden])") && performance.now() < deadline)
+      await tick();
+
+    // Base UI ignores a pointer release inside its press-drag window; wait it out (the
+    // instrument lesson from this file's own choosing law).
+    await new Promise((r) => setTimeout(r, 600));
+    await userEvent.click(document.querySelector<HTMLElement>(".kui-select-trigger")!);
+
+    deadline = performance.now() + 3000;
+    const flight: number[] = [];
+    let landed: HTMLElement | null = null;
+    const triggerH = document
+      .querySelector<HTMLElement>(".kui-select-trigger")!
+      .getBoundingClientRect().height;
+    while (performance.now() < deadline) {
+      const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();
+      if (popup?.hasAttribute("data-unfurling")) {
+        // HEIGHT, since the morph: the seed is the trigger's box, and a select's trigger is
+        // routinely exactly as wide as its panel — the width channel is legitimately static
+        // there, while the height always has a panel's worth of rows to grow.
+        flight.push(popup.getBoundingClientRect().height);
+      } else if (flight.length) {
+        landed = popup ?? null;
+        break;
+      }
+      await tick();
+    }
+    expect(flight.length, "the second open never flew — the entry ran once per lifetime").toBeGreaterThan(0);
+    expect(Math.min(...flight), "it must fly FROM the seed, not from mid-size").toBeLessThan(
+      triggerH * 1.5,
+    );
+    // DIRECTION, not just movement — the first spelling asserted max > min, which any motion
+    // satisfies, and the sabotage that removed the laid-out guard sailed through it while the
+    // panel flew TOWARD 10px. The end must sit above the start, and the landed panel must be
+    // a real panel: taller than the trigger it came out of.
+    expect(flight.at(-1)!, `it flew backwards: ${flight.map((n) => n.toFixed(0)).join(",")}`).toBeGreaterThan(
+      flight[0]!,
+    );
+    expect(landed, "the flight must end in a released panel").not.toBeNull();
+    expect(landed!.getBoundingClientRect().height, "and the panel it ends in is a real one").toBeGreaterThan(
+      triggerH * 1.5,
+    );
+  });
+
+  it("and it resolves the SAME recipe a menu does — one family, one entry", () => {
+    // The agreement law the promotion owes (ENGINEERING §6: a mechanism with two
+    // implementations owes a law that they agree). Read as computed values on both panels,
+    // because "select.css adds no motion" is exactly the kind of claim that stays true in the
+    // stylesheet while a component quietly re-points a clock.
+    const select = openFlying();
+    const selectRecipe = ["transition-duration", "transition-property", "transition-timing-function"].map(
+      (p) => computed(select, p),
+    );
+    mount(
+      <Theme>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>Open</Button>} />
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    const menu = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop()!;
+    const menuRecipe = ["transition-duration", "transition-property", "transition-timing-function"].map(
+      (p) => computed(menu, p),
+    );
+    expect(selectRecipe[1], "the entry must animate something").toContain("inline-size");
+    expect(selectRecipe).toEqual(menuRecipe);
   });
 });

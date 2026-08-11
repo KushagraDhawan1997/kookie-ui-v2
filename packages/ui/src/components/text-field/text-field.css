@@ -110,11 +110,14 @@
 }
 
 .kui-field-input::placeholder {
-  /* FAINT, not muted (drift fixed 2026-08-05, Kushagra: "not light enough"). The faint role's
-     own definition names the placeholder as its case — "below body-copy contrast by design
-     (a placeholder, a timestamp)" (§15) — and this rule was disagreeing with it. Muted stays
-     the SLOT colour: an adornment is information; a placeholder is an invitation. */
-  color: var(--color-text-faint);
+  /* MUTED (2026-08-10, Kushagra, the day the ink ladder became solved targets). It was faint
+     from 2026-08-05, on the faint role's own definition naming this case — but that
+     definition changed under it: faint is now the EXCEPTION rung at Lc 30, below the reading
+     floor, for something deliberately stood down. A placeholder is not stood down; it says
+     what the field wants, which is real information said quietly, and that is muted (Lc 60,
+     the body floor exactly). The slot keeps muted as well — an adornment informs and a
+     placeholder invites, but neither of those jobs is the exception rung. */
+  color: var(--color-text-muted);
   /* Firefox ships placeholders at opacity 0.54, which would stack a second fade on a role
      that is already designed to sit below body copy. */
   opacity: 1;

@@ -56,8 +56,31 @@
   --kui-ct-fill-active: var(--kui-ct-fill-src-active);
 }
 
-.kui-control.kui-select-trigger[data-popup-open]:not([data-disabled]) {
-  background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
+/* The open state moved to the shared layer 2026-08-10 — the menu trigger was the third
+   control saying "in use, not hovered", and the third member promotes. What stays here is
+   what only this trigger has: the BUTTON'S GESTURE. It wears field dress, and §8's "a field
+   does nothing" is about the box the eye rests INSIDE — a trigger is pressed, so it rises to
+   the pointer and sinks under it exactly as a Button does (Kushagra: *"its also an onclick
+   trigger"*), on the skeleton's own clocks. Distances are the button family's tokens, so a
+   re-judged press reaches both files from config. */
+.kui-select-trigger {
+  translate: 0 0;
+  scale: 1;
+}
+@media (hover: hover) {
+  .kui-select-trigger:hover:not([data-disabled], [data-popup-open]) {
+    translate: 0 calc(-1 * var(--hover-travel));
+  }
+}
+.kui-select-trigger:active:not([data-disabled], [data-popup-open]) {
+  translate: 0 var(--press-travel);
+  scale: var(--press-scale);
+}
+/* An open trigger HOLDS THE PRESS — the button family's sentence verbatim (button.css
+   carries the why: latching, and the panel hangs from this box). */
+.kui-select-trigger[data-popup-open] {
+  translate: 0 var(--press-travel);
+  scale: var(--press-scale);
 }
 
 /* The value is one line reporting one choice, and it ellipsizes WHEREVER SOMETHING BOUNDS
@@ -79,17 +102,17 @@
   text-align: start;
 }
 
-/* An empty select INVITES, like an empty field: the placeholder is the faint role, whose
-   definition names this case (§15) — muted stays the slot colour (the chevron), because an
-   adornment informs while a placeholder invites. Base UI stamps the state on the value. */
+/* An empty select INVITES, like an empty field: the placeholder is the MUTED role (faint
+   until 2026-08-10, when faint became the exception rung below the reading floor — see
+   text-field.css). Base UI stamps the state on the value. */
 .kui-select-value[data-placeholder] {
-  color: var(--color-text-faint);
+  color: var(--color-text-muted);
 }
 
 /* A dead control's hint must not sit at a live one's contrast — the sentence text-field.css
    already carries, for the same reason and in the same shape (audit 2026-08-09). The shared
-   disabled arm works by re-pointing the TONE roles, and the rule above names
-   --color-text-faint directly, so the remap had nothing to reach: measured, a disabled
+   disabled arm works by re-pointing the TONE roles, and the rule above names a --color-text-*
+   role directly, so the remap had nothing to reach: measured, a disabled
    trigger's own text went correctly flat while its placeholder stayed at the live value, and
    in dark the placeholder was the BRIGHTER of the two. Both spellings, because a select is
    disabled either by our prop (the native attribute) or by an enclosing Field.Root (Base
@@ -123,8 +146,16 @@
      stays for the other half — a panel made wide by its own long rows rather than by its
      trigger. The inner max() keeps the designed floor from being squeezed away when the
      reported room is absurdly small. */
+  /* The anchor term consults the ENTRY's own measurement first (§22, 2026-08-10): the flight
+     needs this floor inside its measured target, and floating-ui has not written
+     --anchor-width yet on a first open — the panel flew to its content width and re-expanded
+     at release. --kui-anchor-w is the trigger's width AS HELD (2026-08-10, the compression
+     jump: an open trigger holds the press, floating-ui measures anchors with their
+     transforms, and a flight floored on the resting rect compressed 10px the frame it
+     released), present only during a flight; a settled panel falls through to floating-ui's
+     own — which agrees by input, not by timing. */
   min-width: min(
-    max(var(--floating-min-w), var(--anchor-width, var(--floating-min-w))),
+    max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w)))),
     max(var(--floating-min-w), var(--available-width, 100vw))
   );
   /* Long lists scroll inside the panel; wide ones are bounded by the room the positioner
@@ -162,7 +193,7 @@
    carved out is universal rather than occasional). */
 .kui-select-label {
   pointer-events: none;
-  color: var(--color-text-caption);
+  color: var(--color-text-muted);
 }
 
 /* The reserved gutter (§21): the indicator stays mounted so chosen and unchosen rows align —

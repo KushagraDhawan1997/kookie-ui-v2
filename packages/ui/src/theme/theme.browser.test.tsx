@@ -25,24 +25,68 @@ describe("the axes render as attributes (§5)", () => {
     expect(el.getAttribute("data-radius")).toBe("large");
   });
 
-  it("look stamps its default and a nested Theme escapes by declaration (§19)", () => {
-    // Always stamped — unlike contrast there is no platform signal to leave room for, and
-    // the outlined scope must exist for a nested outlined Theme to escape a filled ancestor.
-    expect(render(<Theme />).getAttribute("data-look")).toBe("outlined");
-    const outer = render(
-      <Theme look="filled">
-        <Theme density="compact" />
-      </Theme>,
+  // Both halves of the look axis, each on its own attribute (split 2026-08-10). Looped rather
+  // than written twice: the two are one mechanism asked of two family groups, and a law that
+  // covered only `surfaceLook` would have let `controlLook` ship un-stamped.
+  const LOOK_AXES = [
+    { prop: "surfaceLook", attr: "data-surface-look" },
+    { prop: "controlLook", attr: "data-control-look" },
+  ] as const;
+
+  for (const { prop, attr } of LOOK_AXES) {
+    it(`${prop} stamps its default and a nested Theme escapes by declaration (§19)`, () => {
+      // Always stamped — unlike contrast there is no platform signal to leave room for, and
+      // the outlined scope must exist for a nested outlined Theme to escape a filled ancestor.
+      expect(render(<Theme />).getAttribute(attr)).toBe("outlined");
+      const outer = render(
+        <Theme {...{ [prop]: "filled" }}>
+          <Theme density="compact" />
+        </Theme>,
+      );
+      expect(outer.getAttribute(attr)).toBe("filled");
+      const inner = outer.querySelector(".kui-theme")!;
+      expect(inner.getAttribute(attr)).toBe("filled");
+      const escaped = render(
+        <Theme {...{ [prop]: "filled" }}>
+          <Theme {...{ [prop]: "outlined" }} />
+        </Theme>,
+      ).querySelector(".kui-theme")!;
+      expect(escaped.getAttribute(attr)).toBe("outlined");
+    });
+  }
+
+  it("the two look halves are independent — a plain card can hold filled controls (§19)", () => {
+    // THE law the 2026-08-10 split exists for. Under one axis this cell was unreachable: a
+    // white card holding grey filled inputs — the most ordinary form on the web — because
+    // `filled` moved the surface and the field together, one neutral step apart.
+    //
+    // Read as computed paint on real components, not as attributes: the split is only real if
+    // the emitted scopes declare disjoint families, and an attribute law would pass on a
+    // stylesheet where one block still wrote both.
+    const at = (surfaceLook: "outlined" | "filled", controlLook: "outlined" | "filled") => {
+      const el = render(
+        <Theme surfaceLook={surfaceLook} controlLook={controlLook}>
+          <Card>
+            <TextField />
+          </Card>
+        </Theme>,
+      );
+      return {
+        card: computed(el.querySelector(".kui-surface")!, "background-color"),
+        field: computed(el.querySelector(".kui-field")!, "background-color"),
+      };
+    };
+    const plain = at("outlined", "outlined");
+    const split = at("outlined", "filled");
+    const both = at("filled", "filled");
+
+    expect(split.card, "the control half dressed the card").toBe(plain.card);
+    expect(split.field, "the control half left the field at rest").not.toBe(plain.field);
+    expect(both.card, "the surface half did not reach the card").not.toBe(plain.card);
+    // And the cell the whole thing is for: a card that stayed put while its field filled.
+    expect(split.field, "a filled field on a plain card is the same colour as the card").not.toBe(
+      split.card,
     );
-    expect(outer.getAttribute("data-look")).toBe("filled");
-    const inner = outer.querySelector(".kui-theme")!;
-    expect(inner.getAttribute("data-look")).toBe("filled");
-    const escaped = render(
-      <Theme look="filled">
-        <Theme look="outlined" />
-      </Theme>,
-    ).querySelector(".kui-theme")!;
-    expect(escaped.getAttribute("data-look")).toBe("outlined");
   });
 
   describe("a filled component's edge answers contrast=high (§7, §19)", () => {
@@ -71,7 +115,12 @@ describe("the axes render as attributes (§5)", () => {
         it(`${appearance}/${name}: the edge moves when high contrast is asked for`, () => {
           const edge = (contrast: "normal" | "high") =>
             computed(
-              mounted(ui, { theme: { look: "filled", appearance, contrast }, select }),
+              mounted(ui, {
+                // Both halves: the three cases span both family groups, and the stand-down
+                // this law is about is written once for every look role.
+                theme: { surfaceLook: "filled", controlLook: "filled", appearance, contrast },
+                select,
+              }),
               "border-top-color",
             );
           const normal = edge("normal");

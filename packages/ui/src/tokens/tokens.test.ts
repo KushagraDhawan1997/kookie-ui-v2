@@ -14,8 +14,10 @@ import {
   defaultRadiusLevel,
   density,
   look,
+  lookAxes,
   handheldMedia,
   fontSize,
+  iconSize,
   narrowMedia,
   typeBands,
   inputFontFloor,
@@ -212,8 +214,8 @@ describe("semantic tokens reference palette tokens, never restate numbers (§6)"
     for (let size = 1; size <= 4; size++) {
       expect(declaration(`radius-control-${size}`)).toMatch(/^var\(--radius-\d+\)$/);
       expect(declaration(`radius-surface-${size}`)).toMatch(/^var\(--radius-\d+\)$/);
+      expect(declaration(`radius-overlay-${size}`)).toMatch(/^var\(--radius-\d+\)$/);
     }
-    expect(declaration("radius-overlay")).toMatch(/^var\(--radius-\d+\)$/);
   });
 
   // The icon-label gap still resolves through the palette; inline padding no longer does, and
@@ -811,7 +813,7 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
 
   it("caps surfaces at full so a dialog never becomes a lens", () => {
     const { steps } = radiusLevels.full;
-    for (const step of [...radiusSurface, radiusOverlay]) {
+    for (const step of [...radiusSurface, ...radiusOverlay]) {
       expect(steps[step]).toBeLessThan(100);
     }
     for (let step = 1; step < radiusSurface[0]; step++) {
@@ -852,14 +854,36 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
       for (let size = 1; size <= 4; size++) {
         expect(level(name)).toContain(`--radius-surface-${size}: var(--radius-${radiusSurface[size - 1]})`);
       }
-      expect(level(name)).toContain(`--radius-overlay: var(--radius-${radiusOverlay})`);
+      // And the overlay band with it (§24, 2026-08-10): it became size-indexed the day Dialog
+      // took the size index, so it has exactly the same substitution problem the line above
+      // exists for — a :root-only declaration would leave every dialog inside a [data-radius]
+      // subtree wearing the default level's corner.
+      for (let size = 1; size <= 4; size++) {
+        expect(level(name)).toContain(`--radius-overlay-${size}: var(--radius-${radiusOverlay[size - 1]})`);
+      }
     }
   });
 
   it("surface picks are size-ordered within the band, and the band sits between control and overlay", () => {
     expect([...radiusSurface].every((v, i) => i === 0 || v > radiusSurface[i - 1]!)).toBe(true);
     expect(radiusSurface[0]).toBeGreaterThan(5);
-    expect(radiusOverlay).toBeGreaterThan(radiusSurface[3]!);
+    expect(radiusOverlay[3]).toBeGreaterThan(radiusSurface[3]!);
+  });
+
+  it("a dialog is rounder than the card of its own size, at every index and every level (§24)", () => {
+    // The overlay band leans one step up the surface band rather than living apart from it,
+    // so this is what makes "an overlay is not a card" true in pixels rather than in prose.
+    // Read off the emitted PALETTE per level, not off the picks, because `full` re-prices
+    // every step and a band that merely picked higher indices could still tie there.
+    expect([...radiusOverlay].every((v, i) => i === 0 || v > radiusOverlay[i - 1]!)).toBe(true);
+    for (const name of ["small", "medium", "large", "full"] as const) {
+      const { steps } = radiusLevels[name];
+      for (let size = 1; size <= 4; size++) {
+        expect(steps[radiusOverlay[size - 1]!]!).toBeGreaterThan(steps[radiusSurface[size - 1]!]!);
+      }
+    }
+    // Except at `none`, where the kill switch outranks every family (§6).
+    for (const step of radiusOverlay) expect(radiusLevels.none.steps[step]).toBe(0);
   });
 
   it("keeps the control and surface bands disjoint, which is what makes full expressible", () => {
@@ -955,6 +979,67 @@ describe("the mark family is the line box, and nothing designed twice (§4)", ()
 
   it("takes --scale like every other length", () => {
     for (let i = 1; i <= 5; i++) expect(markIn(":root", i)).toContain("var(--scale)");
+  });
+});
+
+describe("the icon box answers the pointer world, and only the pointer world (§4)", () => {
+  // Added 2026-08-10, from the playground: the icon was the ONE thing inside a control that
+  // the coarse world did not re-price. A size-2 button grew 32 → 44, its label 14 → 16 and its
+  // checkbox sibling 16 → 20, while the glyph sat at 16 in both worlds and read thin against
+  // all of it. The reason in config was a DENSITY argument ("a compact size 2 and a
+  // comfortable size 2 carry the same icon" — true) that had been extended to pointer in the
+  // same sentence, and pointer is not breathing room: coarse means the screen is held close,
+  // which is why type rises there.
+  const iconIn = (scope: string, i: number) => inScope(scope, `icon-size-${i}`);
+  const px = (v: string | undefined) => parseFloat(v!.match(/[\d.]+/)![0]);
+
+  it("is declared in FULL by :root and by BOTH worlds — a partial scope inherits the one above", () => {
+    for (const scope of [":root", '[data-pointer="fine"]', '[data-pointer="coarse"]']) {
+      for (let i = 1; i <= iconSize.fine.length; i++) {
+        expect(iconIn(scope, i), `${scope} is missing icon ${i}`).toBeDefined();
+      }
+    }
+  });
+
+  it(":root and the fine world are the same ladder — the un-themed default is the fine one", () => {
+    for (let i = 1; i <= iconSize.fine.length; i++) {
+      expect(iconIn(":root", i)).toBe(iconIn('[data-pointer="fine"]', i));
+    }
+  });
+
+  it("coarse is never smaller, and actually rises somewhere — a world that changes nothing is the bug", () => {
+    let rose = false;
+    for (let i = 1; i <= iconSize.fine.length; i++) {
+      const coarse = px(iconIn('[data-pointer="coarse"]', i));
+      const fine = px(iconIn(":root", i));
+      expect(coarse, `icon ${i} shrank on touch`).toBeGreaterThanOrEqual(fine);
+      if (coarse > fine) rose = true;
+    }
+    // The vacuity guard the mark round taught: every assertion above is satisfied by a coarse
+    // ladder identical to the fine one, which is the state this law was written against.
+    expect(rose, "the coarse world re-declares the icon box and moves nothing").toBe(true);
+  });
+
+  it("never rides density — a compact control is the same control with less air (§4)", () => {
+    for (const level of ["compact", "comfortable"] as const) {
+      for (const { selector, body } of everyDensityBlock(level)) {
+        expect(body, `${selector} moves the icon box`).not.toContain("--icon-size-");
+      }
+    }
+  });
+
+  it("stays on the drawing grid both worlds — an off-grid raster blurs its strokes", () => {
+    // The reason sizes 1 and 2 share a value, and the reason coarse tops out at 24 rather
+    // than continuing the ladder: 16/20/24 is what the icon sets are drawn for.
+    for (const ladder of Object.values(iconSize)) {
+      for (const px of ladder) expect([16, 20, 24], `${px} is off the drawing grid`).toContain(px);
+    }
+  });
+
+  it("takes --scale like every other length", () => {
+    for (let i = 1; i <= iconSize.fine.length; i++) {
+      expect(iconIn('[data-pointer="coarse"]', i)).toContain("var(--scale)");
+    }
   });
 });
 
@@ -1181,23 +1266,56 @@ describe("the track well (§7, §11) — the low neutral bed a value runs in", (
 });
 
 describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
+  // The axis is asked twice since 2026-08-10 (`surfaceLook`, `controlLook`), so a family's
+  // look scope is its OWN prop's — derived from config, never spelled here, or these laws
+  // would go quiet the day a family changed groups.
+  const axisOf = (family: string) => {
+    const hit = Object.entries(lookAxes).find(([, families]) =>
+      (families as readonly string[]).includes(family),
+    );
+    expect(hit, `no look axis owns the ${family} family`).toBeTruthy();
+    return hit![0];
+  };
+  const lookScope = (family: string, name: string) => `[data-${axisOf(family)}-look="${name}"]`;
+
+  it("the axes partition the families — every family has exactly one prop that moves it", () => {
+    // The split's structural claim, and the one that keeps the emitted blocks free of
+    // source-order luck: two scopes may both match one element (a Theme stamps both), so if
+    // any family appeared under both axes, whichever block came last would silently win and
+    // one of the two props would stop working in that cell.
+    const owners = new Map<string, string[]>();
+    for (const [axis, families] of Object.entries(lookAxes)) {
+      for (const family of families) owners.set(family, [...(owners.get(family) ?? []), axis]);
+    }
+    for (const family of Object.keys(look.outlined)) {
+      expect(owners.get(family), `${family} is owned by`).toHaveLength(1);
+    }
+    // And the reverse: an axis that names a family the look table does not define would emit
+    // an empty block — a prop that exists and dresses nothing.
+    for (const [axis, families] of Object.entries(lookAxes)) {
+      for (const family of families) {
+        expect(Object.keys(look.outlined), `${axis} names an unknown family`).toContain(family);
+      }
+    }
+  });
+
   it("both scopes exist and carry every role config names — derived, not hand-listed", () => {
     // :root carries the outlined identity for the un-themed document, and BOTH appearance
     // scopes repeat it — a look role holds a colour, and a var() inside a custom property
     // substitutes where it is DECLARED, so a role emitted only at :root baked the LIGHT seal
     // and every dark section that was not itself a look scope inherited a white card, field
     // and mark (found by eye in the preview, 2026-08-06; the mounted proof is in card's
-    // laws). The two [data-look] scopes exist so a nested Theme escapes by declaration.
+    // laws). The per-axis look scopes exist so a nested Theme escapes by declaration.
     for (const [name, families] of Object.entries(look)) {
-      const scopes = [
-        `[data-look="${name}"]`,
-        ...(name === "outlined"
-          ? [":root", '[data-appearance="light"]', '[data-appearance="dark"]']
-          : []),
-      ];
-      for (const scope of scopes) {
-        const body = block(scope);
-        for (const [family, slots] of Object.entries(families)) {
+      for (const [family, slots] of Object.entries(families)) {
+        const scopes = [
+          lookScope(family, name),
+          ...(name === "outlined"
+            ? [":root", '[data-appearance="light"]', '[data-appearance="dark"]']
+            : []),
+        ];
+        for (const scope of scopes) {
+          const body = block(scope);
           for (const [slot, value] of Object.entries(slots)) {
             expect(body, `${scope} lacks look-${family}-${slot}`).toContain(
               `--look-${family}-${slot}: ${value};`,
@@ -1220,7 +1338,7 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
     // the families made this law demand a border the design does not have.
     for (const [family, slots] of Object.entries(look.outlined)) {
       if (!("border" in slots)) continue;
-      for (const scope of [":root", '[data-look="outlined"]']) {
+      for (const scope of [":root", lookScope(family, "outlined")]) {
         expect(block(scope), `${scope}/${family}`).toContain(`--look-${family}-border: initial;`);
       }
     }
@@ -1246,7 +1364,7 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
   // the first hop is what let `filled` ship resolving to dark's own seal.
   const filledStep = (mode: "light" | "dark", family: string, slot: string) => {
     const scope = mode === "light" ? ":root" : '[data-appearance="dark"]';
-    const role = block('[data-look="filled"]').match(
+    const role = block(lookScope(family, "filled")).match(
       new RegExp(`--look-${family}-${slot}:\\s*var\\(--(dress-[\\w-]+)\\);`),
     )?.[1];
     expect(role, `look-${family}-${slot} does not resolve through a dress role`).toBeTruthy();
@@ -1353,8 +1471,11 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
 
   it("no filled role is transparent — the axis is a fill question, not a trade", () => {
     // Mutation guard for the reversal above: this is the exact string the old design shipped,
-    // and it must not come back by way of a "simplification".
-    expect(block('[data-look="filled"]')).not.toContain("transparent");
+    // and it must not come back by way of a "simplification". Both halves of the axis, walked
+    // from config: pinning one block would have let the other trade a hairline away unseen.
+    for (const axis of Object.keys(lookAxes)) {
+      expect(block(`[data-${axis}-look="filled"]`), axis).not.toContain("transparent");
+    }
   });
 
   it("every role the sheets consume is emitted, and every role emitted is consumed", () => {
@@ -1363,7 +1484,9 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
     // nothing at runtime and passes every other law — and a role nobody reads is dead bytes
     // and a false promise. Both sets are computed, never listed.
     const emitted = new Set(
-      [...block('[data-look="filled"]').matchAll(/--(look-[\w-]+):/g)].map((m) => m[1]!),
+      Object.keys(lookAxes).flatMap((axis) =>
+        [...block(`[data-${axis}-look="filled"]`).matchAll(/--(look-[\w-]+):/g)].map((m) => m[1]!),
+      ),
     );
     // `sheet()` strips comments, so a role merely NAMED in prose cannot satisfy either set.
     const sheets = allStylesheets().map(sheet).join("\n");
@@ -1426,6 +1549,89 @@ describe("the material ladder is monotone in every lever (§10)", () => {
       }
     });
   }
+});
+
+describe("the scrim dims by mode and leans under high contrast (§10, §24)", () => {
+  /** The alpha out of an `rgb(0 0 0 / A)` string — parsed, never rebuilt from the config
+      value, so a respelled row is read as the browser would read it (the transmission law's
+      own lesson: a law that reconstructs the generator's arithmetic agrees with its bugs). */
+  const alphaOf = (value: string) => {
+    const found = value.match(/\/\s*([\d.]+)\s*\)/);
+    if (!found) throw new Error(`not an alpha colour: ${value}`);
+    return Number(found[1]);
+  };
+
+  it("is emitted in both appearances, and dark dims harder than light", () => {
+    const light = inScope(`[data-appearance="light"]`, "scrim-fill")!;
+    const dark = inScope(`[data-appearance="dark"]`, "scrim-fill")!;
+    expect(light).toBeDefined();
+    expect(dark).toBeDefined();
+    // The reason, stated as a measurement: a 40% veil over a near-black page moves almost
+    // nothing, so the dark row has to carry more pigment to do the same job.
+    expect(alphaOf(dark)).toBeGreaterThan(alphaOf(light));
+    // And it is BLACK in both, never a mix of the page colour — see config's scrim note.
+    for (const value of [light, dark]) expect(value).toMatch(/^rgb\(0 0 0 \//);
+  });
+
+  it("blurs below the material defense floor — a scrim pushes back, it does not frost", () => {
+    for (const mode of ["light", "dark"] as const) {
+      const blur = Number(inScope(`[data-appearance="${mode}"]`, "scrim-filter")!.match(/blur\((\d+)px/)![1]);
+      // §10's 12px floor binds the DEFENDING recipes; the scrim is deliberately under it, and
+      // under the thinnest material too — a full-viewport backdrop is the most expensive thing
+      // this library can paint.
+      expect(blur).toBeLessThan(Number(material[mode].thin.filter.match(/blur\((\d+)px/)![1]));
+    }
+  });
+
+  it("contrast=\"high\" raises the dim and stands the blur down", () => {
+    for (const scope of [":root[data-contrast=\"high\"]", `[data-appearance="dark"][data-contrast="high"]`]) {
+      const body = css.slice(css.indexOf(`${scope}`));
+      const fill = body.match(/--scrim-fill:\s*([^;]+);/)![1]!;
+      const filter = body.match(/--scrim-filter:\s*([^;]+);/)![1]!;
+      const mode = scope.includes("dark") ? "dark" : "light";
+      expect(alphaOf(fill)).toBeGreaterThan(alphaOf(inScope(`[data-appearance="${mode}"]`, "scrim-fill")!));
+      // `initial` is guaranteed-invalid on an unregistered custom property, so the consuming
+      // var()'s fallback resolves at the element and the backdrop stops filtering — the
+      // material edge's own spelling, not a second mechanism.
+      expect(filter.trim()).toBe("initial");
+    }
+  });
+});
+
+describe("the overlay pane's width ladder (§24)", () => {
+  it("rises with the size index and rides --scale, not density", () => {
+    const widths = [1, 2, 3, 4].map((n) => declaration(`overlay-w-${n}`)!);
+    for (const value of widths) expect(value).toMatch(/^calc\(\d+px \* var\(--scale\)\)$/);
+    expect(increasing(widths.map((v) => Number(v.match(/(\d+)px/)![1])))).toBe(true);
+    // A width is a reading-measure question, and density is not asking it: no density scope
+    // may re-price one. (Written as a walk of EVERY block that scopes the level — the audit's
+    // own lesson about a law that reads the first scope and calls it all of them.)
+    for (const level of ["compact", "comfortable"] as const) {
+      for (const { selector, body } of everyDensityBlock(level)) {
+        expect(body, `${selector} re-prices an overlay width`).not.toContain("--overlay-w-");
+      }
+    }
+  });
+
+  it("keeps its window gutter in every density scope — a distance, so the layer owns it", () => {
+    // The mirror of the law above, and the substitution trap surface padding taught: the
+    // gutter is a layout-space pick, so a :root-only declaration would stay baked at the
+    // default rhythm inside every compact subtree.
+    expect(declaration("dialog-inset")).toMatch(/^var\(--layout-space-\d+\)$/);
+    let checked = 0;
+    for (const level of ["compact", "comfortable"] as const) {
+      for (const { selector, body } of everyDensityBlock(level)) {
+        // Only the scopes that re-bake the RHYTHM owe the pick — the pointer × density cells
+        // carry the control family alone and never touch layout space. Counted rather than
+        // assumed, so a generator that stopped emitting the rhythm anywhere cannot leave this
+        // law walking an empty set (the vacuity guard the Slider round taught).
+        if (!body.includes("--layout-space-1:")) continue;
+        checked++;
+        expect(body, `${selector} forgets the dialog gutter`).toContain("--dialog-inset:");
+      }
+    }
+    expect(checked).toBe(2);
+  });
 });
 
 describe("generated output is not hand-edited (ENGINEERING §7)", () => {

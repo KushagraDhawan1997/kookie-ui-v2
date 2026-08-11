@@ -242,9 +242,9 @@ describe("the fill is an identity and the tone reaches BOTH of the chip's colour
 
 describe("it is inert — an atom with no states (§11)", () => {
   it("no cursor of its own, no focus ring, no shadow, in either world", () => {
-    for (const surfaces of ["flat", "elevated"] as const) {
-      const el = mounted(<Code>x</Code>, { theme: { surfaces } });
-      expect(computed(el, "box-shadow"), `${surfaces} lifted an inert atom`).toBe("none");
+    for (const depth of ["flat", "elevated"] as const) {
+      const el = mounted(<Code>x</Code>, { theme: { depth } });
+      expect(computed(el, "box-shadow"), `${depth} lifted an inert atom`).toBe("none");
       expect(computed(el, "cursor")).not.toBe(tokenOn(el, "--cursor-button"));
       expect(computed(el, "outline-style")).toBe("none");
     }

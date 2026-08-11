@@ -25,6 +25,7 @@ import {
   render,
   tokenOn,
   within,
+  inMotion,
 } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
@@ -350,25 +351,25 @@ describe("a checked mark is the family's loud rung, and loud rungs catch light (
   // over the same accent solid — one material for a form's solid fills. NO cast: a mark is
   // a well that fills, never a raised key. Unchecked is a well and wells are not lit.
   it("checked catches exactly the loud button's light; unchecked never; flat never", () => {
-    const checked = markOf(mounted(<Checkbox defaultChecked />, { theme: { surfaces: "elevated" } }));
+    const checked = markOf(mounted(<Checkbox defaultChecked />, { theme: { depth: "elevated" } }));
     const button = mounted(
       <Button tone="accent" emphasis="loud">
         L
       </Button>,
-      { theme: { surfaces: "elevated" } },
+      { theme: { depth: "elevated" } },
     );
     expect(computed(checked, "background-image")).toContain("linear-gradient");
     expect(computed(checked, "background-image")).toBe(computed(button, "background-image"));
     expect(computed(checked, "box-shadow")).toBe("none");
-    const unchecked = markOf(mounted(<Checkbox />, { theme: { surfaces: "elevated" } }));
+    const unchecked = markOf(mounted(<Checkbox />, { theme: { depth: "elevated" } }));
     expect(computed(unchecked, "background-image")).toBe("none");
-    const flat = markOf(mounted(<Checkbox defaultChecked />, { theme: { surfaces: "flat" } }));
+    const flat = markOf(mounted(<Checkbox defaultChecked />, { theme: { depth: "flat" } }));
     expect(computed(flat, "background-image")).toBe("none");
   });
 
   it("disabled stands the catch down, and a mark inside a loud surface does not inherit it", () => {
     const disabled = markOf(
-      mounted(<Checkbox defaultChecked disabled />, { theme: { surfaces: "elevated" } }),
+      mounted(<Checkbox defaultChecked disabled />, { theme: { depth: "elevated" } }),
     );
     expect(computed(disabled, "background-image")).toBe("none");
     // The leak guard: the emphasis ladder's light tokens INHERIT, so an unchecked mark under
@@ -379,7 +380,7 @@ describe("a checked mark is the family's loud rung, and loud rungs catch light (
       <div data-emphasis="loud">
         <Checkbox />
       </div>,
-      { theme: { surfaces: "elevated" } },
+      { theme: { depth: "elevated" } },
     );
     expect(computed(markOf(hosted), "background-image")).toBe("none");
   });
@@ -393,8 +394,8 @@ describe("the look axis dresses the resting box, never the tick (§19)", () => {
     // deleting --control-edge, the boundary audit D2 minted BECAUSE an unchecked box is nothing
     // but its hairline, dropping it to |Lc| 0.0 against the card. Now judged against the
     // other end of the axis, and against the guarantee D2 bought.
-    const filled = markOf(mounted(<Checkbox />, { theme: { look: "filled", appearance } }));
-    const outlined = markOf(mounted(<Checkbox />, { theme: { look: "outlined", appearance } }));
+    const filled = markOf(mounted(<Checkbox />, { theme: { controlLook: "filled", appearance } }));
+    const outlined = markOf(mounted(<Checkbox />, { theme: { controlLook: "outlined", appearance } }));
     expect(
       computed(filled, "background-color"),
       `filled resolves to outlined's fill in ${appearance}`,
@@ -407,22 +408,22 @@ describe("the look axis dresses the resting box, never the tick (§19)", () => {
 
   it("outlined is the identity — byte-identical to the bare render", () => {
     const bare = markOf(render(<Checkbox />));
-    const outlined = markOf(mounted(<Checkbox />, { theme: { look: "outlined" } }));
+    const outlined = markOf(mounted(<Checkbox />, { theme: { controlLook: "outlined" } }));
     for (const prop of ["background-color", "border-top-color"]) {
       expect(computed(outlined, prop)).toBe(computed(bare, prop));
     }
   });
 
   it("checked is an identity, not dress: identical in both looks", () => {
-    const outlined = markOf(mounted(<Checkbox defaultChecked />, { theme: { look: "outlined" } }));
-    const filled = markOf(mounted(<Checkbox defaultChecked />, { theme: { look: "filled" } }));
+    const outlined = markOf(mounted(<Checkbox defaultChecked />, { theme: { controlLook: "outlined" } }));
+    const filled = markOf(mounted(<Checkbox defaultChecked />, { theme: { controlLook: "filled" } }));
     for (const prop of ["background-color", "border-top-color"]) {
       expect(computed(filled, prop)).toBe(computed(outlined, prop));
     }
   });
 
   it("invalid outranks dress: the error edge shows through filled's transparent border", () => {
-    const el = mounted(<Checkbox aria-invalid="true" />, { theme: { look: "filled" } });
+    const el = mounted(<Checkbox aria-invalid="true" />, { theme: { controlLook: "filled" } });
     expect(computed(markOf(el), "border-top-color")).toBe(colorOn(el, "var(--invalid-edge)"));
   });
 });
@@ -431,7 +432,7 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
   it("stays flat in an elevated world — a mark's box is the state, not a plane (§5)", () => {
     // The negative half of elevation's membership criterion (decided 2026-08-06): the
     // shadow ladder is surface-scale lengths, and nothing is ever behind a mark.
-    const el = mounted(<Checkbox />, { theme: { surfaces: "elevated" } });
+    const el = mounted(<Checkbox />, { theme: { depth: "elevated" } });
     expect(computed(markOf(el), "box-shadow")).toBe("none");
   });
 
@@ -447,7 +448,7 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
       for (const look of ["outlined", "filled"] as const) {
         const at = (props: { disabled?: boolean; defaultChecked?: boolean }) =>
           render(
-            <Theme appearance={appearance} look={look}>
+            <Theme appearance={appearance} controlLook={look}>
               <Checkbox {...props} />
             </Theme>,
           );
@@ -504,7 +505,7 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     // label-on-soft pairing on the glyph, and the solid's light catch stood down.
     for (const appearance of APPEARANCES) {
       const el = render(
-        <Theme appearance={appearance} surfaces="elevated">
+        <Theme appearance={appearance} depth="elevated">
           <Checkbox aria-invalid="true" defaultChecked />
           <Checkbox defaultChecked />
           <Checkbox aria-invalid="true" />
@@ -787,5 +788,64 @@ describe("marks in a stack keep their clicks at twelve pixels (§4, decided 2026
       </Theme>,
     );
     expect(stolenRows(el)).toBeGreaterThan(0);
+  });
+});
+
+/* ── Motion: the tick is drawn, the box takes the press (§8, 2026-08-09) ───────────────── */
+
+describe("the tick is drawn, not switched on (§8)", () => {
+  // `stroke-dashoffset` computes with a unit even though the path is normalised, so the law
+  // reads the number rather than the spelling.
+  const dash = (el: HTMLElement, cls: string) =>
+    parseFloat(computed(el.querySelector<HTMLElement>(cls)!, "stroke-dashoffset"));
+
+  it("unchecked the stroke is fully retracted; checked it is fully out", () => {
+    const off = mounted(<Checkbox />, { theme: {}, select: ".kui-checkbox" });
+    inMotion();
+    // pathLength normalises the glyph to 1, so a full retraction is exactly 1 whatever the
+    // size or the viewBox — the law reads the same number in all 24 cells.
+    expect(dash(off, ".kui-checkbox-check"), "an unchecked tick is not drawn").toBe(1);
+
+    const on = mounted(<Checkbox defaultChecked />, { theme: {}, select: ".kui-checkbox" });
+    inMotion();
+    expect(dash(on, ".kui-checkbox-check"), "a checked tick is drawn whole").toBe(0);
+  });
+
+  it("it draws IN on a spring and returns instantly — un-checking is not the reverse", () => {
+    const on = mounted(<Checkbox defaultChecked />, { theme: {}, select: ".kui-checkbox" });
+    inMotion();
+    const tick = on.querySelector<HTMLElement>(".kui-checkbox-check")!;
+    expect(computed(tick, "transition-property")).toContain("stroke-dashoffset");
+    expect(computed(tick, "transition-timing-function"), "a drawn stroke has mass").toContain("linear(");
+    expect(parseFloat(computed(tick, "transition-duration"))).toBeGreaterThan(0);
+
+    // Nobody watches a tick un-draw: the box is already empty by the time the eye arrives.
+    const off = mounted(<Checkbox />, { theme: {}, select: ".kui-checkbox" });
+    inMotion();
+    const gone = off.querySelector<HTMLElement>(".kui-checkbox-check")!;
+    expect(computed(gone, "transition-duration"), "the return is instant").toBe("0s");
+  });
+
+  it("the indeterminate dash is the tick's own sentence, not a faded check", () => {
+    // `indeterminate` is its own boolean prop, not a value of `checked` — the first spelling
+    // of this law passed one and read a plain checked box, which is the calibration lesson:
+    // an instrument has to be pointed at the state it names.
+    const some = mounted(<Checkbox indeterminate />, { theme: {}, select: ".kui-checkbox" });
+    inMotion();
+    expect(dash(some, ".kui-checkbox-dash"), "the dash draws").toBe(0);
+    expect(dash(some, ".kui-checkbox-check"), "and the tick stays retracted").toBe(1);
+  });
+
+  it("held, the mark squashes — it has no depth to sink into (§8)", () => {
+    const el = mounted(<Checkbox />, { theme: {}, select: ".kui-checkbox" });
+    inMotion();
+    // A resting mark states NO transform: any non-`none` value makes it a stacking context,
+    // and a mark's target paints deliberately outside its own box — five laws caught that.
+    expect(computed(el, "scale"), "a resting mark must not be a stacking context").toBe("none");
+    const squash = Number(getComputedStyle(el).getPropertyValue("--press-squash"));
+    expect(squash).toBeLessThan(1);
+    expect(squash).toBeGreaterThan(0.8);
+    const listed = computed(el, "transition-property").split(",").map((p) => p.trim());
+    expect(listed, "and it has a clock to squash on").toContain("scale");
   });
 });

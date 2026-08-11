@@ -76,7 +76,10 @@
   --mono-scale: 0.925;
   --kbd-scale: 0.9;
 
-  /* the icon box (§4) — size-indexed, but never density- or pointer-indexed */
+  /* the icon box (§4) — size-indexed and POINTER-indexed (2026-08-10), never density-indexed:
+     a glyph is read at the distance the screen is held, and a compact control is the same
+     control with less air around it. The pointer worlds re-declare it below; :root carries
+     the fine ladder, which is also the un-themed default. */
   --icon-size-1: calc(16px * var(--scale));
   --icon-size-2: calc(16px * var(--scale));
   --icon-size-3: calc(20px * var(--scale));
@@ -144,11 +147,40 @@
   --border-width: calc(1px * var(--scale));
   --focus-ring-width: calc(2px * var(--scale));
   --focus-ring-offset: calc(2px * var(--scale));
+  --edge-hover-mix: 14%;
 
-  /* motion (§8) — designed values with NO consumer: every transition is zeroed until the
-     motion system is designed, and a law pins that. Not a shipped transition. */
+  /* motion (§8) — two clocks. Signal (colour, opacity) eases and is short; travel
+     (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and
+     reads like mass. The curves are SAMPLED from the model in config, never pasted. */
   --motion-duration: 120ms;
   --motion-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-spring: linear(0, 0.021 2.78%, 0.076 5.56%, 0.154 8.33%, 0.247 11.11%, 0.347 13.89%, 0.449 16.67%, 0.548 19.44%, 0.641 22.22%, 0.726 25%, 0.801 27.78%, 0.866 30.56%, 0.92 33.33%, 0.964 36.11%, 0.999 38.89%, 1.026 41.67%, 1.045 44.44%, 1.058 47.22%, 1.065 50%, 1.068 52.78%, 1.067 55.56%, 1.064 58.33%, 1.059 61.11%, 1.053 63.89%, 1.047 66.67%, 1.04 69.44%, 1.033 72.22%, 1.026 75%, 1.02 77.78%, 1.015 80.56%, 1.011 83.33%, 1.007 86.11%, 1.003 88.89%, 1.001 91.67%, 0.999 94.44%, 0.997 97.22%, 1 100%);
+  --motion-hover-in: 80ms;
+  --motion-hover-out: 220ms;
+  --motion-press: 140ms;
+  --motion-rise: 550ms;
+  --hover-travel: calc(1px * var(--scale));
+  --motion-mark: 380ms;
+  --motion-travel: 420ms;
+  --motion-ring: 260ms;
+  --focus-ring-land: calc(4px * var(--scale));
+  --press-travel: calc(2px * var(--scale));
+  --press-scale: 0.975;
+  --press-squash: 0.9;
+  --thumb-lean: calc(6px * var(--scale));
+  --motion-spring-lively: linear(0, 0.04 2.78%, 0.141 5.56%, 0.278 8.33%, 0.429 11.11%, 0.579 13.89%, 0.717 16.67%, 0.835 19.44%, 0.931 22.22%, 1.004 25%, 1.056 27.78%, 1.087 30.56%, 1.103 33.33%, 1.107 36.11%, 1.101 38.89%, 1.089 41.67%, 1.074 44.44%, 1.058 47.22%, 1.042 50%, 1.028 52.78%, 1.016 55.56%, 1.006 58.33%, 0.998 61.11%, 0.993 63.89%, 0.99 66.67%, 0.989 69.44%, 0.989 72.22%, 0.989 75%, 0.991 77.78%, 0.992 80.56%, 0.994 83.33%, 0.996 86.11%, 0.997 88.89%, 0.999 91.67%, 1 94.44%, 1 97.22%, 1 100%);
+  --motion-spring-stiff: linear(0, 0.017 4.17%, 0.062 8.33%, 0.124 12.5%, 0.197 16.67%, 0.276 20.83%, 0.356 25%, 0.434 29.17%, 0.509 33.33%, 0.578 37.5%, 0.642 41.67%, 0.699 45.83%, 0.749 50%, 0.794 54.17%, 0.833 58.33%, 0.866 62.5%, 0.894 66.67%, 0.918 70.83%, 0.937 75%, 0.953 79.17%, 0.966 83.33%, 0.977 87.5%, 0.985 91.67%, 0.991 95.83%, 1 100%);
+
+  /* the floating family's own motion (§22) — the emergence recipe's channels. Time, so
+     no --scale: a panel does not unfurl slower because the interface is zoomed. */
+  --floating-seed: calc(40px * var(--scale));
+  --floating-fall: 320ms;
+  --floating-spread: 480ms;
+  --floating-corner: 380ms;
+  --floating-reveal: 200ms;
+  --floating-reveal-delay: 80ms;
+  --floating-dissolve: 140ms;
+  --floating-settle: 160ms;
 
   /* §8 — pointer feedback; `button` is the contested one, so it is overridable */
   --cursor-button: pointer;
@@ -161,7 +193,10 @@
   --radius-surface-2: var(--radius-7);
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
-  --radius-overlay: var(--radius-10);
+  --radius-overlay-1: var(--radius-7);
+  --radius-overlay-2: var(--radius-8);
+  --radius-overlay-3: var(--radius-9);
+  --radius-overlay-4: var(--radius-10);
 
   /* semantic: control family at the default density (§4, §6, §12); the gap is
      the label cluster's — size-indexed, never density's (§4) */
@@ -237,6 +272,16 @@
   --floating-p: var(--layout-space-2);
   --floating-min-w: calc(112px * var(--scale));
 
+  /* the overlay pane (§24) — a MAXIMUM width per size index, published to the pane by
+     the surface layer's overlay join, and the gutter a dialog keeps from the window
+     edge. The widths ride --scale and answer neither density nor pointer: how wide a
+     modal should be is a question about reading measure, not about air. */
+  --overlay-w-1: calc(360px * var(--scale));
+  --overlay-w-2: calc(440px * var(--scale));
+  --overlay-w-3: calc(560px * var(--scale));
+  --overlay-w-4: calc(720px * var(--scale));
+  --dialog-inset: var(--layout-space-6);
+
   /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each
      one-look family declared before the axis existed. A look role holds a COLOUR, so it
      repeats in every appearance scope like every other colour role — see the dark block. */
@@ -290,8 +335,8 @@
   --neutral-label: #454648;
   --neutral-contrast: #ffffff;
   --neutral-ink: var(--neutral-12);
-  --neutral-ink-muted: var(--neutral-11);
-  --neutral-ink-faint: var(--neutral-10);
+  --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
+  --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
   /* accent */
   --accent-1: #fcfcfc;
   --accent-2: #f6f7f7;
@@ -328,8 +373,8 @@
   --accent-label: #454648;
   --accent-contrast: #ffffff;
   --accent-ink: var(--accent-11);
-  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
-  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
+  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 78%, transparent);
+  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 38%, transparent);
   /* destructive */
   --destructive-1: #fefbfb;
   --destructive-2: #fdf5f4;
@@ -366,8 +411,8 @@
   --destructive-label: #6c3230;
   --destructive-contrast: #ffffff;
   --destructive-ink: var(--destructive-11);
-  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
-  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
+  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 73%, transparent);
+  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 35%, transparent);
   /* blue */
   --blue-1: #fafcff;
   --blue-2: #f1f8fe;
@@ -404,8 +449,8 @@
   --blue-label: #23486e;
   --blue-contrast: #ffffff;
   --blue-ink: var(--blue-11);
-  --blue-ink-muted: color-mix(in oklab, var(--blue-11) 74%, transparent);
-  --blue-ink-faint: color-mix(in oklab, var(--blue-11) 52%, transparent);
+  --blue-ink-muted: color-mix(in oklab, var(--blue-11) 77%, transparent);
+  --blue-ink-faint: color-mix(in oklab, var(--blue-11) 37%, transparent);
   /* green */
   --green-1: #f5fff7;
   --green-2: #e6feea;
@@ -442,8 +487,8 @@
   --green-label: #255130;
   --green-contrast: #000000;
   --green-ink: var(--green-11);
-  --green-ink-muted: color-mix(in oklab, var(--green-11) 74%, transparent);
-  --green-ink-faint: color-mix(in oklab, var(--green-11) 52%, transparent);
+  --green-ink-muted: color-mix(in oklab, var(--green-11) 78%, transparent);
+  --green-ink-faint: color-mix(in oklab, var(--green-11) 38%, transparent);
   /* orange */
   --orange-1: #fffbf9;
   --orange-2: #fef5f0;
@@ -481,7 +526,7 @@
   --orange-contrast: #ffffff;
   --orange-ink: var(--orange-11);
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
-  --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+  --orange-ink-faint: color-mix(in oklab, var(--orange-11) 36%, transparent);
   /* amber */
   --amber-1: #fefbf6;
   --amber-2: #fef6e9;
@@ -518,8 +563,8 @@
   --amber-label: #544325;
   --amber-contrast: #000000;
   --amber-ink: var(--amber-11);
-  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
-  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
+  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 77%, transparent);
+  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 38%, transparent);
   /* success */
   --success-1: #f5fff7;
   --success-2: #e6feea;
@@ -556,8 +601,8 @@
   --success-label: #255130;
   --success-contrast: #000000;
   --success-ink: var(--success-11);
-  --success-ink-muted: color-mix(in oklab, var(--success-11) 74%, transparent);
-  --success-ink-faint: color-mix(in oklab, var(--success-11) 52%, transparent);
+  --success-ink-muted: color-mix(in oklab, var(--success-11) 78%, transparent);
+  --success-ink-faint: color-mix(in oklab, var(--success-11) 38%, transparent);
   /* warning */
   --warning-1: #fefbf6;
   --warning-2: #fef6e9;
@@ -594,8 +639,8 @@
   --warning-label: #544325;
   --warning-contrast: #000000;
   --warning-ink: var(--warning-11);
-  --warning-ink-muted: color-mix(in oklab, var(--warning-11) 74%, transparent);
-  --warning-ink-faint: color-mix(in oklab, var(--warning-11) 52%, transparent);
+  --warning-ink-muted: color-mix(in oklab, var(--warning-11) 77%, transparent);
+  --warning-ink-faint: color-mix(in oklab, var(--warning-11) 38%, transparent);
   /* info */
   --info-1: #fafcff;
   --info-2: #f1f8fe;
@@ -632,8 +677,8 @@
   --info-label: #23486e;
   --info-contrast: #ffffff;
   --info-ink: var(--info-11);
-  --info-ink-muted: color-mix(in oklab, var(--info-11) 74%, transparent);
-  --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
+  --info-ink-muted: color-mix(in oklab, var(--info-11) 77%, transparent);
+  --info-ink-faint: color-mix(in oklab, var(--info-11) 37%, transparent);
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
   --control-edge: #a3a6aa;
@@ -674,21 +719,34 @@
   --material-thick-rim-lifted: linear-gradient(rgb(255 255 255 / 0.62) 0 var(--border-width), transparent var(--border-width));
   --material-opaque-alpha: 95%;
 
+  /* the scrim (§10, §24) — the dialog backdrop's dim and blur, and NOT a member of the
+     material ladder above: a material defends a foreground by mixing that component's
+     own fill, while this pushes the whole app back so the thing on top of it is
+     unambiguously the thing you are using. Black in both modes on purpose — a scrim
+     mixed from the page colour vanishes in dark, which is where dimming needs the most
+     help, and it is why dark leans harder. contrast="high" and reduced transparency
+     share one answer (see the high-contrast block): drop the blur, take fillHigh. */
+  --scrim-fill: rgb(0 0 0 / 0.4);
+  --scrim-fill-high: rgb(0 0 0 / 0.62);
+  --scrim-filter: blur(4px);
+
   /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
      Three rungs, the type ladder's resolutions: loud reads text, medium muted, quiet
-     faint. Faint is BELOW body-copy contrast by design (a placeholder, a timestamp) —
-     it must never carry a reading-length line, which is the call site's law. */
-  --color-text: var(--neutral-12);
-  --color-text-muted: var(--neutral-11);
-  --color-text-faint: var(--neutral-10);
-  /* and the CAPTION, one step below the ladder (minted 2026-08-09, Kushagra: "the group
-     label should be a tone lighter, lowest emphasis"). A panel's group heading names a
-     region, it is never read as content — macOS sets its section headers below every
-     other ink in the menu — so it sits under faint rather than sharing it: faint is the
-     placeholder's role, and a heading and an invitation are different jobs (the
-     --color-border precedent: a role is minted when a real consumer needs a value no
-     existing role may honestly hold). Never a reading-length line, same law as faint. */
-  --color-text-caption: var(--neutral-9);
+     faint. These ARE neutral's inks, referenced rather than restated (2026-08-10): the
+     tone-less default is the neutral family, so a second spelling here is a second home
+     for one value — and it was one, right up until the ladder was solved and this block
+     would have kept the old picked steps.
+
+     Muted lands on apcaFloors.body: real information said quietly (a placeholder, a
+     group label, a timestamp). Faint is BELOW the reading floor on purpose — the
+     exception rung, for something deliberately stood down, like an option that cannot
+     be chosen. It must never carry a reading-length line, which is the call site's law.
+     The CAPTION role was deleted the same day: its two consumers (a menu's and a
+     select's group label) are exactly what muted is now for, and a fourth ink nothing
+     reads is the emitted-lever mistake §15 already made once with font-weight-bold. */
+  --color-text: var(--neutral-ink);
+  --color-text-muted: var(--neutral-ink-muted);
+  --color-text-faint: var(--neutral-ink-faint);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
      job alone. Paper above the page, so a card is visible where it lives. The hover and
@@ -794,8 +852,8 @@
   --neutral-label: #454648;
   --neutral-contrast: #ffffff;
   --neutral-ink: var(--neutral-12);
-  --neutral-ink-muted: var(--neutral-11);
-  --neutral-ink-faint: var(--neutral-10);
+  --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
+  --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
   /* accent */
   --accent-1: #fcfcfc;
   --accent-2: #f6f7f7;
@@ -832,8 +890,8 @@
   --accent-label: #454648;
   --accent-contrast: #ffffff;
   --accent-ink: var(--accent-11);
-  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
-  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
+  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 78%, transparent);
+  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 38%, transparent);
   /* destructive */
   --destructive-1: #fefbfb;
   --destructive-2: #fdf5f4;
@@ -870,8 +928,8 @@
   --destructive-label: #6c3230;
   --destructive-contrast: #ffffff;
   --destructive-ink: var(--destructive-11);
-  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
-  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
+  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 73%, transparent);
+  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 35%, transparent);
   /* blue */
   --blue-1: #fafcff;
   --blue-2: #f1f8fe;
@@ -908,8 +966,8 @@
   --blue-label: #23486e;
   --blue-contrast: #ffffff;
   --blue-ink: var(--blue-11);
-  --blue-ink-muted: color-mix(in oklab, var(--blue-11) 74%, transparent);
-  --blue-ink-faint: color-mix(in oklab, var(--blue-11) 52%, transparent);
+  --blue-ink-muted: color-mix(in oklab, var(--blue-11) 77%, transparent);
+  --blue-ink-faint: color-mix(in oklab, var(--blue-11) 37%, transparent);
   /* green */
   --green-1: #f5fff7;
   --green-2: #e6feea;
@@ -946,8 +1004,8 @@
   --green-label: #255130;
   --green-contrast: #000000;
   --green-ink: var(--green-11);
-  --green-ink-muted: color-mix(in oklab, var(--green-11) 74%, transparent);
-  --green-ink-faint: color-mix(in oklab, var(--green-11) 52%, transparent);
+  --green-ink-muted: color-mix(in oklab, var(--green-11) 78%, transparent);
+  --green-ink-faint: color-mix(in oklab, var(--green-11) 38%, transparent);
   /* orange */
   --orange-1: #fffbf9;
   --orange-2: #fef5f0;
@@ -985,7 +1043,7 @@
   --orange-contrast: #ffffff;
   --orange-ink: var(--orange-11);
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
-  --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+  --orange-ink-faint: color-mix(in oklab, var(--orange-11) 36%, transparent);
   /* amber */
   --amber-1: #fefbf6;
   --amber-2: #fef6e9;
@@ -1022,8 +1080,8 @@
   --amber-label: #544325;
   --amber-contrast: #000000;
   --amber-ink: var(--amber-11);
-  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
-  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
+  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 77%, transparent);
+  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 38%, transparent);
   /* success */
   --success-1: #f5fff7;
   --success-2: #e6feea;
@@ -1060,8 +1118,8 @@
   --success-label: #255130;
   --success-contrast: #000000;
   --success-ink: var(--success-11);
-  --success-ink-muted: color-mix(in oklab, var(--success-11) 74%, transparent);
-  --success-ink-faint: color-mix(in oklab, var(--success-11) 52%, transparent);
+  --success-ink-muted: color-mix(in oklab, var(--success-11) 78%, transparent);
+  --success-ink-faint: color-mix(in oklab, var(--success-11) 38%, transparent);
   /* warning */
   --warning-1: #fefbf6;
   --warning-2: #fef6e9;
@@ -1098,8 +1156,8 @@
   --warning-label: #544325;
   --warning-contrast: #000000;
   --warning-ink: var(--warning-11);
-  --warning-ink-muted: color-mix(in oklab, var(--warning-11) 74%, transparent);
-  --warning-ink-faint: color-mix(in oklab, var(--warning-11) 52%, transparent);
+  --warning-ink-muted: color-mix(in oklab, var(--warning-11) 77%, transparent);
+  --warning-ink-faint: color-mix(in oklab, var(--warning-11) 38%, transparent);
   /* info */
   --info-1: #fafcff;
   --info-2: #f1f8fe;
@@ -1136,8 +1194,8 @@
   --info-label: #23486e;
   --info-contrast: #ffffff;
   --info-ink: var(--info-11);
-  --info-ink-muted: color-mix(in oklab, var(--info-11) 74%, transparent);
-  --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
+  --info-ink-muted: color-mix(in oklab, var(--info-11) 77%, transparent);
+  --info-ink-faint: color-mix(in oklab, var(--info-11) 37%, transparent);
   --focus-ring: var(--accent-solid);
   --invalid-edge: var(--destructive-solid);
   --control-edge: #a3a6aa;
@@ -1178,21 +1236,34 @@
   --material-thick-rim-lifted: linear-gradient(rgb(255 255 255 / 0.62) 0 var(--border-width), transparent var(--border-width));
   --material-opaque-alpha: 95%;
 
+  /* the scrim (§10, §24) — the dialog backdrop's dim and blur, and NOT a member of the
+     material ladder above: a material defends a foreground by mixing that component's
+     own fill, while this pushes the whole app back so the thing on top of it is
+     unambiguously the thing you are using. Black in both modes on purpose — a scrim
+     mixed from the page colour vanishes in dark, which is where dimming needs the most
+     help, and it is why dark leans harder. contrast="high" and reduced transparency
+     share one answer (see the high-contrast block): drop the blur, take fillHigh. */
+  --scrim-fill: rgb(0 0 0 / 0.4);
+  --scrim-fill-high: rgb(0 0 0 / 0.62);
+  --scrim-filter: blur(4px);
+
   /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
      Three rungs, the type ladder's resolutions: loud reads text, medium muted, quiet
-     faint. Faint is BELOW body-copy contrast by design (a placeholder, a timestamp) —
-     it must never carry a reading-length line, which is the call site's law. */
-  --color-text: var(--neutral-12);
-  --color-text-muted: var(--neutral-11);
-  --color-text-faint: var(--neutral-10);
-  /* and the CAPTION, one step below the ladder (minted 2026-08-09, Kushagra: "the group
-     label should be a tone lighter, lowest emphasis"). A panel's group heading names a
-     region, it is never read as content — macOS sets its section headers below every
-     other ink in the menu — so it sits under faint rather than sharing it: faint is the
-     placeholder's role, and a heading and an invitation are different jobs (the
-     --color-border precedent: a role is minted when a real consumer needs a value no
-     existing role may honestly hold). Never a reading-length line, same law as faint. */
-  --color-text-caption: var(--neutral-9);
+     faint. These ARE neutral's inks, referenced rather than restated (2026-08-10): the
+     tone-less default is the neutral family, so a second spelling here is a second home
+     for one value — and it was one, right up until the ladder was solved and this block
+     would have kept the old picked steps.
+
+     Muted lands on apcaFloors.body: real information said quietly (a placeholder, a
+     group label, a timestamp). Faint is BELOW the reading floor on purpose — the
+     exception rung, for something deliberately stood down, like an option that cannot
+     be chosen. It must never carry a reading-length line, which is the call site's law.
+     The CAPTION role was deleted the same day: its two consumers (a menu's and a
+     select's group label) are exactly what muted is now for, and a fourth ink nothing
+     reads is the emitted-lever mistake §15 already made once with font-weight-bold. */
+  --color-text: var(--neutral-ink);
+  --color-text-muted: var(--neutral-ink-muted);
+  --color-text-faint: var(--neutral-ink-faint);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
      job alone. Paper above the page, so a card is visible where it lives. The hover and
@@ -1310,8 +1381,8 @@
   --neutral-label: #d1d2d3;
   --neutral-contrast: #000000;
   --neutral-ink: var(--neutral-12);
-  --neutral-ink-muted: var(--neutral-11);
-  --neutral-ink-faint: var(--neutral-10);
+  --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 74%, transparent);
+  --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 48%, transparent);
   /* accent */
   --accent-1: #0f0f10;
   --accent-2: #141516;
@@ -1348,8 +1419,8 @@
   --accent-label: #d1d2d3;
   --accent-contrast: #000000;
   --accent-ink: var(--accent-11);
-  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
-  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
+  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 94%, transparent);
+  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 60%, transparent);
   /* destructive */
   --destructive-1: #200606;
   --destructive-2: #290809;
@@ -1386,8 +1457,8 @@
   --destructive-label: #ebc9c6;
   --destructive-contrast: #ffffff;
   --destructive-ink: var(--destructive-11);
-  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
-  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
+  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 95%, transparent);
+  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 61%, transparent);
   /* blue */
   --blue-1: #011021;
   --blue-2: #02162b;
@@ -1424,8 +1495,8 @@
   --blue-label: #bbd5f1;
   --blue-contrast: #ffffff;
   --blue-ink: var(--blue-11);
-  --blue-ink-muted: color-mix(in oklab, var(--blue-11) 74%, transparent);
-  --blue-ink-faint: color-mix(in oklab, var(--blue-11) 52%, transparent);
+  --blue-ink-muted: color-mix(in oklab, var(--blue-11) 94%, transparent);
+  --blue-ink-faint: color-mix(in oklab, var(--blue-11) 60%, transparent);
   /* green */
   --green-1: #021406;
   --green-2: #021b08;
@@ -1462,8 +1533,8 @@
   --green-label: #79f097;
   --green-contrast: #000000;
   --green-ink: var(--green-11);
-  --green-ink-muted: color-mix(in oklab, var(--green-11) 74%, transparent);
-  --green-ink-faint: color-mix(in oklab, var(--green-11) 52%, transparent);
+  --green-ink-muted: color-mix(in oklab, var(--green-11) 91%, transparent);
+  --green-ink-faint: color-mix(in oklab, var(--green-11) 58%, transparent);
   /* orange */
   --orange-1: #1e0802;
   --orange-2: #270c02;
@@ -1500,8 +1571,8 @@
   --orange-label: #f1c8b6;
   --orange-contrast: #ffffff;
   --orange-ink: var(--orange-11);
-  --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
-  --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+  --orange-ink-muted: color-mix(in oklab, var(--orange-11) 95%, transparent);
+  --orange-ink-faint: color-mix(in oklab, var(--orange-11) 60%, transparent);
   /* amber */
   --amber-1: #160e02;
   --amber-2: #1d1303;
@@ -1538,8 +1609,8 @@
   --amber-label: #eecd95;
   --amber-contrast: #000000;
   --amber-ink: var(--amber-11);
-  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
-  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
+  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 94%, transparent);
+  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 60%, transparent);
   /* success */
   --success-1: #021406;
   --success-2: #021b08;
@@ -1576,8 +1647,8 @@
   --success-label: #79f097;
   --success-contrast: #000000;
   --success-ink: var(--success-11);
-  --success-ink-muted: color-mix(in oklab, var(--success-11) 74%, transparent);
-  --success-ink-faint: color-mix(in oklab, var(--success-11) 52%, transparent);
+  --success-ink-muted: color-mix(in oklab, var(--success-11) 91%, transparent);
+  --success-ink-faint: color-mix(in oklab, var(--success-11) 58%, transparent);
   /* warning */
   --warning-1: #160e02;
   --warning-2: #1d1303;
@@ -1614,8 +1685,8 @@
   --warning-label: #eecd95;
   --warning-contrast: #000000;
   --warning-ink: var(--warning-11);
-  --warning-ink-muted: color-mix(in oklab, var(--warning-11) 74%, transparent);
-  --warning-ink-faint: color-mix(in oklab, var(--warning-11) 52%, transparent);
+  --warning-ink-muted: color-mix(in oklab, var(--warning-11) 94%, transparent);
+  --warning-ink-faint: color-mix(in oklab, var(--warning-11) 60%, transparent);
   /* info */
   --info-1: #011021;
   --info-2: #02162b;
@@ -1652,8 +1723,8 @@
   --info-label: #bbd5f1;
   --info-contrast: #ffffff;
   --info-ink: var(--info-11);
-  --info-ink-muted: color-mix(in oklab, var(--info-11) 74%, transparent);
-  --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
+  --info-ink-muted: color-mix(in oklab, var(--info-11) 94%, transparent);
+  --info-ink-faint: color-mix(in oklab, var(--info-11) 60%, transparent);
   --focus-ring: var(--accent-11);
   --invalid-edge: var(--destructive-11);
   --control-edge: #75787b;
@@ -1694,21 +1765,34 @@
   --material-thick-rim-lifted: linear-gradient(rgb(255 255 255 / 0.24) 0 var(--border-width), transparent var(--border-width));
   --material-opaque-alpha: 95%;
 
+  /* the scrim (§10, §24) — the dialog backdrop's dim and blur, and NOT a member of the
+     material ladder above: a material defends a foreground by mixing that component's
+     own fill, while this pushes the whole app back so the thing on top of it is
+     unambiguously the thing you are using. Black in both modes on purpose — a scrim
+     mixed from the page colour vanishes in dark, which is where dimming needs the most
+     help, and it is why dark leans harder. contrast="high" and reduced transparency
+     share one answer (see the high-contrast block): drop the blur, take fillHigh. */
+  --scrim-fill: rgb(0 0 0 / 0.55);
+  --scrim-fill-high: rgb(0 0 0 / 0.75);
+  --scrim-filter: blur(4px);
+
   /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
      Three rungs, the type ladder's resolutions: loud reads text, medium muted, quiet
-     faint. Faint is BELOW body-copy contrast by design (a placeholder, a timestamp) —
-     it must never carry a reading-length line, which is the call site's law. */
-  --color-text: var(--neutral-12);
-  --color-text-muted: var(--neutral-11);
-  --color-text-faint: var(--neutral-10);
-  /* and the CAPTION, one step below the ladder (minted 2026-08-09, Kushagra: "the group
-     label should be a tone lighter, lowest emphasis"). A panel's group heading names a
-     region, it is never read as content — macOS sets its section headers below every
-     other ink in the menu — so it sits under faint rather than sharing it: faint is the
-     placeholder's role, and a heading and an invitation are different jobs (the
-     --color-border precedent: a role is minted when a real consumer needs a value no
-     existing role may honestly hold). Never a reading-length line, same law as faint. */
-  --color-text-caption: var(--neutral-9);
+     faint. These ARE neutral's inks, referenced rather than restated (2026-08-10): the
+     tone-less default is the neutral family, so a second spelling here is a second home
+     for one value — and it was one, right up until the ladder was solved and this block
+     would have kept the old picked steps.
+
+     Muted lands on apcaFloors.body: real information said quietly (a placeholder, a
+     group label, a timestamp). Faint is BELOW the reading floor on purpose — the
+     exception rung, for something deliberately stood down, like an option that cannot
+     be chosen. It must never carry a reading-length line, which is the call site's law.
+     The CAPTION role was deleted the same day: its two consumers (a menu's and a
+     select's group label) are exactly what muted is now for, and a fourth ink nothing
+     reads is the emitted-lever mistake §15 already made once with font-weight-bold. */
+  --color-text: var(--neutral-ink);
+  --color-text-muted: var(--neutral-ink-muted);
+  --color-text-faint: var(--neutral-ink-faint);
 
   /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
      job alone. Paper above the page, so a card is visible where it lives. The hover and
@@ -1789,11 +1873,21 @@
   --look-mark-border: initial;
 }
 
-[data-look="outlined"] {
+[data-surface-look="outlined"] {
   --look-surface-fill: var(--color-surface);
   --look-surface-fill-hover: var(--color-surface-hover);
   --look-surface-fill-active: var(--color-surface-active);
   --look-surface-border: initial;
+}
+
+[data-surface-look="filled"] {
+  --look-surface-fill: var(--dress-surface-fill);
+  --look-surface-fill-hover: var(--dress-surface-fill-hover);
+  --look-surface-fill-active: var(--dress-surface-fill-active);
+  --look-surface-border: var(--dress-surface-edge);
+}
+
+[data-control-look="outlined"] {
   --look-field-fill: var(--color-surface);
   --look-field-fill-hover: var(--color-surface-hover);
   --look-field-fill-active: var(--color-surface-active);
@@ -1804,11 +1898,7 @@
   --look-mark-border: initial;
 }
 
-[data-look="filled"] {
-  --look-surface-fill: var(--dress-surface-fill);
-  --look-surface-fill-hover: var(--dress-surface-fill-hover);
-  --look-surface-fill-active: var(--dress-surface-fill-active);
-  --look-surface-border: var(--dress-surface-edge);
+[data-control-look="filled"] {
   --look-field-fill: var(--dress-field-fill);
   --look-field-fill-hover: var(--dress-field-fill-hover);
   --look-field-fill-active: var(--dress-field-fill-active);
@@ -1845,8 +1935,8 @@
     --neutral-label: color(display-p3 0.2697 0.2751 0.282);
     --neutral-contrast: #ffffff;
     --neutral-ink: var(--neutral-12);
-    --neutral-ink-muted: var(--neutral-11);
-    --neutral-ink-faint: var(--neutral-10);
+    --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
+    --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
     /* accent */
     --accent-1: color(display-p3 0.9865 0.9869 0.9873);
     --accent-2: color(display-p3 0.9664 0.9673 0.9684);
@@ -1871,8 +1961,8 @@
     --accent-label: color(display-p3 0.2697 0.2751 0.282);
     --accent-contrast: #ffffff;
     --accent-ink: var(--accent-11);
-    --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
-    --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
+    --accent-ink-muted: color-mix(in oklab, var(--accent-11) 78%, transparent);
+    --accent-ink-faint: color-mix(in oklab, var(--accent-11) 38%, transparent);
     /* destructive */
     --destructive-1: color(display-p3 0.9959 0.9834 0.982);
     --destructive-2: color(display-p3 0.9904 0.9583 0.9546);
@@ -1897,8 +1987,8 @@
     --destructive-label: color(display-p3 0.4082 0.1959 0.1861);
     --destructive-contrast: #ffffff;
     --destructive-ink: var(--destructive-11);
-    --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
-    --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
+    --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 73%, transparent);
+    --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 35%, transparent);
     /* blue */
     --blue-1: color(display-p3 0.9797 0.9881 0.9987);
     --blue-2: color(display-p3 0.9489 0.9703 0.9974);
@@ -1923,8 +2013,8 @@
     --blue-label: color(display-p3 0.1341 0.2781 0.4584);
     --blue-contrast: #ffffff;
     --blue-ink: var(--blue-11);
-    --blue-ink-muted: color-mix(in oklab, var(--blue-11) 74%, transparent);
-    --blue-ink-faint: color-mix(in oklab, var(--blue-11) 52%, transparent);
+    --blue-ink-muted: color-mix(in oklab, var(--blue-11) 77%, transparent);
+    --blue-ink-faint: color-mix(in oklab, var(--blue-11) 37%, transparent);
     /* green */
     --green-1: color(display-p3 0.9672 0.9987 0.9683);
     --green-2: color(display-p3 0.9151 0.9975 0.9186);
@@ -1949,8 +2039,8 @@
     --green-label: color(display-p3 0.1428 0.3274 0.167);
     --green-contrast: #000000;
     --green-ink: var(--green-11);
-    --green-ink-muted: color-mix(in oklab, var(--green-11) 74%, transparent);
-    --green-ink-faint: color-mix(in oklab, var(--green-11) 52%, transparent);
+    --green-ink-muted: color-mix(in oklab, var(--green-11) 78%, transparent);
+    --green-ink-faint: color-mix(in oklab, var(--green-11) 38%, transparent);
     /* orange */
     --orange-1: color(display-p3 0.9983 0.9834 0.9757);
     --orange-2: color(display-p3 0.9964 0.9581 0.9383);
@@ -1976,7 +2066,7 @@
     --orange-contrast: #ffffff;
     --orange-ink: var(--orange-11);
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
-    --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+    --orange-ink-faint: color-mix(in oklab, var(--orange-11) 36%, transparent);
     /* amber */
     --amber-1: color(display-p3 0.9975 0.9857 0.9636);
     --amber-2: color(display-p3 0.9944 0.964 0.9072);
@@ -2001,8 +2091,8 @@
     --amber-label: color(display-p3 0.3267 0.2636 0.1433);
     --amber-contrast: #000000;
     --amber-ink: var(--amber-11);
-    --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
-    --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
+    --amber-ink-muted: color-mix(in oklab, var(--amber-11) 77%, transparent);
+    --amber-ink-faint: color-mix(in oklab, var(--amber-11) 38%, transparent);
     /* success */
     --success-1: color(display-p3 0.9672 0.9987 0.9683);
     --success-2: color(display-p3 0.9151 0.9975 0.9186);
@@ -2027,8 +2117,8 @@
     --success-label: color(display-p3 0.1428 0.3274 0.167);
     --success-contrast: #000000;
     --success-ink: var(--success-11);
-    --success-ink-muted: color-mix(in oklab, var(--success-11) 74%, transparent);
-    --success-ink-faint: color-mix(in oklab, var(--success-11) 52%, transparent);
+    --success-ink-muted: color-mix(in oklab, var(--success-11) 78%, transparent);
+    --success-ink-faint: color-mix(in oklab, var(--success-11) 38%, transparent);
     /* warning */
     --warning-1: color(display-p3 0.9975 0.9857 0.9636);
     --warning-2: color(display-p3 0.9944 0.964 0.9072);
@@ -2053,8 +2143,8 @@
     --warning-label: color(display-p3 0.3267 0.2636 0.1433);
     --warning-contrast: #000000;
     --warning-ink: var(--warning-11);
-    --warning-ink-muted: color-mix(in oklab, var(--warning-11) 74%, transparent);
-    --warning-ink-faint: color-mix(in oklab, var(--warning-11) 52%, transparent);
+    --warning-ink-muted: color-mix(in oklab, var(--warning-11) 77%, transparent);
+    --warning-ink-faint: color-mix(in oklab, var(--warning-11) 38%, transparent);
     /* info */
     --info-1: color(display-p3 0.9797 0.9881 0.9987);
     --info-2: color(display-p3 0.9489 0.9703 0.9974);
@@ -2079,8 +2169,8 @@
     --info-label: color(display-p3 0.1341 0.2781 0.4584);
     --info-contrast: #ffffff;
     --info-ink: var(--info-11);
-    --info-ink-muted: color-mix(in oklab, var(--info-11) 74%, transparent);
-    --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
+    --info-ink-muted: color-mix(in oklab, var(--info-11) 77%, transparent);
+    --info-ink-faint: color-mix(in oklab, var(--info-11) 37%, transparent);
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
     --control-edge: color(display-p3 0.6431 0.6525 0.6646);
@@ -2113,8 +2203,8 @@
     --neutral-label: color(display-p3 0.2697 0.2751 0.282);
     --neutral-contrast: #ffffff;
     --neutral-ink: var(--neutral-12);
-    --neutral-ink-muted: var(--neutral-11);
-    --neutral-ink-faint: var(--neutral-10);
+    --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
+    --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
     /* accent */
     --accent-1: color(display-p3 0.9865 0.9869 0.9873);
     --accent-2: color(display-p3 0.9664 0.9673 0.9684);
@@ -2139,8 +2229,8 @@
     --accent-label: color(display-p3 0.2697 0.2751 0.282);
     --accent-contrast: #ffffff;
     --accent-ink: var(--accent-11);
-    --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
-    --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
+    --accent-ink-muted: color-mix(in oklab, var(--accent-11) 78%, transparent);
+    --accent-ink-faint: color-mix(in oklab, var(--accent-11) 38%, transparent);
     /* destructive */
     --destructive-1: color(display-p3 0.9959 0.9834 0.982);
     --destructive-2: color(display-p3 0.9904 0.9583 0.9546);
@@ -2165,8 +2255,8 @@
     --destructive-label: color(display-p3 0.4082 0.1959 0.1861);
     --destructive-contrast: #ffffff;
     --destructive-ink: var(--destructive-11);
-    --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
-    --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
+    --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 73%, transparent);
+    --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 35%, transparent);
     /* blue */
     --blue-1: color(display-p3 0.9797 0.9881 0.9987);
     --blue-2: color(display-p3 0.9489 0.9703 0.9974);
@@ -2191,8 +2281,8 @@
     --blue-label: color(display-p3 0.1341 0.2781 0.4584);
     --blue-contrast: #ffffff;
     --blue-ink: var(--blue-11);
-    --blue-ink-muted: color-mix(in oklab, var(--blue-11) 74%, transparent);
-    --blue-ink-faint: color-mix(in oklab, var(--blue-11) 52%, transparent);
+    --blue-ink-muted: color-mix(in oklab, var(--blue-11) 77%, transparent);
+    --blue-ink-faint: color-mix(in oklab, var(--blue-11) 37%, transparent);
     /* green */
     --green-1: color(display-p3 0.9672 0.9987 0.9683);
     --green-2: color(display-p3 0.9151 0.9975 0.9186);
@@ -2217,8 +2307,8 @@
     --green-label: color(display-p3 0.1428 0.3274 0.167);
     --green-contrast: #000000;
     --green-ink: var(--green-11);
-    --green-ink-muted: color-mix(in oklab, var(--green-11) 74%, transparent);
-    --green-ink-faint: color-mix(in oklab, var(--green-11) 52%, transparent);
+    --green-ink-muted: color-mix(in oklab, var(--green-11) 78%, transparent);
+    --green-ink-faint: color-mix(in oklab, var(--green-11) 38%, transparent);
     /* orange */
     --orange-1: color(display-p3 0.9983 0.9834 0.9757);
     --orange-2: color(display-p3 0.9964 0.9581 0.9383);
@@ -2244,7 +2334,7 @@
     --orange-contrast: #ffffff;
     --orange-ink: var(--orange-11);
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
-    --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+    --orange-ink-faint: color-mix(in oklab, var(--orange-11) 36%, transparent);
     /* amber */
     --amber-1: color(display-p3 0.9975 0.9857 0.9636);
     --amber-2: color(display-p3 0.9944 0.964 0.9072);
@@ -2269,8 +2359,8 @@
     --amber-label: color(display-p3 0.3267 0.2636 0.1433);
     --amber-contrast: #000000;
     --amber-ink: var(--amber-11);
-    --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
-    --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
+    --amber-ink-muted: color-mix(in oklab, var(--amber-11) 77%, transparent);
+    --amber-ink-faint: color-mix(in oklab, var(--amber-11) 38%, transparent);
     /* success */
     --success-1: color(display-p3 0.9672 0.9987 0.9683);
     --success-2: color(display-p3 0.9151 0.9975 0.9186);
@@ -2295,8 +2385,8 @@
     --success-label: color(display-p3 0.1428 0.3274 0.167);
     --success-contrast: #000000;
     --success-ink: var(--success-11);
-    --success-ink-muted: color-mix(in oklab, var(--success-11) 74%, transparent);
-    --success-ink-faint: color-mix(in oklab, var(--success-11) 52%, transparent);
+    --success-ink-muted: color-mix(in oklab, var(--success-11) 78%, transparent);
+    --success-ink-faint: color-mix(in oklab, var(--success-11) 38%, transparent);
     /* warning */
     --warning-1: color(display-p3 0.9975 0.9857 0.9636);
     --warning-2: color(display-p3 0.9944 0.964 0.9072);
@@ -2321,8 +2411,8 @@
     --warning-label: color(display-p3 0.3267 0.2636 0.1433);
     --warning-contrast: #000000;
     --warning-ink: var(--warning-11);
-    --warning-ink-muted: color-mix(in oklab, var(--warning-11) 74%, transparent);
-    --warning-ink-faint: color-mix(in oklab, var(--warning-11) 52%, transparent);
+    --warning-ink-muted: color-mix(in oklab, var(--warning-11) 77%, transparent);
+    --warning-ink-faint: color-mix(in oklab, var(--warning-11) 38%, transparent);
     /* info */
     --info-1: color(display-p3 0.9797 0.9881 0.9987);
     --info-2: color(display-p3 0.9489 0.9703 0.9974);
@@ -2347,8 +2437,8 @@
     --info-label: color(display-p3 0.1341 0.2781 0.4584);
     --info-contrast: #ffffff;
     --info-ink: var(--info-11);
-    --info-ink-muted: color-mix(in oklab, var(--info-11) 74%, transparent);
-    --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
+    --info-ink-muted: color-mix(in oklab, var(--info-11) 77%, transparent);
+    --info-ink-faint: color-mix(in oklab, var(--info-11) 37%, transparent);
     --focus-ring: var(--accent-solid);
     --invalid-edge: var(--destructive-solid);
     --control-edge: color(display-p3 0.6431 0.6525 0.6646);
@@ -2381,8 +2471,8 @@
     --neutral-label: color(display-p3 0.8195 0.8231 0.8275);
     --neutral-contrast: #000000;
     --neutral-ink: var(--neutral-12);
-    --neutral-ink-muted: var(--neutral-11);
-    --neutral-ink-faint: var(--neutral-10);
+    --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 74%, transparent);
+    --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 48%, transparent);
     /* accent */
     --accent-1: color(display-p3 0.058 0.0605 0.0637);
     --accent-2: color(display-p3 0.08 0.083 0.0869);
@@ -2407,8 +2497,8 @@
     --accent-label: color(display-p3 0.8195 0.8231 0.8275);
     --accent-contrast: #000000;
     --accent-ink: var(--accent-11);
-    --accent-ink-muted: color-mix(in oklab, var(--accent-11) 74%, transparent);
-    --accent-ink-faint: color-mix(in oklab, var(--accent-11) 52%, transparent);
+    --accent-ink-muted: color-mix(in oklab, var(--accent-11) 94%, transparent);
+    --accent-ink-faint: color-mix(in oklab, var(--accent-11) 60%, transparent);
     /* destructive */
     --destructive-1: color(display-p3 0.1194 0.0223 0.0217);
     --destructive-2: color(display-p3 0.1547 0.0326 0.0322);
@@ -2433,8 +2523,8 @@
     --destructive-label: color(display-p3 0.9197 0.7821 0.7678);
     --destructive-contrast: #ffffff;
     --destructive-ink: var(--destructive-11);
-    --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 74%, transparent);
-    --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 52%, transparent);
+    --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 95%, transparent);
+    --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 61%, transparent);
     /* blue */
     --blue-1: color(display-p3 0.0051 0.0593 0.144);
     --blue-2: color(display-p3 0.0062 0.0812 0.1849);
@@ -2459,8 +2549,8 @@
     --blue-label: color(display-p3 0.7454 0.8333 0.9453);
     --blue-contrast: #ffffff;
     --blue-ink: var(--blue-11);
-    --blue-ink-muted: color-mix(in oklab, var(--blue-11) 74%, transparent);
-    --blue-ink-faint: color-mix(in oklab, var(--blue-11) 52%, transparent);
+    --blue-ink-muted: color-mix(in oklab, var(--blue-11) 94%, transparent);
+    --blue-ink-faint: color-mix(in oklab, var(--blue-11) 60%, transparent);
     /* green */
     --green-1: color(display-p3 0.0059 0.0833 0.015);
     --green-2: color(display-p3 0.0072 0.1108 0.0216);
@@ -2485,8 +2575,8 @@
     --green-label: color(display-p3 0.5163 0.9526 0.5668);
     --green-contrast: #000000;
     --green-ink: var(--green-11);
-    --green-ink-muted: color-mix(in oklab, var(--green-11) 74%, transparent);
-    --green-ink-faint: color-mix(in oklab, var(--green-11) 52%, transparent);
+    --green-ink-muted: color-mix(in oklab, var(--green-11) 91%, transparent);
+    --green-ink-faint: color-mix(in oklab, var(--green-11) 58%, transparent);
     /* orange */
     --orange-1: color(display-p3 0.1118 0.0326 0.0056);
     --orange-2: color(display-p3 0.1455 0.0481 0.0073);
@@ -2511,8 +2601,8 @@
     --orange-label: color(display-p3 0.9435 0.7797 0.6953);
     --orange-contrast: #ffffff;
     --orange-ink: var(--orange-11);
-    --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
-    --orange-ink-faint: color-mix(in oklab, var(--orange-11) 52%, transparent);
+    --orange-ink-muted: color-mix(in oklab, var(--orange-11) 95%, transparent);
+    --orange-ink-faint: color-mix(in oklab, var(--orange-11) 60%, transparent);
     /* amber */
     --amber-1: color(display-p3 0.0839 0.0545 0.0086);
     --amber-2: color(display-p3 0.1116 0.0756 0.0119);
@@ -2537,8 +2627,8 @@
     --amber-label: color(display-p3 0.9342 0.8022 0.5546);
     --amber-contrast: #000000;
     --amber-ink: var(--amber-11);
-    --amber-ink-muted: color-mix(in oklab, var(--amber-11) 74%, transparent);
-    --amber-ink-faint: color-mix(in oklab, var(--amber-11) 52%, transparent);
+    --amber-ink-muted: color-mix(in oklab, var(--amber-11) 94%, transparent);
+    --amber-ink-faint: color-mix(in oklab, var(--amber-11) 60%, transparent);
     /* success */
     --success-1: color(display-p3 0.0059 0.0833 0.015);
     --success-2: color(display-p3 0.0072 0.1108 0.0216);
@@ -2563,8 +2653,8 @@
     --success-label: color(display-p3 0.5163 0.9526 0.5668);
     --success-contrast: #000000;
     --success-ink: var(--success-11);
-    --success-ink-muted: color-mix(in oklab, var(--success-11) 74%, transparent);
-    --success-ink-faint: color-mix(in oklab, var(--success-11) 52%, transparent);
+    --success-ink-muted: color-mix(in oklab, var(--success-11) 91%, transparent);
+    --success-ink-faint: color-mix(in oklab, var(--success-11) 58%, transparent);
     /* warning */
     --warning-1: color(display-p3 0.0839 0.0545 0.0086);
     --warning-2: color(display-p3 0.1116 0.0756 0.0119);
@@ -2589,8 +2679,8 @@
     --warning-label: color(display-p3 0.9342 0.8022 0.5546);
     --warning-contrast: #000000;
     --warning-ink: var(--warning-11);
-    --warning-ink-muted: color-mix(in oklab, var(--warning-11) 74%, transparent);
-    --warning-ink-faint: color-mix(in oklab, var(--warning-11) 52%, transparent);
+    --warning-ink-muted: color-mix(in oklab, var(--warning-11) 94%, transparent);
+    --warning-ink-faint: color-mix(in oklab, var(--warning-11) 60%, transparent);
     /* info */
     --info-1: color(display-p3 0.0051 0.0593 0.144);
     --info-2: color(display-p3 0.0062 0.0812 0.1849);
@@ -2615,8 +2705,8 @@
     --info-label: color(display-p3 0.7454 0.8333 0.9453);
     --info-contrast: #ffffff;
     --info-ink: var(--info-11);
-    --info-ink-muted: color-mix(in oklab, var(--info-11) 74%, transparent);
-    --info-ink-faint: color-mix(in oklab, var(--info-11) 52%, transparent);
+    --info-ink-muted: color-mix(in oklab, var(--info-11) 94%, transparent);
+    --info-ink-faint: color-mix(in oklab, var(--info-11) 60%, transparent);
     --focus-ring: var(--accent-11);
     --invalid-edge: var(--destructive-11);
     --control-edge: color(display-p3 0.4591 0.4688 0.4811);
@@ -2733,6 +2823,8 @@
   --look-surface-border: initial;
   --look-field-border: initial;
   --look-mark-border: initial;
+  --scrim-fill: rgb(0 0 0 / 0.62);
+  --scrim-filter: initial;
 }
 @media (prefers-contrast: more) {
   :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -2842,6 +2934,8 @@
     --look-surface-border: initial;
     --look-field-border: initial;
     --look-mark-border: initial;
+    --scrim-fill: rgb(0 0 0 / 0.62);
+    --scrim-filter: initial;
   }
 }
 
@@ -2952,6 +3046,8 @@
   --look-surface-border: initial;
   --look-field-border: initial;
   --look-mark-border: initial;
+  --scrim-fill: rgb(0 0 0 / 0.75);
+  --scrim-filter: initial;
 }
 @media (prefers-contrast: more) {
   [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -3061,6 +3157,8 @@
     --look-surface-border: initial;
     --look-field-border: initial;
     --look-mark-border: initial;
+    --scrim-fill: rgb(0 0 0 / 0.75);
+    --scrim-filter: initial;
   }
 }
 
@@ -3468,6 +3566,7 @@
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
   --floating-p: var(--layout-space-2);
+  --dialog-inset: var(--layout-space-6);
 }
 
 [data-density="default"] {
@@ -3516,6 +3615,7 @@
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
   --floating-p: var(--layout-space-2);
+  --dialog-inset: var(--layout-space-6);
 }
 
 [data-density="comfortable"] {
@@ -3564,6 +3664,7 @@
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
   --floating-p: var(--layout-space-2);
+  --dialog-inset: var(--layout-space-6);
 }
 
 [data-radius="none"] {
@@ -3583,7 +3684,10 @@
   --radius-surface-2: var(--radius-7);
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
-  --radius-overlay: var(--radius-10);
+  --radius-overlay-1: var(--radius-7);
+  --radius-overlay-2: var(--radius-8);
+  --radius-overlay-3: var(--radius-9);
+  --radius-overlay-4: var(--radius-10);
   --radius-mark-1: 0px;
   --radius-mark-2: 0px;
   --radius-mark-3: 0px;
@@ -3608,7 +3712,10 @@
   --radius-surface-2: var(--radius-7);
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
-  --radius-overlay: var(--radius-10);
+  --radius-overlay-1: var(--radius-7);
+  --radius-overlay-2: var(--radius-8);
+  --radius-overlay-3: var(--radius-9);
+  --radius-overlay-4: var(--radius-10);
   --radius-mark-1: calc(2px * var(--scale));
   --radius-mark-2: calc(2px * var(--scale));
   --radius-mark-3: calc(3px * var(--scale));
@@ -3633,7 +3740,10 @@
   --radius-surface-2: var(--radius-7);
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
-  --radius-overlay: var(--radius-10);
+  --radius-overlay-1: var(--radius-7);
+  --radius-overlay-2: var(--radius-8);
+  --radius-overlay-3: var(--radius-9);
+  --radius-overlay-4: var(--radius-10);
   --radius-mark-1: calc(4px * var(--scale));
   --radius-mark-2: calc(4px * var(--scale));
   --radius-mark-3: calc(6px * var(--scale));
@@ -3658,7 +3768,10 @@
   --radius-surface-2: var(--radius-7);
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
-  --radius-overlay: var(--radius-10);
+  --radius-overlay-1: var(--radius-7);
+  --radius-overlay-2: var(--radius-8);
+  --radius-overlay-3: var(--radius-9);
+  --radius-overlay-4: var(--radius-10);
   --radius-mark-1: calc(6px * var(--scale));
   --radius-mark-2: calc(6px * var(--scale));
   --radius-mark-3: calc(8px * var(--scale));
@@ -3683,7 +3796,10 @@
   --radius-surface-2: var(--radius-7);
   --radius-surface-3: var(--radius-8);
   --radius-surface-4: var(--radius-9);
-  --radius-overlay: var(--radius-10);
+  --radius-overlay-1: var(--radius-7);
+  --radius-overlay-2: var(--radius-8);
+  --radius-overlay-3: var(--radius-9);
+  --radius-overlay-4: var(--radius-10);
   --radius-mark-1: calc(6px * var(--scale));
   --radius-mark-2: calc(6px * var(--scale));
   --radius-mark-3: calc(8px * var(--scale));
@@ -4216,6 +4332,10 @@
   --switch-w-2: calc(40px * var(--scale));
   --switch-w-3: calc(44px * var(--scale));
   --switch-w-4: calc(48px * var(--scale));
+  --icon-size-1: calc(16px * var(--scale));
+  --icon-size-2: calc(16px * var(--scale));
+  --icon-size-3: calc(20px * var(--scale));
+  --icon-size-4: calc(24px * var(--scale));
 }
 
 [data-pointer="fine"][data-density="compact"] {
@@ -4635,6 +4755,10 @@
   --switch-w-2: calc(44px * var(--scale));
   --switch-w-3: calc(48px * var(--scale));
   --switch-w-4: calc(48px * var(--scale));
+  --icon-size-1: calc(20px * var(--scale));
+  --icon-size-2: calc(20px * var(--scale));
+  --icon-size-3: calc(24px * var(--scale));
+  --icon-size-4: calc(24px * var(--scale));
 }
 
 [data-pointer="coarse"][data-density="compact"] {
@@ -5055,6 +5179,10 @@
     --switch-w-2: calc(44px * var(--scale));
     --switch-w-3: calc(48px * var(--scale));
     --switch-w-4: calc(48px * var(--scale));
+    --icon-size-1: calc(20px * var(--scale));
+    --icon-size-2: calc(20px * var(--scale));
+    --icon-size-3: calc(24px * var(--scale));
+    --icon-size-4: calc(24px * var(--scale));
   }
 
   [data-pointer="auto"][data-density="compact"] {

@@ -24,8 +24,11 @@ export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
  * The bands are disjoint on purpose:
  *   steps 1-5   the control band (density picks a step from here)
  *   steps 6-9   the surface band (--radius-surface-1..4 — size-indexed since 2026-08-04)
- *   step  10    the overlay (--radius-overlay)
- * That is what lets `full` pill the controls while capping surfaces. It is NOT what makes the
+ *   steps 7-10  the overlay band (--radius-overlay-1..4 — size-indexed since 2026-08-10)
+ * The control band is disjoint from both, and that is what lets `full` pill the controls
+ * while capping surfaces. The overlay is deliberately NOT disjoint from the surface band: a
+ * dialog wears the corner of the card one size up (see radiusOverlay), so the two families
+ * share three steps and only the top one (10) belongs to the overlay alone. It is NOT what makes the
  * two axes layer safely — a browser test disproved that (§6, 2026-08-02): a custom property
  * reference resolves where it is declared, so the generator has to emit every (level x density)
  * cell rather than rely on the bands never colliding.
@@ -57,10 +60,25 @@ export const defaultRadiusLevel = "full" satisfies RadiusLevel;
  * §6, §10 — surface radii are size-indexed picks into the surface band (decided 2026-08-04,
  * Kushagra: a size-1 card and a size-4 card should not wear the same corner). Density never
  * touches these — density reaches a card through padding (layout space); the corner follows
- * only the size index. The overlay stays flat: a dialog has one size.
+ * only the size index. The overlay band below follows the same rule since 2026-08-10.
  */
 export const radiusSurface = [6, 7, 8, 9] as const;
-export const radiusOverlay = 10;
+/**
+ * §6, §24 — the OVERLAY band, size-indexed since 2026-08-10 (shipped with Dialog).
+ *
+ * It was one step (`--radius-overlay`, step 10) under the sentence "a dialog has one size",
+ * and that sentence died exactly the way the identical one about cards died on 2026-08-04:
+ * Dialog takes the size index (Kushagra), so its padding and its width move with it, and a
+ * size-1 dialog padded 12px wearing the same 32px corner as a size-4 one padded 32px is the
+ * mismatch that amendment was written to end.
+ *
+ * The picks lean on the surface band by ONE step rather than minting a new band: a dialog is
+ * a card that covers, so at any index it wears the corner of the card one size up, and the
+ * top of the band (10) stays where `--radius-overlay` stood — so the value a dialog used to
+ * wear is now what its largest size wears. Density never touches it, the surface band's own
+ * rule. v0 for the eye pass.
+ */
+export const radiusOverlay = [7, 8, 9, 10] as const;
 
 /**
  * §12 — the density sets. Density is not a multiplier: each level places its own control
@@ -365,12 +383,34 @@ export const windowClass = {
 export const narrowMedia = `(max-width: ${windowClass.narrowMax})`;
 
 /**
- * §4 — the icon box, pulled by the size index. Sizes 1 and 2 share 16: the grid the ecosystem
- * draws on is 16/20/24, and a 14px raster of a 24-grid icon blurs its strokes. Deliberately
- * NOT part of the density or pointer sets — the icon grid is a perception floor, not a
- * breathing-room choice, so a compact size 2 and a comfortable size 2 carry the same icon.
+ * §4 — the icon box, pulled by the size index, and priced per POINTER WORLD since 2026-08-10.
+ *
+ * Sizes 1 and 2 share 16 in the fine world: the grid the ecosystem draws on is 16/20/24, and a
+ * 14px raster of a 24-grid icon blurs its strokes.
+ *
+ * **Density never touches it, and pointer does — and for a day those two were one sentence.**
+ * The original read "NOT part of the density or pointer sets — the icon grid is a perception
+ * floor, not a breathing-room choice", which is a correct DENSITY argument (a compact size 2
+ * and a comfortable size 2 are the same control at different airiness, so the glyph inside
+ * them is the same glyph) extended to pointer without a second argument. Pointer is not
+ * breathing room: coarse means the screen is held close and touched, which is why it re-prices
+ * the control box, type steps 1-4, the line box and the whole mark family. The icon was the
+ * ONLY thing inside a control that the coarse world did not re-price — Kushagra caught it in
+ * the playground, measured at size 2 default: the button grows 32 → 44, its label 14 → 16, its
+ * checkbox sibling 16 → 20, and its glyph sat at 16 in both, reading thin against everything
+ * around it. iOS scales SF Symbols with Dynamic Type for the same reason.
+ *
+ * The stroke needs no answer of its own: it lives inside the glyph's viewBox, so it scales
+ * with the box. Nothing scaled because the box did not.
+ *
+ * The coarse ladder stays ON the ecosystem grid (20/24) rather than continuing it — 28 is not
+ * a grid the icon sets draw for, and sizes 3 and 4 both landing on 24 mirrors the fine world's
+ * own doubled entry at the bottom. v0, for the eye pass.
  */
-export const iconSize = [16, 16, 20, 24] as const;
+export const iconSize = {
+  fine: [16, 16, 20, 24],
+  coarse: [20, 20, 24, 24],
+} as const satisfies Record<"fine" | "coarse", readonly number[]>;
 
 /**
  * §4, §12 — the icon-label gap, pulled by the size index. Like the icon box above, it is
@@ -542,16 +582,189 @@ export const borderWidth = 1;
 export const focusRing = { width: 2, offset: 2 } as const;
 
 /**
- * §8 zeroed every transition pending the motion system, and recipes.test.ts makes that a law
- * — so NOTHING reads these two tokens today. They are emitted as the designed values waiting
- * for that system, not as a shipped transition: editing `duration` changes nothing anywhere,
- * and a reader debugging a "missing" 120ms ease in the browser is chasing a token with no
- * consumer. Ease-out because it responds immediately and settles; 120ms because hover feedback
- * reads laggy past ~150.
+ * §8 — motion's SIGNAL clock: the one a colour or an opacity change rides.
+ *
+ * Motion has two clocks and they are not the same kind of thing (LOG 2026-08-09, principle 5).
+ * A colour is a signal — it should be legible as fast as the eye can take it, so it eases and
+ * it is short. Geometry is physics: a box that moves has mass, and it rides a spring (below).
+ * Mixing them is what makes a system read as a slideshow.
+ *
+ * Ease-out because it responds immediately and settles; 120ms because hover feedback reads
+ * laggy past ~150. Both values were designed 2026-08-03 and sat unread until the motion
+ * system landed 2026-08-09; they are consumed now.
  */
 export const motion = {
   duration: "120ms",
   easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+} as const;
+
+/**
+ * §8 — the spring family, motion's TRAVEL clock (designed 2026-08-09, judged by eye in the
+ * motion lab; LOG "Motion's grammar is chosen: physics, not clips").
+ *
+ * The web animates with clips: a duration and a curve, time as the input. Apple attaches a
+ * spring to the object — position, velocity, target — and time falls out. We cannot ship a
+ * solver for every state change (that is JS at interaction time, §8's own rule), so we bake
+ * the solver's OUTPUT into a `linear()` easing: a damped spring sampled at fixed intervals,
+ * costing exactly what a cubic-bezier costs and reading like the real thing.
+ *
+ * Each entry is the physical model, never the sampled numbers — the numbers are the
+ * generator's, and a law re-derives them. `zeta` is the damping ratio (the CHARACTER: how the
+ * energy leaves) and `omega` the undamped frequency in radians per unit of normalised
+ * progress (the SHAPE: how much of the settle happens inside the window). Wall-clock speed is
+ * the transition's own duration, which is why one curve serves a 480ms panel and a 140ms
+ * press.
+ *
+ * **Damping is sacred, and it is the one number never loosened for visibility** (LOG,
+ * principle 9). Every curve here crosses its target exactly ONCE. A second crossing is a
+ * ring, and a ringing interface reads mechanical — the failure that killed the first three
+ * spellings of the switch. When a movement needs to be more visible, it gets more TRAVEL, not
+ * less damping.
+ *
+ * `steps` is how many samples the curve is emitted with. Stiff needs fewer because it never
+ * overshoots — there is no fine structure to miss — and every sample is bytes.
+ */
+export const springs = {
+  /** Travel. ~6.8% overshoot, one crossing, a long soft tail — the calm the switch set. */
+  calm: { zeta: 0.65, omega: 7.7, steps: 36 },
+  /** A control recovering: ~10.7% overshoot, then a rebound that stops about 1% under its
+      target — a hundredth of a pixel over the travel it actually carries, which is why this
+      is not a ring. More life than calm, and still nowhere near the second VISIBLE excursion
+      that makes motion read mechanical. It carries the hover rise and the release. */
+  lively: { zeta: 0.58, omega: 10.835, steps: 36 },
+  /** The press-down, and every EXIT: fast, weighted, decelerating, and it never overshoots.
+      An exit that bounces is an object that did not mean to leave; an exit on `ease-in`
+      slams, because ease-in ends at maximum velocity (LOG, principle 14). */
+  stiff: { zeta: 0.85, omega: 4.706, steps: 24 },
+} as const;
+
+/**
+ * §22 — the floating family's own motion: the durations the emergence recipe is made of
+ * (judged 2026-08-09 in the motion lab, on the real Menu; v0 for the eye pass).
+ *
+ * A panel does not appear, it BECOMES (LOG, principle 11): it starts as a small seed — a
+ * circle the size of the trigger it came out of, because at a menu's inception the shape it
+ * will take is not yet known — and unfurls into its own box. What makes that read as one
+ * object rather than a rigid block is that its parts arrive at different times (principle
+ * 10): the tall channel runs longest, the lateral reach lands sooner, the width sooner still.
+ * Give them all one duration and the panel reads as a photograph being scaled.
+ *
+ * The exit is NOT the entry reversed. Three were built and judged side by side (motion lab,
+ * 2026-08-09): folding back into the seed, mirroring the entry on a compressed clock, and
+ * this one — the pane holds its geometry, settles back a hair, and dissolves. Kushagra chose
+ * dissolve. The reason it wins is that an entry answers "where did this come from" and an
+ * exit answers nothing: the viewer is already looking at the thing they dismissed, so
+ * retracing the path spends 300ms narrating a fact nobody needs.
+ */
+/**
+ * §8 — the control layer's own motion (judged 2026-08-09 in the motion lab; v0 for the eye
+ * pass). Every number here is a clock except the last three, which are distances a press
+ * moves through.
+ *
+ * **The press keeps its 2026-08-03 finding, and the two clocks are what let it.** An eased
+ * press never reaches its colour inside a ~60ms tap, so the control reads dead on a phone —
+ * which is why every transition was zeroed for six days. The resolution is not a compromise:
+ * the press's PAINT is instant, exactly as that finding demands, and only its GEOMETRY rides
+ * a spring. A tap gets its colour on the first frame and its travel is a physical fact
+ * underneath, so nothing is waiting on a clock to tell the user they were heard.
+ *
+ * **Hover is asymmetric on purpose.** The light comes up fast and decays slow — 80ms in,
+ * 220ms out. A symmetric hover reads as a lamp on a switch; this reads as a surface warming
+ * under the pointer and cooling after it. It is also the honest asymmetry: arriving is a
+ * thing the user did, and leaving is a thing they stopped doing.
+ */
+export const controlMotion = {
+  /** Hover in — fast enough that the pointer never outruns it. */
+  hoverIn: 80,
+  /** Hover out — slow enough to read as cooling rather than switching off. */
+  hoverOut: 220,
+  /** The press's geometry. Short, and on the stiff spring: it must beat a ~60ms tap. */
+  press: 140,
+  /**
+   * Everything a control's geometry does that is NOT a press — the hover rise, the settle back
+   * down, a squashed mark springing out. Long and lively against the press's short and stiff,
+   * which is the judged asymmetry (LOG 2026-08-09): a press is a hard stop under the finger
+   * and a release is the object recovering, and giving them one clock flattens both.
+   */
+  rise: 550,
+  /** How far a button lifts under the pointer. One pixel: the fill has already stepped, and
+      this is the surface acknowledging a hand near it, not an animation. */
+  hoverTravel: 1,
+  /** A mark's glyph arriving — a tick is drawn, not switched on. */
+  mark: 380,
+  /** The switch thumb crossing its channel. The benchmark movement (LOG, principle 2). */
+  travel: 420,
+  /** The focus ring landing from outside, and how far outside it starts. Keyboard only by
+      construction: `:focus-visible` is the selector, and on anything but a text input it
+      means the keyboard. The eye must FIND focus after a Tab; it does not after a click. */
+  ring: 260,
+  ringLand: 4,
+  /** How far a pressed button sinks, and how far it shrinks doing it. */
+  pressTravel: 2,
+  pressScale: 0.975,
+  /** A pressed mark squashes rather than sinking — it has no depth to sink into. */
+  pressSquash: 0.9,
+  /**
+   * How far a switch thumb leans toward where it is about to go, while held. Deformation
+   * shares the travel's own properties (LOG, principle 4): the thumb is drawn by its two
+   * edges, so leaning and crossing cannot sequence.
+   *
+   * Six, not three (Kushagra, 2026-08-09: *"switch might travel but it doesnt scale the thumb
+   * like our example did, why did we spend hours refining that?"*). The first number was a
+   * seventh of the thumb and simply could not be seen. The demo that earned this stretched
+   * about 38% of the grip's own width, which is what makes the switch read as a physical thing
+   * being pushed rather than a state being reported — six is that fraction at the small end of
+   * the ladder and a quarter at the top. v0: a designed set per size is the next move if the
+   * eye wants it even across the range.
+   */
+  thumbLean: 6,
+} as const;
+
+/**
+ * §22 — the seed's diameter: the circle a panel unfurls out of (v0, judged 2026-08-09).
+ *
+ * A designed constant and not the trigger's own height, which is what it wanted to be. The
+ * positioner publishes `--anchor-height`, but it publishes it ASYNCHRONOUSLY — floating-ui
+ * resolves a promise, so on the frame the seed has to apply the variable is still unset, every
+ * rule reading it is invalid at computed-value time, and invalid does not mean "fall back to
+ * the cascade": it means the property takes its initial value. Measured, that collapsed the
+ * panel's corner to 0px. The seed cannot depend on a number that arrives after it is needed.
+ *
+ * Which is the right answer anyway: a seed is not a small photograph of the trigger. At a
+ * menu's inception the shape it will take is not known — that is the whole reason it starts as
+ * a circle — and its size is a property of the SYSTEM's motion, not of whatever was pressed.
+ * The offsets derive from it (half a seed sideways, a seed's worth of climb), so one number
+ * places every side.
+ */
+export const floatingSeed = 40;
+
+export const floatingMotion = {
+  /**
+   * The vertical channel — the panel's height and its climb out of the seed — and it LEADS
+   * (reversed 2026-08-09, Kushagra, judged in the playground: *"if menu opens to right,
+   * trajectory should be to go down, then right… currently it seems going direction side
+   * first, then down"*).
+   *
+   * The first spelling gave the tall channel the longest duration on the reasoning that a
+   * panel's height has the furthest to go. That is true and it is the wrong thing to optimise:
+   * the axis that finishes LAST is the one the eye reads as the direction of travel, so a slow
+   * width made every menu unfurl sideways and then drop. A menu falls out of its trigger and
+   * then opens; the vertical arrives first.
+   */
+  fall: 320,
+  /** The horizontal channel — width, and the lateral travel — and it TRAILS, which is what
+      makes the direction of travel legible. */
+  spread: 480,
+  /** The corner and the settle-scale, between the two. */
+  corner: 380,
+  /** The panel's own fade-in, and its rows'. Paint is signal: it does not ride a spring. */
+  reveal: 200,
+  /** Rows wait for the box to commit before they fade in — one beat, not a stagger. */
+  revealDelay: 80,
+  /** Exit: the dissolve itself. */
+  dissolve: 140,
+  /** Exit: the hair of scale the pane settles back through while dissolving. */
+  settle: 160,
 } as const;
 
 /**
@@ -607,7 +820,7 @@ export const material = {
   // "cheap"): the body (alpha + filter), its own EDGE (a translucent hairline of light — the
   // opaque tone border on glass was the sticker), the RIM (a top inner highlight; the scene's
   // one light source falls downward, the same model the shadow palette commits to), and
-  // SEPARATION — which stays the APP's (surfaces="elevated"), never the pane's: a flat
+  // SEPARATION — which stays the APP's (depth="elevated"), never the pane's: a flat
   // world's glass has edge and glint, no lift (the weld was built and reversed 2026-08-05).
   // Edge and rim are white alphas per thickness, rising with it: thicker glass catches more
   // light. All v0, judged in the preview.
@@ -696,6 +909,64 @@ export const floatingPadding = 2;
  * above. v0.
  */
 export const floatingMinWidth = 112;
+
+/**
+ * §10, §24 — the SCRIM: the dialog backdrop's dim and its blur, minted 2026-08-10 with
+ * Dialog and designed long before it (§10's material table has carried this row, unemitted,
+ * since 2026-08-04).
+ *
+ * It is not a material and does not join that ladder: a material defends a FOREGROUND's
+ * legibility by mixing the component's own fill, and this defends nothing — it pushes the
+ * app back so the thing on top of it is unambiguously the thing you are using. So it is one
+ * designed pair per mode rather than three thicknesses, and its colour is black in both
+ * modes rather than a mix of anything (a scrim that took the page's colour would vanish in
+ * dark, where the page is already near-black — the one place "dim the app" needs the most
+ * help). Dark leans HARDER for exactly that reason: a 40% veil over a dark page moves almost
+ * nothing.
+ *
+ * The blur is 4px and deliberately below §10's 12px defense floor — the scrim only needs the
+ * app to stop reading as legible content behind the dialog, not to be frosted out, and a
+ * heavy blur on a full-viewport backdrop is the most expensive thing this library could
+ * paint. `prefers-reduced-transparency` and `contrast="high"` share one answer: drop the
+ * blur, take `fillHigh` (the app goes further back by pigment rather than by defocus).
+ * v0 for the eye pass.
+ */
+export const scrim = {
+  light: { fill: "rgb(0 0 0 / 0.4)", filter: "blur(4px)", fillHigh: "rgb(0 0 0 / 0.62)" },
+  dark: { fill: "rgb(0 0 0 / 0.55)", filter: "blur(4px)", fillHigh: "rgb(0 0 0 / 0.75)" },
+} as const;
+
+/**
+ * §24 — the OVERLAY pane's width, one designed raw-px ladder on the size index (the switchW
+ * and floatingMinWidth precedent: no palette rung lives at this scale, and a width is not a
+ * distance BETWEEN things, so layout space is the wrong layer).
+ *
+ * Named for the family rather than for Dialog because the size join that publishes it lives
+ * in the shared surface layer — per-size spellings belong there, the switch join's rule, and
+ * a component stylesheet naming `data-size` is a law failure (recipes.test.ts). The values
+ * are priced for a dialog, which is the family's first member; a member that wants a
+ * different relationship to the window states its own, exactly as it would its own padding.
+ *
+ * It is a MAXIMUM, not a width: the viewport pads itself by a layout-space gutter and the
+ * popup takes the lesser of this and the room that is left, so a 360px-wide phone shows a
+ * size-4 dialog at 360 minus its gutters rather than clipping one. Density- and
+ * pointer-invariant on purpose: how wide a modal should be is a question about content and
+ * reading measure, and neither axis is asking that question — a comfortable app does not
+ * want a wider dialog, it wants more air inside the one it has, which is what the size
+ * index's padding already gives it.
+ *
+ * The steps are the shapes real dialogs take: a confirm (1), a short form (2), the default
+ * settings pane (3), a wide editor (4). v0 for the eye pass.
+ */
+export const overlayWidth = [360, 440, 560, 720] as const;
+
+/**
+ * §24 — the gutter between the dialog and the window edge, ONE pick into layout space (the
+ * floatingPadding sentence at overlay scale). It is what keeps a dialog off the edge on a
+ * phone, so it answers density through the layer like every other distance. Index 6 = 24px
+ * at default density.
+ */
+export const dialogInset = 6;
 
 /**
  * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04; redesigned and
@@ -847,7 +1118,13 @@ export const surfaceColor = {
 
 /**
  * §19 — the look axis: the resting dress of the one-look families. An app identity chosen
- * once at Theme (`look`), never a per-component knob — the same tier as `surfaces`.
+ * once at Theme, never a per-component knob — the same tier as `depth`.
+ *
+ * It is asked TWICE, of two family groups (`surfaceLook` and `controlLook`, split 2026-08-10;
+ * see `lookAxes`), because one answer could not say what every real interface says: a plain
+ * card holding filled inputs. Under one axis the two moved together, one neutral step apart,
+ * and a filled field on a filled card read as mush. The values below are unchanged by the
+ * split — what changed is which of them a single Theme prop can move.
  *
  * The criterion is the border's JOB (decided 2026-08-06): on a control, a border is RANK —
  * Button's `bordered` half-step reorders loudness between call sites and stays a prop; on a
@@ -879,7 +1156,7 @@ export const surfaceColor = {
  * precedent is what makes this a derivation rather than a fourth opinion. v0 all the same.
  *
  * The FILL values are var() references that bake at the Theme element (§6, substitution-at-
- * declaration) — correct by co-location, because Theme stamps data-look beside
+ * declaration) — correct by co-location, because Theme stamps both look attributes beside
  * data-appearance on one element. The BORDERS cannot bake there: the tone system lives on
  * the component ([data-tone], the invalid/disabled remaps, contrast="high"), so outlined's
  * border is `initial` — the role stands down and the consumption site's fallback
@@ -932,6 +1209,32 @@ export const look = {
 } as const;
 
 /**
+ * §19 — which Theme prop moves which family (split 2026-08-10, Kushagra).
+ *
+ * The axis was one prop until a screenshot settled it: a white card holding grey filled
+ * inputs — the most ordinary form on the web — was unreachable, because `filled` moved the
+ * card and the field together, one neutral step apart, and one step is mush. The fix is not
+ * new pigment (`look` above is untouched); it is that the question gets asked separately of
+ * the two groups a designer actually decides separately.
+ *
+ * The grouping is the one the code already had. `field` and `mark` move together because a
+ * filled input beside an outlined checkbox reads as an accident, not as a statement; `surface`
+ * is alone because a card, a menu and a dialog are one kind of thing. Refused on the way:
+ * taking the surface family OUT of the axis instead (cheaper, and it delivers the same
+ * screenshot — but it forecloses the tinted surfaces `filled` is meant to grow into), and one
+ * OBJECT-valued prop (partial overrides would need merge semantics no other axis has, and an
+ * inline object literal is a fresh identity every render — the memo bug of 2026-08-06).
+ *
+ * Both halves keep the same values, so an app that sets both to the same thing is exactly the
+ * world that shipped before the split. The both-filled cell is still one step apart and still
+ * mush; the split neither causes nor fixes it, and it is on the eye-pass list.
+ */
+export const lookAxes = {
+  surface: ["surface"],
+  control: ["field", "mark"],
+} as const satisfies Record<string, readonly (keyof (typeof look)["outlined"])[]>;
+
+/**
  * §19 — what `filled` actually paints, PER APPEARANCE. The look block above is one block on
  * purpose (co-location: Theme stamps data-look beside data-appearance on a single element,
  * and a raw `[data-look]` div must resolve under any ancestor appearance), so it can hold
@@ -980,7 +1283,7 @@ export const dress = {
 
 /**
  * §15 — closed weight set; `light` deferred until something needs it, and `bold` (700)
- * REMOVED 2026-08-09 (Kushagra: "we don.t use bold, we shouldn.t"). Semibold tops the ladder
+ * REMOVED 2026-08-09 (Kushagra: "we don't use bold, we shouldn't"). Semibold tops the ladder
  * and every heading rests there; hierarchy is size and the ink roles, both already designed.
  * The token goes with the value — an emitted `--font-weight-bold` nothing may consume is a
  * lever waiting to be pulled by hand, which is the fenced-resource mistake §13 exists to stop.

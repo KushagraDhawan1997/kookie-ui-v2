@@ -19,6 +19,12 @@ import {
   Card,
   Checkbox,
   Code,
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
   Flex,
   Grid,
   Heading,
@@ -273,6 +279,64 @@ export const ENTRIES: Entry[] = [
           The flag is <Code>--experimental-strip-types</Code>.
         </Text>
       </Stack>
+    ),
+  },
+  {
+    slug: "dialog",
+    name: "Dialog",
+    family: "Surface",
+    spec: "§10, §20, §24",
+    blurb:
+      "A modal panel over a dimmed app: the floating family's third member and the first one anchored to nothing. The panel is a Card that covers — the same seal, edge, look and material, with the corner coming from the overlay band, one step rounder than the card of its size — and it casts no shadow of its own, because its separation is the SCRIM behind it rather than a lift above the page. The part vocabulary follows shadcn/ui's dialog (MIT), adopted with credit; behavior is Base UI's Dialog end to end, focus trap and scroll lock included.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "prices the BOX — a maximum width, the padding and the corner — and never the type inside it; the window wins when there is less room than the size asks for" },
+      { name: "material (Content)", values: "solid | thin | regular | thick", note: "Card's own prop: opaque by default, glass for a panel over media — the scrim behind it does not change with it" },
+    ],
+    refusals: [
+      {
+        name: "Header and Footer",
+        why: "Layout, not anatomy — Card's own cut. A title, a description and an action row are a Stack the call site writes, and blessing one arrangement deprecates every other. Title and Description ARE parts here, because something non-visual forces them: they carry the panel's accessible name and description.",
+      },
+      {
+        name: "a system-drawn ✕",
+        why: "The same positioned slot, refused for the same reason. Escape and an outside press both dismiss, and DialogClose puts a real Button wherever the composition wants one — which is also what a touch screen-reader user needs to escape a trapped panel.",
+      },
+      {
+        name: "modal, disablePointerDismissal",
+        why: "Designed defaults. An open dialog IS the interaction — focus trapped, page scroll locked, the scrim saying so. A panel that leaves the page live is a Popover or a Sheet, and a dialog that must not be dismissed by pressing outside is an alert: a decision, not a flag.",
+      },
+      {
+        name: "a shadow, and the floating chrome",
+        why: "Menu and Select cast because a floating pane must state the coverage nobody else announced. A dialog's coverage is announced by the whole viewport going dark, so a second mechanism would be saying it twice. In an elevated app the panel is lifted exactly as much as a Card is — the app's identity, not the component's.",
+      },
+      {
+        name: "a size on the title",
+        why: "No surface in this system sizes the type inside it. The parts state §15's composition steps — the card-title step for the title, body copy in the muted ink for the description — so a dialog and a confirm card are the same typography by construction. Whether a size-1 dialog deserves a smaller title is open.",
+      },
+    ],
+    parts: [
+        { part: "DialogTrigger", blurb: "The button that opens it — usually render={<Button/>}, and the one node a dialog may own in ordinary flow; a dialog driven by app state needs no trigger at all" },
+        { part: "DialogContent", blurb: "The whole fold: portals, re-applies the theme (§20), paints the scrim, and centres the panel in a viewport that scrolls when the panel is taller than the window" },
+        { part: "DialogTitle", blurb: "The panel's accessible name, wired by aria-labelledby — a real heading element, dressed by the type layer at the composition brief's card-title step" },
+        { part: "DialogDescription", blurb: "The supporting line, wired by aria-describedby — body copy in the muted ink, which is what 'said quietly' means since the ladder was solved" },
+        { part: "DialogClose", blurb: "A dismissing button the call site places: there is no corner glyph, so the one action zone stays where the composition put it" },
+    ],
+    example: (
+      <Dialog size="2">
+        <DialogTrigger render={<Button emphasis="medium">Rename project</Button>} />
+        <DialogContent>
+          <Stack gap="6">
+            <Stack gap="2">
+              <DialogTitle>Rename project</DialogTitle>
+              <DialogDescription>Everyone with access will see the new name.</DialogDescription>
+            </Stack>
+            <Flex gap="3" justify="flex-end">
+              <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
+              <DialogClose render={<Button emphasis="loud">Save</Button>} />
+            </Flex>
+          </Stack>
+        </DialogContent>
+      </Dialog>
     ),
   },
   {
@@ -783,15 +847,16 @@ export const ENTRIES: Entry[] = [
     family: "Layout",
     spec: "§5, §7, §12, §19",
     blurb:
-      "Where an app states its identity. Seven axes, each re-pricing tokens for everything beneath it — and they nest, so a section can override the page. Nothing about a Theme is decoration: every prop answers a question the call sites are then forbidden from answering one at a time.",
+      "Where an app states its identity. Eight axes, each re-pricing tokens for everything beneath it — and they nest, so a section can override the page. Nothing about a Theme is decoration: every prop answers a question the call sites are then forbidden from answering one at a time.",
     axes: [
       { name: "appearance", values: "inherit | light | dark", note: "resolved output, never a colour" },
       { name: "contrast", values: "normal | high", note: "an accessibility setting, not a design knob — the conformance surface for edges and signals" },
       { name: "radius", values: "none | small | medium | large | full", note: "selects a designed palette per level, not a factor" },
       { name: "density", values: "compact | default | comfortable", note: "control-only: airiness, never type" },
       { name: "pointer", values: "auto | fine | coarse", note: "two complete geometries, the way there are two colour modes" },
-      { name: "look", values: "outlined | filled", note: "the resting dress of the one-look families" },
-      { name: "surfaces", values: "flat | elevated", note: "the one sanctioned consumer of the shadow palette" },
+      { name: "surfaceLook", values: "outlined | filled", note: "how a resting surface is drawn — cards, and the panels that wear a card's identity" },
+      { name: "controlLook", values: "outlined | filled", note: "how a resting control is drawn — fields and marks, which move together" },
+      { name: "depth", values: "flat | elevated", note: "does light exist: the one sanctioned consumer of the shadow palette" },
     ],
     refusals: [
       {

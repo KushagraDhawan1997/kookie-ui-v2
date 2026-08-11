@@ -21,6 +21,7 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 
 import { filled, mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import {
+  FloatingBody,
   FloatingDirectionContext,
   PortalScope,
   useAmbientDirection,
@@ -32,6 +33,9 @@ import type { Size, SlotName } from "../../system/axes.ts";
 
 /** Gap between the trigger's edge and the popup. */
 const SIDE_OFFSET = 4;
+
+/** The seed's lean crosses the trigger-to-panel gap; the entry reads it as a var (§22). */
+const gapVar = (px: number) => ({ "--kui-floating-gap": `${px}px` }) as React.CSSProperties;
 /**
  * A submenu's seam with its parent panel (§22, measured rather than designed since
  * 2026-08-09).
@@ -251,10 +255,12 @@ export function MenuContent({
         <BaseMenu.Positioner side={side} align={align} sideOffset={sideOffset}>
           <BaseMenu.Popup
             {...popupProps(React.use(MenuSizeContext), material, true, className)}
-            {...(style !== undefined ? { style } : {})}
+            /* The gap the seed's lean crosses is the SAME number the positioner is given —
+               stamped, not re-derived, so the two cannot disagree (§22). */
+            style={{ ...gapVar(sideOffset), ...style }}
             {...(ref !== undefined ? { ref } : {})}
           >
-            {children}
+            <FloatingBody>{children}</FloatingBody>
           </BaseMenu.Popup>
         </BaseMenu.Positioner>
       </PortalScope>
@@ -487,8 +493,19 @@ export type MenuSubProps = {
 
 export function MenuSub({ open, defaultOpen, onOpenChange, children }: MenuSubProps) {
   const triggerRef = React.useRef<HTMLElement | null>(null);
+  /* The submenu's anchor is its trigger ROW, not the root trigger (§22's own width-compounding
+     lesson, now applied to the ENTRY's measurement): the floating body reads `anchor()` for
+     the floor and the lean, and inheriting the root's would feed a submenu the width of a
+     button it does not hang from. Direction and measure stay the root's — a subtree cannot
+     change which way the text runs. */
+  const parentDir = React.use(FloatingDirectionContext);
+  const dir = React.useMemo(
+    () => ({ ...parentDir, anchor: () => triggerRef.current }),
+    [parentDir],
+  );
   return (
     <MenuSubTriggerContext.Provider value={triggerRef}>
+    <FloatingDirectionContext.Provider value={dir}>
     <BaseMenu.SubmenuRoot
       {...(open !== undefined ? { open } : {})}
       {...(defaultOpen !== undefined ? { defaultOpen } : {})}
@@ -496,6 +513,7 @@ export function MenuSub({ open, defaultOpen, onOpenChange, children }: MenuSubPr
     >
       {children}
     </BaseMenu.SubmenuRoot>
+    </FloatingDirectionContext.Provider>
     </MenuSubTriggerContext.Provider>
   );
 }
@@ -574,10 +592,12 @@ export function MenuSubContent({ material = "solid", children, className, style,
         <BaseMenu.Positioner sideOffset={seam} alignOffset={() => -seam()}>
           <BaseMenu.Popup
             {...popupProps(React.use(MenuSizeContext), material, false, className)}
-            {...(style !== undefined ? { style } : {})}
+            /* A submenu's seam is measured at open, not knowable at render — its lean crosses
+               a full row width, so the seam-sized remainder is invisible and 0 is honest. */
+            style={{ ...gapVar(0), ...style }}
             {...(ref !== undefined ? { ref } : {})}
           >
-            {children}
+            <FloatingBody>{children}</FloatingBody>
           </BaseMenu.Popup>
         </BaseMenu.Positioner>
       </PortalScope>

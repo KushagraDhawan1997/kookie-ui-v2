@@ -324,11 +324,39 @@ export const apcaFloors = {
 export const chromaFloor = 0.75;
 
 /**
- * The ink fade (§7, §15): a chroma family has ONE designed text colour (step 11), and the
- * lower type rungs fade the ink itself — the material trick applied to text. Percentages are
- * v0, judged in the preview; the eye pass edits them here, not in the emitter.
+ * The ink ladder's TARGETS (§7, §15; rewritten 2026-08-10, Kushagra, measuring the shipped
+ * rungs by eye: *"there's not a lot of contrast difference between the three"*).
+ *
+ * The rungs are stated as contrast, not as picked steps or picked percentages, and every
+ * family reaches them the same way: its own loud ink faded toward transparent, by an amount
+ * SOLVED per family per mode. That is the `--accent-label` / `--control-edge` precedent, and
+ * it is what removes the last exception here — neutral used to take designed steps (12/11/10)
+ * while every chroma family faded a fixed 74/52%, so the two answered different questions and
+ * neither answered "how much contrast". Measured before the change, on a card: light ran
+ * 103 / 78 / 65 and dark 94 / 67 / 36 — in light the top rung sat twice as far from the middle
+ * as the middle sat from the bottom, which is the unevenness the eye caught.
+ *
+ * **Loud is not solved.** It stays the family's one designed text colour (neutral 12, a chroma
+ * family's 11) and measures ~103 light / ~94 dark; Kushagra's call, and the right one — that
+ * value is the accessible resting state for reading, and solving it would put the system's
+ * most-used ink at the mercy of a target number.
+ *
+ * The two solved rungs, and what they are FOR (this half is the design, not the arithmetic):
+ * - `muted` at 60 — exactly `apcaFloors.body`, which is not a coincidence. This is the rung
+ *   for text that is real information said quietly: a placeholder, a panel's group label, a
+ *   timestamp. It lands on the reading floor rather than under it.
+ * - `faint` at 30 — `apcaFloors.nonTextLarge`, and BELOW the reading floor on purpose. It is
+ *   the exception rung: a menu option that cannot be chosen, something deliberately stood
+ *   down. Never a reading-length line, and never a placeholder — that was the role's old job
+ *   and it moved up to `muted` the day these targets landed.
+ *
+ * Solved against the HARDER of the two beds the ink sits on (the seal and the page), the way
+ * `solveControlEdge` already is, so the target is a floor on both rather than an average. The
+ * cost is stated rather than hidden: the fade is an alpha, so ink on a FILLED card composites
+ * against a bed it was not solved for and reads slightly under target. That is the same trade
+ * the ink fade already made, and the per-run contrast report is where it stays visible.
  */
-export const inkMix = { muted: 74, faint: 52 } as const;
+export const inkLc = { muted: 60, faint: 30 } as const;
 
 /**
  * The BOUNDARY's hover step (§8, 2026-08-10, Kushagra: *"there's no hover darkening of border

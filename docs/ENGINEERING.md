@@ -107,6 +107,12 @@ CI asserts the system's invariants; the manifesto is executable.
 
 **A browser test that hand-writes the markup proves the stylesheet, not the component.** Both are worth having, but a suite made only of the first kind leaves the entire React layer — prop to custom property, token index to `var()`, tier key to tier var, `render` merging, Theme nesting — asserted nowhere while looking thoroughly covered. Mount the real component.
 
+**A media query the suite cannot enter is a media query the suite cannot check (2026-08-10).** Every `@media` block this package ships is a branch of the cascade with its own winners, and for a year the only thing asserting them was a law reading stylesheet *text*: does a `prefers-reduced-motion` block exist, and are the right selectors inside it? Both answers were correct while the focus ring went on landing under `reduce`, because a selector present in a block still has to WIN — and that one lost by a single specificity point to the rule it was written to stand down. The harness can now emulate the media feature over CDP (`asksForStillness()`), so the shipped block is the thing under test. The general clause: **a law about a conditional block must execute the condition.** Anything else is a law about a string.
+
+**And a stand-down is only stood down if it wins.** The suppression law walked `transition` declarations and never `animation`, so the second of the two ways CSS moves anything was outside its scope entirely — the same shape as "a law about one axis of a two-axis mechanism is half a law" (2026-08-08), one layer down. Where a recipe and its suppression can be separated by specificity, put the recipe in a **hook** and stand the hook down: then both live on the same selector and the tie goes to source order, which is arithmetic nobody has to redo.
+
+**The pointer is shared state, and unmounting does not move it.** A law that hovers hands the next file a control that is already `:hover` — three look-axis laws failed exactly this way and passed perfectly when run alone. **Passing alone and failing together is the signature.** The harness parks the pointer after any test that left something hovered; the general rule is that anything the browser holds outside the DOM (the pointer, an emulated media feature, focus) is teardown's problem, not each law's.
+
 ## 7. Building with agents
 
 - **Spec-cite rule:** every task names the § it implements. Doc–code drift is a bug; a forced decision change amends the doc in the same commit.

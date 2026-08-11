@@ -14,3 +14,59 @@
   /* Native buttons centre their text but not their box in every engine. */
   text-align: center;
 }
+
+/* The press TRAVELS (§8, judged 2026-08-09 — Kushagra: *"I have a feeling that the button
+   will have travel, a bit down, but it will have travel"*).
+
+   A button is the one control with somewhere to go: it sits ON the page, so pressing it puts
+   it INTO the page. A mark squashes instead and a field does nothing, which is why this is
+   button's own rule and not the skeleton's — the skeleton supplies the clock, a family says
+   how far it moves.
+
+   The paint underneath is instant (recipes.css zeroes `--kui-ct-paint` on press), so the
+   colour lands on the first frame of a tap and the travel is a physical fact beneath it —
+   the 2026-08-03 finding kept, not traded. Down AND smaller: a box that only moves down reads
+   as sliding, and one that only shrinks reads as receding; together they read as pressed. */
+.kui-button {
+  translate: 0 0;
+  scale: 1;
+}
+/* And it RISES to meet the pointer (§8, judged 2026-08-09 — Kushagra, on the shipped
+   version: *"its different to the key one, key one also raises on hover"*). One pixel: the
+   fill has already stepped, so this is not the announcement — it is the surface acknowledging
+   a hand near it. Guarded, because hover is a hardware fact (§8): a touch device synthesises
+   it on tap and would leave every pressed button hanging a pixel high.
+
+   The rise takes the long lively clock and the press takes the short stiff one, both from the
+   skeleton's own variables — so a button states two distances and no durations at all. */
+@media (hover: hover) {
+  .kui-button:hover:not([data-disabled], [data-loading], [data-popup-open]) {
+    translate: 0 calc(-1 * var(--hover-travel));
+  }
+}
+
+/* Source order is the mechanism: hover and press are both (0,3,0), so the press must come
+   after or a hovered button would stay lifted while it is being held.
+
+   [data-popup-open] leaves both rules and gets one of its own below (2026-08-10, two calls
+   the same hour: *"leaving the mouse off triggers also moves the menu"*, then *"button goes
+   down when clicked — I want it to go down, and stay there"*). The first spelling LOCKED an
+   open trigger at rest, which killed the wobble and the press with it: menus open on
+   pointer-down, so the open stamp lands the instant the sink begins and cancelled it before
+   it was visible. */
+.kui-button:active:not([data-disabled], [data-loading], [data-popup-open]) {
+  translate: 0 var(--press-travel);
+  scale: var(--press-scale);
+}
+
+/* An open trigger HOLDS THE PRESS (§8). The press put it down; the open panel keeps it
+   there; closing lets it back up — the click reads as latching, which is what opening a
+   panel is. This is also what stills the panel: floating-ui measures the anchor WITH its
+   transforms, so any hover-dependent geometry on an open trigger drags the anchored panel
+   around on the trigger's own spring — held at ONE value, pointer on or off, nothing the
+   panel hangs from ever moves. Hover and press are excluded above so this value is the only
+   one an open trigger can compute; the paint states stay live throughout. */
+.kui-button[data-popup-open] {
+  translate: 0 var(--press-travel);
+  scale: var(--press-scale);
+}

@@ -18,8 +18,7 @@ import {
   colorOn,
   computed,
   mounted,
-  tokenOn,
-} from "../../test/browser.tsx";
+  tokenOn, inMotion,} from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Flex } from "../flex/flex.tsx";
 import { Stack } from "../stack/stack.tsx";
@@ -177,8 +176,8 @@ describe("outside the look axis, whole (§19 — the instrument rule)", () => {
     // mechanical half — a family is dressed because its sheet CONSUMES the roles — so the
     // proof is that flipping the axis moves nothing a user can see.
     for (const appearance of APPEARANCES) {
-      const outlined = parts(<Progress value={40} />, { theme: { appearance, look: "outlined" } });
-      const filled = parts(<Progress value={40} />, { theme: { appearance, look: "filled" } });
+      const outlined = parts(<Progress value={40} />, { theme: { appearance, surfaceLook: "outlined", controlLook: "outlined" } });
+      const filled = parts(<Progress value={40} />, { theme: { appearance, surfaceLook: "filled", controlLook: "filled" } });
       for (const prop of ["background-color", "border-top-left-radius", "height", "border-width"]) {
         expect(
           computed(filled.root, prop),
@@ -194,8 +193,8 @@ describe("outside the look axis, whole (§19 — the instrument rule)", () => {
   it("the axis really is live in this Theme — the control that keeps the law honest", () => {
     // Same vacuity guard: if `look` did nothing at all, the law above would pass on a bar that
     // HAD joined the axis. A field is a dressed family, so its fill must move.
-    const outlined = mounted(<div className="kui-field" />, { theme: { look: "outlined" } });
-    const filled = mounted(<div className="kui-field" />, { theme: { look: "filled" } });
+    const outlined = mounted(<div className="kui-field" />, { theme: { controlLook: "outlined" } });
+    const filled = mounted(<div className="kui-field" />, { theme: { controlLook: "filled" } });
     expect(colorOn(filled, "var(--look-field-fill)")).not.toBe(
       colorOn(outlined, "var(--look-field-fill)"),
     );
@@ -234,6 +233,11 @@ describe("the value is geometry, and AT reads it (Base UI's half, wired by us)",
 
 describe("indeterminate is content, not a state change (§8's line, held)", () => {
   it("a null value sweeps, and a measured one does not", () => {
+    // Motion-as-content, so this law announces it: the harness holds the page still by
+    // default, which is what keeps every APPEARANCE law from reading a transition's first
+    // frame (test/browser.tsx). A spinner that stops is information lost, and a law about it
+    // has to let it run.
+    inMotion();
     const busy = parts(<Progress value={null} />);
     const measured = parts(<Progress value={40} />);
     expect(busy.fill.dataset.indeterminate).toBe("");
@@ -276,9 +280,9 @@ describe("a bar is not a control (§4, §16 — the mechanisms it must NOT have)
   });
 
   it("no shadow of its own — depth is the app's, and a bar is not a plane (§5)", () => {
-    for (const surfaces of ["flat", "elevated"] as const) {
-      const { root } = parts(<Progress value={40} />, { theme: { surfaces } });
-      expect(computed(root, "box-shadow"), `${surfaces} lifted the bar`).toBe("none");
+    for (const depth of ["flat", "elevated"] as const) {
+      const { root } = parts(<Progress value={40} />, { theme: { depth } });
+      expect(computed(root, "box-shadow"), `${depth} lifted the bar`).toBe("none");
     }
   });
 });

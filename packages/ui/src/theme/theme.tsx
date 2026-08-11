@@ -13,14 +13,16 @@ export type Contrast = "normal" | "high";
     desktop. There is no separate `device` prop: coarse means handheld (dropped 2026-08-05,
     LOG records what to bring back if a touch-at-a-distance case ever needs the two apart). */
 export type Pointer = "fine" | "coarse" | "auto";
-/** §10 — do surfaces sit up, and (since 2026-08-07) do raised controls catch light. The
-    semantic is elevation-as-identity; the palette rows behind it — 3 for surfaces, 2 for
-    controls — are merely its current resolution. An app choice made once, never a per-card
-    knob. */
-export type Surfaces = "flat" | "elevated";
-/** §19 — the resting dress of the one-look families (surfaces, fields, marks): does the app
-    draw their boundary as a hairline or as a darkened well. Border on a CONTROL is rank
-    (Button's `bordered`) and stays a prop; this axis never touches ranked chrome. */
+/** §10 — does light exist: do surfaces sit up, and (since 2026-08-07) do raised controls catch
+    it. The semantic is elevation-as-identity; the palette rows behind it — 3 for surfaces, 2
+    for controls — are merely its current resolution. An app choice made once, never a per-card
+    knob. Named `depth` since 2026-08-10: it was `surfaces`, which named the family it dresses
+    rather than the question it answers, and that name is now needed by the look axis's own
+    halves. */
+export type Depth = "flat" | "elevated";
+/** §19 — the resting dress of a one-look family: does the app draw a boundary as a hairline or
+    as a darkened well. Border on a CONTROL is rank (Button's `bordered`) and stays a prop; this
+    axis never touches ranked chrome. Asked twice, of two family groups — see the props. */
 export type Look = "outlined" | "filled";
 
 export type ThemeProps = {
@@ -29,8 +31,13 @@ export type ThemeProps = {
   radius?: RadiusLevel;
   contrast?: Contrast;
   pointer?: Pointer;
-  surfaces?: Surfaces;
-  look?: Look;
+  depth?: Depth;
+  /** §19 — how the app draws a resting SURFACE: cards, and the panels that wear a card's
+      identity (menus, select). */
+  surfaceLook?: Look;
+  /** §19 — how the app draws a resting CONTROL: fields and marks, which move together because
+      a filled input beside an outlined checkbox reads as an accident. */
+  controlLook?: Look;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -99,14 +106,14 @@ const warnOnFramedAncestor = (node: HTMLElement) => {
 type Resolved = Required<
   Pick<
     ThemeProps,
-    "appearance" | "density" | "radius" | "contrast" | "pointer" | "surfaces" | "look"
+    "appearance" | "density" | "radius" | "contrast" | "pointer" | "depth" | "surfaceLook" | "controlLook"
   >
 >;
 
 /**
  * What a Theme resolves when nobody chooses (§5). EXPORTED since 2026-08-09, the day the
  * radius default moved to `full` and two docs surfaces kept rendering `medium`: the preview's
- * environment panel and /matrix each held their own copy of these six values, which is the
+ * environment panel and /matrix each held their own copy of these values, which is the
  * two-homes drift in the one place whose job is showing what the system does. A consumer
  * that needs a concrete starting value derives it from here; nobody restates it.
  */
@@ -116,8 +123,9 @@ export const themeDefaults: Resolved = {
   radius: "full",
   contrast: "normal",
   pointer: "auto",
-  surfaces: "flat",
-  look: "outlined",
+  depth: "flat",
+  surfaceLook: "outlined",
+  controlLook: "outlined",
 };
 
 /**
@@ -174,10 +182,11 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       radius: props.radius ?? parent.radius,
       contrast: props.contrast ?? parent.contrast,
       pointer: props.pointer ?? parent.pointer,
-      surfaces: props.surfaces ?? parent.surfaces,
-      look: props.look ?? parent.look,
+      depth: props.depth ?? parent.depth,
+      surfaceLook: props.surfaceLook ?? parent.surfaceLook,
+      controlLook: props.controlLook ?? parent.controlLook,
     }),
-    // The seven fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
+    // The eight fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
     // ancestor axis moves, including ones this scope overrides — depending on the identity
     // would rebuild `resolved` (and so re-render every consumer below) on changes that
     // cannot reach it.
@@ -187,15 +196,17 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       props.radius,
       props.contrast,
       props.pointer,
-      props.surfaces,
-      props.look,
+      props.depth,
+      props.surfaceLook,
+      props.controlLook,
       parent.appearance,
       parent.density,
       parent.radius,
       parent.contrast,
       parent.pointer,
-      parent.surfaces,
-      parent.look,
+      parent.depth,
+      parent.surfaceLook,
+      parent.controlLook,
     ],
   );
 
@@ -217,8 +228,9 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     "data-radius": resolved.radius,
     ...(contrastSet ? { "data-contrast": resolved.contrast } : {}),
     "data-pointer": resolved.pointer,
-    "data-surfaces": resolved.surfaces,
-    "data-look": resolved.look,
+    "data-depth": resolved.depth,
+    "data-surface-look": resolved.surfaceLook,
+    "data-control-look": resolved.controlLook,
   };
 
   // kui-theme makes the element a query container (§2): responsive props measure the nearest

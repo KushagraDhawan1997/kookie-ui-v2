@@ -306,15 +306,17 @@ describe("disabled arrives through the shared remap (§8)", () => {
 });
 
 describe("the placeholder is a designed role, not a UA default (§7, §15)", () => {
-  it("reads the FAINT role at full opacity — the role whose definition names the placeholder", () => {
-    // Was muted until 2026-08-05: the faint role's own definition ("below body-copy contrast
-    // by design — a placeholder, a timestamp") named this case, and the stylesheet disagreed
-    // with it. Muted stays the slot colour: an adornment informs, a placeholder invites.
+  it("reads the MUTED role at full opacity — a placeholder is information, said quietly", () => {
+    // Muted, then faint from 2026-08-05, then muted again 2026-08-10 — and the round trip is
+    // not indecision: faint's DEFINITION changed under it. It named the placeholder as its
+    // case while it was simply "the quiet one"; it is now the exception rung at Lc 30, below
+    // the reading floor, for something deliberately stood down. A placeholder says what the
+    // field wants, so it belongs on the rung that lands ON the reading floor.
     const el = render(<TextField placeholder="Search" />);
     const input = inputOf(el);
-    expect(onPlaceholder(input, "color")).toBe(tokenOn(el, "--color-text-faint"));
-    expect(onPlaceholder(input, "color")).not.toBe(tokenOn(el, "--color-text-muted"));
-    // Firefox ships 0.54 here, which would stack a second fade on an already-faint role.
+    expect(onPlaceholder(input, "color")).toBe(tokenOn(el, "--color-text-muted"));
+    expect(onPlaceholder(input, "color")).not.toBe(tokenOn(el, "--color-text-faint"));
+    // Firefox ships 0.54 here, which would stack a second fade on a role that is already a fade.
     // Chrome does not, so this law is about what we DECLARE surviving the cascade.
     expect(onPlaceholder(input, "opacity")).toBe("1");
   });
@@ -409,11 +411,11 @@ describe("the look axis dresses the well, and states outrank it (§19)", () => {
     // that goes, not the value), so the border was the only thing left bounding it, and the
     // dress deleted that too. See the readOnly x look law below, which no cell used to cover.
     const filled = mounted(<TextField />, {
-      theme: { look: "filled", appearance },
+      theme: { controlLook: "filled", appearance },
       select: ".kui-field",
     });
     const outlined = mounted(<TextField />, {
-      theme: { look: "outlined", appearance },
+      theme: { controlLook: "outlined", appearance },
       select: ".kui-field",
     });
     expect(
@@ -429,7 +431,7 @@ describe("the look axis dresses the well, and states outrank it (§19)", () => {
     // transparent border by dress. The law reads BOTH channels, because either one alone is
     // satisfied by the broken state.
     const el = mounted(<TextField readOnly defaultValue="x" />, {
-      theme: { look: "filled", appearance },
+      theme: { controlLook: "filled", appearance },
       select: ".kui-field",
     });
     const painted =
@@ -441,7 +443,7 @@ describe("the look axis dresses the well, and states outrank it (§19)", () => {
   it("outlined is the identity — byte-identical to the bare render", () => {
     const bare = render(<TextField />);
     const outlined = mounted(<TextField />, {
-      theme: { look: "outlined" },
+      theme: { controlLook: "outlined" },
       select: ".kui-field",
     });
     for (const prop of ["background-color", "border-top-color"]) {
@@ -454,7 +456,7 @@ describe("the look axis dresses the well, and states outrank it (§19)", () => {
     // fallback resolves the re-pointed --tone-border at the element. Without that arm the
     // state would be swallowed exactly where the user needs it.
     const el = mounted(<TextField aria-invalid="true" />, {
-      theme: { look: "filled" },
+      theme: { controlLook: "filled" },
       select: ".kui-field",
     });
     expect(computed(el, "border-top-color")).toBe(colorOn(el, "var(--invalid-edge)"));
@@ -462,7 +464,7 @@ describe("the look axis dresses the well, and states outrank it (§19)", () => {
 
   it("disabled outranks dress too: the flattened edge returns the same way", () => {
     const el = mounted(<TextField disabled />, {
-      theme: { look: "filled" },
+      theme: { controlLook: "filled" },
       select: ".kui-field",
     });
     expect(computed(el, "border-top-color")).toBe(colorOn(el, "var(--neutral-6)"));
@@ -478,7 +480,7 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     const flat = render(<TextField />);
     expect(computed(flat, "box-shadow")).toBe("none");
 
-    const elevated = mounted(<TextField />, { theme: { surfaces: "elevated" } });
+    const elevated = mounted(<TextField />, { theme: { depth: "elevated" } });
     const probe = document.createElement("div");
     probe.style.boxShadow = "var(--control-chrome)";
     elevated.append(probe);
@@ -510,8 +512,8 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(glass, "background-image")).not.toBe("none");
     expect(computed(glass, "box-shadow")).toBe("none"); // flat: glass never floats
 
-    const elevated = mounted(<TextField material="thin" />, { theme: { surfaces: "elevated" } });
-    const solid = mounted(<TextField />, { theme: { surfaces: "elevated" } });
+    const elevated = mounted(<TextField material="thin" />, { theme: { depth: "elevated" } });
+    const solid = mounted(<TextField />, { theme: { depth: "elevated" } });
     const probe = document.createElement("div");
     probe.style.boxShadow = "var(--control-chrome-thin)";
     elevated.append(probe);
@@ -540,10 +542,10 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
       // with the glass rules on specificity and loses on source order, so the fix has to stand
       // down the three world names rather than the glass value itself.
       const live = mounted(<TextField material={material} />, {
-        theme: { surfaces: "elevated" },
+        theme: { depth: "elevated" },
       });
       const dead = mounted(<TextField material={material} disabled />, {
-        theme: { surfaces: "elevated" },
+        theme: { depth: "elevated" },
       });
       expect(computed(live, "box-shadow"), `${material} glass never casts`).not.toBe("none");
       expect(computed(dead, "box-shadow")).toBe("none");
@@ -968,7 +970,7 @@ describe("late binding: the look's edge resolves at the ELEMENT, not the Theme (
       it(`${look}/${appearance}: a state re-pointing the tone still reaches the edge`, () => {
         const at = (invalid: boolean) =>
           mounted(invalid ? <TextField aria-invalid="true" /> : <TextField />, {
-            theme: { look, appearance },
+            theme: { controlLook: look, appearance },
             select: ".kui-field",
           });
         const valid = at(false);

@@ -322,6 +322,37 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
     expect(computed(spinner, "width")).toBe(computed(icon, "width"));
   });
 
+  it("the icon grows in the coarse world, like everything else in the control (§4, §16)", () => {
+    // Found in the playground 2026-08-10 (Kushagra): the icon was the ONE thing inside a
+    // control the coarse world did not re-price — a size-2 button grew 32 → 44, its label
+    // 14 → 16, its checkbox sibling 16 → 20, and the glyph sat at 16 in both, reading thin.
+    // The stroke needed no answer of its own: it lives inside the viewBox and scales with the
+    // box, so nothing scaled because the box did not.
+    //
+    // Read as PAINTED width off a mounted Theme, per size — the standing rule. A law on the
+    // token would have passed the day the token existed and said nothing about whether an
+    // icon in a real button ever reached it.
+    const iconIn = (pointer: "fine" | "coarse", size: (typeof SIZES)[number]) => {
+      const el = mounted(
+        <Button size={size} leading={<svg />}>
+          Save
+        </Button>,
+        { theme: { pointer }, select: ".kui-button" },
+      );
+      return parseFloat(computed(el.querySelector("svg")!, "width"));
+    };
+    let rose = false;
+    for (const size of SIZES) {
+      const fine = iconIn("fine", size);
+      const coarse = iconIn("coarse", size);
+      expect(coarse, `size ${size}: the icon shrank on touch`).toBeGreaterThanOrEqual(fine);
+      if (coarse > fine) rose = true;
+    }
+    // The vacuity guard: every assertion above holds for the pre-fix world, where the coarse
+    // scope declared no icon box at all and inherited the fine one.
+    expect(rose, "no size grew — the coarse world never reaches the icon").toBe(true);
+  });
+
   it("the spinner takes the icon box for the size it is in, and the label's colour", () => {
     const el = render(
       <Button size="4" loading>

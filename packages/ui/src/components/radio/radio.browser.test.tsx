@@ -24,6 +24,7 @@ import {
   render,
   tokenOn,
   within,
+  inMotion,
 } from "../../test/browser.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { TextField } from "../text-field/text-field.tsx";
@@ -208,8 +209,8 @@ describe("the look axis reaches it through the family, with no rule of its own (
   it.each(APPEARANCES)("%s: filled dresses the box and KEEPS the mark's edge", (appearance) => {
     // The checkbox's law, one member over — same rewrite, same reason (see that file). A radio
     // is even more dependent on its hairline: unchecked, the ring IS the entire control.
-    const filled = markOf(radio({ look: "filled", appearance }));
-    const outlined = markOf(radio({ look: "outlined", appearance }));
+    const filled = markOf(radio({ controlLook: "filled", appearance }));
+    const outlined = markOf(radio({ controlLook: "outlined", appearance }));
     expect(
       computed(filled, "background-color"),
       `filled resolves to outlined's fill in ${appearance}`,
@@ -225,7 +226,7 @@ describe("the look axis reaches it through the family, with no rule of its own (
         </RadioGroup>,
       ),
     );
-    const outlined = markOf(radio({ look: "outlined" }));
+    const outlined = markOf(radio({ controlLook: "outlined" }));
     for (const prop of ["background-color", "border-top-color"]) {
       expect(computed(outlined, prop)).toBe(computed(bare, prop));
     }
@@ -235,8 +236,8 @@ describe("the look axis reaches it through the family, with no rule of its own (
     // The claim the promotion makes. If either component ever grows its own look rule, these
     // two diverge here first.
     for (const look of ["outlined", "filled"] as const) {
-      const mark = markOf(radio({ look }));
-      const box = mounted(<Checkbox />, { theme: { look }, select: ".kui-checkbox" });
+      const mark = markOf(radio({ controlLook: look }));
+      const box = mounted(<Checkbox />, { theme: { controlLook: look }, select: ".kui-checkbox" });
       for (const prop of ["background-color", "border-top-color"]) {
         expect(computed(mark, prop), `${look}/${prop}`).toBe(computed(box, prop));
       }
@@ -302,7 +303,7 @@ describe("a selected radio is the family's loud rung, and loud rungs catch light
         <Radio value="a" />
         <Radio value="b" />
       </RadioGroup>,
-      { theme: { surfaces: "elevated" } },
+      { theme: { depth: "elevated" } },
     );
     const [a, b] = [...host.querySelectorAll(".kui-radio")];
     expect(computed(b!, "background-image")).toContain("linear-gradient");
@@ -312,7 +313,7 @@ describe("a selected radio is the family's loud rung, and loud rungs catch light
       <RadioGroup defaultValue="b">
         <Radio value="b" />
       </RadioGroup>,
-      { theme: { surfaces: "flat" } },
+      { theme: { depth: "flat" } },
     );
     expect(computed(flat.querySelector(".kui-radio")!, "background-image")).toBe("none");
   });
@@ -420,4 +421,49 @@ describe("the shared invalid wash reaches THIS member too (§8, §11 — audit 2
       );
     });
   }
+});
+
+/* ── Motion: the dot arrives (§8, 2026-08-09) ──────────────────────────────────────────── */
+
+describe("the dot arrives, and never leaves in reverse (§8)", () => {
+  const dot = (el: HTMLElement) => el.querySelector<HTMLElement>("circle")!;
+
+  it("unchosen it has no size; chosen it is whole", () => {
+    const off = mounted(<Radio value="a" />, { theme: {}, select: ".kui-radio" });
+    inMotion();
+    expect(computed(dot(off), "scale"), "an unchosen dot is not there").toBe("0");
+
+    const on = mounted(<RadioGroup defaultValue="a"><Radio value="a" /></RadioGroup>, {
+      theme: {},
+      select: ".kui-radio",
+    });
+    inMotion();
+    expect(computed(dot(on), "scale"), "a chosen dot is whole").toBe("1");
+  });
+
+  it("it grows on a spring and vanishes instantly — the tick's own sentence", () => {
+    const on = mounted(<RadioGroup defaultValue="a"><Radio value="a" /></RadioGroup>, {
+      theme: {},
+      select: ".kui-radio",
+    });
+    inMotion();
+    expect(computed(dot(on), "transition-timing-function"), "arriving has mass").toContain("linear(");
+    expect(parseFloat(computed(dot(on), "transition-duration"))).toBeGreaterThan(0);
+    // Choosing another radio is the ANSWER; watching the old one deflate puts the eye on what
+    // was just abandoned.
+    const off = mounted(<Radio value="a" />, { theme: {}, select: ".kui-radio" });
+    inMotion();
+    expect(computed(dot(off), "transition-duration"), "leaving is instant").toBe("0s");
+  });
+
+  it("it pivots on itself, not on the SVG's origin", () => {
+    const on = mounted(<RadioGroup defaultValue="a"><Radio value="a" /></RadioGroup>, {
+      theme: {},
+      select: ".kui-radio",
+    });
+    inMotion();
+    // Without fill-box the scale pivots on the SVG's user space and the dot slides out of the
+    // mark while it grows — visible, and impossible to see in a static screenshot.
+    expect(computed(dot(on), "transform-box")).toBe("fill-box");
+  });
 });

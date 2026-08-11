@@ -40,10 +40,12 @@ const SIZES = ["1", "2", "3", "4"] as const satisfies readonly Size[];
 const DENSITIES = ["compact", "default", "comfortable"] as const;
 const RADII = ["none", "small", "medium", "large", "full"] as const;
 const POINTERS = ["auto", "fine", "coarse"] as const;
-const SURFACES = ["flat", "elevated"] as const;
-// §19, added to the page the day the axis shipped: `look` is the resting DRESS of the
-// one-look families (surfaces, fields, marks), its `filled` end is v0, and v0 values are
-// judged here. A picker the page lacks is an axis the eye pass cannot reach.
+const DEPTHS = ["flat", "elevated"] as const;
+// §19, added to the page the day the axis shipped, and SPLIT IN TWO 2026-08-10: the look is
+// the resting DRESS of the one-look families, asked separately of surfaces (cards, panels)
+// and controls (fields, marks). Its `filled` end is v0, and v0 values are judged here. A
+// picker the page lacks is an axis the eye pass cannot reach — and the cell the split exists
+// for (a plain card holding filled fields) is only reachable with both pickers present.
 const LOOKS = ["outlined", "filled"] as const;
 const CONTRASTS = ["auto", "normal", "high"] as const satisfies readonly ContrastChoice[];
 // The app restates the tone list (the package exports the type, not the value) — docs land,
@@ -187,8 +189,9 @@ function MarkRow({ size }: { size: Size }) {
 export function MatrixExplorer() {
   const [radius, setRadius] = React.useState<NonNullable<ThemeProps["radius"]>>(themeDefaults.radius);
   const [pointer, setPointer] = React.useState<NonNullable<ThemeProps["pointer"]>>("auto");
-  const [surfaces, setSurfaces] = React.useState<NonNullable<ThemeProps["surfaces"]>>("flat");
-  const [look, setLook] = React.useState<NonNullable<ThemeProps["look"]>>("outlined");
+  const [depth, setDepth] = React.useState<NonNullable<ThemeProps["depth"]>>(themeDefaults.depth);
+  const [surfaceLook, setSurfaceLook] = React.useState<NonNullable<ThemeProps["surfaceLook"]>>(themeDefaults.surfaceLook);
+  const [controlLook, setControlLook] = React.useState<NonNullable<ThemeProps["controlLook"]>>(themeDefaults.controlLook);
   const { contrast } = useAppearance();
 
   return (
@@ -200,7 +203,7 @@ export function MatrixExplorer() {
         <Text size="2" emphasis="medium" render={<p />} style={{ maxWidth: "44rem" }}>
           Every shipped control at every size × density cell. The pickers move whole worlds:
           radius re-prices the palette, pointer swaps the designed geometry (coarse also lifts
-          the handheld type band), surfaces decide whether anything sits up, and contrast is
+          the handheld type band), depth decides whether anything sits up, and contrast is
           the accessibility setting, never a style. Materials are judged against the hostile
           backdrop in the package preview, not here.
         </Text>
@@ -209,8 +212,9 @@ export function MatrixExplorer() {
       <Stack gap="2">
         <Picker label="radius" value={radius} options={RADII} onChange={setRadius} />
         <Picker label="pointer" value={pointer} options={POINTERS} onChange={setPointer} />
-        <Picker label="surfaces" value={surfaces} options={SURFACES} onChange={setSurfaces} />
-        <Picker label="look" value={look} options={LOOKS} onChange={setLook} />
+        <Picker label="depth" value={depth} options={DEPTHS} onChange={setDepth} />
+        <Picker label="surface look" value={surfaceLook} options={LOOKS} onChange={setSurfaceLook} />
+        <Picker label="control look" value={controlLook} options={LOOKS} onChange={setControlLook} />
         <Picker label="contrast" value={contrast} options={CONTRASTS} onChange={setContrast} />
       </Stack>
 
@@ -220,8 +224,9 @@ export function MatrixExplorer() {
           density={density}
           radius={radius}
           pointer={pointer}
-          surfaces={surfaces}
-          look={look}
+          depth={depth}
+          surfaceLook={surfaceLook}
+          controlLook={controlLook}
           render={<section />}
         >
           <Stack gap="4">
@@ -236,7 +241,7 @@ export function MatrixExplorer() {
         </Theme>
       ))}
 
-      <Theme radius={radius} pointer={pointer} surfaces={surfaces} look={look} render={<section />}>
+      <Theme radius={radius} pointer={pointer} depth={depth} surfaceLook={surfaceLook} controlLook={controlLook} render={<section />}>
         <Stack gap="4">
           <Heading size="3">tone × emphasis</Heading>
           <Text size="2" emphasis="medium" render={<p />}>
@@ -279,7 +284,7 @@ export function MatrixExplorer() {
           Theme it sat permanently at the root's `auto`, so clicking `coarse` moved every
           control and left the ramp on the desktop ladder — with the page's own prose,
           "coarse also lifts the handheld type band", printed directly above it. */}
-      <Theme radius={radius} pointer={pointer} surfaces={surfaces} look={look} render={<section />}>
+      <Theme radius={radius} pointer={pointer} depth={depth} surfaceLook={surfaceLook} controlLook={controlLook} render={<section />}>
         <Stack gap="4">
           <Heading size="3">type</Heading>
           <Stack gap="2">

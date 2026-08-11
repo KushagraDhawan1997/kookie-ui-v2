@@ -17,6 +17,7 @@ import { Select as BaseSelect } from "@base-ui/react/select";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
 import {
+  FloatingBody,
   FloatingDirectionContext,
   PortalScope,
   useAmbientDirection,
@@ -27,6 +28,9 @@ import type { Material, Size, SlotName } from "../../system/axes.ts";
 /** Gap between the trigger's edge and the panel — the menu's designed constant, restated
     because the second member self-keys (§23). */
 const SIDE_OFFSET = 4;
+
+/** The seed's lean crosses the trigger-to-panel gap; the entry reads it as a var (§22). */
+const GAP_VAR = { "--kui-floating-gap": `${SIDE_OFFSET}px` } as React.CSSProperties;
 
 const SelectSizeContext = React.createContext<Size>("2");
 
@@ -210,10 +214,10 @@ export function SelectContent({ material = "solid", children, className, style, 
         <BaseSelect.Positioner side="bottom" align="start" sideOffset={SIDE_OFFSET} alignItemWithTrigger={false}>
           <BaseSelect.Popup
             {...popupProps(React.use(SelectSizeContext), material, className)}
-            {...(style !== undefined ? { style } : {})}
+            style={{ ...GAP_VAR, ...style }}
             {...(ref !== undefined ? { ref } : {})}
           >
-            {children}
+            <FloatingBody>{children}</FloatingBody>
           </BaseSelect.Popup>
         </BaseSelect.Positioner>
       </PortalScope>

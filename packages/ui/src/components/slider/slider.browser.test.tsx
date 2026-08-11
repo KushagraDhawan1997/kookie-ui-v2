@@ -19,7 +19,9 @@ import {
   colorOn,
   computed,
   forEachCell,
+  inMotion,
   mounted,
+  numberOn,
   render,
   tokenOn,
   within,
@@ -232,7 +234,7 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
       // The kill switch's second named exception, beside the circle: depth as role
       // semantics. The cast is the palette's control row read as a VALUE, so neither the
       // flat world nor a glass pane's one-lift rule can strip it.
-      const flat = slider({}, { appearance, surfaces: "flat" });
+      const flat = slider({}, { appearance, depth: "flat" });
       const probe = document.createElement("div");
       probe.style.boxShadow = "var(--control-chrome)";
       flat.append(probe);
@@ -240,7 +242,7 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
       expect(computed(thumbOf(flat), "box-shadow")).toBe(expected);
       expect(computed(thumbOf(flat), "box-shadow")).not.toBe("none");
       probe.remove();
-      const elevated = slider({}, { appearance, surfaces: "elevated" });
+      const elevated = slider({}, { appearance, depth: "elevated" });
       expect(computed(thumbOf(elevated), "box-shadow")).not.toBe("none");
     });
   }
@@ -257,7 +259,7 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     // same recognisable object while everything behind it changes. Button belongs to no dressed
     // family for the same reason; the thumb lands in Button's category despite sharing the
     // checkbox's geometry. The family shares its BOX, not its DRESS.
-    const at = (look: "outlined" | "filled") => thumbOf(slider({}, { look, appearance }));
+    const at = (look: "outlined" | "filled") => thumbOf(slider({}, { surfaceLook: look, controlLook: look, appearance }));
     for (const prop of ["background-color", "border-top-color"]) {
       expect(computed(at("filled"), prop), `the look reached the thumb's ${prop}`).toBe(
         computed(at("outlined"), prop),
@@ -266,7 +268,7 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     // The negative control, and it is the whole point of the narrowing: a checkbox in the same
     // two worlds must still MOVE, or the axis has simply been switched off for the family.
     const box = (look: "outlined" | "filled") =>
-      computed(mounted(<Checkbox />, { theme: { look, appearance }, select: ".kui-checkbox" }), "background-color");
+      computed(mounted(<Checkbox />, { theme: { controlLook: look, appearance }, select: ".kui-checkbox" }), "background-color");
     expect(box("filled"), "the checkbox stopped answering the app's identity").not.toBe(
       box("outlined"),
     );
@@ -286,7 +288,7 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     // or it does not leave it, and a law that checked only the rail would have missed the thumb
     // (which was dressed until the day before this) and vice versa.
     const parts = (look: "outlined" | "filled") => {
-      const el = slider({}, { look, appearance });
+      const el = slider({}, { surfaceLook: look, controlLook: look, appearance });
       return {
         rail: computed(trackOf(el), "background-color"),
         railEdge: computed(trackOf(el), "border-top-color"),
@@ -304,7 +306,7 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     // this law passes in a world where `look` simply stopped working.
     const box = (look: "outlined" | "filled") =>
       computed(
-        mounted(<Checkbox />, { theme: { look, appearance }, select: ".kui-checkbox" }),
+        mounted(<Checkbox />, { theme: { controlLook: look, appearance }, select: ".kui-checkbox" }),
         "background-color",
       );
     expect(box("filled"), "the checkbox stopped answering the app's identity").not.toBe(
@@ -320,7 +322,7 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     // see it: each compared its own element to the token name its author had typed, and the
     // two were never compared to EACH OTHER.
     for (const look of ["outlined", "filled"] as const) {
-      const el = slider({}, { look, appearance });
+      const el = slider({}, { surfaceLook: look, controlLook: look, appearance });
       expect(
         computed(thumbOf(el), "background-color"),
         `${look}/${appearance}: the thumb is invisible on its own track`,
@@ -415,8 +417,8 @@ describe("states arrive from the shared layer (§8)", () => {
       expect(computed(rootOf(el), "opacity")).toBe("1");
     });
 
-    for (const surfaces of ["flat", "elevated"] as const) {
-      it(`${appearance}/${surfaces}: a dead grip stops hovering — disabled takes the cast (audit 2026-08-07)`, () => {
+    for (const depth of ["flat", "elevated"] as const) {
+      it(`${appearance}/${depth}: a dead grip stops hovering — disabled takes the cast (audit 2026-08-07)`, () => {
         // "The thumb casts ALWAYS" is a statement about the WORLD, not about state. Reading the
         // palette row's VALUE is what makes it survive a flat app and a glass pane — and it also
         // walked the thumb out of the shared disabled arm, which stands the world switch down.
@@ -425,8 +427,8 @@ describe("states arrive from the shared layer (§8)", () => {
         //
         // Both worlds, because the bug was invisible in neither: flat is where "always" does the
         // work, elevated is where every other control also casts.
-        const live = slider({}, { appearance, surfaces });
-        const dead = slider({ disabled: true }, { appearance, surfaces });
+        const live = slider({}, { appearance, depth });
+        const dead = slider({ disabled: true }, { appearance, depth });
         expect(computed(thumbOf(live), "box-shadow")).not.toBe("none");
         expect(computed(thumbOf(dead), "box-shadow")).toBe("none");
       });
@@ -550,5 +552,92 @@ describe("the rail is a well, and the radius axis DOES reach it (§6, audit R8)"
     const el = slider({}, { radius: "none" });
     const thumb = px(computed(thumbOf(el), "border-top-left-radius"));
     expect(thumb, "the thumb lost its circle").toBeGreaterThan(0);
+  });
+});
+
+describe("the grip under drag (§8, 2026-08-10)", () => {
+  /**
+   * The first component law to HOLD a real press: the state under test is "grabbed and not
+   * released", which no userEvent verb can leave you in — click is press+release, dragAndDrop
+   * ends released. CDP's mouse is the instrument, and the release lives in `finally` so a
+   * failing assertion cannot strand the next file with a button held down (the pointer-parking
+   * lesson, one input further in).
+   */
+  async function held(thumb: HTMLElement, fn: () => void | Promise<void>): Promise<void> {
+    const { cdp } = await import("vitest/browser");
+    const box = thumb.getBoundingClientRect();
+    const x = box.left + box.width / 2;
+    const y = box.top + box.height / 2;
+    await cdp().send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
+    await cdp().send("Input.dispatchMouseEvent", {
+      type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1,
+    });
+    try {
+      // Base UI stamps `data-dragging` from the pointerdown handler, but the attribute lands
+      // on React's flush — poll the condition, never guess a frame count (the settled() rule).
+      for (let i = 0; i < 200 && !thumb.hasAttribute("data-dragging"); i++) {
+        await new Promise((r) => requestAnimationFrame(r));
+      }
+      expect(thumb.hasAttribute("data-dragging"), "the grab never stamped").toBe(true);
+      await fn();
+    } finally {
+      await cdp().send("Input.dispatchMouseEvent", {
+        type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1,
+      });
+      for (let i = 0; i < 200 && thumb.hasAttribute("data-dragging"); i++) {
+        await new Promise((r) => requestAnimationFrame(r));
+      }
+    }
+  }
+
+  it("a held grip squashes, holds it for the drag, and stands back up released", async () => {
+    const el = slider({}, {});
+    await settled(el);
+    const thumb = thumbOf(el);
+    // A resting mark states NO transform — the stacking-rule sentence, asserted on the one
+    // mark that spends its life inside another control's box.
+    expect(computed(thumb, "scale"), "resting, the grip must not be a stacking context").toBe("none");
+    const squash = numberOn(thumb, "--press-squash");
+    expect(squash).toBeLessThan(1);
+    await held(thumb, () => {
+      expect(Number(computed(thumb, "scale")), "grabbed, the grip squashes").toBe(squash);
+    });
+    expect(computed(thumb, "scale"), "released, it stands back up").toBe("none");
+  });
+
+  it("the travel is never sprung — scale is the only channel, and the hold swaps its clock", async () => {
+    // "Physics on the travel, no": during a drag the pointer IS the physics, so the position
+    // Base UI writes inline must never appear in the transition list — a spring between finger
+    // and grip is lag on a direct manipulation. Read as the COMPUTED channel list, so a
+    // shorthand, a longhand, or an inherited rule all land in the same assertion.
+    const el = slider({}, {});
+    inMotion();
+    await settled(el);
+    const thumb = thumbOf(el);
+    expect(computed(thumb, "transition-property"), "one channel: the deformation").toBe("scale");
+    // The held clock arrives twice over, and the sabotage pass proved it: with the dragging
+    // rule's own restate deleted this law still passes, because every grab this harness can
+    // drive also lights `:active` on the root — the preventDefault path included, measured —
+    // and the shared press rule's pair reaches the thumb by inheritance. The restate stays in
+    // slider.css anyway, argued not measured: on touch, `:active`'s arrival is not guaranteed
+    // to be the pointerdown frame, and the squash's clock must land on the SAME stamp as the
+    // squash. What this law asserts is the observable — held, the thumb computes the press
+    // pair, by whichever route — and its non-vacuity is proven by pinning a wrong clock on
+    // the dragging state, which fails it.
+    // Time tokens read raw — the width probe tokenOn rides rejects a duration. Authored in
+    // ms, computed in s: one unit before comparing.
+    const seconds = (v: string) => (v.trim().endsWith("ms") ? parseFloat(v) / 1000 : parseFloat(v));
+    const raw = (name: string) => seconds(getComputedStyle(thumb).getPropertyValue(name));
+    const restEase = computed(thumb, "transition-timing-function");
+    expect(seconds(computed(thumb, "transition-duration")), "the recovery clock is the control layer's own").toBe(raw("--motion-rise"));
+    await held(thumb, () => {
+      expect(seconds(computed(thumb, "transition-duration")), "held: the press's clock").toBe(
+        raw("--motion-press"),
+      );
+      // Short and stiff against long and lively — the two-clocks sentence, held relationally
+      // so a re-tuned pair keeps the law without keeping the numbers.
+      expect(raw("--motion-press")).toBeLessThan(raw("--motion-rise"));
+      expect(computed(thumb, "transition-timing-function"), "held: the press's spring").not.toBe(restEase);
+    });
   });
 });
