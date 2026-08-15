@@ -53,12 +53,19 @@ import {
   controlMotion,
   floatingMotion,
   overlayMotion,
+  overlaySeed,
+  overlayLift,
+  overlayEcho,
   floatingSeed,
+  floatingEcho,
   floatingPadding,
   overlayWidth,
+  alertWidth,
   dialogInset,
   scrim,
   springs,
+  dialogMotion,
+  dialogEntry,
   shadow,
   sliderTrack,
   progressTrack,
@@ -248,10 +255,13 @@ export function generateTokens(): string {
   put("thumb-lean", zoom(controlMotion.thumbLean));
   put("motion-spring-lively", springCurve(springs.lively));
   put("motion-spring-stiff", springCurve(springs.stiff));
+  put("motion-spring-elastic", springCurve(springs.elastic));
+  put("motion-spring-poised", springCurve(springs.poised));
 
   lines.push("", "  /* the floating family's own motion (§22) — the emergence recipe's channels. Time, so");
   lines.push("     no --scale: a panel does not unfurl slower because the interface is zoomed. */");
   put("floating-seed", zoom(floatingSeed));
+  put("floating-echo", zoom(floatingEcho));
   put("floating-fall", `${floatingMotion.fall}ms`);
   put("floating-spread", `${floatingMotion.spread}ms`);
   put("floating-corner", `${floatingMotion.corner}ms`);
@@ -259,9 +269,22 @@ export function generateTokens(): string {
   put("floating-reveal-delay", `${floatingMotion.revealDelay}ms`);
   put("floating-dissolve", `${floatingMotion.dissolve}ms`);
   put("floating-settle", `${floatingMotion.settle}ms`);
+  put("overlay-seed", zoom(overlaySeed));
+  put("overlay-lift", zoom(overlayLift));
+  put("overlay-hold", `${overlayMotion.hold}ms`);
+  put("overlay-grow", `${overlayMotion.grow}ms`);
+  put("overlay-echo", zoom(overlayEcho));
   put("overlay-materialize", `${overlayMotion.materialize}ms`);
+  put("overlay-fall", `${overlayMotion.fall}ms`);
+  put("overlay-spread", `${overlayMotion.spread}ms`);
   put("overlay-reveal", `${overlayMotion.reveal}ms`);
   put("overlay-reveal-delay", `${overlayMotion.revealDelay}ms`);
+  put("overlay-print", `${overlayMotion.print}ms`);
+  /* §24 — the dialog's own entry: depth, not distance. */
+  put("dialog-settle", `${dialogMotion.settle}ms`);
+  put("dialog-reveal", `${dialogMotion.reveal}ms`);
+  put("dialog-depth", `${dialogEntry.depth}`);
+  put("dialog-blur", `${dialogEntry.blur}px`);
   put("overlay-dissolve", `${overlayMotion.dissolve}ms`);
   put("overlay-settle", `${overlayMotion.settle}ms`);
 
@@ -298,6 +321,8 @@ export function generateTokens(): string {
   lines.push("     edge. The widths ride --scale and answer neither density nor pointer: how wide a");
   lines.push("     modal should be is a question about reading measure, not about air. */");
   lines.push(...overlayWidth.map((px, i) => decl(`overlay-w-${i + 1}`, zoom(px))));
+  lines.push("  /* and the ALERT's width (§25) — FIXED, not a maximum: closed content, closed box */");
+  lines.push(...alertWidth.map((px, i) => decl(`alert-w-${i + 1}`, zoom(px))));
   lines.push(...dialogFamily());
 
   lines.push("", "  /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each");

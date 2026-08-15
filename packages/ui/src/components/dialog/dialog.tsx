@@ -223,7 +223,23 @@ export function DialogContent({ material, children, className, style, ref }: Dia
             {...(style !== undefined ? { style } : {})}
             {...(ref !== undefined ? { ref } : {})}
           >
-            {children}
+            {/**
+              * The body exists for ONE reason and holds one channel: the content comes into
+              * focus with the plane it is printed on (§24's entry — depth of field is a
+              * property of the mass), and you cannot blur children without a box holding
+              * them. That is §10's mechanically-forced sanction, the same one Spinner's span
+              * and the floating body have, and it is invisible to the API.
+              *
+              * What it deliberately does NOT do is carry the alert's runner. This entry has
+              * no measurement, no pose and no release clock — it rides Base UI's own
+              * transition stamps, so a dialog's whole motion is CSS. The alert needs the
+              * runner because its box BECOMES, which means animating to a length CSS cannot
+              * interpolate to; a dialog only steps forward in z, and scale needs no
+              * measuring.
+              */}
+            <div className="kui-dialog-body" role="presentation">
+              {children}
+            </div>
           </BaseDialog.Popup>
         </BaseDialog.Viewport>
       </PortalScope>

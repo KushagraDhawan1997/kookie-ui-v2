@@ -636,6 +636,19 @@ export const springs = {
       An exit that bounces is an object that did not mean to leave; an exit on `ease-in`
       slams, because ease-in ends at maximum velocity (LOG, principle 14). */
   stiff: { zeta: 0.85, omega: 4.706, steps: 24 },
+  /** The heavy plane's arrival (§24, 2026-08-16, tuned on the lab's half-screen and 88vw
+      panes: "a bit faster, a little more than 2%, with slight overshoot"). Mass forbids
+      overshoot — every designed heavy system brakes BEFORE its target, because a heavy thing
+      that overshoots does damage — so this spends almost the whole of damping's one-crossing
+      allowance on the approach: ζ0.8 is ~1.5% of the travel, a single crossing, a calm
+      return. Named for its manner rather than its consumer: a dialog is simply the first
+      thing heavy enough to need it. */
+  poised: { zeta: 0.8, omega: 8.75, steps: 36 },
+  /** The alert's materialization (2026-08-15/16, tuned twice by eye: lively's 10.7% was
+      too polite for a box arriving with a whole card's momentum, ζ0.5's ~16% carried a
+      ~2.7% second excursion — visible, and the reversal restored damping's sacredness).
+      ζ0.62: ~8.4% overshoot, second excursion ~0.7% — genuinely one crossing. */
+  elastic: { zeta: 0.62, omega: 10.835, steps: 36 },
 } as const;
 
 /**
@@ -732,6 +745,11 @@ export const controlMotion = {
  */
 export const floatingSeed = 56;
 
+/** The content's small arrival, echoing the box's own travel (2026-08-16, the family
+    unification: the dialog's content rises as it prints and the menu's just appeared —
+    "nice, but not of the same family"). v0. */
+export const floatingEcho = 8;
+
 export const floatingMotion = {
   /**
    * The vertical channel — the panel's height and its climb out of the seed — and it LEADS
@@ -775,13 +793,93 @@ export const floatingMotion = {
  * and the exit dissolves because leaving is never the entry reversed. Its own clock names,
  * not borrows of the floating ones: the families share a grammar, not a token home. v0.
  */
+/** The circle a dialog's surface forms from (2026-08-15, Kushagra: "the dialog container
+    itself expanding from a circle in center") — the diameter of the clip the entry opens
+    from. Its own constant, not a borrow of floatingSeed: shared grammar, separate homes. v0. */
+export const overlaySeed = 64;
+
+/** The dialog's ORIGIN (2026-08-15, Kushagra: "we know the origin of dropdown menu is
+    trigger, whats the origin of this? It needs to move"). A dialog is summoned, not
+    anchored: the circle forms this far BELOW its resting place and rises into it as it
+    unfurls — motion that answers "where did this come from" with "it surfaced". Since the
+    second round: the GAP below the dialog's BOTTOM edge (the runner knows the measured
+    height, so the origin clears the final card entirely — at 48 from center the circle sat
+    exactly on the bottom edge and the travel was invisible). v0. */
+export const overlayLift = 32;
+
+/** The content's own small arrival, echoing the container's origin (2026-08-15, Kushagra:
+    the body read as animating left-to-right off the growing box's edge; it should arrive
+    top-down like the container did) — the body starts this far below its resting place and
+    rises as it prints. v0. */
+export const overlayEcho = 8;
+
+/**
+ * §24 — the DIALOG's entry (2026-08-16, labbed on lab2's mass strip and locked from four
+ * candidates). Not the alert's, and the split is the whole decision: the materialization
+ * below is an ARRIVAL — travel, overshoot, a point origin — which is an interruption
+ * announcing itself, and at modal mass the same inertia reads as the room moving rather than
+ * a thing arriving. A dialog is SUMMONED, so it comes into focus rather than into view.
+ *
+ * The large-mass principles these numbers are: mass lowers frequency (the clocks stretch),
+ * mass forbids overshoot (the spring is near-critical), mass shortens travel (there is none
+ * in x or y — the scrim pushing the app back IS the arrival, §10), and mass softens onset (a
+ * spring from rest has no instant velocity). All v0 for the eye pass.
+ */
+export const dialogMotion = {
+  /** The box's arrival in DEPTH, and the content's coming into focus — one clock, because the
+      content is part of the mass. */
+  settle: 600,
+  /** Paint: presence. A panel with no source fades in honestly (§8's two clocks). */
+  reveal: 300,
+} as const;
+
+/**
+ * The dialog entry's two distances (§24). `depth` is where the panel starts on the z-axis —
+ * a scale, not a translate, because the only axis it travels is toward the viewer. `blur` is
+ * how far out of focus its content starts: depth of field is a property of the mass, so what
+ * is printed on the plane focuses WITH the plane. Blur is also the ONLY channel the system
+ * may honestly animate here — a dialog's content is the consumer's (forms, whole workspaces),
+ * and travel or print would presume an arrangement the system does not own.
+ */
+export const dialogEntry = {
+  depth: 0.97,
+  blur: 6,
+} as const;
+
 export const overlayMotion = {
-  /** The box's becoming — the scale growth rides the calm spring for this long. */
-  materialize: 400,
+  /** SPEED-matched to the menu, not time-matched (2026-08-16, Kushagra: same clocks read
+      "snappy" here — the dialog covers roughly three times the menu's distance, so equal
+      durations meant tripled velocity). The clocks run ~1.7x the floating family's (1.4x still read snappy on the return); what
+      the two share is the spring and the grammar, and the perceived pace is what lands
+      equal. */
+  /** The box's becoming — the corner and the container's sharpening ride this. */
+  materialize: 700,
+  /** The axes are OUT OF PHASE, the floating family's own grammar (2026-08-15, Kushagra:
+      one clock over asymmetric distances made the width read as a slide while the height
+      sprang — measured, 504px against 53px of travel). The vertical leads, the width
+      trails; two clocks is what makes both read as the same spring. */
+  fall: 560,
+  spread: 800,
+  /** ZERO since 2026-08-16 (Kushagra: the hold left "a weird random square on the screen
+      for a brief instant" — the seed must start growing AS it fades in, one event). The
+      circle-ness now survives the growth by shape instead of by time: the pose corner is
+      50%, so the box stays curvy while it opens. */
+  hold: 0,
+  /** The growth departs WITH the rise and the fade — the dropdown's own physics, copied
+      whole (2026-08-15/16: staggering read as the wrong spring, and any hold left a shape
+      lingering; the menu launches every channel together, and that concurrency IS the
+      elasticity). 300 (rise fully, then grow) was a firework; 180 was still two events;
+      120 with a 120 hold still lingered. */
+  grow: 0,
   /** Paint: the panel's own fade, and the scrim's. */
   reveal: 200,
   /** The content prints as the box lands — held molten until here. */
-  revealDelay: 240,
+  revealDelay: 160,
+  /** The content's own channels (sharpen + echo) run at THIS pace — the menu content's
+      own, not the box's: the box clocks are speed-matched to a big journey (above), but
+      content travels ~8px in both families, so equal TIME is what makes the two prints
+      read as one sentence (2026-08-16). */
+  print: 380,
   /** Exit: the dissolve, and the hair of settle it carries (the floating exit's grammar,
       restated in the family's own numbers). */
   dissolve: 140,
@@ -980,6 +1078,17 @@ export const scrim = {
  * settings pane (3), a wide editor (4). v0 for the eye pass.
  */
 export const overlayWidth = [360, 440, 560, 720] as const;
+
+/**
+ * §25 — the ALERT's width, one designed raw-px ladder on the size index, and a FIXED width
+ * rather than a maximum: an alert's content is closed (title, description, two actions), so
+ * its box does not stretch to content the way a dialog's may — the component states the
+ * width and the words wrap to it, which is also what makes the 50/50 action row hold its
+ * shape. Strictly narrower than the dialog of the same index at every step (law-tested): an
+ * alert interrupts with a question, it does not host work. The viewport's gutter still wins
+ * on a narrow window. v0 for the eye pass.
+ */
+export const alertWidth = [280, 320, 360, 400] as const;
 
 /**
  * §24 — the gutter between the dialog and the window edge, ONE pick into layout space (the

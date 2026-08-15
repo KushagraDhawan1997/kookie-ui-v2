@@ -8,10 +8,12 @@
  * the portal wrapper's re-stamping, the surface rungs, the material recipes — are law-tested
  * where they live; what is asserted here is that this component wears them.
  *
- * Motion arrived 2026-08-15 (§24, the materialization) and its laws close this file: the
- * appearance laws still never call `inMotion()` — only the motion block does, because those
- * laws are ABOUT the entry.
+ * Motion LEFT this file 2026-08-16 (LOG, the dialog/alert split): the materialization was
+ * judged to be the alert's gesture, so the recipe, the runner and its laws moved to
+ * AlertDialog whole. A dialog opens with no entry until its own large-mass entry lands —
+ * the follow-up commit — which is a sequencing fact, not a design one.
  */
+import * as React from "react";
 import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
@@ -23,14 +25,15 @@ import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
 import {
+  DEPTHS,
+  asksForStillness,
+  inMotion,
   render,
   settleAll,
   computed,
   colorOn,
   probeIn,
   tokenOn,
-  inMotion,
-  asksForStillness,
   SIZES,
   APPEARANCES,
 } from "../../test/browser.tsx";
@@ -281,7 +284,7 @@ describe("the panel's box", () => {
 
 describe("a dialog does not float", () => {
   it("is not a floating pane and never casts the floating chrome", () => {
-    for (const depth of ["flat", "elevated"] as const) {
+    for (const depth of DEPTHS) {
       const { popup } = openDialog({ depth });
       // The class carries the concentric corner join AND the floating cast; a dialog wants
       // neither, and this is the law that keeps a future "make it consistent with Menu" edit
@@ -296,7 +299,7 @@ describe("a dialog does not float", () => {
     // The positive half, and the one that says what a dialog IS: paper, lifted by the app's
     // own identity rather than by a fact about itself. A menu in the same flat world casts;
     // this must not, because coverage is already stated by the scrim.
-    for (const depth of ["flat", "elevated"] as const) {
+    for (const depth of DEPTHS) {
       const { popup } = openDialog({ depth });
       let card: HTMLElement | null = null;
       render(
@@ -432,25 +435,16 @@ describe("title and description", () => {
   });
 });
 
-/* ── Motion: the materialization (§8, §24, 2026-08-15) ────────────────────────────────────
-   The floating entry's PRINCIPLES, never its animation: a dialog is anchored to nothing, so
-   its entry is a materialization — the box BECOMES on the spring, presence is paint, the
-   content is one molten unit printing as the box lands, the scrim is pure signal, and the
-   exit dissolves. All CSS on Base UI's own stamps; no JS anywhere. Base UI's semantics decide
-   WHEN it plays: a real open transitions, a `defaultOpen` mount is instant — so every law
-   here opens by CLICK and reads the flight, because the pose stamp itself is gone within the
-   opening commit (measured: scale holds 0.96 through the first frames, then climbs).
-*/
-describe("the panel materializes (§24)", () => {
-  const curveOn = (el: HTMLElement, name: string) =>
-    getComputedStyle(el).getPropertyValue(name).trim();
+describe("the panel comes into focus, not into view (§24)", () => {
+  const curveOn = (el: HTMLElement, name: string) => getComputedStyle(el).getPropertyValue(name).trim();
   const samples = (curve: string) =>
     curve
       .slice(curve.indexOf("(") + 1, curve.lastIndexOf(")"))
       .split(",")
       .map((stop) => stop.trim().split(/\s+/)[0]!);
-  const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-  /** Open by CLICK — the path that transitions — and hand back the flying popup. */
+  const tokenPx = (el: HTMLElement, name: string) => parseFloat(getComputedStyle(el).getPropertyValue(name));
+
+  /** Open by CLICK — the path Base UI transitions — and hand back the arriving popup. */
   async function openByClick() {
     render(
       <Theme>
@@ -470,75 +464,130 @@ describe("the panel materializes (§24)", () => {
     return popup;
   }
 
-  it("the entry is a BECOMING: small and unpainted, then grown and lit — and the clocks split (§8)", async () => {
+  const channels = (el: HTMLElement) =>
+    computed(el, "transition-property")
+      .split(",")
+      .map((p) => p.trim());
+
+  it("starts a step back in DEPTH with its content out of focus, and travels nowhere", async () => {
     const popup = await openByClick();
-    // The first readable frames hold the pose: below size, unpainted, content molten.
-    expect(parseFloat(computed(popup, "scale")), "the box starts below its size").toBeLessThan(0.97);
-    expect(parseFloat(computed(popup, "opacity")), "a panel with no source fades in").toBeLessThan(0.5);
-    const title = popup.querySelector<HTMLElement>(":scope > *")!;
-    expect(computed(title, "filter"), "the content arrives molten").toMatch(/^blur\(/);
-    expect(parseFloat(computed(title, "opacity")), "and empty").toBeLessThan(0.5);
-    // The print is DELAYED: the content lands after the box, never with it.
-    const childDelay = computed(title, "transition-delay").split(",").map((d) => parseFloat(d));
-    expect(Math.max(...childDelay), "the print waits for the box").toBeGreaterThan(0);
-    // The two clocks: scale rides the baked spring, opacity eases (a box on a bezier is a
-    // slideshow, paint on a spring wobbles). Lists are readable at any frame.
-    const listed = computed(popup, "transition-property").split(",").map((p) => p.trim());
-    const easings = computed(popup, "transition-timing-function").split(/,(?![^(]*\))/);
-    const spring = curveOn(popup, "--motion-spring");
-    expect(spring.startsWith("linear("), "the spring token is a baked curve").toBe(true);
-    expect(samples(easings[listed.indexOf("scale")]!.trim())).toEqual(samples(spring));
-    expect(easings[listed.indexOf("opacity")]!, "paint has no mass").not.toContain("linear(");
-    // The scrim is SIGNAL: easing up alongside, never sprung.
-    const scrim = document.querySelector<HTMLElement>(".kui-dialog-backdrop")!;
-    expect(computed(scrim, "transition-timing-function")).not.toContain("linear(");
-    expect(computed(scrim, "transition-property")).toContain("opacity");
-    // And it actually MOVES — declared is not the same as free (the menu suite's lesson).
-    const first = parseFloat(computed(popup, "scale"));
-    const deadline = performance.now() + 2000;
-    let grew = false;
-    while (performance.now() < deadline && !grew) {
-      await frame();
-      grew = parseFloat(computed(popup, "scale") === "none" ? "1" : computed(popup, "scale")) > first + 0.005;
-    }
-    expect(grew, "the box never grew").toBe(true);
+    const body = popup.querySelector<HTMLElement>(".kui-dialog-body")!;
+    // Base UI's starting stamp is the pose, and it lives one frame — read it by hand so the
+    // claim is about the values rather than about catching the frame.
+    popup.setAttribute("data-starting-style", "");
+    popup.style.setProperty("transition", "none", "important");
+    body.style.setProperty("transition", "none", "important");
+
+    // DEPTH: a scale, and the one config states.
+    expect(parseFloat(computed(popup, "scale"))).toBeCloseTo(
+      parseFloat(getComputedStyle(popup).getPropertyValue("--dialog-depth")),
+      3,
+    );
+    // NOT DISTANCE: the panel does not travel, in either axis. This is the whole split from
+    // the alert's materialization, and it is asserted as an absence because that is what it is.
+    expect(["none", "0px", "0px 0px"], "a summoned surface has nowhere to travel from").toContain(
+      computed(popup, "translate"),
+    );
+    expect(computed(popup, "opacity"), "presence is paint").toBe("0");
+    // And the content is out of focus by exactly the designed distance — sharing the plane's
+    // arrival, because depth of field is a property of the mass.
+    expect(computed(body, "filter")).toBe(`blur(${tokenPx(popup, "--dialog-blur")}px)`);
   });
 
-  it("the exit dissolves — the box holds its size, settles a hair, and leaves as one (§24)", async () => {
+  it("moves no size channel at all — the absence IS the design", async () => {
     const popup = await openByClick();
-    // The ending recipe, read as computed values under the hand-applied stamp (the menu
-    // exit law's pattern): lists first with live clocks, then pinned for the pose.
-    popup.setAttribute("data-ending-style", "");
-    const listed = computed(popup, "transition-property").split(",").map((p) => p.trim());
+    const listed = channels(popup);
+    // The materialization animates the BOX (block-size, inline-size, border-radius, padding,
+    // translate) because an alert arrives. A dialog does not, and if any of these ever appear
+    // here the split has quietly been undone — which would not show up in any law about what
+    // the entry DOES.
+    for (const forbidden of [
+      "block-size",
+      "inline-size",
+      "width",
+      "height",
+      "padding",
+      "border-radius",
+      "border-top-left-radius",
+      "translate",
+    ]) {
+      expect(listed, `${forbidden} is the alert's gesture, not this one`).not.toContain(forbidden);
+    }
+    // Vacuity guard: the law must be reading a real list, not an empty one.
+    expect(listed).toContain("scale");
+    expect(listed).toContain("opacity");
+  });
+
+  it("rides the heavy plane's spring: one slight crossing, never a bounce", async () => {
+    const popup = await openByClick();
+    const listed = channels(popup);
     const easings = computed(popup, "transition-timing-function").split(/,(?![^(]*\))/);
-    const stiff = curveOn(popup, "--motion-spring-stiff");
-    expect(samples(easings[listed.indexOf("scale")]!.trim()), "the settle decelerates — an exit never bounces").toEqual(samples(stiff));
-    expect(easings[listed.indexOf("opacity")]!, "the dissolve eases").not.toContain("linear(");
-    // Pinned — popup AND child, because the child's own print transition is still mid-delay
-    // this soon after the open, and an unpinned read reports the value in flight.
-    const title = popup.querySelector<HTMLElement>(":scope > *")!;
+    const poised = curveOn(popup, "--motion-spring-poised");
+    expect(samples(easings[listed.indexOf("scale")]!.trim()), "geometry is physics").toEqual(
+      samples(poised),
+    );
+    // Read off the CURVE, not off its name: mass forbids overshoot, so the arrival crosses its
+    // target once and barely — the whole of damping's allowance spent on the approach.
+    const values = samples(poised).map(Number);
+    expect(Math.max(...values), "a heavy plane does not bounce").toBeLessThan(1.03);
+    expect(Math.max(...values), "but it is alive — it does cross").toBeGreaterThan(1);
+    // Paint is signal: the fade eases and never springs.
+    expect(easings[listed.indexOf("opacity")]!, "presence eases").not.toContain("linear(");
+  });
+
+  it("two clocks, one mass: the content focuses WITH the box, and is never printed", async () => {
+    const popup = await openByClick();
+    const body = popup.querySelector<HTMLElement>(".kui-dialog-body")!;
+    const listed = channels(popup);
+    const durations = computed(popup, "transition-duration").split(",").map((d) => parseFloat(d) * 1000);
+    const settle = parseFloat(getComputedStyle(popup).getPropertyValue("--dialog-settle"));
+    const reveal = parseFloat(getComputedStyle(popup).getPropertyValue("--dialog-reveal"));
+    expect(durations[listed.indexOf("scale")]).toBeCloseTo(settle, 0);
+    expect(durations[listed.indexOf("opacity")]).toBeCloseTo(reveal, 0);
+
+    // The content is part of the mass, so it takes the BOX's clock, not a print clock.
+    expect(parseFloat(computed(body, "transition-duration")) * 1000).toBeCloseTo(settle, 0);
+    // And it is NOT printed: one channel, and it is focus. A dialog's content is the
+    // consumer's — the system may not animate an arrangement it does not own.
+    expect(channels(body), "blur is the only thing the system may honestly do here").toEqual([
+      "filter",
+    ]);
+    expect(computed(body, "transition-delay"), "and it arrives with the box, not after it")
+      .toBe("0s");
+  });
+
+  it("the exit dissolves, and a dismissal mid-arrival RETARGETS rather than snapping", async () => {
+    const popup = await openByClick();
+    popup.setAttribute("data-ending-style", "");
+    const listed = channels(popup);
+    // `scale` stays listed, which is what lets a running arrival be retargeted instead of
+    // cancelled — dropping a property from the list kills its transition mid-flight.
+    expect(listed, "the arrival's own channel survives the dismissal").toContain("scale");
+    const easings = computed(popup, "transition-timing-function").split(/,(?![^(]*\))/);
+    expect(samples(easings[listed.indexOf("scale")]!.trim())).toEqual(
+      samples(curveOn(popup, "--motion-spring-stiff")),
+    );
     popup.style.setProperty("transition", "none", "important");
-    title.style.setProperty("transition", "none", "important");
     expect(computed(popup, "opacity")).toBe("0");
-    // 0.99, not the entry's 0.96 reversed: leaving is never the entry reversed — the viewer
-    // is already looking at the thing they dismissed.
+    // Settling back a hair, not retracing the arrival: leaving answers nothing.
     expect(computed(popup, "scale")).toBe("0.99");
-    // The content leaves ABOARD the box: no ending hold puts the children back to molten.
-    expect(computed(title, "filter"), "the content dissolves with its box").toBe("none");
   });
 
   it("suppression is total: under reduced motion the panel is simply there (§8)", async () => {
     await asksForStillness();
     const popup = await openByClick();
-    expect(["none", "1"]).toContain(computed(popup, "scale"));
-    expect(computed(popup, "opacity")).toBe("1");
-    const title = popup.querySelector<HTMLElement>(":scope > *")!;
-    expect(computed(title, "opacity")).toBe("1");
-    expect(computed(title, "filter")).toBe("none");
-    const scrim = document.querySelector<HTMLElement>(".kui-dialog-backdrop")!;
-    expect(computed(scrim, "opacity")).toBe("1");
-    for (const el of [popup, scrim]) {
-      expect(computed(el, "transition-duration").split(",").every((d) => parseFloat(d) === 0), "no clock survives").toBe(true);
+    const body = popup.querySelector<HTMLElement>(".kui-dialog-body")!;
+    for (const el of [popup, body]) {
+      expect(
+        computed(el, "transition-duration").split(",").every((d) => parseFloat(d) === 0),
+        "no clock survives",
+      ).toBe(true);
     }
+    // And the pose itself is stood down, which here is reachable in a way it is not for the
+    // alert: Base UI stamps the starting style regardless of what the user asked their OS for.
+    popup.setAttribute("data-starting-style", "");
+    expect(computed(popup, "opacity")).toBe("1");
+    expect(["none", "1"]).toContain(computed(popup, "scale"));
+    expect(computed(body, "filter"), "and its content is legible").toBe("none");
   });
 });
