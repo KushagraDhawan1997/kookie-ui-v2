@@ -731,7 +731,10 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
           for (const literal of channel.replace(/var\([^)]*\)/g, "").match(/\d*\.?\d+m?s/g) ?? []) {
             expect(literal, `${file}: ${raw.trim()} — hand-typed duration`).toBe("0s");
           }
-          expect(channel, `${file}: ${raw.trim()}`).toMatch(/var\(--(motion|floating)-[\w-]+\)|\b0s\b/);
+          // Three clock families: the control clocks (--motion-*), the floating panes'
+          // (--floating-*), and the overlays' (--overlay-*, 2026-08-15 — the dialog's
+          // materialization; §24).
+          expect(channel, `${file}: ${raw.trim()}`).toMatch(/var\(--(motion|floating|overlay)-[\w-]+\)|\b0s\b/);
         }
       }
     }
@@ -743,7 +746,9 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // the system read as physical rather than as a set of tastefully chosen curves.
     // box-shadow is LIGHT, not mass (added 2026-08-10, the morph's opaque seed): the floating
     // cast fades up as the panel lifts, and light on a spring would wobble.
-    const PAINT = new Set(["background-color", "border-color", "color", "opacity", "fill", "stroke", "box-shadow"]);
+    // `filter` joined 2026-08-14 with the molten pass: blur is FOCUS, a property of the
+    // viewer's read, not of the box — a signal, so it eases like the rest of the paint.
+    const PAINT = new Set(["background-color", "border-color", "color", "opacity", "fill", "stroke", "box-shadow", "filter"]);
     for (const file of allStylesheets()) {
       for (const declaration of [...sheet(file).matchAll(/[^-\w]transition\s*:([^;]+);/g)]) {
         const body = declaration[1]!;
@@ -763,6 +768,51 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         }
       }
     }
+  });
+
+  it("a var() without a fallback resolves SOMEWHERE — a dangling name is a disarmed declaration (2026-08-14)", () => {
+    /**
+     * The floating body's counter-squish shipped reading `var(--floating-rise)` — a token
+     * that never existed — and because a dangling var() invalidates its whole declaration at
+     * computed-value time, the transition was silently absent from the day it shipped while
+     * every law read the rules around it (found by Kushagra in the lab: "the text doesn't
+     * move or stretch with it"). Nothing walked the sheets for names that resolve nowhere;
+     * this is that walk. A var() WITH a fallback is a hook — deliberately undeclared names
+     * are how the world tokens, the JS-written measurements and the per-state hooks all
+     * work — so the law binds only the fallback-less form, which has no second answer.
+     */
+    const declared = new Set<string>();
+    const declaration = /(?:^|[{;\s])(--[\w-]+)\s*:/g;
+    const sources = [
+      ...allStylesheets().map((p) => sheet(p)),
+      stripped(raw("tokens/tokens.css")),
+      stripped(raw("system/layout.css")),
+    ];
+    for (const body of sources) {
+      for (const m of body.matchAll(declaration)) declared.add(m[1]!);
+      for (const m of body.matchAll(/@property\s+(--[\w-]+)/g)) declared.add(m[1]!);
+    }
+    // Names only the runtime writes, read without a fallback on purpose (each is set before
+    // the rule that reads it can match). Additions here need the same sentence.
+    // --kui-anchor-w: the entry's synchronous width floor, written in begin() before the
+    //   floor chains consult it. --kui-floating-gap: the side offset, stamped inline by
+    //   MenuContent/SelectContent on the popup itself before any seed rule can match.
+    const runtime = new Set(["--kui-anchor-w", "--kui-floating-gap"]);
+    let reads = 0;
+    for (const file of allStylesheets()) {
+      const body = sheet(file);
+      for (const m of body.matchAll(/var\(\s*(--[\w-]+)\s*([,)])/g)) {
+        reads += 1;
+        if (m[2] === ",") continue; // a fallback makes it a hook
+        const name = m[1]!;
+        if (runtime.has(name)) continue;
+        expect(
+          declared.has(name),
+          `${file}: var(${name}) has no fallback and no declaration anywhere — the --floating-rise shape`,
+        ).toBe(true);
+      }
+    }
+    expect(reads, "the walk read nothing — the regex broke, not the sheets").toBeGreaterThan(200);
   });
 
   it("nothing moves that is not stood down under reduced motion (§8)", () => {
@@ -851,7 +901,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     expect(guard).toBeGreaterThan(-1);
     const suppressed = body.slice(guard);
     expect(suppressed).toMatch(/transition:\s*none/);
-    for (const stood of ["margin", "translate", "scale", "opacity", "inline-size", "block-size"]) {
+    for (const stood of ["margin", "translate", "scale", "opacity", "inline-size", "block-size", "filter"]) {
       expect(suppressed, stood).toContain(stood);
     }
   });

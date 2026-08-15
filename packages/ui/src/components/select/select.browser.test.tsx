@@ -836,6 +836,11 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
   const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
   function openFlying() {
+    // inMotion BEFORE mount (2026-08-15): a defaultOpen entry begins at mount's microtask
+    // and reads its release clock off computed durations — mounted under the harness's
+    // pinned zeros, it schedules release at ~50ms and the flight is cut mid-air the moment
+    // the pins lift.
+    inMotion();
     mount(
       <Theme>
         <Select defaultOpen items={{ a: "Alpha", b: "Beta" }}>
@@ -847,26 +852,38 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
         </Select>
       </Theme>,
     );
-    inMotion();
     const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
     return popups[popups.length - 1]!;
   }
 
-  it("the first frame is the trigger's own box, and the panel is measured for the flight", () => {
-    // The morph, on the family's second member with zero CSS of its own: the seed is the
-    // field-shaped trigger's silhouette — its width, height and corner — so a select visibly
-    // grows out of the control that opened it.
+  it("the first frame is the trigger's SILHOUETTE, and the panel is measured for the flight", async () => {
+    // The silhouette, on the family's second member with zero CSS of its own (2026-08-15,
+    // Kushagra: the panel must start "exactly the shape of the trigger, and exactly where
+    // the trigger is"; menu.browser.test.tsx carries the recipe's own laws, this asserts
+    // the membership): the first frame wears the trigger's box ON the trigger, and the
+    // measured destination is what makes the unfurl animatable at all.
     const popup = openFlying();
     const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
-    const box = trigger.getBoundingClientRect();
     expect(popup.hasAttribute("data-seed")).toBe(true);
+    // One frame: the overlay is aimed after floating-ui places the positioner, and the
+    // seed holds for two — the awaited frame lands between the aim and the release.
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    const box = trigger.getBoundingClientRect();
     const seed = popup.getBoundingClientRect();
-    expect(seed.width).toBeCloseTo(box.width, 1);
-    expect(seed.height).toBeCloseTo(box.height, 1);
-    expect(computed(popup, "border-top-left-radius")).toBe(
-      computed(trigger, "border-top-left-radius"),
+    // Within the held press's drift, not to the pixel: the silhouette measures the trigger
+    // on the open's first frame, and the trigger then shrinks a hair under the held press —
+    // so by the time this law reads both rects, the trigger has moved ~1px out from under
+    // its own photograph. The claim is overlay, not simultaneity.
+    expect(Math.abs(seed.width - box.width), "the trigger's own width").toBeLessThan(3);
+    expect(Math.abs(seed.height - box.height), "the trigger's own height").toBeLessThan(3);
+    expect(Math.abs(seed.left - box.left), "sitting exactly on it").toBeLessThan(3);
+    expect(Math.abs(seed.top - box.top)).toBeLessThan(3);
+    expect(parseFloat(computed(popup, "border-top-left-radius"))).toBeCloseTo(
+      parseFloat(getComputedStyle(trigger).borderTopLeftRadius),
+      1,
     );
-    // The measurement is what makes the destination animatable at all.
+    // The measurement is what makes the destination animatable at all — and it carries the
+    // trigger floor, which is a claim about the PANEL, not the seed.
     expect(parseFloat(popup.style.getPropertyValue("--kui-floating-w"))).toBeGreaterThanOrEqual(
       box.width - 1,
     );
@@ -894,6 +911,7 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
      * arrived only at release: the panel felt done, then visibly re-expanded. The entry now
      * writes the trigger's width itself, before measuring, and both floors consult it first.
      */
+    inMotion();
     mount(
       <Theme>
         <Select defaultOpen items={{ a: "Alpha", b: "Beta" }}>
@@ -905,7 +923,6 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
         </Select>
       </Theme>,
     );
-    inMotion();
     const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
     const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
@@ -1083,17 +1100,24 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
       await tick();
     }
     expect(flight.length, "the second open never flew — the entry ran once per lifetime").toBeGreaterThan(0);
-    expect(Math.min(...flight), "it must fly FROM the seed, not from mid-size").toBeLessThan(
-      triggerH * 1.5,
+    // Anchored to the TRIGGER's height (2026-08-15, the silhouette): the seed is the
+    // trigger's own box, so a replayed flight must start down at that height — a flight
+    // that begins mid-size means the entry did not replay from its seed.
+    expect(Math.min(...flight), "it must fly FROM the silhouette, not from mid-size").toBeLessThanOrEqual(
+      triggerH + 4,
     );
-    // DIRECTION, not just movement — the first spelling asserted max > min, which any motion
-    // satisfies, and the sabotage that removed the laid-out guard sailed through it while the
-    // panel flew TOWARD 10px. The end must sit above the start, and the landed panel must be
-    // a real panel: taller than the trigger it came out of.
-    expect(flight.at(-1)!, `it flew backwards: ${flight.map((n) => n.toFixed(0)).join(",")}`).toBeGreaterThan(
-      flight[0]!,
-    );
+    // TARGET-AGREEMENT, not direction (2026-08-15): "the end must sit above the start" was
+    // true only while the seed was smaller than every panel — the 72px circle is TALLER than
+    // a two-item select panel, so its height legitimately shrinks while its width grows.
+    // What the direction assert guarded was the fly-toward-10px regression, and both its
+    // halves survive: the flight must START at the seed (asserted above), it must END where
+    // it settles (no snap at the release seam), and the landed panel must be a real one —
+    // the 10px regression fails that last check outright.
     expect(landed, "the flight must end in a released panel").not.toBeNull();
+    expect(
+      Math.abs(landed!.getBoundingClientRect().height - flight.at(-1)!),
+      `it snapped at release: ${flight.at(-1)} -> ${landed!.getBoundingClientRect().height}`,
+    ).toBeLessThanOrEqual(1.5);
     expect(landed!.getBoundingClientRect().height, "and the panel it ends in is a real one").toBeGreaterThan(
       triggerH * 1.5,
     );
@@ -1105,6 +1129,9 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     // because "select.css adds no motion" is exactly the kind of claim that stays true in the
     // stylesheet while a component quietly re-points a clock.
     const select = openFlying();
+    // Un-seeded first: the seed state pins `transition: none` (a held pose), and the
+    // recipe under agreement is the FLIGHT's — the base rule's.
+    select.removeAttribute("data-seed");
     const selectRecipe = ["transition-duration", "transition-property", "transition-timing-function"].map(
       (p) => computed(select, p),
     );
@@ -1119,6 +1146,7 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
       </Theme>,
     );
     const menu = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop()!;
+    menu.removeAttribute("data-seed");
     const menuRecipe = ["transition-duration", "transition-property", "transition-timing-function"].map(
       (p) => computed(menu, p),
     );

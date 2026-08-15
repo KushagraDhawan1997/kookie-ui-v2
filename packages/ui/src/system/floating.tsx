@@ -331,11 +331,10 @@ export function FloatingBody({ children }: { children: React.ReactNode }) {
       if (trigger) {
         const box = trigger.getBoundingClientRect();
         popup.style.setProperty("--kui-anchor-w", `${heldAnchorWidth(trigger, box.width)}px`);
-        // And the seed IS this box (the morph, 2026-08-10): its width, its height, and its
-        // corner, so the panel's first frame is the trigger's own silhouette sitting exactly
-        // over it. Dimensions only — never the trigger's position, which is the one reading
-        // that would race the positioner. The overlay is exact by construction instead: the
-        // seed is pinned to the panel's anchored corner, and that corner is the trigger's.
+        // And the seed IS this box (the morph, 2026-08-10; restated 2026-08-15): its width,
+        // its height, and its corner, so the panel's first frame is the trigger's own
+        // silhouette sitting exactly over it. The POSITION is measured too, further down —
+        // after the flight arrangement is on, where the laid-out offsets are real.
         popup.style.setProperty("--kui-seed-w", `${box.width}px`);
         popup.style.setProperty("--kui-seed-h", `${box.height}px`);
         popup.style.setProperty("--kui-seed-r", getComputedStyle(trigger).borderTopLeftRadius);
@@ -384,10 +383,60 @@ export function FloatingBody({ children }: { children: React.ReactNode }) {
         positioner.style.height = `${h}px`;
       }
         popup.setAttribute("data-unfurling", "");
-      // And the seed comes off on the next frame, which is what starts the flight. One frame,
-      // not a timeout: the browser needs exactly one paint at the seed for the transition to
-      // have somewhere to travel from.
-      requestAnimationFrame(() => popup.removeAttribute("data-seed"));
+      /**
+       * The silhouette's POSITION (2026-08-15, Kushagra: the panel must start "exactly where
+       * the trigger is"). Measured, not derived: the trigger's screen rect against the
+       * popup's own laid-out position — the positioner's rect (floating-ui's placement,
+       * transforms included) plus the popup's layout offset inside it (offsetLeft/Top,
+       * which a translate never moves).
+       *
+       * In a MICROTASK, and the deferral is the whole mechanism (the old warning about
+       * racing the positioner was right, and the first spelling re-proved it): this
+       * callback runs before Base UI's layout effects, so on a clicked open the popup has
+       * its own layout — the laid-out bail passes — while the positioner's transform is
+       * still wherever the last frame left it, and an offset read now aims the silhouette
+       * at a stale corner of the page (judged in the lab: "going all over the page").
+       * A microtask queued here runs after the commit's every layout effect — the
+       * positioner is placed — and still before paint, so the first painted frame already
+       * sits on the trigger.
+       */
+      const aim = () => {
+        if (!trigger || !positioner?.hasAttribute("data-side")) return;
+        if (!popup.hasAttribute("data-seed")) return;
+        const positionerBox = positioner.getBoundingClientRect();
+        const triggerBox = trigger.getBoundingClientRect();
+        popup.style.setProperty("--kui-from-x", `${triggerBox.left - (positionerBox.left + popup.offsetLeft)}px`);
+        popup.style.setProperty("--kui-from-y", `${triggerBox.top - (positionerBox.top + popup.offsetTop)}px`);
+        // The visibility gate: a silhouette painted before this write sits wherever the
+        // last layout left it, so the seed stays transparent until it is placed.
+        popup.setAttribute("data-aimed", "");
+      };
+      // A REOPEN's popup still wears the last flight's aim; this open must start un-aimed
+      // or the stale offset paints for a frame. An anchorless panel has nothing to aim at
+      // and is placed by construction, so it is born aimed.
+      popup.removeAttribute("data-aimed");
+      if (trigger && positioner?.hasAttribute("data-side")) queueMicrotask(aim);
+      else popup.setAttribute("data-aimed", "");
+      // The seed comes off one frame later, which is what starts the flight — with a
+      // re-aim first: floating-ui's own positioning can land a beat after the microtask,
+      // and the flight must depart from where the silhouette truly is, so the corrected
+      // offset gets one painted frame before the transition reads it as its start.
+      requestAnimationFrame(() => {
+        aim();
+        requestAnimationFrame(() => {
+          popup.removeAttribute("data-seed");
+          // The deadline is read HERE, after the seed is off: the seed state pins
+          // `transition: none` (so the aim's writes cannot start cancellable transitions),
+          // which means a read while seeded would see zero-length spans and release the
+          // flight at birth. Un-seeded, the computed list is the flight's own.
+          const style = getComputedStyle(popup);
+          const spans = style.transitionDuration.split(",").map((d, i) => {
+            const delays = style.transitionDelay.split(",");
+            return parseFloat(d) + parseFloat(delays[i % delays.length] ?? "0");
+          });
+          window.setTimeout(release, Math.max(...spans, 0) * 1000 + 50);
+        });
+      });
 
       // Released on arrival — BY THE CLOCK, not by a channel's transitionend (changed
       // 2026-08-10, the morph's own consequence). The old release waited on the inline-size
@@ -417,6 +466,9 @@ export function FloatingBody({ children }: { children: React.ReactNode }) {
         popup.style.removeProperty("--kui-seed-w");
         popup.style.removeProperty("--kui-seed-h");
         popup.style.removeProperty("--kui-seed-r");
+        popup.style.removeProperty("--kui-from-x");
+        popup.style.removeProperty("--kui-from-y");
+        popup.removeAttribute("data-aimed");
         if (positioner?.hasAttribute("data-side")) {
           positioner.style.removeProperty("width");
           positioner.style.removeProperty("height");
@@ -429,12 +481,6 @@ export function FloatingBody({ children }: { children: React.ReactNode }) {
       const onCancel = (event: TransitionEvent) => {
         if (event.target === popup) release();
       };
-      const style = getComputedStyle(popup);
-      const spans = style.transitionDuration.split(",").map((d, i) => {
-        const delays = style.transitionDelay.split(",");
-        return parseFloat(d) + parseFloat(delays[i % delays.length] ?? "0");
-      });
-      window.setTimeout(release, Math.max(...spans, 0) * 1000 + 50);
       popup.addEventListener("transitioncancel", onCancel);
     };
 

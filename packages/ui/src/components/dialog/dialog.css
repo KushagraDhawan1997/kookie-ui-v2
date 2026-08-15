@@ -27,9 +27,31 @@
   background-color: var(--scrim-fill);
   /* The fallback is what `contrast="high"` and reduced transparency both resolve to: the
      token stands down to `initial` (guaranteed-invalid), so this falls through to `none` at
-     the element and the dim carries the whole job (§24). */
+     the element and the dim carries the whole job (§24).
+
+     UNPREFIXED ONLY (2026-08-10, found live): Lightning owns prefixing. A hand-written
+     `-webkit-backdrop-filter` beside this line parses as the same logical property, and the
+     bundler kept the LAST spelling — dist shipped the -webkit- form alone, which Chromium
+     ignores, so the scrim never blurred in the app while every law read the committed
+     source and stayed green. The build assertion covers the artifact path now. */
   backdrop-filter: var(--scrim-filter, none);
-  -webkit-backdrop-filter: var(--scrim-filter, none);
+  /* The scrim is pure SIGNAL (§8's two clocks, §24): it has no box to become, so its whole
+     entry and exit are one fade on the paint clock. The panel's own recipe lives in the
+     shared layer's overlay motion block. */
+  transition: opacity var(--overlay-reveal) ease-out;
+}
+.kui-dialog-backdrop[data-starting-style],
+.kui-dialog-backdrop[data-ending-style] {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kui-dialog-backdrop {
+    transition: none;
+  }
+  .kui-dialog-backdrop[data-starting-style],
+  .kui-dialog-backdrop[data-ending-style] {
+    opacity: 1;
+  }
 }
 
 /* Reduced transparency takes the same answer contrast="high" takes — more pigment, no
@@ -40,7 +62,6 @@
   .kui-dialog-backdrop {
     background-color: var(--scrim-fill-high);
     backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 }
 

@@ -1359,49 +1359,50 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(computed(trigger!, "translate"), "pointer off, still pressed — the panel must not move").toBe(held);
   });
 
-  it("the first frame is the TRIGGER'S OWN BOX — the panel morphs from the button (§22)", () => {
+  it("the first frame is the trigger's SILHOUETTE, sitting exactly on it (§22)", async () => {
     /**
-     * The morph (2026-08-10, Kushagra: *"what happened to the idea that it feels like it
-     * morphs from the buttons?"*) — the lab's other entry, refused on 2026-08-09 because the
-     * anchor's box arrived asynchronously, unblocked the day the entry started measuring the
-     * trigger itself. The first frame is the trigger's silhouette: its width, its height,
-     * its corner — translated up by exactly its own height plus the designed gap, which puts
-     * it OVER the trigger with no position ever read (the overlay is exact by construction:
-     * the seed is pinned to the anchored corner, and that corner is the trigger's).
+     * The silhouette (2026-08-15, Kushagra: *"make the circle shape of trigger exactly, and
+     * make it start from where the trigger is, thats all"* — the interim circle and its
+     * quadrant reverted on sight): the panel's first frame is the trigger's own box sitting
+     * ON the trigger, and the unfurl grows it straight into the panel's own — which is what
+     * answers where the panel came from.
+     *
+     * One frame first: the overlay's offset is AIMED after floating-ui places the
+     * positioner (a microtask, re-checked on the first frame), and the seed holds for two —
+     * so one awaited frame lands between the aim and the release.
      */
     const { popup } = openUnsettled();
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
     const trigger = document.querySelector<HTMLElement>(".kui-button")!;
     const box = trigger.getBoundingClientRect();
     expect(popup.hasAttribute("data-seed"), "the read must land on the seed frame").toBe(true);
     const seed = popup.getBoundingClientRect();
-    expect(seed.width, "the seed is the trigger's width").toBeCloseTo(box.width, 1);
-    expect(seed.height, "the seed is the trigger's height").toBeCloseTo(box.height, 1);
+    // Within the held press's drift, not to the pixel: the silhouette measured the trigger
+    // on the open's first frame, and the trigger then shrank a hair under the held press.
+    expect(Math.abs(seed.width - box.width), "the trigger's own width").toBeLessThan(3);
+    expect(Math.abs(seed.height - box.height), "the trigger's own height").toBeLessThan(3);
+    expect(Math.abs(seed.left - box.left), "sitting exactly on the trigger").toBeLessThan(3);
+    expect(Math.abs(seed.top - box.top), "in both axes").toBeLessThan(3);
     expect(
-      computed(popup, "border-top-left-radius"),
-      "and it wears the trigger's own corner",
-    ).toBe(computed(trigger, "border-top-left-radius"));
-    const gap = parseFloat(getComputedStyle(popup).getPropertyValue("--kui-floating-gap"));
-    const [x, y] = computed(popup, "translate").split(" ").map(parseFloat);
-    expect(x ?? 0, "no sideways travel — matching shapes need none").toBe(0);
-    expect(y, "up by its own height plus the gap: exactly onto the trigger").toBeCloseTo(
-      -(box.height + gap),
-      1,
-    );
+      parseFloat(computed(popup, "border-top-left-radius")),
+      "wearing the trigger's own corner",
+    ).toBeCloseTo(parseFloat(getComputedStyle(trigger).borderTopLeftRadius), 1);
+    // OPAQUE from the first frame: the silhouette covers the trigger exactly, so this is
+    // the trigger's own body lifting, and a body does not fade in (2026-08-10, back in
+    // force now that the seed overlaps its trigger again).
+    expect(computed(popup, "opacity"), "the silhouette is the trigger lifting").toBe("1");
     // And the body is squished, which is the difference between one object unfurling and a
     // shutter opening over a finished page.
     const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
     expect(computed(body, "scale")).toBe("0.95 0.5");
-    // INVISIBLE while it overlaps the trigger, and castless (2026-08-10): the button stays
-    // the visible thing for the overlap window — the reveal DELAY is what holds the panel at
-    // zero exactly that long, so its presence is the law here, not decoration — and the panel
-    // materialises as it slides clear. The light still arrives by the reveal clock. The
-    // flying panel HIT-TESTS (pointer-events none was built and reverted the same hour —
-    // an eager click dismissed instead of selecting, and the punch-through below is what
-    // keeps the held box's dead region from swallowing the flight).
-    expect(computed(popup, "opacity"), "the button stays visible under the seed").toBe("0");
-    const delays = computed(popup, "transition-delay").split(",").map((d) => parseFloat(d));
-    const props = computed(popup, "transition-property").split(",").map((v) => v.trim());
-    expect(delays[props.indexOf("opacity")], "the fade waits out the overlap").toBeGreaterThan(0);
+    // MOLTEN: the content is out of focus while the box is not yet its shape, sharpening as
+    // the unfurl lands — and the sharpening is a transition, not a snap.
+    expect(computed(body, "filter"), "the content arrives molten").toMatch(/^blur\(/);
+    expect(computed(body, "opacity"), "and empty — the body is the held unit").toBe("0");
+    expect(
+      computed(body, "transition-property").split(",").map((v) => v.trim()),
+      "and it resolves on a clock",
+    ).toContain("filter");
     expect(computed(popup, "box-shadow"), "the seed sits flat on the page").toBe("none");
     expect(computed(popup, "pointer-events"), "the flight must hit-test").toBe("auto");
   });
@@ -1433,7 +1434,6 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // transition never names does not animate — it SNAPS, which is exactly the defect that
     // shipped in the demo when `top` and `left` fell out of the exit list.
     const { popup } = openUnsettled();
-    const listed = computed(popup, "transition-property").split(",").map((p) => p.trim());
     const read = () => {
       const cs = getComputedStyle(popup);
       return {
@@ -1447,8 +1447,13 @@ describe("the panel unfurls out of a seed (§22)", () => {
       };
     };
     const seeded = read();
-    still(popup);
+    // The list is the FLIGHT's, read un-seeded and un-stilled: the seed state pins
+    // `transition: none` (a held pose — the aim writes into it without starting
+    // cancellable transitions) and still() pins the same with importance, so the one
+    // moment the base rule's list is readable is between the two.
     popup.removeAttribute("data-seed");
+    const listed = computed(popup, "transition-property").split(",").map((p) => p.trim());
+    still(popup);
     const settled = read();
 
     const moved = (Object.keys(seeded) as (keyof ReturnType<typeof read>)[]).filter(
@@ -1463,6 +1468,9 @@ describe("the panel unfurls out of a seed (§22)", () => {
 
   it("the panel falls before it spreads, and the channels are out of phase (§8)", () => {
     const { popup } = openUnsettled();
+    // Un-seeded first: the seed state pins `transition: none`, and these clocks are the
+    // flight's — the base rule's.
+    popup.removeAttribute("data-seed");
     const durations = computed(popup, "transition-duration").split(",").map((d) => d.trim());
     const listed = computed(popup, "transition-property").split(",").map((p) => p.trim());
     expect(durations.length).toBeGreaterThan(3);
@@ -1478,8 +1486,13 @@ describe("the panel unfurls out of a seed (§22)", () => {
 
   it("geometry rides the spring; paint does not (§8's two clocks)", () => {
     const { popup } = openUnsettled();
+    // Un-seeded first: the seed state pins `transition: none`, and these curves are the
+    // flight's — the base rule's.
+    popup.removeAttribute("data-seed");
     const easings = computed(popup, "transition-timing-function").split(/,(?![^(]*\))/);
     const listed = computed(popup, "transition-property").split(",").map((p) => p.trim());
+    // The FLUID spring since 2026-08-15 — the family's own curve, minted when calm's
+    // front-loaded travel read rigid on a box this large.
     const spring = curveOn(popup, "--motion-spring");
     expect(spring.startsWith("linear("), "the spring token is a baked curve").toBe(true);
     for (const [index, property] of listed.entries()) {
@@ -1570,16 +1583,24 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // is still narrow enough to fit start-aligned and the attribute genuinely says so — which
     // is the OTHER half of the answer, recorded open in LOG: collision is being decided against
     // an animating width. This law is about what happens once the question is settled.
+    // RELATIVE to the panel's own end edge since the silhouette (2026-08-15): the whole box
+    // now travels from the trigger to its resting place, so the content moves in SCREEN
+    // space with it — by design, motion tells the truth about space. What must not happen
+    // is the content moving WITHIN the box: end-aligned, the body is pinned to the end
+    // edge, and its distance from that edge holding still is exactly "the words sit where
+    // they will end up" restated for a box that flies.
     const seen: number[] = [];
     const deadline = performance.now() + 2000;
     while (performance.now() < deadline) {
-      if (popup.getAttribute("data-align") === "end") seen.push(body.getBoundingClientRect().left);
+      if (popup.getAttribute("data-align") === "end") {
+        seen.push(popup.getBoundingClientRect().right - body.getBoundingClientRect().right);
+      }
       if (!popup.hasAttribute("data-unfurling")) break;
       await tick();
     }
     expect(seen.length, "the panel never committed to end-aligned").toBeGreaterThan(3);
     const drift = Math.max(...seen) - Math.min(...seen);
-    expect(drift, `the content slid ${drift.toFixed(0)}px: ${seen.map((n) => n.toFixed(0)).join(",")}`).toBeLessThan(30);
+    expect(drift, `the content slid ${drift.toFixed(0)}px within the box: ${seen.map((n) => n.toFixed(0)).join(",")}`).toBeLessThan(30);
   });
 
   for (const [where, side] of [["start", "left"], ["end", "right"]] as const) {
@@ -1685,16 +1706,37 @@ describe("the panel unfurls out of a seed (§22)", () => {
     );
     expect(triggerLeft + natural, "the panel must NOT fit").toBeGreaterThan(window.innerWidth);
 
-    const seen: string[] = [];
+    // OBSERVED, not frame-sampled (2026-08-15): the first spelling polled per rAF and asked
+    // for six samples, which is a frame-count wait wearing a calibration's clothes — under a
+    // loaded full suite the whole entry fits in two frames and the law failed for
+    // scheduling. A MutationObserver is the honest instrument AND the stronger one: a flip
+    // between two sampled frames was invisible to the poll, and is a record here. The first
+    // stamping of an absent attribute is Base UI deciding; a change FROM a value is Base UI
+    // re-deciding, which is the defect.
+    const flips: string[] = [];
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.oldValue !== null) {
+          flips.push(`${record.attributeName}: ${record.oldValue} -> ${popup.getAttribute(record.attributeName!)}`);
+        }
+      }
+    });
+    observer.observe(popup, {
+      attributes: true,
+      attributeOldValue: true,
+      attributeFilter: ["data-side", "data-align"],
+    });
     const deadline = performance.now() + 2000;
+    let watched = 0;
     while (performance.now() < deadline) {
-      seen.push(String(popup.getAttribute("data-align")));
-      if (!popup.hasAttribute("data-unfurling")) break;
+      if (popup.hasAttribute("data-unfurling")) watched += 1;
+      else if (watched > 0) break;
       await tick();
     }
-    expect(seen.length, "the entry must actually have been watched").toBeGreaterThan(5);
-    expect(seen.at(-1), "it must settle end-aligned in this cell").toBe("end");
-    expect(new Set(seen), `it re-decided mid-flight: ${seen.join(",")}`).toEqual(new Set(["end"]));
+    observer.disconnect();
+    expect(watched, "the entry must actually have run").toBeGreaterThan(0);
+    expect(popup.getAttribute("data-align"), "it must settle end-aligned in this cell").toBe("end");
+    expect(flips, `it re-decided mid-flight: ${flips.join(" | ")}`).toEqual([]);
   });
 
   it("survives being mounted twice — the measurement is of the PANEL, never of the seed (§22)", () => {
@@ -1729,14 +1771,15 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(measured, `the destination is the seed itself: ${measured}px`).toBeGreaterThan(seed);
   });
 
-  it("the seed IS the trigger's box — a 28px icon and a wide button alike (§22)", () => {
+  it("the seed is EACH trigger's own box — a 28px icon and a wide button get different seeds (§22, 2026-08-15)", async () => {
     /**
-     * The half-seed lean's whole failure mode, dissolved (Kushagra, on the + button: *"it
-     * starts from right next to the button then goes down"*): a fixed circle near a variable
-     * trigger needs a judged distance, and any judged distance is wrong at some width. A seed
-     * that IS the trigger's box needs none — so this law mounts the two extremes the circle
-     * had to compromise between and asserts the same exact identity on both.
+     * The photograph, asserted at both extremes: the seed is a measurement, not a designed
+     * constant, so an icon button conjures a small silhouette and a wide form trigger a wide
+     * one — and each sits exactly on its own trigger. The two triggers are the calibration:
+     * if both silhouettes measured alike, the seed would be a constant wearing a law that
+     * cannot tell.
      */
+    const seen: number[] = [];
     for (const trigger of [
       <Button size="1" iconOnly aria-label="More">+</Button>,
       <Button style={{ minWidth: "240px" }}>A wide trigger</Button>,
@@ -1751,14 +1794,19 @@ describe("the panel unfurls out of a seed (§22)", () => {
           </Menu>
         </Theme>,
       );
-      const button = [...document.querySelectorAll<HTMLElement>(".kui-button")].pop()!;
       const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop()!;
+      const button = [...document.querySelectorAll<HTMLElement>(".kui-button")].pop()!;
+      // One frame: the overlay is aimed after floating-ui places the positioner.
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
       const box = button.getBoundingClientRect();
       const seed = popup.getBoundingClientRect();
-      expect(seed.width, `trigger ${box.width}px wide`).toBeCloseTo(box.width, 1);
-      expect(seed.height).toBeCloseTo(box.height, 1);
-      expect(parseFloat(computed(popup, "translate").split(" ")[0]!) || 0).toBe(0);
+      expect(Math.abs(seed.width - box.width), "this trigger's own width").toBeLessThan(3);
+      expect(Math.abs(seed.height - box.height), "and height").toBeLessThan(3);
+      expect(Math.abs(seed.left - box.left), "sitting on this trigger").toBeLessThan(3);
+      expect(Math.abs(seed.top - box.top)).toBeLessThan(3);
+      seen.push(seed.width);
     }
+    expect(Math.abs(seen[0]! - seen[1]!), "the calibration: two triggers, two seeds").toBeGreaterThan(100);
   });
 
   it("both channels actually MOVE across the entry — declared is not the same as free", async () => {
@@ -1814,12 +1862,16 @@ describe("the panel unfurls out of a seed (§22)", () => {
       }
       await frame();
     }
-    // The RESTING box (read here, but captured before the click below by the same rule that
-    // makes the seed match it): this law opens by CLICK, the entry measures the trigger at
-    // the instant of open — before the held press's 0.975 scale has travelled anywhere — and
-    // a rect read after the flight would be the scaled one, 2px narrower than the seed.
-    expect(widths[0], "the entry begins at the trigger's own box").toBe(Math.round(restingBox.width));
-    expect(heights[0], "the entry begins at the trigger's own box").toBe(Math.round(restingBox.height));
+    // The first sampled frame is the trigger's SILHOUETTE (2026-08-15): the entry begins as
+    // the trigger's own box and unfurls straight into the panel's.
+    expect(
+      Math.abs(widths[0]! - restingBox.width),
+      "the entry begins at the trigger's own width",
+    ).toBeLessThanOrEqual(3);
+    expect(
+      Math.abs(heights[0]! - restingBox.height),
+      "and its height",
+    ).toBeLessThanOrEqual(3);
     // Three distinct values is what "it travelled" looks like; a pinned channel reports two
     // (the seed frame, then its destination) and a dead one reports one.
     expect(new Set(widths).size, `width never moved: ${widths.join(",")}`).toBeGreaterThan(2);
@@ -1861,29 +1913,25 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(parseFloat(computed(popup, "min-width")), "and it comes back").toBeGreaterThan(0);
   });
 
-  it("the seed leans onto its trigger, and it leans in PAINT (§22)", () => {
-    // Two claims that only hold together. The panel must travel — it comes from somewhere, and
-    // a seed that inflates at its own destination is the morph-in-place read the grammar was
-    // chosen against. And the travel must not be LAYOUT: a margin re-sizes the positioner,
-    // which re-solves the panel's position, which is what sent a right-aligned menu unfurling
-    // away from its trigger (Kushagra, playground).
+  it("the silhouette's overlay is PAINT, never layout (§22, 2026-08-15)", () => {
+    // The seed sits on its trigger through a measured TRANSLATE (--kui-from-x/y) and never
+    // a margin: a margin is layout — it re-sizes the positioner, which re-solves the
+    // panel's position (Kushagra, playground, 2026-08-09).
     const { popup } = openUnsettled();
-    const [x, y] = computed(popup, "translate").split(" ").map(parseFloat);
-    // Below its trigger and aligned to its start: it starts above — exactly one trigger-height
-    // plus the gap above, which is what "on the trigger" means — and with NO sideways travel,
-    // because the seed is the trigger's own width and the anchored corner is the trigger's.
-    expect(y, "the seed must start on the trigger, not below it").toBeLessThan(0);
-    expect(x ?? 0, "matching shapes need no sideways travel").toBe(0);
     for (const margin of ["margin-block-start", "margin-block-end", "margin-inline-start", "margin-inline-end"]) {
-      expect(computed(popup, margin), `${margin}: the lean must not be layout`).toBe("0px");
+      expect(computed(popup, margin), `${margin}: the overlay must not be layout`).toBe("0px");
     }
+    // And the translate is genuinely doing the carrying: the popup's layout box and its
+    // painted box must differ while the seed holds, or the overlay is a coincidence of
+    // position rather than a mechanism.
+    expect(computed(popup, "translate"), "the overlay rides a translate").not.toBe("none");
     // And the pane pivots on the corner the positioner holds, so it settles back into where it
     // grew from rather than into its own middle. The default menu opens below its trigger,
     // aligned to its start: top-left.
     expect(computed(popup, "transform-origin")).toBe("0px 0px");
   });
 
-  it("the pivot follows the side and the align, not the default (§22)", () => {
+  it("the pivot follows the side and the align, not the default (§22)", async () => {
     // Calibration for the law above: if every panel pivoted top-left, that assertion would be
     // true for the wrong reason. A menu aligned to its trigger's end holds the OTHER corner.
     // `mount`, not this file's settling `render` — a landed panel has no lean left to read.
@@ -1901,14 +1949,17 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(popup.getAttribute("data-align")).toBe("end");
     const [x] = computed(popup, "transform-origin").split(" ");
     expect(parseFloat(x!), "an end-aligned panel pivots on its end edge").toBeGreaterThan(0);
-    // The lean no longer flips with it — it is ZERO on both aligns, because the seed is the
-    // trigger's own width and each align pins it to the trigger's own corner. What still must
-    // flip is the pivot above; the sideways-travel question the old assertion guarded is now
-    // answered by construction, and the morph law asserts the zero on both extremes.
-    expect(parseFloat(computed(popup, "translate").split(" ")[0]!) || 0).toBe(0);
+    // The measured overlay needs no per-align arm — the same measurement lands the seed on
+    // the trigger here too, from the panel's OTHER corner. One frame for the aim.
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    const button = [...document.querySelectorAll<HTMLElement>(".kui-button")].pop()!;
+    const box = button.getBoundingClientRect();
+    const seed = popup.getBoundingClientRect();
+    expect(Math.abs(seed.left - box.left), "on the trigger, end-aligned too").toBeLessThan(3);
+    expect(Math.abs(seed.top - box.top)).toBeLessThan(3);
   });
 
-  it("a submenu holds the edge it emerged through, not the one a menu holds (§22)", () => {
+  it("a submenu holds the edge it emerged through, not the one a menu holds (§22)", async () => {
     openUnsettled({}, (
       <MenuSub defaultOpen>
         <MenuSubTrigger>More</MenuSubTrigger>
@@ -1931,17 +1982,18 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(child.getAttribute("data-side")).toMatch(/right|inline-end/);
     expect(computed(child, "transform-origin")).toBe("0px 0px");
     expect(computed(child, "margin-inline-start")).toBe("0px");
-    // And its seed does NOT travel (2026-08-10): a submenu's claim is adjacency, not overlay
-    // — the morph's row-box seed briefly inherited the top-level lean and flew a full
-    // row-width in from the side. A sliver level with its row, growing down, moves nowhere.
+    // A submenu's seed is its trigger ROW's silhouette (2026-08-15) — the same measured
+    // overlay every anchor gets, no arm of its own. The 2026-08-10 morph refused this
+    // (its lean flew the row in from the side); measurement removed the objection.
     expect(child.hasAttribute("data-seed"), "the read must land on the seed frame").toBe(true);
-    expect(computed(child, "translate"), "a submenu's seed appears in place").toBe("0px");
-    // Level and row-shaped: the sliver's height is its trigger row's, which is what makes it
-    // read as the row handing off rather than a box materialising at random.
-    const subTrigger = parent.querySelector<HTMLElement>("[data-popup-open]")!;
-    expect(child.getBoundingClientRect().height).toBeCloseTo(
-      subTrigger.getBoundingClientRect().height,
-      1,
-    );
+    // One frame for the aim.
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    const row = parent.querySelector<HTMLElement>(".kui-menu-sub-trigger, [data-popup-open]")!;
+    const rowBox = row.getBoundingClientRect();
+    const seed = child.getBoundingClientRect();
+    expect(Math.abs(seed.left - rowBox.left), "sitting on its own trigger row").toBeLessThan(3);
+    expect(Math.abs(seed.top - rowBox.top)).toBeLessThan(3);
+    expect(Math.abs(seed.width - rowBox.width), "the row's own width").toBeLessThan(3);
+    expect(Math.abs(seed.height - rowBox.height), "and height").toBeLessThan(3);
   });
 });

@@ -173,14 +173,19 @@
 
   /* the floating family's own motion (§22) — the emergence recipe's channels. Time, so
      no --scale: a panel does not unfurl slower because the interface is zoomed. */
-  --floating-seed: calc(40px * var(--scale));
+  --floating-seed: calc(56px * var(--scale));
   --floating-fall: 320ms;
   --floating-spread: 480ms;
   --floating-corner: 380ms;
   --floating-reveal: 200ms;
-  --floating-reveal-delay: 80ms;
+  --floating-reveal-delay: 280ms;
   --floating-dissolve: 140ms;
   --floating-settle: 160ms;
+  --overlay-materialize: 400ms;
+  --overlay-reveal: 200ms;
+  --overlay-reveal-delay: 240ms;
+  --overlay-dissolve: 140ms;
+  --overlay-settle: 160ms;
 
   /* §8 — pointer feedback; `button` is the contested one, so it is overridable */
   --cursor-button: pointer;

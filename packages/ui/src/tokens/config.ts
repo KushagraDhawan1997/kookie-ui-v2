@@ -721,22 +721,16 @@ export const controlMotion = {
 } as const;
 
 /**
- * §22 — the seed's diameter: the circle a panel unfurls out of (v0, judged 2026-08-09).
+ * §22 — the FALLBACK seed: the dot an ANCHORLESS panel unfurls out of (v0).
  *
- * A designed constant and not the trigger's own height, which is what it wanted to be. The
- * positioner publishes `--anchor-height`, but it publishes it ASYNCHRONOUSLY — floating-ui
- * resolves a promise, so on the frame the seed has to apply the variable is still unset, every
- * rule reading it is invalid at computed-value time, and invalid does not mean "fall back to
- * the cascade": it means the property takes its initial value. Measured, that collapsed the
- * panel's corner to 0px. The seed cannot depend on a number that arrives after it is needed.
- *
- * Which is the right answer anyway: a seed is not a small photograph of the trigger. At a
- * menu's inception the shape it will take is not known — that is the whole reason it starts as
- * a circle — and its size is a property of the SYSTEM's motion, not of whatever was pressed.
- * The offsets derive from it (half a seed sideways, a seed's worth of climb), so one number
- * places every side.
+ * Since 2026-08-15 the seed is the trigger's own measured silhouette (Kushagra: "make the
+ * circle shape of trigger exactly, and make it start from where the trigger is, thats all"),
+ * written per open as `--kui-seed-w/h/r` in system/floating.tsx — so this constant is only
+ * what the seed rule's fallbacks resolve to when there is no anchor to photograph. The
+ * designed-circle era (40 -> 72 -> 56, with a quadrant growth center, all judged 2026-08-15
+ * and retired the same day) is in LOG.
  */
-export const floatingSeed = 40;
+export const floatingSeed = 56;
 
 export const floatingMotion = {
   /**
@@ -759,11 +753,38 @@ export const floatingMotion = {
   corner: 380,
   /** The panel's own fade-in, and its rows'. Paint is signal: it does not ride a spring. */
   reveal: 200,
-  /** Rows wait for the box to commit before they fade in — one beat, not a stagger. */
-  revealDelay: 80,
+  /** Rows wait for the SHAPE, not just the commit (80 -> 280, 2026-08-15, Kushagra: the
+      content must be "blurred out, empty" while the circle is still becoming the container,
+      and show up "as the circle takes the shape" — at 80ms the rows printed onto a box that
+      was still mostly circle, which is what made the entry read as a rectangle dropdown
+      fading in). 280 starts the print as the fall (320) is landing; v0, judged live. */
+  revealDelay: 280,
   /** Exit: the dissolve itself. */
   dissolve: 140,
   /** Exit: the hair of scale the pane settles back through while dissolving. */
+  settle: 160,
+} as const;
+
+/**
+ * §24 — the overlay family's own motion (2026-08-15, Kushagra: the floating entry's
+ * PRINCIPLES applied to the dialog, never its animation — "the container is the same
+ * surface"). A dialog is anchored to nothing, so there is no box to photograph and no
+ * distance to close: its entry is a MATERIALIZATION. The grammar transfers whole — the box
+ * becomes (geometry on the spring), presence is paint (a panel with no source fades in
+ * honestly, on the fast clock), the content is one molten unit printing as the box lands,
+ * and the exit dissolves because leaving is never the entry reversed. Its own clock names,
+ * not borrows of the floating ones: the families share a grammar, not a token home. v0.
+ */
+export const overlayMotion = {
+  /** The box's becoming — the scale growth rides the calm spring for this long. */
+  materialize: 400,
+  /** Paint: the panel's own fade, and the scrim's. */
+  reveal: 200,
+  /** The content prints as the box lands — held molten until here. */
+  revealDelay: 240,
+  /** Exit: the dissolve, and the hair of settle it carries (the floating exit's grammar,
+      restated in the family's own numbers). */
+  dissolve: 140,
   settle: 160,
 } as const;
 

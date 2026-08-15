@@ -527,6 +527,8 @@
      somewhere to travel TO. */
   translate: 0 0;
   transition:
+    /* No delays: the first frame is the trigger's own opaque silhouette (2026-08-15), so
+       there is no fade to wait out — the body lifts and unfurls at once. */
     /* the panel FALLS first — the axis that finishes LAST is the one the eye reads as the
        direction of travel, so a menu drops out of its trigger and then opens sideways */
     block-size var(--floating-fall) var(--motion-spring),
@@ -536,9 +538,9 @@
     /* the corner and the settle-scale sit between the two */
     border-radius var(--floating-corner) var(--motion-spring),
     scale var(--floating-corner) var(--motion-spring),
-    /* paint is signal, not physics: it eases, it does not spring (§8's two clocks) */
-    opacity var(--floating-reveal) ease-out var(--floating-reveal-delay),
-    box-shadow var(--floating-reveal) ease-out var(--floating-reveal-delay);
+    /* paint is signal, not physics: it eases, it does not spring (§8's two clocks). */
+    opacity var(--motion-hover-in) ease-out,
+    box-shadow var(--floating-reveal) ease-out;
 }
 
 /* The origin's two halves, from the same attributes the positioner uses to choose its edge —
@@ -603,77 +605,47 @@
    the trigger you pressed", which is a statement about the panel, and the seed is not the
    panel yet. */
 .kui-surface.kui-floating[data-seed] {
-  /* The lean: the seed does not begin at the panel's own corner, it begins ON the thing it
-     came out of, and closes that distance as it grows (§22, restored 2026-08-09 — the
-     offset-free spelling put the seed at its destination and inflated it there, which is the
-     morph-in-place read the whole grammar was chosen against: motion tells the truth about
-     space, and things come from somewhere).
+  /* THE SILHOUETTE (2026-08-15, Kushagra: *"make the circle shape of trigger exactly, and
+     make it start from where the trigger is"* — the interim circle and its quadrant were
+     built the same day and reverted on sight). The panel's first frame is the trigger's own
+     box — its width, height and corner, translated to sit exactly on it (`--kui-from-x/y`,
+     measured in system/floating.tsx against the popup's laid-out position, a TRANSLATE and
+     never a margin: a margin is layout and re-sizes the positioner) — and the unfurl grows
+     it straight into the panel's own box, which answers where the panel came from.
 
-     A TRANSLATE and never a margin, and that is the whole difference from the spelling that
-     failed. A margin is layout: it re-sizes the positioner, which re-solves the panel's
-     position, which is what sent a right-aligned menu unfurling away from its trigger. A
-     translate is paint — the layout box stays exactly where the positioner put it, so the
-     growth direction is still the positioner's and the lean is purely the journey. */
-  translate: var(--kui-lean-x, 0) var(--kui-lean-y, 0);
-  /* THE TRIGGER'S OWN BOX (§22, 2026-08-10, Kushagra: *"what happened to the idea that it
-     feels like it morphs from the buttons?"* — the lab's other entry, refused on 2026-08-09
-     because the anchor's box arrives asynchronously and the seed frame could not wait for
-     it). The blocker is gone: the entry measures the trigger ITSELF, synchronously, per open
-     — the same measurement the width floor now rides — so the seed is the trigger's width,
-     its height, and its corner, sitting exactly over it. The panel does not appear near the
-     button; it IS the button's silhouette, lifting off and becoming the panel. The designed
-     circle survives as the fallback for a panel whose entry never measured. */
+     OPAQUE from the first frame (the 2026-08-10 morph's finding, back in force now that the
+     seed overlaps its trigger again): it covers the trigger exactly, so this is the trigger's
+     own body lifting, and a body does not fade in. What still arrives gradually is the LIGHT
+     — the seed is castless, and the floating shadow fades up as the panel lifts. Anchorless
+     panels fall back to the designed-diameter dot in place. */
+  translate: var(--kui-from-x, 0) var(--kui-from-y, 0);
   inline-size: var(--kui-seed-w, var(--kui-seed));
   block-size: var(--kui-seed-h, var(--kui-seed));
   min-inline-size: 0;
   border-radius: var(--kui-seed-r, calc(var(--kui-seed) / 2));
-  /* OPAQUE from the first frame (2026-08-10, Kushagra: *"but its not over button?"* — it was,
-     measured to the pixel, and invisibly: the circle recipe's fade-in survived the morph, so
-     by the time the panel was opaque enough to SEE it had already grown off the trigger, and
-     the visible entry still began below the button. A morph is the button's own body lifting;
-     a body does not fade in. What still arrives gradually is the LIGHT: the seed is castless
-     — a silhouette sitting flat on the page — and the floating shadow fades up on the reveal
-     clock as the panel lifts, which is elevation gaining honestly rather than a shadow
-     popping in around a button-sized chip. The rows keep their own reveal; the DISSOLVE keeps
-     opacity, so the exit still fades — leaving is not the entry reversed.
-
-     Then the opacity came BACK, keyed to separation (same day, Kushagra: *"opacity 0 until it
-     moves out of the trigger, so that button isn't invisible for that time"*). The opaque seed
-     fixed one lie and told another: the button vanished under a blank chip for the overlap
-     window. So while the panel still overlaps the trigger it is invisible — the BUTTON is the
-     visible thing — and it materialises as it slides clear: the reveal delay holds it at zero
-     for the overlap, and the fade runs while the fall carries it away. The morph read now
-     comes from the EMERGENCE, not from a chip replacing the button. */
   --kui-sf-cast: none;
+  /* STATIC while seeded: the aim writes `--kui-from-x/y` after floating-ui places the
+     positioner (a microtask, then a correcting frame — system/floating.tsx), and under a
+     live transition list each write would START a translate transition whose cancellation
+     at seed-release reads as a dismissal (measured: the entry released two frames in and
+     the panel snapped). The seed is a held pose, not a state change; the flight's
+     transitions are the BASE rule's, and they apply the frame this attribute comes off. */
+  transition: none;
+}
+/* Invisible until AIMED: floating-ui can place the positioner after the first paint, and a
+   silhouette painted before the aim sits wherever the last layout left it (measured: one
+   frame at x=2275 before snapping to the trigger). The aim stamps `data-aimed` in the same
+   write as the offsets, so the pose is never seen un-placed — usually that is still before
+   the first paint, and the opaque-from-frame-one rule above is what applies. */
+.kui-surface.kui-floating[data-seed]:not([data-aimed]) {
   opacity: 0;
 }
-
-/* Where it leans FROM, per side and per align — onto the trigger under a menu, back into the
-   parent panel beside a submenu, and a half-seed toward the trigger's middle along the axis
-   `align` answers. A submenu never climbs: it emerges level with the row that opened it. */
-.kui-surface.kui-floating[data-side="bottom"] {
-  --kui-lean-y: calc(-1 * (var(--kui-seed-h, var(--kui-seed)) + var(--kui-floating-gap)));
-}
-.kui-surface.kui-floating[data-side="top"] {
-  --kui-lean-y: calc(var(--kui-seed-h, var(--kui-seed)) + var(--kui-floating-gap));
-}
-/* A SUBMENU'S seed does not travel at all (2026-08-10, Kushagra: *"the submenu appears very
-   different"* — it did: the morph made its seed the trigger ROW's box, and a row is
-   inline-size: 100% of its panel, so the lateral lean that had been a 40px nudge became a
-   ~200px flight in from the side, the panel visibly THROWN over its parent. A submenu cannot
-   sit ON the thing it came from without covering the parent panel — so its claim is
-   ADJACENCY: the seed is a row-height sliver, LEVEL with the trigger row (§22's seam already
-   holds the child's first row to it), appearing beside it and growing down into the list.
-   The row hands off to the panel; nothing flies anywhere. The side rules therefore declare
-   no lean — the same absence-is-the-mechanism sentence the aligns learned above. */
-/* No sideways lean at all — and that absence is the morph (2026-08-10). The seed is pinned
-   to the panel's anchored corner, the anchored corner IS the trigger's corner (that is what
-   align start/end means), and the seed is the trigger's own width — so the overlay is exact
-   by construction, for a 32px icon button and a 620px form trigger alike. The half-seed lean
-   this replaces was a circle's compromise: a fixed shape near a variable one needs a judged
-   distance, a matching shape needs none. (Its clamp lived here for two hours; LOG has it.)
-   The submenu sides declare none either — a submenu's claim is adjacency, not overlay
-   (the sliver comment above carries the why). */
+/* There are no per-side lean arms: the silhouette's translate is MEASURED (--kui-from-x/y),
+   so every anchor — a menu's button, a select's field, a submenu's own trigger ROW — gets
+   the exact overlay for free, in RTL and at every side/align, with no judged distance
+   anywhere. The 2026-08-10 morph refused the row overlay for a submenu (its seed then flew
+   in from the side, thrown over the parent); measurement is what removed the objection:
+   the row-shaped seed starts ON the row and grows the short, true distance out. v0. */
 
 /* While the box is deliberately smaller than what it holds, it clips. `overflow-y: auto`
    computes the OTHER axis to `auto` too, so an unclipped flight is two live scrollbars. */
@@ -700,10 +672,26 @@
 .kui-floating-body {
   inline-size: var(--kui-floating-bw, auto);
   transform-origin: top left;
-  transition: scale var(--floating-rise) var(--motion-spring);
+  /* --motion-rise, NOT --floating-rise: the latter never existed, and the dangling var
+     invalidated this whole declaration — the body SNAPPED to full size on frame one from
+     the day it shipped (found 2026-08-14, Kushagra, in the lab: "the container moves
+     nicely, but the text doesn't move or stretch with it"). The dangling-var law in
+     recipes.test.ts is that finding's other half. */
+  transition:
+    scale var(--motion-rise) var(--motion-spring),
+    /* THE CONTENT IS THE BODY, held as one unit (2026-08-15, Kushagra: "blurred out, empty
+       content that shows up as the circle takes the shape of the container"): invisible and
+       molten while the box is becoming, printing as one piece when the shape lands. One
+       subject instead of per-row holds — fewer rules, one clock, one claim. */
+    opacity var(--floating-reveal) ease-out var(--floating-reveal-delay),
+    filter var(--floating-corner) ease-out var(--floating-reveal-delay);
 }
 [dir="rtl"] .kui-floating-body {
   transform-origin: top right;
+}
+.kui-surface.kui-floating[data-seed] .kui-floating-body {
+  opacity: 0;
+  filter: blur(6px);
 }
 
 /* And it is PINNED TO THE EDGE THE BOX IS NOT GROWING FROM (§22, 2026-08-10, Kushagra: *"why
@@ -804,14 +792,9 @@
   scale: 0.95 0.5;
 }
 
-/* Rows arrive after the box has committed to being a panel — one beat, not a stagger: a
-   staggered list is a slideshow, and every row here is a peer. */
-.kui-surface.kui-floating :where(.kui-row, .kui-separator) {
-  transition: opacity var(--floating-reveal) ease-out var(--floating-reveal-delay);
-}
-.kui-surface.kui-floating[data-seed] :where(.kui-row, .kui-separator) {
-  opacity: 0;
-}
+/* The per-row hold left 2026-08-15: the BODY is the held unit now (its rule above) — one
+   subject, one clock, and the content genuinely reads as "empty, then printed" instead of
+   rows fading over a visible panel. */
 
 /* The exit is NOT the entry reversed (chosen 2026-08-09 from three built side by side —
    fold, mirror, dissolve). The pane holds its geometry, settles back a hair toward the
@@ -834,12 +817,59 @@
   transition: none;
 }
 
+/* ── The OVERLAY family's motion (§24, 2026-08-15): the floating entry's PRINCIPLES, never
+   its animation. A dialog is anchored to NOTHING — there is no box to photograph and no
+   distance to close — so its entry is a MATERIALIZATION: the box BECOMES (a small scale
+   growth riding the calm spring; geometry is physics), presence is PAINT (a panel with no
+   source fades in honestly, on the fast clock — the silhouette's opaque-from-frame-one rule
+   applied in reverse: a body lifting does not fade, a body from nowhere does), and the
+   CONTENT is one molten unit — empty and out of focus while the box is becoming, printing
+   as it lands. No travel, no measurement, no JS: Base UI's own transition stamps carry the
+   whole recipe. The scrim's half lives in dialog.css beside its fill. */
+.kui-surface.kui-overlay {
+  transition:
+    scale var(--overlay-materialize) var(--motion-spring),
+    opacity var(--overlay-reveal) ease-out;
+}
+.kui-surface.kui-overlay[data-starting-style] {
+  /* The box GROWS, and it can: the content is held invisible until the box lands, so a
+     scaled box reads as a growing container rather than a stretching photograph — the
+     objection that killed scale for the menus does not reach a box with nothing visible
+     aboard. Asymmetric on the family's own axis grammar: more travel in the block axis, so
+     the panel unfolds the way a menu falls before it spreads. v0, judged live. */
+  scale: 0.92 0.8;
+  opacity: 0;
+}
+/* The content prints onto the landed box. Keyed on the panel's direct children rather than
+   a body element: a dialog's anatomy is the caller's (§10 sanctions only Title/Description),
+   so there is no wrapper to hold — the children share one clock and read as one unit. */
+.kui-surface.kui-overlay > * {
+  transition:
+    opacity var(--overlay-reveal) ease-out var(--overlay-reveal-delay),
+    filter var(--overlay-materialize) ease-out var(--overlay-reveal-delay);
+}
+.kui-surface.kui-overlay[data-starting-style] > * {
+  opacity: 0;
+  filter: blur(6px);
+}
+/* The exit is the family grammar's dissolve — leaving is never the entry reversed: the box
+   holds its size, settles a hair and dissolves, content aboard. */
+.kui-surface.kui-overlay[data-ending-style] {
+  opacity: 0;
+  scale: 0.99;
+  transition:
+    opacity var(--overlay-dissolve) ease-in,
+    scale var(--overlay-settle) var(--motion-spring-stiff);
+}
+
 /* Suppression is total (§8): no travel, no reveal, no dissolve — the panel is simply there
    and then simply gone. The measurement is skipped too, so both lengths fall back to auto. */
 @media (prefers-reduced-motion: reduce) {
   .kui-surface.kui-floating,
   .kui-floating-body,
-  .kui-surface.kui-floating :where(.kui-row, .kui-separator) {
+  .kui-surface.kui-floating :where(.kui-row, .kui-separator),
+  .kui-surface.kui-overlay,
+  .kui-surface.kui-overlay > * {
     transition: none;
   }
   .kui-surface.kui-floating[data-seed],
@@ -853,8 +883,19 @@
   }
   .kui-surface.kui-floating[data-seed] .kui-floating-body {
     scale: 1;
+    filter: none;
+    opacity: 1;
   }
   .kui-surface.kui-floating[data-seed] :where(.kui-row, .kui-separator) {
     opacity: 1;
+  }
+  .kui-surface.kui-overlay[data-starting-style],
+  .kui-surface.kui-overlay[data-ending-style] {
+    scale: 1;
+    opacity: 1;
+  }
+  .kui-surface.kui-overlay[data-starting-style] > * {
+    opacity: 1;
+    filter: none;
   }
 }

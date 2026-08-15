@@ -31,7 +31,10 @@ import type { Size, SlotName } from "../../system/axes.ts";
 /* ── Designed constants (§22, v0 — the switchInset precedent: Base UI takes numbers, so
       these cannot ride CSS tokens; one home, judged in the playground) ─────────────────── */
 
-/** Gap between the trigger's edge and the popup. */
+/** Gap between the trigger's edge and the popup. (A COVERING default — the panel pulled
+    back over its anchor so the trigger visually became the menu — was built and reverted
+    2026-08-15, Kushagra: the silhouette departing across the small gap read better than
+    the morph-in-place. LOG carries it.) */
 const SIDE_OFFSET = 4;
 
 /** The seed's lean crosses the trigger-to-panel gap; the entry reads it as a var (§22). */
@@ -255,8 +258,8 @@ export function MenuContent({
         <BaseMenu.Positioner side={side} align={align} sideOffset={sideOffset}>
           <BaseMenu.Popup
             {...popupProps(React.use(MenuSizeContext), material, true, className)}
-            /* The gap the seed's lean crosses is the SAME number the positioner is given —
-               stamped, not re-derived, so the two cannot disagree (§22). */
+            /* The gap the entry publishes is the positioner's own number — stamped, not
+               re-derived, so the two cannot disagree (§22). */
             style={{ ...gapVar(sideOffset), ...style }}
             {...(ref !== undefined ? { ref } : {})}
           >

@@ -52,6 +52,7 @@ import {
   floatingMinWidth,
   controlMotion,
   floatingMotion,
+  overlayMotion,
   floatingSeed,
   floatingPadding,
   overlayWidth,
@@ -258,6 +259,11 @@ export function generateTokens(): string {
   put("floating-reveal-delay", `${floatingMotion.revealDelay}ms`);
   put("floating-dissolve", `${floatingMotion.dissolve}ms`);
   put("floating-settle", `${floatingMotion.settle}ms`);
+  put("overlay-materialize", `${overlayMotion.materialize}ms`);
+  put("overlay-reveal", `${overlayMotion.reveal}ms`);
+  put("overlay-reveal-delay", `${overlayMotion.revealDelay}ms`);
+  put("overlay-dissolve", `${overlayMotion.dissolve}ms`);
+  put("overlay-settle", `${overlayMotion.settle}ms`);
 
   lines.push("", "  /* §8 — pointer feedback; `button` is the contested one, so it is overridable */");
   put("cursor-button", cursor.button);

@@ -8,9 +8,9 @@
  * the portal wrapper's re-stamping, the surface rungs, the material recipes — are law-tested
  * where they live; what is asserted here is that this component wears them.
  *
- * Motion is deliberately absent from the component and from this file. A dialog declares no
- * transition of its own today; the entry is another pass's work, so nothing here calls
- * `inMotion()` and nothing here would pass only in a frozen page.
+ * Motion arrived 2026-08-15 (§24, the materialization) and its laws close this file: the
+ * appearance laws still never call `inMotion()` — only the motion block does, because those
+ * laws are ABOUT the entry.
  */
 import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
@@ -29,6 +29,8 @@ import {
   colorOn,
   probeIn,
   tokenOn,
+  inMotion,
+  asksForStillness,
   SIZES,
   APPEARANCES,
 } from "../../test/browser.tsx";
@@ -427,5 +429,116 @@ describe("title and description", () => {
     // the assertion running before the commit that would mount the panel.
     await userEvent.click(trigger);
     expect(document.querySelectorAll(".kui-dialog-popup").length).toBe(1);
+  });
+});
+
+/* ── Motion: the materialization (§8, §24, 2026-08-15) ────────────────────────────────────
+   The floating entry's PRINCIPLES, never its animation: a dialog is anchored to nothing, so
+   its entry is a materialization — the box BECOMES on the spring, presence is paint, the
+   content is one molten unit printing as the box lands, the scrim is pure signal, and the
+   exit dissolves. All CSS on Base UI's own stamps; no JS anywhere. Base UI's semantics decide
+   WHEN it plays: a real open transitions, a `defaultOpen` mount is instant — so every law
+   here opens by CLICK and reads the flight, because the pose stamp itself is gone within the
+   opening commit (measured: scale holds 0.96 through the first frames, then climbs).
+*/
+describe("the panel materializes (§24)", () => {
+  const curveOn = (el: HTMLElement, name: string) =>
+    getComputedStyle(el).getPropertyValue(name).trim();
+  const samples = (curve: string) =>
+    curve
+      .slice(curve.indexOf("(") + 1, curve.lastIndexOf(")"))
+      .split(",")
+      .map((stop) => stop.trim().split(/\s+/)[0]!);
+  const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+  /** Open by CLICK — the path that transitions — and hand back the flying popup. */
+  async function openByClick() {
+    render(
+      <Theme>
+        <Dialog>
+          <DialogTrigger render={<Button>Open</Button>} />
+          <DialogContent>
+            <DialogTitle>Delete workspace</DialogTitle>
+            <DialogDescription>This cannot be undone.</DialogDescription>
+          </DialogContent>
+        </Dialog>
+      </Theme>,
+    );
+    inMotion();
+    await userEvent.click(document.querySelector<HTMLElement>(".kui-button")!);
+    const popup = document.querySelector<HTMLElement>(".kui-dialog-popup");
+    if (!popup) throw new Error("the panel never mounted");
+    return popup;
+  }
+
+  it("the entry is a BECOMING: small and unpainted, then grown and lit — and the clocks split (§8)", async () => {
+    const popup = await openByClick();
+    // The first readable frames hold the pose: below size, unpainted, content molten.
+    expect(parseFloat(computed(popup, "scale")), "the box starts below its size").toBeLessThan(0.97);
+    expect(parseFloat(computed(popup, "opacity")), "a panel with no source fades in").toBeLessThan(0.5);
+    const title = popup.querySelector<HTMLElement>(":scope > *")!;
+    expect(computed(title, "filter"), "the content arrives molten").toMatch(/^blur\(/);
+    expect(parseFloat(computed(title, "opacity")), "and empty").toBeLessThan(0.5);
+    // The print is DELAYED: the content lands after the box, never with it.
+    const childDelay = computed(title, "transition-delay").split(",").map((d) => parseFloat(d));
+    expect(Math.max(...childDelay), "the print waits for the box").toBeGreaterThan(0);
+    // The two clocks: scale rides the baked spring, opacity eases (a box on a bezier is a
+    // slideshow, paint on a spring wobbles). Lists are readable at any frame.
+    const listed = computed(popup, "transition-property").split(",").map((p) => p.trim());
+    const easings = computed(popup, "transition-timing-function").split(/,(?![^(]*\))/);
+    const spring = curveOn(popup, "--motion-spring");
+    expect(spring.startsWith("linear("), "the spring token is a baked curve").toBe(true);
+    expect(samples(easings[listed.indexOf("scale")]!.trim())).toEqual(samples(spring));
+    expect(easings[listed.indexOf("opacity")]!, "paint has no mass").not.toContain("linear(");
+    // The scrim is SIGNAL: easing up alongside, never sprung.
+    const scrim = document.querySelector<HTMLElement>(".kui-dialog-backdrop")!;
+    expect(computed(scrim, "transition-timing-function")).not.toContain("linear(");
+    expect(computed(scrim, "transition-property")).toContain("opacity");
+    // And it actually MOVES — declared is not the same as free (the menu suite's lesson).
+    const first = parseFloat(computed(popup, "scale"));
+    const deadline = performance.now() + 2000;
+    let grew = false;
+    while (performance.now() < deadline && !grew) {
+      await frame();
+      grew = parseFloat(computed(popup, "scale") === "none" ? "1" : computed(popup, "scale")) > first + 0.005;
+    }
+    expect(grew, "the box never grew").toBe(true);
+  });
+
+  it("the exit dissolves — the box holds its size, settles a hair, and leaves as one (§24)", async () => {
+    const popup = await openByClick();
+    // The ending recipe, read as computed values under the hand-applied stamp (the menu
+    // exit law's pattern): lists first with live clocks, then pinned for the pose.
+    popup.setAttribute("data-ending-style", "");
+    const listed = computed(popup, "transition-property").split(",").map((p) => p.trim());
+    const easings = computed(popup, "transition-timing-function").split(/,(?![^(]*\))/);
+    const stiff = curveOn(popup, "--motion-spring-stiff");
+    expect(samples(easings[listed.indexOf("scale")]!.trim()), "the settle decelerates — an exit never bounces").toEqual(samples(stiff));
+    expect(easings[listed.indexOf("opacity")]!, "the dissolve eases").not.toContain("linear(");
+    // Pinned — popup AND child, because the child's own print transition is still mid-delay
+    // this soon after the open, and an unpinned read reports the value in flight.
+    const title = popup.querySelector<HTMLElement>(":scope > *")!;
+    popup.style.setProperty("transition", "none", "important");
+    title.style.setProperty("transition", "none", "important");
+    expect(computed(popup, "opacity")).toBe("0");
+    // 0.99, not the entry's 0.96 reversed: leaving is never the entry reversed — the viewer
+    // is already looking at the thing they dismissed.
+    expect(computed(popup, "scale")).toBe("0.99");
+    // The content leaves ABOARD the box: no ending hold puts the children back to molten.
+    expect(computed(title, "filter"), "the content dissolves with its box").toBe("none");
+  });
+
+  it("suppression is total: under reduced motion the panel is simply there (§8)", async () => {
+    await asksForStillness();
+    const popup = await openByClick();
+    expect(["none", "1"]).toContain(computed(popup, "scale"));
+    expect(computed(popup, "opacity")).toBe("1");
+    const title = popup.querySelector<HTMLElement>(":scope > *")!;
+    expect(computed(title, "opacity")).toBe("1");
+    expect(computed(title, "filter")).toBe("none");
+    const scrim = document.querySelector<HTMLElement>(".kui-dialog-backdrop")!;
+    expect(computed(scrim, "opacity")).toBe("1");
+    for (const el of [popup, scrim]) {
+      expect(computed(el, "transition-duration").split(",").every((d) => parseFloat(d) === 0), "no clock survives").toBe(true);
+    }
   });
 });
