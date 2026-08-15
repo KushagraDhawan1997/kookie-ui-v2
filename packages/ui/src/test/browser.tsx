@@ -20,14 +20,15 @@ import { afterEach } from "vitest";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 
-import { Theme, type ThemeProps } from "../theme/theme.tsx";
-import { SIZES, type Size } from "../system/axes.ts";
+import { Theme, DEPTHS, type ThemeProps } from "../theme/theme.tsx";
+import { SIZES, GLASS_MATERIALS, type Size } from "../system/axes.ts";
 import { VIEWPORT } from "./viewport.ts";
 import { density } from "../tokens/config.ts";
 
 // Every stylesheet the package ships, in the order styles/index.css imports them — order is
 // load-bearing, since the recipes read tokens and components read recipes. Keep this list and
 // that file in step; a sheet missing here makes laws pass against an empty cascade.
+import alertDialogCss from "../components/alert-dialog/alert-dialog.css?raw";
 import blockquoteCss from "../components/blockquote/blockquote.css?raw";
 import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
@@ -63,6 +64,7 @@ export function installStyles(): void {
     surfacesCss,
     typeCss,
     spinnerCss,
+    alertDialogCss,
     blockquoteCss,
     buttonCss,
     checkboxCss,
@@ -101,6 +103,28 @@ let stillness: HTMLStyleElement | null = null;
 let wantsMotion = false;
 let emulating = false;
 
+/** Did a portal exist at any point in this test? (2026-08-16.) A popup dismissed by its own
+    portalled button is gone before teardown can look, so the signal has to be recorded when it
+    happens rather than read at the end — see the pointer-parking guard below. One observer for
+    the whole run, started lazily so a node suite never installs it. */
+let sawPortal = false;
+let portalWatch: MutationObserver | null = null;
+function watchForPortals(): void {
+  if (portalWatch) return;
+  portalWatch = new MutationObserver((records) => {
+    if (sawPortal) return;
+    for (const record of records) {
+      for (const node of record.addedNodes) {
+        if (node instanceof HTMLElement && (node.classList.contains("kui-portal") || node.querySelector(".kui-portal"))) {
+          sawPortal = true;
+          return;
+        }
+      }
+    }
+  });
+  portalWatch.observe(document.body, { childList: true, subtree: true });
+}
+
 function holdStill(): void {
   if (!stillness) {
     stillness = document.createElement("style");
@@ -109,6 +133,21 @@ function holdStill(): void {
     document.head.append(stillness);
   }
   stillness.disabled = wantsMotion;
+}
+
+/**
+ * One turn of the microtask queue — the entry runner fully armed (2026-08-16).
+ *
+ * The unified runner stamps the pose synchronously and measures in a microtask, because a ref
+ * callback runs before the commit's layout effects and a panel measured that early can be a
+ * half-laid-out sliver. Every law that reads a flight's numbers — its measured box, its
+ * silhouette, its aimed position — must therefore let that microtask run first, or it reads a
+ * pose with nothing written into it and measures NaN. Named rather than spelled inline, so a
+ * law says what it is waiting for instead of awaiting a bare promise for reasons a reader has
+ * to reconstruct.
+ */
+export async function flushFlight(): Promise<void> {
+  await Promise.resolve();
 }
 
 /**
@@ -166,15 +205,21 @@ export function settle(popup: HTMLElement): void {
   popup.removeAttribute("data-starting-style");
   popup.removeAttribute("data-seed");
   popup.removeAttribute("data-unfurling");
+  popup.style.removeProperty("--kui-fly-w");
+  popup.style.removeProperty("--kui-fly-h");
+  popup.style.removeProperty("--kui-fly-bw");
   for (const el of [popup, ...popup.querySelectorAll<HTMLElement>("*")]) {
     el.style.setProperty("transition", "none", "important");
   }
 }
 
-/** Every floating panel on the page, including ones opened after the initial render. Keyed on
-    the FAMILY class, which is what both members wear and what the entry itself selects. */
+/** Every panel on the page with a flight in progress, including ones opened after the initial
+    render: the anchored families and the overlay ones run one shared runner, so both stamp the
+    same attributes and an unsettled panel of either kind is its seed, not its box. (The
+    materialization is AlertDialog's since 2026-08-16 — a Dialog has no entry until its own
+    large-mass one lands, so this reaches the alert, not the dialog.) */
 export function settleAll(): void {
-  for (const popup of document.querySelectorAll<HTMLElement>(".kui-floating")) settle(popup);
+  for (const popup of document.querySelectorAll<HTMLElement>(".kui-floating, .kui-surface.kui-overlay")) settle(popup);
 }
 
 /** Mount, then land whatever floated. The shape both law files had reinvented. */
@@ -207,14 +252,29 @@ afterEach(async () => {
    * Guarded on an actual hover rather than run unconditionally, because it is a CDP round trip
    * per test and the suite is over a thousand of them. Parked at the far corner of the pinned
    * viewport, which no mount reaches.
+   *
+   * Widened 2026-08-16 (the alert laws): the overlay suites click PORTALLED buttons, which
+   * land at body level — outside every host, invisible to the host query — and a clicked
+   * element that unmounts with its popup leaves the pointer parked mid-viewport with
+   * NOTHING hovered at teardown, exactly where the next file's mount appears. A portal
+   * having existed this test is therefore itself the signal: it implies pointer work at
+   * coordinates a later mount will reuse, whether or not anything is still under the
+   * pointer to say so.
+   *
+   * And it is a RECORD of the test, not a reading taken at its end (corrected the same day):
+   * the first spelling asked `document.querySelector(".kui-portal")` here, which is precisely
+   * the query that answers null in the case the paragraph above describes — a popup dismissed
+   * by its own button is gone before teardown looks. `sawPortal` is set the moment one
+   * appears, by an observer that costs nothing per test.
    */
-  if (live.some(({ host }) => host.querySelector(":hover"))) {
+  if (sawPortal || live.some(({ host }) => host.querySelector(":hover"))) {
     await cdp().send("Input.dispatchMouseEvent", {
       type: "mouseMoved",
       x: VIEWPORT.width - 1,
       y: VIEWPORT.height - 1,
     });
   }
+  sawPortal = false;
   for (const { root, host } of live.splice(0)) {
     root.unmount();
     host.remove();
@@ -231,6 +291,7 @@ afterEach(async () => {
 export function render(ui: ReactElement): HTMLElement {
   installStyles();
   holdStill();
+  watchForPortals();
   const host = document.createElement("div");
   document.body.append(host);
   const root = createRoot(host);
@@ -337,6 +398,14 @@ export { SIZES };
 export const DENSITIES = Object.keys(density) as (keyof typeof density)[];
 export const POINTERS = ["fine", "coarse"] as const;
 export const APPEARANCES = ["light", "dark"] as const;
+/** DEPTHS and GLASS_MATERIALS are RE-EXPORTS, never restatements (2026-08-16): eight law
+    files each carried their own `["flat", "elevated"] as const` and six carried their own
+    `["thin", "regular", "thick"]`, so a widened axis would have shipped covered by nothing
+    while all fourteen still passed. `depth` owns its list beside its union in theme.tsx;
+    the glass thicknesses have owned one in system/axes.ts since that file existed and were
+    simply never reached for. A node law below forbids either literal from coming back. */
+export { DEPTHS };
+export { GLASS_MATERIALS };
 
 export type Cell = {
   size: Size;

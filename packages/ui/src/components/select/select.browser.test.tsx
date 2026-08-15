@@ -30,6 +30,7 @@ import {
   render as mount,
   renderSettled as render,
   inMotion,
+  flushFlight,
   settleAll,
   computed,
   probeIn,
@@ -835,7 +836,7 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
    */
   const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
-  function openFlying() {
+  async function openFlying() {
     // inMotion BEFORE mount (2026-08-15): a defaultOpen entry begins at mount's microtask
     // and reads its release clock off computed durations — mounted under the harness's
     // pinned zeros, it schedules release at ~50ms and the flight is cut mid-air the moment
@@ -853,6 +854,9 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
       </Theme>,
     );
     const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
+    // The runner poses synchronously and measures a microtask later (unified 2026-08-16), so
+    // a law that reads the flight's numbers must let that turn run first.
+    await flushFlight();
     return popups[popups.length - 1]!;
   }
 
@@ -862,7 +866,7 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     // the trigger is"; menu.browser.test.tsx carries the recipe's own laws, this asserts
     // the membership): the first frame wears the trigger's box ON the trigger, and the
     // measured destination is what makes the unfurl animatable at all.
-    const popup = openFlying();
+    const popup = await openFlying();
     const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
     expect(popup.hasAttribute("data-seed")).toBe(true);
     // One frame: the overlay is aimed after floating-ui places the positioner, and the
@@ -884,14 +888,14 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     );
     // The measurement is what makes the destination animatable at all — and it carries the
     // trigger floor, which is a claim about the PANEL, not the seed.
-    expect(parseFloat(popup.style.getPropertyValue("--kui-floating-w"))).toBeGreaterThanOrEqual(
+    expect(parseFloat(popup.style.getPropertyValue("--kui-fly-w"))).toBeGreaterThanOrEqual(
       box.width - 1,
     );
     expect(popup.hasAttribute("data-unfurling")).toBe(true);
   });
 
   it("the box actually MOVES across the entry — membership is not the same as motion", async () => {
-    const popup = openFlying();
+    const popup = await openFlying();
     const widths: number[] = [];
     const deadline = performance.now() + 2000;
     while (performance.now() < deadline) {
@@ -924,6 +928,7 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
       </Theme>,
     );
     const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    await flushFlight();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
     const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
     // The rect, not the 360 literal: an open trigger HOLDS THE PRESS, and the press scales it
@@ -933,7 +938,7 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     expect(triggerW, "the case needs a trigger wider than the content").toBeGreaterThan(300);
 
     // The flight's own target, read off the measurement the entry wrote.
-    const target = parseFloat(popup.style.getPropertyValue("--kui-floating-w"));
+    const target = parseFloat(popup.style.getPropertyValue("--kui-fly-w"));
     expect(target, "the measured target must include the trigger floor").toBeGreaterThanOrEqual(
       triggerW - 1,
     );
@@ -990,22 +995,35 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     await userEvent.click(trigger);
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
 
-    let before = 0;
+    /**
+     * `settled` is the flight's own final width, and it is only recorded once the box has
+     * STOPPED MOVING — two consecutive frames at the same width (2026-08-16). The first
+     * spelling kept the previous frame's sample instead, which is the same thing only while
+     * frames are 16ms apart: under full-suite load a frame can be 100ms, so the "frame
+     * before release" was still mid-spring and the law compared an animating width against a
+     * settled one. It failed at 1px, on a claim about a defect that measured 10 — a law
+     * flaking on the tail of the animation it is not about.
+     */
+    let previous = 0;
+    let settled = 0;
     const deadline = performance.now() + 3000;
     while (performance.now() < deadline) {
       const w = popup.getBoundingClientRect().width;
-      if (before > 0 && !popup.hasAttribute("data-unfurling")) {
+      if (settled > 0 && !popup.hasAttribute("data-unfurling")) {
         // Calibration first: the premise. The open trigger must genuinely be held smaller
         // than its resting self, or this whole law is measuring a press that is not there.
         const heldW = trigger.getBoundingClientRect().width;
         expect(heldW, "the held press no longer scales the trigger").toBeLessThan(resting - 1);
         // The seam: the frame the flight ends, the width must not step.
-        expect(w, `it stepped at release: ${before} -> ${w}`).toBeCloseTo(before, 0);
+        expect(w, `it stepped at release: ${settled} -> ${w}`).toBeCloseTo(settled, 0);
         // And the settled floor is the trigger as the eye sees it — the held box.
         expect(w, "narrower than the held trigger").toBeGreaterThanOrEqual(heldW - 1);
         return;
       }
-      if (popup.hasAttribute("data-unfurling")) before = w;
+      if (popup.hasAttribute("data-unfurling")) {
+        if (previous > 0 && Math.abs(w - previous) < 0.5) settled = w;
+        previous = w;
+      }
       await tick();
     }
     throw new Error("the clicked flight never released");
@@ -1123,12 +1141,12 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     );
   });
 
-  it("and it resolves the SAME recipe a menu does — one family, one entry", () => {
+  it("and it resolves the SAME recipe a menu does — one family, one entry", async () => {
     // The agreement law the promotion owes (ENGINEERING §6: a mechanism with two
     // implementations owes a law that they agree). Read as computed values on both panels,
     // because "select.css adds no motion" is exactly the kind of claim that stays true in the
     // stylesheet while a component quietly re-points a clock.
-    const select = openFlying();
+    const select = await openFlying();
     // Un-seeded first: the seed state pins `transition: none` (a held pose), and the
     // recipe under agreement is the FLIGHT's — the base rule's.
     select.removeAttribute("data-seed");

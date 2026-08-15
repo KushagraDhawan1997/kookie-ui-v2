@@ -1,0 +1,86 @@
+/* AlertDialog (§10, §25). The panel is a surface and an overlay-family member — fill, edge,
+   dress, glass, corner, padding and the entry all arrive from the shared layers — so what is
+   left here is the alert's own facts: its scrim and viewport (the second member SELF-KEYS,
+   TextArea's rule: these repeat dialog.css's facts under the alert's own names, and the
+   third overlay member promotes them), its FIXED width, and the layout it owns.
+
+   The width is consumed here and priced in the shared overlay join (surfaces.css re-points
+   `--kui-overlay-w` at the alert's own ladder) — nothing size-indexed lives in this file. */
+
+/* ── The scrim: dialog.css's facts, self-keyed (§24) ──────────────────────────────────── */
+.kui-alert-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--scrim-fill);
+  /* Unprefixed only — Lightning owns prefixing (the 2026-08-10 finding; the build asserts it). */
+  backdrop-filter: var(--scrim-filter, none);
+  /* Pure signal (§8): no box to become, one fade on the paint clock. */
+  transition: opacity var(--overlay-reveal) ease-out;
+}
+.kui-alert-backdrop[data-starting-style],
+.kui-alert-backdrop[data-ending-style] {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kui-alert-backdrop {
+    transition: none;
+  }
+  .kui-alert-backdrop[data-starting-style],
+  .kui-alert-backdrop[data-ending-style] {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .kui-alert-backdrop {
+    background-color: var(--scrim-fill-high);
+    backdrop-filter: none;
+  }
+}
+
+/* ── The viewport (§24's, self-keyed): the gutter, the scroll, auto-margin centring ────── */
+.kui-alert-viewport {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  padding: var(--dialog-inset);
+  overflow-y: auto;
+}
+
+/* ── The panel: a FIXED width, not a maximum (§25) ────────────────────────────────────────
+   An alert's content is closed, so its box is too: the component states the width and the
+   words wrap to it — which is also what holds the 50/50 action row's shape. The viewport's
+   gutter still wins on a narrow window through the max. No width prop exists. */
+.kui-alert-popup {
+  margin: auto;
+  inline-size: var(--kui-overlay-w);
+  max-inline-size: 100%;
+  outline: none;
+}
+
+/* ── The layout the component owns (§25) ──────────────────────────────────────────────────
+   The one place in the system a surface arranges its children, licensed by the closed
+   anatomy: the entry's body is a two-column grid; anything that is not a button spans both
+   columns, and the actions take a column each — equal space, filling the row, Cancel at the
+   start (DOM order; RTL flips it for free). A lone action spans the row whole: an
+   acknowledgement alert has one button and it is full-width.
+
+   The row gap is the title-description distance; the actions stand off from the text by the
+   section distance, stated as the difference so the two land on §15's composed steps. An
+   internal margin, not an outer one — §3 forbids components owning the space AROUND
+   themselves, and this is the component laying out content it owns. */
+.kui-alert-popup .kui-overlay-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--layout-space-2) var(--layout-space-3);
+}
+.kui-alert-popup .kui-overlay-body > * {
+  grid-column: 1 / -1;
+}
+.kui-alert-popup .kui-overlay-body > .kui-button {
+  grid-column: auto;
+  inline-size: 100%;
+  margin-block-start: calc(var(--layout-space-5) - var(--layout-space-2));
+}
+.kui-alert-popup .kui-overlay-body > .kui-button:only-of-type {
+  grid-column: 1 / -1;
+}

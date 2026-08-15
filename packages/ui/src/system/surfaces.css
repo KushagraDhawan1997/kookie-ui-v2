@@ -137,7 +137,13 @@
    absorbing per-size spellings is what keeps component CSS additive), so the join hands the
    pane its designed maximum and the pane decides what to do with it. A dialog takes it as a
    `max-inline-size`; a sheet that wants the window's whole width will simply not read it.
-   Padding is the ordinary surface join's, one block up — an overlay breathes like a card. */
+   Padding is the ordinary surface join's, one block up — an overlay breathes like a card.
+
+   The ALERT's arms below also step the padding ONE SIZE UP with the top held (Kushagra
+   2026-08-16, judged in lab2: "the padding is less") — the overlay corner band's own
+   sentence, one property over: an alert wears the corner of the card one size up, and a
+   bigger curve wants a bigger inset or the words crowd the sweep. Size 4 holds at p-4
+   exactly as the corner band's top step holds at 10. */
 .kui-surface.kui-overlay[data-size="1"] {
   --kui-sf-radius: var(--radius-overlay-1);
   --kui-overlay-w: var(--overlay-w-1);
@@ -153,6 +159,30 @@
 .kui-surface.kui-overlay[data-size="4"] {
   --kui-sf-radius: var(--radius-overlay-4);
   --kui-overlay-w: var(--overlay-w-4);
+}
+
+/* The ALERT's width re-point (§25, 2026-08-16) — the switch join's shape one layer up: the
+   alert is an overlay family member whose designed width is its own ladder, so these arms
+   re-point the SAME published name the join above declares, winning the tie on source order
+   exactly as `.kui-control.kui-switch` re-points the mark step. The panel's own sheet keeps
+   consuming `--kui-overlay-w` with no idea two ladders exist — and per-size spellings stay
+   in the shared layer, where the no-axis walk allows them. Corner and padding are untouched:
+   an alert is priced like the overlay of its index in everything but width. */
+.kui-surface.kui-overlay.kui-alert-popup[data-size="1"] {
+  --kui-overlay-w: var(--alert-w-1);
+  --kui-sf-p: var(--surface-p-2);
+}
+.kui-surface.kui-overlay.kui-alert-popup[data-size="2"] {
+  --kui-overlay-w: var(--alert-w-2);
+  --kui-sf-p: var(--surface-p-3);
+}
+.kui-surface.kui-overlay.kui-alert-popup[data-size="3"] {
+  --kui-overlay-w: var(--alert-w-3);
+  --kui-sf-p: var(--surface-p-4);
+}
+.kui-surface.kui-overlay.kui-alert-popup[data-size="4"] {
+  --kui-overlay-w: var(--alert-w-4);
+  --kui-sf-p: var(--surface-p-4);
 }
 
 /* Concentric arithmetic is undefined at zero: at `none` the control corner is already 0,
@@ -473,7 +503,7 @@
    copy and the third member promotes (TextArea's rule). It promotes now instead, and the
    reason is that there is nothing here to learn from a second spelling: the mechanism was
    family-named end to end before Select existed — the JS finds its panel with
-   `closest(".kui-surface.kui-floating")`, the measured box is `--kui-floating-w/-h/-bw`, the wrapper is
+   `closest(".kui-surface.kui-floating")`, the measured box is `--kui-fly-w/-h/-bw`, the wrapper is
    `.kui-floating-body`, the clocks are `--floating-*`, and both members already publish the
    same `--kui-floating-p`. The only component-level thing about it was the selector, which
    was an accident of Menu having shipped first. Copying ~130 lines into select.css would have
@@ -506,7 +536,7 @@
  * element and the measurement (system/floating.tsx).
  *
  * The two lengths are measured, not interpolated to `auto` — `interpolate-size` is Chromium
- * only. `--kui-floating-w/h` are set for the flight and released on arrival, so a settled
+ * only. `--kui-fly-w/h` are set for the flight and released on arrival, so a settled
  * panel sizes itself again. Both fall back to `auto`, which is what a panel computes under
  * reduced motion and after arrival. */
 .kui-surface.kui-floating {
@@ -516,8 +546,8 @@
      it takes its INITIAL value instead of the cascaded one (measured: the panel's corner
      collapsed to 0px). A seed is a system fact, not a photograph of what was pressed. */
   --kui-seed: var(--floating-seed);
-  inline-size: var(--kui-floating-w, auto);
-  block-size: var(--kui-floating-h, auto);
+  inline-size: var(--kui-fly-w, auto);
+  block-size: var(--kui-fly-h, auto);
   /* The corner the seed occupied — the panel unfurls out of it and settles back toward it on
      dismissal, rather than toward its own middle. Stated as two halves so `data-side` and
      `data-align` can each set one. */
@@ -531,13 +561,13 @@
        there is no fade to wait out — the body lifts and unfurls at once. */
     /* the panel FALLS first — the axis that finishes LAST is the one the eye reads as the
        direction of travel, so a menu drops out of its trigger and then opens sideways */
-    block-size var(--floating-fall) var(--motion-spring),
-    translate var(--floating-fall) var(--motion-spring),
+    block-size var(--floating-fall) var(--motion-spring-elastic),
+    translate var(--floating-fall) var(--motion-spring-elastic),
     /* then it SPREADS */
-    inline-size var(--floating-spread) var(--motion-spring),
+    inline-size var(--floating-spread) var(--motion-spring-elastic),
     /* the corner and the settle-scale sit between the two */
-    border-radius var(--floating-corner) var(--motion-spring),
-    scale var(--floating-corner) var(--motion-spring),
+    border-radius var(--floating-corner) var(--motion-spring-elastic),
+    scale var(--floating-corner) var(--motion-spring-elastic),
     /* paint is signal, not physics: it eases, it does not spring (§8's two clocks). */
     opacity var(--motion-hover-in) ease-out,
     box-shadow var(--floating-reveal) ease-out;
@@ -670,7 +700,7 @@
 /* The body unfurls WITH the box. Held static, the panel reads as a shutter opening over a
    finished page; squished, it reads as one body — judged twice, both directions (LOG). */
 .kui-floating-body {
-  inline-size: var(--kui-floating-bw, auto);
+  inline-size: var(--kui-fly-bw, auto);
   transform-origin: top left;
   /* --motion-rise, NOT --floating-rise: the latter never existed, and the dangling var
      invalidated this whole declaration — the body SNAPPED to full size on frame one from
@@ -678,7 +708,10 @@
      nicely, but the text doesn't move or stretch with it"). The dangling-var law in
      recipes.test.ts is that finding's other half. */
   transition:
-    scale var(--motion-rise) var(--motion-spring),
+    scale var(--motion-rise) var(--motion-spring-elastic),
+    /* the content ARRIVES, echoing the box's own travel — the family's shared sentence
+       (2026-08-16): a small rise as it prints, on the family spring */
+    translate var(--floating-fall) var(--motion-spring-elastic) var(--floating-reveal-delay),
     /* THE CONTENT IS THE BODY, held as one unit (2026-08-15, Kushagra: "blurred out, empty
        content that shows up as the circle takes the shape of the container"): invisible and
        molten while the box is becoming, printing as one piece when the shape lands. One
@@ -692,6 +725,7 @@
 .kui-surface.kui-floating[data-seed] .kui-floating-body {
   opacity: 0;
   filter: blur(6px);
+  translate: 0 var(--floating-echo);
 }
 
 /* And it is PINNED TO THE EDGE THE BOX IS NOT GROWING FROM (§22, 2026-08-10, Kushagra: *"why
@@ -804,7 +838,20 @@
 .kui-surface.kui-floating[data-ending-style] {
   opacity: 0;
   scale: 0.98;
+  /* EVERY channel the entry moves is restated, so a mid-flight dismissal keeps becoming while
+     it dissolves: dropping a property from the list CANCELS its running transition, and the
+     cancelled channel then jumps to its target under the fade. Settled exits start nothing
+     here, because none of these values change on a panel that has already arrived.
+     `box-shadow` was the one channel the first spelling missed (2026-08-16 audit, measured: a
+     menu dismissed 35ms into its entry snapped 169 → 303px, because the cast's cancellation
+     was read as a dismissal and retired the whole flight). The completeness of this list is
+     asserted by law — surfaces.test.ts, "the exit keeps every channel the entry moves alive". */
   transition:
+    block-size var(--floating-fall) var(--motion-spring-elastic),
+    translate var(--floating-fall) var(--motion-spring-elastic),
+    inline-size var(--floating-spread) var(--motion-spring-elastic),
+    border-radius var(--floating-corner) var(--motion-spring-elastic),
+    box-shadow var(--floating-reveal) ease-out,
     opacity var(--floating-dissolve) ease-in,
     scale var(--floating-settle) var(--motion-spring-stiff);
 }
@@ -817,49 +864,176 @@
   transition: none;
 }
 
-/* ── The OVERLAY family's motion (§24, 2026-08-15): the floating entry's PRINCIPLES, never
-   its animation. A dialog is anchored to NOTHING — there is no box to photograph and no
-   distance to close — so its entry is a MATERIALIZATION: the box BECOMES (a small scale
-   growth riding the calm spring; geometry is physics), presence is PAINT (a panel with no
-   source fades in honestly, on the fast clock — the silhouette's opaque-from-frame-one rule
-   applied in reverse: a body lifting does not fade, a body from nowhere does), and the
-   CONTENT is one molten unit — empty and out of focus while the box is becoming, printing
-   as it lands. No travel, no measurement, no JS: Base UI's own transition stamps carry the
-   whole recipe. The scrim's half lives in dialog.css beside its fill. */
-.kui-surface.kui-overlay {
+/* ── The MATERIALIZATION — the ALERT's gesture (§8, §25; re-keyed 2026-08-16 with the
+   dialog/alert split, LOG): built as the dialog's entry and judged at alert mass to be an
+   ARRIVAL — an interruption announcing itself — which is correct for the component that
+   comes AT you and wrong at modal mass, where the same inertia reads as the room moving.
+   So the recipe keys on the alert's own popup, whole and unchanged: the box BECOMES (the
+   circle of surface rising and unfurling on the spring), presence is PAINT, and the content
+   is one molten unit printing as the box lands — which the system may animate HERE because
+   an alert's content is its own (title, description, two actions), the license a dialog's
+   consumer-owned content can never grant. Dialog is entry-less until its large-mass entry
+   lands (the follow-up commit; the lab's depth-not-distance direction). The runner is
+   system/floating.tsx's OverlayBody; the scrim's half lives in alert-dialog.css. */
+.kui-surface.kui-alert-popup {
+  translate: 0 0;
   transition:
-    scale var(--overlay-materialize) var(--motion-spring),
+    /* GEOMETRY WAITS FOR THE CIRCLE TO BE SEEN (the hold): a dialog fades in — it has no
+       source to lift from — so growth departing on frame one meant every visible frame was
+       already "a smaller dialog". The blurred circle comes up first; the growth leaves
+       from a shape the eye has met. */
+    /* the axes are OUT OF PHASE (the floating family's grammar): one clock over the
+       dialog's asymmetric travel made the width read as a slide while the height sprang —
+       the vertical leads, the width trails, and both read as the same spring */
+    /* the GROWTH waits longer than the rise: the circle must be seen TRAVELING as a
+       circle — it surfaces first, then unfurls */
+    block-size var(--overlay-fall) var(--motion-spring-elastic) var(--overlay-grow),
+    inline-size var(--overlay-spread) var(--motion-spring-elastic) var(--overlay-grow),
+    border-radius var(--overlay-materialize) var(--motion-spring-elastic) var(--overlay-grow),
+    /* the padding rides with the box: at the seed it is zero (a 40px circle cannot hold
+       50px of padding — border-box floors at the padding sum, measured: the "circle"
+       posed 50px wide) and it grows back with the shape */
+    padding var(--overlay-materialize) var(--motion-spring-elastic) var(--overlay-grow),
+    /* the RISE: the circle forms below the card's own footprint and surfaces into it —
+       the dialog's answer to "where did this come from" */
+    translate var(--overlay-fall) var(--motion-spring-elastic) var(--overlay-hold),
     opacity var(--overlay-reveal) ease-out;
 }
-.kui-surface.kui-overlay[data-starting-style] {
-  /* The box GROWS, and it can: the content is held invisible until the box lands, so a
-     scaled box reads as a growing container rather than a stretching photograph — the
-     objection that killed scale for the menus does not reach a box with nothing visible
-     aboard. Asymmetric on the family's own axis grammar: more travel in the block axis, so
-     the panel unfolds the way a menu falls before it spreads. v0, judged live. */
-  scale: 0.92 0.8;
-  opacity: 0;
+/* The flight arrangement: for as long as the entry drives the box, the panel is its
+   MEASURED size (the entry writes `--kui-fly-w/h` at open — system/floating's runner measures its own
+   natural box, the floating machinery's mechanism without its anchor) and it clips, because
+   a box deliberately smaller than what it holds must not scroll or spill. Removed at
+   release, so a settled dialog sizes itself again. */
+.kui-surface.kui-alert-popup[data-unfurling] {
+  inline-size: var(--kui-fly-w, auto);
+  block-size: var(--kui-fly-h, auto);
+  overflow: clip;
 }
-/* The content prints onto the landed box. Keyed on the panel's direct children rather than
-   a body element: a dialog's anatomy is the caller's (§10 sanctions only Title/Description),
-   so there is no wrapper to hold — the children share one clock and read as one unit. */
-.kui-surface.kui-overlay > * {
+/* The body LEAVES THE FLOW for the flight (the floating body's own mechanism): in flow,
+   the growing box and its morphing padding PUSH the content every frame — measured as the
+   content "moving with" the container. Absolutely centered, the box grows and rises AROUND
+   content that holds its own place; and the seam is exact by arithmetic: the settled panel's
+   height is body + two paddings, so auto-margin centering lands on the same pixel normal
+   flow returns to at release. The width pin keeps its text from re-breaking; centering also
+   kills the left-to-right read a start-anchored child had under a widening box. */
+.kui-surface.kui-alert-popup[data-unfurling] .kui-overlay-body {
+  position: absolute;
+  /* Pinned where the flow will PUT it, not centered (2026-08-16, the big-dialog seam):
+     "centered equals flow" is arithmetic only while the panel's height is content plus
+     padding — a min-height panel is taller, its flow position is the top, and a centered
+     flight snapped upward at release. The inset reads the padding TOKEN, which is the
+     final value from frame one, while the padding property itself is still animating in. */
+  inset-block-start: var(--kui-sf-p);
+  inset-inline: 0;
+  margin-inline: auto;
+  inline-size: var(--kui-fly-bw, auto);
+}
+/* THE CIRCLE (2026-08-15, Kushagra: "the dialog container itself expanding from a circle in
+   center" — a clip was tried first and judged out on sight: a clip only opens a window
+   INSIDE the panel's rectangle, so the growing circle flattened against the box edges
+   instead of BEING the box). The pose is a real box: seed wide, seed tall, half-seed
+   corner, centered where the viewport's auto margins already hold it — and the unfurl
+   springs the box itself into the measured card, the shape genuinely morphing the way the
+   menu's does. A static pose (the seed rule's own lesson): the flight's transitions are
+   the base rule's, applying the frame this attribute comes off. */
+.kui-surface.kui-alert-popup[data-seed] {
+  inline-size: var(--overlay-seed);
+  block-size: var(--overlay-seed);
+  /* 50%, not half-the-seed in px: a fixed radius is a circle for exactly one frame and a
+     rounded square every frame after — a percentage keeps the box CURVY as it opens, so
+     the circle melts into the card instead of squaring off. */
+  border-radius: 50%;
+  corner-shape: round;
+  padding: 0;
+  /* The ORIGIN: fully below the card's own footprint — half the measured height clears
+     the bottom edge, the lift is the designed gap past it — closed as the box rises. A
+     dialog is summoned, and it surfaces. The fallback only lives before the runner's
+     measurement lands (same tick, pre-paint). */
+  translate: 0 calc(var(--kui-fly-h, var(--overlay-seed)) / 2 + var(--overlay-lift));
+  opacity: 0;
+  transition: none;
+}
+/* The content is the BODY, held as one molten unit — empty and out of focus while the box
+   is becoming, printing as it lands (the floating body's grammar; the wrapper is §10's
+   mechanically-forced sanction, invisible to the API). */
+.kui-overlay-body {
   transition:
     opacity var(--overlay-reveal) ease-out var(--overlay-reveal-delay),
-    filter var(--overlay-materialize) ease-out var(--overlay-reveal-delay);
+    /* the content's channels run at the PRINT pace — the box clocks are speed-matched to
+       a journey the content does not take */
+    filter var(--overlay-print) ease-out var(--overlay-reveal-delay),
+    /* the content ARRIVES TOP-DOWN, echoing the container's own origin: a small rise as
+       it prints, on the spring — it is geometry, however small */
+    translate var(--overlay-print) var(--motion-spring-elastic) var(--overlay-reveal-delay);
 }
-.kui-surface.kui-overlay[data-starting-style] > * {
+.kui-surface.kui-alert-popup[data-seed] .kui-overlay-body {
   opacity: 0;
   filter: blur(6px);
+  translate: 0 var(--overlay-echo);
 }
 /* The exit is the family grammar's dissolve — leaving is never the entry reversed: the box
    holds its size, settles a hair and dissolves, content aboard. */
-.kui-surface.kui-overlay[data-ending-style] {
+.kui-surface.kui-alert-popup[data-ending-style] {
+  opacity: 0;
+  scale: 0.99;
+  /* The geometry channels are RESTATED, and the restatement is the mechanism (2026-08-16,
+     measured: Escape mid-flight snapped the box 125 → 560 in one frame at dissolve opacity
+     ~0.4): a running transition is cancelled the moment its property drops out of
+     `transition-property`, so an ending list of only opacity+scale killed the flight's
+     springs and the box jumped to its pinned target under the fading panel. Restated
+     identically, a mid-flight becoming CONTINUES while it dissolves; on a settled exit the
+     geometry has no value change and these channels start nothing. */
+  transition:
+    block-size var(--overlay-fall) var(--motion-spring-elastic),
+    inline-size var(--overlay-spread) var(--motion-spring-elastic),
+    border-radius var(--overlay-materialize) var(--motion-spring-elastic),
+    padding var(--overlay-materialize) var(--motion-spring-elastic),
+    translate var(--overlay-fall) var(--motion-spring-elastic),
+    opacity var(--overlay-dissolve) ease-in,
+    scale var(--overlay-settle) var(--motion-spring-stiff);
+}
+
+/* ── The DIALOG's entry (§24, 2026-08-16): DEPTH, NOT DISTANCE ────────────────────────────
+   The alert's materialization is one family class up, and this is deliberately not it. That
+   entry travels, overshoots and rises from a point — an ARRIVAL, an interruption announcing
+   itself — which is right at alert mass and wrong here: on a pane carrying half the screen
+   the same inertia reads as the room moving rather than as a thing arriving. A dialog is
+   SUMMONED; it comes into focus, not into view.
+
+   So the scrim pushing the app back IS the arrival (§10 has said so since elevation was
+   deleted), and the panel only steps forward: 3% in z on the poised spring, zero travel in x
+   or y, presence as paint. No size channels, no measurement and no runner — this entry rides
+   Base UI's own stamps and there is no JS in it at all. The absence of those channels is
+   asserted by law, because it IS the design. */
+.kui-surface.kui-overlay.kui-dialog-popup {
+  transition:
+    scale var(--dialog-settle) var(--motion-spring-poised),
+    opacity var(--dialog-reveal) ease-out;
+}
+.kui-surface.kui-overlay.kui-dialog-popup[data-starting-style] {
+  opacity: 0;
+  scale: var(--dialog-depth);
+}
+/* The content shares the container's coming-into-focus, and ONLY that (Kushagra 2026-08-16).
+   Depth of field is a property of the mass — a page does not come into focus after the page
+   does — so what is printed on the plane focuses WITH the plane, on the box's own clock. No
+   travel, no print, no independent fade: the arrangement inside is the CONSUMER's, unlike the
+   alert's fixed anatomy, and blur is the one channel that presumes nothing about it. */
+.kui-dialog-popup .kui-dialog-body {
+  transition: filter var(--dialog-settle) ease-out;
+}
+.kui-dialog-popup[data-starting-style] .kui-dialog-body {
+  filter: blur(var(--dialog-blur));
+}
+/* Leaving is never the entry reversed: the panel settles a hair and dissolves. `scale` stays
+   in the list so a dismissal mid-arrival RETARGETS the running spring rather than cancelling
+   it — the 2026-08-16 finding, which the completeness law now enforces for every family. */
+.kui-surface.kui-overlay.kui-dialog-popup[data-ending-style] {
   opacity: 0;
   scale: 0.99;
   transition:
-    opacity var(--overlay-dissolve) ease-in,
-    scale var(--overlay-settle) var(--motion-spring-stiff);
+    scale var(--overlay-settle) var(--motion-spring-stiff),
+    opacity var(--overlay-dissolve) ease-in;
 }
 
 /* Suppression is total (§8): no travel, no reveal, no dissolve — the panel is simply there
@@ -868,34 +1042,44 @@
   .kui-surface.kui-floating,
   .kui-floating-body,
   .kui-surface.kui-floating :where(.kui-row, .kui-separator),
-  .kui-surface.kui-overlay,
-  .kui-surface.kui-overlay > * {
+  .kui-surface.kui-alert-popup,
+  .kui-overlay-body,
+  /* At the RECIPE's own weight, never lighter (2026-08-16, caught by the mounted law the
+     hour it was written — the 2026-08-10 `:not()` lesson in a different spelling): the entry
+     is stated at `.kui-surface.kui-overlay.kui-dialog-popup` and its body at
+     `.kui-dialog-popup .kui-dialog-body`, so a guard written one class lighter loses the tie
+     and every clock survives the setting. A stand-down must weigh what it stands down. */
+  .kui-surface.kui-overlay.kui-dialog-popup,
+  .kui-dialog-popup .kui-dialog-body {
     transition: none;
   }
-  .kui-surface.kui-floating[data-seed],
-  .kui-surface.kui-floating[data-ending-style] {
+  /* The POSES are not stood down here, and that is the decision rather than an omission
+     (2026-08-16). A pose is stamped by the runner, and the runner returns before stamping
+     anything under reduced motion — so the only way one can exist inside this guard is the
+     setting being turned on mid-flight, and the runner's own next frame takes it off again.
+     Undoing it here meant maintaining an inverse of every pose declaration, and a maintained
+     inverse drifts: within ten minutes of the first mounted law being written it had missed
+     the aim gate (a posed panel stayed invisible, because `:not([data-aimed])` outweighed the
+     stand-down) and `min-inline-size` (a posed panel lost its width floor and measured 77px
+     against its own 112). What the guard owes is that nothing MOVES and nothing is measured;
+     both are asserted by mounted law, in the menu and alert suites. */
+  .kui-surface.kui-floating[data-ending-style],
+  .kui-surface.kui-alert-popup[data-ending-style],
+  .kui-surface.kui-overlay.kui-dialog-popup[data-starting-style],
+  .kui-surface.kui-overlay.kui-dialog-popup[data-ending-style] {
     margin: 0;
     translate: 0 0;
     scale: 1;
     opacity: 1;
-    inline-size: var(--kui-floating-w, auto);
-    block-size: var(--kui-floating-h, auto);
-  }
-  .kui-surface.kui-floating[data-seed] .kui-floating-body {
-    scale: 1;
     filter: none;
-    opacity: 1;
   }
-  .kui-surface.kui-floating[data-seed] :where(.kui-row, .kui-separator) {
-    opacity: 1;
-  }
-  .kui-surface.kui-overlay[data-starting-style],
-  .kui-surface.kui-overlay[data-ending-style] {
-    scale: 1;
-    opacity: 1;
-  }
-  .kui-surface.kui-overlay[data-starting-style] > * {
-    opacity: 1;
+  /* The dialog's pose IS stood down, and the asymmetry with the paragraph above is the point:
+     that one is stamped by the runner, which refuses under this setting, while this one is
+     Base UI's `data-starting-style` — stamped on every open whatever the user asked their OS
+     for. So the entry that owns no JS is the entry whose pose must be undone in CSS, and the
+     content's focus is part of it: a blurred body is unreadable, which is a worse failure than
+     any of the motion this guard exists to remove. */
+  .kui-surface.kui-overlay.kui-dialog-popup[data-starting-style] .kui-dialog-body {
     filter: none;
   }
 }

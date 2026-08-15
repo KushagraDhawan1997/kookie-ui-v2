@@ -165,65 +165,6 @@ export function PortalScope({ children }: { children: React.ReactNode }) {
  * the position. One more measurement in the same commit is inside the sanctioned zone.
  */
 
-/**
- * The panel's natural box, read with the seed neutralised — the popup's, and its body's.
- *
- * Both are read inside the SAME neutralised window on purpose. The body is a block child, so
- * its width is whatever the popup gives it: read it after the seed is back and it measures
- * the seed, not the panel. That is the bug this function's shape exists to make impossible.
- */
-function measureNaturalBox(popup: HTMLElement, body: HTMLElement) {
-  // The seed is one attribute, so the whole of it comes off for the read — sizes AND the
-  // stood-down width floor. Overriding just the two sizes was the first cut and it measured a
-  // panel narrower than the one that would settle, because `min-inline-size: 0` is part of the
-  // seed too: the body got pinned to that width and "Alpha" wrapped to two lines in a 42px row.
-  //
-  // Transitions are pinned off across the whole window, and that is not hygiene — it is the
-  // difference between a working entry and a broken one. Reading `offsetWidth` FLUSHES style,
-  // which makes whatever is computed at that instant the baseline the transition machinery
-  // compares against. Without the pin the browser saw seed → natural (a real change, so it
-  // started animating the panel BACKWARDS into its seed) and then natural → seed when the
-  // attribute went back on. Measured, that is what the row-cell law caught: a panel mid-flight
-  // toward a 40px box, its rows wrapped to two lines. With transitions off, both flushes are
-  // inert, and the style the window ends on is the one it started with — so nothing has
-  // changed by the time the pin comes off, and the entry begins where it should.
-  const pinned = [popup, body];
-  for (const el of pinned) el.style.setProperty("transition", "none", "important");
-
-  /**
-   * Base UI's attribute comes OFF and does not go back on (fixed 2026-08-10).
-   *
-   * The seed used to be keyed on `data-starting-style`, which React owns: this function removed
-   * it to measure and then put it back by hand. That works only while the library still intends
-   * to remove it — Menu's clearing frame lands after ours, so the hand-written attribute is
-   * duly cleaned up. Select's does not, so the panel kept a starting style nobody would ever
-   * take off and sat at 40px forever. Writing an attribute the framework owns is a bet on
-   * timing, and the bet was already lost in the second component to use the mechanism.
-   *
-   * The seed is ours now, removed by us on the next frame. It also decouples the entry from a
-   * third-party lifecycle, which is what it should always have been.
-   */
-  popup.removeAttribute("data-starting-style");
-  // OURS comes off too, and forgetting it was the rename's whole cost (2026-08-10). React
-  // invokes a ref callback twice in StrictMode — which every Next dev server turns on — so this
-  // runs a second time on a popup that is already wearing the seed it set the first time. The
-  // old code neutralised `data-starting-style`, which WAS the seed's key, so the second read
-  // was still a natural one. Keyed on `data-seed` and not clearing it, the second read measured
-  // the seed and pinned `--kui-floating-w` to 40px: every menu in the app opened as a circle
-  // and stayed one, while the suite — which does not double-invoke — stayed green.
-  popup.removeAttribute("data-seed");
-  // Subpixel, and that is not fussiness. `offsetWidth` rounds to an integer, so a panel that
-  // wants 115.33px gets pinned to 115 — and measured, a third of a pixel was the whole
-  // difference between "Alpha" fitting its row and wrapping to a second line, in one cell of
-  // twenty-four. A measurement that feeds a length must be as precise as the length.
-  const popupBox = popup.getBoundingClientRect();
-  const box = { w: popupBox.width, h: popupBox.height, bw: body.getBoundingClientRect().width };
-  popup.setAttribute("data-seed", "");
-  void popup.offsetWidth; // land the seed as the baseline while the pin still holds
-
-  for (const el of pinned) el.style.removeProperty("transition");
-  return box;
-}
 
 /**
  * The width the anchor will PAINT at while the panel is open — its rect corrected from the
@@ -260,258 +201,437 @@ function heldAnchorWidth(anchor: HTMLElement, rectWidth: number): number {
   return (rectWidth / current) * target;
 }
 
+/* ── The ENTRY runner — ONE mechanism for every panel that BECOMES (§8, §22, §24) ─────────
+ *
+ * Unified 2026-08-16 out of two runners written five days apart. They had converged on the
+ * same job — pose the panel, measure where it is going, depart on the next frame, release by
+ * the clock — and an audit found four defects that were nothing but the gap between the
+ * twins: a laid-out guard that worked in one and was dead in the other, a flight registered
+ * too late to be retired, a body measured after the writes that invalidate its layout, and a
+ * listener whose removal only one of them reached. Each would have had to be fixed twice.
+ *
+ * The families differ in exactly one thing, and it is a property of the PANEL rather than of
+ * the component: does it fly from the trigger that opened it (§22's silhouette) or pose as
+ * its own designed seed and rise in place (§24)? That question is asked three times below and
+ * nowhere else, so a fix cannot land on one family and miss the other.
+ */
+
+/** What a family tells the runner. Module constants, never inline literals — the ref callback
+    memoises on this, and a fresh object per render would re-attach the whole mechanism. */
+type FlightPlan = {
+  /** The popup's family class; the body climbs to it. */
+  readonly popup: string;
+  /** The body's own class. */
+  readonly body: string;
+  /** Anchored panels fly from their trigger's silhouette; unanchored ones rise in place. */
+  readonly fromAnchor: boolean;
+};
+
+const FLOATING_PLAN: FlightPlan = { popup: "kui-floating", body: "kui-floating-body", fromAnchor: true };
+const OVERLAY_PLAN: FlightPlan = { popup: "kui-overlay", body: "kui-overlay-body", fromAnchor: false };
+
+/** Every custom property a flight may write, stripped as a SET at both ends: a reopen must not
+    measure through the last flight's numbers, and a landed panel must answer to its own layout
+    again. One list for both families — a name a family never writes is a no-op to remove, and
+    a per-family list is exactly the kind of twin this runner exists to not have. */
+const FLIGHT_VARS = [
+  "--kui-fly-w",
+  "--kui-fly-h",
+  "--kui-fly-bw",
+  "--kui-anchor-w",
+  "--kui-seed-w",
+  "--kui-seed-h",
+  "--kui-seed-r",
+  "--kui-from-x",
+  "--kui-from-y",
+] as const;
+
+/** Which cancelled transition means the FLIGHT died, rather than a paint channel ending.
+    Deliberately a list of what geometry IS, not of what paint is: an unlisted geometry channel
+    costs a slightly late release (the clock still fires), while an unlisted paint channel
+    would retire a live flight — the 2026-08-16 defect, and the asymmetry decides the default. */
+const FLIGHT_GEOMETRY = /^(inline-size|block-size|width|height|translate|scale|padding|margin|border-.*-radius)/;
+
+/** The popup's CURRENT flight's release, so a new entry can retire the old one first (the
+    quick-reopen fix, 2026-08-16): a reopen can begin before the previous flight's clock has
+    fired, and that stale timer — keyed on the very attributes the new flight also wears —
+    would otherwise strip the new flight mid-air. */
+const flights = new WeakMap<HTMLElement, () => void>();
+
+function useFlight(plan: FlightPlan) {
+  const { anchor } = React.use(FloatingDirectionContext);
+  return React.useCallback(
+    (node: HTMLDivElement | null) => {
+      const popup = node?.closest<HTMLElement>(`.${plan.popup}`);
+      if (!node || !popup) return undefined;
+
+      /**
+       * The entry runs per OPEN, not per mount (2026-08-10, Kushagra: *"animation on select
+       * only once. Next time, its instant"*). A menu unmounts its panel on close, so every
+       * open is a fresh mount and the entry re-ran by accident of lifecycle; a select keeps
+       * its panel mounted forever after the first open — the mounted options are its label
+       * store — so the node is born once and every reopen found a panel that had already
+       * flown. What is being animated is Base UI's OPEN, so the observer at the bottom, never
+       * React's lifecycle, is what says "again".
+       */
+      const begin = () => {
+        // Suppression is total (§8): under reduced motion the panel is simply there, and the
+        // measurement that only serves the animation is not taken either.
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        // Base UI asks for instant when the change is not a reveal — reopening into an
+        // already-open group, a dismissal the pointer already committed to. The stylesheet
+        // zeroes every clock there, so a posed entry would never transition and a release
+        // read off a clock of zero would strip the pose before it was ever seen.
+        if (popup.hasAttribute("data-instant")) return;
+
+        // The previous flight retires only once THIS one is certain (2026-08-16 audit):
+        // retiring above the bails meant a begin that could not fly still killed a live
+        // flight, leaving the panel pinned to a box with no clock coming for it.
+        flights.get(popup)?.();
+
+        /**
+         * The POSE stamps synchronously — it is the panel's first styled frame — while the
+         * MEASUREMENT waits for a microtask, and both halves are load-bearing. A ref callback
+         * runs BEFORE the commit's layout effects, so a popup measured here can be a
+         * half-laid-out sliver (measured: ~90px wide, content-height tall — the flight then
+         * targeted the sliver, animated "only vertically", and snapped to the real card at
+         * release). A microtask runs after every layout effect and still before paint, so the
+         * numbers are real and the pose is still the first thing painted.
+         */
+        popup.removeAttribute("data-aimed");
+        popup.setAttribute("data-unfurling", "");
+        popup.setAttribute("data-seed", "");
+
+        queueMicrotask(() => {
+          // A panel landed by other means before this ran — the harness's settle(), a
+          // dismissal — no longer wears the pose, and the entry stands down rather than
+          // re-posing a panel that has already arrived.
+          if (!popup.isConnected || !popup.hasAttribute("data-seed")) return;
+
+          /**
+           * Everything below happens inside ONE pinned window, and the pin is not hygiene.
+           * Reading a box FLUSHES style, which makes whatever is computed at that instant the
+           * baseline the transition machinery compares against: without the pin the browser
+           * saw pose → natural (a real change, so it began animating the panel BACKWARDS into
+           * its seed) and then natural → pose when the attribute went back on. With
+           * transitions off both flushes are inert and the window ends on the style it
+           * started with, so nothing has changed by the time the pin comes off.
+           */
+          const pinned = [popup, node];
+          for (const el of pinned) el.style.setProperty("transition", "none", "important");
+
+          // The pose comes off for the read, and the WHOLE of it. Overriding just the two
+          // sizes was the first cut and it measured a panel narrower than the one that would
+          // settle, because `min-inline-size: 0` is part of the seed too. Our own vars come
+          // off with it: a reopen still wears the last flight's numbers, and a natural box
+          // measured through those is the previous flight's box.
+          popup.removeAttribute("data-seed");
+          popup.removeAttribute("data-unfurling");
+          for (const name of FLIGHT_VARS) popup.style.removeProperty(name);
+
+          /**
+           * Laid out, or not yet? A panel's natural box can never be smaller than its family's
+           * designed seed (a floating panel's width floor alone is nearly three of them), so a
+           * reading at or under the pose means the positioner has not been sized yet — a block
+           * child of a zero-width box measures as its own padding, and the entry would fly
+           * toward 10px.
+           *
+           * The pose is measured THROUGH THE BOX, never parsed off the token: read as a
+           * computed custom property, `--floating-seed` answers the unresolved string
+           * `calc(56px * var(--scale))`, so `parseFloat` gave NaN, `|| 0` pinned it to zero
+           * and this guard meant `width <= 0` — dead from the day it was written until the
+           * 2026-08-16 audit measured it. And it is read BEFORE the silhouette vars go on, so
+           * the comparison is against the DESIGNED seed rather than against the trigger: a
+           * select's panel is routinely exactly as wide as the trigger it flies from, and a
+           * silhouette-sized pose would bail on the commonest open in the library.
+           */
+          popup.setAttribute("data-seed", "");
+          const pose = popup.getBoundingClientRect().width;
+          popup.removeAttribute("data-seed");
+          if (popup.getBoundingClientRect().width <= pose) {
+            for (const el of pinned) el.style.removeProperty("transition");
+            return;
+          }
+
+          // Base UI's starting stamp comes OFF and does not go back on (2026-08-10). It used
+          // to be the pose's key, removed to measure and restored by hand — which works only
+          // while the library still intends to remove it: Menu's clearing frame lands after
+          // ours, Select's does not, and a select's panel sat at its seed forever. The pose is
+          // ours now, and it comes off on our own frame.
+          popup.removeAttribute("data-starting-style");
+
+          /**
+           * The trigger's HELD width goes on before the natural box is read, because the box
+           * depends on it: a panel's floor is "never narrower than the trigger", spelled
+           * through floating-ui's `--anchor-width`, which does not exist yet on a first open —
+           * so the natural box measured content-only (~140px against a ~620px trigger) and the
+           * real floor landed only at release, the panel visibly re-expanding a beat after it
+           * felt done. Held rather than resting: an open trigger holds its press (§8) and
+           * floating-ui measures anchors WITH their transforms, so two floors reading the same
+           * trigger at different moments disagreed by 2.5% and the panel stepped at release.
+           */
+          const trigger = plan.fromAnchor ? anchor() : null;
+          const positioner = plan.fromAnchor ? popup.parentElement : null;
+          if (trigger) {
+            const box = trigger.getBoundingClientRect();
+            const corner = getComputedStyle(trigger).borderTopLeftRadius;
+            popup.style.setProperty("--kui-anchor-w", `${heldAnchorWidth(trigger, box.width)}px`);
+            // And the seed IS this box (§22's morph, 2026-08-15): its width, its height and
+            // its corner, so the panel's first frame is the trigger's own silhouette sitting
+            // exactly over it. The POSITION is measured further down, once the positioner has
+            // been placed.
+            popup.style.setProperty("--kui-seed-w", `${box.width}px`);
+            popup.style.setProperty("--kui-seed-h", `${box.height}px`);
+            popup.style.setProperty("--kui-seed-r", corner);
+          }
+
+          // Subpixel, and that is not fussiness: `offsetWidth` rounds to an integer, and a
+          // third of a pixel was the whole difference between "Alpha" fitting its row and
+          // wrapping to a second line, in one cell of twenty-four. Both boxes are read in this
+          // one window and the body is read FIRST of the two writes that follow — it is a
+          // block child, so measured after the pose is back it measures the pose, not the
+          // panel, which is the bug this ordering exists to make impossible.
+          const natural = popup.getBoundingClientRect();
+          const bodyWidth = node.getBoundingClientRect().width;
+
+          popup.style.setProperty("--kui-fly-w", `${natural.width}px`);
+          popup.style.setProperty("--kui-fly-h", `${natural.height}px`);
+          // The body's own width, so its text cannot re-break while the box is still moving —
+          // a line that re-breaks mid-flight is two animations fighting. Read off the DOM
+          // rather than re-derived from the padding token: the panel's padding is
+          // `max(--floating-p, the focus ring's reach)`, and reconstructing that here is the
+          // audits' own lesson about arithmetic that agrees with itself.
+          popup.style.setProperty("--kui-fly-bw", `${bodyWidth}px`);
+
+          /**
+           * The POSITIONER is held at the panel's final box for the whole flight (§22,
+           * 2026-08-10, Kushagra: *"it opens and then as it animates it realises it must open
+           * on the other side, so it switches mid animation"*). It shrink-wraps the popup, so
+           * while the panel grew the collision question was re-asked against every
+           * intermediate size — a seed genuinely fits beside a trigger near the right edge and
+           * the full panel genuinely does not, so `data-align` reported `start` for the first
+           * frames and flipped a third of the way in, taking the transform-origin, the lean
+           * and the body's pin with it. Identified by the attribute rather than by position in
+           * the tree: a law would rather fail than a silent `if` quietly do nothing.
+           */
+          if (positioner?.hasAttribute("data-side")) {
+            positioner.style.width = `${natural.width}px`;
+            positioner.style.height = `${natural.height}px`;
+          }
+
+          popup.setAttribute("data-unfurling", "");
+          popup.setAttribute("data-seed", "");
+          void popup.offsetWidth; // land the pose as the baseline while the pin still holds
+          for (const el of pinned) el.style.removeProperty("transition");
+
+          /**
+           * Released on arrival BY THE CLOCK, never by a channel's `transitionend`
+           * (2026-08-10): the morph's seed is the trigger's width and a select's trigger is
+           * routinely exactly as wide as its panel — equal start and end means no transition,
+           * no event, and pins that outlive the flight forever. Any single channel can be
+           * motionless for the same reason, so no channel is safe to wait on. The deadline is
+           * read off the popup's own computed transition list, so the clocks keep their one
+           * home in the tokens and this cannot drift from them.
+           */
+          let released = false;
+          const release = () => {
+            if (released) return;
+            released = true;
+            // Keyed on the STATE as well as the flag: the browser suite lands panels by
+            // stripping the flight attribute directly, and a timeout that fired afterwards
+            // would remove style the running law had just written.
+            if (!popup.hasAttribute("data-unfurling")) return;
+            for (const name of FLIGHT_VARS) popup.style.removeProperty(name);
+            popup.removeAttribute("data-aimed");
+            popup.removeAttribute("data-seed");
+            popup.removeAttribute("data-unfurling");
+            if (positioner?.hasAttribute("data-side")) {
+              positioner.style.removeProperty("width");
+              positioner.style.removeProperty("height");
+            }
+            popup.removeEventListener("transitioncancel", onCancel);
+          };
+
+          /**
+           * Dismissed mid-flight: the box never reaches its target at all, and the pins must
+           * not wait out a clock that no longer describes anything on screen. Only a GEOMETRY
+           * channel's cancellation says the flight died (2026-08-16): the exit RESTATES the
+           * entry's moving channels precisely so the becoming continues under the dissolve, so
+           * a cancellation there is real — while a paint channel that the exit does not
+           * restate would otherwise retire a live flight and snap the box to full size,
+           * measured at 169 → 303px inside two frames.
+           */
+          const onCancel = (event: TransitionEvent) => {
+            if (event.target !== popup) return;
+            if (!FLIGHT_GEOMETRY.test(event.propertyName)) return;
+            release();
+          };
+
+          // Registered with the flight, not at departure (2026-08-16 audit): a reopen arriving
+          // in the frames before this flight departs must find it here to retire it, or two
+          // flights run on one element and the loser strips the winner.
+          flights.set(popup, release);
+
+          /**
+           * The silhouette's POSITION (§22, 2026-08-15, Kushagra: the panel must start
+           * *"exactly where the trigger is"*). Measured, not derived: the trigger's screen rect
+           * against the popup's own laid-out position — the positioner's rect (floating-ui's
+           * placement, transforms included) plus the popup's layout offset inside it, which a
+           * translate never moves. Both offsets are read before either write, because a write
+           * between two reads forces a synchronous layout for the second.
+           *
+           * It gets a microtask of its OWN, on top of the measurement's — tried inline during
+           * the unification and reverted by measurement, which is why the hop is written down
+           * here rather than left to look redundant. The measurement's microtask clears the
+           * commit's layout effects, but floating-ui's placement resolves asynchronously
+           * after them: aimed inline, `data-side` is not yet on the positioner, the aim
+           * returns early and the panel departs unaimed — measured at 5px off a bottom-start
+           * trigger and 43px off an end-aligned one. The first spelling of all had the
+           * opposite failure (measured synchronously, before layout effects, reading a
+           * positioner whose transform was still wherever the last frame left it — judged in
+           * the lab: *"going all over the page"*), so the aim wants BOTH deferrals and then
+           * one more chance on the frame below.
+           */
+          const aim = () => {
+            if (!trigger || !positioner?.hasAttribute("data-side")) return;
+            if (!popup.hasAttribute("data-seed")) return;
+            const positionerBox = positioner.getBoundingClientRect();
+            const triggerBox = trigger.getBoundingClientRect();
+            const insetLeft = popup.offsetLeft;
+            const insetTop = popup.offsetTop;
+            popup.style.setProperty("--kui-from-x", `${triggerBox.left - (positionerBox.left + insetLeft)}px`);
+            popup.style.setProperty("--kui-from-y", `${triggerBox.top - (positionerBox.top + insetTop)}px`);
+            // The visibility gate: a silhouette painted before this write sits wherever the
+            // last layout left it — measured, one frame at x=2275 — so the pose stays
+            // transparent until it is placed. An unanchored panel is placed by construction
+            // and never wears this attribute at all.
+            popup.setAttribute("data-aimed", "");
+          };
+          if (trigger) queueMicrotask(aim);
+
+          const depart = () => {
+            popup.removeAttribute("data-seed");
+            // The dismissal listener arms HERE, the frame the flight departs, and never at
+            // begin (2026-08-16, the quick-reopen probe): a flight born mid-exit cancels the
+            // exit's own dying transitions the moment the pose's `transition: none` lands,
+            // and a listener armed earlier caught those dying events as a dismissal and
+            // released the newborn flight on the spot.
+            popup.addEventListener("transitioncancel", onCancel);
+            // The deadline is read HERE, after the pose is off: the pose pins
+            // `transition: none` — so the aim's writes cannot start cancellable transitions —
+            // which means a posed read would see zero-length spans and release the flight at
+            // birth. Un-posed, the computed list is the flight's own.
+            const style = getComputedStyle(popup);
+            const delays = style.transitionDelay.split(",");
+            const spans = style.transitionDuration
+              .split(",")
+              .map((d, i) => parseFloat(d) + parseFloat(delays[i % delays.length] ?? "0"));
+            window.setTimeout(release, Math.max(...spans, 0) * 1000 + 50);
+          };
+
+          // The pose holds for one painted frame and then comes off, which is what starts the
+          // flight. An ANCHORED panel spends a second frame first, and the frame is the
+          // re-aim's: floating-ui's own positioning can land a beat after the measurement, so
+          // the corrected offset must be painted once before the transition reads it as its
+          // start. A panel with nothing to aim at has nothing to correct, and taking that
+          // frame anyway delayed it for no reason — measured, it left the alert still posed
+          // when its own exit law arrived.
+          if (trigger) {
+            requestAnimationFrame(() => {
+              aim();
+              requestAnimationFrame(depart);
+            });
+          } else {
+            requestAnimationFrame(depart);
+          }
+        });
+      };
+
+      // The first open begins in THIS commit — not on the starting stamp, which Base UI writes
+      // from a layout effect that runs after ref callbacks, one microtask too late for the
+      // pose to be the panel's first painted frame. Guarded on `hidden` so a panel that mounts
+      // CLOSED (kept-mounted) is not posed while `display: none` reports every box as zero.
+      if (!popup.hidden) begin();
+
+      const observer = new MutationObserver((records) => {
+        // The pose is on: this flight is already ours, and the stamp that just moved is one
+        // of our own writes coming back through the filter.
+        if (popup.hasAttribute("data-seed")) return;
+        if (popup.hasAttribute("data-starting-style")) return begin();
+        /**
+         * The QUICK REOPEN (2026-08-16, probed): a reopen that lands mid-dissolve finds the
+         * popup still mounted — Base UI flips it back with no fresh mount and no starting
+         * stamp at all (the measured stream is data-closed off → data-open on →
+         * data-ending-style off) — so an observer keyed on the starting stamp alone missed the
+         * open entirely and the panel merely recovered from its half-dissolved pose: a bit of
+         * scale and fade, no entry.
+         *
+         * The announcement is the DISMISSAL BEING REVOKED — the ending stamp leaving while the
+         * panel is open — and not `data-open` merely being present, which is the first
+         * spelling and is true for the whole life of every ordinary open: it re-posed panels
+         * that had already flown, measured as an alert re-blurring its own content at exit.
+         * A state that is true continuously cannot announce an event.
+         */
+        const revoked = records.some(
+          (r) => r.attributeName === "data-ending-style" && !popup.hasAttribute("data-ending-style"),
+        );
+        if (revoked && popup.hasAttribute("data-open")) begin();
+      });
+      observer.observe(popup, {
+        attributes: true,
+        attributeFilter: ["data-starting-style", "data-open", "data-ending-style"],
+      });
+      return () => {
+        observer.disconnect();
+        // Unmounted mid-flight: the pending clock and the listener go with the panel rather
+        // than outliving it on a node React is discarding.
+        flights.get(popup)?.();
+      };
+    },
+    [anchor, plan],
+  );
+}
+
 /**
  * The panel's body — the element that unfurls (§22).
  *
  * It is a second element inside the popup and it is not a part: the caller cannot reach it,
  * name it or fill it. It exists because the content has to SQUISH while the box grows —
- * Kushagra, judged twice in the demo: with the content held static the panel reads as a
- * shutter opening over a finished page, and with it squishing the panel reads as one body
- * unfurling. You cannot scale a box's contents without a box holding them. That is the same
- * sanction Spinner's `<span>` has (§8): mechanically forced, invisible to the API.
+ * judged twice in the demo: with the content held static the panel reads as a shutter opening
+ * over a finished page, and with it squishing the panel reads as one body unfurling. You
+ * cannot scale a box's contents without a box holding them. That is the same sanction
+ * Spinner's `<span>` has (§8): mechanically forced, invisible to the API.
  *
- * It also owns the width pin. Text must not re-wrap mid-flight — a line that re-breaks while
- * the panel is still moving is two animations fighting — so the body is pinned to the
- * measured content width for the flight and released when the box settles.
+ * It also owns the width pin, so text cannot re-wrap mid-flight.
  */
 export function FloatingBody({ children }: { children: React.ReactNode }) {
-  const { anchor } = React.use(FloatingDirectionContext);
-  const attach = React.useCallback((node: HTMLDivElement | null) => {
-    const popup = node?.closest<HTMLElement>(".kui-floating");
-    if (!node || !popup) return undefined;
-
-    /**
-     * The entry runs per OPEN, not per mount (fixed 2026-08-10, Kushagra: *"animation on
-     * select only once. Next time, its instant"*).
-     *
-     * This ref callback runs when the popup's DOM node is BORN, and the two members are born
-     * differently: a menu unmounts its panel on close, so every open is a fresh mount and the
-     * entry re-ran by accident of lifecycle. A select keeps its panel mounted forever after
-     * the first open — the mounted options are its label store — so the node is born once,
-     * the callback ran once, and every reopen found a panel that had already flown. The
-     * mechanism was keyed to React's lifecycle when the thing it animates is Base UI's OPEN,
-     * so it watches the attribute Base UI stamps at the start of every open transition
-     * (`data-starting-style` — stamped per open, on remount and reopen alike) and begins the
-     * flight each time it appears.
-     */
-    const begin = () => {
-        // Suppression is total (§8): under reduced motion the panel is simply there, and the
-        // measurement that only serves the animation is not taken either.
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        // Base UI asks for instant when the change is not a reveal; the stylesheet zeroes every
-        // clock under data-instant, so a seeded entry would never transition — and a release
-        // that waits on `transitionend` would wait forever, leaving the pins outliving the
-        // flight they serve.
-        if (popup.hasAttribute("data-instant")) return;
-
-        /**
-       * Laid out, or not yet? (2026-08-10, the reopen probe.) On a reopen the popup and its
-       * positioner are freshly mounted, and this can run before floating-ui has given the
-       * positioner any size — a block child of a zero-width box measures as its own padding
-       * (10px), and the entry then flies TOWARD 10px: the panel visibly shrank. A panel's
-       * natural box can never be smaller than the seed (the width floor alone is nearly
-       * three seeds), so a reading at or under the seed means "not laid out yet", and the
-       * bail must happen BEFORE any attribute moves: Base UI's starting stamp is still on
-       * the popup, and the observer below retries this begin when the stamp — or the layout
-       * it waits for — lands.
-       */
-      const seedPx = parseFloat(getComputedStyle(popup).getPropertyValue("--floating-seed")) || 0;
-      if (popup.getBoundingClientRect().width <= seedPx) return;
-
-      // The trigger's width goes on FIRST, because the measurement depends on it (2026-08-10,
-      // the first-open pop): the panel's floor is "never narrower than the trigger", spelled
-      // through floating-ui's --anchor-width — which does not exist yet on a first open, so
-      // the natural box measured content-only (~140px against a ~620px trigger), the flight
-      // targeted it, and the real floor landed only at release: the panel visibly re-expanded
-      // a beat after it felt done. Ours is synchronous, the floor chains consult it first,
-      // and the release removes it so a settled panel answers to floating-ui's own number.
-      // It is the HELD width, not the rect (2026-08-10, the compression jump): the two floors
-      // must agree on the trigger's open-state box, or the release is a visible step.
-      const trigger = anchor();
-      if (trigger) {
-        const box = trigger.getBoundingClientRect();
-        popup.style.setProperty("--kui-anchor-w", `${heldAnchorWidth(trigger, box.width)}px`);
-        // And the seed IS this box (the morph, 2026-08-10; restated 2026-08-15): its width,
-        // its height, and its corner, so the panel's first frame is the trigger's own
-        // silhouette sitting exactly over it. The POSITION is measured too, further down —
-        // after the flight arrangement is on, where the laid-out offsets are real.
-        popup.style.setProperty("--kui-seed-w", `${box.width}px`);
-        popup.style.setProperty("--kui-seed-h", `${box.height}px`);
-        popup.style.setProperty("--kui-seed-r", getComputedStyle(trigger).borderTopLeftRadius);
-      }
-
-      const { w, h, bw } = measureNaturalBox(popup, node);
-      popup.style.setProperty("--kui-floating-w", `${w}px`);
-      popup.style.setProperty("--kui-floating-h", `${h}px`);
-      // The body's own width, so its text cannot re-break while the box is still moving. Read
-      // off the DOM rather than re-derived from the padding token: the panel's padding is
-      // `max(--floating-p, the focus ring's reach)`, and reconstructing that here is the
-      // audits' own lesson about arithmetic that agrees with itself.
-      popup.style.setProperty("--kui-floating-bw", `${bw}px`);
-      // The panel scrolls when it is too tall for the room (`overflow-y: auto`), and setting
-      // either overflow axis away from `visible` computes the OTHER one to `auto` as well — so
-      // for the whole flight, while the box is deliberately smaller than what it holds, both
-      // scrollbars are live. On a platform with classic scrollbars that is a bar appearing for
-      // 400ms and a 15px reflow of every row. This says what is true — the box is not its own
-      // size yet — and the stylesheet clips while it holds.
-      /**
-       * And the POSITIONER is held at the panel's final box for the whole flight (§22,
-       * 2026-08-10, Kushagra: *"it opens and then as it animates it realises it must open on the
-       * other side, so it switches mid animation"*).
-       *
-       * The positioner is the element the anchoring library measures, and it shrink-wraps the
-       * popup — so while the panel grew, the collision question was being re-asked against every
-       * intermediate size. A 40px seed genuinely fits beside a trigger near the right edge and a
-       * 209px panel genuinely does not, so the answer was honest and it changed: `data-align`
-       * reported `start` for the first frames and flipped a third of the way in, taking the
-       * transform-origin, the lean and the body's pin with it.
-       *
-       * Proved by exclusion rather than argued: at a trigger where even the SEED cannot fit
-       * start-aligned, the panel reports `end` from the first frame and never flips — so this is
-       * not the placement arriving late, it is the placement being recomputed correctly against
-       * a box that is lying about how big it will be. Pinned HERE, in the same callback as the
-       * measurement, because a pin applied even one frame later is already too late: the first
-       * placement has been computed and the flip has only been moved earlier.
-       *
-       * Identified by the attribute rather than by position in the tree: `parentElement` is the
-       * positioner for both floating components today, and a law would rather fail than a silent
-       * `if` quietly do nothing on the third.
-       */
-      const positioner = popup.parentElement;
-      if (positioner?.hasAttribute("data-side")) {
-        positioner.style.width = `${w}px`;
-        positioner.style.height = `${h}px`;
-      }
-        popup.setAttribute("data-unfurling", "");
-      /**
-       * The silhouette's POSITION (2026-08-15, Kushagra: the panel must start "exactly where
-       * the trigger is"). Measured, not derived: the trigger's screen rect against the
-       * popup's own laid-out position — the positioner's rect (floating-ui's placement,
-       * transforms included) plus the popup's layout offset inside it (offsetLeft/Top,
-       * which a translate never moves).
-       *
-       * In a MICROTASK, and the deferral is the whole mechanism (the old warning about
-       * racing the positioner was right, and the first spelling re-proved it): this
-       * callback runs before Base UI's layout effects, so on a clicked open the popup has
-       * its own layout — the laid-out bail passes — while the positioner's transform is
-       * still wherever the last frame left it, and an offset read now aims the silhouette
-       * at a stale corner of the page (judged in the lab: "going all over the page").
-       * A microtask queued here runs after the commit's every layout effect — the
-       * positioner is placed — and still before paint, so the first painted frame already
-       * sits on the trigger.
-       */
-      const aim = () => {
-        if (!trigger || !positioner?.hasAttribute("data-side")) return;
-        if (!popup.hasAttribute("data-seed")) return;
-        const positionerBox = positioner.getBoundingClientRect();
-        const triggerBox = trigger.getBoundingClientRect();
-        popup.style.setProperty("--kui-from-x", `${triggerBox.left - (positionerBox.left + popup.offsetLeft)}px`);
-        popup.style.setProperty("--kui-from-y", `${triggerBox.top - (positionerBox.top + popup.offsetTop)}px`);
-        // The visibility gate: a silhouette painted before this write sits wherever the
-        // last layout left it, so the seed stays transparent until it is placed.
-        popup.setAttribute("data-aimed", "");
-      };
-      // A REOPEN's popup still wears the last flight's aim; this open must start un-aimed
-      // or the stale offset paints for a frame. An anchorless panel has nothing to aim at
-      // and is placed by construction, so it is born aimed.
-      popup.removeAttribute("data-aimed");
-      if (trigger && positioner?.hasAttribute("data-side")) queueMicrotask(aim);
-      else popup.setAttribute("data-aimed", "");
-      // The seed comes off one frame later, which is what starts the flight — with a
-      // re-aim first: floating-ui's own positioning can land a beat after the microtask,
-      // and the flight must depart from where the silhouette truly is, so the corrected
-      // offset gets one painted frame before the transition reads it as its start.
-      requestAnimationFrame(() => {
-        aim();
-        requestAnimationFrame(() => {
-          popup.removeAttribute("data-seed");
-          // The deadline is read HERE, after the seed is off: the seed state pins
-          // `transition: none` (so the aim's writes cannot start cancellable transitions),
-          // which means a read while seeded would see zero-length spans and release the
-          // flight at birth. Un-seeded, the computed list is the flight's own.
-          const style = getComputedStyle(popup);
-          const spans = style.transitionDuration.split(",").map((d, i) => {
-            const delays = style.transitionDelay.split(",");
-            return parseFloat(d) + parseFloat(delays[i % delays.length] ?? "0");
-          });
-          window.setTimeout(release, Math.max(...spans, 0) * 1000 + 50);
-        });
-      });
-
-      // Released on arrival — BY THE CLOCK, not by a channel's transitionend (changed
-      // 2026-08-10, the morph's own consequence). The old release waited on the inline-size
-      // transition to end, inline-size being the longest channel; the morph's seed is the
-      // TRIGGER'S width, and a select's trigger is routinely exactly as wide as its panel —
-      // equal start and end means no transition, no event, and pins that outlive the flight
-      // forever (measured: the first-open law timed out with data-unfurling still set).
-      // Any single channel can be motionless for the same reason (a panel exactly one seed
-      // tall, a gapless side), so no channel is safe to wait on. The deadline is read off the
-      // popup's own computed transition list — duration plus delay, the longest pair — so the
-      // clocks keep their one home in the tokens and this cannot drift from them.
-      let released = false;
-      const release = () => {
-        if (released) return;
-        // Keyed on the STATE, not only the flag: the browser suite lands panels by stripping
-        // the flight attribute directly (settle()), and a timeout that fired afterwards would
-        // remove style the running law had just written — the flag alone cannot see that.
-        if (!popup.hasAttribute("data-unfurling")) {
-          released = true;
-          return;
-        }
-        released = true;
-        popup.style.removeProperty("--kui-floating-w");
-        popup.style.removeProperty("--kui-floating-h");
-        popup.style.removeProperty("--kui-floating-bw");
-        popup.style.removeProperty("--kui-anchor-w");
-        popup.style.removeProperty("--kui-seed-w");
-        popup.style.removeProperty("--kui-seed-h");
-        popup.style.removeProperty("--kui-seed-r");
-        popup.style.removeProperty("--kui-from-x");
-        popup.style.removeProperty("--kui-from-y");
-        popup.removeAttribute("data-aimed");
-        if (positioner?.hasAttribute("data-side")) {
-          positioner.style.removeProperty("width");
-          positioner.style.removeProperty("height");
-        }
-        popup.removeAttribute("data-unfurling");
-        popup.removeEventListener("transitioncancel", onCancel);
-      };
-      // Dismissed mid-flight: the box never reaches its target at all, and the styles must
-      // not wait out a clock that no longer describes anything on screen.
-      const onCancel = (event: TransitionEvent) => {
-        if (event.target === popup) release();
-      };
-      popup.addEventListener("transitioncancel", onCancel);
-    };
-
-    // The first open begins SYNCHRONOUSLY in this commit — not on the starting stamp, which
-    // Base UI writes from a layout effect that runs after ref callbacks, one microtask too
-    // late for the seed to be the panel's first painted frame. Guarded on `hidden` so a panel
-    // that mounts CLOSED (kept-mounted) is not measured while display: none reports every box
-    // as zero.
-    if (!popup.hidden) begin();
-    // Every open after: the observer's microtask runs after the commit that un-hides the
-    // panel, so the measurement reads a laid-out box. The data-seed guard keeps the mount
-    // path from beginning twice — the stamp lands there AFTER the synchronous begin above,
-    // while a reopen finds the seed long since released.
-    const observer = new MutationObserver(() => {
-      if (popup.hasAttribute("data-starting-style") && !popup.hasAttribute("data-seed")) begin();
-    });
-    observer.observe(popup, { attributes: true, attributeFilter: ["data-starting-style"] });
-    return () => observer.disconnect();
-  }, [anchor]);
-
+  const attach = useFlight(FLOATING_PLAN);
   return (
     /**
      * `role="presentation"` because this box is a MOTION mechanism inside a widget whose
      * children are specified (2026-08-10). A `role="menu"` owns menuitems and a `role="listbox"`
      * owns options; an unmarked div between them is a structural violation, and Select's own
      * law reported it the moment the wrapper arrived — Menu had shipped with the same hole on
-     * 2026-08-09 and no law that could see it. Marking it presentational takes it out of the
-     * accessibility tree and leaves the rows owned by the panel, which is what the markup
-     * already meant.
+     * 2026-08-09 and no law that could see it.
      */
-    <div className="kui-floating-body" role="presentation" ref={attach}>
+    <div className={FLOATING_PLAN.body} role="presentation" ref={attach}>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * The unanchored panel's body (§24) — the same runner without an anchor to fly from.
+ *
+ * A dialog-shaped surface comes from nothing, so there is no silhouette to photograph and no
+ * position to aim; the pose is its family's designed seed and the box still BECOMES. The
+ * wrapper is §10's mechanically-forced sanction, as above: the content must be held and
+ * printed as ONE unit, and you cannot hold children without a box holding them.
+ */
+export function OverlayBody({ children }: { children: React.ReactNode }) {
+  const attach = useFlight(OVERLAY_PLAN);
+  return (
+    <div className={OVERLAY_PLAN.body} role="presentation" ref={attach}>
       {children}
     </div>
   );
