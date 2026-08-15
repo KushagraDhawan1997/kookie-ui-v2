@@ -72,12 +72,12 @@ Every number above is live in the sticky bar: the lens row (profile, bezel, thic
 
 ## Package changes riding in the working tree
 
-Real, uncommitted, each with its story:
+Real, uncommitted, each with its story — told in full in LOG's 2026-08-14/15 entries, which are the source of truth here:
 
-- **The floating entry is rewritten: a panel FORMS** (`system/surfaces.css`). The unfurl-from-a-seed morph was judged out on sight — *"a rigid body conjured up… as a result of that inertia, it stretches"* — a finished object ported into place. What replaced flight is presence: born at final size in final place, opacity condensing, a small scale settling out of the anchored corner (which IS the trigger's corner), the cast fading up. The verdict landed the day the body's counter-squish started actually running — because of the next item.
-- **A dangling var had disarmed the body squish since it shipped**: the transition read `var(--floating-rise)`, a token that never existed (`--motion-rise` does). Nothing failed; the animation was silently instant. **Debt, named:** a law that walks component stylesheets for `var()` names that resolve nowhere, and a LOG entry for both this and the forming reversal, in the commit that lands them.
+- **The floating entry ended the day where it began: the emergence unfurl, restored — and finally whole.** The day walked through three "forming" recipes (condensation, deep scale, clip morph) and a dialog materialization; the menu recipes were each judged out, and what shipped is the committed unfurl with the seed swapped from the trigger's silhouette back to the **designed circle** (a seed is a system fact, not a photograph of what was pressed). The Dialog kept its materialization — a panel from nowhere honestly fades and grows, all on Base UI's starting/ending styles, with its own `overlayMotion` token family.
+- **A dangling var had disarmed the body squish since it shipped**: the transition read `var(--floating-rise)`, a token that never existed (`--motion-rise` does). Nothing failed; the stretch was silently absent — and the unfurl verdicts before the fix were made against half the recipe. **The law now exists** (`recipes.test.ts`): a `var()` without a fallback must resolve to a declaration somewhere in the shipped sheets; `--floating-rise` is the shape it catches.
 - **The scrim never blurred in the app** (`dialog.css`, `scripts/build-css.mjs`): a hand-written `-webkit-backdrop-filter` beside the standard property parses as the *same logical property*, and Lightning kept the last spelling — dist shipped webkit-only, which Chromium ignores, while every law read the committed source and stayed green. Sources are unprefixed-only now; the build asserts it three ways (no hand-prefix in sources, no prefix-only block in the artifact, the scrim's declaration survives verbatim).
-- `budget.json` re-recorded 24323 → 24321; `shell.test.tsx` BARE set grew `lab`, `lab2`, `lab3`; menu/select browser tests updated for the forming recipe.
+- `budget.json` re-recorded to 24480 (the motion day's growth, intentional); `shell.test.tsx` BARE set grew `lab`, `lab2`, `lab3`; menu/select/dialog browser tests updated with the restored recipe; DECISIONS §8/§22/§24 amended in step.
 
 ## Open, in one place
 
