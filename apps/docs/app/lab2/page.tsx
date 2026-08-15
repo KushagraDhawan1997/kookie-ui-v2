@@ -9,8 +9,15 @@
  * and the calm bed (the collapse: glass over nothing reads as solid).
  */
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+  AlertDialogTrigger,
   Button,
   Dialog,
   DialogClose,
@@ -208,7 +215,7 @@ function Refractor({
   );
 }
 
-function RefractionDefs({ params }: { params: LensParams }) {
+function RefractionDefs({ params, on }: { params: LensParams; on: boolean }) {
   // Canvas is a browser fact: the maps compute after mount and on every parameter change.
   // Until then the CSS fallback chain serves the pre-refraction glass.
   //
@@ -232,6 +239,13 @@ function RefractionDefs({ params }: { params: LensParams }) {
   const key = `${params.profile}-${params.bezel}-${params.thickness}-${Math.round(params.ior * 100)}-${params.fringe}-${Math.round(params.boost * 10)}`;
   const styleRef = useRef<HTMLStyleElement | null>(null);
   useEffect(() => {
+    // Refraction OFF: drop the injected chains and let the plain CSS material serve
+    // (2026-08-15 — the switch exists to answer whether the bend earns its cost).
+    if (!on) {
+      styleRef.current?.remove();
+      styleRef.current = null;
+      return;
+    }
     if (!maps) return;
     if (!styleRef.current) {
       styleRef.current = document.createElement("style");
@@ -243,10 +257,10 @@ function RefractionDefs({ params }: { params: LensParams }) {
       `.l2-card.l2-glass:not(.l2-mini):not(.l2-sealed){backdrop-filter:${chain(`l2-refract-card-${key}`)};}` +
       `.l2-mini.l2-glass:not(.l2-sealed){backdrop-filter:${chain(`l2-refract-mini-${key}`)};}` +
       `.l2-toolbar.l2-glass{backdrop-filter:${chain(`l2-refract-pill-${key}`)};}`;
-  }, [maps, key]);
+  }, [maps, key, on]);
   useEffect(() => () => styleRef.current?.remove(), []);
 
-  if (!maps) return null;
+  if (!maps || !on) return null;
   const spread = params.fringe / 100;
   return (
     <svg aria-hidden width="0" height="0" style={{ position: "absolute" }}>
@@ -514,6 +528,44 @@ function MenuRow() {
   );
 }
 
+/** The entry judged from every side the positioner can hold — including CENTER, whose
+    growth axis has no lean at all. */
+function MenuPositions() {
+  const cells = [
+    { label: "Bottom center", side: "bottom", align: "center" },
+    { label: "Bottom end", side: "bottom", align: "end" },
+    { label: "Top center", side: "top", align: "center" },
+    { label: "Top start", side: "top", align: "start" },
+    { label: "Right", side: "right", align: "start" },
+    { label: "Left", side: "left", align: "start" },
+  ] as const;
+  return (
+    <>
+      {cells.map(({ label, side, align }) => (
+        <Menu key={label} size="2">
+          <MenuTrigger
+            render={
+              <Button size="2" emphasis="medium">
+                {label}
+              </Button>
+            }
+          />
+          <MenuContent className="l2-menu l2-menu-regular" side={side} align={align}>
+            <MenuGroup>
+              <MenuLabel>{label}</MenuLabel>
+              <MenuItem trailing={<Kbd>⌘D</Kbd>}>Duplicate</MenuItem>
+              <MenuItem>Rename</MenuItem>
+              <MenuItem disabled>Move to…</MenuItem>
+            </MenuGroup>
+            <Separator />
+            <MenuItem tone="destructive">Delete…</MenuItem>
+          </MenuContent>
+        </Menu>
+      ))}
+    </>
+  );
+}
+
 function ButtonRank() {
   return (
     <Flex gap="3" style={{ alignItems: "center", flexWrap: "wrap" }}>
@@ -553,13 +605,13 @@ const LOUD_GLASS_TONES = [
 function GlassRank() {
   return (
     <>
-      <Button size="3" emphasis="quiet" className="l2-btn l2-glass l2-thin">
+      <Button size="3" emphasis="quiet" className="l2-btn l2-glass l2-thin l2-btn-medium">
         Thin
       </Button>
-      <Button size="3" emphasis="quiet" className="l2-btn l2-glass l2-regular">
+      <Button size="3" emphasis="quiet" className="l2-btn l2-glass l2-regular l2-btn-medium">
         Regular
       </Button>
-      <Button size="3" emphasis="quiet" className="l2-btn l2-glass l2-thick">
+      <Button size="3" emphasis="quiet" className="l2-btn l2-glass l2-thick l2-btn-medium">
         Thick
       </Button>
       {/* Loud through the glass, once per family: the tone prop stamps the indirection,
@@ -632,37 +684,99 @@ export const MAT_DEFAULTS: Record<"light" | "dark", MatKnobs> = {
   dark: { sVeil: 95, sBlur: 100, sSat: 130, sSheen: 55, cVeil: 100, cBlur: 100, cSat: 125, cSheen: 80, loudA: 85, loudC: 160 },
 };
 
+function AlertSizeRow() {
+  /** The four sizes side by side — the index prices box, corner, padding, type and buttons
+      together, and this row is where that whole chain is judged at once (2026-08-16). */
+  return (
+    <>
+      {(["1", "2", "3", "4"] as const).map((size) => (
+        <AlertDialog key={size} size={size}>
+          <AlertDialogTrigger
+            render={
+              <Button size="2" emphasis="medium">
+                Size {size}
+              </Button>
+            }
+          />
+          <AlertDialogContent material="regular" className="l2-dlg l2-dlg-regular">
+            <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Every project, member and API key goes with it. This cannot be undone.
+            </AlertDialogDescription>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
+          </AlertDialogContent>
+        </AlertDialog>
+      ))}
+    </>
+  );
+}
+
 function DialogRow() {
+  /** The REAL AlertDialog since 2026-08-16 — these cells were small Dialogs standing in
+      for it while the component did not exist. Wrapped in lab2's own classes so the lab
+      treatment (squircle, refraction pricing) applies here exactly as it does to the
+      dialog cells; the materialization needs no lab override at all, because the shipped
+      entry IS the alert's gesture (LOG 2026-08-16). */
   return (
     <>
       {(["thin", "regular", "thick"] as const).map((m) => (
-        <Dialog key={m}>
-          <DialogTrigger
+        <AlertDialog key={m}>
+          <AlertDialogTrigger
             render={
               <Button size="2" emphasis="medium">
                 {m[0]?.toUpperCase() + m.slice(1)}
               </Button>
             }
           />
-          <DialogContent className={`l2-dlg l2-dlg-${m}`}>
+          <AlertDialogContent material={m} className={`l2-dlg l2-dlg-${m}`}>
+            <AlertDialogTitle>Clear this conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The pane is {m} glass. The scrim behind it never changes — it states the
+              app&apos;s condition, not the pane&apos;s construction.
+            </AlertDialogDescription>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction tone="destructive">Clear</AlertDialogAction>
+          </AlertDialogContent>
+        </AlertDialog>
+      ))}
+    </>
+  );
+}
+
+/** The materialization at SURFACE-AREA extremes: the same entry carrying half the screen,
+    then most of it — where the travel is short but the mass is huge. */
+function DialogBig() {
+  const cells = [
+    { label: "Large — ~55vw × 55vh", w: "55vw", h: "55vh" },
+    { label: "Huge — ~88vw × 85vh", w: "88vw", h: "85vh" },
+  ] as const;
+  return (
+    <>
+      {cells.map(({ label, w, h }) => (
+        <Dialog key={label}>
+          <DialogTrigger
+            render={
+              <Button size="2" emphasis="medium">
+                {label}
+              </Button>
+            }
+          />
+          <DialogContent
+            className="l2-dlg l2-dlg-regular"
+            style={{ maxInlineSize: w, minBlockSize: h }}
+          >
             <Stack gap="3">
-              <DialogTitle>Clear this conversation?</DialogTitle>
+              <DialogTitle>A pane with real surface area</DialogTitle>
               <DialogDescription>
-                The pane is {m} glass. The scrim behind it never changes — it states the
-                app&apos;s condition, not the pane&apos;s construction.
+                The same materialization carrying {label.toLowerCase()} — the seed, the rise
+                and the unfurl are unchanged; only the mass differs.
               </DialogDescription>
-              <Flex gap="2" style={{ justifyContent: "flex-end" }}>
+              <Flex gap="2" style={{ justifyContent: "flex-end", marginBlockStart: "auto" }}>
                 <DialogClose
                   render={
                     <Button size="2" emphasis="quiet">
-                      Cancel
-                    </Button>
-                  }
-                />
-                <DialogClose
-                  render={
-                    <Button size="2" tone="accent" emphasis="loud">
-                      Clear
+                      Close
                     </Button>
                   }
                 />
@@ -672,6 +786,127 @@ function DialogRow() {
         </Dialog>
       ))}
     </>
+  );
+}
+
+const MATERIALS = ["solid", "thin", "regular", "thick"] as const;
+const RUNGS = ["quiet", "medium", "loud"] as const;
+
+function MatrixButton({
+  material,
+  rung,
+  tone,
+  children,
+}: {
+  material: (typeof MATERIALS)[number];
+  rung: (typeof RUNGS)[number];
+  tone?: "accent" | "destructive" | "success" | "warning" | "info";
+  children: React.ReactNode;
+}) {
+  // Solid is the shipped Button, untouched: the rung paints an opaque fill.
+  if (material === "solid") {
+    return (
+      <Button size="2" emphasis={rung} {...(tone ? { tone } : {})}>
+        {children}
+      </Button>
+    );
+  }
+  // Quiet asks for no fill, so there is nothing for the material to be made of: bare in
+  // every material, with the alpha hover wash a translucent world needs.
+  if (rung === "quiet") {
+    return (
+      <Button size="2" emphasis="quiet" {...(tone ? { tone } : {})} className="l2-btn-bare">
+        {children}
+      </Button>
+    );
+  }
+  // Medium and loud DO ask for a fill, and on glass that fill is carried by the veil —
+  // which is what makes material and emphasis independent without them fighting.
+  const rungClass = rung === "loud" ? " l2-btn-loud" : " l2-btn-medium";
+  return (
+    <Button
+      size="2"
+      emphasis="quiet"
+      {...(tone ? { tone } : {})}
+      className={`l2-btn l2-glass l2-${material}${rungClass}`}
+    >
+      {children}
+    </Button>
+  );
+}
+
+function ButtonMatrix({ photo = false }: { photo?: boolean }) {
+  return (
+    <div className={`l2-matrix${photo ? " l2-matrix-photo" : ""}`}>
+      <div />
+      {RUNGS.map((r) => (
+        <Text key={r} render={<div />} size="2" className="l2-matrix-head">
+          {r}
+        </Text>
+      ))}
+      {MATERIALS.map((mat) => (
+        <React.Fragment key={mat}>
+          <Text render={<div />} size="2" className="l2-matrix-row">
+            {mat}
+          </Text>
+          {RUNGS.map((r) => (
+            <div key={r}>
+              <MatrixButton material={mat} rung={r} tone="accent">
+                Continue
+              </MatrixButton>
+            </div>
+          ))}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+/* Rest / hover / press for all three rungs at once — painted, not pointed at, so the
+   bands can be compared side by side. The whole question is whether any cell in one row
+   matches a cell in another; if it does, that pair is ambiguous under the pointer. */
+function StatesBoard() {
+  const STATES = ["rest", "hover", "active"] as const;
+  return (
+    <div className="l2-matrix l2-states">
+      <div />
+      {STATES.map((st) => (
+        <Text key={st} render={<div />} size="2" className="l2-matrix-head">
+          {st}
+        </Text>
+      ))}
+      {RUNGS.map((rung) => (
+        <React.Fragment key={rung}>
+          <Text render={<div />} size="2" className="l2-matrix-row">
+            {rung}
+          </Text>
+          {STATES.map((st) => (
+            <div key={st}>
+              <Button
+                size="2"
+                tone="accent"
+                emphasis={rung}
+                {...(st === "rest" ? {} : { "data-l2-state": st })}
+              >
+                Continue
+              </Button>
+            </div>
+          ))}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+function ToneRow({ material }: { material: (typeof MATERIALS)[number] }) {
+  return (
+    <Flex gap="3" style={{ flexWrap: "wrap", alignItems: "center" }}>
+      {(["accent", "info", "success", "warning", "destructive"] as const).map((t) => (
+        <MatrixButton key={t} material={material} rung="loud" tone={t}>
+          {t[0]?.toUpperCase() + t.slice(1)}
+        </MatrixButton>
+      ))}
+    </Flex>
   );
 }
 
@@ -696,6 +931,47 @@ function Panel({ appearance, m }: { appearance: "light" | "dark"; m: MatKnobs })
           } as React.CSSProperties
         }
       >
+        <div className="l2-strip-label">
+          <Text size="2" emphasis="quiet">
+            The button grid — material down, emphasis across. Two axes that multiply: a
+            rung says how much the action matters, a material says what it is built of
+          </Text>
+        </div>
+        <div className="l2-calm">
+          <ButtonMatrix />
+        </div>
+        <div className="l2-strip-label">
+          <Text size="2" emphasis="quiet">
+            The rungs against their own states — a rung must never wear the rung above it,
+            so no cell here should match a cell in another row
+          </Text>
+        </div>
+        <div className="l2-calm">
+          <StatesBoard />
+        </div>
+        <div className="l2-strip-label">
+          <Text size="2" emphasis="quiet">
+            The same grid over a photograph — where the glass has something to be glass over
+          </Text>
+        </div>
+        <div className="l2-photo-2">
+          <ButtonMatrix photo />
+        </div>
+        <div className="l2-strip-label">
+          <Text size="2" emphasis="quiet">
+            The third axis: tone. A colour is a meaning, not a loudness — every family at
+            the loud rung, solid then glass
+          </Text>
+        </div>
+        <div className="l2-calm" style={{ display: "block" }}>
+          <Stack gap="5">
+            <ToneRow material="solid" />
+            <ToneRow material="regular" />
+          </Stack>
+        </div>
+        <div className="l2-photo-1" style={{ padding: "var(--layout-space-7)" }}>
+          <ToneRow material="regular" />
+        </div>
         <div className="l2-strip-label">
           <Text size="2" emphasis="quiet">
             The backdrop drifts — glass at its most alive
@@ -773,6 +1049,17 @@ function Panel({ appearance, m }: { appearance: "light" | "dark"; m: MatKnobs })
         </div>
         <div className="l2-strip-label">
           <Text size="2" emphasis="quiet">
+            Positions — the entry from every side, center included
+          </Text>
+        </div>
+        <div
+          className="l2-hero"
+          style={{ minHeight: 460, alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 12 }}
+        >
+          <MenuPositions />
+        </div>
+        <div className="l2-strip-label">
+          <Text size="2" emphasis="quiet">
             The menus over the checker
           </Text>
         </div>
@@ -805,12 +1092,29 @@ function Panel({ appearance, m }: { appearance: "light" | "dark"; m: MatKnobs })
         </div>
         <div className="l2-strip-label">
           <Text size="2" emphasis="quiet">
-            The dialog — three materials over ONE scrim: it states the app&apos;s condition,
-            not the pane&apos;s construction
+            The ALERT — the real component since 2026-08-16, three materials over ONE
+            scrim; the shipped materialization is its own gesture, no lab override
           </Text>
         </div>
         <div className="l2-photo-1 l2-menubed" style={{ minHeight: 280 }}>
           <DialogRow />
+        </div>
+        <div className="l2-strip-label">
+          <Text size="2" emphasis="quiet">
+            The alert at its four sizes — one index pricing box, corner, padding, type and
+            buttons together
+          </Text>
+        </div>
+        <div className="l2-photo-2 l2-menubed" style={{ minHeight: 200 }}>
+          <AlertSizeRow />
+        </div>
+        <div className="l2-strip-label">
+          <Text size="2" emphasis="quiet">
+            The dialog at surface-area extremes — half the screen, then most of it
+          </Text>
+        </div>
+        <div className="l2-photo-2 l2-menubed" style={{ minHeight: 200 }}>
+          <DialogBig />
         </div>
         <div className="l2-strip-label">
           <Text size="2" emphasis="quiet">
@@ -897,8 +1201,14 @@ function Panel({ appearance, m }: { appearance: "light" | "dark"; m: MatKnobs })
  * swapped to include it. Solid menus are skipped. Lens-slider changes apply to menus
  * opened after the change.
  */
-function DynamicRefraction({ params }: { params: LensParams }) {
+function DynamicRefraction({ params, on }: { params: LensParams; on: boolean }) {
   useEffect(() => {
+    // OFF means OFF, for the floating families too. This guard was missing when the
+    // switch shipped (2026-08-15): the flag reached the signature and nothing read it,
+    // so menus and dialogs kept refracting while the pill obeyed — and the comparison
+    // that flowed from it was worthless. A flag that is accepted and ignored is worse
+    // than no flag: it produces confident, wrong evidence.
+    if (!on) return;
     const spread = params.fringe / 100;
     const NS = "http://www.w3.org/2000/svg";
     // A DIRECT svg node, outside React: the filter must exist in the DOM in the same tick
@@ -1055,7 +1365,7 @@ function DynamicRefraction({ params }: { params: LensParams }) {
       svg.remove();
       styleEl.remove();
     };
-  }, [params]);
+  }, [params, on]);
   return null;
 }
 
@@ -1122,6 +1432,25 @@ export default function Lab2Page() {
   const setMatKey = (k: keyof MatKnobs) => (v: number) =>
     setMat((m) => ({ ...m, [matMode]: { ...m[matMode], [k]: v } }));
   const knobs = mat[matMode];
+
+  // The refraction switch (2026-08-15). Off: no maps, no injected chains, and the flat
+  // material below takes over — the honest "what if we never built the lens" view.
+  const [refract, setRefract] = useState(true);
+  useEffect(() => {
+    const el = document.documentElement;
+    el.dataset.l2Flat = refract ? "off" : "on";
+    return () => {
+      delete el.dataset.l2Flat;
+    };
+  }, [refract]);
+
+  // No engine probe here, deliberately. A JS feature test for refraction was written and
+  // deleted the same hour (2026-08-15): `CSS.supports('backdrop-filter','url(#x)')`
+  // answers TRUE in engines that parse the reference filter and then decline to draw it —
+  // documented for Firefox (bug 1961378), and demonstrated for Safari by this lab, where
+  // the radius fallback landed and the blur fallback did not. A feature query cannot be
+  // asked "will you actually render this". The flat-engine material now rides the same
+  // `@supports not (corner-shape: squircle)` guard as the radius fallback, in lab2.css.
 
   // The paint dials live on <html>, not on .l2: menu popups PORTAL outside this tree,
   // and a variable can only reach them from an ancestor they actually have.
@@ -1192,10 +1521,28 @@ export default function Lab2Page() {
       className="l2"
       style={{ "--l2-spec": spec / 100, "--l2-blur-x": blur / 100 } as React.CSSProperties}
     >
-      <RefractionDefs params={params} />
-      <DynamicRefraction params={params} />
+      <RefractionDefs params={params} on={refract} />
+      <DynamicRefraction params={params} on={refract} />
       <div className="l2-controls">
         <Flex gap="6" p="5" style={{ flexWrap: "wrap", alignItems: "flex-end" }}>
+          <Stack gap="1" style={{ flex: "none" }}>
+            <Text size="2" emphasis="medium">
+              Refraction
+            </Text>
+            <Flex gap="1">
+              {([true, false] as const).map((v) => (
+                <Button
+                  key={String(v)}
+                  size="1"
+                  emphasis={refract === v ? "loud" : "quiet"}
+                  tone={refract === v ? "accent" : "neutral"}
+                  onClick={() => setRefract(v)}
+                >
+                  {v ? "on" : "off"}
+                </Button>
+              ))}
+            </Flex>
+          </Stack>
           <Stack gap="1" style={{ flex: "none" }}>
             <Text size="2" emphasis="medium">
               Profile

@@ -14,6 +14,19 @@
    corners   continuous curvature where the engine has it (corner-shape) — the Apple curve
 */
 
+/* DELETED 2026-08-16: a second, broken home for `--l2-noref`.
+   It read `:root:not([data-l2-refract="on"])` and NOTHING has ever written that attribute
+   to <html> — `data-l2-refract` is written by page.tsx onto individual .l2-menu elements
+   with a filter id as its value, and the html stamp this selector was waiting for was
+   renamed mid-session and then lost. So the guard matched permanently and every pane that
+   keeps the CSS filter chain — menus, dialogs and every glass button — ran at 2.8x its
+   designed blur even with refraction ON. Measured before the delete: a .l2-regular glass
+   button rendered blur(5.6px) against a .l2-card's blur(2.4px), while DECLARING less blur
+   than the card (10px against 12px). The control cells were re-priced against that.
+   The correct guard is `:root[data-l2-flat="on"]` at the foot of this file, keyed on the
+   attribute the Refraction switch actually writes. One fact, one home. */
+
+
 /* ── Page ── */
 
 .l2 {
@@ -84,6 +97,7 @@
   }
 }
 
+
 /* ── Glass: the body ── */
 
 .l2-glass {
@@ -108,9 +122,18 @@
      below re-joins cards to the full material (Kushagra 2026-08-14: "all cards respect
      material" — the earlier frosted-only card call is reversed now that the material is
      near-clear stone). --l2-blur-x is the panel-wide frost dial. */
-  -webkit-backdrop-filter: blur(calc(var(--l2-blur) * var(--l2-blur-x, 1)))
+  /* A LITERAL -webkit- declaration before the variable one (2026-08-15). Research on
+     Safari's backdrop-filter reports that the prefixed property may reject custom
+     properties outright — unverified, and unverifiable from this machine, but the cost of
+     being wrong is that Safari renders NO frost at all while the suite stays green. Two
+     declarations of the same property settle it without a test: if Safari accepts vars the
+     second wins as usual, and if it does not, the first survives and the pane still frosts.
+     The literal is the `regular` cell at the shipped frost dial, times the no-refraction
+     boost — the value Safari should land on anyway. */
+  -webkit-backdrop-filter: blur(11px) saturate(1.8) brightness(1.05);
+  -webkit-backdrop-filter: blur(calc(var(--l2-blur) * var(--l2-blur-x, 1) * var(--l2-noref, 1)))
     saturate(var(--l2-sat)) brightness(var(--l2-bright));
-  backdrop-filter: blur(calc(var(--l2-blur) * var(--l2-blur-x, 1))) saturate(var(--l2-sat))
+  backdrop-filter: blur(calc(var(--l2-blur) * var(--l2-blur-x, 1) * var(--l2-noref, 1))) saturate(var(--l2-sat))
     brightness(var(--l2-bright));
   box-shadow:
     0 1px 2px rgb(0 0 0 / var(--l2-contact)),
@@ -131,14 +154,31 @@
    2026-08-15: one pill per material) — the ladder is the point now, and the global
    frost dial at 20% keeps even thick clear enough to bend. */
 
-/* The rim: 1px of gradient light. Wakes under the pointer. */
+/* The rim: 1px of gradient light. Wakes under the pointer. CONIC, not linear (Kushagra
+   2026-08-15: the bottom line ended abruptly) — a linear gradient cannot wrap a ring: its
+   bright band crosses an edge and terminates where the corner curves away. A conic runs
+   the intensity AROUND the perimeter and its first and last stops meet, so there is no
+   seam anywhere. Stated HERE, on the element, with the stops as plain-colour vars — the
+   old --l2-rim-grad var baked var(--l2-light-angle) at the PANEL (§6's
+   substitution-at-declaration), which is why card rims never actually tracked the
+   pointer while menu rims did. */
 .l2-glass::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: var(--l2-rim-grad);
+  background: conic-gradient(
+    from calc(var(--l2-light-angle, 165deg) + 180deg),
+    var(--l2-rim-a, rgb(255 255 255 / 0.95)),
+    var(--l2-rim-b, rgb(240 248 255 / 0.34)) 22%,
+    var(--l2-rim-c, rgb(255 255 255 / 0.1)) 34%,
+    var(--l2-rim-d, rgb(255 250 240 / 0.26)) 44%,
+    var(--l2-rim-d, rgb(255 250 240 / 0.26)) 56%,
+    var(--l2-rim-c, rgb(255 255 255 / 0.1)) 66%,
+    var(--l2-rim-b, rgb(240 248 255 / 0.34)) 78%,
+    var(--l2-rim-a, rgb(255 255 255 / 0.95))
+  );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -159,25 +199,22 @@
 
 /* ── The light's palette (light mode) ── */
 
+/* The rim's palette: a = facing the light, b = the flanks, c = the shade side, d = the
+   warm collect opposite the light. Plain colours, so they inherit to the element where
+   the conic (and the angle) actually resolve. */
 .l2-panel {
   --l2-pool: 0.06;
-  --l2-rim-grad: linear-gradient(
-    var(--l2-light-angle, 165deg),
-    rgb(255 255 255 / 0.95),
-    rgb(240 248 255 / 0.34) 28%,
-    rgb(255 255 255 / 0.1) 58%,
-    rgb(255 250 240 / 0.42)
-  );
+  --l2-rim-a: rgb(255 255 255 / 0.95);
+  --l2-rim-b: rgb(240 248 255 / 0.34);
+  --l2-rim-c: rgb(255 255 255 / 0.1);
+  --l2-rim-d: rgb(255 250 240 / 0.26);
 }
 .l2 [data-appearance="dark"] .l2-panel {
   --l2-pool: 0.18;
-  --l2-rim-grad: linear-gradient(
-    var(--l2-light-angle, 165deg),
-    rgb(255 255 255 / 0.34),
-    rgb(210 230 255 / 0.1) 30%,
-    rgb(255 255 255 / 0.04) 60%,
-    rgb(255 245 235 / 0.12)
-  );
+  --l2-rim-a: rgb(255 255 255 / 0.34);
+  --l2-rim-b: rgb(210 230 255 / 0.1);
+  --l2-rim-c: rgb(255 255 255 / 0.04);
+  --l2-rim-d: rgb(255 245 235 / 0.08);
 }
 
 /* ── The thicknesses (light) ── */
@@ -226,14 +263,22 @@
   --l2-contact: 0.09;
   --l2-drop: 0.1;
   --l2-blast: 0.1;
-  /* Deep glass splits light: spectral stops fold into the rim itself. */
-  --l2-rim-grad: linear-gradient(
-    var(--l2-light-angle, 165deg),
+}
+/* Deep glass splits light: spectral stops fold into the rim itself — stated on the
+   element (the conic and the pointer angle must resolve together). */
+.l2-thick.l2-glass::after {
+  background: conic-gradient(
+    from calc(var(--l2-light-angle, 165deg) + 180deg),
     rgb(255 255 255 / 0.97),
-    rgb(255 190 170 / 0.4) 18%,
-    rgb(170 205 255 / 0.34) 34%,
-    rgb(255 255 255 / 0.1) 60%,
-    rgb(255 246 235 / 0.46)
+    rgb(255 190 170 / 0.4) 12%,
+    rgb(170 205 255 / 0.34) 24%,
+    rgb(255 255 255 / 0.1) 36%,
+    rgb(255 246 235 / 0.28) 44%,
+    rgb(255 246 235 / 0.28) 56%,
+    rgb(255 255 255 / 0.1) 64%,
+    rgb(170 205 255 / 0.34) 76%,
+    rgb(255 190 170 / 0.4) 88%,
+    rgb(255 255 255 / 0.97)
   );
 }
 
@@ -576,9 +621,10 @@
     auto,
     auto,
     auto;
-  -webkit-backdrop-filter: blur(calc(var(--l2m-blur) * var(--l2-blur-x, 1)))
+  -webkit-backdrop-filter: blur(9px) saturate(1.8) brightness(1.05);
+  -webkit-backdrop-filter: blur(calc(var(--l2m-blur) * var(--l2-blur-x, 1) * var(--l2-noref, 1)))
     saturate(var(--l2m-sat)) brightness(var(--l2m-bright));
-  backdrop-filter: blur(calc(var(--l2m-blur) * var(--l2-blur-x, 1))) saturate(var(--l2m-sat))
+  backdrop-filter: blur(calc(var(--l2m-blur) * var(--l2-blur-x, 1) * var(--l2-noref, 1))) saturate(var(--l2m-sat))
     brightness(var(--l2m-bright));
   /* The card's anatomy scaled to the menu's box (same layers, ~0.7 the reach, lighter
      blast): a smaller caster owes a smaller shadow, or it reads swollen. */
@@ -626,12 +672,17 @@
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(
-    var(--l2-light-angle, 165deg),
+  /* Conic, wrap-sealed — the linear band's abrupt ends, fixed 2026-08-15. */
+  background: conic-gradient(
+    from calc(var(--l2-light-angle, 165deg) + 180deg),
     rgb(255 255 255 / 0.95),
-    rgb(240 248 255 / 0.34) 28%,
-    rgb(255 255 255 / 0.1) 58%,
-    rgb(255 250 240 / 0.42)
+    rgb(240 248 255 / 0.34) 22%,
+    rgb(255 255 255 / 0.1) 34%,
+    rgb(255 250 240 / 0.26) 44%,
+    rgb(255 250 240 / 0.26) 56%,
+    rgb(255 255 255 / 0.1) 66%,
+    rgb(240 248 255 / 0.34) 78%,
+    rgb(255 255 255 / 0.95)
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -647,9 +698,79 @@
   opacity: calc(var(--l2-spec, 0.92) * 0.6);
 }
 
+/* ══ QUIET PAINT ON GLASS IS ALPHA, NOT PIGMENT ════════════════════════════════════════
+   Kushagra's finding, 2026-08-15, and now stated where it belongs. A pigment grey is an
+   absolute colour: on an opaque panel it sits between the panel and full ink and reads
+   "dimmed", but over a bright backdrop an opaque mid-grey is DARKER than what is behind
+   it and the dim semantic INVERTS — the disabled row looked emphasised. On glass, "quiet"
+   has to mean "more backdrop through the letters": same ink, less alpha.
+
+   Stated as a ROLE REMAP on the surface rather than as rules per component (the first cut
+   patched five components on menus alone, which is why a glass dialog was still wrong).
+   Everything inside — rows, labels, separators, keycaps, plain Text at emphasis medium —
+   inherits the corrected role with no rule of its own, which is the system's own pattern
+   for disabled and invalid. Solid keeps the pigments: on an opaque panel they are right.
+
+   The one thing that is NOT a role and so is stated separately: the hover wash, which is
+   a fill rather than an ink. It goes alpha on every material — measured invisible as a
+   pastel on dark solid (2026-08-15). */
+.l2-glass,
+.l2-menu.l2-menu:not(.l2-menu-solid),
+.l2-dlg.l2-dlg {
+  --color-text-muted: rgb(0 0 0 / 0.62);
+  --color-text-faint: rgb(0 0 0 / 0.42);
+  --color-border: rgb(0 0 0 / 0.12);
+}
+.kui-theme[data-appearance="dark"] .l2-glass,
+.l2 [data-appearance="dark"] .l2-glass,
+.kui-theme[data-appearance="dark"] .l2-menu.l2-menu:not(.l2-menu-solid),
+.kui-theme[data-appearance="dark"] .l2-dlg.l2-dlg {
+  --color-text-muted: rgb(255 255 255 / 0.72);
+  --color-text-faint: rgb(255 255 255 / 0.45);
+  --color-border: rgb(255 255 255 / 0.16);
+}
+/* Disabled is a STATE, and the shared layer paints it from its own role — so it is named
+   here rather than inherited, on glass only. */
+.l2-glass .kui-row[data-disabled],
+.l2-menu.l2-menu:not(.l2-menu-solid) .kui-row[data-disabled],
+.l2-dlg.l2-dlg .kui-row[data-disabled] {
+  color: rgb(0 0 0 / 0.32);
+}
+.kui-theme[data-appearance="dark"] .l2-menu.l2-menu:not(.l2-menu-solid) .kui-row[data-disabled],
+.kui-theme[data-appearance="dark"] .l2-dlg.l2-dlg .kui-row[data-disabled],
+.l2 [data-appearance="dark"] .l2-glass .kui-row[data-disabled] {
+  color: rgb(255 255 255 / 0.38);
+}
+/* The keycap is a small filled box, so it takes the treatment too: relief in the pane,
+   not a sticker on it — fill, edge and ink all alpha, and no cast. */
+.l2-glass .kui-kbd,
+.l2-menu.l2-menu:not(.l2-menu-solid) .kui-kbd,
+.l2-dlg.l2-dlg .kui-kbd {
+  background-color: rgb(0 0 0 / 0.05);
+  border-color: rgb(0 0 0 / 0.1);
+  color: rgb(0 0 0 / 0.58);
+  box-shadow: none;
+}
+.kui-theme[data-appearance="dark"] .l2-menu.l2-menu:not(.l2-menu-solid) .kui-kbd,
+.kui-theme[data-appearance="dark"] .l2-dlg.l2-dlg .kui-kbd,
+.l2 [data-appearance="dark"] .l2-glass .kui-kbd {
+  background-color: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.16);
+  color: rgb(255 255 255 / 0.75);
+}
+/* The hover wash — a fill, so every material including solid. */
+.l2-menu.l2-menu .kui-row[data-highlighted]:not([data-disabled]),
+.l2-menu.l2-menu .kui-row[data-popup-open]:not([data-disabled]) {
+  background-color: rgb(0 0 0 / 0.07);
+}
+.kui-theme[data-appearance="dark"] .l2-menu.l2-menu .kui-row[data-highlighted]:not([data-disabled]),
+.kui-theme[data-appearance="dark"] .l2-menu.l2-menu .kui-row[data-popup-open]:not([data-disabled]) {
+  background-color: rgb(255 255 255 / 0.12);
+}
+
 /* Dark FLOATING panes lighten, they don't subtract (the system's own rule: in dark,
    height is lightness — and macOS dark menus do the same): the veil lifts toward white. */
-[data-appearance="dark"] .l2-menu.l2-menu {
+.kui-theme[data-appearance="dark"] .l2-menu.l2-menu {
   --l2m-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 62%, transparent);
   --l2m-sat: 1.5;
   box-shadow:
@@ -658,26 +779,30 @@
     0 18px 48px -14px rgb(0 0 0 / 0.2),
     inset 0 -8px 16px -12px rgb(0 0 0 / 0.14);
 }
-[data-appearance="dark"] .l2-menu-thin.l2-menu-thin {
+.kui-theme[data-appearance="dark"] .l2-menu-thin.l2-menu-thin {
   --l2m-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 46%, transparent);
 }
-[data-appearance="dark"] .l2-menu-thick.l2-menu-thick {
+.kui-theme[data-appearance="dark"] .l2-menu-thick.l2-menu-thick {
   --l2m-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 78%, transparent);
 }
-[data-appearance="dark"] .l2-menu-solid.l2-menu-solid {
+.kui-theme[data-appearance="dark"] .l2-menu-solid.l2-menu-solid {
   --l2m-veil: var(--color-surface);
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.35),
     0 8px 22px -6px rgb(0 0 0 / 0.3),
     0 18px 48px -14px rgb(0 0 0 / 0.22);
 }
-[data-appearance="dark"] .l2-menu.l2-menu::after {
-  background: linear-gradient(
-    var(--l2-light-angle, 165deg),
+.kui-theme[data-appearance="dark"] .l2-menu.l2-menu::after {
+  background: conic-gradient(
+    from calc(var(--l2-light-angle, 165deg) + 180deg),
     rgb(255 255 255 / 0.34),
-    rgb(210 230 255 / 0.1) 30%,
-    rgb(255 255 255 / 0.04) 60%,
-    rgb(255 245 235 / 0.12)
+    rgb(210 230 255 / 0.1) 22%,
+    rgb(255 255 255 / 0.04) 34%,
+    rgb(255 245 235 / 0.08) 44%,
+    rgb(255 245 235 / 0.08) 56%,
+    rgb(255 255 255 / 0.04) 66%,
+    rgb(210 230 255 / 0.1) 78%,
+    rgb(255 255 255 / 0.34)
   );
 }
 
@@ -897,6 +1022,82 @@
   }
 }
 
+/* ══ THE BUTTON GRID: TWO AXES, AND THEY ARE INDEPENDENT ═══════════════════════════════
+   Emphasis is RANK — how much this action matters. Material is CONSTRUCTION — what the
+   button is made of, and an app-level identity, not a per-button choice. They multiply:
+   every rung must be sayable in every material, or one of them is not really an axis.
+
+   The rungs resolve identically in both worlds, because a rung names a FILL SOURCE and
+   glass only changes where that source lands — on an opaque box, or in the veil:
+
+     quiet   no fill        →  the pane's own neutral veil (the glass IS the button)
+     medium  --tone-soft    →  the soft pigment carried in the veil
+     loud    --tone-solid   →  the solid pigment carried in the veil, run hot
+
+   Medium-on-glass was missing until 2026-08-15 — which is exactly why the grid read as
+   confusing: two axes with a hole in the middle is not a grid. */
+.l2-btn-medium.l2-btn-medium.l2-btn-medium {
+  --l2-veil: color-mix(in srgb, var(--tone-soft) 55%, transparent);
+  --kui-ct-label-color: var(--tone-label);
+  --l2-sheen: 8;
+  --l2-bright: 1.04;
+  --l2-sat: 1.7;
+}
+@media (hover: hover) {
+  .l2-btn-medium.l2-btn-medium.l2-btn-medium:hover {
+    --l2-veil: color-mix(in srgb, var(--tone-soft-hover) 55%, transparent);
+  }
+}
+.l2-btn-medium.l2-btn-medium.l2-btn-medium:active {
+  --l2-veil: color-mix(in srgb, var(--tone-soft-active) 55%, transparent);
+}
+
+/* QUIET HAS NO FILL, IN ANY MATERIAL (Kushagra 2026-08-15: "why does quiet have any bg at
+   all? Quiet = text no?"). The first grid gave glass-quiet a whole pane, which silently
+   redefined the rung as "a glass button" — two different ideas wearing one name. A pane is
+   what a SURFACE is (a card, a toolbar, a menu); a button only wears the material where its
+   rung asks for a fill. So quiet is bare everywhere, and the material axis simply does not
+   reach it — the honest grid has a hole there, and saying so is better than filling it.
+
+   Its hover is the menu row's answer, and for the menu row's reason: on a translucent
+   world the wash has to be the ink at low alpha, so touching it lets MORE light through
+   rather than laying an opaque pastel over the pane. */
+.l2-btn-bare.l2-btn-bare {
+  /* Only the PANE is removed here. The fill is deliberately NOT stated: it comes from the
+     rung's own chain, so quiet's wash carries the tone (2026-08-15 — a hardcoded neutral
+     here outranked the chain and turned a blue accent's hover grey). */
+  background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* The grid's own furniture. */
+.l2-matrix {
+  display: grid;
+  /* max-content, not 1fr: the cells should sit in a readable block so the eye can compare
+     a column, rather than being flung to the edges of whatever bed they land on. */
+  grid-template-columns: auto repeat(3, max-content);
+  gap: var(--layout-space-4) var(--layout-space-6);
+  align-items: center;
+  justify-content: center;
+  padding: var(--layout-space-8) var(--layout-space-7);
+}
+.l2-matrix-head {
+  font-weight: 600;
+}
+.l2-matrix-row {
+  justify-self: end;
+  text-align: end;
+}
+/* On a photographic bed the labels need their own footing, so they carry the page's ink
+   rather than the pane's — a label is chrome for the specimen, not part of it. */
+.l2-matrix-photo .l2-matrix-head,
+.l2-matrix-photo .l2-matrix-row {
+  color: rgb(255 255 255 / 0.94);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.55);
+}
+
 /* High-emphasis glass: loud spoken THROUGH the material, not beside it. The first cut
    (58% pigment) read WASHED on a light bed (Kushagra 2026-08-14): at 58% alpha the white
    page supplies the other 42%, and the glass's own sheen layers pour milk on top — the
@@ -916,7 +1117,7 @@
      ride the top bar (--l2cm-loud-c / --l2cm-loud-a). */
   --l2-veil: oklch(
     from var(--tone-solid) calc(l * var(--l2cm-loud-l, 1.04)) calc(c * var(--l2cm-loud-c, 1.18)) h /
-      var(--l2cm-loud-a, 0.9)
+      var(--l2cm-loud-a, 0.72)
   );
   --kui-ct-label-color: var(--tone-contrast);
   --l2-sheen: 10;
@@ -927,14 +1128,14 @@
   .l2-btn-loud.l2-btn-loud.l2-btn-loud:hover {
     --l2-veil: oklch(
       from var(--tone-solid-hover) calc(l * var(--l2cm-loud-l, 1.04)) calc(c * var(--l2cm-loud-c, 1.18)) h /
-        var(--l2cm-loud-a, 0.9)
+        var(--l2cm-loud-a, 0.72)
     );
   }
 }
 .l2-btn-loud.l2-btn-loud.l2-btn-loud:active {
   --l2-veil: oklch(
     from var(--tone-solid-active) calc(l * var(--l2cm-loud-l, 1.04)) calc(c * var(--l2cm-loud-c, 1.18)) h /
-      var(--l2cm-loud-a, 0.9)
+      var(--l2cm-loud-a, 0.72)
   );
 }
 /* Dark's loud: the pigment formula holds (dark solids are already bright), only the milk
@@ -949,13 +1150,10 @@
    small dark pane's rim is most of its evidence, and the panel's faint dark rim was
    priced for 340px cards. Roughly double the card's dark peaks, still under light's. */
 :where(.l2 [data-appearance="dark"]) .l2-btn.l2-btn {
-  --l2-rim-grad: linear-gradient(
-    var(--l2-light-angle, 165deg),
-    rgb(255 255 255 / 0.72),
-    rgb(210 230 255 / 0.22) 30%,
-    rgb(255 255 255 / 0.08) 60%,
-    rgb(255 245 235 / 0.3)
-  );
+  --l2-rim-a: rgb(255 255 255 / 0.72);
+  --l2-rim-b: rgb(210 230 255 / 0.22);
+  --l2-rim-c: rgb(255 255 255 / 0.08);
+  --l2-rim-d: rgb(255 245 235 / 0.2);
 }
 
 /* Apple's green, tried on (Kushagra 2026-08-15: the generated green is "too weird") — a
@@ -1002,19 +1200,22 @@
   position: relative;
   border-color: transparent;
   border-radius: 48px;
+  /* The face light rides two dials so dark can stand it down: white bloom on dark glass
+     is the grey-film problem at dialog scale (Kushagra 2026-08-15). */
   background:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
-    radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 0.3), transparent 55%),
-    linear-gradient(180deg, rgb(255 255 255 / 0.22), transparent 45%),
+    radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / var(--l2d-bloom, 0.3)), transparent 55%),
+    linear-gradient(180deg, rgb(255 255 255 / var(--l2d-sheen, 0.22)), transparent 45%),
     var(--l2d-veil);
   background-size:
     160px 160px,
     auto,
     auto,
     auto;
-  -webkit-backdrop-filter: blur(calc(var(--l2d-blur) * var(--l2-blur-x, 1)))
+  -webkit-backdrop-filter: blur(11px) saturate(1.8);
+  -webkit-backdrop-filter: blur(calc(var(--l2d-blur) * var(--l2-blur-x, 1) * var(--l2-noref, 1)))
     saturate(var(--l2d-sat));
-  backdrop-filter: blur(calc(var(--l2d-blur) * var(--l2-blur-x, 1))) saturate(var(--l2d-sat));
+  backdrop-filter: blur(calc(var(--l2d-blur) * var(--l2-blur-x, 1) * var(--l2-noref, 1))) saturate(var(--l2d-sat));
   /* The scrim is the separation: no cast (§24, held on purpose). */
   box-shadow: none;
 }
@@ -1045,28 +1246,37 @@
 }
 .l2-dlg-thick.l2-dlg-thick::after {
   padding: 2px;
-  background: linear-gradient(
-    var(--l2-light-angle, 165deg),
+  background: conic-gradient(
+    from calc(var(--l2-light-angle, 165deg) + 180deg),
     rgb(255 255 255 / 0.97),
-    rgb(255 190 170 / 0.4) 18%,
-    rgb(170 205 255 / 0.34) 34%,
-    rgb(255 255 255 / 0.1) 60%,
-    rgb(255 246 235 / 0.46)
+    rgb(255 190 170 / 0.4) 12%,
+    rgb(170 205 255 / 0.34) 24%,
+    rgb(255 255 255 / 0.1) 36%,
+    rgb(255 246 235 / 0.28) 44%,
+    rgb(255 246 235 / 0.28) 56%,
+    rgb(255 255 255 / 0.1) 64%,
+    rgb(170 205 255 / 0.34) 76%,
+    rgb(255 190 170 / 0.4) 88%,
+    rgb(255 255 255 / 0.97)
   );
 }
-/* The rim: the menu's, dialog-sized. */
+/* The rim: the menu's, dialog-sized — conic, wrap-sealed. */
 .l2-dlg.l2-dlg::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(
-    var(--l2-light-angle, 165deg),
+  background: conic-gradient(
+    from calc(var(--l2-light-angle, 165deg) + 180deg),
     rgb(255 255 255 / 0.95),
-    rgb(240 248 255 / 0.34) 28%,
-    rgb(255 255 255 / 0.1) 58%,
-    rgb(255 250 240 / 0.42)
+    rgb(240 248 255 / 0.34) 22%,
+    rgb(255 255 255 / 0.1) 34%,
+    rgb(255 250 240 / 0.26) 44%,
+    rgb(255 250 240 / 0.26) 56%,
+    rgb(255 255 255 / 0.1) 66%,
+    rgb(240 248 255 / 0.34) 78%,
+    rgb(255 255 255 / 0.95)
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -1079,35 +1289,48 @@
   pointer-events: none;
   opacity: var(--l2-spec, 0.92);
 }
-/* Dark: a dialog is the highest FLOATING pane there is — it lightens (the menu's rule). */
-[data-appearance="dark"] .l2-dlg.l2-dlg {
-  --l2d-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 62%, transparent);
+/* Dark: a dialog is the highest FLOATING pane there is — it lightens (the menu's rule),
+   but by VEIL, not by face glow: the white bloom drops to a whisper and the lift eases,
+   so the pane reads as dark glass near the light rather than a grey slab. */
+.kui-theme[data-appearance="dark"] .l2-dlg.l2-dlg {
+  --l2d-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 54%, transparent);
   --l2d-sat: 1.5;
+  --l2d-bloom: 0.08;
+  --l2d-sheen: 0.05;
 }
-[data-appearance="dark"] .l2-dlg-thin.l2-dlg-thin {
+.kui-theme[data-appearance="dark"] .l2-dlg-thin.l2-dlg-thin {
   --l2d-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 46%, transparent);
 }
-[data-appearance="dark"] .l2-dlg-thick.l2-dlg-thick {
+.kui-theme[data-appearance="dark"] .l2-dlg-thick.l2-dlg-thick {
   --l2d-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 82%, transparent);
   box-shadow: inset 0 -16px 32px -20px rgb(0 0 0 / 0.28);
 }
-[data-appearance="dark"] .l2-dlg-thick.l2-dlg-thick::after {
-  background: linear-gradient(
-    var(--l2-light-angle, 165deg),
+.kui-theme[data-appearance="dark"] .l2-dlg-thick.l2-dlg-thick::after {
+  background: conic-gradient(
+    from calc(var(--l2-light-angle, 165deg) + 180deg),
     rgb(255 255 255 / 0.44),
-    rgb(255 200 180 / 0.14) 18%,
-    rgb(180 210 255 / 0.12) 34%,
-    rgb(255 255 255 / 0.05) 60%,
-    rgb(255 245 235 / 0.16)
+    rgb(255 200 180 / 0.14) 12%,
+    rgb(180 210 255 / 0.12) 24%,
+    rgb(255 255 255 / 0.05) 36%,
+    rgb(255 245 235 / 0.1) 44%,
+    rgb(255 245 235 / 0.1) 56%,
+    rgb(255 255 255 / 0.05) 64%,
+    rgb(180 210 255 / 0.12) 76%,
+    rgb(255 200 180 / 0.14) 88%,
+    rgb(255 255 255 / 0.44)
   );
 }
-[data-appearance="dark"] .l2-dlg.l2-dlg::after {
-  background: linear-gradient(
-    var(--l2-light-angle, 165deg),
+.kui-theme[data-appearance="dark"] .l2-dlg.l2-dlg::after {
+  background: conic-gradient(
+    from calc(var(--l2-light-angle, 165deg) + 180deg),
     rgb(255 255 255 / 0.34),
-    rgb(210 230 255 / 0.1) 30%,
-    rgb(255 255 255 / 0.04) 60%,
-    rgb(255 245 235 / 0.12)
+    rgb(210 230 255 / 0.1) 22%,
+    rgb(255 255 255 / 0.04) 34%,
+    rgb(255 245 235 / 0.08) 44%,
+    rgb(255 245 235 / 0.08) 56%,
+    rgb(255 255 255 / 0.04) 66%,
+    rgb(210 230 255 / 0.1) 78%,
+    rgb(255 255 255 / 0.34)
   );
 }
 
@@ -1122,13 +1345,22 @@
    job; the veil is exactly that. The per-material ladder is LOG-worthy as the refuted
    alternative). Pigment is the only darkness — brightness stays 1; blur and desaturation
    carry the recession. */
-.kui-theme:has(.l2-dlg) .kui-dialog-backdrop {
+/* The alert's backdrop joined 2026-08-16 — the real AlertDialog self-keys its scrim class
+   (the package's second-member rule), so the lab override names both or the alert judges
+   against the shipped scrim while the dialogs judge against the lab's. */
+.kui-theme:has(.l2-dlg) .kui-dialog-backdrop,
+.kui-theme:has(.l2-dlg) .kui-alert-backdrop {
   --scrim-fill: rgb(0 0 0 / 0.18);
+  /* The no-defocus experiment ran 2026-08-15 and blur came back the same day: without it
+     the app stays a sharp, competing read and a thin pane barely feels modal. */
   --scrim-filter: blur(8px) saturate(0.8);
 }
 /* Dark leans harder — black over black needs more to read as recession. */
-[data-appearance="dark"].kui-theme:has(.l2-dlg) .kui-dialog-backdrop,
-[data-appearance="dark"] .kui-theme:has(.l2-dlg) .kui-dialog-backdrop {
+[data-appearance="dark"]/* The alert's backdrop joined 2026-08-16 — the real AlertDialog self-keys its scrim class
+   (the package's second-member rule), so the lab override names both or the alert judges
+   against the shipped scrim while the dialogs judge against the lab's. */
+.kui-theme:has(.l2-dlg) .kui-dialog-backdrop,
+.kui-theme:has(.l2-dlg) .kui-alert-backdrop {
   --scrim-fill: rgb(0 0 0 / 0.32);
   --scrim-filter: blur(8px) saturate(0.8) brightness(0.9);
 }
@@ -1146,4 +1378,277 @@
   .l2-card:hover {
     transform: none;
   }
+}
+
+/* The scrim ladder — keyed off the open pane via :has() on the portal's theme wrapper
+   (backdrop and popup are siblings inside it; one dialog opens at a time). The package's
+   own hooks (--scrim-fill / --scrim-filter) take the values, so the high-contrast and
+   reduced-transparency arms keep their shipped behavior. */
+/* ONE scrim per mode (Kushagra 2026-08-15: "the scrim should stay the same, no?" — yes,
+   and for structure, not taste: the scrim states the APP's condition — pushed back,
+   unavailable — not the dialog's construction, and since material is a theme identity a
+   per-material ladder could never express in a real app anyway. Readability is the PANE's
+   job; the veil is exactly that. The per-material ladder is LOG-worthy as the refuted
+   alternative). Pigment is the only darkness — brightness stays 1; blur and desaturation
+   carry the recession. */
+/* The alert's backdrop joined 2026-08-16 — the real AlertDialog self-keys its scrim class
+   (the package's second-member rule), so the lab override names both or the alert judges
+   against the shipped scrim while the dialogs judge against the lab's. */
+.kui-theme:has(.l2-dlg) .kui-dialog-backdrop,
+.kui-theme:has(.l2-dlg) .kui-alert-backdrop {
+  --scrim-fill: rgb(0 0 0 / 0.18);
+  /* The no-defocus experiment ran 2026-08-15 and blur came back the same day: without it
+     the app stays a sharp, competing read and a thin pane barely feels modal. */
+  --scrim-filter: blur(8px) saturate(0.8);
+}
+/* Dark leans harder — black over black needs more to read as recession. */
+[data-appearance="dark"]/* The alert's backdrop joined 2026-08-16 — the real AlertDialog self-keys its scrim class
+   (the package's second-member rule), so the lab override names both or the alert judges
+   against the shipped scrim while the dialogs judge against the lab's. */
+.kui-theme:has(.l2-dlg) .kui-dialog-backdrop,
+.kui-theme:has(.l2-dlg) .kui-alert-backdrop {
+  --scrim-fill: rgb(0 0 0 / 0.32);
+  --scrim-filter: blur(8px) saturate(0.8) brightness(0.9);
+}
+
+/* Stillness is a request the whole page honors. */
+@media (prefers-reduced-motion: reduce) {
+  .l2-hero,
+  .l2-track {
+    animation: none;
+  }
+  .l2-card,
+  .l2-glass::after {
+    transition: none;
+  }
+  .l2-card:hover {
+    transform: none;
+  }
+}
+
+/* ══ ENGINE FALLBACKS — LAST IN THE FILE, AND THAT IS THE MECHANISM ═════════════════════
+   Both blocks below restate facts that components state for themselves earlier (a menu's
+   corner at (0,2,0), a dialog's at (0,2,0)). Stated anywhere above, they TIE and lose on
+   source order — which is exactly what happened: the card fallback landed because .l2-card
+   is declared before it, while the menu and dialog kept their Chromium radii and neither
+   fix reached them (Kushagra 2026-08-15: "it doesn't work in components like dropdown
+   menu"). Living at the end, they win every tie without inflating a single selector. */
+
+/* A radius number is only meaningful WITH its corner shape. A squircle spreads curvature
+   along the edges, so it reads tighter than its number, and these values were authored
+   against that; an engine without corner-shape draws the same number as an ordinary arc
+   and the box turns to a lozenge. 0.62 is the judged ratio — it read correctly on cards
+   the first time (0.42 was the overcorrection for a menu bug that was really this
+   source-order one). One knob; every surface follows. */
+@supports not (corner-shape: squircle) {
+  :root {
+    --l2-corner-k: 0.62;
+  }
+  .l2-card {
+    border-radius: calc(64px * var(--l2-corner-k));
+  }
+  .l2-mini {
+    border-radius: calc(40px * var(--l2-corner-k));
+  }
+  .l2-menu.l2-menu {
+    border-radius: calc(40px * var(--l2-corner-k));
+  }
+  .l2-dlg.l2-dlg {
+    border-radius: calc(48px * var(--l2-corner-k));
+  }
+  /* Tiles ride the surface scale, and capsules are shape-invariant: neither restates. */
+
+  /* ── and the material, flat ────────────────────────────────────────────────────────
+     The same guard carries the frost, because this one WORKS: it is pure CSS, and the
+     JS probe it replaces was answering wrong (Kushagra 2026-08-15: radius applied, blur
+     did not — the giveaway that the radius came from @supports and the blur from a
+     script). `CSS.supports('backdrop-filter','url(#x)')` reports TRUE in Safari, which
+     parses the reference filter and then declines to render it — the same misreport
+     Firefox is documented making. A feature query cannot be asked "will you actually
+     draw this", so stop asking: corner-shape and reference-filter refraction are both
+     Chromium-only, so one guard names the tier and no script is involved.
+
+     Literal values, no var() and no calc(): WebKit is unreliable with both inside
+     `-webkit-backdrop-filter`, and a var() reference always PARSES, so a literal stated
+     before a variable one can never rescue it. The cost is that the Frost slider does
+     not drive these engines — right, because that slider tunes a Chromium recipe.
+     Known limit: Chromium before 139 has refraction but no corner-shape, so it would
+     land here too. Acceptable in a lab; a shipped version needs a real capability test.
+
+     Where refraction cannot bend light at the bezel, frost carries the material alone —
+     the documented blur/alpha trade, run in the one direction left to us. */
+  .l2-glass.l2-thin {
+    -webkit-backdrop-filter: blur(8px) saturate(1.5);
+    backdrop-filter: blur(8px) saturate(1.5);
+  }
+  .l2-glass.l2-regular {
+    -webkit-backdrop-filter: blur(16px) saturate(1.8);
+    backdrop-filter: blur(16px) saturate(1.8);
+  }
+  .l2-glass.l2-thick {
+    -webkit-backdrop-filter: blur(24px) saturate(2.1);
+    backdrop-filter: blur(24px) saturate(2.1);
+  }
+  .l2-toolbar.l2-glass {
+    -webkit-backdrop-filter: blur(14px) saturate(1.6);
+    backdrop-filter: blur(14px) saturate(1.6);
+  }
+  .l2-menu.l2-menu-thin {
+    -webkit-backdrop-filter: blur(12px) saturate(1.5);
+    backdrop-filter: blur(12px) saturate(1.5);
+  }
+  .l2-menu.l2-menu-regular {
+    -webkit-backdrop-filter: blur(18px) saturate(1.8);
+    backdrop-filter: blur(18px) saturate(1.8);
+  }
+  .l2-menu.l2-menu-thick {
+    -webkit-backdrop-filter: blur(26px) saturate(2.1);
+    backdrop-filter: blur(26px) saturate(2.1);
+  }
+  .l2-dlg.l2-dlg-thin {
+    -webkit-backdrop-filter: blur(14px) saturate(1.5);
+    backdrop-filter: blur(14px) saturate(1.5);
+  }
+  .l2-dlg.l2-dlg-regular {
+    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+    backdrop-filter: blur(20px) saturate(1.8);
+  }
+  .l2-dlg.l2-dlg-thick {
+    -webkit-backdrop-filter: blur(30px) saturate(2.3);
+    backdrop-filter: blur(30px) saturate(2.3);
+  }
+  /* Solid is opaque by definition and the sealed pane pays no readback: both keep none. */
+  .l2-solid,
+  .l2-sealed,
+  .l2-menu-solid.l2-menu-solid {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* (The border-melt rule that stood here retired 2026-08-16: the component's Cancel dropped
+   `bordered` as a default — the lab judgment it encoded moved into the package.) */
+
+/* ══ REFRACTION OFF — the honest comparison ════════════════════════════════════════════
+   Stamped on <html> by the Refraction switch, so portalled menus and dialogs hear it too.
+   Without the bend, the frost has to carry the material: the same multiplier the flat
+   engines use, applied through the existing chain so every slider keeps working. This is
+   the view that answers the only question that matters before a port — whether the lens
+   is doing anything a well-tuned blur is not (2026-08-15). */
+:root[data-l2-flat="on"] {
+  --l2-noref: 2.8;
+}
+
+/* ══ GLASS DOES NOT STACK ON GLASS ═════════════════════════════════════════════════════
+   Kushagra, 2026-08-15: "glass on glass shouldn't be allowed" — and "we shouldn't use
+   opaque colours unless we're on a solid material". One rule answers both.
+
+   A pane reads as glass because it defocuses what is BEHIND it. Put a second pane on top
+   and there is nothing left to defocus: the backdrop it reads has already been blurred by
+   its parent, so the child spends a full readback to blur an image that is already blurred
+   and returns almost the same pixels. It reads as a sticker on the pane rather than part
+   of it — which is exactly how the dialog's buttons looked. The audit priced the same
+   thing from the other side: every backdrop-filter forces its own render surface, and
+   nesting them is the pathological case.
+
+   So a control inside a pane keeps the RUNG and drops the LENS: its fill is a translucent
+   colour laid on the pane, letting the pane's own blurred backdrop show through. Nothing
+   is opaque on a glass material — the pigment is the material's, at the material's alpha.
+   Solid keeps opaque fills, because there the fill IS the surface. */
+:is(.l2-glass, .l2-dlg.l2-dlg, .l2-menu.l2-menu:not(.l2-menu-solid), .l2-card) .l2-btn {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  /* No cast either: a shadow inside a pane is a second object, not a rung. */
+  box-shadow: none;
+}
+
+/* ══ ON A GLASS MATERIAL, A RUNG'S FILL IS TRANSLUCENT ═════════════════════════════════
+   Kushagra, 2026-08-15: "we shouldn't use opaque colours unless we're on a solid
+   material." The shipped rungs paint PIGMENT — medium takes --tone-soft, loud takes
+   --tone-solid, both opaque — which is right on an opaque surface and wrong inside a pane,
+   where an opaque pill reads as a sticker stuck to the glass rather than part of it. It is
+   the alpha-versus-pigment finding again, one layer down: that one was about INK, this is
+   about FILL.
+
+   Stated on the RUNG inside a pane, not per call site, so it reaches every control the
+   system has — a shipped AlertDialogCancel (which is emphasis medium, not quiet), a
+   confirm's loud action, and the checkbox and switch when their turn comes — with no lab
+   class anywhere. The rungs' own hover and active sources are remapped alongside, so
+   interaction keeps its designed step instead of jumping back to pigment on touch. */
+:is(.l2-glass, .l2-dlg.l2-dlg, .l2-menu.l2-menu:not(.l2-menu-solid), .l2-card)
+  .kui-control[data-emphasis="medium"] {
+  --kui-ct-fill-src: color-mix(in srgb, var(--tone-soft) 55%, transparent);
+  --kui-ct-fill-src-hover: color-mix(in srgb, var(--tone-soft-hover) 62%, transparent);
+  --kui-ct-fill-src-active: color-mix(in srgb, var(--tone-soft-active) 70%, transparent);
+}
+:is(.l2-glass, .l2-dlg.l2-dlg, .l2-menu.l2-menu:not(.l2-menu-solid), .l2-card)
+  .kui-control[data-emphasis="loud"] {
+  /* 0.88, not the 0.72 first tried (Kushagra 2026-08-15: "why do these look so light").
+     There is a real tension here and this is where it settles: the material says nothing
+     is opaque, and rank says the one action that must not be missed cannot be a whisper.
+     Rank wins at the loud rung only — it stays visibly translucent, so the pane still
+     shows through, but it is not asked to compete with the backdrop at 72%. Medium and
+     quiet keep the lighter hand, because losing them into the pane is the point. */
+  --kui-ct-fill-src: oklch(from var(--tone-solid) l calc(c * 1.1) h / 0.88);
+  --kui-ct-fill-src-hover: oklch(from var(--tone-solid-hover) l calc(c * 1.1) h / 0.93);
+  --kui-ct-fill-src-active: oklch(from var(--tone-solid-active) l calc(c * 1.1) h / 0.96);
+}
+/* Quiet's rest is the absence of a fill, so only its wash moves — to the ink at low alpha,
+   the same answer the menu row gives. */
+:is(.l2-glass, .l2-dlg.l2-dlg, .l2-menu.l2-menu:not(.l2-menu-solid), .l2-card)
+  .kui-control[data-emphasis="quiet"] {
+  --kui-ct-fill-src-hover: rgb(0 0 0 / 0.07);
+  --kui-ct-fill-src-active: rgb(0 0 0 / 0.11);
+}
+.kui-theme[data-appearance="dark"]
+  :is(.l2-glass, .l2-dlg.l2-dlg, .l2-menu.l2-menu:not(.l2-menu-solid), .l2-card)
+  .kui-control[data-emphasis="quiet"],
+.l2 [data-appearance="dark"] :is(.l2-glass, .l2-card) .kui-control[data-emphasis="quiet"] {
+  --kui-ct-fill-src-hover: rgb(255 255 255 / 0.12);
+  --kui-ct-fill-src-active: rgb(255 255 255 / 0.18);
+}
+
+/* ══ EACH RUNG KEEPS ITS OWN BAND OF THE FILL SCALE ════════════════════════════════════
+   Kushagra, 2026-08-15, on the matrix: quiet's hover and medium's rest "arent these two
+   visually comparable?" — they were IDENTICAL, by construction. The shipped ladder gives
+   quiet `--tone-soft` on hover, which is exactly medium's resting fill, and
+   `--tone-soft-hover` on press, which is exactly medium's hover. The two rungs are one
+   scale offset by a step, so quiet climbs INTO medium the moment you point at it.
+
+   The rule that replaces it: interaction moves a control WITHIN its rung, never into the
+   next one. A hover says "I heard you", not "I have been promoted" — otherwise a row of
+   Cancel / Options / Continue goes rank-ambiguous under the pointer, which is the one
+   moment the ranking is being used.
+
+   So quiet gets its own band underneath medium's: half a step to hover, three quarters to
+   press, and medium's rest still stands clearly above both. One scale, three rungs, no
+   overlap — the same amount of design saying more. Lab-scoped; the shipped ladder in
+   recipes.css is the real home if this survives the eye. */
+.l2 .kui-control[data-emphasis="quiet"],
+.kui-theme .kui-control[data-emphasis="quiet"] {
+  --kui-ct-fill-src-hover: color-mix(in srgb, var(--tone-soft) 50%, transparent);
+  --kui-ct-fill-src-active: color-mix(in srgb, var(--tone-soft) 75%, transparent);
+}
+/* Inside a pane the wash stays TONE-CARRYING (fixed 2026-08-15: with accent blue,
+   "why does hover state for quiet have gray?"). The first cut used a black/white alpha,
+   which conflated two different requirements: quiet paint on glass must be ALPHA so it
+   cannot invert over a bright backdrop — but alpha does not mean neutral. A tone mixed
+   toward transparent is translucent AND still blue, which satisfies both. A neutral-toned
+   control resolves the same mix to grey by itself, so one rule serves both cases and no
+   family needs an exception.
+
+   The percentages sit below medium's translucent rest (55%), keeping the bands apart. */
+:is(.l2-glass, .l2-dlg.l2-dlg, .l2-menu.l2-menu:not(.l2-menu-solid), .l2-card)
+  .kui-control[data-emphasis="quiet"] {
+  --kui-ct-fill-src-hover: color-mix(in srgb, var(--tone-soft) 30%, transparent);
+  --kui-ct-fill-src-active: color-mix(in srgb, var(--tone-soft) 48%, transparent);
+}
+
+/* A states board: rest / hover / press, painted rather than pointed at, so all nine cells
+   can be compared at once instead of one under the cursor at a time. */
+.l2-states .kui-control[data-l2-state="hover"] {
+  background-color: var(--kui-ct-fill-src-hover);
+}
+.l2-states .kui-control[data-l2-state="active"] {
+  background-color: var(--kui-ct-fill-src-active);
 }
