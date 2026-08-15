@@ -1,0 +1,1149 @@
+/* ── Lab 2 — the material, full reign, second pass. SCRATCH, never shipped. ──────────────────
+   One rung (Stacked). The anatomy, outermost to innermost:
+
+   shadows   contact + drop + blast (darkness by opacity), inner pooling at the bottom
+   lens      ::before — a ~10px annulus with its OWN backdrop-filter, stronger than the
+             body's: the backdrop bends at the border. This is refraction's read, and it is
+             the detail every CSS glass misses.
+   rim       ::after — a 1px gradient ring: bright where light enters (top-left), cool on
+             the lit flank, near-nothing on the shade side, a warm collect at the bottom
+             curve. Thick infuses faint spectral stops — light splitting in deep glass.
+   face      grain (real materials have tooth) + bloom where light enters + a diagonal
+             glancing streak + the base sheen, over the veil
+   body      blur + saturate (vibrancy) + brightness
+   corners   continuous curvature where the engine has it (corner-shape) — the Apple curve
+*/
+
+/* ── Page ── */
+
+.l2 {
+  min-height: 100dvh;
+  background: var(--neutral-1);
+}
+
+.l2-controls {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.l2-panel {
+  --l2-page: var(--neutral-2);
+  background: var(--l2-page);
+  padding-block-end: var(--layout-space-8);
+}
+.l2 [data-appearance="dark"] .l2-panel {
+  --l2-page: var(--neutral-1);
+}
+
+/* ── The card box ── */
+
+.l2-card {
+  position: relative;
+  box-sizing: border-box;
+  /* Raw radius on purpose: the refraction map's rounded-rect must match this number
+     exactly, so the two are stated together (64 here ↔ card map r=64). Stated bigger than
+     it reads: the squircle spreads curvature. */
+  border-radius: 64px;
+  padding: var(--surface-p-3);
+  color: var(--color-text);
+  /* Fixed box: the refraction map is built for exactly this geometry — the technique's
+     honest limitation, acceptable in a lab. */
+  width: 340px;
+  min-height: 210px;
+  flex: none;
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) {
+  .l2-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Continuous-curvature corners where supported: the difference between a rounded box and
+   an object. */
+@supports (corner-shape: squircle) {
+  .l2-card,
+  .l2-tile,
+  /* corner-shape does NOT inherit: without these, the rim ring stays an ordinary rounded
+     rect and draws a second curve beside the squircle corner (seen 2026-08-14). */
+  .l2-glass::after,
+  .l2-thick::after {
+    corner-shape: squircle;
+  }
+  /* A capsule is already its own curve — squircle math at a 999px radius bulges square
+     (the boxy ring inside the pill, seen 2026-08-14; the glass BUTTON hit the same wall
+     the day it existed — its box is a capsule, so its rim must be too). */
+  .l2-toolbar,
+  .l2-toolbar::after,
+  .l2-btn,
+  .l2-btn::after {
+    corner-shape: round;
+  }
+}
+
+/* ── Glass: the body ── */
+
+.l2-glass {
+  background:
+    /* grain — barely-there white noise, baked to ~4.5% alpha in the SVG */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+    /* bloom — light entering at the top-left corner */
+    radial-gradient(
+      130% 80% at 16% -12%,
+      rgb(255 255 255 / calc(var(--l2-sheen) * 1.4%)),
+      transparent 55%
+    ),
+    /* base sheen */
+    linear-gradient(180deg, rgb(255 255 255 / calc(var(--l2-sheen) * 1%)), transparent 45%),
+    var(--l2-veil);
+  background-size:
+    160px 160px,
+    auto,
+    auto,
+    auto;
+  /* Fallback chain first (Safari, and the frame before maps exist); the refracting chain
+     below re-joins cards to the full material (Kushagra 2026-08-14: "all cards respect
+     material" — the earlier frosted-only card call is reversed now that the material is
+     near-clear stone). --l2-blur-x is the panel-wide frost dial. */
+  -webkit-backdrop-filter: blur(calc(var(--l2-blur) * var(--l2-blur-x, 1)))
+    saturate(var(--l2-sat)) brightness(var(--l2-bright));
+  backdrop-filter: blur(calc(var(--l2-blur) * var(--l2-blur-x, 1))) saturate(var(--l2-sat))
+    brightness(var(--l2-bright));
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / var(--l2-contact)),
+    0 12px 32px -8px rgb(0 0 0 / var(--l2-drop)),
+    0 32px 80px -16px rgb(0 0 0 / var(--l2-blast)),
+    inset 0 -10px 20px -14px rgb(0 0 0 / var(--l2-pool));
+}
+
+/* The old lens annulus is gone: refraction is real now — the displacement filter bends
+   the backdrop at the bezel, inside the same filter chain as the blur. */
+
+/* The refracting chains are INJECTED at runtime with params-keyed filter ids (see
+   RefractionDefs): Chrome resolves url(#) references once, so a static chain here would
+   go dead on the first slider change and never recover. */
+
+/* The toolbar's pill geometry gets its own map. It USED to pin its own clear-glass
+   recipe; that pin died the day the pill became a materials specimen (Kushagra
+   2026-08-15: one pill per material) — the ladder is the point now, and the global
+   frost dial at 20% keeps even thick clear enough to bend. */
+
+/* The rim: 1px of gradient light. Wakes under the pointer. */
+.l2-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--l2-rim-grad);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: var(--l2-spec, 0.92);
+  transition: opacity 240ms ease;
+}
+@media (hover: hover) {
+  .l2-glass:hover::after {
+    opacity: min(1, calc(var(--l2-spec, 0.92) + 0.08));
+  }
+}
+
+/* ── The light's palette (light mode) ── */
+
+.l2-panel {
+  --l2-pool: 0.06;
+  --l2-rim-grad: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.95),
+    rgb(240 248 255 / 0.34) 28%,
+    rgb(255 255 255 / 0.1) 58%,
+    rgb(255 250 240 / 0.42)
+  );
+}
+.l2 [data-appearance="dark"] .l2-panel {
+  --l2-pool: 0.18;
+  --l2-rim-grad: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.34),
+    rgb(210 230 255 / 0.1) 30%,
+    rgb(255 255 255 / 0.04) 60%,
+    rgb(255 245 235 / 0.12)
+  );
+}
+
+/* ── The thicknesses (light) ── */
+
+/* Every cell rides a --l2s-* dial (surface material, per-MODE: each panel carries its own
+   values, so light and dark are tuned independently — Kushagra 2026-08-14). Default 1 =
+   the recipe as designed. */
+.l2-thin {
+  --l2-veil: color-mix(
+    in srgb,
+    var(--color-surface) calc(min(40 * var(--l2s-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-blur: calc(12px * var(--l2s-blur, 1));
+  --l2-sat: calc(1.5 * var(--l2s-sat, 1));
+  --l2-bright: 1.03;
+  --l2-sheen: calc(16 * var(--l2s-sheen, 1));
+  --l2-contact: 0.06;
+  --l2-drop: 0.07;
+  --l2-blast: 0.06;
+}
+.l2-regular {
+  --l2-veil: color-mix(
+    in srgb,
+    var(--color-surface) calc(min(58 * var(--l2s-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-blur: calc(20px * var(--l2s-blur, 1));
+  --l2-sat: calc(1.8 * var(--l2s-sat, 1));
+  --l2-bright: 1.05;
+  --l2-sheen: calc(24 * var(--l2s-sheen, 1));
+  --l2-contact: 0.08;
+  --l2-drop: 0.09;
+  --l2-blast: 0.08;
+}
+.l2-thick {
+  --l2-veil: color-mix(
+    in srgb,
+    var(--color-surface) calc(min(76 * var(--l2s-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-blur: calc(28px * var(--l2s-blur, 1));
+  --l2-sat: calc(2.1 * var(--l2s-sat, 1));
+  --l2-bright: 1.06;
+  --l2-sheen: calc(30 * var(--l2s-sheen, 1));
+  --l2-contact: 0.09;
+  --l2-drop: 0.1;
+  --l2-blast: 0.1;
+  /* Deep glass splits light: spectral stops fold into the rim itself. */
+  --l2-rim-grad: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.97),
+    rgb(255 190 170 / 0.4) 18%,
+    rgb(170 205 255 / 0.34) 34%,
+    rgb(255 255 255 / 0.1) 60%,
+    rgb(255 246 235 / 0.46)
+  );
+}
+
+/* ── Dark: glass subtracts ── */
+
+.l2 [data-appearance="dark"] .l2-thin {
+  --l2-veil: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-surface) 75%, black) calc(min(55 * var(--l2s-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-sat: calc(1.35 * var(--l2s-sat, 1));
+  --l2-bright: 0.92;
+  --l2-sheen: calc(5 * var(--l2s-sheen, 1));
+  --l2-contact: 0.3;
+  --l2-drop: 0.28;
+  --l2-blast: 0.26;
+}
+.l2 [data-appearance="dark"] .l2-regular {
+  --l2-veil: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-surface) 75%, black) calc(min(70 * var(--l2s-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-sat: calc(1.5 * var(--l2s-sat, 1));
+  --l2-bright: 0.9;
+  --l2-sheen: calc(7 * var(--l2s-sheen, 1));
+  --l2-contact: 0.35;
+  --l2-drop: 0.32;
+  --l2-blast: 0.3;
+}
+.l2 [data-appearance="dark"] .l2-thick {
+  --l2-veil: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-surface) 75%, black) calc(min(84 * var(--l2s-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-sat: calc(1.6 * var(--l2s-sat, 1));
+  --l2-bright: 0.88;
+  --l2-sheen: calc(9 * var(--l2s-sheen, 1));
+  --l2-contact: 0.4;
+  --l2-drop: 0.36;
+  --l2-blast: 0.34;
+}
+
+/* ── Solid: matte per the lock — with tooth ── */
+
+.l2-solid {
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.03 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+    linear-gradient(180deg, rgb(255 255 255 / 0.3), transparent 55%),
+    var(--color-surface);
+  background-size:
+    160px 160px,
+    auto,
+    auto;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.1),
+    0 24px 64px -12px rgb(0 0 0 / 0.11),
+    inset 0 -1px 0 rgb(0 0 0 / 0.15);
+}
+.l2 [data-appearance="dark"] .l2-solid {
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.02 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+    linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 55%),
+    var(--color-surface);
+  background-size:
+    160px 160px,
+    auto,
+    auto;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 24px 64px -12px rgb(0 0 0 / 0.45);
+}
+
+/* ── Tinted glass ── */
+
+.l2-tint {
+  --color-text: white;
+  --color-text-muted: rgb(255 255 255 / 0.82);
+  --color-text-faint: rgb(255 255 255 / 0.6);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.16);
+}
+.l2-tint-blue {
+  --l2-veil: color-mix(in srgb, var(--blue-9) 48%, transparent);
+}
+.l2-tint-green {
+  --l2-veil: color-mix(in srgb, var(--green-9) 48%, transparent);
+}
+.l2-tint-orange {
+  --l2-veil: color-mix(in srgb, var(--orange-9) 48%, transparent);
+}
+
+/* ── Scenes ── */
+
+.l2-hero {
+  background-image: url(/backdrop.jpg);
+  background-size: 170% auto;
+  background-position: 0% 45%;
+  animation: l2-pan 60s ease-in-out infinite alternate;
+  padding: var(--layout-space-8);
+  display: flex;
+  gap: var(--layout-space-5);
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+@keyframes l2-pan {
+  to {
+    background-position: 100% 55%;
+  }
+}
+
+.l2-scene {
+  position: relative;
+  overflow: hidden;
+  padding-block: var(--layout-space-8);
+  background: var(--l2-page);
+}
+.l2-track {
+  display: flex;
+  gap: var(--layout-space-4);
+  width: max-content;
+  animation: l2-slide 30s linear infinite;
+}
+.l2-tile {
+  width: 200px;
+  height: 132px;
+  border-radius: var(--radius-surface-2);
+  flex: none;
+  /* Detail for the glass to bend: refraction is invisible over a smooth gradient. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(255 255 255 / 0.92);
+  font-size: 52px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+@keyframes l2-slide {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.l2-toolbar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: var(--layout-space-2);
+  align-items: center;
+  justify-content: center;
+  padding: var(--layout-space-2);
+  border-radius: 999px;
+  /* Fixed pill: the refraction map is built for this box. */
+  width: 330px;
+  height: 56px;
+  box-sizing: border-box;
+  flex: none;
+}
+
+/* The checker: hard edges every 32px — the bend, isolated. */
+.l2-checker {
+  position: relative;
+  height: 240px;
+  background: repeating-conic-gradient(var(--neutral-7) 0% 25%, var(--color-surface) 0% 50%);
+  background-size: 32px 32px;
+}
+
+/* The grid: graph-paper squares — the bend shows as lines curving at the bezel. */
+.l2-grid {
+  position: relative;
+  height: 280px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--neutral-5) 0 1px, transparent 1px 20px),
+    repeating-linear-gradient(180deg, var(--neutral-5) 0 1px, transparent 1px 20px);
+  background-color: var(--neutral-1);
+}
+
+.l2-calm {
+  background: var(--l2-page);
+  display: flex;
+  gap: var(--layout-space-5);
+  padding: var(--layout-space-8);
+  flex-wrap: wrap;
+}
+
+.l2-strip-label {
+  padding: var(--layout-space-6);
+  padding-block-end: var(--layout-space-2);
+}
+
+/* Two photographic beds (Unsplash). */
+.l2-photo-1 {
+  background-image: url("https://images.unsplash.com/photo-1743398665751-2cd5d3cc9d46?q=80&w=3432&auto=format&fit=crop");
+  background-size: cover;
+  background-position: center;
+}
+.l2-photo-2 {
+  background-image: url("https://images.unsplash.com/photo-1764621204527-dcbaf5ad81f5?q=80&w=3432&auto=format&fit=crop");
+  background-size: cover;
+  background-position: center;
+}
+
+/* The pill stack over MOVING content: the stress test's stage shape — the track absolute,
+   filling and centered, the stack in flow on top. */
+.l2-pillriver {
+  position: relative;
+  overflow: hidden;
+  background: var(--l2-page);
+  padding-block: var(--layout-space-7);
+  display: flex;
+  justify-content: center;
+}
+.l2-pillriver .l2-track {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  height: 100%;
+  align-items: center;
+}
+/* The stack is taller than a tile row — the tiles grow to the bed so every pill has
+   moving content behind it. */
+.l2-pillriver .l2-tile {
+  height: 100%;
+}
+.l2-pillriver .l2-pillstack {
+  position: relative;
+}
+
+/* A bed holding the four-material pill stack in flow (the absolute single pill stays the
+   river's). */
+.l2-pillbed {
+  height: auto;
+  padding: var(--layout-space-7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.l2-pillstack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-space-4);
+  align-items: center;
+}
+.l2-pillstack .l2-toolbar {
+  position: static;
+  transform: none;
+}
+
+/* The button rank floating over the river — the Pill's stage, worn by the whole rank. */
+.l2-btnfloat {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: var(--layout-space-3);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: var(--layout-space-6);
+}
+
+/* A checker/grid stage holding menus in flow instead of the absolute pill. */
+.l2-menubed {
+  height: auto;
+  min-height: 460px;
+  padding: var(--layout-space-8);
+  display: flex;
+  gap: var(--layout-space-5);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── The stress test: N frosted panes over moving content, with a live frame meter ── */
+
+.l2-stress {
+  position: relative;
+  overflow: hidden;
+  background: var(--neutral-2);
+  padding: var(--layout-space-6);
+}
+.l2-stress .l2-track {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  height: 100%;
+  align-items: center;
+}
+.l2-stress-grid {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--layout-space-3);
+}
+.l2-mini {
+  width: 200px;
+  min-height: 96px;
+  min-width: 0;
+  flex: none;
+  padding: var(--surface-p-2);
+  border-radius: 40px; /* ↔ mini map r=40 */
+}
+
+/* SEALED: the `layered={false}` rendering — the same veil composited statically over the
+   page color, zero backdrop readbacks. Rim, grain, sheen and shadows all stay: sealing
+   changes what the pane COSTS, not what it is. Over real layering it goes visibly opaque,
+   which is exactly the honesty the prop encodes. */
+.l2-sealed {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  --l2-veil: color-mix(in srgb, var(--color-surface) 58%, var(--neutral-2));
+}
+
+
+/* ── The menu: the REAL Menu component wearing the material ──────────────────────────────────
+   Paint only — the shipped unfurl/dissolve motion is untouched, which is the test: material
+   is dress, motion is physics, and they must compose without knowing each other.
+   Self-contained values (doubled class to win ties with the surface layer): the popup
+   portals outside .l2, so no panel variable reaches it. No refraction — the popup's box is
+   content-sized and a displacement map fits exactly one geometry. */
+
+.l2-menu.l2-menu {
+  --l2m-veil: color-mix(in srgb, var(--color-surface) 58%, transparent);
+  --l2m-blur: 16px;
+  --l2m-sat: 1.8;
+  --l2m-bright: 1.05;
+  position: relative;
+  border-color: transparent;
+  /* The card family's shape: deep corner, continuous curve. The extra depth (vs the old
+     32) is what makes the squircle read as one — the keyword needs radius to show. */
+  border-radius: 40px;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+    radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 0.3), transparent 55%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.22), transparent 45%),
+    var(--l2m-veil);
+  background-size:
+    160px 160px,
+    auto,
+    auto,
+    auto;
+  -webkit-backdrop-filter: blur(calc(var(--l2m-blur) * var(--l2-blur-x, 1)))
+    saturate(var(--l2m-sat)) brightness(var(--l2m-bright));
+  backdrop-filter: blur(calc(var(--l2m-blur) * var(--l2-blur-x, 1))) saturate(var(--l2m-sat))
+    brightness(var(--l2m-bright));
+  /* The card's anatomy scaled to the menu's box (same layers, ~0.7 the reach, lighter
+     blast): a smaller caster owes a smaller shadow, or it reads swollen. */
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.08),
+    0 8px 22px -6px rgb(0 0 0 / 0.08),
+    0 18px 48px -14px rgb(0 0 0 / 0.06),
+    inset 0 -8px 16px -12px rgb(0 0 0 / 0.05);
+}
+@supports (corner-shape: squircle) {
+  .l2-menu.l2-menu,
+  .l2-menu.l2-menu::after {
+    corner-shape: squircle;
+  }
+}
+
+/* The thicknesses — same recipe, the theme's per-material numbers. */
+.l2-menu-thin.l2-menu-thin {
+  --l2m-veil: color-mix(in srgb, var(--color-surface) 40%, transparent);
+  --l2m-blur: 12px;
+  --l2m-sat: 1.5;
+}
+.l2-menu-thick.l2-menu-thick {
+  --l2m-veil: color-mix(in srgb, var(--color-surface) 76%, transparent);
+  --l2m-blur: 28px;
+  --l2m-sat: 2.1;
+}
+/* Solid: matte per the lock — opaque, no filter, no rim, shade instead. */
+.l2-menu-solid.l2-menu-solid {
+  --l2m-veil: var(--color-surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.1),
+    0 8px 22px -6px rgb(0 0 0 / 0.09),
+    0 18px 48px -14px rgb(0 0 0 / 0.07),
+    inset 0 -1px 0 rgb(0 0 0 / 0.15);
+}
+.l2-menu-solid.l2-menu-solid::after {
+  content: none;
+}
+.l2-menu.l2-menu::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.95),
+    rgb(240 248 255 / 0.34) 28%,
+    rgb(255 255 255 / 0.1) 58%,
+    rgb(255 250 240 / 0.42)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  /* A menu is small and dense — the card's full flare reads as costume on it (Kushagra
+     2026-08-14). Same rim, at 60%: jewelry, not headline. */
+  opacity: calc(var(--l2-spec, 0.92) * 0.6);
+}
+
+/* Dark FLOATING panes lighten, they don't subtract (the system's own rule: in dark,
+   height is lightness — and macOS dark menus do the same): the veil lifts toward white. */
+[data-appearance="dark"] .l2-menu.l2-menu {
+  --l2m-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 62%, transparent);
+  --l2m-sat: 1.5;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.3),
+    0 8px 22px -6px rgb(0 0 0 / 0.26),
+    0 18px 48px -14px rgb(0 0 0 / 0.2),
+    inset 0 -8px 16px -12px rgb(0 0 0 / 0.14);
+}
+[data-appearance="dark"] .l2-menu-thin.l2-menu-thin {
+  --l2m-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 46%, transparent);
+}
+[data-appearance="dark"] .l2-menu-thick.l2-menu-thick {
+  --l2m-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 78%, transparent);
+}
+[data-appearance="dark"] .l2-menu-solid.l2-menu-solid {
+  --l2m-veil: var(--color-surface);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 8px 22px -6px rgb(0 0 0 / 0.3),
+    0 18px 48px -14px rgb(0 0 0 / 0.22);
+}
+[data-appearance="dark"] .l2-menu.l2-menu::after {
+  background: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.34),
+    rgb(210 230 255 / 0.1) 30%,
+    rgb(255 255 255 / 0.04) 60%,
+    rgb(255 245 235 / 0.12)
+  );
+}
+
+/* ── "More" motion for the lab menus (2026-08-14): the shipped mechanism untouched — only
+   the TIMES and the SPRING move. Longer fall and spread, and a livelier curve (lower
+   damping: ~9% overshoot with a second visible settle, vs the shipped one-crossing
+   spring). Judged here first; if it wins, the values move to config's motion block. */
+.l2-menu.l2-menu {
+  /* The seed's height only — the panel starts as a sliver and falls open; width unchanged. */
+  --kui-seed-h: 10px;
+  --floating-fall: 460ms;
+  --floating-spread: 680ms;
+  --floating-corner: 560ms;
+  --floating-reveal: 260ms;
+  --floating-reveal-delay: 60ms;
+  --motion-spring: linear(
+    0,
+    0.058 3.33%,
+    0.21 6.67%,
+    0.412 10%,
+    0.622 13.33%,
+    0.812 16.67%,
+    0.965 20%,
+    1.077 23.33%,
+    1.148 26.67%,
+    1.184 30%,
+    1.19 33.33%,
+    1.174 36.67%,
+    1.143 40%,
+    1.103 43.33%,
+    1.061 46.67%,
+    1.022 50%,
+    0.989 53.33%,
+    0.965 56.67%,
+    0.951 60%,
+    0.945 63.33%,
+    0.948 66.67%,
+    0.957 70%,
+    0.969 73.33%,
+    0.982 76.67%,
+    0.994 80%,
+    1.003 83.33%,
+    1.008 86.67%,
+    1.01 90%,
+    1.007 93.33%,
+    1.003 96.67%,
+    1 100%
+  );
+}
+
+/* ── Buttons: the Lit rung (2026-08-14) ──────────────────────────────────────────────────────
+   Rung 2 is not a new look for Button — it is the SAME world switch the package already
+   ships (--kui-control-chrome / --kui-control-light, what Theme depth=elevated declares),
+   handed the lab's primitives instead of the shadow palette: a contact line, a diffuse
+   blast scaled to the button's box (darkness by opacity, the solid lock), a bottom shade
+   in light only, a face light where the fill can catch it. Everything else arrives from
+   the rung machinery for free: medium pins its catch to none (the fog rule), quiet
+   declares cast: none, disabled stands the whole world down. Declaring the two names IS
+   the rung. */
+.l2-lit {
+  --kui-control-light: linear-gradient(180deg, rgb(255 255 255 / 0.16), transparent 60%);
+  --kui-control-chrome:
+    0 1px 2px rgb(0 0 0 / 0.1),
+    0 8px 20px -6px rgb(0 0 0 / 0.16),
+    inset 0 -1px 0 rgb(0 0 0 / 0.12);
+}
+/* The bottom shade keys to the FILL's own darkness — inside black or red it melts into the
+   pigment, on a pale pastel it read as a drawn line (Kushagra 2026-08-14, the Options
+   button). Re-declared per element, not dialed through a var: a var() inside a custom
+   property substitutes at the DECLARING element, so a dial set on the button can never
+   reach a chrome declared on the wrapper — §6's substitution-at-declaration, measured
+   failing here before this spelling replaced it. Stated BEFORE the :active rule so the
+   press wins their specificity tie on source order. */
+.l2-lit .kui-control[data-emphasis="medium"] {
+  --kui-control-chrome:
+    0 1px 2px rgb(0 0 0 / 0.1),
+    0 8px 20px -6px rgb(0 0 0 / 0.16),
+    inset 0 -1px 0 rgb(0 0 0 / 0.04);
+}
+/* A press travels toward the page, so the blast tightens with the travel — declared on the
+   element, which beats the inherited world value with no contest. */
+.l2-lit .kui-control:active {
+  --kui-control-chrome:
+    0 1px 1px rgb(0 0 0 / 0.1),
+    0 3px 8px -3px rgb(0 0 0 / 0.14),
+    inset 0 -1px 0 rgb(0 0 0 / 0.1);
+}
+.l2 [data-appearance="dark"] .l2-lit {
+  /* Dark's lock: no bottom shade, heavier air, and a fainter catch — a near-white fill has
+     little for white light to add. */
+  --kui-control-light: linear-gradient(180deg, rgb(255 255 255 / 0.07), transparent 60%);
+  --kui-control-chrome:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 8px 20px -6px rgb(0 0 0 / 0.42);
+}
+/* Dark's medium restated on the element for the same reason light's is: the light rule
+   above lands ON the button, so dark's wrapper-declared chrome can never outrank it. Dark
+   carries no shade anyway, so this is the world value verbatim — before :active for the
+   same tie. */
+.l2 [data-appearance="dark"] .l2-lit .kui-control[data-emphasis="medium"] {
+  --kui-control-chrome:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 8px 20px -6px rgb(0 0 0 / 0.42);
+}
+.l2 [data-appearance="dark"] .l2-lit .kui-control:active {
+  --kui-control-chrome:
+    0 1px 1px rgb(0 0 0 / 0.4),
+    0 3px 8px -3px rgb(0 0 0 / 0.36);
+}
+
+/* ── Glass buttons: a control BUILT of the pane material ─────────────────────────────────────
+   Quiet's empty box given real glass — the veil, grain, blur and rim arrive with .l2-glass
+   (and the pointer light already queries that class); only the shadow anatomy is re-stated
+   here, scaled to a 32px caster. Hover is more light through the pane, not a fill step. */
+.l2-btn.l2-btn {
+  position: relative;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / var(--l2-contact)),
+    0 5px 14px -4px rgb(0 0 0 / var(--l2-drop)),
+    0 12px 30px -8px rgb(0 0 0 / var(--l2-blast)),
+    inset 0 -6px 12px -10px rgb(0 0 0 / var(--l2-pool));
+}
+
+/* Control-scale material parameters (Kushagra 2026-08-14: "control surfaces need their own
+   parameters"). A 40px pane is not a 210px card: the card's blur turns a small window to
+   mud, its veil prices milk the label ink doesn't need, its sheen is a floodlight on a
+   coin. Same ladder, re-priced for the box — the menu already did this (--l2m-*), so the
+   rule is now three for three: every family that wears the material prices it at its own
+   scale. Every number rides a --l2cm-* dial from the top bar (multipliers, default 1), so
+   the control cells are judged live like the lens was. Stated BEFORE the hover rule so
+   hover's brightness wins its tie. */
+.l2-btn.l2-btn.l2-thin {
+  --l2-veil: color-mix(
+    in srgb,
+    var(--color-surface) calc(min(30 * var(--l2cm-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-blur: calc(6px * var(--l2cm-blur, 1));
+  --l2-sat: calc(1.4 * var(--l2cm-sat, 1));
+  --l2-bright: 1.02;
+  --l2-sheen: calc(10 * var(--l2cm-sheen, 1));
+}
+.l2-btn.l2-btn.l2-regular {
+  --l2-veil: color-mix(
+    in srgb,
+    var(--color-surface) calc(min(48 * var(--l2cm-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-blur: calc(10px * var(--l2cm-blur, 1));
+  --l2-sat: calc(1.6 * var(--l2cm-sat, 1));
+  --l2-bright: 1.04;
+  --l2-sheen: calc(14 * var(--l2cm-sheen, 1));
+}
+.l2-btn.l2-btn.l2-thick {
+  --l2-veil: color-mix(
+    in srgb,
+    var(--color-surface) calc(min(66 * var(--l2cm-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-blur: calc(16px * var(--l2cm-blur, 1));
+  --l2-sat: calc(1.8 * var(--l2cm-sat, 1));
+  --l2-bright: 1.05;
+  --l2-sheen: calc(18 * var(--l2cm-sheen, 1));
+}
+/* Dark controls are in-flow content, so they subtract like the cards (floating panes are
+   the ones that lighten) — at control alphas. :where() keeps these at the LIGHT rules'
+   specificity: written plain they weighed (0,5,0) and silently beat the loud-pigment rule
+   below, which is why dark rendered no colour at all (Kushagra 2026-08-14) — order decides
+   the whole chain now: light cells → dark cells → loud. */
+:where(.l2 [data-appearance="dark"]) .l2-btn.l2-btn.l2-thin {
+  --l2-veil: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-surface) 75%, black) calc(min(48 * var(--l2cm-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-sat: calc(1.3 * var(--l2cm-sat, 1));
+  --l2-bright: 0.95;
+  --l2-sheen: calc(4 * var(--l2cm-sheen, 1));
+}
+:where(.l2 [data-appearance="dark"]) .l2-btn.l2-btn.l2-regular {
+  --l2-veil: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-surface) 75%, black) calc(min(60 * var(--l2cm-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-sat: calc(1.4 * var(--l2cm-sat, 1));
+  --l2-bright: 0.94;
+  --l2-sheen: calc(5 * var(--l2cm-sheen, 1));
+}
+:where(.l2 [data-appearance="dark"]) .l2-btn.l2-btn.l2-thick {
+  --l2-veil: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-surface) 75%, black) calc(min(74 * var(--l2cm-veil, 1), 100) * 1%),
+    transparent
+  );
+  --l2-sat: calc(1.5 * var(--l2cm-sat, 1));
+  --l2-bright: 0.92;
+  --l2-sheen: calc(6 * var(--l2cm-sheen, 1));
+}
+/* Hover on glass is LIGHT, not a fill step (Kushagra 2026-08-14: "hover mode looks
+   weird") — the package's quiet-hover was swapping the veil for a grey pastel, because a
+   button's hover steps background-color and the veil IS the background-color slot. Pinned
+   in every state: the veil holds, and hover speaks only through brightness — a smaller
+   lift in dark, where rest sits at 0.92 and the light-mode jump read as a flash. Loud's
+   hover still moves, through --l2-veil itself (the tone's own hover solid, below). */
+.l2-btn.l2-btn,
+.l2-btn.l2-btn:hover,
+.l2-btn.l2-btn:active {
+  background-color: var(--l2-veil);
+}
+@media (hover: hover) {
+  .l2-btn.l2-btn:hover {
+    --l2-bright: 1.09;
+  }
+  :where(.l2 [data-appearance="dark"]) .l2-btn.l2-btn:hover {
+    --l2-bright: 1.02;
+  }
+}
+
+/* High-emphasis glass: loud spoken THROUGH the material, not beside it. The first cut
+   (58% pigment) read WASHED on a light bed (Kushagra 2026-08-14): at 58% alpha the white
+   page supplies the other 42%, and the glass's own sheen layers pour milk on top — the
+   opposite of rank. Loud glass commits: the veil is the family's own SOLID at 88%, the
+   sheen stands nearly down, the brightness lift goes, and the label is the family's
+   contrast ink. ONE class for all ten families: the Button's own `tone` prop stamps the
+   indirection, so --tone-solid/--tone-contrast resolve per family with no per-color rule —
+   and the states step through the family's own hover/active solids, the material
+   re-deriving from the same sources the flat fill uses (§10's sentence, worn by glass). */
+.l2-btn-loud.l2-btn-loud.l2-btn-loud {
+  /* The pigment runs HOTTER than the flat solid (Kushagra 2026-08-14: "needs more
+     vibrancy"): relative color boosts the family solid's own chroma at 90% alpha —
+     backlit stained glass, not a painted button. The boost's ceiling was MEASURED, not
+     tasted: at 1.45× orange clipped out of the sRGB gamut and rendered red. Grey accent
+     is untouched by construction (chroma ~0 scales to ~0: smoke stays smoke), and the
+     backdrop glows through the remaining alpha (sat + brightness up). Both pigment dials
+     ride the top bar (--l2cm-loud-c / --l2cm-loud-a). */
+  --l2-veil: oklch(
+    from var(--tone-solid) calc(l * var(--l2cm-loud-l, 1.04)) calc(c * var(--l2cm-loud-c, 1.18)) h /
+      var(--l2cm-loud-a, 0.9)
+  );
+  --kui-ct-label-color: var(--tone-contrast);
+  --l2-sheen: 10;
+  --l2-bright: 1.1;
+  --l2-sat: 2.2;
+}
+@media (hover: hover) {
+  .l2-btn-loud.l2-btn-loud.l2-btn-loud:hover {
+    --l2-veil: oklch(
+      from var(--tone-solid-hover) calc(l * var(--l2cm-loud-l, 1.04)) calc(c * var(--l2cm-loud-c, 1.18)) h /
+        var(--l2cm-loud-a, 0.9)
+    );
+  }
+}
+.l2-btn-loud.l2-btn-loud.l2-btn-loud:active {
+  --l2-veil: oklch(
+    from var(--tone-solid-active) calc(l * var(--l2cm-loud-l, 1.04)) calc(c * var(--l2cm-loud-c, 1.18)) h /
+      var(--l2cm-loud-a, 0.9)
+  );
+}
+/* Dark's loud: the pigment formula holds (dark solids are already bright), only the milk
+   and the glow re-price. After the base rule, same weight — order is the mechanism. */
+:where(.l2 [data-appearance="dark"]) .l2-btn-loud.l2-btn-loud.l2-btn-loud {
+  --l2-sheen: 4;
+  --l2-bright: 1;
+  --l2-sat: 1.8;
+}
+
+/* Dark buttons carry MORE specular, not less (Kushagra 2026-08-15: "not enough") — a
+   small dark pane's rim is most of its evidence, and the panel's faint dark rim was
+   priced for 340px cards. Roughly double the card's dark peaks, still under light's. */
+:where(.l2 [data-appearance="dark"]) .l2-btn.l2-btn {
+  --l2-rim-grad: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.72),
+    rgb(210 230 255 / 0.22) 30%,
+    rgb(255 255 255 / 0.08) 60%,
+    rgb(255 245 235 / 0.3)
+  );
+}
+
+/* Apple's green, tried on (Kushagra 2026-08-15: the generated green is "too weird") — a
+   lab override on the tone indirection, judged HERE before any config change: iOS
+   systemGreen, light #34C759 / dark #30D158, states stepping the way dark steps (up).
+   If it wins, the real fix is green's config recipe (hue ~149, vividness eased), not a
+   pinned hex — the amber precedent. */
+.l2 .l2-btn-loud[data-tone="green"],
+.l2 .l2-btn-loud[data-tone="success"] {
+  --tone-solid: #34c759;
+  --tone-solid-hover: #2fb350;
+  --tone-solid-active: #2aa048;
+  /* A PICKED colour mostly IS the answer — the full vibrancy boost re-weirded it
+     (measured: ×1.6 chroma pushed Apple's green straight back to neon). A whisper stays
+     (Kushagra 2026-08-15: "could be vibrant, just a bit"), element-declared so it beats
+     the panel's dials. Success rides along — it shares green's hue by §7's design, so it
+     takes the new pigment the way it would take the config recipe. */
+  /* Light leans on chroma, not lightness — lifting L on a white bed is what "dull" is
+     (Kushagra 2026-08-15). */
+  --l2cm-loud-c: 1.18;
+  --l2cm-loud-l: 1;
+}
+.l2 [data-appearance="dark"] .l2-btn-loud[data-tone="green"],
+.l2 [data-appearance="dark"] .l2-btn-loud[data-tone="success"] {
+  --tone-solid: #30d158;
+  --tone-solid-hover: #38da60;
+  --tone-solid-active: #40e368;
+  --l2cm-loud-c: 1.08;
+  --l2cm-loud-l: 1.02;
+}
+
+/* ── The dialog: three materials over ONE scrim (2026-08-15). The scrim is the app losing
+   light and focus as the dialog takes the nearest plane — a statement about the APP's
+   condition, so it does not vary with the pane's construction (the per-material scrim
+   ladder was built first and refuted the same day: readability is the pane's veil's job,
+   and material-as-theme-identity means the ladder could never express in a real app).
+   §24's shipped rule holds — the scrim IS the separation, the pane casts nothing.
+   Self-contained values (the popup portals outside .l2); --l2-blur-x and --l2-spec reach
+   it from <html>. */
+.l2-dlg.l2-dlg {
+  --l2d-veil: color-mix(in srgb, var(--color-surface) 58%, transparent);
+  --l2d-blur: 20px;
+  --l2d-sat: 1.8;
+  position: relative;
+  border-color: transparent;
+  border-radius: 48px;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+    radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 0.3), transparent 55%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.22), transparent 45%),
+    var(--l2d-veil);
+  background-size:
+    160px 160px,
+    auto,
+    auto,
+    auto;
+  -webkit-backdrop-filter: blur(calc(var(--l2d-blur) * var(--l2-blur-x, 1)))
+    saturate(var(--l2d-sat));
+  backdrop-filter: blur(calc(var(--l2d-blur) * var(--l2-blur-x, 1))) saturate(var(--l2d-sat));
+  /* The scrim is the separation: no cast (§24, held on purpose). */
+  box-shadow: none;
+}
+@supports (corner-shape: squircle) {
+  .l2-dlg.l2-dlg,
+  .l2-dlg.l2-dlg::after {
+    corner-shape: squircle;
+  }
+}
+.l2-dlg-thin.l2-dlg-thin {
+  --l2d-veil: color-mix(in srgb, var(--color-surface) 40%, transparent);
+  --l2d-blur: 12px;
+  --l2d-sat: 1.5;
+}
+/* Thick is the dialog's likely shipping material (Kushagra 2026-08-15), so it must READ
+   thick — and thickness is what happens to light INSIDE the pane: deeper blur, a heavier
+   veil, harder saturation pull, a 2px rim that splits into spectral stops (deep glass
+   disperses — the card's thick rim's own sentence), and an inner pool at the bottom
+   curve. All inside the pane: the outer cast stays none, §24 intact. */
+.l2-dlg-thick.l2-dlg-thick {
+  /* Thick glass is not WHITER, it is GREYER (Kushagra 2026-08-15: the colour read too
+     light) — depth tints the body, so the milk carries 7% black and a notch less alpha,
+     letting the backdrop's colour weigh in while the 36px blur keeps the read protected. */
+  --l2d-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 93%, black) 72%, transparent);
+  --l2d-blur: 36px;
+  --l2d-sat: 2.3;
+  box-shadow: inset 0 -16px 32px -20px rgb(0 0 0 / 0.14);
+}
+.l2-dlg-thick.l2-dlg-thick::after {
+  padding: 2px;
+  background: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.97),
+    rgb(255 190 170 / 0.4) 18%,
+    rgb(170 205 255 / 0.34) 34%,
+    rgb(255 255 255 / 0.1) 60%,
+    rgb(255 246 235 / 0.46)
+  );
+}
+/* The rim: the menu's, dialog-sized. */
+.l2-dlg.l2-dlg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.95),
+    rgb(240 248 255 / 0.34) 28%,
+    rgb(255 255 255 / 0.1) 58%,
+    rgb(255 250 240 / 0.42)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: var(--l2-spec, 0.92);
+}
+/* Dark: a dialog is the highest FLOATING pane there is — it lightens (the menu's rule). */
+[data-appearance="dark"] .l2-dlg.l2-dlg {
+  --l2d-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 62%, transparent);
+  --l2d-sat: 1.5;
+}
+[data-appearance="dark"] .l2-dlg-thin.l2-dlg-thin {
+  --l2d-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 46%, transparent);
+}
+[data-appearance="dark"] .l2-dlg-thick.l2-dlg-thick {
+  --l2d-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) 82%, transparent);
+  box-shadow: inset 0 -16px 32px -20px rgb(0 0 0 / 0.28);
+}
+[data-appearance="dark"] .l2-dlg-thick.l2-dlg-thick::after {
+  background: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.44),
+    rgb(255 200 180 / 0.14) 18%,
+    rgb(180 210 255 / 0.12) 34%,
+    rgb(255 255 255 / 0.05) 60%,
+    rgb(255 245 235 / 0.16)
+  );
+}
+[data-appearance="dark"] .l2-dlg.l2-dlg::after {
+  background: linear-gradient(
+    var(--l2-light-angle, 165deg),
+    rgb(255 255 255 / 0.34),
+    rgb(210 230 255 / 0.1) 30%,
+    rgb(255 255 255 / 0.04) 60%,
+    rgb(255 245 235 / 0.12)
+  );
+}
+
+/* The scrim ladder — keyed off the open pane via :has() on the portal's theme wrapper
+   (backdrop and popup are siblings inside it; one dialog opens at a time). The package's
+   own hooks (--scrim-fill / --scrim-filter) take the values, so the high-contrast and
+   reduced-transparency arms keep their shipped behavior. */
+/* ONE scrim per mode (Kushagra 2026-08-15: "the scrim should stay the same, no?" — yes,
+   and for structure, not taste: the scrim states the APP's condition — pushed back,
+   unavailable — not the dialog's construction, and since material is a theme identity a
+   per-material ladder could never express in a real app anyway. Readability is the PANE's
+   job; the veil is exactly that. The per-material ladder is LOG-worthy as the refuted
+   alternative). Pigment is the only darkness — brightness stays 1; blur and desaturation
+   carry the recession. */
+.kui-theme:has(.l2-dlg) .kui-dialog-backdrop {
+  --scrim-fill: rgb(0 0 0 / 0.18);
+  --scrim-filter: blur(8px) saturate(0.8);
+}
+/* Dark leans harder — black over black needs more to read as recession. */
+[data-appearance="dark"].kui-theme:has(.l2-dlg) .kui-dialog-backdrop,
+[data-appearance="dark"] .kui-theme:has(.l2-dlg) .kui-dialog-backdrop {
+  --scrim-fill: rgb(0 0 0 / 0.32);
+  --scrim-filter: blur(8px) saturate(0.8) brightness(0.9);
+}
+
+/* Stillness is a request the whole page honors. */
+@media (prefers-reduced-motion: reduce) {
+  .l2-hero,
+  .l2-track {
+    animation: none;
+  }
+  .l2-card,
+  .l2-glass::after {
+    transition: none;
+  }
+  .l2-card:hover {
+    transform: none;
+  }
+}

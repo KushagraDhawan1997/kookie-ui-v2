@@ -1,0 +1,196 @@
+/* ── Lab 3 — the LOCKED Stacked recipe, in lab 2's scenes. SCRATCH, never shipped. ──────────
+   Nothing invented here: this is lab 1's lock of 2026-08-14, verbatim, so it can be judged
+   against lab 2's free-reign recipe in identical scenes.
+
+   Light: ring 100% white all around (+35% top boost), bottom shade 15%, contact 10%,
+   face light 30%. Dark: ring 15%, no shade, contact 10%, face light 10%.
+   Veils: light 45/60/85 of surface; dark 55/72/90 of a pigment 20% toward black.
+   Blurs 10/16/24. Diffuse blast 0 24px 64px -12px, darkness by opacity (5/7/9/11%).
+   Solid: matte — no ring, shade + contact + face light only. */
+
+.l3 {
+  min-height: 100dvh;
+  background: var(--neutral-1);
+}
+
+.l3-panel {
+  --l3-page: var(--neutral-2);
+  background: var(--l3-page);
+  padding-block-end: var(--layout-space-8);
+}
+.l3 [data-appearance="dark"] .l3-panel {
+  --l3-page: var(--neutral-1);
+}
+
+/* ── The card box ── */
+
+.l3-card {
+  position: relative;
+  box-sizing: border-box;
+  border-radius: var(--radius-surface-4);
+  padding: var(--surface-p-3);
+  color: var(--color-text);
+  min-width: 240px;
+  flex: 1;
+}
+
+/* ── The locked edge, spelled once ── */
+
+.l3-panel {
+  --l3-ring: 1; /* 100% white, all around */
+  --l3-shade: 0.15;
+  --l3-face: 0.3;
+  --l3-contact: 0.1;
+}
+.l3 [data-appearance="dark"] .l3-panel {
+  --l3-ring: 0.15;
+  --l3-shade: 0;
+  --l3-face: 0.1;
+}
+
+.l3-glass {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / var(--l3-face)), transparent 55%),
+    var(--l3-veil);
+  -webkit-backdrop-filter: blur(var(--l3-blur));
+  backdrop-filter: blur(var(--l3-blur));
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / var(--l3-contact)),
+    0 24px 64px -12px rgb(0 0 0 / var(--l3-cast-a)),
+    inset 0 0 0 1px rgb(255 255 255 / var(--l3-ring)),
+    inset 0 1px 0 0 rgb(255 255 255 / calc(var(--l3-ring) * 0.35)),
+    inset 0 -1px 0 0 rgb(0 0 0 / var(--l3-shade));
+}
+
+/* ── The thicknesses ── */
+
+.l3-thin {
+  --l3-veil: color-mix(in srgb, var(--color-surface) 45%, transparent);
+  --l3-blur: 10px;
+  --l3-cast-a: 0.05;
+}
+.l3-regular {
+  --l3-veil: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  --l3-blur: 16px;
+  --l3-cast-a: 0.07;
+}
+.l3-thick {
+  --l3-veil: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  --l3-blur: 24px;
+  --l3-cast-a: 0.09;
+}
+
+.l3 [data-appearance="dark"] .l3-thin {
+  --l3-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 80%, black) 55%, transparent);
+}
+.l3 [data-appearance="dark"] .l3-regular {
+  --l3-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 80%, black) 72%, transparent);
+}
+.l3 [data-appearance="dark"] .l3-thick {
+  --l3-veil: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 80%, black) 90%, transparent);
+}
+
+/* ── Solid: matte per the lock ── */
+
+.l3-solid {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / var(--l3-face)), transparent 55%),
+    var(--color-surface);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / var(--l3-contact)),
+    0 24px 64px -12px rgb(0 0 0 / 0.11),
+    inset 0 -1px 0 rgb(0 0 0 / var(--l3-shade));
+}
+
+/* ── Tinted glass (scene parity; the veil carries a tone, roles re-scope) ── */
+
+.l3-tint {
+  --color-text: white;
+  --color-text-muted: rgb(255 255 255 / 0.82);
+  --color-text-faint: rgb(255 255 255 / 0.6);
+}
+.l3-tint-blue {
+  --l3-veil: color-mix(in srgb, var(--blue-9) 48%, transparent);
+}
+.l3-tint-green {
+  --l3-veil: color-mix(in srgb, var(--green-9) 48%, transparent);
+}
+.l3-tint-orange {
+  --l3-veil: color-mix(in srgb, var(--orange-9) 48%, transparent);
+}
+
+/* ── Scenes (identical to lab 2) ── */
+
+.l3-hero {
+  background-image: url(/backdrop.jpg);
+  background-size: 170% auto;
+  background-position: 0% 45%;
+  animation: l3-pan 60s ease-in-out infinite alternate;
+  padding: var(--layout-space-8);
+  display: flex;
+  gap: var(--layout-space-5);
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+@keyframes l3-pan {
+  to {
+    background-position: 100% 55%;
+  }
+}
+
+.l3-scene {
+  position: relative;
+  overflow: hidden;
+  padding-block: var(--layout-space-8);
+  background: var(--l3-page);
+}
+.l3-track {
+  display: flex;
+  gap: var(--layout-space-4);
+  width: max-content;
+  animation: l3-slide 30s linear infinite;
+}
+.l3-tile {
+  width: 200px;
+  height: 132px;
+  border-radius: var(--radius-surface-2);
+  flex: none;
+}
+@keyframes l3-slide {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.l3-toolbar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: var(--layout-space-2);
+  align-items: center;
+  padding: var(--layout-space-2);
+  border-radius: var(--radius-surface-4);
+  min-width: 0;
+  flex: none;
+}
+
+.l3-calm {
+  background: var(--l3-page);
+  display: flex;
+  gap: var(--layout-space-5);
+  padding: var(--layout-space-8);
+  flex-wrap: wrap;
+}
+
+.l3-strip-label {
+  padding: var(--layout-space-6);
+  padding-block-end: var(--layout-space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l3-hero,
+  .l3-track {
+    animation: none;
+  }
+}

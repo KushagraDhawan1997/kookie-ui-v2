@@ -1,0 +1,239 @@
+/* ── The solid-material lab — a SCRATCH surface, never shipped ────────────────────────────────
+   Hand CSS on purpose: this route exists to find the numbers for solid's lit treatment
+   (face / edge / cast) before they become config. Nothing here may be imported by the
+   package; when the recipe settles, the winners move into config.ts and this file dies.
+
+   The proposal under judgment:
+   - face: the pigment, with an optional whisper of top light (gradient overlay)
+   - edge: derived from the FILL — top inner rim toward light, bottom inner rim toward
+     shadow, and a ring that is the fill nudged toward ink (never a global grey)
+   - cast: the depth rung's grant — rung 0 none (drawn world), rung 1 none for a resting
+     card (edge works hardest), rung 2 the surface shadow row
+*/
+
+.lab {
+  min-height: 100dvh;
+  background: var(--neutral-1);
+}
+
+/* Each panel paints its own page ground, so the dark half is actually dark.
+
+   THE RULE (2026-08-13/14, Kushagra): a lit world's light page sits one step below the
+   surface — neutral-2 — the same value gap dark mode has by construction. A resting card
+   is visible because the world committed to the gap, not because the card shouts. */
+.lab-panel {
+  --lab-page: var(--neutral-2);
+  background: var(--lab-page);
+  padding-block-end: var(--layout-space-8);
+}
+.lab [data-appearance="dark"] .lab-panel {
+  --lab-page: var(--neutral-1);
+}
+
+.lab-controls {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+/* A strip is one bed: a row of cells sitting on one background. */
+.lab-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: var(--layout-space-5);
+  padding: var(--layout-space-6);
+  align-items: start;
+}
+
+.lab-bed-page {
+  background: var(--lab-page);
+}
+.lab-bed-white {
+  background: var(--color-surface);
+}
+.lab-bed-tint {
+  background: var(--orange-3);
+}
+
+/* ── The card under judgment ── */
+
+.lab-card {
+  /* What the sliders wrote, unless a rung overrides. */
+  --lab-fill: var(--color-surface);
+  --lab-lite: white;
+  --lab-shade: black;
+  --lab-occ-ink: black;
+  --lab-cast: 0 0 0 0 transparent;
+  --lab-top: var(--lab-top-b);
+  --lab-bot: var(--lab-bot-b);
+  --lab-occ: var(--lab-ring-b);
+  --lab-grad: var(--lab-grad-b);
+
+  box-sizing: border-box;
+  border-radius: var(--radius-surface-3);
+  padding: var(--surface-p-3);
+  color: var(--color-text);
+
+  /* Face: the pigment, lit from above. The gradient is an overlay so it composes with any
+     fill — a tinted card catches the same light. */
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--lab-lite) calc(var(--lab-grad) * 1%), transparent),
+      transparent 55%
+    ),
+    var(--lab-fill);
+
+  /* The edge is a SANDWICH (the Liquid Glass lesson, 2026-08-12): a bright rim on the
+     INSIDE of the boundary — light catching the curve, full ring at half strength, top
+     edge at full — and a whisper-faint dark line on the OUTSIDE. The outer dark is not
+     ink: it is occlusion, light failing at the seam where the object meets the world, so
+     it belongs in the lit rungs too. On a white bed the occlusion and the cast define the
+     card; the white rim comes alive on glass, on tint and in dark. */
+  border: none;
+  /* Occlusion is a SHADOW, not a stroke (the second Liquid Glass lesson, 2026-08-12): a
+     hard dark ring reads as ink whatever we call it. The contact is soft — the card
+     touching the page — and only rung 0 replaces it with a stated line. */
+  --lab-contact: 0 1px 2px 0
+    color-mix(in oklab, var(--lab-shade) calc(var(--lab-occ) * 1%), transparent);
+  /* The glass rim is ALL AROUND (2026-08-14, from the macOS sidebar): a slab's edge is lit
+     from within — light leaks out the whole border — so the ring carries the full slider
+     and the top boost is a light extra, not the main event. */
+  /* The diffuse blast (2026-08-14, corrected same day): its SPREAD is height's — a wide
+     soft penumbra means far from the ground — and its DARKNESS is the material's, because
+     opacity is how much light got blocked. Every material casts the same shape at the same
+     height; solid just casts it darkest. */
+  --lab-diffuse: 0 24px 64px -12px rgb(0 0 0 / var(--lab-cast-a, 0.11));
+  box-shadow:
+    var(--lab-cast),
+    var(--lab-contact),
+    var(--lab-diffuse, 0 0 0 0 transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--lab-lite) calc(var(--lab-top) * 1%), transparent),
+    inset 0 1px 0 0 color-mix(in oklab, var(--lab-lite) calc(var(--lab-top) * 0.35%), transparent),
+    inset 0 -1px 0 0 color-mix(in oklab, var(--lab-shade) calc(var(--lab-bot) * 1%), transparent);
+}
+
+/* ── The depth rungs ── */
+
+/* Rung 0 — the drawn world. No light: no rim, no gradient, no cast, no shade. The soft
+   contact is replaced by a stated LINE — ink, the only voice. Dark's ink is light,
+   because dark-mode hairlines sit above their fill. */
+.lab-r0 {
+  --lab-top: 0;
+  --lab-bot: 0;
+  --lab-grad: 0;
+  --lab-contact: 0 0 0 1px
+    color-mix(
+      in oklab,
+      var(--lab-occ-ink) clamp(0%, calc(var(--lab-ring-b) * 1.8%), 100%),
+      transparent
+    );
+}
+.lab [data-appearance="dark"] .lab-r0 {
+  --lab-occ-ink: white;
+}
+
+/* Rung 1 — a resting card TOUCHES the page: the contact half only, no lift. */
+.lab-r1 {
+}
+
+/* Rung 2 — CONTROLS join the lit world (corrected 2026-08-12, Kushagra: the rungs add
+   members, not drama). A resting card is unchanged from rung 1 — its column differs only
+   in the button inside it, which the page stamps with a nested elevated theme. */
+.lab-r2 {
+}
+
+/* A taller body: the same treatments judged on a card with real weight. */
+.lab-tall {
+  min-block-size: 220px;
+}
+
+/* ── Materials: the SAME edge recipe, light let through (§10 rethought) ──────────────────────
+   The claim under test: solid's lit treatment is the one treatment — a glass card is the
+   same card whose fill transmits. The sliders drive these cells too; nothing here has its
+   own edge system. Veils and blurs are v0 hand guesses, stated per thickness. */
+
+/* THE image — the same backdrop.jpg every other judging surface uses. */
+.lab-bed-backdrop {
+  background-image: url(/backdrop.jpg);
+  background-size: cover;
+  background-position: center;
+}
+
+.lab-m-solid {
+  --lab-cast-a: 0.11;
+  /* Solid is MATTE (Kushagra 2026-08-13): no rim. The shine belongs to glass — a surface
+     light passes through has a boundary light catches; a matte face has contact, shade
+     and cast alone. This also retires the headroom question for solid. */
+  --lab-top: 0;
+}
+.lab-glass {
+  -webkit-backdrop-filter: blur(var(--lab-blur));
+  backdrop-filter: blur(var(--lab-blur));
+}
+.lab-m-thin {
+  --lab-fill: color-mix(in srgb, var(--color-surface) 45%, transparent);
+  --lab-blur: 10px;
+  --lab-cast-a: 0.05;
+}
+.lab-m-regular {
+  --lab-fill: color-mix(in srgb, var(--color-surface) 60%, transparent);
+  --lab-blur: 16px;
+  --lab-cast-a: 0.07;
+}
+.lab-m-thick {
+  --lab-fill: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  --lab-blur: 24px;
+  --lab-cast-a: 0.09;
+}
+
+/* Dark glass carries more pigment (2026-08-14, Kushagra: regular reads too light): a dark
+   veil over bright content lets the brightness through and greys the pane up, so every
+   dark thickness steps its veil up. */
+.lab [data-appearance="dark"] .lab-m-thin {
+  --lab-fill: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-surface) 80%, black) 55%,
+    transparent
+  );
+}
+.lab [data-appearance="dark"] .lab-m-regular {
+  --lab-fill: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-surface) 80%, black) 72%,
+    transparent
+  );
+}
+.lab [data-appearance="dark"] .lab-m-thick {
+  --lab-fill: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-surface) 80%, black) 90%,
+    transparent
+  );
+}
+
+/* No rung-2 rule for a resting card: the rungs add MEMBERS, not drama — a card's paint
+   stops changing after rung 1, and rung 2's difference is the lifted buttons inside it.
+   The floating pane's cast-follows-opacity story waits for a menu, its real subject. */
+
+/* Rung 0: seeing through is stacking evidence, and the drawn world shows none — every
+   glass resolves to its own solid, byte-identical, so dropping the blur is free. */
+.lab .lab-mat.lab-r0 {
+  --lab-fill: var(--color-surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  /* Sealed glass stops transmitting, so it stops diffusing too. */
+  --lab-diffuse: 0 0 0 0 transparent;
+}
+
+/* ── The tinted card: same recipe, its own fill ── */
+
+.lab-tinted {
+  --lab-fill: var(--orange-solid);
+  color: white;
+}
+.lab-tinted .lab-muted {
+  color: rgb(255 255 255 / 0.75);
+}

@@ -76,7 +76,9 @@ describe("a page-shaped route gets the page chrome — including the one Next re
     // The structural half, because the two laws above can only check the routes they import.
     // A new page added outside the group silently opts out of the chrome, which is a decision
     // (/preview owns its viewport on purpose) — so it is allowed, and it has to be listed.
-    const BARE = new Set(["preview"]);
+    // "lab" and "lab2" are the material scratch surfaces — temporary judging routes,
+    // deleted when the recipes they exist to find move into config.
+    const BARE = new Set(["preview", "lab", "lab2", "lab3"]);
     const outside = readdirSync(app, { withFileTypes: true })
       .filter((e) => e.isDirectory() && !e.name.startsWith("(") && !e.name.startsWith("_"))
       .filter((e) => {

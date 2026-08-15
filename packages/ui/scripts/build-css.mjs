@@ -31,6 +31,45 @@ if (!/\.kui-theme:not\(\.kui-theme \*\)\s*\{\s*isolation:\s*isolate/.test(css)) 
   process.exit(1);
 }
 
+// backdrop-filter must reach Chromium unprefixed in the artifact (§24, found live
+// 2026-08-10): a hand-written `-webkit-backdrop-filter` beside the standard property parses
+// as the SAME logical property, and Lightning keeps the last spelling — the scrim shipped
+// webkit-only, which Chromium ignores, so the app never blurred while every browser law read
+// the committed source and stayed green. Three assertions, one per way it can regress.
+//
+// 1. Sources never hand-prefix: Lightning owns prefixing per browserslist.
+const cssWalk = (dir) => {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) cssWalk(full);
+    else if (entry.name.endsWith(".css")) {
+      const body = readFileSync(full, "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");
+      if (/-webkit-backdrop-filter/.test(body)) {
+        console.error(`build: hand-written -webkit-backdrop-filter in ${relative(srcRoot, full)} — Lightning owns prefixing, and the hand-written pair is how the scrim shipped broken`);
+        process.exit(1);
+      }
+    }
+  }
+};
+const srcRoot = join(root, "../src");
+cssWalk(srcRoot);
+// 2. No artifact block is prefix-only: wherever the webkit spelling appears, the standard
+//    one stands beside it (matching source selectors verbatim is a losing game — the
+//    minifier respells attribute quotes — so the artifact is audited block by block).
+for (const m of css.matchAll(/\{[^{}]*\}/g)) {
+  if (/-webkit-backdrop-filter/.test(m[0]) && !/[^-]backdrop-filter:/.test(m[0])) {
+    console.error(`build: prefix-only backdrop-filter block in the artifact: ${m[0].slice(0, 120)}`);
+    process.exit(1);
+  }
+}
+// 3. And the scrim's own declaration survives, verbatim — the stacking frame's shape, for
+//    the rule that actually shipped broken.
+if (!/\.kui-dialog-backdrop\{[^{}]*[^-]backdrop-filter:var\(--scrim-filter/.test(css)) {
+  console.error("build: the scrim lost its unprefixed backdrop-filter in the artifact (§24)");
+  process.exit(1);
+}
+console.log("build: backdrop-filter reaches the artifact unprefixed");
+
 // Publish-correctness assertions: the exports map points here; a rename or hashed
 // filename from a toolchain change must fail the build, not the consumer.
 for (const file of ["../dist/index.js", "../dist/index.d.ts"]) {
