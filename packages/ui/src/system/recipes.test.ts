@@ -14,6 +14,7 @@
 import { describe, expect, it } from "vitest";
 
 import { GLASS_MATERIALS, RUNGS, SLOT_NAMES } from "./axes.ts";
+import { DEPTHS } from "../theme/theme.tsx";
 
 import { tones } from "../tokens/color-config.ts";
 import { allStylesheets, block, from, raw, sheet, stripped, walkFiles } from "../test/stylesheets.ts";
@@ -194,6 +195,42 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
       expect(tests, `${dir} ships ${p.split("/").pop()!} but no browser test file`).not.toEqual(
         [],
       );
+    }
+  });
+
+  it("no law restates an axis's value list — the walk finds the literal wherever it hides", () => {
+    // 2026-08-16. Eight law files each carried their own two-value depth array and six their
+    // own three-value thickness array — spelled out, as literals, which is why this comment
+    // may not spell them: the walk below reads THIS file too, and a law whose own prose
+    // trips it is a law that would have to exempt itself. (It did, on the first run.)
+    // So the axes were "exhaustively" covered by fourteen private copies of a claim about
+    // how many values exist. Widen either axis and
+    // every one of those loops keeps passing while covering the new value with nothing — the
+    // 2026-08-03 lesson (a law one indirection short of the thing that can be wrong) in its
+    // cheapest form. `depth` owns its list beside its union in theme.tsx, the thicknesses have
+    // owned one in axes.ts since that file existed, and test/browser.tsx re-exports both.
+    //
+    // The law reads the SOURCE rather than the values: a list that agrees with the export
+    // today is exactly the list that will silently disagree tomorrow, so the assertion is
+    // that no second copy exists at all.
+    const axisLists: [string, readonly string[]][] = [
+      ["depth", DEPTHS],
+      ["material thickness", GLASS_MATERIALS],
+    ];
+    for (const p of walkFiles(".", ".test.ts").concat(walkFiles(".", ".test.tsx"))) {
+      // The two files that legitimately declare them, and nowhere else.
+      if (p.endsWith("test/browser.tsx")) continue;
+      const src = stripped(raw(p));
+      for (const [axis, values] of axisLists) {
+        for (const order of [values, [...values].reverse()]) {
+          const literal = order.map((v) => `"${v}"`).join(", ");
+          expect(
+            src,
+            `${p} restates the ${axis} list — import it (browser laws: test/browser.tsx; ` +
+              `node laws: system/axes.ts, theme/theme.tsx)`,
+          ).not.toContain(literal);
+        }
+      }
     }
   });
 
@@ -731,10 +768,12 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
           for (const literal of channel.replace(/var\([^)]*\)/g, "").match(/\d*\.?\d+m?s/g) ?? []) {
             expect(literal, `${file}: ${raw.trim()} — hand-typed duration`).toBe("0s");
           }
-          // Three clock families: the control clocks (--motion-*), the floating panes'
-          // (--floating-*), and the overlays' (--overlay-*, 2026-08-15 — the dialog's
-          // materialization; §24).
-          expect(channel, `${file}: ${raw.trim()}`).toMatch(/var\(--(motion|floating|overlay)-[\w-]+\)|\b0s\b/);
+          // Four clock families: the control clocks (--motion-*), the floating panes'
+          // (--floating-*), the alert's materialization (--overlay-*, §24/§25) and the
+          // dialog's own entry (--dialog-*, 2026-08-16 — depth, not distance). A family
+          // shares the grammar, never the token home; `alert` is listed against the day its
+          // prefix is renamed to match the component that owns those clocks.
+          expect(channel, `${file}: ${raw.trim()}`).toMatch(/var\(--(motion|floating|overlay|alert|dialog)-[\w-]+\)|\b0s\b/);
         }
       }
     }
@@ -762,7 +801,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
             expect(channel, `${file}: ${property} is a signal, it must not spring`).not.toContain("--motion-spring");
           } else {
             expect(channel, `${file}: ${property} moves a box, it must spring`).toMatch(
-              /var\(--motion-spring(-stiff|-lively)?\)/,
+              /var\(--motion-spring(-stiff|-lively|-elastic|-poised)?\)/,
             );
           }
         }
@@ -887,22 +926,36 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     expect(suppressed, `declared on ${declared.join(" / ")}`).toEqual(declared);
   });
 
-  it("the panel suppresses under reduced motion, and suppression is total (§8)", () => {
-    // A suppression that leaves one channel moving is worse than none: the panel still
-    // lurches, and the user who asked for stillness now gets it in pieces. The law reads the
-    // guarded block itself rather than counting rules, and asserts the seed's every travelling
-    // property is stood down inside it.
-    // Reads the FAMILY's home, not the menu's (2026-08-10): the entry promoted onto
-    // `.kui-floating` when Select became its second consumer, and this law noticing the move —
-    // by finding no guarded block where it used to be — is the promotion being checked rather
-    // than trusted.
+  it("the panel families are inside the reduced-motion guard at all (§8)", () => {
+    /**
+     * Narrowed 2026-08-16, and the narrowing is the point. This law used to scan the guarded
+     * region for the WORDS the stand-down was expected to contain — margin, translate, scale,
+     * opacity, inline-size, block-size, filter — which never asked which selector carried
+     * them, whether that selector won, or whether the rule was reachable at all. It was green
+     * through the whole life of the two defects the mounted laws found in an afternoon (an
+     * aim gate that outweighed its own stand-down; a width floor released by a pose nothing
+     * restored), and it went red on the day those undo rules were correctly DELETED — a law
+     * that fails on the fix and passes on the defect is worse than no law.
+     *
+     * What a text scan can honestly claim is membership: both panel families, their bodies
+     * and a menu's rows are named inside the guard, and the guard turns their clocks off. What
+     * they then COMPUTE is asserted where it can be measured — menu.browser.test.tsx and
+     * alert-dialog.browser.test.tsx, "suppression is total", both falsified against the
+     * shipped code.
+     */
     const body = sheet("system/surfaces.css");
     const guard = body.indexOf("@media (prefers-reduced-motion: reduce)");
-    expect(guard).toBeGreaterThan(-1);
+    expect(guard, "the guard exists").toBeGreaterThan(-1);
     const suppressed = body.slice(guard);
     expect(suppressed).toMatch(/transition:\s*none/);
-    for (const stood of ["margin", "translate", "scale", "opacity", "inline-size", "block-size", "filter"]) {
-      expect(suppressed, stood).toContain(stood);
+    for (const member of [
+      ".kui-surface.kui-floating",
+      ".kui-floating-body",
+      ".kui-surface.kui-alert-popup",
+      ".kui-overlay-body",
+      ".kui-row",
+    ]) {
+      expect(suppressed, `${member} is inside the guard`).toContain(member);
     }
   });
 

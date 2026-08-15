@@ -109,7 +109,7 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // rides a --kui- pointer like every other value in these two blocks, and every axis in this
     // system escapes by each scope declaring its own value — so a scope that declares nothing
     // is the defect, never the design.
-    for (const t of ["thin", "regular", "thick"]) {
+    for (const t of GLASS_MATERIALS) {
       expect(body).toContain(`--kui-surface-chrome-${t}: var(--surface-chrome-${t})`);
       expect(body).toContain(`--kui-control-chrome-${t}: var(--control-chrome-${t})`);
       expect(body).toContain(`--kui-material-${t}-rim: var(--material-${t}-rim-lifted)`);
@@ -366,7 +366,7 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
   it("the lifted rim outshines the resting rim, per thickness per mode, and high contrast empties both (§10)", () => {
     for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
       const body = block(tokens, scope);
-      for (const t of ["thin", "regular", "thick"]) {
+      for (const t of GLASS_MATERIALS) {
         const alpha = (name: string) => {
           const line = body.split("\n").find((l) => l.includes(`--material-${t}-${name}:`))!;
           return parseFloat(line.match(/255 \/ ([0-9.]+)\)/)![1]!);
@@ -409,4 +409,68 @@ describe("a surface sets foreground context (§10)", () => {
       "--color-text: var(--tone-contrast)",
     );
   });
+});
+
+describe("the exit keeps every channel the entry moves alive (§8, §22, §24)", () => {
+  /**
+   * The 2026-08-16 audit's structural lesson, made mechanical.
+   *
+   * A running transition is CANCELLED the moment its property drops out of
+   * `transition-property`. Both families' exits therefore restate the entry's channels, so a
+   * panel dismissed mid-flight keeps becoming while it dissolves instead of jumping to its
+   * target under the fade. That restatement is a hand-maintained list, and a hand-maintained
+   * list drifts: the floating exit shipped without `box-shadow` for a day, which is a real
+   * channel of that entry (the seed stands the cast down and the flight fades it up), and a
+   * menu dismissed 35ms in snapped 169 → 303px in two frames.
+   *
+   * So the list is not trusted, it is DERIVED: every property named in the family's base
+   * transition must appear in its ending transition. The two clocks are free to differ —
+   * that is the point of an exit — but the membership is not.
+   */
+  const channels = (list: string): string[] =>
+    list
+      // one entry per comma that is not inside a function (a `linear(…)` easing is full of them)
+      .split(/,(?![^(]*\))/)
+      .map((entry) => entry.trim().split(/\s+/)[0] ?? "")
+      .filter((name) => name.length > 0 && !name.startsWith("/*"));
+
+  /**
+   * The transition declared at `selector` — searching EVERY rule with that selector, not the
+   * first. A family states its identity and its motion in separate blocks under the same
+   * selector, and taking the first one found the identity block and reported "no transition"
+   * on a sheet that plainly has one. A law that cannot find its subject is a law that fails
+   * for the wrong reason, which is the same defect class as one that cannot fail at all.
+   */
+  const transitionOf = (selector: string): string => {
+    for (let at = surfaces.indexOf(selector); at !== -1; at = surfaces.indexOf(selector, at + 1)) {
+      const open = surfaces.indexOf("{", at);
+      const close = surfaces.indexOf("}", open);
+      // comments carry prose full of property names; they are documentation, not declarations
+      const body = surfaces.slice(open + 1, close).replace(/\/\*[\s\S]*?\*\//g, "");
+      const start = body.indexOf("transition:");
+      if (start === -1) continue;
+      return body.slice(start + "transition:".length, body.indexOf(";", start));
+    }
+    throw new Error(`no transition declared at ${selector}`);
+  };
+
+  for (const [family, base, ending] of [
+    ["the floating family", ".kui-surface.kui-floating {", ".kui-surface.kui-floating[data-ending-style]"],
+    ["the overlay family", ".kui-surface.kui-alert-popup {", ".kui-surface.kui-alert-popup[data-ending-style]"],
+  ] as const) {
+    it(`${family}: no channel is dropped on the way out`, () => {
+      const entry = channels(transitionOf(base));
+      const exit = channels(transitionOf(ending));
+      // Vacuity guards: a parser that returned nothing would pass this law silently, and the
+      // entry must genuinely move geometry for the claim to be about anything.
+      expect(entry.length, "the entry declares channels").toBeGreaterThan(3);
+      expect(exit.length, "the exit declares channels").toBeGreaterThan(3);
+      expect(entry, "the entry moves geometry, not only paint").toContain("inline-size");
+      for (const channel of entry) {
+        expect(exit, `${channel} is cancelled by the exit unless the exit restates it`).toContain(
+          channel,
+        );
+      }
+    });
+  }
 });

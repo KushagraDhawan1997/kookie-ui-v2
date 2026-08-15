@@ -4,6 +4,7 @@
  * §12's multiplier table — never rendered values. No snapshots.
  */
 import { readFileSync } from "node:fs";
+import { GLASS_MATERIALS } from "../system/axes.ts";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -22,6 +23,7 @@ import {
   typeBands,
   inputFontFloor,
   layoutSpace,
+  springs,
   letterSpacing,
   lineHeight,
   material,
@@ -32,6 +34,8 @@ import {
   surfacePadding,
   floatingPadding,
   floatingMinWidth,
+  alertWidth,
+  overlayWidth,
   touchTargetMin,
   type DensityLevel,
   type DensitySet,
@@ -1521,7 +1525,7 @@ describe("the material ladder is monotone in every lever (§10)", () => {
   // thicknesses must hold per column, not just at rest, so thickness still reads as one
   // dimension mid-interaction") — and nothing asserted it. Asserted from the config because
   // the claim is about the designed SET; the emitted spelling is covered by the drift law.
-  const THICKNESSES = ["thin", "regular", "thick"] as const;
+  const THICKNESSES = GLASS_MATERIALS;
   const rises = (values: readonly number[]) => {
     for (let i = 1; i < values.length; i++) expect(values[i]!).toBeGreaterThan(values[i - 1]!);
   };
@@ -1594,6 +1598,21 @@ describe("the scrim dims by mode and leans under high contrast (§10, §24)", ()
       // var()'s fallback resolves at the element and the backdrop stops filtering — the
       // material edge's own spelling, not a second mechanism.
       expect(filter.trim()).toBe("initial");
+    }
+  });
+});
+
+describe("the alert's width ladder (§25)", () => {
+  it("rises with the index, rides --scale, and is strictly narrower than the dialog's at every step", () => {
+    const widths = [1, 2, 3, 4].map((n) => declaration(`alert-w-${n}`)!);
+    for (const value of widths) expect(value).toMatch(/^calc\(\d+px \* var\(--scale\)\)$/);
+    const px = widths.map((v) => Number(v.match(/(\d+)px/)![1]));
+    expect(increasing(px)).toBe(true);
+    // An alert interrupts with a question; a dialog hosts work. The relationship is the
+    // decision, so it is asserted per index rather than once at the ends.
+    for (let i = 0; i < 4; i++) {
+      expect(alertWidth[i]!).toBeLessThan(overlayWidth[i]!);
+      expect(px[i]).toBe(alertWidth[i]);
     }
   });
 });
@@ -1688,4 +1707,90 @@ describe("the stacking frame (§20)", () => {
       expect(rule.body).not.toMatch(/(?<![-\w])(?:opacity|transform|filter|will-change|contain)\s*:/);
     }
   });
+});
+
+describe("the springs are physics, and the emitted curve is that physics (§8)", () => {
+  /**
+   * The one thing in the motion system with no law until 2026-08-16 — while DECISIONS §8 and
+   * CLAUDE.md both stated that one existed. `elastic` is the easing of every geometry channel
+   * in both panel families, so a curve that quietly started ringing would change how the whole
+   * system moves with the suite green.
+   *
+   * Two claims, and the second is the one that could not be made by reading config. First,
+   * the EMITTED curve is the physics config states — so editing ζ without regenerating, or
+   * hand-editing tokens.css, fails. Second, each spring's emitted samples satisfy the physical
+   * claim its own comment makes: how far it overshoots, and that it crosses its target ONCE.
+   * "Damping is sacred" (LOG, principle 9) is a sentence in a document until something reads
+   * the numbers and counts the crossings.
+   */
+  const samplesOf = (name: string): number[] => {
+    const line = css.split("\n").find((l) => l.includes(`--${name}:`));
+    if (!line) throw new Error(`no emitted curve for --${name}`);
+    const body = line.slice(line.indexOf("linear(") + "linear(".length, line.lastIndexOf(")"));
+    return body.split(",").map((point) => parseFloat(point.trim().split(/\s+/)[0]!));
+  };
+
+  /** The step response of a damped second-order system, written out here rather than imported
+      from the generator: a law that calls the code under test agrees with it by construction. */
+  const stepResponse = (zeta: number, omega: number, t: number): number => {
+    const damped = omega * Math.sqrt(1 - zeta * zeta);
+    return (
+      1 -
+      Math.exp(-zeta * omega * t) *
+        (Math.cos(damped * t) + ((zeta * omega) / damped) * Math.sin(damped * t))
+    );
+  };
+
+  const EMITTED: Record<keyof typeof springs, string> = {
+    calm: "motion-spring",
+    lively: "motion-spring-lively",
+    stiff: "motion-spring-stiff",
+    elastic: "motion-spring-elastic",
+    poised: "motion-spring-poised",
+  };
+
+  it("every spring in config is emitted, and nothing else claims to be a spring", () => {
+    const emitted = css
+      .split("\n")
+      .filter((l) => l.includes("linear("))
+      .map((l) => l.slice(l.indexOf("--") + 2, l.indexOf(":")));
+    expect(emitted.sort()).toEqual(Object.values(EMITTED).sort());
+  });
+
+  for (const [name, token] of Object.entries(EMITTED) as [keyof typeof springs, string][]) {
+    it(`${name}: the emitted curve is the ζ and ω config states`, () => {
+      const { zeta, omega, steps } = springs[name];
+      const points = samplesOf(token);
+      // Endpoints are STATED, not sampled: `linear()` must start at 0 and end at 1, and a
+      // spring's own value at t=1 is merely close to 1.
+      expect(points.length).toBe(steps + 1);
+      expect(points[0]).toBe(0);
+      expect(points.at(-1)).toBe(1);
+      for (let i = 1; i < steps; i++) {
+        expect(points[i], `sample ${i} of ${name}`).toBeCloseTo(stepResponse(zeta, omega, i / steps), 2);
+      }
+    });
+
+    it(`${name}: crosses its target at most once, and the overshoot is the documented one`, () => {
+      const points = samplesOf(token);
+      const peak = Math.max(...points);
+      // Every spring in the vocabulary is under-damped except the exits, and no spring is
+      // allowed a SECOND visible excursion — that is the tell that reads as mechanical
+      // (LOG, principle 9: "when an overshoot is invisible, the fix is more travel").
+      expect(peak, `${name} must not fly past its target`).toBeLessThan(1.16);
+      // Crossings of the target line, counted off the samples themselves.
+      let crossings = 0;
+      for (let i = 1; i < points.length - 1; i++) {
+        const before = points[i - 1]! - 1;
+        const after = points[i]! - 1;
+        if (before < 0 && after > 0) crossings += 1;
+      }
+      expect(crossings, `${name} settles home, it does not ring`).toBeLessThanOrEqual(1);
+      // And the exits genuinely never overshoot at all — an exit that bounces is an object
+      // that did not mean to leave.
+      if (name === "stiff") expect(peak, "an exit never overshoots").toBeLessThanOrEqual(1);
+      // Vacuity guard: a curve of all zeros would satisfy every bound above.
+      expect(points.filter((v) => v > 0.5).length, `${name} actually travels`).toBeGreaterThan(4);
+    });
+  }
 });
