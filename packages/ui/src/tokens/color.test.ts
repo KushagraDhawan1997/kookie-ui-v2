@@ -795,7 +795,12 @@ describe("the ink ladder renders its stated targets, in every family and both mo
     });
   }
 
-  it("no family is an exception — every ink rung reaches its value the same way", () => {
+  // An explicit timeout, because this law RUNS THE SOLVER — twenty ink solves (2 modes × 10
+  // tones via colorDeclarations) — and sits at ~5s of honest compute on a slow container,
+  // exactly where the 5s default cuts it off (measured 2026-08-16: 5.05–5.09s across three
+  // runs on a CI sandbox, passing everywhere faster). A law that measures compute may not
+  // assume a fast machine; the number is headroom, not a target.
+  it("no family is an exception — every ink rung reaches its value the same way", { timeout: 20_000 }, () => {
     // The shape the rewrite was FOR. Neutral used to take designed steps while the chroma
     // families faded, which is how one family's ladder came to answer a different question
     // from the others'. If neutral ever goes back to picking rungs, this is the law that says
