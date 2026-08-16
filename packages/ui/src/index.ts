@@ -14,6 +14,26 @@ export { Select, SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectLa
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
+export {
+  Shell,
+  ShellHeader,
+  ShellRail,
+  ShellSidebar,
+  ShellContent,
+  ShellInspector,
+  ShellBottom,
+  ShellTrigger,
+  type ShellProps,
+  type ShellHeaderProps,
+  type ShellRailProps,
+  type ShellSidebarProps,
+  type ShellContentProps,
+  type ShellInspectorProps,
+  type ShellBottomProps,
+  type ShellTriggerProps,
+  type ShellPaneTarget,
+  type ShellPresentation,
+} from "./components/shell/shell.tsx";
 export { Slider, type SliderProps } from "./components/slider/slider.tsx";
 export { Switch, type SwitchProps } from "./components/switch/switch.tsx";
 export { Text, type TextProps, type TypeSize, type Weight } from "./components/text/text.tsx";

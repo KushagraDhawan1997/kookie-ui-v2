@@ -1099,6 +1099,35 @@ export const alertWidth = [280, 320, 360, 400] as const;
 export const dialogInset = 6;
 
 /**
+ * §26 — the SHELL's designed pane geometry: the app frame's default widths (and the bottom
+ * pane's height), raw px through --scale (the overlayWidth genus: no palette rung lives at
+ * pane scale, and a pane's extent is not a distance BETWEEN things, so layout space is the
+ * wrong layer). These are DEFAULTS, not a ladder — a pane's width is the app's content
+ * speaking, which is why §26 sanctions the raw-number prop as the system's first: the prop
+ * overrides by writing the SAME custom property the stylesheet reads (`--kui-shell-w` /
+ * `--kui-shell-h`), which is deliberately the whole future resize architecture — a later
+ * drag writes where the prop writes, and nothing about this shape is revisited when it
+ * lands. Density- and pointer-invariant on purpose: a pane is a room, not a control, and
+ * how much of the window a nav column takes is not a breathing-air question. v0, inherited
+ * from v1's judged values.
+ */
+export const shellWidth = { rail: 64, sidebar: 288, inspector: 320, bottom: 200 } as const;
+
+/**
+ * §26 — the floating shell's gap, ONE pick into layout space (the dialogInset sentence at
+ * shell scale). Floating IS the gap — panes that are not touching — so the distance is the
+ * system's and answers density through the one layer every distance goes through. There is
+ * deliberately NO consumer-facing gap prop and no override variable (v1 documented
+ * overriding `--shell-inset-gap`, which is how a shell drifts off its own app's rhythm).
+ * The stylesheet spends it as HALF on the frame's padding and half on every pane's margin,
+ * so the spacing is even by construction — pane-to-pane and pane-to-edge — at every pane
+ * combination, including the absent ones (v1 put whole margins on each pane and the
+ * doubling between neighbours was a spacing nobody chose). Index 3 = 8px at default
+ * density. v0.
+ */
+export const shellGap = 3;
+
+/**
  * §13 — the shadow palette: a RESOURCE, never an axis (LOG 2026-08-04; redesigned and
  * widened to FIVE rows 2026-08-07 with the four-worlds frame, §19). One ladder ordered by
  * height: 1 is the inset well, 2 is the CONTROL row (small drop, button scale — added

@@ -40,6 +40,7 @@ import selectCss from "../components/select/select.css?raw";
 import progressCss from "../components/progress/progress.css?raw";
 import radioCss from "../components/radio/radio.css?raw";
 import separatorCss from "../components/separator/separator.css?raw";
+import shellCss from "../components/shell/shell.css?raw";
 import sliderCss from "../components/slider/slider.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
 import switchCss from "../components/switch/switch.css?raw";
@@ -76,6 +77,7 @@ export function installStyles(): void {
     progressCss,
     radioCss,
     separatorCss,
+    shellCss,
     sliderCss,
     switchCss,
     textFieldCss,

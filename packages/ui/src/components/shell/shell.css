@@ -1,0 +1,243 @@
+/* Shell (§26). The app frame — and deliberately almost no paint of its own: every pane is a
+   `.kui-surface`, so the seal, edge, look axis, material and the world's depth all arrive
+   from surfaces.css exactly as they do for a Card. What this sheet states is GEOMETRY (the
+   grid, the pane extents, the two postures) and the pane STATES (auto/open/closed, and the
+   overlay treatment with its scrim).
+
+   This is the ONE stylesheet sanctioned to key on the viewport (§13's carve-out; §18's
+   boundary). The `48rem` literal below is the narrow window boundary and may not drift from
+   config — shell.test.ts derives the expected string from `narrowMedia` and fails on any
+   respelling. All the narrow-window rules live in the single media block at the bottom so
+   the literal exists ONCE.
+
+   No motion yet, on Menu's own precedent (shipped instant, moved the next day): the panes'
+   spring entry is the recorded follow-up, and shipping zero transitions means the reduced-
+   motion laws have nothing here to stand down yet. */
+
+/* ── The frame ─────────────────────────────────────────────────────────────────────────────
+   A grid whose areas the panes CLAIM — placement by name, so the root never inspects its
+   children (v1's displayName scanning, deleted) and DOM order stays the author's reading
+   order. A missing pane's `auto` track collapses to zero; the spacing below never uses track
+   gaps, so an empty track costs nothing (a grid gap would bill the empty track's two sides).
+
+   `isolation: isolate` keeps the overlay layering INSIDE the shell's own stacking context:
+   nothing here competes with portals, which land outside the theme frame and win by DOM
+   order (§20) — and the root itself carries no z-index, so it cannot invert that frame. */
+.kui-shell {
+  display: grid;
+  grid-template-areas:
+    "header header header header"
+    "rail sidebar content inspector"
+    "bottom bottom bottom bottom";
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  block-size: 100%;
+  position: relative;
+  isolation: isolate;
+}
+
+/* ── The panes ─────────────────────────────────────────────────────────────────────────────
+   Surface members with no size index: the surface join's padding is stood down — a pane's
+   content owns its own inset — and the corner is stated explicitly as the default card's
+   (the size-3 surface band step) rather than left to the `.kui-surface` fallback, so a
+   shell composed inside another surface cannot inherit that ancestor's corner. */
+.kui-shell-pane {
+  padding: 0;
+  border-radius: var(--radius-surface-3);
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: auto;
+  /* Focus lands on an overlaying pane programmatically — a mode, not an affordance (§8):
+     the pane's own controls carry the ring. */
+  outline: none;
+}
+
+.kui-shell-header {
+  grid-area: header;
+  /* A header does not scroll, and clipping it would eat the focus ring of a control at its
+     edge; its box is its row, which grows with it. */
+  overflow: visible;
+}
+
+.kui-shell-rail {
+  grid-area: rail;
+  inline-size: var(--kui-shell-w, var(--shell-rail-w));
+}
+
+.kui-shell-sidebar {
+  grid-area: sidebar;
+  inline-size: var(--kui-shell-w, var(--shell-sidebar-w));
+}
+
+.kui-shell-content {
+  grid-area: content;
+}
+
+.kui-shell-inspector {
+  grid-area: inspector;
+  inline-size: var(--kui-shell-w, var(--shell-inspector-w));
+}
+
+.kui-shell-bottom {
+  grid-area: bottom;
+  block-size: var(--kui-shell-h, var(--shell-bottom-h));
+}
+
+/* ── State: closed, and what an UNTOUCHED pane means (§26 "auto until touched") ────────────
+   Resolved here rather than in JS so the first paint is right with no script, on the server
+   and the client alike — and so no open/close callback can fire at mount, because nothing in
+   JS decided anything. The JS mirror (usePane's `expanded`) exists only for aria-expanded
+   and the toggle's starting point; a mounted law asserts the two agree. */
+
+/* Closed is closed: the pane leaves flow and the accessibility tree together. */
+.kui-shell-pane[data-state="closed"] {
+  display: none;
+}
+
+/* An inspector or bottom pane rests closed at every width — detail is asked for. */
+.kui-shell-inspector[data-state="auto"],
+.kui-shell-bottom[data-state="auto"] {
+  display: none;
+}
+
+/* An explicitly-overlay nav pane rests closed too: an overlay is summoned, never ambient. */
+.kui-shell-rail[data-state="auto"][data-presentation="overlay"],
+.kui-shell-sidebar[data-state="auto"][data-presentation="overlay"] {
+  display: none;
+}
+
+/* ── The overlay treatment ─────────────────────────────────────────────────────────────────
+   The same element leaving flow — never a second component (v1's Sheet branch, the defect
+   §26 exists to delete). An absolutely positioned grid item resolves its insets against its
+   own GRID AREA, so a left pane rises exactly under the header row and above the bottom row
+   with no arithmetic: the area's column has collapsed to zero width and the pane's stated
+   inline-size grows it over the content from that edge.
+
+   These arms serve the EXPLICIT presentation at any width; the narrow media block at the
+   bottom restates them for `auto`, and the mounted agreement law holds the two identical
+   (a mechanism with two implementations owes a law that they agree, 2026-08-06). */
+.kui-shell-rail[data-presentation="overlay"],
+.kui-shell-sidebar[data-presentation="overlay"] {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 2;
+}
+
+.kui-shell-inspector[data-presentation="overlay"] {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 2;
+}
+
+.kui-shell-bottom[data-presentation="overlay"] {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 2;
+}
+
+/* The scrim: root-owned, always mounted, shown exactly when a pane overlays. Under the
+   panes (z 1 against their 2), over everything in flow. Dialog's scrim recipe (§24), same
+   tokens, same reduced-transparency answer — more pigment, no defocus. */
+.kui-shell-scrim {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: var(--scrim-fill);
+  backdrop-filter: var(--scrim-filter, none);
+}
+
+.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"]) > .kui-shell-scrim {
+  display: block;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .kui-shell-scrim {
+    background-color: var(--scrim-fill-high);
+    backdrop-filter: none;
+  }
+}
+
+/* ── The two postures: flush and floating (§26) ────────────────────────────────────────────
+   FLUSH tiles the panes edge to edge: corners square, and each seam is ONE hairline — a pane
+   draws only its inner edge and the content draws none, so two neighbours never double a
+   border. The border-width overrides leave the surface's border COLOR untouched, which is
+   what keeps the seams reachable by the look axis and contrast="high" exactly as a card's
+   edge is. */
+.kui-shell[data-panes="flush"] > .kui-shell-pane {
+  border-radius: var(--radius-0);
+  border-width: 0;
+}
+
+.kui-shell[data-panes="flush"] > .kui-shell-header {
+  border-block-end-width: var(--border-width);
+}
+
+.kui-shell[data-panes="flush"] > .kui-shell-rail,
+.kui-shell[data-panes="flush"] > .kui-shell-sidebar {
+  border-inline-end-width: var(--border-width);
+}
+
+.kui-shell[data-panes="flush"] > .kui-shell-inspector {
+  border-inline-start-width: var(--border-width);
+}
+
+.kui-shell[data-panes="flush"] > .kui-shell-bottom {
+  border-block-start-width: var(--border-width);
+}
+
+/* FLOATING IS THE GAP: half of it on the frame's padding, half on every pane's margin, so
+   pane-to-pane and pane-to-edge distances are equal by construction at every pane
+   combination — including the absent ones (v1 put whole margins on each pane, and the
+   doubling between neighbours was a spacing nobody chose). The panes keep their full card
+   identity: all four borders, the surface corner, and the gaps show the app's own page —
+   the shell paints no bed. */
+.kui-shell[data-panes="floating"] {
+  padding: calc(var(--shell-gap) / 2);
+}
+
+.kui-shell[data-panes="floating"] > .kui-shell-pane {
+  margin: calc(var(--shell-gap) / 2);
+}
+
+/* ── The narrow window (§18's boundary — config's `narrowMedia`, law-pinned) ───────────────
+   Auto resolves here: the nav columns rest closed, and an open pane presents as an overlay.
+   ONE media block so the boundary literal exists once in this file. */
+@media (max-width: 48rem) {
+  /* Untouched nav columns rest closed on a narrow window. */
+  .kui-shell-rail[data-state="auto"],
+  .kui-shell-sidebar[data-state="auto"] {
+    display: none;
+  }
+
+  /* `auto` presentation resolves to overlay — the explicit arms above, restated for the
+     resolved value; the mounted agreement law holds the two treatments identical. */
+  .kui-shell-rail[data-presentation="auto"],
+  .kui-shell-sidebar[data-presentation="auto"] {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 2;
+  }
+
+  .kui-shell-inspector[data-presentation="auto"] {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    z-index: 2;
+  }
+
+  .kui-shell-bottom[data-presentation="auto"] {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 2;
+  }
+
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"]) > .kui-shell-scrim {
+    display: block;
+  }
+}

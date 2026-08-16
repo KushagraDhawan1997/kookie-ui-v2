@@ -47,6 +47,8 @@ import {
   radiusSurface,
   controlChrome,
   controlLight,
+  shellWidth,
+  shellGap,
   floatingChrome,
   floatingFlatFactor,
   floatingMinWidth,
@@ -325,6 +327,17 @@ export function generateTokens(): string {
   lines.push(...alertWidth.map((px, i) => decl(`alert-w-${i + 1}`, zoom(px))));
   lines.push(...dialogFamily());
 
+  lines.push("", "  /* the SHELL's pane defaults (§26) — raw px through --scale (the overlayWidth genus).");
+  lines.push("     A pane's width prop overrides by writing the same custom property the stylesheet");
+  lines.push("     reads, which is the whole future resize architecture. Density- and pointer-");
+  lines.push("     invariant: a pane is a room, not a control. The gap is the shell family's one");
+  lines.push("     layout-space pick — see shellFamily(). */");
+  lines.push(decl("shell-rail-w", zoom(shellWidth.rail)));
+  lines.push(decl("shell-sidebar-w", zoom(shellWidth.sidebar)));
+  lines.push(decl("shell-inspector-w", zoom(shellWidth.inspector)));
+  lines.push(decl("shell-bottom-h", zoom(shellWidth.bottom)));
+  lines.push(...shellFamily());
+
   lines.push("", "  /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each");
   lines.push("     one-look family declared before the axis existed. A look role holds a COLOUR, so it");
   lines.push("     repeats in every appearance scope like every other colour role — see the dark block. */");
@@ -527,6 +540,7 @@ export function generateTokens(): string {
       ...surfacePaddingFamily(),
       ...floatingPanelFamily(),
       ...dialogFamily(),
+      ...shellFamily(),
       "}",
       "",
     );
@@ -989,6 +1003,13 @@ function floatingPanelFamily(): string[] {
     per density scope for the same substitution reason as the two families above. */
 function dialogFamily(): string[] {
   return [decl("dialog-inset", `var(--layout-space-${dialogInset})`)];
+}
+
+/** The floating shell's gap (§26): one pick into layout space, re-emitted per density scope
+    for the same substitution reason as the three families above — a compact app's floating
+    shell tightens with the rest of its distances. */
+function shellFamily(): string[] {
+  return [decl("shell-gap", `var(--layout-space-${shellGap})`)];
 }
 
 /** The control radii for one designed set at one level (§6). At `full` the band is the rule
