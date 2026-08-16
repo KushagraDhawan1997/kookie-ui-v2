@@ -698,7 +698,7 @@ function AlertSizeRow() {
               </Button>
             }
           />
-          <AlertDialogContent material="regular" className="l2-dlg l2-dlg-regular">
+          <AlertDialogContent className="l2-dlg l2-dlg-regular">
             <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
             <AlertDialogDescription>
               Every project, member and API key goes with it. This cannot be undone.
@@ -729,7 +729,7 @@ function DialogRow() {
               </Button>
             }
           />
-          <AlertDialogContent material={m} className={`l2-dlg l2-dlg-${m}`}>
+          <AlertDialogContent className={`l2-dlg l2-dlg-${m}`}>
             <AlertDialogTitle>Clear this conversation?</AlertDialogTitle>
             <AlertDialogDescription>
               The pane is {m} glass. The scrim behind it never changes — it states the
@@ -1301,13 +1301,22 @@ function DynamicRefraction({ params, on }: { params: LensParams; on: boolean }) 
     const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
     const tryDress = async (el: HTMLElement) => {
       // The motion system measures the popup's FINAL box on mount into
-      // --kui-floating-w/-h (the unfurl animates toward it) — so the true geometry is
+      // --kui-fly-w/-h (the unfurl animates toward it) — so the true geometry is
       // knowable on frame one, and the refraction can ride the whole animation instead
       // of popping in after it.
+      //
+      // RENAMED 2026-08-16: the package collapsed its two entry runners into one and the
+      // measured box became `--kui-fly-*`. This read still said `--kui-floating-*`, which
+      // no longer resolves — getPropertyValue returns "", parseFloat gives NaN, and
+      // `NaN >= 60` is false, so the fast path was dead for all ten frames and every menu
+      // fell through to the settle-and-measure fallback below. Measured before the fix: the
+      // panel finished growing at ~370ms and refraction landed at ~856ms. It was invisible
+      // until the blur fix the same day — an undressed menu used to be frosted 2.8x harder,
+      // which looked like glass, so nobody saw it arrive late.
       for (let i = 0; i < 10 && el.isConnected; i++) {
         const cs = getComputedStyle(el);
-        const w = Math.round(parseFloat(cs.getPropertyValue("--kui-floating-w")));
-        const h = Math.round(parseFloat(cs.getPropertyValue("--kui-floating-h")));
+        const w = Math.round(parseFloat(cs.getPropertyValue("--kui-fly-w")));
+        const h = Math.round(parseFloat(cs.getPropertyValue("--kui-fly-h")));
         if (w >= 60 && h >= 60) {
           const key = `${w}x${h}`;
           let id = cache.get(key);
