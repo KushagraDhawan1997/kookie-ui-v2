@@ -302,6 +302,40 @@ function useFlight(plan: FlightPlan) {
         popup.setAttribute("data-unfurling", "");
         popup.setAttribute("data-seed", "");
 
+        /**
+         * A PROVISIONAL aim, immediately (2026-08-16, Kushagra: *"I click a dropdown menu and
+         * then it shifts page"* — on the first open of each one, never after).
+         *
+         * `data-aimed` gates PAINT, and paint is not what the browser scrolls to. Until the
+         * real aim lands — a microtask for the measurement and a frame for floating-ui's
+         * placement — the popup is laid out wherever its unplaced positioner sits, which is
+         * the top of the document: measured at y = −2116 while the viewport was at 2116. Base
+         * UI focuses the selected row inside the panel during exactly that window, and the
+         * browser scrolls the page to reveal the focused element. An invisible panel in the
+         * wrong place still drags the page to it.
+         *
+         * It happens ONCE per select because a select keeps its panel mounted, so every later
+         * open already has a placement and no unaimed window at all. The window grew when the
+         * runners were unified — the anchored one used to measure synchronously — which is
+         * why this surfaced then.
+         *
+         * The provisional offset needs no placement, which is the whole point: it is the
+         * trigger's rect against the popup's OWN current rect, so it lands the box on the
+         * trigger from wherever it happens to be. `data-aimed` is deliberately NOT stamped
+         * here — the box moves, the paint does not — because floating-ui will move the base
+         * position out from under this offset and a visible panel would jump. Being roughly
+         * right is enough to keep focus from scrolling; being exactly right is the real aim's
+         * job, one frame later.
+         */
+        const roughlyOnTrigger = (trigger: HTMLElement | null) => {
+          if (!trigger) return;
+          const triggerBox = trigger.getBoundingClientRect();
+          const popupBox = popup.getBoundingClientRect();
+          popup.style.setProperty("--kui-from-x", `${triggerBox.left - popupBox.left}px`);
+          popup.style.setProperty("--kui-from-y", `${triggerBox.top - popupBox.top}px`);
+        };
+        if (plan.fromAnchor) roughlyOnTrigger(anchor());
+
         queueMicrotask(() => {
           // A panel landed by other means before this ran — the harness's settle(), a
           // dismissal — no longer wears the pose, and the entry stands down rather than
@@ -421,6 +455,10 @@ function useFlight(plan: FlightPlan) {
 
           popup.setAttribute("data-unfurling", "");
           popup.setAttribute("data-seed", "");
+          // The strip above took the provisional offset with it (one list, both ends — see
+          // FLIGHT_VARS). Put it back with the pose: the window this closes is the whole
+          // reason it exists, and leaving it open here only moves the page a frame later.
+          roughlyOnTrigger(trigger);
           void popup.offsetWidth; // land the pose as the baseline while the pin still holds
           for (const el of pinned) el.style.removeProperty("transition");
 

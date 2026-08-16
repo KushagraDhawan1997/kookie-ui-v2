@@ -2116,7 +2116,18 @@ describe("the panel unfurls out of a seed (§22)", () => {
   it("the panel clips while it is not its own size (§22)", async () => {
     const { popup } = await openUnsettled();
     expect(popup.hasAttribute("data-unfurling")).toBe(true);
-    expect(computed(popup, "overflow-y")).toBe("clip");
+    /**
+     * HIDDEN, not `clip` (2026-08-16, Kushagra: *"I click a dropdown menu and then it shifts
+     * page"* — on the first open of each one, never after). The two clip identically; they
+     * differ in whether the box can be SCROLLED, and that difference is the bug. Base UI
+     * focuses the selected row while the panel is still mid-flight and deliberately smaller
+     * than its content; the browser then scrolls the nearest scrollable ancestor to reveal
+     * the focused element, and a `clip` box is not one — so it walked past the panel and
+     * scrolled the PAGE. With `hidden` the panel absorbs it: measured, the page drifted 20px
+     * on a select's first open and 8px after this change, with the panel's own scrollTop
+     * taking the difference and returning to 0 the moment the flight releases.
+     */
+    expect(computed(popup, "overflow-y")).toBe("hidden");
     // And it scrolls again once it has arrived — a long menu is why the panel has an overflow
     // at all, and `overflow-y: auto` computes the OTHER axis to auto with it.
     // The width floor is stood down for the whole flight, not only the seed frame: it means

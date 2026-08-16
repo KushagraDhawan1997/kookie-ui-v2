@@ -700,7 +700,7 @@
 /* While the box is deliberately smaller than what it holds, it clips. `overflow-y: auto`
    computes the OTHER axis to `auto` too, so an unclipped flight is two live scrollbars. */
 .kui-surface.kui-floating[data-unfurling] {
-  overflow: clip;
+  overflow: hidden;
   /* And the width FLOOR is stood down for the whole flight, not just the seed frame —
      which is the bug that made every menu look wrong (Kushagra, playground: *"it starts at a
      certain width… then it goes down and it shrinks, and then when it reaches the correct
