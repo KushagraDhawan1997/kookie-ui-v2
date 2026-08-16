@@ -767,6 +767,37 @@ function toneRoles(tone: ToneName): string[] {
  * value differs by mode or references a stepped colour that does, and a var() resolves
  * where declared.
  */
+/**
+ * The GRAIN (§10, ported from the material lab 2026-08-16): barely-there white noise, baked
+ * into an SVG turbulence filter at ~4.5% alpha. It is what stops a large pane of glass
+ * reading as flat vector fill — real glass has tooth. Inlined as a data URI because it is a
+ * texture, not an asset: nothing to fetch, nothing to cache, no request at paint.
+ */
+const GRAIN =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")";
+
+/**
+ * A pane's own lighting, as ONE background-image list (§10). Four layers, painted top down,
+ * ported whole from the lab 2026-08-16 — the package had only the last of them, which is why
+ * ported glass read as a tinted rectangle beside the lab it came from:
+ *
+ *   grain   texture, so a big pane is not flat vector fill
+ *   bloom   light ENTERING at the top-left corner — the pane is lit from a place, not evenly
+ *   sheen   the broad wash down from the top edge
+ *   rim     the 1px catch on the very edge (what the package already had)
+ *
+ * It stays a background-image and never becomes a shadow, for the reason §10 has always
+ * given: `none` is illegal inside a shadow list and flat worlds declare `none`, so a shadow
+ * rim would mean rewriting every one-box-shadow law. Depth stays the app's.
+ */
+const rim = (edgeAlpha: number, sheen: number): string =>
+  [
+    GRAIN,
+    `radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / ${Number((sheen * 1.4).toFixed(2))}%), transparent 55%)`,
+    `linear-gradient(180deg, rgb(255 255 255 / ${sheen}%), transparent 45%)`,
+    `linear-gradient(rgb(255 255 255 / ${edgeAlpha}) 0 var(--border-width), transparent var(--border-width))`,
+  ].join(", ");
+
 function surfaceWorld(mode: "light" | "dark"): string[] {
   const m = material[mode];
   const glass = (name: "thin" | "regular" | "thick") => {
@@ -778,16 +809,10 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       // app's identity (depth="elevated") and the one-box-shadow law never learns glass
       // exists. A flat world's glass has edge and glint, no lift.
       decl(`material-${name}-edge`, `rgb(255 255 255 / ${m[name].edge})`),
-      decl(
-        `material-${name}-rim`,
-        `linear-gradient(rgb(255 255 255 / ${m[name].rim}) 0 var(--border-width), transparent var(--border-width))`,
-      ),
+      decl(`material-${name}-rim`, rim(m[name].rim, m[name].sheen)),
       // The elevated world's brighter glint (§10's catch seam, 2026-08-07): under a sun the
       // pane's edge catches harder. The elevated scope remaps -rim to this; flat never does.
-      decl(
-        `material-${name}-rim-lifted`,
-        `linear-gradient(rgb(255 255 255 / ${m[name].rimLifted}) 0 var(--border-width), transparent var(--border-width))`,
-      ),
+      decl(`material-${name}-rim-lifted`, rim(m[name].rimLifted, m[name].sheen)),
     ];
   };
   return [

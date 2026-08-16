@@ -539,3 +539,63 @@ describe("the lens is additive, never subtractive (§10, 2026-08-16)", () => {
     expect(decl).toContain("inherits: false");
   });
 });
+
+describe("the pane's own lighting is four layers, not one (§10, 2026-08-16)", () => {
+  const tokensCss = raw("tokens/tokens.css");
+
+  it("every rim carries grain, bloom, sheen and the edge catch, in that order", () => {
+    // Ported from the material lab, where a pane is LIT rather than tinted: texture so a big
+    // pane is not flat vector fill, a bloom where the light enters, the broad wash, then the
+    // 1px catch the package already had — which alone is why ported glass read as a
+    // rectangle beside the lab it came from.
+    //
+    // Order is the law, not just presence: these composite top-down, so grain over bloom over
+    // sheen. Written as index comparisons rather than a regex on the whole value, because the
+    // grain is an inlined SVG full of commas and angle brackets and a pattern over it would
+    // be asserting the data URI's spelling.
+    let checked = 0;
+    for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
+      const body = block(tokensCss, scope);
+      for (const t of GLASS_MATERIALS) {
+        for (const variant of ["rim", "rim-lifted"]) {
+          const line = body.split("\n").find((l) => l.includes(`--material-${t}-${variant}:`));
+          if (!line) throw new Error(`no --material-${t}-${variant} in ${scope}`);
+          checked += 1;
+          const grain = line.indexOf("feTurbulence");
+          const bloom = line.indexOf("radial-gradient");
+          const sheen = line.indexOf("linear-gradient(180deg");
+          const edge = line.lastIndexOf("linear-gradient(rgb");
+          for (const [name, at] of [["grain", grain], ["bloom", bloom], ["sheen", sheen], ["edge", edge]] as const) {
+            expect(at, `${scope} ${t} ${variant} has no ${name}`).toBeGreaterThan(-1);
+          }
+          expect(grain, "grain sits over bloom").toBeLessThan(bloom);
+          expect(bloom, "bloom sits over sheen").toBeLessThan(sheen);
+          expect(sheen, "the sheen sits over the edge catch").toBeLessThan(edge);
+        }
+      }
+    }
+    // Two scopes x three thicknesses x two variants; a shorter walk is a law that stopped
+    // looking rather than a system that got simpler.
+    expect(checked, "the rim walk covered nothing").toBe(12);
+  });
+
+  it("the lifted variant differs from the resting one ONLY at the edge catch", () => {
+    // The elevated world catches harder at the very edge; grain, bloom and sheen are what the
+    // material IS and do not move with the app's depth. Asserting the difference exists AND
+    // that it is confined is what stops the lifted variant drifting into a second recipe.
+    for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
+      const body = block(tokensCss, scope);
+      for (const t of GLASS_MATERIALS) {
+        const at = (v: string) => {
+          const line = body.split("\n").find((l) => l.includes(`--material-${t}-${v}:`))!;
+          return line.slice(line.indexOf(":") + 1);
+        };
+        const rest = at("rim");
+        const lifted = at("rim-lifted");
+        expect(rest, `${scope} ${t}: the lifted rim is identical to the resting one`).not.toBe(lifted);
+        const upTo = (v: string) => v.slice(0, v.lastIndexOf("linear-gradient(rgb"));
+        expect(upTo(rest), `${scope} ${t}: depth moved something other than the edge catch`).toBe(upTo(lifted));
+      }
+    }
+  });
+});
