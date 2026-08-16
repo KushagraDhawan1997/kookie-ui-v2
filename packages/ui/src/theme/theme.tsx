@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../system/render.ts";
+import type { Material } from "../system/axes.ts";
 
 export type Appearance = "light" | "dark" | "inherit";
 export type Density = "compact" | "default" | "comfortable";
@@ -18,14 +19,40 @@ export type Pointer = "fine" | "coarse" | "auto";
     for controls — are merely its current resolution. An app choice made once, never a per-card
     knob. Named `depth` since 2026-08-10: it was `surfaces`, which named the family it dresses
     rather than the question it answers, and that name is now needed by the look axis's own
-    halves. */
-export type Depth = "flat" | "elevated";
+    halves.
+
+    A value LIST as well as a union, for the reason `SIZES` and `RUNGS` are lists in
+    system/axes.ts: the laws walk the axis, and eight of them were each restating this
+    literal — so a third rung would have shipped covered by nothing, in eight files that
+    all still passed. The union derives from the list, so the two cannot disagree. */
+export const DEPTHS = ["flat", "elevated"] as const;
+export type Depth = (typeof DEPTHS)[number];
 /** §19 — the resting dress of a one-look family: does the app draw a boundary as a hairline or
     as a darkened well. Border on a CONTROL is rank (Button's `bordered`) and stays a prop; this
     axis never touches ranked chrome. Asked twice, of two family groups — see the props. */
 export type Look = "outlined" | "filled";
 
 export type ThemeProps = {
+  /** §10 — OF WHAT MATERIAL IS THIS APP BUILT (2026-08-16, Kushagra; moved here from nine
+      component props). One value for the whole scope: a table and a chair made of the same
+      oak are the same oak, so a dialog and a menu under one theme are the same glass, and
+      there is no per-family rung to walk and no ceiling to hit at `thick`.
+
+      What makes a dialog read heavier than a menu is therefore NOT its material — it is
+      coverage and the scrim. The same glass over 900px of application obscures far more than
+      the same glass over a 170px menu, and a dialog additionally pushes the page back behind
+      a scrim it already owns. Nothing needed a second thickness to say that.
+
+      `solid` is the default and is a material, not the absence of one: it is the rung where
+      light stops passing through. That is also why this is not a boolean — `glass` would
+      still owe a thickness beside it, which is two props for one fact.
+
+      The value reaches components through CONTEXT and each component stamps its own
+      `data-material`; the Theme writes no material attribute of its own. The selectors stay
+      element-keyed, which is what the `@property inherits: false` guards in recipes.css were
+      built for — a descendant-keyed rule would make every control inside a glass pane paint
+      its container's veil, the defect those guards already fixed four times. */
+  material?: Material;
   appearance?: Appearance;
   density?: Density;
   radius?: RadiusLevel;
@@ -106,7 +133,7 @@ const warnOnFramedAncestor = (node: HTMLElement) => {
 type Resolved = Required<
   Pick<
     ThemeProps,
-    "appearance" | "density" | "radius" | "contrast" | "pointer" | "depth" | "surfaceLook" | "controlLook"
+    "appearance" | "density" | "radius" | "contrast" | "pointer" | "depth" | "surfaceLook" | "controlLook" | "material"
   >
 >;
 
@@ -126,6 +153,7 @@ export const themeDefaults: Resolved = {
   depth: "flat",
   surfaceLook: "outlined",
   controlLook: "outlined",
+  material: "solid",
 };
 
 /**
@@ -159,6 +187,47 @@ export const useTheme = (): Resolved => React.use(ThemeContext);
 export const useThemeRooted = (): boolean => React.use(ThemeContext).rooted;
 
 /**
+ * GLASS DOES NOT STACK ON GLASS (§10, 2026-08-15/16, Kushagra: "generally, glass on glass
+ * doesn't be allowed"), enforced structurally rather than by asking a call site.
+ *
+ * A pane reads as glass because it defocuses what is BEHIND it. Put a second pane on top and
+ * there is nothing left to defocus — the backdrop it samples has already been blurred by its
+ * parent — so the child spends a full readback to blur an already-blurred image and reads as
+ * a sticker. That is a fact about nesting, which is exactly the kind of thing a component
+ * cannot know about itself and a consumer should never have to declare.
+ *
+ * So a member that paints a veil marks its subtree, and every member below it resolves solid.
+ * A `<Theme>` RESETS the mark, which is what makes portals correct: `MenuContent` renders a
+ * bare Theme inside its portal (§20), so a menu opened from a glass card is glass again — it
+ * paints over the page, not inside the card — while a field composed inside that same card is
+ * opaque, with nobody having typed anything.
+ */
+const GlassContext = React.createContext(false);
+
+/**
+ * The material this element should stamp — the theme's, or `solid` if a glass ancestor
+ * already spent the backdrop.
+ *
+ * Public, because a consumer's own pane is a first-class case (Kushagra, 2026-08-16: "I want
+ * consumers to be easily be able to add materials on their custom components"). The whole of
+ * it is `<div className="kui-surface" data-material={useMaterial()} />` — the same shape
+ * Kookie's own surfaces use, with the nesting rule already applied.
+ */
+export function useMaterial(): Material {
+  const { material } = React.use(ThemeContext);
+  const insideGlass = React.use(GlassContext);
+  return insideGlass ? "solid" : material;
+}
+
+/** Marks a subtree as sitting on spent backdrop. Rendered by every member that paints a veil;
+    the provider is skipped entirely when the material is `solid`, so an opaque card costs
+    nothing and does not stand its children down. */
+export function GlassScope({ material, children }: { material: Material; children: React.ReactNode }) {
+  if (material === "solid") return children;
+  return <GlassContext.Provider value={true}>{children}</GlassContext.Provider>;
+}
+
+/**
  * Scopes the design tokens (§5). Nestable, and inherits every prop it is not given, which is
  * what makes a subtree theme cheap: a denser toolbar or an airier hero is a Theme on an element
  * that already exists, via `render`, not a new wrapper and not a per-component prop.
@@ -185,8 +254,9 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       depth: props.depth ?? parent.depth,
       surfaceLook: props.surfaceLook ?? parent.surfaceLook,
       controlLook: props.controlLook ?? parent.controlLook,
+      material: props.material ?? parent.material,
     }),
-    // The eight fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
+    // The nine fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
     // ancestor axis moves, including ones this scope overrides — depending on the identity
     // would rebuild `resolved` (and so re-render every consumer below) on changes that
     // cannot reach it.
@@ -199,6 +269,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       props.depth,
       props.surfaceLook,
       props.controlLook,
+      props.material,
       parent.appearance,
       parent.density,
       parent.radius,
@@ -207,6 +278,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       parent.depth,
       parent.surfaceLook,
       parent.controlLook,
+      parent.material,
     ],
   );
 
@@ -238,9 +310,14 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
   const themeClass = className ? `kui-theme ${className}` : "kui-theme";
   const merged = { ...attrs, className: themeClass, style, ref: warnOnBodyMount };
 
+  // The glass mark resets here, deliberately: a Theme is a new world, and the portal wrapper
+  // IS a bare Theme (§20), which is what lets a menu opened from inside a glass card be glass
+  // again while a field composed inside that card stays opaque.
   return (
     <ThemeContext.Provider value={ctx}>
-      {render ? composeRender(render, merged, children) : <div {...merged}>{children}</div>}
+      <GlassContext.Provider value={false}>
+        {render ? composeRender(render, merged, children) : <div {...merged}>{children}</div>}
+      </GlassContext.Provider>
     </ThemeContext.Provider>
   );
 }

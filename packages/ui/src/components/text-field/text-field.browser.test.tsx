@@ -11,7 +11,8 @@ import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
 import { density } from "../../tokens/config.ts";
-import { APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
+import {
+  GLASS_MATERIALS, APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
@@ -492,7 +493,7 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
   });
 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
-    const glass = render(<TextField material="regular" />);
+    const glass = mounted(<TextField />, { theme: { material: "regular" } });
     expect(computed(glass, "backdrop-filter")).toContain("blur(16px)");
     // The veil is the field's OWN fill made translucent — the fill-modifier model, reached
     // through the shared control layer without text-field.css naming material once.
@@ -507,12 +508,12 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // was left behind"): an opaque tone border on a pane of light is a sticker, so glass
     // fields wear the material's own translucent edge and top rim — and in an elevated
     // world they cast the CONTROL row transmitted, fainter than a solid field's.
-    const glass = render(<TextField material="thin" />);
+    const glass = mounted(<TextField />, { theme: { material: "thin" } });
     expect(computed(glass, "border-top-color")).toBe(colorOn(glass, "var(--material-thin-edge)"));
     expect(computed(glass, "background-image")).not.toBe("none");
     expect(computed(glass, "box-shadow")).toBe("none"); // flat: glass never floats
 
-    const elevated = mounted(<TextField material="thin" />, { theme: { depth: "elevated" } });
+    const elevated = mounted(<TextField />, { theme: { depth: "elevated", material: "thin" } });
     const solid = mounted(<TextField />, { theme: { depth: "elevated" } });
     const probe = document.createElement("div");
     probe.style.boxShadow = "var(--control-chrome-thin)";
@@ -527,13 +528,13 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // The glass edge routes through one private name exactly so these two arms can stand it
     // down with one line each — without this, the brightest hairline in the field's world
     // would keep painting over the error signal.
-    const invalid = render(<TextField material="thin" aria-invalid="true" />);
+    const invalid = mounted(<TextField aria-invalid="true" />, { theme: { material: "thin" } });
     expect(computed(invalid, "border-top-color")).toBe(colorOn(invalid, "var(--invalid-edge)"));
-    const disabled = render(<TextField material="thin" disabled />);
+    const disabled = mounted(<TextField disabled />, { theme: { material: "thin" } });
     expect(computed(disabled, "border-top-color")).toBe(colorOn(disabled, "var(--neutral-6)"));
   });
 
-  it.each(["thin", "regular", "thick"] as const)(
+  it.each(GLASS_MATERIALS)(
     "a disabled %s-glass field sits flat in an elevated world (audit 2026-08-07)",
     (material) => {
       // The arm above ran in a FLAT theme, where the shadow is `none` whether the state
@@ -541,11 +542,11 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
       // the harder half of this defect: its disabled selector is the `:has()` arm, which ties
       // with the glass rules on specificity and loses on source order, so the fix has to stand
       // down the three world names rather than the glass value itself.
-      const live = mounted(<TextField material={material} />, {
-        theme: { depth: "elevated" },
+      const live = mounted(<TextField />, {
+        theme: { depth: "elevated", material },
       });
-      const dead = mounted(<TextField material={material} disabled />, {
-        theme: { depth: "elevated" },
+      const dead = mounted(<TextField disabled />, {
+        theme: { depth: "elevated", material },
       });
       expect(computed(live, "box-shadow"), `${material} glass never casts`).not.toBe("none");
       expect(computed(dead, "box-shadow")).toBe("none");
@@ -619,16 +620,36 @@ describe("a control inside a glass control paints its OWN fill (§2, §10)", () 
   // field computed the identical background as the field itself — at rest, on hover and on
   // press — unblurred, reading as one flat shape rather than a control inside a container.
   it("a Button in a material field does not inherit the field's veil", () => {
-    const field = render(<TextField material="regular" trailing={<Button size="1">Show</Button>} />);
+    const field = mounted(<TextField trailing={<Button size="1">Show</Button>} />, {
+      theme: { material: "regular" },
+    });
     const button = field.querySelector("button")!;
-    const bare = render(<Button size="1">Show</Button>);
+    const bare = mounted(<Button size="1">Show</Button>, { theme: { material: "solid" } });
     expect(computed(button, "background-color")).toBe(computed(bare, "background-color"));
     expect(computed(button, "background-color")).not.toBe(computed(field, "background-color"));
   });
 
   it("and it does not inherit the blur either — one glass per stack (§10)", () => {
-    const field = render(<TextField material="regular" trailing={<Button size="1">Show</Button>} />);
+    const field = mounted(<TextField trailing={<Button size="1">Show</Button>} />, {
+      theme: { material: "regular" },
+    });
     expect(computed(field.querySelector("button")!, "backdrop-filter")).toBe("none");
+    // The negative control the CSS-only version could not have: the field itself must still be
+    // glass, or "the button is not glass" passes because nothing in the tree ever was.
+    expect(computed(field, "backdrop-filter")).not.toBe("none");
+  });
+
+  it("the hosted button REFUSES the material structurally, not just visually (§10, 2026-08-16)", () => {
+    // Since material became the theme's, "one glass per stack" is answered in React rather
+    // than by an inheritance guard: a member that paints a veil scopes its subtree, and
+    // `useMaterial()` below it resolves `solid`. So the button carries no attribute at all —
+    // a stronger claim than "its computed fill differs", and the one that survives a rewrite
+    // of the CSS.
+    const field = mounted(<TextField trailing={<Button size="1">Show</Button>} />, {
+      theme: { material: "regular" },
+    });
+    expect(field.dataset["material"]).toBe("regular");
+    expect(field.querySelector("button")!.dataset["material"]).toBeUndefined();
   });
 });
 
@@ -783,7 +804,7 @@ describe("a glass field's fill really does not move (§10)", () => {
     // The three fill SOURCES were pinned to one colour, and that was still not enough: a fill
     // modifier mixes the source toward transparent on a ramp of its own, so what moved was the
     // mix. In light at `regular` that ramp is 64% -> 72% -> 80% of the same white.
-    const glass = render(<TextField material="regular" />);
+    const glass = mounted(<TextField />, { theme: { material: "regular" } });
     const rest = computed(glass, "background-color");
     expect(stateFill(glass, "hover")).toBe(rest);
     expect(stateFill(glass, "active")).toBe(rest);
@@ -798,7 +819,9 @@ describe("a glass field's fill really does not move (§10)", () => {
     const button = render(<Button emphasis="medium">Save</Button>);
     expect(stateFill(button, "hover")).not.toBe(computed(button, "background-color"));
     // Including one that DOES derive a fill, which is the case the pin could actually reach.
-    const glassButton = render(<Button emphasis="medium" material="regular">Save</Button>);
+    const glassButton = mounted(<Button emphasis="medium">Save</Button>, {
+      theme: { material: "regular" },
+    });
     expect(stateFill(glassButton, "hover")).not.toBe(computed(glassButton, "background-color"));
   });
 });

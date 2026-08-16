@@ -260,7 +260,7 @@ The anchor model read better and corrected worse: a factor moves all four height
 
 ```
 appearance     light | dark | inherit          color scheme. Both directions nest: `[data-appearance="light"]` is emitted as its own block alongside `[data-appearance="dark"]`, so a light section inside a dark app escapes as well as the reverse. `inherit` stamps nothing and keeps the outer scope. Each scope also declares `color-scheme`, so UA-painted chrome (scrollbar tracks, a consumer's native inputs) follows the appearance instead of staying light
-material       off | on (policy)               global translucency gate; CAPS per-component material (section 10). aka allowTranslucency
+material       solid | thin | regular | thick  OF WHAT THE APP IS BUILT (section 10). SHIPPED 2026-08-16, moved here from nine component props. One value for the whole scope: a table and a chair made of the same oak are the same oak, so a dialog and a menu under one theme are the same glass — there is no per-family rung to walk and no ceiling to hit at `thick`. What makes a dialog read heavier than a menu is COVERAGE and its scrim, not a second thickness. `solid` is the default and is a material, not the absence of one, which is also why this is not a boolean: `glass` would still owe a thickness beside it. It SUPERSEDES the policy-ceiling reading this row used to carry (`off | on`, aka allowTranslucency) — `material="solid"` forcing a tree opaque IS that kill switch, so the ceiling is subsumed rather than dropped
 accentColor    <brand color>                   hue that tone="accent" resolves to; input to the color generator (section 7)
 grayColor      <neutral>                        low-chroma accent from the same generator; tone="neutral" hue
 contrast       normal | high                   drives borders/dividers too, resolves per appearance. Stamped only when chosen, so `prefers-contrast: more` still reaches an unconfigured Theme (section 7)
@@ -281,7 +281,11 @@ reducedMotion  user | always                   global override beyond prefers-re
 
 Deferred: `scale` (the factor stays wired, no prop yet — below). `dir` / RTL. Leave room, do not half-build.
 
-Note on `material`: this is the **policy ceiling**, not the per-surface choice. It answers "is translucency allowed in this tree." The per-component `material` prop (section 10) is the usage; Theme caps it. Naming is open (`material` vs `allowTranslucency` vs `materials`).
+Note on `material` (rewritten 2026-08-16, Kushagra — the prop shipped and the old reading is gone). It is the VALUE, not a gate, and it is the only place the value lives: no component takes a material prop, and the per-subtree escape is a nested Theme, exactly as it is for every other axis here.
+
+Two mechanisms carry it, and both are React rather than CSS, deliberately. The value travels by **context** and each component stamps its own `data-material`, so every selector stays element-keyed — a descendant-keyed rule would make every control inside a glass pane paint its container's veil, which is the defect the `@property inherits: false` guards in recipes.css already fixed four times. And **glass does not stack**: a member that paints a veil scopes its subtree, so a pane inside a pane resolves `solid`. That is a fact about NESTING, which a component cannot know about itself and a call site should never have to declare. A `<Theme>` resets the scope, which is what makes portals correct — a menu opened from inside a glass card is glass again, because it paints over the page rather than inside the card, while a field composed inside that same card is opaque.
+
+The consumer story is the same one Box gives for layout: a custom pane is `<div className="kui-surface" data-material={useMaterial()} />`, with the nesting rule already applied.
 
 ### Behavior (not props)
 
@@ -848,7 +852,7 @@ The section that stood here defined a four-level shadow ladder (flat / raised / 
 
 What replaces it costs nothing: **separation is border and fill.** In-flow surfaces (Card, Panel, Callout) separate by containment and the alpha ramp. Detached components design their own detachment when they are built — Dialog's separation already lives in its backdrop (scrim + blur, §11), and whether Popover/Menu need anything beyond border + opaque fill is decided at Popover, against a real backdrop, not pre-modelled. A law asserts the surface layer names no shadow and no elevation.
 
-### Material: backdrop defense (Theme policy x component usage)
+### Material: backdrop defense, and it is the APP's (Theme-scoped since 2026-08-16)
 
 **Decision (revised 2026-08-04): `material = solid | thin | regular | thick`. `solid` is the default and is not a material — it is the seal, the absence of one. Three designed thicknesses, like the emphasis ladder; `regular` is the middle, SwiftUI's own name for it. Available on any component that can float — buttons included.**
 
@@ -870,10 +874,21 @@ Why these and not near-opaque: alpha stays translucent because if you cannot sen
 
 **No vibrancy.** We take iOS's concept (a translucency axis, orthogonal to elevation) and skip the glass simulation. Two recipes, not five magnitudes, because ours vary saturation and brightness *against* opacity to make two characters rather than one dial.
 
-Two scopes, **clamped**:
-- **Theme `material` = policy ceiling.** "Is translucency *allowed* in this tree." Default permits; can force-off globally (perf, embedded context, illegible backdrop). The global kill switch.
-- **Component `material` = per-component usage.** Defaults `solid`; opts in.
-- **Clamp:** Theme caps component. `Theme=solid` forces the whole tree solid and ignores a component's `thin`/`thick`, so the kill switch works without hunting.
+### One scope, not two (2026-08-16, Kushagra — supersedes the clamp above)
+
+The two-scope model died the day the axis was actually built, and the question that killed it is worth keeping: *if the theme says `thick` and a family sits a rung above it, what happens?* Nothing does — **there is no rung above thick.** A ladder-walk per family cannot exist, and reaching for one was the wrong shape.
+
+**Material means what it says: what the app is BUILT of.** A table and a chair made of the same oak are the same oak; they do not get oak+1. So the Theme names one material and everything translucent in the app is that material — menu, dialog, popover, a consumer's own pane. No component picks a thickness, so no component can hit a ceiling.
+
+What makes a dialog read heavier than a menu is therefore not its material but **coverage and the scrim**: the same glass over 900px of application obscures far more than over a 170px menu, and a dialog additionally pushes the page back behind a scrim it already owns. Nothing needed a second thickness to say that.
+
+`solid` is the default and is a material, not the absence of one — the rung where light stops passing through. That is also why the prop is not a boolean: `glass` would still owe a thickness beside it, which is two props for one fact.
+
+The old ceiling is subsumed rather than deleted: `material="solid"` on a Theme forces its whole tree opaque, which is exactly the kill switch the policy reading described.
+
+**Two things stay component-side, and neither is a material value.** *Glass does not stack* — a pane inside a pane resolves solid, because a second pane has no unblurred backdrop left to defocus; that is a fact about nesting, enforced by a scope rather than asked of a call site (§5's note carries the mechanism, including why a `<Theme>` resets it and portals therefore stay glass). And a component whose job needs opacity states that in its own stylesheet, permanently — an identity, the way Card fixed its treatment, never an axis.
+
+**And `layered` does not exist.** It was proposed as a performance switch — "look like glass, cost nothing" — and the audit of 2026-08-16 measured that its sealed composite cannot be identical: it baked a page colour the library has twice declined to own, lost a specificity fight in dark, and could not answer the thickness axis. There is no free glass. Opting out of the cost is the same act as opting out of the look, and that is spelled `material="solid"` on a nested Theme.
 
 ### Material is a fill modifier, not a fill (2026-08-04, Kushagra — supersedes the same-day "glass owns the fill")
 

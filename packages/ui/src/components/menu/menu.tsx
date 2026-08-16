@@ -26,7 +26,8 @@ import {
   PortalScope,
   useAmbientDirection,
 } from "../../system/floating.tsx";
-import type { Size, SlotName } from "../../system/axes.ts";
+import type { Material, Size, SlotName } from "../../system/axes.ts";
+import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /* ── Designed constants (§22, v0 — the switchInset precedent: Base UI takes numbers, so
       these cannot ride CSS tokens; one home, judged in the playground) ─────────────────── */
@@ -201,8 +202,6 @@ export type MenuContentProps = {
   align?: "start" | "center" | "end";
   /** Distance from the trigger, px. Designed default; override sparingly. */
   sideOffset?: number;
-  /** §10 — backdrop defense, opt-in always: over a solid parent it blurs nothing. */
-  material?: "solid" | "thin" | "regular" | "thick";
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -219,7 +218,7 @@ export type MenuContentProps = {
     menu.css re-states the padding the surface size join would otherwise pick. */
 function popupProps(
   size: Size,
-  material: MenuContentProps["material"],
+  material: Material,
   anchored: boolean,
   className?: string,
 ) {
@@ -237,7 +236,9 @@ function popupProps(
     "data-tone": "neutral",
     "data-emphasis": "quiet",
     "data-bordered": true,
-    ...(material && material !== "solid" ? { "data-material": material } : {}),
+    // Solid is the seal and writes no attribute (§10); the value is the THEME's, read
+    // inside the portal so it is the world the popup lands in that answers.
+    ...(material !== "solid" ? { "data-material": material } : {}),
     className: className ? `${identity} ${className}` : identity,
   } as const;
 }
@@ -246,7 +247,6 @@ export function MenuContent({
   side = "bottom",
   align = "start",
   sideOffset = SIDE_OFFSET,
-  material = "solid",
   children,
   className,
   style,
@@ -256,18 +256,54 @@ export function MenuContent({
     <BaseMenu.Portal>
       <PortalScope>
         <BaseMenu.Positioner side={side} align={align} sideOffset={sideOffset}>
-          <BaseMenu.Popup
-            {...popupProps(React.use(MenuSizeContext), material, true, className)}
-            /* The gap the entry publishes is the positioner's own number — stamped, not
-               re-derived, so the two cannot disagree (§22). */
-            style={{ ...gapVar(sideOffset), ...style }}
-            {...(ref !== undefined ? { ref } : {})}
-          >
-            <FloatingBody>{children}</FloatingBody>
-          </BaseMenu.Popup>
+          <MenuPopup anchored side={sideOffset} className={className} style={style} ref={ref}>
+            {children}
+          </MenuPopup>
         </BaseMenu.Positioner>
       </PortalScope>
     </BaseMenu.Portal>
+  );
+}
+
+/**
+ * The popup itself, split out for ONE reason: `useMaterial()` has to be read INSIDE
+ * `PortalScope` (2026-08-16).
+ *
+ * A menu is portalled, but React context follows the tree, not the DOM — so a menu opened
+ * from a trigger inside a glass Card is, in React's eyes, still inside that card's glass
+ * scope, and reading the material in `MenuContent`'s own body would resolve `solid`. That is
+ * wrong: the panel paints over the page, not inside the card. `PortalScope` renders the bare
+ * `<Theme>` §20 already requires, and a Theme resets the glass mark — so reading below it is
+ * what makes "glass does not stack" mean the thing it should.
+ */
+function MenuPopup({
+  anchored,
+  side,
+  children,
+  className,
+  style,
+  ref,
+}: {
+  anchored: boolean;
+  side: number;
+  children?: React.ReactNode | undefined;
+  className?: string | undefined;
+  style?: React.CSSProperties | undefined;
+  ref?: React.Ref<HTMLDivElement> | undefined;
+}) {
+  const material = useMaterial();
+  return (
+    <BaseMenu.Popup
+      {...popupProps(React.use(MenuSizeContext), material, anchored, className)}
+      /* The gap the entry publishes is the positioner's own number — stamped, not
+         re-derived, so the two cannot disagree (§22). */
+      style={{ ...gapVar(side), ...style }}
+      {...(ref !== undefined ? { ref } : {})}
+    >
+      <FloatingBody>
+        <GlassScope material={material}>{children}</GlassScope>
+      </FloatingBody>
+    </BaseMenu.Popup>
   );
 }
 
@@ -575,7 +611,6 @@ export function MenuSubTrigger({
 }
 
 export type MenuSubContentProps = {
-  material?: "solid" | "thin" | "regular" | "thick";
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -584,7 +619,7 @@ export type MenuSubContentProps = {
 
 /** The child panel. No positioning props on purpose: a submenu's geometry is the system's
     (opens outward, first row aligned with its trigger), not a call-site choice. */
-export function MenuSubContent({ material = "solid", children, className, style, ref }: MenuSubContentProps) {
+export function MenuSubContent({ children, className, style, ref }: MenuSubContentProps) {
   const trigger = React.use(MenuSubTriggerContext);
   // One measurement, both axes: flush against the parent PANEL (not against the row, which
   // sits inside the panel's padding), and the child's first row level with the trigger row.
@@ -593,15 +628,11 @@ export function MenuSubContent({ material = "solid", children, className, style,
     <BaseMenu.Portal>
       <PortalScope>
         <BaseMenu.Positioner sideOffset={seam} alignOffset={() => -seam()}>
-          <BaseMenu.Popup
-            {...popupProps(React.use(MenuSizeContext), material, false, className)}
-            /* A submenu's seam is measured at open, not knowable at render — its lean crosses
-               a full row width, so the seam-sized remainder is invisible and 0 is honest. */
-            style={{ ...gapVar(0), ...style }}
-            {...(ref !== undefined ? { ref } : {})}
-          >
-            <FloatingBody>{children}</FloatingBody>
-          </BaseMenu.Popup>
+          {/* A submenu's seam is measured at open, not knowable at render — its lean crosses
+              a full row width, so the seam-sized remainder is invisible and 0 is honest. */}
+          <MenuPopup anchored={false} side={0} className={className} style={style} ref={ref}>
+            {children}
+          </MenuPopup>
         </BaseMenu.Positioner>
       </PortalScope>
     </BaseMenu.Portal>

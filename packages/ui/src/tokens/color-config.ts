@@ -146,19 +146,22 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
 export const tones = {
   /** Not a brand colour: a hue and a near-zero chroma, which is all a tinted grey is. */
   neutral: { hue: 250, vividness: 0.04 },
-  /** The user's brand colour, and it is GREY (2026-08-10, Kushagra). Neutral's own recipe
-      verbatim rather than a second near-zero number, so accent ≡ neutral by construction —
-      the accent ≡ blue identity this line used to carry, pointed one family over.
+  /** The user's brand colour, and it is BLUE again (2026-08-16, Kushagra) — blue's own
+      recipe verbatim, so accent ≡ blue by construction and the two cannot drift apart.
 
-      Nothing in the generator needed an exception: `lowChromaThreshold` (0.18) already says
-      that below it a scale cannot carry prominence by saturation, so `--accent-solid` resolves
-      to step 12 instead of step 9, and that rule is keyed on chroma rather than on the NAME
-      neutral precisely so a desaturated brand is caught by it. A grey brand's primary button
-      is therefore near-black in light and near-white in dark, which is what a grey brand means.
+      It was GREY between 2026-08-10 and today, and that experiment is worth stating rather
+      than deleting: a grey brand meant `lowChromaThreshold` (0.18) routed `--accent-solid`
+      to step 12 instead of step 9, so the primary button was near-black in light and
+      near-white in dark. Nothing in the generator needed an exception then and nothing
+      needs one now — the threshold is keyed on CHROMA, not on a family name, so it simply
+      stops applying at full vividness. What the material work made plain is that a brand
+      with no chroma has nothing to carry through a translucent veil: on glass the primary
+      action arrived as smoke, and every tone in the sweep said something except the one
+      that is meant to say the most.
 
-      To go back to a brand hue this is one line: `{ hue: 250, vividness: 1 }` is the blue that
-      was here, and any `{ hue, vividness }` or `{ color: "#hex" }` works the same way. */
-  accent: { hue: 250, vividness: 0.04 },
+      Either direction is one line: `{ hue: 250, vividness: 0.04 }` is the grey that was
+      here, and any `{ hue, vividness }` or `{ color: "#hex" }` works the same way. */
+  accent: { hue: 250, vividness: 1 },
   destructive: { color: "#E5484D" },
   blue: { hue: 250, vividness: 1 },
   green: { hue: 150, vividness: 1 },

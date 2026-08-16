@@ -54,9 +54,9 @@ const HOSTILE: ThemeProps = {
 /** Mount an OPEN dialog under a themed root; LOUD when the panel never mounts. */
 function openDialog(theme: ThemeProps, opts: { size?: Size; material?: "thin" | "regular" | "thick"; body?: React.ReactNode } = {}) {
   render(
-    <Theme {...theme}>
+    <Theme {...theme} {...(opts.material ? { material: opts.material } : {})}>
       <Dialog defaultOpen {...(opts.size ? { size: opts.size } : {})}>
-        <DialogContent {...(opts.material ? { material: opts.material } : {})}>
+        <DialogContent>
           <DialogTitle>Delete workspace</DialogTitle>
           <DialogDescription>This cannot be undone.</DialogDescription>
           {opts.body}

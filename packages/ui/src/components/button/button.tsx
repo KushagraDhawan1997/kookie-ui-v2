@@ -3,7 +3,8 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
-import type { Emphasis, Material, Size, SlotName, Tone } from "../../system/axes.ts";
+import type { Emphasis, Size, SlotName, Tone } from "../../system/axes.ts";
+import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { filled, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import { Spinner } from "../spinner/spinner.tsx";
 
@@ -16,10 +17,6 @@ type ButtonBase = Omit<
   emphasis?: Emphasis;
   /** §10 — containment, orthogonal to loudness: `quiet + bordered` is the old outline. */
   bordered?: boolean;
-  /** §10, §11 — backdrop defense, opt-in always: for a control floating over media. While a
-      material is on it owns the fill; the rung's dressing returns when it comes off. Over a
-      solid parent it blurs nothing and reads as a smudge — the default is the safe seal. */
-  material?: Material;
   /** Blocks interaction and shows a Spinner, without ever hiding the label (§8). */
   loading?: boolean;
   /**
@@ -85,7 +82,6 @@ export function Button({
   tone = "neutral",
   emphasis = "medium",
   bordered = false,
-  material = "solid",
   loading = false,
   disabled = false,
   focusableWhenDisabled,
@@ -122,6 +118,8 @@ export function Button({
   // The Spinner takes the icon's place when there is one — same box, zero shift — and joins
   // the label when there is not. The label never goes: a button that stops saying what it is
   // doing is worse than one that changes width (§8).
+  // §10 — the app says what things are built of; a control never does (2026-08-16).
+  const material = useMaterial();
   const leading = loading ? <Spinner /> : leadingSlot;
 
   // Slots wear the system's adornment wrapper (`data-slot`, ENGINEERING §3) since 2026-08-05.
@@ -159,7 +157,7 @@ export function Button({
       {...props}
     >
       {slot(leading, "leading")}
-      {children}
+      <GlassScope material={material}>{children}</GlassScope>
       {slot(trailing, "trailing")}
     </BaseButton>
   );

@@ -24,6 +24,7 @@ import {
 } from "../../system/floating.tsx";
 import { mergeRefs } from "../../system/render.ts";
 import type { Material, Size, SlotName } from "../../system/axes.ts";
+import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /** Gap between the trigger's edge and the panel — the menu's designed constant, restated
     because the second member self-keys (§23). */
@@ -114,11 +115,6 @@ export type SelectTriggerProps = Omit<
 > & {
   /** Shown, in the faint role, while no value is chosen — an empty select INVITES (§15). */
   placeholder?: string;
-  /** §10 — the field family's own opt-in, and the reason it is HERE rather than inherited:
-      membership delivers the glass RULES, but something has to stamp the attribute they read.
-      Four documents said a Select trigger could be glass while nothing could ask for it, so a
-      form over a photograph put translucent text fields beside an opaque white dropdown. */
-  material?: Material;
   className?: string;
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
@@ -136,12 +132,13 @@ export type SelectTriggerProps = Omit<
  */
 export function SelectTrigger({
   placeholder,
-  material = "solid",
   className,
   ref,
   ...props
 }: SelectTriggerProps) {
   const size = React.use(SelectSizeContext);
+  // §10 — the app's material (2026-08-16); the trigger stands in flow, so no portal subtlety.
+  const material = useMaterial();
   // The trigger is the one in-flow node a select owns — where ambient direction is read (§20).
   const { measure } = React.use(FloatingDirectionContext);
   const cls = "kui-control kui-field kui-select-trigger";
@@ -178,8 +175,6 @@ export function SelectTrigger({
 /* ── Content: the fold (§22's sentence, §23's member) ─────────────────────────────────── */
 
 export type SelectContentProps = {
-  /** Card's own prop (§10): opaque by default, glass opt-in. */
-  material?: "solid" | "thin" | "regular" | "thick";
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -188,14 +183,14 @@ export type SelectContentProps = {
 
 /** The panel's surface identity — the menu popup's constants, self-keyed (§23). data-size
     is stamped for the concentric corner (the floating size join reads it). */
-function popupProps(size: Size, material: SelectContentProps["material"], className?: string) {
+function popupProps(size: Size, material: Material, className?: string) {
   const identity = "kui-surface kui-floating kui-select-popup";
   return {
     "data-size": size,
     "data-tone": "neutral",
     "data-emphasis": "quiet",
     "data-bordered": true,
-    ...(material && material !== "solid" ? { "data-material": material } : {}),
+    ...(material !== "solid" ? { "data-material": material } : {}),
     className: className ? `${identity} ${className}` : identity,
   } as const;
 }
@@ -207,18 +202,42 @@ function popupProps(size: Size, material: SelectContentProps["material"], classN
  * different height model; the dropdown geometry is the one the menu already designed.
  * Recorded open, with the scroll arrows, in the registry's refusals.
  */
-export function SelectContent({ material = "solid", children, className, style, ref }: SelectContentProps) {
+/** Split out so `useMaterial()` is read INSIDE `PortalScope` — a select opened from a glass
+    card paints over the page, not inside the card, and React context follows the tree rather
+    than the DOM. Menu's own reasoning, same shape (2026-08-16). */
+function SelectPopup({
+  children,
+  className,
+  style,
+  ref,
+}: {
+  children?: React.ReactNode | undefined;
+  className?: string | undefined;
+  style?: React.CSSProperties | undefined;
+  ref?: React.Ref<HTMLDivElement> | undefined;
+}) {
+  const material = useMaterial();
+  return (
+    <BaseSelect.Popup
+      {...popupProps(React.use(SelectSizeContext), material, className)}
+      style={{ ...GAP_VAR, ...style }}
+      {...(ref !== undefined ? { ref } : {})}
+    >
+      <FloatingBody>
+        <GlassScope material={material}>{children}</GlassScope>
+      </FloatingBody>
+    </BaseSelect.Popup>
+  );
+}
+
+export function SelectContent({ children, className, style, ref }: SelectContentProps) {
   return (
     <BaseSelect.Portal>
       <PortalScope>
         <BaseSelect.Positioner side="bottom" align="start" sideOffset={SIDE_OFFSET} alignItemWithTrigger={false}>
-          <BaseSelect.Popup
-            {...popupProps(React.use(SelectSizeContext), material, className)}
-            style={{ ...GAP_VAR, ...style }}
-            {...(ref !== undefined ? { ref } : {})}
-          >
-            <FloatingBody>{children}</FloatingBody>
-          </BaseSelect.Popup>
+          <SelectPopup className={className} style={style} ref={ref}>
+            {children}
+          </SelectPopup>
         </BaseSelect.Positioner>
       </PortalScope>
     </BaseSelect.Portal>

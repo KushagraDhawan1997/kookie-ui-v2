@@ -327,7 +327,7 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
   });
 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
-    const glass = render(<TextArea material="regular" />);
+    const glass = mounted(<TextArea />, { theme: { material: "regular" } });
     expect(computed(glass, "backdrop-filter")).toContain("blur(16px)");
     expect(computed(glass, "background-color")).toBe(
       bgOn(

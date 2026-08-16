@@ -41,6 +41,7 @@ type Env = {
   surfaceLook: NonNullable<ThemeProps["surfaceLook"]>;
   controlLook: NonNullable<ThemeProps["controlLook"]>;
   depth: NonNullable<ThemeProps["depth"]>;
+  material: NonNullable<ThemeProps["material"]>;
 };
 
 /** DERIVED from the package, never restated (2026-08-09): this panel held its own copy of
@@ -56,6 +57,7 @@ const DEFAULT_ENV: Env = {
   surfaceLook: themeDefaults.surfaceLook,
   controlLook: themeDefaults.controlLook,
   depth: themeDefaults.depth,
+  material: themeDefaults.material,
 };
 
 const AXES: { [K in keyof Env]: readonly Env[K][] } = {
@@ -66,6 +68,7 @@ const AXES: { [K in keyof Env]: readonly Env[K][] } = {
   surfaceLook: ["outlined", "filled"],
   controlLook: ["outlined", "filled"],
   depth: ["flat", "elevated"],
+  material: ["solid", "thin", "regular", "thick"],
 };
 
 const CONTRASTS = ["auto", "normal", "high"] as const satisfies readonly ContrastChoice[];

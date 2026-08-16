@@ -383,11 +383,11 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     // white dropdown.
     let field: HTMLElement | null = null;
     const host = render(
-      <Theme>
+      <Theme material="regular">
         <Select>
-          <SelectTrigger placeholder="Pick one" material="regular" />
+          <SelectTrigger placeholder="Pick one" />
         </Select>
-        <TextField placeholder="Type here" material="regular" />
+        <TextField placeholder="Type here" />
       </Theme>,
     );
     const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
@@ -495,10 +495,10 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     await settled();
     const solid = computed(popup, "box-shadow");
     const glass = render(
-      <Theme depth="flat">
+      <Theme depth="flat" material="regular">
         <Select defaultOpen>
           <SelectTrigger placeholder="p" />
-          <SelectContent material="regular">
+          <SelectContent>
             <SelectItem value="a">Alpha</SelectItem>
           </SelectContent>
         </Select>

@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, POINTERS, colorOn, computed, mounted, numberOn, tokenOn } from "../../test/browser.tsx";
+import { APPEARANCES, DEPTHS, POINTERS, colorOn, computed, mounted, numberOn, tokenOn } from "../../test/browser.tsx";
 import { Code } from "../code/code.tsx";
 import { Text } from "../text/text.tsx";
 import { Kbd } from "./kbd.tsx";
@@ -79,7 +79,7 @@ describe("a key cap IS a raised object (§5 — the day-one refusal reversed 202
     // app's dial: it reads the palette row's VALUE (--control-chrome), never the world
     // switch, so flat and elevated render the identical cast — the equality is the claim.
     const casts: string[] = [];
-    for (const depth of ["flat", "elevated"] as const) {
+    for (const depth of DEPTHS) {
       const el = mounted(<Kbd>⌘K</Kbd>, { theme: { depth } });
       const cast = computed(el, "box-shadow");
       expect(cast, `${depth}: the cap went flat`).not.toBe("none");

@@ -12,6 +12,7 @@ import * as React from "react";
 
 import { Theme } from "../../theme/theme.tsx";
 import {
+  DEPTHS,
   APPEARANCES,
   DENSITIES,
   POINTERS,
@@ -417,7 +418,7 @@ describe("states arrive from the shared layer (§8)", () => {
       expect(computed(rootOf(el), "opacity")).toBe("1");
     });
 
-    for (const depth of ["flat", "elevated"] as const) {
+    for (const depth of DEPTHS) {
       it(`${appearance}/${depth}: a dead grip stops hovering — disabled takes the cast (audit 2026-08-07)`, () => {
         // "The thumb casts ALWAYS" is a statement about the WORLD, not about state. Reading the
         // palette row's VALUE is what makes it survive a flat app and a glass pane — and it also

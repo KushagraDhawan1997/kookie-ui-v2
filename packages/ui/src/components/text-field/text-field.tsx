@@ -4,7 +4,8 @@ import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
 import { filled, mergeRefs } from "../../system/render.ts";
-import type { Material, Size, SlotName } from "../../system/axes.ts";
+import type { Size, SlotName } from "../../system/axes.ts";
+import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /**
  * The `type` values a text FIELD is (§4). A closed union, the way `size` is one — because
@@ -33,9 +34,6 @@ export type TextFieldProps = Omit<
   size?: Size;
   /** Narrowed from the platform's open list — see {@link TextFieldType}. */
   type?: TextFieldType;
-  /** §10 — backdrop defense, opt-in: a search field over a hero image. Zero CSS of its own —
-      the control layer's material block re-derives the fill from whatever the field declared. */
-  material?: Material;
   /** Passive by convention — an icon, a unit, a currency mark. Clicking it lands the caret. */
   leading?: React.ReactNode;
   /** May be interactive: a clear button, a reveal toggle. A real button brings its own
@@ -82,7 +80,6 @@ export type TextFieldProps = Omit<
  */
 export function TextField({
   size = "2",
-  material = "solid",
   leading,
   trailing,
   disabled,
@@ -92,6 +89,11 @@ export function TextField({
   ref,
   ...props
 }: TextFieldProps) {
+  // §10 — the app's material (2026-08-16). The wrapper is the visible control, so it is what
+  // carries the veil; the slots below sit INSIDE it, which is why they are scoped: a trailing
+  // Button in a glass field is on spent backdrop and must render opaque.
+  const material = useMaterial();
+
   // The field's OWN input, held so the caret redirect below cannot land somewhere else. The
   // forwarded ref still reaches the same node — neither wins (§3).
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -167,7 +169,7 @@ export function TextField({
     >
       {hasLeading ? (
         <span className="kui-field-slot" data-slot={"leading" satisfies SlotName} id={`${slotId}-l`}>
-          {leading}
+          <GlassScope material={material}>{leading}</GlassScope>
         </span>
       ) : null}
       <BaseInput
@@ -179,7 +181,7 @@ export function TextField({
       />
       {hasTrailing ? (
         <span className="kui-field-slot" data-slot={"trailing" satisfies SlotName} id={`${slotId}-t`}>
-          {trailing}
+          <GlassScope material={material}>{trailing}</GlassScope>
         </span>
       ) : null}
     </span>

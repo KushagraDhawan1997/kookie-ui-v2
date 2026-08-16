@@ -3,7 +3,8 @@
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
-import type { Material, Size } from "../../system/axes.ts";
+import type { Size } from "../../system/axes.ts";
+import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 export type CardProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
@@ -11,8 +12,6 @@ export type CardProps = Omit<
 > & {
   /** §4 — pads from the surface family; a surface has no height to own. */
   size?: Size;
-  /** §10 — backdrop defense, opt-in always: over a solid parent it blurs nothing. */
-  material?: Material;
   /** Render into an element you already have — an `<article>`, a link (§5). */
   render?: RenderElement;
   className?: string;
@@ -36,7 +35,6 @@ export type CardProps = Omit<
  */
 export function Card({
   size = "3",
-  material = "solid",
   render,
   className,
   style,
@@ -44,6 +42,10 @@ export function Card({
   ref,
   ...props
 }: CardProps) {
+  // §10 — the material is the THEME's, and `solid` if a glass ancestor already spent the
+  // backdrop. Card takes no material prop: a card is not a place to choose what the app is
+  // built of (2026-08-16).
+  const material = useMaterial();
   const merged = {
     ref,
     "data-size": size,
@@ -61,7 +63,13 @@ export function Card({
     ...props,
   };
 
-  if (render) return composeRender(render, merged as never, children);
+  // `undefined` must stay `undefined`: composeRender keeps the render target's OWN children
+  // when the caller passes none, and wrapping nothing in a scope would hand it an empty
+  // element and wipe them (caught by the `render={<article>Post body</article>}` law).
+  const body =
+    children === undefined ? undefined : <GlassScope material={material}>{children}</GlassScope>;
 
-  return <div {...(merged as React.ComponentPropsWithRef<"div">)}>{children}</div>;
+  if (render) return composeRender(render, merged as never, body);
+
+  return <div {...(merged as React.ComponentPropsWithRef<"div">)}>{body}</div>;
 }

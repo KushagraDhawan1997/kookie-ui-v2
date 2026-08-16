@@ -640,13 +640,10 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
       // transmitted row (which is none in flat, where this assertion has teeth).
       let glass: HTMLElement | null = null;
       render(
-        <Theme depth={depth}>
+        <Theme depth={depth} material="thin">
           <Menu defaultOpen>
             <MenuTrigger render={<Button>Open</Button>} />
-            <MenuContent
-              material="thin"
-              ref={(n: HTMLDivElement | null) => void (glass = n)}
-            >
+            <MenuContent ref={(n: HTMLDivElement | null) => void (glass = n)}>
               <MenuItem>Alpha</MenuItem>
             </MenuContent>
           </Menu>
@@ -2186,5 +2183,57 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(Math.abs(seed.top - rowBox.top)).toBeLessThan(3);
     expect(Math.abs(seed.width - rowBox.width), "the row's own width").toBeLessThan(3);
     expect(Math.abs(seed.height - rowBox.height), "and height").toBeLessThan(3);
+  });
+});
+
+describe("a portalled panel is glass again — the escape the stacking rule needs (§10, §20)", () => {
+  it("a menu opened from inside a glass Card still paints its own pane", () => {
+    // The subtle half of "glass does not stack". React context follows the TREE, so a menu
+    // triggered from inside a glass card is — as far as React is concerned — inside that
+    // card's glass scope, and a naive scope would render the panel solid. It is not inside it
+    // on screen: the panel paints over the page. `PortalScope` renders the bare Theme §20
+    // already requires, a Theme resets the mark, and the panel resolves the app's material.
+    //
+    // The negative control is the card itself, which must stay glass: without it, a rule that
+    // switched the whole app to solid would satisfy the assertion below.
+    let panel: HTMLElement | null = null;
+    const host = render(
+      <Theme material="regular">
+        <Card id="host">
+          <Menu defaultOpen>
+            <MenuTrigger render={<Button>Open</Button>} />
+            <MenuContent ref={(n: HTMLDivElement | null) => void (panel = n)}>
+              <MenuItem>Alpha</MenuItem>
+            </MenuContent>
+          </Menu>
+        </Card>
+      </Theme>,
+    );
+    const card = host.querySelector<HTMLElement>("#host")!;
+    expect(card.dataset["material"], "the card is the negative control").toBe("regular");
+    if (!panel) throw new Error("the panel never mounted — the law below would assert nothing");
+    const p = panel as HTMLElement;
+    expect(p.dataset["material"]).toBe("regular");
+    expect(computed(p, "backdrop-filter")).not.toBe("none");
+  });
+
+  it("but a card composed INSIDE that panel is solid — the rule still holds one level in", () => {
+    let panel: HTMLElement | null = null;
+    render(
+      <Theme material="regular">
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>Open</Button>} />
+          <MenuContent ref={(n: HTMLDivElement | null) => void (panel = n)}>
+            <Card id="inner" />
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    if (!panel) throw new Error("the panel never mounted");
+    const p = panel as HTMLElement;
+    expect(p.dataset["material"]).toBe("regular");
+    const inner = p.querySelector<HTMLElement>("#inner")!;
+    expect(inner.dataset["material"]).toBeUndefined();
+    expect(computed(inner, "backdrop-filter")).toBe("none");
   });
 });

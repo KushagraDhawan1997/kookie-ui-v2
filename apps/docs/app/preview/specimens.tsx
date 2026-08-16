@@ -23,6 +23,13 @@
  */
 import * as React from "react";
 import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
   Blockquote,
   Box,
   Button,
@@ -61,6 +68,7 @@ import {
   Switch,
   Text,
   TextArea,
+  Theme,
   TextField,
   type Size,
   type Tone,
@@ -425,11 +433,11 @@ function ButtonSection() {
         }))}
       />
       <HostileBed>
-        <Button tone="accent" emphasis="loud" material="thin">Thin</Button>
-        <Button tone="accent" emphasis="loud" material="regular">Regular</Button>
-        <Button tone="accent" emphasis="loud" material="thick">Thick</Button>
-        <Button emphasis="medium" material="regular">Neutral</Button>
-        <Button emphasis="quiet" material="regular">Quiet</Button>
+        <Theme material="thin"><Button tone="accent" emphasis="loud">Thin</Button></Theme>
+        <Theme material="regular"><Button tone="accent" emphasis="loud">Regular</Button></Theme>
+        <Theme material="thick"><Button tone="accent" emphasis="loud">Thick</Button></Theme>
+        <Theme material="regular"><Button emphasis="medium">Neutral</Button></Theme>
+        <Theme material="regular"><Button emphasis="quiet">Quiet</Button></Theme>
       </HostileBed>
     </Stack>
   );
@@ -493,12 +501,14 @@ function CardSection() {
       </Demo>
       <HostileBed>
         {(["thin", "regular", "thick"] as const).map((m) => (
-          <Card key={m} size="2" material={m} style={{ width: "180px" }}>
-            <Stack gap="1">
-              <Text size="2" weight="medium">{cap(m)}</Text>
-              <Text size="1" emphasis="medium">Page glass over a hostile bed.</Text>
-            </Stack>
-          </Card>
+          <Theme key={m} material={m}>
+            <Card size="2" style={{ width: "180px" }}>
+              <Stack gap="1">
+                <Text size="2" weight="medium">{cap(m)}</Text>
+                <Text size="1" emphasis="medium">Page glass over a hostile bed.</Text>
+              </Stack>
+            </Card>
+          </Theme>
         ))}
       </HostileBed>
     </Stack>
@@ -616,6 +626,39 @@ function CodeSection() {
   );
 }
 
+function AlertDialogSection() {
+  /** One canonical question at every size, so the judgment is about the box, the type steps
+      and the 50/50 row — all of which the index prices, because the alert owns its content
+      (§25). The words are an app's words, per the playground's own rule. */
+  const body = (
+    <>
+      <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
+      <AlertDialogDescription>
+        Every project, member and API key goes with it. This cannot be undone.
+      </AlertDialogDescription>
+      <AlertDialogCancel>Keep it</AlertDialogCancel>
+      <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
+    </>
+  );
+  return (
+    <Stack gap="6">
+      <SpecTable
+        cols={["Trigger + alert"]}
+        rows={SIZES.map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <AlertDialog key="a" size={size}>
+              <AlertDialogTrigger render={<Button size={size} emphasis="medium">Delete…</Button>} />
+              <AlertDialogContent>{body}</AlertDialogContent>
+            </AlertDialog>,
+          ],
+        }))}
+      />
+    </Stack>
+  );
+}
+
+
 function DialogSection() {
   /** One canonical body, opened at every size, so the judgment is about the box — its width,
       its padding and its corner — rather than about four different sets of words. The content
@@ -665,18 +708,22 @@ function DialogSection() {
             <Stack gap="6">{body}</Stack>
           </DialogContent>
         </Dialog>
-        <Dialog>
-          <DialogTrigger render={<Button emphasis="medium">Thin glass</Button>} />
-          <DialogContent material="thin">
-            <Stack gap="6">{body}</Stack>
-          </DialogContent>
-        </Dialog>
-        <Dialog>
-          <DialogTrigger render={<Button emphasis="medium">Thick glass</Button>} />
-          <DialogContent material="thick">
-            <Stack gap="6">{body}</Stack>
-          </DialogContent>
-        </Dialog>
+        <Theme material="thin">
+          <Dialog>
+            <DialogTrigger render={<Button emphasis="medium">Thin glass</Button>} />
+            <DialogContent>
+              <Stack gap="6">{body}</Stack>
+            </DialogContent>
+          </Dialog>
+        </Theme>
+        <Theme material="thick">
+          <Dialog>
+            <DialogTrigger render={<Button emphasis="medium">Thick glass</Button>} />
+            <DialogContent>
+              <Stack gap="6">{body}</Stack>
+            </DialogContent>
+          </Dialog>
+        </Theme>
       </Demo>
       {/* A dialog holding a form, which is the other half of what dialogs are for: the fields
           inside answer the app's own control look and density, and the panel is just paper. */}
@@ -909,14 +956,18 @@ function MenuSection() {
             <MenuTrigger render={<Button emphasis="medium">Solid</Button>} />
             <MenuContent>{content}</MenuContent>
           </Menu>
-          <Menu>
-            <MenuTrigger render={<Button emphasis="medium">Thin glass</Button>} />
-            <MenuContent material="thin">{content}</MenuContent>
-          </Menu>
-          <Menu>
-            <MenuTrigger render={<Button emphasis="medium">Thick glass</Button>} />
-            <MenuContent material="thick">{content}</MenuContent>
-          </Menu>
+          <Theme material="thin">
+            <Menu>
+              <MenuTrigger render={<Button emphasis="medium">Thin glass</Button>} />
+              <MenuContent>{content}</MenuContent>
+            </Menu>
+          </Theme>
+          <Theme material="thick">
+            <Menu>
+              <MenuTrigger render={<Button emphasis="medium">Thick glass</Button>} />
+              <MenuContent>{content}</MenuContent>
+            </Menu>
+          </Theme>
         </HostileBed>
       </Demo>
       {/* The §6 judging surface: the panel's CONCENTRIC corner (rows' corner + padding) beside
@@ -1019,15 +1070,23 @@ function SelectSection() {
             <SelectTrigger placeholder="Solid" />
             <SelectContent>{content}</SelectContent>
           </Select>
-          <Select items={items}>
-            <SelectTrigger placeholder="Thin glass" />
-            <SelectContent material="thin">{content}</SelectContent>
-          </Select>
-          <Select items={items}>
-            <SelectTrigger placeholder="Glass trigger" material="regular" />
-            <SelectContent material="regular">{content}</SelectContent>
-          </Select>
-          <TextField placeholder="…and the field beside it" material="regular" />
+          <Theme material="thin">
+            <Select items={items}>
+              <SelectTrigger placeholder="Thin glass" />
+              <SelectContent>{content}</SelectContent>
+            </Select>
+          </Theme>
+          {/* One world, and the trigger, the panel and the field beside it all answer it —
+              which is the whole argument for the axis living on the Theme. */}
+          <Theme material="regular">
+            <Select items={items}>
+              <SelectTrigger placeholder="Glass trigger" />
+              <SelectContent>{content}</SelectContent>
+            </Select>
+          </Theme>
+          <Theme material="regular">
+            <TextField placeholder="…and the field beside it" />
+          </Theme>
         </HostileBed>
       </Demo>
       {/* The two width facts, judged together (audit 2026-08-09): a trigger grows to fit its
@@ -1465,15 +1524,15 @@ function TextFieldSection() {
           which is where a wrong slot colour shows. */}
       <HostileBed>
         {(["thin", "regular", "thick"] as const).map((m) => (
-          <TextField
-            key={m}
-            size="2"
-            material={m}
-            placeholder={cap(m)}
-            aria-label={`Glass field, ${m}`}
-            leading={<SearchIcon />}
-            style={{ width: "170px" }}
-          />
+          <Theme key={m} material={m}>
+            <TextField
+              size="2"
+              placeholder={cap(m)}
+              aria-label={`Glass field, ${m}`}
+              leading={<SearchIcon />}
+              style={{ width: "170px" }}
+            />
+          </Theme>
         ))}
       </HostileBed>
     </Stack>
@@ -1584,6 +1643,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "card", name: "Card", body: <CardSection /> },
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
+  { id: "alert-dialog", name: "Alert dialog", body: <AlertDialogSection /> },
   { id: "dialog", name: "Dialog", body: <DialogSection /> },
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "menu", name: "Menu", body: <MenuSection /> },

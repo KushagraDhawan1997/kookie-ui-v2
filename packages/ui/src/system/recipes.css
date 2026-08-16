@@ -569,9 +569,25 @@
 
 /* A shortcut hint or chevron sits at the far edge, not beside the label — the row's own
    layout fact, not a per-call-site margin (components never own outer spacing; this is
-   inner). */
+   inner).
+
+   And the FAR EDGE is the row's own inset away, not the text padding away (§21, Kushagra
+   2026-08-16: "the top, right, and bottom must match for kbd"). The row's inline padding is
+   the control family's `px`, priced for where TEXT starts; its block clearance is
+   `rowInset`, a different and smaller number — so a boxed thing in the trailing slot (a Kbd
+   capsule, an indicator) sat equally off the top and bottom and visibly farther from the
+   end. The margin cedes the difference, so the slot's end clearance IS the row's inset: a
+   line-box-tall chip sits at one distance from its three nearest edges, and at
+   radius="full" that equality is exactly what makes capsule-in-capsule CONCENTRIC — the
+   panel corner's own sentence (§22), one nesting deeper. The text's own padding is
+   untouched, and the leading side deliberately keeps `px`: that side aligns the label with
+   every slotless row, which is the reserved-gutter fact. */
 .kui-row > [data-slot="trailing"] {
   margin-inline-start: auto;
+  /* The border term cedes here exactly as it does in the row's padding-block one rule up:
+     the rendered clearance is measured from the border box, so without it the end sat one
+     hairline wider than the top — the checkbox target's own audit lesson, third home. */
+  margin-inline-end: calc(var(--kui-ct-row-inset) - var(--kui-ct-px) - var(--border-width));
 }
 
 /* THE LIT ROW IS data-highlighted, NEVER :hover (§21). Base UI unifies pointer and keyboard

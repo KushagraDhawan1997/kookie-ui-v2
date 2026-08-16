@@ -7,7 +7,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cdp } from "vitest/browser";
 
 import { Theme } from "../../theme/theme.tsx";
-import { APPEARANCES, colorOn, computed, mounted, ownColor, render, within } from "../../test/browser.tsx";
+import {
+  GLASS_MATERIALS, APPEARANCES, colorOn, computed, mounted, ownColor, render, within } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Spinner } from "../spinner/spinner.tsx";
@@ -114,8 +115,8 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
   });
 
   it("a glass card keeps the pane's own edge in the filled look — the material wins (§19, §10)", () => {
-    const el = mounted(<Card material="regular">Body</Card>, {
-      theme: { surfaceLook: "filled" },
+    const el = mounted(<Card>Body</Card>, {
+      theme: { surfaceLook: "filled", material: "regular" },
       select: ".kui-surface",
     });
     expect(computed(el, "border-top-color")).toBe(
@@ -196,18 +197,86 @@ describe("the shell SEALS — translucency is material's job alone (§10, LOG 20
   });
 });
 
+describe("material is the THEME's, and one glass per stack is structural (§10, 2026-08-16)", () => {
+  it("a card takes the app's material without being told — and refuses the prop", () => {
+    // The axis moved to Theme because material answers "of what is this app built", which is
+    // the same kind of question as depth or density and not a per-card choice. Two halves,
+    // both asserted: the value arrives, and the old escape is gone from the type.
+    const glass = mounted(<Card>B</Card>, { theme: { material: "thick" } });
+    expect(glass.dataset["material"]).toBe("thick");
+    expect(computed(glass, "backdrop-filter")).toContain("blur(");
+    // @ts-expect-error — material is the Theme's; a card that could override it would be a
+    // second home for the app's own identity (§12).
+    void (<Card material="thin" />);
+  });
+
+  it("a nested Theme re-answers it, which is the ONLY per-subtree escape", () => {
+    // The escape every other axis already has, and deliberately the same one: a subtree that
+    // must differ says so with a Theme, not with a prop nobody can find later.
+    const host = render(
+      <Theme material="regular">
+        <Card id="outer" />
+        <Theme material="solid">
+          <Card id="inner" />
+        </Theme>
+      </Theme>,
+    );
+    expect(host.querySelector<HTMLElement>("#outer")!.dataset["material"]).toBe("regular");
+    expect(host.querySelector<HTMLElement>("#inner")!.dataset["material"]).toBeUndefined();
+    expect(computed(host.querySelector("#inner")!, "backdrop-filter")).toBe("none");
+  });
+
+  it("glass does not stack: a pane inside a pane resolves solid, at any depth", () => {
+    // A pane reads as glass because it defocuses what is behind it; a second pane has nothing
+    // left to defocus, because its backdrop was already blurred by its parent. So this is a
+    // fact about NESTING, which a component cannot know about itself — hence a scope rather
+    // than a prop. Three levels, because a one-level guard is what a two-level tree defeats.
+    const host = mounted(
+      <Card id="l1">
+        <Card id="l2">
+          <Card id="l3" />
+        </Card>
+      </Card>,
+      { theme: { material: "regular" } },
+    );
+    expect(host.dataset["material"]).toBe("regular");
+    for (const id of ["#l2", "#l3"]) {
+      const el = host.querySelector<HTMLElement>(id)!;
+      expect(el.dataset["material"], `${id} stacked glass`).toBeUndefined();
+      expect(computed(el, "backdrop-filter"), `${id} stacked blur`).toBe("none");
+    }
+  });
+
+  it("a solid card does NOT stand its children down — the scope is glass, not containment", () => {
+    // The negative control the rule above needs. If the mark were applied unconditionally,
+    // every card in a glass app would flatten its own contents and the axis would be dead.
+    // Nested cards under a solid theme are simply all solid; the interesting half is that
+    // the scope must not fire, which only a glass-in-solid-parent case can show.
+    const host = mounted(
+      <Card id="outer">
+        <Theme material="thin">
+          <Card id="inner" />
+        </Theme>
+      </Card>,
+      { theme: { material: "solid" } },
+    );
+    expect(host.dataset["material"]).toBeUndefined();
+    expect(host.querySelector<HTMLElement>("#inner")!.dataset["material"]).toBe("thin");
+  });
+});
+
 describe("material is backdrop defense, opt-in (§10)", () => {
   it("three thicknesses blur in order; the default never does", () => {
-    const thin = render(<Card material="thin">B</Card>);
-    const regular = render(<Card material="regular">B</Card>);
-    const thick = render(<Card material="thick">B</Card>);
+    const thin = mounted(<Card>B</Card>, { theme: { material: "thin" } });
+    const regular = mounted(<Card>B</Card>, { theme: { material: "regular" } });
+    const thick = mounted(<Card>B</Card>, { theme: { material: "thick" } });
     expect(computed(thin, "backdrop-filter")).toContain("blur(5px)");
     expect(computed(regular, "backdrop-filter")).toContain("blur(16px)");
     expect(computed(thick, "backdrop-filter")).toContain("blur(32px)");
   });
 
   it("a material fill is the shell's own seal made translucent — the modifier, applied (§10)", () => {
-    const thin = render(<Card material="thin">B</Card>);
+    const thin = mounted(<Card>B</Card>, { theme: { material: "thin" } });
     expect(computed(thin, "background-color")).toBe(
       colorOn(thin, "color-mix(in srgb, var(--color-surface) var(--material-thin-alpha), transparent)"),
     );
@@ -215,14 +284,21 @@ describe("material is backdrop defense, opt-in (§10)", () => {
   });
 
   it("a plain card nested in a glass card keeps its seal — the derived fill does not inherit", () => {
-    const outer = render(
-      <Card material="regular">
+    const outer = mounted(
+      <Card>
         <Card data-testid="inner">B</Card>
       </Card>,
+      { theme: { material: "regular" } },
     );
     const inner = outer.querySelector<HTMLElement>('[data-testid="inner"]')!;
     expect(computed(inner, "background-color")).toBe(colorOn(inner, "var(--color-surface)"));
     expect(computed(inner, "backdrop-filter")).toBe("none");
+    // Since 2026-08-16 this is structural rather than a fill-inheritance guard: the outer card
+    // scopes its subtree and the inner one resolves `solid`, so it claims no material at all.
+    // Asserted as well as the paint, because the paint alone would pass if the mechanism were
+    // replaced by something weaker.
+    expect(outer.dataset["material"]).toBe("regular");
+    expect(inner.dataset["material"]).toBeUndefined();
   });
 });
 
@@ -290,8 +366,8 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
     // card's, still a shadow), catches the LIFTED rim (brighter than flat glass's resting
     // glint), and flat glass never floats — edge and glint, no lift.
     const solid = mounted(<Card>B</Card>, { theme: { depth: "elevated" } });
-    const glass = mounted(<Card material="thin">B</Card>, { theme: { depth: "elevated" } });
-    const flatGlass = mounted(<Card material="thin">B</Card>, { theme: { depth: "flat" } });
+    const glass = mounted(<Card>B</Card>, { theme: { depth: "elevated", material: "thin" } });
+    const flatGlass = mounted(<Card>B</Card>, { theme: { depth: "flat", material: "thin" } });
     const probe = document.createElement("div");
     probe.style.boxShadow = "var(--surface-chrome-thin)";
     glass.append(probe);
@@ -317,10 +393,11 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
 
 describe("the boundary (§3, §13)", () => {
   it("forwards the escapes and keeps its own classes", () => {
-    const el = render(
-      <Card className="mine" style={{ maxWidth: "300px" }} material="thin">
+    const el = mounted(
+      <Card className="mine" style={{ maxWidth: "300px" }}>
         B
       </Card>,
+      { theme: { material: "thin" } },
     );
     expect(el.className.split(" ").sort()).toEqual(["kui-card", "kui-surface", "mine"]);
     expect(computed(el, "max-width")).toBe("300px");
@@ -488,7 +565,7 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     expect(computed(nested.querySelector("#probe")!, "box-shadow")).not.toBe("none");
   });
 
-  it.each(["thin", "regular", "thick"] as const)(
+  it.each(GLASS_MATERIALS)(
     "a plain card inside %s glass keeps the WORLD's shadow, not the pane's (audit 2026-08-07)",
     (material) => {
       // The pane's transmitted cast used to be written onto --kui-surface-chrome itself — the
@@ -504,10 +581,10 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
           select: ".kui-surface",
         });
         const nested = mounted(
-          <Card material={material}>
+          <Card>
             <Card id="inner">B</Card>
           </Card>,
-          { theme: { appearance, depth: "elevated" } },
+          { theme: { appearance, depth: "elevated", material } },
         );
         const inner = nested.querySelector<HTMLElement>("#inner")!;
         const outer = nested;
@@ -537,8 +614,8 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
         theme: { depth: "elevated" },
         select: ".kui-surface",
       });
-      const sealed = mounted(<Card material="thin">B</Card>, {
-        theme: { depth: "elevated" },
+      const sealed = mounted(<Card>B</Card>, {
+        theme: { depth: "elevated", material: "thin" },
         select: ".kui-surface",
       });
       expect(computed(sealed, "backdrop-filter")).toBe("none"); // the pane really is sealed
@@ -560,10 +637,10 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     // appearance stamped, the appearance scope re-declares the generated name AT the element
     // and papers over the hole; the bug then hides behind an axis it has nothing to do with.
     const nested = render(
-      <Theme appearance="inherit" depth="elevated">
-        <Card material="regular" id="lifted" />
+      <Theme appearance="inherit" depth="elevated" material="regular">
+        <Card id="lifted" />
         <Theme depth="flat">
-          <Card material="regular" id="rested" />
+          <Card id="rested" />
         </Theme>
       </Theme>,
     );
@@ -575,8 +652,8 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     expect(rested, "the nested flat pane kept the elevated glint").not.toBe(lifted);
     // And it rests at exactly the value a top-level flat app resolves — escaping is going
     // back, not going somewhere third.
-    const topLevel = mounted(<Card material="regular" />, {
-      theme: { appearance: "inherit", depth: "flat" },
+    const topLevel = mounted(<Card />, {
+      theme: { appearance: "inherit", depth: "flat", material: "regular" },
       select: ".kui-surface",
     });
     expect(rested).toBe(computed(topLevel, "background-image"));
@@ -597,7 +674,7 @@ describe("reduced transparency takes the pane away, not the app's dress (§10, �
   for (const appearance of APPEARANCES) {
     it(`${appearance}: a glass card's edge matches every other card's under filled`, async () => {
       await emulate([{ name: "prefers-reduced-transparency", value: "reduce" }]);
-      const glass = mounted(<Card material="regular">Body</Card>, {
+      const glass = mounted(<Card>Body</Card>, {
         theme: { surfaceLook: "filled", appearance },
         select: ".kui-surface",
       });

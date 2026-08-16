@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { RenderElement } from "../../system/render.ts";
 import { coarse, density } from "../../tokens/config.ts";
 import {
+  GLASS_MATERIALS,
   APPEARANCES,
   SIZES,
   colorOn,
@@ -181,15 +182,20 @@ describe("states are stylesheet work, and the DOM stays honest (§8, ENGINEERING
 describe("material is a fill modifier: the rung's own fill, made translucent (§10, §11)", () => {
   it("solid is the absence of a material — the default writes no attribute", () => {
     expect(render(<Button>Label</Button>).dataset.material).toBeUndefined();
-    expect(render(<Button material="solid">Label</Button>).dataset.material).toBeUndefined();
-    expect(render(<Button material="regular">Label</Button>).dataset.material).toBe("regular");
+    expect(
+      mounted(<Button>Label</Button>, { theme: { material: "solid" } }).dataset.material,
+    ).toBeUndefined();
+    expect(
+      mounted(<Button>Label</Button>, { theme: { material: "regular" } }).dataset.material,
+    ).toBe("regular");
   });
 
   it("the veil is the rung's fill at the thickness alpha, over a real blur", () => {
-    const el = render(
-      <Button emphasis="loud" tone="accent" material="thin">
+    const el = mounted(
+      <Button emphasis="loud" tone="accent">
         Label
       </Button>,
+      { theme: { material: "thin" } },
     );
     expect(computed(el, "background-color")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-solid) var(--material-thin-alpha), transparent)"),
@@ -202,10 +208,11 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
     // to any other family, including neutral, and this law is about two things DIFFERING.
     const cell = (tone: "neutral" | "blue", emphasis: "loud" | "medium") =>
       computed(
-        render(
-          <Button tone={tone} emphasis={emphasis} material="thick">
+        mounted(
+          <Button tone={tone} emphasis={emphasis}>
             Label
           </Button>,
+          { theme: { material: "thick" } },
         ),
         "background-color",
       );
@@ -214,10 +221,11 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
   });
 
   it("quiet glass is bare blur: rest keeps the absence of a fill (§9)", () => {
-    const el = render(
-      <Button emphasis="quiet" material="regular">
+    const el = mounted(
+      <Button emphasis="quiet">
         Label
       </Button>,
+      { theme: { material: "regular" } },
     );
     // Mixing transparent toward transparent serialises as color(srgb …/0), not rgba(0,0,0,0);
     // the law is the alpha channel, not the spelling.
@@ -226,10 +234,11 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
   });
 
   it("interaction steps the veil from the rung's own hover source, at the hover alpha (§8)", () => {
-    const el = render(
-      <Button emphasis="medium" material="thin">
+    const el = mounted(
+      <Button emphasis="medium">
         Label
       </Button>,
+      { theme: { material: "thin" } },
     );
     expect(ownColor(el, "--kui-ct-fill-hover")).toBe(
       colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-thin-alpha-hover), transparent)"),
@@ -243,25 +252,28 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
     // The fill is still the rung's — merely translucent — so loud keeps the APCA-chosen
     // contrast and medium keeps the label token. Thin-over-a-bright-photo legibility is
     // §10's deferred brightness-floor branch, not a label swap.
-    const loud = render(
-      <Button tone="accent" emphasis="loud" material="thick">
+    const loud = mounted(
+      <Button tone="accent" emphasis="loud">
         Label
       </Button>,
+      { theme: { material: "thick" } },
     );
     expect(computed(loud, "color")).toBe(tokenOn(loud, "--tone-contrast"));
-    const medium = render(
-      <Button tone="accent" emphasis="medium" material="thick">
+    const medium = mounted(
+      <Button tone="accent" emphasis="medium">
         Label
       </Button>,
+      { theme: { material: "thick" } },
     );
     expect(computed(medium, "color")).toBe(tokenOn(medium, "--tone-label"));
   });
 
   it("the fill returns to opaque when the material comes off", () => {
-    const glass = render(
-      <Button emphasis="loud" material="regular">
+    const glass = mounted(
+      <Button emphasis="loud">
         Label
       </Button>,
+      { theme: { material: "regular" } },
     );
     const plain = render(<Button emphasis="loud">Label</Button>);
     expect(computed(plain, "background-color")).toBe(tokenOn(plain, "--tone-solid"));
@@ -470,12 +482,12 @@ describe("the boundary (§3, §13)", () => {
     // the backdrop shows through and the cast lands on it like ink (judged in the preview,
     // 2026-08-07). The pane is the raised thing; its contents sit flush on it.
     const el = mounted(
-      <Card material="thin">
+      <Card>
         <Button tone="accent" emphasis="loud">
           Label
         </Button>
       </Card>,
-      { theme: { depth: "elevated" } },
+      { theme: { depth: "elevated", material: "thin" } },
     );
     const button = el.querySelector("button")!;
     expect(computed(button, "box-shadow")).toBe("none");
@@ -541,7 +553,7 @@ describe("the boundary (§3, §13)", () => {
     expect(computed(disabled, "background-image")).toBe("none");
   });
 
-  it.each(["thin", "regular", "thick"] as const)(
+  it.each(GLASS_MATERIALS)(
     "a disabled %s-glass button stands its cast down too (audit 2026-08-07)",
     (material) => {
       // The law above used a SOLID button and passed while this was broken. A glass control
@@ -549,16 +561,16 @@ describe("the boundary (§3, §13)", () => {
       // the three per-thickness world names — so standing --kui-control-chrome down never
       // reached it, and a dead glass button computed a shadow byte-identical to its live self.
       const live = mounted(
-        <Button tone="accent" emphasis="loud" material={material}>
+        <Button tone="accent" emphasis="loud">
           Save
         </Button>,
-        { theme: { depth: "elevated" } },
+        { theme: { depth: "elevated", material } },
       );
       const dead = mounted(
-        <Button tone="accent" emphasis="loud" material={material} disabled>
+        <Button tone="accent" emphasis="loud" disabled>
           Save
         </Button>,
-        { theme: { depth: "elevated" } },
+        { theme: { depth: "elevated", material } },
       );
       // The negative control: without it, a glass button that stopped casting entirely would
       // satisfy the real assertion and hide a different bug.

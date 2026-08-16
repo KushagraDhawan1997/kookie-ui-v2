@@ -12,6 +12,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DEPTHS,
   APPEARANCES,
   DENSITIES,
   POINTERS,
@@ -280,7 +281,7 @@ describe("a bar is not a control (§4, §16 — the mechanisms it must NOT have)
   });
 
   it("no shadow of its own — depth is the app's, and a bar is not a plane (§5)", () => {
-    for (const depth of ["flat", "elevated"] as const) {
+    for (const depth of DEPTHS) {
       const { root } = parts(<Progress value={40} />, { theme: { depth } });
       expect(computed(root, "box-shadow"), `${depth} lifted the bar`).toBe("none");
     }

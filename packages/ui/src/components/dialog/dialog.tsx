@@ -37,6 +37,7 @@ import {
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import type { Material, Size } from "../../system/axes.ts";
+import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /* ── Size context: the dialog answers `size` like Menu (Kushagra, 2026-08-10) — the index
       prices the box (width, padding, corner) and nothing else. Type is NOT on it: no surface
@@ -173,9 +174,6 @@ export function DialogClose({ render, nativeButton, ref, ...props }: DialogClose
 /* ── Content: the fold (§24) ───────────────────────────────────────────────────────────── */
 
 export type DialogContentProps = {
-  /** §10 — Card's own prop: opaque by default, glass opt-in. The scrim behind it is the
-      app's dim and does not change with this; what changes is what the panel is made of. */
-  material?: Material;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -186,7 +184,7 @@ export type DialogContentProps = {
     overlay scale). `kui-overlay` is the family class the shared layer's overlay size join keys
     on: it reads this same `data-size` and answers with the overlay band's corner and the
     designed maximum width (§24). Per-size spellings live there, never in a component sheet. */
-function popupProps(size: Size, material: Material | undefined, className?: string) {
+function popupProps(size: Size, material: Material, className?: string) {
   const identity = "kui-surface kui-overlay kui-dialog-popup";
   return {
     "data-size": size,
@@ -194,7 +192,7 @@ function popupProps(size: Size, material: Material | undefined, className?: stri
     "data-emphasis": "quiet",
     "data-bordered": true,
     // Solid is the absence of a material, so it writes no attribute (§10).
-    ...(material && material !== "solid" ? { "data-material": material } : {}),
+    ...(material !== "solid" ? { "data-material": material } : {}),
     className: className ? `${identity} ${className}` : identity,
   } as const;
 }
@@ -211,18 +209,45 @@ function popupProps(size: Size, material: Material | undefined, className?: stri
  * instead of trapping its own overflow, so the title of a long dialog is reachable by
  * scrolling rather than lost above a clipped box.
  */
-export function DialogContent({ material, children, className, style, ref }: DialogContentProps) {
-  const size = React.use(DialogSizeContext);
+export function DialogContent({ children, className, style, ref }: DialogContentProps) {
   return (
     <BaseDialog.Portal>
       <PortalScope>
         <BaseDialog.Backdrop className="kui-dialog-backdrop" />
         <BaseDialog.Viewport className="kui-dialog-viewport">
-          <BaseDialog.Popup
-            {...popupProps(size, material, className)}
-            {...(style !== undefined ? { style } : {})}
-            {...(ref !== undefined ? { ref } : {})}
-          >
+          <DialogPopup className={className} style={style} ref={ref}>
+            {children}
+          </DialogPopup>
+        </BaseDialog.Viewport>
+      </PortalScope>
+    </BaseDialog.Portal>
+  );
+}
+
+/** Split out so `useMaterial()` resolves INSIDE `PortalScope` (2026-08-16). React context
+    follows the tree, not the DOM, so a dialog opened from a trigger inside a glass Card would
+    otherwise read that card's glass scope and render solid — wrong, because a dialog covers
+    the page rather than sitting on the card. The bare Theme `PortalScope` renders resets the
+    mark, which is the whole mechanism. Menu and Select have the identical split. */
+function DialogPopup({
+  children,
+  className,
+  style,
+  ref,
+}: {
+  children?: React.ReactNode | undefined;
+  className?: string | undefined;
+  style?: React.CSSProperties | undefined;
+  ref?: React.Ref<HTMLDivElement> | undefined;
+}) {
+  const size = React.use(DialogSizeContext);
+  const material = useMaterial();
+  return (
+    <BaseDialog.Popup
+      {...popupProps(size, material, className)}
+      {...(style !== undefined ? { style } : {})}
+      {...(ref !== undefined ? { ref } : {})}
+    >
             {/**
               * The body exists for ONE reason and holds one channel: the content comes into
               * focus with the plane it is printed on (§24's entry — depth of field is a
@@ -237,13 +262,10 @@ export function DialogContent({ material, children, className, style, ref }: Dia
               * interpolate to; a dialog only steps forward in z, and scale needs no
               * measuring.
               */}
-            <div className="kui-dialog-body" role="presentation">
-              {children}
-            </div>
-          </BaseDialog.Popup>
-        </BaseDialog.Viewport>
-      </PortalScope>
-    </BaseDialog.Portal>
+      <div className="kui-dialog-body" role="presentation">
+        <GlassScope material={material}>{children}</GlassScope>
+      </div>
+    </BaseDialog.Popup>
   );
 }
 

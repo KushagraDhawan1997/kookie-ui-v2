@@ -13,6 +13,13 @@
  */
 import * as React from "react";
 import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
   Blockquote,
   Box,
   Button,
@@ -85,6 +92,61 @@ export type Entry = {
 
 export const ENTRIES: Entry[] = [
   {
+    slug: "alert-dialog",
+    name: "AlertDialog",
+    family: "Surface",
+    spec: "§10, §20, §25",
+    blurb:
+      "A modal question: title, description, and two actions that split the row equally — nothing else. Split from Dialog because the two are semantically different (a dialog is summoned to host your work; an alert comes at you and stops you), which is why it wears role=alertdialog, refuses outside-press dismissal, and carries the family's arrival entry as its own gesture. The content is fixed, and that closed anatomy is what licenses everything unusual here: the system lays out the parts itself, the width is a designed constant per size, and the entry may animate the content because the content is the system's own. The part vocabulary follows shadcn/ui's alert-dialog (MIT), adopted with credit; behavior is Base UI's AlertDialog end to end.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "prices EVERYTHING — box, corner, padding, the title's and description's type steps, and the two buttons — where Dialog's size stops at the box; legal because the content here is the system's own" },
+      { name: "tone (Action)", values: "any family", note: "the one meaning an action carries beyond proceeding — destructive for the deletes this component mostly exists for" },
+    ],
+    refusals: [
+      {
+        name: "a width prop",
+        why: "The width is the component's alone: a designed FIXED width per size (narrower than the dialog of the same index — an alert interrupts with a question, it does not host work). Closed content is what lets the box close; the window's gutter still wins on a phone.",
+      },
+      {
+        name: "outside-press dismissal",
+        why: "The role's own refusal, and Base UI's: an alert that could be dismissed by clicking elsewhere is a dialog wearing the wrong role. Escape still closes — a keyboard user answering 'not now' is the Cancel action by another route.",
+      },
+      {
+        name: "Header and Footer",
+        why: "The component owns the layout, so they have no job: Content arranges title, description and the action row itself, and the caller never writes a Stack. Cancel first in the DOM is what places it at the start AND hands it initial focus — the least destructive action, answered by document order rather than machinery.",
+      },
+      {
+        name: "render on Cancel and Action",
+        why: "The alert owns its actions' size and their 50/50 row, and an escape would hand both back. They are real Kookie Buttons the component prices: Cancel medium (the rung moved four times in one day — the near-solid dark reading that argued against it turned out to be the lab glass veil's compositing, not the rung's; on a plain pane bare quiet was an absence), Action loud — loud as a DEFAULT is legal here and nowhere else, because an alert has exactly one Action, so the one-focal-point rule holds by anatomy instead of self-policing.",
+      },
+      {
+        name: "arbitrary children",
+        why: "If it needs any control beyond its two buttons — a type-to-confirm field, a checkbox — it is a Dialog. An alert's only task is choosing.",
+      },
+    ],
+    parts: [
+        { part: "AlertDialogTrigger", blurb: "The button that opens it — usually render={<Button/>}; an alert driven by app state needs no trigger at all" },
+        { part: "AlertDialogContent", blurb: "The whole fold: portals, re-applies the theme (§20), paints the scrim, centres the panel — and owns the layout, a two-column grid the parts drop into" },
+        { part: "AlertDialogTitle", blurb: "The accessible name, a real heading priced by the alert's own index — the question, phrased as one" },
+        { part: "AlertDialogDescription", blurb: "What proceeding means, in the muted ink — the consequence said quietly, wired as the panel's accessible description" },
+        { part: "AlertDialogCancel", blurb: "The safe way out: a quiet bordered Button the component sizes, first in reading order, first to take focus" },
+        { part: "AlertDialogAction", blurb: "The committing choice: a loud Button carrying the caller's handler and optional tone; it closes, because the alert's job ends when a choice is made" },
+    ],
+    example: (
+      <AlertDialog size="2">
+        <AlertDialogTrigger render={<Button tone="destructive" emphasis="medium">Delete workspace…</Button>} />
+        <AlertDialogContent>
+          <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Every project, member and API key goes with it. This cannot be undone.
+          </AlertDialogDescription>
+          <AlertDialogCancel>Keep it</AlertDialogCancel>
+          <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
+    ),
+  },
+  {
     slug: "blockquote",
     name: "Blockquote",
     family: "Type",
@@ -154,13 +216,12 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §8, §9",
     blurb:
-      "The control layer's first citizen, and the component the shared skeleton was written for. Loudness is the only ranking axis; appearance is always the resolved output of tone × emphasis × bordered × material, never set directly.",
+      "The control layer's first citizen, and the component the shared skeleton was written for. Loudness is the only ranking axis; appearance is always the resolved output of tone × emphasis × bordered, over whatever material the Theme says the app is built of, never set directly.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "an index into the height ladder, not a measurement" },
       { name: "tone", values: "any family", note: "picks the hue; accent resolves through the Theme" },
       { name: "emphasis", values: "loud | medium | quiet", note: "three rungs, because a rung must earn a visible step" },
       { name: "bordered", values: "boolean", note: "containment, and honestly half a rung: medium+bordered reads louder than medium" },
-      { name: "material", values: "solid | thin | regular | thick", note: "backdrop defense; correct only over media or scrolling content" },
       { name: "leading / trailing", values: "ReactNode", note: "an icon, or a whole hosted control" },
     ],
     refusals: [
@@ -189,12 +250,15 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§9, §10",
     blurb:
-      "A shell, deliberately: one fixed treatment — an opaque seal and a border — with size and material as its only props, and no stylesheet of its own. It was stripped back to this on the finding that a card with tone, emphasis and anatomy slots was a layout pretending to be a component.",
+      "A shell, deliberately: one fixed treatment — an opaque seal and a border — with size as its only prop, and no stylesheet of its own. It was stripped back to this on the finding that a card with tone, emphasis and anatomy slots was a layout pretending to be a component.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "padding and corner, not height" },
-      { name: "material", values: "solid | thin | regular | thick", note: "the seal, or glass over what scrolls behind it" },
     ],
     refusals: [
+      {
+        name: "a material prop",
+        why: "Material moved to the Theme on 2026-08-16: it answers what the APP is built of, which is one value for a whole scope rather than a per-card choice. There is no rung to walk and no ceiling at `thick`, and what makes one pane read heavier than another is coverage and its scrim, not a second thickness. A subtree that must differ says so with a nested Theme, exactly like every other axis; nesting itself is handled — a pane inside a pane resolves solid, because a second pane has no unblurred backdrop left to defocus.",
+      },
       {
         name: "tone, emphasis, bordered",
         why: "A card ranks nothing against its siblings. Its border is identity, not a rung.",
@@ -290,7 +354,6 @@ export const ENTRIES: Entry[] = [
       "A modal panel over a dimmed app: the floating family's third member and the first one anchored to nothing. The panel is a Card that covers — the same seal, edge, look and material, with the corner coming from the overlay band, one step rounder than the card of its size — and it casts no shadow of its own, because its separation is the SCRIM behind it rather than a lift above the page. The part vocabulary follows shadcn/ui's dialog (MIT), adopted with credit; behavior is Base UI's Dialog end to end, focus trap and scroll lock included.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "prices the BOX — a maximum width, the padding and the corner — and never the type inside it; the window wins when there is less room than the size asks for" },
-      { name: "material (Content)", values: "solid | thin | regular | thick", note: "Card's own prop: opaque by default, glass for a panel over media — the scrim behind it does not change with it" },
     ],
     refusals: [
       {
@@ -437,7 +500,6 @@ export const ENTRIES: Entry[] = [
       "A floating list of actions: the first portalled component and the row family's first member. The popup is a Card that floats — same seal, same edge, and a CONCENTRIC corner: its rows' own corner plus its padding, derived per size and radius level (two fixed corners were tried and rejected by eye first) — and it casts in BOTH surfaces worlds, because a shadow under a floating pane is information about overlap, not the expression the app switch governs. The part vocabulary follows shadcn/ui's dropdown-menu (MIT), adopted with credit; behavior is Base UI's menu end to end.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "on the root, like Button — a size-4 trigger must not open a size-2 dropdown; rows take the control cells' padding and type, and their HEIGHT from the text line plus a designed inset, a notch under the button ladder" },
-      { name: "material (Content)", values: "solid | thin | regular | thick", note: "Card's own prop: opaque by default, glass opt-in — and a glass menu still casts the floating chrome in a flat world" },
       { name: "tone (Item)", values: "destructive", note: "a union of one — the single meaning a row may carry; not a palette, and widening it is a decision, never a default" },
       { name: "side / align / sideOffset (Content)", values: "designed defaults", note: "bottom / start / 4 — the only positioning vocabulary that is public" },
     ],
@@ -517,8 +579,6 @@ export const ENTRIES: Entry[] = [
       "A form control that holds a choice — the floating family's second member, and the proof the first one generalised: the fold, the row family, the concentric corner and the floating chrome all arrive from Menu's mechanisms with nothing re-designed. What is new is the TRIGGER, a field-shaped button: it wears the field identity, so a Select beside a TextField reads as one family — same seal, same edge, same height — while staying a real button with a combobox's accessibility contract. Base UI renders the hidden input, so a Select submits with a form like the native element it replaces. Part vocabulary follows shadcn/ui's select (MIT), adopted with credit.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "on the root, like Button and Menu — the trigger and its option rows price from one index" },
-      { name: "material (Content)", values: "solid | thin | regular | thick", note: "Card's own prop: opaque by default, glass opt-in — a glass panel still casts the floating chrome" },
-      { name: "material (Trigger)", values: "solid | thin | regular | thick", note: "the field family's own opt-in, stamped here rather than inherited: membership delivers the glass RULES, and something still has to stamp the attribute they read — without it a form over a photograph put translucent TextFields beside an opaque dropdown" },
       { name: "items", values: "Record<value, label>", note: "value → label for the CLOSED trigger: Base UI resolves labels from mounted options, and a panel that never opened has none — pass it whenever a defaultValue can paint first" },
     ],
     refusals: [
@@ -694,7 +754,6 @@ export const ENTRIES: Entry[] = [
         name: "orientation",
         why: "Vertical needs its own designed geometry set — thumb travel, track pricing, the cells. It ships the day something forces it, not as a prop that renders undesigned geometry today.",
       },
-      { name: "material", why: "A 5px line of blur is a 5px line." },
     ],
     example: (
       <Stack gap="5">
@@ -805,7 +864,6 @@ export const ENTRIES: Entry[] = [
       "One element, no wrapper, no slots — the anatomy criterion answered by subtraction. TextField needs a wrapper because a slot forces the border off the input; a textarea has no slots, so the border stays on the element and every wrapper debt never exists. It is the first control whose padding is the dimension: one inset, all four sides.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "control height survives as a min-height; growth is rows" },
-      { name: "material", values: "solid | thin | regular | thick", note: "" },
       { name: "rows", values: "number", note: "the height, because a composer is its own component" },
     ],
     refusals: [
@@ -824,7 +882,6 @@ export const ENTRIES: Entry[] = [
       "The visible control is a WRAPPER around the input, and that is what makes its slots legitimate anatomy: a field that can hold an icon inside its border cannot keep that border on the input, and the wrapper then owes caret-on-click, slot-aware layout, and a trailing control that keeps its own press. ref goes to the input; className dresses the wrapper.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "" },
-      { name: "material", values: "solid | thin | regular | thick", note: "" },
       { name: "leading / trailing", values: "ReactNode", note: "an icon, or a hosted control that keeps its own press" },
     ],
     refusals: [
@@ -847,7 +904,7 @@ export const ENTRIES: Entry[] = [
     family: "Layout",
     spec: "§5, §7, §12, §19",
     blurb:
-      "Where an app states its identity. Eight axes, each re-pricing tokens for everything beneath it — and they nest, so a section can override the page. Nothing about a Theme is decoration: every prop answers a question the call sites are then forbidden from answering one at a time.",
+      "Where an app states its identity. Nine axes, each re-pricing tokens for everything beneath it — and they nest, so a section can override the page. Nothing about a Theme is decoration: every prop answers a question the call sites are then forbidden from answering one at a time.",
     axes: [
       { name: "appearance", values: "inherit | light | dark", note: "resolved output, never a colour" },
       { name: "contrast", values: "normal | high", note: "an accessibility setting, not a design knob — the conformance surface for edges and signals" },
@@ -857,6 +914,7 @@ export const ENTRIES: Entry[] = [
       { name: "surfaceLook", values: "outlined | filled", note: "how a resting surface is drawn — cards, and the panels that wear a card's identity" },
       { name: "controlLook", values: "outlined | filled", note: "how a resting control is drawn — fields and marks, which move together" },
       { name: "depth", values: "flat | elevated", note: "does light exist: the one sanctioned consumer of the shadow palette" },
+      { name: "material", values: "solid | thin | regular | thick", note: "of what the app is BUILT — one value for the whole scope, moved here from nine component props 2026-08-16; a dialog and a menu under one theme are the same glass, and what makes a dialog read heavier is coverage and its scrim, not a second thickness" },
     ],
     refusals: [
       {

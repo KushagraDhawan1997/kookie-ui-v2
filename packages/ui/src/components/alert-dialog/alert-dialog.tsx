@@ -39,7 +39,8 @@ import {
 import { Button } from "../button/button.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
-import type { Material, Size, Tone } from "../../system/axes.ts";
+import type { Size, Tone } from "../../system/axes.ts";
+import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import type { TypeSize } from "../text/text.tsx";
 
 /* ── The closed content is what lets size price the type (§15, §25) ─────────────────────────
@@ -137,9 +138,6 @@ export function AlertDialogTrigger({ render, nativeButton, ref, ...props }: Aler
 /* ── Content: the fold, and the layout the component owns (§25) ───────────────────────── */
 
 export type AlertDialogContentProps = {
-  /** §10 — Card's own prop: opaque by default, glass opt-in. The scrim behind it is the
-      app's dim and does not change with it. */
-  material?: Material;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -155,29 +153,54 @@ export type AlertDialogContentProps = {
  * Base UI focuses the first tabbable element — it is what initial focus lands on, which is
  * the APG's "least destructive action" answered by document order rather than machinery.
  */
-export function AlertDialogContent({ material, children, className, style, ref }: AlertDialogContentProps) {
-  const size = React.use(AlertSizeContext);
-  const identity = "kui-surface kui-overlay kui-alert-popup";
+export function AlertDialogContent({ children, className, style, ref }: AlertDialogContentProps) {
   return (
     <BaseAlertDialog.Portal>
       <PortalScope>
         <BaseAlertDialog.Backdrop className="kui-alert-backdrop" />
         <BaseAlertDialog.Viewport className="kui-alert-viewport">
-          <BaseAlertDialog.Popup
-            data-size={size}
-            data-tone="neutral"
-            data-emphasis="quiet"
-            data-bordered
-            {...(material && material !== "solid" ? { "data-material": material } : {})}
-            className={className ? `${identity} ${className}` : identity}
-            {...(style !== undefined ? { style } : {})}
-            {...(ref !== undefined ? { ref } : {})}
-          >
-            <OverlayBody>{children}</OverlayBody>
-          </BaseAlertDialog.Popup>
+          <AlertPopup className={className} style={style} ref={ref}>
+            {children}
+          </AlertPopup>
         </BaseAlertDialog.Viewport>
       </PortalScope>
     </BaseAlertDialog.Portal>
+  );
+}
+
+/** Split out so `useMaterial()` resolves INSIDE `PortalScope` — Dialog's own reasoning, and
+    the third copy of the same split (2026-08-16): React context follows the tree, not the DOM,
+    so an alert raised from inside a glass card would otherwise inherit that card's glass scope
+    and render solid, when in fact it covers the whole page. */
+function AlertPopup({
+  children,
+  className,
+  style,
+  ref,
+}: {
+  children?: React.ReactNode | undefined;
+  className?: string | undefined;
+  style?: React.CSSProperties | undefined;
+  ref?: React.Ref<HTMLDivElement> | undefined;
+}) {
+  const size = React.use(AlertSizeContext);
+  const material = useMaterial();
+  const identity = "kui-surface kui-overlay kui-alert-popup";
+  return (
+    <BaseAlertDialog.Popup
+      data-size={size}
+      data-tone="neutral"
+      data-emphasis="quiet"
+      data-bordered
+      {...(material !== "solid" ? { "data-material": material } : {})}
+      className={className ? `${identity} ${className}` : identity}
+      {...(style !== undefined ? { style } : {})}
+      {...(ref !== undefined ? { ref } : {})}
+    >
+      <OverlayBody>
+        <GlassScope material={material}>{children}</GlassScope>
+      </OverlayBody>
+    </BaseAlertDialog.Popup>
   );
 }
 

@@ -3,7 +3,8 @@
 import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
-import type { Material, Size } from "../../system/axes.ts";
+import type { Size } from "../../system/axes.ts";
+import { useMaterial } from "../../theme/theme.tsx";
 
 export type TextAreaProps = Omit<
   React.ComponentPropsWithoutRef<"textarea">,
@@ -18,9 +19,6 @@ export type TextAreaProps = Omit<
   "color" | "children" | "cols"
 > & {
   size?: Size;
-  /** §10 — backdrop defense, opt-in: zero CSS of its own, the control layer's material block
-      re-derives the fill from whatever the component declared. */
-  material?: Material;
   ref?: React.Ref<HTMLTextAreaElement>;
 };
 
@@ -53,11 +51,13 @@ export type TextAreaProps = Omit<
  */
 export function TextArea({
   size = "2",
-  material = "solid",
   className,
   ref,
   ...props
 }: TextAreaProps) {
+  // §10 — the app's material, or solid inside a glass ancestor. No children by type, so there
+  // is nothing below this to stand down (2026-08-16).
+  const material = useMaterial();
   return (
     <BaseInput
       ref={ref as React.Ref<HTMLElement>}
