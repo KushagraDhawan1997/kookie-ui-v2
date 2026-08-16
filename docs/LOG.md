@@ -8,6 +8,30 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-16 The lab's depth and its lens both port, after I shipped the colour without either
+
+Kushagra, on the ported glass: *"Why is there no refraction on preview? The depth is different totally… we just needed to port final decisions we did on lab2 to main package, why do you refuse to do things I ask"*. The complaint is accurate on both counts and the cause is the same in both: I ported the material's **colour** and left its **structure** in the lab, then wrote the omissions down as constraints instead of building them.
+
+**The depth.** The palette's drop rows were contact + one ambient halo, topping out at `0 16px 32px -8px`. The lab's panels are contact + drop + BLAST, and the blast is most of what the eye reads as depth — 32px/80px under a card, more than double the reach the palette could express. The instruction was the right shape and it is what shipped: *"We have shadow tokens in package world, redefine them so that they create whats on lab2."* No component gained a shadow and no literal was written outside config; the rows now carry the lab's own geometry (row 2 the button, 3 the menu, 4 the solid card, 5 the card).
+
+**The roles re-point, and that half needed an argument.** surfaceChrome 3 → 5, floatingChrome 5 → 3. The lab prices a cast by the size of the box throwing it — *"a smaller caster owes a smaller shadow, or it reads swollen"* — and a card is a bigger box than a menu. This reverses the 2026-08-09 call that a floating pane must out-cast everything: the palette is ordered by REACH, not by rank, and a panel's authority comes from covering what is under it, not from throwing a bigger shadow than a card three times its size. The palette stays one ordered resource and the roles pick their rung, which is exactly what the roles are for — no new mechanism, and the numbers all live in config.
+
+**Found doing it:** `fadeShadow` read a literal `shadow[mode][2]` for the transmitted surface cast, so moving surfaceChrome to row 5 left every glass pane transmitting a row nothing else used. `floatingRow()` had solved this identical problem for its own role and was never generalised — the two-homes drift this repo keeps re-catching, caught this time by an arithmetic assertion rather than by eye.
+
+**The lens, and the objection I raised that did not survive contact.** I recorded refraction as blocked because it needs the element's resolved pixel geometry, which the token pipeline cannot supply. That is true and it is not a blocker: the floating layer already measures its own box on every open (`--kui-fly-w/h`), so the seam existed and I declined to use it. §2's non-negotiable is *no JS at interaction time*, and a map built on mount and on resize does not touch hover, press, focus or scroll.
+
+**Why it is not decoration.** The judged ladder is near-clear stone — blur 2.4/4/5.6, a quarter of what the old §10 floor demanded — and it is legible in the lab because the bezel BENDS the backdrop. Blur hides a backdrop; a lens re-states it. The sharp ladder without the lens is the one configuration in which retiring the 12px floor is a straight loss, and that is precisely what the package shipped for one commit.
+
+**Rejected: walking the blur back up.** The obvious repair for "sharp glass is less legible" is more frost, and it would have quietly undone the thing that was approved. The ladder is Kushagra's judgment; the missing defense was a mechanism, so the mechanism is what shipped.
+
+**Rejected: a separate overlay element carrying the lens.** It would let the base blur survive on engines that cannot render an SVG filter in a backdrop-filter, without any support test. But two stacked backdrop roots filter each other — the overlay would bend an already-blurred backdrop rather than bending and then softening — so it changes the material to buy the fallback. The chain stays single and the fallback is the empty `var()` substitution instead.
+
+**Two mistakes worth keeping.** `"chrome" in window` as a support gate is FALSE in headless Chromium, so the first version disabled the lens in the one engine that renders it — a sniff that fails closed in the browser it exists to open is worse than no sniff. And a law I wrote for the solid case could not fail: "a solid card's chain carries no url()" is satisfied by a solid card having no `backdrop-filter` at all, however much work was wasted building it a map, which the forced-on sabotage pass demonstrated. It reads the custom property now.
+
+**WebKit is stated rather than guessed.** It may parse the value and paint nothing, and because the seam is a var() substitution, that case costs the blur too. Verify on a real Safari; if it fails, narrow the support test, never the seam.
+
+---
+
 ## 2026-08-16 A nested Theme was measuring itself into nothing, and making material a Theme property is what exposed it
 
 Kushagra, on the newly ported glass: *"how do i see it properly on /preview"*. The honest answer turned out to be that he could not, and the reason was a package defect three commits old.
