@@ -721,24 +721,24 @@
      and loudness ride into the veil for free. hover/active are §8's steps on glass's
      one ramp — read by controls and interactive surfaces; a static surface reads the
      rest alpha alone. */
-  --material-thin-alpha: 30%;
-  --material-thin-alpha-hover: 38%;
-  --material-thin-alpha-active: 46%;
-  --material-thin-filter: blur(5px) saturate(130%) brightness(1.02);
+  --material-thin-alpha: 34%;
+  --material-thin-alpha-hover: 42%;
+  --material-thin-alpha-active: 50%;
+  --material-thin-filter: blur(2.4px) saturate(172.5%) brightness(1.03);
   --material-thin-edge: rgb(255 255 255 / 0.5);
   --material-thin-rim: linear-gradient(rgb(255 255 255 / 0.35) 0 var(--border-width), transparent var(--border-width));
   --material-thin-rim-lifted: linear-gradient(rgb(255 255 255 / 0.42) 0 var(--border-width), transparent var(--border-width));
-  --material-regular-alpha: 64%;
-  --material-regular-alpha-hover: 72%;
-  --material-regular-alpha-active: 80%;
-  --material-regular-filter: blur(16px) saturate(165%) brightness(1.06);
+  --material-regular-alpha: 49%;
+  --material-regular-alpha-hover: 57%;
+  --material-regular-alpha-active: 65%;
+  --material-regular-filter: blur(4px) saturate(207%) brightness(1.05);
   --material-regular-edge: rgb(255 255 255 / 0.6);
   --material-regular-rim: linear-gradient(rgb(255 255 255 / 0.45) 0 var(--border-width), transparent var(--border-width));
   --material-regular-rim-lifted: linear-gradient(rgb(255 255 255 / 0.52) 0 var(--border-width), transparent var(--border-width));
-  --material-thick-alpha: 88%;
-  --material-thick-alpha-hover: 92%;
-  --material-thick-alpha-active: 95%;
-  --material-thick-filter: blur(32px) saturate(210%) brightness(1.12);
+  --material-thick-alpha: 65%;
+  --material-thick-alpha-hover: 69%;
+  --material-thick-alpha-active: 72%;
+  --material-thick-filter: blur(5.6px) saturate(241.5%) brightness(1.06);
   --material-thick-edge: rgb(255 255 255 / 0.7);
   --material-thick-rim: linear-gradient(rgb(255 255 255 / 0.55) 0 var(--border-width), transparent var(--border-width));
   --material-thick-rim-lifted: linear-gradient(rgb(255 255 255 / 0.62) 0 var(--border-width), transparent var(--border-width));
@@ -1238,24 +1238,24 @@
      and loudness ride into the veil for free. hover/active are §8's steps on glass's
      one ramp — read by controls and interactive surfaces; a static surface reads the
      rest alpha alone. */
-  --material-thin-alpha: 30%;
-  --material-thin-alpha-hover: 38%;
-  --material-thin-alpha-active: 46%;
-  --material-thin-filter: blur(5px) saturate(130%) brightness(1.02);
+  --material-thin-alpha: 34%;
+  --material-thin-alpha-hover: 42%;
+  --material-thin-alpha-active: 50%;
+  --material-thin-filter: blur(2.4px) saturate(172.5%) brightness(1.03);
   --material-thin-edge: rgb(255 255 255 / 0.5);
   --material-thin-rim: linear-gradient(rgb(255 255 255 / 0.35) 0 var(--border-width), transparent var(--border-width));
   --material-thin-rim-lifted: linear-gradient(rgb(255 255 255 / 0.42) 0 var(--border-width), transparent var(--border-width));
-  --material-regular-alpha: 64%;
-  --material-regular-alpha-hover: 72%;
-  --material-regular-alpha-active: 80%;
-  --material-regular-filter: blur(16px) saturate(165%) brightness(1.06);
+  --material-regular-alpha: 49%;
+  --material-regular-alpha-hover: 57%;
+  --material-regular-alpha-active: 65%;
+  --material-regular-filter: blur(4px) saturate(207%) brightness(1.05);
   --material-regular-edge: rgb(255 255 255 / 0.6);
   --material-regular-rim: linear-gradient(rgb(255 255 255 / 0.45) 0 var(--border-width), transparent var(--border-width));
   --material-regular-rim-lifted: linear-gradient(rgb(255 255 255 / 0.52) 0 var(--border-width), transparent var(--border-width));
-  --material-thick-alpha: 88%;
-  --material-thick-alpha-hover: 92%;
-  --material-thick-alpha-active: 95%;
-  --material-thick-filter: blur(32px) saturate(210%) brightness(1.12);
+  --material-thick-alpha: 65%;
+  --material-thick-alpha-hover: 69%;
+  --material-thick-alpha-active: 72%;
+  --material-thick-filter: blur(5.6px) saturate(241.5%) brightness(1.06);
   --material-thick-edge: rgb(255 255 255 / 0.7);
   --material-thick-rim: linear-gradient(rgb(255 255 255 / 0.55) 0 var(--border-width), transparent var(--border-width));
   --material-thick-rim-lifted: linear-gradient(rgb(255 255 255 / 0.62) 0 var(--border-width), transparent var(--border-width));
@@ -1767,24 +1767,24 @@
      and loudness ride into the veil for free. hover/active are §8's steps on glass's
      one ramp — read by controls and interactive surfaces; a static surface reads the
      rest alpha alone. */
-  --material-thin-alpha: 38%;
-  --material-thin-alpha-hover: 46%;
-  --material-thin-alpha-active: 54%;
-  --material-thin-filter: blur(5px) saturate(130%) brightness(0.95);
+  --material-thin-alpha: 52%;
+  --material-thin-alpha-hover: 60%;
+  --material-thin-alpha-active: 68%;
+  --material-thin-filter: blur(2.4px) saturate(175.5%) brightness(0.92);
   --material-thin-edge: rgb(255 255 255 / 0.1);
   --material-thin-rim: linear-gradient(rgb(255 255 255 / 0.06) 0 var(--border-width), transparent var(--border-width));
   --material-thin-rim-lifted: linear-gradient(rgb(255 255 255 / 0.12) 0 var(--border-width), transparent var(--border-width));
-  --material-regular-alpha: 71%;
-  --material-regular-alpha-hover: 78%;
-  --material-regular-alpha-active: 85%;
-  --material-regular-filter: blur(16px) saturate(165%) brightness(0.88);
+  --material-regular-alpha: 67%;
+  --material-regular-alpha-hover: 74%;
+  --material-regular-alpha-active: 81%;
+  --material-regular-filter: blur(4px) saturate(195%) brightness(0.9);
   --material-regular-edge: rgb(255 255 255 / 0.14);
   --material-regular-rim: linear-gradient(rgb(255 255 255 / 0.1) 0 var(--border-width), transparent var(--border-width));
   --material-regular-rim-lifted: linear-gradient(rgb(255 255 255 / 0.18) 0 var(--border-width), transparent var(--border-width));
-  --material-thick-alpha: 92%;
-  --material-thick-alpha-hover: 94%;
-  --material-thick-alpha-active: 96%;
-  --material-thick-filter: blur(32px) saturate(210%) brightness(0.78);
+  --material-thick-alpha: 80%;
+  --material-thick-alpha-hover: 82%;
+  --material-thick-alpha-active: 84%;
+  --material-thick-filter: blur(5.6px) saturate(208%) brightness(0.88);
   --material-thick-edge: rgb(255 255 255 / 0.18);
   --material-thick-rim: linear-gradient(rgb(255 255 255 / 0.14) 0 var(--border-width), transparent var(--border-width));
   --material-thick-rim-lifted: linear-gradient(rgb(255 255 255 / 0.24) 0 var(--border-width), transparent var(--border-width));

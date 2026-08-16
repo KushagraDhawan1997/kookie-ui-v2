@@ -957,14 +957,14 @@ export const material = {
   // a different preference and gets its own designed row (judged 2026-08-05, Kushagra: the
   // first cut reused fallbackAlpha and collapsed all three thicknesses into one).
   light: {
-    thin: { alpha: [30, 38, 46], alphaHigh: [55, 62, 69], filter: "blur(5px) saturate(130%) brightness(1.02)", edge: 0.5, rim: 0.35, rimLifted: 0.42 },
-    regular: { alpha: [64, 72, 80], alphaHigh: [82, 87, 92], filter: "blur(16px) saturate(165%) brightness(1.06)", edge: 0.6, rim: 0.45, rimLifted: 0.52 },
-    thick: { alpha: [88, 92, 95], alphaHigh: [94, 96, 97], filter: "blur(32px) saturate(210%) brightness(1.12)", edge: 0.7, rim: 0.55, rimLifted: 0.62 },
+    thin: { alpha: [34, 42, 50], alphaHigh: [55, 62, 69], filter: "blur(2.4px) saturate(172.5%) brightness(1.03)", edge: 0.5, rim: 0.35, rimLifted: 0.42 },
+    regular: { alpha: [49, 57, 65], alphaHigh: [82, 87, 92], filter: "blur(4px) saturate(207%) brightness(1.05)", edge: 0.6, rim: 0.45, rimLifted: 0.52 },
+    thick: { alpha: [65, 69, 72], alphaHigh: [94, 96, 97], filter: "blur(5.6px) saturate(241.5%) brightness(1.06)", edge: 0.7, rim: 0.55, rimLifted: 0.62 },
   },
   dark: {
-    thin: { alpha: [38, 46, 54], alphaHigh: [60, 67, 74], filter: "blur(5px) saturate(130%) brightness(0.95)", edge: 0.1, rim: 0.06, rimLifted: 0.12 },
-    regular: { alpha: [71, 78, 85], alphaHigh: [86, 90, 94], filter: "blur(16px) saturate(165%) brightness(0.88)", edge: 0.14, rim: 0.1, rimLifted: 0.18 },
-    thick: { alpha: [92, 94, 96], alphaHigh: [95, 96, 97], filter: "blur(32px) saturate(210%) brightness(0.78)", edge: 0.18, rim: 0.14, rimLifted: 0.24 },
+    thin: { alpha: [52, 60, 68], alphaHigh: [60, 67, 74], filter: "blur(2.4px) saturate(175.5%) brightness(0.92)", edge: 0.1, rim: 0.06, rimLifted: 0.12 },
+    regular: { alpha: [67, 74, 81], alphaHigh: [86, 90, 94], filter: "blur(4px) saturate(195%) brightness(0.9)", edge: 0.14, rim: 0.1, rimLifted: 0.18 },
+    thick: { alpha: [80, 82, 84], alphaHigh: [95, 96, 97], filter: "blur(5.6px) saturate(208%) brightness(0.88)", edge: 0.18, rim: 0.14, rimLifted: 0.24 },
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
       passes light, so its cast is the surface row FADED — thin passes most, thick least,

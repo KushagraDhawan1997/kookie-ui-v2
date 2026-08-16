@@ -14,6 +14,7 @@ import { APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../te
 import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { TextArea } from "./text-area.tsx";
+import { material } from "../../tokens/config.ts";
 
 /** Differs from the harness placement on purpose: a <textarea> renders no children, so the
     probe must sit BESIDE the element — the parent is the nearest scope that can host it. */
@@ -328,7 +329,10 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
     const glass = mounted(<TextArea />, { theme: { material: "regular" } });
-    expect(computed(glass, "backdrop-filter")).toContain("blur(16px)");
+    // Derived, not restated: the radius is config's to move (2026-08-16).
+    expect(computed(glass, "backdrop-filter")).toContain(
+      `blur(${material.light.regular.filter.match(/blur\(([\d.]+)px\)/)![1]}px)`,
+    );
     expect(computed(glass, "background-color")).toBe(
       bgOn(
         glass,

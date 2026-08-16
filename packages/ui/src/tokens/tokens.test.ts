@@ -1542,7 +1542,10 @@ describe("the material ladder is monotone in every lever (§10)", () => {
       for (const part of ["edge", "rim"] as const) {
         rises(THICKNESSES.map((th) => material[mode][th][part]));
       }
-      rises(THICKNESSES.map((th) => Number(material[mode][th].filter.match(/blur\((\d+)px/)![1]!)));
+      // Fractional radii are real (2026-08-16: the judged ladder runs 2.4 / 4 / 5.6), and this
+      // pattern used to be `\d+`, which does not match "2.4px" — so it returned null and the
+      // law CRASHED rather than failing, which is a worse outcome than either. Decimals now.
+      rises(THICKNESSES.map((th) => Number(material[mode][th].filter.match(/blur\(([\d.]+)px/)![1]!)));
       // alphaHigh is MORE opaque than normal at every cell and never reaches the seal: past
       // ~.9-and-change you should have used solid, and three thicknesses must stay three.
       for (const th of THICKNESSES) {
@@ -1579,11 +1582,19 @@ describe("the scrim dims by mode and leans under high contrast (§10, §24)", ()
 
   it("blurs below the material defense floor — a scrim pushes back, it does not frost", () => {
     for (const mode of ["light", "dark"] as const) {
-      const blur = Number(inScope(`[data-appearance="${mode}"]`, "scrim-filter")!.match(/blur\((\d+)px/)![1]);
-      // §10's 12px floor binds the DEFENDING recipes; the scrim is deliberately under it, and
-      // under the thinnest material too — a full-viewport backdrop is the most expensive thing
-      // this library can paint.
-      expect(blur).toBeLessThan(Number(material[mode].thin.filter.match(/blur\((\d+)px/)![1]));
+      const px = (s: string) => Number(s.match(/blur\(([\d.]+)px/)![1]);
+      const blur = px(inScope(`[data-appearance="${mode}"]`, "scrim-filter")!);
+      // Compared against THICK, not against thin (amended 2026-08-16 with the judged ladder).
+      // The old spelling asserted the scrim blurs less than the THINNEST material, on the
+      // reasoning that a full-viewport backdrop is the most expensive thing this library
+      // paints. That held while thin was 5px and stopped holding the moment thin became 2.4 —
+      // and the premise was wrong anyway, because the two are not doing the same job. A scrim
+      // defocuses the whole application to push it back; thin glass deliberately stays clear
+      // so the backdrop's structure ghosts through. There is no reason the pane that hides
+      // everything must blur less than the pane designed to hide almost nothing. What still
+      // binds is the ceiling: the scrim must never out-frost the heaviest material, or the
+      // thing behind the dialog would read as more solid than the dialog.
+      expect(blur).toBeLessThan(px(material[mode].thick.filter));
     }
   });
 

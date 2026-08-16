@@ -10,7 +10,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
-import { density } from "../../tokens/config.ts";
+import { density, material } from "../../tokens/config.ts";
 import {
   GLASS_MATERIALS, APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
@@ -494,7 +494,10 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
     const glass = mounted(<TextField />, { theme: { material: "regular" } });
-    expect(computed(glass, "backdrop-filter")).toContain("blur(16px)");
+    // Derived, not restated: the radius is config's to move (2026-08-16).
+    expect(computed(glass, "backdrop-filter")).toContain(
+      `blur(${material.light.regular.filter.match(/blur\(([\d.]+)px\)/)![1]}px)`,
+    );
     // The veil is the field's OWN fill made translucent — the fill-modifier model, reached
     // through the shared control layer without text-field.css naming material once.
     expect(computed(glass, "background-color")).toBe(

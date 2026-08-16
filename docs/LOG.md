@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-16 The judged glass ports — read off the screen, not off the stylesheet
+
+Kushagra, looking at the fixed lab: *"whatever these values are look good."* So the material's numbers are settled, and what ports is what the browser resolved — not what the source says, because those are two different things and the gap is the whole story of the day.
+
+Two multipliers sit between the lab's written numbers and the screen. A global **Frost dial at 20%** scales every blur, and a per-mode **knob set** scales veil, saturation and sheen (light: veil 85, saturation 115, sheen 85; dark: veil 95, saturation 130, sheen 55). Nobody has ever looked at the written numbers. Reading them into config would have shipped glass five times frostier than the thing that was approved.
+
+So the values were EXTRACTED — computed `backdrop-filter` and `background-color` off mounted panes in both modes — and the arithmetic was checked against them afterwards rather than trusted in advance. They agreed to the digit, which is reassuring and was not the point: the extraction is the source.
+
+**The ladder, from 5/16/32 to 2.4/4/5.6.** The new glass is four to six times sharper than what shipped. That is not tuning, it is a different material — the lab's whole direction was near-clear stone, because refraction needs detail left to bend, and heavy blur erases what it bends.
+
+**Two laws had to change, and both were wrong rather than merely inconvenient.** The monotonicity law parsed blur radii with `\d+`, so a fractional value did not fail it — it returned null and CRASHED, which is worse than either passing or failing. And the scrim law asserted the scrim blurs less than the THINNEST material, on the reasoning that a full-viewport backdrop is the most expensive thing the library paints. That premise does not survive contact with the judged ladder, and it was wrong before it broke: a scrim defocuses the whole application to push it back, while thin glass deliberately stays clear so structure ghosts through. There is no reason the pane that hides everything must blur less than the pane designed to hide almost nothing. The ceiling still binds — the scrim may not out-frost `thick`, or the thing behind a dialog reads as more solid than the dialog.
+
+**Three component laws restated the radii as literals** and failed on the numbers while the claim they exist for — three thicknesses blur in order, the default does not blur — was never in question. They derive from config now. A law that must be edited every time taste moves is a law nobody trusts when it goes red.
+
+**Recorded, unresolved, and the first thing to check in the playground: the sharp ladder is not self-sufficient.** In the lab it works because the lens does the legibility work — refraction bends detail the blur no longer hides. Refraction has NOT ported (Chromium-only, needs runtime, keyed on pixel geometry the token pipeline cannot supply for content-sized boxes), so in the package this ladder defends with blur and saturation alone. Quiet text on thick glass over a photograph was already marginal in the lab, where the lens was helping. §10's stated 12px "defense floor" is now unmet at every rung, deliberately and by judgment; what replaces it is a measurement nobody has taken yet.
+
+Not ported, and not because of the numbers: the shadow stack (depth owns shadows; no component may name one), the pointer-tracked rim (JS at interaction time, and a second light model contradicting the one the shadow palette, the material rim and the elevated world all derive from), and the Lit rung's literal shadows (same rule; it can only reprice by choosing palette rows).
+
+Budget re-recorded 25327 → 25334.
+
 ## 2026-08-16 Every theme axis gets one home, and two laws that could not fail get replaced
 
 The `DEPTHS` move earlier the same day fixed one axis and left seven. `themeAxes` now holds every Theme axis and every value it takes, the unions derive from it, and `themeDefaults` is asserted to live inside it key for key. It is exported, which is what finally lets the docs stop restating: `/preview` and `/matrix` each carried their own copy of all seven lists, and they had no choice — the lists were not exported, so that entropy was FORCED rather than chosen. Publishing the table is the only fix, and it is additive.

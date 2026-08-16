@@ -6,6 +6,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cdp } from "vitest/browser";
 
+import { material } from "../../tokens/config.ts";
 import { Theme } from "../../theme/theme.tsx";
 import {
   GLASS_MATERIALS, APPEARANCES, colorOn, computed, mounted, ownColor, render, within } from "../../test/browser.tsx";
@@ -299,9 +300,16 @@ describe("material is backdrop defense, opt-in (§10)", () => {
     const thin = mounted(<Card>B</Card>, { theme: { material: "thin" } });
     const regular = mounted(<Card>B</Card>, { theme: { material: "regular" } });
     const thick = mounted(<Card>B</Card>, { theme: { material: "thick" } });
-    expect(computed(thin, "backdrop-filter")).toContain("blur(5px)");
-    expect(computed(regular, "backdrop-filter")).toContain("blur(16px)");
-    expect(computed(thick, "backdrop-filter")).toContain("blur(32px)");
+    // DERIVED from config, not restated (2026-08-16). These were three hardcoded radii, so
+    // the day the judged ladder replaced them — 5/16/32 to 2.4/4/5.6 — the law failed on the
+    // NUMBERS while the thing it is actually about, that the three thicknesses blur in order
+    // and the default does not blur at all, was never in question. A law that has to be
+    // edited every time taste moves is a law nobody trusts when it goes red.
+    const px = (el: HTMLElement) =>
+      Number(computed(el, "backdrop-filter").match(/blur\(([\d.]+)px\)/)![1]);
+    expect(px(thin)).toBe(Number(material.light.thin.filter.match(/blur\(([\d.]+)px\)/)![1]));
+    expect(px(regular)).toBeGreaterThan(px(thin));
+    expect(px(thick)).toBeGreaterThan(px(regular));
   });
 
   it("a material fill is the shell's own seal made translucent — the modifier, applied (§10)", () => {
