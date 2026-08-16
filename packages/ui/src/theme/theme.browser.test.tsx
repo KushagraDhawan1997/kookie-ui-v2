@@ -13,7 +13,7 @@ import { Checkbox } from "../components/checkbox/checkbox.tsx";
 import { TextField } from "../components/text-field/text-field.tsx";
 import { APPEARANCES, computed, mounted, render } from "../test/browser.tsx";
 import { density, radiusLevels } from "../tokens/config.ts";
-import { Theme } from "./theme.tsx";
+import { DEPTHS, Theme, themeAxes, themeDefaults } from "./theme.tsx";
 
 /** Reads through real properties: a custom property hands back its unresolved token stream. */
 const probe = <div id="probe" style={{ height: "var(--control-height-2)", borderRadius: "var(--radius-control-2)" }} />;
@@ -275,4 +275,50 @@ describe('contrast="high" reaches the tokens, in both appearances (§7)', () => 
       }
     });
   }
+});
+
+describe("the axis table is the one home, and the defaults live inside it (§5, §12, 2026-08-16)", () => {
+  // `themeAxes` and `themeDefaults` are two shapes describing one set of facts, and the way
+  // that pair rots is a default drifting outside its own axis's list — reachable by nothing,
+  // failing nowhere, because every law that walks the axis walks the LIST and every law that
+  // mounts a Theme takes the DEFAULT. Asserted in both directions so neither table can grow a
+  // key the other lacks.
+  it("every axis has a default, every default is a member, and neither table has a spare key", () => {
+    expect(Object.keys(themeAxes).sort()).toEqual(Object.keys(themeDefaults).sort());
+    for (const [axis, values] of Object.entries(themeAxes)) {
+      const value = themeDefaults[axis as keyof typeof themeDefaults];
+      expect(values as readonly string[], `${axis}: the default is not one of its own values`).toContain(value);
+      // A one-value axis is not an axis; a zero-value one is a typo that types cannot see.
+      expect((values as readonly string[]).length, `${axis} has fewer than two values`).toBeGreaterThan(1);
+      expect(new Set(values as readonly string[]).size, `${axis} lists a value twice`).toBe(
+        (values as readonly string[]).length,
+      );
+    }
+  });
+
+  it("DEPTHS IS themeAxes.depth — the same array, not a second list that agrees", () => {
+    // Eight law files import DEPTHS by name, so it survives as an export. What must not
+    // survive is it becoming a copy: two lists that agree today are the exact shape this whole
+    // change deleted. Identity, not equality — `toEqual` would pass on a duplicate.
+    expect(DEPTHS).toBe(themeAxes.depth);
+  });
+
+  it("a stamped axis writes its own value, and the two non-values stamp nothing", () => {
+    // Narrow on purpose. The first version of this law looped every axis asserting the
+    // attribute came back equal, which CANNOT FAIL — `data-depth` is written verbatim, so a
+    // value nothing implements stamps itself just as happily as one that does. It passed a
+    // sabotage that added a third depth rung, which is the whole class of bug the table
+    // exists to catch. Whether a value is IMPLEMENTED is a question about the emitted
+    // stylesheet, so it moved to a node law in system/recipes.test.ts where the sheets can be
+    // read; what is left here is the one thing a mount can actually settle: the two values
+    // that are instructions rather than values must stamp NOTHING, and `contrast` must stay
+    // unstamped until someone chooses it (the `prefers-contrast` guard depends on it).
+    expect(render(<Theme appearance="inherit">x</Theme>).getAttribute("data-appearance")).toBeNull();
+    expect(render(<Theme>x</Theme>).getAttribute("data-contrast")).toBeNull();
+    expect(render(<Theme contrast="normal">x</Theme>).getAttribute("data-contrast")).toBe("normal");
+    // `auto` is the pointer axis's own instruction and DOES stamp, because the media query
+    // it defers to is written against that attribute — the asymmetry with `inherit` is real
+    // and worth pinning, since making them agree would break one of them.
+    expect(render(<Theme pointer="auto">x</Theme>).getAttribute("data-pointer")).toBe("auto");
+  });
 });

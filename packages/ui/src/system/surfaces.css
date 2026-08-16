@@ -166,8 +166,12 @@
    re-point the SAME published name the join above declares, winning the tie on source order
    exactly as `.kui-control.kui-switch` re-points the mark step. The panel's own sheet keeps
    consuming `--kui-overlay-w` with no idea two ladders exist — and per-size spellings stay
-   in the shared layer, where the no-axis walk allows them. Corner and padding are untouched:
-   an alert is priced like the overlay of its index in everything but width. */
+   in the shared layer, where the no-axis walk allows them. The CORNER is untouched — an
+   alert wears the overlay band of its own index — and the PADDING is not: these same arms
+   step it one size up, for the reason the block above states and the declarations below
+   show. (Written as "corner and padding are untouched" for one day, 27 lines under the
+   paragraph that decided the opposite and directly above the arms that do it: caught by the
+   2026-08-16 port audit, and the shortest doc-code drift this repo has recorded.) */
 .kui-surface.kui-overlay.kui-alert-popup[data-size="1"] {
   --kui-overlay-w: var(--alert-w-1);
   --kui-sf-p: var(--surface-p-2);

@@ -30,6 +30,7 @@ import {
   type ThemeProps,
   type Size,
   type Tone,
+  themeAxes,
   themeDefaults,
 } from "@kookie-ui/react";
 
@@ -37,16 +38,16 @@ import { setContrast, useAppearance, type ContrastChoice } from "../../appearanc
 import { PlusIcon, SearchIcon, XIcon } from "../../icons";
 
 const SIZES = ["1", "2", "3", "4"] as const satisfies readonly Size[];
-const DENSITIES = ["compact", "default", "comfortable"] as const;
-const RADII = ["none", "small", "medium", "large", "full"] as const;
-const POINTERS = ["auto", "fine", "coarse"] as const;
-const DEPTHS = ["flat", "elevated"] as const;
+const DENSITIES = themeAxes.density;
+const RADII = themeAxes.radius;
+const POINTERS = themeAxes.pointer;
+const DEPTHS = themeAxes.depth;
 // §19, added to the page the day the axis shipped, and SPLIT IN TWO 2026-08-10: the look is
 // the resting DRESS of the one-look families, asked separately of surfaces (cards, panels)
 // and controls (fields, marks). Its `filled` end is v0, and v0 values are judged here. A
 // picker the page lacks is an axis the eye pass cannot reach — and the cell the split exists
 // for (a plain card holding filled fields) is only reachable with both pickers present.
-const LOOKS = ["outlined", "filled"] as const;
+const LOOKS = themeAxes.surfaceLook;
 const CONTRASTS = ["auto", "normal", "high"] as const satisfies readonly ContrastChoice[];
 // The app restates the tone list (the package exports the type, not the value) — docs land,
 // where a stale entry fails visibly on this very page.

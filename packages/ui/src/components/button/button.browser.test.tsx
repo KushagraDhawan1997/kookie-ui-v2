@@ -78,10 +78,13 @@ describe("the size index joins five scales at one number (§4)", () => {
 describe("the axes are orthogonal and resolve through the role layer (§7, §9)", () => {
   it("emphasis picks loudness while tone picks the family, independently", () => {
     // `blue`, not `accent` (2026-08-10). Accent is a CONFIGURED identity that may equal any
-    // other family — it was blue's own recipe until today and is neutral's now — so it is
-    // never a valid probe for "these two differ". This law asserted three distinct fills with
-    // accent as one of them, and went red the hour the brand went grey. A named chroma family
-    // cannot collapse into neutral without someone editing it on purpose.
+    // other family, and it has now been both: blue's own recipe, then neutral's from
+    // 2026-08-10, then blue's again from 2026-08-16. That is exactly why it is never a valid
+    // probe for "these two differ" — this law asserted three distinct fills with accent as one
+    // of them and went red the hour the brand went grey. A named chroma family cannot collapse
+    // into neutral without someone editing it on purpose, and the point survives the brand
+    // moving back: the fix was to stop probing a rebindable identity, not to wait for it to
+    // return to a convenient value.
     const cells = (["neutral", "blue", "destructive"] as const).flatMap((tone) =>
       (["loud", "medium", "quiet"] as const).map((emphasis) => {
         const el = render(

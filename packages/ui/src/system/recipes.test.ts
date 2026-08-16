@@ -14,7 +14,7 @@
 import { describe, expect, it } from "vitest";
 
 import { GLASS_MATERIALS, RUNGS, SLOT_NAMES } from "./axes.ts";
-import { DEPTHS } from "../theme/theme.tsx";
+import { DEPTHS, themeAxes } from "../theme/theme.tsx";
 
 import { tones } from "../tokens/color-config.ts";
 import { allStylesheets, block, from, raw, sheet, stripped, walkFiles } from "../test/stylesheets.ts";
@@ -234,6 +234,66 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     }
   });
 
+  it("every axis value the table offers is one the shipped CSS implements", () => {
+    // The companion to theme.browser.test.tsx's narrowed law, and the half a MOUNT cannot
+    // settle: `<Theme depth="lit">` stamps `data-depth="lit"` perfectly happily, because an
+    // attribute is written verbatim whether or not a rule reads it. A browser law asserting
+    // "the attribute came back equal" therefore passed a sabotage that added a third depth
+    // rung — which is exactly the failure `themeAxes` was created to make impossible. Whether
+    // a value is IMPLEMENTED is a question about the emitted stylesheet, so it is asked here.
+    //
+    // Two named exceptions, both instructions rather than values, both asserted to be absent
+    // rather than skipped silently: `appearance: inherit` stamps nothing at all, and
+    // `material: solid` is the seal — the rung where the material rules do not apply, which is
+    // why it writes no attribute either.
+    const ATTR: Record<string, string> = {
+      appearance: "data-appearance",
+      density: "data-density",
+      radius: "data-radius",
+      contrast: "data-contrast",
+      pointer: "data-pointer",
+      depth: "data-depth",
+      surfaceLook: "data-surface-look",
+      controlLook: "data-control-look",
+      material: "data-material",
+    };
+    const ABSENT = new Set(["appearance:inherit", "material:solid"]);
+    const all = [raw("tokens/tokens.css"), ...allStylesheets().map((p) => raw(p))].join("\n");
+    let checked = 0;
+    for (const [axis, values] of Object.entries(themeAxes)) {
+      const attr = ATTR[axis]!;
+      for (const value of values as readonly string[]) {
+        const selector = `[${attr}="${value}"]`;
+        if (ABSENT.has(`${axis}:${value}`)) {
+          expect(all, `${selector} exists, but ${axis}=${value} is documented as stamping nothing`).not.toContain(selector);
+          continue;
+        }
+        expect(all, `${axis}=${value} is offered by themeAxes and no rule reads ${selector}`).toContain(selector);
+        checked += 1;
+      }
+    }
+    // The vacuity guard the first version needed and did not have: an empty or mis-keyed walk
+    // would satisfy every assertion above by making none of them.
+    expect(checked).toBeGreaterThan(20);
+
+    // AND THE REVERSE, because the arm above only catches a value the table INVENTS. Dropping
+    // one is the likelier drift and it fails nothing: an axis whose list has lost a value is
+    // simply an axis that gets walked less, and every loop over it keeps passing. Demonstrated
+    // — deleting `inherit` from the appearance list left this law green until this arm existed.
+    // The emitted stylesheet is the independent second source: a selector reading a value the
+    // table does not offer means one of the two is wrong, and neither can be trusted to notice.
+    for (const [axis, attr] of Object.entries(ATTR)) {
+      const offered = new Set(themeAxes[axis as keyof typeof themeAxes] as readonly string[]);
+      for (const m of all.matchAll(new RegExp(`\\[${attr}="([a-z-]+)"\\]`, "g"))) {
+        const value = m[1]!;
+        expect(
+          offered.has(value),
+          `${attr}="${value}" is styled by the shipped CSS and themeAxes.${axis} does not offer it`,
+        ).toBe(true);
+      }
+    }
+  });
+
   it("every Base UI entry a component imports is pre-bundled for the browser suite (ENGINEERING §7)", () => {
     // An entry discovered mid-run is optimized in a second pass and holds a different React
     // than the page, so every hook inside it reads null — how @base-ui/react/input failed the
@@ -374,9 +434,14 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     expect(block(recipes, checked)).not.toContain("--kui-ct-label-color");
     expect(recipes).not.toContain("--kui-ct-label-color: var(--accent-label)");
 
-    // Under contrast="high" that tick stands down with the fill it sits on (2026-08-10): the
-    // accent is one value in both modes, so on the solid rung it lands on near-black in light
-    // and near-white in dark, where it measures 2.65:1 against a 3:1 floor. It has to WIN over
+    // Under contrast="high" that tick stands down with the fill it sits on (2026-08-10). The
+    // measured case that forced it was the GREY accent then shipping: one value in both modes,
+    // landing near-black in light and near-white in dark on the solid rung, at 2.65:1 against a
+    // 3:1 floor. Accent is blue again since 2026-08-16, so that particular number no longer
+    // describes the default — but the rule is not about the default: `lowChromaThreshold` is
+    // keyed on chroma, not on a family name, so any desaturated brand walks straight back into
+    // it. Kept with its history rather than restated for today's palette, and the law below is
+    // palette-independent by construction. It has to WIN over
     // the rule above without being reachable at rest, which is specificity plus the state
     // guard — assert both, because either one alone is a different rule.
     const litTick =

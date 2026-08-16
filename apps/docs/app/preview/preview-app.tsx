@@ -26,6 +26,7 @@ import {
   Theme,
   windowClassQueries,
   type ThemeProps,
+  themeAxes,
   themeDefaults,
 } from "@kookie-ui/react";
 
@@ -60,16 +61,12 @@ const DEFAULT_ENV: Env = {
   material: themeDefaults.material,
 };
 
-const AXES: { [K in keyof Env]: readonly Env[K][] } = {
-  appearance: ["inherit", "light", "dark"],
-  density: ["compact", "default", "comfortable"],
-  pointer: ["auto", "fine", "coarse"],
-  radius: ["none", "small", "medium", "large", "full"],
-  surfaceLook: ["outlined", "filled"],
-  controlLook: ["outlined", "filled"],
-  depth: ["flat", "elevated"],
-  material: ["solid", "thin", "regular", "thick"],
-};
+/** DERIVED, not restated (2026-08-16): this held its own copy of every axis's values, which
+    is the same drift `themeDefaults` was exported to end one level up — a copy agrees today
+    and goes stale the moment an axis widens, in the one surface whose job is showing what the
+    system does. `appearance` is the deliberate exception the DEFAULT_ENV note already records.
+    The package now exports `themeAxes`; a docs law fails on a restated list. */
+const AXES: { [K in keyof Env]: readonly Env[K][] } = themeAxes;
 
 const CONTRASTS = ["auto", "normal", "high"] as const satisfies readonly ContrastChoice[];
 

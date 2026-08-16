@@ -23,7 +23,14 @@ export { Spinner, type SpinnerProps } from "./components/spinner/spinner.tsx";
 export { Flex, type FlexProps } from "./components/flex/flex.tsx";
 export { Grid, type GridProps } from "./components/grid/grid.tsx";
 export { Stack, type StackProps } from "./components/stack/stack.tsx";
-export { Theme, useTheme, themeDefaults, type ThemeProps } from "./theme/theme.tsx";
+export {
+  Theme,
+  useTheme,
+  useMaterial,
+  themeDefaults,
+  themeAxes,
+  type ThemeProps,
+} from "./theme/theme.tsx";
 export { useWindowClass, windowClassQueries, type WindowClass } from "./system/window.ts";
 export type { Emphasis, Material, Size, Tone } from "./system/axes.ts";
 export type { Responsive } from "./system/resolve.ts";

@@ -3,34 +3,65 @@
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../system/render.ts";
-import type { Material } from "../system/axes.ts";
+import { MATERIALS, type Material } from "../system/axes.ts";
 
-export type Appearance = "light" | "dark" | "inherit";
-export type Density = "compact" | "default" | "comfortable";
-export type RadiusLevel = "none" | "small" | "medium" | "large" | "full";
-export type Contrast = "normal" | "high";
-/** §16, §17 — `auto` follows `@media (pointer: coarse)`; pinning forces the whole coarse
-    world — geometry AND the handheld type band, which is also how both are judged on a
-    desktop. There is no separate `device` prop: coarse means handheld (dropped 2026-08-05,
-    LOG records what to bring back if a touch-at-a-distance case ever needs the two apart). */
-export type Pointer = "fine" | "coarse" | "auto";
-/** §10 — does light exist: do surfaces sit up, and (since 2026-08-07) do raised controls catch
-    it. The semantic is elevation-as-identity; the palette rows behind it — 3 for surfaces, 2
-    for controls — are merely its current resolution. An app choice made once, never a per-card
-    knob. Named `depth` since 2026-08-10: it was `surfaces`, which named the family it dresses
-    rather than the question it answers, and that name is now needed by the look axis's own
-    halves.
+/**
+ * EVERY THEME AXIS AND EVERY VALUE IT TAKES — one home, and the unions derive from it
+ * (2026-08-16, generalising the `DEPTHS` move earlier the same day).
+ *
+ * Each axis used to be a bare union, so a value list existed nowhere and anyone who needed
+ * one wrote it out: eight law files each carried their own depth pair, and both docs surfaces
+ * carried their own copy of all seven axes. Those copies cannot fail — they agree today and
+ * go quietly stale the moment an axis widens, which is precisely what a widened axis needs
+ * catching. The docs restated them because they HAD to: the lists were not exported, so the
+ * entropy was forced rather than chosen.
+ *
+ * The shape deliberately mirrors `themeDefaults` below, key for key, and a law asserts the
+ * two agree — a default outside its own axis's list would be unreachable.
+ *
+ * NOT to be confused with the harness's `POINTERS` / `APPEARANCES` in test/browser.tsx, which
+ * are a different fact wearing similar names: those are the RESOLVED worlds a law walks
+ * (`fine | coarse`, `light | dark`), and they deliberately exclude `auto` and `inherit`,
+ * which are instructions about where to look rather than values anything resolves to.
+ */
+export const themeAxes = {
+  appearance: ["inherit", "light", "dark"],
+  density: ["compact", "default", "comfortable"],
+  radius: ["none", "small", "medium", "large", "full"],
+  contrast: ["normal", "high"],
+  /** §16, §17 — `auto` follows `@media (pointer: coarse)`; pinning forces the whole coarse
+      world — geometry AND the handheld type band, which is also how both are judged on a
+      desktop. There is no separate `device` prop: coarse means handheld (dropped 2026-08-05,
+      LOG records what to bring back if a touch-at-a-distance case ever needs the two apart). */
+  pointer: ["fine", "coarse", "auto"],
+  /** §10 — does light exist: do surfaces sit up, and (since 2026-08-07) do raised controls
+      catch it. The semantic is elevation-as-identity; the palette rows behind it — 3 for
+      surfaces, 2 for controls — are merely its current resolution. An app choice made once,
+      never a per-card knob. Named `depth` since 2026-08-10: it was `surfaces`, which named the
+      family it dresses rather than the question it answers, and that name was needed by the
+      look axis's own halves. */
+  depth: ["flat", "elevated"],
+  /** §19 — the resting dress of a one-look family: does the app draw a boundary as a hairline
+      or as a darkened well. Border on a CONTROL is rank (Button's `bordered`) and stays a
+      prop; this axis never touches ranked chrome. Asked twice, of two family groups. */
+  surfaceLook: ["outlined", "filled"],
+  controlLook: ["outlined", "filled"],
+  /** §10 — see the prop's own note below. `solid` is a member: it is the seal, the rung where
+      light stops passing through, not the absence of a material. */
+  material: MATERIALS,
+} as const;
 
-    A value LIST as well as a union, for the reason `SIZES` and `RUNGS` are lists in
-    system/axes.ts: the laws walk the axis, and eight of them were each restating this
-    literal — so a third rung would have shipped covered by nothing, in eight files that
-    all still passed. The union derives from the list, so the two cannot disagree. */
-export const DEPTHS = ["flat", "elevated"] as const;
-export type Depth = (typeof DEPTHS)[number];
-/** §19 — the resting dress of a one-look family: does the app draw a boundary as a hairline or
-    as a darkened well. Border on a CONTROL is rank (Button's `bordered`) and stays a prop; this
-    axis never touches ranked chrome. Asked twice, of two family groups — see the props. */
-export type Look = "outlined" | "filled";
+export type Appearance = (typeof themeAxes.appearance)[number];
+export type Density = (typeof themeAxes.density)[number];
+export type RadiusLevel = (typeof themeAxes.radius)[number];
+export type Contrast = (typeof themeAxes.contrast)[number];
+export type Pointer = (typeof themeAxes.pointer)[number];
+export type Depth = (typeof themeAxes.depth)[number];
+export type Look = (typeof themeAxes.surfaceLook)[number];
+
+/** Kept as its own export because eight law files import it by name; it IS `themeAxes.depth`,
+    and a law asserts the two are the same array rather than two lists that agree. */
+export const DEPTHS = themeAxes.depth;
 
 export type ThemeProps = {
   /** §10 — OF WHAT MATERIAL IS THIS APP BUILT (2026-08-16, Kushagra; moved here from nine

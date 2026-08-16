@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-16 Every theme axis gets one home, and two laws that could not fail get replaced
+
+The `DEPTHS` move earlier the same day fixed one axis and left seven. `themeAxes` now holds every Theme axis and every value it takes, the unions derive from it, and `themeDefaults` is asserted to live inside it key for key. It is exported, which is what finally lets the docs stop restating: `/preview` and `/matrix` each carried their own copy of all seven lists, and they had no choice — the lists were not exported, so that entropy was FORCED rather than chosen. Publishing the table is the only fix, and it is additive.
+
+Deliberately NOT merged with the harness's `POINTERS`/`APPEARANCES` in test/browser.tsx, which look like the same fact and are not: those are the RESOLVED worlds a law walks (`fine | coarse`, `light | dark`) and exclude `auto` and `inherit`, which are instructions about where to look rather than values anything resolves to. Collapsing them would have been the entropy rule applied past the point where two things are actually one.
+
+**Two laws written for this could not fail, and both were caught by their own sabotage pass.**
+
+The first looped every axis and asserted the stamped attribute came back equal. An attribute is written verbatim, so a value nothing implements stamps itself exactly as happily as one that does — it passed a sabotage adding a third depth rung, which is the entire class of bug the table exists to catch. Whether a value is IMPLEMENTED is a question about the emitted stylesheet, so it moved to a node law that reads the shipped CSS; what remains in the browser is the one thing a mount can settle — that `appearance="inherit"` and an unchosen `contrast` stamp nothing, while `pointer="auto"` DOES stamp, an asymmetry worth pinning because making the two agree would break one of them.
+
+The second, the node law, then passed a sabotage that DELETED a value from the table — because an axis whose list has lost a value is simply an axis that gets walked less, and every loop over it keeps passing. It now checks both directions against the emitted CSS as an independent second source: a selector styling a value the table does not offer means one of the two is wrong and neither can notice alone. Falsified in both arms.
+
+**One more, found while fixing the docs.** The component-reference coverage law parsed `packages/ui/src/index.ts` with `^export \{ … \}` anchored to a single line. The day the theme export grew past the line width and broke across lines, every name in that block left the coverage set. It failed loudly here only by luck — the registry documents `Theme`, so the reverse arm caught it — and in the other direction it is silent: a multi-line block of genuinely new components would not be seen at all, and "every export is EXPLAINED" would pass while explaining none of them. The parser stops caring about formatting. Its first fix then over-corrected, stripping the `type ` keyword and pulling every `…Props` into the coverage set; types had been excluded by accident of that prefix all along, and are now excluded on purpose.
+
 ## 2026-08-16 The port's "biggest blocker" was not a defect — it was a guarantee with no law
 
 The audit reported that the veil is built from `--color-surface` rather than the component's own fill, breaking §10's fill-modifier rule so that tone and the look axis never reach a glass pane. I passed it on as the one thing that had to close before any recipe could port. It was measured on **lab2.css**, where it is true. In the package it is false: `surfaces.css` mixes `--kui-sf-fill-src`, the surface's own fill source, which is precisely what "a fill modifier, never a fill of its own" means.

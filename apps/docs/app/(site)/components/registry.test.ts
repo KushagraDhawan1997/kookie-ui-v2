@@ -21,12 +21,31 @@ const here = fileURLToPath(new URL(".", import.meta.url));
 const packageIndex = join(here, "../../../../../packages/ui/src/index.ts");
 const registry = readFileSync(join(here, "registry.tsx"), "utf8");
 
-/** Uppercase value exports of the public surface — components, not hooks or types. */
+/**
+ * Uppercase value exports of the public surface — components, not hooks or types.
+ *
+ * The brace body may span LINES (fixed 2026-08-16). The first spelling anchored on
+ * `^export \{ ... \}` with the whole list on one line, so the day `theme.tsx`'s export grew
+ * past the line width and prettier broke it across lines, every name in that block vanished
+ * from the coverage set. It failed loudly here only by luck — the registry documents `Theme`,
+ * so the REVERSE arm caught it. In the other direction it is silent: a multi-line block of
+ * genuinely new components would simply not be seen, and "every export is EXPLAINED" would
+ * pass while explaining none of them. That is the failure this whole file exists to prevent,
+ * so the parser stops caring about formatting.
+ */
 function exportedComponents(): string[] {
   const names: string[] = [];
-  for (const m of readFileSync(packageIndex, "utf8").matchAll(/^export \{ ([^}]+) \}/gm)) {
+  const source = readFileSync(packageIndex, "utf8");
+  for (const m of source.matchAll(/^export \{([^}]*)\}/gms)) {
     for (const entry of m[1]!.split(",")) {
-      const name = entry.trim();
+      const raw = entry.trim();
+      // Types are EXCLUDED, and now deliberately. They were excluded before by accident — a
+      // `type Foo` entry simply failed the uppercase test on its `t` — so the first attempt at
+      // this parser "helpfully" stripped the keyword and pulled every `…Props` into the
+      // coverage set. The header says components, not hooks or types; it says so in code now.
+      if (raw.startsWith("type ")) continue;
+      // `Foo as Bar` exports the second name, which is the one a consumer imports.
+      const name = raw.split(/\s+as\s+/).pop()!.trim();
       if (/^[A-Z]/.test(name)) names.push(name);
     }
   }
