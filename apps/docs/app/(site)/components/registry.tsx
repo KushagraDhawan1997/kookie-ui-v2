@@ -58,6 +58,11 @@ import {
   Radio,
   RadioGroup,
   Separator,
+  Shell,
+  ShellHeader,
+  ShellSidebar,
+  ShellContent,
+  ShellTrigger,
   Slider,
   Spinner,
   Stack,
@@ -735,6 +740,66 @@ export const ENTRIES: Entry[] = [
           <Text size="2" emphasis="medium">Below</Text>
         </Stack>
       </Card>
+    ),
+  },
+  {
+    slug: "shell",
+    name: "Shell",
+    family: "Layout",
+    spec: "§26",
+    blurb:
+      "The app frame: header, rail, sidebar, content, inspector and bottom, each pane a surface placing itself in one grid — the shell never inspects its children, and DOM order stays reading order. An untouched pane is `auto`: the stylesheet resolves its resting state per window class (nav columns open on roomy windows, closed on narrow ones, where opening presents them as an overlay behind a scrim), so first paint is right with no script and no callback can fire at mount. State lives on each pane in the library's one controlled pattern; the only thing that crosses the shell is a trigger finding its pane by name. `panes=\"floating\"` separates the panes — the gap and the visible corners are just what not-touching looks like, the distance answers density, and the gaps show the app's own page.",
+    axes: [
+      { name: "panes", values: "flush | floating", note: "are the panes touching — tiled app chrome with one-hairline seams, or cards on the page with the system's gap" },
+      { name: "open / defaultOpen / onOpenChange", values: "per pane", note: "Dialog's controlled pattern exactly; omit both and the pane is auto — resolved by CSS per window class, explicit after the first toggle" },
+      { name: "presentation", values: "auto | fixed | overlay", note: "how an open pane presents: in flow, or floating over content behind a scrim (Escape closes, the rest of the shell goes inert, focus returns); auto follows the window class" },
+      { name: "width / height", values: "number (px)", note: "the system's first sanctioned raw length — a pane's width is the app's content speaking, and no ladder can price it; it writes the one custom property a future resize will write" },
+    ],
+    refusals: [
+      { name: "a gap prop", why: "Floating IS the gap. The distance is one layout-space pick, so a compact app's shell tightens with the rest of its distances; a per-shell number is how a shell drifts off its own app's rhythm (v1 documented overriding --shell-inset-gap)." },
+      { name: "a header position axis", why: "The header is full-width by definition — if it isn't wide, it's a header inside ShellContent. One geometry; the Linear posture is composition, not configuration." },
+      { name: "a thin sidebar mode, and Rail×Sidebar exclusivity", why: "v1's thin mode was a rail wearing a sidebar's name — the same region twice under two names, which is what forced the exclusivity warning, the child scanning and the close-cascade. Renamed, nothing overlaps: rail and sidebar are independent columns, and an app that wants them linked writes three lines." },
+      { name: "a close-cascade between rail and sidebar", why: "Not universally true (VS Code's columns are independent; Slack's rail cannot close), so it is an app opinion, not a shell rule with a conflict-resolution protocol." },
+      { name: "drag-to-resize (deferred, not refused)", why: "It is JS at interaction time by definition, so it lands with a written carve-out plus min/max, persistence and the ARIA wiring v1 never finished. The room is already left: a drag writes the same custom property the width prop writes today." },
+      { name: "peek, and the stacked presentation", why: "Deferred until a real screen asks — v1's peek was its least load-bearing feature at its highest structural cost (a context slice, absolute overlays, a z-band, per-pane CSS)." },
+    ],
+    parts: [
+        { part: "ShellHeader", blurb: "The full-width top bar — a real <header> landmark; a header that isn't full-width belongs inside ShellContent" },
+        { part: "ShellRail", blurb: "The narrow icon column that switches sections — a <nav>, independent of the sidebar; give each nav an aria-label when both are present" },
+        { part: "ShellSidebar", blurb: "The wide navigation column — a <nav>; untouched it rests open on roomy windows and closed on narrow ones, with no script deciding" },
+        { part: "ShellContent", blurb: "The work area — a real <main>, scrolls itself, takes whatever room the panes leave; the one pane every shell should have" },
+        { part: "ShellInspector", blurb: "The right-hand detail column — an <aside> that rests closed until asked for; pass defaultOpen for one that starts open" },
+        { part: "ShellBottom", blurb: "The bottom pane for terminals and logs — an <aside> spanning the full width below the columns, resting closed" },
+        { part: "ShellTrigger", blurb: "The one crossing: a button that drives a pane by name through the registry — stamps aria-expanded and aria-controls, composes over a Kookie Button via render" },
+    ],
+    example: (
+      <Box height="14rem">
+        <Shell>
+          <ShellHeader>
+            <Flex align="center" gap="3" px="3" py="2">
+              <ShellTrigger
+                target="sidebar"
+                render={<Button size="1" emphasis="quiet" aria-label="Toggle navigation" />}
+              >
+                Nav
+              </ShellTrigger>
+              <Text size="2" weight="medium">Kookie Studio</Text>
+            </Flex>
+          </ShellHeader>
+          <ShellSidebar aria-label="Primary">
+            <Stack gap="1" p="3">
+              <Text size="2" weight="medium">Projects</Text>
+              <Text size="2" emphasis="medium">Deploys</Text>
+              <Text size="2" emphasis="medium">Settings</Text>
+            </Stack>
+          </ShellSidebar>
+          <ShellContent>
+            <Stack gap="2" p="4">
+              <Text size="2" emphasis="medium">The content pane scrolls itself; the shell never does.</Text>
+            </Stack>
+          </ShellContent>
+        </Shell>
+      </Box>
     ),
   },
   {

@@ -62,6 +62,14 @@ import {
   Radio,
   RadioGroup,
   Separator,
+  Shell,
+  ShellHeader,
+  ShellRail,
+  ShellSidebar,
+  ShellContent,
+  ShellInspector,
+  ShellBottom,
+  ShellTrigger,
   Slider,
   Spinner,
   Stack,
@@ -1174,6 +1182,139 @@ function SeparatorSection() {
   );
 }
 
+function ShellSection() {
+  return (
+    <Stack gap="6">
+      {/* Flush: the app-chrome posture — panes tile, each seam one hairline. The sidebar is
+          untouched (`auto`): open here, closed on a narrow window, resolved by CSS alone —
+          drag the window across 48rem and nothing re-renders. */}
+      <Demo label="Flush — auto sidebar, trigger in the header, bottom pane on demand">
+        <Box height="22rem">
+          <Shell>
+            <ShellHeader>
+              <Flex align="center" justify="between" px="3" py="2">
+                <Flex align="center" gap="3">
+                  <ShellTrigger
+                    target="sidebar"
+                    render={<Button size="2" emphasis="quiet" aria-label="Toggle navigation" />}
+                  >
+                    Nav
+                  </ShellTrigger>
+                  <Text size="2" weight="medium">
+                    Kookie Studio
+                  </Text>
+                </Flex>
+                <Flex gap="2">
+                  <ShellTrigger target="bottom" render={<Button size="2" emphasis="quiet" />}>
+                    Terminal
+                  </ShellTrigger>
+                  <ShellTrigger target="inspector" render={<Button size="2" emphasis="quiet" />}>
+                    Inspect
+                  </ShellTrigger>
+                </Flex>
+              </Flex>
+            </ShellHeader>
+            <ShellSidebar aria-label="Primary">
+              <Stack gap="1" p="3">
+                <Text size="2" weight="medium">
+                  Projects
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Deploys
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Members
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Settings
+                </Text>
+              </Stack>
+            </ShellSidebar>
+            <ShellContent>
+              <Stack gap="2" p="4">
+                <Heading size="6">Deploys</Heading>
+                <Text size="2" emphasis="medium">
+                  Three environments, all green. The content pane scrolls itself; the shell
+                  never does.
+                </Text>
+              </Stack>
+            </ShellContent>
+            <ShellInspector>
+              <Stack gap="2" p="3">
+                <Text size="2" weight="medium">
+                  Inspector
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Rests closed until asked for.
+                </Text>
+              </Stack>
+            </ShellInspector>
+            <ShellBottom>
+              <Stack p="3">
+                <Text size="2" emphasis="medium">
+                  Build finished in 41s.
+                </Text>
+              </Stack>
+            </ShellBottom>
+          </Shell>
+        </Box>
+      </Demo>
+
+      {/* Floating: the same shell, not touching — the gap and the corners are what
+          not-touching looks like, and the gaps show the page, not a painted bed. The rail
+          joins as the second nav column: nothing excludes anything. */}
+      <Demo label="Floating — rail + sidebar, panes as cards, gap from layout space">
+        <Box height="22rem">
+          <Shell panes="floating">
+            <ShellHeader>
+              <Flex align="center" gap="3" px="3" py="2">
+                <Text size="2" weight="medium">
+                  Kookie Studio
+                </Text>
+              </Flex>
+            </ShellHeader>
+            <ShellRail aria-label="Sections">
+              <Stack gap="2" p="2" align="center">
+                <Text size="2" weight="medium">
+                  A
+                </Text>
+                <Text size="2" emphasis="medium">
+                  B
+                </Text>
+                <Text size="2" emphasis="medium">
+                  C
+                </Text>
+              </Stack>
+            </ShellRail>
+            <ShellSidebar aria-label="Primary">
+              <Stack gap="1" p="3">
+                <Text size="2" weight="medium">
+                  Inbox
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Drafts
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Archive
+                </Text>
+              </Stack>
+            </ShellSidebar>
+            <ShellContent>
+              <Stack gap="2" p="4">
+                <Heading size="6">Inbox</Heading>
+                <Text size="2" emphasis="medium">
+                  A glass theme makes these panes translucent over the page — floating is
+                  where material finally has something to show through to.
+                </Text>
+              </Stack>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
 function SliderSection() {
   return (
     <Stack gap="6">
@@ -1652,6 +1793,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
   { id: "separator", name: "Separator", body: <SeparatorSection /> },
+  { id: "shell", name: "Shell", body: <ShellSection /> },
   { id: "slider", name: "Slider", body: <SliderSection /> },
   { id: "spinner", name: "Spinner", body: <SpinnerSection /> },
   { id: "switch", name: "Switch", body: <SwitchSection /> },
