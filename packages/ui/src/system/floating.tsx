@@ -327,6 +327,23 @@ function useFlight(plan: FlightPlan) {
          * right is enough to keep focus from scrolling; being exactly right is the real aim's
          * job, one frame later.
          */
+        /**
+         * The page's scroll, and whether it is ours to protect (2026-08-16).
+         *
+         * The entry TRAVELS: the panel's first frame sits on its trigger, some tens of pixels
+         * from where it will settle. Base UI focuses the selected row during that window, and
+         * the browser scrolls the page to reveal the focused element AT ITS FLIGHT POSITION —
+         * so the page keeps whatever it gained once the panel travels on. Measured on a select
+         * whose trigger is mid-page: 8px on a three-row panel, 38px on a taller one, and ZERO
+         * with the travel removed, which is what identifies the cause as the gesture itself
+         * rather than any single attribute of it.
+         *
+         * Guarded on the trigger being FULLY IN VIEW when the entry begins, which is what
+         * keeps a legitimate reveal legitimate: a panel anchored to a trigger you can see never
+         * needs the page to move (the positioner flips it rather than overflow it), while a
+         * trigger that is off-screen — a programmatic open, a keyboard shortcut — genuinely may.
+         */
+        const parked = { x: window.scrollX, y: window.scrollY, protect: false };
         const roughlyOnTrigger = (trigger: HTMLElement | null) => {
           if (!trigger) return;
           const triggerBox = trigger.getBoundingClientRect();
@@ -334,7 +351,38 @@ function useFlight(plan: FlightPlan) {
           popup.style.setProperty("--kui-from-x", `${triggerBox.left - popupBox.left}px`);
           popup.style.setProperty("--kui-from-y", `${triggerBox.top - popupBox.top}px`);
         };
-        if (plan.fromAnchor) roughlyOnTrigger(anchor());
+        if (plan.fromAnchor) {
+          const trigger = anchor();
+          if (trigger) {
+            const box = trigger.getBoundingClientRect();
+            parked.protect =
+              box.top >= 0 &&
+              box.left >= 0 &&
+              box.bottom <= window.innerHeight &&
+              box.right <= window.innerWidth;
+          }
+          roughlyOnTrigger(trigger);
+        }
+        /**
+         * And the page is HELD for the entry's opening frames, in the scroll event itself.
+         *
+         * Restoring on a frame instead lets the browser paint the scrolled position first —
+         * measured, a tall select flashed 2151px down and came back two frames later, which
+         * reads worse than the drift it fixes. A scroll handler runs before paint, so the
+         * page never renders anywhere but where it was parked. Armed only while the entry is
+         * opening (four frames covers the focus and any reveal that trails it), and only when
+         * the trigger was fully in view, so nothing a user does outside that window is fought.
+         */
+        if (parked.protect) {
+          const hold = () => window.scrollTo(parked.x, parked.y);
+          window.addEventListener("scroll", hold);
+          let frames = 0;
+          const release = () => {
+            if (frames++ < 4) return void requestAnimationFrame(release);
+            window.removeEventListener("scroll", hold);
+          };
+          requestAnimationFrame(release);
+        }
 
         queueMicrotask(() => {
           // A panel landed by other means before this ran — the harness's settle(), a
