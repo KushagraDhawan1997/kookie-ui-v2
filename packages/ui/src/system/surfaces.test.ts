@@ -617,18 +617,26 @@ describe("continuous curvature (§6, ported 2026-08-16)", () => {
     expect(outside, "the corner multiplier escapes its @supports guard").not.toContain("--kui-corner-k:");
   });
 
-  it("a capsule stays round — squircle math at half-height bulges square", () => {
-    // The lab's own carve-out (2026-08-14: the boxy ring inside the pill). At `full` a corner
-    // is already its own continuous curve, so the shape has nothing to add and its math has
-    // something to break. Both the descendant and self forms, because a Theme stamps
-    // [data-radius] on itself and a surface can BE that element.
-    const guard = from(css, "@supports (corner-shape: squircle)");
-    const capsule = block(guard, '[data-radius="full"] .kui-surface');
-    expect(capsule).toContain("corner-shape: round");
-    expect(capsule).toContain("--kui-corner-k: 1");
-    expect(guard, "a surface that IS the radius scope keeps the capsule carve-out").toContain(
-      '[data-radius="full"].kui-surface',
-    );
+  it("no radius level switches the shape off — the default world was dark for a day", () => {
+    // This law REPLACES one that asserted the opposite, and the one it replaces was the bug
+    // (2026-08-16→17). A capsule carve-out keyed on [data-radius="full"] — the lab\'s capsule
+    // exception translated by NAME — and `full` is the system\'s DEFAULT radius, so squircle
+    // shipped switched off for every surface on the default path and not one corner changed.
+    // The law asserting that carve-out passed, because it read the rule\'s presence and never
+    // asked whether the shape survived to the default world.
+    //
+    // The translation was wrong twice: a surface at `full` is not a capsule (its corner is
+    // the band\'s picks, never half its height), and the true capsules at full are CONTROLS,
+    // which never take squircle at all — the protection is the control layer\'s roundness,
+    // not a radius switch here.
+    // The guard BLOCK alone, not everything after it: `from()` slices to end-of-file, and
+    // unrelated [data-radius] rules live below — the first spelling failed on those, not on
+    // the code.
+    const start = css.indexOf("@supports (corner-shape: squircle)");
+    expect(start).toBeGreaterThan(-1);
+    const guard = css.slice(start, css.indexOf("\n}", start) + 2);
+    expect(guard, "a radius level switches the shape off again").not.toContain("[data-radius");
+    expect(guard, "the guard block lost the shape itself").toContain("corner-shape: squircle");
   });
 
   it("the radius is multiplied at ONE site, so nothing can wear the shape at the wrong number", () => {

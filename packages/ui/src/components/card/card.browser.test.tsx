@@ -144,25 +144,26 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     }
   });
 
-  it("the border is the SAME border at every material — one look (§10, 2026-08-16)", () => {
-    // Reversed from "the material wins". A glass pane used to replace the border with its own
-    // translucent white hairline, which is designed to read against a hostile backdrop and
-    // vanishes against a plain page: measured on a calm bed, a solid card showed an edge and
-    // the glass card beside it showed none. Material decides how a surface SURVIVES something
-    // busy behind it; it does not decide what the surface is.
-    //
-    // The white catch still exists — it is the edge layer of the pane's own lighting, painted
-    // on top of the border rather than instead of it, which is why this can be asserted as
-    // equality across all four materials rather than as a preference between two.
+  it("a glass pane keeps its OWN edge — the one-look revert that went too far (§10)", () => {
+    // History, because this law has now pointed both ways in one day and the next reader
+    // needs to know why THIS direction is the settled one. Convergence ("one border at every
+    // material") was shipped on 2026-08-16 and reverted within the hour: on a calm bed it is
+    // right, and on a HOSTILE bed a grey tone hairline on a pane of light reads as a sticker
+    // — the original 2026-08-05 finding, re-proven by making the change and looking at it.
+    // No single colour reads on both a white page and a photograph; grey vanishes on one,
+    // white on the other. So the edge stays the material's, and convergence over calm ground
+    // is carried by the LIGHTING, which is backdrop-independent.
     const border = (m: "solid" | (typeof GLASS_MATERIALS)[number]) =>
       computed(
         mounted(<Card>Body</Card>, { theme: { material: m }, select: ".kui-surface" }),
         "border-top-color",
       );
-    const solid = border("solid");
-    expect(solid, "the seal lost its edge").not.toBe("rgba(0, 0, 0, 0)");
+    expect(border("solid"), "the seal lost its edge").not.toBe("rgba(0, 0, 0, 0)");
     for (const m of GLASS_MATERIALS) {
-      expect(border(m), `${m} glass draws a different border than the seal`).toBe(solid);
+      const el = mounted(<Card>B</Card>, { theme: { material: m }, select: ".kui-surface" });
+      expect(computed(el, "border-top-color"), `${m} lost the pane's own edge`).toBe(
+        colorOn(el, `var(--material-${m}-edge)`),
+      );
     }
   });
 
@@ -849,19 +850,22 @@ describe("convergence: over a calm bed, material is invisible (§10, 2026-08-16)
     return host.querySelector<HTMLElement>(".kui-surface")!;
   };
 
-  it("every material paints the same edge and the same lighting as the seal", () => {
+  it("every material paints the same LIGHTING as the seal — the edge is the one licensed difference", () => {
+    // Narrowed from "same edge and same lighting" on 2026-08-17, and the narrowing is the
+    // record of a same-day revert: forcing one border onto glass made a hostile-bed pane wear
+    // a grey sticker (see the edge law above). Convergence is carried by what is backdrop-
+    // independent — the lighting — while the edge is allowed to differ because no single
+    // colour reads on both beds. The edge difference is asserted, not tolerated: silently
+    // equal edges would mean the material hairline is gone again.
     const solid = bed("solid");
-    const ref = {
-      border: computed(solid, "border-top-color"),
-      light: computed(solid, "background-image"),
-    };
-    // The seal must have something to agree ABOUT, or this passes on two blanks.
-    expect(ref.border, "the seal has no edge").not.toBe("rgba(0, 0, 0, 0)");
-    expect(ref.light, "the seal has no lighting").not.toBe("none");
+    const light = computed(solid, "background-image");
+    expect(light, "the seal has no lighting").not.toBe("none");
     for (const m of GLASS_MATERIALS) {
       const el = bed(m);
-      expect(computed(el, "border-top-color"), `${m}: a different edge than the seal`).toBe(ref.border);
-      expect(computed(el, "background-image"), `${m}: different lighting than the seal`).toBe(ref.light);
+      expect(computed(el, "background-image"), `${m}: different lighting than the seal`).toBe(light);
+      expect(computed(el, "border-top-color"), `${m}: the pane's own edge is gone again`).not.toBe(
+        computed(solid, "border-top-color"),
+      );
     }
   });
 
@@ -876,5 +880,27 @@ describe("convergence: over a calm bed, material is invisible (§10, 2026-08-16)
     const alphaOf = (c: string) => (c.includes("/") ? parseFloat(c.slice(c.lastIndexOf("/") + 1)) : 1);
     expect(alphaOf(computed(solid, "background-color")), "the seal is not opaque").toBe(1);
     expect(alphaOf(computed(glass, "background-color")), "glass is opaque").toBeLessThan(1);
+  });
+});
+
+describe("continuous curvature reaches the DEFAULT world (§6, 2026-08-17)", () => {
+  it("an ordinary card under an ordinary Theme paints a squircle, radius unmoved", () => {
+    // The law the carve-out bug proved was missing. The node laws asserted the squircle RULE
+    // existed; nothing asked whether any surface a user actually renders resolves it — and
+    // for a day none did, because a carve-out keyed on [data-radius="full"], which is the
+    // DEFAULT radius. "The rule is in the stylesheet" and "the default world renders it" are
+    // separated by exactly one selector, which is where this died.
+    // Under a REAL default Theme — `theme: {}` is load-bearing, not decoration. The first
+    // spelling omitted it, which mounts the card bare: no Theme, no [data-radius] ancestor,
+    // and the carve-out this law exists to catch had nothing to match. It passed with the
+    // bug re-added — the sabotage run is what caught the law, not the law the bug.
+    const el = mounted(<Card>B</Card>, { theme: {}, select: ".kui-surface" });
+    expect(computed(el, "corner-shape"), "the default world lost the squircle").toBe("squircle");
+    // And the number did not move with the shape: the corner is still the band\'s pick.
+    const probe = document.createElement("div");
+    el.append(probe);
+    probe.style.borderRadius = "var(--radius-surface-3)";
+    expect(computed(el, "border-radius")).toBe(computed(probe, "border-radius"));
+    probe.remove();
   });
 });

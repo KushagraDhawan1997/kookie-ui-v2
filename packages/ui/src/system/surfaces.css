@@ -105,10 +105,14 @@
    corner-shape is untouched by construction: the property and the multiplier live or die
    together in the same @supports block.
 
-   Capsules are excluded, the lab's own carve-out: squircle math at a half-height radius
-   bulges square (the boxy ring inside the pill, lab 2026-08-14), and at `full` a corner is
-   already its own continuous curve with nothing to improve. Controls stay round throughout —
-   most of them are capsules or too small for the curve to register. */
+   There is NO radius-level carve-out here, and there was one for a day (2026-08-16→17): it
+   keyed on [data-radius="full"] — the lab's capsule exception translated by NAME — and `full`
+   is the system's DEFAULT radius, so squircle shipped switched off for the entire default
+   world and nobody's corner changed at all. The translation was wrong twice over: a SURFACE
+   at `full` is not a capsule (its corner is the band's 20/28px, never half its height — §6's
+   own "full holds at large's values" sentence), and the things that ARE capsules at full are
+   controls, which never take squircle in the first place. The capsule protection is the
+   control layer's roundness, not a radius-level switch in this one. */
 @supports (corner-shape: squircle) {
   .kui-surface {
     /* THE KNOB, and it is deliberately 1. Turning it to 1.613 (the lab's own 0.62 inverted)
@@ -120,11 +124,6 @@
        the laws that pin the concentric geometry are what will fail if it moves without them. */
     --kui-corner-k: 1;
     corner-shape: squircle;
-  }
-  [data-radius="full"] .kui-surface,
-  [data-radius="full"].kui-surface {
-    --kui-corner-k: 1;
-    corner-shape: round;
   }
 }
 
@@ -499,15 +498,15 @@
        pointer never resolves and the pane lost its glint entirely — caught by TextField's
        own law the hour the pointer landed. The generated name still answers there, because
        tokens.css carries :root alongside the two appearance scopes for exactly this case. */
-    /* ONE LOOK (§10, 2026-08-16 — Kushagra: "there's just one 'look', the right look").
-       The border is the SAME border at every material. It used to re-point to the material's
-       own translucent white hairline, which is designed to read against a hostile backdrop
-       and disappears completely against a plain page — measured: a solid card on a calm bed
-       showed an edge and a glass card beside it showed none, which is the convergence break
-       you can see without a tool. Material decides how a surface survives something busy
-       behind it; it does not decide what the surface IS. The white catch it used to replace
-       the border with still exists — as the edge layer of the pane's own lighting, painted
-       ON TOP of the border rather than instead of it. */
+    /* The pane's OWN edge. Reverted 2026-08-16, within the hour, because it was wrong.
+       Convergence said "one border at every material", and on a calm bed that is right and
+       measurable. On a HOSTILE bed it is wrong and obvious: a grey tone hairline on a pane of
+       light reads as a sticker — the 2026-08-05 finding this line exists for — and it is not
+       what the lab looks like. No single colour reads on both a white page and a photograph:
+       grey vanishes on one, white on the other. So the edge stays the material's, and
+       convergence is carried by the LIGHTING, which is backdrop-independent and is where it
+       belonged. */
+    --kui-border-color: var(--material-thin-edge, var(--tone-border));
 
 
     --kui-sf-cast: var(--kui-surface-chrome-thin, none);
@@ -518,8 +517,7 @@
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-regular-alpha-active), transparent);
     backdrop-filter: var(--kui-lens, ) var(--material-regular-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
-
-
+    --kui-border-color: var(--material-regular-edge, var(--tone-border));
     --kui-sf-cast: var(--kui-surface-chrome-regular, none);
   }
   .kui-surface[data-material="thick"] {
@@ -528,8 +526,7 @@
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thick-alpha-active), transparent);
     backdrop-filter: var(--kui-lens, ) var(--material-thick-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
-
-
+    --kui-border-color: var(--material-thick-edge, var(--tone-border));
     --kui-sf-cast: var(--kui-surface-chrome-thick, none);
   }
 }
