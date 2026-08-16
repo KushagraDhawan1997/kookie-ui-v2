@@ -8,6 +8,18 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-16 The port's "biggest blocker" was not a defect — it was a guarantee with no law
+
+The audit reported that the veil is built from `--color-surface` rather than the component's own fill, breaking §10's fill-modifier rule so that tone and the look axis never reach a glass pane. I passed it on as the one thing that had to close before any recipe could port. It was measured on **lab2.css**, where it is true. In the package it is false: `surfaces.css` mixes `--kui-sf-fill-src`, the surface's own fill source, which is precisely what "a fill modifier, never a fill of its own" means.
+
+Measured on a mounted Card at `material="regular"` — outlined `srgb 1 1 1 / 0.64` against filled `srgb 0.966 0.967 0.969 / 0.64` in light, `0.079…/0.71` against `0.109…/0.71` in dark; and a destructive glass button at `srgb 0.996 0.913 0.907` against neutral's `srgb 0.932 0.935 0.937`. Different colour, same alpha, in every case.
+
+**The finding was still worth having, because the actual defect is one layer up: nothing proved any of it.** Six audit agents and an adversarial refutation pass could not distinguish a correct package from a broken one, because the guarantee had no law — so the lab, which *is* broken, was the only evidence in the room and it read as the system's behaviour. This repo's standing lesson has always been stated as "a law that reads a declared value is one indirection short"; this is the same lesson from the other side, where the count of laws is zero and the failure mode is not a false pass but an outside reader reasonably concluding the opposite.
+
+The law asserts BOTH halves at once — the two looks resolve different colours, *at the same alpha* — because either alone is half a law: differing colours with a drifting alpha would mean the veil had been replaced by a fill, and equal alphas with equal colours would mean the dress never arrived. Falsified by transplanting the lab's exact defect into `surfaces.css`, which is the only falsification that proves the law catches the reported bug rather than some neighbour of it.
+
+Left standing, and correctly: no surface currently HAS a tone to carry. Card and the popups that wear its constants all stamp `data-tone="neutral"` as a fixed identity, so the mechanism is proven and idle until the first tone-forward surface — which `surfaces.css` already predicts in prose ("a tone-forward surface will tint its own veil the day one floats").
+
 ## 2026-08-16 Material becomes the Theme's, and the question that killed the ladder was "what if I say thick?"
 
 The proposal on the table was material-as-theme-property with a per-FAMILY offset: the theme picks a rung, a dialog sits one above it, a control one below — the shape the mark family already uses (`switch track = mark(n+1)`) and the shadow palette already uses (surfaces row 3, controls row 2). Kushagra killed it in one move: **`material="thick"` has no rung above it.** Clamping at the top would be an exception, and the same clamp at the bottom would make `solid` not mean solid.

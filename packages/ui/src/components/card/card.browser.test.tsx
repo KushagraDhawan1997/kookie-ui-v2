@@ -114,6 +114,35 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     expect(computed(el, "background-color")).not.toBe(computed(light, "background-color"));
   });
 
+  it("the look axis reaches THROUGH the glass — material is a fill modifier, not a fill (§10, §19)", () => {
+    // The 2026-08-16 port audit reported this broken, and it was — in the LAB, whose veil is
+    // built from `--color-surface` directly. The package mixes `--kui-sf-fill-src`, the
+    // surface's OWN fill source, which is what "material is a fill modifier, never a fill of
+    // its own" means. Nothing proved it, though, which is why an auditor reading the lab could
+    // not tell the two apart: the claim had no law, so it was indistinguishable from the bug.
+    //
+    // What must hold is TWO things at once, and asserting either alone is half a law: the two
+    // looks must resolve DIFFERENT colours (the dress survives the veil) at the SAME alpha
+    // (the veil is still doing the material's job and has not been replaced by a fill). Both
+    // appearances, because filled walks the palette in opposite directions per mode.
+    for (const appearance of APPEARANCES) {
+      const outlined = mounted(<Card>B</Card>, {
+        theme: { appearance, material: "regular", surfaceLook: "outlined" },
+      });
+      const filled = mounted(<Card>B</Card>, {
+        theme: { appearance, material: "regular", surfaceLook: "filled" },
+      });
+      const a = computed(outlined, "background-color");
+      const b = computed(filled, "background-color");
+      expect(a, `${appearance}: the look never reached the pane`).not.toBe(b);
+      const alphaOf = (c: string) => c.slice(c.lastIndexOf("/") + 1).replace(")", "").trim();
+      expect(alphaOf(a), `${appearance}: the veil is opaque`).not.toBe("1");
+      expect(alphaOf(b), `${appearance}: the looks translucency diverged from outlined's`).toBe(
+        alphaOf(a),
+      );
+    }
+  });
+
   it("a glass card keeps the pane's own edge in the filled look — the material wins (§19, §10)", () => {
     const el = mounted(<Card>Body</Card>, {
       theme: { surfaceLook: "filled", material: "regular" },

@@ -73,14 +73,36 @@ design as written.
 Grouped by what is actually wrong, not by which agent found it. Everything here survived a
 refutation pass.
 
-### The veil is not what §10 says a material is
+### The veil is not what §10 says a material is — IN THE LAB ONLY
 
-The lab's veil is built out of `--color-surface` directly. The package's rule is that a
-material is a *fill modifier* — it takes the component's own fill and mixes it toward
-transparent. Because the lab hardcodes the surface colour instead, **tone and the look axis
-never reach a glass pane at all.** A `destructive` card and a neutral card are the same
-pane. This is the single biggest structural gap between the lab and the system, and it has
-to close before any recipe ports, or the port would silently delete two axes.
+**Corrected 2026-08-16 after the audit, by measurement.** The lab's veil is built out of
+`--color-surface` directly, so in the lab tone and the look axis never reach a glass pane.
+I reported this as the port's biggest blocker. It is not: **the package was already
+correct** and mixes `--kui-sf-fill-src`, the surface's own fill source, which is exactly
+what "a fill modifier, never a fill of its own" means.
+
+Measured on a mounted Card at `material="regular"`:
+
+| | outlined | filled |
+|---|---|---|
+| light | `srgb 1 1 1 / 0.64` | `srgb 0.966 0.967 0.969 / 0.64` |
+| dark | `srgb 0.079 0.083 0.087 / 0.71` | `srgb 0.109 0.114 0.119 / 0.71` |
+
+Different colour, same alpha — the dress survives the veil and the veil is still doing the
+material's job. Tone reaches a glass control too: a `destructive` medium button computes
+`srgb 0.996 0.913 0.907` against neutral's `srgb 0.932 0.935 0.937`.
+
+**The real defect was that nothing proved it.** The claim had no law, so an auditor reading
+the lab could not tell a working package from a broken one — which is this repo's oldest
+lesson arriving from a new direction: not a law reading the wrong indirection, but a
+load-bearing guarantee with no law at all. There is one now, and it asserts both halves at
+once (the two looks differ, at the same alpha), because either alone is half a law. It was
+falsified by transplanting the lab's exact defect into `surfaces.css`.
+
+Nothing to port here. The one real residue is that no surface currently HAS a tone to
+carry — Card, and the popups wearing Card's constants, all stamp `data-tone="neutral"` as a
+fixed identity — so the mechanism is proven and waiting for the first tone-forward surface,
+which `surfaces.css` already anticipates in prose.
 
 ### The light source contradicts itself
 
@@ -219,8 +241,8 @@ Nothing here ports a number until the frame that holds it has stopped moving.
    regenerated token file cannot be split without regenerating twice. Nothing can arrive
    "one at a time" onto a tree that is already a pile.
 2. **Answer (a), (b), (c) above.** Code that moves before these is code that moves twice.
-3. **Make the veil a fill modifier.** Until a pane can carry tone, the recipes describe a
-   material the system does not have.
+3. ~~Make the veil a fill modifier.~~ **Already true in the package** — measured, and now
+   law-pinned (§2). This step is deleted from the order.
 4. **One materials table**, in config, with per-family factors — and it extends
    `config.material`, which is already the right shape, rather than becoming a new home.
    This is where the ~230 numbers collapse.
