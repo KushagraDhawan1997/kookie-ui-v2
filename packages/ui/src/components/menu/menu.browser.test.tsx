@@ -153,6 +153,32 @@ async function openUnsettled(theme: ThemeProps = {}, ui?: React.ReactNode, size?
   return { popup, body: popup.querySelector<HTMLElement>(".kui-floating-body")! };
 }
 
+/** The flight's own deadline in ms, read the way the runner reads it: the longest
+    duration-plus-delay on the popup, plus the runner's margin. Derived rather than written
+    down, so a law about interrupting a flight cannot drift when the clocks are retuned — as
+    they were on 2026-08-16, which is what made two hardcoded waits go stale at once.
+
+    It must be read with the pose OFF, which is the runner's own lesson one file over: the
+    pose declares `transition: none`, so a posed read answers zero and every wait derived
+    from it collapses — silently turning a law about interrupting a flight into a law about
+    nothing. `departed()` below is how a law gets there. */
+function flightClock(popup: HTMLElement): number {
+  const style = getComputedStyle(popup);
+  const delays = style.transitionDelay.split(",");
+  const spans = style.transitionDuration
+    .split(",")
+    .map((d, i) => parseFloat(d) + parseFloat(delays[i % delays.length] ?? "0"));
+  return Math.max(...spans, 0) * 1000 + 50;
+}
+
+/** The flight in the air: measured, posed, and one frame past the pose coming off. */
+async function departed(popup: HTMLElement): Promise<number> {
+  await flushFlight();
+  for (let i = 0; i < 3; i++) await new Promise((r) => requestAnimationFrame(() => r(null)));
+  if (popup.hasAttribute("data-seed")) throw new Error("the pose never came off — the clock would read zero");
+  return flightClock(popup);
+}
+
 /** The facts an axis reaches on the popup surface. */
 function surfaceFacts(el: HTMLElement) {
   const cs = getComputedStyle(el);
@@ -1616,7 +1642,9 @@ describe("the panel unfurls out of a seed (§22)", () => {
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    await wait(600); // land the first flight
+    const clock = await departed(popup);
+    await wait(clock + 50); // land the first flight, by its own clock
+    expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight landed").toBe(false);
     flushSync(() => setOpen(false));
     await wait(60); // mid-dissolve (the dissolve clock is 140ms)
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
@@ -1629,7 +1657,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
       popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"),
       "the reopen begins a fresh flight, not a recovery from the half-dissolved pose",
     ).toBe(true);
-    await wait(600); // and it LANDS — the new flight's own clock releases it
+    await wait(clock + 100); // and it LANDS — the new flight's own clock releases it
     expect(popup.hasAttribute("data-unfurling"), "the stale clock did not strip the new flight").toBe(false);
     expect(computed(popup, "opacity")).toBe("1");
   });
@@ -1710,8 +1738,9 @@ describe("the panel unfurls out of a seed (§22)", () => {
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    await flushFlight();
-    await wait(200); // mid-flight: the entry runs to ~480ms
+    const clock = await departed(popup);
+    const interrupt = 240; // when the reopen lands, measured from the first open
+    await wait(200); // mid-flight
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight is airborne").toBe(true);
     flushSync(() => setOpen(false));
     await wait(40); // mid-dissolve (the dissolve clock is 140ms)
@@ -1719,8 +1748,10 @@ describe("the panel unfurls out of a seed (§22)", () => {
     flushSync(() => setOpen(true));
     await flushFlight();
     expect(popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling")).toBe(true);
-    // Past the interrupted flight's own deadline (~290 from here), short of this one's (~530).
-    await wait(400);
+    // Between the two deadlines, both derived: the interrupted flight is due `clock -
+    // interrupt` from here and the flight that replaced it a full `clock` from here, so the
+    // midpoint of that gap is the one moment the claim is about.
+    await wait(clock - interrupt / 2);
     expect(
       popup.hasAttribute("data-unfurling"),
       "the interrupted flight's clock must not land on the flight that replaced it",

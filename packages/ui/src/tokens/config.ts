@@ -763,20 +763,25 @@ export const floatingMotion = {
    * width made every menu unfurl sideways and then drop. A menu falls out of its trigger and
    * then opens; the vertical arrives first.
    */
-  fall: 320,
+  fall: 460,
   /** The horizontal channel — width, and the lateral travel — and it TRAILS, which is what
       makes the direction of travel legible. */
-  spread: 480,
+  spread: 680,
   /** The corner and the settle-scale, between the two. */
-  corner: 380,
+  corner: 560,
   /** The panel's own fade-in, and its rows'. Paint is signal: it does not ride a spring. */
-  reveal: 200,
-  /** Rows wait for the SHAPE, not just the commit (80 -> 280, 2026-08-15, Kushagra: the
+  reveal: 260,
+  /** 60 since 2026-08-16 (Kushagra: "I prefer whatever is on lab" — the lab's menus have
+      carried these five clocks since 2026-08-14 and were judged there ever since, while the
+      package was never brought level with them). This REVERSES the 280 below, which is kept
+      as the argument it was: the number moved, the reasoning it displaced did not evaporate,
+      so if a row ever reads as arriving before its panel, this is the line to move back.
+      Rows wait for the SHAPE, not just the commit (80 -> 280, 2026-08-15, Kushagra: the
       content must be "blurred out, empty" while the circle is still becoming the container,
       and show up "as the circle takes the shape" — at 80ms the rows printed onto a box that
       was still mostly circle, which is what made the entry read as a rectangle dropdown
       fading in). 280 starts the print as the fall (320) is landing; v0, judged live. */
-  revealDelay: 280,
+  revealDelay: 60,
   /** Exit: the dissolve itself. */
   dissolve: 140,
   /** Exit: the hair of scale the pane settles back through while dissolving. */

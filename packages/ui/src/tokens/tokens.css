@@ -177,11 +177,11 @@
      no --scale: a panel does not unfurl slower because the interface is zoomed. */
   --floating-seed: calc(56px * var(--scale));
   --floating-echo: calc(8px * var(--scale));
-  --floating-fall: 320ms;
-  --floating-spread: 480ms;
-  --floating-corner: 380ms;
-  --floating-reveal: 200ms;
-  --floating-reveal-delay: 280ms;
+  --floating-fall: 460ms;
+  --floating-spread: 680ms;
+  --floating-corner: 560ms;
+  --floating-reveal: 260ms;
+  --floating-reveal-delay: 60ms;
   --floating-dissolve: 140ms;
   --floating-settle: 160ms;
   --overlay-seed: calc(64px * var(--scale));
