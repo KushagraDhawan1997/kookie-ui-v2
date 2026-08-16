@@ -381,10 +381,13 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
     const flat = render(<Card>B</Card>);
     expect(computed(flat, "box-shadow")).toBe("none");
     const el = mounted(<Card>B</Card>, { theme: { depth: "elevated" } });
-    // Depth IS the palette: the elevated card wears exactly row 3 — one lighting model.
-    // (Row 3 since 2026-08-07: the ladder gained the control drop at row 2 and renumbered.)
+    // Depth IS the palette: the elevated card wears exactly the surface row — one lighting
+    // model, no bespoke value. The ROW moved to 5 on 2026-08-16, adopting the material lab's
+    // depth: the palette is ordered by reach and the lab prices a cast by the size of the box
+    // throwing it, so a card takes the top rung and a menu the middle one. (It was row 3
+    // from 2026-08-07, when the ladder gained the control drop at row 2 and renumbered.)
     const probe = document.createElement("div");
-    probe.style.boxShadow = "var(--shadow-3)";
+    probe.style.boxShadow = "var(--shadow-5)";
     el.append(probe);
     expect(computed(el, "box-shadow")).toBe(computed(probe, "box-shadow"));
     probe.remove();

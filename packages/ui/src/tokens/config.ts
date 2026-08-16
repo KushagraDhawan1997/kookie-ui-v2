@@ -1115,32 +1115,48 @@ export const dialogInset = 6;
  * dark pages swallow shadow.
  */
 export const shadow = {
-  // SHARP by construction (researched 2026-08-04; anatomy redesigned 2026-08-07): every
-  // drop row is the same TWO-PART anatomy at a different height — a CONTACT line (small
-  // offset, near-zero blur, the crisp dark line right under the edge) plus an AMBIENT halo
-  // (larger offset/blur, negative spread, low alpha). The contact line is what reads sharp;
-  // the ambient is what reads raised. Rules that survive from the first design: one light
-  // source (x always 0, y grows with the row), negative spread on the reaching layer, depth
-  // as offset growth rather than fog. v0 values, judged in the preview.
+  // SHARP by construction (researched 2026-08-04; anatomy redesigned 2026-08-07, and again
+  // 2026-08-16 when the material lab's depth was adopted whole). Every drop row is the same
+  // THREE-PART anatomy at a different height:
+  //   CONTACT — 0 1px 2px, no spread: the crisp dark line right under the edge, what reads
+  //     sharp. Constant across the ladder, because contact does not change with height: an
+  //     object either touches its bed or it does not.
+  //   DROP — mid offset and blur, negative spread: the body of the shadow, what reads raised.
+  //   BLAST — the far, wide, heavily pulled-in reach (up to 32px/80px at the top rung). This
+  //     is the layer the palette did not have and the layer the lab's depth is mostly made
+  //     of; the old ladder topped out at 16px/32px, less than half this reach, which is why
+  //     ported glass read flat beside the lab it came from.
+  // Rules that survive every redesign: one light source (x always 0, y grows with the row),
+  // negative spread on both reaching layers, depth as offset growth rather than fog.
+  //
+  // The ladder is ordered by REACH and the chrome roles pick their rung (surfaceChrome takes
+  // the top, floatingChrome the middle) — the lab prices a shadow by the size of the box
+  // casting it, "a smaller caster owes a smaller shadow, or it reads swollen", and a card is
+  // a bigger box than a menu. The palette stays one ordered resource; which rung a family
+  // reads is the role's job, which is what the roles are for.
   light: [
     "inset 0 1px 1px rgb(0 0 0 / 0.12), inset 0 2px 4px rgb(0 0 0 / 0.06)",
-    // Row 2's two edge rules (Kushagra, from the preview: "a dark line at top, a light at
-    // bottom"): the CONTACT hugs — no negative spread, so no bright seam opens between the
-    // bottom edge and its own shadow — and the AMBIENT stays strictly below the top edge
-    // (blur − offset − pull-in < 0; at exactly 0 it kisses the edge and reads as a fringe).
-    "0 1px 1px rgb(0 0 0 / 0.1), 0 2px 4px -2.5px rgb(0 0 0 / 0.08)",
-    "0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 3px 8px -3px rgb(0 0 0 / 0.11)",
-    "0 2px 2px -1px rgb(0 0 0 / 0.11), 0 8px 16px -5px rgb(0 0 0 / 0.12)",
-    "0 3px 3px -1.5px rgb(0 0 0 / 0.11), 0 16px 32px -8px rgb(0 0 0 / 0.14)",
+    // Row 2, the CONTROL rung — the lab's button (5/14, 12/30). Its two edge rules still
+    // hold (Kushagra, from the preview: "a dark line at top, a light at bottom"): the
+    // contact hugs — no negative spread, so no bright seam opens between the bottom edge and
+    // its own shadow — and no reaching layer may cross the top edge.
+    "0 1px 2px rgb(0 0 0 / 0.1), 0 5px 14px -4px rgb(0 0 0 / 0.1), 0 12px 30px -8px rgb(0 0 0 / 0.09)",
+    // Row 3, the FLOATING rung — the lab's menu (8/22, 18/48).
+    "0 1px 2px rgb(0 0 0 / 0.1), 0 8px 22px -6px rgb(0 0 0 / 0.1), 0 18px 48px -14px rgb(0 0 0 / 0.09)",
+    // Row 4 — the lab's SOLID card (24/64), the rung between a menu and a lifted pane.
+    "0 1px 2px rgb(0 0 0 / 0.1), 0 10px 26px -7px rgb(0 0 0 / 0.1), 0 24px 64px -12px rgb(0 0 0 / 0.09)",
+    // Row 5, the SURFACE rung — the lab's card (12/32, 32/80), the deepest thing it casts.
+    "0 1px 2px rgb(0 0 0 / 0.1), 0 12px 32px -8px rgb(0 0 0 / 0.11), 0 32px 80px -16px rgb(0 0 0 / 0.1)",
   ],
   // Same geometry — the light source does not move at night — with alpha carrying the load,
-  // because a dark page swallows shadow.
+  // because a dark page swallows shadow. The lab's dark panels run 0.3-0.4 against light's
+  // 0.06-0.11, roughly four times the pigment for the same geometry.
   dark: [
     "inset 0 1px 1px rgb(0 0 0 / 0.5), inset 0 2px 4px rgb(0 0 0 / 0.25)",
-    "0 1px 1px rgb(0 0 0 / 0.45), 0 2px 4px -2.5px rgb(0 0 0 / 0.35)",
-    "0 1px 1px -0.5px rgb(0 0 0 / 0.45), 0 3px 8px -3px rgb(0 0 0 / 0.4)",
-    "0 2px 2px -1px rgb(0 0 0 / 0.45), 0 8px 16px -5px rgb(0 0 0 / 0.45)",
-    "0 3px 3px -1.5px rgb(0 0 0 / 0.45), 0 16px 32px -8px rgb(0 0 0 / 0.5)",
+    "0 1px 2px rgb(0 0 0 / 0.4), 0 5px 14px -4px rgb(0 0 0 / 0.36), 0 12px 30px -8px rgb(0 0 0 / 0.3)",
+    "0 1px 2px rgb(0 0 0 / 0.4), 0 8px 22px -6px rgb(0 0 0 / 0.36), 0 18px 48px -14px rgb(0 0 0 / 0.3)",
+    "0 1px 2px rgb(0 0 0 / 0.4), 0 10px 26px -7px rgb(0 0 0 / 0.38), 0 24px 64px -12px rgb(0 0 0 / 0.32)",
+    "0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -8px rgb(0 0 0 / 0.4), 0 32px 80px -16px rgb(0 0 0 / 0.34)",
   ],
 } as const;
 
@@ -1160,8 +1176,8 @@ export const shadow = {
  * drop shadow cannot express — the inset top rim-light a dark fill needs. v0, by eye.
  */
 export const surfaceChrome = {
-  light: "var(--shadow-3)",
-  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-3)",
+  light: "var(--shadow-5)",
+  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-5)",
 } as const;
 
 /**
@@ -1216,17 +1232,21 @@ export const controlLight = {
  * `surfaces` choice), a shadow under a menu is information (the popup genuinely covers
  * other content, and the cast states "above, not part of") — and facts don't turn off
  * with the style switch (Kushagra, 2026-08-09: "shadow is information"). Elevated reads
- * row 5 — the palette's top, because a floating pane sits above everything, lifted cards
- * included (row 4 shipped first and read too low beside the panel it covers; Kushagra,
- * same day) — with dark's inset rim, surfaceChrome's sentence two rows up. Flat is
+ * row 3 — the MENU rung (2026-08-16, adopting the lab's depth: it prices a cast by the size
+ * of the box throwing it, "a smaller caster owes a smaller shadow, or it reads swollen", and
+ * a menu is a smaller box than the card that now takes the top rung). This reverses the
+ * 2026-08-09 read that a floating pane must sit above everything: the palette is ordered by
+ * REACH, not by rank, and a panel's authority comes from covering what is under it, not from
+ * out-casting a card three times its size. Dark keeps its inset rim, surfaceChrome's
+ * sentence two rows up. Flat is
  * DERIVED, never a second authored shadow: the same row through `fadeShadow` at the
  * factor below (the §10 transmission precedent), quieter because a flat world states
  * depth rather than simulating it — but never none, because overlap is a fact in every
  * world. v0, judged in the playground in both worlds and both modes.
  */
 export const floatingChrome = {
-  light: "var(--shadow-5)",
-  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-5)",
+  light: "var(--shadow-3)",
+  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-3)",
 } as const;
 
 /** How much of the floating cast a FLAT world keeps (0..1). Applied to the palette row by

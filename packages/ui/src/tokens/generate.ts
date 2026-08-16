@@ -708,14 +708,20 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
 const fadeShadow = (row: string, factor: number): string =>
   row.replace(/\/ ([0-9.]+)\)/g, (_, a: string) => `/ ${Number((parseFloat(a) * factor).toFixed(3))})`);
 
-/** Which palette row the floating chrome rides, read FROM the config value — the flat
-    derivation must fade the same row elevated declares, and a second hand-kept index is the
-    two-homes drift this repo keeps re-catching. Loud: an unparseable value throws. */
-const floatingRow = (): number => {
-  const m = floatingChrome.light.match(/var\(--shadow-([1-5])\)/);
-  if (!m) throw new Error(`floatingChrome.light names no shadow row: "${floatingChrome.light}"`);
+/** Which palette row a chrome role rides, read FROM the config value — a transmitted or
+    flat derivation must fade the same row the role declares, and a second hand-kept index is
+    the two-homes drift this repo keeps re-catching. It caught this file on 2026-08-16: the
+    surface fade read a literal `shadow[mode][2]` while surfaceChrome moved to row 5, so the
+    glass panes silently kept transmitting the row nothing else used any more. Loud: an
+    unparseable value throws rather than defaulting to a row. */
+const chromeRow = (role: { readonly light: string }, name: string): number => {
+  const m = role.light.match(/var\(--shadow-([1-5])\)/);
+  if (!m) throw new Error(`${name}.light names no shadow row: "${role.light}"`);
   return Number(m[1]) - 1;
 };
+const floatingRow = () => chromeRow(floatingChrome, "floatingChrome");
+const surfaceRow = () => chromeRow(surfaceChrome, "surfaceChrome");
+const controlRow = () => chromeRow(controlChrome, "controlChrome");
 
 const materialAlpha = (name: string, alpha: readonly number[]): string[] => {
   const [rest, hover, active] = alpha;
@@ -862,12 +868,12 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `     there is exactly one source of shadow truth. Consumed only where the elevated`,
     `     scope hands it to a material surface; flat declares none. */`,
     ...(["thin", "regular", "thick"] as const).map((t) =>
-      decl(`surface-chrome-${t}`, fadeShadow(shadow[mode][2]!, material.transmission[t])),
+      decl(`surface-chrome-${t}`, fadeShadow(shadow[mode][surfaceRow()]!, material.transmission[t])),
     ),
     `  /* and the CONTROL row transmitted, for glass controls — a glass field or button casts`,
     `     fainter for the same reason a pane does (§10, 2026-08-07). */`,
     ...(["thin", "regular", "thick"] as const).map((t) =>
-      decl(`control-chrome-${t}`, fadeShadow(shadow[mode][1]!, material.transmission[t])),
+      decl(`control-chrome-${t}`, fadeShadow(shadow[mode][controlRow()]!, material.transmission[t])),
     ),
     `  /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance`,
     `     because BOTH worlds declare one (overlap is information, not expression): flat is`,

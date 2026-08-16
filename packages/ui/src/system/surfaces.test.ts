@@ -221,23 +221,32 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     }
   });
 
-  it("every drop row is the contact-plus-ambient anatomy, one light source, depth by offset", () => {
-    // The 2026-08-07 redesign in one law: a drop row is TWO layers — a contact line (small
-    // offset, tight blur: what reads sharp) and an ambient halo (negative spread: what reads
-    // raised) — and the ladder is ordered by height, so each row's ambient offset strictly
-    // grows. x is 0 everywhere: the light source does not move sideways, in either mode.
+  it("every drop row is the contact-drop-blast anatomy, one light source, depth by reach", () => {
+    // The 2026-08-16 redesign in one law (superseding the 2026-08-07 two-layer shape, when
+    // the material lab's depth was adopted whole): a drop row is THREE layers — a contact
+    // line (what reads sharp, constant across the ladder because contact does not change
+    // with height), a drop (the body), and a blast (the far wide reach the palette did not
+    // have, and the layer the lab's depth is mostly made of). Both reaching layers pull in
+    // with a negative spread, and the ladder is ordered by REACH, so each row's blast offset
+    // strictly grows. x is 0 everywhere: the light source does not move sideways, in either
+    // mode — nor between them.
     for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
       const body = block(tokens, scope);
-      let prevOffset = 0;
+      let prevReach = 0;
       for (const i of [2, 3, 4, 5]) {
         const line = body.split("\n").find((l) => l.includes(`--shadow-${i}:`))!;
         const layers = line.slice(line.indexOf(":") + 1).split("), ");
-        expect(layers.length, `row ${i} is two layers`).toBe(2);
+        expect(layers.length, `row ${i} is three layers`).toBe(3);
         for (const layer of layers) expect(layer.trimStart().startsWith("0 ")).toBe(true);
-        expect(layers[1]!).toMatch(/ -\d+(\.\d+)?px rgb/); // ambient pulls in: negative spread
-        const ambientOffset = parseFloat(layers[1]!.trim().split(" ")[1]!);
-        expect(ambientOffset, `row ${i} sits higher than row ${i - 1}`).toBeGreaterThan(prevOffset);
-        prevOffset = ambientOffset;
+        // The contact hugs — no negative spread, or a bright seam opens between the bottom
+        // edge and its own shadow (Kushagra's row-2 edge rule, which binds every row).
+        expect(layers[0]!, `row ${i}'s contact must not pull in`).not.toMatch(/ -\d/);
+        for (const j of [1, 2]) {
+          expect(layers[j]!, `row ${i} layer ${j + 1} pulls in`).toMatch(/ -\d+(\.\d+)?px rgb/);
+        }
+        const reach = parseFloat(layers[2]!.trim().split(" ")[1]!);
+        expect(reach, `row ${i} reaches further than row ${i - 1}`).toBeGreaterThan(prevReach);
+        prevReach = reach;
       }
     }
   });
@@ -285,11 +294,12 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     //   3. the ladder is ordered — thin passes least light through, thick most.
     for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
       const body = block(tokens, scope);
-      // Both transmitted families, each from its own row: panes fade row 3, glass CONTROLS
-      // (fields, buttons) fade row 2 — extended 2026-08-07 when the field family got the
-      // pane parts the cards got.
+      // Both transmitted families, each from its own row: panes fade the SURFACE row, glass
+      // CONTROLS (fields, buttons) fade row 2 — extended 2026-08-07 when the field family
+      // got the pane parts the cards got. The surface row became 5 on 2026-08-16 with the
+      // lab's depth; the fade is row-agnostic, which is why only the pointer moved here.
       for (const [rowName, chrome] of [
-        ["--shadow-3", "surface-chrome"],
+        ["--shadow-5", "surface-chrome"],
         ["--shadow-2", "control-chrome"],
       ] as const) {
         const source = valueOf(body, rowName);
@@ -384,11 +394,21 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
   it("the palette's only stylesheet consumers are the world chrome roles", () => {
     // Box's shadow prop died as a taxonomy leak (layout components do not paint); escapes
     // reach the palette through `style`. The elevated world consumes the palette THROUGH
-    // its chrome roles — --surface-chrome composes var(--shadow-3), --control-chrome
-    // var(--shadow-2) — so there is exactly one source of shadow truth and tuning a row
-    // tunes every consumer of that height.
+    // its chrome roles — so there is exactly one source of shadow truth and tuning a row
+    // tunes every consumer of that reach. Which rung each role picks moved 2026-08-16 with
+    // the lab's depth: the palette is ordered by REACH and the lab prices a cast by the size
+    // of the box throwing it, so a card takes the top rung (5) and a menu the middle (3),
+    // where before the panel took the top and the card sat below it.
     expect(surfaces).not.toContain("--shadow-");
-    expect(tokens).toContain("--surface-chrome: var(--shadow-3)");
+    expect(tokens).toContain("--surface-chrome: var(--shadow-5)");
+    // The floating role names its row too, and the two roles must name DIFFERENT rows —
+    // that separation is the whole content of the 2026-08-16 re-point, and asserting only
+    // "surface is 5" would pass with every role pointed at 5. The first spelling of this
+    // filtered on `--floating-chrome:`, which matches nothing (the emitted names are
+    // `-elevated` and `-flat`), so the loop body never ran and the law was vacuous.
+    const floatingLines = tokens.split("\n").filter((l) => l.includes("--floating-chrome-elevated:"));
+    expect(floatingLines.length, "no floating chrome is emitted to check").toBeGreaterThan(0);
+    for (const line of floatingLines) expect(line).toContain("var(--shadow-3)");
     // The control chrome composes row 2 plus the crisp inset rim, in BOTH modes (the light
     // rim landed 2026-08-07 — the top catch that reads as an edge is a line, not a wash).
     for (const line of tokens.split("\n").filter((l) => l.includes("--control-chrome:"))) {
