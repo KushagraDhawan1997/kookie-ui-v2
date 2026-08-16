@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-16 A nested Theme was measuring itself into nothing, and making material a Theme property is what exposed it
+
+Kushagra, on the newly ported glass: *"how do i see it properly on /preview"*. The honest answer turned out to be that he could not, and the reason was a package defect three commits old.
+
+`.kui-theme` carried `container-type: inline-size` unconditionally, and the caveat was written down beside it in `layout-css.ts` as an accepted cost: a query container's contents do not contribute to its own inline size, so a Theme dropped onto a shrink-to-fit element collapses to 0px. Accepted, because a nested Theme used to be a rare thing — a denser toolbar, an airier hero, regions that already had a width from layout.
+
+**`material` becoming a Theme property (2026-08-16) is what changed the frequency.** `<Theme material="thin">` is now the only way to put ONE pane behind glass, so the playground's material specimens became nested Themes in a flex row — and all of them rendered at zero width, three glass panes stacked on top of each other over the hostile bed. Measured: 0px, 0px, 0px, where the content wanted 97 and 104.
+
+**Nothing failed.** 1,300 laws passed on both sides of the fix, because not one of them read a nested Theme's width or its containment. This is the 2026-08-03 lesson for the nth time — an axis with no law reading a computed value — and it is worth noting *which* value: writing the law against `container-type` would have been one indirection short again, since the property was never the complaint. The law measures the WIDTH, and it fails with `expected 0 to be greater than 40`, which is the defect stated in its own terms.
+
+**The fix is Box's 2026-08-08 rule applied one element over**: containment serves a box's CHILDREN, so the box's own props are no signal for it. A Theme's axis props are no signal either — "this region is compact", "this pane is glass" says nothing about whether anything inside wants to measure it. Only the DOM-outermost Theme is a container now; tiers in a nested one fall back through opted-in ancestors to the root, exactly as they do inside a plain Box, and §2's floor is untouched.
+
+**Rejected: fixing the call sites.** Wrapping each specimen in a sized Box, or giving them `flexGrow`, makes the playground correct and leaves the trap loaded for every consumer — and the trap is now on the path the material API pushes people down. A defect whose frequency was raised by an API decision is that decision's cost to pay.
+
+**Rejected: a dev warning, like Box's.** Box warns when a container renders 0px because the collapse there is a legitimate composition the opt-in cannot save — the author asked for containment. Nobody asks a Theme for containment; they ask it for glass. A warning would be telling someone their correct code is wrong.
+
+**Rejected: keeping the portal exclusion as a following override.** `.kui-theme.kui-portal { container-type: normal }` used to win on specificity (0,2,0) against a (0,1,0) blanket rule. The narrowed rule is itself (0,2,0), so the two would tie and the exclusion would survive on source order alone. It moves into the selector: one home for which Themes are containers.
+
+Found alongside: `/preview`'s environment panel had `material` in its state and derived its default from `themeDefaults` — which is precisely what the existing law checks — while no chip could flip it and the canvas `<Theme>` was never handed it. A default that derives is not an axis that works, so the new law asserts both halves for every axis.
+
+---
+
 ## 2026-08-16 The judged glass ports — read off the screen, not off the stylesheet
 
 Kushagra, looking at the fixed lab: *"whatever these values are look good."* So the material's numbers are settled, and what ports is what the browser resolved — not what the source says, because those are two different things and the gap is the whole story of the day.
