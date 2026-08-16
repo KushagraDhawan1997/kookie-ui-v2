@@ -599,3 +599,41 @@ describe("the pane's own lighting is four layers, not one (§10, 2026-08-16)", (
     }
   });
 });
+
+describe("continuous curvature (§6, ported 2026-08-16)", () => {
+  const css = raw("system/surfaces.css");
+
+  it("the shape and its compensation live or die together, inside one @supports block", () => {
+    // The rule that makes this safe to ship: an engine without `corner-shape` must be
+    // untouched, and it is — the property and the multiplier are declared in the same guarded
+    // block, so there is no arrangement in which a browser gets the number without the shape.
+    // That is the failure the lab guards with a fallback ratio; here it is structural.
+    const guard = from(css, "@supports (corner-shape: squircle)");
+    expect(guard).toContain("corner-shape: squircle");
+    expect(guard).toContain("--kui-corner-k:");
+    // And nowhere else: a squircle declared outside the guard is the lozenge bug.
+    const outside = css.replace(guard, "");
+    expect(outside, "corner-shape escapes its @supports guard").not.toContain("corner-shape: squircle");
+    expect(outside, "the corner multiplier escapes its @supports guard").not.toContain("--kui-corner-k:");
+  });
+
+  it("a capsule stays round — squircle math at half-height bulges square", () => {
+    // The lab's own carve-out (2026-08-14: the boxy ring inside the pill). At `full` a corner
+    // is already its own continuous curve, so the shape has nothing to add and its math has
+    // something to break. Both the descendant and self forms, because a Theme stamps
+    // [data-radius] on itself and a surface can BE that element.
+    const guard = from(css, "@supports (corner-shape: squircle)");
+    const capsule = block(guard, '[data-radius="full"] .kui-surface');
+    expect(capsule).toContain("corner-shape: round");
+    expect(capsule).toContain("--kui-corner-k: 1");
+    expect(guard, "a surface that IS the radius scope keeps the capsule carve-out").toContain(
+      '[data-radius="full"].kui-surface',
+    );
+  });
+
+  it("the radius is multiplied at ONE site, so nothing can wear the shape at the wrong number", () => {
+    expect(block(css, ".kui-surface {")).toContain(
+      "border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1))",
+    );
+  });
+});

@@ -75,9 +75,50 @@
      re-scoped roles, so arbitrary content stays legible on every rung. */
   color: var(--color-text);
   border: var(--border-width) solid var(--kui-border-color, transparent);
-  /* The fallback is the default size's corner, for a surface that carries no size index. */
-  border-radius: var(--kui-sf-radius, var(--radius-surface-3));
+  /* The fallback is the default size's corner, for a surface that carries no size index.
+     --kui-corner-k is 1 everywhere except under the squircle block below, which is where
+     the whole compensation lives — see it for why a squircle corner needs a bigger number
+     to read as the same corner. */
+  border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
   padding: var(--kui-sf-p);
+}
+
+/* ── Continuous curvature (§6, ported from the material lab 2026-08-16) ──────────────────
+   The difference between a rounded box and an object. A squircle spreads its curvature along
+   the edges instead of concentrating it in a quarter-circle, which is the Apple corner and
+   the thing that makes a pane read as moulded rather than clipped.
+
+   IT CANNOT BE TURNED ON ALONE, and that is why it did not ship with the rest of the lab's
+   material: a squircle reads TIGHTER than its number. The lab's radii were authored against
+   squircle and it carries a 0.62 ratio for engines without it; this system's radii were
+   authored the other way, as ordinary arcs, so switching the shape on with the same numbers
+   shrinks every corner in the system. The compensation is the lab's own ratio inverted —
+   1 / 0.62 — applied ONLY inside this block, so a corner keeps the visual weight it was
+   judged at and gains the curve. One knob, every surface follows, and an engine without
+   corner-shape is untouched by construction: the property and the multiplier live or die
+   together in the same @supports block.
+
+   Capsules are excluded, the lab's own carve-out: squircle math at a half-height radius
+   bulges square (the boxy ring inside the pill, lab 2026-08-14), and at `full` a corner is
+   already its own continuous curve with nothing to improve. Controls stay round throughout —
+   most of them are capsules or too small for the curve to register. */
+@supports (corner-shape: squircle) {
+  .kui-surface {
+    /* THE KNOB, and it is deliberately 1. Turning it to 1.613 (the lab's own 0.62 inverted)
+       restores the exact visual weight of every corner as judged before the shape changed —
+       a squircle at r reads like an arc at 0.62r, so the same number draws a tighter corner.
+       It is not on because it is a taste call on an axis Kushagra judged by eye, and because
+       it re-prices the CONCENTRIC derivations (a menu's panel corner is its row corner plus
+       its padding — scale one side only and the two stop nesting). One line, one home, and
+       the laws that pin the concentric geometry are what will fail if it moves without them. */
+    --kui-corner-k: 1;
+    corner-shape: squircle;
+  }
+  [data-radius="full"] .kui-surface,
+  [data-radius="full"].kui-surface {
+    --kui-corner-k: 1;
+    corner-shape: round;
+  }
 }
 
 /* ── The size index: padding and corner — a surface has no height to own (§4, §6, §10) ───── */

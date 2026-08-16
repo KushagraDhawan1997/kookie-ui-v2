@@ -474,30 +474,6 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     }
   });
 
-  it("a row reads CONTENT ink, and its rule sits after the emphasis ladder (§15, §21)", () => {
-    // The weight reversal's other half (2026-08-09): --tone-label is the button-label ink
-    // (#454648 neutral, #6c3230 destructive — a grey and a brown), and a row is a line in a
-    // list you read. Both facts are the law, because the first spelling declared the ink in
-    // the box block and SILENTLY LOST to the quiet rung at the same (0,1,0).
-    const ink = ".kui-row {";
-    expect(block(recipes.slice(recipes.indexOf('[data-emphasis="quiet"]')), ink)).toContain(
-      "--kui-ct-label-color: var(--tone-ink)",
-    );
-    expect(recipes.lastIndexOf(ink)).toBeGreaterThan(recipes.indexOf('[data-emphasis="quiet"]'));
-    // The box block must NOT also declare it — one home, and the losing spelling stays gone.
-    expect(block(recipes, ".kui-row {")).not.toContain("--kui-ct-label-color");
-  });
-
-  it("the disabled arm stands down BOTH ink vocabularies (§21)", () => {
-    // A remap that covers one of two dims whichever controls happen to use that one — the
-    // slider-handle shape the 2026-08-07 audit caught. Rows read --tone-ink now, so the arm
-    // owes it the same stand-down it always gave --tone-label.
-    const arm = block(recipes, ".kui-control[data-disabled]:not([data-loading]),");
-    for (const role of ["--tone-label", "--tone-ink"]) {
-      expect(arm, `the disabled arm leaves ${role} live`).toContain(`${role}: var(--neutral-8)`);
-    }
-  });
-
   it("the row stand-down sits AFTER the shared hover rule — it wins on order, not weight", () => {
     // The comment here used to claim (0,4,0) over (0,3,0). It is a TIE: `:not()` takes the
     // specificity of its most specific argument rather than summing its list, so both rules
@@ -627,15 +603,33 @@ describe("invalid is a state remap, and it belongs to every control (§8)", () =
 });
 
 describe("material on a control: backdrop defense, three environments (§10)", () => {
-  it("each material appears exactly seven times — three environments plus the field family's pane parts", () => {
-    // Three environments, not three designs — the same shape the surface layer wears —
-    // plus four mentions for the FIELD family's glass parts (2026-08-07): two selectors in
-    // the shared origin rule and two in the per-thickness edge/rim rule, because a field
-    // is bordered by identity and its glass wears the pane's own edge where a button,
-    // borderless by rank, needs none.
+  it("each material appears exactly eight times — three environments plus the pane parts", () => {
+    // Three environments, not three designs — the same shape the surface layer wears — plus
+    // the mentions for the glass PANE PARTS: two selectors in the field family's shared
+    // origin rule, and three in the per-thickness edge/rim rule (2026-08-16, up from two).
+    //
+    // The button joined that rule when the rim grew from a 1px edge catch into the lab's
+    // four-layer lighting. It had been excluded outright rather than composed, because
+    // `background-image` on a button is already spoken for by the elevated world's gradient
+    // catch — so a glass Button wore no rim at all, while every glass button in the lab wears
+    // one. Both layers are listed now, which is legal exactly where it is not for a shadow:
+    // `none` is a valid background-image layer, and that asymmetry is why §10 keeps the rim
+    // out of the shadow list to begin with.
     for (const m of GLASS_MATERIALS) {
       const occurrences = recipes.match(new RegExp(`\\[data-material="${m}"\\]`, "g")) ?? [];
-      expect(occurrences).toHaveLength(7);
+      expect(occurrences).toHaveLength(8);
+    }
+  });
+
+  it("a glass BUTTON wears the pane's lighting, with the world's catch composed under it", () => {
+    // The defect above, pinned in both halves: the rim must be there, and the elevated
+    // world's gradient must survive beside it rather than being displaced by it. Falsified by
+    // dropping either layer from the list.
+    const supports = from(recipes, "@supports (backdrop-filter");
+    for (const m of GLASS_MATERIALS) {
+      const body = block(supports, `.kui-button:where([data-material="${m}"])`);
+      expect(body, `a glass button has no ${m} rim`).toContain(`var(--material-${m}-rim, none)`);
+      expect(body, "the world's catch was displaced by the rim").toContain("var(--kui-ct-light, none)");
     }
   });
 

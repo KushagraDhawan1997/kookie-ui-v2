@@ -1321,20 +1321,50 @@
   .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
     background-origin: border-box;
   }
+  .kui-button:where([data-material="thin"]),
   .kui-field:where([data-material="thin"]),
   .kui-textarea:where([data-material="thin"]) {
     --kui-ct-glass-edge: var(--material-thin-edge);
-    background-image: var(--kui-material-thin-rim, var(--material-thin-rim, none));
+    /* The pane's own lighting, and the WORLD's catch under it. Two things want
+       background-image on a glass button — the material's grain/bloom/sheen/edge and
+       the elevated world's gradient — and the button used to be excluded from this
+       rule entirely rather than composed, so a glass Button had no rim at all while
+       every glass button in the lab has one (found 2026-08-16, by measuring the two).
+       Listing both is legal here where it is not for a shadow: `none` is a valid
+       background-image layer, which is exactly why §10 keeps the rim out of the
+       shadow list in the first place. */
+    background-image: var(--kui-material-thin-rim, var(--material-thin-rim, none)),
+      var(--kui-ct-light, none);
   }
+  .kui-button:where([data-material="regular"]),
   .kui-field:where([data-material="regular"]),
   .kui-textarea:where([data-material="regular"]) {
     --kui-ct-glass-edge: var(--material-regular-edge);
-    background-image: var(--kui-material-regular-rim, var(--material-regular-rim, none));
+    /* The pane's own lighting, and the WORLD's catch under it. Two things want
+       background-image on a glass button — the material's grain/bloom/sheen/edge and
+       the elevated world's gradient — and the button used to be excluded from this
+       rule entirely rather than composed, so a glass Button had no rim at all while
+       every glass button in the lab has one (found 2026-08-16, by measuring the two).
+       Listing both is legal here where it is not for a shadow: `none` is a valid
+       background-image layer, which is exactly why §10 keeps the rim out of the
+       shadow list in the first place. */
+    background-image: var(--kui-material-regular-rim, var(--material-regular-rim, none)),
+      var(--kui-ct-light, none);
   }
+  .kui-button:where([data-material="thick"]),
   .kui-field:where([data-material="thick"]),
   .kui-textarea:where([data-material="thick"]) {
     --kui-ct-glass-edge: var(--material-thick-edge);
-    background-image: var(--kui-material-thick-rim, var(--material-thick-rim, none));
+    /* The pane's own lighting, and the WORLD's catch under it. Two things want
+       background-image on a glass button — the material's grain/bloom/sheen/edge and
+       the elevated world's gradient — and the button used to be excluded from this
+       rule entirely rather than composed, so a glass Button had no rim at all while
+       every glass button in the lab has one (found 2026-08-16, by measuring the two).
+       Listing both is legal here where it is not for a shadow: `none` is a valid
+       background-image layer, which is exactly why §10 keeps the rim out of the
+       shadow list in the first place. */
+    background-image: var(--kui-material-thick-rim, var(--material-thick-rim, none)),
+      var(--kui-ct-light, none);
   }
 }
 
