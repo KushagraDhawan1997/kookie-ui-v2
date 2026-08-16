@@ -40,6 +40,7 @@ import { Button } from "../button/button.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import type { Size, Tone } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import type { TypeSize } from "../text/text.tsx";
 
@@ -185,6 +186,8 @@ function AlertPopup({
 }) {
   const size = React.use(AlertSizeContext);
   const material = useMaterial();
+  // §10 — the lens on the pane itself (see Card).
+  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   const identity = "kui-surface kui-overlay kui-alert-popup";
   return (
     <BaseAlertDialog.Popup
@@ -195,7 +198,7 @@ function AlertPopup({
       {...(material !== "solid" ? { "data-material": material } : {})}
       className={className ? `${identity} ${className}` : identity}
       {...(style !== undefined ? { style } : {})}
-      {...(ref !== undefined ? { ref } : {})}
+      ref={lensRef}
     >
       <OverlayBody>
         <GlassScope material={material}>{children}</GlassScope>

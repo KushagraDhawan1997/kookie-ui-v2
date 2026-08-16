@@ -4,6 +4,7 @@ import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
 import { useMaterial } from "../../theme/theme.tsx";
 
 export type TextAreaProps = Omit<
@@ -58,9 +59,11 @@ export function TextArea({
   // §10 — the app's material, or solid inside a glass ancestor. No children by type, so there
   // is nothing below this to stand down (2026-08-16).
   const material = useMaterial();
+  // §10 — the lens (see Card).
+  const lensRef = useLensRef<HTMLElement>(material !== "solid", ref as React.Ref<HTMLElement>);
   return (
     <BaseInput
-      ref={ref as React.Ref<HTMLElement>}
+      ref={lensRef}
       render={<textarea />}
       className={className ? `kui-control kui-textarea ${className}` : "kui-control kui-textarea"}
       data-size={size}

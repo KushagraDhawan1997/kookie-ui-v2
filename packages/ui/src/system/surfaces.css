@@ -49,6 +49,22 @@
   inherits: false;
 }
 
+/* The LENS (§10, 2026-08-16), and the same guard for the fourth time. A displacement map is
+   built for ONE box — its width, its height, its corner — so a lens that inherited would put
+   a card's bezel on every glass thing inside the card, bending a 40px button's backdrop
+   through a 400px pane's map. It is set from JS on the element that was measured (see
+   system/refraction.tsx) and must stop there.
+
+   It is also the reason the seam is a var() with an EMPTY fallback rather than a second
+   declaration: `var(--kui-lens, ) blur(…) saturate(…)` is the stylesheet's own chain when
+   nothing set the property, which is every browser that cannot render an SVG filter in a
+   backdrop-filter (all but Chromium today) and every surface that is not glass. There is no
+   path here that can subtract glass — the lens is only ever prepended. */
+@property --kui-lens {
+  syntax: "*";
+  inherits: false;
+}
+
 .kui-surface {
   box-sizing: border-box;
   /* The rungs publish their fills as SOURCES; the painted value reads through this chain so
@@ -412,7 +428,7 @@
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thin-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-thin-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thin-alpha-active), transparent);
-    backdrop-filter: var(--material-thin-filter);
+    backdrop-filter: var(--kui-lens, ) var(--material-thin-filter);
     /* The pane's own edge and lighting (§10, 2026-08-05): the tone border on glass read as a
        sticker — pigment on a pane of light. The edge is the material's, a translucent
        hairline; the rim is its top light catch, taken from the WORLD so an elevated app
@@ -435,7 +451,7 @@
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-regular-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-regular-alpha-active), transparent);
-    backdrop-filter: var(--material-regular-filter);
+    backdrop-filter: var(--kui-lens, ) var(--material-regular-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     --kui-border-color: var(--material-regular-edge, var(--tone-border));
     background-image: var(--kui-material-regular-rim, var(--material-regular-rim, none));
@@ -445,7 +461,7 @@
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-thick-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thick-alpha-active), transparent);
-    backdrop-filter: var(--material-thick-filter);
+    backdrop-filter: var(--kui-lens, ) var(--material-thick-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     --kui-border-color: var(--material-thick-edge, var(--tone-border));
     background-image: var(--kui-material-thick-rim, var(--material-thick-rim, none));

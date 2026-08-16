@@ -27,6 +27,7 @@ import {
   useAmbientDirection,
 } from "../../system/floating.tsx";
 import type { Material, Size, SlotName } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /* ── Designed constants (§22, v0 — the switchInset precedent: Base UI takes numbers, so
@@ -292,13 +293,15 @@ function MenuPopup({
   ref?: React.Ref<HTMLDivElement> | undefined;
 }) {
   const material = useMaterial();
+  // §10 — the lens on the pane itself (see Card).
+  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   return (
     <BaseMenu.Popup
       {...popupProps(React.use(MenuSizeContext), material, anchored, className)}
       /* The gap the entry publishes is the positioner's own number — stamped, not
          re-derived, so the two cannot disagree (§22). */
       style={{ ...gapVar(side), ...style }}
-      {...(ref !== undefined ? { ref } : {})}
+      ref={lensRef}
     >
       <FloatingBody>
         <GlassScope material={material}>{children}</GlassScope>

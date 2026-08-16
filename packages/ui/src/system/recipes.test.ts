@@ -672,7 +672,12 @@ describe("material on a control: backdrop defense, three environments (§10)", (
       expect(body).toContain(
         `--kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-${m}-alpha-active), transparent)`,
       );
-      expect(body).toContain(`backdrop-filter: var(--material-${m}-filter)`);
+      // The lens is PREPENDED to the material's chain and never replaces it (§10,
+      // 2026-08-16): `var(--kui-lens, )` is empty on every surface that is not glass and in
+      // every engine that cannot render an SVG filter in a backdrop-filter, so the chain the
+      // stylesheet declares is what those get. Both halves asserted — the empty fallback is
+      // what makes the lens additive, and a lens spelled without it could subtract glass.
+      expect(body).toContain(`backdrop-filter: var(--kui-lens, ) var(--material-${m}-filter)`);
     }
     for (const env of [
       recipes.slice(0, recipes.indexOf("@supports")),

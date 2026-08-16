@@ -494,3 +494,48 @@ describe("the exit keeps every channel the entry moves alive (§8, §22, §24)",
     });
   }
 });
+
+describe("the lens is additive, never subtractive (§10, 2026-08-16)", () => {
+  const surfacesCss = raw("system/surfaces.css");
+  const recipesCss = raw("system/recipes.css");
+
+  it("every glass chain prepends the lens with an EMPTY fallback, in both layers", () => {
+    // The one property that makes refraction safe to ship in a package whose glass has to
+    // survive three engines. `var(--kui-lens, )` substitutes to nothing when unset, so the
+    // declaration is exactly the chain the stylesheet would have had — which is what every
+    // non-Chromium browser, and every surface that is not glass, actually gets.
+    //
+    // Spelled with the fallback or not at all: `var(--kui-lens)` with no fallback is INVALID
+    // at computed-value time when unset, and an invalid computed value takes the WHOLE
+    // declaration with it — the blur and the saturation included. The usual two-declaration
+    // CSS fallback cannot protect a var(), so there is no safety net under this spelling.
+    let found = 0;
+    for (const css of [surfacesCss, recipesCss]) {
+      for (const match of css.matchAll(/backdrop-filter:\s*([^;]+);/g)) {
+        const value = match[1]!;
+        // `@supports (backdrop-filter: blur(1px)) {` has no semicolon of its own, so a
+        // greedy [^;]+ swallows the whole block after it and looks like a declaration that
+        // mentions a material. A condition is not a declaration; the brace is what tells
+        // them apart. (This law's first run failed on exactly that and not on the code.)
+        if (value.includes("{")) continue;
+        if (!value.includes("--material-")) continue; // `none` in the reduced-transparency arm
+        found += 1;
+        expect(value, "a glass chain that does not prepend the lens").toContain("var(--kui-lens, )");
+        expect(value.indexOf("var(--kui-lens, )"), "the lens must come FIRST — it bends the\
+ backdrop, then the blur softens what it bent; the other order blurs away what there was to bend")
+          .toBeLessThan(value.indexOf("--material-"));
+      }
+    }
+    // Six: three thicknesses in the surface layer, three in the control layer.
+    expect(found, "no glass chains were checked").toBe(6);
+  });
+
+  it("--kui-lens does not inherit — a map is built for ONE box", () => {
+    // The fourth time this guard is written and the reason is sharper here than anywhere: a
+    // displacement map encodes a specific width, height and corner, so an inherited lens
+    // would bend a 40px button's backdrop through a 400px pane's bezel. Registered rather
+    // than hoped for.
+    const decl = block(surfacesCss, "@property --kui-lens");
+    expect(decl).toContain("inherits: false");
+  });
+});

@@ -394,7 +394,15 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     field = host.querySelector<HTMLElement>(".kui-field:not(.kui-select-trigger)");
     if (!field) throw new Error("field missing");
     expect(trigger.getAttribute("data-material")).toBe("regular");
-    expect(computed(trigger, "backdrop-filter")).toBe(computed(field, "backdrop-filter"));
+    // The chain must agree, but NOT its lens id: a displacement map is built for one box, so
+    // two differently-sized panes reference different filters by construction (§10,
+    // 2026-08-16). Compare what the stylesheet declares, and assert the lens separately —
+    // this law is what caught the trigger shipping without one while its sibling had it.
+    const chain = (el: HTMLElement) => computed(el, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "");
+    expect(chain(trigger)).toBe(chain(field));
+    for (const el of [trigger, field]) {
+      expect(computed(el, "backdrop-filter"), "a glass field wears the lens").toMatch(/^url\(/);
+    }
     expect(computed(trigger, "background-color")).toBe(computed(field, "background-color"));
     expect(computed(trigger, "border-top-color")).toBe(computed(field, "border-top-color"));
     // Solid writes no attribute at all (§10) — the negative half, or the law passes on a

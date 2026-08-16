@@ -761,3 +761,45 @@ describe("every slot the axis emits is actually reached (§19)", () => {
     });
   }
 });
+
+describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
+  // The stylesheet laws prove the SEAM; only a mount proves the mechanism. This is the half
+  // that was missing when the material ladder ported without the lens and §10's stated
+  // defence floor went unmet at every rung with nothing measuring it.
+  const lens = (el: HTMLElement) => computed(el, "backdrop-filter").match(/^url\("([^"]+)"\)/)?.[1];
+
+  it("a glass card mints a filter and references it; a solid card does not", () => {
+    const glass = mounted(<Card>G</Card>, { theme: { material: "regular" } });
+    const id = lens(glass);
+    expect(id, "a glass pane has no lens").toBeTruthy();
+    // The reference must RESOLVE — a url() pointing at nothing is the failure mode that
+    // looks identical to success in a computed-style read.
+    expect(document.querySelector(id!), "the lens id resolves to no filter").toBeTruthy();
+    // And the chain it was prepended to survives underneath it: additive, never a swap.
+    expect(computed(glass, "backdrop-filter")).toMatch(/blur\([\d.]+px\)/);
+
+    // The solid half must read the CAUSE, not the effect. Asserting only that a solid card's
+    // backdrop-filter carries no url() cannot fail: a solid card declares no backdrop-filter
+    // at all, so the property is `none` however much work was wasted building a map for it.
+    // Demonstrated — forcing the hook on for every card passed this law in its first form.
+    const solid = mounted(<Card>S</Card>, { theme: { material: "solid" } });
+    expect(lens(solid)).toBeUndefined();
+    expect(solid.style.getPropertyValue("--kui-lens"), "a solid pane built a map it cannot use").toBe("");
+  });
+
+  it("a nested pane gets its OWN map, never its container's", () => {
+    // The inheritance guard, measured rather than read off @property: a map encodes one box,
+    // and a card inside a card is the composition that would expose a leak. (Glass does not
+    // stack, so the inner surface resolves solid and must carry no lens at all — which is the
+    // stronger form of the same guarantee.)
+    const outer = mounted(
+      <Card>
+        <Card>inner</Card>
+      </Card>,
+      { theme: { material: "regular" } },
+    );
+    const inner = outer.querySelector<HTMLElement>(".kui-card")!;
+    expect(lens(outer)).toBeTruthy();
+    expect(lens(inner), "the inner pane inherited a lens built for its container").toBeUndefined();
+  });
+});

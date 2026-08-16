@@ -332,7 +332,13 @@ describe("a dialog does not float", () => {
     // Kushagra, 2026-08-10: no cast, but material must be respected. Membership delivers it —
     // the surface layer's own rules — and this asserts the panel actually reached them.
     const { popup, backdrop } = openDialog({ appearance: "light" }, { material: "regular" });
-    expect(computed(popup, "backdrop-filter")).toBe(filterOn(popup, "--material-regular-filter"));
+    // The declared chain, with the lens stripped: a displacement map is built for one box, so
+    // its filter id is per-pane and cannot be compared against a token (§10, 2026-08-16). The
+    // lens is asserted as its own fact rather than folded into this one.
+    expect(computed(popup, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "")).toBe(
+      filterOn(popup, "--material-regular-filter"),
+    );
+    expect(computed(popup, "backdrop-filter"), "a glass panel wears the lens").toMatch(/^url\(/);
     expect(alphaOf(computed(popup, "background-color"))).toBeLessThan(1);
     // The dim behind it is the APP's, not the pane's, so it does not move with the material.
     const solid = openDialog({ appearance: "light" });

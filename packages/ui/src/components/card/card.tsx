@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
 import type { Size } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 export type CardProps = Omit<
@@ -46,8 +47,12 @@ export function Card({
   // backdrop. Card takes no material prop: a card is not a place to choose what the app is
   // built of (2026-08-16).
   const material = useMaterial();
+  // §10 — the lens. A glass pane's bezel bends its own backdrop, and the map is built for
+  // THIS box, so it needs the mounted element. Additive by construction: on a browser that
+  // cannot render it, or a solid surface, nothing is set and the CSS chain is untouched.
+  const lensRef = useLensRef<HTMLElement>(material !== "solid", ref);
   const merged = {
-    ref,
+    ref: lensRef,
     "data-size": size,
     // Fixed identity, not API. The tone indirection needs a family to resolve --tone-border,
     // which is the only reason neutral is named here: the fill is the opaque seal, not a tone

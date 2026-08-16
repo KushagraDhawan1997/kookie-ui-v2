@@ -37,6 +37,7 @@ import {
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import type { Material, Size } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /* ── Size context: the dialog answers `size` like Menu (Kushagra, 2026-08-10) — the index
@@ -242,11 +243,13 @@ function DialogPopup({
 }) {
   const size = React.use(DialogSizeContext);
   const material = useMaterial();
+  // §10 — the lens on the pane itself (see Card).
+  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   return (
     <BaseDialog.Popup
       {...popupProps(size, material, className)}
       {...(style !== undefined ? { style } : {})}
-      {...(ref !== undefined ? { ref } : {})}
+      ref={lensRef}
     >
             {/**
               * The body exists for ONE reason and holds one channel: the content comes into

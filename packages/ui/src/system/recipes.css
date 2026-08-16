@@ -1275,7 +1275,7 @@
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thin-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thin-alpha-hover), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thin-alpha-active), transparent);
-    backdrop-filter: var(--material-thin-filter);
+    backdrop-filter: var(--kui-lens, ) var(--material-thin-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
        none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
@@ -1287,7 +1287,7 @@
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-regular-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-regular-alpha-hover), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-regular-alpha-active), transparent);
-    backdrop-filter: var(--material-regular-filter);
+    backdrop-filter: var(--kui-lens, ) var(--material-regular-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
        none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
@@ -1299,7 +1299,7 @@
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thick-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thick-alpha-hover), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thick-alpha-active), transparent);
-    backdrop-filter: var(--material-thick-filter);
+    backdrop-filter: var(--kui-lens, ) var(--material-thick-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
        none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only

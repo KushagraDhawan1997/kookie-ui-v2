@@ -24,6 +24,7 @@ import {
 } from "../../system/floating.tsx";
 import { mergeRefs } from "../../system/render.ts";
 import type { Material, Size, SlotName } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /** Gap between the trigger's edge and the panel — the menu's designed constant, restated
@@ -141,6 +142,10 @@ export function SelectTrigger({
   const material = useMaterial();
   // The trigger is the one in-flow node a select owns — where ambient direction is read (§20).
   const { measure } = React.use(FloatingDirectionContext);
+  // §10 — the lens. The trigger IS a member of the field family, so it owes the same glass
+  // its TextField sibling wears, lens included — the family-agreement law caught this the
+  // moment TextField had one and the trigger did not.
+  const lensRef = useLensRef<HTMLElement>(material !== "solid", undefined);
   const cls = "kui-control kui-field kui-select-trigger";
   return (
     <BaseSelect.Trigger
@@ -151,7 +156,7 @@ export function SelectTrigger({
       // spelling).
       data-material={material === "solid" ? undefined : material}
       {...props}
-      ref={mergeRefs(ref, measure)}
+      ref={mergeRefs(ref, measure, lensRef)}
     >
       <BaseSelect.Value
         className="kui-select-value"
@@ -217,11 +222,13 @@ function SelectPopup({
   ref?: React.Ref<HTMLDivElement> | undefined;
 }) {
   const material = useMaterial();
+  // §10 — the lens on the pane itself (see Card).
+  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   return (
     <BaseSelect.Popup
       {...popupProps(React.use(SelectSizeContext), material, className)}
       style={{ ...GAP_VAR, ...style }}
-      {...(ref !== undefined ? { ref } : {})}
+      ref={lensRef}
     >
       <FloatingBody>
         <GlassScope material={material}>{children}</GlassScope>

@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { filled, mergeRefs } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /**
@@ -93,6 +94,9 @@ export function TextField({
   // carries the veil; the slots below sit INSIDE it, which is why they are scoped: a trailing
   // Button in a glass field is on spent backdrop and must render opaque.
   const material = useMaterial();
+  // §10 — the lens. It goes on the WRAPPER, which is the element that paints the glass;
+  // `ref` belongs to the input and is untouched (see Card).
+  const lensRef = useLensRef<HTMLSpanElement>(material !== "solid", undefined);
 
   // The field's OWN input, held so the caret redirect below cannot land somewhere else. The
   // forwarded ref still reaches the same node — neither wins (§3).
@@ -147,6 +151,7 @@ export function TextField({
 
   return (
     <span
+      ref={lensRef}
       className={className ? `kui-control kui-field ${className}` : "kui-control kui-field"}
       style={style}
       data-size={size}
