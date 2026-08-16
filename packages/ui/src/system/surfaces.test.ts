@@ -307,7 +307,7 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
         expect(sourceAlphas.length, `${rowName} has alphas to fade`).toBeGreaterThan(0);
 
         const perThickness: number[][] = [];
-        for (const [t, factor] of [["thin", 0.35], ["regular", 0.55], ["thick", 0.75]] as const) {
+        for (const [t, factor] of [["thin", 0.6], ["regular", 0.8], ["thick", 0.9]] as const) {
           const derived = valueOf(body, `--${chrome}-${t}`);
           expect(derived, `${scope} ${chrome}-${t} is the unfaded row`).not.toBe(source);
 

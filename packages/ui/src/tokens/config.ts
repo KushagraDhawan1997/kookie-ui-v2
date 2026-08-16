@@ -972,10 +972,15 @@ export const material = {
     thick: { alpha: [80, 82, 84], alphaHigh: [95, 96, 97], filter: "blur(5.6px) saturate(208%) brightness(0.88)", edge: 0.18, rim: 0.14, sheen: 4.95, rimLifted: 0.24 },
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
-      passes light, so its cast is the surface row FADED — thin passes most, thick least,
-      and even thick keeps less than a solid slab. Mode-independent: transmission is a
-      property of the pane, not of the night. v0, judged in the preview. */
-  transmission: { thin: 0.35, regular: 0.55, thick: 0.75 },
+      passes light, so its cast is the surface row FADED — thin passes most, thick least.
+      Mode-independent: transmission is a property of the pane, not of the night.
+
+      THE VALUES ARE THE LAB'S, read off its judged alphas 2026-08-17 (regular glass casts
+      .08/.09/.08 against the solid card's .1/.11 — a ratio of ~0.8). The 0.35/0.55/0.75
+      that stood here were frost-era numbers: with near-clear glass they made a pane cast
+      HALF its solid twin's shadow, so the two visibly disagreed on the one bed where the
+      convergence rule says they must not. Near-clear stone passes most of the light. */
+  transmission: { thin: 0.6, regular: 0.8, thick: 0.9 },
   /** Where backdrop-filter is unavailable or transparency is reduced: near-opaque, still a mix
       so a whisper of the backdrop survives where that is safe. */
   fallbackAlpha: 95,
