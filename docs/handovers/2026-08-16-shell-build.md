@@ -1,4 +1,4 @@
-# Handover: the Shell — spec'd and built (2026-08-16)
+# Handover: the Shell — spec'd, built, audited, repaired (2026-08-16)
 
 Plain-English summary for reviewing this branch. The governance docs are the source of truth
 (DECISIONS §26, LOG 2026-08-16 ×2); this repeats them for a reader who wasn't in the room.
@@ -15,9 +15,11 @@ Two things, in order, on one branch:
    system's first — nothing else could price them), peek comes later, and floating IS the
    gap (no gap prop anywhere).
 
-2. **The build.** The component, its stylesheet, its tokens, 33 tests, the playground
-   section, and the reference entry — all shipped, all green except four pre-existing
-   flaky motion tests explained below.
+2. **The build.** The component, its stylesheet, its tokens, the playground section and the
+   reference entry.
+
+3. **The audit, and the repair.** A 17-agent adversarial pass found a critical defect I had
+   shipped — see below. Fixed, with the tests that should have caught it.
 
 ## What you get
 
@@ -62,14 +64,40 @@ Two things, in order, on one branch:
 
 ## Numbers
 
-- **+556 bytes gzipped** for the whole frame, tokens included (budget 25,327 → 25,883).
+- **+610 bytes gzipped** for the whole frame including the audit repairs (25,327 → 25,937).
   For scale: Checkbox alone was +311.
-- **33 new laws** (27 in a real browser, 6 reading the shipped files). The five that carry
-  the design were falsified first — the suite was run against deliberately broken code and
-  had to fail. One falsification script was itself caught doing nothing (a one-character
-  mismatch in its search string) while reporting success; falsifications now assert they
-  actually applied. That lesson is in LOG.
-- **1,335 package tests, 155 docs tests.**
+- **46 laws** (38 in a real browser, 8 reading the shipped files), up from 33 after the
+  audit. Every load-bearing one was falsified — the suite run against deliberately broken
+  code, and required to fail. Three falsification scripts were themselves caught doing
+  nothing while reporting success; they assert their own application now, and that lesson
+  is in LOG.
+- **1,348 package tests, 155 docs tests.**
+
+## The audit found a critical, and it is fixed
+
+After building it I ran a 17-agent adversarial audit. It found a defect that could **permanently
+brick an app**, reachable by ordinary pointer use, with all 33 of my tests passing:
+
+Open the nav drawer on a phone, press something in it that opens a second pane, then tap the
+scrim. Both drawers went dead while visible, and afterwards the header and the main content
+stayed permanently unclickable and unreachable by keyboard — until reload.
+
+The cause: I made each pane responsible for disabling the others. A pane can only see itself,
+so with two open they disabled each other, and each one's idea of "how things were before" had
+already been overwritten by the other. My code even had a comment claiming this case was
+considered and harmless. It was neither.
+
+Why no test caught it: every one of my overlay tests opened exactly **one** pane. The suite
+swept sizes, widths, states and postures, and never swept *how many*.
+
+The fix moves that responsibility to the shell itself — the only place that can see all the
+panes at once. Six smaller repairs came with it: an overlay pane could cover the entire screen
+on a small phone leaving no way to close it; the floating layout overflowed its own container;
+a too-wide header pushed the whole page sideways; and pane widths leaked into nested content.
+
+Five new tests cover the two-pane case, and I broke the code on purpose to prove each one
+fails without the fix. Two of the *new* tests turned out to be unfalsifiable when I tried that —
+both are fixed and noted in LOG.
 
 ## Honest flags for review
 
@@ -84,10 +112,13 @@ Two things, in order, on one branch:
 - **v0 taste values** for the eye pass: pane widths (64/288/320/200 — v1's judged numbers),
   the floating gap pick (layout-space 3 ≈ 8px), the auto postures, and flush-vs-floating in
   an elevated world (flush panes casting shadows onto neighbours is a cell nobody judged).
-- **Overlay containment is `inert`-based** (focus, pointer and the accessibility tree all
-  leave together) rather than a ported focus trap. Two simultaneous overlays closed in
-  non-stack order restore `inert` a beat early — noted in the code, pathological in
-  practice, and the scrim closes all of them at once.
+- **Two limits I left open rather than papered over**, both in §26. Containment stops at the
+  shell root, so if you put a Shell inside a bigger page, the rest of that page is still
+  reachable by Tab while a pane overlays (the pointer half is covered — the scrim spans the
+  shell). And containment only exists once JavaScript runs, so a server-rendered shell that
+  starts with an overlay open is uncontained for keyboard and screen readers until hydration.
+  Both are genuine design questions rather than bugs with obvious fixes, and a half-answer to
+  either would look exactly like the answer.
 - **The playground section** (`/preview`, "Shell") is the judging surface: a flush demo
   with triggers and a floating demo with rail + sidebar. Drag the window across 768px to
   watch auto resolve with nothing re-rendering.

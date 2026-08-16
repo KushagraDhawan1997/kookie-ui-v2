@@ -14,6 +14,20 @@
    spring entry is the recorded follow-up, and shipping zero transitions means the reduced-
    motion laws have nothing here to stand down yet. */
 
+/* The pane extents must NOT inherit — the `--kui-h` trap, one family over (§12, LOG
+   2026-08-05, raised again by the 2026-08-16 audit). A custom property inherits by default,
+   so a sidebar carrying `--kui-shell-w: 320px` handed that width to every descendant, and a
+   Shell composed inside a pane would size its own panes from the outer pane's prop. The
+   registration is what makes the fallback in each pane rule reachable instead of shadowed. */
+@property --kui-shell-w {
+  syntax: "*";
+  inherits: false;
+}
+@property --kui-shell-h {
+  syntax: "*";
+  inherits: false;
+}
+
 /* ── The frame ─────────────────────────────────────────────────────────────────────────────
    A grid whose areas the panes CLAIM — placement by name, so the root never inspects its
    children (v1's displayName scanning, deleted) and DOM order stays the author's reading
@@ -24,6 +38,13 @@
    nothing here competes with portals, which land outside the theme frame and win by DOM
    order (§20) — and the root itself carries no z-index, so it cannot invert that frame. */
 .kui-shell {
+  /* border-box, and it is load-bearing rather than hygiene (audit 2026-08-16): the floating
+     posture spends half its gap as the frame's own PADDING, and under the initial
+     content-box that padding is added OUTSIDE the declared block-size: 100%. Measured, a
+     floating shell in a 600px box rendered 608px tall — it overflowed its own container by
+     the full gap, the block-end gap read as 0 against the frame while reading 8 against the
+     shell, and in the documented 100dvh posture the whole app frame gained a scrollbar. */
+  box-sizing: border-box;
   display: grid;
   grid-template-areas:
     "header header header header"
@@ -54,9 +75,15 @@
 
 .kui-shell-header {
   grid-area: header;
-  /* A header does not scroll, and clipping it would eat the focus ring of a control at its
-     edge; its box is its row, which grows with it. */
-  overflow: visible;
+  /* A header does not scroll — its box is its row. `visible` on the block axis keeps the
+     focus ring of a control at its edge (the pane default clips it, which is why this arm
+     exists), but the INLINE axis is bounded: left fully visible, a header whose content
+     outgrew it pushed document-level horizontal scroll and the app frame stopped bounding
+     the app (audit 2026-08-16). `clip` rather than `auto` because a header does not scroll,
+     and the pair is legal — the clipped axis is the one with no ring to lose. */
+  overflow-block: visible;
+  overflow-inline: clip;
+  min-inline-size: 0;
 }
 
 .kui-shell-rail {
@@ -116,11 +143,20 @@
    These arms serve the EXPLICIT presentation at any width; the narrow media block at the
    bottom restates them for `auto`, and the mounted agreement law holds the two identical
    (a mechanism with two implementations owes a law that they agree, 2026-08-06). */
+/* THE STRIP IS NOT DECORATION (audit 2026-08-16). An overlaying pane keeps its designed
+   width, which on a 320px screen is the whole window — the inspector's 320 measured exactly
+   the root's 320, the scrim rendered 0px wide, every hit-test across the shell returned the
+   pane, and with the rest of the shell contained there was no pointer route back at all. So
+   every overlay arm caps at the room that is left once a dismissal target is reserved, and
+   the reserve is `--touch-target-min` because that is what the strip IS: the tap that closes
+   this. A pane whose `width` prop exceeds the window is capped by the same declaration, which
+   is what stops it pushing document-level horizontal scroll. */
 .kui-shell-rail[data-presentation="overlay"],
 .kui-shell-sidebar[data-presentation="overlay"] {
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
+  max-inline-size: calc(100% - var(--touch-target-min));
   z-index: 2;
 }
 
@@ -128,6 +164,7 @@
   position: absolute;
   inset-block: 0;
   inset-inline-end: 0;
+  max-inline-size: calc(100% - var(--touch-target-min));
   z-index: 2;
 }
 
@@ -135,6 +172,7 @@
   position: absolute;
   inset-inline: 0;
   inset-block-end: 0;
+  max-block-size: calc(100% - var(--touch-target-min));
   z-index: 2;
 }
 
@@ -220,6 +258,7 @@
     position: absolute;
     inset-block: 0;
     inset-inline-start: 0;
+    max-inline-size: calc(100% - var(--touch-target-min));
     z-index: 2;
   }
 
@@ -227,6 +266,7 @@
     position: absolute;
     inset-block: 0;
     inset-inline-end: 0;
+    max-inline-size: calc(100% - var(--touch-target-min));
     z-index: 2;
   }
 
@@ -234,6 +274,7 @@
     position: absolute;
     inset-inline: 0;
     inset-block-end: 0;
+    max-block-size: calc(100% - var(--touch-target-min));
     z-index: 2;
   }
 

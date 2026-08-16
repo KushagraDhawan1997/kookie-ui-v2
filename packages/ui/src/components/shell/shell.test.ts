@@ -11,7 +11,7 @@
 import { describe, expect, it } from "vitest";
 
 import { narrowMedia, shellGap, shellWidth } from "../../tokens/config.ts";
-import { raw, sheet } from "../../test/stylesheets.ts";
+import { block, raw, sheet } from "../../test/stylesheets.ts";
 
 describe("the shell's viewport boundary is config's, verbatim (§18, §26)", () => {
   const css = sheet("components/shell/shell.css");
@@ -30,6 +30,39 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §26)", () 
     // pair). A third @media appearing is a decision, and it fails here first.
     expect(css.match(/@media/g) ?? []).toHaveLength(2);
     expect(css).toContain("@media (prefers-reduced-transparency: reduce)");
+  });
+
+  it("EVERY overlay arm caps its extent — the strip is not decoration (audit 2026-08-16)", () => {
+    // An uncapped overlay is the whole window: measured at 320px the scrim rendered 0px wide
+    // and, with the rest of the shell contained, there was no pointer route back at all. The
+    // mounted laws prove two arms at two widths; this proves the SET, so a seventh arm added
+    // tomorrow cannot ship uncapped. Derived from the rules themselves rather than a count:
+    // every rule that positions a pane absolutely must also cap it.
+    const arms = css
+      .split("}")
+      .filter((rule) => /\.kui-shell-(rail|sidebar|inspector|bottom)[^{]*\{[^{]*position:\s*absolute/.test(rule));
+    expect(arms.length, "the overlay arms are not where this law thinks").toBe(6);
+    for (const arm of arms) {
+      expect(
+        /max-(inline|block)-size:\s*calc\(100% - var\(--touch-target-min\)\)/.test(arm),
+        `an overlay arm has no viewport cap:\n${arm}`,
+      ).toBe(true);
+    }
+  });
+
+  it("the pane extents do not inherit — the --kui-h trap, one family over (§12)", () => {
+    // A custom property inherits by default, so a sidebar carrying --kui-shell-w handed that
+    // width to every descendant, and a Shell composed inside a pane sized its own panes from
+    // the outer pane's prop. Registration is what makes each rule's fallback reachable.
+    // Read through the loud extractor, bounded to the registration's OWN body. The first
+    // spelling took a 120-character window from the start of each block, which spans into the
+    // next one — so the sabotage that flipped `--kui-shell-w` to `inherits: true` passed,
+    // because the window found `--kui-shell-h`'s `false` and reported it as the subject's.
+    // The repo's own commonest law defect (measuring the axis that was already right),
+    // committed inside the law written to catch it, and caught by its own sabotage pass.
+    for (const name of ["--kui-shell-w", "--kui-shell-h"]) {
+      expect(block(css, `@property ${name}`), `${name} inherits`).toContain("inherits: false");
+    }
   });
 
   it("the shell paints no bed, casts nothing, and moves nothing — the absences ARE the design (§26)", () => {

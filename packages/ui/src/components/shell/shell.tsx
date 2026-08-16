@@ -56,6 +56,10 @@ type PaneEntry = {
   expanded: boolean | undefined;
   /** Open AND presenting as an overlay right now — what the scrim closes. */
   overlayLive: boolean;
+  /** The pane's own element. The root's containment effect needs it: only the root can see
+      the whole live-overlay SET, and it cannot ask the DOM which node belongs to which pane
+      (audit 2026-08-16 — a pane wrapped in a plain `<div>` is not a root child at all). */
+  el: HTMLElement | null;
   toggle: () => void;
   open: () => void;
   close: () => void;
@@ -64,6 +68,11 @@ type PaneEntry = {
 type ShellStore = {
   entries: Map<ShellPaneTarget, PaneEntry>;
   listeners: Set<() => void>;
+  /** A monotonic counter, not the Map, is what a subscriber reads: `useSyncExternalStore`
+      re-invokes getSnapshot on every render and requires a stable value between
+      notifications. A number is stable by construction; a derived array or object would be a
+      fresh identity every render. */
+  version: number;
 };
 
 type ShellCtx = {
@@ -81,6 +90,7 @@ function useShellCtx(part: string): ShellCtx {
 }
 
 const notifyStore = (store: ShellStore) => {
+  store.version += 1;
   for (const listener of store.listeners) listener();
 };
 
@@ -126,7 +136,11 @@ export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & 
  */
 export function Shell({ panes = "flush", className, style, children, ref, ...props }: ShellProps) {
   const rootRef = React.useRef<HTMLDivElement | null>(null);
-  const [store] = React.useState<ShellStore>(() => ({ entries: new Map(), listeners: new Set() }));
+  const [store] = React.useState<ShellStore>(() => ({
+    entries: new Map(),
+    listeners: new Set(),
+    version: 0,
+  }));
 
   const ctx = React.useMemo<ShellCtx>(
     () => ({
@@ -140,12 +154,169 @@ export function Shell({ panes = "flush", className, style, children, ref, ...pro
     [store],
   );
 
-  // The scrim closes every pane that is overlaying — pointer users' "put it back".
-  const onScrimClick = React.useCallback(() => {
+  const closeOverlays = React.useCallback(() => {
     for (const entry of store.entries.values()) {
       if (entry.overlayLive) entry.close();
     }
   }, [store]);
+
+  /** ONE snapshot for the whole shell, filled lazily per element — see the containment note
+      below. A Map, not an array of pairs, so a re-entering pass cannot double-record. */
+  const [inertSnapshot] = React.useState(() => new Map<HTMLElement, boolean>());
+  /** Where focus was when the first overlay opened. */
+  const returnFocusTo = React.useRef<HTMLElement | null>(null);
+  /** The overlay elements live on the previous pass — read on the closing edge, where the
+      browser may not have blurred the pane the user is standing in yet. */
+  const lastLive = React.useRef<HTMLElement[]>([]);
+
+  // Subscribed for the RE-RENDER, not for a value: a pane opening or closing must bring the
+  // root back so the containment pass below runs. The version is read (not bound) because a
+  // number is a stable snapshot between notifications, which is what useSyncExternalStore
+  // requires — returning the Map, or anything derived from it, would be a fresh identity on
+  // every render and either loop or warn.
+  React.useSyncExternalStore(
+    ctx.subscribe,
+    () => store.version,
+    () => 0,
+  );
+
+  /**
+   * CONTAINMENT IS THE ROOT'S, NOT THE PANE'S (rewritten 2026-08-16 after the ultracode
+   * audit; four independent lenses found the same critical defect and the critic found two
+   * more of its shape).
+   *
+   * The first spelling gave each pane its own effect: snapshot every OTHER root child's
+   * `inert`, set them all true, restore on close. Every part of that is wrong the moment two
+   * panes overlay at once, and two panes overlaying at once is an ordinary pointer path (open
+   * the nav drawer, press something in it that opens the inspector):
+   *
+   *   - Each pane inerted its sibling — including a sibling that was itself a live overlay —
+   *     so both visible drawers went dead: not focusable, out of the accessibility tree, and
+   *     excluded from hit-testing, so a tap on either fell through to the scrim.
+   *   - Each pane's snapshot recorded values the OTHER pane's effect had already written, so
+   *     whichever cleanup ran last restored `inert = true` onto the header and the content.
+   *     The app was then permanently non-operable — keyboard and pointer — until reload.
+   *
+   * The comment that used to sit here priced that as "two overlays closed out of order would
+   * restore a beat early (accepted)". It was not a beat early; it was forever, and the scrim
+   * — the mitigation that sentence named — was the path that produced it.
+   *
+   * A per-pane effect cannot be fixed by ordering, because it can only ever see itself. Only
+   * the root can see the whole live-overlay set and the whole child set, so the obligation
+   * moves here, as ONE pass with ONE lazily-populated snapshot:
+   *
+   *   - Exempt = the scrim, plus the root child CONTAINING each live overlay. Containing, not
+   *     equal to: a pane the consumer wrapped in a plain `<div>` is not a root child, and
+   *     identity-matching inerted the wrapper — so the shell inerted its own open drawer
+   *     (the critic's finding, and the worst kind: a reasonable consumer shape).
+   *   - The snapshot is keyed per element and filled the first time that element is inerted,
+   *     so a pane (or any child) mounted DURING a live overlay is contained on the next pass
+   *     and restored correctly, and nothing restores a value another pass wrote.
+   *   - Membership is recomputed on every notification, so a pane that becomes live is
+   *     released from containment rather than staying dead behind the scrim.
+   *
+   * What it does NOT do, honestly: contain anything OUTSIDE the shell root. A shell that is
+   * not the whole page leaves the page around it tabbable while a pane overlays. That is
+   * recorded open in §26 rather than patched here — it is a design question (does a shell
+   * overlay trap like a dialog, or is a shell the page?), and the pointer half is already
+   * covered because the scrim spans the root.
+   */
+  React.useEffect(() => {
+    const rootEl = rootRef.current;
+    if (!rootEl) return;
+
+    const live = [...store.entries.values()].filter((e) => e.overlayLive && e.el);
+    const snapshot = inertSnapshot;
+
+    if (live.length === 0) {
+      for (const [el, previous] of snapshot) {
+        if (el.isConnected) el.inert = previous;
+      }
+      snapshot.clear();
+      const before = returnFocusTo.current;
+      const leaving = lastLive.current;
+      returnFocusTo.current = null;
+      lastLive.current = [];
+      // Focus goes back if it is nowhere useful OR still inside the pane that just closed.
+      // The second half is not belt-and-braces: the pane is hidden by CSS on this commit, and
+      // Chromium has not necessarily blurred it by the time this effect runs — so "is focus
+      // at <body> yet" is a race that reads false and silently drops the user at <body> for
+      // good. Measured exactly that way while repairing the audit's critical finding.
+      const active = document.activeElement;
+      const stranded =
+        active === null || active === document.body || leaving.some((el) => el.contains(active));
+      if (before && before.isConnected && stranded) before.focus({ preventScroll: true });
+      return;
+    }
+
+    // CAPTURE FIRST, and this ordering is the whole reason containment and focus are ONE
+    // effect rather than two. Inerting the subtree that holds the trigger blurs it, so a
+    // capture taken afterwards remembers `<body>` and focus never returns. Split across two
+    // effects, React runs them in declaration order and the containment one wins — which is
+    // exactly how this regressed while the audit's own repair was being written, caught by
+    // the focus law that already existed. LOG 2026-08-16 records learning it the first time.
+    if (returnFocusTo.current === null) {
+      returnFocusTo.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    }
+
+    // The root child that CONTAINS each live overlay — a wrapped pane exempts its wrapper.
+    const exempt = new Set<Element>();
+    for (const entry of live) {
+      for (const child of rootEl.children) {
+        if (child === entry.el || child.contains(entry.el)) exempt.add(child);
+      }
+    }
+
+    for (const child of rootEl.children) {
+      if (!(child instanceof HTMLElement)) continue;
+      if (child.classList.contains("kui-shell-scrim")) continue;
+      if (exempt.has(child)) {
+        // A child that was contained and has since become (or come to hold) a live overlay
+        // is released from the snapshot, not merely skipped.
+        if (snapshot.has(child)) {
+          child.inert = snapshot.get(child)!;
+          snapshot.delete(child);
+        }
+        continue;
+      }
+      if (!snapshot.has(child)) snapshot.set(child, child.inert);
+      child.inert = true;
+    }
+
+    // …and only then move focus in, to the first live overlay that does not already hold it.
+    lastLive.current = live.map((e) => e.el!);
+    const first = live[0]!.el!;
+    if (!first.contains(document.activeElement)) first.focus({ preventScroll: true });
+    // NO DEPENDENCY ARRAY, deliberately (audit 2026-08-16, the critic's finding). Membership
+    // has two triggers, and only one of them notifies: a PANE opening or closing bumps
+    // `version`, but an ordinary child mounted behind the scrim — a conditionally rendered
+    // section, a route's own node — notifies nothing, and a one-shot pass left it fully
+    // live behind the scrim, reachable by Tab and announced by a screen reader. Children are
+    // props of Shell, so a child appearing IS a Shell render; running the pass every time is
+    // the one trigger that covers both. It reads and writes a handful of root children and
+    // does nothing when the set is already correct, so re-running costs a loop, not a paint.
+  });
+
+  const liveCount = [...store.entries.values()].filter((e) => e.overlayLive).length;
+
+  /**
+   * Escape closes the overlays — listened on the ROOT, not on `document` (audit 2026-08-16).
+   * A document listener is layer-blind: a Dialog or Menu opened from inside an overlaying
+   * pane portals to `document.body` and takes focus with it, so its own Escape would ALSO
+   * dismiss the pane underneath — one key, two dismissals. Bound to the root, the key only
+   * reaches this handler when focus is genuinely inside the shell, which is exactly when the
+   * pane is the topmost thing the user is in.
+   */
+  React.useEffect(() => {
+    const rootEl = rootRef.current;
+    if (!rootEl || liveCount === 0) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) closeOverlays();
+    };
+    rootEl.addEventListener("keydown", onKeyDown);
+    return () => rootEl.removeEventListener("keydown", onKeyDown);
+  }, [liveCount, closeOverlays]);
 
   return (
     <ShellContext.Provider value={ctx}>
@@ -157,10 +328,10 @@ export function Shell({ panes = "flush", className, style, children, ref, ...pro
         style={style}
       >
         {children}
-        {/* Root-owned and always mounted; CSS shows it exactly when a pane overlays (the
-            same condition the pane's own JS computes — law-checked agreement). Hidden from
-            AT: the pane's inert handling is what takes the page out of the tree. */}
-        <div className="kui-shell-scrim" aria-hidden onClick={onScrimClick} />
+        {/* Root-owned and always mounted; CSS shows it exactly when a pane overlays, keyed on
+            the same two attributes the JS mirror reads. Hidden from AT: the root's
+            containment pass is what takes the rest of the shell out of the tree. */}
+        <div className="kui-shell-scrim" aria-hidden onClick={closeOverlays} />
       </div>
     </ShellContext.Provider>
   );
@@ -229,7 +400,7 @@ function usePane(
     id: string | undefined;
   },
 ) {
-  const { store, rootRef } = useShellCtx(`Shell${name[0]!.toUpperCase()}${name.slice(1)}`);
+  const { store } = useShellCtx(`Shell${name[0]!.toUpperCase()}${name.slice(1)}`);
   const windowClass = useWindowClass();
   const generatedId = React.useId();
   const id = props.id ?? generatedId;
@@ -286,8 +457,25 @@ function usePane(
   const openPane = React.useCallback(() => setOpen(true), [setOpen]);
   const closePane = React.useCallback(() => setOpen(false), [setOpen]);
 
+  // The pane's whole crossing: it publishes what it IS and how to drive it. Containment,
+  // focus and Escape are the ROOT's (see Shell) — a per-pane effect can only ever see itself,
+  // which is precisely how two overlaying panes came to inert each other and leave the shell
+  // permanently dead (audit 2026-08-16).
+  const paneRef = React.useRef<HTMLElement | null>(null);
+  const setPaneEl = React.useCallback((node: HTMLElement | null) => {
+    paneRef.current = node;
+  }, []);
+
   React.useEffect(() => {
-    const entry: PaneEntry = { id, expanded, overlayLive, toggle, open: openPane, close: closePane };
+    const entry: PaneEntry = {
+      id,
+      expanded,
+      overlayLive,
+      el: paneRef.current,
+      toggle,
+      open: openPane,
+      close: closePane,
+    };
     store.entries.set(name, entry);
     notifyStore(store);
     return () => {
@@ -298,51 +486,7 @@ function usePane(
     };
   }, [store, name, id, expanded, overlayLive, toggle, openPane, closePane]);
 
-  // The overlay obligations (§26): while a pane floats over the page, Escape puts it back,
-  // the rest of the shell leaves the tab order and the accessibility tree (`inert` — the
-  // scrim already blocks the pointer), and focus moves into the pane and returns on close.
-  // Post-mount by construction: an overlay can only be open through an explicit state, so
-  // none of this runs at first paint and none of it is needed there.
-  const paneRef = React.useRef<HTMLElement | null>(null);
-  React.useEffect(() => {
-    if (!overlayLive) return;
-    const rootEl = rootRef.current;
-    const paneEl = paneRef.current;
-    if (!rootEl || !paneEl) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closePane();
-    };
-    document.addEventListener("keydown", onKeyDown);
-
-    // Where focus was is captured BEFORE anything goes inert: making the subtree that holds
-    // the trigger inert blurs it, and a capture taken after would remember <body> — focus
-    // would never return.
-    const before = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-
-    // Siblings only — the pane itself and the scrim stay live. Restoration is by snapshot,
-    // which is exact for the ordinary one-overlay case and LIFO stacks; two overlays closed
-    // out of order would restore a beat early (accepted: the scrim closes all of them).
-    const others = [...rootEl.children].filter(
-      (el): el is HTMLElement =>
-        el instanceof HTMLElement && el !== paneEl && !el.classList.contains("kui-shell-scrim"),
-    );
-    const previousInert = others.map((el) => el.inert);
-    for (const el of others) el.inert = true;
-
-    if (!paneEl.contains(document.activeElement)) paneEl.focus({ preventScroll: true });
-
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      others.forEach((el, i) => (el.inert = previousInert[i]!));
-      const active = document.activeElement;
-      if (before && before.isConnected && (paneEl.contains(active) || active === document.body)) {
-        before.focus({ preventScroll: true });
-      }
-    };
-  }, [overlayLive, rootRef, closePane]);
-
-  return { id, state, presentation, paneRef };
+  return { id, state, presentation, paneRef: setPaneEl };
 }
 
 type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &

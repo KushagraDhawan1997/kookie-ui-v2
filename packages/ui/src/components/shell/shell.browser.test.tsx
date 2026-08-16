@@ -9,6 +9,7 @@
  * skewed overlay arm, the scrim law against the :has() rule deleted, and the inert law
  * against the effect's inert lines removed.
  */
+import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { page } from "vitest/browser";
 
@@ -60,6 +61,20 @@ function fixture(props: {
 
 const mountShell = (props?: Parameters<typeof fixture>[0]) =>
   mounted(fixture(props), { theme: {} });
+
+/**
+ * Escape as a USER produces it: dispatched on the element that holds focus, which for an
+ * overlaying pane is inside the pane. The first spelling of these laws fired on `document`,
+ * which passed against a document-global listener — and a document-global listener is
+ * layer-blind: a Dialog opened from inside an overlaying pane portals to body and its own
+ * Escape dismissed the pane underneath it too (audit 2026-08-16). The handler is bound to
+ * the shell root now, so a realistic dispatch is also the only one that reaches it.
+ */
+function pressEscape(from: HTMLElement) {
+  (from.contains(document.activeElement) ? (document.activeElement as HTMLElement) : from).dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+  );
+}
 
 describe("anatomy: the landmarks are by construction (§26)", () => {
   it("header, main, nav, aside — the elements, not roles bolted on", () => {
@@ -176,6 +191,60 @@ describe("auto until touched: CSS resolves the untouched pane per window class (
   });
 });
 
+/**
+ * THE MIRROR ITSELF (added 2026-08-16, ultracode audit). §26, LOG and shell.css each claimed
+ * the CSS/JS agreement was "law-pinned" — and the audit proved it false by sabotage: breaking
+ * the mirror's explicit-overlay arm left all 33 laws green while an untouched
+ * `presentation="overlay"` pane reported aria-expanded="true" and inerted the whole shell at
+ * a desktop width. Every law that existed read `display`, which the CSS answers alone.
+ * These read the MIRROR — the aria the JS computes and the containment it drives.
+ */
+describe("the JS mirror agrees with the stylesheet, and is read (§26)", () => {
+  it("an untouched explicit-overlay pane reports closed AND contains nothing, at a wide window", async () => {
+    const shell = mounted(
+      <Shell style={{ height: 400 }}>
+        <ShellHeader>
+          <ShellTrigger target="sidebar">nav</ShellTrigger>
+        </ShellHeader>
+        <ShellSidebar presentation="overlay" aria-label="Primary">s</ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {} },
+    );
+    const trigger = within(shell, ".kui-shell-header button");
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    // The CSS half (what the old laws read) …
+    expect(computed(sidebar, "display")).toBe("none");
+    // … and the JS half, which nothing read: an overlay is summoned, never ambient.
+    await expect.poll(() => trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(within(shell, ".kui-shell-content").inert, "the shell contained itself at rest").toBe(false);
+    expect(computed(within(shell, ".kui-shell-scrim"), "display")).toBe("none");
+  });
+
+  it("an OPEN explicit-overlay pane carries the whole obligation at a wide window", async () => {
+    const shell = mounted(
+      <Shell style={{ height: 400 }}>
+        <ShellHeader>
+          <ShellTrigger target="sidebar">nav</ShellTrigger>
+        </ShellHeader>
+        <ShellSidebar presentation="overlay" defaultOpen aria-label="Primary">
+          <button type="button">in sidebar</button>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {} },
+    );
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => within(shell, ".kui-shell-content").inert).toBe(true);
+    expect(computed(sidebar, "position")).toBe("absolute");
+    expect(computed(within(shell, ".kui-shell-scrim"), "display")).toBe("block");
+    expect(sidebar.inert).toBe(false);
+    pressEscape(sidebar);
+    await expect.poll(() => sidebar.dataset.state).toBe("closed");
+    expect(within(shell, ".kui-shell-content").inert).toBe(false);
+  });
+});
+
 describe("the trigger: the one crossing (§26)", () => {
   it("controls its pane by name: aria-controls is the pane's id, aria-expanded its effective state", async () => {
     const shell = mountShell();
@@ -266,7 +335,7 @@ describe("the overlay treatment: one element, dressed — and its obligations (�
     const shell = mountShell({ sidebar: { defaultOpen: true, onOpenChange } });
     const sidebar = within(shell, ".kui-shell-sidebar");
     await expect.poll(() => computed(sidebar, "position")).toBe("absolute");
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    pressEscape(sidebar);
     await expect.poll(() => sidebar.dataset.state).toBe("closed");
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(computed(within(shell, ".kui-shell-scrim"), "display")).toBe("none");
@@ -290,7 +359,7 @@ describe("the overlay treatment: one element, dressed — and its obligations (�
     await expect.poll(() => content.inert).toBe(true);
     expect(header.inert).toBe(true);
     expect(sidebar.inert).toBe(false);
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    pressEscape(sidebar);
     await expect.poll(() => content.inert).toBe(false);
     expect(header.inert).toBe(false);
   });
@@ -304,8 +373,184 @@ describe("the overlay treatment: one element, dressed — and its obligations (�
     trigger.focus();
     trigger.click();
     await expect.poll(() => document.activeElement).toBe(sidebar);
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    pressEscape(sidebar);
     await expect.poll(() => document.activeElement).toBe(trigger);
+  });
+});
+
+/**
+ * THE PLURAL (added 2026-08-16, ultracode audit). Every overlay law above mounts ONE live
+ * overlay, and the fixture's inspector and bottom resolve `auto` -> closed at narrow, so the
+ * whole file exercised exactly one — which is why a shell that permanently bricked itself on
+ * two shipped with 27/27 green. The repo's own sentence: a law about one axis of a two-axis
+ * mechanism is half a law.
+ *
+ * Falsified against the pre-repair code (per-pane inert effects): every law in this block
+ * fails there, and the first two fail on the ordinary pointer path with no controlled props.
+ */
+describe("two overlays at once — the plural the critical defect lived in (§26)", () => {
+  const twoOverlays = () =>
+    mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellHeader>
+          <ShellTrigger target="sidebar">nav</ShellTrigger>
+          <ShellTrigger target="inspector">details</ShellTrigger>
+        </ShellHeader>
+        <ShellSidebar aria-label="Primary">
+          <button type="button">in sidebar</button>
+        </ShellSidebar>
+        <ShellContent>
+          <button type="button">in content</button>
+        </ShellContent>
+        <ShellInspector>
+          <button type="button">in inspector</button>
+        </ShellInspector>
+      </Shell>,
+      { theme: {} },
+    );
+
+  it("a live overlay is never inerted by its sibling — both stay operable", async () => {
+    await narrow();
+    const shell = twoOverlays();
+    const [navTrigger, detailTrigger] = [...shell.querySelectorAll("button")] as HTMLElement[];
+    navTrigger!.click();
+    detailTrigger!.click();
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    const inspector = within(shell, ".kui-shell-inspector");
+    await expect.poll(() => inspector.dataset.state).toBe("open");
+    expect(sidebar.dataset.state).toBe("open");
+    // Both are live overlays: neither may be inert, and each must be reachable.
+    expect(sidebar.inert, "the sidebar was inerted by its sibling overlay").toBe(false);
+    expect(inspector.inert, "the inspector was inerted by its sibling overlay").toBe(false);
+    const inSidebar = within(sidebar, "button");
+    inSidebar.focus();
+    expect(document.activeElement).toBe(inSidebar);
+    // …and the rest of the shell is still contained.
+    expect(within(shell, ".kui-shell-content").inert).toBe(true);
+  });
+
+  it("closing both releases the WHOLE shell — no child is left inert", async () => {
+    await narrow();
+    const shell = twoOverlays();
+    const [navTrigger, detailTrigger] = [...shell.querySelectorAll("button")] as HTMLElement[];
+    navTrigger!.click();
+    detailTrigger!.click();
+    await expect.poll(() => within(shell, ".kui-shell-inspector").dataset.state).toBe("open");
+    within(shell, ".kui-shell-scrim").click();
+    await expect.poll(() => within(shell, ".kui-shell-sidebar").dataset.state).toBe("closed");
+    // The whole point: ONE snapshot, so nothing can restore a value another pass wrote.
+    for (const child of [...shell.children]) {
+      if (!(child instanceof HTMLElement)) continue;
+      expect(child.inert, `${child.className} left inert after every overlay closed`).toBe(false);
+    }
+    const contentButton = within(shell, ".kui-shell-content button");
+    contentButton.focus();
+    expect(document.activeElement, "the app is unreachable after dismissal").toBe(contentButton);
+  });
+
+  it("a pane the consumer WRAPPED is exempt with its wrapper — containment is by containment", async () => {
+    // The critic's finding: identity-matching inerted the wrapper, so the shell inerted its
+    // own open drawer. A plain <div> around a pane is an ordinary consumer shape.
+    await narrow();
+    const shell = mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellHeader>h</ShellHeader>
+        <div data-wrapper>
+          <ShellSidebar defaultOpen aria-label="Primary">
+            <button type="button">in sidebar</button>
+          </ShellSidebar>
+        </div>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {} },
+    );
+    const wrapper = within(shell, "[data-wrapper]");
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => within(shell, ".kui-shell-content").inert).toBe(true);
+    expect(wrapper.inert, "the wrapper holding the live overlay was inerted").toBe(false);
+    const inSidebar = within(sidebar, "button");
+    inSidebar.focus();
+    expect(document.activeElement, "the open drawer was made unreachable").toBe(inSidebar);
+  });
+
+  it("a child mounted DURING a live overlay is contained on the next pass", async () => {
+    await narrow();
+    function Late() {
+      const [extra, setExtra] = React.useState(false);
+      return (
+        <div>
+        <button type="button" data-add onClick={() => setExtra(true)}>
+          add
+        </button>
+        <Shell style={{ height: 600 }}>
+          <ShellHeader>h</ShellHeader>
+          <ShellSidebar defaultOpen aria-label="Primary">
+            s
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+          {extra ? (
+            <div data-late>
+              <button type="button">late</button>
+            </div>
+          ) : null}
+        </Shell>
+        </div>
+      );
+    }
+    const shell = mounted(<Late />, { theme: {}, select: ".kui-shell" });
+    await expect.poll(() => within(shell, ".kui-shell-content").inert).toBe(true);
+    // The button lives OUTSIDE the shell on purpose: everything inside it is contained, so a
+    // trigger in the header could not be pressed to prove this.
+    (shell.parentElement!.querySelector("[data-add]") as HTMLElement).click();
+    await expect.poll(() => shell.querySelector("[data-late]")).not.toBe(null);
+    const late = within(shell, "[data-late]");
+    expect(late.inert, "a child mounted behind the scrim was never contained").toBe(true);
+  });
+
+  it("Escape is layer-aware: it is the shell's key, not the document's", async () => {
+    // The listener is bound to the shell ROOT. A dispatch that never enters the shell — what
+    // a portalled Dialog's own Escape looks like — must not dismiss the pane underneath.
+    await narrow();
+    const shell = mountShell({ sidebar: { defaultOpen: true } });
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => computed(sidebar, "position")).toBe("absolute");
+    document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await new Promise((r) => setTimeout(r, 40));
+    expect(sidebar.dataset.state, "an Escape outside the shell dismissed the pane").toBe("open");
+    pressEscape(sidebar);
+    await expect.poll(() => sidebar.dataset.state).toBe("closed");
+  });
+});
+
+describe("an overlay never takes the whole window (§26, audit 2026-08-16)", () => {
+  // At 320 CSS px an uncapped overlay measured exactly the root's width: the scrim rendered
+  // 0px wide, every hit-test across the shell returned the pane, and with the rest of the
+  // shell contained there was no pointer route back at all.
+  for (const width of [320, 375]) {
+    it(`at ${width}px a dismissal strip survives, and it clears the touch minimum`, async () => {
+      await page.viewport(width, 700);
+      const shell = mountShell({ sidebar: { defaultOpen: true } });
+      const sidebar = within(shell, ".kui-shell-sidebar");
+      await expect.poll(() => computed(sidebar, "position")).toBe("absolute");
+      const root = shell.getBoundingClientRect();
+      const pane = sidebar.getBoundingClientRect();
+      const strip = root.width - pane.width;
+      const floor = parseFloat(tokenOn(shell, "--touch-target-min"));
+      expect(floor).toBeGreaterThan(0);
+      expect(strip, `no dismissal strip at ${width}px`).toBeGreaterThanOrEqual(floor - 0.5);
+      // And the strip is really the scrim, not merely empty space.
+      const hit = document.elementFromPoint(root.right - strip / 2, root.top + root.height / 2);
+      expect(hit?.classList.contains("kui-shell-scrim"), "the strip is not the scrim").toBe(true);
+    });
+  }
+
+  it("an oversized width prop is capped rather than pushing the window sideways", async () => {
+    await page.viewport(375, 700);
+    const shell = mountShell({ sidebar: { defaultOpen: true, width: 480 } });
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => computed(sidebar, "position")).toBe("absolute");
+    expect(sidebar.getBoundingClientRect().width).toBeLessThan(375);
+    expect(shell.scrollWidth, "the shell scrolls sideways").toBeLessThanOrEqual(shell.clientWidth);
   });
 });
 
@@ -338,6 +583,40 @@ describe("flush and floating: one fact, two postures (§26)", () => {
     expect(content.left - sidebar.right).toBeCloseTo(gap, 1);
     expect(sidebar.left - root.left).toBeCloseTo(gap, 1);
     expect(root.right - content.right).toBeCloseTo(gap, 1);
+  });
+
+  it("floating fits INSIDE its container — the frame's own padding is part of its 100%", () => {
+    // Audit 2026-08-16: under the initial content-box, the half-gap the frame spends as
+    // padding is added outside its declared block-size, so a floating shell in a 600px box
+    // rendered 608 tall, the block-end gap read 0 against the frame, and the documented
+    // 100dvh posture gained a scrollbar. Measured against the CONTAINER, which is the frame
+    // of reference the sibling law below is missing — and the container is rendered IN the
+    // tree rather than moved afterwards, because a re-parented percentage height resolves
+    // against whatever it lands in (my first spelling of this law measured exactly that and
+    // read 336px of "gap").
+    const shell = mounted(
+      <div data-frame style={{ height: 600, width: 900 }}>
+        <Shell panes="floating" style={{ height: "100%" }}>
+          <ShellHeader>h</ShellHeader>
+          <ShellSidebar aria-label="Primary">s</ShellSidebar>
+          <ShellContent>c</ShellContent>
+          <ShellBottom defaultOpen>b</ShellBottom>
+        </Shell>
+      </div>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const frame = shell.closest("[data-frame]") as HTMLElement;
+    const gap = parseFloat(tokenOn(shell, "--shell-gap"));
+    const f = frame.getBoundingClientRect();
+    const header = within(shell, ".kui-shell-header").getBoundingClientRect();
+    const bottom = within(shell, ".kui-shell-bottom").getBoundingClientRect();
+    // Both axes, against the container: the block-end gap is the one that read zero.
+    expect(header.top - f.top).toBeCloseTo(gap, 0);
+    expect(f.bottom - bottom.bottom, "the block-end gap collapsed").toBeCloseTo(gap, 0);
+    expect(
+      shell.getBoundingClientRect().height,
+      "the floating shell overflows its own container",
+    ).toBeLessThanOrEqual(f.height + 0.5);
   });
 
   it("floating panes are cards: the full edge and the surface corner come back", () => {
