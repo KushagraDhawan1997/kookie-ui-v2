@@ -236,6 +236,15 @@ export const useThemeRooted = (): boolean => React.use(ThemeContext).rooted;
 const GlassContext = React.createContext(false);
 
 /**
+ * The resolution a member gets when a glass ancestor already spent the backdrop: the veil's
+ * alpha, no backdrop-filter, no lens. It is a RESOLVED value, never an authorable one — it
+ * is deliberately absent from `Material` and from `themeAxes`, because nothing may ask for
+ * it and a Theme that could set it would be re-introducing glass-on-glass by the back door.
+ */
+export const ON_GLASS = "on-glass";
+export type SurfaceMaterial = Material | typeof ON_GLASS;
+
+/**
  * The material this element should stamp — the theme's, or `solid` if a glass ancestor
  * already spent the backdrop.
  *
@@ -244,16 +253,22 @@ const GlassContext = React.createContext(false);
  * it is `<div className="kui-surface" data-material={useMaterial()} />` — the same shape
  * Kookie's own surfaces use, with the nesting rule already applied.
  */
-export function useMaterial(): Material {
+export function useMaterial(): SurfaceMaterial {
   const { material } = React.use(ThemeContext);
   const insideGlass = React.use(GlassContext);
-  return insideGlass ? "solid" : material;
+  // Not `solid` (2026-08-16, Kushagra: "a glass element acting on top of glass renders solid
+  // WITH ALPHA"). A pane below spent the backdrop, so this element must not filter — but
+  // going fully opaque makes it a white slab sitting on light, which is what a dialog's
+  // Cancel button looked like. `on-glass` is the fourth resolution: the veil's alpha with no
+  // filter and no lens. It costs nothing to paint and it is the only one of the four that no
+  // call site can ask for, because it is a fact about NESTING rather than about the app.
+  return insideGlass ? (material === "solid" ? "solid" : ON_GLASS) : material;
 }
 
 /** Marks a subtree as sitting on spent backdrop. Rendered by every member that paints a veil;
     the provider is skipped entirely when the material is `solid`, so an opaque card costs
     nothing and does not stand its children down. */
-export function GlassScope({ material, children }: { material: Material; children: React.ReactNode }) {
+export function GlassScope({ material, children }: { material: SurfaceMaterial; children: React.ReactNode }) {
   if (material === "solid") return children;
   return <GlassContext.Provider value={true}>{children}</GlassContext.Provider>;
 }

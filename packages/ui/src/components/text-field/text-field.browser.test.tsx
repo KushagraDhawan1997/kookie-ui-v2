@@ -627,9 +627,12 @@ describe("a control inside a glass control paints its OWN fill (§2, §10)", () 
       theme: { material: "regular" },
     });
     const button = field.querySelector("button")!;
-    const bare = mounted(<Button size="1">Show</Button>, { theme: { material: "solid" } });
-    expect(computed(button, "background-color")).toBe(computed(bare, "background-color"));
+    // The claim is that it does not take the FIELD's veil, not that it is opaque: a hosted
+    // control on glass resolves `on-glass` (2026-08-16), which is its own fill at its own
+    // alpha. Compared against the field it sits in, which is what "inherit" would mean.
     expect(computed(button, "background-color")).not.toBe(computed(field, "background-color"));
+    const alpha = (c: string) => (c.includes("/") ? parseFloat(c.slice(c.lastIndexOf("/") + 1)) : 1);
+    expect(alpha(computed(button, "background-color")), "a hosted control sealed itself onto the glass").toBeLessThan(1);
   });
 
   it("and it does not inherit the blur either — one glass per stack (§10)", () => {
@@ -645,14 +648,14 @@ describe("a control inside a glass control paints its OWN fill (§2, §10)", () 
   it("the hosted button REFUSES the material structurally, not just visually (§10, 2026-08-16)", () => {
     // Since material became the theme's, "one glass per stack" is answered in React rather
     // than by an inheritance guard: a member that paints a veil scopes its subtree, and
-    // `useMaterial()` below it resolves `solid`. So the button carries no attribute at all —
-    // a stronger claim than "its computed fill differs", and the one that survives a rewrite
-    // of the CSS.
+    // `useMaterial()` below it resolves `on-glass` — never the theme's thickness. That is a
+    // stronger claim than "its computed fill differs", and the one that survives a rewrite of
+    // the CSS: whatever the stylesheet does, the button is not asking to be glass.
     const field = mounted(<TextField trailing={<Button size="1">Show</Button>} />, {
       theme: { material: "regular" },
     });
     expect(field.dataset["material"]).toBe("regular");
-    expect(field.querySelector("button")!.dataset["material"]).toBeUndefined();
+    expect(field.querySelector("button")!.dataset["material"]).toBe("on-glass");
   });
 });
 

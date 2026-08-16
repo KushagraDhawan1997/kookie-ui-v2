@@ -282,15 +282,28 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     // — deleting `inherit` from the appearance list left this law green until this arm existed.
     // The emitted stylesheet is the independent second source: a selector reading a value the
     // table does not offer means one of the two is wrong, and neither can be trusted to notice.
+    // `on-glass` is the one styled value no axis offers, and that is the design (§10,
+    // 2026-08-16): it is RESOLVED from nesting — a member whose backdrop a pane below already
+    // spent — and nothing may ask for it. A Theme that could set it would be re-introducing
+    // glass-on-glass through the front door. Exempted by name, so the exemption is a decision
+    // in this file rather than a hole in the walk.
+    const RESOLVED_ONLY = new Set(["data-material:on-glass"]);
     for (const [axis, attr] of Object.entries(ATTR)) {
       const offered = new Set(themeAxes[axis as keyof typeof themeAxes] as readonly string[]);
       for (const m of all.matchAll(new RegExp(`\\[${attr}="([a-z-]+)"\\]`, "g"))) {
         const value = m[1]!;
+        if (RESOLVED_ONLY.has(`${attr}:${value}`)) continue;
         expect(
           offered.has(value),
           `${attr}="${value}" is styled by the shipped CSS and themeAxes.${axis} does not offer it`,
         ).toBe(true);
       }
+    }
+    // And the exemption must be REAL: a resolved-only value that no stylesheet reads is a
+    // stale carve-out, which is how an exemption list rots into a blindfold.
+    for (const key of RESOLVED_ONLY) {
+      const [attr, value] = key.split(":");
+      expect(all, `${key} is exempted but no rule reads it`).toContain(`[${attr}="${value}"]`);
     }
   });
 

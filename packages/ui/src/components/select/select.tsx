@@ -23,9 +23,9 @@ import {
   useAmbientDirection,
 } from "../../system/floating.tsx";
 import { mergeRefs } from "../../system/render.ts";
-import type { Material, Size, SlotName } from "../../system/axes.ts";
+import type { Size, SlotName } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 
 /** Gap between the trigger's edge and the panel — the menu's designed constant, restated
     because the second member self-keys (§23). */
@@ -188,7 +188,7 @@ export type SelectContentProps = {
 
 /** The panel's surface identity — the menu popup's constants, self-keyed (§23). data-size
     is stamped for the concentric corner (the floating size join reads it). */
-function popupProps(size: Size, material: Material, className?: string) {
+function popupProps(size: Size, material: SurfaceMaterial, className?: string) {
   const identity = "kui-surface kui-floating kui-select-popup";
   return {
     "data-size": size,

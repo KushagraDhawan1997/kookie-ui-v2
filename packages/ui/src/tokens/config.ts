@@ -979,6 +979,15 @@ export const material = {
   /** Where backdrop-filter is unavailable or transparency is reduced: near-opaque, still a mix
       so a whisper of the backdrop survives where that is safe. */
   fallbackAlpha: 95,
+
+  /** The ON-GLASS alpha (§10, 2026-08-16): what a member paints when a pane below it already
+      spent the backdrop. Glass does not stack, so this element must not filter — but going
+      fully opaque makes it a slab sitting on light, which is what a dialog's Cancel button
+      looked like. It keeps the veil and drops the filter, so it reads as part of the pane it
+      sits on rather than as a hole in it. One number for every thickness on purpose: it is a
+      fact about the element's OWN translucency, and the pane under it has already decided how
+      much of the world gets through. v0. */
+  onGlassAlpha: 62,
 } as const;
 
 /**

@@ -2275,7 +2275,13 @@ describe("a portalled panel is glass again — the escape the stacking rule need
     const p = panel as HTMLElement;
     expect(p.dataset["material"]).toBe("regular");
     const inner = p.querySelector<HTMLElement>("#inner")!;
-    expect(inner.dataset["material"]).toBeUndefined();
+    // `on-glass` (2026-08-16): it must not filter — the panel already spent the backdrop —
+    // and it must not seal either, or a card in a glass menu reads as a slab punched through
+    // the panel. Both halves, since the attribute alone would pass on a rule that paints
+    // nothing and the filter alone would pass on an opaque card.
+    expect(inner.dataset["material"]).toBe("on-glass");
     expect(computed(inner, "backdrop-filter")).toBe("none");
+    const alpha = (c: string) => (c.includes("/") ? parseFloat(c.slice(c.lastIndexOf("/") + 1)) : 1);
+    expect(alpha(computed(inner, "background-color")), "the card sealed itself onto the panel").toBeLessThan(1);
   });
 });

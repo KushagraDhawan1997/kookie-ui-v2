@@ -26,9 +26,9 @@ import {
   PortalScope,
   useAmbientDirection,
 } from "../../system/floating.tsx";
-import type { Material, Size, SlotName } from "../../system/axes.ts";
+import type { Size, SlotName } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 
 /* ── Designed constants (§22, v0 — the switchInset precedent: Base UI takes numbers, so
       these cannot ride CSS tokens; one home, judged in the playground) ─────────────────── */
@@ -219,7 +219,7 @@ export type MenuContentProps = {
     menu.css re-states the padding the surface size join would otherwise pick. */
 function popupProps(
   size: Size,
-  material: Material,
+  material: SurfaceMaterial,
   anchored: boolean,
   className?: string,
 ) {

@@ -846,6 +846,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     ...glass("regular"),
     ...glass("thick"),
     decl("material-opaque-alpha", `${material.fallbackAlpha}%`),
+    decl("material-on-glass-alpha", `${material.onGlassAlpha}%`),
     "",
     `  /* the scrim (§10, §24) — the dialog backdrop's dim and blur, and NOT a member of the`,
     `     material ladder above: a material defends a foreground by mixing that component's`,

@@ -74,6 +74,13 @@
   /* A surface sets foreground context, not just a background (§10): children read the
      re-scoped roles, so arbitrary content stays legible on every rung. */
   color: var(--color-text);
+  /* The pane's own lighting, at EVERY material including solid (§10, 2026-08-16). Grain,
+     bloom, sheen and the edge catch are what a pane is made of, not what glass adds — the
+     lab's solid card carries them too. Declaring it on the base rule is what makes solid and
+     glass converge over a calm bed by construction rather than by tuning: the only thing
+     material changes is the fill's alpha and the backdrop-filter, which are exactly the two
+     things that do nothing when there is nothing behind the pane. */
+  background-image: var(--kui-sf-light, var(--material-regular-rim, none));
   border: var(--border-width) solid var(--kui-border-color, transparent);
   /* The fallback is the default size's corner, for a surface that carries no size index.
      --kui-corner-k is 1 everywhere except under the squircle block below, which is where
@@ -388,6 +395,7 @@
   --kui-control-chrome-thin: var(--control-chrome-thin);
   --kui-control-chrome-regular: var(--control-chrome-regular);
   --kui-control-chrome-thick: var(--control-chrome-thick);
+  --kui-sf-light: var(--material-regular-rim-lifted);
   --kui-material-thin-rim: var(--material-thin-rim-lifted);
   --kui-material-thin-rim-control: var(--material-thin-rim-control-lifted);
   --kui-material-regular-rim: var(--material-regular-rim-lifted);
@@ -416,6 +424,7 @@
      it — the resting value is what the appearance scope generated, and contrast="high" empties
      both variants there, so an emptied token arrives here guaranteed-invalid and the consuming
      var() falls through to `none` on its own. */
+  --kui-sf-light: var(--material-regular-rim);
   --kui-material-thin-rim: var(--material-thin-rim);
   --kui-material-thin-rim-control: var(--material-thin-rim-control);
   --kui-material-regular-rim: var(--material-regular-rim);
@@ -490,8 +499,17 @@
        pointer never resolves and the pane lost its glint entirely — caught by TextField's
        own law the hour the pointer landed. The generated name still answers there, because
        tokens.css carries :root alongside the two appearance scopes for exactly this case. */
-    --kui-border-color: var(--material-thin-edge, var(--tone-border));
-    background-image: var(--kui-material-thin-rim, var(--material-thin-rim, none));
+    /* ONE LOOK (§10, 2026-08-16 — Kushagra: "there's just one 'look', the right look").
+       The border is the SAME border at every material. It used to re-point to the material's
+       own translucent white hairline, which is designed to read against a hostile backdrop
+       and disappears completely against a plain page — measured: a solid card on a calm bed
+       showed an edge and a glass card beside it showed none, which is the convergence break
+       you can see without a tool. Material decides how a surface survives something busy
+       behind it; it does not decide what the surface IS. The white catch it used to replace
+       the border with still exists — as the edge layer of the pane's own lighting, painted
+       ON TOP of the border rather than instead of it. */
+
+
     --kui-sf-cast: var(--kui-surface-chrome-thin, none);
   }
   .kui-surface[data-material="regular"] {
@@ -500,8 +518,8 @@
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-regular-alpha-active), transparent);
     backdrop-filter: var(--kui-lens, ) var(--material-regular-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
-    --kui-border-color: var(--material-regular-edge, var(--tone-border));
-    background-image: var(--kui-material-regular-rim, var(--material-regular-rim, none));
+
+
     --kui-sf-cast: var(--kui-surface-chrome-regular, none);
   }
   .kui-surface[data-material="thick"] {
@@ -510,10 +528,22 @@
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thick-alpha-active), transparent);
     backdrop-filter: var(--kui-lens, ) var(--material-thick-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
-    --kui-border-color: var(--material-thick-edge, var(--tone-border));
-    background-image: var(--kui-material-thick-rim, var(--material-thick-rim, none));
+
+
     --kui-sf-cast: var(--kui-surface-chrome-thick, none);
   }
+}
+
+/* ON GLASS (§10, 2026-08-16): a member whose backdrop a pane below already spent. Glass does
+   not stack, so this never filters and never takes a lens — but it does NOT go opaque either,
+   which is the correction: a fully sealed card or button sitting on glass reads as a slab
+   punched through the pane. It keeps the veil and drops the machinery, so it costs a fill and
+   reads as part of the surface it sits on. Nothing can ask for this; it is resolved from
+   nesting alone (theme.tsx), which is why it is absent from `Material` and from `themeAxes`. */
+.kui-surface[data-material="on-glass"] {
+  --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-on-glass-alpha), transparent);
+  --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-on-glass-alpha), transparent);
+  --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-on-glass-alpha), transparent);
 }
 
 @media (prefers-reduced-transparency: reduce) {

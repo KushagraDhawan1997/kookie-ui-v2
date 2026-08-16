@@ -144,14 +144,26 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     }
   });
 
-  it("a glass card keeps the pane's own edge in the filled look — the material wins (§19, §10)", () => {
-    const el = mounted(<Card>Body</Card>, {
-      theme: { surfaceLook: "filled", material: "regular" },
-      select: ".kui-surface",
-    });
-    expect(computed(el, "border-top-color")).toBe(
-      colorOn(el, "var(--material-regular-edge)"),
-    );
+  it("the border is the SAME border at every material — one look (§10, 2026-08-16)", () => {
+    // Reversed from "the material wins". A glass pane used to replace the border with its own
+    // translucent white hairline, which is designed to read against a hostile backdrop and
+    // vanishes against a plain page: measured on a calm bed, a solid card showed an edge and
+    // the glass card beside it showed none. Material decides how a surface SURVIVES something
+    // busy behind it; it does not decide what the surface is.
+    //
+    // The white catch still exists — it is the edge layer of the pane's own lighting, painted
+    // on top of the border rather than instead of it, which is why this can be asserted as
+    // equality across all four materials rather than as a preference between two.
+    const border = (m: "solid" | (typeof GLASS_MATERIALS)[number]) =>
+      computed(
+        mounted(<Card>Body</Card>, { theme: { material: m }, select: ".kui-surface" }),
+        "border-top-color",
+      );
+    const solid = border("solid");
+    expect(solid, "the seal lost its edge").not.toBe("rgba(0, 0, 0, 0)");
+    for (const m of GLASS_MATERIALS) {
+      expect(border(m), `${m} glass draws a different border than the seal`).toBe(solid);
+    }
   });
 
   it("exposes no visual opinion: tone and emphasis are not props", () => {
@@ -272,8 +284,13 @@ describe("material is the THEME's, and one glass per stack is structural (§10, 
     expect(host.dataset["material"]).toBe("regular");
     for (const id of ["#l2", "#l3"]) {
       const el = host.querySelector<HTMLElement>(id)!;
-      expect(el.dataset["material"], `${id} stacked glass`).toBeUndefined();
+      // `on-glass`, not absent (2026-08-16). The nested pane must not FILTER — that is the
+      // whole rule — but it must not go opaque either: a sealed card sitting on glass reads
+      // as a slab punched through the pane. It keeps the veil and drops the machinery.
+      expect(el.dataset["material"], `${id} stacked glass`).toBe("on-glass");
       expect(computed(el, "backdrop-filter"), `${id} stacked blur`).toBe("none");
+      const alpha = (c: string) => (c.includes("/") ? parseFloat(c.slice(c.lastIndexOf("/") + 1)) : 1);
+      expect(alpha(computed(el, "background-color")), `${id} sealed itself onto the glass`).toBeLessThan(1);
     }
   });
 
@@ -328,14 +345,18 @@ describe("material is backdrop defense, opt-in (§10)", () => {
       { theme: { material: "regular" } },
     );
     const inner = outer.querySelector<HTMLElement>('[data-testid="inner"]')!;
-    expect(computed(inner, "background-color")).toBe(colorOn(inner, "var(--color-surface)"));
+    // It must not FILTER, and it must not inherit the outer pane's derived fill — the two
+    // things the scope exists to stop. What it paints is its OWN veil at the on-glass alpha
+    // (2026-08-16), which is a different colour from both the outer pane's fill and the seal.
     expect(computed(inner, "backdrop-filter")).toBe("none");
-    // Since 2026-08-16 this is structural rather than a fill-inheritance guard: the outer card
-    // scopes its subtree and the inner one resolves `solid`, so it claims no material at all.
-    // Asserted as well as the paint, because the paint alone would pass if the mechanism were
-    // replaced by something weaker.
+    expect(computed(inner, "background-color"), "the inner pane inherited the outer's fill").not.toBe(
+      computed(outer, "background-color"),
+    );
+    // Structural, not just visual: the outer card scopes its subtree and the inner one
+    // resolves to the nesting-only value. Asserted as well as the paint, because the paint
+    // alone would pass if the mechanism were replaced by something weaker.
     expect(outer.dataset["material"]).toBe("regular");
-    expect(inner.dataset["material"]).toBeUndefined();
+    expect(inner.dataset["material"]).toBe("on-glass");
   });
 });
 
@@ -801,5 +822,59 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
     const inner = outer.querySelector<HTMLElement>(".kui-card")!;
     expect(lens(outer)).toBeTruthy();
     expect(lens(inner), "the inner pane inherited a lens built for its container").toBeUndefined();
+  });
+});
+
+describe("convergence: over a calm bed, material is invisible (§10, 2026-08-16)", () => {
+  /* Kushagra's rule, and the one that reorganises §10: "visually, solid should look exactly
+     like any material on non hostile, plain white bg". Material is a strategy for surviving
+     a busy backdrop, not a look — so with nothing behind the pane, the four must agree.
+
+     That is what makes the rest of the model sound. If they agree here, then painting glass
+     over calm ground buys nothing and can be skipped for free; if they do not, every skip is
+     a visible change and the optimisation is unavailable. This law is the precondition for
+     selectivity, not a cosmetic check.
+
+     Measured on the PAINTED pixel, not on declarations: the fill goes through a veil, a
+     backdrop-filter and a brightness term before it reaches the screen, and each of those is
+     a place the agreement can break with every declaration still looking right. */
+  const bed = (m: "solid" | (typeof GLASS_MATERIALS)[number]) => {
+    const host = render(
+      <Theme material={m}>
+        <div style={{ background: "var(--neutral-1)", padding: "24px" }}>
+          <Card>Body</Card>
+        </div>
+      </Theme>,
+    );
+    return host.querySelector<HTMLElement>(".kui-surface")!;
+  };
+
+  it("every material paints the same edge and the same lighting as the seal", () => {
+    const solid = bed("solid");
+    const ref = {
+      border: computed(solid, "border-top-color"),
+      light: computed(solid, "background-image"),
+    };
+    // The seal must have something to agree ABOUT, or this passes on two blanks.
+    expect(ref.border, "the seal has no edge").not.toBe("rgba(0, 0, 0, 0)");
+    expect(ref.light, "the seal has no lighting").not.toBe("none");
+    for (const m of GLASS_MATERIALS) {
+      const el = bed(m);
+      expect(computed(el, "border-top-color"), `${m}: a different edge than the seal`).toBe(ref.border);
+      expect(computed(el, "background-image"), `${m}: different lighting than the seal`).toBe(ref.light);
+    }
+  });
+
+  it("what material DOES change is only the two things a calm bed cannot show", () => {
+    // The other half, or "they converge" would be satisfied by material doing nothing at all.
+    // Alpha and the backdrop-filter are exactly the channels that are inert with nothing
+    // behind the pane — which is why convergence and a real material are not in tension.
+    const solid = bed("solid");
+    expect(computed(solid, "backdrop-filter")).toBe("none");
+    const glass = bed("thick");
+    expect(computed(glass, "backdrop-filter"), "glass stopped filtering").not.toBe("none");
+    const alphaOf = (c: string) => (c.includes("/") ? parseFloat(c.slice(c.lastIndexOf("/") + 1)) : 1);
+    expect(alphaOf(computed(solid, "background-color")), "the seal is not opaque").toBe(1);
+    expect(alphaOf(computed(glass, "background-color")), "glass is opaque").toBeLessThan(1);
   });
 });

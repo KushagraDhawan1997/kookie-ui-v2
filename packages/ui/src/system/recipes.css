@@ -1368,6 +1368,14 @@
   }
 }
 
+/* ON GLASS (§10, 2026-08-16) — the control half; see surfaces.css for the reasoning. This is
+   what a dialog's Cancel button takes: the veil's alpha, no filter, no lens. */
+.kui-control[data-material="on-glass"] {
+  --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-on-glass-alpha), transparent);
+  --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-on-glass-alpha), transparent);
+  --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-on-glass-alpha), transparent);
+}
+
 @media (prefers-reduced-transparency: reduce) {
   .kui-control[data-material="thin"],
   .kui-control[data-material="regular"],
