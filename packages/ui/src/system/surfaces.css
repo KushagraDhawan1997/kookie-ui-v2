@@ -389,8 +389,11 @@
   --kui-control-chrome-regular: var(--control-chrome-regular);
   --kui-control-chrome-thick: var(--control-chrome-thick);
   --kui-material-thin-rim: var(--material-thin-rim-lifted);
+  --kui-material-thin-rim-control: var(--material-thin-rim-control-lifted);
   --kui-material-regular-rim: var(--material-regular-rim-lifted);
+  --kui-material-regular-rim-control: var(--material-regular-rim-control-lifted);
   --kui-material-thick-rim: var(--material-thick-rim-lifted);
+  --kui-material-thick-rim-control: var(--material-thick-rim-control-lifted);
 }
 
 [data-depth="flat"] {
@@ -414,8 +417,11 @@
      both variants there, so an emptied token arrives here guaranteed-invalid and the consuming
      var() falls through to `none` on its own. */
   --kui-material-thin-rim: var(--material-thin-rim);
+  --kui-material-thin-rim-control: var(--material-thin-rim-control);
   --kui-material-regular-rim: var(--material-regular-rim);
+  --kui-material-regular-rim-control: var(--material-regular-rim-control);
   --kui-material-thick-rim: var(--material-thick-rim);
+  --kui-material-thick-rim-control: var(--material-thick-rim-control);
 }
 
 .kui-surface {

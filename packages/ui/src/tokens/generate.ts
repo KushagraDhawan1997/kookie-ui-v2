@@ -793,8 +793,14 @@ const GRAIN =
 const rim = (edgeAlpha: number, sheen: number): string =>
   [
     GRAIN,
-    `radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / ${Number((sheen * 1.4).toFixed(2))}%), transparent 55%)`,
-    `linear-gradient(180deg, rgb(255 255 255 / ${sheen}%), transparent 45%)`,
+    // At sheen 0 the two wash layers are omitted entirely rather than emitted transparent:
+    // a control takes this form, and a fully transparent gradient still costs a paint layer.
+    ...(sheen > 0
+      ? [
+          `radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / ${Number((sheen * 1.4).toFixed(2))}%), transparent 55%)`,
+          `linear-gradient(180deg, rgb(255 255 255 / ${sheen}%), transparent 45%)`,
+        ]
+      : []),
     `linear-gradient(rgb(255 255 255 / ${edgeAlpha}) 0 var(--border-width), transparent var(--border-width))`,
   ].join(", ");
 
@@ -810,6 +816,15 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       // exists. A flat world's glass has edge and glint, no lift.
       decl(`material-${name}-edge`, `rgb(255 255 255 / ${m[name].edge})`),
       decl(`material-${name}-rim`, rim(m[name].rim, m[name].sheen)),
+      // The CONTROL's lighting is the pane's minus the wash (§10, 2026-08-16). A pane's fill
+      // is a near-white veil, so a broad white bloom and sheen read as light lying ON it; a
+      // control's fill is its IDENTITY — a loud accent, a destructive red — and the same two
+      // layers read as that identity fading. Measured: a loud accent button under the pane
+      // recipe went pale blue with a halo, which is what "why is this save button so light"
+      // was looking at. Grain and the edge catch survive, because texture and a lit edge are
+      // properties of the material; the wash is a property of a pane.
+      decl(`material-${name}-rim-control`, rim(m[name].rim, 0)),
+      decl(`material-${name}-rim-control-lifted`, rim(m[name].rimLifted, 0)),
       // The elevated world's brighter glint (§10's catch seam, 2026-08-07): under a sun the
       // pane's edge catches harder. The elevated scope remaps -rim to this; flat never does.
       decl(`material-${name}-rim-lifted`, rim(m[name].rimLifted, m[name].sheen)),

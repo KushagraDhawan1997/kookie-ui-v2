@@ -1333,7 +1333,7 @@
        Listing both is legal here where it is not for a shadow: `none` is a valid
        background-image layer, which is exactly why §10 keeps the rim out of the
        shadow list in the first place. */
-    background-image: var(--kui-material-thin-rim, var(--material-thin-rim, none)),
+    background-image: var(--kui-material-thin-rim-control, var(--material-thin-rim-control, none)),
       var(--kui-ct-light, none);
   }
   .kui-button:where([data-material="regular"]),
@@ -1348,7 +1348,7 @@
        Listing both is legal here where it is not for a shadow: `none` is a valid
        background-image layer, which is exactly why §10 keeps the rim out of the
        shadow list in the first place. */
-    background-image: var(--kui-material-regular-rim, var(--material-regular-rim, none)),
+    background-image: var(--kui-material-regular-rim-control, var(--material-regular-rim-control, none)),
       var(--kui-ct-light, none);
   }
   .kui-button:where([data-material="thick"]),
@@ -1363,7 +1363,7 @@
        Listing both is legal here where it is not for a shadow: `none` is a valid
        background-image layer, which is exactly why §10 keeps the rim out of the
        shadow list in the first place. */
-    background-image: var(--kui-material-thick-rim, var(--material-thick-rim, none)),
+    background-image: var(--kui-material-thick-rim-control, var(--material-thick-rim-control, none)),
       var(--kui-ct-light, none);
   }
 }

@@ -621,15 +621,46 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     }
   });
 
-  it("a glass BUTTON wears the pane's lighting, with the world's catch composed under it", () => {
-    // The defect above, pinned in both halves: the rim must be there, and the elevated
-    // world's gradient must survive beside it rather than being displaced by it. Falsified by
-    // dropping either layer from the list.
+  it("a glass CONTROL is lit without the pane's wash, and keeps the world's catch under it", () => {
+    // Two defects, one rule. First: `background-image` on a button is already spoken for by
+    // the elevated world's gradient catch, so the button was excluded from the rim rule
+    // outright rather than composed into it — a glass Button wore no lighting at all.
+    //
+    // Second, and the reason a control takes its OWN recipe: a pane's fill is a near-white
+    // veil, so a broad white bloom and sheen read as light lying on it. A control's fill is
+    // its IDENTITY, and the same two layers read as that identity fading — a loud accent
+    // button under the pane recipe measured pale blue with a halo. Grain and the edge catch
+    // are the material; the wash is the pane's.
     const supports = from(recipes, "@supports (backdrop-filter");
     for (const m of GLASS_MATERIALS) {
       const body = block(supports, `.kui-button:where([data-material="${m}"])`);
-      expect(body, `a glass button has no ${m} rim`).toContain(`var(--material-${m}-rim, none)`);
-      expect(body, "the world's catch was displaced by the rim").toContain("var(--kui-ct-light, none)");
+      expect(body, `a glass button has no ${m} lighting`).toContain(`var(--material-${m}-rim-control, none)`);
+      expect(body, "the world's catch was displaced by the lighting").toContain("var(--kui-ct-light, none)");
+    }
+  });
+
+  it("the control recipe is the pane's minus the wash — same grain, same edge, no bloom", () => {
+    // Asserted as a RELATIONSHIP, not two independent value checks: the two recipes must
+    // share their texture and their edge and differ only in the wash, or "the control's
+    // lighting is the pane's minus the wash" becomes two recipes free to drift apart.
+    const tokensCss = raw("tokens/tokens.css");
+    for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
+      const body = block(tokensCss, scope);
+      const valueOf = (name: string) => {
+        const line = body.split("\n").find((l) => l.includes(`${name}:`));
+        if (!line) throw new Error(`no ${name} in ${scope}`);
+        return line.slice(line.indexOf(":") + 1).trim();
+      };
+      for (const m of GLASS_MATERIALS) {
+        const pane = valueOf(`--material-${m}-rim`);
+        const control = valueOf(`--material-${m}-rim-control`);
+        expect(control, `${scope} ${m}: the control lost the grain`).toContain("feTurbulence");
+        expect(control, `${scope} ${m}: the control kept the bloom`).not.toContain("radial-gradient");
+        expect(control, `${scope} ${m}: the control kept the sheen`).not.toContain("linear-gradient(180deg");
+        const edge = (v: string) => v.slice(v.lastIndexOf("linear-gradient(rgb"));
+        expect(edge(control), `${scope} ${m}: the edges diverged`).toBe(edge(pane));
+        expect(pane, "the pane lost its wash").toContain("radial-gradient");
+      }
     }
   });
 
