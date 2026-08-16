@@ -136,6 +136,34 @@ describe("a state the shared layer paints has a specimen (§8)", () => {
     expect(block).toContain('appearance: "inherit"');
   });
 
+  it("every axis the panel HOLDS, it also drives — a chip and a prop, or it is dead", () => {
+    // Earned 2026-08-16, and it is the law above being one indirection short. `material` became
+    // a Theme axis, the panel gained the Env field and the derived default — so the derivation
+    // law passed, green — and the axis reached NOTHING: no chip to flip it, and the canvas
+    // <Theme> was never handed it. The one surface whose job is judging the system's newest
+    // decision could not show it. A default that derives is not an axis that works.
+    //
+    // Both halves, because either alone is half the mechanism: a chip with no prop moves state
+    // nothing reads, a prop with no chip is pinned at its default forever.
+    const app = readFileSync(join(here, "preview-app.tsx"), "utf8");
+    const panel = app.slice(app.indexOf("function EnvPanel"), app.indexOf("export function PreviewApp"));
+    const canvas = app.slice(app.indexOf("export function PreviewApp"));
+    expect(panel, "EnvPanel is not where this law thinks").toContain("Chips");
+    expect(canvas, "the canvas Theme is not where this law thinks").toContain("<Theme");
+
+    // `appearance` and `contrast` are the store's, per the law above: appearance is applied
+    // through its own spread arm (a pinned value only), contrast has no Theme prop at all.
+    const axes = Object.keys(themeDefaults).filter((a) => a !== "appearance" && a !== "contrast");
+    expect(axes.length, "themeDefaults carries no axes to check").toBeGreaterThan(4);
+    for (const axis of axes) {
+      expect(panel, `no chip flips ${axis} — the panel holds an axis it cannot move`).toContain(
+        `options={AXES.${axis}}`,
+      );
+      expect(canvas, `${axis} never reaches the canvas Theme — flipping its chip does nothing`)
+        .toContain(`${axis}={env.${axis}}`);
+    }
+  });
+
   it("the showcase renders whole screens, not one more specimen", () => {
     // Earned 2026-08-09 (Kushagra: "preview without examples doesn't make sense", refusing a
     // second route). The export walk proves every component is ON the page; nothing proved the

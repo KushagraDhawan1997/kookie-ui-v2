@@ -185,6 +185,12 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
             options={AXES.depth}
             onChange={(depth) => onChange({ ...env, depth })}
           />
+          <Chips
+            label="material"
+            value={env.material}
+            options={AXES.material}
+            onChange={(material) => onChange({ ...env, material })}
+          />
           <Chips label="contrast" value={contrast} options={CONTRASTS} onChange={setContrast} />
           <Separator />
           <Flex gap="1" align="center">
@@ -245,6 +251,7 @@ export function PreviewApp() {
       surfaceLook={env.surfaceLook}
       controlLook={env.controlLook}
       depth={env.depth}
+      material={env.material}
     >
       {/* The canvas paints a page itself so a pinned appearance is a real page, not dark
           specimens floating on a light bed. The panel lives INSIDE the canvas Theme on

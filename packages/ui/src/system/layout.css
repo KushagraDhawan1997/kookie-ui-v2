@@ -226,12 +226,8 @@
   container-type: inline-size;
 }
 
-.kui-theme {
+.kui-theme:not(.kui-theme *, .kui-portal) {
   container-type: inline-size;
-}
-
-.kui-theme.kui-portal {
-  container-type: normal;
 }
 
 .kui-theme:not(.kui-theme *) {

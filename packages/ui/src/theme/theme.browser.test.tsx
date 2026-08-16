@@ -322,3 +322,67 @@ describe("the axis table is the one home, and the defaults live inside it (§5, 
     expect(render(<Theme pointer="auto">x</Theme>).getAttribute("data-pointer")).toBe("auto");
   });
 });
+
+describe("only the outermost Theme is a query container (§2, narrowed 2026-08-16)", () => {
+  /* Earned by a shipped regression. `.kui-theme` carried `container-type: inline-size`
+     unconditionally, with the collapse written down beside it as an accepted caveat — and it
+     WAS acceptable while a nested Theme only ever re-scoped an axis on a region that already
+     had a width. `material` became a Theme property on 2026-08-16, which made
+     <Theme material="thin"> the ordinary way to put one pane behind glass; every glass
+     specimen in the playground then rendered zero pixels wide, stacked on its neighbours,
+     from the commit that shipped it. Nothing failed: 1300 laws passed on both sides of the
+     fix, because not one of them read a nested Theme's width or its containment.
+
+     The measurement is the WIDTH, not `container-type`. A law reading the property would be
+     the 2026-08-03 lesson again — one indirection short of the thing that was actually
+     wrong, which was a box with nothing in it. */
+  const inRow = (child: React.ReactNode) =>
+    render(<Theme><div style={{ display: "flex", width: "600px" }}>{child}</div></Theme>);
+
+  it("a nested Theme in a flex row is as wide as its content, not 0px", () => {
+    const row = inRow(<Theme material="thin"><Card size="2">Glass</Card></Theme>);
+    const nested = row.querySelector<HTMLElement>(".kui-theme");
+    if (!nested) throw new Error("the nested Theme never mounted");
+    expect(nested.getBoundingClientRect().width, "the nested Theme collapsed").toBeGreaterThan(40);
+    expect(computed(nested, "container-type")).toBe("normal");
+
+    // The negative control, or the law passes for the wrong reason on an empty row: a Box
+    // that DID opt in collapses in the same slot, so the row itself is a shrink-wrapping one.
+    const opted = inRow(<Box container>Glass</Box>).querySelector<HTMLElement>("[data-container]");
+    expect(opted!.getBoundingClientRect().width).toBe(0);
+  });
+
+  it("the root Theme is still the container a tier falls back to", () => {
+    // The floor §2 asks for: narrowing containment must not leave a tier with nothing to
+    // read. Falsified by narrowing the selector to exclude the root as well.
+    const root = render(
+      <Theme style={{ width: "900px" }}>
+        <Box p={{ initial: "1", md: "9" }} />
+        <Box p="9" />
+      </Theme>,
+    );
+    expect(computed(root, "container-type")).toBe("inline-size");
+    const [tiered, reference] = [...root.querySelectorAll<HTMLElement>(".kui-box")];
+    // Against a mounted reference rather than a token string: `--layout-space-9` hands back
+    // `calc(48px * 1)` unresolved, and comparing an unresolved stream to a resolved length is
+    // how a law ends up asserting the spelling instead of the width.
+    expect(computed(tiered!, "padding-top")).toBe(computed(reference!, "padding-top"));
+    expect(computed(tiered!, "padding-top")).not.toBe("0px");
+  });
+
+  it("a nested Theme still carries every axis it was given — containment was the only loss", () => {
+    // The narrowing is about MEASUREMENT and must not touch what a nested Theme is for.
+    const row = inRow(
+      <Theme density="compact" radius="none" material="thick">
+        <Card size="2">x</Card>
+      </Theme>,
+    );
+    const nested = row.querySelector<HTMLElement>(".kui-theme")!;
+    expect(nested.getAttribute("data-density")).toBe("compact");
+    expect(nested.getAttribute("data-radius")).toBe("none");
+    // `material` is the one axis with no attribute on the Theme itself: it travels by React
+    // context and each component stamps its own, so all 28 selectors stay element-keyed
+    // (2026-08-16). Read where it actually lands, or this asserts the wrong element.
+    expect(row.querySelector(".kui-surface")?.getAttribute("data-material")).toBe("thick");
+  });
+});
