@@ -1845,7 +1845,24 @@ describe("the panel unfurls out of a seed (§22)", () => {
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
     const clock = await departed(popup);
-    const interrupt = 240; // when the reopen lands, measured from the first open
+    /**
+     * WHEN each flight is due is MEASURED, and the release is WATCHED (2026-08-17, after this
+     * law failed once on CI and never once here, loaded or idle).
+     *
+     * It used to sleep to a computed instant — `wait(clock - interrupt / 2)` with `interrupt`
+     * a hardcoded 240 — and read the attribute exactly once when it woke. The whole gap
+     * between the stale deadline and the real one is about 245ms, so the read sat roughly
+     * 155ms clear of the far edge, and `setTimeout` is a MINIMUM: a runner busy enough to
+     * overshoot by that much lands the read after the flight has legitimately finished and the
+     * law reports a defect that is not there. That is the same shape as the three laws fixed
+     * this morning — a statement about the machine wearing a statement about the code.
+     *
+     * Watching inverts the failure direction, which is the point. A slow runner samples LESS
+     * often, so a late observation only moves the release later, which can only make the claim
+     * easier to satisfy — never harder. The claim itself is unchanged and is still the one
+     * thing this law exists for: the panel outlives the interrupted flight's clock.
+     */
+    const airborneAt = performance.now();
     await wait(200); // mid-flight
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight is airborne").toBe(true);
     flushSync(() => setOpen(false));
@@ -1854,14 +1871,35 @@ describe("the panel unfurls out of a seed (§22)", () => {
     flushSync(() => setOpen(true));
     await flushFlight();
     expect(popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling")).toBe(true);
-    // Between the two deadlines, both derived: the interrupted flight is due `clock -
-    // interrupt` from here and the flight that replaced it a full `clock` from here, so the
-    // midpoint of that gap is the one moment the claim is about.
-    await wait(clock - interrupt / 2);
+
+    // The two deadlines, measured off the clock the runner actually reads. `stale` is an UPPER
+    // bound rather than the exact instant — `airborneAt` is stamped after `departed()` has
+    // spent its frames, so the first flight's timer was really set a little earlier — and the
+    // approximation errs the safe way: a later `stale` raises the bar below, so it can only
+    // make this law stricter, never more permissive.
+    const stale = airborneAt + clock;
+    const real = performance.now() + clock;
+    expect(real - stale, "the premise: the two deadlines must be far enough apart to tell apart").toBeGreaterThan(150);
+
+    // Watch for the release rather than sleeping past it. Bounded generously — this is a
+    // ceiling on a hung flight, not a timing claim.
+    let releasedAt = 0;
+    while (performance.now() < real + 400) {
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      if (!popup.hasAttribute("data-unfurling")) {
+        releasedAt = performance.now();
+        break;
+      }
+    }
+    expect(releasedAt, "the flight never released at all — the clock is the subject here").toBeGreaterThan(0);
+    // Landed on the RIGHT clock: past the midpoint of the gap is unambiguous, because a stale
+    // timer fires at `stale` and the live one at `real`, and nothing fires in between.
     expect(
-      popup.hasAttribute("data-unfurling"),
-      "the interrupted flight's clock must not land on the flight that replaced it",
-    ).toBe(true);
+      releasedAt,
+      `released ${Math.round(releasedAt - stale)}ms after the stale deadline, ` +
+        `${Math.round(releasedAt - real)}ms from the real one — the interrupted flight's clock ` +
+        `must not land on the flight that replaced it`,
+    ).toBeGreaterThan((stale + real) / 2);
   });
 
   it("the panel's CONTENT does not slide in from the side when it opens end-aligned (§22)", async () => {
