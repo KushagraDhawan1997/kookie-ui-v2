@@ -764,6 +764,7 @@
 .kui-surface.kui-floating[data-seed]:not([data-aimed]) {
   opacity: 0;
 }
+
 /* There are no per-side lean arms: the silhouette's translate is MEASURED (--kui-from-x/y),
    so every anchor — a menu's button, a select's field, a submenu's own trigger ROW — gets
    the exact overlay for free, in RTL and at every side/align, with no judged distance
@@ -772,9 +773,25 @@
    the row-shaped seed starts ON the row and grows the short, true distance out. v0. */
 
 /* While the box is deliberately smaller than what it holds, it clips. `overflow-y: auto`
-   computes the OTHER axis to `auto` too, so an unclipped flight is two live scrollbars. */
+   computes the OTHER axis to `auto` too, so an unclipped flight is two live scrollbars.
+
+   `clip` and not `hidden`, and the difference is the whole point (2026-08-17, Kushagra:
+   *"Select still jumps"*). `hidden` is a SCROLL CONTAINER — scrollable by script and by the
+   browser's own scroll-into-view, only without a scrollbar. Base UI focuses the selected row
+   the moment a select opens, and during the flight the box is deliberately far smaller than
+   the list it holds, so the browser scrolled the PANEL to reveal that row: measured
+   `scrollTop: 57` on an eight-row select with the fifth selected. Nothing settles there —
+   the whole list fits the moment the box finishes growing — so the browser clamped the
+   offset back down frame by frame and the panel's contents visibly slid under a growing
+   frame. `clip` is not a scroll container at all, so there is no offset to take and none to
+   unwind: measured 0 in every frame of the entry.
+
+   The page is the other half of the same reveal and is held in the runner (system/
+   floating.tsx), because a box that cannot scroll sends the browser one step further up. The
+   two are load-bearing together: with `clip` and no hold the page keeps 65px; with `hidden`
+   and the hold the page is still but the contents slide. */
 .kui-surface.kui-floating[data-unfurling] {
-  overflow: hidden;
+  overflow: clip;
   /* And the width FLOOR is stood down for the whole flight, not just the seed frame —
      which is the bug that made every menu look wrong (Kushagra, playground: *"it starts at a
      certain width… then it goes down and it shrinks, and then when it reaches the correct
@@ -816,7 +833,7 @@
 [dir="rtl"] .kui-floating-body {
   transform-origin: top right;
 }
-.kui-surface.kui-floating[data-seed] .kui-floating-body {
+.kui-surface.kui-floating[data-unfurling][data-seed] .kui-floating-body {
   opacity: 0;
   filter: blur(6px);
   translate: 0 var(--floating-echo);
@@ -916,7 +933,7 @@
   inset-block-start: auto;
   inset-block-end: var(--kui-floating-p);
 }
-.kui-surface.kui-floating[data-seed] .kui-floating-body {
+.kui-surface.kui-floating[data-unfurling][data-seed] .kui-floating-body {
   scale: 0.95 0.5;
 }
 

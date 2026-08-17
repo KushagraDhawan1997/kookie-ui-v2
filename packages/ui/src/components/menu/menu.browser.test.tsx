@@ -2113,21 +2113,60 @@ describe("the panel unfurls out of a seed (§22)", () => {
     ).toBeLessThanOrEqual(1);
   });
 
+  it("the posed CONTENT is held: invisible, molten, and a step below where it lands (§8, §22)", async () => {
+    /**
+     * The family's content sentence, all three channels, read on the pose (2026-08-15: the rows
+     * must be *"blurred out, empty"* while the box is still becoming, and print as one piece as
+     * it lands; the small rise joined on 2026-08-16 so the content ARRIVES rather than merely
+     * appearing).
+     *
+     * It exists because the rise went missing and nothing failed (2026-08-17). It was collateral
+     * from a gesture built and then deleted, and the whole suite stayed green: every law here
+     * read the BOX, and the three channels the body moves had no law of their own. A mechanism
+     * with no law is a mechanism one refactor from being gone.
+     */
+    const { popup } = await openUnsettled();
+    const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
+    expect(popup.hasAttribute("data-seed"), "the read must land on the posed frame").toBe(true);
+    expect(parseFloat(computed(body, "opacity")), "the content is not held back").toBe(0);
+    expect(computed(body, "filter"), "the content is not molten").toContain("blur");
+    // The echo: a step BELOW where it will land, so the print reads as an arrival. Asserted as
+    // a downward offset rather than against the token's number — the distance is v0 and the
+    // claim is the direction.
+    const [, y] = computed(body, "translate").split(" ");
+    expect(parseFloat(y ?? "0"), "the content does not rise into place").toBeGreaterThan(0);
+    // And it ARRIVES: everything above is a pose, and a pose that never comes off is a panel
+    // whose rows never appear.
+    const deadline = performance.now() + 3000;
+    while (popup.hasAttribute("data-unfurling") && performance.now() < deadline)
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+    expect(parseFloat(computed(body, "opacity")), "the content never printed").toBeCloseTo(1, 1);
+    expect(computed(body, "filter"), "the content never sharpened").toBe("none");
+    expect(computed(body, "translate"), "the content never landed").toBe("none");
+  });
+
   it("the panel clips while it is not its own size (§22)", async () => {
     const { popup } = await openUnsettled();
     expect(popup.hasAttribute("data-unfurling")).toBe(true);
     /**
-     * HIDDEN, not `clip` (2026-08-16, Kushagra: *"I click a dropdown menu and then it shifts
-     * page"* — on the first open of each one, never after). The two clip identically; they
-     * differ in whether the box can be SCROLLED, and that difference is the bug. Base UI
-     * focuses the selected row while the panel is still mid-flight and deliberately smaller
-     * than its content; the browser then scrolls the nearest scrollable ancestor to reveal
-     * the focused element, and a `clip` box is not one — so it walked past the panel and
-     * scrolled the PAGE. With `hidden` the panel absorbs it: measured, the page drifted 20px
-     * on a select's first open and 8px after this change, with the panel's own scrollTop
-     * taking the difference and returning to 0 the moment the flight releases.
+     * CLIP, not `hidden` (2026-08-17, Kushagra: *"Select still jumps"*). The two clip
+     * identically; they differ in whether the box can be SCROLLED, and that difference is the
+     * bug. Base UI focuses the selected row while the panel is still mid-flight and
+     * deliberately smaller than its content, so the browser scrolls the nearest scrollable
+     * ancestor to reveal it — and `hidden` IS one. Measured on an eight-row select with the
+     * fifth selected: the panel took `scrollTop: 57`, which nothing settles at (the whole list
+     * fits the instant the box finishes growing), so the browser clamped it back down frame by
+     * frame and the contents slid under a growing frame. `clip` cannot take an offset at all:
+     * measured 0 in every frame.
+     *
+     * `hidden` was tried FIRST, for the opposite reason and against the same symptom — an
+     * unscrollable panel sends the browser one step up and the PAGE moves instead. That half
+     * is real and is held in the runner rather than absorbed here (system/floating.tsx), which
+     * is what lets this box refuse the scroll outright. Measured both ways: `clip` with no
+     * hold leaves the page 65px down, `hidden` with the hold leaves the page still and the
+     * contents sliding.
      */
-    expect(computed(popup, "overflow-y")).toBe("hidden");
+    expect(computed(popup, "overflow-y")).toBe("clip");
     // And it scrolls again once it has arrived — a long menu is why the panel has an overflow
     // at all, and `overflow-y: auto` computes the OTHER axis to auto with it.
     // The width floor is stood down for the whole flight, not only the seed frame: it means

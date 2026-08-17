@@ -17,7 +17,7 @@ import { Select as BaseSelect } from "@base-ui/react/select";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
 import {
-  FloatingBody,
+  SelectBody,
   FloatingDirectionContext,
   PortalScope,
   useAmbientDirection,
@@ -201,11 +201,31 @@ function popupProps(size: Size, material: SurfaceMaterial, className?: string) {
 }
 
 /**
- * No positioning props at all — a select's geometry is the system's: below the trigger,
- * start-aligned, the designed offset. `alignItemWithTrigger` is pinned FALSE: Base UI's
- * default overlaps the trigger macOS-style, which needs the scroll-arrow parts and a
- * different height model; the dropdown geometry is the one the menu already designed.
- * Recorded open, with the scroll arrows, in the registry's refusals.
+ * No positioning props at all — a select's geometry is the system's: the designed offset,
+ * start-aligned, and the CHOSEN ROW ON THE TRIGGER (2026-08-17, Kushagra: *"the selected item
+ * always appear on top of trigger 1:1, so that the remainder of the list sits a little above
+ * and below the trigger depending on the item's position"*).
+ *
+ * `alignItemWithTrigger` was pinned FALSE on 2026-08-09 and is now Base UI's own default
+ * again, which is the macOS and Radix placement. The reversal is not a taste swing: the
+ * item-aligned panel is what makes a select's entry HONEST. Our panel animates, and the
+ * browser reveals the selected row the instant the select opens — so a panel that is still
+ * travelling is a panel whose row is somewhere it will not stay, and the page moved to follow
+ * it (see LOG 2026-08-17). Welded to the trigger, the row is already where it ends up and
+ * there is nothing for the reveal to chase.
+ *
+ * Base UI falls back to the ordinary side placement by itself — for keyboard opens, and when
+ * the row cannot reach the trigger near a viewport edge — and it stamps `data-side="none"`
+ * when the overlap is live.
+ *
+ * The ENTRY is the family's, unchanged: the panel still flies out of the trigger's own box the
+ * way a menu does (§22). What the overlap costs is an ORDERING — Base UI computes it from the
+ * panel's real box, so the panel must be placed before it is posed (`placedByContent` in
+ * system/floating.tsx).
+ *
+ * Still refused, and still recorded in the registry: the scroll ARROW parts. They are the
+ * mouse-only affordance for a list taller than its panel; the panel scrolls by wheel, trackpad
+ * and keyboard without them, and an arrow is a control we have not designed.
  */
 /** Split out so `useMaterial()` is read INSIDE `PortalScope` — a select opened from a glass
     card paints over the page, not inside the card, and React context follows the tree rather
@@ -230,9 +250,9 @@ function SelectPopup({
       style={{ ...GAP_VAR, ...style }}
       ref={lensRef}
     >
-      <FloatingBody>
+      <SelectBody>
         <GlassScope material={material}>{children}</GlassScope>
-      </FloatingBody>
+      </SelectBody>
     </BaseSelect.Popup>
   );
 }
@@ -241,7 +261,7 @@ export function SelectContent({ children, className, style, ref }: SelectContent
   return (
     <BaseSelect.Portal>
       <PortalScope>
-        <BaseSelect.Positioner side="bottom" align="start" sideOffset={SIDE_OFFSET} alignItemWithTrigger={false}>
+        <BaseSelect.Positioner side="bottom" align="start" sideOffset={SIDE_OFFSET}>
           <SelectPopup className={className} style={style} ref={ref}>
             {children}
           </SelectPopup>

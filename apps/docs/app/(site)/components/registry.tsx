@@ -603,8 +603,8 @@ export const ENTRIES: Entry[] = [
         why: "The value IS the trigger's content, and a re-rooted trigger would re-open the accessibility question Base UI already answers with a real button wearing role=combobox.",
       },
       {
-        name: "item-aligned positioning (and the scroll arrows)",
-        why: "Base UI's default overlaps the trigger macOS-style and needs scroll-arrow parts plus a different height model. The panel takes the dropdown geometry the menu designed; the macOS mode is recorded open, whole, for when a real shell wants it.",
+        name: "the scroll arrows",
+        why: "The panel is placed item-aligned — the chosen row sits on the trigger, macOS-style — and it still flies out of that trigger the way a menu does. The scroll ARROWS that Base UI pairs with that placement are refused: they are a mouse-only affordance for a list taller than its panel, the panel scrolls by wheel, trackpad and keyboard without them, and an arrow is a control this system has not designed. The panel also hangs a little to the LEFT of the trigger, which is the placement working rather than a bug: item-aligned lines the chosen option's text up with the trigger's value text, and the rows reserve a gutter for the tick that the trigger has no equivalent of.",
       },
       {
         name: "multiple",

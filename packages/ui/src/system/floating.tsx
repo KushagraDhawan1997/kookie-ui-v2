@@ -167,38 +167,29 @@ export function PortalScope({ children }: { children: React.ReactNode }) {
 
 
 /**
- * The width the anchor will PAINT at while the panel is open — its rect corrected from the
- * scale it is at to the scale it is heading to (§22, §23, 2026-08-10).
+ * The anchor's UNTRANSFORMED width — its layout box, with any press it is holding divided out
+ * (§22, §23, 2026-08-10, corrected by measurement 2026-08-17).
  *
- * An open trigger HOLDS THE PRESS (§8), and floating-ui measures anchors WITH their
- * transforms — the very fact the held press relies on to still the panel — so Base UI's
- * `--anchor-width` settles at the trigger's scaled box. This measurement runs on the open's
- * first frame, when the press transition has not visibly moved, so a raw rect reads the
- * RESTING width: the flight then targets a floor 2.5% wider than the one the settled panel
- * falls to at release, and the panel visibly compressed the moment it finished (measured
- * 402 -> 392 on a wide trigger). The two floors must agree by INPUT, not by timing.
+ * The panel's floor is `max(--floating-min-w, --anchor-width)`, and `--anchor-width` does not
+ * exist until Base UI has placed the panel — so the entry publishes the number itself and the
+ * two must agree, or the panel steps at release. They must agree by INPUT, not by timing.
  *
- * The end of the running scale transition is the held value; an anchor with no scale in
- * flight (a submenu's trigger row, a settled reopen) divides and multiplies by the same
- * number and passes through untouched. Never keyed on which family the anchor belongs to —
- * the transition itself says whether this anchor deforms.
+ * The correction runs the OTHER WAY from the way this function first ran it. It was written to
+ * predict the trigger's scaled box on the premise that Base UI measures anchors with their
+ * transforms, which is what the held press relies on to still the panel. Base UI 1.6 does the
+ * opposite and says so in its own code: it reads `getScale(trigger)` and normalises the rect by
+ * it before positioning. Measured on an open select — trigger rect 83px at `scale: 0.975`,
+ * `--anchor-width: 85px` — so the entry's own 83 was two pixels short of the floor the settled
+ * panel falls to, and a wide trigger's panel visibly widened the moment the entry released
+ * (Kushagra: *"it jumps a bit in width at the end"*).
+ *
+ * Divided rather than read off `offsetWidth`, which rounds to an integer: a third of a pixel is
+ * the difference between a row's label fitting and wrapping, in one cell of twenty-four. An
+ * anchor holding no press divides by 1 and passes through untouched.
  */
-function heldAnchorWidth(anchor: HTMLElement, rectWidth: number): number {
-  const current = parseFloat(getComputedStyle(anchor).scale) || 1;
-  let target = current;
-  for (const animation of anchor.getAnimations?.() ?? []) {
-    if (
-      typeof CSSTransition !== "undefined" &&
-      animation instanceof CSSTransition &&
-      animation.transitionProperty === "scale" &&
-      animation.effect instanceof KeyframeEffect
-    ) {
-      const to = animation.effect.getKeyframes().at(-1)?.scale;
-      const parsed = parseFloat(String(to));
-      if (Number.isFinite(parsed)) target = parsed;
-    }
-  }
-  return (rectWidth / current) * target;
+function restingAnchorWidth(anchor: HTMLElement, rectWidth: number): number {
+  const scale = parseFloat(getComputedStyle(anchor).scale) || 1;
+  return rectWidth / scale;
 }
 
 /* ── The ENTRY runner — ONE mechanism for every panel that BECOMES (§8, §22, §24) ─────────
@@ -225,10 +216,42 @@ type FlightPlan = {
   readonly body: string;
   /** Anchored panels fly from their trigger's silhouette; unanchored ones rise in place. */
   readonly fromAnchor: boolean;
+  /**
+   * Whether the panel's PLACEMENT depends on its own contents (§23, 2026-08-17).
+   *
+   * A menu is placed against its trigger and nothing else, so it can be posed on the frame it
+   * mounts and measured a microtask later. A SELECT is placed against the row inside it — Base
+   * UI overlaps the trigger so the chosen option lands on the value it replaces — and that
+   * computation reads the panel's real box. Posed first, it reads a box shrunk to the
+   * trigger's silhouette and places the panel against a list that is not there: measured, the
+   * chosen row settled 66px below the trigger it is supposed to sit on.
+   *
+   * So the entry WAITS for the placement instead. Nothing is lost by waiting — the pose is
+   * transparent until it is aimed, so those frames were never on screen — and nothing about
+   * the gesture changes: a select flies out of its trigger exactly as a menu does, into a box
+   * that happens to straddle the trigger rather than hang below it.
+   */
+  readonly placedByContent: boolean;
 };
 
-const FLOATING_PLAN: FlightPlan = { popup: "kui-floating", body: "kui-floating-body", fromAnchor: true };
-const OVERLAY_PLAN: FlightPlan = { popup: "kui-overlay", body: "kui-overlay-body", fromAnchor: false };
+const FLOATING_PLAN: FlightPlan = {
+  popup: "kui-floating",
+  body: "kui-floating-body",
+  fromAnchor: true,
+  placedByContent: false,
+};
+const SELECT_PLAN: FlightPlan = {
+  popup: "kui-floating",
+  body: "kui-floating-body",
+  fromAnchor: true,
+  placedByContent: true,
+};
+const OVERLAY_PLAN: FlightPlan = {
+  popup: "kui-overlay",
+  body: "kui-overlay-body",
+  fromAnchor: false,
+  placedByContent: false,
+};
 
 /** Every custom property a flight may write, stripped as a SET at both ends: a reopen must not
     measure through the last flight's numbers, and a landed panel must answer to its own layout
@@ -299,7 +322,11 @@ function useFlight(plan: FlightPlan) {
          * numbers are real and the pose is still the first thing painted.
          */
         popup.removeAttribute("data-aimed");
-        popup.setAttribute("data-unfurling", "");
+        // `data-seed` alone is the VISIBILITY gate; `data-unfurling` is what applies the pose's
+        // geometry. A panel placed against its own contents gets only the gate here, because
+        // the pose is exactly what would corrupt its placement (see `placedByContent` below) —
+        // it is invisible either way, and the geometry lands with the measurement.
+        if (!plan.placedByContent) popup.setAttribute("data-unfurling", "");
         popup.setAttribute("data-seed", "");
 
         /**
@@ -361,17 +388,27 @@ function useFlight(plan: FlightPlan) {
               box.bottom <= window.innerHeight &&
               box.right <= window.innerWidth;
           }
-          roughlyOnTrigger(trigger);
+          // Only for a panel that is posed from this frame: an unposed one is already sitting
+          // where it belongs, so there is nothing to aim it at.
+          if (!plan.placedByContent) roughlyOnTrigger(trigger);
         }
         /**
          * And the page is HELD for the entry's opening frames, in the scroll event itself.
          *
-         * Restoring on a frame instead lets the browser paint the scrolled position first —
-         * measured, a tall select flashed 2151px down and came back two frames later, which
-         * reads worse than the drift it fixes. A scroll handler runs before paint, so the
-         * page never renders anywhere but where it was parked. Armed only while the entry is
-         * opening (four frames covers the focus and any reveal that trails it), and only when
-         * the trigger was fully in view, so nothing a user does outside that window is fought.
+         * Restoring on a frame instead lets the browser paint the scrolled position first, and
+         * a flash that comes back reads worse than the drift it fixes. A scroll handler runs
+         * inside the rendering update, before paint, so the page never renders anywhere but
+         * where it was parked — measured per frame across a whole entry, the offset from the
+         * parked position never exceeds a pixel. Armed only while the entry is opening (four
+         * frames covers the focus and any reveal that trails it), and only when the trigger was
+         * fully in view, so nothing a user does outside that window is fought.
+         *
+         * This is one half of the reveal (2026-08-17). The other is the flying box refusing to
+         * be a scroll container at all — `overflow: clip`, in surfaces.css — and the two are
+         * load-bearing together: the browser reveals a focused row by scrolling the nearest
+         * scrollable ancestor and then continuing outward, so closing either door alone just
+         * moves the symptom to the other. Both are law-read at once, per frame, in
+         * select.browser.test.tsx, which is the only member whose open focuses anything.
          */
         if (parked.protect) {
           const hold = () => window.scrollTo(parked.x, parked.y);
@@ -384,7 +421,7 @@ function useFlight(plan: FlightPlan) {
           requestAnimationFrame(release);
         }
 
-        queueMicrotask(() => {
+        const poseAndFly = () => {
           // A panel landed by other means before this ran — the harness's settle(), a
           // dismissal — no longer wears the pose, and the entry stands down rather than
           // re-posing a panel that has already arrived.
@@ -402,6 +439,24 @@ function useFlight(plan: FlightPlan) {
           const pinned = [popup, node];
           for (const el of pinned) el.style.setProperty("transition", "none", "important");
 
+          /**
+           * Base UI's own inline HEIGHT comes off for the flight, and goes back on at release
+           * (§23, 2026-08-17).
+           *
+           * An item-aligned select is laid out as `height: 100%` of a positioner the library
+           * has sized, which is how the panel fills a constrained box and scrolls the chosen
+           * row onto the trigger. An inline declaration beats every rule in the stylesheet, so
+           * the flight's block-size channel was simply dead: measured, `--kui-seed-h: 31.2px`
+           * written, the pose matching, and the panel 70px tall for every frame of an entry
+           * that was supposed to unfurl out of its trigger.
+           *
+           * Taken rather than fought: an `!important` in the family's own sheet would win the
+           * cascade and leave the library's intent unstated, and the flight only borrows the
+           * axis for the length of the entry. The value is put back exactly as it was found.
+           */
+          const borrowed = popup.style.height;
+          if (borrowed) popup.style.removeProperty("height");
+
           // The pose comes off for the read, and the WHOLE of it. Overriding just the two
           // sizes was the first cut and it measured a panel narrower than the one that would
           // settle, because `min-inline-size: 0` is part of the seed too. Our own vars come
@@ -410,6 +465,9 @@ function useFlight(plan: FlightPlan) {
           popup.removeAttribute("data-seed");
           popup.removeAttribute("data-unfurling");
           for (const name of FLIGHT_VARS) popup.style.removeProperty(name);
+
+          const trigger = plan.fromAnchor ? anchor() : null;
+          const positioner = plan.fromAnchor ? popup.parentElement : null;
 
           /**
            * Laid out, or not yet? A panel's natural box can never be smaller than its family's
@@ -427,9 +485,11 @@ function useFlight(plan: FlightPlan) {
            * select's panel is routinely exactly as wide as the trigger it flies from, and a
            * silhouette-sized pose would bail on the commonest open in the library.
            */
+          popup.setAttribute("data-unfurling", "");
           popup.setAttribute("data-seed", "");
           const pose = popup.getBoundingClientRect().width;
           popup.removeAttribute("data-seed");
+          popup.removeAttribute("data-unfurling");
           if (popup.getBoundingClientRect().width <= pose) {
             for (const el of pinned) el.style.removeProperty("transition");
             return;
@@ -452,12 +512,10 @@ function useFlight(plan: FlightPlan) {
            * floating-ui measures anchors WITH their transforms, so two floors reading the same
            * trigger at different moments disagreed by 2.5% and the panel stepped at release.
            */
-          const trigger = plan.fromAnchor ? anchor() : null;
-          const positioner = plan.fromAnchor ? popup.parentElement : null;
           if (trigger) {
             const box = trigger.getBoundingClientRect();
             const corner = getComputedStyle(trigger).borderTopLeftRadius;
-            popup.style.setProperty("--kui-anchor-w", `${heldAnchorWidth(trigger, box.width)}px`);
+            popup.style.setProperty("--kui-anchor-w", `${restingAnchorWidth(trigger, box.width)}px`);
             // And the seed IS this box (§22's morph, 2026-08-15): its width, its height and
             // its corner, so the panel's first frame is the trigger's own silhouette sitting
             // exactly over it. The POSITION is measured further down, once the positioner has
@@ -528,6 +586,7 @@ function useFlight(plan: FlightPlan) {
             // would remove style the running law had just written.
             if (!popup.hasAttribute("data-unfurling")) return;
             for (const name of FLIGHT_VARS) popup.style.removeProperty(name);
+            if (borrowed) popup.style.height = borrowed;
             popup.removeAttribute("data-aimed");
             popup.removeAttribute("data-seed");
             popup.removeAttribute("data-unfurling");
@@ -630,7 +689,44 @@ function useFlight(plan: FlightPlan) {
           } else {
             requestAnimationFrame(depart);
           }
-        });
+        };
+
+        /**
+         * WHEN the entry runs, and the two answers are a property of the panel (§23,
+         * 2026-08-17).
+         *
+         * A microtask is the right moment for a panel placed against its trigger: it runs after
+         * the commit's layout effects, so the boxes are real, and still before paint, so the
+         * pose is the first thing the eye gets. A ref callback is too early — measured, a
+         * half-laid-out sliver ~90px wide, and the flight targeted the sliver.
+         *
+         * A panel placed against its own CONTENTS cannot use it. Base UI computes a select's
+         * overlap from the panel's real box, and a microtask lands before that computation, so
+         * the pose was on the panel while it was being placed and the placement came out
+         * against a silhouette: the chosen row settled 66px below the trigger it exists to sit
+         * on. The entry waits for the box to hold still instead, capped so a placement that
+         * never settles cannot hold the panel forever. Nothing is on screen during the wait —
+         * the pose is transparent until it is aimed.
+         */
+        if (plan.placedByContent) {
+          let previous = "";
+          let waited = 0;
+          const whenPlaced = () => {
+            if (!popup.isConnected || !popup.hasAttribute("data-seed")) return;
+            const box = popup.getBoundingClientRect();
+            const key = `${Math.round(box.top)}x${Math.round(box.height)}`;
+            const placed = popup.parentElement?.hasAttribute("data-side") ?? false;
+            if ((!placed || key !== previous) && waited < 12) {
+              previous = key;
+              waited += 1;
+              return void requestAnimationFrame(whenPlaced);
+            }
+            poseAndFly();
+          };
+          requestAnimationFrame(whenPlaced);
+        } else {
+          queueMicrotask(poseAndFly);
+        }
       };
 
       // The first open begins in THIS commit — not on the starting stamp, which Base UI writes
@@ -701,6 +797,24 @@ export function FloatingBody({ children }: { children: React.ReactNode }) {
      * 2026-08-09 and no law that could see it.
      */
     <div className={FLOATING_PLAN.body} role="presentation" ref={attach}>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * A select's panel body (§23) — the same element, opened rather than flown.
+ *
+ * It wears the floating family's own class, because everything the class carries is about how
+ * a panel LOOKS and how its content is held; the only thing that differs is the gesture, and
+ * the gesture is the runner's, not the element's. Split out as its own component rather than
+ * as a prop on FloatingBody so the choice is made once, in the component that knows it, and
+ * never passed down a tree where a caller could reach it.
+ */
+export function SelectBody({ children }: { children: React.ReactNode }) {
+  const attach = useFlight(SELECT_PLAN);
+  return (
+    <div className={SELECT_PLAN.body} role="presentation" ref={attach}>
       {children}
     </div>
   );
