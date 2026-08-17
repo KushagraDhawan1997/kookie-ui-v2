@@ -1746,10 +1746,12 @@ describe("the panel unfurls out of a seed (§22)", () => {
     }
     mount(<Host />);
     inMotion();
-    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    const clock = await departed(popup);
+    // Awaited for its own sake: `departed` is what puts the flight in the air, and it THROWS
+    // if the pose never came off — the clock it returns is no longer read here, because every
+    // wait below is a state rather than a duration.
+    await departed(popup);
     // Every wait here is a STATE, not a duration (`until`, 2026-08-17): sleeping a computed
     // number of milliseconds and reading once is what made three laws fail on a loaded CI
     // runner and never here.

@@ -495,7 +495,6 @@ describe("the panel materializes (§25)", () => {
     }
     render(<Host />);
     inMotion();
-    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-alert-popup")!;
     // A STATE, not a duration (`until`, 2026-08-17): a flat 1000ms assumes the runner gives
