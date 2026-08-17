@@ -48,8 +48,8 @@ const TONES = Object.keys(tones) as ToneName[];
  * one loop leaves the next author to rediscover this. The generator is pure — the same mode
  * answers the same lines — so memoising it is stating that, not assuming it.
  */
-const DECLARATIONS = new Map<Mode, readonly string[]>();
-function declarationsFor(mode: Mode): readonly string[] {
+const DECLARATIONS = new Map<Mode, string[]>();
+function declarationsFor(mode: Mode): string[] {
   let lines = DECLARATIONS.get(mode);
   if (!lines) {
     lines = colorDeclarations(mode);
