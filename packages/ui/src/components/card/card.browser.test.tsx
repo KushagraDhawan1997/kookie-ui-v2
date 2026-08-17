@@ -9,7 +9,7 @@ import { cdp } from "vitest/browser";
 import { material } from "../../tokens/config.ts";
 import { Theme } from "../../theme/theme.tsx";
 import {
-  GLASS_MATERIALS, APPEARANCES, colorOn, computed, mounted, ownColor, render, within } from "../../test/browser.tsx";
+  GLASS_MATERIALS, APPEARANCES, colorOn, computed, inMotion, mounted, numberOn, ownColor, render, tokenOn as lengthOn, within } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Spinner } from "../spinner/spinner.tsx";
@@ -902,5 +902,162 @@ describe("continuous curvature reaches the DEFAULT world (§6, 2026-08-17)", () 
     probe.style.borderRadius = "var(--radius-surface-3)";
     expect(computed(el, "border-radius")).toBe(computed(probe, "border-radius"));
     probe.remove();
+  });
+});
+
+/* ── An interactive surface MOVES (§8, 2026-08-17) ────────────────────────────────────────
+ *
+ * Card-as-button shipped 2026-08-03 with the control layer's state COLOURS and, when the
+ * motion system landed six days later against `.kui-control`, none of its motion. Measured
+ * before the fix: `transition-duration: 0s` and `translate: none` on a card whose fill was
+ * stepping white-to-grey under the pointer. Nothing failed, because no law here read a clock.
+ *
+ * Stillness is the DEFAULT in these laws and that is deliberate: with the harness's transitions
+ * off, a hovered or pressed value lands on the frame it is asked for, so what is read is the
+ * rule the browser resolved rather than the first sample of a running spring. The two laws that
+ * are about the clocks themselves opt back in — and the first draft did not, which is why a
+ * correct hover rise measured 0px and looked like a missing rule.
+ */
+describe("an interactive surface moves like a control, at its own scale (§8, §10)", () => {
+  /** A card-as-button, and a plain Card beside it as the negative control. */
+  function pair() {
+    const host = render(
+      <Theme>
+        <Card render={<button type="button" />}>Pressable</Card>
+        <Card>Inert</Card>
+      </Theme>,
+    );
+    const [pressable, inert] = [...host.querySelectorAll<HTMLElement>(".kui-surface")];
+    if (!pressable || !inert) throw new Error("both cards must mount");
+    return { host, pressable, inert };
+  }
+
+  it("its paint and its geometry are on the control layer's two clocks", () => {
+    const { pressable, inert } = pair();
+    inMotion();
+    const properties = computed(pressable, "transition-property")
+      .split(",")
+      .map((v) => v.trim());
+    for (const channel of ["background-color", "border-color", "color", "translate", "scale"]) {
+      expect(properties, `${channel} must be on the list`).toContain(channel);
+    }
+    // TWO clocks, and they are the control layer's own values — read resolved, never as the
+    // token names they were written with, which is the whole reason this was wrong for six
+    // days with the colours correct.
+    const raw = (name: string) => getComputedStyle(pressable).getPropertyValue(name).trim();
+    // Milliseconds either way: `transition-duration` computes to seconds and the token is
+    // written in ms, and comparing the STRINGS was the first spelling — a law that fails on a
+    // unit rather than on a value.
+    const ms = (v: string) => (v.endsWith("ms") ? parseFloat(v) : parseFloat(v) * 1000);
+    const durations = computed(pressable, "transition-duration").split(",").map((v) => ms(v.trim()));
+    expect(new Set(durations).size, `two clocks, not one: ${durations.join(" ")}`).toBe(2);
+    expect(durations.slice(0, 3), "paint eases").toEqual(Array(3).fill(ms(raw("--motion-hover-out"))));
+    expect(durations.slice(3), "geometry springs").toEqual(Array(2).fill(ms(raw("--motion-rise"))));
+    expect(raw("--kui-sf-move-ease"), "at rest the geometry recovers, it does not strike").toBe(
+      raw("--motion-spring-lively"),
+    );
+    // A card is a card until you point at it: an inert one has no state machine to clock.
+    expect(computed(inert, "transition-duration"), "a plain card does not move").toBe("0s");
+    expect(computed(inert, "translate"), "nor sit on a transform").toBe("none");
+  });
+
+  it("it rises to meet the pointer, by the SAME pixel a button uses", async () => {
+    const { pressable } = pair();
+    const { userEvent } = await import("vitest/browser");
+    expect(computed(pressable, "translate"), "at rest it sits still").toBe("0px");
+    await userEvent.hover(pressable);
+    // The applied value, not the token: one pixel UP. Shared with the button on purpose —
+    // an absolute distance means the same thing on both boxes, unlike a ratio.
+    const travel = parseFloat(lengthOn(pressable, "--hover-travel"));
+    expect(travel, "calibration: the rise must be a real distance").toBeGreaterThan(0);
+    expect(computed(pressable, "translate")).toBe(`0px ${-travel}px`);
+    await userEvent.unhover(pressable);
+  });
+
+  it("it sinks and shrinks under a real press, by its OWN distances", async () => {
+    const { pressable } = pair();
+    const box = pressable.getBoundingClientRect();
+    // HELD, through CDP: `:active` cannot be forced from script, and a click's press state is
+    // over before anything can read it. Pressed and never released, so the state is live for
+    // the reads below — released in the same law so the pointer does not leak into the next
+    // file (the 2026-08-10 parked-pointer lesson).
+    const at = { x: Math.round(box.left + box.width / 2), y: Math.round(box.top + box.height / 2) };
+    await cdp().send("Input.dispatchMouseEvent", { type: "mousePressed", button: "left", clickCount: 1, ...at });
+    expect(pressable.matches(":active"), "the press must be live or every read below is vacuous").toBe(true);
+
+    const sink = parseFloat(lengthOn(pressable, "--press-travel-surface"));
+    const scale = numberOn(pressable, "--press-scale-surface");
+    expect(computed(pressable, "translate"), "down toward the page").toBe(`0px ${sink}px`);
+    expect(computed(pressable, "scale"), "and smaller with it").toBe(String(scale));
+    // The press's own clock, restated on the state so the RELEASE takes the base clock back.
+    const raw = (name: string) => getComputedStyle(pressable).getPropertyValue(name).trim();
+    expect(raw("--kui-sf-move"), "down hard and fast").toBe(raw("--motion-press"));
+    expect(raw("--kui-sf-move-ease")).toBe(raw("--motion-spring-stiff"));
+    expect(raw("--kui-sf-paint"), "and the colour lands on the first frame of a tap").toBe("0s");
+
+    await cdp().send("Input.dispatchMouseEvent", { type: "mouseReleased", button: "left", clickCount: 1, ...at });
+  });
+
+  it("the surface's distances are its own, and the SCALE is the one that could not be shared", () => {
+    const { pressable } = pair();
+    const surfaceScale = numberOn(pressable, "--press-scale-surface");
+    const controlScale = numberOn(pressable, "--press-scale");
+    const surfaceSink = parseFloat(lengthOn(pressable, "--press-travel-surface"));
+    const controlSink = parseFloat(lengthOn(pressable, "--press-travel"));
+    expect(surfaceScale, "a surface shrinks LESS than a button").toBeGreaterThan(controlScale);
+    expect(surfaceScale, "but it does shrink").toBeLessThan(1);
+    expect(surfaceSink, "and sinks less far").toBeLessThan(controlSink);
+    expect(surfaceSink, "though it does sink").toBeGreaterThan(0);
+    /**
+     * The claim the number was chosen to make, stated as arithmetic rather than as a comment:
+     * scale is RELATIVE, so sharing the button's 0.975 would move a 400px card's edge 5px
+     * against the button's 0.8 and read as the page flexing. These are matched on EDGE
+     * MOVEMENT, which is what the eye reads — within a pixel of each other.
+     */
+    const cardEdge = (400 * (1 - surfaceScale)) / 2;
+    const buttonEdge = (64 * (1 - controlScale)) / 2;
+    expect(Math.abs(cardEdge - buttonEdge), `card ${cardEdge}px vs button ${buttonEdge}px`).toBeLessThan(1);
+    // And the calibration that makes the law non-vacuous: the SHARED factor must fail it.
+    const shared = (400 * (1 - controlScale)) / 2;
+    expect(Math.abs(shared - buttonEdge), "sharing the button's factor must be visibly wrong").toBeGreaterThan(3);
+  });
+
+  it("its ring LANDS, the way a button's does and a field's cannot (§8)", async () => {
+    const { pressable } = pair();
+    inMotion();
+    // The hook, not the animation: the reduced-motion stand-down shares this selector, which is
+    // the 2026-08-10 `:not()` lesson made structural.
+    expect(getComputedStyle(pressable).getPropertyValue("--kui-sf-ring"), "the arrival is declared").toMatch(
+      /kui-ring-land/,
+    );
+    // Reached by KEYBOARD, and that is not ceremony: on a button Chrome matches
+    // `:focus-visible` only when the last interaction was a key — `el.focus()` alone leaves it
+    // false, so a law written that way would assert nothing and report the ring missing.
+    const { userEvent } = await import("vitest/browser");
+    await userEvent.tab();
+    expect(document.activeElement, "the card must be the first tab stop").toBe(pressable);
+    expect(pressable.matches(":focus-visible"), "the ring must be live to read it").toBe(true);
+    expect(computed(pressable, "animation-name"), "and it runs").toBe("kui-ring-land");
+    expect(parseFloat(computed(pressable, "animation-duration")) * 1000).toBe(
+      parseFloat(getComputedStyle(pressable).getPropertyValue("--motion-ring")),
+    );
+    // The one shared arrival, not a second one: the keyframes live in recipes.css.
+    expect(computed(pressable, "outline-style"), "and the ring itself is drawn").toBe("solid");
+  });
+
+  it("stillness reaches every part of it (§8)", async () => {
+    const { pressable } = pair();
+    inMotion();
+    // Calibration first: without it, the harness's own stillness would make this law pass
+    // against a surface that never moved at all.
+    expect(computed(pressable, "transition-duration"), "it must be moving to be stilled").not.toBe("0s");
+    await cdp().send("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+    });
+    expect(computed(pressable, "transition-duration"), "no clocks").toBe("0s");
+    const { userEvent } = await import("vitest/browser");
+    await userEvent.tab();
+    expect(computed(pressable, "animation-name"), "and no arrival").toBe("none");
+    await cdp().send("Emulation.setEmulatedMedia", { features: [] });
   });
 });

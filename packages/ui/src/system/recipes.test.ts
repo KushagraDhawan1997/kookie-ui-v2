@@ -848,8 +848,18 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
    * this substitutes EVERY declaration the sheet gives a hook and requires all of them to
    * hold: a single arm pointing somewhere it should not is what this is for.
    */
+  /**
+   * BOTH private stems, not just the control layer's (widened 2026-08-17). This was written
+   * when `.kui-control` was the only thing in the package that moved, so it knew `--kui-ct-`
+   * and nothing else. The day the interactive surface got its two clocks, its channels read
+   * `var(--kui-sf-move)` — a hook this could not follow — and the two laws below reported a
+   * correctly-sprung translate as unsprung and a correctly-tokenised duration as hand-typed.
+   * They were right to fail: an unresolvable hook is indistinguishable from a made-up one.
+   * The stems are the layers' own (`ct` control, `sf` surface, §12's namespace rule), so a
+   * third layer that starts moving joins here rather than getting a law of its own.
+   */
   function resolveHooks(sheetBody: string, channel: string): string {
-    return channel.replace(/var\((--kui-ct-[\w-]+)\)/g, (_, name: string) => {
+    return channel.replace(/var\((--kui-(?:ct|sf)-[\w-]+)\)/g, (_, name: string) => {
       const declared = [...sheetBody.matchAll(new RegExp(`${name}:\\s*([^;]+);`, "g"))].map(
         (m) => m[1]!.trim(),
       );

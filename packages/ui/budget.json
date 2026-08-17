@@ -1,5 +1,5 @@
 {
   "comment": "CSS budget (DECISIONS.md \u00a72). ceiling = the hard wall (~40KB gzipped). baseline = last accepted gzipped size; ANY increase over baseline fails CI (the regression gate) and must be intentionally re-recorded here in the same commit. Numbers live here and nowhere else.",
   "ceilingGzipBytes": 40960,
-  "baselineGzipBytes": 26522
+  "baselineGzipBytes": 26633
 }

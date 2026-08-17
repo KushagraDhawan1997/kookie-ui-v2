@@ -8,6 +8,37 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-17 The one component with a full state machine and no motion was the card you can press
+
+Asked plainly — *"is there any component left that doesnt have our motion principles?"* — and the honest answer took a measurement rather than a reading, because the gap was in a component nobody would list. Mounted a `<Card render={<button/>}>` beside a Button:
+
+```
+card:    transition-duration: 0s        translate: none
+button:  0.22s paint / 0.55s geometry   translate: 0px
+```
+
+Its fill DID step white-to-grey on hover. It just snapped there, its box never moved, and its focus ring appeared rather than landing.
+
+**It is a dating artifact, not a decision.** Card-as-button shipped 2026-08-03; the motion system landed 2026-08-09/10 and was written against `.kui-control`. §8's roster names button, mark, field, select trigger and slider grip — every one of them a control — and an interactive SURFACE was never in it. §10 had already said the right thing two months earlier ("reuse the control state machine, never invent a surface one"); what nobody noticed is that the sentence has to be as true of how a thing moves as of what colour it turns.
+
+**Everything else came back covered or refused on purpose**, which is what made the one gap worth trusting: fields do nothing by measured decision, Spinner and Progress are motion-as-content, and Separator, Kbd, Code, Blockquote and the type family have no states to move between.
+
+**Kushagra's call: *"should work like button, but because of larger area, perhaps a little different physics."*** Implemented as the control layer's block verbatim — two clocks, lively recovery, stiff press, the shared `kui-ring-land` arrival, the shared one-pixel hover rise — with only the two press DISTANCES the surface's own. That is §8's own rule ("a family says how far it moves and never how long") rather than a concession to it.
+
+**The scale is the number that could not be shared, and the argument is arithmetic.** Scale is relative and these boxes are not the same size: a ~64px button at 0.975 moves each edge 0.8px; a 400px card at the same factor moves each edge 5px, which reads as the page flexing. 0.995 puts a 400px card at 1.0px per edge — matched on EDGE MOVEMENT, which is what the eye reads, not on the ratio, which it does not. The law states that arithmetic and carries the calibration that the shared factor must fail it.
+
+**Rejected, by my own arithmetic, before it was built: a second SPRING.** §24's "mass forbids overshoot" is a real precedent and it argues for `poised` over `lively` on a big box. Then: lively's overshoot is 10.7%, the travel is one pixel, and 10.7% of a pixel is a tenth of a pixel. There is nothing to see, so there is nothing to fix — and `poised` would have been a second curve on this path bought with a plausible story. The same check kills it for the scale channel (0.2px on a 400px card).
+
+**Rejected: paint-only, stating the refusal the way a field's is stated.** It was the safer proposal and I recommended it as an option; the call went the other way and the physics question is what settled it — a card that changes colour but does not answer the finger is not a stated refusal, it is a button missing half its feedback.
+
+**An existing law caught the implementation, correctly.** `resolveHooks` in recipes.test.ts substitutes a channel's hook variables before asking whether it rides a token and springs — and it knew `--kui-ct-` only, because the control layer was the only thing that moved when it was written. The surface's `var(--kui-sf-move)` came back unresolved, so a correctly-sprung translate reported as unsprung and a correctly-tokenised duration as hand-typed. Those failures were RIGHT: an unresolvable hook is indistinguishable from an invented one. Widened to both private stems rather than given an exception, so the third layer that starts moving joins there.
+
+**Two instrument findings, both from laws that measured nothing before they measured something.** The first draft opted the whole block into motion, so a correct hover rise read `0px` — the first sample of a running 550ms spring — and looked exactly like a missing rule; stillness is the default in these laws now, and only the two that are about the clocks themselves opt back in. And the ring law used `el.focus()`: on a BUTTON Chrome matches `:focus-visible` only when the last interaction was a key, so it asserted nothing and reported the ring missing. It tabs to the card now. Five sabotage passes, each arm falsified alone.
+
++74 bytes gzipped, measured against a real build — not against `dist/` as it sat, which is the mistake the same session made an hour earlier and reported as "zero".
+
+---
+
 ## 2026-08-17 A submenu flies from the seam, because a silhouette is only honest when the panel lands on its trigger
 
 Kushagra, on the playground: *"the way submenu appears is quite aggressive, it is correct because it treats the entire submenu trigger as origin, but it ends up traveling a lot, especially if dropdown menu is wide."* Both halves are right, and the second is what the first causes.

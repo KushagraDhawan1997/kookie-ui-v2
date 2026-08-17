@@ -315,6 +315,27 @@
   text-align: inherit;
   color: var(--color-text);
   text-decoration: none;
+  /* THE TWO CLOCKS, one level up (§8, 2026-08-17). This surface had the control layer's state
+     COLOURS since card-as-button shipped on 2026-08-03 and none of its motion, because the
+     motion system landed six days later and was written against `.kui-control` — so the fill
+     stepped white-to-grey with `transition-duration: 0s` and the box never moved at all.
+
+     The block is the control layer's verbatim, deliberately: §10 already says an interactive
+     surface reuses the control state machine rather than inventing a surface one, and that has
+     to be as true of how it moves as of what colour it turns. Paint is a signal and eases;
+     geometry is physics and rides the spring; a press zeroes the paint so the colour lands on
+     the first frame of a ~60ms tap. Only the DISTANCES are the surface's own. */
+  --kui-sf-paint: var(--motion-hover-out);
+  --kui-sf-move: var(--motion-rise);
+  --kui-sf-move-ease: var(--motion-spring-lively);
+  translate: 0 0;
+  scale: 1;
+  transition:
+    background-color var(--kui-sf-paint) var(--motion-easing),
+    border-color var(--kui-sf-paint) var(--motion-easing),
+    color var(--kui-sf-paint) var(--motion-easing),
+    translate var(--kui-sf-move) var(--kui-sf-move-ease),
+    scale var(--kui-sf-move) var(--kui-sf-move-ease);
 }
 
 /* Hover only exists where hovering does — same hardware fact as the control layer. The
@@ -323,18 +344,45 @@
 @media (hover: hover) {
   .kui-surface:where(button, a):hover {
     background-color: var(--kui-sf-fill-hover, var(--look-surface-fill-hover));
+    /* Warming faster than cooling, the control layer's judged asymmetry: arriving is something
+       the user did, leaving is something they stopped doing. */
+    --kui-sf-paint: var(--motion-hover-in);
+    /* And it rises to meet the pointer. `--hover-travel` is shared with the button and not
+       re-designed, because one pixel means the same thing on a card as on a button: it is an
+       absolute distance, not a ratio. */
+    translate: 0 calc(-1 * var(--hover-travel));
   }
 }
 
 /* Press is unguarded and instant: on touch it is the only feedback there is. */
 .kui-surface:where(button, a):active {
   background-color: var(--kui-sf-fill-active, var(--look-surface-fill-active));
+  --kui-sf-paint: 0s;
+  /* Down hard and fast; the release takes the base clock back because this is restated on the
+     STATE rather than swapped globally. */
+  --kui-sf-move: var(--motion-press);
+  --kui-sf-move-ease: var(--motion-spring-stiff);
+  /* The distances the surface designs for itself, and the scale is the one that could not be
+     shared (config): scale is RELATIVE, so a button's 0.975 moves a 400px card's edge 5px and
+     reads as the page flexing. These are matched on EDGE MOVEMENT, which is what the eye reads.
+     The sink is halved for the same reason a heavier thing moves less under the same push. */
+  translate: 0 var(--press-travel-surface);
+  scale: var(--press-scale-surface);
 }
 
-/* The one ring, shared with every control (§8). */
+/* The one ring, shared with every control (§8) — and since 2026-08-17 it LANDS like one. The
+   `kui-ring-land` keyframes live in recipes.css and are the system's one arrival; a card is a
+   click target the eye must find after a Tab exactly as a button is, and it has more room than
+   the 4px floor that rules a field's ring out. Declared as a HOOK for the same reason the
+   control's is: the reduced-motion stand-down then shares this selector and cannot be
+   separated from it by specificity. */
+.kui-surface:where(button, a) {
+  --kui-sf-ring: kui-ring-land var(--motion-ring) var(--motion-spring-stiff);
+}
 .kui-surface:where(button, a):focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
+  animation: var(--kui-sf-ring);
 }
 
 /* ── The elevated world (§5, §10): an app identity, never a per-card knob ─────────────────────
@@ -1174,8 +1222,17 @@
      `.kui-dialog-popup .kui-dialog-body`, so a guard written one class lighter loses the tie
      and every clock survives the setting. A stand-down must weigh what it stands down. */
   .kui-surface.kui-overlay.kui-dialog-popup,
-  .kui-dialog-popup .kui-dialog-body {
+  .kui-dialog-popup .kui-dialog-body,
+  /* The interactive surface's two clocks (2026-08-17), spelled at the recipe's own weight for
+     the reason stated just above — the recipe is `.kui-surface:where(button, a)`, and `:where`
+     contributes nothing, so this ties on specificity and wins on source order. */
+  .kui-surface:where(button, a) {
     transition: none;
+  }
+  /* And its ring hook, the `--kui-ct-ring` doctrine one layer up: the stand-down is declared on
+     the same selector as the recipe, so specificity can never separate them. */
+  .kui-surface:where(button, a) {
+    --kui-sf-ring: none;
   }
   /* The POSES are not stood down here, and that is the decision rather than an omission
      (2026-08-16). A pose is stamped by the runner, and the runner returns before stamping

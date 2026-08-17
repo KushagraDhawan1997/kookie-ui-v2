@@ -250,7 +250,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§9, §10",
     blurb:
-      "A shell, deliberately: one fixed treatment — an opaque seal and a border — with size as its only prop, and no stylesheet of its own. It was stripped back to this on the finding that a card with tone, emphasis and anatomy slots was a layout pretending to be a component.",
+      "A shell, deliberately: one fixed treatment — an opaque seal and a border — with size as its only prop, and no stylesheet of its own. It was stripped back to this on the finding that a card with tone, emphasis and anatomy slots was a layout pretending to be a component. Rendered as a button or a link it becomes interactive, and since 2026-08-17 it MOVES like one: the control layer's two clocks, its lively recovery and stiff press, its ring landing, and the same one-pixel rise to meet the pointer. Only the press distances are the surface's own — a card sinks 1px and shrinks to 0.995, because scale is relative and a button's 0.975 would move a wide card's edge five pixels and read as the page flexing.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "padding and corner, not height" },
     ],

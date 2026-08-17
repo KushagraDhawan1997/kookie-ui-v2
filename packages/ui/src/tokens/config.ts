@@ -715,6 +715,33 @@ export const controlMotion = {
   /** How far a pressed button sinks, and how far it shrinks doing it. */
   pressTravel: 2,
   pressScale: 0.975,
+  /**
+   * The same press on an INTERACTIVE SURFACE — a card-as-button (2026-08-17, Kushagra: *"should
+   * work like button, but because of larger area, perhaps a little different physics"*).
+   *
+   * Only the DISTANCES are the surface's own, which is §8's rule stated exactly: a family says
+   * how far it moves and never how long it takes. It rides the same two clocks, the same stiff
+   * press and lively recovery, and the same ring — the surface REUSES the control state machine
+   * rather than inventing one (§10's card-as-button rule, now true of the motion layer too).
+   *
+   * The scale is the number that could not be shared, because scale is RELATIVE and these boxes
+   * are not the same size. A button ~64px wide at 0.975 moves each edge 0.8px; a 400px card at
+   * the same factor moves each edge 5px, which reads as the page flexing rather than as a
+   * press. 0.995 puts a 400px card at 1.0px per edge — matched to the button's EDGE movement,
+   * which is what the eye actually reads, rather than to its ratio, which it does not.
+   *
+   * A separate SPRING was proposed with these and refuted by arithmetic before it was built:
+   * §24's "mass forbids overshoot" argues for `poised` over `lively`, but lively's overshoot is
+   * 10.7% and 10.7% of one pixel is a tenth of a pixel. There is nothing to see, so there is
+   * nothing to fix, and a second curve would have been entropy bought with a plausible story.
+   *
+   * The hover rise stays `hoverTravel` — one pixel means the same thing on both, since it is an
+   * absolute distance and not a ratio.
+   *
+   * Both v0, for the eye pass.
+   */
+  surfacePressTravel: 1,
+  surfacePressScale: 0.995,
   /** A pressed mark squashes rather than sinking — it has no depth to sink into. */
   pressSquash: 0.9,
   /**

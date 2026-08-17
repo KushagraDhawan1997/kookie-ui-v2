@@ -252,6 +252,9 @@ export function generateTokens(): string {
   put("press-travel", zoom(controlMotion.pressTravel));
   put("press-scale", String(controlMotion.pressScale));
   put("press-squash", String(controlMotion.pressSquash));
+  // The interactive surface's own two distances — same clocks, same springs, bigger box (§8).
+  put("press-travel-surface", zoom(controlMotion.surfacePressTravel));
+  put("press-scale-surface", String(controlMotion.surfacePressScale));
   put("thumb-lean", zoom(controlMotion.thumbLean));
   put("motion-spring-lively", springCurve(springs.lively));
   put("motion-spring-stiff", springCurve(springs.stiff));
