@@ -56,6 +56,7 @@ import {
   renderSettled,
   settle,
   flushFlight,
+  until,
   asksForStillness,
   type Cell,
 } from "../../test/browser.tsx";
@@ -1749,21 +1750,27 @@ describe("the panel unfurls out of a seed (§22)", () => {
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
     const clock = await departed(popup);
-    await wait(clock + 50); // land the first flight, by its own clock
+    // Every wait here is a STATE, not a duration (`until`, 2026-08-17): sleeping a computed
+    // number of milliseconds and reading once is what made three laws fail on a loaded CI
+    // runner and never here.
+    await until(() => !popup.hasAttribute("data-unfurling"));
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight landed").toBe(false);
     flushSync(() => setOpen(false));
-    await wait(60); // mid-dissolve (the dissolve clock is 140ms)
+    // Mid-dissolve is a WINDOW, and a fixed 60ms into a 140ms clock is the shape that
+    // overshoots. Sampled, the stamp is caught the frame it lands.
+    await until(() => popup.hasAttribute("data-ending-style"), 400);
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
     expect(popup.hasAttribute("data-ending-style"), "the premise: mid-dissolve").toBe(true);
     flushSync(() => setOpen(true)); // the quick reopen
-    // Not a microtask wait: Base UI removes the ending stamp on its own FRAME (probed —
-    // at 0ms the announcement has not landed yet), and the begin follows it.
-    await wait(50);
+    // Base UI removes the ending stamp on its own FRAME (probed — at 0ms the announcement has
+    // not landed yet) and the runner's begin follows it, so this waits for the pose rather
+    // than for a number of milliseconds it hopes is long enough.
+    await until(() => popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"), 800);
     expect(
       popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"),
       "the reopen begins a fresh flight, not a recovery from the half-dissolved pose",
     ).toBe(true);
-    await wait(clock + 100); // and it LANDS — the new flight's own clock releases it
+    await until(() => !popup.hasAttribute("data-unfurling")); // and it LANDS
     expect(popup.hasAttribute("data-unfurling"), "the stale clock did not strip the new flight").toBe(false);
     expect(computed(popup, "opacity")).toBe("1");
   });
@@ -1866,7 +1873,9 @@ describe("the panel unfurls out of a seed (§22)", () => {
     await wait(200); // mid-flight
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight is airborne").toBe(true);
     flushSync(() => setOpen(false));
-    await wait(40); // mid-dissolve (the dissolve clock is 140ms)
+    // The stamp, not a stopwatch: a fixed 40ms into a 140ms dissolve is the same overshoot
+    // hazard the rest of this law was rewritten to remove.
+    await until(() => popup.hasAttribute("data-ending-style"), 400);
     expect(popup.hasAttribute("data-ending-style"), "the premise: dismissed, not yet gone").toBe(true);
     flushSync(() => setOpen(true));
     await flushFlight();
@@ -2299,10 +2308,24 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // claim is the direction.
     const [, y] = computed(body, "translate").split(" ");
     expect(parseFloat(y ?? "0"), "the content does not rise into place").toBeGreaterThan(0);
-    // And it ARRIVES: everything above is a pose, and a pose that never comes off is a panel
-    // whose rows never appear.
+    /**
+     * And it ARRIVES: everything above is a pose, and a pose that never comes off is a panel
+     * whose rows never appear.
+     *
+     * Waited to the VALUES, not to the pose coming off (2026-08-17, after this failed on CI
+     * and never here). The pose is stripped on the flight's clock, and the body's own print
+     * runs on a clock of its own that is still finishing its last frames at that instant —
+     * measured on the runner at `blur(0.093377px)`, a tenth of a pixel short of `none`. The
+     * deadline is a ceiling on a print that never lands, not a timing claim: if the content
+     * genuinely never sharpens, the loop expires and the assertions below fail holding
+     * whatever it was left with.
+     */
     const deadline = performance.now() + 3000;
-    while (popup.hasAttribute("data-unfurling") && performance.now() < deadline)
+    const arrived = () =>
+      !popup.hasAttribute("data-unfurling") &&
+      computed(body, "filter") === "none" &&
+      computed(body, "translate") === "none";
+    while (!arrived() && performance.now() < deadline)
       await new Promise((r) => requestAnimationFrame(() => r(null)));
     expect(parseFloat(computed(body, "opacity")), "the content never printed").toBeCloseTo(1, 1);
     expect(computed(body, "filter"), "the content never sharpened").toBe("none");
