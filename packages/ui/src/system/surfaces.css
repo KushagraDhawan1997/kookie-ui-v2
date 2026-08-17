@@ -772,11 +772,18 @@
 }
 
 /* There are no per-side lean arms: the silhouette's translate is MEASURED (--kui-from-x/y),
-   so every anchor — a menu's button, a select's field, a submenu's own trigger ROW — gets
-   the exact overlay for free, in RTL and at every side/align, with no judged distance
-   anywhere. The 2026-08-10 morph refused the row overlay for a submenu (its seed then flew
-   in from the side, thrown over the parent); measurement is what removed the objection:
-   the row-shaped seed starts ON the row and grows the short, true distance out. v0. */
+   so every anchor — a menu's button, a select's field — gets the exact overlay for free, in
+   RTL and at every side/align, with no judged distance anywhere.
+
+   A panel that lands BESIDE its trigger is the exception, and it is decided by the placement
+   rather than by the component (system/floating.tsx's `BESIDE`). This block used to claim
+   that the row-shaped seed "grows the short, true distance out" for a submenu; measured on a
+   365px menu it is 366px of travel, from a 353px seed into a 92px panel — the unfurl running
+   backwards, and both numbers the parent panel's width. A silhouette is honest only where the
+   panel LANDS on its trigger; a submenu lands beside the panel its row sits in. So a
+   side-opening panel keeps the row's height and corner, drops the width photograph to the
+   family's designed seed, and starts at x=0 — the positioner is already holding its start
+   edge at the final place, so it simply grows out of the seam. v0. */
 
 /* While the box is deliberately smaller than what it holds, it clips. `overflow-y: auto`
    computes the OTHER axis to `auto` too, so an unclipped flight is two live scrollbars.

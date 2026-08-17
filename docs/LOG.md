@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-17 A submenu flies from the seam, because a silhouette is only honest when the panel lands on its trigger
+
+Kushagra, on the playground: *"the way submenu appears is quite aggressive, it is correct because it treats the entire submenu trigger as origin, but it ends up traveling a lot, especially if dropdown menu is wide."* Both halves are right, and the second is what the first causes.
+
+**Measured before anything was changed**, sampling the child panel per frame on a 365px menu: the seed is `353 x 30` at x=10 — the sub-trigger row, whole — and the panel lands `92 x 73` at x=376. So it slides **366px right while shrinking to a quarter of its width**, overshooting to 398 on the elastic spring on the way. Both of those numbers ARE the parent panel's width, which is exactly why it gets worse the wider the menu is. Every other member of the family unfurls out of something smaller; the submenu was the one running backwards.
+
+**The rule that broke.** §22's silhouette is honest where the panel LANDS on the thing it came out of: a menu hangs off its button, a select straddles its field, and in both the first frame reads as the trigger's own body about to lift. A submenu never lands on its row — it lands beside the panel the row is in — so photographing the row starts the panel somewhere it will never be. This was reasoned about in 2026-08-10 and *refused* then ("its seed then flew in from the side, thrown over the parent"), and the 2026-08-15 morph re-opened it on the strength of the measured overlay. What neither pass did was measure the travel at a realistic width.
+
+**The fix is keyed on the placement, never on the component.** The positioner already publishes `data-side` (measured: `inline-end`), so the runner asks the question the placement has answered rather than asking a component what kind of thing it is — and Dialog, Select and any future side-anchored panel are covered by the same sentence. A side-opening panel keeps the row's height and corner, because that shared edge is real and the submenu does emerge at the row's own line; it drops the width photograph back to the family's designed seed; and its x offset is **zero**, because the positioner is already holding the panel's start edge at its final place, so the seed simply begins there and grows out.
+
+That zero is worth its own line: it makes the case **direction-blind for free**, which the measured offset was not. No left/right decision is taken anywhere, so RTL is the same code — the "the seed is a SIZE and nothing else" mechanism surfaces.css already relies on.
+
+**Decided in `aim()`, not where `--kui-seed-w` is written.** That is the first moment the placement is certain — the aim returns early until the positioner carries `data-side` — and the pose is invisible until the aim stamps `data-aimed`, so no frame can paint the wrong seed. Writing it earlier would have meant reading a stamp that may not be there yet, which is the failure mode this runner has already been caught by twice.
+
+**Rejected: keeping the row silhouette and only shortening the seed to the submenu's own width.** It removes the backwards shrink and leaves the entire 366px slide, which is the larger half of what was complained about.
+
+**Two laws moved.** The new one (`a panel that lands BESIDE its trigger grows out of the SEAM`) is falsified in both arms independently — reverting the offset reproduces `-358px`, reverting the width photograph reproduces `352.625px`. It opens by HOVER, and that is load-bearing: the first spelling used `defaultOpen` on the sub, which mounts both panels in one commit and places the child against a parent that has not settled — the pre-fix travel measured **5.8px** there instead of 366. It also reads the LAST seeded frame rather than the first, because the runner aims twice and the first aimed frame sits against a positioner still at the document origin (10px, not 366). Both were caught by sabotaging the fix and finding the law's failure message too small to be the defect. The older law that asserted the row silhouette kept only the half that did not change — the edge the positioner holds and the pivot that follows it — rather than being taught the new geometry, so the seam has one home.
+
+---
+
 ## 2026-08-17 A select's panel is placed by what is inside it, so it is placed before it is posed
 
 Kushagra, after the fix below had closed the page's own movement and a flicker survived it: *"will it be solved if animation is changed for select where it still flies, but the selected item always appear on top of trigger 1:1, so that the remainder of the list sits a little above and below the trigger depending on the item's position, like radix — you can see apple is exactly where it is on screen."* And then, on the first attempt at it: *"I would expect same animation as dropdown, but only the position changes… I still expect the animation."*

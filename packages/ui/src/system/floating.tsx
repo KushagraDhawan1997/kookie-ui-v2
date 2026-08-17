@@ -275,6 +275,13 @@ const FLIGHT_VARS = [
     would retire a live flight — the 2026-08-16 defect, and the asymmetry decides the default. */
 const FLIGHT_GEOMETRY = /^(inline-size|block-size|width|height|translate|scale|padding|margin|border-.*-radius)/;
 
+/** The placements where a panel lands BESIDE its trigger rather than over or under it — the
+    positioner's own stamp, so the entry asks the question the placement already answered
+    instead of asking the component what kind of thing it is. Both spellings: Base UI writes
+    the logical pair for a submenu (measured: `inline-end`) and the physical pair is what an
+    explicitly-sided consumer would get. */
+const BESIDE = /^(inline-start|inline-end|left|right)$/;
+
 /** The popup's CURRENT flight's release, so a new entry can retire the old one first (the
     quick-reopen fix, 2026-08-16): a reopen can begin before the previous flight's clock has
     fired, and that stale timer — keyed on the very attributes the new flight also wears —
@@ -644,8 +651,41 @@ function useFlight(plan: FlightPlan) {
             const triggerBox = trigger.getBoundingClientRect();
             const insetLeft = popup.offsetLeft;
             const insetTop = popup.offsetTop;
-            popup.style.setProperty("--kui-from-x", `${triggerBox.left - (positionerBox.left + insetLeft)}px`);
+            /**
+             * A panel that lands BESIDE its trigger flies from the SEAM, not from the whole
+             * silhouette (§22, 2026-08-17, Kushagra: *"the way submenu appears is quite
+             * aggressive… it ends up traveling a lot, especially if dropdown menu is wide"*).
+             *
+             * The silhouette is honest only where the panel LANDS on the thing it came out of:
+             * a menu hangs off its button, a select straddles its field, and in both the first
+             * frame is the trigger's own body about to lift. A submenu never lands on its row —
+             * it lands beside the panel the row is in — so photographing the row starts the
+             * panel somewhere it will never be, and the unfurl runs backwards. Measured on a
+             * 365px menu: the seed was 353 x 30 at x=10 and the panel is 92 x 73 at x=376, so
+             * it slid 366px right while shrinking to a quarter of its width, overshooting to
+             * 398 on the way. Both numbers ARE the parent panel's width, which is why it gets
+             * worse the wider the menu is.
+             *
+             * So the seed keeps the row's height and corner — the edge they share is real, and
+             * the submenu does emerge at the row's own line — and gives up the width
+             * photograph, falling back to the family's designed seed. The x offset is ZERO:
+             * the positioner already holds the panel's start edge at its final place, so the
+             * seed simply begins there and grows outward. That also makes it direction-blind
+             * for free, which the measured offset was not: no left/right decision is taken, so
+             * RTL is the same code (the seed is a SIZE and nothing else — surfaces.css).
+             *
+             * Decided HERE rather than where `--kui-seed-w` is written, because this is the
+             * first moment the placement is certain: the aim returns early until the positioner
+             * carries `data-side`, and the pose is invisible until the aim stamps `data-aimed`,
+             * so no frame can paint the wrong seed.
+             */
+            const beside = BESIDE.test(positioner.getAttribute("data-side") ?? "");
+            popup.style.setProperty(
+              "--kui-from-x",
+              beside ? "0px" : `${triggerBox.left - (positionerBox.left + insetLeft)}px`,
+            );
             popup.style.setProperty("--kui-from-y", `${triggerBox.top - (positionerBox.top + insetTop)}px`);
+            if (beside) popup.style.removeProperty("--kui-seed-w");
             // The visibility gate: a silhouette painted before this write sits wherever the
             // last layout left it — measured, one frame at x=2275 — so the pose stays
             // transparent until it is placed. An unanchored panel is placed by construction

@@ -1466,6 +1466,112 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(computed(popup, "pointer-events"), "the flight must hit-test").toBe("auto");
   });
 
+  it("a panel that lands BESIDE its trigger grows out of the SEAM, not out of the row (§22)", async () => {
+    /**
+     * The silhouette's one exception, and it is decided by the placement rather than by the
+     * component (2026-08-17, Kushagra: *"the way submenu appears is quite aggressive… it ends
+     * up traveling a lot, especially if dropdown menu is wide"*).
+     *
+     * A silhouette is honest where the panel LANDS on the thing it came out of. A submenu
+     * lands beside the panel its row sits in, so the row-shaped seed started it somewhere it
+     * will never be: measured on this mount before the fix, a 353 x 30 seed at x=10 flying
+     * into a 92 x 73 panel at x=376 — 366px of travel while SHRINKING to a quarter of its
+     * width, and both numbers are the parent panel's width, which is what makes it worse the
+     * wider the menu is.
+     *
+     * The parent row is deliberately long. A narrow menu would pass this law with the old
+     * code, because there the row and the seam are nearly the same place — which is exactly
+     * how the wrong rule survived being looked at.
+     *
+     * And it is opened by HOVER, not by `defaultOpen` on the sub. That was the first spelling
+     * and it measured nothing: mounting both panels in one commit places the child against a
+     * parent that has not settled, so the aim read a positioner still sitting near the row and
+     * the pre-fix travel came out at 5.8px instead of the 366 a real open produces. A law that
+     * cannot see the defect it was written for is worse than no law.
+     */
+    mount(
+      <Theme>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>Open</Button>} />
+          <MenuContent>
+            <MenuItem>Duplicate this whole project into a new workspace</MenuItem>
+            <MenuSub>
+              <MenuSubTrigger>Export as</MenuSubTrigger>
+              <MenuSubContent>
+                <MenuItem>PNG</MenuItem>
+                <MenuItem>SVG</MenuItem>
+              </MenuSubContent>
+            </MenuSub>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    inMotion();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const settledParent = document.querySelector<HTMLElement>(".kui-menu-popup")!;
+    const subTrigger = [...settledParent.querySelectorAll<HTMLElement>("[role='menuitem']")].find((el) =>
+      el.textContent?.includes("Export as"),
+    )!;
+    const { userEvent } = await import("vitest/browser");
+    await userEvent.hover(subTrigger);
+
+    /**
+     * The LAST seeded frame, not the first — and the difference is a whole order of magnitude.
+     * The runner aims twice (a microtask, then a correcting frame, because floating-ui can
+     * place the positioner after the measurement lands), so the first aimed frame is read
+     * against a positioner still sitting at the document's origin: the pre-fix offset measured
+     * 10px there and 366px one frame later. The frame that starts the flight is the one before
+     * the pose comes off, so that is the frame this law is about.
+     */
+    let child: HTMLElement | undefined;
+    let seed: DOMRect | undefined;
+    let fromX = "";
+    let seedW = "";
+    for (let i = 0; i < 40; i++) {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      const panels = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].slice(1);
+      const posed = panels.find((el) => el.hasAttribute("data-seed") && el.hasAttribute("data-aimed"));
+      if (posed) {
+        child = posed;
+        seed = posed.getBoundingClientRect();
+        fromX = posed.style.getPropertyValue("--kui-from-x");
+        seedW = posed.style.getPropertyValue("--kui-seed-w");
+      } else if (child) break;
+    }
+    if (!child || !seed) throw new Error("the submenu never reached an aimed seed frame");
+
+    const rowBox = subTrigger.getBoundingClientRect();
+    // Calibration: a short row cannot tell the two rules apart, and this law's whole subject
+    // is what happens when the parent is wide.
+    expect(rowBox.width, "the parent row must be long enough to matter").toBeGreaterThan(200);
+    expect(child.parentElement?.getAttribute("data-side"), "and the panel must land beside it").toMatch(
+      /^(inline-start|inline-end|left|right)$/,
+    );
+
+    // It starts at the panel's own start edge — no travel across the parent at all. Read as
+    // the flight's own offset rather than by differencing two boxes, because that is the one
+    // number the fix writes.
+    expect(fromX, "no lateral travel").toBe("0px");
+    expect(Math.abs(seed.left - rowBox.left), "the pre-fix code sat ON the row").toBeGreaterThan(100);
+
+    // And it GROWS. The width photograph is gone — the seed falls back to the family's
+    // designed diameter — while the row's height and corner stay, because that edge is real.
+    expect(seedW, "no width photograph").toBe("");
+    expect(seed.width, "the seed is the family's designed one").toBeCloseTo(
+      parseFloat(tokenOn(child, "--floating-seed")),
+      0,
+    );
+    expect(seed.width, "a fraction of the row it came from").toBeLessThan(rowBox.width / 2);
+    expect(Math.abs(seed.height - rowBox.height), "at the row's own height").toBeLessThan(3);
+
+    // The direction of the unfurl, which is the whole complaint: the box must be smaller than
+    // what it becomes, in both axes.
+    const flyW = parseFloat(child.style.getPropertyValue("--kui-fly-w"));
+    const flyH = parseFloat(child.style.getPropertyValue("--kui-fly-h"));
+    expect(seed.width, `it must open into ${flyW}px, not shrink to it`).toBeLessThan(flyW);
+    expect(seed.height, `and into ${flyH}px`).toBeLessThan(flyH);
+  });
+
   it("the box it grows into is measured, and it is the panel's own", async () => {
     // The cell is chosen, not default: a panel whose natural width lands on a whole pixel
     // cannot test a claim about fractions, and the default one lands exactly on its 112px
@@ -2271,19 +2377,14 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(child.getAttribute("data-side")).toMatch(/right|inline-end/);
     expect(computed(child, "transform-origin")).toBe("0px 0px");
     expect(computed(child, "margin-inline-start")).toBe("0px");
-    // A submenu's seed is its trigger ROW's silhouette (2026-08-15) — the same measured
-    // overlay every anchor gets, no arm of its own. The 2026-08-10 morph refused this
-    // (its lean flew the row in from the side); measurement removed the objection.
     expect(child.hasAttribute("data-seed"), "the read must land on the seed frame").toBe(true);
-    // One frame for the aim.
-    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-    const row = parent.querySelector<HTMLElement>(".kui-menu-sub-trigger, [data-popup-open]")!;
-    const rowBox = row.getBoundingClientRect();
-    const seed = child.getBoundingClientRect();
-    expect(Math.abs(seed.left - rowBox.left), "sitting on its own trigger row").toBeLessThan(3);
-    expect(Math.abs(seed.top - rowBox.top)).toBeLessThan(3);
-    expect(Math.abs(seed.width - rowBox.width), "the row's own width").toBeLessThan(3);
-    expect(Math.abs(seed.height - rowBox.height), "and height").toBeLessThan(3);
+    // The seed's own GEOMETRY is no longer this law's subject (2026-08-17). It used to assert
+    // the row's silhouette — left, top, width and height all within 3px of the trigger row —
+    // and that rule is gone: a panel landing BESIDE its trigger flies from the seam instead
+    // (see "a panel that lands BESIDE its trigger grows out of the SEAM"). This law keeps the
+    // half that did not change, which is the edge the positioner holds and the pivot that
+    // follows it. Splitting them is deliberate: the seam law has to open by hover to measure
+    // anything real, and this one is about a fact readable the moment the panel exists.
   });
 });
 
