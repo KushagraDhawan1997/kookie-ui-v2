@@ -24,6 +24,7 @@ import {
   ShellTrigger,
 } from "./shell.tsx";
 import { Card } from "../card/card.tsx";
+import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
 import { computed, mounted, tokenOn, within } from "../../test/browser.tsx";
 import { VIEWPORT as WIDE } from "../../test/viewport.ts";
 
@@ -635,6 +636,96 @@ describe("flush and floating: one fact, two postures (§26)", () => {
       expect(tokenOn(themed, "--shell-gap"), density).toBe(tokenOn(themed, "--layout-space-3"));
       shell.remove();
     }
+  });
+});
+
+/**
+ * PLACEMENT (§26, added 2026-08-16 — Kushagra: "Shell should be able to sit at app root, its
+ * designed for it, or be placed in a modal or dialog or whatever too").
+ *
+ * The shell is designed for the app root, and at the root its containment is complete by
+ * construction: contain every child of the shell and you have contained the app. But it must
+ * also COMPOSE, and a Shell inside a Dialog is the placement that proves it — measured, the
+ * layout and the containment were already right, and exactly one thing was wrong: a single
+ * Escape closed the pane AND the dialog around it, the same layer-blindness the audit fixed
+ * in the other direction. Falsified against the code without `stopPropagation`.
+ */
+describe("placement: at the root, and composed inside another layer (§26)", () => {
+  it("inside a Dialog: the shell lays out, contains its own children, and answers Escape ALONE", async () => {
+    const onOpenChange = vi.fn();
+    mounted(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogTitle>Embedded</DialogTitle>
+          <div style={{ height: 400 }}>
+            <Shell>
+              <ShellHeader>
+                <ShellTrigger target="sidebar">nav</ShellTrigger>
+              </ShellHeader>
+              <ShellSidebar presentation="overlay" aria-label="Primary">
+                <button type="button">in sidebar</button>
+              </ShellSidebar>
+              <ShellContent>
+                <button type="button">in content</button>
+              </ShellContent>
+            </Shell>
+          </div>
+        </DialogContent>
+      </Dialog>,
+      { theme: {} },
+    );
+    await expect.poll(() => document.querySelector(".kui-shell")).not.toBe(null);
+    const shell = document.querySelector(".kui-shell") as HTMLElement;
+    // It lays out inside the panel rather than collapsing or spilling.
+    const box = shell.getBoundingClientRect();
+    expect(box.width).toBeGreaterThan(0);
+    expect(box.height).toBeCloseTo(400, 0);
+
+    within(shell, ".kui-shell-header button").click();
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => sidebar.dataset.state).toBe("open");
+    // Containment inside the shell is the shell's, and it works here exactly as at the root.
+    expect(computed(sidebar, "position")).toBe("absolute");
+    expect(within(shell, ".kui-shell-content").inert).toBe(true);
+    expect(computed(within(shell, ".kui-shell-scrim"), "display")).toBe("block");
+
+    // ONE key, ONE layer: the pane is the innermost dismissible thing, so it answers and the
+    // dialog never hears it.
+    pressEscape(sidebar);
+    await expect.poll(() => sidebar.dataset.state).toBe("closed");
+    expect(document.querySelector(".kui-dialog-popup"), "the dialog closed too").not.toBe(null);
+    expect(onOpenChange, "the dialog was told to close").not.toHaveBeenCalled();
+    // And with the pane gone, Escape belongs to the dialog again.
+    within(shell, ".kui-shell-content button").focus();
+    within(shell, ".kui-shell-content button").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    await expect.poll(() => onOpenChange.mock.calls.length).toBeGreaterThan(0);
+  });
+
+  it("at the root: containing every child of the shell IS containing the app", async () => {
+    // The root placement's own claim, stated as a law so the "containment stops at the shell
+    // root" limit in §26 is scoped rather than vague: every child of the root — including one
+    // the app rendered itself, not just panes — is contained while a pane overlays.
+    await narrow();
+    const shell = mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellSidebar defaultOpen aria-label="Primary">s</ShellSidebar>
+        <ShellContent>c</ShellContent>
+        <div data-app-owned>
+          <button type="button">app widget</button>
+        </div>
+      </Shell>,
+      { theme: {} },
+    );
+    await expect.poll(() => within(shell, ".kui-shell-content").inert).toBe(true);
+    expect(within(shell, "[data-app-owned]").inert, "an app-owned child escaped containment").toBe(
+      true,
+    );
+    const widget = within(shell, "[data-app-owned] button");
+    widget.focus();
+    expect(document.activeElement).not.toBe(widget);
   });
 });
 

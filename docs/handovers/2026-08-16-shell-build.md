@@ -112,13 +112,21 @@ both are fixed and noted in LOG.
 - **v0 taste values** for the eye pass: pane widths (64/288/320/200 — v1's judged numbers),
   the floating gap pick (layout-space 3 ≈ 8px), the auto postures, and flush-vs-floating in
   an elevated world (flush panes casting shadows onto neighbours is a cell nobody judged).
-- **Two limits I left open rather than papered over**, both in §26. Containment stops at the
-  shell root, so if you put a Shell inside a bigger page, the rest of that page is still
-  reachable by Tab while a pane overlays (the pointer half is covered — the scrim spans the
-  shell). And containment only exists once JavaScript runs, so a server-rendered shell that
-  starts with an overlay open is uncontained for keyboard and screen readers until hydration.
-  Both are genuine design questions rather than bugs with obvious fixes, and a half-answer to
-  either would look exactly like the answer.
+- **Placement is settled and tested both ways.** At the app root — what it is designed for —
+  switching off every child of the shell *is* switching off the app, so nothing leaks. Inside
+  a Dialog, the dialog already handles everything outside it, so the shell doing its own
+  children is exactly right. Both are covered by tests. Checking this found one real bug: a
+  single Escape was closing the panel *and* the dialog around it. Now the innermost thing
+  answers the key and nothing else hears it. The one placement not claimed is a Shell dropped
+  into a larger page as a widget — there the surrounding page stays keyboard-reachable behind
+  an open panel (mouse users are fine, the dim layer covers it).
+- **One limit still open**, in §26: the switching-off only works once JavaScript loads, so a
+  page arriving from the server with a panel already open is briefly unprotected for keyboard
+  and screen-reader users. Not patched quietly, because a half-answer would look like the
+  answer.
+- **Note for embedded use:** the automatic "open on desktop, closed on phone" behaviour reads
+  the *window*, not the box the shell is in. That is right at the app root. A Shell inside a
+  dialog should say what it wants explicitly.
 - **The playground section** (`/preview`, "Shell") is the judging surface: a flush demo
   with triggers and a floating demo with rail + sidebar. Drag the window across 768px to
   watch auto resolve with nothing re-rendering.

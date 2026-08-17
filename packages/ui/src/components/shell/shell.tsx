@@ -301,18 +301,30 @@ export function Shell({ panes = "flush", className, style, children, ref, ...pro
   const liveCount = [...store.entries.values()].filter((e) => e.overlayLive).length;
 
   /**
-   * Escape closes the overlays — listened on the ROOT, not on `document` (audit 2026-08-16).
-   * A document listener is layer-blind: a Dialog or Menu opened from inside an overlaying
-   * pane portals to `document.body` and takes focus with it, so its own Escape would ALSO
-   * dismiss the pane underneath — one key, two dismissals. Bound to the root, the key only
-   * reaches this handler when focus is genuinely inside the shell, which is exactly when the
-   * pane is the topmost thing the user is in.
+   * Escape closes the overlays, and it is ONE key for ONE layer — in both directions
+   * (audit 2026-08-16, then the placement pass).
+   *
+   * Listened on the ROOT rather than on `document`, because a document listener is blind to
+   * what is ABOVE it: a Dialog or Menu opened from inside an overlaying pane portals to
+   * `document.body` and takes focus with it, so its own Escape also dismissed the pane
+   * underneath. Bound to the root, the key only arrives when focus is genuinely inside the
+   * shell.
+   *
+   * And the event STOPS here when this handler consumes it, because the shell is blind to
+   * what is BELOW it in the same way: a Shell placed inside a Dialog is a supported
+   * placement (§26 — the shell is designed for the app root and must also compose), and
+   * measured before this line existed, one Escape closed the pane AND the dialog around it.
+   * The pane is the innermost dismissible thing the user is in, so it answers the key and
+   * nothing else hears it. `preventDefault` is deliberately NOT called: this is a dismissal,
+   * not a cancelled default, and the flag is what other layers read to know it was handled.
    */
   React.useEffect(() => {
     const rootEl = rootRef.current;
     if (!rootEl || liveCount === 0) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !event.defaultPrevented) closeOverlays();
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      closeOverlays();
+      event.stopPropagation();
     };
     rootEl.addEventListener("keydown", onKeyDown);
     return () => rootEl.removeEventListener("keydown", onKeyDown);
