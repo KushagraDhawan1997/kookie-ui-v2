@@ -2066,12 +2066,14 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // suite, where this law duly failed on its first full run for no reason but scheduling.
     const widths: number[] = [];
     const heights: number[] = [];
+    const stamps: number[] = [];
     let released = -1;
     const deadline = performance.now() + 2000;
     while (performance.now() < deadline) {
       const box = popup.getBoundingClientRect();
       widths.push(Math.round(box.width));
       heights.push(Math.round(box.height));
+      stamps.push(performance.now());
       if (!popup.hasAttribute("data-unfurling")) {
         released = widths.length - 1;
         break;
@@ -2092,14 +2094,32 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // (the seed frame, then its destination) and a dead one reports one.
     expect(new Set(widths).size, `width never moved: ${widths.join(",")}`).toBeGreaterThan(2);
     expect(new Set(heights).size, `height never moved: ${heights.join(",")}`).toBeGreaterThan(2);
-    // And it grew rather than jumping: no single frame covers most of the distance.
+    /**
+     * And it GREW rather than jumping — stated as a SPEED, not as a per-frame share
+     * (2026-08-17, CI).
+     *
+     * "No single frame covers more than a fifth of the distance" is a true claim about a spring
+     * at 60fps and a claim about the MACHINE anywhere else: a loaded runner hands this loop one
+     * frame where an idle one hands it ten, and the same smooth animation then reports a 45px
+     * step out of 47 and fails a law about smoothness. Measured on CI, on an entry that was
+     * fine.
+     *
+     * Pixels per millisecond is the frame-rate-free form of the same sentence. A spring's
+     * fastest moment runs two to three times its own average, so six times the average is
+     * generous and still nowhere near a snap — a channel that lets go covers the whole distance
+     * in one frame, which is tens of times its average whatever the frame rate.
+     */
     const distance = Math.max(...widths) - Math.min(...widths);
-    const jump = Math.max(...widths.slice(1).map((w, i) => w - widths[i]!));
-    // A spring's fastest frame covers about a tenth of the distance at 60fps. A fifth means
-    // something let go — the floor coming back mid-flight snaps whatever is left in one frame.
-    expect(jump, `width jumped ${jump}px of ${distance}px in one frame`).toBeLessThan(
-      distance * 0.2,
+    const elapsed = stamps.at(-1)! - stamps[0]!;
+    expect(elapsed, "the entry was never sampled over time").toBeGreaterThan(0);
+    const average = distance / elapsed;
+    const fastest = Math.max(
+      ...widths.slice(1).map((w, i) => Math.abs(w - widths[i]!) / Math.max(stamps[i + 1]! - stamps[i]!, 1)),
     );
+    expect(
+      fastest,
+      `width moved ${fastest.toFixed(2)}px/ms against an average of ${average.toFixed(2)}px/ms`,
+    ).toBeLessThan(average * 6 + 0.5);
     // And the flight is released only once the LAST channel has landed. Keying the release on
     // the vertical (which finishes 160ms earlier) puts the width floor back while the panel is
     // still widening, and the floor beats an animating width — the same clamp, arriving late

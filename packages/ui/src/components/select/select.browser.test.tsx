@@ -835,12 +835,15 @@ describe("behavior: roles, choosing, forms, labels", () => {
   });
 });
 
-describe("the entry is the floating family's, not a copy of it (§8, §22)", () => {
+describe("the entry is the floating family's, and it flies into an item-aligned box (§8, §22, §23)", () => {
   /**
-   * Select is the second member, and it gets the panel's entry by MEMBERSHIP: the recipe moved
-   * out of menu.css onto the family class on 2026-08-10, so this file adds no motion CSS at
-   * all. These laws exist to prove that the membership is real — that the panel actually flies,
-   * and that it flies the same way the menu does rather than nearly the same way.
+   * Select is the family's second member and it gets the panel's entry by MEMBERSHIP: the
+   * recipe moved out of menu.css onto the family class on 2026-08-10, so this file adds no
+   * motion CSS at all. What is Select's OWN is where the flight LANDS — Base UI overlaps the
+   * trigger so the chosen row sits on the value it replaces (2026-08-17, Kushagra: *"same
+   * animation as dropdown, but only the position changes"*) — and the ordering that placement
+   * forces: the panel must be PLACED before it is POSED, because Base UI computes the overlap
+   * from the panel's real box and a posed panel is the size of its trigger.
    */
   const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
@@ -888,7 +891,15 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     const OPTIONS = ["a", "b", "c", "d", "e", "f", "g", "h"];
     const host = mount(
       <Theme>
-        <div style={{ height: "1200px" }} />
+        {/* Half a viewport of room ABOVE the trigger, stated in `vh` and NOT reached by
+            scrolling the page (2026-08-17, CI): the overlap needs somewhere to put the rows
+            that precede the chosen one and Base UI drops it rather than run off the top of
+            the window, so the case has to guarantee that room. Scrolling to it was the first
+            spelling and it is not a guarantee — the scroll is undone by whatever the previous
+            test left behind, and a helper that then clicks anyway hands every law below the
+            fallback placement and a message about the wrong thing. It passed locally and
+            failed on the runner, which is the shape this repo keeps re-learning. */}
+        <div style={{ height: "50vh" }} />
         <Select defaultValue="e" items={Object.fromEntries(OPTIONS.map((v) => [v, v.toUpperCase()]))}>
           <SelectTrigger />
           <SelectContent>
@@ -899,16 +910,15 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
             ))}
           </SelectContent>
         </Select>
-        <div style={{ height: "1200px" }} />
+        <div style={{ height: "50vh" }} />
       </Theme>,
     );
     const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
-    // Retried until it sticks: run after the rest of this file, one attempt is undone by
-    // whatever the previous test left behind (see the page-and-contents law at the foot).
-    for (let tries = 0; tries < 30 && window.scrollY < 100; tries++) {
-      window.scrollTo(0, window.scrollY + trigger.getBoundingClientRect().top - window.innerHeight / 2);
-      await frame();
-    }
+    // The premise, stated: half a window of room above the trigger, in the window as it is
+    // now. A law whose SETUP is assumed is a law that reports the wrong failure.
+    const seat = trigger.getBoundingClientRect();
+    expect(seat.top, "the trigger must sit clear of the top of the window").toBeGreaterThan(200);
+    expect(seat.top, "and inside it").toBeLessThan(window.innerHeight);
     await userEvent.click(trigger);
     const deadline = performance.now() + 3000;
     let popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();

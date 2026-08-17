@@ -35,6 +35,29 @@ const toRgb = converter("rgb");
 const MODES = Object.keys(lightness) as Mode[];
 const TONES = Object.keys(tones) as ToneName[];
 
+/**
+ * The emitted colour declarations for a mode, generated ONCE (2026-08-17).
+ *
+ * `colorDeclarations` regenerates the whole palette on every call — every family solved
+ * against its beds — and the laws below reach for it inside their loops, so one of them was
+ * paying for it forty times (two modes × ten tones × two rungs). Measured 1.56s locally and
+ * 9.06s on a CI runner, which is past vitest's 5s default: the law that failed the build was
+ * not wrong, it was slow, and it had been slow since the ink ladder was rewritten.
+ *
+ * A cache and not a hoist, because the call sites are spread across a dozen laws and hoisting
+ * one loop leaves the next author to rediscover this. The generator is pure — the same mode
+ * answers the same lines — so memoising it is stating that, not assuming it.
+ */
+const DECLARATIONS = new Map<Mode, readonly string[]>();
+function declarationsFor(mode: Mode): readonly string[] {
+  let lines = DECLARATIONS.get(mode);
+  if (!lines) {
+    lines = colorDeclarations(mode);
+    DECLARATIONS.set(mode, lines);
+  }
+  return lines;
+}
+
 /** APCA's body-text target — read from the config, where the generator reads it too, and
     pinned by its own law below: shared home, standard-anchored values. */
 const BODY = apcaFloors.body;
@@ -584,7 +607,7 @@ describe("the interaction ladder is monotone in the EMITTED declarations (§7, �
   for (const mode of MODES) {
     for (const level of ["normal", "high"] as const) {
       it(`${mode}, contrast="${level}": rest -> hover -> active moves one way, every tone`, () => {
-        const map = declared(colorDeclarations(mode));
+        const map = declared(declarationsFor(mode));
         if (level === "high") {
           for (const [k, v] of declared(contrastHighDeclarations(mode))) map.set(k, v);
         }
@@ -632,7 +655,7 @@ describe("the focus ring clears its contrast floor against the page (§8, WCAG 2
     // The law above proves a colour; this proves the stylesheet ships that colour. Without it
     // the two could drift apart silently, which is how --tone-solid got missed in §7.
     for (const mode of MODES) {
-      const emitted = colorDeclarations(mode).find((l) => l.includes("--focus-ring:"));
+      const emitted = declarationsFor(mode).find((l) => l.includes("--focus-ring:"));
       expect(emitted).toContain(mode === "dark" ? "var(--accent-11)" : "var(--accent-solid)");
     }
   });
@@ -646,7 +669,7 @@ describe("the soft ladder is §8's +1/+2 rule, in the emitted declarations (§7,
   // pressing a medium button and pressing a quiet one feel like one gesture.
   it("soft rests on 3, hovers to 4, presses to 5, for every tone", () => {
     for (const mode of MODES) {
-      const declared = colorDeclarations(mode);
+      const declared = declarationsFor(mode);
       for (const tone of TONES) {
         const at = (role: string) => declared.find((l) => l.trimStart().startsWith(`--${tone}-${role}:`));
         expect(at("soft")).toContain(`var(--${tone}-3)`);
@@ -668,7 +691,7 @@ describe("the control edge renders its stated targets, and the floors bind under
   // not a conformance guarantee; that lives in the high-contrast law, where the floors bind.
   // Both directions read the EMITTED hex, so the solve is in the loop.
   const hexOf = (mode: (typeof MODES)[number], name: string) => {
-    const line = colorDeclarations(mode).find((l) => l.includes(`--${name}:`))!;
+    const line = declarationsFor(mode).find((l) => l.includes(`--${name}:`))!;
     return line.match(/#[0-9a-fA-F]{6}/)![0];
   };
   const FAMILIES = [
@@ -748,7 +771,7 @@ describe("the ink ladder renders its stated targets, in every family and both mo
       .join("")}`;
   };
   const fadeOf = (mode: Mode, tone: ToneName, slot: "muted" | "faint") => {
-    const line = colorDeclarations(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
+    const line = declarationsFor(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
     const m = line.match(/var\(--[\w-]+\)\s+(\d+)%/);
     expect(m, `${tone}-ink-${slot} is not a solved fade: ${line}`).toBeTruthy();
     return Number(m![1]) / 100;
@@ -786,7 +809,7 @@ describe("the ink ladder renders its stated targets, in every family and both mo
       // the system's most-used ink at the mercy of a target number is the change this refuses.
       for (const tone of TONES) {
         const step = tone === "neutral" ? 12 : 11;
-        const line = colorDeclarations(mode).find((l) => l.includes(`--${tone}-ink:`))!;
+        const line = declarationsFor(mode).find((l) => l.includes(`--${tone}-ink:`))!;
         expect(line, `${tone}'s loud ink is not the designed step`).toContain(
           `var(--${tone}-${step})`,
         );
@@ -803,7 +826,7 @@ describe("the ink ladder renders its stated targets, in every family and both mo
     for (const mode of MODES) {
       for (const tone of TONES) {
         for (const slot of ["muted", "faint"] as const) {
-          const line = colorDeclarations(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
+          const line = declarationsFor(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
           expect(line, `${mode}/${tone} ${slot} is not a fade of its own ink`).toMatch(
             new RegExp(`color-mix\\(in oklab, var\\(--${tone}-\\d+\\) \\d+%, transparent\\)`),
           );
@@ -860,7 +883,7 @@ describe("the standard-mode dress report — measured to know, never to validate
       const page = step(1);
       const seal = mode === "dark" ? step(2) : "#ffffff";
       const emitted = (name: string) =>
-        colorDeclarations(mode)
+        declarationsFor(mode)
           .find((l) => l.includes(`--${name}:`))!
           .match(/#[0-9a-fA-F]{6}/)![0];
       /**
@@ -873,7 +896,7 @@ describe("the standard-mode dress report — measured to know, never to validate
        * old one and the report would quietly describe a palette that is no longer shipped.
        */
       const role = (name: string): string => {
-        const value = colorDeclarations(mode)
+        const value = declarationsFor(mode)
           .find((l) => l.includes(`--${name}:`))!
           .split(":")[1]!
           .replace(";", "")
@@ -959,7 +982,7 @@ describe("the invalid edge clears the non-text floor, in both modes (§8, WCAG 1
 
   it("and the emitted token is the step the law just checked", () => {
     for (const mode of MODES) {
-      const emitted = colorDeclarations(mode).find((l) => l.includes("--invalid-edge:"));
+      const emitted = declarationsFor(mode).find((l) => l.includes("--invalid-edge:"));
       expect(emitted).toContain(mode === "dark" ? "var(--destructive-11)" : "var(--destructive-solid)");
     }
   });

@@ -728,7 +728,13 @@
    `min-inline-size` is stood down for this frame: the width floor means "never narrower than
    the trigger you pressed", which is a statement about the panel, and the seed is not the
    panel yet. */
-.kui-surface.kui-floating[data-seed] {
+/* Keyed on the FLIGHT and not on the seed alone, and that is load-bearing (§23, 2026-08-17):
+   a select's panel wears `data-seed` from the frame it opens — the visibility gate — while its
+   placement is still being computed, and Base UI computes that placement from the panel's own
+   box. A pose keyed on the gate alone therefore shrinks the very box the placement is measured
+   from, and the chosen row lands 66px off the trigger it exists to sit on. `data-unfurling` is
+   stamped with the measurement, which is after the placement has settled. */
+.kui-surface.kui-floating[data-unfurling][data-seed] {
   /* THE SILHOUETTE (2026-08-15, Kushagra: *"make the circle shape of trigger exactly, and
      make it start from where the trigger is"* — the interim circle and its quadrant were
      built the same day and reverted on sight). The panel's first frame is the trigger's own

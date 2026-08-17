@@ -161,8 +161,21 @@ describe("the ring lands where landing reads as motion, and nowhere else (§8)",
     expect(Math.max(...seen), "it must begin outside its resting offset").toBeCloseTo(rest + land, 1);
     expect(Math.min(...seen), "and settle exactly on it").toBeCloseTo(rest, 1);
     // Whole pixels, every one of them — the fact that bounds how short a ring's travel can be.
+    // This is also the interpolation check: an engine that started interpolating would report
+    // fractions, not fewer steps.
     for (const value of seen) expect(value, `${seen.join(",")}`).toBe(Math.round(value));
-    expect(seen.length, "a landing needs enough pixels to read as one").toBeGreaterThan(3);
+    // It genuinely moves through values rather than snapping between the two ends.
+    expect(seen.length, "the ring did not travel at all").toBeGreaterThan(2);
+    /**
+     * And the CONSTRAINT is stated on the token, not on how many frames the sampler caught
+     * (2026-08-17, CI). "More than three distinct values" is a claim about the DESIGNED travel
+     * — whole pixels mean a 4px landing renders as five steps and a 2px one as three — but a
+     * sampler only sees a value if a frame was painted on it, and a loaded runner drops frames:
+     * measured, three values on CI for a travel that crosses four pixels, failing a law about
+     * the design because of the machine it ran on. The travel is the thing that must not shrink.
+     */
+    expect(land, "a landing needs enough pixels to read as one").toBeGreaterThanOrEqual(4);
+    expect(Math.max(...seen) - Math.min(...seen), "and it must cross all of them").toBeCloseTo(land, 1);
   });
 
   it("a field's ring is instant — the one arrival the mechanism cannot carry", async () => {
