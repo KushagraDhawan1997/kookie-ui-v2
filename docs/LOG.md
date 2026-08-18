@@ -39,6 +39,26 @@ Its fill DID step white-to-grey on hover. It just snapped there, its box never m
 
 ---
 
+## 2026-08-17 A menu opening upward hid its own content, and the containing block was three days old
+
+Kushagra: *"whenever menu opens to the top, the content doesnt load, it comes after animation completes."* The content loaded on frame one. It was outside the pane.
+
+**Measured per frame, before anything moved.** A top-opening menu: panel `672..755`, body `594..667` — the body sitting entirely ABOVE the panel, `0px` of a 92px body inside it for the first two-thirds of the flight and `8px` at the end. The rows then appeared all at once, on the frame the flight released and the body returned to normal flow. A bottom-opening menu in the same probe held 19→94px throughout.
+
+**The cause is a containing block that changed underneath a rule that predates it.** The flight pins the body `position: absolute` so the panel is sized by the measurement rather than by its content (§22), and §22 pins it to *the edge the box is not growing from* — `inset-block-start` normally, `inset-block-end` for a panel opening upward. An absolute inset resolves against the nearest positioned ancestor, and **ScrollArea landed between the body and the panel on 2026-08-17**. Its root is `position: relative`, so it became that ancestor — and its height is its content's height, which the pin has just taken out of flow. Measured mid-flight: **8px**, its own padding and nothing else.
+
+**Bottom-opening panels survived by luck, which is why nothing caught it.** That collapsed 8px box sits at the panel's top, so `inset-block-start: 4px` measured from it lands about where a downward-growing panel wanted the rows anyway. The top arm measures `inset-block-end` from the same box's *bottom* — four pixels below the panel's TOP edge. One arm was accidentally right and the other catastrophically wrong, from the same correct rule.
+
+**Rejected: making the scroll area `position: absolute; inset: 0` for the flight.** Written, and it did nothing — because **Base UI writes `position: relative` INLINE on `ScrollArea.Root`**, and an inline declaration beats every stylesheet rule. This is the second time this exact shape has cost a debugging session (Select's inline `height: 100%` killed the flight's block-size channel, 2026-08-17 earlier), and the diagnosis took four probes because the rule was present in `document.styleSheets`, the element `matches()` the selector, and the computed value still disagreed. `!important` was refused for the reason the Select case records: it wins the cascade and leaves the library's intent unstated.
+
+**What shipped needs to win nothing.** A relative box is already a containing block; the only thing wrong with it was its SIZE. The panel carries a definite `block-size` for the whole flight — `--kui-fly-h`, the measurement — so `block-size: 100%` on the scroll area resolves against it, for the duration of the flight and never at rest.
+
+**The same sentence had a second half.** With the body pinned at the bottom, its squish still collapsed toward `transform-origin: top left` — away from its anchor — and its top edge sat 5px above the panel's, clipped. The origin now matches the pin (`bottom left`, and `bottom right` under RTL, mirroring the existing `dir` arm). Left alone and worth an eye: the content's arrival echo still steps *downward* from a bottom pin, so it pokes ~2px past the panel's bottom edge for a few mid-flight frames at opacity 0.14. It is clipped rather than painted outside, and which direction content should arrive from on an upward panel is a judgment, not a bug.
+
+**Its law watches frames, because the defect is invisible in every static read** — at rest, before and after, the body is in flow and perfectly placed. It asserts containment only on frames where the pane is already at least as tall as its content (a smaller pane cannot hold it, and the family clips on purpose), and it carries three calibrations: that the flight was sampled at all, that the panel actually opened upward, and that it actually grew. Falsified against both halves independently — 13px of 59 without the stretch, 31px of 59 without the origin.
+
+---
+
 ## 2026-08-17 A submenu flies from the seam, because a silhouette is only honest when the panel lands on its trigger
 
 Kushagra, on the playground: *"the way submenu appears is quite aggressive, it is correct because it treats the entire submenu trigger as origin, but it ends up traveling a lot, especially if dropdown menu is wide."* Both halves are right, and the second is what the first causes.

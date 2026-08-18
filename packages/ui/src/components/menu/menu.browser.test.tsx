@@ -2334,6 +2334,89 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(computed(body, "translate"), "the content never landed").toBe("none");
   });
 
+  it("a panel that opens UPWARD keeps its content INSIDE it, every frame (§22, §23)", async () => {
+    /**
+     * Kushagra: *"whenever menu opens to the top, the content doesnt load, it comes after
+     * animation completes."* It loaded on frame one. It was outside the pane.
+     *
+     * The flight pins the body absolutely so the panel is sized by the measurement rather than
+     * by its content, and that pin resolves against the nearest positioned ancestor. ScrollArea
+     * landed between the body and the panel on 2026-08-17 and its root is `position: relative`
+     * — written INLINE by Base UI, so no stylesheet can take it — which made the scroll area
+     * the containing block. Its height is its content's, and the pin has just taken that
+     * content out of flow, so it collapses to its own padding: measured, 8px.
+     *
+     * Bottom-opening panels survived by luck: that 8px box sits at the panel's top, so
+     * `inset-block-start` from it lands about where a downward-growing panel wanted the rows.
+     * A top-opening panel measures `inset-block-end` from the same box's bottom — four pixels
+     * below the panel's TOP — so the body sat above the pane and was clipped for the whole
+     * entry. Measured before the fix: 0px of a 92px body inside the panel for the first
+     * two-thirds of the flight, 8px at the end, and the rows appearing all at once when the
+     * flight released and the body returned to flow.
+     *
+     * The claim is containment per FRAME, because the defect is invisible in every static
+     * read: at rest, before and after, the body is in flow and perfectly placed.
+     */
+    render(
+      <Theme>
+        <div style={{ position: "absolute", bottom: "20px", left: "20px" }}>
+          <Menu>
+            <MenuTrigger render={<Button>Open</Button>} />
+            <MenuContent>
+              <MenuItem>Alpha</MenuItem>
+              <MenuItem>Beta</MenuItem>
+              <MenuItem>Gamma</MenuItem>
+            </MenuContent>
+          </Menu>
+        </div>
+      </Theme>,
+    );
+    inMotion();
+    const { userEvent } = await import("vitest/browser");
+    // Armed BEFORE the press: real input is slow enough that a whole entry can finish between
+    // two statements (the recorded instrument lesson), and a synthetic `.click()` is no escape
+    // — Base UI stamps `data-instant` for it and the flight is correctly suppressed.
+    const seen: { side: string | null; panel: number; body: number; inside: number }[] = [];
+    let frames = 0;
+    const watch = () => {
+      const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
+      const body = popup?.querySelector<HTMLElement>(".kui-floating-body");
+      if (popup?.hasAttribute("data-unfurling") && body) {
+        const p = popup.getBoundingClientRect();
+        const b = body.getBoundingClientRect();
+        seen.push({
+          side: popup.getAttribute("data-side"),
+          panel: p.height,
+          body: b.height,
+          inside: Math.max(0, Math.min(p.bottom, b.bottom) - Math.max(p.top, b.top)),
+        });
+      }
+      if (frames++ < 60) requestAnimationFrame(watch);
+    };
+    requestAnimationFrame(watch);
+    await userEvent.click(document.querySelector<HTMLElement>(".kui-button")!);
+    await until(() => frames >= 60, 4000);
+
+    // Calibration first, both halves: the case only exists if the panel actually opened
+    // upward, and the law only means something if it watched the flight rather than the rest.
+    expect(seen.length, "the flight was never sampled — every assertion below is vacuous").toBeGreaterThan(6);
+    expect(seen.every((f) => f.side === "top"), `the panel must open upward: ${seen[0]?.side}`).toBe(true);
+    expect(Math.max(...seen.map((f) => f.panel)), "and it must actually grow").toBeGreaterThan(
+      Math.min(...seen.map((f) => f.panel)) + 20,
+    );
+
+    // The claim: once the pane is tall enough to hold the body, the body is in it. Frames where
+    // the pane is still smaller than its content are exempt — there the content cannot fit by
+    // definition, and the family clips on purpose.
+    const holdable = seen.filter((f) => f.panel >= f.body);
+    expect(holdable.length, "the pane must reach its content's height while still flying").toBeGreaterThan(2);
+    for (const f of holdable)
+      expect(
+        f.inside,
+        `panel ${f.panel.toFixed(0)}px held only ${f.inside.toFixed(0)}px of its ${f.body.toFixed(0)}px body`,
+      ).toBeGreaterThan(f.body * 0.9);
+  });
+
   it("the panel clips while it is not its own size (§22)", async () => {
     const { popup } = await openUnsettled();
     expect(popup.hasAttribute("data-unfurling")).toBe(true);
