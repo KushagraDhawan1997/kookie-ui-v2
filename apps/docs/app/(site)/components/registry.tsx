@@ -847,7 +847,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §11, §19, §26",
     blurb:
-      "One choice among a few, shown all at once. It is a radio group, not a row of toggle buttons — picking one of several is what a radio group IS, and that is what a screen reader then hears. The track is a well on the height ladder so it stands level with the button beside it; each segment is §4's hosted-control rule with N hosts, and the chosen one is the grip, casting like the switch's thumb.",
+      "One choice among a few, shown all at once. It is a radio group, not a row of toggle buttons — picking one of several is what a radio group IS, and that is what a screen reader then hears. The track is a well on the height ladder so it stands level with the button beside it — law-asserted against a mounted Button's rendered box, after the first spelling compared two declared heights and was green over a track two pixels too tall. Each segment is §4's hosted-control rule with N hosts; the segments sit flush; and the chosen one is the grip, casting like the switch's thumb and wearing the ink that pairs with the grip rather than with the page.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "prices the track; the segments derive from the channel" },
     ],
@@ -863,6 +863,10 @@ export const ENTRIES: Entry[] = [
       {
         name: "multi-select",
         why: "That is a set of toggle buttons and a different component. Toggle Button has its own row in §11.",
+      },
+      {
+        name: "nativeButton and render",
+        why: "Closed with the mark family's own reasons, and pinned by type probes after an audit found nativeButton reopened here: set on a segment it breaks Space selection, which is the defect Checkbox closed on this same primitive.",
       },
       { name: "readOnly", why: "Inherited from Radio — the platform has no read-only selection control." },
     ],
@@ -911,7 +915,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§11, §15, §26",
     blurb:
-      "A bar of places you can go, and the one you are on. The active tab is marked by ink and a rule, never by a louder fill or a heavier label — a fill would make it read as a button among links, and a heavier weight reflows the whole bar every time you switch. The rule is drawn by both of its edges, which is what a moving one will need.",
+      "A bar of places you can go, and the one you are on. The active tab is marked by ink and a rule, never by a louder fill or a heavier label — a fill would make it read as a button among links, and a heavier weight reflows the whole bar every time you switch. The rule is drawn by an offset and a width, the pair Base UI computes in one coordinate space: the both-edges spelling it shipped with collapsed to zero width whenever the bar overflowed.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "on the list, once — a bar of mixed sizes is not a thing anyone means" },
     ],
