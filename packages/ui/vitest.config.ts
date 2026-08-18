@@ -48,9 +48,11 @@ export default defineConfig({
             "@base-ui/react/radio",
             "@base-ui/react/select",
             "@base-ui/react/radio-group",
+            "@base-ui/react/scroll-area",
             "@base-ui/react/separator",
             "@base-ui/react/slider",
             "@base-ui/react/switch",
+            "@base-ui/react/tabs",
           ],
         },
         test: {

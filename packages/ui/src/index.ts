@@ -14,8 +14,11 @@ export { Select, SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectLa
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
+export { SegmentedControl, SegmentedItem, type SegmentedControlProps, type SegmentedItemProps } from "./components/segmented-control/segmented-control.tsx";
+export { ScrollArea, type ScrollAreaProps } from "./components/scroll-area/scroll-area.tsx";
 export { Slider, type SliderProps } from "./components/slider/slider.tsx";
 export { Switch, type SwitchProps } from "./components/switch/switch.tsx";
+export { Tabs, TabsList, TabsTab, TabsPanel, type TabsProps, type TabsListProps, type TabsTabProps, type TabsPanelProps } from "./components/tabs/tabs.tsx";
 export { Text, type TextProps, type TypeSize, type Weight } from "./components/text/text.tsx";
 export { TextArea, type TextAreaProps } from "./components/text-area/text-area.tsx";
 export { TextField, type TextFieldProps } from "./components/text-field/text-field.tsx";
