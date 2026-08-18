@@ -32,6 +32,7 @@ import {
   settleAll,
   computed,
   tokenOn,
+  probeIn,
   inMotion,
   until,
   asksForStillness,
@@ -228,7 +229,18 @@ describe("the box", () => {
     const bumped = { "1": "2", "2": "3", "3": "4", "4": "4" } as const;
     for (const size of SIZES) {
       const { popup } = openAlert({}, { size });
-      expect(computed(popup, "border-top-left-radius")).toBe(tokenOn(popup, `--radius-overlay-${size}`));
+      // Lab port 2026-08-17: under `@supports (corner-shape: squircle)` every surface DRAWS
+      // its authored corner × --kui-corner-k (1.613 — the lab's 0.62 inverted), so the band
+      // token alone is one factor short of the painted number. Derived, never restated: the
+      // probe reads the same token and the same knob the surface rule does, so a re-priced
+      // band or knob moves both sides — and a non-squircle engine resolves the knob's
+      // fallback of 1 and this law holds unchanged.
+      const expected = probeIn(
+        popup,
+        (el) => (el.style.borderRadius = `calc(var(--radius-overlay-${size}) * var(--kui-corner-k, 1))`),
+        (s) => s.borderTopLeftRadius,
+      );
+      expect(computed(popup, "border-top-left-radius")).toBe(expected);
       expect(computed(popup, "padding-top")).toBe(tokenOn(popup, `--surface-p-${bumped[size]}`));
     }
   });

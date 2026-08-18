@@ -14,10 +14,13 @@ import {
   computed,
   inMotion,
   mounted,
+  numberOn,
   ownColor,
   probeIn,
   render,
 } from "../../test/browser.tsx";
+import { Theme } from "../../theme/theme.tsx";
+import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
 import { TextField as TextFieldForButtonTest } from "../text-field/text-field.tsx";
 import { Button } from "./button.tsx";
@@ -168,7 +171,11 @@ describe("states are stylesheet work, and the DOM stays honest (§8, ENGINEERING
     );
     expect(el.dataset.disabled).toBe("");
     expect(computed(el, "opacity")).toBe("1");
-    expect(computed(el, "background-color")).toBe(tokenOn(el, "--neutral-3"));
+    // The dead palette went ALPHA 2026-08-17: an opaque step vanished exactly where a pane's
+    // own lighting darkens its ground (measured on a dark card's pooled bottom), so the remap
+    // writes the alpha ladder and a dead control now recedes relative to its LOCAL ground
+    // instead of dropping below it. The ladder is the claim — alpha, step 3 — not the digit.
+    expect(computed(el, "background-color")).toBe(tokenOn(el, "--disabled-fill"));
     expect(computed(el, "color")).toBe(tokenOn(el, "--neutral-8"));
   });
 
@@ -186,24 +193,87 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
   it("solid is the absence of a material — the default writes no attribute", () => {
     expect(render(<Button>Label</Button>).dataset.material).toBeUndefined();
     expect(
-      mounted(<Button>Label</Button>, { theme: { material: "solid" } }).dataset.material,
+      mounted(<Button backdrop>Label</Button>, { theme: { material: "solid" } }).dataset.material,
     ).toBeUndefined();
     expect(
-      mounted(<Button>Label</Button>, { theme: { material: "regular" } }).dataset.material,
+      mounted(<Button backdrop>Label</Button>, { theme: { material: "regular" } }).dataset.material,
     ).toBe("regular");
   });
 
-  it("the veil is the rung's fill at the thickness alpha, over a real blur", () => {
+  it("the veil is the rung's fill at the CONTROL alpha, over a real blur", () => {
+    // Lab port 2026-08-17 (CONTROL-SCALE MATERIAL): a 40px control is not a 210px card, so a
+    // standalone glass control mixes at its OWN alpha — --material-thin-control-alpha, never
+    // the pane's --material-thin-alpha this law used to pin. The specimen moved to MEDIUM the
+    // same day: loud left the mix entirely (its own law, next), so it stopped being evidence
+    // for the generic veil.
     const el = mounted(
-      <Button emphasis="loud" tone="accent">
+      <Button backdrop emphasis="medium" tone="accent">
         Label
       </Button>,
       { theme: { material: "thin" } },
     );
     expect(computed(el, "background-color")).toBe(
-      colorOn(el, "color-mix(in srgb, var(--tone-solid) var(--material-thin-alpha), transparent)"),
+      colorOn(el, "color-mix(in srgb, var(--tone-soft) var(--material-thin-control-alpha), transparent)"),
     );
     expect(computed(el, "backdrop-filter")).not.toBe("none");
+  });
+
+  it("loud glass runs HOT: the family's own solid, chroma-boosted at high alpha (lab port 2026-08-17)", () => {
+    // At the control veil alphas a loud pigment read WASHED beside its solid counterpart —
+    // the white page supplied the missing percent, the opposite of rank — so loud leaves the
+    // color-mix chain: oklch(from <solid> l×1.04 c×1.6 h / 0.8), backlit stained glass. The
+    // expected value derives from the rung's own source token (--tone-solid), so a tone
+    // rebind moves both sides of this law without it knowing.
+    const el = mounted(
+      <Button backdrop emphasis="loud" tone="accent">
+        Label
+      </Button>,
+      { theme: { material: "thin" } },
+    );
+    expect(computed(el, "background-color")).toBe(
+      colorOn(el, "oklch(from var(--tone-solid) calc(l * 1.04) calc(c * 1.6) h / 0.8)"),
+    );
+    // Loud's filter runs hot too (--material-thin-control-filter-loud: saturate 220%,
+    // brightness 1.1, the cell's own blur). Containment rather than equality because the
+    // lens url() is prepended in Chromium and its id is box-dependent; the token half is
+    // resolved through a probe so the law never restates the generated value.
+    const hot = probeIn(
+      el,
+      (p) => (p.style.backdropFilter = "var(--material-thin-control-filter-loud)"),
+      (s) => s.backdropFilter,
+    );
+    expect(hot).not.toBe("none"); // the vacuity guard: an unresolved token reads none
+    expect(computed(el, "backdrop-filter")).toContain(hot);
+    // And loud KEEPS a wash where the plain glass control's catch stands down — the bloom
+    // radial + sheen linear pair, painted through --kui-ct-light.
+    expect(computed(el, "background-image")).toContain("radial-gradient");
+  });
+
+  it("glass buttons wear the conic ring (lab port 2026-08-17)", () => {
+    // What shipped as the button's "rim" was a 1px top line; the lab's glass buttons wear a
+    // full annulus — a conic light masked to its own border-width ring, per thickness. The
+    // ::after carries it: background = --material-{t}-ring, masked to the annulus, opacity 1.
+    for (const material of GLASS_MATERIALS) {
+      const el = mounted(
+        <Button backdrop emphasis="medium">Label</Button>,
+        { theme: { material } },
+      );
+      const after = getComputedStyle(el, "::after");
+      expect(after.backgroundImage, `${material} ring is the conic light`).toContain("conic-gradient");
+      // Opacity is the TOKEN's (--material-ring-opacity), read resolved rather than
+      // restated — the recipe's `1` is only the un-themed fallback — plus a floor so a
+      // token edited to 0 cannot hide the ring with this law green.
+      const ringOpacity = numberOn(el, "--material-ring-opacity");
+      expect(ringOpacity, `${material} ring must be visible`).toBeGreaterThan(0.5);
+      expect(after.opacity, `${material} ring shows at the token's opacity`).toBe(String(ringOpacity));
+      // Masked to an annulus, not painted over the face: the mask is what keeps a full-bleed
+      // conic from washing the label.
+      expect(after.maskComposite || after.webkitMaskComposite, `${material} ring is masked`).not.toBe("");
+    }
+    // The negative control: a solid button paints no ring — the ::after does not exist
+    // (no content), so its background must not carry the conic.
+    const solid = render(<Button emphasis="medium">Label</Button>);
+    expect(getComputedStyle(solid, "::after").backgroundImage).not.toContain("conic-gradient");
   });
 
   it("tone and loudness both survive the glass — colour was the point (§7, §9)", () => {
@@ -212,7 +282,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
     const cell = (tone: "neutral" | "blue", emphasis: "loud" | "medium") =>
       computed(
         mounted(
-          <Button tone={tone} emphasis={emphasis}>
+          <Button backdrop tone={tone} emphasis={emphasis}>
             Label
           </Button>,
           { theme: { material: "thick" } },
@@ -225,7 +295,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
 
   it("quiet glass is bare blur: rest keeps the absence of a fill (§9)", () => {
     const el = mounted(
-      <Button emphasis="quiet">
+      <Button backdrop emphasis="quiet">
         Label
       </Button>,
       { theme: { material: "regular" } },
@@ -236,19 +306,34 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
     expect(computed(el, "backdrop-filter")).not.toBe("none");
   });
 
-  it("interaction steps the veil from the rung's own hover source, at the hover alpha (§8)", () => {
+  it("interaction moves the SOURCE, never the alpha: one veil alpha for every state (§8, lab port 2026-08-17)", () => {
+    // Pre-port, hover stepped the MIX (--material-thin-alpha-hover) and laid an opaque
+    // pastel over the pane ("hover mode looks weird"). Control-scale material holds ONE
+    // alpha across rest/hover/active — the state still reads because the -src chain moves
+    // to the tone's own hover/active solids, and on glass the rest of hover is LIGHT
+    // (the filter's brightness bump, pinned by declaration below).
     const el = mounted(
-      <Button emphasis="medium">
+      <Button backdrop emphasis="medium">
         Label
       </Button>,
       { theme: { material: "thin" } },
     );
     expect(ownColor(el, "--kui-ct-fill-hover")).toBe(
-      colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-thin-alpha-hover), transparent)"),
+      colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-thin-control-alpha), transparent)"),
     );
     expect(ownColor(el, "--kui-ct-fill-active")).toBe(
-      colorOn(el, "color-mix(in srgb, var(--tone-soft-active) var(--material-thin-alpha-active), transparent)"),
+      colorOn(el, "color-mix(in srgb, var(--tone-soft-active) var(--material-thin-control-alpha), transparent)"),
     );
+    // The vacuity guard: one alpha must not mean one colour — the source really moves.
+    expect(ownColor(el, "--kui-ct-fill-hover")).not.toBe(ownColor(el, "--kui-ct-fill"));
+    // Hover's brightness bump exists and is a FILTER fact, not a fill fact: the hover
+    // variant shares the cell's blur and moves only brightness. Resolved through a probe
+    // (both are inherited theme tokens), asserted distinct so the bump cannot silently
+    // collapse into the resting filter.
+    const restFilter = probeIn(el, (p) => (p.style.backdropFilter = "var(--material-thin-control-filter)"), (s) => s.backdropFilter);
+    const hoverFilter = probeIn(el, (p) => (p.style.backdropFilter = "var(--material-thin-control-filter-hover)"), (s) => s.backdropFilter);
+    expect(restFilter).not.toBe("none");
+    expect(hoverFilter).not.toBe(restFilter);
   });
 
   it("the rung keeps its own label pairing under glass", () => {
@@ -256,14 +341,14 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
     // contrast and medium keeps the label token. Thin-over-a-bright-photo legibility is
     // §10's deferred brightness-floor branch, not a label swap.
     const loud = mounted(
-      <Button tone="accent" emphasis="loud">
+      <Button backdrop tone="accent" emphasis="loud">
         Label
       </Button>,
       { theme: { material: "thick" } },
     );
     expect(computed(loud, "color")).toBe(tokenOn(loud, "--tone-contrast"));
     const medium = mounted(
-      <Button tone="accent" emphasis="medium">
+      <Button backdrop tone="accent" emphasis="medium">
         Label
       </Button>,
       { theme: { material: "thick" } },
@@ -273,7 +358,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
 
   it("the fill returns to opaque when the material comes off", () => {
     const glass = mounted(
-      <Button emphasis="loud">
+      <Button backdrop emphasis="loud">
         Label
       </Button>,
       { theme: { material: "regular" } },
@@ -437,10 +522,9 @@ describe("the boundary (§3, §13)", () => {
             <Button emphasis={emphasis} bordered>
               Label
             </Button>,
-            // BOTH halves of the axis (split 2026-08-10): a component that belongs to no
-            // dressed family must be unmoved by either prop, and pinning one would let the
-            // other dress a button without a law noticing.
-            { theme: { surfaceLook: look, controlLook: look, appearance }, select: ".kui-button" },
+            // The axis's one surviving half (controlLook deleted 2026-08-19): a component
+            // that belongs to no dressed family must be unmoved by it.
+            { theme: { surfaceLook: look, appearance }, select: ".kui-button" },
           );
         const outlined = at("outlined");
         const filled = at("filled");
@@ -480,21 +564,58 @@ describe("the boundary (§3, §13)", () => {
     expect(computed(el, "background-image")).toContain("linear-gradient");
   });
 
-  it("one lift per pane: inside a material surface the cast stands down, the catch stays (§10)", () => {
-    // Dark's shadow alphas assume a dark page that swallows them; a pane swallows nothing —
-    // the backdrop shows through and the cast lands on it like ink (judged in the preview,
-    // 2026-08-07). The pane is the raised thing; its contents sit flush on it.
-    const el = mounted(
+  it("one lift per pane — and the pane must BE glass: a plain Card resolves solid (§10, lab port 2026-08-17)", () => {
+    // SELECTIVITY (lab port 2026-08-17): an in-flow Card under a glass theme resolves SOLID
+    // unless `backdrop` states the placement — so an UNMARKED member button is solid too
+    // (the pane resets the region: calm ground by default) and casts like any standalone
+    // control. Since 2026-08-19 (Kushagra: "the whole point of a solid surface is to be
+    // able to host glass") an EXPLICIT statement inside the pane wins: the old solid-pane
+    // arm silently discarded the `backdrop` prop, the `<Box backdrop>` region and the
+    // public useMaterial({backdrop:true}) alike — this law's first spelling asserted that
+    // veto as the guarantee.
+    const inFlow = mounted(
       <Card>
         <Button tone="accent" emphasis="loud">
+          Label
+        </Button>
+        <Button backdrop tone="accent" emphasis="loud">
+          Marked
+        </Button>
+      </Card>,
+      { theme: { depth: "elevated", material: "thin" } },
+    );
+    const [solidMember, markedMember] = inFlow.querySelectorAll("button");
+    expect(solidMember!.dataset.material, "an unmarked member of a solid pane is solid").toBeUndefined();
+    expect(computed(solidMember!, "box-shadow")).not.toBe("none");
+    expect(markedMember!.dataset.material, "a solid surface HOSTS glass on request").toBe("thin");
+
+    // Inside a REAL pane (`backdrop`) the member stamps on-glass. The cast stands down by
+    // RESOLUTION, not by a `none` declaration on the button: the pane sets the inherited
+    // chrome rows to `none`, `none` is illegal inside a shadow list, the whole list goes
+    // invalid at computed-value time and the computed shadow falls to none — one lift per
+    // pane, by the mechanism itself. And the CATCH stands down WITH it since the lab port
+    // (--kui-ct-light: none on on-glass members — relief in the pane, not a lit sticker on
+    // it); the pre-port law asserted the catch STAYED, which is now the obsolete half.
+    const pane = mounted(
+      <Card backdrop>
+        <Button backdrop tone="accent" emphasis="loud">
           Label
         </Button>
       </Card>,
       { theme: { depth: "elevated", material: "thin" } },
     );
-    const button = el.querySelector("button")!;
+    const button = pane.querySelector("button")!;
+    expect(button.dataset.material).toBe("on-glass");
     expect(computed(button, "box-shadow")).toBe("none");
-    expect(computed(button, "background-image")).toContain("linear-gradient");
+    expect(computed(button, "background-image")).toBe("none");
+    // On-glass is flush with its pane: no filter of its own (the pane already bent the
+    // light), and loud's fill is the judged on-glass formula — visibly translucent, never
+    // asked to compete with the backdrop at the pane's own alpha. Derived from the rung's
+    // source token, the loud-hot law's own discipline.
+    expect(computed(button, "backdrop-filter")).toBe("none");
+    expect(computed(button, "background-color")).toBe(
+      colorOn(button, "oklch(from var(--tone-solid) l calc(c * 1.1) h / 0.88)"),
+    );
   });
 
   it("stays flat in a flat world, and quiet stays bare even when elevated (§5, §19)", () => {
@@ -506,7 +627,13 @@ describe("the boundary (§3, §13)", () => {
       </Button>,
       { theme: { depth: "flat" } },
     );
-    expect(computed(flat, "box-shadow")).toBe("none");
+    // The flat stand-down is a no-op LAYER since 2026-08-17 (`none` would poison the
+    // shadow list the pool shares); a no-op computes as a zero-shadow, not the keyword.
+    const noop = document.createElement("div");
+    noop.style.boxShadow = "0 0 0 0 transparent";
+    flat.append(noop);
+    expect(computed(flat, "box-shadow")).toBe(computed(noop, "box-shadow"));
+    noop.remove();
     expect(computed(flat, "background-image")).toBe("none");
     const quiet = mounted(
       <Button tone="accent" emphasis="quiet">
@@ -536,15 +663,27 @@ describe("the boundary (§3, §13)", () => {
     );
     expect(computed(accent, "background-image")).toBe(computed(destructive, "background-image"));
     expect(computed(accent, "box-shadow")).toBe(computed(destructive, "box-shadow"));
-    // Medium is raised, so it casts — but a white wash over a pastel fill reads as fog, so
-    // the catch is loud's alone (judged in the preview, three rounds).
+    // Medium is raised, so it casts — but its OWN row since the lab port (2026-08-17): the
+    // lit chrome differentiates rungs, and medium's inset under-shade is lighter than loud's
+    // (a committed pigment holds a harder ground line than a pastel). Pinned against the
+    // world's medium chrome token, never a literal — and asserted DISTINCT from loud's so
+    // the two rows cannot silently collapse back into one.
     const medium = mounted(
       <Button tone="accent" emphasis="medium">
         M
       </Button>,
       { theme: { depth: "elevated" } },
     );
-    expect(computed(medium, "box-shadow")).toBe(computed(accent, "box-shadow"));
+    // MEDIUM NO LONGER CASTS (2026-08-17, Kushagra: "why should medium emphasis or text area
+    // or text field elevate at all?"). Elevation went selective: depth separates the focal and
+    // the floating, and a medium fill is a wash ON the plane rather than an object above it —
+    // measured beside loud, the two floated identically and rank stopped reading. The medium
+    // chrome token still exists for the world scopes; no rung consumes it at rest. Asserted as
+    // the ABSENCE against loud's presence, which is the pair that would catch either half
+    // moving: loud losing its cast, or medium quietly getting one back.
+    expect(computed(medium, "box-shadow"), "a medium rung sits ON the plane").toBe("none");
+    expect(computed(accent, "box-shadow"), "and the focal rung still rises off it").not.toBe("none");
+    // A white wash over a pastel fill reads as fog, so the catch is still loud's alone.
     expect(computed(medium, "background-image")).toBe("none");
     const disabled = mounted(
       <Button tone="accent" emphasis="loud" disabled>
@@ -564,13 +703,13 @@ describe("the boundary (§3, §13)", () => {
       // the three per-thickness world names — so standing --kui-control-chrome down never
       // reached it, and a dead glass button computed a shadow byte-identical to its live self.
       const live = mounted(
-        <Button tone="accent" emphasis="loud">
+        <Button backdrop tone="accent" emphasis="loud">
           Save
         </Button>,
         { theme: { depth: "elevated", material } },
       );
       const dead = mounted(
-        <Button tone="accent" emphasis="loud" disabled>
+        <Button backdrop tone="accent" emphasis="loud" disabled>
           Save
         </Button>,
         { theme: { depth: "elevated", material } },
@@ -578,7 +717,23 @@ describe("the boundary (§3, §13)", () => {
       // The negative control: without it, a glass button that stopped casting entirely would
       // satisfy the real assertion and hide a different bug.
       expect(computed(live, "box-shadow"), `${material} glass never casts`).not.toBe("none");
-      expect(computed(dead, "box-shadow")).toBe("none");
+      // Lab port 2026-08-17: the POOL joined the glass cast list (the inner shade at the
+      // pane's bottom curve), and BOTH rows now travel as inherited world names the disabled
+      // arm resets — --kui-control-pool and --kui-control-chrome-{t} both go `initial`, so
+      // each row falls to its `0 0 0 0 transparent` fallback. "Stands down" therefore stopped
+      // meaning the keyword `none`: the computed value is a fully NO-OP two-row list — the
+      // flat world's own spelling, because `none` inside a shadow list would invalidate the
+      // whole list rather than one row. The pin is that no-op list, plus live ≠ dead, without
+      // which a stand-down that never fired could pass.
+      const stoodDown = probeIn(
+        dead,
+        (p) => (p.style.boxShadow = "0 0 0 0 transparent, 0 0 0 0 transparent"),
+        (s) => s.boxShadow,
+      );
+      expect(computed(dead, "box-shadow")).toBe(stoodDown);
+      expect(computed(dead, "box-shadow"), `${material}: the live cast really stood down`).not.toBe(
+        computed(live, "box-shadow"),
+      );
     },
   );
 
@@ -974,5 +1129,64 @@ describe("the press travels, and its colour does not wait (§8)", () => {
     inMotion();
     field.focus();
     expect(computed(field, "animation-name")).toBe("none");
+  });
+});
+
+describe("glass keeps its matter on every rung, and a press still travels (§10, 2026-08-19)", () => {
+  it("a quiet glass button seats in the pane exactly as the medium beside it", () => {
+    // Quiet's cast was a literal `none`, written before the pool existed and never re-read —
+    // so a quiet glass button was a full pane (blur, ring, veil) and the ONE glass control
+    // with no inner seat shade, floating beside a medium that had one (audit 2026-08-18).
+    const host = render(
+      <Theme depth="elevated" material="regular">
+        <Box backdrop>
+          <Button emphasis="quiet">Q</Button>
+          <Button emphasis="medium">M</Button>
+        </Box>
+      </Theme>,
+    );
+    const [quiet, medium] = host.querySelectorAll("button");
+    expect(computed(quiet!, "box-shadow"), "quiet glass lost its seat").not.toBe("none");
+    expect(computed(quiet!, "box-shadow"), "one pane, one seat — quiet ≡ medium").toBe(
+      computed(medium!, "box-shadow"),
+    );
+    // And SOLID quiet still casts nothing — the pool is glass matter, not a promotion.
+    const solid = mounted(<Button emphasis="quiet">Q</Button>, { theme: { depth: "elevated" } });
+    expect(computed(solid, "box-shadow")).toBe("none");
+  });
+
+  it("a pressed loud glass button has a TIGHTER blast to travel to", () => {
+    // The press rule's chain consulted --kui-ct-cast-glass first, which resolves on every
+    // glass control, so the active variant behind it was unreachable there: a pressed loud
+    // glass button computed its resting cast byte-identical while the solid one beside it
+    // tightened (audit 2026-08-18, measured under a held real pointer). `:active` cannot be
+    // forced from script, so this reads the two chain values where the stylesheet keeps
+    // them — resolved on THIS element — and the node law pins the press rule's consumption.
+    const host = render(
+      <Theme depth="elevated" material="regular">
+        <Box backdrop>
+          <Button emphasis="loud">Save</Button>
+        </Box>
+      </Theme>,
+    );
+    const el = host.querySelector("button")!;
+    // The private chain values are registered inherits:false, so a probe child cannot see
+    // them; what a probe CAN see are the world pointers the chain reads — the faded rest
+    // row and the faded PRESS row — which inherit from the depth scope. The press row must
+    // exist, differ from the rest row, and the rest row must be what the button computes
+    // (with the pool in front), which ties the chain to the element.
+    const resolve = (name: string) =>
+      probeIn(el, (p) => (p.style.boxShadow = `var(${name}, none)`), (cs) => cs.boxShadow);
+    const restRow = resolve("--kui-control-chrome-regular");
+    const pressRow = resolve("--kui-control-chrome-active-regular");
+    expect(restRow, "the transmitted rest row must resolve").not.toBe("none");
+    expect(pressRow, "the transmitted press row must resolve").not.toBe("none");
+    expect(pressRow, "the press must have somewhere to travel").not.toBe(restRow);
+    const restCast = probeIn(
+      el,
+      (p) => (p.style.boxShadow = "var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-regular, 0 0 0 0 transparent)"),
+      (cs) => cs.boxShadow,
+    );
+    expect(computed(el, "box-shadow"), "the chain must be the thing the button paints").toBe(restCast);
   });
 });

@@ -321,7 +321,12 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     // ...and the member that is ENTERED rather than pressed keeps its pin. Hovering the field
     // directly, not reasoning about which rule ought to win.
     await userEvent.hover(field);
-    expect(computed(field, "background-color"), "a field a caret enters does not move").toBe(
+    // The PIN IS GONE (2026-08-17): "a field a caret enters does not move" was the
+    // bordered-box identity's sentence — the fill was held still because the border and ring
+    // carried the states. The field rests on a well now, so the fill is the one currency its
+    // hover has, and both members answer the pointer the same way. What the law still owns is
+    // that they answer it TOGETHER: a trigger and the TextField beside it are one family.
+    expect(computed(field, "background-color"), "a field answers the pointer too").not.toBe(
       fieldRest,
     );
   });
@@ -381,13 +386,16 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     // rules did arrive; nothing stamped the attribute they read, and there was no prop to
     // stamp it with — so a form over a photograph put translucent fields beside an opaque
     // white dropdown.
+    // Both state `backdrop` since material became SELECTIVE (2026-08-17): a glass theme no
+    // longer makes a control glass on its own, so the pair has to say it stands over content
+    // or this law compares two opaque boxes and finds them, correctly, identical.
     let field: HTMLElement | null = null;
     const host = render(
       <Theme material="regular">
         <Select>
-          <SelectTrigger placeholder="Pick one" />
+          <SelectTrigger backdrop placeholder="Pick one" />
         </Select>
-        <TextField placeholder="Type here" />
+        <TextField backdrop placeholder="Type here" />
       </Theme>,
     );
     const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
@@ -476,7 +484,19 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     expect(popup.getAttribute("data-size")).toBe("3");
     const rowCorner = parseFloat(computed(items[0]!, "border-top-left-radius"));
     const pad = parseFloat(computed(popup, "padding-top"));
-    expect(parseFloat(computed(popup, "border-top-left-radius"))).toBeCloseTo(rowCorner + pad, 1);
+    // Lab port 2026-08-17: the panel is a SURFACE and draws its authored corner ×
+    // --kui-corner-k (1.613) under `@supports (corner-shape: squircle)`; the ROW's corner
+    // is unmultiplied (controls never take squircle), so the authored concentric sum is
+    // still rowCorner + pad and the knob applies once, to the panel. Probe-derived so a
+    // non-squircle engine (knob fallback 1) passes unchanged.
+    const expected = parseFloat(
+      probeIn(
+        popup,
+        (el) => (el.style.borderRadius = `calc(${rowCorner + pad}px * var(--kui-corner-k, 1))`),
+        (s) => s.borderTopLeftRadius,
+      ),
+    );
+    expect(parseFloat(computed(popup, "border-top-left-radius"))).toBeCloseTo(expected, 1);
   });
 
   it("casts in BOTH worlds, and the flat cast is not the elevated one", async () => {
@@ -495,13 +515,30 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
         <Card ref={(n: HTMLDivElement | null) => void (card = n)}>plain</Card>
       </Theme>,
     );
-    expect(computed(card as unknown as HTMLElement, "box-shadow")).toBe("none");
+    const cardEl = card as unknown as HTMLElement;
+    // Seat only: flat removes the cast, never the pool (lab port 2026-08-17).
+    const seat = document.createElement("div");
+    seat.style.boxShadow = "var(--material-pool-solid), 0 0 0 0 transparent";
+    cardEl.append(seat);
+    expect(computed(cardEl, "box-shadow")).toBe(computed(seat, "box-shadow"));
+    seat.remove();
   });
 
   it("glass keeps the floating cast", async () => {
     const { popup } = openSelect({ depth: "flat" }, undefined);
     await settled();
-    const solid = computed(popup, "box-shadow");
+    // The cast tail only — the pool differs by design since 2026-08-17 (glass wears the
+    // pane's shade, solid the seat); the menu's own law states the rule in full.
+    // Lab port 2026-08-17: split on LAYER commas — the glass pool serializes as
+    // "… -14px inset," (no "px,"), so a first-"px," slice ate the pool AND the contact row
+    // and compared unequal tails. Commas inside rgb(…) are excluded by the lookahead.
+    const castOf = (shadow: string) =>
+      shadow
+        .split(/,(?![^(]*\))/)
+        .slice(1)
+        .map((l) => l.trim())
+        .join(", ");
+    const solid = castOf(computed(popup, "box-shadow"));
     const glass = render(
       <Theme depth="flat" material="regular">
         <Select defaultOpen>
@@ -516,7 +553,7 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
     const glassPopup = popups[popups.length - 1]!;
     expect(glassPopup.getAttribute("data-material")).toBe("regular");
-    expect(computed(glassPopup, "box-shadow")).toBe(solid);
+    expect(castOf(computed(glassPopup, "box-shadow"))).toBe(solid);
     expect(glass).toBeDefined();
   });
 
@@ -615,7 +652,19 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
         const painted = Math.min(declared, row.getBoundingClientRect().height / 2);
         const pad = parseFloat(computed(popup, "padding-top"));
         const panel = parseFloat(computed(popup, "border-top-left-radius"));
-        const expected = radius === "none" ? 0 : painted + pad;
+        // Lab port 2026-08-17: the panel (a SURFACE) draws its authored sum × --kui-corner-k
+        // (1.613, squircle compensation); the row's painted corner is unmultiplied because
+        // controls never take squircle. `none` stays exactly 0 — the guard, not 0 × knob.
+        const expected =
+          radius === "none"
+            ? 0
+            : parseFloat(
+                probeIn(
+                  popup,
+                  (el) => (el.style.borderRadius = `calc(${painted + pad}px * var(--kui-corner-k, 1))`),
+                  (s) => s.borderTopLeftRadius,
+                ),
+              );
         expect(panel, `${radius} × size ${size}`).toBeCloseTo(expected, 1);
       }
     }

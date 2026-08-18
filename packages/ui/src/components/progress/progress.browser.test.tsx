@@ -177,8 +177,8 @@ describe("outside the look axis, whole (§19 — the instrument rule)", () => {
     // mechanical half — a family is dressed because its sheet CONSUMES the roles — so the
     // proof is that flipping the axis moves nothing a user can see.
     for (const appearance of APPEARANCES) {
-      const outlined = parts(<Progress value={40} />, { theme: { appearance, surfaceLook: "outlined", controlLook: "outlined" } });
-      const filled = parts(<Progress value={40} />, { theme: { appearance, surfaceLook: "filled", controlLook: "filled" } });
+      const outlined = parts(<Progress value={40} />, { theme: { appearance, surfaceLook: "outlined" } });
+      const filled = parts(<Progress value={40} />, { theme: { appearance, surfaceLook: "filled" } });
       for (const prop of ["background-color", "border-top-left-radius", "height", "border-width"]) {
         expect(
           computed(filled.root, prop),
@@ -193,11 +193,15 @@ describe("outside the look axis, whole (§19 — the instrument rule)", () => {
 
   it("the axis really is live in this Theme — the control that keeps the law honest", () => {
     // Same vacuity guard: if `look` did nothing at all, the law above would pass on a bar that
-    // HAD joined the axis. A field is a dressed family, so its fill must move.
-    const outlined = mounted(<div className="kui-field" />, { theme: { controlLook: "outlined" } });
-    const filled = mounted(<div className="kui-field" />, { theme: { controlLook: "filled" } });
-    expect(colorOn(filled, "var(--look-field-fill)")).not.toBe(
-      colorOn(outlined, "var(--look-field-fill)"),
+    // HAD joined the axis. A SURFACE is the dressed family that still moves (see below).
+    const outlined = mounted(<div className="kui-surface" />, { theme: { surfaceLook: "outlined" } });
+    const filled = mounted(<div className="kui-surface" />, { theme: { surfaceLook: "filled" } });
+    // The honesty control reads the SURFACE role since 2026-08-17: controlLook went inert for
+    // the field and mark families with the fill-first flip, so --dress-field-fill is the same
+    // colour in both worlds and this guard would have proved nothing. surfaceLook still has
+    // two answers, which is what keeps the law above falsifiable.
+    expect(colorOn(filled, "var(--look-surface-fill)")).not.toBe(
+      colorOn(outlined, "var(--look-surface-fill)"),
     );
   });
 });

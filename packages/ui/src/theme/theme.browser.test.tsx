@@ -13,7 +13,8 @@ import { Checkbox } from "../components/checkbox/checkbox.tsx";
 import { TextField } from "../components/text-field/text-field.tsx";
 import { APPEARANCES, computed, mounted, render } from "../test/browser.tsx";
 import { density, radiusLevels } from "../tokens/config.ts";
-import { DEPTHS, Theme, themeAxes, themeDefaults } from "./theme.tsx";
+import { DEPTHS, Theme, themeAxes, themeDefaults, useMaterial } from "./theme.tsx";
+import { Button } from "../components/button/button.tsx";
 
 /** Reads through real properties: a custom property hands back its unresolved token stream. */
 const probe = <div id="probe" style={{ height: "var(--control-height-2)", borderRadius: "var(--radius-control-2)" }} />;
@@ -25,13 +26,12 @@ describe("the axes render as attributes (§5)", () => {
     expect(el.getAttribute("data-radius")).toBe("large");
   });
 
-  // Both halves of the look axis, each on its own attribute (split 2026-08-10). Looped rather
-  // than written twice: the two are one mechanism asked of two family groups, and a law that
-  // covered only `surfaceLook` would have let `controlLook` ship un-stamped.
-  const LOOK_AXES = [
-    { prop: "surfaceLook", attr: "data-surface-look" },
-    { prop: "controlLook", attr: "data-control-look" },
-  ] as const;
+  // The look axis is ONE prop again (controlLook DELETED 2026-08-19, Kushagra — the
+  // fill-first flip had made its two values byte-identical for fields and marks, so the
+  // prop stamped an attribute and moved nothing). The loop survives so a future second
+  // axis re-enters it instead of shipping un-stamped; the deletion itself is held by the
+  // un-stamped assertion below.
+  const LOOK_AXES = [{ prop: "surfaceLook", attr: "data-surface-look" }] as const;
 
   for (const { prop, attr } of LOOK_AXES) {
     it(`${prop} stamps its default and a nested Theme escapes by declaration (§19)`, () => {
@@ -55,17 +55,17 @@ describe("the axes render as attributes (§5)", () => {
     });
   }
 
-  it("the two look halves are independent — a plain card can hold filled controls (§19)", () => {
-    // THE law the 2026-08-10 split exists for. Under one axis this cell was unreachable: a
-    // white card holding grey filled inputs — the most ordinary form on the web — because
-    // `filled` moved the surface and the field together, one neutral step apart.
-    //
-    // Read as computed paint on real components, not as attributes: the split is only real if
-    // the emitted scopes declare disjoint families, and an attribute law would pass on a
-    // stylesheet where one block still wrote both.
-    const at = (surfaceLook: "outlined" | "filled", controlLook: "outlined" | "filled") => {
+  it("controlLook is DELETED — nothing stamps it, and surfaceLook never reaches a field (§19)", () => {
+    // 2026-08-19, Kushagra. The 2026-08-10 split's cell — a plain card holding dressed
+    // inputs — is now the ONLY state: fields and marks wear the dress unconditionally, so
+    // the partition this law used to read as two props over disjoint families survives as
+    // one prop over one family plus an unconditional dress. Three assertions carry it:
+    // the dead attribute never renders, the surface half still cannot reach a field, and
+    // the cell itself still exists.
+    expect(render(<Theme />).hasAttribute("data-control-look"), "the deleted axis re-stamped").toBe(false);
+    const at = (surfaceLook: "outlined" | "filled") => {
       const el = render(
-        <Theme surfaceLook={surfaceLook} controlLook={controlLook}>
+        <Theme surfaceLook={surfaceLook}>
           <Card>
             <TextField />
           </Card>
@@ -76,16 +76,12 @@ describe("the axes render as attributes (§5)", () => {
         field: computed(el.querySelector(".kui-field")!, "background-color"),
       };
     };
-    const plain = at("outlined", "outlined");
-    const split = at("outlined", "filled");
-    const both = at("filled", "filled");
-
-    expect(split.card, "the control half dressed the card").toBe(plain.card);
-    expect(split.field, "the control half left the field at rest").not.toBe(plain.field);
+    const plain = at("outlined");
+    const both = at("filled");
+    expect(both.field, "the surface half reached into the field family").toBe(plain.field);
     expect(both.card, "the surface half did not reach the card").not.toBe(plain.card);
-    // And the cell the whole thing is for: a card that stayed put while its field filled.
-    expect(split.field, "a filled field on a plain card is the same colour as the card").not.toBe(
-      split.card,
+    expect(plain.field, "a field on a plain card is the same colour as the card").not.toBe(
+      plain.card,
     );
   });
 
@@ -116,9 +112,10 @@ describe("the axes render as attributes (§5)", () => {
           const edge = (contrast: "normal" | "high") =>
             computed(
               mounted(ui, {
-                // Both halves: the three cases span both family groups, and the stand-down
-                // this law is about is written once for every look role.
-                theme: { surfaceLook: "filled", controlLook: "filled", appearance, contrast },
+                // The three cases span the surface family (still on the axis) and the two
+                // unconditionally-dressed families; the stand-down this law is about is
+                // written once for the look role and once for each dress edge.
+                theme: { surfaceLook: "filled", appearance, contrast },
                 select,
               }),
               "border-top-color",
@@ -372,9 +369,13 @@ describe("only the outermost Theme is a query container (§2, narrowed 2026-08-1
 
   it("a nested Theme still carries every axis it was given — containment was the only loss", () => {
     // The narrowing is about MEASUREMENT and must not touch what a nested Theme is for.
+    // `backdrop` (lab port 2026-08-17): a Card under a glass theme resolves SOLID by
+    // default — glass is selective, and a card is the page's calm ground unless the call
+    // site states the over-content placement. A plain Card here would stamp nothing and
+    // this law would be reading the selectivity rule, not whether the axis crossed.
     const row = inRow(
       <Theme density="compact" radius="none" material="thick">
-        <Card size="2">x</Card>
+        <Card size="2" backdrop>x</Card>
       </Theme>,
     );
     const nested = row.querySelector<HTMLElement>(".kui-theme")!;
@@ -384,5 +385,96 @@ describe("only the outermost Theme is a query container (§2, narrowed 2026-08-1
     // context and each component stamps its own, so all 28 selectors stay element-keyed
     // (2026-08-16). Read where it actually lands, or this asserts the wrong element.
     expect(row.querySelector(".kui-surface")?.getAttribute("data-material")).toBe("thick");
+  });
+});
+
+describe("a solid surface HOSTS glass — the pane scopes the region, never the author (§10, 2026-08-19)", () => {
+  // Kushagra, closing the 2026-08-18 audit's headline: "the whole point of a solid surface
+  // is to be able to host glass." The old solid-pane arm returned `solid` unconditionally,
+  // which silently vetoed the `backdrop` prop, the `<Box backdrop>` region and the public
+  // useMaterial({backdrop:true}) alike — every documented placement statement was
+  // unexpressible inside any Card, and since panes default solid, that was the ordinary
+  // case. Now the pane RESETS the ambient region (its face is the ground its members stand
+  // on) and an explicit statement made INSIDE it resolves the theme's material.
+
+  it("an explicit region inside a solid pane expresses the theme's material", () => {
+    const host = render(
+      <Theme material="thin">
+        <Card>
+          <Box backdrop>
+            <Button>Zoom</Button>
+          </Box>
+        </Card>
+      </Theme>,
+    );
+    const button = host.querySelector("button")!;
+    expect(button.dataset.material, "the region was swallowed by the pane").toBe("thin");
+    expect(computed(button, "backdrop-filter")).not.toBe("none");
+  });
+
+  it("but a region marked OUTSIDE the pane stops at its edge — calm ground by default", () => {
+    // The pane here must actually BE solid to test the reset — a bare Card inside a marked
+    // region correctly expresses glass itself (placement is a fact about a place), so the
+    // mount pins it solid with its own prop. Without the reset, the button would read the
+    // stale outer region and go glass on the solid card's calm face.
+    const host = render(
+      <Theme material="thin">
+        <Box backdrop>
+          <Card backdrop={false}>
+            <Button>Label</Button>
+          </Card>
+        </Box>
+      </Theme>,
+    );
+    expect(host.querySelector(".kui-surface")!.getAttribute("data-material"), "the pinned card must be solid").toBeNull();
+    const button = host.querySelector("button")!;
+    expect(button.dataset.material, "the outer region leaked through the pane").toBeUndefined();
+    expect(computed(button, "backdrop-filter")).toBe("none");
+  });
+
+  it("the public hook's own argument wins inside a pane too", () => {
+    function Probe() {
+      return <div data-probe data-material={useMaterial({ backdrop: true })} />;
+    }
+    const host = render(
+      <Theme material="regular">
+        <Card>
+          <Probe />
+        </Card>
+      </Theme>,
+    );
+    expect(host.querySelector<HTMLElement>("[data-probe]")!.dataset.material).toBe("regular");
+  });
+
+  it("a nested Theme inside a GLASS pane resolves solid — the reset closed the glass-on-glass escape", () => {
+    // Theme resets the pane mark for portals; before the pane also reset the REGION, an
+    // in-flow nested Theme inside a glass card re-opened the stale outer region and put
+    // full glass on glass — double blur, double readback (audit 2026-08-18). The member
+    // must re-state its own placement to get glass back.
+    const host = render(
+      <Theme material="thin">
+        <Box backdrop>
+          <Card backdrop>
+            <Theme>
+              <Button>Label</Button>
+            </Theme>
+          </Card>
+        </Box>
+      </Theme>,
+    );
+    const button = host.querySelector("button")!;
+    expect(button.dataset.material, "glass-on-glass through the nested-Theme escape").toBeUndefined();
+    // The control case that must keep working: WITHOUT the nested Theme, the same member is
+    // the pane's on-glass content — proof the mount can see the scope at all.
+    const control = render(
+      <Theme material="thin">
+        <Box backdrop>
+          <Card backdrop>
+            <Button>Label</Button>
+          </Card>
+        </Box>
+      </Theme>,
+    );
+    expect(control.querySelector("button")!.dataset.material).toBe("on-glass");
   });
 });

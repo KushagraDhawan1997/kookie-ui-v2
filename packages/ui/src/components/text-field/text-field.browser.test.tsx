@@ -70,7 +70,10 @@ describe("the wrapper is the control, and it joins the size index (§4)", () => 
     // One tier below the mark's ring, because a field is a large element and the guidance
     // holds large non-text to 30 where fine detail owes 45 — at equal colour the long border
     // of a big box reads far heavier than a mark's ring (Kushagra, judged in the preview).
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--field-edge"));
+    // The DRESS edge (2026-08-17, the fill-first flip): the solved --field-edge was what a
+    // bordered field was recognised BY, and the well took that job. The solved ladder still
+    // exists and conformance still reaches it — contrast="high" stands the dress down.
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--dress-field-edge"));
   });
 
   it.each(APPEARANCES)("%s: one solved ladder of boundaries — mark, then field, then card (§7)", (appearance) => {
@@ -85,8 +88,16 @@ describe("the wrapper is the control, and it joins the size index (§4)", () => 
     const mark = mounted(<Checkbox />, { theme: { appearance }, select: ".kui-checkbox" });
     const card = mounted(<Card>B</Card>, { theme: { appearance }, select: ".kui-surface" });
 
-    expect(border(field)).toBe(colorOn(field, "var(--field-edge)"));
-    expect(border(mark)).toBe(colorOn(mark, "var(--control-edge)"));
+    // The DRESS edge since the fill-first flip (2026-08-17): the solved --field-edge was the
+    // boundary a bordered field was recognised BY, and the well took that job. The solved
+    // ladder still exists and is still what conformance reaches — contrast="high" stands the
+    // dress down so the tone system's boundary returns, asserted in the HC law below.
+    expect(border(field)).toBe(colorOn(field, "var(--dress-field-edge)"));
+    // The mark family moved with the field family (2026-08-17): both rest on a dress well
+    // and a dress edge now, so the LADDER this law is about is the dress ladder — mark, then
+    // field, then card — not the solved one. That the three are still ORDERED is the claim,
+    // and it is asserted below on the values themselves.
+    expect(border(mark)).toBe(colorOn(mark, "var(--dress-mark-edge)"));
     // Three distinct tiers — a collapse in either direction is a design regression.
     expect(border(field)).not.toBe(border(mark));
     expect(border(field)).not.toBe(border(card));
@@ -167,9 +178,13 @@ describe("one treatment: a field has no loudness (§9, §11)", () => {
     void (<TextField size={20} />);
   });
 
-  it("the fill is the opaque seal, and it does not move when you point at it", () => {
+  it("the fill is the well, and it steps when you point at it", () => {
     const el = render(<TextField />);
-    expect(computed(el, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
+    // THE WELL, not the seal (2026-08-17, the fill-first flip): a field's resting identity is
+    // the look's dress fill — "a field resolves to a light fill solid, border supplements"
+    // (Kushagra) — where it used to be `--color-surface` with a solved hairline carrying it.
+    expect(computed(el, "background-color")).toBe(colorOn(el, "var(--dress-field-fill)"));
+    expect(computed(el, "background-color")).not.toBe(colorOn(el, "var(--color-surface)"));
     expect(computed(el, "background-color")).not.toContain("rgba");
 
     // The trap this pins, which no rendered screenshot would catch: the shared layer paints
@@ -179,8 +194,17 @@ describe("one treatment: a field has no loudness (§9, §11)", () => {
     // would fall back to transparent. So resolve the interaction chains the way the hover and
     // press rules will, and assert they land on the same seal rather than on nothing.
     const rest = computed(el, "background-color");
-    expect(colorOn(el, "var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover))")).toBe(rest);
-    expect(colorOn(el, "var(--kui-ct-fill-active, var(--kui-ct-fill-src-active))")).toBe(rest);
+    // The chains must RESOLVE — that is the trap, and it survives the pin's removal. What
+    // changed 2026-08-17 is where they land: the pin held both to the resting value because a
+    // field's states were carried by its border, and the well made the fill the one currency
+    // hover has. So they must now be real, distinct steps rather than the same colour twice —
+    // and still never transparent, which is the failure the pin was written against.
+    const hover = colorOn(el, "var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover))");
+    const active = colorOn(el, "var(--kui-ct-fill-active, var(--kui-ct-fill-src-active))");
+    for (const [name, value] of [["hover", hover], ["active", active]] as const) {
+      expect(value, `${name} resolves to nothing`).not.toBe("rgba(0, 0, 0, 0)");
+      expect(value, `${name} did not step`).not.toBe(rest);
+    }
   });
 
   it("wears a caret, not a hand, and its text stays selectable", () => {
@@ -246,7 +270,10 @@ describe("validity is state, never a prop (§8)", () => {
     inputOf(el).setAttribute("data-invalid", "");
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
     inputOf(el).removeAttribute("data-invalid");
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--field-edge"));
+    // The DRESS edge (2026-08-17, the fill-first flip): the solved --field-edge was what a
+    // bordered field was recognised BY, and the well took that job. The solved ladder still
+    // exists and conformance still reaches it — contrast="high" stands the dress down.
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--dress-field-edge"));
   });
 
   it("the value stays legible; the box carries the state, border AND ring (§8)", () => {
@@ -289,7 +316,7 @@ describe("validity is state, never a prop (§8)", () => {
 describe("disabled arrives through the shared remap (§8)", () => {
   it("goes flat by tone, never by opacity, and takes the input with it", () => {
     const el = render(<TextField disabled placeholder="hint" />);
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--disabled-border"));
     expect(computed(el, "opacity")).toBe("1");
     expect(computed(el, "cursor")).toBe("default");
     expect(inputOf(el).disabled).toBe(true);
@@ -302,7 +329,7 @@ describe("disabled arrives through the shared remap (§8)", () => {
 
   it("disabled outranks invalid, deterministically", () => {
     const el = render(<TextField disabled aria-invalid="true" />);
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--disabled-border"));
   });
 });
 
@@ -405,75 +432,65 @@ describe("the slots are forced anatomy, and they behave like slots (§10)", () =
 });
 
 describe("the look axis dresses the well, and states outrank it (§19)", () => {
-  it.each(APPEARANCES)("%s: filled fills the well and keeps a softer edge", (appearance) => {
-    // Rewritten 2026-08-06 with the rest of the axis's laws. The border assertion in
-    // particular was asserting a defect: with the edge gone, a READ-ONLY filled field painted
-    // nothing whatsoever — readOnly drops the seal by design (it is the invitation to type
-    // that goes, not the value), so the border was the only thing left bounding it, and the
-    // dress deleted that too. See the readOnly x look law below, which no cell used to cover.
-    const filled = mounted(<TextField />, {
-      theme: { controlLook: "filled", appearance },
+  // controlLook was DELETED 2026-08-19 (Kushagra): the dress is unconditional, and the laws
+  // below keep every guarantee the axis's laws carried, one cell each instead of two.
+  it.each(APPEARANCES)("%s: the dressed well keeps a live edge, and surfaceLook cannot reach it", (appearance) => {
+    const field = mounted(<TextField />, { theme: { appearance }, select: ".kui-field" });
+    expect(computed(field, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+    const underFilled = mounted(<TextField />, {
+      theme: { appearance, surfaceLook: "filled" },
       select: ".kui-field",
     });
-    const outlined = mounted(<TextField />, {
-      theme: { controlLook: "outlined", appearance },
-      select: ".kui-field",
-    });
-    expect(
-      computed(filled, "background-color"),
-      `filled resolves to outlined's fill in ${appearance}`,
-    ).not.toBe(computed(outlined, "background-color"));
-    expect(computed(filled, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+    for (const prop of ["background-color", "border-top-color"]) {
+      expect(computed(underFilled, prop), `surfaceLook reached the field's ${prop}`).toBe(
+        computed(field, prop),
+      );
+    }
   });
 
-  it.each(APPEARANCES)("%s: a read-only filled field still paints something", (appearance) => {
-    // The cell nobody looped (audit 2026-08-06). readOnly x look was two independent axes and
-    // no law crossed them, so an invisible control shipped: transparent fill by design meeting
-    // transparent border by dress. The law reads BOTH channels, because either one alone is
-    // satisfied by the broken state.
+  it.each(APPEARANCES)("%s: a read-only field still paints something", (appearance) => {
+    // The cell nobody looped (audit 2026-08-06): readOnly drops the seal by design (it is
+    // the invitation to type that goes, not the value), so the edge is what bounds it. The
+    // law reads BOTH channels, because either one alone is satisfied by the broken state.
     const el = mounted(<TextField readOnly defaultValue="x" />, {
-      theme: { controlLook: "filled", appearance },
+      theme: { appearance },
       select: ".kui-field",
     });
     const painted =
       computed(el, "background-color") !== "rgba(0, 0, 0, 0)" ||
       computed(el, "border-top-color") !== "rgba(0, 0, 0, 0)";
-    expect(painted, "a read-only filled field is invisible — no fill and no edge").toBe(true);
+    expect(painted, "a read-only field is invisible — no fill and no edge").toBe(true);
   });
 
-  it("outlined is the identity — byte-identical to the bare render", () => {
+  it("the bare render is the themed render — no axis, no difference", () => {
     const bare = render(<TextField />);
-    const outlined = mounted(<TextField />, {
-      theme: { controlLook: "outlined" },
-      select: ".kui-field",
-    });
+    const themed = mounted(<TextField />, { theme: {}, select: ".kui-field" });
     for (const prop of ["background-color", "border-top-color"]) {
-      expect(computed(outlined, prop)).toBe(computed(bare, prop));
+      expect(computed(themed, prop)).toBe(computed(bare, prop));
     }
   });
 
-  it("invalid outranks dress: the error edge returns through filled's transparent border", () => {
-    // The shared invalid arm stands the look role down (`initial`), so the family rule's
+  it("invalid outranks dress: the error edge returns through the dress edge", () => {
+    // The shared invalid arm stands the dress edge down (`initial`), so the family rule's
     // fallback resolves the re-pointed --tone-border at the element. Without that arm the
     // state would be swallowed exactly where the user needs it.
-    const el = mounted(<TextField aria-invalid="true" />, {
-      theme: { controlLook: "filled" },
-      select: ".kui-field",
-    });
+    const el = mounted(<TextField aria-invalid="true" />, { theme: {}, select: ".kui-field" });
     expect(computed(el, "border-top-color")).toBe(colorOn(el, "var(--invalid-edge)"));
   });
 
-  it("disabled outranks dress too: the flattened edge returns the same way", () => {
-    const el = mounted(<TextField disabled />, {
-      theme: { controlLook: "filled" },
-      select: ".kui-field",
-    });
-    expect(computed(el, "border-top-color")).toBe(colorOn(el, "var(--neutral-6)"));
+  it("disabled outranks dress too, and the dead edge RECEDES from the live one", () => {
+    // Two claims since 2026-08-19: the stand-down still works (the dead border is the
+    // remapped --disabled-border, not the dress edge), and the direction is right — the old
+    // opaque --neutral-6 OUT-contrasted a live field's alpha edge in dark, making the one
+    // disabled control the strongest boundary on the row (audit 2026-08-18).
+    const el = mounted(<TextField disabled />, { theme: {}, select: ".kui-field" });
+    expect(computed(el, "border-top-color")).toBe(colorOn(el, "var(--disabled-border)"));
+    expect(computed(el, "border-top-color")).not.toBe(colorOn(el, "var(--dress-field-edge)"));
   });
 });
 
 describe("the app's identities reach the field without it knowing (§5, §10)", () => {
-  it("casts the CONTROL row in an elevated world — the third flip, at the right scale (§5)", () => {
+  it("does NOT cast, in either world — the fourth flip (§5)", () => {
     // 2026-08-04 lifted fields with the cards; 2026-08-06 reversed it (a well is content of
     // a plane); 2026-08-07 rejoins at CONTROL scale, which is what both earlier rounds were
     // missing: control-scale light did not exist. A field is a raised control, so it casts
@@ -483,25 +500,40 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
 
     const elevated = mounted(<TextField />, { theme: { depth: "elevated" } });
     const probe = document.createElement("div");
+    // THE FOURTH FLIP (2026-08-17, Kushagra): the field family left elevation. What 2026-08-06
+    // rejected was surface-scale depth and 2026-08-07 restored at control scale — both were
+    // priced on the bordered-box identity, where a field was a raised control like its button.
+    // Its identity is the WELL now, and a well is carved into the plane, not raised off it, so
+    // a drop shadow under one is a contradiction the eye reads immediately. The probe is kept
+    // and inverted rather than deleted: the world token still exists and this is what catches
+    // a field silently rejoining it.
     probe.style.boxShadow = "var(--control-chrome)";
     elevated.append(probe);
-    expect(computed(elevated, "box-shadow")).toBe(computed(probe, "box-shadow"));
-    expect(computed(elevated, "box-shadow")).not.toBe("none");
+    // The probe still resolves the world's control row — the token is alive and an elevated
+    // world still hands it out — and the FIELD does not take it. Both halves, so the law
+    // cannot go green by the world going flat underneath it.
+    expect(computed(probe, "box-shadow"), "the elevated world must still cast something").not.toBe("none");
+    expect(computed(elevated, "box-shadow"), "a well is not raised off the plane").toBe("none");
     probe.remove();
     // @ts-expect-error — depth is an app identity; no field chooses a shadow
     void (<TextField shadow="2" />);
   });
 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
-    const glass = mounted(<TextField />, { theme: { material: "regular" } });
+    const glass = mounted(<TextField backdrop />, { theme: { material: "regular" } });
     // Derived, not restated: the radius is config's to move (2026-08-16).
     expect(computed(glass, "backdrop-filter")).toContain(
-      `blur(${material.light.regular.filter.match(/blur\(([\d.]+)px\)/)![1]}px)`,
+      // The CONTROL cell's blur, not the pane's (control-scale material, lab port
+      // 2026-08-17): a 40px box re-prices the ladder — half the blur, a leaner veil.
+      `blur(${material.light.regular.control.filter.match(/blur\(([\d.]+)px\)/)![1]}px)`,
     );
     // The veil is the field's OWN fill made translucent — the fill-modifier model, reached
     // through the shared control layer without text-field.css naming material once.
     expect(computed(glass, "background-color")).toBe(
-      colorOn(glass, "color-mix(in srgb, var(--color-surface) var(--material-regular-alpha), transparent)"),
+      colorOn(glass, // The OPAQUE twin, not the alpha dress (2026-08-19): the veil multiplies an alpha
+        // source, so the glass scopes re-point the sources to the same rung said opaquely —
+        // a glass field's designed veil measured 4.1% before (audit 2026-08-18).
+        "color-mix(in srgb, var(--dress-field-fill-solid) var(--material-regular-control-alpha), transparent)"),
     );
     expect(computed(glass, "background-color")).not.toMatch(/^rgb\(/);
   });
@@ -511,15 +543,30 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // was left behind"): an opaque tone border on a pane of light is a sticker, so glass
     // fields wear the material's own translucent edge and top rim — and in an elevated
     // world they cast the CONTROL row transmitted, fainter than a solid field's.
-    const glass = mounted(<TextField />, { theme: { material: "thin" } });
+    // depth pinned FLAT here (lab port 2026-08-17: the default flipped to elevated, the
+    // radius-flip precedent) — this arm is about a flat world's glass never floating.
+    const glass = mounted(<TextField backdrop />, { theme: { depth: "flat", material: "thin" } });
     expect(computed(glass, "border-top-color")).toBe(colorOn(glass, "var(--material-thin-edge)"));
     expect(computed(glass, "background-image")).not.toBe("none");
-    expect(computed(glass, "box-shadow")).toBe("none"); // flat: glass never floats
+    // Flat: glass never floats — the cast AND the pool are no-op LAYERS (the pool rides the
+    // world pointers since 2026-08-17: "flat means flat", so matter stands down with light).
+    const noop = document.createElement("div");
+    // ONE no-op layer, not two, since the field left elevation (2026-08-17): the list is the
+    // pool alone now — the transmitted cast went with the flip — and in a flat world that one
+    // layer stands down to its `0 0 0 0 transparent` fallback.
+    noop.style.boxShadow = "0 0 0 0 transparent";
+    glass.append(noop);
+    expect(computed(glass, "box-shadow")).toBe(computed(noop, "box-shadow"));
+    noop.remove();
 
-    const elevated = mounted(<TextField />, { theme: { depth: "elevated", material: "thin" } });
+    const elevated = mounted(<TextField backdrop />, { theme: { depth: "elevated", material: "thin" } });
     const solid = mounted(<TextField />, { theme: { depth: "elevated" } });
     const probe = document.createElement("div");
-    probe.style.boxShadow = "var(--control-chrome-thin)";
+    // The pool leads the transmitted rows in the ONE list (lab port 2026-08-17).
+    // The POOL ALONE (2026-08-17): a glass field keeps the shade settling inside the pane —
+    // matter — and no longer transmits the control row, which was elevation and left with the
+    // fourth flip. The solid twin below is what keeps this honest: it must not cast either.
+    probe.style.boxShadow = "var(--material-pool-control)";
     elevated.append(probe);
     expect(computed(elevated, "box-shadow")).toBe(computed(probe, "box-shadow"));
     expect(computed(elevated, "box-shadow")).not.toBe("none");
@@ -531,10 +578,10 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // The glass edge routes through one private name exactly so these two arms can stand it
     // down with one line each — without this, the brightest hairline in the field's world
     // would keep painting over the error signal.
-    const invalid = mounted(<TextField aria-invalid="true" />, { theme: { material: "thin" } });
+    const invalid = mounted(<TextField backdrop aria-invalid="true" />, { theme: { material: "thin" } });
     expect(computed(invalid, "border-top-color")).toBe(colorOn(invalid, "var(--invalid-edge)"));
-    const disabled = mounted(<TextField disabled />, { theme: { material: "thin" } });
-    expect(computed(disabled, "border-top-color")).toBe(colorOn(disabled, "var(--neutral-6)"));
+    const disabled = mounted(<TextField backdrop disabled />, { theme: { material: "thin" } });
+    expect(computed(disabled, "border-top-color")).toBe(colorOn(disabled, "var(--disabled-border)"));
   });
 
   it.each(GLASS_MATERIALS)(
@@ -545,14 +592,34 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
       // the harder half of this defect: its disabled selector is the `:has()` arm, which ties
       // with the glass rules on specificity and loses on source order, so the fix has to stand
       // down the three world names rather than the glass value itself.
-      const live = mounted(<TextField />, {
+      const live = mounted(<TextField backdrop />, {
         theme: { depth: "elevated", material },
       });
-      const dead = mounted(<TextField disabled />, {
+      const dead = mounted(<TextField backdrop disabled />, {
         theme: { depth: "elevated", material },
       });
-      expect(computed(live, "box-shadow"), `${material} glass never casts`).not.toBe("none");
-      expect(computed(dead, "box-shadow")).toBe("none");
+      // THE LIVE HALF INVERTED 2026-08-17: the field family left elevation, so a glass field
+      // no longer transmits a cast either — what survives on glass is the POOL, the shade
+      // settling inside the pane, which is matter rather than lift. So `live` is a no-op list
+      // too, and the claim this law still owns is the one it was written for: the disabled arm
+      // must reach the glass path at all, which the flat arm above cannot prove.
+      // A glass field casts NOTHING in either state since the field family left elevation
+      // (2026-08-17) — not the transmitted row, and not the pool either, because the pool
+      // rides the same world tokens the flip stood down. Live and dead therefore agree, which
+      // means this law can no longer prove the disabled arm REACHES the glass path; that
+      // guarantee lives on in button.browser.test.tsx, whose rungs still cast. What is left
+      // here is the flip itself, asserted in both states so a field silently rejoining
+      // elevation fails on the live half.
+      // What a glass field keeps is the POOL — the shade settling inside the pane, which is
+      // matter rather than lift — and what it lost with the fill-first flip is the transmitted
+      // CAST, which was elevation. So live still resolves a real list and dead resolves none,
+      // which is what keeps this law able to prove the disabled arm reaches the glass path.
+      expect(computed(live, "box-shadow"), `${material} glass keeps its pool`).not.toBe("none");
+      // Dead stands the pool down through the same `initial` arm, and with the transmitted
+      // row gone the whole declaration is invalid at computed-value time, so the shadow falls
+      // to the keyword rather than to a no-op layer list.
+      expect(computed(dead, "box-shadow"), `${material} glass must not cast when dead`).toBe("none");
+      expect(computed(dead, "box-shadow")).not.toBe(computed(live, "box-shadow"));
     },
   );
 
@@ -563,7 +630,11 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(dark, "border-top-color")).not.toBe(computed(light, "border-top-color"));
     // The dark seal and its own surface token, not a light value leaking through a var that
     // resolved where it was declared.
-    expect(computed(dark, "background-color")).toBe(colorOn(dark, "var(--color-surface)"));
+    // THE WELL, not the seal (2026-08-17, the fill-first flip): a field's resting identity is
+    // the look's dress fill — "a field resolves to a light fill solid, border supplements"
+    // (Kushagra) — where it used to be `--color-surface` with a solved hairline carrying it.
+    expect(computed(dark, "background-color")).toBe(colorOn(dark, "var(--dress-field-fill)"));
+    expect(computed(dark, "background-color")).not.toBe(colorOn(dark, "var(--color-surface)"));
   });
 });
 
@@ -617,13 +688,17 @@ describe("the boundary (§3, §5)", () => {
 });
 
 describe("a control inside a glass control paints its OWN fill (§2, §10)", () => {
+  // The field states `backdrop` in every law here, and that is the SELECTIVITY rule rather
+  // than a test convenience (2026-08-17): material is priced where a backdrop exists, so a
+  // field on calm ground resolves solid no matter what the theme says. A law that mounts a
+  // glass theme and no backdrop is now measuring an opaque control and calling it glass.
   // recipes.css guarded --kui-border-color and nothing else, while surfaces.css guarded its
   // three equivalents. Material writes --kui-ct-fill/-hover/-active on the element carrying
   // [data-material], custom properties inherit, so a Button in the trailing slot of a glass
   // field computed the identical background as the field itself — at rest, on hover and on
   // press — unblurred, reading as one flat shape rather than a control inside a container.
   it("a Button in a material field does not inherit the field's veil", () => {
-    const field = mounted(<TextField trailing={<Button size="1">Show</Button>} />, {
+    const field = mounted(<TextField backdrop trailing={<Button size="1">Show</Button>} />, {
       theme: { material: "regular" },
     });
     const button = field.querySelector("button")!;
@@ -636,7 +711,7 @@ describe("a control inside a glass control paints its OWN fill (§2, §10)", () 
   });
 
   it("and it does not inherit the blur either — one glass per stack (§10)", () => {
-    const field = mounted(<TextField trailing={<Button size="1">Show</Button>} />, {
+    const field = mounted(<TextField backdrop trailing={<Button size="1">Show</Button>} />, {
       theme: { material: "regular" },
     });
     expect(computed(field.querySelector("button")!, "backdrop-filter")).toBe("none");
@@ -651,7 +726,7 @@ describe("a control inside a glass control paints its OWN fill (§2, §10)", () 
     // `useMaterial()` below it resolves `on-glass` — never the theme's thickness. That is a
     // stronger claim than "its computed fill differs", and the one that survives a rewrite of
     // the CSS: whatever the stylesheet does, the button is not asking to be glass.
-    const field = mounted(<TextField trailing={<Button size="1">Show</Button>} />, {
+    const field = mounted(<TextField backdrop trailing={<Button size="1">Show</Button>} />, {
       theme: { material: "regular" },
     });
     expect(field.dataset["material"]).toBe("regular");
@@ -753,7 +828,7 @@ describe("the wrapper's four JS debts, paid (§4, audited 2026-08-05)", () => {
     const live = computed(el, "border-top-color");
 
     inputOf(el).disabled = true;
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--disabled-border"));
     expect(computed(el, "border-top-color")).not.toBe(live);
     expect(computed(el, "cursor")).toBe("default");
     // And the hint goes flat with the value, rather than ending up brighter than it.
@@ -806,14 +881,20 @@ describe("the wrapper's four JS debts, paid (§4, audited 2026-08-05)", () => {
 });
 
 describe("a glass field's fill really does not move (§10)", () => {
-  it("hover and press resolve to the resting veil, not to the next alpha up the ramp", () => {
+  it("hover and press move the SOURCE under the veil, never the veil's own alpha", () => {
     // The three fill SOURCES were pinned to one colour, and that was still not enough: a fill
     // modifier mixes the source toward transparent on a ramp of its own, so what moved was the
     // mix. In light at `regular` that ramp is 64% -> 72% -> 80% of the same white.
-    const glass = mounted(<TextField />, { theme: { material: "regular" } });
+    const glass = mounted(<TextField backdrop />, { theme: { material: "regular" } });
+    // THE PIN IS GONE (2026-08-17). Its reason was real and is now spent: the 2026-08-05 ramp
+    // moved the MIX (64% -> 72% -> 80% of one colour), so a field lightened under a pointer
+    // that only crossed it. Control-scale material replaced that ramp with ONE alpha and
+    // moving SOURCES, and the fill-first flip gave the field designed steps to move through —
+    // so on glass the veil's alpha holds while the source underneath it steps, which is the
+    // claim that replaces this one.
     const rest = computed(glass, "background-color");
-    expect(stateFill(glass, "hover")).toBe(rest);
-    expect(stateFill(glass, "active")).toBe(rest);
+    expect(stateFill(glass, "hover"), "the veil stopped answering the pointer").not.toBe(rest);
+    expect(stateFill(glass, "active"), "press must move too").not.toBe(rest);
     // Still glass, not the seal — pinning the states must not have flattened the material.
     expect(rest).not.toBe(computed(render(<TextField />), "background-color"));
   });
@@ -922,7 +1003,7 @@ describe("readOnly is a state with a resolved appearance (§8, added 2026-08-05)
     const off = render(<TextField disabled />);
     expect(computed(off, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
     const ro = render(<TextField readOnly />);
-    expect(computed(ro, "border-top-color")).not.toBe(tokenOn(ro, "--neutral-6"));
+    expect(computed(ro, "border-top-color")).not.toBe(tokenOn(ro, "--disabled-border"));
   });
 });
 
@@ -994,12 +1075,14 @@ describe("late binding: the look's edge resolves at the ELEMENT, not the Theme (
   // the dress, and nothing checked them per LOOK. So the assertion is the outcome the arms
   // exist to produce — invalid must move the edge, in both looks and both appearances.
   // Mutation-tested by deleting the invalid arm: both `filled` cells fail.
-  for (const look of ["outlined", "filled"] as const) {
+  // One look loop fewer since the controlLook deletion (2026-08-19) — the dress the state
+  // must outrank is unconditional now.
+  {
     for (const appearance of APPEARANCES) {
-      it(`${look}/${appearance}: a state re-pointing the tone still reaches the edge`, () => {
+      it(`${appearance}: a state re-pointing the tone still reaches the edge`, () => {
         const at = (invalid: boolean) =>
           mounted(invalid ? <TextField aria-invalid="true" /> : <TextField />, {
-            theme: { controlLook: look, appearance },
+            theme: { appearance },
             select: ".kui-field",
           });
         const valid = at(false);

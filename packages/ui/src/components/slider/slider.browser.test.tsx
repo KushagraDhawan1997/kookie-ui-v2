@@ -27,6 +27,7 @@ import {
   tokenOn,
   within,
 } from "../../test/browser.tsx";
+import { Card } from "../card/card.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Slider } from "./slider.tsx";
 
@@ -216,14 +217,22 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
   }
 
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: rests on its own fill role, wearing the control edge`, () => {
+    it(`${appearance}: rests on its own fill role, and on no hairline at all`, () => {
       // The thumb left the seal 2026-08-07 (§11, "dark shouldn't be dark"): a grip must be
       // the most findable object on the rail, so dark goes near-white — iOS's own posture —
       // while light keeps the seal through the same role.
       const el = slider({}, { appearance });
       const thumb = thumbOf(el);
       expect(computed(thumb, "background-color")).toBe(colorOn(el, "var(--color-thumb)"));
-      expect(computed(thumb, "border-top-color")).toBe(colorOn(el, "var(--control-edge)"));
+      // NO hairline since 2026-08-17 (fill-first, reaching the grips): the switch thumb never
+      // had one — "a hairline the colour of whatever sits behind a MOVING part is a halo in
+      // one of its two homes" — and the solved --control-edge here was the border-first
+      // identity's residue. What lifts a grip is its CAST, asserted below.
+      expect(computed(thumb, "border-top-style")).toBe("none");
+      // And the box the mark ladder prices is unchanged by losing it: the border contributed
+      // zero width, so the painted square is the same square (audit R1's lesson — a ladder is
+      // the PAINTED box — which is exactly what a removed border could have broken).
+      expect(parseFloat(computed(thumb, "border-top-width"))).toBe(0);
       if (appearance === "dark") {
         // The decision, not the wiring: dark's handle must NOT be the seal it used to wear.
         expect(computed(thumb, "background-color")).not.toBe(colorOn(el, "var(--color-surface)"));
@@ -237,7 +246,12 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
       // flat world nor a glass pane's one-lift rule can strip it.
       const flat = slider({}, { appearance, depth: "flat" });
       const probe = document.createElement("div");
-      probe.style.boxShadow = "var(--control-chrome)";
+      // The grips read their OWN cast role since 2026-08-17 (--grip-cast): --control-chrome
+      // became the lit BUTTON chrome in the lab port — an 8px/20px blast plus an inset shade,
+      // priced for a 32-44px box — and under a 16-28px cap that reads swollen, with the inset
+      // drawing a line inside a white circle. Cap-scale contact + a short drop instead. Still
+      // the palette's VALUE and never the world switch, which is what "always" means.
+      probe.style.boxShadow = "var(--grip-cast)";
       flat.append(probe);
       const expected = computed(probe, "box-shadow");
       expect(computed(thumbOf(flat), "box-shadow")).toBe(expected);
@@ -260,7 +274,7 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     // same recognisable object while everything behind it changes. Button belongs to no dressed
     // family for the same reason; the thumb lands in Button's category despite sharing the
     // checkbox's geometry. The family shares its BOX, not its DRESS.
-    const at = (look: "outlined" | "filled") => thumbOf(slider({}, { surfaceLook: look, controlLook: look, appearance }));
+    const at = (look: "outlined" | "filled") => thumbOf(slider({}, { surfaceLook: look, appearance }));
     for (const prop of ["background-color", "border-top-color"]) {
       expect(computed(at("filled"), prop), `the look reached the thumb's ${prop}`).toBe(
         computed(at("outlined"), prop),
@@ -268,9 +282,15 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     }
     // The negative control, and it is the whole point of the narrowing: a checkbox in the same
     // two worlds must still MOVE, or the axis has simply been switched off for the family.
+    // The negative control moved from a Checkbox to a CARD (2026-08-17): controlLook went
+    // inert with the fill-first flip and was DELETED outright 2026-08-19, so the live axis
+    // INERT for the field and mark families with the fill-first flip, so a checkbox no longer
+    // moves between the two worlds and this calibration — whose whole job is to prove the axis
+    // is live in this Theme — would have passed by measuring nothing. `surfaceLook` still has
+    // two answers, so a card is the member that can still fail it.
     const box = (look: "outlined" | "filled") =>
-      computed(mounted(<Checkbox />, { theme: { controlLook: look, appearance }, select: ".kui-checkbox" }), "background-color");
-    expect(box("filled"), "the checkbox stopped answering the app's identity").not.toBe(
+      computed(mounted(<Card />, { theme: { surfaceLook: look, appearance }, select: ".kui-card" }), "background-color");
+    expect(box("filled"), "the app's identity reached nothing at all").not.toBe(
       box("outlined"),
     );
   });
@@ -289,7 +309,7 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     // or it does not leave it, and a law that checked only the rail would have missed the thumb
     // (which was dressed until the day before this) and vice versa.
     const parts = (look: "outlined" | "filled") => {
-      const el = slider({}, { surfaceLook: look, controlLook: look, appearance });
+      const el = slider({}, { surfaceLook: look, appearance });
       return {
         rail: computed(trackOf(el), "background-color"),
         railEdge: computed(trackOf(el), "border-top-color"),
@@ -305,25 +325,29 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     }
     // The negative control: the axis must still be doing its job elsewhere in the same app, or
     // this law passes in a world where `look` simply stopped working.
+    // The guard's subject is a CARD since 2026-08-17 — controlLook went inert then and was
+    // deleted 2026-08-19; the mark and
+    // field families after the fill-first flip, so a checkbox proves nothing here; surfaceLook
+    // is the half that still has two answers.
     const box = (look: "outlined" | "filled") =>
       computed(
-        mounted(<Checkbox />, { theme: { controlLook: look, appearance }, select: ".kui-checkbox" }),
+        mounted(<Card />, { theme: { surfaceLook: look, appearance }, select: ".kui-card" }),
         "background-color",
       );
-    expect(box("filled"), "the checkbox stopped answering the app's identity").not.toBe(
+    expect(box("filled"), "the app's identity reached nothing at all").not.toBe(
       box("outlined"),
     );
   });
 
   it.each(APPEARANCES)("%s: the thumb is never its own rail", (appearance) => {
     // The defect the exclusion caused, and the reason the reversal is worth its bytes. The
-    // thumb reads --look-mark-fill and the track read --color-track, and BOTH resolved to
+    // thumb reads --dress-mark-fill and the track read --color-track, and BOTH resolved to
     // --neutral-4 in both appearances — so a filled slider's handle was its rail at 1.000:1,
     // a control that cannot be seen or aimed at. Neither the mark laws nor the track law could
     // see it: each compared its own element to the token name its author had typed, and the
     // two were never compared to EACH OTHER.
     for (const look of ["outlined", "filled"] as const) {
-      const el = slider({}, { surfaceLook: look, controlLook: look, appearance });
+      const el = slider({}, { surfaceLook: look, appearance });
       expect(
         computed(thumbOf(el), "background-color"),
         `${look}/${appearance}: the thumb is invisible on its own track`,
@@ -409,9 +433,14 @@ describe("states arrive from the shared layer (§8)", () => {
       // handle that minting --color-thumb existed to prevent, returning under `disabled`.
       const el = slider({ disabled: true, defaultValue: 50 }, { appearance });
       expect(computed(el.querySelector(".kui-slider-fill")!, "background-color")).toBe(
-        colorOn(el, "var(--neutral-3)"),
+        colorOn(el, "var(--disabled-fill)"),
       );
-      expect(computed(thumbOf(el), "background-color")).toBe(colorOn(el, "var(--color-thumb)"));
+      // DIMMED, not full and not melted (2026-08-17, Kushagra: "the thumb should be
+      // lighter also in disabled"): --disabled-dim is the one factor every non-tone role
+      // stands down by, so a dead grip recedes with the rest of the control while staying
+      // the most findable object on its rail. The full melt to --tone-soft is the recorded
+      // failure this replaces — it made "Disabled" and "On, disabled" one grey capsule.
+      expect(computed(thumbOf(el), "background-color")).toBe(colorOn(el, "color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent)"));
       expect(computed(thumbOf(el), "background-color")).not.toBe(
         computed(el.querySelector(".kui-slider-track")!, "background-color"),
       );

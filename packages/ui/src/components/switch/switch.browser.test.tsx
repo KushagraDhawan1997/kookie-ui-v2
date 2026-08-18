@@ -27,6 +27,7 @@ import {
   within,
   inMotion,
 } from "../../test/browser.tsx";
+import { Card } from "../card/card.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Slider } from "../slider/slider.tsx";
 import { TextField } from "../text-field/text-field.tsx";
@@ -385,8 +386,13 @@ describe("off is a WELL, on is the family's accent identity (§11)", () => {
           <Switch disabled defaultChecked />
         </Theme>,
       );
-      expect(computed(markOf(el), "background-color")).toBe(colorOn(el, "var(--neutral-3)"));
-      expect(computed(thumbOf(el), "background-color")).toBe(colorOn(el, "var(--color-thumb)"));
+      expect(computed(markOf(el), "background-color")).toBe(colorOn(el, "var(--disabled-fill)"));
+      // DIMMED, not full and not melted (2026-08-17, Kushagra: "the thumb should be
+      // lighter also in disabled"): --disabled-dim is the one factor every non-tone role
+      // stands down by, so a dead grip recedes with the rest of the control while staying
+      // the most findable object on its rail. The full melt to --tone-soft is the recorded
+      // failure this replaces — it made "Disabled" and "On, disabled" one grey capsule.
+      expect(computed(thumbOf(el), "background-color")).toBe(colorOn(el, "color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent)"));
       expect(
         computed(thumbOf(el), "background-color"),
         "the grip must not melt into its own channel",
@@ -461,10 +467,10 @@ describe("off is a WELL, on is the family's accent identity (§11)", () => {
 describe("the WHOLE switch is outside the look axis — an instrument, like the slider (§19)", () => {
   it.each(APPEARANCES)("%s: every painted part is byte-identical across looks", (appearance) => {
     const at = (look: "outlined" | "filled") => {
-      // BOTH halves (split 2026-08-10): leaving an axis means leaving all of it, and a switch
-      // sits on surfaces as often as beside fields.
+      // The one surviving half (controlLook deleted 2026-08-19): leaving an axis means
+      // leaving all of it, and a switch sits on surfaces as often as beside fields.
       const el = mounted(<Switch />, {
-        theme: { surfaceLook: look, controlLook: look, appearance },
+        theme: { surfaceLook: look, appearance },
         select: ".kui-switch",
       });
       return {
@@ -480,9 +486,12 @@ describe("the WHOLE switch is outside the look axis — an instrument, like the 
     }
     // The tautology guard (the slider's own): prove the axis was ALIVE in this mount, so
     // this law cannot pass in a world where `look` simply stopped working.
+    // The guard's subject is a CARD since 2026-08-17 — controlLook is inert for the mark and
+    // field families after the fill-first flip, so a checkbox proves nothing here; surfaceLook
+    // is the half that still has two answers.
     const cb = (look: "outlined" | "filled") =>
       computed(
-        mounted(<Checkbox />, { theme: { controlLook: look, appearance }, select: ".kui-checkbox" }),
+        mounted(<Card />, { theme: { surfaceLook: look, appearance }, select: ".kui-card" }),
         "background-color",
       );
     expect(cb("filled")).not.toBe(cb("outlined"));
@@ -498,7 +507,12 @@ describe("depth: the grip casts always, the well never, the checked capsule catc
       });
       const probe = document.createElement("div");
       el.parentElement!.append(probe);
-      probe.style.boxShadow = "var(--control-chrome)";
+      // The grips read their OWN cast role since 2026-08-17 (--grip-cast): --control-chrome
+      // became the lit BUTTON chrome in the lab port — an 8px/20px blast plus an inset shade,
+      // priced for a 32-44px box — and under a 16-28px cap that reads swollen, with the inset
+      // drawing a line inside a white circle. Cap-scale contact + a short drop instead. Still
+      // the palette's VALUE and never the world switch, which is what "always" means.
+      probe.style.boxShadow = "var(--grip-cast)";
       expect(computed(thumbOf(el.parentElement!), "box-shadow")).toBe(
         getComputedStyle(probe).boxShadow,
       );

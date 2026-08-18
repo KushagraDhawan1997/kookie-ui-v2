@@ -16,6 +16,8 @@ import {
   density,
   look,
   lookAxes,
+  dress,
+  disabledSteps,
   handheldMedia,
   fontSize,
   iconSize,
@@ -41,7 +43,7 @@ import {
   type DensitySet,
   type RadiusLevel,
 } from "./config.ts";
-import { allStylesheets, sheet, stripped } from "../test/stylesheets.ts";
+import { allStylesheets, block as blockIn, sheet, stripped } from "../test/stylesheets.ts";
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { generateTokens } from "./generate.ts";
 
@@ -1265,7 +1267,11 @@ describe("the track well (§7, §11) — the low neutral bed a value runs in", (
     // The role exists because §11's "track low" is the checkbox's "neutral off" one control
     // over, and a component that stamps `accent` for its fill can only say neutral through a
     // tone-independent role. A raw hex here would go deaf to contrast="high".
-    expect(declaration("color-track")).toMatch(/^var\(--neutral-\d+\)$/);
+    // The ALPHA ramp joined the accepted forms 2026-08-17: a well is a hollow, and a hollow
+    // reads by darkening whatever it is cut into — one solved value that holds on the page,
+    // on a card and on glass, where an opaque step is priced against exactly one bed. It is
+    // still a step of the neutral scale, which is the whole of what this law guards.
+    expect(declaration("color-track")).toMatch(/^var\(--neutral-a?\d+\)$/);
   });
 });
 
@@ -1340,25 +1346,97 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
     // fill and no border, because a well genuinely has no edge to stand down (§19, and the
     // one part of "the track is edgeless" that survived the axis reaching it). Hand-listing
     // the families made this law demand a border the design does not have.
+    // The SURFACE family's outlined border is `transparent` since 2026-08-17 (Kushagra:
+    // match the lab) — the lab's pane is borderless, its edge is light (ring on glass, seat
+    // line and cast on solid). `transparent` is a constant, so baking at the Theme scope is
+    // safe where a var() was not; and the contrast="high" scopes re-declare the role to
+    // `initial`, so conformance falls back to the strengthened --tone-border at the element
+    // (asserted below). Field and mark keep `initial`: an unchecked mark IS its hairline.
     for (const [family, slots] of Object.entries(look.outlined)) {
       if (!("border" in slots)) continue;
+      const emitted = `--look-${family}-border: ${(slots as { border: string }).border};`;
       for (const scope of [":root", lookScope(family, "outlined")]) {
-        expect(block(scope), `${scope}/${family}`).toContain(`--look-${family}-border: initial;`);
+        expect(block(scope), `${scope}/${family}`).toContain(emitted);
       }
+    }
+    // The two fill-first families left the AXIS entirely when controlLook was deleted
+    // (2026-08-19, Kushagra): their dress is unconditional, emitted per appearance as the
+    // --dress-field-* / --dress-mark-* roles the sheets consume directly. What survives is
+    // the guarantee this law was written for, moved down one hop: the HC scopes stand the
+    // dress EDGES down to `initial`, so conformance still falls back to the solved edge
+    // (var(--tone-border) for fields, var(--control-edge) for marks) AT THE ELEMENT.
+    expect(look.outlined.surface.border, "the lab's pane is borderless at rest").toBe("transparent");
+    expect(
+      Object.keys(look.outlined),
+      "the look table re-grew a control family — controlLook was deleted 2026-08-19",
+    ).toEqual(["surface"]);
+    // The conformance surface gets the hairline BACK: both high-contrast scopes re-declare
+    // the surface role AND the two dress edges to `initial`, so each consumption fallback
+    // resolves the HC-strength edge exactly where one is owed.
+    for (const scope of [
+      ':root[data-contrast="high"], [data-appearance="light"][data-contrast="high"]',
+      '[data-appearance="dark"][data-contrast="high"]',
+    ]) {
+      expect(block(scope), `${scope} must restore the surface edge`).toContain("--look-surface-border: initial;");
+      expect(block(scope), `${scope} must restore the field edge`).toContain("--dress-field-edge: initial;");
+      expect(block(scope), `${scope} must restore the mark edge`).toContain("--dress-mark-edge: initial;");
+    }
+    // And FLAT restores it at rest (2026-08-19): a flat outlined world has no ring, pool or
+    // cast — declaring the boundary away there left an ordinary Card at 1.026:1 against the
+    // page with no border and no shadow (audit 2026-08-18). The compound is what keeps
+    // `filled` wearing its own dress edge in flat.
+    expect(blockIn(sheet("system/surfaces.css"), '[data-depth="flat"][data-surface-look="outlined"]')).toContain(
+      "--look-surface-border: initial;",
+    );
+  });
+
+  it("the SURFACE family is still the identity — the one family the look axis separates", () => {
+    // This law used to bind every family: `outlined` could only name a role that existed
+    // before the axis, or stand down, so the default path was byte-identical to a world with
+    // no axis at all. The fill-first flip (2026-08-17) took the field and mark families out of
+    // that guarantee deliberately — they now resolve the dress roles under BOTH looks — so the
+    // law binds the family that still has two answers, and states the flip as its own
+    // assertion below rather than letting it slip through a widened predicate.
+    for (const value of Object.values(look.outlined.surface) as string[]) {
+      expect(
+        value === "initial" || value === "transparent" || /^var\(--color-[\w-]+\)$/.test(value),
+        `outlined/surface introduces a value of its own: ${value}`,
+      ).toBe(true);
     }
   });
 
-  it("outlined is the identity for every slot — nothing filled introduces leaks into the default", () => {
-    // `outlined` may only ever name a role that existed before the axis, or stand down. The
-    // track's arrival (2026-08-06) is the case that needed saying: it joined the axis, and the
-    // default path must still resolve the untouched well role at the element.
-    for (const [family, slots] of Object.entries(look.outlined)) {
-      for (const value of Object.values(slots)) {
-        expect(
-          value === "initial" || /^var\(--(color|tone|mark)-[\w-]+\)$/.test(value),
-          `outlined/${family} introduces a value of its own: ${value}`,
-        ).toBe(true);
+  it("controlLook is DELETED — no trace in the emitted css, and the dress is unconditional", () => {
+    // The prop went inert with the fill-first flip (both values resolved the same dress
+    // roles, held here as an identity law for two days) and Kushagra deleted it 2026-08-19.
+    // A deletion owes the negative in the ARTIFACT, not just the types: a resurrected
+    // [data-control-look] block would compile, stamp nothing (Theme lost the prop) and dress
+    // nobody — the exact "exists and does nothing" state the identity law was holding a
+    // decision open for, now closed.
+    expect(css).not.toContain("data-control-look");
+    // What replaced it: the field and mark dress emitted UNCONDITIONALLY in every base scope
+    // (the un-themed document and both appearances), fills on the alpha ramp with their
+    // opaque glass twins beside them, edges as the alpha the flip chose.
+    for (const scope of [":root", '[data-appearance="light"]', '[data-appearance="dark"]']) {
+      const body = block(scope);
+      for (const family of ["field", "mark"] as const) {
+        for (const slot of ["fill", "fill-hover", "fill-active"] as const) {
+          expect(body, `${scope}: dress-${family}-${slot}`).toMatch(
+            new RegExp(`--dress-${family}-${slot}: var\\(--neutral-a\\d+\\);`),
+          );
+          expect(body, `${scope}: dress-${family}-${slot}-solid`).toMatch(
+            new RegExp(`--dress-${family}-${slot}-solid: var\\(--neutral-\\d+\\);`),
+          );
+        }
+        expect(body, `${scope}: dress-${family}-edge`).toMatch(
+          new RegExp(`--dress-${family}-edge: var\\(--neutral-a\\d+\\);`),
+        );
       }
+    }
+    // And the sheets actually consume it — a dress emitted for families that stopped reading
+    // it would be the axis's own death repeated one layer down.
+    const sheets = allStylesheets().map(sheet).join("\n");
+    for (const name of ["dress-field-fill", "dress-mark-fill", "dress-field-edge", "dress-mark-edge"]) {
+      expect(sheets, `nothing consumes --${name}`).toContain(`var(--${name}`);
     }
   });
 
@@ -1366,17 +1444,40 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
   // second hop is the whole point: `[data-look="filled"]` can only hold mode-blind mappings
   // (co-location — see the generator), so the step lives in the appearance scope. Reading only
   // the first hop is what let `filled` ship resolving to dark's own seal.
+  /**
+   * The dress step a role resolves to, and WHICH LADDER it is on.
+   *
+   * Two ladders since 2026-08-17: the surface family stays on the opaque steps, and the two
+   * fill-first families moved to the ALPHA ramp — a dressed field or mark composites over
+   * whatever it is on, so one value reads on the page, on a card and on glass. The index is
+   * still the design (config's `dress` is unchanged), but `--neutral-4` and `--neutral-a4`
+   * are not the same colour and a law that reads only the digit would compare them as if
+   * they were. Returning the kind is what keeps the hierarchy assertions honest.
+   */
   const filledStep = (mode: "light" | "dark", family: string, slot: string) => {
     const scope = mode === "light" ? ":root" : '[data-appearance="dark"]';
-    const role = block(lookScope(family, "filled")).match(
-      new RegExp(`--look-${family}-${slot}:\\s*var\\(--(dress-[\\w-]+)\\);`),
-    )?.[1];
-    expect(role, `look-${family}-${slot} does not resolve through a dress role`).toBeTruthy();
+    // The surface family still answers a look question, so its role arrives through the
+    // filled block's indirection; the field and mark dress is UNCONDITIONAL since the
+    // controlLook deletion (2026-08-19), so their roles are read straight off the
+    // appearance scope — one hop fewer because there is one prop fewer.
+    let role: string;
+    if (family === "surface") {
+      const hit = block(lookScope(family, "filled")).match(
+        new RegExp(`--look-${family}-${slot}:\\s*var\\(--(dress-[\\w-]+)\\);`),
+      )?.[1];
+      expect(hit, `look-${family}-${slot} does not resolve through a dress role`).toBeTruthy();
+      role = hit!;
+    } else {
+      role = `dress-${family}-${slot === "border" ? "edge" : slot}`;
+    }
     const decl = block(scope).match(new RegExp(`--${role}:\\s*([^;]+);`))?.[1];
-    const m = /^var\(--neutral-(\d+)\)$/.exec(decl ?? "");
+    const m = /^var\(--neutral-(a?)(\d+)\)$/.exec(decl ?? "");
     expect(m, `${role} is not a neutral step in ${mode}: ${decl}`).toBeTruthy();
-    return Number(m![1]);
+    return { index: Number(m![2]), ramp: m![1] === "a" };
   };
+
+  /** The families on the alpha ramp, and the one that is not — asserted, never assumed. */
+  const RAMPED = { surface: false, field: true, mark: true } as const;
 
   // The seal and the well, read the same way — the two values `filled` collided with.
   const roleStep = (mode: "light" | "dark", role: string) => {
@@ -1388,17 +1489,30 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
   it.each(["light", "dark"] as const)(
     "%s: filled darkens by the hierarchy — surface lightest, field past it, mark darkest",
     (mode) => {
-      expect(filledStep(mode, "surface", "fill")).toBeLessThan(filledStep(mode, "field", "fill"));
-      expect(filledStep(mode, "field", "fill")).toBeLessThanOrEqual(
-        filledStep(mode, "mark", "fill"),
+      // Each family is on the ladder its own paint requires, and that is asserted first —
+      // the hierarchy below is a comparison of indices, and comparing an opaque step to a
+      // ramp step as though both were "4" is how this law would keep passing through a
+      // silent move of one family onto the other's ladder.
+      for (const [family, ramped] of Object.entries(RAMPED)) {
+        expect(filledStep(mode, family, "fill").ramp, `${family} changed ladders`).toBe(ramped);
+      }
+      // The hierarchy is now read WITHIN a ladder, because that is the only place an index
+      // comparison means anything: field and mark share the ramp and keep their order (in
+      // dark the surface's opaque 3 and the field's ramp 3 are the same digit and nothing
+      // like the same colour, which is exactly the comparison that used to be made here).
+      expect(filledStep(mode, "field", "fill").index).toBeLessThanOrEqual(
+        filledStep(mode, "mark", "fill").index,
       );
+      // The surface's place in the hierarchy is kept by the law below it — it is judged
+      // against its BED (the seal and the page), which is the only thing an opaque step on a
+      // ladder of its own can be compared to.
       // The interactive steps walk upward from their family's rest, so a press is visible.
       for (const family of ["surface", "mark"]) {
-        expect(filledStep(mode, family, "fill-hover")).toBeGreaterThan(
-          filledStep(mode, family, "fill"),
+        expect(filledStep(mode, family, "fill-hover").index).toBeGreaterThan(
+          filledStep(mode, family, "fill").index,
         );
-        expect(filledStep(mode, family, "fill-active")).toBeGreaterThan(
-          filledStep(mode, family, "fill-hover"),
+        expect(filledStep(mode, family, "fill-active").index).toBeGreaterThan(
+          filledStep(mode, family, "fill-hover").index,
         );
       }
     },
@@ -1426,7 +1540,7 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
       for (const slot of ["fill", "fill-hover", "fill-active"]) {
         if (seal !== undefined) {
           expect(
-            String(filledStep(mode, "surface", slot)),
+            String(filledStep(mode, "surface", slot).index),
             `filled surface/${slot} IS the seal in ${mode} — the axis does nothing here`,
           ).not.toBe(seal);
         }
@@ -1435,8 +1549,20 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
       // all: the slider left it entirely (2026-08-07), so neither part has a dress to drift
       // with. The mounted law in slider.browser.test.tsx still measures the two against each
       // other, which is where that claim belongs — it is about painted colour, not about roles.
-      // The mark must clear its other bed, the filled surface a checkbox sits on.
-      expect(filledStep(mode, "mark", "fill")).not.toBe(filledStep(mode, "surface", "fill"));
+      // The mark must clear its other bed, the filled surface a checkbox sits on. Since the
+      // move to the ramp (2026-08-17) that is guaranteed by construction rather than by the
+      // indices differing — an alpha over a bed is never the bed — so what is worth asserting
+      // is the construction itself, plus the one value that would break it. A ramp step of a0
+      // (or an alpha solved to nothing) is the way "composites over its bed" turns back into
+      // "is its bed", and it is the only way left.
+      const mark = filledStep(mode, "mark", "fill");
+      expect(mark.ramp, "the mark left the ramp — compare it to its bed by hand again").toBe(true);
+      expect(mark.index, "a mark dressed at ramp step 0 IS whatever it sits on").toBeGreaterThan(0);
+      const rampAlpha = block(mode === "light" ? ":root" : '[data-appearance="dark"]').match(
+        new RegExp(`--neutral-a${mark.index}:[^;]*?([\\d.]+)%`),
+      );
+      expect(rampAlpha, `--neutral-a${mark.index} is not a solved alpha in ${mode}`).toBeTruthy();
+      expect(Number(rampAlpha![1]), "the mark's dress composites to nothing").toBeGreaterThan(0);
     },
   );
 
@@ -1452,7 +1578,13 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
     // law (theme.browser.test.tsx) — see the note there on why it cannot be checked here.
     for (const [family, slots] of Object.entries(look.filled)) {
       if (!("border" in slots)) continue;
-      expect(filledStep(mode, family, "border")).toBeGreaterThan(0);
+      expect(filledStep(mode, family, "border").index).toBeGreaterThan(0);
+    }
+    // The two families that left the axis keep a boundary UNCONDITIONALLY — the dress edges
+    // are always live now, so the same trade ("a fill replaces a hairline") has one fewer
+    // place to hide.
+    for (const family of ["field", "mark"]) {
+      expect(filledStep(mode, family, "border").index).toBeGreaterThan(0);
     }
   });
 
@@ -1470,6 +1602,72 @@ describe("the look axis: two judged pairs, emitted per scope (§19)", () => {
         if (!("border" in slots)) continue;
         expect(block(scope), `${scope}/${family}`).toContain(`--look-${family}-border: initial;`);
       }
+      // The unconditional dress edges stand down the same way (2026-08-19).
+      expect(block(scope), `${scope}/field`).toContain("--dress-field-edge: initial;");
+      expect(block(scope), `${scope}/mark`).toContain("--dress-mark-edge: initial;");
+      // And the glass pane's light edge yields to pigment: the ring stands down, and the
+      // element-scoped arm (asserted in its own law below) hands the pane --tone-border.
+      expect(block(scope), `${scope}/ring`).toContain("--material-ring-opacity: 0;");
+    }
+  });
+
+  it("contrast=high reaches a GLASS pane's edge — the ring yields and pigment arrives at the element", () => {
+    // The 2026-08-18 audit measured an HC glass card at 1.000:1 on every side: the border was
+    // a literal `transparent`, the conic ring painted unchanged, and the fallback the sheet's
+    // comment relied on was unreachable. The repair is two halves and both are asserted: the
+    // ring opacity zeroes in the HC scopes (above), and an ELEMENT-scoped arm declares the
+    // hairline where the tone can resolve — a scope-level colour could never do that (§6).
+    for (const form of [
+      ':root[data-contrast="high"] [data-material], [data-appearance="light"][data-contrast="high"] [data-material]',
+      '[data-appearance="dark"][data-contrast="high"] [data-material]',
+    ]) {
+      expect(block(form), form).toContain("--kui-glass-hc-edge: var(--tone-border);");
+    }
+    // The consumption site: every glass thickness block's border consults the HC arm first.
+    const surfacesSheet = sheet("system/surfaces.css");
+    const hits = surfacesSheet.match(/--kui-border-color: var\(--kui-glass-hc-edge, transparent\);/g) ?? [];
+    expect(hits.length, "the three thickness blocks consume the HC edge").toBeGreaterThanOrEqual(3);
+  });
+
+  it("dark's floating veil is reachable by contrast=high — its alpha is a token, not a literal", () => {
+    // Audit 2026-08-18: the dark floating fill baked floatingDark.alpha as a literal, so HC
+    // strengthened every in-flow pane and left the one actually covering live content at its
+    // standard alpha — measured identical at both contrasts while the cards beside it moved.
+    const dark = block('[data-appearance="dark"]');
+    const darkHigh = block('[data-appearance="dark"][data-contrast="high"]');
+    for (const t of GLASS_MATERIALS) {
+      expect(dark, `--material-${t}-alpha-floating exists`).toMatch(
+        new RegExp(`--material-${t}-alpha-floating: [\\d.]+%;`),
+      );
+      expect(dark, `${t}: the floating fill reads the token`).toContain(
+        `var(--material-${t}-alpha-floating)`,
+      );
+      expect(darkHigh, `${t}: HC re-declares the floating alpha`).toMatch(
+        new RegExp(`--material-${t}-alpha-floating: [\\d.]+%;`),
+      );
+    }
+  });
+
+  it("the dead palette recedes from live in BOTH modes — per-mode steps, one config home", () => {
+    // Audit 2026-08-18: the remap's literal a3 was one step under dark's live wells and
+    // byte-identical to light's — a disabled button in light computed exactly a live medium
+    // button's box in all four painted channels. The rule is now stated where it can be
+    // checked: the dead fill sits STRICTLY below the live soft rest in its own mode's ramp,
+    // and the dead border at or below the live dress edge.
+    for (const mode of ["light", "dark"] as const) {
+      const scope = mode === "light" ? ":root" : '[data-appearance="dark"]';
+      const body = block(scope);
+      expect(body).toContain(`--disabled-fill: var(--neutral-a${disabledSteps[mode].fill});`);
+      expect(body).toContain(`--disabled-fill-solid: var(--neutral-${disabledSteps[mode].fill});`);
+      expect(body).toContain(`--disabled-border: var(--neutral-a${disabledSteps[mode].border});`);
+      const liveSoft = body.match(/--neutral-soft: var\(--neutral-a(\d+)\);/)?.[1];
+      expect(liveSoft, `${mode}: the neutral soft rest is on the ramp`).toBeTruthy();
+      expect(disabledSteps[mode].fill, `${mode}: dead fill must sit under live a${liveSoft}`).toBeLessThan(
+        Number(liveSoft),
+      );
+      expect(disabledSteps[mode].border, `${mode}: dead border must not out-contrast the live edge`).toBeLessThanOrEqual(
+        dress[mode].field.edge,
+      );
     }
   });
 
@@ -1580,22 +1778,25 @@ describe("the scrim dims by mode and leans under high contrast (§10, §24)", ()
     for (const value of [light, dark]) expect(value).toMatch(/^rgb\(0 0 0 \//);
   });
 
-  it("blurs below the material defense floor — a scrim pushes back, it does not frost", () => {
+  it("defocuses and desaturates — recession has a blur, and it is the lab's own (§24)", () => {
+    // The ceiling died with the lab's judged scrim (2026-08-17): blur 8 sits ABOVE thick's
+    // rendered 5.6, and that is the design, not a defect — the scrim defocuses the whole
+    // application AT DISTANCE while a pane defends a readout an inch away; the lab ran the
+    // no-defocus experiment (2026-08-15) and blur came back the same day, then judged the
+    // depth of it against every material and kept 8. Two prior spellings of a ceiling
+    // ("below thin", then "below thick") were both falsified by judged values, which is the
+    // tell that no ceiling was ever load-bearing. What binds now: the recession is blur AND
+    // desaturation (pigment alone reads as a filter dying), and both modes carry the same
+    // designed blur — darkness varies by mode, defocus does not.
+    const px = (s: string) => Number(s.match(/blur\(([\d.]+)px/)![1]);
     for (const mode of ["light", "dark"] as const) {
-      const px = (s: string) => Number(s.match(/blur\(([\d.]+)px/)![1]);
-      const blur = px(inScope(`[data-appearance="${mode}"]`, "scrim-filter")!);
-      // Compared against THICK, not against thin (amended 2026-08-16 with the judged ladder).
-      // The old spelling asserted the scrim blurs less than the THINNEST material, on the
-      // reasoning that a full-viewport backdrop is the most expensive thing this library
-      // paints. That held while thin was 5px and stopped holding the moment thin became 2.4 —
-      // and the premise was wrong anyway, because the two are not doing the same job. A scrim
-      // defocuses the whole application to push it back; thin glass deliberately stays clear
-      // so the backdrop's structure ghosts through. There is no reason the pane that hides
-      // everything must blur less than the pane designed to hide almost nothing. What still
-      // binds is the ceiling: the scrim must never out-frost the heaviest material, or the
-      // thing behind the dialog would read as more solid than the dialog.
-      expect(blur).toBeLessThan(px(material[mode].thick.filter));
+      const filter = inScope(`[data-appearance="${mode}"]`, "scrim-filter")!;
+      expect(px(filter)).toBeGreaterThan(0);
+      expect(filter).toContain("saturate(0.8)");
     }
+    expect(px(inScope('[data-appearance="light"]', "scrim-filter")!)).toBe(
+      px(inScope('[data-appearance="dark"]', "scrim-filter")!),
+    );
   });
 
   it("contrast=\"high\" raises the dim and stands the blur down", () => {
