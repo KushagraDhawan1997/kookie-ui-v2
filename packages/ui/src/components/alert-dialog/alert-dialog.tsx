@@ -185,7 +185,9 @@ function AlertPopup({
   ref?: React.Ref<HTMLDivElement> | undefined;
 }) {
   const size = React.use(AlertSizeContext);
-  const material = useMaterial();
+  // A floating pane is over content BY CONSTRUCTION (2026-08-17, the backdrop selectivity):
+  // it covers the app, so it always has something to bend and always expresses the theme.
+  const material = useMaterial({ backdrop: true });
   // §10 — the lens on the pane itself (see Card).
   const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   const identity = "kui-surface kui-overlay kui-alert-popup";

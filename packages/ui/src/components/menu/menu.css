@@ -17,16 +17,35 @@
   --kui-sf-p: var(--kui-menu-pad);
   /* Never narrower than the designed floor (§22). */
   min-width: var(--floating-min-w);
-  /* Long menus scroll inside the panel, and a wide one is bounded by the room the
-     positioner reports rather than pushed off the viewport (§22, audit 2026-08-09: the
-     height half shipped and the width half did not, so a menu wider than the space beside
-     its trigger spilled and added a page scrollbar). */
+  /* Long menus scroll INSIDE the panel — and since 2026-08-17 the scroller is the
+     ScrollArea viewport, not the popup: the panel keeps its glass, corner and cast, the
+     list inside it moves, and the overlay thumb replaces the browser gutter that used to
+     cut through the pane. The popup keeps the positioner's bounds as the hard stop (the
+     width half is §22, audit 2026-08-09) and clips; the viewport re-derives the height
+     bound below, minus the popup's own border, so the two agree by arithmetic. */
   max-height: var(--available-height, none);
   max-width: var(--available-width, none);
-  overflow-y: auto;
+  overflow: hidden;
+  /* The physical padding moves onto the VIEWPORT (below): the viewport is the new scroll
+     container, and a scroll container clips descendant ink at its padding box — so the
+     ring clearance this panel solved on 2026-08-09 has to live wherever the clipping
+     happens. --kui-sf-p keeps its value (the concentric corner reads it); only where the
+     pixels sit changes. */
+  padding: 0;
   /* Base UI focuses the popup itself on open. The ring is a keyboard affordance for
      CONTROLS; a panel holding focus is a mode, and its rows carry the highlight. */
   outline: none;
+}
+
+.kui-menu-popup .kui-scroll-viewport {
+  padding: var(--kui-menu-pad);
+  /* The popup's height bound restated for the element that actually scrolls: the room the
+     positioner reports, minus the popup's border box contribution. The fallback keeps the
+     calc valid where no positioner exists (the in-flow twin) — `100vh`, not a big round px
+     sentinel: a raw px literal is the one thing a hand-authored sheet may not carry (the
+     non-negotiable, law-walked), and the viewport is the honest ceiling anyway, since an
+     unpositioned panel has no room to be told about beyond the window it sits in. */
+  max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width));
 }
 
 /* The panel's corner is CONCENTRIC — its rows' corner plus this padding (§6, Kushagra

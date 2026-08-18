@@ -25,15 +25,14 @@
      re-declares medium through the skeleton and is untouched. */
   font-weight: var(--font-weight-regular);
 
-  /* The seal, stated for all three states ON PURPOSE. The shared layer paints
-     `var(--kui-ct-fill, var(--kui-ct-fill-src))` and swaps to the -hover / -active sources on
-     interaction; leaving those two unset would make the declaration invalid at computed-value
-     time exactly when you point at the field, and background-color would fall back to
-     transparent — a fill that vanishes under the pointer. A field's fill does not move at all:
-     the border and the ring carry its states, which is the honest way to say it. */
-  --kui-ct-fill-src: var(--look-field-fill);
-  --kui-ct-fill-src-hover: var(--look-field-fill);
-  --kui-ct-fill-src-active: var(--look-field-fill);
+  /* The fill PIN died 2026-08-17 with the fill-first flip: "the border and the ring carry
+     its states" was the bordered-box identity's sentence, and once the well fill became the
+     identity, the fill is the one currency hover has (the boundary hover rule in recipes.css
+     died the same day for the same reason). The three slots are the look's own designed
+     steps now, exactly as a button's rung declares its three. */
+  --kui-ct-fill-src: var(--dress-field-fill);
+  --kui-ct-fill-src-hover: var(--dress-field-fill-hover);
+  --kui-ct-fill-src-active: var(--dress-field-fill-active);
   /* The role, not the colour: the shared disabled remap re-points --tone-label, so the value
      the user typed goes flat with the rest of the control and this file needs no disabled
      branch of its own. */
@@ -41,7 +40,7 @@
 
   /* The look's edge (§19) is the SHARED layer's rule, not this file's: a component sheet
      never mentions the painted variable (the checkbox audit's law), so the field-family
-     rule in recipes.css routes --kui-border-color through --look-field-border there. */
+     rule in recipes.css routes --kui-border-color through --dress-field-edge there. */
 
   /* No box-shadow in THIS file, and that is still a decision (§5): depth is never a
      component's own idea. What changed is which depth a field gets — the third flip, and it
@@ -57,24 +56,12 @@
      family. */
 }
 
-/* And the same sentence again, for the fill the shared layer DERIVES (fixed 2026-08-05). The
-   three sources above are one colour, and that was still not enough: a fill modifier mixes
-   whatever the component declared toward transparent at a ramp of its own — rest, hover,
-   active — so the thing that moved was the mix, not the source. In light at the middle
-   thickness that ramp is 64% -> 72% -> 80% of the same white, and the box lightened under the
-   pointer; a trailing button was enough to fire it just by being crossed on the way to the
-   caret. The invariant this file has always claimed was true of half its fill.
-   Pinned to the resting DERIVED value rather than by re-stating a recipe, so this rule names
-   no thickness and a fourth one would not touch it — and unguarded, because where nothing
-   derives a fill the reference is invalid at computed-value time, `--kui-ct-fill-hover` falls to
-   the guaranteed-invalid value, and the shared layer's own fallback chain takes over exactly
-   as it does today. Both classes for the specificity tie the shared rule's attribute selector
-   would otherwise win; the tie breaks on source order, which index.css and the browser suite
-   install identically. */
-.kui-control.kui-field {
-  --kui-ct-fill-hover: var(--kui-ct-fill);
-  --kui-ct-fill-active: var(--kui-ct-fill);
-}
+/* The DERIVED pin left with the source pin (2026-08-17). It was written against the
+   surface-style three-alpha mix ramp (2026-08-05: 64% -> 72% -> 80% of the same white, fired
+   by a pointer crossing to the caret); control-scale material has since replaced that ramp
+   with ONE alpha and moving sources, so the derived hover is the dress's own hover step
+   under glass — the same lightening every glass control shows — and the pin was the only
+   thing left standing between a field and the shared fill rule. */
 
 /* The input is BARE: every visible fact belongs to the wrapper, so there is exactly one box,
    one border and one ring however many slots are in it. */

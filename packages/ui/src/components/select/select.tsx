@@ -116,6 +116,9 @@ export type SelectTriggerProps = Omit<
 > & {
   /** Shown, in the faint role, while no value is chosen — an empty select INVITES (§15). */
   placeholder?: string;
+  /** §10 — a placement fact (2026-08-17): content passes behind this trigger, so the
+   *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */
+  backdrop?: boolean;
   className?: string;
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
@@ -133,19 +136,20 @@ export type SelectTriggerProps = Omit<
  */
 export function SelectTrigger({
   placeholder,
+  backdrop,
   className,
   ref,
   ...props
 }: SelectTriggerProps) {
   const size = React.use(SelectSizeContext);
   // §10 — the app's material (2026-08-16); the trigger stands in flow, so no portal subtlety.
-  const material = useMaterial();
+  // It states placement only (backdrop, 2026-08-17): calm ground resolves solid.
+  const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // The trigger is the one in-flow node a select owns — where ambient direction is read (§20).
   const { measure } = React.use(FloatingDirectionContext);
   // §10 — the lens. The trigger IS a member of the field family, so it owes the same glass
-  // its TextField sibling wears, lens included — the family-agreement law caught this the
-  // moment TextField had one and the trigger did not.
-  const lensRef = useLensRef<HTMLElement>(material !== "solid", undefined);
+  // its TextField sibling wears, lens included; on-glass never filters, never bends.
+  const lensRef = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", undefined);
   const cls = "kui-control kui-field kui-select-trigger";
   return (
     <BaseSelect.Trigger
@@ -241,7 +245,9 @@ function SelectPopup({
   style?: React.CSSProperties | undefined;
   ref?: React.Ref<HTMLDivElement> | undefined;
 }) {
-  const material = useMaterial();
+  // A floating pane is over content BY CONSTRUCTION (2026-08-17, the backdrop selectivity):
+  // it covers the app, so it always has something to bend and always expresses the theme.
+  const material = useMaterial({ backdrop: true });
   // §10 — the lens on the pane itself (see Card).
   const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   return (
@@ -250,6 +256,12 @@ function SelectPopup({
       style={{ ...GAP_VAR, ...style }}
       ref={lensRef}
     >
+      {/* DELIBERATELY no ScrollArea here while Menu has one (2026-08-17, Kushagra: "skip it
+          on select for now"). Two mechanisms care about WHO the scroll container is: the
+          overlap placement (Base UI aligns the chosen row on the trigger by controlling its
+          own scroller's position) and the curtain (the reveal reads row rects, §23). An
+          interposed viewport changes both, and that is a measurement, not an assumption —
+          measure the overlap and the curtain against a ScrollArea viewport before adopting. */}
       <SelectBody>
         <GlassScope material={material}>{children}</GlassScope>
       </SelectBody>

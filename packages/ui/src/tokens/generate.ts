@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { decl, indent } from "./emit.ts";
-import { edgeHoverMix, tones, type ToneName } from "./color-config.ts";
+import { tones, type ToneName } from "./color-config.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
   borderWidth,
@@ -46,7 +46,16 @@ import {
   radiusOverlay,
   radiusSurface,
   controlChrome,
+  controlChromeActive,
   controlLight,
+  disabledDim,
+  disabledSteps,
+  scrollbar,
+  gripCast,
+  kbdRelief,
+  glassTransmitRows,
+  glassInk,
+  floatingDark,
   floatingChrome,
   floatingFlatFactor,
   floatingMinWidth,
@@ -70,8 +79,10 @@ import {
   sliderTrack,
   progressTrack,
   space,
+  segmentInset,
   switchInset,
   switchW,
+  tabRule,
   surfaceChrome,
   surfaceColor,
   surfacePadding,
@@ -222,6 +233,23 @@ export function generateTokens(): string {
 
   lines.push(
     "",
+    "  /* the segmented control's channel inset (§26) — the switch's sentence one control over:",
+    "     the SEGMENT is the track minus this, so the box derives and the gap never does. Its own",
+    "     entry rather than a share of --switch-inset: the second member of a family self-keys and",
+    "     the third promotes, and a shared inset would owe a family name. */",
+  );
+  put("segment-inset", zoom(segmentInset));
+
+  lines.push(
+    "",
+    "  /* and the tab rule's thickness (§26) — ONE value, no index, for Progress's reason: the",
+    "     thickness that reads as a rule is a perception floor, not a fraction of the tab above",
+    "     it. Emitted at :root alone; no axis re-prices it. */",
+  );
+  put("tab-rule", zoom(tabRule));
+
+  lines.push(
+    "",
     "  /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until",
     "     2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered",
     "     button at scale 2 kept a 1px hairline while every other length doubled. */",
@@ -229,10 +257,6 @@ export function generateTokens(): string {
   put("border-width", zoom(borderWidth));
   put("focus-ring-width", zoom(focusRing.width));
   put("focus-ring-offset", zoom(focusRing.offset));
-  // How far a BOUNDARY steps under the pointer, for the two families whose fill does not move
-  // (§8, 2026-08-10). A percentage rather than a colour: the shared layer mixes it into whatever
-  // the tone, the look and the appearance resolved, so one number serves every cell.
-  put("edge-hover-mix", `${edgeHoverMix}%`);
 
   lines.push("", "  /* motion (§8) — two clocks. Signal (colour, opacity) eases and is short; travel");
   lines.push("     (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and");
@@ -444,6 +468,9 @@ export function generateTokens(): string {
       // because Theme co-locates data-appearance and data-contrast on one element (§5, §7).
       const bases = mode === "light" ? [":root", `[data-appearance="light"]`] : [`[data-appearance="dark"]`];
       const decls = [...contrastHighDeclarations(mode, gamut)];
+      /** Stand-downs that must land on the element a LOOK block writes to, not on the element
+          data-contrast sits on — see the note at the push site below. */
+      const scopedHigh: { attr: string; decls: string[] }[] = [];
       // High contrast leans on the glass, it does not unmake it (§7, §10, 2026-08-05):
       // each thickness takes its own designed alphaHigh triple — MORE opaque, never fully,
       // so the ladder keeps three distinct thicknesses. Emptying edge and rim sends the
@@ -456,9 +483,7 @@ export function generateTokens(): string {
             ...materialAlpha(t, material[mode][t].alphaHigh),
             decl(`material-${t}-edge`, "initial"),
             decl(`material-${t}-rim`, "initial"),
-            // The elevated remap points -rim at -rim-lifted, so the lifted variant must
             // stand down here too or high contrast would resurrect the glint it just removed.
-            decl(`material-${t}-rim-lifted`, "initial"),
           );
         }
         // The look axis yields its EDGE for the same reason the material does, and by the same
@@ -480,6 +505,53 @@ export function generateTokens(): string {
         for (const [family, slots] of Object.entries(look.filled)) {
           if ("border" in slots) decls.push(decl(`look-${family}-border`, "initial"));
         }
+        // The field and mark families left the look axis when controlLook was deleted
+        // (2026-08-19) — their dress is unconditional now, so the stand-down targets the
+        // dress edges themselves. `initial` makes each consumption site's fallback
+        // (var(--tone-border) for fields, var(--control-edge) for marks) resolve AT THE
+        // ELEMENT, where the tone lives and where contrastHighDeclarations has already
+        // strengthened both. Proximity is safe without scoped arms: dress lives only in
+        // the appearance scopes, and any Theme that re-declares it also co-locates
+        // data-contrast, so this compound wins on specificity at that same element.
+        decls.push(decl("dress-field-edge", "initial"), decl("dress-mark-edge", "initial"));
+        // A glass pane's only edge is the conic RING — light, not pigment, so it cannot be
+        // strengthened; a user asking for high contrast is asking for a pigment boundary
+        // (audit 2026-08-18: HC reached a glass pane's edge with exactly zero effect —
+        // border a literal transparent, ring painting unchanged, 1.000:1 on every side).
+        // The ring stands down and the pane's border chain picks up --tone-border through
+        // the element-scoped arm below.
+        decls.push(decl("material-ring-opacity", "0"));
+        scopedHigh.push({ attr: "data-material", decls: [decl("kui-glass-hc-edge", "var(--tone-border)")] });
+        // Dark floating panes take the same defence as in-flow glass under HC (see the
+        // --material-*-alpha-floating emission).
+        if (mode === "dark") {
+          for (const t of ["thin", "regular", "thick"] as const) {
+            decls.push(decl(`material-${t}-alpha-floating`, `${material[mode][t].alphaHigh[0]}%`));
+          }
+        }
+        // …and the stand-down above is NOT ENOUGH on its own, which is the 2026-08-17 fix.
+        // These declarations land on whatever element carries data-contrast — in the supported
+        // docs path that is <html>, because the generated selectors need appearance and
+        // contrast co-located (§5). The look blocks land on the THEME element, which is NEARER
+        // to a field than <html> is, so for a custom property the Theme's value simply wins by
+        // inheritance and this block can never be consulted. It went unnoticed for as long as
+        // outlined's border WAS `initial`: standing down a role that already said `initial`
+        // changes nothing, so the mechanism that actually delivered high contrast was the
+        // fallback resolving to --field-edge / --control-edge, which this block re-solves.
+        // The day outlined started holding a real value (the fill-first flip), that fallback
+        // stopped being reached and contrast="high" reached NO boundary on the surface, field
+        // or mark families — measured byte-identical to standard in both appearances.
+        // The scoped arms below fix it where it breaks: a descendant selector matches the
+        // Theme element itself and carries (0,2,0) against the look block's (0,1,0), so the
+        // stand-down wins on specificity at the element that declared the value, at any
+        // nesting depth. Derived from lookAxes so a widened axis cannot leave a family behind.
+        for (const [axis, families] of Object.entries(lookAxes)) {
+          const borders = families
+            .filter((family) => "border" in look.filled[family as keyof typeof look.filled])
+            .map((family) => decl(`look-${family}-border`, "initial"));
+          if (!borders.length) continue;
+          scopedHigh.push({ attr: `data-${axis}-look`, decls: borders });
+        }
         // The scrim leans the way the glass does (§24): more pigment, and the defocus goes.
         // A blurred backdrop is a legibility AID for the app behind it and a legibility COST
         // for the boundary between the two — a user who asked for high contrast is asking for
@@ -493,15 +565,32 @@ export function generateTokens(): string {
       // data-contrast ONLY when the axis was actually chosen, so an unconfigured Theme node
       // carries no attribute and this guard still matches it (§7).
       const auto = bases.map((b) => `${b}:not([data-contrast="normal"])`).join(", ");
+      // The scoped arms repeat the same two guards one level down: `[contrast] [look]` for the
+      // explicit prop, and the platform signal's own `:not([data-contrast="normal"])` base.
+      // BOTH forms are needed and neither replaces the other — the block above still covers the
+      // co-located case (a Theme that carries contrast and look on one element, where these
+      // descendant selectors do not match the element itself).
+      const scoped = scopedHigh.flatMap(({ attr, decls: d }) => [
+        `${bases.map((b) => `${b}[data-contrast="high"] [${attr}]`).join(", ")} {`,
+        ...d,
+        "}",
+      ]);
+      const scopedAuto = scopedHigh.flatMap(({ attr, decls: d }) => [
+        `  ${bases.map((b) => `${b}:not([data-contrast="normal"]) [${attr}]`).join(", ")} {`,
+        ...indent(d),
+        "  }",
+      ]);
       lines.push(
         ...wrap([
           `${high} {`,
           ...decls,
           "}",
+          ...scoped,
           `@media (prefers-contrast: more) {`,
           `  ${auto} {`,
           ...indent(decls),
           "  }",
+          ...scopedAuto,
           "}",
         ]),
         "",
@@ -723,8 +812,12 @@ const chromeRow = (role: { readonly light: string }, name: string): number => {
   return Number(m[1]) - 1;
 };
 const floatingRow = () => chromeRow(floatingChrome, "floatingChrome");
-const surfaceRow = () => chromeRow(surfaceChrome, "surfaceChrome");
-const controlRow = () => chromeRow(controlChrome, "controlChrome");
+// The glass TRANSMIT rows come from their own config statement since 2026-08-17 — they used
+// to be parsed out of the chrome roles, and the day the solid chrome took the lab's literal
+// values (no var(--shadow-N) to parse) that weld either threw here or, worse, silently moved
+// the surface transmit down a row with surfaceChrome. Two facts, two homes.
+const surfaceRow = () => glassTransmitRows.surface - 1;
+const controlRow = () => glassTransmitRows.control - 1;
 
 const materialAlpha = (name: string, alpha: readonly number[]): string[] => {
   const [rest, hover, active] = alpha;
@@ -742,6 +835,11 @@ export const ROLES = [
   "soft",
   "soft-hover",
   "soft-active",
+  // The soft trio's opaque twins (2026-08-19): what the glass scopes re-point the trio to,
+  // because the material veil multiplies an alpha source (see color.ts).
+  "soft-solid",
+  "soft-hover-solid",
+  "soft-active-solid",
   "solid",
   "solid-hover",
   "solid-active",
@@ -793,7 +891,7 @@ const GRAIN =
  * given: `none` is illegal inside a shadow list and flat worlds declare `none`, so a shadow
  * rim would mean rewriting every one-box-shadow law. Depth stays the app's.
  */
-const rim = (edgeAlpha: number, sheen: number): string =>
+const rim = (sheen: number): string =>
   [
     GRAIN,
     // At sheen 0 the two wash layers are omitted entirely rather than emitted transparent:
@@ -804,8 +902,37 @@ const rim = (edgeAlpha: number, sheen: number): string =>
           `linear-gradient(180deg, rgb(255 255 255 / ${sheen}%), transparent 45%)`,
         ]
       : []),
-    `linear-gradient(rgb(255 255 255 / ${edgeAlpha}) 0 var(--border-width), transparent var(--border-width))`,
+    // The 1px top edge line is GONE (2026-08-17, Kushagra: the dialog drew "double lines",
+    // the loud button a stripe). It predates the ring: since the pane's edge became the
+    // conic ::after ring, this background layer was a SECOND edge stacked on the first —
+    // the lab's panes have washes and the ring, never a background edge line. the ring
+    // owns the edge outright now, and the lifted variant died with the layer (2026-08-17).
   ].join(", ");
+
+/** A rung's WASH on a glass control (lab grid, 2026-08-17): bloom + sheen only — grain
+    arrives from the control rim layer, the edge from the ring. */
+const wash = (sheen: number): string =>
+  [
+    `radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / ${Number((sheen * 1.4).toFixed(2))}%), transparent 55%)`,
+    `linear-gradient(180deg, rgb(255 255 255 / ${sheen}%), transparent 45%)`,
+  ].join(", ");
+
+/**
+ * The RING (§10, ported from the lab 2026-08-17): the pane's 1px conic edge light, built
+ * from the mode's four-colour palette — or, for thick, the spectral stops that deep glass
+ * splits light into. The from-angle is the light model's fixed 165° + 180 (the ring is lit
+ * OPPOSITE the shadow's fall, same source). Emitted as a full background value the ::after
+ * ring rule consumes — the geometry (mask, padding) lives once in the stylesheet, only the
+ * LIGHT is per mode.
+ */
+const ringBg = (mode: "light" | "dark", spectral: boolean): string => {
+  if (spectral) {
+    const [w, r, b, f, warm] = material.ringSpectral[mode];
+    return `conic-gradient(from 345deg, ${w}, ${r} 12%, ${b} 24%, ${f} 36%, ${warm} 44%, ${warm} 56%, ${f} 64%, ${b} 76%, ${r} 88%, ${w})`;
+  }
+  const { a, b, c, d } = material.ring[mode];
+  return `conic-gradient(from 345deg, ${a}, ${b} 22%, ${c} 34%, ${d} 44%, ${d} 56%, ${c} 66%, ${b} 78%, ${a})`;
+};
 
 function surfaceWorld(mode: "light" | "dark"): string[] {
   const m = material[mode];
@@ -818,7 +945,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       // app's identity (depth="elevated") and the one-box-shadow law never learns glass
       // exists. A flat world's glass has edge and glint, no lift.
       decl(`material-${name}-edge`, `rgb(255 255 255 / ${m[name].edge})`),
-      decl(`material-${name}-rim`, rim(m[name].rim, m[name].sheen)),
+      decl(`material-${name}-rim`, rim(m[name].sheen)),
       // The CONTROL's lighting is the pane's minus the wash (§10, 2026-08-16). A pane's fill
       // is a near-white veil, so a broad white bloom and sheen read as light lying ON it; a
       // control's fill is its IDENTITY — a loud accent, a destructive red — and the same two
@@ -826,13 +953,41 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       // recipe went pale blue with a halo, which is what "why is this save button so light"
       // was looking at. Grain and the edge catch survive, because texture and a lit edge are
       // properties of the material; the wash is a property of a pane.
-      decl(`material-${name}-rim-control`, rim(m[name].rim, 0)),
-      decl(`material-${name}-rim-control-lifted`, rim(m[name].rimLifted, 0)),
-      // The elevated world's brighter glint (§10's catch seam, 2026-08-07): under a sun the
-      // pane's edge catches harder. The elevated scope remaps -rim to this; flat never does.
-      decl(`material-${name}-rim-lifted`, rim(m[name].rimLifted, m[name].sheen)),
+      decl(`material-${name}-rim-control`, rim(0)),
+      // CONTROL-scale material (lab 2026-08-14, ported 2026-08-17): the family re-prices the
+      // ladder for its box — half the blur, a leaner veil, its own sheen. One alpha, no
+      // hover/active steps: on glass, hover is LIGHT (filterHover bumps brightness, the veil
+      // holds) — the lab's answer to "hover mode looks weird".
+      decl(`material-${name}-control-alpha`, `${m[name].control.alpha}%`),
+      decl(`material-${name}-control-filter`, m[name].control.filter),
+      decl(`material-${name}-control-filter-hover`, m[name].control.filterHover),
+      // LOUD runs its own filter (lab, rendered 2026-08-17: saturate 220% brightness 1.1
+      // against the cell's 140-180%): a committed pigment wants the backdrop glowing
+      // through it, not politely tinted. Dark's lock: saturate 180%, no brightness lift.
+      decl(`material-${name}-control-filter-loud`, m[name].control.filterLoud),
+      // Dark FLOATING panes lighten (lab 2026-08-15): the veil lifts toward white. Light's
+      // floating veil is the in-flow veil verbatim, so the token exists in both modes and
+      // the floating rules stay mode-blind.
+      decl(
+        `material-${name}-fill-floating`,
+        mode === "dark"
+          ? `color-mix(in srgb, color-mix(in srgb, var(--color-surface) ${floatingDark.base}%, white) var(--material-${name}-alpha-floating), transparent)`
+          : `color-mix(in srgb, var(--color-surface) var(--material-${name}-alpha), transparent)`,
+      ),
+      // Dark's floating alpha is its own token so contrast="high" can REACH it (audit
+      // 2026-08-18: the dark floating veil was baked from literals, so HC strengthened
+      // every in-flow pane and left the one actually covering live content at its standard
+      // alpha). Light needs no twin — its floating veil already reads --material-*-alpha,
+      // which the HC pass re-declares.
+      ...(mode === "dark" ? [decl(`material-${name}-alpha-floating`, `${floatingDark.alpha[name]}%`)] : []),
+      // The RING: thick's is spectral (deep glass splits light), thin/regular the palette's.
+      decl(`material-${name}-ring`, ringBg(mode, name === "thick")),
     ];
   };
+  // The SOLID pane's lighting — the lab's matte recipe, NOT the rim() builder's glass one
+  // (2026-08-17): grain + one sheen to a 55% stop, no bloom, no top catch. One value for
+  // both depth worlds; a matte slab has no lifted glint to catch.
+  const solidRim = [GRAIN, `linear-gradient(180deg, rgb(255 255 255 / ${material.sealSheen[mode]}%), transparent 55%)`].join(", ");
   return [
     "",
     `  /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the`,
@@ -849,6 +1004,27 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     ...glass("regular"),
     ...glass("thick"),
     decl("material-opaque-alpha", `${material.fallbackAlpha}%`),
+    // The POOL (§10, ported 2026-08-17): the shade settling at a pane's bottom INSIDE it —
+    // matter, not elevation, so it joins the cast in both depth worlds. Solid's is its seat
+    // line (dark solid: a no-op layer, list-legal where `none` is not).
+    decl("material-pool-surface", material.pool[mode].surface),
+    decl("material-pool-control", material.pool[mode].control),
+    decl("material-pool-solid", material.pool[mode].solid),
+    decl("material-solid-rim", solidRim),
+    // The louder rungs' washes on glass controls (lab grid): thickness-invariant, per mode.
+    decl("material-control-wash-loud", wash(material.controlWash.loud[mode])),
+    decl("material-control-wash-medium", wash(material.controlWash.medium[mode])),
+    // Quiet paint on glass is ALPHA (lab 2026-08-15): the pane re-points the quiet ink
+    // roles, the border, the row wash and the keycap treatment to these.
+    decl("material-ink-muted", glassInk[mode].muted),
+    decl("material-ink-faint", glassInk[mode].faint),
+    decl("material-glass-border", glassInk[mode].border),
+    decl("material-ink-disabled", glassInk[mode].disabled),
+    decl("material-row-wash", glassInk[mode].wash),
+    decl("material-kbd-fill", glassInk[mode].kbdFill),
+    decl("material-kbd-edge", glassInk[mode].kbdEdge),
+    decl("material-kbd-ink", glassInk[mode].kbdInk),
+    decl("material-ring-opacity", `${material.ring[mode].opacity}`),
     decl("material-on-glass-alpha", `${material.onGlassAlpha}%`),
     "",
     `  /* the scrim (§10, §24) — the dialog backdrop's dim and blur, and NOT a member of the`,
@@ -906,7 +1082,31 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `     background-image layers, not shadow, so flat can declare none (§10's rim). */`,
     decl("surface-chrome", surfaceChrome[mode]),
     decl("control-chrome", controlChrome[mode]),
+    // The lit rung's press variant (2026-08-17, the lab's .l2-lit): a press tightens the
+    // blast. Consumed through a --kui- pointer the depth scopes declare, so flat stands it
+    // down with the world. (The -medium variant was deleted 2026-08-19 — the fourth flip
+    // left it consumed by nothing.)
+    decl("control-chrome-active", controlChromeActive[mode]),
     decl("control-light", controlLight[mode]),
+    // The keycap's base identity (2026-08-17): relief instead of the lit chrome, an alpha
+    // edge instead of a drawn hairline — the pane treatment promoted to the default; the
+    // pane rule now overrides only the cast (to none).
+    decl("kbd-edge", kbdRelief[mode].edge),
+    decl("kbd-relief", kbdRelief[mode].relief),
+    // The grips' own cast (2026-08-17): cap-scale, read by the slider and switch thumbs in
+    // place of the button-priced --control-chrome. A role VALUE, not a world switch — the
+    // grip casts always.
+    decl("grip-cast", gripCast[mode]),
+    // The scrollbar (2026-08-17): overlay thumb on the alpha ramp, designed size/inset.
+    decl("scrollbar-size", `${scrollbar.size}px`),
+    decl("scrollbar-inset", `${scrollbar.inset}px`),
+    decl("scrollbar-thumb", `var(--neutral-a${scrollbar.thumbStep})`),
+    decl("scrollbar-thumb-active", `var(--neutral-a${scrollbar.thumbActiveStep})`),
+    // The dead dim for non-tone roles (2026-08-17): one factor, see config.
+    decl("disabled-dim", `${disabledDim}%`),
+    decl("disabled-fill", `var(--neutral-a${disabledSteps[mode].fill})`),
+    decl("disabled-fill-solid", `var(--neutral-${disabledSteps[mode].fill})`),
+    decl("disabled-border", `var(--neutral-a${disabledSteps[mode].border})`),
     `  /* transmission (§10, 2026-08-07) — what a PANE casts is the app's shadow passed`,
     `     through glass: the surface row faded per thickness, DERIVED from the palette so`,
     `     there is exactly one source of shadow truth. Consumed only where the elevated`,
@@ -918,6 +1118,12 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `     fainter for the same reason a pane does (§10, 2026-08-07). */`,
     ...(["thin", "regular", "thick"] as const).map((t) =>
       decl(`control-chrome-${t}`, fadeShadow(shadow[mode][controlRow()]!, material.transmission[t])),
+    ),
+    `  /* and the PRESS tighten transmitted (2026-08-19): a pressed loud glass control was the`,
+    `     one caster whose blast never moved — the glass chain resolved before the active`,
+    `     variant could be consulted (audit 2026-08-18). Faded like everything glass casts. */`,
+    ...(["thin", "regular", "thick"] as const).map((t) =>
+      decl(`control-chrome-active-${t}`, fadeShadow(controlChromeActive[mode], material.transmission[t])),
     ),
     `  /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance`,
     `     because BOTH worlds declare one (overlap is information, not expression): flat is`,
@@ -968,7 +1174,18 @@ function dressWorld(mode: "light" | "dark"): string[] {
   ];
   for (const [family, slots] of Object.entries(dress[mode])) {
     for (const [slot, step] of Object.entries(slots) as [string, number][]) {
-      out.push(decl(`dress-${family}-${slot}`, `var(--neutral-${step})`));
+      // INNARDS are alpha, PANES are opaque (2026-08-17, Kushagra — dark cards: "towards
+      // the bottom, switch, input etc nothing is visible"). A card's lighting makes its own
+      // ground a gradient — sheen at the top, the pool's shade at the bottom — so a field
+      // or mark priced as an opaque index against the flat seal vanishes exactly where the
+      // pane darkens. The alpha ramp states the same rendered value ON the seal (that is
+      // its solve) and composites relative to the local ground everywhere else — the
+      // tone-soft move, one layer down. The SURFACE family stays opaque: a filled card is
+      // still a pane, and a pane SEALS (§10 — alpha nesting died by eye 2026-08-04).
+      out.push(decl(`dress-${family}-${slot}`, family === "surface" ? `var(--neutral-${step})` : `var(--neutral-a${step})`));
+      // The alpha dress's opaque twin (2026-08-19), same step said opaquely — the glass
+      // scopes re-point to it so the veil's percentage stays the veil (audit 2026-08-18).
+      if (family !== "surface" && !slot.includes("edge")) out.push(decl(`dress-${family}-${slot}-solid`, `var(--neutral-${step})`));
     }
   }
   return out;

@@ -127,10 +127,11 @@
   --kui-ct-fill-src-active: var(--color-thumb);
   background-color: var(--kui-ct-fill-src);
   /* The grip casts ALWAYS — flat world included (§5, §6): the slider thumb's exception,
-     inherited with the role rather than re-argued, and mechanically the same reading — the
-     palette row's VALUE, not the world switch, which is what "always" means. No catch: a
+     inherited with the role rather than re-argued, and mechanically the same reading — the grip
+     role's VALUE (--grip-cast, cap-scale since 2026-08-17), not the world switch, which
+     is what "always" means. No catch: a
      gradient on a near-white grip is invisible. */
-  --kui-ct-cast: var(--control-chrome, none);
+  --kui-ct-cast: var(--grip-cast, none);
   box-shadow: var(--kui-ct-cast, none);
 }
 
@@ -177,6 +178,14 @@
    and the dropped shadow are what say dead. */
 .kui-switch-thumb:where([data-disabled]) {
   --kui-ct-cast: none;
+  /* And the grip DIMS without melting (2026-08-17, Kushagra: "the thumb should be lighter
+     also in disabled"). The full --color-thumb read live next to a dimmed track; the full
+     melt to --tone-soft is the recorded failure above (one indistinguishable capsule). An
+     alpha mix is the middle: still the most findable object on the rail — the track sits
+     at a few percent, this at --disabled-dim — while clearly standing down with everything else. */
+  --kui-ct-fill-src: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-hover: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-active: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
 }
 
 /* Hosted in a slot it stays a SWITCH (§4, the checkbox's D4 one member over): the family's

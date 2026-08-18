@@ -90,6 +90,15 @@
   position: relative;
 }
 
+/* The dead RAIL dims by the same factor (2026-08-17 — the rule's own catch: the track reads
+   --color-track directly, outside the tone system, so the shared remap never reached it and
+   a dead slider kept a full-strength rail: the disabled-slider-handle audit shape, third
+   appearance). The switch's dead track dims through the tone remap because its fill is
+   ROUTED; this rail's is not, so it states the non-tone rule. */
+.kui-slider[data-disabled] .kui-slider-track {
+  background-color: color-mix(in srgb, var(--color-track) var(--disabled-dim), transparent);
+}
+
 .kui-slider-fill {
   block-size: 100%;
   /* The accent part (§11 "fill accent"), through the tone indirection like every fill in the
@@ -116,13 +125,19 @@
   --kui-ct-fill-src-hover: var(--color-thumb);
   --kui-ct-fill-src-active: var(--color-thumb);
   background-color: var(--kui-ct-fill-src);
-  border: var(--border-width) solid var(--tone-border);
+  /* NO hairline since 2026-08-17 (the fill-first lens reaching the grips): the switch thumb
+     never had one — "a hairline the colour of whatever sits behind a MOVING part is a halo
+     in one of its two homes" — and the solved --tone-border here was the border-first
+     identity's residue. The cast is what lifts a grip; the border's box-slot stays at zero
+     so the mark ladder's painted box is unchanged. */
+  border: none;
   /* The thumb casts ALWAYS — flat world included, glass pane included (§5, §6, decided
      2026-08-07, Kushagra: "slider thumb needs elevation always, it's how it should be").
      Depth as role semantics, the kill switch's second named exception beside the circle:
      a grip that does not sit above its rail stops reading as a grip, and every platform
-     ships the handle shadowed in every context. It reads the palette's control row VALUE
-     (--control-chrome) rather than the world switch (--kui-control-chrome), which is
+     ships the handle shadowed in every context. It reads the grip's own role VALUE
+     (--grip-cast, cap-scale since 2026-08-17 — --control-chrome became the lit button
+     chrome and swelled under a 16px cap) rather than the world switch, which is
      exactly what "always" means — and why one-lift-per-pane cannot strip it. No catch:
      a gradient on a near-white grip is invisible.
 
@@ -131,7 +146,7 @@
      switch down, so a dead handle kept its full shadow and its white top line — the one
      control in the system that stayed lifted while disabled. The stand-down is stated on the
      mark family (.kui-mark[data-disabled] in recipes.css), which wins here on specificity. */
-  --kui-ct-cast: var(--control-chrome, none);
+  --kui-ct-cast: var(--grip-cast, none);
   box-shadow: var(--kui-ct-cast, none);
   /* The grip's one clock, and the whole travel question answered in the property list: SCALE
      and nothing else. During a drag the pointer IS the physics — Base UI writes the position
@@ -185,9 +200,12 @@
    restored: the cast still stands down through the family arm, because a dead grip makes no
    promise and must not hover. */
 .kui-slider-thumb[data-disabled] {
-  --kui-ct-fill-src: var(--color-thumb);
-  --kui-ct-fill-src-hover: var(--color-thumb);
-  --kui-ct-fill-src-active: var(--color-thumb);
+  /* Dimmed, not melted and not full (2026-08-17 — the switch grip's sentence, kept in
+     lockstep): --disabled-dim of the role keeps the grip findable over a track that now sits at a few
+     percent alpha, while standing down with the rest of the dead control. */
+  --kui-ct-fill-src: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-hover: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-active: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
 }
 
 /* The ring lands on the thumb — the element the arrows move — not the root: focus is where

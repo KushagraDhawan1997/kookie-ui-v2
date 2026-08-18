@@ -174,6 +174,9 @@ function roleValue(s: Scale, role: (typeof ROLES)[number], mode: Mode): string {
     case "soft": return s.steps[2]!;
     case "soft-hover": return s.steps[3]!;
     case "soft-active": return s.steps[4]!;
+    case "soft-solid": return s.steps[mode === "dark" ? 3 : 2]!;
+    case "soft-hover-solid": return s.steps[mode === "dark" ? 4 : 3]!;
+    case "soft-active-solid": return s.steps[mode === "dark" ? 5 : 4]!;
     case "solid": return s.solid;
     case "solid-hover": return s.solidHover;
     case "solid-active": return s.solidActive;
@@ -894,6 +897,9 @@ const ROLE_NOTES: Record<(typeof ROLES)[number], [string, string]> = {
   soft: ["step 3", "medium emphasis, resting fill"],
   "soft-hover": ["step 4", "medium emphasis, hover (+1 step)"],
   "soft-active": ["step 5", "medium emphasis, pressed (+2 steps)"],
+  "soft-solid": ["step 3, opaque", "the trio's opaque twin — glass re-points here (2026-08-19)"],
+  "soft-hover-solid": ["step 4, opaque", "hover twin, glass only"],
+  "soft-active-solid": ["step 5, opaque", "pressed twin, glass only"],
   border: ["step 7", "the bordered boolean, separators"],
   solid: ["step 9, or step 12 when low chroma", "loud emphasis, resting fill"],
   "solid-hover": ["generated, away from the label", "loud emphasis, hover"],

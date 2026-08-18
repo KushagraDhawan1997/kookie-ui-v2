@@ -33,6 +33,9 @@ export type TextFieldProps = Omit<
   "color" | "style" | "className" | "size" | "children" | "type"
 > & {
   size?: Size;
+  /** §10 — a placement fact (2026-08-17): content passes behind this control, so the
+   *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */
+  backdrop?: boolean;
   /** Narrowed from the platform's open list — see {@link TextFieldType}. */
   type?: TextFieldType;
   /** Passive by convention — an icon, a unit, a currency mark. Clicking it lands the caret. */
@@ -81,6 +84,7 @@ export type TextFieldProps = Omit<
  */
 export function TextField({
   size = "2",
+  backdrop,
   leading,
   trailing,
   disabled,
@@ -92,11 +96,10 @@ export function TextField({
 }: TextFieldProps) {
   // §10 — the app's material (2026-08-16). The wrapper is the visible control, so it is what
   // carries the veil; the slots below sit INSIDE it, which is why they are scoped: a trailing
-  // Button in a glass field is on spent backdrop and must render opaque.
-  const material = useMaterial();
-  // §10 — the lens. It goes on the WRAPPER, which is the element that paints the glass;
-  // `ref` belongs to the input and is untouched (see Card).
-  const lensRef = useLensRef<HTMLSpanElement>(material !== "solid", undefined);
+  // Button in a glass field is on spent backdrop and renders with alpha, not opaque.
+  const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
+  // §10 — the lens on the WRAPPER; on-glass never filters, so it never bends (see Card).
+  const lensRef = useLensRef<HTMLSpanElement>(material !== "solid" && material !== "on-glass", undefined);
 
   // The field's OWN input, held so the caret redirect below cannot land somewhere else. The
   // forwarded ref still reaches the same node — neither wins (§3).

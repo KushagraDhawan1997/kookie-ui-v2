@@ -297,6 +297,28 @@ export const trackWellStepHigh = { light: 6, dark: 6 } as const;
 export const thumbFill = { light: "var(--color-surface)", dark: "var(--neutral-12)" } as const;
 
 /**
+ * §11, §26 — the ink that pairs with the grip, added 2026-08-19 after the segmented control's
+ * audit found the chosen segment's label painted in its own fill.
+ *
+ * `thumbFill` was designed for grips that carry NO text — a slider's handle, a switch's thumb —
+ * and "the most findable object on the rail" sends it near-white in BOTH modes. The segmented
+ * control is its first consumer with a label on it, and in dark `--color-thumb` (neutral-12)
+ * and `--color-text` (neutral-ink, which IS neutral-12) are the same value by construction:
+ * measured 1.00:1, APCA 0.0, and `contrast="high"` moves neither. A blank pill where the
+ * current value should be.
+ *
+ * Both entries are values the generator has ALREADY solved, not new judged colours. In light
+ * the grip is the seal, so its ink is the seal's ink. In dark the grip is neutral-12, which is
+ * exactly what `--neutral-solid` resolves to for a low-chroma family — so `--neutral-contrast`
+ * is already the APCA-chosen pairing for this fill, minted for it and reused rather than
+ * re-solved. Stated per mode because the fill it answers to is stated per mode.
+ */
+export const thumbLabel = {
+  light: "var(--color-text)",
+  dark: "var(--neutral-contrast)",
+} as const;
+
+/**
  * The APCA floors (§7) — WCAG-anchored, so NOT taste numbers: body is the AA-equivalent Lc 60
  * every label pairing must clear, aaa the Lc 75 `contrast="high"` raises it to, nonText the
  * Lc 45 floor for the focus ring and the invalid edge (WCAG 1.4.11's territory). WHERE they
@@ -361,26 +383,11 @@ export const chromaFloor = 0.75;
  */
 export const inkLc = { muted: 60, faint: 30 } as const;
 
-/**
- * The BOUNDARY's hover step (§8, 2026-08-10, Kushagra: *"there's no hover darkening of border
- * on text field or checkbox"*).
- *
- * States are uniform steps on the ramp — and for two families that rule reached nothing at all,
- * because the shared hover rule steps the FILL and those two families do not have a fill that
- * moves. A field's is pinned by an invariant of its own (its states are the border and the
- * ring, which was true of `invalid` and of nothing else); a mark's steps so faintly that the
- * box reads unchanged. Measured before it was fixed: a hovered TextField and TextArea computed
- * byte-identical to their resting selves, in both appearances.
- *
- * Stated as a MIX toward the family's own ink rather than as a picked step, because the two
- * solved edges (`--control-edge`, `--field-edge`) sit BETWEEN ladder rungs by construction —
- * they were binary-searched against APCA tiers, so "+1 step" has no meaning on them — and
- * because a mix carries the tone with it: a destructive field darkens its own red edge, and
- * dark mode moves toward its light ink without a second number. v0, judged in the playground;
- * this is dress, so it answers to the eye in standard mode and to `contrast="high"` for
- * conformance (the 2026-08-07 rule).
- */
-export const edgeHoverMix = 14;
+/* `edgeHoverMix` LIVED HERE 2026-08-10 → 2026-08-17 (the boundary-hover step for the two
+ * pinned-fill families) and left with the rule that consumed it: the fill-first flip gave
+ * fields and marks designed fill steps, hover became one step in one currency, and a config
+ * value no rule reads is a lever waiting to be pulled by hand (the `bold` removal's own
+ * sentence). DECISIONS §8 records the reversal. */
 
 /**
  * The per-mode step the focus ring and the invalid edge read (§8) — the third and first

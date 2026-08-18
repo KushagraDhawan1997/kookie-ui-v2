@@ -312,7 +312,13 @@ function useFlight(plan: FlightPlan) {
         // already-open group, a dismissal the pointer already committed to. The stylesheet
         // zeroes every clock there, so a posed entry would never transition and a release
         // read off a clock of zero would strip the pose before it was ever seen.
-        if (popup.hasAttribute("data-instant")) return;
+        // `click` is EXEMPT (2026-08-19, with the stylesheet's matching guard): Base UI 1.7
+        // stamps instantType "click" whenever the trigger press has nativeEvent.detail === 0
+        // — every keyboard Enter/Space, and every programmatic .click() — so the keyboard
+        // lost the entry flight wholesale (audit 2026-08-18). An open is an open; the
+        // keyboard gets the same physics, and stillness belongs to reduced-motion alone.
+        const instant = popup.getAttribute("data-instant");
+        if (instant !== null && instant !== "click") return;
 
         // The previous flight retires only once THIS one is certain (2026-08-16 audit):
         // retiring above the bails meant a begin that could not fly still killed a live

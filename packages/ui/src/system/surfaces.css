@@ -65,6 +65,17 @@
   inherits: false;
 }
 
+/* The pool and the ring — the FIFTH time this guard is needed, and it was needed the hour
+   the names were minted: unregistered, a card nested in a glass pane inherited the pane's
+   pool and wore a shade designed for a box it is not (caught by the 2026-08-07 escape laws
+   within one test run of the pool existing). A pane's bottom shade and its edge light are
+   facts about THAT box. */
+@property --kui-sf-pool {
+  syntax: "*";
+  inherits: false;
+}
+
+
 .kui-surface {
   box-sizing: border-box;
   /* The rungs publish their fills as SOURCES; the painted value reads through this chain so
@@ -115,15 +126,24 @@
    control layer's roundness, not a radius-level switch in this one. */
 @supports (corner-shape: squircle) {
   .kui-surface {
-    /* THE KNOB, and it is deliberately 1. Turning it to 1.613 (the lab's own 0.62 inverted)
-       restores the exact visual weight of every corner as judged before the shape changed —
-       a squircle at r reads like an arc at 0.62r, so the same number draws a tighter corner.
-       It is not on because it is a taste call on an axis Kushagra judged by eye, and because
-       it re-prices the CONCENTRIC derivations (a menu's panel corner is its row corner plus
-       its padding — scale one side only and the two stop nesting). One line, one home, and
-       the laws that pin the concentric geometry are what will fail if it moves without them. */
-    --kui-corner-k: 1;
+    /* THE KNOB, on since 2026-08-17 (Kushagra: match the lab). 1.613 is the lab's own 0.62
+       inverted: the band is authored as arcs, and under squircle the same visual weight
+       needs the bigger number — the lab runs the identical ratio the other way (squircle-
+       authored, ×0.62 for engines without the shape). With the surface band re-priced to
+       the lab's arcs, the drawn corners land on the lab's judged numbers by construction
+       (card 40×1.613 ≈ 64, mini 25×1.613 ≈ 40). The concentric floating derivation is
+       re-priced THROUGH this same factor (its laws read the knob), so panel and row keep
+       nesting. One line, one home. */
+    --kui-corner-k: 1.613;
     corner-shape: squircle;
+  }
+  /* The floating pane runs a touch past the global compensation (2026-08-17, Kushagra, by
+     eye: "just a little more radius, only in squircle"). A squircle spends its curvature
+     along the edge, and on a small pane hugging tight rows the spread reads tighter still —
+     the arc branch is judged right, so the bump lives HERE and dies with the block: engines
+     without corner-shape never see it. v0, eye pass pending. */
+  .kui-surface.kui-floating {
+    --kui-corner-k: 1.75;
   }
 }
 
@@ -207,21 +227,31 @@
    sentence, one property over: an alert wears the corner of the card one size up, and a
    bigger curve wants a bigger inset or the words crowd the sweep. Size 4 holds at p-4
    exactly as the corner band's top step holds at 10. */
+/* The padding steps ONE SIZE UP with the top held — promoted from the alert's arms to the
+   whole overlay family (2026-08-17, Kushagra: "dialog seems to have less padding than it
+   should"). The reasoning was never alert-specific: an overlay wears the corner of the card
+   one size up, and a bigger curve wants a bigger inset or the words crowd the sweep — the
+   corner band's own sentence, one property over. The alert arms below now re-point only the
+   width, which is the fact that is actually theirs. */
 .kui-surface.kui-overlay[data-size="1"] {
   --kui-sf-radius: var(--radius-overlay-1);
   --kui-overlay-w: var(--overlay-w-1);
+  --kui-sf-p: var(--surface-p-2);
 }
 .kui-surface.kui-overlay[data-size="2"] {
   --kui-sf-radius: var(--radius-overlay-2);
   --kui-overlay-w: var(--overlay-w-2);
+  --kui-sf-p: var(--surface-p-3);
 }
 .kui-surface.kui-overlay[data-size="3"] {
   --kui-sf-radius: var(--radius-overlay-3);
   --kui-overlay-w: var(--overlay-w-3);
+  --kui-sf-p: var(--surface-p-4);
 }
 .kui-surface.kui-overlay[data-size="4"] {
   --kui-sf-radius: var(--radius-overlay-4);
   --kui-overlay-w: var(--overlay-w-4);
+  --kui-sf-p: var(--surface-p-4);
 }
 
 /* The ALERT's width re-point (§25, 2026-08-16) — the switch join's shape one layer up: the
@@ -230,26 +260,21 @@
    exactly as `.kui-control.kui-switch` re-points the mark step. The panel's own sheet keeps
    consuming `--kui-overlay-w` with no idea two ladders exist — and per-size spellings stay
    in the shared layer, where the no-axis walk allows them. The CORNER is untouched — an
-   alert wears the overlay band of its own index — and the PADDING is not: these same arms
-   step it one size up, for the reason the block above states and the declarations below
-   show. (Written as "corner and padding are untouched" for one day, 27 lines under the
-   paragraph that decided the opposite and directly above the arms that do it: caught by the
-   2026-08-16 port audit, and the shortest doc-code drift this repo has recorded.) */
+   alert wears the overlay band of its own index — and since 2026-08-17 the PADDING is too:
+   the one-size-up step these arms used to carry was judged right for the dialog as well
+   ("dialog seems to have less padding than it should"), so it moved up into the overlay
+   join where the whole family inherits it, and the width is again the only fact here. */
 .kui-surface.kui-overlay.kui-alert-popup[data-size="1"] {
   --kui-overlay-w: var(--alert-w-1);
-  --kui-sf-p: var(--surface-p-2);
 }
 .kui-surface.kui-overlay.kui-alert-popup[data-size="2"] {
   --kui-overlay-w: var(--alert-w-2);
-  --kui-sf-p: var(--surface-p-3);
 }
 .kui-surface.kui-overlay.kui-alert-popup[data-size="3"] {
   --kui-overlay-w: var(--alert-w-3);
-  --kui-sf-p: var(--surface-p-4);
 }
 .kui-surface.kui-overlay.kui-alert-popup[data-size="4"] {
   --kui-overlay-w: var(--alert-w-4);
-  --kui-sf-p: var(--surface-p-4);
 }
 
 /* Concentric arithmetic is undefined at zero: at `none` the control corner is already 0,
@@ -414,7 +439,20 @@
      rung chose). Consumed by the control layer; declared here because the WORLD owns its
      light, the same sentence as the surface chrome one line up. */
   --kui-control-chrome: var(--control-chrome);
+  /* The lit rung's press variant (2026-08-17, the lab's .l2-lit): a press tightens the
+     blast toward the page. Declared as a world value so flat below stands it down with the
+     same stroke — the state arm in recipes.css consumes the pointer and is inert wherever
+     it resolves nothing. (The -medium variant was DELETED 2026-08-19: the fourth flip took
+     the medium rung's cast away, so the token was emitted, declared in three world scopes
+     and stood down in the disabled arm for a value nothing read — audit 2026-08-18.) */
+  --kui-control-chrome-active: var(--control-chrome-active);
   --kui-control-light: var(--control-light);
+  /* The POOLS ride the world too (2026-08-17): matter they may be, but "flat means flat"
+     (Kushagra) — and routing them through world pointers is what lets the disabled arm and
+     the glass panes stand them down through the one inherited-name mechanism the chrome
+     rows already use. */
+  --kui-control-pool: var(--material-pool-control);
+  --kui-surface-pool: var(--material-pool-surface);
   /* The FLOATING chrome (§22) — the third role, and the first one flat also declares: a
      shadow under a floating pane is INFORMATION (it genuinely covers content), not the
      expression this world switch otherwise governs. Elevated gets the full row-4 value. */
@@ -423,7 +461,8 @@
      app's shadow transmitted — the surface row faded per thickness, generator-derived from
      the palette — handed here so the glass rules below can re-point their chrome; flat
      declares none, so glass never floats in a flat world. And under a sun a pane CATCHES
-     harder: the rim resolves to the brighter -rim-lifted (both live in the appearance
+     harder: (RETIRED 2026-08-17 — the lifted glint WAS the brighter edge line, and the
+     ring owns the edge now, so the rim is one recipe in both worlds; history below)
      scopes — this block stays mode-blind, the look axis's own rule).
 
      The rim goes through a --kui- pointer like every other value in this block, and that is
@@ -440,44 +479,66 @@
   --kui-surface-chrome-regular: var(--surface-chrome-regular);
   --kui-surface-chrome-thick: var(--surface-chrome-thick);
   --kui-control-chrome-thin: var(--control-chrome-thin);
+  --kui-control-chrome-active-thin: var(--control-chrome-active-thin);
   --kui-control-chrome-regular: var(--control-chrome-regular);
+  --kui-control-chrome-active-regular: var(--control-chrome-active-regular);
   --kui-control-chrome-thick: var(--control-chrome-thick);
-  --kui-sf-light: var(--material-regular-rim-lifted);
-  --kui-material-thin-rim: var(--material-thin-rim-lifted);
-  --kui-material-thin-rim-control: var(--material-thin-rim-control-lifted);
-  --kui-material-regular-rim: var(--material-regular-rim-lifted);
-  --kui-material-regular-rim-control: var(--material-regular-rim-control-lifted);
-  --kui-material-thick-rim: var(--material-thick-rim-lifted);
-  --kui-material-thick-rim-control: var(--material-thick-rim-control-lifted);
+  --kui-control-chrome-active-thick: var(--control-chrome-active-thick);
+  /* The SOLID pane's lighting is its own matte recipe (2026-08-17, the lab's .l2-solid):
+     grain + one sheen, no bloom, no catch — and no lifted variant, because a matte slab has
+     no glint to catch. It borrowed the regular GLASS rim here for a day, which is where the
+     dark "double boundary" came from. */
+  --kui-sf-light: var(--material-solid-rim);
 }
 
 [data-depth="flat"] {
-  --kui-surface-chrome: none;
+  /* A NO-OP LAYER, not `none` (corrected 2026-08-17, the hour the pool joined the list):
+     `none` is illegal inside a shadow LIST, and an invalid computed value takes the whole
+     declaration with it — with the pool composed in front of the cast, flat's `none` was
+     silently deleting the pool too, in every flat world. `0 0 0 0 transparent` is the
+     stand-down that stays list-legal. The flat-derivation law reads these VALUES, so "flat
+     casts no light" is still asserted — as a no-op layer rather than a keyword. */
+  --kui-surface-chrome: 0 0 0 0 transparent;
   /* NOT none — the §11 amendment made mechanical ("overlap is not expression; a floating
      layer always states its coverage", 2026-08-09). A flat world quiets the cast (the
      generator fades the same palette row — one source of truth), it never removes it:
      a border-only popup over busy content merges into what it covers. */
   --kui-floating-chrome: var(--floating-chrome-flat);
-  --kui-control-chrome: none;
+  --kui-control-chrome: 0 0 0 0 transparent;
+  --kui-control-chrome-active: 0 0 0 0 transparent;
+  --kui-control-pool: 0 0 0 0 transparent;
+  --kui-surface-pool: 0 0 0 0 transparent;
   --kui-control-light: none;
-  --kui-surface-chrome-thin: none;
-  --kui-surface-chrome-regular: none;
-  --kui-surface-chrome-thick: none;
-  --kui-control-chrome-thin: none;
-  --kui-control-chrome-regular: none;
-  --kui-control-chrome-thick: none;
+  --kui-surface-chrome-thin: 0 0 0 0 transparent;
+  --kui-surface-chrome-regular: 0 0 0 0 transparent;
+  --kui-surface-chrome-thick: 0 0 0 0 transparent;
+  --kui-control-chrome-thin: 0 0 0 0 transparent;
+  --kui-control-chrome-active-thin: 0 0 0 0 transparent;
+  --kui-control-chrome-regular: 0 0 0 0 transparent;
+  --kui-control-chrome-active-regular: 0 0 0 0 transparent;
+  --kui-control-chrome-thick: 0 0 0 0 transparent;
+  --kui-control-chrome-active-thick: 0 0 0 0 transparent;
   /* Not `none`: a flat world's glass keeps its edge and its glint and loses only the lift
      (the weld was built and reversed 2026-08-05). So flat RESTS the rim rather than removing
      it — the resting value is what the appearance scope generated, and contrast="high" empties
      both variants there, so an emptied token arrives here guaranteed-invalid and the consuming
-     var() falls through to `none` on its own. */
-  --kui-sf-light: var(--material-regular-rim);
-  --kui-material-thin-rim: var(--material-thin-rim);
-  --kui-material-thin-rim-control: var(--material-thin-rim-control);
-  --kui-material-regular-rim: var(--material-regular-rim);
-  --kui-material-regular-rim-control: var(--material-regular-rim-control);
-  --kui-material-thick-rim: var(--material-thick-rim);
-  --kui-material-thick-rim-control: var(--material-thick-rim-control);
+     var() falls through to `none` on its own. The SOLID lighting is mode-only, never
+     depth-flavoured, so both worlds point at the same matte recipe. */
+  --kui-sf-light: var(--material-solid-rim);
+}
+
+/* The HAIRLINE RETURNS in flat (2026-08-19). "Light replaces line" is the lab's rule and it
+   has a premise: light. The lab port made outlined's border a live `transparent` (the ring,
+   pool and cast are the edge), and in a world that declares all of that away an ordinary
+   Card measured NO boundary of any kind — border rgba(0,0,0,0), both shadow layers
+   transparent, fill 1.026:1 against the page (audit 2026-08-18). No light means the line is
+   back: `initial` stands the look role down so the consumption fallback (var(--tone-border))
+   resolves at the element, where the tone lives — the HC pass's own mechanism. Compound
+   selector so `filled` keeps its dress edge in flat; (0,2,0) beats the look block's (0,1,0)
+   on the same Theme element, so stylesheet order never decides. Elevated is untouched. v0,
+   eye pass. */
+[data-depth="flat"][data-surface-look="outlined"] {
+  --look-surface-border: initial;
 }
 
 .kui-surface {
@@ -488,7 +549,16 @@
      surface declares and which cannot inherit, then the world's, which every surface reads
      by inheritance and no element re-points. Ordering is the whole mechanism — a glass pane
      transmits, everything else takes the world's value untouched. */
-  box-shadow: var(--kui-sf-cast, var(--kui-surface-chrome, none));
+  /* The POOL joins the cast in the ONE list (§10, lab port 2026-08-17): the shade settling
+     at the pane's bottom inside it. It rides the WORLD pointers, so "flat means flat"
+     empties it along with the cast — the elevated block's own sentence. (This comment
+     claimed for a day that the pool "survives depth='flat'"; measured false, audit
+     2026-08-18 — [data-depth="flat"] declares the pool's world pointer as a no-op layer.)
+     The base default is SOLID's pool, the seat line (a no-op layer in dark, where the lab's
+     solid has none); the glass rules re-point it to the material's. The fallback is a no-op
+     shadow, never `none`: `none` is illegal inside a shadow list, which is the same fact
+     that keeps the rim out of this list entirely. */
+  box-shadow: var(--kui-sf-pool, var(--material-pool-solid, 0 0 0 0 transparent)), var(--kui-sf-cast, var(--kui-surface-chrome, 0 0 0 0 transparent));
 }
 
 /* ── Material: a fill modifier, not a fill (§10) ─────────────────────────────────────────────
@@ -518,9 +588,14 @@
      control's own fill, which glass never changes. Inherited, so it needs no selector into
      the control layer; a control outside a pane is untouched. */
   --kui-control-chrome: none;
+  --kui-control-chrome-active: none;
+  --kui-control-pool: none;
   --kui-control-chrome-thin: none;
+  --kui-control-chrome-active-thin: none;
   --kui-control-chrome-regular: none;
+  --kui-control-chrome-active-regular: none;
   --kui-control-chrome-thick: none;
+  --kui-control-chrome-active-thick: none;
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-opaque-alpha), transparent);
@@ -554,7 +629,16 @@
        grey vanishes on one, white on the other. So the edge stays the material's, and
        convergence is carried by the LIGHTING, which is backdrop-independent and is where it
        belonged. */
-    --kui-border-color: var(--material-thin-edge, var(--tone-border));
+    /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
+       rule below, not a pigment hairline — the border stands down so the ring is the only
+       edge. Under contrast="high" the ring stands down instead (--material-ring-opacity: 0)
+       and the generated HC arm declares --kui-glass-hc-edge: var(--tone-border) ON this
+       element — the one scope where the tone resolves — so the conformance surface gets a
+       pigment hairline back. (The earlier sentence here claimed the -edge token survived
+       for HC to fall back to; measured 2026-08-18, that chain was unreachable and an HC
+       glass pane drew no edge at all — 1.000:1 on every side.) */
+    --kui-border-color: var(--kui-glass-hc-edge, transparent);
+    --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
 
 
     --kui-sf-cast: var(--kui-surface-chrome-thin, none);
@@ -565,7 +649,16 @@
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-regular-alpha-active), transparent);
     backdrop-filter: var(--kui-lens, ) var(--material-regular-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
-    --kui-border-color: var(--material-regular-edge, var(--tone-border));
+    /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
+       rule below, not a pigment hairline — the border stands down so the ring is the only
+       edge. Under contrast="high" the ring stands down instead (--material-ring-opacity: 0)
+       and the generated HC arm declares --kui-glass-hc-edge: var(--tone-border) ON this
+       element — the one scope where the tone resolves — so the conformance surface gets a
+       pigment hairline back. (The earlier sentence here claimed the -edge token survived
+       for HC to fall back to; measured 2026-08-18, that chain was unreachable and an HC
+       glass pane drew no edge at all — 1.000:1 on every side.) */
+    --kui-border-color: var(--kui-glass-hc-edge, transparent);
+    --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
     --kui-sf-cast: var(--kui-surface-chrome-regular, none);
   }
   .kui-surface[data-material="thick"] {
@@ -574,9 +667,108 @@
     --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thick-alpha-active), transparent);
     backdrop-filter: var(--kui-lens, ) var(--material-thick-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
-    --kui-border-color: var(--material-thick-edge, var(--tone-border));
+    /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
+       rule below, not a pigment hairline — the border stands down so the ring is the only
+       edge. Under contrast="high" the ring stands down instead (--material-ring-opacity: 0)
+       and the generated HC arm declares --kui-glass-hc-edge: var(--tone-border) ON this
+       element — the one scope where the tone resolves — so the conformance surface gets a
+       pigment hairline back. (The earlier sentence here claimed the -edge token survived
+       for HC to fall back to; measured 2026-08-18, that chain was unreachable and an HC
+       glass pane drew no edge at all — 1.000:1 on every side.) */
+    --kui-border-color: var(--kui-glass-hc-edge, transparent);
+    --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
     --kui-sf-cast: var(--kui-surface-chrome-thick, none);
   }
+}
+
+/* ── The ring: the pane's edge is LIGHT (§10, ported from the lab 2026-08-17) ─────────────
+   A 1px conic ring — bright facing the light, cool flanks, faint on the shade side, a warm
+   collect opposite; thick's splits into spectral stops. Conic, not linear (lab 2026-08-15):
+   a linear gradient cannot wrap a ring — its bright band terminates where the corner curves
+   away, while a conic's first and last stops meet, so there is no seam anywhere. Painted by
+   an ::after so it can sit ON the padding box and wrap the squircle (border-image cannot
+   follow corner-shape); masked to its own 1px annulus. The angle is fixed at the light
+   model's 165°: the pointer-tracked version stays in the lab — JS at interaction time, and
+   a second light model against the one the shadow palette commits to. */
+.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+  position: relative;
+}
+.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  corner-shape: inherit;
+  padding: var(--border-width);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: var(--material-ring-opacity, 1);
+}
+/* The LIGHT, per thickness — read straight off the generated token, no custom-property hop:
+   a registered non-inheriting property cannot reach the element's own ::after (pseudo-
+   elements take custom properties by INHERITANCE, which inherits:false blocks — measured:
+   the ring computed `none` through the hop and paints through the direct read). */
+.kui-surface:where([data-material="thin"])::after {
+  background: var(--material-thin-ring);
+}
+.kui-surface:where([data-material="regular"])::after {
+  background: var(--material-regular-ring);
+}
+.kui-surface:where([data-material="thick"])::after {
+  background: var(--material-thick-ring);
+}
+
+/* ── QUIET PAINT ON GLASS IS ALPHA, NOT PIGMENT (§10, lab 2026-08-15, ported 2026-08-17) ──
+   A pigment grey is an absolute colour: over a bright backdrop an opaque mid-grey is DARKER
+   than what shows through and the dim semantic INVERTS — the disabled row read emphasised.
+   On glass, "quiet" means "more backdrop through the letters": same ink, less alpha. Stated
+   as a ROLE REMAP on the pane — rows, labels, separators, keycaps and plain Text inherit the
+   corrected role with no rule of their own, the system's own pattern for disabled and
+   invalid. Solid keeps the pigments: on an opaque panel they are right. */
+.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+  /* The pane's own lighting, PER THICKNESS (2026-08-17): the base rule's --kui-sf-light is
+     the SOLID matte recipe since the seal got its own — a glass pane re-points to its own
+     bloom+sheen through the depth-scoped pointer, so an elevated pane still glints brighter
+     and flat still rests it. Declared with the material's generated name as the un-themed
+     fallback, the pointer's own pattern. */
+  --color-text-muted: var(--material-ink-muted);
+  --color-text-faint: var(--material-ink-faint);
+  --color-border: var(--material-glass-border);
+}
+.kui-surface:where([data-material="thin"]) {
+  --kui-sf-light: var(--material-thin-rim, none);
+}
+.kui-surface:where([data-material="regular"]) {
+  --kui-sf-light: var(--material-regular-rim, none);
+}
+.kui-surface:where([data-material="thick"]) {
+  --kui-sf-light: var(--material-thick-rim, none);
+}
+/* Disabled is a STATE, and the shared layer paints it from its own role — so it is named
+   here rather than inherited, on glass only (the lab's own carve-out). */
+.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-disabled] {
+  color: var(--material-ink-disabled);
+}
+/* The hover wash is a FILL, not an ink — on a translucent world it is the ink at low alpha,
+   so touching a row lets MORE light through rather than laying an opaque pastel on the pane. */
+.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-highlighted]:not([data-disabled]),
+.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-popup-open]:not([data-disabled]) {
+  background-color: var(--material-row-wash);
+}
+/* The keycap is a small filled box, so it takes the treatment too: relief IN the pane, not a
+   sticker on it — fill, edge and ink all alpha, and no cast. */
+.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-kbd {
+  background-color: var(--material-kbd-fill);
+  border-color: var(--material-kbd-edge);
+  color: var(--material-kbd-ink);
+  --kui-kbd-cast: none;
 }
 
 /* ON GLASS (§10, 2026-08-16): a member whose backdrop a pane below already spent. Glass does
@@ -603,13 +795,15 @@
        surface's own edge, no rim. The world's depth is untouched: an elevated app stays
        elevated.
 
-       Spelled exactly as the resting rule spells it (§19, corrected 2026-08-06). It used to
-       name `var(--tone-border)` directly, which WAS "the ordinary dress" until the look axis
-       existed and stopped being it the day `filled` shipped: a glass card in a filled app fell
-       back to the tone hairline while every other card on the page wore the softer look edge,
-       so removing transparency singled out exactly the surface that had asked for it. The
-       fallback still resolves --tone-border wherever no look is stamped. */
-    --kui-border-color: var(--look-surface-border, var(--tone-border));
+       Through the SEALED slot since 2026-08-19. The old chain read the resting look role,
+       written when outlined's border was `initial`; since the lab port outlined resolves a
+       LIVE `transparent` — the ring is the pane's only edge — so the chain handed a sealed
+       pane no edge at all (audit 2026-08-18). `border-sealed` answers only here: outlined
+       stands down so the tone hairline resolves at the element, filled hands the sealed
+       pane the dress edge every other card wears — and the ring stands down with the rim
+       below, because a sealed pane has no light left to speak with. */
+    --kui-border-color: var(--look-surface-border-sealed, var(--tone-border));
+    --material-ring-opacity: 0;
     background-image: none;
     /* A sealed pane is no longer glass, so it stops transmitting: dropping its own cast lets
        the chain fall through to the WORLD's chrome (full shadow when elevated, none when
@@ -625,6 +819,40 @@
   }
 }
 
+/* Dark FLOATING panes LIGHTEN, they never subtract (§10, lab 2026-08-15, ported
+   2026-08-17 — the system's own "in dark, height is lightness", and macOS dark menus do
+   the same): the veil lifts toward white. The token is mode-emitted — light's floating
+   veil is the in-flow veil verbatim — so these rules stay mode-blind, and their (0,3,0)
+   beats the thickness blocks' (0,2,0) by weight rather than by order. */
+.kui-surface.kui-floating[data-material="thin"] {
+  --kui-sf-fill: var(--material-thin-fill-floating);
+}
+.kui-surface.kui-floating[data-material="regular"] {
+  --kui-sf-fill: var(--material-regular-fill-floating);
+}
+.kui-surface.kui-floating[data-material="thick"] {
+  --kui-sf-fill: var(--material-thick-fill-floating);
+}
+/* A menu is small and dense — the pane's full flare reads as costume on it (lab
+   2026-08-14). Same ring, at 60%: jewelry, not headline. */
+.kui-surface.kui-floating:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
+  opacity: calc(var(--material-ring-opacity, 1) * 0.6);
+}
+
+/* The reduced-transparency seal, restated at the floating fills' own weight (audit
+   2026-08-18): the sealed veil above is (0,2,0) and the dark-floating fill rules are
+   (0,3,0), so without this arm a menu KEPT its translucent veil and lost only its blur —
+   the preference made exactly the surface it targets strictly worse. A sealed floating
+   pane takes the in-flow seal; "floating panes lighten" is a glass fact, and a seal is
+   not glass. */
+@media (prefers-reduced-transparency: reduce) {
+  .kui-surface.kui-floating[data-material="thin"],
+  .kui-surface.kui-floating[data-material="regular"],
+  .kui-surface.kui-floating[data-material="thick"] {
+    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
+  }
+}
+
 /* The floating paint (§22) — LAST in this file on purpose, and a re-point of the surface
    layer's ONE box-shadow site rather than a second one (the count law holds at six). Same
    specificity as the glass casts above, so source order decides — and a floating pane must
@@ -637,6 +865,7 @@
 .kui-surface.kui-floating {
   --kui-sf-cast: var(--kui-floating-chrome, var(--floating-chrome-flat, none));
 }
+
 
 /* ══ The floating family's ENTRY, promoted from menu.css on its second consumer (§8, §22 —
    2026-08-10, Kushagra: *"can we apply the same animation to select now?"*) ═══════════════
@@ -1072,10 +1301,15 @@
 }
 
 /* Base UI asks for instant when the change is not a reveal — reopening into an already-open
-   group, a dismissal the pointer already committed to. */
-.kui-surface.kui-floating[data-instant],
-.kui-surface.kui-floating[data-instant] .kui-floating-body,
-.kui-surface.kui-floating[data-instant] :where(.kui-row, .kui-separator) {
+   group, a dismissal the pointer already committed to. `click` is EXEMPT (2026-08-19):
+   Base UI 1.7 began stamping instantType "click" for any trigger press with
+   nativeEvent.detail === 0, which is every keyboard Enter/Space — so a keyboard user lost
+   the entry flight entirely, a decision this system never made (audit 2026-08-18). An open
+   is an open: the same physics for every input; reduced motion is the stand-down for
+   stillness, not the keyboard. */
+.kui-surface.kui-floating[data-instant]:not([data-instant="click"]),
+.kui-surface.kui-floating[data-instant]:not([data-instant="click"]) .kui-floating-body,
+.kui-surface.kui-floating[data-instant]:not([data-instant="click"]) :where(.kui-row, .kui-separator) {
   transition: none;
 }
 

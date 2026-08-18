@@ -22,16 +22,17 @@
   font-size: calc(1em * var(--kui-ty-scale));
   background-color: var(--tone-soft);
   border-radius: var(--radius-atom);
-  /* Tone-aware, not one of the solved tiers: `--control-edge` and `--field-edge` were
-     solved for controls whose identity RESTS on the edge (an unchecked checkbox IS its
-     hairline, §7's edge order), and a cap has a fill to carry it. */
-  border: var(--border-width) solid var(--tone-border);
-  /* The cap casts ALWAYS (2026-08-08, Kushagra — reversing the day-one refusal on sight):
-     a key cap is a picture of a RAISED physical object, so depth here is role semantics,
-     the grips' own exception one family over — and the control row's inset light catch is
-     exactly a keycap's top face. Reads the palette row's VALUE (--control-chrome), never
-     the world switch, which is what "always" means; the sixth consumer, counted by law. */
-  --kui-ct-cast: var(--control-chrome, none);
+  /* An alpha edge, not a drawn hairline (2026-08-17 — fill is identity, light replaces
+     line): the cap's fill carries it, and the edge only supplements, same value on any
+     bed. The tone indirection stays on the fill and ink; the edge is achromatic. */
+  border: var(--border-width) solid var(--kbd-edge);
+  /* The cap's depth is RELIEF, not the lit control chrome (2026-08-17, reversing the
+     2026-08-08 --control-chrome read): the full chrome made a bare cap read as a small
+     floating button, when a key is pressed INTO its surface — top-face catch plus a
+     whisper of drop, cap-scale (--kbd-relief). Still role semantics — it holds in a flat
+     world — and a PANE still stands it down (§10, lab: relief in the pane, not a sticker
+     on it), so a glass surface's --kui-kbd-cast wins the first slot. */
+  --kui-ct-cast: var(--kui-kbd-cast, var(--kbd-relief, none));
   box-shadow: var(--kui-ct-cast, none);
   /* The cap geometry (2026-08-08, with the family move): a key never wraps, a one-glyph
      key sits centered in a near-square cap rather than shrink-wrapping into a sliver, and

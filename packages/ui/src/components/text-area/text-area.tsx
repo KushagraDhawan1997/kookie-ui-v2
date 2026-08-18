@@ -20,6 +20,9 @@ export type TextAreaProps = Omit<
   "color" | "children" | "cols"
 > & {
   size?: Size;
+  /** §10 — a placement fact (2026-08-17): content passes behind this control, so the
+   *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */
+  backdrop?: boolean;
   ref?: React.Ref<HTMLTextAreaElement>;
 };
 
@@ -52,15 +55,15 @@ export type TextAreaProps = Omit<
  */
 export function TextArea({
   size = "2",
+  backdrop,
   className,
   ref,
   ...props
 }: TextAreaProps) {
-  // §10 — the app's material, or solid inside a glass ancestor. No children by type, so there
-  // is nothing below this to stand down (2026-08-16).
-  const material = useMaterial();
-  // §10 — the lens (see Card).
-  const lensRef = useLensRef<HTMLElement>(material !== "solid", ref as React.Ref<HTMLElement>);
+  // §10 — the app's material, or on-glass inside a glass ancestor (2026-08-16).
+  const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
+  // §10 — the lens (see Card); on-glass never filters, so it never bends.
+  const lensRef = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", ref as React.Ref<HTMLElement>);
   return (
     <BaseInput
       ref={lensRef}

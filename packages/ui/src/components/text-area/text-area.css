@@ -38,13 +38,17 @@
   -webkit-user-select: auto;
   user-select: auto;
 
-  /* The seal, stated for all three states ON PURPOSE — the field's invariant, same trap: the
-     shared layer swaps to the -hover/-active sources on interaction, and leaving them unset
-     would make the declaration invalid at computed-value time exactly when you point at the
-     box. A field's fill does not move; the border and the ring carry its states. */
-  --kui-ct-fill-src: var(--look-field-fill);
-  --kui-ct-fill-src-hover: var(--look-field-fill);
-  --kui-ct-fill-src-active: var(--look-field-fill);
+  /* All three state sources stated ON PURPOSE — the registered-property trap: the shared
+     layer swaps to the -hover/-active sources on interaction, and leaving one unset would
+     make the declaration invalid at computed-value time exactly when you point at the box.
+     (This paragraph once also stated the old invariant — "a field's fill does not move; the
+     border and the ring carry its states" — four lines above the comment that reverses it.
+     text-field.css deleted its copy in the same commit; this one lingered, audit 2026-08-18.) */
+  /* The fill pin died 2026-08-17 (fill-first: hover's one currency is the fill) — the three
+     slots are the look's designed steps, the field's own sentence one file over. */
+  --kui-ct-fill-src: var(--dress-field-fill);
+  --kui-ct-fill-src-hover: var(--dress-field-fill-hover);
+  --kui-ct-fill-src-active: var(--dress-field-fill-active);
   /* The role, not the colour: the shared disabled remap re-points --tone-label, so the value
      goes flat with the box and this file needs no disabled branch of its own. */
   --kui-ct-label-color: var(--tone-label);
@@ -75,15 +79,9 @@
   font-size: max(var(--input-font-floor), var(--kui-ct-font));
 }
 
-/* The DERIVED fill pinned to rest, the field's second invariant verbatim: under a material the
-   thing that moves is the mix ramp, not the sources, so the resting derived value is what the
-   hover and active hooks must resolve to. Unguarded for the same reason — where nothing
-   derives a fill the reference is invalid at computed-value time and the shared fallback chain
-   takes over. Both classes for the same specificity tie. */
-.kui-control.kui-textarea {
-  --kui-ct-fill-hover: var(--kui-ct-fill);
-  --kui-ct-fill-active: var(--kui-ct-fill);
-}
+/* The DERIVED pin left with the source pin (2026-08-17) — control-scale material moved the
+   ramp into the sources, so the pin only blocked the shared fill rule; told in full in
+   text-field.css beside the same absence. */
 
 /* READ-ONLY drops the well, and keeps everything else (§8) — the field's rule, self-keyed.
    `:not(:disabled)` because CSS :read-only matches anything not :read-write, which includes a

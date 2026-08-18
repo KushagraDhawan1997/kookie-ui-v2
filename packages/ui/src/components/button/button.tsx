@@ -39,6 +39,10 @@ type ButtonBase = Omit<
    * getting it wrong is silent. See the note on the `render` escape below.
    */
   nativeButton?: boolean;
+  /** §10 — a placement fact (2026-08-17): content passes behind this button, so the theme's
+   *  material may express. Unset, reads the ambient `<Box backdrop>` region. Cannot choose
+   *  a material — only state that there is something to bend. */
+  backdrop?: boolean;
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;
@@ -84,6 +88,7 @@ export function Button({
   emphasis = "medium",
   bordered = false,
   loading = false,
+  backdrop,
   disabled = false,
   focusableWhenDisabled,
   iconOnly,
@@ -119,10 +124,11 @@ export function Button({
   // The Spinner takes the icon's place when there is one — same box, zero shift — and joins
   // the label when there is not. The label never goes: a button that stops saying what it is
   // doing is worse than one that changes width (§8).
-  // §10 — the app says what things are built of; a control never does (2026-08-16).
-  const material = useMaterial();
+  // §10 — the app says what things are built of; a control never does (2026-08-16). It only
+  // states placement (backdrop, 2026-08-17): on calm ground it resolves solid and pays nothing.
+  const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // §10 — the lens, prepended to the control layer's own material chain (see Card).
-  const lensRef = useLensRef<HTMLElement>(material !== "solid", ref);
+  const lensRef = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", ref);
   const leading = loading ? <Spinner /> : leadingSlot;
 
   // Slots wear the system's adornment wrapper (`data-slot`, ENGINEERING §3) since 2026-08-05.
