@@ -192,7 +192,6 @@ export function MatrixExplorer() {
   const [pointer, setPointer] = React.useState<NonNullable<ThemeProps["pointer"]>>("auto");
   const [depth, setDepth] = React.useState<NonNullable<ThemeProps["depth"]>>(themeDefaults.depth);
   const [surfaceLook, setSurfaceLook] = React.useState<NonNullable<ThemeProps["surfaceLook"]>>(themeDefaults.surfaceLook);
-  const [controlLook, setControlLook] = React.useState<NonNullable<ThemeProps["controlLook"]>>(themeDefaults.controlLook);
   const { contrast } = useAppearance();
 
   return (
@@ -215,7 +214,6 @@ export function MatrixExplorer() {
         <Picker label="pointer" value={pointer} options={POINTERS} onChange={setPointer} />
         <Picker label="depth" value={depth} options={DEPTHS} onChange={setDepth} />
         <Picker label="surface look" value={surfaceLook} options={LOOKS} onChange={setSurfaceLook} />
-        <Picker label="control look" value={controlLook} options={LOOKS} onChange={setControlLook} />
         <Picker label="contrast" value={contrast} options={CONTRASTS} onChange={setContrast} />
       </Stack>
 
@@ -227,7 +225,6 @@ export function MatrixExplorer() {
           pointer={pointer}
           depth={depth}
           surfaceLook={surfaceLook}
-          controlLook={controlLook}
           render={<section />}
         >
           <Stack gap="4">
@@ -242,7 +239,7 @@ export function MatrixExplorer() {
         </Theme>
       ))}
 
-      <Theme radius={radius} pointer={pointer} depth={depth} surfaceLook={surfaceLook} controlLook={controlLook} render={<section />}>
+      <Theme radius={radius} pointer={pointer} depth={depth} surfaceLook={surfaceLook} render={<section />}>
         <Stack gap="4">
           <Heading size="3">tone × emphasis</Heading>
           <Text size="2" emphasis="medium" render={<p />}>
@@ -285,7 +282,7 @@ export function MatrixExplorer() {
           Theme it sat permanently at the root's `auto`, so clicking `coarse` moved every
           control and left the ramp on the desktop ladder — with the page's own prose,
           "coarse also lifts the handheld type band", printed directly above it. */}
-      <Theme radius={radius} pointer={pointer} depth={depth} surfaceLook={surfaceLook} controlLook={controlLook} render={<section />}>
+      <Theme radius={radius} pointer={pointer} depth={depth} surfaceLook={surfaceLook} render={<section />}>
         <Stack gap="4">
           <Heading size="3">type</Heading>
           <Stack gap="2">

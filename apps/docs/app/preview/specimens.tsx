@@ -65,7 +65,13 @@ import {
   Slider,
   Spinner,
   Stack,
+  SegmentedControl,
+  SegmentedItem,
   Switch,
+  Tabs,
+  TabsList,
+  TabsPanel,
+  TabsTab,
   Text,
   TextArea,
   Theme,
@@ -73,6 +79,7 @@ import {
   type Size,
   type Tone,
   Select,
+  ScrollArea,
   SelectTrigger,
   SelectContent,
   SelectItem,
@@ -81,8 +88,11 @@ import {
 } from "@kookie-ui/react";
 
 import { PlusIcon, SearchIcon, XIcon } from "../icons";
+import { BedSurface, PHOTO_BED } from "./beds";
+import { ComponentPreviewBody } from "./component-preview";
+import { Demo, SIZES, SpecTable, cap } from "./pieces";
+import { COMPONENT_PREVIEWS } from "./previews";
 
-const SIZES = ["1", "2", "3", "4"] as const satisfies readonly Size[];
 // The app restates the tone list (the package exports the type, not the value) — docs land,
 // where a stale entry fails visibly on this very page.
 const TONES = [
@@ -100,89 +110,17 @@ const TONES = [
 
 const RAMP = ["9", "8", "7", "6", "5", "4", "3", "2", "1"] as const;
 
-const cap = (s: string) => s[0]!.toUpperCase() + s.slice(1);
-
-/* ── Table machinery ───────────────────────────────────────────────────────────────────── */
-
-type Row = { label: string; cells: React.ReactNode[] };
-
-/**
- * A specimen table: column headers across the top, a row label down the side, one specimen
- * per cell. `wide` switches the tracks from max-content (bare controls, intrinsic width) to
- * 1fr (fields, sliders, composite cells). Labels are the QUIET role on purpose — the table
- * chrome recedes so the specimens carry the page.
- */
-function SpecTable({ cols, rows, wide = false }: { cols: string[]; rows: Row[]; wide?: boolean }) {
-  const track = wide ? "minmax(0, 1fr)" : "minmax(0, max-content)";
-  return (
-    // Explicit both-axis alignment: grid items default to STRETCH, which warps any square
-    // control to its column's widest cell (a size-1 icon button inflated to the size-4
-    // cell's 51px, found by probe). Wide tables keep stretch on the inline axis — a field
-    // should fill its track.
-    <Grid
-      columns={`72px repeat(${cols.length}, ${track})`}
-      gapX="5"
-      gapY="4"
-      style={{ alignItems: "center", justifyItems: wide ? "stretch" : "start" }}
-    >
-      <span />
-      {cols.map((col) => (
-        <Text key={col} size="1" emphasis="quiet">
-          {col}
-        </Text>
-      ))}
-      {rows.map((row) => (
-        <React.Fragment key={row.label}>
-          <Text size="1" emphasis="quiet">
-            {row.label}
-          </Text>
-          {row.cells.map((cell, i) => (
-            <React.Fragment key={i}>{cell}</React.Fragment>
-          ))}
-        </React.Fragment>
-      ))}
-    </Grid>
-  );
-}
-
 /**
  * The hostile bed for glass: material is judged over something that fights back, never over
- * the page. THE image — the same backdrop.jpg the package preview judges against, so the two
- * surfaces argue about one photograph. Tall enough for varied luminance behind the glass,
- * no taller — the first cut ran 320px with the specimens loose in a corner, and the bed read
- * as a photo the controls had wandered onto rather than a specimen (2026-08-08). Centered
- * both axes for the same reason.
+ * the page. The photograph from the standard bed set (beds.tsx is the one home since
+ * 2026-08-19) — the same backdrop.jpg the package preview judges against, so the two
+ * surfaces argue about one photograph.
  */
-function HostileBed({ children }: { children: React.ReactNode }) {
+function HostileBed({ children, backdrop = true }: { children: React.ReactNode; backdrop?: boolean }) {
   return (
-    <Flex
-      align="center"
-      justify="center"
-      gap="5"
-      wrap="wrap"
-      p="6"
-      style={{
-        backgroundImage: "url(/backdrop.jpg)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        borderRadius: "var(--radius-surface-3)",
-        minHeight: "240px",
-      }}
-    >
+    <BedSurface bed={PHOTO_BED} backdrop={backdrop}>
       {children}
-    </Flex>
-  );
-}
-
-/** A quiet caption above a composed example — the one label style the whole page uses. */
-function Demo({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <Stack gap="3">
-      <Text size="1" emphasis="quiet">
-        {label}
-      </Text>
-      {children}
-    </Stack>
+    </BedSurface>
   );
 }
 
@@ -324,9 +262,9 @@ function TonesSection() {
                 <Flex key={tone} gap="4" align="flex-start" justify="space-between">
                   <Stack gap="1">
                     <Text size="2" weight="medium" tone={tone}>{label}</Text>
-                    <Text size="1" emphasis="medium">{description}</Text>
+                    <Text size="2" emphasis="medium">{description}</Text>
                   </Stack>
-                  <Button size="1" tone={tone} emphasis="quiet" bordered>Details</Button>
+                  <Button tone={tone} emphasis="quiet" bordered>Details</Button>
                 </Flex>
               ))}
             </Stack>
@@ -372,7 +310,7 @@ function BlockquoteSection() {
             <Blockquote size="3">
               Design is not just what it looks like and feels like. Design is how it works.
             </Blockquote>
-            <Text size="1" emphasis="medium">— Steve Jobs</Text>
+            <Text size="2" emphasis="medium">— Steve Jobs</Text>
           </Stack>
         </Card>
       </Demo>
@@ -443,78 +381,6 @@ function ButtonSection() {
   );
 }
 
-function CardSection() {
-  return (
-    <Stack gap="6">
-      {/* Identical content in all four so the only variable is the size's padding pick. */}
-      <Grid columns="repeat(4, minmax(0, 1fr))" gapX="5" gapY="5">
-        {SIZES.map((size) => (
-          <Card key={size} size={size}>
-            <Stack gap="1">
-              <Text size="2" weight="medium">Nightly build</Text>
-              <Text size="1" emphasis="medium">1,024 laws green in 41s.</Text>
-            </Stack>
-          </Card>
-        ))}
-      </Grid>
-      <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5">
-        <Card size="3" render={<button type="button" />} style={{ textAlign: "left" }}>
-          <Stack gap="1">
-            <Text size="2" weight="medium">Pressable card</Text>
-            <Text size="1" emphasis="medium">render={"{<button/>}"} — focus it with the keyboard.</Text>
-          </Stack>
-        </Card>
-        <Card size="3" render={<a href="#card" />} style={{ textDecoration: "none" }}>
-          <Stack gap="1">
-            <Text size="2" weight="medium">Card as link</Text>
-            <Text size="1" emphasis="medium">The surface layer notices element semantics.</Text>
-          </Stack>
-        </Card>
-      </Grid>
-      {/* The card doing its job: a plain surface holding real anatomy built from SIBLINGS —
-          heading, body, actions — because layouts are blocks, not slots.
-
-          Rebuilt 2026-08-09 (Kushagra, on the shipped version: "this isn't [tasteful]"). Three
-          faults, all composition rather than component: a 14px title over a 12px body reads as
-          a caption pair, not a heading and its paragraph; size-1 buttons in a size-3 card are
-          two rungs under the box they sit in; and a rule spanning the full card under a
-          right-aligned pair draws a line where nothing is being divided. Title is a Heading,
-          the body is size 2, the buttons take the default, and the distance does the
-          separating — which is what a Stack gap is for. */}
-      <Demo label="Composed — a confirm card">
-        <Box maxWidth="26rem">
-          <Card size="3">
-            <Stack gap="6">
-              <Stack gap="2">
-                <Heading size="4" render={<h3 />}>Delete workspace</Heading>
-                <Text size="2" emphasis="medium">
-                  Removes every project, member, and API key. This cannot be undone.
-                </Text>
-              </Stack>
-              <Flex gap="3" justify="flex-end">
-                <Button emphasis="quiet" bordered>Keep it</Button>
-                <Button tone="destructive" emphasis="loud">Delete</Button>
-              </Flex>
-            </Stack>
-          </Card>
-        </Box>
-      </Demo>
-      <HostileBed>
-        {(["thin", "regular", "thick"] as const).map((m) => (
-          <Theme key={m} material={m}>
-            <Card size="2" style={{ width: "180px" }}>
-              <Stack gap="1">
-                <Text size="2" weight="medium">{cap(m)}</Text>
-                <Text size="1" emphasis="medium">Page glass over a hostile bed.</Text>
-              </Stack>
-            </Card>
-          </Theme>
-        ))}
-      </HostileBed>
-    </Stack>
-  );
-}
-
 function CheckboxSection() {
   return (
     <Stack gap="6">
@@ -550,7 +416,7 @@ function CheckboxSection() {
                   <Checkbox defaultChecked={checked} id={id} />
                   <Stack gap="1">
                     <Text size="2" weight="medium" render={<label htmlFor={id} />}>{label}</Text>
-                    <Text size="1" emphasis="medium">{description}</Text>
+                    <Text size="2" emphasis="medium">{description}</Text>
                   </Stack>
                 </Flex>
               ))}
@@ -660,21 +526,27 @@ function AlertDialogSection() {
 
 
 function DialogSection() {
-  /** One canonical body, opened at every size, so the judgment is about the box — its width,
-      its padding and its corner — rather than about four different sets of words. The content
-      is §15's composition brief, which is also what the parts themselves state: title at the
-      card-title step, description in the muted ink, one task-action zone at the end. */
-  const body = (
+  /** A DIALOG IS A TASK, not a question (re-drawn 2026-08-17, Kushagra: the section wore
+      "Delete workspace?", which is the ALERT's content — §25's boundary sentence run
+      backwards. A dialog is the larger modal: a form, a picker, a settings pane — content
+      the app owns, a panel that is just paper). One canonical body opened at every size so
+      the judgment stays about the box — width, padding, corner — not four sets of words. */
+  /** Proportionate innards (2026-08-17, Kushagra): a size-3 dialog holds size-3 controls.
+      The box index is still only the box's (§24) — the CALL SITE matches the controls to it,
+      which is what an app should do and therefore what the specimen shows. */
+  const body = (size: Size) => (
     <>
       <Stack gap="2">
-        <DialogTitle>Delete workspace</DialogTitle>
-        <DialogDescription>
-          Every project, member and API key goes with it. This cannot be undone.
-        </DialogDescription>
+        <DialogTitle>Sign in</DialogTitle>
+        <DialogDescription>Use your work email to continue.</DialogDescription>
+      </Stack>
+      <Stack gap="5">
+        <TextField size={size} type="email" placeholder="you@company.com" aria-label="Email" />
+        <TextField size={size} type="password" placeholder="Password" aria-label="Password" />
       </Stack>
       <Flex gap="3" justify="flex-end">
-        <DialogClose render={<Button emphasis="quiet" bordered>Keep it</Button>} />
-        <DialogClose render={<Button tone="destructive" emphasis="loud">Delete workspace</Button>} />
+        <DialogClose render={<Button size={size} emphasis="quiet" bordered>Cancel</Button>} />
+        <DialogClose render={<Button size={size} tone="accent" emphasis="loud">Sign in</Button>} />
       </Flex>
     </>
   );
@@ -690,9 +562,9 @@ function DialogSection() {
           label: `size ${size}`,
           cells: [
             <Dialog key="d" size={size}>
-              <DialogTrigger render={<Button size={size} emphasis="medium">Delete…</Button>} />
+              <DialogTrigger render={<Button size={size} emphasis="medium">Sign in…</Button>} />
               <DialogContent>
-                <Stack gap="6">{body}</Stack>
+                <Stack gap="6">{body(size)}</Stack>
               </DialogContent>
             </Dialog>,
           ],
@@ -702,17 +574,20 @@ function DialogSection() {
           here is the app going back, in both appearances and at both contrast settings. The
           panel answers `material` for the case it floats over media. */}
       <Demo label="Materials — the panel over its own scrim">
+        {/* One Flex row: a Demo's Stack stretches its direct children, so a bare root's
+            trigger rendered as a 960px bar beside its 97px siblings (audit 2026-08-18). */}
+        <Flex gap="3" align="center" wrap="wrap">
         <Dialog>
           <DialogTrigger render={<Button emphasis="medium">Solid</Button>} />
           <DialogContent>
-            <Stack gap="6">{body}</Stack>
+            <Stack gap="6">{body("3")}</Stack>
           </DialogContent>
         </Dialog>
         <Theme material="thin">
           <Dialog>
             <DialogTrigger render={<Button emphasis="medium">Thin glass</Button>} />
             <DialogContent>
-              <Stack gap="6">{body}</Stack>
+              <Stack gap="6">{body("3")}</Stack>
             </DialogContent>
           </Dialog>
         </Theme>
@@ -720,30 +595,62 @@ function DialogSection() {
           <Dialog>
             <DialogTrigger render={<Button emphasis="medium">Thick glass</Button>} />
             <DialogContent>
-              <Stack gap="6">{body}</Stack>
+              <Stack gap="6">{body("3")}</Stack>
             </DialogContent>
           </Dialog>
         </Theme>
+        </Flex>
       </Demo>
-      {/* A dialog holding a form, which is the other half of what dialogs are for: the fields
-          inside answer the app's own control look and density, and the panel is just paper. */}
-      <Demo label="Composed — a rename dialog">
-        <Dialog size="2">
-          <DialogTrigger render={<Button emphasis="medium">Rename project</Button>} />
+      {/* The composed example is the component's whole argument: a real task pane — fields,
+          a select, switches — where every control answers the app's own axes and the panel
+          is paper. This is what "dialog" means here; the two-button question lives one
+          section up, in AlertDialog, and any control beyond its two buttons makes it THIS. */}
+      <Demo label="Composed — workspace settings">
+        <Flex gap="3" align="center">
+        <Dialog size="3">
+          <DialogTrigger render={<Button emphasis="medium">Workspace settings</Button>} />
           <DialogContent>
             <Stack gap="6">
               <Stack gap="2">
-                <DialogTitle>Rename project</DialogTitle>
-                <DialogDescription>Everyone with access will see the new name.</DialogDescription>
+                <DialogTitle>Workspace settings</DialogTitle>
+                <DialogDescription>Changes apply to every member.</DialogDescription>
               </Stack>
-              <TextField defaultValue="Q3 planning" aria-label="Project name" />
+              {/* The showcase's rhythm (frontend-design pass, 2026-08-17): groups separate at 5,
+                  a label sits at 3 from its field — within-group tight, between-group loose,
+                  so the form reads as groups instead of one undifferentiated column. */}
+              <Stack gap="5">
+                <Stack gap="3">
+                  <Text size="2" weight="medium" render={<label htmlFor="pg-dlg-name" />}>Name</Text>
+                  <TextField id="pg-dlg-name" size="3" defaultValue="Acme Inc" />
+                </Stack>
+                <Stack gap="3">
+                  <Text size="2" weight="medium">Default visibility</Text>
+                  <Select size="3" defaultValue="private" items={{ private: "Private", team: "Team", public: "Public" }}>
+                    <SelectTrigger aria-label="Default visibility" />
+                    <SelectContent>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="team">Team</SelectItem>
+                      <SelectItem value="public">Public</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Stack>
+                {/* No helper line (information design, 2026-08-17, Kushagra): a caption may
+                    only carry what the label cannot — a consequence, a scope, a reason — and
+                    "members sign in with a second step" merely DEFINES two-factor, which no
+                    real settings row does. The label is the row. */}
+                <Flex gap="3" align="center" justify="space-between">
+                  <Text size="2" weight="medium" render={<label htmlFor="pg-dlg-2fa" />}>Require two-factor</Text>
+                  <Switch id="pg-dlg-2fa" size="3" defaultChecked />
+                </Flex>
+              </Stack>
               <Flex gap="3" justify="flex-end">
-                <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-                <DialogClose render={<Button emphasis="loud">Save</Button>} />
+                <DialogClose render={<Button size="3" emphasis="quiet" bordered>Cancel</Button>} />
+                <DialogClose render={<Button size="3" tone="accent" emphasis="loud">Save changes</Button>} />
               </Flex>
             </Stack>
           </DialogContent>
         </Dialog>
+        </Flex>
       </Demo>
     </Stack>
   );
@@ -809,7 +716,7 @@ function ProgressSection() {
       {/* The bar in the composition it ships in — label row, bar, caption, the Stack's gap
           carrying every distance. Indeterminate sits beside a Spinner on purpose: the same
           category of motion (content, not a state change), one system answer to "busy". */}
-      <Demo label="Composed — busy states">
+      <Demo label="Composed — busy states (indeterminate: no measurable extent — slowed, never stopped)">
         <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5">
           <Card size="3">
             <Stack gap="3">
@@ -820,7 +727,7 @@ function ProgressSection() {
                 <Text size="2" emphasis="medium">62%</Text>
               </Flex>
               <Progress value={62} aria-label="Uploading assets" />
-              <Text size="1" emphasis="quiet">14 of 23 files · 2 min left</Text>
+              <Text size="2" emphasis="medium">14 of 23 files · 2 min left</Text>
             </Stack>
           </Card>
           <Card size="3">
@@ -830,7 +737,6 @@ function ProgressSection() {
                 <Text size="2" weight="medium">Indexing the repository</Text>
               </Flex>
               <Progress value={null} aria-label="Indexing" />
-              <Text size="1" emphasis="quiet">No measurable extent — slowed, never stopped.</Text>
             </Stack>
           </Card>
         </Grid>
@@ -885,7 +791,7 @@ function RadioSection() {
                       <Text size="2" weight="medium" render={<label htmlFor={`pg-rd-${value}`} />}>
                         {label}
                       </Text>
-                      <Text size="1" emphasis="medium">{description}</Text>
+                      <Text size="2" emphasis="medium">{description}</Text>
                     </Stack>
                   </Flex>
                 ))}
@@ -978,7 +884,7 @@ function MenuSection() {
             <Flex justify="space-between" align="center" gap="4">
               <Stack gap="1">
                 <Text size="2" weight="medium">Q3 planning.md</Text>
-                <Text size="1" emphasis="medium">Edited 2 hours ago</Text>
+                <Text size="2" emphasis="medium">Edited 2 hours ago</Text>
               </Stack>
               <Menu>
                 <MenuTrigger render={<Button emphasis="quiet" iconOnly aria-label="Actions"><PlusIcon /></Button>} />
@@ -1123,13 +1029,13 @@ function SelectSection() {
       <Demo label="Composed — a form row">
         <Box maxWidth="26rem">
           <Card size="3">
-            <Stack gap="4">
-              <Stack gap="2">
-                <Text size="1" weight="medium">Name</Text>
+            <Stack gap="5">
+              <Stack gap="3">
+                <Text size="2" weight="medium">Name</Text>
                 <TextField placeholder="Project name" />
               </Stack>
-              <Stack gap="2">
-                <Text size="1" weight="medium">Visibility</Text>
+              <Stack gap="3">
+                <Text size="2" weight="medium">Visibility</Text>
                 <Select defaultValue="private" items={{ private: "Private", team: "Team", public: "Public" }}>
                   <SelectTrigger placeholder="Choose" />
                   <SelectContent>
@@ -1157,7 +1063,7 @@ function SeparatorSection() {
           <Stack gap="4">
             <Stack gap="1">
               <Text size="2" weight="medium">Mira Chen</Text>
-              <Text size="1" emphasis="medium">mira@kookie.dev</Text>
+              <Text size="2" emphasis="medium">mira@kookie.dev</Text>
             </Stack>
             <Separator />
             <Flex gap="4" align="center">
@@ -1192,18 +1098,18 @@ function SliderSection() {
       <Demo label="Composed — an inspector panel">
         <Box maxWidth="26rem">
           <Card size="3">
-            <Stack gap="4">
+            <Stack gap="5">
               <Stack gap="2">
                 <Flex justify="space-between" align="center">
                   <Text size="2" weight="medium">Blur radius</Text>
-                  <Text size="1" emphasis="medium"><Code size="1">24px</Code></Text>
+                  <Text size="2" emphasis="medium"><Code size="2">24px</Code></Text>
                 </Flex>
                 <Slider defaultValue={24} max={64} aria-label="Blur radius" />
               </Stack>
               <Stack gap="2">
                 <Flex justify="space-between" align="center">
                   <Text size="2" weight="medium">Opacity</Text>
-                  <Text size="1" emphasis="medium"><Code size="1">80%</Code></Text>
+                  <Text size="2" emphasis="medium"><Code size="2">80%</Code></Text>
                 </Flex>
                 <Slider defaultValue={80} aria-label="Opacity" />
               </Stack>
@@ -1263,7 +1169,10 @@ function SwitchSection() {
       <Demo label="Composed — notification settings">
         <Box maxWidth="26rem">
           <Card size="3">
-            <Stack gap="4">
+            {/* Rows at 5, NO separators (composition skill, 2026-08-17): distance already
+                groups sibling rows, and a line plus a gap is two dividers doing one job —
+                the showcase's Notifications stack is the idiom. */}
+            <Stack gap="5">
               {(
                 [
                   ["Public profile", "Anyone with the link can view.", true],
@@ -1272,13 +1181,12 @@ function SwitchSection() {
                 ] as const
               ).map(([label, description, on], i) => (
                 <React.Fragment key={label}>
-                  {i > 0 && <Separator />}
                   <Flex gap="5" align="center" justify="space-between">
                     <Stack gap="1">
                       <Text size="2" weight="medium" render={<label htmlFor={`pg-sw-${i}`} />}>
                         {label}
                       </Text>
-                      <Text size="1" emphasis="medium">{description}</Text>
+                      <Text size="2" emphasis="medium">{description}</Text>
                     </Stack>
                     <Switch id={`pg-sw-${i}`} defaultChecked={on} />
                   </Flex>
@@ -1354,7 +1262,7 @@ function TextSection() {
           <Stack gap="4">
             <Stack gap="2">
               <Heading size="5">The one-hairline rule</Heading>
-              <Text size="1" emphasis="quiet">DECISIONS §7 · four minute read</Text>
+              <Text size="2" emphasis="quiet">DECISIONS §7 · four minute read</Text>
             </Stack>
             <Text size="2" render={<p />}>
               Every rule on this page is <Code>--border-width</Code> thick. A separator, a
@@ -1419,17 +1327,19 @@ function TextAreaSection() {
       <Demo label="Composed — a report form">
         <Box maxWidth="26rem">
           <Card size="3">
-            <Stack gap="3">
-              <Stack gap="1">
-                <Text size="2" weight="medium" render={<label htmlFor="pg-ta-fb" />}>
-                  What went wrong?
-                </Text>
-                <Text size="1" emphasis="medium">Steps to reproduce help the most.</Text>
+            <Stack gap="5">
+              <Stack gap="3">
+                <Stack gap="2">
+                  <Text size="2" weight="medium" render={<label htmlFor="pg-ta-fb" />}>
+                    What went wrong?
+                  </Text>
+                  <Text size="2" emphasis="medium">Steps to reproduce help the most.</Text>
+                </Stack>
+                <TextArea id="pg-ta-fb" rows={4} placeholder="It broke when…" />
               </Stack>
-              <TextArea id="pg-ta-fb" rows={4} placeholder="It broke when…" />
-              <Flex justify="flex-end" gap="2">
-                <Button size="1" emphasis="quiet" bordered>Cancel</Button>
-                <Button size="1" tone="accent" emphasis="loud">Send report</Button>
+              <Flex justify="flex-end" gap="3">
+                <Button emphasis="quiet" bordered>Cancel</Button>
+                <Button tone="accent" emphasis="loud">Send report</Button>
               </Flex>
             </Stack>
           </Card>
@@ -1494,20 +1404,20 @@ function TextFieldSection() {
       <Demo label="Composed — sign in">
         <Box maxWidth="26rem">
           <Card size="3">
-            <Stack gap="4">
-              <Stack gap="1">
-                <Text size="3" weight="medium">Sign in</Text>
-                <Text size="1" emphasis="medium">Use your workspace email.</Text>
+            <Stack gap="6">
+              <Stack gap="2">
+                <Heading size="4" render={<h3 />}>Sign in</Heading>
+                <Text size="2" emphasis="medium">Use your workspace email.</Text>
               </Stack>
-              <Stack gap="3">
-                <Stack gap="2">
-                  <Text size="1" weight="medium" render={<label htmlFor="pg-tf-email" />}>
+              <Stack gap="5">
+                <Stack gap="3">
+                  <Text size="2" weight="medium" render={<label htmlFor="pg-tf-email" />}>
                     Email
                   </Text>
                   <TextField id="pg-tf-email" type="email" placeholder="you@company.com" />
                 </Stack>
-                <Stack gap="2">
-                  <Text size="1" weight="medium" render={<label htmlFor="pg-tf-pass" />}>
+                <Stack gap="3">
+                  <Text size="2" weight="medium" render={<label htmlFor="pg-tf-pass" />}>
                     Password
                   </Text>
                   <TextField id="pg-tf-pass" type="password" defaultValue="hunter2hunter2" />
@@ -1632,15 +1542,269 @@ function LayoutSection() {
   );
 }
 
-export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
+/**
+ * The material doctrine on one screen (§10, 2026-08-17): ONE composition — a card holding a
+ * field, a select and actions, plus a bare control row — rendered on calm ground and on a
+ * hostile bed, under one glass theme. The calm side proves CONVERGENCE (glass over nothing
+ * renders the solid look, byte for byte); the hostile side proves EXPRESSION (the same
+ * markup goes glass because the PLACE declares a backdrop, not because any control chose);
+ * the card's innards prove on-glass (a field inside a glass pane is alpha, never a second
+ * blur). The switch flips the region's `backdrop` mark live — off, the hostile side renders
+ * exactly like the calm side and pays zero backdrop-filters, which is the performance half
+ * of selectivity made visible.
+ */
+function MaterialScene() {
+  return (
+    <Stack gap="4" style={{ width: "300px" }}>
+      <Card size="3">
+        {/* The composition skill's own ladder (proximity, 2026-08-18 audit: every gap was 5
+            — the named failure smell): header→body 6, group→group 5, and the action row
+            reads as its own group. */}
+        <Stack gap="6">
+          {/* Title alone — "a pane, its innards, its actions" described the SPECIMEN, not
+              the product, and specimen annotation belongs in the Demo caption outside the
+              card (information design, 2026-08-17). */}
+          <Text size="2" weight="medium">New project</Text>
+          <Stack gap="5">
+            <TextField size="2" placeholder="Project name" aria-label="Project name" />
+            <Select size="2" defaultValue="private" items={{ private: "Private", team: "Team" }}>
+              <SelectTrigger aria-label="Visibility" />
+              <SelectContent>
+                <SelectItem value="private">Private</SelectItem>
+                <SelectItem value="team">Team</SelectItem>
+              </SelectContent>
+            </Select>
+          </Stack>
+          {/* Cancel is the house dismiss spelling (quiet bordered — the page's one role,
+              one treatment), and Create is the scene's ONE loud action. */}
+          <Flex gap="3" justify="flex-end">
+            <Button emphasis="quiet" bordered>Cancel</Button>
+            <Button tone="accent" emphasis="loud">Create</Button>
+          </Flex>
+        </Stack>
+      </Card>
+      {/* The strip demonstrates rungs on glass; boldness is already spent on Create above,
+          so the strip tops out at medium (one figure per scene, 2026-08-18 audit). */}
+      <Flex gap="3" align="center" wrap="wrap">
+        <Button tone="accent" emphasis="medium">Save</Button>
+        <Button emphasis="medium">Preview</Button>
+        <Button emphasis="quiet" bordered>Dismiss</Button>
+        <Kbd>⌘K</Kbd>
+      </Flex>
+    </Stack>
+  );
+}
+
+function MaterialsSection() {
+  const [expressed, setExpressed] = React.useState(true);
+  return (
+    // Pinned to `regular` so the story reads at the page's default theme: the section is
+    // about WHERE material expresses, and the environment panel's material chip still
+    // governs every other section.
+    <Theme material="regular">
+      <Stack gap="6">
+        <Flex gap="3" align="center">
+          <Switch checked={expressed} onCheckedChange={setExpressed} id="pg-mat-backdrop" />
+          <Text size="2" render={<label htmlFor="pg-mat-backdrop" />}>
+            The hostile bed declares <Code>backdrop</Code>
+          </Text>
+        </Flex>
+        <Grid columns="repeat(auto-fit, minmax(340px, 1fr))" gapX="5" gapY="5">
+          <Demo label="Calm ground — no backdrop, glass converges to solid, zero filters">
+            <Flex
+              align="center"
+              justify="center"
+              p="6"
+              style={{ border: "var(--border-width) solid var(--color-border)", borderRadius: "var(--radius-surface-3)", minHeight: "240px" }}
+            >
+              <MaterialScene />
+            </Flex>
+          </Demo>
+          <Demo label="Hostile bed — the PLACE declares the backdrop; same markup, now glass">
+            <HostileBed backdrop={expressed}>
+              <MaterialScene />
+            </HostileBed>
+          </Demo>
+        </Grid>
+      </Stack>
+    </Theme>
+  );
+}
+
+function ScrollAreaSection() {
+  return (
+    <Stack gap="6">
+      {/* The scrollbar's whole identity is visible here: no track, an alpha capsule thumb
+          that reads on the plain card AND the hostile bed with one value, in only while
+          scrolling or hovering. */}
+      <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5">
+        <Card size="3">
+          <ScrollArea style={{ height: "200px" }}>
+            <Stack gap="4">
+              {Array.from({ length: 14 }, (_, i) => (
+                <Text key={i} size="2" emphasis="medium">Row {i + 1} — taller than the box it lives in.</Text>
+              ))}
+            </Stack>
+          </ScrollArea>
+        </Card>
+        <Card size="3">
+          <ScrollArea style={{ height: "200px" }}>
+            <Box style={{ width: "48rem" }}>
+              <Stack gap="4">
+                {Array.from({ length: 10 }, (_, i) => (
+                  <Text key={i} size="2" emphasis="medium" style={{ whiteSpace: "nowrap" }}>
+                    Row {i + 1} — and wider than it too, so both bars and the corner exist.
+                  </Text>
+                ))}
+              </Stack>
+            </Box>
+          </ScrollArea>
+        </Card>
+      </Grid>
+      <Demo label="Composed — a long menu scrolls its list, never its panel">
+        <Flex gap="3" align="center">
+          <Menu>
+            <MenuTrigger render={<Button emphasis="medium">Open a long menu</Button>} />
+            <MenuContent>
+              {Array.from({ length: 24 }, (_, i) => (
+                <MenuItem key={i}>Item {i + 1}</MenuItem>
+              ))}
+            </MenuContent>
+          </Menu>
+        </Flex>
+      </Demo>
+    </Stack>
+  );
+}
+
+function SegmentedControlSection() {
+  return (
+    <Stack gap="6">
+      <SpecTable
+        cols={["Two", "Three", "Disabled"]}
+        rows={SIZES.map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <SegmentedControl key="1" size={size} defaultValue="list" aria-label="View">
+              <SegmentedItem value="list">List</SegmentedItem>
+              <SegmentedItem value="grid">Grid</SegmentedItem>
+            </SegmentedControl>,
+            <SegmentedControl key="2" size={size} defaultValue="week" aria-label="Range">
+              <SegmentedItem value="day">Day</SegmentedItem>
+              <SegmentedItem value="week">Week</SegmentedItem>
+              <SegmentedItem value="month">Month</SegmentedItem>
+            </SegmentedControl>,
+            <SegmentedControl key="3" size={size} defaultValue="list" disabled aria-label="Disabled">
+              <SegmentedItem value="list">List</SegmentedItem>
+              <SegmentedItem value="grid">Grid</SegmentedItem>
+            </SegmentedControl>,
+          ],
+        }))}
+      />
+      {/* The track rides the height ladder, which is the whole reason it does: a segmented
+          control has to stand level with the button beside it in a toolbar. */}
+      <Demo label="Standing level with the controls beside it">
+        <Flex gap="4" align="center" wrap="wrap">
+          <SegmentedControl defaultValue="grid" aria-label="View">
+            <SegmentedItem value="list">List</SegmentedItem>
+            <SegmentedItem value="grid">Grid</SegmentedItem>
+          </SegmentedControl>
+          <Button emphasis="quiet">Filter</Button>
+          <Button>New project</Button>
+        </Flex>
+      </Demo>
+    </Stack>
+  );
+}
+
+function TabsSection() {
+  return (
+    <Stack gap="6">
+      <SpecTable
+        cols={["Bar"]}
+        rows={SIZES.map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <Tabs key="1" defaultValue="overview">
+              <TabsList size={size}>
+                <TabsTab value="overview">Overview</TabsTab>
+                <TabsTab value="activity">Activity</TabsTab>
+                <TabsTab value="settings">Settings</TabsTab>
+              </TabsList>
+            </Tabs>,
+          ],
+        }))}
+      />
+      <Demo label="With its panels">
+        <Box maxWidth="30rem">
+          <Tabs defaultValue="overview">
+            <TabsList size="2">
+              <TabsTab value="overview">Overview</TabsTab>
+              <TabsTab value="activity">Activity</TabsTab>
+              <TabsTab value="settings">Settings</TabsTab>
+            </TabsList>
+            <Box pt="5">
+              <TabsPanel value="overview">
+                <Text>Workspace stats and recent activity.</Text>
+              </TabsPanel>
+              <TabsPanel value="activity">
+                <Text>Everything that happened this week.</Text>
+              </TabsPanel>
+              <TabsPanel value="settings">
+                <Text>Who can see this project, and how they are notified.</Text>
+              </TabsPanel>
+            </Box>
+          </Tabs>
+        </Box>
+      </Demo>
+      {/* The two ways to show a choice, side by side: a tab bar switches the page under it,
+          a segmented control sets a value in place. Judged together because the mistake is
+          reaching for the wrong one. */}
+      <Demo label="Tabs switch a view; a segmented control sets a value">
+        <Stack gap="5">
+          <Tabs defaultValue="a">
+            <TabsList size="2">
+              <TabsTab value="a">Documents</TabsTab>
+              <TabsTab value="b">Shared</TabsTab>
+            </TabsList>
+          </Tabs>
+          <SegmentedControl defaultValue="grid" aria-label="View">
+            <SegmentedItem value="list">List</SegmentedItem>
+            <SegmentedItem value="grid">Grid</SegmentedItem>
+          </SegmentedControl>
+        </Stack>
+      </Demo>
+    </Stack>
+  );
+}
+
+
+/**
+ * A ported component's collection entry DERIVES from its preview spec (2026-08-19): the same
+ * body the standalone page renders, so the two routes cannot drift. `standalone` is the slug
+ * the collection page links out to.
+ */
+function ported(slug: string): { id: string; name: string; body: React.ReactNode; standalone: string } {
+  const p = COMPONENT_PREVIEWS.find((x) => x.slug === slug);
+  if (!p) throw new Error(`no preview spec for "${slug}" — is it in previews/index.ts?`);
+  return {
+    id: p.slug,
+    name: p.name,
+    body: <ComponentPreviewBody preview={p} standalone={false} />,
+    standalone: p.slug,
+  };
+}
+
+export const SECTIONS: { id: string; name: string; body: React.ReactNode; standalone?: string }[] = [
   // Two cross-family sections lead, out of alphabetical order on purpose: they sweep an axis
   // ACROSS components, which is the permutation no single component's table can hold, and
   // reading them first is what makes the per-component tables below mean anything.
   { id: "sizes", name: "Sizes — every control at one index", body: <SizesSection /> },
   { id: "tones", name: "Tones — ten families, every consumer", body: <TonesSection /> },
+  { id: "materials", name: "Materials — placement decides expression", body: <MaterialsSection /> },
   { id: "blockquote", name: "Blockquote", body: <BlockquoteSection /> },
   { id: "button", name: "Button", body: <ButtonSection /> },
-  { id: "card", name: "Card", body: <CardSection /> },
+  ported("card"),
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
   { id: "alert-dialog", name: "Alert dialog", body: <AlertDialogSection /> },
@@ -1651,10 +1815,13 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode }[] = [
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
   { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
+  { id: "scroll-area", name: "Scroll area", body: <ScrollAreaSection /> },
+  { id: "segmented-control", name: "Segmented control", body: <SegmentedControlSection /> },
   { id: "separator", name: "Separator", body: <SeparatorSection /> },
   { id: "slider", name: "Slider", body: <SliderSection /> },
   { id: "spinner", name: "Spinner", body: <SpinnerSection /> },
   { id: "switch", name: "Switch", body: <SwitchSection /> },
+  { id: "tabs", name: "Tabs", body: <TabsSection /> },
   { id: "text", name: "Text", body: <TextSection /> },
   { id: "text-area", name: "Text area", body: <TextAreaSection /> },
   { id: "text-field", name: "Text field", body: <TextFieldSection /> },

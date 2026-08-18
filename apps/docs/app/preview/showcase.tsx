@@ -147,12 +147,13 @@ function CardHeader({
   );
 }
 
-/** A meta row: a fact about the thing, label left and value right, divided by a hairline from
-    the row above it. The references put every fact here rather than into the prose. */
+/** A meta row: a fact about the thing, label left and value right. The references put every
+    fact here rather than into the prose. The hairline it used to draw is GONE (2026-08-19):
+    peer rows separate by the parent's gap alone — a Separator AND a gap between peers is the
+    doubled idiom the Switch specimen already removed, and proximity does the work. */
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <Stack gap="4">
-      <Separator />
       <Flex justify="space-between" align="baseline" gap="4">
         <Text size="2" weight="medium">
           {label}
