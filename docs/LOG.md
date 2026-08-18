@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-19 An interactive card is a block — the 2026-08-06 display item closes
+
+`<Card render={<a href/>}>` — the pattern §10 names by hand — computed `display: inline`, because the interactive arm's reset stood down seven UA properties and never `display`. An inline box holding block children shatters into per-line anonymous fragments, each painting its own slice of seal and corner with the text spilling free; the audit that found it (2026-08-06) parked it on the open list, and it stayed invisible for thirteen days because every link-card specimen sat in a grid, whose items CSS blockifies for free. The per-component preview structure landed 2026-08-19, its in-use demo put a link card in plain flow for the first time, and Kushagra screenshotted the shatter within the hour — the new judging surface earning its keep on day one.
+
+The fix is the one the open item sketched: `display: block` on `.kui-surface:where(button, a)`, making "rest is pixel-identical to a plain Card" true of the box and not only the dress. The visible trade, named when the call was made: a pressable card in plain flow used to shrink-wrap (a button is UA `inline-block`) and now fills its line like every other card; a call site that wants the old shape states a width. The law reads the COMPUTED display on all three elements in plain flow — grid-hosted assertions would pass with or without the fix, which is exactly how the defect survived — and was falsified by deleting the declaration (one failure, the right one). The docs demo's `display: block` workaround shipped and died the same day.
+
+Rejected: leaving it to call sites (the promise "rendered as a link it becomes interactive" held only inside grids — half a promise); `inline-block` to preserve the button's shrink-wrap (it fixes the anchor by making the BUTTON the odd one out against the plain card, and a card that hugs differs from a card that fills by element, which is the inconsistency the identity rule exists to kill).
+
+---
+
 ## 2026-08-19 A solid surface hosts glass: the pane scopes the region, never the author
 
 The 2026-08-18 audit's headline: `useMaterial` consulted the pane mark before the caller's own `backdrop` and before the ambient region, so `pane === "solid"` returned solid unconditionally — and since every Card, Button and field wraps its children in a pane scope that defaults solid, no explicit placement statement was expressible inside any card. The prop, the `<Box backdrop>` region and the public `useMaterial({backdrop:true})` were all silently discarded, while four pieces of shipped prose promised the opposite. Kushagra's call, verbatim: *"Bug, the whole point of solid surface is to be able to host glass."*

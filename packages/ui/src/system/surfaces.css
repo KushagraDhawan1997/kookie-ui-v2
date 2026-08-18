@@ -340,6 +340,13 @@
   text-align: inherit;
   color: var(--color-text);
   text-decoration: none;
+  /* The BOX, not just the dress (2026-08-19, closing the 2026-08-06 open item): an anchor is
+     `inline` by UA default, and an inline box holding block children shatters into per-line
+     fragments — a link card only ever looked right inside a grid, whose items are blockified
+     for free. `block` is what a plain Card already is, so "rest is pixel-identical" finally
+     covers the box itself; a call site that wants a shrink-wrapped pressable card states a
+     width the way it would for any block. */
+  display: block;
   /* THE TWO CLOCKS, one level up (§8, 2026-08-17). This surface had the control layer's state
      COLOURS since card-as-button shipped on 2026-08-03 and none of its motion, because the
      motion system landed six days later and was written against `.kui-control` — so the fill

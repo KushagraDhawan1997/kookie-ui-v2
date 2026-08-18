@@ -221,13 +221,10 @@ function InUse() {
     </Demo>
     <Demo label="A card as a link — an article teaser">
       <Box maxWidth="26rem">
-        {/* `display: block` is the CALL SITE's, and it is load-bearing: `.kui-surface`'s
-            button/a reset stands down seven UA properties but not `display`, so a bare
-            card-as-link is INLINE and shatters into per-line fragments (REVIEW 2026-08-06,
-            carried open; reproduced here 2026-08-19 — the States grid hides it because grid
-            items are blockified). The system decision is still open; this line is the
-            documented workaround, not the answer. */}
-        <Card size="3" render={<a href="#card" />} style={{ textDecoration: "none", display: "block" }}>
+        {/* No display workaround: this demo shattered into inline fragments on 2026-08-19,
+            which is what closed the 2026-08-06 open item — the surface layer now states
+            `display: block` on interactive cards (LOG 2026-08-19). */}
+        <Card size="3" render={<a href="#card" />} style={{ textDecoration: "none" }}>
           <Stack gap="2">
             <Heading size="4" render={<h3 />}>The mark family</Heading>
             <Text size="2" emphasis="medium">

@@ -633,6 +633,23 @@ describe("the boundary (§3, §13)", () => {
     expect(clicks).toBe(1);
   });
 
+  it("an interactive card is the plain card's own BOX — display computes block on all three elements (§10)", () => {
+    // Closed 2026-08-19 (DECISIONS' open list since 2026-08-06): the interactive arm reset
+    // seven UA properties and not `display`, so `<Card render={<a/>}>` computed `inline` —
+    // and an inline box holding block children shatters into per-line fragments. Every
+    // specimen to date sat in a grid, whose items are blockified for free, which is how the
+    // suite stayed green while the pattern §10 names by hand was broken in plain flow; the
+    // per-component preview's in-use demo left the grid and showed it the same day. The law
+    // reads the COMPUTED display in plain flow on all three elements, because the claim is
+    // "the same box whatever the element renders it".
+    const plain = render(<Card>B</Card>);
+    const button = render(<Card render={<button type="button" />}>B</Card>);
+    const link = render(<Card render={<a href="/post" />}>B</Card>);
+    expect(computed(plain, "display")).toBe("block");
+    expect(computed(button, "display")).toBe("block");
+    expect(computed(link, "display")).toBe("block");
+  });
+
   it("card-as-LINK wears no UA underline either — the invariant has two sites (§8, §10)", () => {
     // "No interactive element of ours wears the browser's link underline" is declared in two
     // stylesheets — recipes.css for controls, surfaces.css for the card-as-button arm — and
