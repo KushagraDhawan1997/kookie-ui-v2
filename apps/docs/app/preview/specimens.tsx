@@ -36,12 +36,6 @@ import {
   Card,
   Checkbox,
   Code,
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
   Flex,
   Grid,
   Heading,
@@ -76,7 +70,6 @@ import {
   TextArea,
   Theme,
   TextField,
-  type Size,
   type Tone,
   Select,
   ScrollArea,
@@ -527,136 +520,6 @@ function AlertDialogSection() {
 }
 
 
-function DialogSection() {
-  /** A DIALOG IS A TASK, not a question (re-drawn 2026-08-17, Kushagra: the section wore
-      "Delete workspace?", which is the ALERT's content — §25's boundary sentence run
-      backwards. A dialog is the larger modal: a form, a picker, a settings pane — content
-      the app owns, a panel that is just paper). One canonical body opened at every size so
-      the judgment stays about the box — width, padding, corner — not four sets of words. */
-  /** Proportionate innards (2026-08-17, Kushagra): a size-3 dialog holds size-3 controls.
-      The box index is still only the box's (§24) — the CALL SITE matches the controls to it,
-      which is what an app should do and therefore what the specimen shows. */
-  const body = (size: Size) => (
-    <>
-      <Stack gap="2">
-        <DialogTitle>Sign in</DialogTitle>
-        <DialogDescription>Use your work email to continue.</DialogDescription>
-      </Stack>
-      <Stack gap="5">
-        <TextField size={size} type="email" placeholder="you@company.com" aria-label="Email" />
-        <TextField size={size} type="password" placeholder="Password" aria-label="Password" />
-      </Stack>
-      <Flex gap="3" justify="flex-end">
-        <DialogClose render={<Button size={size} emphasis="quiet" bordered>Cancel</Button>} />
-        <DialogClose render={<Button size={size} tone="accent" emphasis="loud">Sign in</Button>} />
-      </Flex>
-    </>
-  );
-
-  return (
-    <Stack gap="6">
-      {/* The size row: the index prices the BOX — max width, padding, corner — and never the
-          type inside it. Open each and read the four boxes against one another; the corner is
-          the overlay band, one step rounder than the card of the same size (§24). */}
-      <SpecTable
-        cols={["Trigger + dialog"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            <Dialog key="d" size={size}>
-              <DialogTrigger render={<Button size={size} emphasis="medium">Sign in…</Button>} />
-              <DialogContent>
-                <Stack gap="6">{body(size)}</Stack>
-              </DialogContent>
-            </Dialog>,
-          ],
-        }))}
-      />
-      {/* The scrim is what separates a dialog — no shadow of its own — so the thing to judge
-          here is the app going back, in both appearances and at both contrast settings. The
-          panel answers `material` for the case it floats over media. */}
-      <Demo label="Materials — the panel over its own scrim">
-        {/* One Flex row: a Demo's Stack stretches its direct children, so a bare root's
-            trigger rendered as a 960px bar beside its 97px siblings (audit 2026-08-18). */}
-        <Flex gap="3" align="center" wrap="wrap">
-        <Dialog>
-          <DialogTrigger render={<Button emphasis="medium">Solid</Button>} />
-          <DialogContent>
-            <Stack gap="6">{body("3")}</Stack>
-          </DialogContent>
-        </Dialog>
-        <Theme material="thin">
-          <Dialog>
-            <DialogTrigger render={<Button emphasis="medium">Thin glass</Button>} />
-            <DialogContent>
-              <Stack gap="6">{body("3")}</Stack>
-            </DialogContent>
-          </Dialog>
-        </Theme>
-        <Theme material="thick">
-          <Dialog>
-            <DialogTrigger render={<Button emphasis="medium">Thick glass</Button>} />
-            <DialogContent>
-              <Stack gap="6">{body("3")}</Stack>
-            </DialogContent>
-          </Dialog>
-        </Theme>
-        </Flex>
-      </Demo>
-      {/* The composed example is the component's whole argument: a real task pane — fields,
-          a select, switches — where every control answers the app's own axes and the panel
-          is paper. This is what "dialog" means here; the two-button question lives one
-          section up, in AlertDialog, and any control beyond its two buttons makes it THIS. */}
-      <Demo label="Composed — workspace settings">
-        <Flex gap="3" align="center">
-        <Dialog size="3">
-          <DialogTrigger render={<Button emphasis="medium">Workspace settings</Button>} />
-          <DialogContent>
-            <Stack gap="6">
-              <Stack gap="2">
-                <DialogTitle>Workspace settings</DialogTitle>
-                <DialogDescription>Changes apply to every member.</DialogDescription>
-              </Stack>
-              {/* The showcase's rhythm (frontend-design pass, 2026-08-17): groups separate at 5,
-                  a label sits at 3 from its field — within-group tight, between-group loose,
-                  so the form reads as groups instead of one undifferentiated column. */}
-              <Stack gap="5">
-                <Stack gap="3">
-                  <Text size="2" weight="medium" render={<label htmlFor="pg-dlg-name" />}>Name</Text>
-                  <TextField id="pg-dlg-name" size="3" defaultValue="Acme Inc" />
-                </Stack>
-                <Stack gap="3">
-                  <Text size="2" weight="medium">Default visibility</Text>
-                  <Select size="3" defaultValue="private" items={{ private: "Private", team: "Team", public: "Public" }}>
-                    <SelectTrigger aria-label="Default visibility" />
-                    <SelectContent>
-                      <SelectItem value="private">Private</SelectItem>
-                      <SelectItem value="team">Team</SelectItem>
-                      <SelectItem value="public">Public</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Stack>
-                {/* No helper line (information design, 2026-08-17, Kushagra): a caption may
-                    only carry what the label cannot — a consequence, a scope, a reason — and
-                    "members sign in with a second step" merely DEFINES two-factor, which no
-                    real settings row does. The label is the row. */}
-                <Flex gap="3" align="center" justify="space-between">
-                  <Text size="2" weight="medium" render={<label htmlFor="pg-dlg-2fa" />}>Require two-factor</Text>
-                  <Switch id="pg-dlg-2fa" size="3" defaultChecked />
-                </Flex>
-              </Stack>
-              <Flex gap="3" justify="flex-end">
-                <DialogClose render={<Button size="3" emphasis="quiet" bordered>Cancel</Button>} />
-                <DialogClose render={<Button size="3" tone="accent" emphasis="loud">Save changes</Button>} />
-              </Flex>
-            </Stack>
-          </DialogContent>
-        </Dialog>
-        </Flex>
-      </Demo>
-    </Stack>
-  );
-}
 
 function HeadingSection() {
   return (
@@ -1810,7 +1673,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
   { id: "alert-dialog", name: "Alert dialog", body: <AlertDialogSection /> },
-  { id: "dialog", name: "Dialog", body: <DialogSection /> },
+  ported("dialog"),
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "menu", name: "Menu", body: <MenuSection /> },
   { id: "select", name: "Select", body: <SelectSection /> },

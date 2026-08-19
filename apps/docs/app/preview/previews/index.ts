@@ -8,5 +8,6 @@
  */
 import type { ComponentPreview } from "./types";
 import { cardPreview } from "./card";
+import { dialogPreview } from "./dialog";
 
-export const COMPONENT_PREVIEWS: readonly ComponentPreview[] = [cardPreview];
+export const COMPONENT_PREVIEWS: readonly ComponentPreview[] = [cardPreview, dialogPreview];
