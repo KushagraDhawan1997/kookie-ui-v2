@@ -6,9 +6,11 @@
  * this whole structure exists to kill.
  */
 import * as React from "react";
-import { Grid, Stack, Text, type Size } from "@kookie-ui/react";
+import { Grid, Stack, Text, componentAxes } from "@kookie-ui/react";
 
-export const SIZES = ["1", "2", "3", "4"] as const satisfies readonly Size[];
+// DERIVED since componentAxes shipped (2026-08-19, forced by the builder) — this was the
+// literal the old comment on the tone list apologised for.
+export const SIZES = componentAxes.size;
 
 export const cap = (s: string) => s[0]!.toUpperCase() + s.slice(1);
 
