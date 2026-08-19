@@ -105,6 +105,9 @@ import { reviewDocument, type Finding } from "./review";
 import { ReviewPanel } from "./review-panel";
 import { Breadcrumb, CanvasBoundary, ContextMenu, DocumentBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
 
+/** The rungs the magnifier steps through — a closed list, like everything else here. */
+const ZOOMS: number[] = [0.5, 0.67, 0.8, 1, 1.25, 1.5, 2];
+
 const DRAG_TYPE = "application/x-kookie-component";
 const MOVE_TYPE = "application/x-kookie-move";
 
@@ -201,6 +204,23 @@ export function BuilderApp() {
   /* The editor's own modes. Preview hands the canvas back to the components: no stamps, no
      drag, no selection — the screen you built, actually usable. */
   const [preview, setPreview] = React.useState(false);
+  /**
+   * The canvas magnifier (2026-08-20). CSS `zoom` rather than a transform, and the choice is
+   * what keeps every instrument honest: `zoom` participates in LAYOUT, so the scaled box's
+   * own height is right and the overlays — the selection ring, the gap bands, the insertion
+   * line — sit OUTSIDE it, unscaled. Their coordinates are screen deltas measured against an
+   * unscaled parent, which is exactly what they were before, so not one of those measurements
+   * changes. A transform would have left the layout box unscaled and put the overlays inside
+   * the scaled space, where every rect would need dividing and every law re-deriving.
+   *
+   * It is a magnifying glass, not a resize: a `width: 880px` canvas at 50% paints 440 device
+   * pixels and still measures 880 CSS pixels, so the container tiers answer the same thing
+   * they will answer in an app. That is the property that makes zooming safe here.
+   */
+  const [zoom, setZoom] = React.useState(1);
+  /** The pointer handlers are bound once per gesture and read the CURRENT zoom. */
+  const zoomRef = React.useRef(zoom);
+  zoomRef.current = zoom;
   /** The Layers filter. It hides rather than dims: a tree you have to read past is a tree
       that costs more than it saves. Ancestors of a match stay, because a match with its path
       cut off is a match nobody can place. */
@@ -839,14 +859,24 @@ export function BuilderApp() {
     if (!el) return setMeasured([]);
     const target = visibleEl(el);
     const cs = getComputedStyle(target);
-    const box = target.getBoundingClientRect();
     const px = (v: string) => (v && v !== "normal" && parseFloat(v) > 0 ? `${Math.round(parseFloat(v) * 10) / 10}px` : null);
     const stated = (key: string) => {
       const v = selected.props[key];
       return typeof v === "string" ? v : undefined;
     };
+    // The box comes from the COMPUTED style, not the rect. A rect is in painted pixels, so
+    // under the magnifier it states how close you are standing rather than what the component
+    // is; dividing it back gets the right number with a pixel of rounding on it, and the
+    // computed value is already in CSS pixels and exact. (The package sets `border-box`, so
+    // this is the same edge the rect traces.)
+    //
+    // Measured caveat, stated rather than hidden: `zoom` participates in layout, so text is
+    // laid out at the scaled resolution and a box's own height can land a CSS pixel either
+    // side of its actual-size value (202 at 100%, 203 at 67%, 201 at 150% on the starter's
+    // card). The readout is telling the truth about the zoomed layout; it is the zoomed
+    // layout that differs.
     const rows: Measured = [
-      { label: "box", value: `${Math.round(box.width)} × ${Math.round(box.height)}` },
+      { label: "box", value: `${Math.round(parseFloat(cs.width))} × ${Math.round(parseFloat(cs.height))}` },
     ];
     const gap = px(cs.rowGap) ?? px(cs.columnGap);
     if (gap) rows.push({ label: "gap", value: gap, ...(stated("gap") ? { stated: stated("gap") } : {}) });
@@ -876,7 +906,7 @@ export function BuilderApp() {
     setMeasured(rows);
     // The theme axes and the canvas width all move these, so the readout re-measures when
     // any of them does — a stale number here would be worse than none.
-  }, [selected, doc, canvasW, preview]);
+  }, [selected, doc, canvasW, preview, zoom]);
 
   const [seat, setSeat] = React.useState<SeatVocabulary | null>(null);
   React.useEffect(() => {
@@ -924,7 +954,8 @@ export function BuilderApp() {
       // dragged away from the box and shrinks when dragged into it. A corner's vector has
       // both components, a side's only one — one expression covers both.
       const span = Math.abs(out[0]) + Math.abs(out[1]);
-      const along = ((ev.clientX - startX) * out[0] + (ev.clientY - startY) * out[1]) / Math.sqrt(span);
+      const along =
+        ((ev.clientX - startX) * out[0] + (ev.clientY - startY) * out[1]) / Math.sqrt(span) / zoomRef.current;
       const next = Math.min(steps.length - 1, Math.max(-1, from + Math.round(along / RESIZE_STEP_PX)));
       if (next === last) return;
       last = next;
@@ -1031,8 +1062,10 @@ export function BuilderApp() {
     const startW = wrap.offsetWidth;
     const handle = e.currentTarget;
     handle.setPointerCapture(e.pointerId);
+    // The pointer travels in SCREEN pixels; the width it writes is CSS pixels, and at 50%
+    // one screen pixel is two of them.
     const move = (ev: PointerEvent) =>
-      setCanvasW(Math.max(280, Math.round(startW + ev.clientX - startX)));
+      setCanvasW(Math.max(280, Math.round(startW + (ev.clientX - startX) / zoomRef.current)));
     const up = () => {
       handle.removeEventListener("pointermove", move);
       handle.removeEventListener("pointerup", up);
@@ -1071,6 +1104,20 @@ export function BuilderApp() {
     openDocuments: () => setPaletteOpen(true),
     toggleReview: () => setReviewOpen((v) => !v),
     togglePreview: () => setPreview((v) => !v),
+    stepZoom: (delta) => {
+      // Zooming PINS the canvas width. Without a stated width the zoomed box takes 100% of
+      // its parent, and inside a scaled box a percentage resolves in the scaled space — so
+      // at 67% the canvas measured 1313 CSS pixels while painting 880, and the container
+      // tiers moved. Measured, and the reason this is not just a style. A magnifier may not
+      // change what the room is; it may only change how close you stand to it.
+      if (canvasRef.current) setCanvasW((w) => w ?? Math.round(canvasRef.current!.offsetWidth / zoomRef.current));
+      setZoom((z) => {
+        if (delta === null) return 1;
+        const at = ZOOMS.indexOf(z);
+        const next = (at === -1 ? ZOOMS.indexOf(1) : at) + delta;
+        return ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, next))]!;
+      });
+    },
     writeClipboard: (text) => void navigator.clipboard?.writeText(text).catch(() => {}),
     readClipboard: async () => {
       try {
@@ -1361,6 +1408,33 @@ export function BuilderApp() {
             onSelect={(id) => setSelection(id)}
             extra={
               <Flex align="center" gap="2">
+                <Flex align="center" gap="1">
+                  <Button
+                    size="1"
+                    emphasis="quiet"
+                    iconOnly
+                    aria-label="Zoom out"
+                    disabled={zoom === ZOOMS[0]}
+                    onClick={() => ctx.ui.stepZoom(-1)}
+                  >
+                    −
+                  </Button>
+                  {/* The reading is the button: pressing it goes back to actual size, which
+                      is the only zoom anybody asks for by name. */}
+                  <Button size="1" emphasis="quiet" aria-label="Actual size" onClick={() => ctx.ui.stepZoom(null)}>
+                    {`${Math.round(zoom * 100)}%`}
+                  </Button>
+                  <Button
+                    size="1"
+                    emphasis="quiet"
+                    iconOnly
+                    aria-label="Zoom in"
+                    disabled={zoom === ZOOMS[ZOOMS.length - 1]}
+                    onClick={() => ctx.ui.stepZoom(1)}
+                  >
+                    +
+                  </Button>
+                </Flex>
                 <Button
                   size="1"
                   emphasis={tiersView ? "medium" : "quiet"}
@@ -1402,8 +1476,23 @@ export function BuilderApp() {
               <Box maxWidth="880px" style={{ marginInline: "auto" }}>
                 <div
                   ref={canvasRef}
-                  style={{ position: "relative", width: canvasW ? `${canvasW}px` : "100%", maxWidth: "100%" }}
+                  style={{
+                    position: "relative",
+                    // The PAINTED width. The overlays live in this box and measure in screen
+                    // pixels, so it has to be the size the content actually occupies.
+                    width: canvasW ? `${Math.round(canvasW * zoom)}px` : "100%",
+                    maxWidth: "100%",
+                  }}
                 >
+                  {/* The zoomed box holds ONLY the rendered document. Every overlay below is
+                      its sibling, so their coordinates stay in unscaled pixels. */}
+                  <div
+                    style={
+                      zoom === 1
+                        ? undefined
+                        : ({ zoom, width: canvasW ? `${canvasW}px` : "100%" } as React.CSSProperties)
+                    }
+                  >
                   <Theme
                     appearance={doc.theme.appearance}
                     density={doc.theme.density}
@@ -1439,6 +1528,7 @@ export function BuilderApp() {
                       </CanvasBoundary>
                     </Box>
                   </Theme>
+                  </div>
                   <div
                     data-kb-width-handle
                     role="separator"
@@ -1674,8 +1764,8 @@ export function BuilderApp() {
                         {/* Mid-drag the chip names the RUNG, because that is what the
                             gesture is writing; the pixels are only its consequence. */}
                         {resizing
-                          ? `${resizing.label} · ${Math.round(ring.width)} × ${Math.round(ring.height)}`
-                          : `${Math.round(ring.width)} × ${Math.round(ring.height)}`}
+                          ? `${resizing.label} · ${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`
+                          : `${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`}
                       </div>
                     </div>
                   ) : null}
