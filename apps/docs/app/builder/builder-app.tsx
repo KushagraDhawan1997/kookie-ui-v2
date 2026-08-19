@@ -195,6 +195,10 @@ export function BuilderApp() {
   /* The editor's own modes. Preview hands the canvas back to the components: no stamps, no
      drag, no selection — the screen you built, actually usable. */
   const [preview, setPreview] = React.useState(false);
+  /** The tiers view: the same document in several rooms at once. Honest here in a way it is
+      not in a viewport-keyed system — the tiers are CONTAINER queries, so four boxes on one
+      screen resolve four different answers for real, with no emulation anywhere. */
+  const [tiersView, setTiersView] = React.useState(false);
   /** The right panel's tab is state, not a derived guess: Base UI warns (correctly) when a
       controlled value flips to undefined, and "is review open" is the same question as
       "which tab is showing". */
@@ -1173,7 +1177,9 @@ export function BuilderApp() {
                 </TabsPanel>
                 <TabsPanel value="layers">
                   <Box pt="3">
-                    <Stack gap="1">
+                    {/* A tree, said in the markup: assistive technology gets the structure
+                        the eye gets from the indent, and the rows carry their own level. */}
+                    <Stack gap="1" render={<div role="tree" aria-label="Layers" />}>
                       {doc.roots.length === 0 ? (
                         <Text size="1" emphasis="quiet">
                           The canvas is empty.
@@ -1214,16 +1220,26 @@ export function BuilderApp() {
             selection={state.selection}
             onSelect={(id) => setSelection(id)}
             extra={
-              canvasW ? (
-                <Flex align="center" gap="2">
-                  <Text size="1" emphasis="quiet">
-                    {`${canvasW}px · ${activeTier(canvasW)}`}
-                  </Text>
-                  <Button size="1" emphasis="quiet" onClick={() => setCanvasW(null)}>
-                    Full width
-                  </Button>
-                </Flex>
-              ) : null
+              <Flex align="center" gap="2">
+                <Button
+                  size="1"
+                  emphasis={tiersView ? "medium" : "quiet"}
+                  aria-pressed={tiersView}
+                  onClick={() => setTiersView((v) => !v)}
+                >
+                  Compare tiers
+                </Button>
+                {canvasW ? (
+                  <>
+                    <Text size="1" emphasis="quiet">
+                      {`${canvasW}px · ${activeTier(canvasW)}`}
+                    </Text>
+                    <Button size="1" emphasis="quiet" onClick={() => setCanvasW(null)}>
+                      Full width
+                    </Button>
+                  </>
+                ) : null}
+              </Flex>
             }
           />
           <Separator />
@@ -1240,6 +1256,9 @@ export function BuilderApp() {
               onDragEnd={endDrag}
               style={{ minHeight: "100%" }}
             >
+              {tiersView ? (
+                <TierCompare doc={doc} />
+              ) : (
               <Box maxWidth="880px" style={{ marginInline: "auto" }}>
                 <div
                   ref={canvasRef}
@@ -1536,6 +1555,7 @@ export function BuilderApp() {
                   {drop && !drop.line && drop.boxId ? <DropHint canvasRef={canvasRef} id={drop.boxId} /> : null}
                 </div>
               </Box>
+              )}
             </Box>
           </ScrollArea>
         </Flex>
@@ -1740,6 +1760,51 @@ export function BuilderApp() {
 
 /* ── Small pieces ──────────────────────────────────────────────────────────────────────── */
 
+/**
+ * The same document in four rooms at once.
+ *
+ * This is a comparison a viewport-keyed system cannot honestly show: it would have to
+ * emulate four windows. Here the tiers are CONTAINER queries, so four boxes on one screen
+ * resolve four different answers for real — every per-tier value in the document is doing
+ * its actual work, in the actual browser, side by side.
+ *
+ * Read-only on purpose. Editing in one of four copies raises "which one am I editing", and
+ * the answer would have to be arbitrary.
+ */
+function TierCompare({ doc }: { doc: BuilderDoc }) {
+  // DERIVED from the package's own table, plus one sample BELOW the first boundary — the
+  // `initial` answer is a tier too, and it is the one people forget to look at.
+  const rooms: [string, string][] = [["initial", "22rem"], ...(Object.entries(tiers) as [string, string][])];
+  return (
+    <Stack gap="6">
+      {rooms.map(([name, width]) => (
+        <Stack key={name} gap="2">
+          <Flex align="center" gap="2">
+            <Text size="1" weight="medium">
+              {name}
+            </Text>
+            <Text size="1" emphasis="quiet">
+              {width}
+            </Text>
+          </Flex>
+          <Theme
+            appearance={doc.theme.appearance}
+            density={doc.theme.density}
+            pointer={doc.theme.pointer}
+            radius={doc.theme.radius}
+            depth={doc.theme.depth}
+            material={doc.theme.material}
+          >
+            <Box container width={width} style={{ maxWidth: "100%" }}>
+              <Stack gap="5">{doc.roots.map((r) => renderNode(r, "export"))}</Stack>
+            </Box>
+          </Theme>
+        </Stack>
+      ))}
+    </Stack>
+  );
+}
+
 function PaletteGroup({
   label,
   entries,
@@ -1814,7 +1879,13 @@ function TreeRows({
   const pass = { dropRow, onDragBegin, onDragFinish, canRowDrop, onHoverRow, onRowDrop };
   return (
     <>
-      <Box style={{ paddingInlineStart: `calc(${depth} * var(--layout-space-4))`, display: "flex" }}>
+      <Box
+        role="treeitem"
+        aria-level={depth + 1}
+        aria-selected={selection.includes(n.id)}
+        {...(n.children?.length ? { "aria-expanded": true } : {})}
+        style={{ paddingInlineStart: `calc(${depth} * var(--layout-space-4))`, display: "flex" }}
+      >
         <Button
           size="1"
           emphasis={selection.includes(n.id) ? "medium" : "quiet"}

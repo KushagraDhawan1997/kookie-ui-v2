@@ -37,6 +37,10 @@ import {
 import { PlusIcon, XIcon } from "../icons";
 import { ENTRIES } from "../(site)/components/registry";
 
+/** The reference page for a component, when the docs have one — the inspector's header links
+    to it, which is the shortest path from "what is this knob" to the system's own argument. */
+const SLUGS = new Map(ENTRIES.map((e) => [e.name, e.slug]));
+
 import { CATALOG, SLOT_ACCEPTS, slotsFor, type PropSchema } from "./catalog";
 import { TIER_KEYS, slottedChild, type BuilderNode, type DocTheme, type PropValue, type ResponsiveValue } from "./model";
 
@@ -294,9 +298,20 @@ export function Inspector({
   return (
     <Stack gap="4">
       <Stack gap="1">
-        <Text size="2" weight="medium">
-          {node.type}
-        </Text>
+        <Flex align="center" justify="space-between" gap="2">
+          <Text size="2" weight="medium">
+            {node.type}
+          </Text>
+          {SLUGS.has(node.type) ? (
+            <Button
+              size="1"
+              emphasis="quiet"
+              render={<a href={"/components/" + SLUGS.get(node.type)} target="_blank" rel="noreferrer" />}
+            >
+              Reference
+            </Button>
+          ) : null}
+        </Flex>
         <Text size="1" emphasis="medium">
           {entry.blurb}
         </Text>
