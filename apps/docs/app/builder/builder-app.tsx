@@ -70,7 +70,7 @@ import {
   type BuilderNode,
   type DocTheme,
 } from "./model";
-import { insertionTarget, typesThrough } from "./placement";
+import { insertableInto, insertionTarget, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { TEMPLATES, templateDoc } from "./templates";
@@ -101,7 +101,7 @@ import {
 import { CommandPalette } from "./command-palette";
 import { reviewDocument, type Finding } from "./review";
 import { ReviewPanel } from "./review-panel";
-import { Breadcrumb, ContextMenu, DocumentBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
+import { Breadcrumb, CanvasBoundary, ContextMenu, DocumentBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
 
 const DRAG_TYPE = "application/x-kookie-component";
 const MOVE_TYPE = "application/x-kookie-move";
@@ -1047,6 +1047,14 @@ export function BuilderApp() {
     say(finding.fix.title);
   };
 
+  /** What a right-click may insert HERE. The grammar answers, so the menu on a Card and the
+      menu inside a Menu offer different things and neither offers something the tree would
+      refuse. Parts first — inside a compound they are what you actually reached for. */
+  const contextInserts: string[] = React.useMemo(
+    () => insertableInto(doc.roots, selected?.id ?? null),
+    [selected, doc.roots],
+  );
+
   /* Parts the current selection can hold directly — the contextual half of the palette. */
   const contextualParts: [string, CatalogEntry][] = selected
     ? Object.entries(CATALOG).filter(
@@ -1298,25 +1306,27 @@ export function BuilderApp() {
                         the width handle), so a per-tier value inside it answers the canvas's
                         room — which is what it will answer in an app column. */}
                     <Box container width="100%">
-                      <Stack gap="5">
-                        {doc.roots.length === 0 ? (
-                          <TemplatePicker
-                            onPick={(id) => {
-                              const template = TEMPLATES.find((t) => t.id === id);
-                              if (!template) return;
-                              const roots = templateDoc(template).roots.map(cloneWithNewIds);
-                              dispatch({ type: "edit", roots, selection: [] });
-                              // A document nobody has named takes the template's name — but a
-                              // named one keeps its own, because that name was a decision.
-                              if (/^Untitled/.test(activeDoc(stateRef.current).name)) {
-                                dispatch({ type: "docRename", id: stateRef.current.activeId, name: template.name });
-                              }
-                            }}
-                          />
-                        ) : (
-                          doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
-                        )}
-                      </Stack>
+                      <CanvasBoundary tree={doc.roots} onRecover={undo} canRecover={canUndo(state)}>
+                        <Stack gap="5">
+                          {doc.roots.length === 0 ? (
+                            <TemplatePicker
+                              onPick={(id) => {
+                                const template = TEMPLATES.find((t) => t.id === id);
+                                if (!template) return;
+                                const roots = templateDoc(template).roots.map(cloneWithNewIds);
+                                dispatch({ type: "edit", roots, selection: [] });
+                                // A document nobody has named takes the template's name — but a
+                                // named one keeps its own, because that name was a decision.
+                                if (/^Untitled/.test(activeDoc(stateRef.current).name)) {
+                                  dispatch({ type: "docRename", id: stateRef.current.activeId, name: template.name });
+                                }
+                              }}
+                            />
+                          ) : (
+                            doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
+                          )}
+                        </Stack>
+                      </CanvasBoundary>
                     </Box>
                   </Theme>
                   <div
@@ -1693,6 +1703,11 @@ export function BuilderApp() {
           return Boolean(cmd && ctxRef.current && cmd.enabled(ctxRef.current));
         }}
         titleOf={(id) => COMMANDS.find((c) => c.id === id)?.title ?? id}
+        inserts={contextInserts}
+        onInsert={(type) => {
+          setContextPoint(null);
+          insertType(type);
+        }}
       />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} ctx={ctx} />
       <ShortcutSheet open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
@@ -1775,6 +1790,17 @@ export function BuilderApp() {
           });
         }}
       />
+      {/* The selection, announced. The canvas deliberately never takes focus — a click there
+          is selection, not operation — so without this a screen-reader user gets no signal
+          that anything happened. The jump bar states the same fact visually. */}
+      <Box
+        aria-live="polite"
+        style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clipPath: "inset(50%)" }}
+      >
+        {selected
+          ? `${selected.type} selected${state.selection.length > 1 ? `, ${state.selection.length} in total` : ""}`
+          : "Nothing selected"}
+      </Box>
       <Toast message={toast} />
     </Flex>
   );

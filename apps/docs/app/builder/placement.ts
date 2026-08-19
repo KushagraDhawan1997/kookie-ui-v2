@@ -49,6 +49,27 @@ export const insertionTarget = (
   return canContain(null, type, []) ? { parentId: null } : null;
 };
 
+/**
+ * What may be inserted INTO a given node — the right-click menu's question, and the same
+ * grammar the palette and the drop handlers ask. Parts first, because inside a compound
+ * (a Menu, a Select, a Tabs) the part is what you actually reached for; `limit` bounds the
+ * list because a context menu that has to scroll is a menu nobody reads.
+ */
+export const insertableInto = (
+  roots: BuilderNode[],
+  id: string | null,
+  limit = 14,
+): string[] => {
+  const node = id ? findNode(roots, id) : null;
+  if (!node) return [];
+  const chain = typesThrough(roots, node.id);
+  const fits = (type: string) => canContain(node.type, type, chain);
+  const types = Object.keys(CATALOG).filter(fits);
+  const parts = types.filter((t) => CATALOG[t]!.partOf);
+  const rest = types.filter((t) => !CATALOG[t]!.partOf);
+  return [...parts, ...rest].slice(0, limit);
+};
+
 /** Can this wrapper legally stand where the node stands, AND hold it? Both halves matter:
     wrapping a MenuItem in a Stack would put a Stack inside a MenuContent that refuses it. */
 export const canWrap = (roots: BuilderNode[], ids: string[], wrapperType: string): boolean => {

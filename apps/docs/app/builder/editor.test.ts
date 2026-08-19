@@ -21,9 +21,9 @@ import {
   type Command,
   type CommandContext,
 } from "./commands";
-import { CONTEXT_COMMANDS } from "./chrome";
+import { CanvasBoundary, CONTEXT_COMMANDS } from "./chrome";
 import { defaultDocTheme, findNode, node, type BuilderDoc, type BuilderNode } from "./model";
-import { canUnwrap, canWrap, insertionTarget } from "./placement";
+import { canUnwrap, canWrap, insertableInto, insertionTarget, typesThrough } from "./placement";
 import { TEMPLATES, templateDoc } from "./templates";
 import { serializeDocument } from "./serialize";
 import { RULES, reviewDocument } from "./review";
@@ -302,6 +302,85 @@ describe("wrapping and unwrapping ask the grammar both ways", () => {
     const stack = node("Stack", {}, { children: [first, second] });
     const target = insertionTarget([stack], first.id, "Button");
     expect(target).toEqual({ parentId: stack.id, index: 1 });
+  });
+
+  it("what a right-click may insert is what the node can actually hold", () => {
+    const card = node("Card", { size: "3" }, { children: [] });
+    const inCard = insertableInto([card], card.id);
+    expect(inCard).toContain("Separator");
+    expect(inCard).toContain("Button");
+    // Compound parts belong to their own root; a Card must never offer one, because the
+    // canvas would then render an orphan that Base UI throws on.
+    expect(inCard).not.toContain("MenuItem");
+    expect(inCard).not.toContain("SelectItem");
+    expect(inCard).not.toContain("SegmentedItem");
+
+    // And inside a compound, the part is what the list LEADS with.
+    const content = node("MenuContent", {}, { children: [] });
+    const menu = node("Menu", {}, { children: [content] });
+    const inMenu = insertableInto([menu], content.id);
+    expect(inMenu).toContain("MenuItem");
+    expect(CATALOG[inMenu[0]!]!.partOf).toBeTruthy();
+    // Every entry, in both lists, must survive the grammar independently — this is the
+    // assertion that fails if the filter is ever loosened to "everything in the catalog".
+    for (const [subject, list] of [
+      [card, inCard],
+      [content, inMenu],
+    ] as const) {
+      const roots = subject === card ? [card] : [menu];
+      for (const type of list) {
+        expect(canContainForTest(subject.type, type, typesThrough(roots, subject.id))).toBe(true);
+      }
+    }
+  });
+
+  it("nothing is insertable into nothing", () => {
+    expect(insertableInto([node("Card", {}, { children: [] })], null)).toEqual([]);
+    expect(insertableInto([], "gone")).toEqual([]);
+  });
+});
+
+/* ── The canvas boundary ───────────────────────────────────────────────────────────────── */
+
+describe("a broken canvas never takes the document with it", () => {
+  /** The boundary as a plain object: React is not needed to prove its reset CONTRACT, and
+      the alternative — reconstructing the condition in the law — is the mistake this repo
+      keeps writing down. `componentDidUpdate` here is the shipped method. */
+  const boundary = (tree: unknown) => {
+    const b = new CanvasBoundary({ children: null, onRecover: () => {}, canRecover: false, tree });
+    const seen: Array<{ error: Error | null }> = [];
+    // Standing in for React's own setState, which is all the method calls.
+    (b as unknown as { setState: (s: { error: Error | null }) => void }).setState = (s) =>
+      void seen.push(s);
+    return { b, seen };
+  };
+
+  it("catches, and holds its failure while the tree it failed on is unchanged", () => {
+    const err = new Error("MenuRootContext is missing");
+    expect(CanvasBoundary.getDerivedStateFromError(err)).toEqual({ error: err });
+
+    const tree = [node("Card", {}, { children: [] })];
+    const { b, seen } = boundary(tree);
+    b.state = { error: err };
+    b.componentDidUpdate({ tree });
+    expect(seen).toEqual([]);
+  });
+
+  it("clears on ANY new tree, not just a new document", () => {
+    const { b, seen } = boundary([node("Card", {}, { children: [] })]);
+    b.state = { error: new Error("boom") };
+    // The same document, edited: the person deleted the offending node in Layers, which
+    // draws from the model and keeps working. Keying the reset on the document id left the
+    // boundary holding a failure over a tree that no longer contained it.
+    b.componentDidUpdate({ tree: [node("Card", {}, { children: [] })] });
+    expect(seen).toEqual([{ error: null }]);
+  });
+
+  it("does not clear a state it never had", () => {
+    const { b, seen } = boundary([]);
+    b.state = { error: null };
+    b.componentDidUpdate({ tree: [node("Card", {}, { children: [] })] });
+    expect(seen).toEqual([]);
   });
 });
 
