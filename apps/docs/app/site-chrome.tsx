@@ -39,6 +39,9 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
         <Button size="1" emphasis="quiet" render={<Link href="/matrix" />}>
           Matrix
         </Button>
+        <Button size="1" emphasis="quiet" render={<Link href="/builder" />}>
+          Builder
+        </Button>
         <AppearanceToggle />
       </Flex>
       <Box p="5" render={<main />} style={{ flex: 1 }}>
