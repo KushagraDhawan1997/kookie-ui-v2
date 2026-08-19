@@ -58,6 +58,26 @@ container queries, so four boxes on one screen resolve four different answers fo
 **Give a document its own appearance.** A dark screen inside a light app is a composition;
 the document says so, the canvas shows it, and the export states it.
 
+**Edit several things at once.** Select five buttons and set their size in one gesture. This
+is what the closed unions pay for: "make these the same size" is a guess where size is a
+number, and here it is a pick from a list every one of them already answers. Only knobs that
+mean the same thing on every selected type are offered — a Button's `size` is the control
+ladder and a Text's is the type ladder, so that pair gets no size knob at all.
+
+**Zoom the canvas**, 50% to 200%, from the bar or with the usual chords. It is a magnifying
+glass and not a resize: at 67% the canvas still measures 880px and still answers the `md`
+tier, so nothing you see is a different room from the one you are designing.
+
+**Filter the Layers tree** (⌘F). It hides rather than dims, and keeps the path to every match.
+
+**See what an index comes to.** Select anything and the inspector says its box, gap, padding,
+corner and type in real pixels, with the stated index beside each. This is the readout only a
+token system can give honestly, and every number is measured off the rendered element rather
+than restated from the config.
+
+**Open a saved block and edit it.** It opens as its own document; save it under the same name
+and the block is updated. Blocks used to be write-only, so a typo meant rebuilding the card.
+
 ## 2. The two things worth understanding
 
 **Every action is one row in one table.** `commands.ts` — id, title, chord, enabled, run. The
@@ -73,7 +93,47 @@ point per pane is written down in DECISIONS §15. So the check is a walk over a 
 system already understands. That is why this is a design-system feature rather than a
 builder feature, and why no general-purpose builder can copy it.
 
-## 3. What writing it taught (the part I would read if I were you)
+## 3. The night's second half: two audits, and what they found
+
+Two adversarial audits ran over the builder — one over the editor's code, one over the review
+engine against the brief it claims to enforce. Every finding was re-measured against the
+shipped code before anything was changed, and each fix was falsified against the defect. The
+five worth knowing about:
+
+**A component dragged out of a slot became a ghost.** `slot` rides on the node, so moving a
+Spinner out of a Button's `leading` seat handed the Stack a child still claiming a seat the
+Stack does not offer — and the filter that hides slotted children from the flow is the one
+BOTH the canvas and the exporter use. The node stayed in the tree, in Layers and in storage,
+and was drawn and exported nowhere. Worse, the export still IMPORTED it: code the dialog
+called ready to paste, failing lint on arrival. Fixed at the store's edit path, which is the
+one door every edit passes through, rather than in the four operations that can cause it.
+
+**The reviewer could write a value the system refuses.** `gap: index + 2` with no bound wrote
+`gap="13"` onto a palette that stops at 12 — it left the package as unitless raw CSS, so the
+fix that promised to open a gap deleted it. That is the builder's founding premise broken from
+inside the one feature meant to enforce it. There is a law now that walks every repair every
+rule offers and checks every value it writes against the axis it writes to.
+
+**Preview left every destructive chord armed.** Preview draws no selection ring, but the
+selection is still live — so with a canvas checkbox focused (Base UI draws one as a
+`<button>`, which the typing guard does not see) Backspace deleted the selected node with
+nothing on screen to say so.
+
+**Typing was one undo entry per character.** Two lines of description cost 120 presses to take
+back, and about 200 characters silently threw away every earlier snapshot, including the card
+you built before you started typing.
+
+**A drop between two grid cells was impossible.** The scan asked the container's `display` and
+measured everything that was not a flex row on Y alone — so the two cells of a grid row shared
+a midpoint, the scan stepped over both at once, and the position between them did not exist.
+The indicator drew a full-width bar claiming to be somewhere the pointer was not.
+
+The pattern across all five: each was a mechanism written correctly for the case its author
+had in mind, applied to a case they did not. That is the same finding this repo's package
+audits keep making, and the same answer works — put the rule in one place the whole system
+passes through, then write a law that reads the result rather than the intention.
+
+## 4. What writing it taught (the part I would read if I were you)
 
 **The templates corrected the reviewer, twice.** I wrote a law saying every template must
 raise zero findings. It failed, and twice the RULE was wrong rather than the template:
@@ -129,27 +189,51 @@ computed style) disagreed and that is what surfaced it. The round-trip law caugh
 harness too: React's raw `useId` salts needed the same order-preserving normalization Base
 UI's ids already had.
 
-## 4. Laws
+## 5. Laws
 
-`editor.test.ts` (41) covers the store, the commands, the grammar, review and the canvas
-boundary; `builder.test.tsx` (98) still covers the document's translation into code.
-Falsified against sabotaged code: a fix that does not fix, a snapshot that forgets its selection, a grammar
-that says yes to everything, a seat that serializes as a child, an appearance default that
-pins the canvas, a boundary that never clears, an insert list that stops asking the grammar.
-306 docs tests in total.
+`editor.test.ts` (79) covers the store, the commands, the grammar, the drop scan's
+arithmetic, review and the canvas boundary; `builder.test.tsx` (98) still covers the
+document's translation into code. 344 docs tests in total.
 
-## 5. Open, on purpose
+Every fix tonight was falsified against the defect it repairs before it was accepted — around
+thirty sabotage runs. Three of those sabotages SURVIVED the first pass, and each one earned a
+law that did not exist:
+
+- A size repair that also rewrote an emphasis passed both "the finding went" and "the value is
+  legal", because the value it wrote was a perfectly legal emphasis. Now a fix must be
+  minimal: at most one prop, on at most one node.
+- A row of controls measured against whichever one came first passed the round-trip law by
+  silencing its own rule while making the row worse. Now the law re-reviews the whole
+  document and refuses any finding the original did not have.
+- The Layers filter threaded an ancestor list down its walk AND returned "something below
+  matched" — deleting the first changed nothing, because the second already walks the chain
+  up. Two mechanisms for one fact, one of them inert, found because its sabotage passed.
+
+Three laws are new in kind and worth knowing about: every value a fix writes must be a member
+of the axis it writes to; every rule must fire on a document the grammar allows (which is what
+catches a dead exemption arm); and every global command must be unable to edit, which is what
+makes preview safe by construction rather than by a list.
+
+## 6. Open, on purpose
 
 - **JSX import** stays refused. The document is truth; code is a build artifact.
 - **Icons in slots** stay refused, with the reason written in the inspector where it bites.
 - **Freeform positioning** stays impossible — the outer-spacing rule holds inside the tool.
 - **"Fix all"** is not offered: fixes can interact, and a panel that silently rewrites eight
   things is a panel nobody trusts. One at a time, each undoable.
+- **An unset `size` is invisible to the review rules that compare sizes.** The component's own
+  default lives in the package, and reading it in the builder would be a second home for it —
+  a wrong one the day a default moves. Stated where the rule is.
+- **`heading-ladder` offers no fix.** Which step a heading wants depends on what it is
+  titling, and the version that always wrote 6 turned a page title into a second card title
+  one level up and then went quiet about it.
 
-## 6. Where things are
+## 7. Where things are
 
 `apps/docs/app/builder/`: `store.ts` (state), `commands.ts` (actions), `placement.ts`
 (grammar questions), `model.ts` (tree surgery), `catalog.ts` (the one data table),
-`review.ts` + `review-panel.tsx`, `templates.ts`, `chrome.tsx` (document bar, jump bar,
-context menu, shortcut sheet, error boundary, empty state), `command-palette.tsx`, `inspector.tsx`,
-`render.tsx`, `serialize.ts`, `builder-app.tsx` (the shell and the canvas).
+`review.ts` + `review-panel.tsx`, `templates.ts`, `geometry.ts` (the drop scan's rect
+arithmetic, pure so it can be law-tested — the version it replaces could only be checked by
+dragging, which is why it shipped wrong for two of four layouts), `chrome.tsx` (document bar,
+jump bar, context menu, shortcut sheet, error boundary, empty state), `command-palette.tsx`,
+`inspector.tsx`, `render.tsx`, `serialize.ts`, `builder-app.tsx` (the shell and the canvas).
