@@ -49,8 +49,10 @@ const DEPTHS = themeAxes.depth;
 // for (a plain card holding filled fields) is only reachable with both pickers present.
 const LOOKS = themeAxes.surfaceLook;
 const CONTRASTS = ["auto", "normal", "high"] as const satisfies readonly ContrastChoice[];
-// The app restates the tone list (the package exports the type, not the value) — docs land,
-// where a stale entry fails visibly on this very page.
+// The MEMBERSHIP now has a package home (componentAxes.tone, 2026-08-19); what this literal
+// still owns is the ORDER — a judged presentation sequence for the sweep, which a derived
+// list cannot state. `satisfies` keeps every entry a real tone; a family added to config
+// shows up missing here on the very page whose job is showing all of them.
 const TONES = [
   "neutral",
   "accent",
