@@ -22,6 +22,7 @@ import {
   type CommandContext,
 } from "./commands";
 import { CanvasBoundary, CONTEXT_COMMANDS } from "./chrome";
+import { box, dropSpot, rowsOf } from "./geometry";
 import { MIXED, UNSET, pickOrder, readPick } from "./inspector";
 import {
   defaultDocTheme,
@@ -796,6 +797,82 @@ describe("a closed picker is closed at the edge that reads it, not only where it
     // Labels travel with the value, and only where one was given.
     expect(pickOrder(["a"], { labels: { a: "Alpha" } })).toEqual([["a", "Alpha"]]);
     expect(pickOrder(["a"], { labels: { b: "Beta" } })).toEqual([["a", "a"]]);
+  });
+});
+
+/* ── The drop scan's arithmetic ────────────────────────────────────────────────────────── */
+
+describe("one measurement serves all four layouts", () => {
+  const container = box(0, 0, 300, 200);
+
+  it("a column drops on Y, and every position between its children is reachable", () => {
+    const kids = [box(0, 0, 300, 40), box(0, 50, 300, 40), box(0, 100, 300, 40)];
+    const at = (y: number) => dropSpot(kids, container, 150, y)!;
+    expect(at(5).index).toBe(0);
+    expect(at(35).index).toBe(1);
+    expect(at(55).index).toBe(1);
+    expect(at(135).index).toBe(3);
+    // …and the line is drawn across the container, because that is the gutter it is in.
+    expect(at(45).orientation).toBe("horizontal");
+    expect(at(45).line.w).toBe(300);
+  });
+
+  it("a row drops on X, with the line only as tall as the row", () => {
+    const kids = [box(0, 0, 80, 40), box(100, 0, 80, 40), box(200, 0, 80, 40)];
+    const at = (x: number) => dropSpot(kids, container, x, 20)!;
+    expect(at(10).index).toBe(0);
+    expect(at(50).index).toBe(1);
+    expect(at(150).index).toBe(2);
+    expect(at(270).index).toBe(3);
+    expect(at(90).orientation).toBe("vertical");
+    expect(at(90).line.h).toBe(40);
+    expect(at(90).line.w).toBe(2);
+  });
+
+  it("a GRID row is reachable BETWEEN its cells — the position that could not be dropped on", () => {
+    // The defect: the scan asked the container's `display` and measured everything that was
+    // not a flex row on Y alone. Two cells of one grid row share a vertical midpoint, so the
+    // scan stepped over BOTH at once — index went 0 → 2 and position 1 did not exist —
+    // while the line drew a full-width bar claiming to be between two rows.
+    const kids = [
+      box(0, 0, 90, 60),
+      box(105, 0, 90, 60),
+      box(210, 0, 90, 60),
+      box(0, 75, 90, 60),
+      box(105, 75, 90, 60),
+      box(210, 75, 90, 60),
+    ];
+    const at = (x: number, y: number) => dropSpot(kids, container, x, y)!;
+    expect(rowsOf(kids)).toEqual([
+      [0, 1, 2],
+      [3, 4, 5],
+    ]);
+    // Every position in the first row, including the two that were unreachable.
+    expect([at(10, 30).index, at(95, 30).index, at(200, 30).index, at(295, 30).index]).toEqual([0, 1, 2, 3]);
+    // The second row continues the document order rather than restarting.
+    expect([at(10, 100).index, at(95, 100).index, at(295, 100).index]).toEqual([3, 4, 6]);
+    // Inside a row the line is vertical and one row tall; between rows it spans the box.
+    expect(at(95, 30).orientation).toBe("vertical");
+    expect(at(95, 30).line.h).toBe(60);
+    expect(at(150, 68).orientation).toBe("horizontal");
+    expect(at(150, 68).line.w).toBe(300);
+  });
+
+  it("a WRAPPED row is the same shape, and the wrap boundary is visible to it", () => {
+    // The mirror of the grid case: the old scan called this "flex row" and measured X alone,
+    // so the wrap boundary did not exist and the last item of line one and the first of line
+    // two were compared on an axis they do not share.
+    const kids = [box(0, 0, 140, 40), box(150, 0, 140, 40), box(0, 50, 140, 40)];
+    const at = (x: number, y: number) => dropSpot(kids, container, x, y)!;
+    expect(rowsOf(kids)).toEqual([[0, 1], [2]]);
+    expect(at(280, 20).index).toBe(2); // after both of line one
+    expect(at(10, 70).index).toBe(2); // before the wrapped item
+    // 70 is the item's exact midpoint, so the half below it starts after that.
+    expect(at(130, 80).index).toBe(3); // after it — a row of ONE is decided on Y
+  });
+
+  it("nothing to measure is no answer at all, not index zero", () => {
+    expect(dropSpot([], container, 10, 10)).toBeNull();
   });
 });
 
