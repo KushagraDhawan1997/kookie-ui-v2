@@ -23,9 +23,16 @@
  */
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
+  Alert02Icon,
+  ArrowTurnBackwardIcon,
+  ArrowTurnForwardIcon,
   ArrowUp02Icon,
   Attachment01Icon,
   Cancel01Icon,
+  Copy01Icon,
+  Delete02Icon,
+  EyeIcon,
+  LayerIcon,
   ChartLineData01Icon,
   Folder01Icon,
   Home01Icon,
@@ -69,3 +76,13 @@ export const FolderIcon = glyph(Folder01Icon);
 export const ChartIcon = glyph(ChartLineData01Icon);
 export const SettingsIcon = glyph(Settings02Icon);
 export const UsersIcon = glyph(UserMultiple02Icon);
+
+/* The builder's editor chrome (2026-08-20). Named for the JOB, like every glyph above:
+   the toolbar says undo, not "arrow turning backward". */
+export const UndoIcon = glyph(ArrowTurnBackwardIcon);
+export const RedoIcon = glyph(ArrowTurnForwardIcon);
+export const PreviewIcon = glyph(EyeIcon);
+export const LayersIcon = glyph(LayerIcon);
+export const CopyIcon = glyph(Copy01Icon);
+export const TrashIcon = glyph(Delete02Icon);
+export const WarnIcon = glyph(Alert02Icon);

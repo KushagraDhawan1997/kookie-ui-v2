@@ -22,13 +22,6 @@ import * as React from "react";
 import Link from "next/link";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-  AlertDialogTrigger,
   Box,
   Button,
   Card,
@@ -37,7 +30,6 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-  DialogTrigger,
   Flex,
   Grid,
   Heading,
@@ -55,16 +47,14 @@ import {
   tiers,
 } from "@kookie-ui/react";
 
-import { XIcon } from "../icons";
+import { RedoIcon, UndoIcon, XIcon } from "../icons";
 import { CATALOG, canContain, gapStepsFor, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
 import {
-  ancestorChain,
   cloneWithNewIds,
   defaultDocTheme,
   findNode,
   findParent,
   insertNode,
-  moveNode,
   moveNodeTo,
   node,
   removeNode,
@@ -75,12 +65,38 @@ import {
   type BuilderNode,
   type DocTheme,
 } from "./model";
+import { insertionTarget, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { serializeDocument } from "./serialize";
 import { Inspector, ThemePanel } from "./inspector";
+import {
+  activeDoc,
+  canRedo,
+  canUndo,
+  initialState,
+  loadState,
+  makeDoc,
+  primaryId,
+  primaryNode,
+  reducer,
+  saveState,
+  type Block,
+} from "./store";
+import {
+  COMMANDS,
+  chordLabel,
+  chordMatches,
+  decodeNodes,
+  encodeNodes,
+  setBuffer,
+  type CommandContext,
+  type CommandUi,
+} from "./commands";
+import { CommandPalette } from "./command-palette";
+import { reviewDocument, type Finding } from "./review";
+import { ReviewPanel } from "./review-panel";
+import { Breadcrumb, ContextMenu, DocumentBar, ShortcutSheet, Toast } from "./chrome";
 
-const DOC_KEY = "kookie-builder-doc-v1";
-const BLOCKS_KEY = "kookie-builder-blocks-v1";
 const DRAG_TYPE = "application/x-kookie-component";
 const MOVE_TYPE = "application/x-kookie-move";
 
@@ -118,8 +134,6 @@ const activeTier = (w: number): string => {
   return current;
 };
 
-type Block = { name: string; node: BuilderNode };
-
 /** The starter document: enough to show the idea the second the page opens. Ids are the
     STABLE set — this tree is built during render on both server and client, where the
     module counter is not safe (see withStableIds). */
@@ -128,7 +142,7 @@ const starterDoc = (): BuilderDoc => ({
   roots: withStableIds([
     node("Card", { size: "3" }, {
       children: [
-        node("Stack", { gap: "4" }, {
+        node("Stack", { gap: "5" }, {
           children: [
             node("Stack", { gap: "2" }, {
               children: [
@@ -150,49 +164,17 @@ const starterDoc = (): BuilderDoc => ({
   ]),
 });
 
-/* ── History: undo is a stack of documents, because every model op is pure ─────────────── */
 
-type History = { past: BuilderDoc[]; present: BuilderDoc; future: BuilderDoc[] };
-
-/** The ancestor TYPES above-and-including a prospective parent — what `canContain` asks. */
-const typesThrough = (roots: BuilderNode[], parentId: string | null): string[] => {
-  if (parentId === null) return [];
-  const parent = findNode(roots, parentId);
-  if (!parent) return [];
-  return [...ancestorChain(roots, parentId).map((a) => a.type), parent.type];
-};
-
-/** Where a palette insertion lands, relative to the selection: the selected node if it
-    accepts, else the nearest accepting ancestor (inserted after the selection's branch),
-    else the document root. Null means nowhere — the palette button disables. */
-const insertionTarget = (
-  roots: BuilderNode[],
-  selection: string | null,
-  type: string,
-): { parentId: string | null; index?: number } | null => {
-  if (selection) {
-    const chain = [...ancestorChain(roots, selection), findNode(roots, selection)].filter(
-      (x): x is BuilderNode => x !== null,
-    );
-    for (let i = chain.length - 1; i >= 0; i--) {
-      const parent = chain[i]!;
-      const chainTypes = chain.slice(0, i + 1).map((c) => c.type);
-      if (canContain(parent.type, type, chainTypes)) {
-        // Inserting into an ancestor lands beside the branch the selection is on, not at
-        // the end — the gesture means "next to what I'm looking at".
-        const branch = chain[i + 1];
-        const at = branch ? (parent.children?.findIndex((c) => c.id === branch.id) ?? -1) + 1 : 0;
-        return at > 0 ? { parentId: parent.id, index: at } : { parentId: parent.id };
-      }
-    }
-  }
-  return canContain(null, type, []) ? { parentId: null } : null;
-};
 
 export function BuilderApp() {
-  const [history, setHistory] = React.useState<History>(() => ({ past: [], present: starterDoc(), future: [] }));
-  const [selection, setSelection] = React.useState<string | null>(null);
-  const [blocks, setBlocks] = React.useState<Block[]>([]);
+  const [state, dispatch] = React.useReducer(reducer, undefined, () =>
+    initialState(makeDoc("Untitled", starterDoc())),
+  );
+  /** The live state, for the pointer gestures: a drag reads the document on every frame,
+      and the value captured when the gesture began goes stale on its first commit. */
+  const stateRef = React.useRef(state);
+  stateRef.current = state;
+
   const [blockName, setBlockName] = React.useState("");
   const [drop, setDrop] = React.useState<DropSpot | null>(null);
   const [dropRow, setDropRow] = React.useState<string | null>(null);
@@ -204,89 +186,157 @@ export function BuilderApp() {
   /** null = full width. A dragged width makes the canvas narrower than its column, and
       because the canvas is a container, every per-tier value inside responds for real. */
   const [canvasW, setCanvasW] = React.useState<number | null>(null);
-
-  const doc = history.present;
-  const selected = selection ? findNode(doc.roots, selection) : null;
-
-  const commit = React.useCallback((next: BuilderDoc) => {
-    setHistory((h) => ({ past: [...h.past.slice(-63), h.present], present: next, future: [] }));
-  }, []);
-  const commitRoots = React.useCallback(
-    (roots: BuilderNode[]) => commit({ ...history.present, roots }),
-    [commit, history.present],
+  /* The editor's own modes. Preview hands the canvas back to the components: no stamps, no
+     drag, no selection — the screen you built, actually usable. */
+  const [preview, setPreview] = React.useState(false);
+  /** The right panel's tab is state, not a derived guess: Base UI warns (correctly) when a
+      controlled value flips to undefined, and "is review open" is the same question as
+      "which tab is showing". */
+  const [rightTab, setRightTab] = React.useState<"inspect" | "theme" | "review">("inspect");
+  const reviewOpen = rightTab === "review";
+  const setReviewOpen = React.useCallback(
+    (next: boolean | ((v: boolean) => boolean)) =>
+      setRightTab((tab) => {
+        const want = typeof next === "function" ? next(tab === "review") : next;
+        return want ? "review" : tab === "review" ? "inspect" : tab;
+      }),
+    [],
   );
-  const undo = React.useCallback(() => {
-    setHistory((h) => {
-      const prev = h.past[h.past.length - 1];
-      return prev ? { past: h.past.slice(0, -1), present: prev, future: [h.present, ...h.future] } : h;
-    });
-  }, []);
-  const redo = React.useCallback(() => {
-    setHistory((h) => {
-      const next = h.future[0];
-      return next ? { past: [...h.past, h.present], present: next, future: h.future.slice(1) } : h;
-    });
+  const [paletteOpen, setPaletteOpen] = React.useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
+  const [exportOpen, setExportOpen] = React.useState(false);
+  const [toast, setToast] = React.useState<string | null>(null);
+  /** Where a right-click landed, and therefore where the context menu anchors. */
+  const [contextPoint, setContextPoint] = React.useState<{ x: number; y: number } | null>(null);
+
+  const doc = activeDoc(state);
+  const blocks = state.blocks;
+  const selection = primaryId(state);
+  const selected = primaryNode(state);
+
+  const setSelection = React.useCallback(
+    (id: string | null, additive = false) =>
+      dispatch({ type: "select", ids: id ? [id] : [], additive: additive && id !== null }),
+    [],
+  );
+  const commitRoots = React.useCallback(
+    (roots: BuilderNode[], nextSelection?: string[]) =>
+      dispatch(nextSelection ? { type: "edit", roots, selection: nextSelection } : { type: "edit", roots }),
+    [],
+  );
+  const undo = React.useCallback(() => dispatch({ type: "undo" }), []);
+  const redo = React.useCallback(() => dispatch({ type: "redo" }), []);
+
+  const say = React.useCallback((message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast((t) => (t === message ? null : t)), 2200);
   }, []);
 
-  /* Storage: load once after mount (hydration must match the server's default branch),
-     sanitize against today's catalog, re-mint ids so the id counter cannot collide. */
+  /* Storage: load once after mount — the server rendered the starter, and hydration must
+     match that branch before anything replaces it. Everything read is sanitized against
+     today's catalog and re-minted, so an older vocabulary loads as the part of it the
+     system still speaks. */
   React.useEffect(() => {
-    try {
-      const raw = localStorage.getItem(DOC_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as BuilderDoc;
-        const roots = (parsed.roots ?? [])
-          .map(sanitizeNode)
-          .filter((n): n is BuilderNode => n !== null)
-          .map(cloneWithNewIds);
-        setHistory({ past: [], present: { theme: { ...defaultDocTheme(), ...parsed.theme }, roots }, future: [] });
-      }
-      const rawBlocks = localStorage.getItem(BLOCKS_KEY);
-      if (rawBlocks) {
-        const parsed = JSON.parse(rawBlocks) as Block[];
-        setBlocks(
-          parsed
-            .map((b) => ({ name: String(b.name), node: b.node && sanitizeNode(b.node) }))
-            .filter((b): b is Block => b.node !== null && b.node !== undefined && b.name.length > 0),
-        );
-      }
-    } catch {
-      // Storage denied or corrupt: the session runs from memory, exactly as designed.
-    }
+    const stored = loadState("Untitled");
+    if (stored) dispatch({ type: "hydrate", state: stored });
   }, []);
   /* The write-through must not run before the load has landed. Both effects fire on mount in
      declaration order, so an unguarded write saved the STARTER document — the value this
      render still holds — straight over the stored one; under StrictMode's double-invocation
      the second pass then read that starter back, and a reload lost the document outright
-     (measured: two roots before, one after). Guarding on the initial document's IDENTITY is
-     what makes it safe on both passes: there is nothing to persist until the document stops
-     being the one nobody has edited. */
-  const untouched = React.useRef(history.present);
+     (measured: two roots before, one after). Guarding on the initial state's IDENTITY is
+     what makes it safe on both passes: there is nothing to persist until the editor stops
+     being the one nobody has touched. */
+  const untouched = React.useRef(state);
   React.useEffect(() => {
-    if (doc === untouched.current) return;
-    try {
-      localStorage.setItem(DOC_KEY, JSON.stringify(doc));
-    } catch {}
-  }, [doc]);
-  React.useEffect(() => {
-    try {
-      localStorage.setItem(BLOCKS_KEY, JSON.stringify(blocks));
-    } catch {}
-  }, [blocks]);
+    if (state === untouched.current) return;
+    saveState(state);
+  }, [state]);
 
-  /* Undo/redo from the keyboard, everywhere except inside a field. */
+  /* ── The keyboard, as a renderer over the command table ───────────────────────────────
+     One listener; the chords live beside the actions they run, so a shortcut cannot drift
+     from what the palette says it does. A field keeps its own keys: an editor that steals
+     ⌘A while you are selecting a placeholder is an editor nobody can type in — except the
+     ⌘K/⌘E class, which is global on purpose (the palette must open from anywhere). */
+  const ctxRef = React.useRef<CommandContext | null>(null);
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z") return;
+      const ctx = ctxRef.current;
+      if (!ctx) return;
       const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-      e.preventDefault();
-      if (e.shiftKey) redo();
-      else undo();
+      const typing = Boolean(t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable));
+      for (const cmd of COMMANDS) {
+        if (!cmd.chord || !chordMatches(cmd.chord, e)) continue;
+        const global = cmd.id === "palette" || cmd.id === "export" || cmd.id === "shortcuts" || cmd.id === "preview";
+        if (typing && !global) return;
+        if (!cmd.enabled(ctx)) return;
+        e.preventDefault();
+        cmd.run(ctx);
+        return;
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [undo, redo]);
+  }, []);
+
+  /* Copy / cut / paste ride the real clipboard EVENTS rather than the async clipboard API:
+     the events hand over `clipboardData` with no permission prompt and no gesture rules, so
+     a subtree crosses documents, tabs and windows as ordinary JSON. */
+  React.useEffect(() => {
+    const inField = (t: EventTarget | null) => {
+      const el = t as HTMLElement | null;
+      return Boolean(el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable));
+    };
+    const onCopy = (e: ClipboardEvent, cut: boolean) => {
+      const ctx = ctxRef.current;
+      if (!ctx || inField(e.target) || ctx.state.selection.length === 0) return;
+      const nodes = ctx.state.selection
+        .map((id) => findNode(activeDoc(ctx.state).roots, id))
+        .filter((n): n is BuilderNode => n !== null);
+      if (nodes.length === 0) return;
+      e.preventDefault();
+      e.clipboardData?.setData("text/plain", encodeNodes(nodes));
+      setBuffer(nodes);
+      if (cut) {
+        let next = activeDoc(ctx.state).roots;
+        for (const id of ctx.state.selection) next = removeNode(next, id);
+        dispatch({ type: "edit", roots: next, selection: [] });
+      }
+      say(cut ? `Cut ${nodes.length === 1 ? nodes[0]!.type : `${nodes.length} items`}` : `Copied ${nodes.length === 1 ? nodes[0]!.type : `${nodes.length} items`}`);
+    };
+    const onPaste = (e: ClipboardEvent) => {
+      const ctx = ctxRef.current;
+      if (!ctx || inField(e.target)) return;
+      const text = e.clipboardData?.getData("text/plain") ?? "";
+      const nodes = decodeNodes(text);
+      if (!nodes || nodes.length === 0) return;
+      e.preventDefault();
+      let next = activeDoc(ctx.state).roots;
+      const placed: string[] = [];
+      for (const n of nodes) {
+        const target = insertionTarget(next, primaryId(ctx.state), n.type);
+        if (!target) continue;
+        const fresh = cloneWithNewIds(n);
+        next = insertNode(next, target.parentId, fresh, target.index);
+        placed.push(fresh.id);
+      }
+      if (placed.length === 0) {
+        say("Nothing here accepts that");
+        return;
+      }
+      dispatch({ type: "edit", roots: next, selection: placed });
+    };
+    const copy = (e: ClipboardEvent) => onCopy(e, false);
+    const cut = (e: ClipboardEvent) => onCopy(e, true);
+    window.addEventListener("copy", copy);
+    window.addEventListener("cut", cut);
+    window.addEventListener("paste", onPaste);
+    return () => {
+      window.removeEventListener("copy", copy);
+      window.removeEventListener("cut", cut);
+      window.removeEventListener("paste", onPaste);
+    };
+  }, [say]);
 
   /* ── Gestures ────────────────────────────────────────────────────────────────────── */
 
@@ -294,37 +344,26 @@ export function BuilderApp() {
     const target = insertionTarget(doc.roots, selection, type);
     if (!target) return;
     const fresh = CATALOG[type]!.make();
-    commitRoots(insertNode(doc.roots, target.parentId, fresh, target.index));
-    setSelection(fresh.id);
+    commitRoots(insertNode(doc.roots, target.parentId, fresh, target.index), [fresh.id]);
   };
 
   const insertBlock = (block: Block) => {
     const fresh = cloneWithNewIds(block.node);
     const target = insertionTarget(doc.roots, selection, fresh.type) ?? { parentId: null };
-    commitRoots(insertNode(doc.roots, target.parentId, fresh, target.index));
-    setSelection(fresh.id);
+    commitRoots(insertNode(doc.roots, target.parentId, fresh, target.index), [fresh.id]);
   };
 
-  const duplicateSelected = () => {
-    if (!selected) return;
-    const parent = findParent(doc.roots, selected.id);
-    const siblings = parent ? (parent.children ?? []) : doc.roots;
-    const index = siblings.findIndex((c) => c.id === selected.id) + 1;
-    const copy = cloneWithNewIds(selected);
-    commitRoots(insertNode(doc.roots, parent?.id ?? null, copy, index));
-    setSelection(copy.id);
-  };
-
-  const deleteSelected = () => {
-    if (!selection) return;
-    commitRoots(removeNode(doc.roots, selection));
-    setSelection(null);
+  const runCommand = (id: string) => {
+    const ctx = ctxRef.current;
+    const cmd = COMMANDS.find((c) => c.id === id);
+    if (ctx && cmd && cmd.enabled(ctx)) cmd.run(ctx);
   };
 
   const saveBlock = () => {
     if (!selected || !blockName.trim()) return;
-    setBlocks((b) => [...b, { name: blockName.trim(), node: cloneWithNewIds(selected) }]);
+    dispatch({ type: "blockSave", block: { name: blockName.trim(), node: cloneWithNewIds(selected) } });
     setBlockName("");
+    say(`Saved “${blockName.trim()}”`);
   };
 
   /* ── Drag and drop: ONE mechanism for palette inserts, block inserts and moves ─────
@@ -444,13 +483,14 @@ export function BuilderApp() {
   };
 
   const onCanvasDragStart = (e: React.DragEvent) => {
+    if (preview) return;
     const el = (e.target as Element).closest("[data-b-id]");
     if (!el) return;
     const id = el.getAttribute("data-b-id")!;
     dragRef.current = { kind: "move", id };
     e.dataTransfer.setData(MOVE_TYPE, id);
     e.dataTransfer.effectAllowed = "move";
-    setSelection(id);
+    if (!state.selection.includes(id)) setSelection(id);
   };
 
   const onCanvasDragOver = (e: React.DragEvent) => {
@@ -629,7 +669,7 @@ export function BuilderApp() {
             ? prev
             : next,
         );
-        const node = findNode(history.present.roots, selection);
+        const node = findNode(stateRef.current.docs.find((d) => d.id === stateRef.current.activeId)!.roots, selection);
         const nextBands = node && gapStepsFor(node.type) ? measureBands(wrap, el, node) : [];
         setBands((prev) =>
           prev.length === nextBands.length && prev.every((p, i) => JSON.stringify(p) === JSON.stringify(nextBands[i]))
@@ -724,14 +764,12 @@ export function BuilderApp() {
       // -1 is the UNSET rung, which is a real value: a hugging item, a one-column cell.
       const value = next < 0 ? undefined : steps[next]!;
       setResizing({ label: label(value) });
-      // Written through the updater form: the document this drag started on goes stale the
-      // moment the first step commits, so each step must read the live present.
-      const push = !pushed;
+      // Read the LIVE document: the one this drag started on goes stale the moment the
+      // first step commits. The first step pushes history, the rest ride it — one gesture,
+      // one undo.
+      const roots = updateProps(activeDoc(stateRef.current).roots, selected.id, write(value));
+      dispatch(pushed ? { type: "editSilent", roots } : { type: "edit", roots });
       pushed = true;
-      setHistory((h) => {
-        const present = { ...h.present, roots: updateProps(h.present.roots, selected.id, write(value)) };
-        return push ? { past: [...h.past.slice(-63), h.present], present, future: [] } : { ...h, present, future: [] };
-      });
     };
     const onUp = () => {
       setResizing(null);
@@ -780,6 +818,7 @@ export function BuilderApp() {
   };
 
   const onCanvasClick = (e: React.MouseEvent) => {
+    if (preview) return;
     if ((e.target as Element).closest("[data-kb-width-handle], [data-kb-resize]")) return;
     // Nearest of stamp-or-field-wrapper: a click on a field's padding lands on the
     // unstamped wrapper, and walking past it would select the field's PARENT.
@@ -788,7 +827,23 @@ export function BuilderApp() {
       near && !near.hasAttribute("data-b-id")
         ? near.querySelector(":scope > .kui-field-input[data-b-id]")
         : near;
-    setSelection(el ? el.getAttribute("data-b-id") : null);
+    // Shift (or ⌘/Ctrl) adds to the selection, which is what makes "wrap these two in a
+    // row" reachable with the pointer as well as from the tree.
+    setSelection(el ? el.getAttribute("data-b-id") : null, e.shiftKey || e.metaKey || e.ctrlKey);
+  };
+
+  /** Right-click selects what is under the pointer (unless it is already in the selection,
+      which is what makes "wrap these three" reachable) and opens the menu there. */
+  const onContextMenu = (e: React.MouseEvent) => {
+    if (preview) return;
+    const near = (e.target as Element).closest("[data-b-id], .kui-field");
+    const el =
+      near && !near.hasAttribute("data-b-id") ? near.querySelector(":scope > .kui-field-input[data-b-id]") : near;
+    const id = el?.getAttribute("data-b-id") ?? null;
+    if (!id) return;
+    e.preventDefault();
+    if (!state.selection.includes(id)) setSelection(id);
+    setContextPoint({ x: e.clientX, y: e.clientY });
   };
 
   /* A canvas control never takes real focus: clicking is selection, not operation (the
@@ -797,6 +852,7 @@ export function BuilderApp() {
      mousedown, keeps native drag alive in every engine; the width handle's own focus
      (arrow-key resize) never matches the stamp and survives. */
   const onCanvasFocus = (e: React.FocusEvent) => {
+    if (preview) return;
     if ((e.target as Element).closest("[data-b-id]")) (e.target as HTMLElement).blur();
   };
 
@@ -833,7 +889,70 @@ export function BuilderApp() {
   }, [doc]);
 
   const setThemeAxis = (axis: keyof DocTheme, value: string) =>
-    commit({ ...doc, theme: { ...doc.theme, [axis]: value } });
+    dispatch({ type: "setTheme", axis, value });
+
+  /* ── The command context: state, dispatch, and the few things a command cannot do on
+     its own (open a dialog, reach the clipboard, put a file on disk). ─────────────────── */
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const inspectorTextRef = React.useRef<HTMLInputElement | null>(null);
+
+  const ui: CommandUi = {
+    openPalette: () => setPaletteOpen(true),
+    openExport: () => setExportOpen(true),
+    openShortcuts: () => setShortcutsOpen(true),
+    openDocuments: () => setPaletteOpen(true),
+    toggleReview: () => setReviewOpen((v) => !v),
+    togglePreview: () => setPreview((v) => !v),
+    writeClipboard: (text) => void navigator.clipboard?.writeText(text).catch(() => {}),
+    readClipboard: async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        return decodeNodes(text);
+      } catch {
+        // Denied, or nothing readable: the caller falls back to the in-memory buffer.
+        return null;
+      }
+    },
+    focusInspectorText: () => inspectorTextRef.current?.focus(),
+    insertBlockByIndex: (index) => {
+      const block = stateRef.current.blocks[index];
+      if (block) insertBlock(block);
+    },
+    saveBlockFromSelection: () => {
+      const node = primaryNode(stateRef.current);
+      if (!node) return;
+      const name = node.text?.trim() || node.type;
+      dispatch({ type: "blockSave", block: { name, node: cloneWithNewIds(node) } });
+      say(`Saved “${name}”`);
+    },
+    downloadDocument: () => {
+      const current = activeDoc(stateRef.current);
+      const blob = new Blob([JSON.stringify({ name: current.name, theme: current.theme, roots: current.roots }, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${current.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "document"}.kookie.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    importDocument: () => fileInputRef.current?.click(),
+  };
+  const ctx: CommandContext = { state, dispatch, ui };
+  ctxRef.current = ctx;
+
+  const findings = React.useMemo(() => reviewDocument(doc), [doc]);
+
+  /** A finding's fix is a pure function over the tree, so applying one is an ordinary edit:
+      undoable, re-reviewed on the next render, and selecting the node it touched so the eye
+      lands where the change happened. */
+  const applyFix = (finding: Finding) => {
+    if (!finding.fix) return;
+    const roots = finding.fix.apply(activeDoc(stateRef.current).roots);
+    dispatch({ type: "edit", roots, selection: finding.nodeId ? [finding.nodeId] : [] });
+    say(finding.fix.title);
+  };
 
   /* Parts the current selection can hold directly — the contextual half of the palette. */
   const contextualParts: [string, CatalogEntry][] = selected
@@ -845,72 +964,51 @@ export function BuilderApp() {
 
   return (
     <Flex direction="column" style={{ height: "100dvh" }}>
-      {/* ── Top bar ── */}
+      {/* ── Top bar: identity, the document, the modes, the one loud action ── */}
       <Flex align="center" justify="space-between" px="4" py="2" gapX="4">
-        <Heading size="3" render={<h1 />}>
-          <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
-            Builder
-          </Link>
-        </Heading>
+        <Flex align="center" gap="3" style={{ minWidth: 0 }}>
+          <Heading size="3" render={<h1 />}>
+            <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
+              Builder
+            </Link>
+          </Heading>
+          <DocumentBar state={state} dispatch={dispatch} />
+        </Flex>
         <Flex align="center" gap="2">
-          <Button size="1" emphasis="quiet" disabled={history.past.length === 0} onClick={undo} trailing={<Kbd>⌘Z</Kbd>}>
-            Undo
+          {toast ? (
+            <Text size="1" emphasis="quiet" aria-live="polite">
+              {toast}
+            </Text>
+          ) : null}
+          <Button size="1" emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
+            <UndoIcon />
           </Button>
-          <Button size="1" emphasis="quiet" disabled={history.future.length === 0} onClick={redo}>
-            Redo
+          <Button size="1" emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
+            <RedoIcon />
           </Button>
-          <AlertDialog size="1">
-            <AlertDialogTrigger render={<Button size="1" emphasis="quiet">Reset</Button>} />
-            <AlertDialogContent>
-              <AlertDialogTitle>Start over?</AlertDialogTitle>
-              <AlertDialogDescription>The current document is replaced by the starter. Saved blocks stay.</AlertDialogDescription>
-              <AlertDialogCancel>Keep it</AlertDialogCancel>
-              <AlertDialogAction
-                tone="destructive"
-                onClick={() => {
-                  commit(starterDoc());
-                  setSelection(null);
-                }}
-              >
-                Reset
-              </AlertDialogAction>
-            </AlertDialogContent>
-          </AlertDialog>
-          <Dialog size="3">
-            <DialogTrigger render={<Button size="1" tone="accent" emphasis="loud">Export code</Button>} />
-            <DialogContent>
-              <Stack gap="4">
-                <Stack gap="2">
-                  <DialogTitle>Export</DialogTitle>
-                  <DialogDescription>
-                    Ready to paste: real imports, only the props you stated, a Theme only where your
-                    document differs from the system&apos;s defaults.
-                  </DialogDescription>
-                </Stack>
-                <Card size="2">
-                  <Box overflow="auto" style={{ maxHeight: "50vh" }}>
-                    <Text size="1" render={<pre />} style={{ fontFamily: "var(--font-mono)" }}>
-                      {code}
-                    </Text>
-                  </Box>
-                </Card>
-                <Flex gap="3" justify="flex-end">
-                  <DialogClose render={<Button emphasis="quiet" bordered>Close</Button>} />
-                  <Button
-                    emphasis="loud"
-                    onClick={() => {
-                      void navigator.clipboard?.writeText(code).then(() => {
-                        setCopied(true);
-                        window.setTimeout(() => setCopied(false), 1600);
-                      });
-                    }}
-                  >
-                    {copied ? "Copied" : "Copy"}
-                  </Button>
-                </Flex>
-              </Stack>
-            </DialogContent>
-          </Dialog>
+          <Separator orientation="vertical" style={{ height: "20px" }} />
+          <Button size="1" emphasis="quiet" onClick={() => setPaletteOpen(true)} trailing={<Kbd>{chordLabel("mod+k")}</Kbd>}>
+            Commands
+          </Button>
+          <Button
+            size="1"
+            emphasis={reviewOpen ? "medium" : "quiet"}
+            aria-pressed={reviewOpen}
+            onClick={() => setReviewOpen((v) => !v)}
+          >
+            {findings.length ? `Review ${findings.length}` : "Review"}
+          </Button>
+          <Button
+            size="1"
+            emphasis={preview ? "medium" : "quiet"}
+            aria-pressed={preview}
+            onClick={() => setPreview((v) => !v)}
+          >
+            {preview ? "Editing off" : "Preview"}
+          </Button>
+          <Button size="1" tone="accent" emphasis="loud" onClick={() => setExportOpen(true)}>
+            Export code
+          </Button>
         </Flex>
       </Flex>
       <Separator />
@@ -981,7 +1079,7 @@ export function BuilderApp() {
                                 emphasis="quiet"
                                 iconOnly
                                 aria-label={`Remove the block ${b.name}`}
-                                onClick={() => setBlocks((list) => list.filter((_, j) => j !== i))}
+                                onClick={() => dispatch({ type: "blockRemove", index: i })}
                               >
                                 <XIcon />
                               </Button>
@@ -1005,8 +1103,8 @@ export function BuilderApp() {
                             key={r.id}
                             node={r}
                             depth={0}
-                            selection={selection}
-                            onSelect={setSelection}
+                            selection={state.selection}
+                            onSelect={(id, additive) => setSelection(id, additive)}
                             dropRow={dropRow}
                             onDragBegin={(id) => {
                               dragRef.current = { kind: "move", id };
@@ -1028,12 +1126,31 @@ export function BuilderApp() {
         </Box>
         <Separator orientation="vertical" />
 
-        {/* Center: the live canvas */}
-        <Box style={{ flex: 1, minWidth: 0, minHeight: 0, background: "var(--neutral-2)" }}>
-          <ScrollArea style={{ height: "100%" }}>
+        {/* Center: the jump bar, then the live canvas */}
+        <Flex direction="column" style={{ flex: 1, minWidth: 0, minHeight: 0, background: "var(--neutral-2)" }}>
+          <Breadcrumb
+            roots={doc.roots}
+            selection={state.selection}
+            onSelect={(id) => setSelection(id)}
+            extra={
+              canvasW ? (
+                <Flex align="center" gap="2">
+                  <Text size="1" emphasis="quiet">
+                    {`${canvasW}px · ${activeTier(canvasW)}`}
+                  </Text>
+                  <Button size="1" emphasis="quiet" onClick={() => setCanvasW(null)}>
+                    Full width
+                  </Button>
+                </Flex>
+              ) : null
+            }
+          />
+          <Separator />
+          <ScrollArea style={{ flex: 1, minHeight: 0 }}>
             <Box
               p="6"
               onClickCapture={onCanvasClick}
+              onContextMenu={onContextMenu}
               onFocusCapture={onCanvasFocus}
               onDragStartCapture={onCanvasDragStart}
               onDragOver={onCanvasDragOver}
@@ -1043,16 +1160,6 @@ export function BuilderApp() {
               style={{ minHeight: "100%" }}
             >
               <Box maxWidth="880px" style={{ marginInline: "auto" }}>
-                {canvasW ? (
-                  <Flex gap="2" align="center" justify="flex-end" pb="2">
-                    <Text size="1" emphasis="quiet">
-                      {`${canvasW}px · ${activeTier(canvasW)}`}
-                    </Text>
-                    <Button size="1" emphasis="quiet" onClick={() => setCanvasW(null)}>
-                      Full width
-                    </Button>
-                  </Flex>
-                ) : null}
                 <div
                   ref={canvasRef}
                   style={{ position: "relative", width: canvasW ? `${canvasW}px` : "100%", maxWidth: "100%" }}
@@ -1074,7 +1181,7 @@ export function BuilderApp() {
                             Drop something here, or add it from the palette.
                           </Text>
                         ) : (
-                          doc.roots.map((r) => renderNode(r, "canvas"))
+                          doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
                         )}
                       </Stack>
                     </Box>
@@ -1109,7 +1216,7 @@ export function BuilderApp() {
                       }}
                     />
                   </div>
-                  {ring ? (
+                  {ring && !preview ? (
                     <div aria-hidden style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
                       {/* Both lines are drawn as OUTLINES on a zero-border box: an outline
                           is painted outside the box without joining it, so the traced
@@ -1296,7 +1403,7 @@ export function BuilderApp() {
                       </div>
                     </div>
                   ) : null}
-                  {drop?.line ? (
+                  {drop?.line && !preview ? (
                     <div
                       aria-hidden
                       style={{
@@ -1316,42 +1423,54 @@ export function BuilderApp() {
               </Box>
             </Box>
           </ScrollArea>
-        </Box>
+        </Flex>
         <Separator orientation="vertical" />
 
-        {/* Right: inspect + theme */}
+        {/* Right: inspect + theme + review */}
         <Box width="304px" style={{ flex: "none", minHeight: 0 }}>
           <ScrollArea style={{ height: "100%" }}>
             <Box p="3">
-              <Tabs defaultValue="inspect">
+              <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as typeof rightTab)}>
                 <TabsList size="1">
                   <TabsTab value="inspect">Selected</TabsTab>
                   <TabsTab value="theme">Theme</TabsTab>
+                  <TabsTab value="review">{findings.length ? `Review ${findings.length}` : "Review"}</TabsTab>
                 </TabsList>
                 <TabsPanel value="inspect">
                   <Box pt="3">
                     {selected ? (
-                      <Stack gap="4">
+                      <Stack gap="5">
                         <Inspector
                           node={selected}
+                          textRef={inspectorTextRef}
                           onProp={(key, next) => commitRoots(updateProps(doc.roots, selected.id, { [key]: next }))}
                           onText={(next) => commitRoots(updateText(doc.roots, selected.id, next))}
                         />
                         <Separator />
-                        <Flex gap="2" wrap="wrap">
-                          <Button size="1" emphasis="quiet" bordered onClick={() => commitRoots(moveNode(doc.roots, selected.id, -1))}>
-                            Up
-                          </Button>
-                          <Button size="1" emphasis="quiet" bordered onClick={() => commitRoots(moveNode(doc.roots, selected.id, 1))}>
-                            Down
-                          </Button>
-                          <Button size="1" emphasis="quiet" bordered onClick={duplicateSelected}>
-                            Duplicate
-                          </Button>
-                          <Button size="1" emphasis="quiet" tone="destructive" bordered onClick={deleteSelected}>
-                            Delete
-                          </Button>
-                        </Flex>
+                        <Stack gap="2">
+                          <Text size="1" weight="medium">
+                            Arrange
+                          </Text>
+                          <Flex gap="1" wrap="wrap">
+                            {["moveUp", "moveDown", "duplicate", "wrapInStack", "wrapInFlex", "unwrap", "delete"].map((id) => {
+                              const cmd = COMMANDS.find((c) => c.id === id)!;
+                              const on = ctxRef.current ? cmd.enabled(ctxRef.current) : false;
+                              return (
+                                <Button
+                                  key={id}
+                                  size="1"
+                                  emphasis="quiet"
+                                  bordered
+                                  {...(id === "delete" ? { tone: "destructive" as const } : {})}
+                                  disabled={!on}
+                                  onClick={() => runCommand(id)}
+                                >
+                                  {cmd.title}
+                                </Button>
+                              );
+                            })}
+                          </Flex>
+                        </Stack>
                         <Stack gap="2">
                           <Text size="1" weight="medium">
                             Save as block
@@ -1363,6 +1482,7 @@ export function BuilderApp() {
                               aria-label="Block name"
                               value={blockName}
                               onChange={(e) => setBlockName(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && saveBlock()}
                             />
                             <Button size="1" emphasis="medium" disabled={!blockName.trim()} onClick={saveBlock}>
                               Save
@@ -1382,11 +1502,110 @@ export function BuilderApp() {
                     <ThemePanel theme={doc.theme} onAxis={setThemeAxis} />
                   </Box>
                 </TabsPanel>
+                <TabsPanel value="review">
+                  <Box pt="3">
+                    <ReviewPanel
+                      findings={findings}
+                      selection={state.selection}
+                      onSelect={(id) => setSelection(id)}
+                      onFix={applyFix}
+                    />
+                  </Box>
+                </TabsPanel>
               </Tabs>
             </Box>
           </ScrollArea>
         </Box>
       </Flex>
+
+      {/* ── The editor's own dialogs ── */}
+      <ContextMenu
+        point={contextPoint}
+        onOpenChange={(open) => !open && setContextPoint(null)}
+        run={(id) => {
+          setContextPoint(null);
+          runCommand(id);
+        }}
+        enabled={(id) => {
+          const cmd = COMMANDS.find((c) => c.id === id);
+          return Boolean(cmd && ctxRef.current && cmd.enabled(ctxRef.current));
+        }}
+        titleOf={(id) => COMMANDS.find((c) => c.id === id)?.title ?? id}
+      />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} ctx={ctx} />
+      <ShortcutSheet open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      <Dialog size="3" open={exportOpen} onOpenChange={setExportOpen}>
+        <DialogContent>
+          <Stack gap="5">
+            <Stack gap="2">
+              <DialogTitle>Export</DialogTitle>
+              <DialogDescription>
+                Ready to paste: real imports, only the props you stated, a Theme only where your
+                document differs from the system&apos;s defaults.
+              </DialogDescription>
+            </Stack>
+            <Card size="2">
+              <Box overflow="auto" style={{ maxHeight: "50vh" }}>
+                <Text size="1" render={<pre />} style={{ fontFamily: "var(--font-mono)" }}>
+                  {code}
+                </Text>
+              </Box>
+            </Card>
+            <Flex gap="3" justify="flex-end">
+              <Button emphasis="quiet" bordered onClick={() => ui.downloadDocument()}>
+                Download JSON
+              </Button>
+              <DialogClose render={<Button emphasis="quiet" bordered>Close</Button>} />
+              <Button
+                emphasis="loud"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(code).then(() => {
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 1600);
+                  });
+                }}
+              >
+                {copied ? "Copied" : "Copy"}
+              </Button>
+            </Flex>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+      {/* A document arrives as a file: read, sanitized against today's catalog by the store's
+          own reviver, and opened as a NEW document rather than over the current one. */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (!file) return;
+          void file.text().then((text) => {
+            try {
+              const parsed = JSON.parse(text) as { name?: string; theme?: DocTheme; roots?: BuilderNode[] };
+              const roots = (parsed.roots ?? [])
+                .map(sanitizeNode)
+                .filter((n): n is BuilderNode => n !== null)
+                .map(cloneWithNewIds);
+              if (roots.length === 0) {
+                say("That file holds nothing this system can place");
+                return;
+              }
+              dispatch({
+                type: "docNew",
+                name: parsed.name || file.name.replace(/\.[^.]+$/, ""),
+                doc: { theme: { ...defaultDocTheme(), ...parsed.theme }, roots },
+              });
+              say(`Opened ${parsed.name || file.name}`);
+            } catch {
+              say("That file is not a builder document");
+            }
+          });
+        }}
+      />
+      <Toast message={toast} />
     </Flex>
   );
 }
@@ -1454,8 +1673,8 @@ function TreeRows({
 }: {
   node: BuilderNode;
   depth: number;
-  selection: string | null;
-  onSelect: (id: string) => void;
+  selection: string[];
+  onSelect: (id: string, additive: boolean) => void;
   dropRow: string | null;
   onDragBegin: (id: string) => void;
   onDragFinish: () => void;
@@ -1470,10 +1689,10 @@ function TreeRows({
       <Box style={{ paddingInlineStart: `calc(${depth} * var(--layout-space-4))`, display: "flex" }}>
         <Button
           size="1"
-          emphasis={selection === n.id ? "medium" : "quiet"}
-          aria-pressed={selection === n.id}
+          emphasis={selection.includes(n.id) ? "medium" : "quiet"}
+          aria-pressed={selection.includes(n.id)}
           bordered={dropRow === n.id}
-          onClick={() => onSelect(n.id)}
+          onClick={(e) => onSelect(n.id, e.shiftKey || e.metaKey || e.ctrlKey)}
           draggable
           onDragStart={(e) => {
             onDragBegin(n.id);

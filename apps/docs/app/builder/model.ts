@@ -234,3 +234,72 @@ export const moveNodeTo = (
   }
   return insertNode(removeNode(roots, id), newParentId, moving, at);
 };
+
+/* ── Structural surgery (2026-08-20): the operations a composition editor owes ────────── */
+
+/** Replace one node in place, keeping its position among its siblings. */
+export const replaceNode = (roots: BuilderNode[], id: string, next: BuilderNode): BuilderNode[] => {
+  const walk = (list: BuilderNode[]): BuilderNode[] =>
+    list.map((n) => (n.id === id ? next : n.children ? { ...n, children: walk(n.children) } : n));
+  return walk(roots);
+};
+
+/**
+ * Put `wrapper` where the node is, with the node inside it — the single most-wanted
+ * composition gesture ("these two things belong in a row"). The caller checks the grammar
+ * both ways: the wrapper must be legal where the node stands, and must accept the node.
+ */
+export const wrapNode = (roots: BuilderNode[], id: string, wrapper: BuilderNode): BuilderNode[] => {
+  const target = findNode(roots, id);
+  if (!target) return roots;
+  return replaceNode(roots, id, { ...wrapper, children: [...(wrapper.children ?? []), target] });
+};
+
+/** Wrap SEVERAL adjacent siblings in one wrapper, which is what "wrap these in a row" means
+    when more than one thing is selected: the wrapper lands at the first one's position and
+    the rest move into it. Non-siblings are refused — a wrapper cannot straddle two parents. */
+export const wrapNodes = (roots: BuilderNode[], ids: string[], wrapper: BuilderNode): BuilderNode[] => {
+  if (ids.length === 0) return roots;
+  if (ids.length === 1) return wrapNode(roots, ids[0]!, wrapper);
+  const parent = findParent(roots, ids[0]!);
+  const siblings = parent ? (parent.children ?? []) : roots;
+  const chosen = siblings.filter((n) => ids.includes(n.id));
+  if (chosen.length !== ids.length) return roots; // not all siblings of one parent
+  const at = siblings.findIndex((n) => n.id === chosen[0]!.id);
+  const wrapped = { ...wrapper, children: [...(wrapper.children ?? []), ...chosen] };
+  let next = roots;
+  for (const n of chosen) next = removeNode(next, n.id);
+  return insertNode(next, parent?.id ?? null, wrapped, at);
+};
+
+/**
+ * Dissolve a container, leaving its children where it stood. The inverse of wrap, and the
+ * escape from a layout that turned out to be one too many. A node with no children simply
+ * goes — "unwrap" of an empty box is a delete, which is what the eye expects.
+ */
+export const unwrapNode = (roots: BuilderNode[], id: string): BuilderNode[] => {
+  const target = findNode(roots, id);
+  if (!target) return roots;
+  const parent = findParent(roots, id);
+  const siblings = parent ? (parent.children ?? []) : roots;
+  const at = siblings.findIndex((n) => n.id === id);
+  if (at === -1) return roots;
+  const kids = target.children ?? [];
+  const next = [...siblings.slice(0, at), ...kids, ...siblings.slice(at + 1)];
+  return parent ? replaceNode(roots, parent.id, { ...parent, children: next }) : next;
+};
+
+/** Depth-first ids, which IS the reading order — so keyboard up/down walks the tree the way
+    the Layers panel draws it and the canvas lays it out. */
+export const flattenIds = (roots: BuilderNode[]): string[] =>
+  roots.flatMap((n) => [n.id, ...flattenIds(n.children ?? [])]);
+
+/** The next/previous node in reading order, or null at the ends. */
+export const stepInTree = (roots: BuilderNode[], id: string | null, delta: -1 | 1): string | null => {
+  const flat = flattenIds(roots);
+  if (flat.length === 0) return null;
+  if (id === null) return delta === 1 ? flat[0]! : flat[flat.length - 1]!;
+  const i = flat.indexOf(id);
+  if (i === -1) return flat[0]!;
+  return flat[i + delta] ?? null;
+};
