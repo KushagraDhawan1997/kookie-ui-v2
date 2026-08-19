@@ -46,6 +46,10 @@ Kbd, a hosted Button, small type — chosen in the inspector, exported as the pr
 props (named `title`, `body`, `action` from the role each text plays, with your words as
 defaults) and every axis frozen.
 
+**Compare tiers.** One toggle renders the same document in four rooms at once — initial, sm,
+md, lg. This is a comparison a viewport-keyed system cannot honestly show; here the tiers are
+container queries, so four boxes on one screen resolve four different answers for real.
+
 **Give a document its own appearance.** A dark screen inside a light app is a composition;
 the document says so, the canvas shows it, and the export states it.
 
@@ -105,8 +109,10 @@ pins the canvas. 295 docs tests in total.
 - **JSX import** stays refused. The document is truth; code is a build artifact.
 - **Icons in slots** stay refused, with the reason written in the inspector where it bites.
 - **Freeform positioning** stays impossible — the outer-spacing rule holds inside the tool.
-- **Tree drag** still uses into/after semantics rather than an insertion line (the canvas has
-  the line). Next obvious thing.
+- **Tree drag** now uses the file-browser thirds — the top quarter of a row means *before*,
+  the bottom quarter *after*, the middle *into* — with the line drawn on the row itself so it
+  cannot drift from the row it names. Both halves fall back to the other when the grammar
+  refuses, because a drop that can land somewhere sensible should.
 - **"Fix all"** is not offered: fixes can interact, and a panel that silently rewrites eight
   things is a panel nobody trusts. One at a time, each undoable.
 
