@@ -38,4 +38,8 @@ export { useWindowClass, windowClassQueries, type WindowClass } from "./system/w
 export { componentAxes } from "./system/axes.ts";
 export type { Emphasis, Material, Size, Tone } from "./system/axes.ts";
 export type { Responsive } from "./system/resolve.ts";
+// The tier TABLE beside its type (2026-08-19, the componentAxes sentence for §2's axis):
+// the builder's tier chips and its canvas width readout derive names and boundaries from
+// this one home, instead of restating 30/48/64rem where they would go stale.
+export { tiers, tierNames } from "./system/props.ts";
 export type { Tier } from "./system/props.ts";
