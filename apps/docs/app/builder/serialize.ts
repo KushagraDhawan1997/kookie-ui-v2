@@ -16,8 +16,8 @@
 
 import { themeDefaults } from "@kookie-ui/react";
 
-import { CATALOG } from "./catalog";
-import { TIER_KEYS, type PropValue, type ResponsiveValue } from "./model";
+import { CATALOG, slotsFor } from "./catalog";
+import { TIER_KEYS, flowChildren, slottedChild, type PropValue, type ResponsiveValue } from "./model";
 import type { BuilderDoc, BuilderNode } from "./model";
 
 /** A responsive object normalized to what it actually SAYS: tiers in resolution order,
@@ -91,20 +91,31 @@ const attr = (key: string, value: PropValue): string => {
 const jsxText = (text: string): string =>
   /[<>{}&]/.test(text) || text !== text.trim() ? `{${JSON.stringify(text)}}` : text;
 
+/** `leading={<Spinner />}` — a seat is a prop holding one element, so it belongs in the
+    open tag beside the axes rather than in the children. */
+const slotProps = (n: BuilderNode): string[] =>
+  slotsFor(n.type)
+    .map((slot) => {
+      const child = slottedChild(n, slot);
+      return child ? `${slot}={${inline(child)}}` : null;
+    })
+    .filter((s): s is string => s !== null);
+
 const openTag = (n: BuilderNode): string => {
   const props = effectiveProps(n).map(([k, v]) => attr(k, v));
-  return [n.type, ...props].join(" ");
+  return [n.type, ...props, ...slotProps(n)].join(" ");
 };
 
 /** One node on one line — for render={...} children and text-bearing leaves. */
-const inline = (n: BuilderNode): string => {
+function inline(n: BuilderNode): string {
   const entry = CATALOG[n.type]!;
   if (entry.children === "text" || n.text !== undefined) {
     return `<${openTag(n)}>${jsxText(n.text ?? "")}</${n.type}>`;
   }
-  if (n.children?.length) return `<${openTag(n)}>${n.children.map(inline).join("")}</${n.type}>`;
+  const kids = flowChildren(n);
+  if (kids.length) return `<${openTag(n)}>${kids.map(inline).join("")}</${n.type}>`;
   return `<${openTag(n)} />`;
-};
+}
 
 const serializeNode = (n: BuilderNode, depth: number): string => {
   const entry = CATALOG[n.type];
@@ -112,7 +123,7 @@ const serializeNode = (n: BuilderNode, depth: number): string => {
   const pad = "  ".repeat(depth);
 
   if (entry.renderChild) {
-    const child = n.children?.[0];
+    const child = flowChildren(n)[0];
     // A trigger with nothing to render is an authoring hole, not something to paper over.
     if (!child) throw new Error(`${n.type} has no child to pass through render.`);
     const props = effectiveProps(n).map(([k, v]) => attr(k, v));
@@ -123,9 +134,10 @@ const serializeNode = (n: BuilderNode, depth: number): string => {
     return `${pad}<${openTag(n)}>${jsxText(n.text ?? "")}</${n.type}>`;
   }
 
-  if (!n.children?.length) return `${pad}<${openTag(n)} />`;
+  const kids = flowChildren(n);
+  if (!kids.length) return `${pad}<${openTag(n)} />`;
 
-  const children = n.children.map((c) => serializeNode(c, depth + 1)).join("\n");
+  const children = kids.map((c) => serializeNode(c, depth + 1)).join("\n");
   return `${pad}<${openTag(n)}>\n${children}\n${pad}</${n.type}>`;
 };
 
@@ -191,17 +203,88 @@ export const serializeDocument = (doc: BuilderDoc, exportName = "BuiltScreen"): 
   ].join("\n");
 };
 
-/** A saved block as its own component — a frozen subtree with a name. */
-export const serializeBlock = (name: string, root: BuilderNode): string => {
+/* ── Blocks: a frozen subtree that exports as a real component (2026-08-20) ────────────
+   Its CONTENT is parameterized and its axes are not, which was the agreed shape and is the
+   load-bearing half: a block's loudness, size and tone were decisions its author made, and
+   handing them back as props would reopen exactly the freedom the system closed. What
+   varies between two uses of a media card is the words in it.
+
+   Parameter names come from the ROLE the text plays — a Heading is a title, the first Text
+   is a body, a Button is an action — because `title` reads at the call site and `text3`
+   does not. Collisions take a number, and the order is the tree's own reading order. */
+
+const PARAM_ROLE: Record<string, string> = {
+  Heading: "title",
+  Text: "body",
+  Button: "action",
+  Blockquote: "quote",
+  Code: "code",
+  Kbd: "key",
+  MenuItem: "item",
+  SegmentedItem: "segment",
+  TabsTab: "tab",
+  AlertDialogTitle: "title",
+  AlertDialogDescription: "description",
+  DialogTitle: "title",
+  DialogDescription: "description",
+};
+
+export type BlockParam = { nodeId: string; prop: string; value: string };
+
+/** Every text-bearing node in the subtree, named by role. Pure, so the store can freeze the
+    names at save time and the export can never rename a prop under a call site. */
+export const deriveParams = (root: BuilderNode): BlockParam[] => {
+  const out: BlockParam[] = [];
+  const taken = new Map<string, number>();
+  const visit = (n: BuilderNode) => {
+    if (CATALOG[n.type]?.children === "text" && typeof n.text === "string") {
+      const base = PARAM_ROLE[n.type] ?? "text";
+      const seen = (taken.get(base) ?? 0) + 1;
+      taken.set(base, seen);
+      out.push({ nodeId: n.id, prop: seen === 1 ? base : `${base}${seen}`, value: n.text });
+    }
+    (n.children ?? []).forEach(visit);
+  };
+  visit(root);
+  return out;
+};
+
+/** A saved block as its own component: content in, axes frozen. */
+export const serializeBlock = (name: string, root: BuilderNode, params?: BlockParam[]): string => {
   const used = new Set<string>();
   collectTypes(root, used);
   const imports = [...used].sort((a, b) => a.localeCompare(b));
+  const list = params ?? [];
+  const byId = new Map(list.map((p) => [p.nodeId, p]));
+
+  // The subtree is serialized with each parameterized text replaced by its prop reference.
+  const withRefs = (n: BuilderNode): BuilderNode => {
+    const param = byId.get(n.id);
+    return {
+      ...n,
+      ...(param ? { text: `\u0000${param.prop}\u0000` } : {}),
+      ...(n.children ? { children: n.children.map(withRefs) } : {}),
+    };
+  };
+  const body = serializeNode(withRefs(root), 2)
+    // The sentinel survives jsxText's quoting; unwrapping it here is what turns
+    // {"\u0000title\u0000"} into {title} without teaching the serializer about blocks.
+    .replace(/\{"\\u0000([A-Za-z0-9]+)\\u0000"\}/g, "{$1}")
+    .replace(/\u0000([A-Za-z0-9]+)\u0000/g, "{$1}");
+
+  const signature = list.length
+    ? `{ ${list.map((p) => `${p.prop} = ${JSON.stringify(p.value)}`).join(", ")} }: { ${list
+        .map((p) => `${p.prop}?: React.ReactNode`)
+        .join("; ")} }`
+    : "";
+
   return [
+    ...(list.length ? ['import type * as React from "react";'] : []),
     `import { ${imports.join(", ")} } from "@kookie-ui/react";`,
     "",
-    `export function ${toComponentName(name)}() {`,
+    `export function ${toComponentName(name)}(${signature}) {`,
     "  return (",
-    serializeNode(root, 2),
+    body,
     "  );",
     "}",
     "",

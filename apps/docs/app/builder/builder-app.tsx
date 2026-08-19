@@ -34,6 +34,10 @@ import {
   Grid,
   Heading,
   Kbd,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
   ScrollArea,
   Separator,
   Stack,
@@ -47,7 +51,7 @@ import {
   tiers,
 } from "@kookie-ui/react";
 
-import { RedoIcon, UndoIcon, XIcon } from "../icons";
+import { RedoIcon, UndoIcon } from "../icons";
 import { CATALOG, canContain, gapStepsFor, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
 import {
   cloneWithNewIds,
@@ -58,6 +62,7 @@ import {
   moveNodeTo,
   node,
   removeNode,
+  setSlot,
   updateProps,
   updateText,
   withStableIds,
@@ -67,7 +72,7 @@ import {
 } from "./model";
 import { insertionTarget, typesThrough } from "./placement";
 import { renderNode } from "./render";
-import { serializeDocument } from "./serialize";
+import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { Inspector, ThemePanel } from "./inspector";
 import {
   activeDoc,
@@ -205,6 +210,8 @@ export function BuilderApp() {
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
   const [exportOpen, setExportOpen] = React.useState(false);
+  /** Which block the export dialog is showing, or null for the whole document. */
+  const [exportBlock, setExportBlock] = React.useState<number | null>(null);
   const [toast, setToast] = React.useState<string | null>(null);
   /** Where a right-click landed, and therefore where the context menu anchors. */
   const [contextPoint, setContextPoint] = React.useState<{ x: number; y: number } | null>(null);
@@ -882,11 +889,12 @@ export function BuilderApp() {
 
   const code = React.useMemo(() => {
     try {
-      return serializeDocument(doc);
+      const block = exportBlock === null ? null : blocks[exportBlock];
+      return block ? serializeBlock(block.name, block.node, deriveParams(block.node)) : serializeDocument(doc);
     } catch (err) {
       return `// ${err instanceof Error ? err.message : String(err)}`;
     }
-  }, [doc]);
+  }, [doc, blocks, exportBlock]);
 
   const setThemeAxis = (axis: keyof DocTheme, value: string) =>
     dispatch({ type: "setTheme", axis, value });
@@ -1074,15 +1082,29 @@ export function BuilderApp() {
                               >
                                 {b.name}
                               </Button>
-                              <Button
-                                size="1"
-                                emphasis="quiet"
-                                iconOnly
-                                aria-label={`Remove the block ${b.name}`}
-                                onClick={() => dispatch({ type: "blockRemove", index: i })}
-                              >
-                                <XIcon />
-                              </Button>
+                              <Menu size="1">
+                                <MenuTrigger
+                                  render={
+                                    <Button size="1" emphasis="quiet" aria-label={`Actions for ${b.name}`}>
+                                      ⋯
+                                    </Button>
+                                  }
+                                />
+                                <MenuContent>
+                                  <MenuItem onClick={() => insertBlock(b)}>Insert</MenuItem>
+                                  <MenuItem
+                                    onClick={() => {
+                                      setExportBlock(i);
+                                      setExportOpen(true);
+                                    }}
+                                  >
+                                    Export as component
+                                  </MenuItem>
+                                  <MenuItem tone="destructive" onClick={() => dispatch({ type: "blockRemove", index: i })}>
+                                    Remove
+                                  </MenuItem>
+                                </MenuContent>
+                              </Menu>
                             </Flex>
                           ))
                         )}
@@ -1445,6 +1467,11 @@ export function BuilderApp() {
                           textRef={inspectorTextRef}
                           onProp={(key, next) => commitRoots(updateProps(doc.roots, selected.id, { [key]: next }))}
                           onText={(next) => commitRoots(updateText(doc.roots, selected.id, next))}
+                          onSelect={(id) => setSelection(id)}
+                          onSlot={(slot, type) => {
+                            const child = type ? CATALOG[type]!.make() : null;
+                            commitRoots(setSlot(doc.roots, selected.id, slot, child), child ? [child.id] : [selected.id]);
+                          }}
                         />
                         <Separator />
                         <Stack gap="2">
@@ -1534,14 +1561,22 @@ export function BuilderApp() {
       />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} ctx={ctx} />
       <ShortcutSheet open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
-      <Dialog size="3" open={exportOpen} onOpenChange={setExportOpen}>
+      <Dialog
+        size="3"
+        open={exportOpen}
+        onOpenChange={(open) => {
+          setExportOpen(open);
+          if (!open) setExportBlock(null);
+        }}
+      >
         <DialogContent>
           <Stack gap="5">
             <Stack gap="2">
-              <DialogTitle>Export</DialogTitle>
+              <DialogTitle>{exportBlock === null ? "Export" : `Export ${blocks[exportBlock]?.name ?? "block"}`}</DialogTitle>
               <DialogDescription>
-                Ready to paste: real imports, only the props you stated, a Theme only where your
-                document differs from the system&apos;s defaults.
+                {exportBlock === null
+                  ? "Ready to paste: real imports, only the props you stated, a Theme only where your document differs from the system's defaults."
+                  : "A component with your words as props and every axis frozen — what the block's author decided stays decided."}
               </DialogDescription>
             </Stack>
             <Card size="2">

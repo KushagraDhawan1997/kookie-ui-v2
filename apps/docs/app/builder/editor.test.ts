@@ -27,7 +27,6 @@ import { canUnwrap, canWrap, insertionTarget } from "./placement";
 import { RULES, reviewDocument } from "./review";
 import {
   activeDoc,
-  canRedo,
   canUndo,
   initialState,
   loadState,
@@ -35,7 +34,6 @@ import {
   primaryId,
   reducer,
   saveState,
-  STORE_KEY,
   type EditorState,
 } from "./store";
 

@@ -27,6 +27,16 @@ export type PropValue = string | number | boolean | ResponsiveValue;
 export type BuilderNode = {
   /** Editor identity. Never serialized. */
   id: string;
+  /**
+   * The named seat this node occupies in its parent, if any (§4's adornment slots). A
+   * slotted child lives in the same `children` array as everything else — which is the
+   * whole point: every traversal, every drag, every id lookup keeps working unchanged, and
+   * only the three places that care (the grammar, the serializer, the interpreter) ask.
+   *
+   * The alternative — a second `slots` map beside `children` — was refused: it doubles
+   * every walk in this file and every rule in review.ts, to express a fact one field says.
+   */
+  slot?: "leading" | "trailing";
   /** The catalog key, which IS the exported component name. */
   type: string;
   /** Only props the user has stated. Absent means the component's own default — the
@@ -73,11 +83,12 @@ export const nextId = (): string => `b${++counter}`;
 export const node = (
   type: string,
   props: Record<string, PropValue> = {},
-  extra?: { text?: string; children?: BuilderNode[] },
+  extra?: { text?: string; children?: BuilderNode[]; slot?: "leading" | "trailing" },
 ): BuilderNode => ({
   id: nextId(),
   type,
   props,
+  ...(extra?.slot !== undefined ? { slot: extra.slot } : {}),
   ...(extra?.text !== undefined ? { text: extra.text } : {}),
   ...(extra?.children !== undefined ? { children: extra.children } : {}),
 });
@@ -302,4 +313,31 @@ export const stepInTree = (roots: BuilderNode[], id: string | null, delta: -1 | 
   const i = flat.indexOf(id);
   if (i === -1) return flat[0]!;
   return flat[i + delta] ?? null;
+};
+
+
+/* ── Slots (2026-08-20) ────────────────────────────────────────────────────────────────
+   A node's children divide into the ones that lay out in flow and the ones that sit in a
+   named seat. Stated once here; the grammar, the serializer and the interpreter all ask
+   these two rather than filtering by hand. */
+
+export const flowChildren = (n: BuilderNode): BuilderNode[] => (n.children ?? []).filter((c) => !c.slot);
+
+export const slottedChild = (n: BuilderNode, slot: "leading" | "trailing"): BuilderNode | null =>
+  (n.children ?? []).find((c) => c.slot === slot) ?? null;
+
+/** Seat a node in a slot, replacing whatever sat there. */
+export const setSlot = (
+  roots: BuilderNode[],
+  parentId: string,
+  slot: "leading" | "trailing",
+  child: BuilderNode | null,
+): BuilderNode[] => {
+  const walk = (list: BuilderNode[]): BuilderNode[] =>
+    list.map((n) => {
+      if (n.id !== parentId) return n.children ? { ...n, children: walk(n.children) } : n;
+      const kept = (n.children ?? []).filter((c) => c.slot !== slot);
+      return { ...n, children: child ? [...kept, { ...child, slot }] : kept };
+    });
+  return walk(roots);
 };

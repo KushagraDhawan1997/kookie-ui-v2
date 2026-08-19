@@ -17,8 +17,8 @@ import * as React from "react";
 
 import * as Kookie from "@kookie-ui/react";
 
-import { CATALOG } from "./catalog";
-import type { BuilderNode } from "./model";
+import { CATALOG, slotsFor } from "./catalog";
+import { flowChildren, slottedChild, type BuilderNode } from "./model";
 import { effectiveProps } from "./serialize";
 
 export type RenderMode = "canvas" | "export";
@@ -35,8 +35,15 @@ export function renderNode(n: BuilderNode, mode: RenderMode): React.ReactElement
   const Component = impl(n.type);
   const props: Record<string, unknown> = Object.fromEntries(effectiveProps(n));
 
+  // A named seat renders as the prop it is — `leading={<Spinner/>}` — which is the same
+  // derivation the serializer writes, so canvas and export cannot disagree about a slot.
+  for (const slot of slotsFor(n.type)) {
+    const child = slottedChild(n, slot);
+    if (child) props[slot] = renderNode(child, mode);
+  }
+
   if (entry.renderChild) {
-    const child = n.children?.[0];
+    const child = flowChildren(n)[0];
     if (!child) throw new Error(`${n.type} has no child to pass through render.`);
     props.render = renderNode(child, mode);
     return <Component key={n.id} {...props} />;
@@ -58,10 +65,11 @@ export function renderNode(n: BuilderNode, mode: RenderMode): React.ReactElement
       </Component>
     );
   }
-  if (n.children?.length) {
+  const kids = flowChildren(n);
+  if (kids.length) {
     return (
       <Component key={n.id} {...props}>
-        {n.children.map((c) => renderNode(c, mode))}
+        {kids.map((c) => renderNode(c, mode))}
       </Component>
     );
   }

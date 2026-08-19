@@ -37,10 +37,10 @@ import {
 
 export type Block = {
   name: string;
+  /** A frozen subtree. Its CONTENT is parameterized at export time (serialize.ts derives the
+      prop names from the tree's own reading order, so they are stable without being stored)
+      and its axes are not — a block's loudness was its author's decision. */
   node: BuilderNode;
-  /** Content parameters (blocks v2): node id → prop name, for the text nodes the block
-      exposes. Axes stay frozen — a block's loudness was its author's decision. */
-  params?: Record<string, string>;
 };
 
 export type StoredDoc = BuilderDoc & { id: string; name: string };
@@ -302,7 +302,7 @@ const reviveBlocks = (raw: unknown): Block[] =>
     ? raw
         .map((b) => {
           const node = b?.node ? sanitizeNode(b.node) : null;
-          return node ? { name: String(b.name ?? "Block"), node, ...(b.params ? { params: b.params } : {}) } : null;
+          return node ? { name: String(b.name ?? "Block"), node } : null;
         })
         .filter((b): b is Block => b !== null && b.name.length > 0)
     : [];
