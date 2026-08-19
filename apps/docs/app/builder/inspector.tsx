@@ -459,6 +459,7 @@ export function Inspector({
   onSlot,
   onSelect,
   textRef,
+  measured,
 }: {
   node: BuilderNode;
   onProp: (key: string, next: PropValue | undefined, continuous?: boolean) => void;
@@ -469,6 +470,9 @@ export function Inspector({
   /** The editor's ⏎ focuses the content field — the fastest path from "selected" to
       "typing", and the reason canvas text needs no inline editor of its own. */
   textRef?: React.RefObject<HTMLInputElement | null>;
+  /** What this node's stated indices actually come to, measured off the rendered element.
+      The app owns the measurement; this panel only renders it. */
+  measured?: { label: string; value: string; stated?: string | undefined }[];
 }) {
   const entry = CATALOG[node.type];
   if (!entry) return null;
@@ -579,6 +583,34 @@ export function Inspector({
           })}
           <Text size="1" emphasis="quiet">
             Icons go in by hand — the package ships none, so a written one would not resolve.
+          </Text>
+        </Stack>
+      ) : null}
+
+      {measured && measured.length > 1 ? (
+        <Stack gap="2">
+          <Separator />
+          <Text size="1" weight="medium">
+            What that comes to
+          </Text>
+          {measured.map((row) => (
+            <Flex key={row.label} gap="3" align="center" justify="space-between">
+              <Text size="1" emphasis="medium">
+                {row.label}
+                {row.stated ? (
+                  <Text size="1" emphasis="quiet">
+                    {` ${row.stated}`}
+                  </Text>
+                ) : null}
+              </Text>
+              <Text size="1" render={<code />}>
+                {row.value}
+              </Text>
+            </Flex>
+          ))}
+          <Text size="1" emphasis="quiet">
+            Measured off this element, so density, the pointer world and the canvas width are
+            all already in it.
           </Text>
         </Stack>
       ) : null}

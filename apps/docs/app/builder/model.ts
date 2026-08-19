@@ -387,6 +387,40 @@ export const stepInTree = (roots: BuilderNode[], id: string | null, delta: -1 | 
    named seat. Stated once here; the grammar, the serializer and the interpreter all ask
    these two rather than filtering by hand. */
 
+/**
+ * Which rows a Layers filter keeps (2026-08-20): every node whose type or words match, plus
+ * every ancestor of one — because a match with its path cut off is a match nobody can place.
+ * Every word must appear somewhere in the node's own description, in any order, which is the
+ * palette's matcher and for the same reason: nobody types the words in tree order.
+ *
+ * An empty query returns null, meaning "no filter" rather than "nothing matched" — the two
+ * are opposite answers and a Set cannot tell them apart.
+ */
+export const matchingIds = (roots: BuilderNode[], query: string): Set<string> | null => {
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return null;
+  const keep = new Set<string>();
+  // The ancestors come out of the RETURN value: a node keeps itself when it matches or when
+  // anything below it did, and that walks the chain up on its own. Threading an ancestor list
+  // down as well was a second mechanism for one fact — and a dead one, which is how its
+  // sabotage pass found it: deleting it changed nothing.
+  const visit = (list: BuilderNode[]): boolean => {
+    let any = false;
+    for (const n of list) {
+      const haystack = `${n.type} ${n.text ?? ""}`.toLowerCase();
+      const hit = words.every((w) => haystack.includes(w));
+      const below = n.children ? visit(n.children) : false;
+      if (hit || below) {
+        keep.add(n.id);
+        any = true;
+      }
+    }
+    return any;
+  };
+  visit(roots);
+  return keep;
+};
+
 export const flowChildren = (n: BuilderNode): BuilderNode[] => (n.children ?? []).filter((c) => !c.slot);
 
 export const slottedChild = (n: BuilderNode, slot: "leading" | "trailing"): BuilderNode | null =>

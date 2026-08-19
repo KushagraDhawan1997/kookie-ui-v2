@@ -51,12 +51,13 @@ import {
   tiers,
 } from "@kookie-ui/react";
 
-import { RedoIcon, UndoIcon } from "../icons";
+import { RedoIcon, UndoIcon, XIcon } from "../icons";
 import { CATALOG, canContain, gapStepsFor, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
 import {
   cloneWithNewIds,
   defaultDocTheme,
   findNode,
+  matchingIds,
   findParent,
   insertNode,
   moveNodeTo,
@@ -200,6 +201,10 @@ export function BuilderApp() {
   /* The editor's own modes. Preview hands the canvas back to the components: no stamps, no
      drag, no selection — the screen you built, actually usable. */
   const [preview, setPreview] = React.useState(false);
+  /** The Layers filter. It hides rather than dims: a tree you have to read past is a tree
+      that costs more than it saves. Ancestors of a match stay, because a match with its path
+      cut off is a match nobody can place. */
+  const [layerFilter, setLayerFilter] = React.useState("");
   /** The key listener is mounted once and never re-bound, so it needs the CURRENT mode
       rather than the one that was true when it was attached. */
   const previewRef = React.useRef(preview);
@@ -237,6 +242,8 @@ export function BuilderApp() {
   /** Every selected node, in selection order. The store prunes deleted ids, so a null here
       would be a store bug rather than an ordinary state — filtered anyway, because the
       panel reading it must not be the thing that throws. */
+  const visibleRows = React.useMemo(() => matchingIds(doc.roots, layerFilter), [doc.roots, layerFilter]);
+
   const selectedNodes = React.useMemo(
     () => state.selection.map((id) => findNode(doc.roots, id)).filter((n): n is BuilderNode => n !== null),
     [state.selection, doc.roots],
@@ -814,6 +821,63 @@ export function BuilderApp() {
     if (!cs.display.includes("flex")) return null;
     return cs.flexDirection.startsWith("row") ? "row" : "column";
   };
+  /* ── What the indices actually come to ────────────────────────────────────────────────
+     The one readout no general-purpose builder can show honestly, and the reason is the
+     same one that makes review possible: here a distance is an INDEX, so "gap 4" has an
+     answer, and the answer moves with density, with the pointer world and with the scale.
+
+     It is MEASURED, never derived. Reading `--layout-space-4` off the theme gives the
+     declared value (`calc(12px * var(--scale))`), not what this element got; and rebuilding
+     the arithmetic here would be a second home for numbers the package already owns — the
+     mistake this repo's audits keep finding. So the panel reads the rendered element. */
+  type Measured = { label: string; value: string; stated?: string | undefined }[];
+  const [measured, setMeasured] = React.useState<Measured>([]);
+  React.useEffect(() => {
+    const wrap = canvasRef.current;
+    if (!wrap || !selected) return setMeasured([]);
+    const el = wrap.querySelector(`[data-b-id="${selected.id}"]`);
+    if (!el) return setMeasured([]);
+    const target = visibleEl(el);
+    const cs = getComputedStyle(target);
+    const box = target.getBoundingClientRect();
+    const px = (v: string) => (v && v !== "normal" && parseFloat(v) > 0 ? `${Math.round(parseFloat(v) * 10) / 10}px` : null);
+    const stated = (key: string) => {
+      const v = selected.props[key];
+      return typeof v === "string" ? v : undefined;
+    };
+    const rows: Measured = [
+      { label: "box", value: `${Math.round(box.width)} × ${Math.round(box.height)}` },
+    ];
+    const gap = px(cs.rowGap) ?? px(cs.columnGap);
+    if (gap) rows.push({ label: "gap", value: gap, ...(stated("gap") ? { stated: stated("gap") } : {}) });
+    const pads = [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft].map((v) => Math.round(parseFloat(v) || 0));
+    if (pads.some((p) => p > 0)) {
+      const uniform = pads.every((p) => p === pads[0]);
+      rows.push({
+        label: "padding",
+        value: uniform ? `${pads[0]}px` : `${pads[0]} ${pads[1]} ${pads[2]} ${pads[3]}px`,
+        ...(stated("p") ? { stated: stated("p") } : {}),
+      });
+    }
+    const radius = px(cs.borderTopLeftRadius);
+    if (radius) rows.push({ label: "corner", value: radius });
+    // Type only where the node OWNS one. Every element has a computed font size, but a
+    // Stack's is inherited — reporting it would be the panel answering a question this node
+    // does not ask.
+    const font = px(cs.fontSize);
+    const ownsType = CATALOG[selected.type]?.family === "Type" || CATALOG[selected.type]?.family === "Control";
+    if (font && ownsType) {
+      rows.push({
+        label: "type",
+        value: `${font} / ${px(cs.lineHeight) ?? "auto"}`,
+        ...(stated("size") ? { stated: stated("size") } : {}),
+      });
+    }
+    setMeasured(rows);
+    // The theme axes and the canvas width all move these, so the readout re-measures when
+    // any of them does — a stale number here would be worse than none.
+  }, [selected, doc, canvasW, preview]);
+
   const [seat, setSeat] = React.useState<SeatVocabulary | null>(null);
   React.useEffect(() => {
     setSeat(selected ? seatVocabularyFor(selected.type, parentLayout()) : null);
@@ -1224,10 +1288,39 @@ export function BuilderApp() {
                   <Box pt="3">
                     {/* A tree, said in the markup: assistive technology gets the structure
                         the eye gets from the indent, and the rows carry their own level. */}
+                    <Stack gap="2">
+                    {doc.roots.length > 0 ? (
+                      <TextField
+                        size="1"
+                        aria-label="Filter layers"
+                        placeholder="Filter by type or words"
+                        value={layerFilter}
+                        onChange={(e) => setLayerFilter(e.target.value)}
+                        {...(layerFilter
+                          ? {
+                              trailing: (
+                                <Button
+                                  size="1"
+                                  emphasis="quiet"
+                                  iconOnly
+                                  aria-label="Clear the filter"
+                                  onClick={() => setLayerFilter("")}
+                                >
+                                  <XIcon />
+                                </Button>
+                              ),
+                            }
+                          : {})}
+                      />
+                    ) : null}
                     <Stack gap="1" render={<div role="tree" aria-label="Layers" />}>
                       {doc.roots.length === 0 ? (
                         <Text size="1" emphasis="quiet">
                           The canvas is empty.
+                        </Text>
+                      ) : visibleRows !== null && visibleRows.size === 0 ? (
+                        <Text size="1" emphasis="quiet">
+                          Nothing here is called that.
                         </Text>
                       ) : (
                         doc.roots.map((r) => (
@@ -1246,9 +1339,11 @@ export function BuilderApp() {
                             canRowDrop={(id, mode) => rowSpot(id, mode) !== null}
                             onHoverRow={setDropRow}
                             onRowDrop={onRowDrop}
+                            visible={visibleRows}
                           />
                         ))
                       )}
+                    </Stack>
                     </Stack>
                   </Box>
                 </TabsPanel>
@@ -1635,6 +1730,7 @@ export function BuilderApp() {
                           <Inspector
                             node={selected}
                             textRef={inspectorTextRef}
+                            measured={measured}
                             /* Typing is ONE gesture: every keystroke in a field rides the
                                first one's snapshot, keyed per node and per prop so moving to
                                another field starts a new entry. Without it a two-line
@@ -1950,6 +2046,7 @@ function TreeRows({
   canRowDrop,
   onHoverRow,
   onRowDrop,
+  visible,
 }: {
   node: BuilderNode;
   depth: number;
@@ -1961,7 +2058,11 @@ function TreeRows({
   canRowDrop: (id: string, mode: "before" | "into" | "after") => boolean;
   onHoverRow: (spot: { id: string; mode: "before" | "into" | "after" } | null) => void;
   onRowDrop: (id: string, mode: "before" | "into" | "after") => void;
+  /** The filter's answer, or null for no filter. A row outside it is not drawn — dimming it
+      would leave a tree you have to read past to use. */
+  visible: Set<string> | null;
 }) {
+  if (visible && !visible.has(n.id)) return null;
   /** Which third of the row the pointer is in. The edges are deliberately narrow (a quarter
       each): "into" is the common intent, and a tree where every hover lands between rows is
       a tree you fight. */
@@ -1971,7 +2072,7 @@ function TreeRows({
     return y < 0.25 ? "before" : y > 0.75 ? "after" : "into";
   };
   const label = n.text ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}` : n.type;
-  const pass = { dropRow, onDragBegin, onDragFinish, canRowDrop, onHoverRow, onRowDrop };
+  const pass = { dropRow, onDragBegin, onDragFinish, canRowDrop, onHoverRow, onRowDrop, visible };
   return (
     <>
       <Box
