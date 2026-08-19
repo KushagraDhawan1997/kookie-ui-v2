@@ -41,14 +41,59 @@ import { ENTRIES } from "../(site)/components/registry";
     to it, which is the shortest path from "what is this knob" to the system's own argument. */
 const SLUGS = new Map(ENTRIES.map((e) => [e.name, e.slug]));
 
-import { CATALOG, SLOT_ACCEPTS, slotsFor, type PropSchema } from "./catalog";
+import { CATALOG, SLOT_ACCEPTS, sharedProps, slotsFor, type PropSchema } from "./catalog";
 import { TIER_KEYS, slottedChild, type BuilderNode, type DocTheme, type PropValue, type ResponsiveValue } from "./model";
 
 const REFUSALS = new Map(ENTRIES.map((e) => [e.name, e.refusals]));
 
 /** The sentinel a Select needs for "the component's own default" — a real value, mapped
     back to deleting the prop, because an axis picker cannot hold an absence. */
-const UNSET = "·unset·";
+export const UNSET = "·unset·";
+
+/** The second sentinel, and it is NOT a value: several nodes are selected and they disagree.
+    Choosing it is meaningless — there is nothing to set them all to — so it is offered as
+    the current reading and refuses to be picked. */
+export const MIXED = "·mixed·";
+
+/**
+ * The rows a closed picker offers, IN ORDER (2026-08-20).
+ *
+ * Not a `Record`: an object with keys "1".."4" puts the integer-like keys first whatever the
+ * insertion order, so the sentinels — which read the current state and belong at the top —
+ * sorted to the bottom of every numeric axis. Measured, then fixed here rather than in the
+ * markup, so the ordering is a fact with a law rather than a line of JSX.
+ */
+export const pickOrder = (
+  values: readonly string[],
+  opts: { mixed?: boolean; optional?: boolean; labels?: Record<string, string> } = {},
+): [string, string][] => {
+  const out: [string, string][] = [];
+  if (opts.mixed) out.push([MIXED, "Mixed"]);
+  if (opts.optional) out.push([UNSET, "(unset)"]);
+  for (const v of values) out.push([v, opts.labels?.[v] ?? v]);
+  return out;
+};
+
+/**
+ * What a closed picker may REPORT — from its own list, or nothing (2026-08-20).
+ *
+ * This is not defensive noise. Picking a value resolves a mixed reading, which takes the
+ * Mixed row out of the list underneath the live control, and Base UI answers a value that
+ * has left its items by emitting a reset: measured as the string `"null"` written onto every
+ * selected node one frame after the real pick landed. A closed vocabulary has to be closed at
+ * the edge that READS it too, not only at the edge that offers it.
+ *
+ * `null` means "not a value" — ignore it. `{ value: undefined }` means the explicit unset.
+ */
+export const readPick = (
+  raw: string,
+  values: readonly string[],
+  optional: boolean,
+): { value: string | undefined } | null => {
+  if (raw === MIXED) return null;
+  if (raw === UNSET) return optional ? { value: undefined } : null;
+  return values.includes(raw) ? { value: raw } : null;
+};
 
 function PickRow({
   label,
@@ -56,6 +101,7 @@ function PickRow({
   values,
   labels,
   optional,
+  mixed,
   onPick,
   after,
 }: {
@@ -64,13 +110,16 @@ function PickRow({
   values: readonly string[];
   labels?: Record<string, string>;
   optional: boolean;
+  /** The selection disagrees about this prop. */
+  mixed?: boolean;
   onPick: (next: string | undefined) => void;
   /** A small control seated beside the picker — the responsive row's + menu. */
   after?: React.ReactNode;
 }) {
-  const items: Record<string, string> = {};
-  if (optional) items[UNSET] = "(unset)";
-  for (const v of values) items[v] = labels?.[v] ?? v;
+  /* `items` still goes to the Select for its label lookup; the options render from `order`,
+     because the Record cannot hold one (see `pickOrder`). */
+  const order = pickOrder(values, { ...(mixed ? { mixed } : {}), optional, ...(labels ? { labels } : {}) });
+  const items: Record<string, string> = Object.fromEntries(order);
   return (
     <Flex gap="3" align="center" justify="space-between">
       <Text size="1" emphasis="medium">
@@ -80,12 +129,15 @@ function PickRow({
         <Select
           size="1"
           items={items}
-          value={value ?? UNSET}
-          onValueChange={(v) => onPick(v === UNSET ? undefined : v)}
+          value={mixed ? MIXED : (value ?? UNSET)}
+          onValueChange={(v) => {
+            const picked = readPick(v, values, optional);
+            if (picked) onPick(picked.value);
+          }}
         >
           <SelectTrigger />
           <SelectContent>
-            {Object.entries(items).map(([v, l]) => (
+            {order.map(([v, l]) => (
               <SelectItem key={v} value={v}>
                 {l}
               </SelectItem>
@@ -269,6 +321,130 @@ function ResponsiveControl({
           />
         </Box>
       ))}
+    </Stack>
+  );
+}
+
+/* ── The multi-selection inspector ─────────────────────────────────────────────────────── */
+
+/** Do these nodes agree about this prop? Canonical, because a responsive value is an object
+    and two objects that say the same thing are not `===`. */
+const sameValue = (a: PropValue | undefined, b: PropValue | undefined): boolean =>
+  a === b || JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+/**
+ * Several things selected, one knob (2026-08-20).
+ *
+ * This is the gesture the closed unions pay for. "Make these five the same size" is a guess
+ * in a system where size is a number and a measurement in a system where it is a length; here
+ * it is a pick from a list every selected node already answers, so one gesture can write all
+ * of them and nothing can land somewhere it is refused. `sharedProps` decides what is offered
+ * — same name AND structurally the same schema, so a knob that means two things is never one
+ * knob.
+ *
+ * Only the CLOSED vocabularies are here: axes, designed literal lists and booleans. Free text
+ * and numbers stay per-node on purpose — writing one label onto five buttons is never what
+ * the gesture meant, and the panel would be offering a destruction dressed as an edit.
+ */
+export function MultiInspector({
+  nodes,
+  onProp,
+}: {
+  nodes: BuilderNode[];
+  /** Writes to every selected node, as ONE undoable edit. */
+  onProp: (key: string, next: PropValue | undefined) => void;
+}) {
+  const types = [...new Set(nodes.map((n) => n.type))];
+  const shared = sharedProps(types);
+  /** Only the CLOSED vocabularies are offered — see the note at the foot of the panel. */
+  type Closed = Extract<PropSchema, { kind: "axis" } | { kind: "options" } | { kind: "boolean" }>;
+  const offered = Object.entries(shared).filter(
+    (e): e is [string, Closed] => e[1].kind === "axis" || e[1].kind === "options" || e[1].kind === "boolean",
+  );
+  /** Does any selected node state this prop per tier? Then a plain pick REPLACES that, and
+      the panel says so rather than quietly flattening it. */
+  const anyResponsive = (name: string) => nodes.some((n) => typeof n.props[name] === "object" && n.props[name] !== null);
+
+  return (
+    <Stack gap="4">
+      <Stack gap="1">
+        <Text size="2" weight="medium">
+          {nodes.length} selected
+        </Text>
+        <Text size="1" emphasis="medium">
+          {types.length === 1 ? `${types.length && types[0]}, all of them` : types.join(", ")}
+        </Text>
+      </Stack>
+
+      {offered.length === 0 ? (
+        <Text size="1" emphasis="quiet">
+          {types.length === 1
+            ? "Nothing these share is a closed choice — this one is all identity."
+            : "These types share no knob that means the same thing on all of them. Select fewer kinds, or edit them one at a time."}
+        </Text>
+      ) : (
+        <Stack gap="2">
+          {offered.map(([name, schema]) => {
+            const first = nodes[0]!.props[name];
+            const agreed = nodes.every((n) => sameValue(n.props[name], first));
+            if (schema.kind === "boolean") {
+              return (
+                <Flex key={name} gap="3" align="center" justify="space-between">
+                  <Text size="1" emphasis="medium">
+                    {name}
+                  </Text>
+                  <Flex gap="1" align="center">
+                    {/* Two buttons rather than a switch: a switch has no way to say "these
+                        disagree", and one drawn OFF over a mixed set would be a lie. */}
+                    <Button
+                      size="1"
+                      emphasis={agreed && first === true ? "medium" : "quiet"}
+                      bordered
+                      onClick={() => onProp(name, true)}
+                    >
+                      On
+                    </Button>
+                    <Button
+                      size="1"
+                      emphasis={agreed && first !== true ? "medium" : "quiet"}
+                      bordered
+                      onClick={() => onProp(name, undefined)}
+                    >
+                      Off
+                    </Button>
+                  </Flex>
+                </Flex>
+              );
+            }
+            const values = schema.kind === "axis" ? componentAxes[schema.axis] : schema.values;
+            const labels = schema.kind === "options" ? schema.labels : undefined;
+            const plain = typeof first === "string" ? first : undefined;
+            return (
+              <Stack key={name} gap="1">
+                <PickRow
+                  label={name}
+                  value={agreed ? plain : undefined}
+                  values={values}
+                  {...(labels ? { labels } : {})}
+                  optional={schema.optional ?? false}
+                  mixed={!agreed}
+                  onPick={(next) => onProp(name, next)}
+                />
+                {anyResponsive(name) ? (
+                  <Text size="1" emphasis="quiet">
+                    One of these states {name} per tier. Picking here replaces that.
+                  </Text>
+                ) : null}
+              </Stack>
+            );
+          })}
+        </Stack>
+      )}
+
+      <Text size="1" emphasis="quiet">
+        Text and numbers stay one at a time — writing one label onto several nodes is a
+        deletion wearing an edit&apos;s clothes.
+      </Text>
     </Stack>
   );
 }

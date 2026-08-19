@@ -10,7 +10,7 @@
 
 import { describe, expect, it, beforeEach } from "vitest";
 
-import { CATALOG, canContain as canContainForTest } from "./catalog";
+import { CATALOG, canContain as canContainForTest, sharedProps } from "./catalog";
 import {
   COMMANDS,
   chordLabel,
@@ -22,7 +22,8 @@ import {
   type CommandContext,
 } from "./commands";
 import { CanvasBoundary, CONTEXT_COMMANDS } from "./chrome";
-import { defaultDocTheme, findNode, node, type BuilderDoc, type BuilderNode } from "./model";
+import { MIXED, UNSET, pickOrder, readPick } from "./inspector";
+import { defaultDocTheme, findNode, node, updatePropsMany, type BuilderDoc, type BuilderNode } from "./model";
 import { canUnwrap, canWrap, insertableInto, insertionTarget, typesThrough } from "./placement";
 import { TEMPLATES, templateDoc } from "./templates";
 import { serializeDocument } from "./serialize";
@@ -337,6 +338,141 @@ describe("wrapping and unwrapping ask the grammar both ways", () => {
   it("nothing is insertable into nothing", () => {
     expect(insertableInto([node("Card", {}, { children: [] })], null)).toEqual([]);
     expect(insertableInto([], "gone")).toEqual([]);
+  });
+});
+
+/* ── The multi-selection write ─────────────────────────────────────────────────────────── */
+
+describe("one knob over several nodes is one edit, and only where it means one thing", () => {
+  it("a knob is offered only when the schema MATCHES, not when the name does", () => {
+    // Button and Card both take `size` as the same axis, so one picker can write both.
+    const both = sharedProps(["Button", "Card"]);
+    expect(both.size).toBeDefined();
+    expect(both.size!.kind).toBe("axis");
+
+    // Every offered schema must be identical on every type — this is the assertion that
+    // fails if the filter is ever loosened to "same name".
+    for (const [name, schema] of Object.entries(both)) {
+      for (const type of ["Button", "Card"]) {
+        expect(CATALOG[type]!.props[name]).toBeDefined();
+        expect(CATALOG[type]!.props[name]!.kind).toBe(schema.kind);
+      }
+    }
+
+    // The negative case, and it is a REAL one in this catalog: `size` on a Button is the
+    // control ladder (1-4) and `size` on a Text is the type ladder (1-9). One name, two
+    // ladders — offering one picker over a Button and a Text would let a pick of "7" land
+    // on a control that refuses it. The schemas differ, so the knob is not offered.
+    expect((CATALOG.Button!.props.size as { axis: string }).axis).toBe("size");
+    expect((CATALOG.Text!.props.size as { axis: string }).axis).toBe("typeSize");
+    expect(sharedProps(["Button", "Text"]).size).toBeUndefined();
+    // …and the two type-family members DO share theirs, so this is not just "nothing works".
+    expect(sharedProps(["Text", "Heading"]).size).toBeDefined();
+
+    // A type that is not in the catalog poisons the whole answer rather than being skipped:
+    // a knob offered over four nodes when one of them was not understood is a knob that
+    // writes somewhere nobody looked.
+    expect(sharedProps(["Button", "Widget"])).toEqual({});
+    expect(sharedProps([])).toEqual({});
+  });
+
+  it("a prop only one of them has is not shared", () => {
+    // Button has `bordered`; Text does not.
+    expect(CATALOG.Button!.props.bordered).toBeDefined();
+    expect(CATALOG.Text!.props.bordered).toBeUndefined();
+    expect(sharedProps(["Button", "Text"]).bordered).toBeUndefined();
+  });
+
+  it("the write reaches every named node and nothing else, in one pass", () => {
+    const a = node("Button", {}, { text: "a" });
+    const b = node("Button", {}, { text: "b" });
+    const c = node("Button", { size: "1" }, { text: "c" });
+    const roots = [node("Stack", {}, { children: [a, b] }), c];
+    const next = updatePropsMany(roots, [a.id, b.id], { size: "3" });
+    expect(findNode(next, a.id)!.props.size).toBe("3");
+    expect(findNode(next, b.id)!.props.size).toBe("3");
+    expect(findNode(next, c.id)!.props.size).toBe("1"); // untouched
+    // Untouched branches keep their identity, which is what the interpreter's memo reads.
+    expect(next[1]).toBe(roots[1]);
+  });
+
+  it("it lands as ONE history entry — five nodes, one undo", () => {
+    const a = node("Button", {}, { text: "a" });
+    const b = node("Button", {}, { text: "b" });
+    let s = start(node("Stack", {}, { children: [a, b] }));
+    s = reducer(s, { type: "select", ids: [a.id, b.id] });
+    s = reducer(s, {
+      type: "edit",
+      roots: updatePropsMany(activeDoc(s).roots, [a.id, b.id], { size: "4" }),
+    });
+    expect(findNode(activeDoc(s).roots, a.id)!.props.size).toBe("4");
+    expect(findNode(activeDoc(s).roots, b.id)!.props.size).toBe("4");
+    s = reducer(s, { type: "undo" });
+    expect(findNode(activeDoc(s).roots, a.id)!.props.size).toBeUndefined();
+    expect(findNode(activeDoc(s).roots, b.id)!.props.size).toBeUndefined();
+    expect(canUndo(s)).toBe(false); // there was exactly one entry to take back
+  });
+
+  it("undefined removes the prop rather than writing an undefined into the export", () => {
+    const a = node("Button", { size: "3", emphasis: "loud" }, { text: "a" });
+    const next = updatePropsMany([a], [a.id], { size: undefined });
+    expect("size" in findNode(next, a.id)!.props).toBe(false);
+    expect(findNode(next, a.id)!.props.emphasis).toBe("loud");
+  });
+
+  it("every value a shared axis offers is one every selected type accepts", () => {
+    // The whole safety claim of the gesture: the picker's list comes from ONE schema, so it
+    // must be a list every member answers. Checked against the real catalog, over every
+    // pair of types that share an axis prop.
+    const types = Object.keys(CATALOG);
+    let pairsChecked = 0;
+    for (const a of types) {
+      for (const b of types) {
+        if (a >= b) continue;
+        const shared = sharedProps([a, b]);
+        for (const [name, schema] of Object.entries(shared)) {
+          if (schema.kind !== "axis") continue;
+          pairsChecked++;
+          const other = CATALOG[b]!.props[name]!;
+          expect(other.kind).toBe("axis");
+          expect((other as { axis: string }).axis).toBe(schema.axis);
+        }
+      }
+    }
+    expect(pairsChecked).toBeGreaterThan(0); // a walk that checked nothing is not a law
+  });
+});
+
+/* ── The picker's own vocabulary ───────────────────────────────────────────────────────── */
+
+describe("a closed picker is closed at the edge that reads it, not only where it offers", () => {
+  it("reports a value from its list, the explicit unset, or nothing at all", () => {
+    const sizes = ["1", "2", "3", "4"];
+    expect(readPick("3", sizes, true)).toEqual({ value: "3" });
+    expect(readPick(UNSET, sizes, true)).toEqual({ value: undefined });
+    // The measured defect: resolving a mixed reading takes the Mixed row out of the live
+    // control's items, and Base UI answers a value that has left its items with a reset —
+    // the string "null", which without this went on to be written onto every selected node.
+    expect(readPick("null", sizes, true)).toBeNull();
+    expect(readPick(MIXED, sizes, true)).toBeNull();
+    expect(readPick("7", sizes, true)).toBeNull();
+    expect(readPick("", sizes, true)).toBeNull();
+    // A picker with no unset row must not report one either.
+    expect(readPick(UNSET, sizes, false)).toBeNull();
+  });
+
+  it("puts its sentinels first, which an object keyed by numbers cannot", () => {
+    const rows = pickOrder(["1", "2", "3", "4"], { mixed: true, optional: true });
+    expect(rows.map(([v]) => v)).toEqual([MIXED, UNSET, "1", "2", "3", "4"]);
+    // The shape the bug had: the same rows through a Record sort the numbers to the front,
+    // so this is what the ordering must NOT be — read from the language, not restated.
+    expect(Object.keys(Object.fromEntries(rows))).toEqual(["1", "2", "3", "4", MIXED, UNSET]);
+    // No mixed reading, no Mixed row.
+    expect(pickOrder(["1", "2"], { optional: true }).map(([v]) => v)).toEqual([UNSET, "1", "2"]);
+    expect(pickOrder(["a", "b"]).map(([v]) => v)).toEqual(["a", "b"]);
+    // Labels travel with the value, and only where one was given.
+    expect(pickOrder(["a"], { labels: { a: "Alpha" } })).toEqual([["a", "Alpha"]]);
+    expect(pickOrder(["a"], { labels: { b: "Beta" } })).toEqual([["a", "a"]]);
   });
 });
 

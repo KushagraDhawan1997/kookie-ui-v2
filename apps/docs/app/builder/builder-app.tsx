@@ -64,6 +64,7 @@ import {
   removeNode,
   setSlot,
   updateProps,
+  updatePropsMany,
   updateText,
   withStableIds,
   type BuilderDoc,
@@ -74,7 +75,7 @@ import { insertableInto, insertionTarget, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { TEMPLATES, templateDoc } from "./templates";
-import { Inspector, ThemePanel } from "./inspector";
+import { Inspector, MultiInspector, ThemePanel } from "./inspector";
 import {
   activeDoc,
   canRedo,
@@ -229,6 +230,13 @@ export function BuilderApp() {
   const blocks = state.blocks;
   const selection = primaryId(state);
   const selected = primaryNode(state);
+  /** Every selected node, in selection order. The store prunes deleted ids, so a null here
+      would be a store bug rather than an ordinary state — filtered anyway, because the
+      panel reading it must not be the thing that throws. */
+  const selectedNodes = React.useMemo(
+    () => state.selection.map((id) => findNode(doc.roots, id)).filter((n): n is BuilderNode => n !== null),
+    [state.selection, doc.roots],
+  );
 
   const setSelection = React.useCallback(
     (id: string | null, additive = false) =>
@@ -1607,17 +1615,28 @@ export function BuilderApp() {
                   <Box pt="3">
                     {selected ? (
                       <Stack gap="5">
-                        <Inspector
-                          node={selected}
-                          textRef={inspectorTextRef}
-                          onProp={(key, next) => commitRoots(updateProps(doc.roots, selected.id, { [key]: next }))}
-                          onText={(next) => commitRoots(updateText(doc.roots, selected.id, next))}
-                          onSelect={(id) => setSelection(id)}
-                          onSlot={(slot, type) => {
-                            const child = type ? CATALOG[type]!.make() : null;
-                            commitRoots(setSlot(doc.roots, selected.id, slot, child), child ? [child.id] : [selected.id]);
-                          }}
-                        />
+                        {/* One panel or the other, never both: two `size` pickers over one
+                            selection is a panel arguing with itself about what it edits. */}
+                        {state.selection.length > 1 ? (
+                          <MultiInspector
+                            nodes={selectedNodes}
+                            onProp={(key, next) =>
+                              commitRoots(updatePropsMany(doc.roots, state.selection, { [key]: next }))
+                            }
+                          />
+                        ) : (
+                          <Inspector
+                            node={selected}
+                            textRef={inspectorTextRef}
+                            onProp={(key, next) => commitRoots(updateProps(doc.roots, selected.id, { [key]: next }))}
+                            onText={(next) => commitRoots(updateText(doc.roots, selected.id, next))}
+                            onSelect={(id) => setSelection(id)}
+                            onSlot={(slot, type) => {
+                              const child = type ? CATALOG[type]!.make() : null;
+                              commitRoots(setSlot(doc.roots, selected.id, slot, child), child ? [child.id] : [selected.id]);
+                            }}
+                          />
+                        )}
                         <Separator />
                         <Stack gap="2">
                           <Text size="1" weight="medium">

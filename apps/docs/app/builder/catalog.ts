@@ -896,6 +896,42 @@ export const slotsFor = (type: string): readonly ("leading" | "trailing")[] => C
 export const canSit = (parentType: string, childType: string): boolean =>
   slotsFor(parentType).length > 0 && (SLOT_ACCEPTS as readonly string[]).includes(childType);
 
+/**
+ * The props several types SHARE — the multi-selection inspector's question (2026-08-20).
+ *
+ * Same name is not enough: a knob is one knob only if it means the same thing on every type
+ * it is offered for. `size` is an axis on a Button and an axis on a Card, so one picker can
+ * write both; a prop that is an axis on one type and free text on another is two knobs
+ * wearing one name, and offering it would let one gesture write a value the other type
+ * refuses. So the schemas must MATCH, structurally.
+ *
+ * `note` is deliberately excluded from the comparison and from the result: a note is prose
+ * about one component's trap, and the panel has no way to show four of them honestly.
+ *
+ * This is the gesture the closed unions pay for. In a system where `size` is a number, "make
+ * these five the same size" is a guess; here it is a pick from a list every one of them
+ * already answers.
+ */
+const schemaKey = (s: PropSchema): string => {
+  const rest: Record<string, unknown> = { ...s };
+  delete rest.note;
+  return JSON.stringify(rest, Object.keys(rest).sort());
+};
+
+export const sharedProps = (types: readonly string[]): Record<string, PropSchema> => {
+  const entries = types.map((t) => CATALOG[t]).filter((e): e is CatalogEntry => Boolean(e));
+  if (entries.length !== types.length || entries.length === 0) return {};
+  const [first, ...rest] = entries as [CatalogEntry, ...CatalogEntry[]];
+  const out: Record<string, PropSchema> = {};
+  for (const [name, schema] of Object.entries(first.props)) {
+    const key = schemaKey(schema);
+    if (rest.every((e) => e.props[name] !== undefined && schemaKey(e.props[name]!) === key)) {
+      out[name] = schema;
+    }
+  }
+  return out;
+};
+
 /** The general palette: entries that stand on their own. */
 export const PALETTE_FAMILIES = ["Layout", "Surface", "Control", "Type", "Indicator"] as const;
 export const paletteEntries = (): [string, CatalogEntry][] =>
