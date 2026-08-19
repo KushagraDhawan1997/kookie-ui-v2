@@ -73,6 +73,7 @@ import {
 import { insertionTarget, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
+import { TEMPLATES, templateDoc } from "./templates";
 import { Inspector, ThemePanel } from "./inspector";
 import {
   activeDoc,
@@ -100,7 +101,7 @@ import {
 import { CommandPalette } from "./command-palette";
 import { reviewDocument, type Finding } from "./review";
 import { ReviewPanel } from "./review-panel";
-import { Breadcrumb, ContextMenu, DocumentBar, ShortcutSheet, Toast } from "./chrome";
+import { Breadcrumb, ContextMenu, DocumentBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
 
 const DRAG_TYPE = "application/x-kookie-component";
 const MOVE_TYPE = "application/x-kookie-move";
@@ -1199,9 +1200,19 @@ export function BuilderApp() {
                     <Box container width="100%">
                       <Stack gap="5">
                         {doc.roots.length === 0 ? (
-                          <Text size="2" emphasis="quiet">
-                            Drop something here, or add it from the palette.
-                          </Text>
+                          <TemplatePicker
+                            onPick={(id) => {
+                              const template = TEMPLATES.find((t) => t.id === id);
+                              if (!template) return;
+                              const roots = templateDoc(template).roots.map(cloneWithNewIds);
+                              dispatch({ type: "edit", roots, selection: [] });
+                              // A document nobody has named takes the template's name — but a
+                              // named one keeps its own, because that name was a decision.
+                              if (/^Untitled/.test(activeDoc(stateRef.current).name)) {
+                                dispatch({ type: "docRename", id: stateRef.current.activeId, name: template.name });
+                              }
+                            }}
+                          />
                         ) : (
                           doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
                         )}

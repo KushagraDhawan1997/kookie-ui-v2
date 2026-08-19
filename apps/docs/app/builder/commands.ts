@@ -30,6 +30,7 @@ import {
   type BuilderNode,
 } from "./model";
 import { canUnwrap, canWrap, insertionTarget, typesThrough } from "./placement";
+import { TEMPLATES, templateDoc } from "./templates";
 import {
   activeDoc,
   canRedo,
@@ -561,6 +562,18 @@ function canWrapInto(list: BuilderNode[], parentId: string | null, type: string)
   return canContain(parentType, type, chain);
 }
 
+/** Every template as a command — the palette is where "start from a screen" belongs, since
+    that is where a person already goes to start anything. */
+export const templateCommands = (): Command[] =>
+  TEMPLATES.map((t) => ({
+    id: `template:${t.id}`,
+    title: `New document: ${t.name}`,
+    group: "Document",
+    keywords: `template start ${t.blurb}`,
+    enabled: () => true,
+    run: (c) => c.dispatch({ type: "docNew", name: t.name, doc: templateDoc(t) }),
+  }));
+
 /** Insertable components for the palette, gated by the grammar at the current selection. */
 export const insertCommands = (ctx: CommandContext): Command[] =>
   Object.entries(CATALOG)
@@ -584,7 +597,11 @@ export const insertCommands = (ctx: CommandContext): Command[] =>
     .filter((cmd) => cmd.enabled(ctx));
 
 /** Every command a surface may offer right now, insertables included. */
-export const allCommands = (ctx: CommandContext): Command[] => [...COMMANDS, ...insertCommands(ctx)];
+export const allCommands = (ctx: CommandContext): Command[] => [
+  ...COMMANDS,
+  ...templateCommands(),
+  ...insertCommands(ctx),
+];
 
 /** Fuzzy-ish match: every typed word must appear in the haystack, in any order. Deliberately
     not a scored fuzzy matcher — a palette that reorders under you is a palette you cannot

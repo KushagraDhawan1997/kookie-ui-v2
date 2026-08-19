@@ -12,6 +12,7 @@ import * as React from "react";
 import {
   Box,
   Button,
+  Card,
   Dialog,
   DialogClose,
   DialogContent,
@@ -36,6 +37,7 @@ import {
 
 import { COMMANDS, chordLabel, type CommandGroup } from "./commands";
 import { ancestorChain, findNode, type BuilderNode } from "./model";
+import { TEMPLATES } from "./templates";
 import { activeDoc, type Action, type EditorState } from "./store";
 
 /* ── The document bar ─────────────────────────────────────────────────────────────────── */
@@ -318,6 +320,46 @@ export function ContextMenu({
         )}
       </MenuContent>
     </Menu>
+  );
+}
+
+/* ── The empty state ──────────────────────────────────────────────────────────────────── */
+
+/**
+ * An empty document opens on the templates rather than on nothing. Two reasons: an empty
+ * state should invite an action (§15's own rule for them), and these screens are the house
+ * style demonstrated — a law holds every one of them to zero review findings, so starting
+ * from one starts you inside the brief rather than beside it.
+ */
+export function TemplatePicker({ onPick }: { onPick: (id: string) => void }) {
+  return (
+    <Stack gap="6">
+      <Stack gap="2">
+        <Text size="6" weight="semibold" render={<h2 />}>
+          Start with a screen
+        </Text>
+        <Text size="2" emphasis="medium">
+          Every one holds to the house style — the review panel has nothing to say about them.
+        </Text>
+      </Stack>
+      <Grid columns="repeat(2, minmax(0, 1fr))" gap="4">
+        {TEMPLATES.filter((t) => t.id !== "blank").map((t) => (
+          <Card key={t.id} size="3" render={<button type="button" onClick={() => onPick(t.id)} />}>
+            <Stack gap="2" align="flex-start">
+              <Text size="3" weight="medium">
+                {t.name}
+              </Text>
+              <Text size="2" emphasis="medium" style={{ textAlign: "start" }}>
+                {t.blurb}
+              </Text>
+            </Stack>
+          </Card>
+        ))}
+      </Grid>
+      <Text size="2" emphasis="quiet">
+        Or press {chordLabel("mod+k")} and add a component.
+      </Text>
+    </Stack>
   );
 }
 

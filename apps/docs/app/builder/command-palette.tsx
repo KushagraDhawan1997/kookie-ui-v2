@@ -14,7 +14,15 @@ import * as React from "react";
 
 import { Box, Dialog, DialogContent, DialogTitle, Flex, Kbd, ScrollArea, Stack, Text, TextField } from "@kookie-ui/react";
 
-import { COMMANDS, chordLabel, insertCommands, matches, type Command, type CommandContext } from "./commands";
+import {
+  COMMANDS,
+  chordLabel,
+  insertCommands,
+  matches,
+  templateCommands,
+  type Command,
+  type CommandContext,
+} from "./commands";
 
 type Row = { key: string; title: string; group: string; hint?: string; run: () => void };
 
@@ -48,6 +56,9 @@ export function CommandPalette({
       run: () => c.run(ctx),
     });
     const commands = COMMANDS.filter((c) => c.enabled(ctx) && matches(c, query)).map(asRow);
+    const templates = templateCommands()
+      .filter((c) => matches(c, query))
+      .map((c): Row => ({ key: c.id, title: c.title, group: "Templates", run: () => c.run(ctx) }));
     const inserts = insertCommands(ctx)
       .filter((c) => matches(c, query))
       .map(asRow);
@@ -70,7 +81,7 @@ export function CommandPalette({
         group: "Documents",
         run: () => ctx.dispatch({ type: "docSwitch", id: d.id }),
       }));
-    return [...commands, ...inserts, ...blocks, ...documents];
+    return [...commands, ...templates, ...inserts, ...blocks, ...documents];
   }, [open, query, ctx]);
 
   React.useEffect(() => {
