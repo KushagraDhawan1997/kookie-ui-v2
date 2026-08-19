@@ -72,6 +72,7 @@ import {
   type BuilderNode,
   type DocTheme,
 } from "./model";
+import { dropSpot } from "./geometry";
 import { canAccept, insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
@@ -489,39 +490,23 @@ export function BuilderApp() {
     if (measured.length === 0) {
       return { parentId: parent?.id ?? null, index: 0, line: null, boxId: parent?.id ?? null };
     }
-    const cs = getComputedStyle(containerEl as HTMLElement);
-    const horizontal = cs.display.includes("flex") && cs.flexDirection.startsWith("row");
-    let index = 0;
-    for (const { r } of measured) {
-      const mid = horizontal ? r.left + r.width / 2 : r.top + r.height / 2;
-      if ((horizontal ? clientX : clientY) > mid) index += 1;
-    }
-    const before = measured[index - 1]?.r;
-    const after = measured[index]?.r;
-    const at = horizontal
-      ? before && after
-        ? (before.right + after.left) / 2
-        : before
-          ? before.right + 3
-          : after!.left - 3
-      : before && after
-        ? (before.bottom + after.top) / 2
-        : before
-          ? before.bottom + 3
-          : after!.top - 3;
-    const line = horizontal
-      ? {
-          x: at - wrapRect.left - 1,
-          y: Math.min(...measured.map((m) => m.r.top)) - wrapRect.top,
-          w: 2,
-          h: Math.max(...measured.map((m) => m.r.height)),
-        }
-      : {
-          x: Math.min(...measured.map((m) => m.r.left)) - wrapRect.left,
-          y: at - wrapRect.top - 1,
-          w: Math.max(...measured.map((m) => m.r.width)),
-          h: 2,
-        };
+    /* The arithmetic lives in `geometry.ts` so it can carry a law: the version this
+       replaces could only be checked by dragging, and it was wrong for two of the four
+       layouts the builder ships. */
+    const spot = dropSpot(
+      measured.map((m) => m.r),
+      containerEl.getBoundingClientRect(),
+      clientX,
+      clientY,
+    );
+    if (!spot) return null;
+    const line = {
+      x: spot.line.x - wrapRect.left,
+      y: spot.line.y - wrapRect.top,
+      w: spot.line.w,
+      h: spot.line.h,
+    };
+    const index = spot.index;
     return { parentId: parent?.id ?? null, index, line, boxId: null };
   };
 
