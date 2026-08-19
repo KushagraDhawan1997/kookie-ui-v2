@@ -322,8 +322,15 @@ export function reducer(s: EditorState, a: Action): EditorState {
       const activeId = s.activeId === a.id ? remaining[0]!.id : s.activeId;
       return { ...s, docs: remaining, activeId, histories, selection: s.activeId === a.id ? [] : s.selection };
     }
-    case "blockSave":
-      return { ...s, blocks: [...s.blocks, a.block] };
+    case "blockSave": {
+      // Saving under a name that is already taken REPLACES it. Appending gave two blocks
+      // with one name and no way to tell them apart — and it is what closes the round trip
+      // the "Open as document" route opens: edit the copy, save it back under the same
+      // name, and the block is updated rather than duplicated.
+      const at = s.blocks.findIndex((b) => b.name === a.block.name);
+      if (at === -1) return { ...s, blocks: [...s.blocks, a.block] };
+      return { ...s, blocks: s.blocks.map((b, i) => (i === at ? a.block : b)) };
+    }
     case "blockRemove":
       return { ...s, blocks: s.blocks.filter((_, i) => i !== a.index) };
     case "hydrate":

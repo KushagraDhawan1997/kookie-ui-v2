@@ -139,6 +139,8 @@ export type CommandUi = {
   /** Ask the system clipboard for a paste; resolves null when it holds nothing we wrote. */
   readClipboard: () => Promise<BuilderNode[] | null>;
   focusInspectorText: () => void;
+  /** Show the Layers tree and put the caret in its filter. */
+  focusLayerFilter: () => void;
   saveBlockFromSelection: () => void;
   /** Blocks live in state, but placing one is the app's insertion path. */
   insertBlockByIndex: (index: number) => void;
@@ -531,6 +533,16 @@ export const COMMANDS: Command[] = [
   },
 
   /* View */
+  {
+    id: "findLayer",
+    global: true,
+    title: "Find a layer",
+    group: "Select",
+    chord: "mod+f",
+    keywords: "search filter locate layers tree",
+    enabled: () => true,
+    run: (c) => c.ui.focusLayerFilter(),
+  },
   {
     id: "zoomIn",
     global: true,
