@@ -273,10 +273,14 @@ export function Inspector({
   node,
   onProp,
   onText,
+  textRef,
 }: {
   node: BuilderNode;
   onProp: (key: string, next: PropValue | undefined) => void;
   onText: (next: string) => void;
+  /** The editor's ⏎ focuses the content field — the fastest path from "selected" to
+      "typing", and the reason canvas text needs no inline editor of its own. */
+  textRef?: React.RefObject<HTMLInputElement | null>;
 }) {
   const entry = CATALOG[node.type];
   if (!entry) return null;
@@ -298,7 +302,13 @@ export function Inspector({
           <Text size="1" emphasis="medium">
             text
           </Text>
-          <TextField size="1" aria-label="Text content" value={node.text ?? ""} onChange={(e) => onText(e.target.value)} />
+          <TextField
+            size="1"
+            aria-label="Text content"
+            {...(textRef ? { ref: textRef } : {})}
+            value={node.text ?? ""}
+            onChange={(e) => onText(e.target.value)}
+          />
         </Stack>
       ) : null}
 
