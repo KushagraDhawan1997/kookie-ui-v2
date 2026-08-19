@@ -29,7 +29,7 @@ import {
   wrapNodes,
   type BuilderNode,
 } from "./model";
-import { canUnwrap, canWrap, insertionTarget, typesThrough } from "./placement";
+import { canUnwrap, canWrap, insertionTarget, placeNodes, typesThrough } from "./placement";
 import { TEMPLATES, templateDoc } from "./templates";
 import {
   activeDoc,
@@ -159,6 +159,29 @@ export type Command = {
   chord?: Chord;
   /** Extra words the palette should match on — "row" finding "Wrap in Flex". */
   keywords?: string;
+  /**
+   * Reachable from the keyboard even while a field has focus, and even in preview. The
+   * palette must open from anywhere, and preview must be leaveable from anywhere; everything
+   * else is an EDITING gesture and has no business firing over a screen the editor is
+   * pretending not to own.
+   *
+   * This used to be a list of four ids inside the key handler, which is the second home the
+   * rest of this file exists to avoid.
+   */
+  global?: true;
+  /**
+   * The chord is DOCUMENTED here but delivered by the browser's own event (2026-08-20).
+   *
+   * Copy, cut and paste ride the real clipboard events on purpose: they hand over
+   * `clipboardData` with no permission prompt and no gesture rules, which is what lets a
+   * subtree cross documents, tabs and windows. Cancelling the keydown suppresses the default
+   * action that GENERATES those events, so handling ⌘C here quietly routed the primary
+   * gesture down the async-clipboard path the design rejects — losing the toast, and
+   * silently losing the system clipboard on an insecure origin, where
+   * `navigator.clipboard` is undefined. The row stays for the palette and the shortcut
+   * sheet; the keyboard steps aside.
+   */
+  viaEvent?: true;
   enabled: (ctx: CommandContext) => boolean;
   run: (ctx: CommandContext) => void;
 };
@@ -171,15 +194,7 @@ const hasSelection = (ctx: CommandContext) => ctx.state.selection.length > 0;
 /** Insert nodes where the selection says, selecting the first arrival. */
 const insertNodes = (ctx: CommandContext, nodes: BuilderNode[]): void => {
   if (nodes.length === 0) return;
-  let next = roots(ctx);
-  const placed: string[] = [];
-  for (const n of nodes) {
-    const target = insertionTarget(next, primaryId(ctx.state), n.type);
-    if (!target) continue;
-    const fresh = cloneWithNewIds(n);
-    next = insertNode(next, target.parentId, fresh, target.index);
-    placed.push(fresh.id);
-  }
+  const { roots: next, placed } = placeNodes(roots(ctx), primaryId(ctx.state), nodes);
   if (placed.length) ctx.dispatch({ type: "edit", roots: next, selection: placed });
 };
 
@@ -248,6 +263,7 @@ export const COMMANDS: Command[] = [
   },
   {
     id: "copy",
+    viaEvent: true,
     title: "Copy",
     group: "Edit",
     chord: "mod+c",
@@ -260,6 +276,7 @@ export const COMMANDS: Command[] = [
   },
   {
     id: "cut",
+    viaEvent: true,
     title: "Cut",
     group: "Edit",
     chord: "mod+x",
@@ -275,6 +292,7 @@ export const COMMANDS: Command[] = [
   },
   {
     id: "paste",
+    viaEvent: true,
     title: "Paste",
     group: "Edit",
     chord: "mod+v",
@@ -476,6 +494,7 @@ export const COMMANDS: Command[] = [
   },
   {
     id: "export",
+    global: true,
     title: "Export code",
     group: "Document",
     chord: "mod+e",
@@ -512,6 +531,7 @@ export const COMMANDS: Command[] = [
   /* View */
   {
     id: "preview",
+    global: true,
     title: "Toggle preview",
     group: "View",
     chord: "mod+shift+p",
@@ -530,6 +550,7 @@ export const COMMANDS: Command[] = [
   },
   {
     id: "palette",
+    global: true,
     title: "Command palette",
     group: "View",
     chord: "mod+k",
@@ -538,6 +559,7 @@ export const COMMANDS: Command[] = [
   },
   {
     id: "shortcuts",
+    global: true,
     title: "Keyboard shortcuts",
     group: "View",
     chord: "mod+/",

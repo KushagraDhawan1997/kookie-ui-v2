@@ -815,24 +815,93 @@ export const canContain = (
  * saved under an older catalog must load as the part of it the system still speaks, not
  * crash the interpreter with a throw the serializer means for authoring mistakes.
  */
-export const sanitizeNode = (n: BuilderNode): BuilderNode | null => {
+export const sanitizeNode = (n: BuilderNode, parentType?: string): BuilderNode | null => {
   const entry = CATALOG[n.type];
   if (!entry) return null;
   const props: BuilderNode["props"] = {};
   for (const [k, v] of Object.entries(n.props ?? {})) {
     if (k in entry.props) props[k] = v;
   }
-  const children = n.children?.map(sanitizeNode).filter((c): c is BuilderNode => c !== null);
+  const children = n.children
+    ?.map((c) => sanitizeNode(c, n.type))
+    .filter((c): c is BuilderNode => c !== null);
   return {
     id: n.id,
     type: n.type,
     props,
-    // A seat survives storage only where the entry still offers it, and only for a type it
-    // still accepts — the same "load as the part the system still speaks" rule as props.
-    ...(n.slot && (CATALOG[n.type] ? true : false) ? { slot: n.slot } : {}),
+    // A seat survives storage only where the PARENT offers that seat and still accepts this
+    // type. The first spelling asked `CATALOG[n.type]`, which the two lines above have
+    // already proven truthy — a tautology wearing the comment of a real check, and the one
+    // repair path for a slot that has come loose.
+    ...(n.slot && parentType && seatsIt(parentType, n.slot, n.type) ? { slot: n.slot } : {}),
     ...(typeof n.text === "string" ? { text: n.text } : {}),
-    ...(children ? { children } : {}),
+    ...(children ? { children: dedupeSeats(children) } : {}),
   };
+};
+
+/** Does `parentType` offer this seat, to this type? Both halves — a Card offers no seat at
+    all, and a field's seat refuses a Card. */
+const seatsIt = (parentType: string, slot: "leading" | "trailing", childType: string): boolean =>
+  slotsFor(parentType).includes(slot) && canSit(parentType, childType);
+
+/** One child per seat. Two children claiming `leading` is a tree only one of them survives —
+    `slottedChild` takes the first, so the second was drawn nowhere and exported nowhere
+    while still sitting in the document. The first keeps the seat; the rest join the flow. */
+const dedupeSeats = (children: BuilderNode[]): BuilderNode[] => {
+  const taken = new Set<string>();
+  let changed = false;
+  const out = children.map((c) => {
+    if (!c.slot) return c;
+    if (taken.has(c.slot)) {
+      changed = true;
+      const rest: BuilderNode = { ...c };
+      delete rest.slot;
+      return rest;
+    }
+    taken.add(c.slot);
+    return c;
+  });
+  return changed ? out : children;
+};
+
+/**
+ * The whole tree, made legal against the catalog WITHOUT losing identity (2026-08-20).
+ *
+ * `sanitizeNode` always builds a fresh object, which is right for a load and wrong for an
+ * edit: the interpreter is memoized on node identity, so rebuilding every node per keystroke
+ * would undo the work that took a 280-node document to 12ms. This returns the SAME node
+ * wherever nothing was wrong, so an ordinary edit costs a walk and nothing else.
+ *
+ * What it repairs is the class of damage no single operation owns: a seat that has come
+ * loose. `slot` is a field on the node, not on the edge to its parent, so every operation
+ * that carries a node across the tree — a canvas drag, a Layers drag, "move out of
+ * container", unwrapping the control it sat in — hands the new parent a child still claiming
+ * a seat that parent does not offer. `flowChildren` filters it out, and `flowChildren` is
+ * what BOTH the interpreter and the serializer walk: the node is in the tree, in Layers and
+ * in storage, and drawn and exported nowhere. Measured, before this existed: a Spinner
+ * dragged out of a Button's leading seat vanished from the canvas, and the export imported
+ * `Spinner` and never used it.
+ *
+ * Fixing it in the four operations would be four homes for one rule and no home for the
+ * fifth operation somebody writes next. This is one, at the choke point every edit passes.
+ */
+export const normalizeSeats = (roots: BuilderNode[]): BuilderNode[] => {
+  const walk = (list: BuilderNode[], parentType: string | null): BuilderNode[] => {
+    let changed = false;
+    const mapped = list.map((n) => {
+      const kids = n.children ? walk(n.children, n.type) : undefined;
+      const loose = Boolean(n.slot) && !(parentType && seatsIt(parentType, n.slot!, n.type));
+      if (!loose && (kids === undefined || kids === n.children)) return n;
+      const next: BuilderNode = { ...n, ...(kids ? { children: kids } : {}) };
+      if (loose) delete next.slot;
+      changed = true;
+      return next;
+    });
+    const deduped = dedupeSeats(changed ? mapped : list);
+    if (deduped !== (changed ? mapped : list)) return deduped;
+    return changed ? mapped : list;
+  };
+  return walk(roots, null);
 };
 
 /* ── What resize may write (2026-08-20, Kushagra: "resize on components increases size") ──

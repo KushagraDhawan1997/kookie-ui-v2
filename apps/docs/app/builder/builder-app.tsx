@@ -71,7 +71,7 @@ import {
   type BuilderNode,
   type DocTheme,
 } from "./model";
-import { insertableInto, insertionTarget, typesThrough } from "./placement";
+import { insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { TEMPLATES, templateDoc } from "./templates";
@@ -200,6 +200,10 @@ export function BuilderApp() {
   /* The editor's own modes. Preview hands the canvas back to the components: no stamps, no
      drag, no selection — the screen you built, actually usable. */
   const [preview, setPreview] = React.useState(false);
+  /** The key listener is mounted once and never re-bound, so it needs the CURRENT mode
+      rather than the one that was true when it was attached. */
+  const previewRef = React.useRef(preview);
+  previewRef.current = preview;
   /** The tiers view: the same document in several rooms at once. Honest here in a way it is
       not in a viewport-keyed system — the tiers are CONTAINER queries, so four boxes on one
       screen resolve four different answers for real, with no emulation anywhere. */
@@ -296,8 +300,15 @@ export function BuilderApp() {
       const typing = Boolean(t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable));
       for (const cmd of COMMANDS) {
         if (!cmd.chord || !chordMatches(cmd.chord, e)) continue;
-        const global = cmd.id === "palette" || cmd.id === "export" || cmd.id === "shortcuts" || cmd.id === "preview";
-        if (typing && !global) return;
+        // A chord the browser delivers as its own event: step aside entirely, because
+        // cancelling the keydown is what would suppress that event (see `viaEvent`).
+        if (cmd.viaEvent) return;
+        if (typing && !cmd.global) return;
+        // Preview is the screen, not the editor. Every editing chord stays armed otherwise —
+        // measured: with a canvas checkbox focused (Base UI draws one as a <button>, so the
+        // typing guard does not see it), Backspace deleted the selected node with no ring,
+        // no toast and nothing on screen to say it had happened.
+        if (previewRef.current && !cmd.global) return;
         if (!cmd.enabled(ctx)) return;
         e.preventDefault();
         cmd.run(ctx);
@@ -340,15 +351,7 @@ export function BuilderApp() {
       const nodes = decodeNodes(text);
       if (!nodes || nodes.length === 0) return;
       e.preventDefault();
-      let next = activeDoc(ctx.state).roots;
-      const placed: string[] = [];
-      for (const n of nodes) {
-        const target = insertionTarget(next, primaryId(ctx.state), n.type);
-        if (!target) continue;
-        const fresh = cloneWithNewIds(n);
-        next = insertNode(next, target.parentId, fresh, target.index);
-        placed.push(fresh.id);
-      }
+      const { roots: next, placed } = placeNodes(activeDoc(ctx.state).roots, primaryId(ctx.state), nodes);
       if (placed.length === 0) {
         say("Nothing here accepts that");
         return;
@@ -1790,7 +1793,7 @@ export function BuilderApp() {
             try {
               const parsed = JSON.parse(text) as { name?: string; theme?: DocTheme; roots?: BuilderNode[] };
               const roots = (parsed.roots ?? [])
-                .map(sanitizeNode)
+                .map((n) => sanitizeNode(n))
                 .filter((n): n is BuilderNode => n !== null)
                 .map(cloneWithNewIds);
               if (roots.length === 0) {

@@ -9,7 +9,7 @@
  */
 
 import { CATALOG, canContain } from "./catalog";
-import { ancestorChain, findNode, findParent, type BuilderNode } from "./model";
+import { ancestorChain, cloneWithNewIds, findNode, findParent, insertNode, type BuilderNode } from "./model";
 
 /** The ancestor TYPES above-and-including a prospective parent — what `canContain` asks. */
 export const typesThrough = (roots: BuilderNode[], parentId: string | null): string[] => {
@@ -68,6 +68,41 @@ export const insertableInto = (
   const parts = types.filter((t) => CATALOG[t]!.partOf);
   const rest = types.filter((t) => !CATALOG[t]!.partOf);
   return [...parts, ...rest].slice(0, limit);
+};
+
+/**
+ * Place several nodes where the selection says, IN ORDER (2026-08-20).
+ *
+ * The order is the whole reason this exists. Both paste paths — the ⌘V command and the
+ * clipboard event — used to run the same loop, recomputing the target against a selection
+ * whose index never moved, so every node landed at the same spot and each one pushed the
+ * previous one down: copying A, B, C pasted C, B, A. One defect, spelled out twice, in two
+ * files, with no law over either.
+ *
+ * The repair is a per-parent offset rather than re-anchoring on the node just placed: the
+ * anchor advance reads well and is wrong, because `insertionTarget` asks whether the anchor
+ * ITSELF accepts the type — so pasting a Card and then a Text would put the Text inside the
+ * Card rather than beside it.
+ */
+export const placeNodes = (
+  roots: BuilderNode[],
+  anchorId: string | null,
+  nodes: readonly BuilderNode[],
+): { roots: BuilderNode[]; placed: string[] } => {
+  let next = roots;
+  const placed: string[] = [];
+  const already = new Map<string | null, number>();
+  for (const n of nodes) {
+    const target = insertionTarget(next, anchorId, n.type);
+    if (!target) continue;
+    const bump = already.get(target.parentId) ?? 0;
+    const fresh = cloneWithNewIds(n);
+    // `index: undefined` means append, and appending in order is already in order.
+    next = insertNode(next, target.parentId, fresh, target.index === undefined ? undefined : target.index + bump);
+    already.set(target.parentId, bump + 1);
+    placed.push(fresh.id);
+  }
+  return { roots: next, placed };
 };
 
 /** Can this wrapper legally stand where the node stands, AND hold it? Both halves matter:

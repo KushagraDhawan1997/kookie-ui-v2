@@ -10,7 +10,7 @@
 
 import { describe, expect, it, beforeEach } from "vitest";
 
-import { CATALOG, canContain as canContainForTest, sharedProps } from "./catalog";
+import { CATALOG, canContain as canContainForTest, normalizeSeats, sanitizeNode, sharedProps } from "./catalog";
 import {
   COMMANDS,
   chordLabel,
@@ -23,8 +23,18 @@ import {
 } from "./commands";
 import { CanvasBoundary, CONTEXT_COMMANDS } from "./chrome";
 import { MIXED, UNSET, pickOrder, readPick } from "./inspector";
-import { defaultDocTheme, findNode, node, updatePropsMany, type BuilderDoc, type BuilderNode } from "./model";
-import { canUnwrap, canWrap, insertableInto, insertionTarget, typesThrough } from "./placement";
+import {
+  defaultDocTheme,
+  findNode,
+  flowChildren,
+  moveNodeTo,
+  node,
+  unwrapNode,
+  updatePropsMany,
+  type BuilderDoc,
+  type BuilderNode,
+} from "./model";
+import { canUnwrap, canWrap, insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
 import { TEMPLATES, templateDoc } from "./templates";
 import { serializeDocument } from "./serialize";
 import { RULES, reviewDocument } from "./review";
@@ -256,6 +266,51 @@ describe("commands are one table, and the surfaces only render it", () => {
     expect(decodeNodes(JSON.stringify({ kind: "someone-else/nodes", nodes: [] }))).toBeNull();
   });
 
+  it("nothing that can EDIT the document is armed in preview", () => {
+    // Preview is the screen, not the editor: it renders with no stamps, so there is no ring
+    // and no visible selection, while the selection itself is still live. Measured before
+    // this: with a canvas checkbox focused — Base UI draws one as a <button>, which the
+    // typing guard does not see — Backspace deleted the selected node silently.
+    //
+    // The keyboard lets `global` through, so `global` must mean "cannot edit". Run each one
+    // against a real document and watch for a dispatch that changes it.
+    const a = node("Button", {}, { text: "a" });
+    let s = start(node("Stack", { gap: "3" }, { children: [a] }));
+    s = reducer(s, { type: "select", ids: [a.id] });
+    for (const cmd of COMMANDS.filter((c) => c.global)) {
+      let touched = false;
+      const ctx: CommandContext = {
+        state: s,
+        dispatch: (action) => {
+          if (action.type !== "select") touched = true;
+        },
+        ui: new Proxy({}, { get: () => () => {} }) as CommandContext["ui"],
+      };
+      if (!cmd.enabled(ctx)) continue;
+      cmd.run(ctx);
+      expect(touched, `"${cmd.id}" is global, so it fires in preview — and it edits`).toBe(false);
+    }
+    // …and the set is not empty, or the walk proves nothing.
+    expect(COMMANDS.filter((c) => c.global).length).toBeGreaterThan(0);
+    // The two that MUST be reachable: you have to be able to leave preview, and the palette
+    // is how everything else is reached.
+    expect(COMMANDS.find((c) => c.id === "preview")!.global).toBe(true);
+    expect(COMMANDS.find((c) => c.id === "palette")!.global).toBe(true);
+  });
+
+  it("a command the browser delivers as its own event says so, and is never global", () => {
+    const viaEvent = COMMANDS.filter((c) => c.viaEvent);
+    expect(viaEvent.map((c) => c.id).sort()).toEqual(["copy", "cut", "paste"]);
+    for (const cmd of viaEvent) {
+      // The flag exists to stop the key handler cancelling a keydown. With no chord there is
+      // nothing to cancel, so the flag would be documentation of nothing.
+      expect(cmd.chord, `${cmd.id} is marked viaEvent and has no chord`).toBeTruthy();
+      // Global would put it back in the handler's path in preview, which is the same defect
+      // one door over.
+      expect(cmd.global).toBeUndefined();
+    }
+  });
+
   it("every command runs without throwing on an empty document", () => {
     // Enabled-ness is the guard; a command that is enabled must also be safe to run.
     const state = start();
@@ -333,6 +388,51 @@ describe("wrapping and unwrapping ask the grammar both ways", () => {
         expect(canContainForTest(subject.type, type, typesThrough(roots, subject.id))).toBe(true);
       }
     }
+  });
+
+  it("several nodes land in the order they were copied", () => {
+    // The defect this replaces: both paste paths recomputed the target against a selection
+    // whose index never moved, so each node pushed the previous one down and A,B,C pasted
+    // back as C,B,A. Two files, one loop, no law.
+    const target = node("Button", {}, { text: "T" });
+    const stack = node("Stack", {}, { children: [target] });
+    const clip = ["X", "Y", "Z"].map((t) => node("Button", {}, { text: t }));
+    const { roots, placed } = placeNodes([stack], target.id, clip);
+    expect(findNode(roots, stack.id)!.children!.map((c) => c.text)).toEqual(["T", "X", "Y", "Z"]);
+    expect(placed).toHaveLength(3);
+    // Fresh identities, so pasting twice does not alias.
+    expect(placed.some((id) => clip.some((c) => c.id === id))).toBe(false);
+  });
+
+  it("appending keeps its order too, and the anchor is not re-read as a container", () => {
+    // With nothing selected the target is the root with no index — appending, which must
+    // still come out in order.
+    const { roots } = placeNodes([], null, ["A", "B"].map((t) => node("Button", {}, { text: t })));
+    expect(roots.map((r) => r.text)).toEqual(["A", "B"]);
+    // And the anchor-advance spelling would put the Text INSIDE the Card, because
+    // `insertionTarget` asks whether the anchor itself accepts the type.
+    const anchor = node("Text", {}, { text: "anchor" });
+    const out = placeNodes([anchor], anchor.id, [
+      node("Card", { size: "3" }, { children: [] }),
+      node("Text", {}, { text: "beside" }),
+    ]);
+    expect(out.roots.map((r) => r.type)).toEqual(["Text", "Card", "Text"]);
+  });
+
+  it("nodes that land in DIFFERENT parents each keep their own order", () => {
+    // A panel refuses a Card, so `insertionTarget` walks up and the Card lands at the root —
+    // the designed fallback. The two rows still go into the panel, and in order. This is the
+    // case a single running index cannot serve, which is why the offsets are per parent.
+    const content = node("MenuContent", {}, { children: [] });
+    const menu = node("Menu", {}, { children: [content] });
+    const { roots, placed } = placeNodes([menu], content.id, [
+      node("MenuItem", {}, { text: "one" }),
+      node("Card", { size: "3" }, { children: [] }),
+      node("MenuItem", {}, { text: "two" }),
+    ]);
+    expect(placed).toHaveLength(3);
+    expect(findNode(roots, content.id)!.children!.map((c) => c.text)).toEqual(["one", "two"]);
+    expect(roots.map((r) => r.type)).toEqual(["Menu", "Card"]);
   });
 
   it("nothing is insertable into nothing", () => {
@@ -440,6 +540,100 @@ describe("one knob over several nodes is one edit, and only where it means one t
       }
     }
     expect(pairsChecked).toBeGreaterThan(0); // a walk that checked nothing is not a law
+  });
+});
+
+/* ── Seats that come loose ─────────────────────────────────────────────────────────────── */
+
+describe("a seat is a fact about the PARENT, and the tree is held to that", () => {
+  /** A Spinner sitting in a Button's leading seat — the shape the inspector creates. */
+  const seated = () => {
+    const spinner = { ...node("Spinner", {}), slot: "leading" as const };
+    const button = node("Button", {}, { text: "Go", children: [spinner] });
+    const stack = node("Stack", { gap: "3" }, { children: [button] });
+    return { spinner, button, stack };
+  };
+
+  it("a node dragged out of its seat stops claiming it — measured, this was a GHOST", () => {
+    const { spinner, stack } = seated();
+    // The defect: `slot` rides on the node, so a move hands the new parent a child still
+    // claiming a seat that parent does not offer. `flowChildren` filters it out, and that is
+    // what BOTH the interpreter and the serializer walk — in the tree, in Layers, in
+    // storage, drawn and exported nowhere.
+    const moved = moveNodeTo([stack], spinner.id, stack.id, 1);
+    expect(findNode(moved, spinner.id)!.slot).toBe("leading"); // the raw move still carries it
+    let s = start(...moved);
+    s = reducer(s, { type: "edit", roots: moved });
+    const landed = findNode(activeDoc(s).roots, spinner.id)!;
+    expect(landed.slot).toBeUndefined();
+    // The consequence the law is really about: it is drawn, and it is exported.
+    expect(flowChildren(findNode(activeDoc(s).roots, stack.id)!).map((c) => c.type)).toEqual([
+      "Button",
+      "Spinner",
+    ]);
+    const code = serializeDocument({ theme: defaultDocTheme(), roots: activeDoc(s).roots });
+    expect(code).toContain("<Spinner");
+  });
+
+  it("unwrapping the control it sat in frees the seat too", () => {
+    const { spinner, button, stack } = seated();
+    let s = start(stack);
+    s = reducer(s, { type: "edit", roots: unwrapNode([stack], button.id) });
+    expect(findNode(activeDoc(s).roots, spinner.id)!.slot).toBeUndefined();
+  });
+
+  it("an unused import is impossible: what the export NAMES, the export uses", () => {
+    // The half of the ghost that reached the reader: `collectTypes` walked `children` while
+    // the emitter walked `flowChildren`, so the module imported Spinner and never used it —
+    // code the export dialog called ready to paste and that fails lint on arrival.
+    const { spinner, stack } = seated();
+    let s = start(...moveNodeTo([stack], spinner.id, stack.id, 1));
+    s = reducer(s, { type: "edit", roots: activeDoc(s).roots });
+    const code = serializeDocument({ theme: defaultDocTheme(), roots: activeDoc(s).roots });
+    const imported = /import \{([^}]*)\} from "@kookie-ui\/react"/.exec(code)![1]!;
+    for (const name of imported.split(",").map((x) => x.trim())) {
+      expect(code.includes(`<${name}`)).toBe(true);
+    }
+  });
+
+  it("one child per seat — the second joins the flow rather than vanishing", () => {
+    const a = { ...node("Spinner", {}), slot: "leading" as const };
+    const b = { ...node("Kbd", {}, { text: "K" }), slot: "leading" as const };
+    const button = node("Button", {}, { text: "Go", children: [a, b] });
+    let s = start(button);
+    s = reducer(s, { type: "edit", roots: [button] });
+    const kids = findNode(activeDoc(s).roots, button.id)!.children!;
+    expect(kids.filter((c) => c.slot === "leading")).toHaveLength(1);
+    expect(kids.find((c) => c.id === a.id)!.slot).toBe("leading");
+    expect(kids.find((c) => c.id === b.id)!.slot).toBeUndefined();
+  });
+
+  it("a legal seat is left alone, and untouched branches keep their IDENTITY", () => {
+    const { spinner, button, stack } = seated();
+    const other = node("Card", { size: "3" }, { children: [node("Text", {}, { text: "x" })] });
+    const roots = [stack, other];
+    const out = normalizeSeats(roots);
+    expect(out).toBe(roots); // nothing was wrong, so nothing was rebuilt
+    expect(findNode(out, spinner.id)!.slot).toBe("leading");
+    expect(findNode(out, button.id)!.children).toHaveLength(1);
+    // …and when something IS wrong, only that branch is rebuilt.
+    const broken = [{ ...stack, children: [{ ...spinner }] }, other];
+    const fixed = normalizeSeats(broken);
+    expect(fixed).not.toBe(broken);
+    expect(fixed[1]).toBe(other);
+  });
+
+  it("storage repairs a seat it can no longer justify", () => {
+    // The guard this replaces read `CATALOG[n.type]`, which the two lines above it have
+    // already proven truthy — a tautology wearing a real check's comment.
+    const loose = sanitizeNode({ id: "x", type: "Text", props: {}, slot: "leading", text: "hi" } as never);
+    expect(loose!.slot).toBeUndefined();
+    // Seated under something that DOES offer the seat, it survives.
+    const ok = sanitizeNode({ id: "x", type: "Text", props: {}, slot: "leading", text: "hi" } as never, "Button");
+    expect(ok!.slot).toBe("leading");
+    // A Card offers no seat at all; a field's seat refuses a Card.
+    expect(sanitizeNode({ id: "y", type: "Text", props: {}, slot: "leading" } as never, "Card")!.slot).toBeUndefined();
+    expect(sanitizeNode({ id: "z", type: "Card", props: {}, slot: "leading" } as never, "TextField")!.slot).toBeUndefined();
   });
 });
 
