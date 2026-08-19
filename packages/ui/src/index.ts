@@ -35,6 +35,7 @@ export {
   type ThemeProps,
 } from "./theme/theme.tsx";
 export { useWindowClass, windowClassQueries, type WindowClass } from "./system/window.ts";
+export { componentAxes } from "./system/axes.ts";
 export type { Emphasis, Material, Size, Tone } from "./system/axes.ts";
 export type { Responsive } from "./system/resolve.ts";
 export type { Tier } from "./system/props.ts";
