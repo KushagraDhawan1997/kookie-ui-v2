@@ -26,7 +26,8 @@ tab. A copied subtree is JSON on the real clipboard.
 **Select several things** (⇧-click on canvas or in Layers) and wrap them in one Stack, Flex,
 Box, Card or Grid. This is the gesture the multi-selection exists for.
 
-**Right-click anything** for the same commands, from the system's own Menu.
+**Right-click anything** for the same commands, from the system's own Menu — and for
+*Insert here*, a submenu of what this particular node can legally hold, parts first.
 
 **Rearrange in the Layers tree** with the file-browser thirds: the top quarter of a row means
 *before* it, the bottom quarter *after* it, the middle *into* it. The canvas has its own
@@ -108,6 +109,19 @@ prop clones its own props onto the element it is given, and a memoized wrapper s
 them — the menu trigger had stopped announcing itself as a menu. The render path uses the raw
 element now.
 
+**A broken canvas used to take the editor with it.** The canvas renders real components, so a
+document can reach a state one throws on — I measured it: an orphaned `MenuItem`, `SelectItem`
+or `TabsPanel` each throw out of Base UI. That is the one failure an editor must not have,
+because the work is still in memory and still undoable and the only thing between you and it
+would be a blank page. There is a boundary now, and the interesting part is what it resets on.
+I keyed it on the document id first. That is a dead end: the other way out of a broken canvas
+is to delete the offending node in Layers — which draws from the model, so it keeps working —
+and that leaves the id unchanged, so the boundary would have gone on showing a failure over a
+tree that no longer contained it, with nothing left to press. It resets on the tree's identity
+instead, which the model's structural sharing makes precise: an unrelated edit does not clear
+it. If there is no history to step back to, the fallback says the Layers route rather than
+offering a button that would do nothing.
+
 **The wrong-element instrument mistake, three more times.** My browser probes measured the
 document switcher instead of the theme panel, the outer Stack instead of the Flex, and a
 field's wrapper instead of its input. Every time, a second source (the stored model, the
@@ -117,11 +131,12 @@ UI's ids already had.
 
 ## 4. Laws
 
-`editor.test.ts` (36) covers the store, the commands, the grammar and review;
-`builder.test.tsx` (98) still covers the document's translation into code. Falsified against
-sabotaged code: a fix that does not fix, a snapshot that forgets its selection, a grammar
+`editor.test.ts` (41) covers the store, the commands, the grammar, review and the canvas
+boundary; `builder.test.tsx` (98) still covers the document's translation into code.
+Falsified against sabotaged code: a fix that does not fix, a snapshot that forgets its selection, a grammar
 that says yes to everything, a seat that serializes as a child, an appearance default that
-pins the canvas. 295 docs tests in total.
+pins the canvas, a boundary that never clears, an insert list that stops asking the grammar.
+306 docs tests in total.
 
 ## 5. Open, on purpose
 
@@ -136,5 +151,5 @@ pins the canvas. 295 docs tests in total.
 `apps/docs/app/builder/`: `store.ts` (state), `commands.ts` (actions), `placement.ts`
 (grammar questions), `model.ts` (tree surgery), `catalog.ts` (the one data table),
 `review.ts` + `review-panel.tsx`, `templates.ts`, `chrome.tsx` (document bar, jump bar,
-context menu, shortcut sheet, empty state), `command-palette.tsx`, `inspector.tsx`,
+context menu, shortcut sheet, error boundary, empty state), `command-palette.tsx`, `inspector.tsx`,
 `render.tsx`, `serialize.ts`, `builder-app.tsx` (the shell and the canvas).
