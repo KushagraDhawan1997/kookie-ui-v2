@@ -133,6 +133,8 @@ export type CommandUi = {
   openDocuments: () => void;
   toggleReview: () => void;
   togglePreview: () => void;
+  /** The canvas magnifier. `null` means "back to 1" — the reset, not a step. */
+  stepZoom: (delta: 1 | -1 | null) => void;
   writeClipboard: (text: string) => void;
   /** Ask the system clipboard for a paste; resolves null when it holds nothing we wrote. */
   readClipboard: () => Promise<BuilderNode[] | null>;
@@ -529,6 +531,36 @@ export const COMMANDS: Command[] = [
   },
 
   /* View */
+  {
+    id: "zoomIn",
+    global: true,
+    title: "Zoom in",
+    group: "View",
+    chord: "mod+=",
+    keywords: "magnify bigger closer",
+    enabled: () => true,
+    run: (c) => c.ui.stepZoom(1),
+  },
+  {
+    id: "zoomOut",
+    global: true,
+    title: "Zoom out",
+    group: "View",
+    chord: "mod+-",
+    keywords: "magnify smaller further away",
+    enabled: () => true,
+    run: (c) => c.ui.stepZoom(-1),
+  },
+  {
+    id: "zoomReset",
+    global: true,
+    title: "Actual size",
+    group: "View",
+    chord: "mod+0",
+    keywords: "zoom 100 reset actual",
+    enabled: () => true,
+    run: (c) => c.ui.stepZoom(null),
+  },
   {
     id: "preview",
     global: true,
