@@ -209,8 +209,16 @@ const expectedElement = (doc: BuilderDoc): React.ReactElement => {
     which a field's slot uses for `aria-describedby`. Missing the second one is what the
     slot work turned up — the two renders agreed byte for byte except the salt. */
 const normalizeGeneratedIds = (html: string): string => {
-  const seen = new Map<string, string>();
+  // ONE COUNTER PER FAMILY. A shared counter made the two renders disagree the day the
+  // interpreter became a memoized component: an extra component layer shifts React's
+  // positional salts, and with one counter a difference in either family renumbered the
+  // other. Per-family numbering keeps every cross-reference checkable (aria-describedby
+  // rides `_R_…`, the hidden-input pairing rides `base-ui-…`) while staying blind to the
+  // salts themselves, which React documents as unstable.
+  const counters = new Map<string, Map<string, string>>();
   const token = (m: string, prefix: string) => {
+    const seen = counters.get(prefix) ?? new Map<string, string>();
+    counters.set(prefix, seen);
     if (!seen.has(m)) seen.set(m, `${prefix}${seen.size}`);
     return seen.get(m)!;
   };

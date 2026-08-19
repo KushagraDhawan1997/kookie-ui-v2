@@ -266,7 +266,12 @@ export function BuilderApp() {
   const untouched = React.useRef(state);
   React.useEffect(() => {
     if (state === untouched.current) return;
-    saveState(state);
+    // WRITE-BEHIND. Persisting on every keystroke means serializing the whole document per
+    // character — measured at 280 nodes it was a third of the typing cost — and storage was
+    // never the truth anyway, so it can land a moment later. The timer is cleared by the
+    // next change, so a burst of typing writes once.
+    const timer = window.setTimeout(() => saveState(state), 400);
+    return () => window.clearTimeout(timer);
   }, [state]);
 
   /* ── The keyboard, as a renderer over the command table ───────────────────────────────
@@ -1026,7 +1031,11 @@ export function BuilderApp() {
   const ctx: CommandContext = { state, dispatch, ui };
   ctxRef.current = ctx;
 
-  const findings = React.useMemo(() => reviewDocument(doc), [doc]);
+  /** The review is ADVISORY, so it yields to typing: React renders the document first and
+      re-runs the rules against the settled value. Without this every keystroke paid for a
+      full pass over the tree before the character appeared. */
+  const reviewedDoc = React.useDeferredValue(doc);
+  const findings = React.useMemo(() => reviewDocument(reviewedDoc), [reviewedDoc]);
 
   /** A finding's fix is a pure function over the tree, so applying one is an ordinary edit:
       undoable, re-reviewed on the next render, and selecting the node it touched so the eye
