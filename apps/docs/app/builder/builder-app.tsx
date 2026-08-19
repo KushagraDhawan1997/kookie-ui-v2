@@ -226,6 +226,9 @@ export function BuilderApp() {
       that costs more than it saves. Ancestors of a match stay, because a match with its path
       cut off is a match nobody can place. */
   const [layerFilter, setLayerFilter] = React.useState("");
+  const layerFilterRef = React.useRef<HTMLInputElement | null>(null);
+  /** The left pane is controlled so ⌘F can bring the tree forward before focusing it. */
+  const [leftTab, setLeftTab] = React.useState("add");
   /** The key listener is mounted once and never re-bound, so it needs the CURRENT mode
       rather than the one that was true when it was attached. */
   const previewRef = React.useRef(preview);
@@ -416,6 +419,17 @@ export function BuilderApp() {
     const fresh = cloneWithNewIds(block.node);
     const target = insertionTarget(doc.roots, selection, fresh.type) ?? { parentId: null };
     commitRoots(insertNode(doc.roots, target.parentId, fresh, target.index), [fresh.id]);
+  };
+
+  /** A block, opened as its own document so it can be edited. Fresh ids, because editing the
+      copy must not reach into the block itself or into any screen the block was placed in. */
+  const openBlock = (block: Block) => {
+    dispatch({
+      type: "docNew",
+      name: block.name,
+      doc: { theme: doc.theme, roots: [cloneWithNewIds(block.node)] },
+    });
+    say(`Opened ${block.name} — save it under the same name to update the block`);
   };
 
   const runCommand = (id: string) => {
@@ -1114,6 +1128,11 @@ export function BuilderApp() {
       }
     },
     focusInspectorText: () => inspectorTextRef.current?.focus(),
+    focusLayerFilter: () => {
+      setLeftTab("layers");
+      // The tab has to be on screen before the field can take the caret.
+      requestAnimationFrame(() => layerFilterRef.current?.focus());
+    },
     insertBlockByIndex: (index) => {
       const block = stateRef.current.blocks[index];
       if (block) insertBlock(block);
@@ -1231,7 +1250,7 @@ export function BuilderApp() {
         <Box width="272px" style={{ flex: "none", minHeight: 0 }}>
           <ScrollArea style={{ height: "100%" }}>
             <Box p="3">
-              <Tabs defaultValue="add">
+              <Tabs value={leftTab} onValueChange={(v) => setLeftTab(String(v))}>
                 <TabsList size="1">
                   <TabsTab value="add">Add</TabsTab>
                   <TabsTab value="layers">Layers</TabsTab>
@@ -1296,6 +1315,14 @@ export function BuilderApp() {
                                 />
                                 <MenuContent>
                                   <MenuItem onClick={() => insertBlock(b)}>Insert</MenuItem>
+                                  {/* A block was write-only: you could save one and place
+                                      one, and there was no way back into it — so a typo in
+                                      a saved card meant rebuilding it. It opens as its own
+                                      document now, with fresh ids so editing the copy
+                                      cannot reach into the block or into any screen the
+                                      block was already placed in. Re-saving under the same
+                                      name replaces it. */}
+                                  <MenuItem onClick={() => openBlock(b)}>Open as document</MenuItem>
                                   <MenuItem
                                     onClick={() => {
                                       setExportBlock(i);
@@ -1326,6 +1353,7 @@ export function BuilderApp() {
                         size="1"
                         aria-label="Filter layers"
                         placeholder="Filter by type or words"
+                        ref={layerFilterRef}
                         value={layerFilter}
                         onChange={(e) => setLayerFilter(e.target.value)}
                         {...(layerFilter

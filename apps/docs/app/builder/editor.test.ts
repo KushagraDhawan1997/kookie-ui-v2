@@ -188,6 +188,24 @@ describe("the store keeps a document's history to itself", () => {
     expect(findNode(activeDoc(s).roots, t.id)!.text).toBe("");
   });
 
+  it("a block saved under a name it already has REPLACES it", () => {
+    // Blocks were write-only: save and place, with no way back in, so a typo in a saved card
+    // meant rebuilding it. The way back is opening it as a document — which only works if
+    // saving it again under the same name updates the block instead of leaving two of them
+    // with one name and no way to tell them apart.
+    const first = node("Card", { size: "2" }, { children: [node("Text", {}, { text: "one" })] });
+    let s = start();
+    s = reducer(s, { type: "blockSave", block: { name: "Media card", node: first } });
+    expect(s.blocks).toHaveLength(1);
+    const edited = node("Card", { size: "3" }, { children: [node("Text", {}, { text: "two" })] });
+    s = reducer(s, { type: "blockSave", block: { name: "Media card", node: edited } });
+    expect(s.blocks).toHaveLength(1);
+    expect(s.blocks[0]!.node.props.size).toBe("3");
+    // A different name is a different block.
+    s = reducer(s, { type: "blockSave", block: { name: "Other", node: first } });
+    expect(s.blocks.map((b) => b.name)).toEqual(["Media card", "Other"]);
+  });
+
   it("an edit that removes a node removes it from the selection too", () => {
     const a = node("Button", {}, { text: "a" });
     const b = node("Button", {}, { text: "b" });
