@@ -225,13 +225,20 @@ export const removeNode = (roots: BuilderNode[], id: string): BuilderNode[] => {
   return prune(roots);
 };
 
-export const updateProps = (
+/**
+ * One patch, several nodes, ONE pass — the multi-selection inspector's write. Looping
+ * `updateProps` would walk the tree once per node and, worse, land as one history entry per
+ * node: undoing "make these five medium" would take five presses. This is one edit.
+ */
+export const updatePropsMany = (
   roots: BuilderNode[],
-  id: string,
+  ids: readonly string[],
   patch: Record<string, PropValue | undefined>,
-): BuilderNode[] =>
-  mapTree(roots, (n) => {
-    if (n.id !== id) return n;
+): BuilderNode[] => {
+  const set = new Set(ids);
+  if (set.size === 0) return roots;
+  return mapTree(roots, (n) => {
+    if (!set.has(n.id)) return n;
     const props = { ...n.props };
     for (const [k, v] of Object.entries(patch)) {
       if (v === undefined) delete props[k];
@@ -239,6 +246,13 @@ export const updateProps = (
     }
     return { ...n, props };
   });
+};
+
+export const updateProps = (
+  roots: BuilderNode[],
+  id: string,
+  patch: Record<string, PropValue | undefined>,
+): BuilderNode[] => updatePropsMany(roots, [id], patch);
 
 export const updateText = (roots: BuilderNode[], id: string, text: string): BuilderNode[] =>
   mapTree(roots, (n) => (n.id === id ? { ...n, text } : n));
