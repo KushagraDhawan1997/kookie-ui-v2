@@ -27,6 +27,7 @@ import {
   defaultDocTheme,
   findNode,
   flowChildren,
+  matchingIds,
   moveNodeTo,
   node,
   unwrapNode,
@@ -534,6 +535,33 @@ describe("wrapping and unwrapping ask the grammar both ways", () => {
     // An ordinary container is unaffected — the gate is about `render`, not about arity.
     const card = node("Card", { size: "3" }, { children: [node("Text", {}, { text: "a" })] });
     expect(canAccept([card], card.id, "Text")).toBe(true);
+  });
+
+  it("the Layers filter keeps a match AND the path to it", () => {
+    const save = node("Button", {}, { text: "Save changes" });
+    const inner = node("Flex", { gap: "3" }, { children: [save, node("Button", {}, { text: "Cancel" })] });
+    const card = node("Card", { size: "3" }, { children: [inner] });
+    const other = node("Card", { size: "3" }, { children: [node("Text", {}, { text: "elsewhere" })] });
+    const roots = [card, other];
+
+    // A match with its path cut off is a match nobody can place, so the ancestors stay.
+    const hit = matchingIds(roots, "save")!;
+    expect(hit.has(save.id)).toBe(true);
+    expect(hit.has(inner.id)).toBe(true);
+    expect(hit.has(card.id)).toBe(true);
+    // …and nothing else does.
+    expect(hit.has(other.id)).toBe(false);
+
+    // Type names match too, and every word must appear, in any order.
+    expect(matchingIds(roots, "button")!.has(save.id)).toBe(true);
+    expect(matchingIds(roots, "changes save")!.has(save.id)).toBe(true);
+    expect(matchingIds(roots, "save cancel")!.has(save.id)).toBe(false);
+    expect(matchingIds(roots, "zzz")!.size).toBe(0);
+
+    // An empty query is NO FILTER, which is the opposite answer to "nothing matched" — and a
+    // Set cannot tell them apart, so it is null.
+    expect(matchingIds(roots, "")).toBeNull();
+    expect(matchingIds(roots, "   ")).toBeNull();
   });
 
   it("nothing is insertable into nothing", () => {
