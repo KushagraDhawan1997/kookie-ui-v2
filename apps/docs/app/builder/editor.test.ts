@@ -44,8 +44,9 @@ import {
   typesThrough,
 } from "./placement";
 import { TEMPLATES, templateDoc } from "./templates";
+import { starterDoc } from "./builder-app";
 import { serializeDocument } from "./serialize";
-import { RULES, reviewDocument } from "./review";
+import { RULES, legalValue, reviewDocument } from "./review";
 import {
   activeDoc,
   canRedo,
@@ -828,30 +829,120 @@ describe("review reads the house style off the document", () => {
     }
   });
 
-  it("two loud actions on one surface is one finding; one is none", () => {
-    const loud = () => node("Button", { emphasis: "loud" }, { text: "Save" });
-    const one = node("Card", {}, { children: [loud()] });
-    expect(reviewDocument(asDoc([one])).filter((f) => f.rule.includes("focal"))).toHaveLength(0);
-    const two = node("Card", {}, { children: [loud(), loud()] });
-    expect(reviewDocument(asDoc([two])).filter((f) => f.rule.includes("focal"))).toHaveLength(1);
+  it("a finding names its RULE, not its title — one fact, one home", () => {
+    // `rule` used to hold the title, so a renamed rule silently kept its old finding-id
+    // prefix and the panel had two names for one thing.
+    const f = reviewDocument(asDoc([node("Text", { size: "1" }, { text: "x" })]))[0]!;
+    const rule = RULES.find((r) => r.id === f.rule)!;
+    expect(rule).toBeDefined();
+    expect(f.title).toBe(rule.title);
+    expect(f.id.startsWith(`${rule.id}:`)).toBe(true);
+    expect(f.severity).toBe(rule.severity);
+    expect(f.why).toBe(rule.why);
   });
 
-  it("an alert's loud Action is legal by anatomy and never flagged", () => {
-    const alert = node("AlertDialogContent", {}, {
-      children: [
-        node("AlertDialogTitle", {}, { text: "Delete?" }),
-        node("Button", { emphasis: "loud" }, { text: "Delete" }),
-        node("Button", { emphasis: "loud" }, { text: "Also loud" }),
-      ],
-    });
-    expect(reviewDocument(asDoc([alert])).filter((f) => f.rule.includes("focal"))).toHaveLength(0);
+  it("the figure budget is the SCREEN, and a layer is its own screen", () => {
+    const loud = (t: string) => node("Button", { emphasis: "loud" }, { text: t });
+    const card = (t: string) => node("Card", { size: "3" }, { children: [loud(t)] });
+    const figures = (roots: BuilderNode[]) => reviewDocument(asDoc(roots)).filter((f) => f.rule === "one-figure");
+
+    // Three plan cards, three loud buttons, one screen. The pane-scoped reading called this
+    // clean, which is the playground's own plan-picker shape passing a rule it violates.
+    expect(figures([node("Stack", { gap: "6" }, { children: [card("A"), card("B"), card("C")] })])).toHaveLength(2);
+
+    // A nested Card does not reset the budget either.
+    expect(figures([node("Card", { size: "3" }, { children: [loud("outer"), card("inner")] })])).toHaveLength(1);
+
+    // A dialog IS its own screen: its loud action does not compete with the page behind it.
+    expect(
+      figures([
+        node("Stack", { gap: "6" }, {
+          children: [loud("page"), node("DialogContent", {}, { children: [loud("dialog")] })],
+        }),
+      ]),
+    ).toHaveLength(0);
+
+    // Two tab panels are never on screen together.
+    expect(
+      figures([
+        node("Tabs", { defaultValue: "a" }, {
+          children: [
+            node("TabsPanel", { value: "a" }, { children: [loud("deploy")] }),
+            node("TabsPanel", { value: "b" }, { children: [loud("save")] }),
+          ],
+        }),
+      ]),
+    ).toHaveLength(0);
+    // …but two in ONE panel are.
+    expect(
+      figures([
+        node("Tabs", { defaultValue: "a" }, {
+          children: [node("TabsPanel", { value: "a" }, { children: [loud("one"), loud("two")] })],
+        }),
+      ]),
+    ).toHaveLength(1);
   });
 
-  it("a control with no accessible name is an ERROR, not a suggestion", () => {
+  it("the house intervals are not a fault — a between against a between never competes", () => {
+    const rhythm = (roots: BuilderNode[]) => reviewDocument(asDoc(roots)).filter((f) => f.rule === "flat-rhythm");
+    const pair = (gap: string) =>
+      node("Stack", { gap }, { children: [node("Text", {}, { text: "a" }), node("Text", {}, { text: "b" })] });
+
+    // The brief's own intervals: section 6 holding groups at 5, each holding pairs at 3.
+    // The first reading flagged the 5-in-6 as one step apart; those are two BETWEEN
+    // distances, and the rule is about a within against a between.
+    const groups = node("Stack", { gap: "5" }, { children: [pair("3"), pair("3")] });
+    expect(rhythm([node("Stack", { gap: "6" }, { children: [groups, pair("3")] })])).toHaveLength(0);
+
+    // A leaf group at the SAME gap as the rhythm around it is the real fault.
+    expect(rhythm([node("Stack", { gap: "3" }, { children: [pair("3"), pair("3")] })])).toHaveLength(2);
+    // One step is still not two.
+    expect(rhythm([node("Stack", { gap: "4" }, { children: [pair("3")] })])).toHaveLength(1);
+    // A row inside a column is not measured against it, in either direction.
+    expect(
+      rhythm([node("Stack", { gap: "3" }, { children: [node("Flex", { gap: "3" }, { children: [node("Text", {}, { text: "a" }), node("Text", {}, { text: "b" })] })] })]),
+    ).toHaveLength(0);
+  });
+
+  it("a control with no accessible name is an ERROR, and the inspector can answer it", () => {
     const findings = reviewDocument(asDoc([node("Checkbox", {})]));
-    const name = findings.find((f) => f.rule.includes("name"));
+    const name = findings.find((f) => f.rule === "accessible-name");
     expect(name?.severity).toBe("error");
     expect(reviewDocument(asDoc([node("Checkbox", { "aria-label": "Agree" })]))).toHaveLength(0);
+
+    // The half that made this rule unanswerable: an error whose remedy the panel does not
+    // offer is an error nobody can clear. Every type it can flag must expose `aria-label`.
+    const flaggable = ["Checkbox", "Switch", "Radio", "RadioGroup", "Slider", "Progress", "TextField", "TextArea", "SegmentedControl", "TabsList", "Button"];
+    for (const type of flaggable) {
+      expect(CATALOG[type]!.props["aria-label"], `${type} can be flagged for a name it cannot be given`).toBeDefined();
+    }
+    // And an icon-only Button — the case §4 ships on purpose — clears with one.
+    expect(reviewDocument(asDoc([node("Button", { "aria-label": "Search" })])).filter((f) => f.rule === "accessible-name")).toHaveLength(0);
+  });
+
+  it("a part outside its compound is caught for EVERY part, not the four strict ones", () => {
+    const orphans = (t: string) =>
+      reviewDocument(asDoc([node("Stack", { gap: "3" }, { children: [node(t, { value: "x" }, { text: "Stray" }), node("Text", {}, { text: "b" })] })])).filter(
+        (f) => f.rule === "orphan-part",
+      );
+    // `requiresAncestor` covers four entries; `partOf` covers the rest, and the rule was
+    // keyed on the first — so a SegmentedItem outside its control was silent.
+    expect(orphans("SegmentedItem")).toHaveLength(1);
+    expect(orphans("MenuItem")).toHaveLength(1);
+    expect(orphans("Radio")).toHaveLength(1);
+    // Seated properly, silence.
+    expect(
+      reviewDocument(
+        asDoc([node("SegmentedControl", { defaultValue: "x", "aria-label": "View" }, { children: [node("SegmentedItem", { value: "x" }, { text: "X" })] })]),
+      ).filter((f) => f.rule === "orphan-part"),
+    ).toHaveLength(0);
+  });
+
+  it("an empty compound is an error where an empty layout is a warning", () => {
+    const of = (roots: BuilderNode[], id: string) => reviewDocument(asDoc(roots)).filter((f) => f.rule === id);
+    expect(of([node("Stack", { gap: "3" }, { children: [] })], "empty-container")[0]!.severity).toBe("warning");
+    const group = node("RadioGroup", { defaultValue: "a", "aria-label": "Pick" }, { children: [] });
+    expect(of([group], "empty-compound")[0]!.severity).toBe("error");
   });
 
   it("errors sort above warnings", () => {
@@ -861,43 +952,237 @@ describe("review reads the house style off the document", () => {
     expect(findings[0]!.severity).toBe("error");
   });
 
-  it("EVERY fix actually resolves the finding it offers", () => {
-    // The load-bearing law. A rule is built its own breaking document, the fix runs, and the
-    // finding must be GONE — a repair that does not repair is worse than no repair at all.
+  it("EVERY fix resolves its finding, and RAISES NOTHING NEW", () => {
+    // The load-bearing law, in both directions. Asking only whether the finding went is one
+    // indirection short: a fix can silence its own rule while making the document worse —
+    // measured, before the rewrite, on a row of controls at 2/4/2 where the repair produced
+    // 2/4/4 and then went quiet.
+    const pair = (gap: string) =>
+      node("Stack", { gap }, { children: [node("Text", {}, { text: "a" }), node("Text", {}, { text: "b" })] });
     const breakers: Record<string, BuilderNode[]> = {
       "one-figure": [
-        node("Card", {}, {
+        node("Card", { size: "3" }, {
           children: [node("Button", { emphasis: "loud" }, { text: "A" }), node("Button", { emphasis: "loud" }, { text: "B" })],
         }),
       ],
       "size-1-retired": [node("Text", { size: "1" }, { text: "small" })],
-      "empty-container": [node("Stack", {}, { children: [] })],
+      "empty-container": [node("Stack", { gap: "3" }, { children: [] })],
       "single-child-layout": [node("Stack", {}, { children: [node("Text", {}, { text: "one" })] })],
-      "flat-rhythm": [
-        node("Stack", { gap: "3" }, { children: [node("Stack", { gap: "3" }, { children: [node("Text", {}, { text: "a" }), node("Text", {}, { text: "b" })] })] }),
-      ],
-      "mixed-control-sizes": [
-        node("Flex", {}, {
+      "flat-rhythm": [node("Stack", { gap: "3" }, { children: [pair("3"), pair("3")] })],
+      "heading-space": [
+        node("Stack", { gap: "5" }, {
           children: [
-            node("Button", { size: "2" }, { text: "a" }),
-            node("Button", { size: "1" }, { text: "b" }),
+            node("Text", { size: "2" }, { text: "Above" }),
+            node("Heading", { size: "6" }, { text: "Notifications" }),
+            node("Text", { size: "2", emphasis: "medium" }, { text: "What reaches you." }),
           ],
         }),
       ],
-      "heading-ladder": [node("Heading", { size: "3" }, { text: "Title" })],
+      "mixed-control-sizes": [
+        node("Flex", { gap: "3" }, {
+          children: [
+            node("Button", { size: "2" }, { text: "a" }),
+            node("Button", { size: "2" }, { text: "b" }),
+            node("Button", { size: "4" }, { text: "c" }),
+          ],
+        }),
+      ],
+      "control-scale": [
+        node("Card", { size: "4" }, { children: [node("Button", { size: "1" }, { text: "Save" })] }),
+      ],
+      "eyebrow": [
+        node("Stack", { gap: "2" }, {
+          children: [
+            node("Text", { size: "2", emphasis: "medium" }, { text: "PREFERENCES" }),
+            node("Heading", { size: "6" }, { text: "Notifications" }),
+          ],
+        }),
+      ],
+      "zero-width-container": [
+        node("Flex", { gap: "3" }, {
+          children: [node("Box", { container: true }, { children: [node("Text", {}, { text: "a" })] }), node("Text", {}, { text: "b" })],
+        }),
+      ],
       "orphan-part": [node("DialogTitle", {}, { text: "Stranded" })],
     };
 
+    // Both directions: every rule that offers a fix has a breaker here. The map used to be
+    // hand-written and walked one way, so a new rule with a fix that repairs nothing would
+    // have passed by not being listed.
+    const fixing = new Set<string>();
+    for (const rule of RULES) {
+      const probe = breakers[rule.id];
+      if (probe && reviewDocument(asDoc(probe)).some((f) => f.rule === rule.id && f.fix)) fixing.add(rule.id);
+    }
+    for (const rule of RULES) {
+      const offersFix = Object.values(breakers).some((roots) =>
+        reviewDocument(asDoc(roots)).some((f) => f.rule === rule.id && f.fix),
+      );
+      if (offersFix) {
+        expect(breakers[rule.id], `${rule.id} offers a fix and has no document that breaks it`).toBeDefined();
+      }
+    }
+
     for (const [ruleId, roots] of Object.entries(breakers)) {
-      const rule = RULES.find((r) => r.id === ruleId)!;
-      const before = reviewDocument(asDoc(roots)).filter((f) => f.rule === rule.title);
-      expect(before.length, `${ruleId} did not fire on a document built to break it`).toBeGreaterThan(0);
-      const finding = before[0]!;
+      const before = reviewDocument(asDoc(roots));
+      const mine = before.filter((f) => f.rule === ruleId);
+      expect(mine.length, `${ruleId} did not fire on a document built to break it`).toBeGreaterThan(0);
+      const finding = mine[0]!;
       expect(finding.fix, `${ruleId} offers no fix`).toBeDefined();
       const repaired = finding.fix!.apply(roots);
-      const after = reviewDocument(asDoc(repaired)).filter((f) => f.id === finding.id);
-      expect(after, `${ruleId}'s fix left its own finding standing`).toHaveLength(0);
+      const after = reviewDocument(asDoc(repaired));
+      expect(after.filter((f) => f.id === finding.id), `${ruleId}'s fix left its own finding standing`).toHaveLength(0);
+
+      // Nothing NEW. A repair that trades one complaint for another is a repair nobody
+      // trusts — and one that silences its own rule while the document gets worse is worse
+      // than that.
+      const was = new Set(before.map((f) => `${f.rule}|${f.message}`));
+      const fresh = after.filter((f) => !was.has(`${f.rule}|${f.message}`));
+      expect(fresh.map((f) => `${f.rule}: ${f.message}`), `${ruleId}'s fix raised a NEW finding`).toEqual([]);
     }
+    expect(fixing.size).toBeGreaterThan(6);
+  });
+
+  it("a fix is MINIMAL: at most one prop, on at most one node", () => {
+    // Written because a sabotage survived the other two fix laws. `size-1-retired`'s first
+    // spelling wrote `emphasis: "medium"` alongside the size, which silently promoted a
+    // `quiet` line — §15's exception rung, for something deliberately stood down — into
+    // "real information said quietly". That is a size finding rewriting what a sentence
+    // MEANS, and neither "the finding went" nor "the value is legal" can see it: the value
+    // it wrote was a perfectly legal emphasis.
+    const propsOf = (roots: BuilderNode[]) => {
+      const out = new Map<string, BuilderNode["props"]>();
+      const visit = (list: BuilderNode[]) => {
+        for (const n of list) {
+          out.set(n.id, n.props);
+          if (n.children) visit(n.children);
+        }
+      };
+      visit(roots);
+      return out;
+    };
+    const docs: BuilderNode[][] = [
+      [node("Text", { size: "1", emphasis: "quiet" }, { text: "Not on your plan" })],
+      [node("Heading", { size: "1" }, { text: "Title" })],
+      [
+        node("Card", { size: "3" }, {
+          children: [node("Button", { emphasis: "loud", tone: "destructive" }, { text: "A" }), node("Button", { emphasis: "loud" }, { text: "B" })],
+        }),
+      ],
+      [node("Card", { size: "4" }, { children: [node("Button", { size: "1", tone: "accent" }, { text: "Save" })] })],
+      [
+        node("Flex", { gap: "3" }, {
+          children: [node("Box", { container: true, p: "3" }, { children: [node("Text", {}, { text: "a" })] }), node("Text", {}, { text: "b" })],
+        }),
+      ],
+      [
+        node("Stack", { gap: "3", align: "center" }, {
+          children: [node("Stack", { gap: "3" }, { children: [node("Text", {}, { text: "a" }), node("Text", {}, { text: "b" })] })],
+        }),
+      ],
+    ];
+    let checked = 0;
+    for (const roots of docs) {
+      for (const finding of reviewDocument(asDoc(roots))) {
+        if (!finding.fix) continue;
+        const before = propsOf(roots);
+        const after = propsOf(finding.fix.apply(roots));
+        const changed: string[] = [];
+        for (const [id, props] of after) {
+          const was = before.get(id);
+          if (!was) continue; // a node the fix created — structural, counted below
+          for (const key of new Set([...Object.keys(was), ...Object.keys(props)])) {
+            if (JSON.stringify(was[key]) !== JSON.stringify(props[key])) changed.push(`${id}.${key}`);
+          }
+        }
+        checked++;
+        expect(changed.length, `${finding.rule} rewrote ${changed.join(", ")} — a repair states one thing`).toBeLessThanOrEqual(1);
+      }
+    }
+    expect(checked, "the walk examined no fix at all").toBeGreaterThan(4);
+  });
+
+  it("a row takes the size MOST of it says, not whichever control is first", () => {
+    // The reference used to be `sizes[0]`, so a row of two correctly-scaled buttons beside
+    // one odd mark was told to demote both. Measured worse: at 2/4/2 the repair produced
+    // 2/4/4 and the rule then went silent, which the round-trip law could not see because
+    // the finding it was offered for had indeed gone.
+    const row = node("Flex", { gap: "3" }, {
+      children: [
+        node("Button", { size: "1" }, { text: "odd" }),
+        node("Button", { size: "3" }, { text: "a" }),
+        node("Button", { size: "3" }, { text: "b" }),
+      ],
+    });
+    const found = reviewDocument(asDoc([row])).filter((f) => f.rule === "mixed-control-sizes");
+    expect(found).toHaveLength(1);
+    expect(found[0]!.message).toContain("size 1 in a row of size 3");
+    expect(found[0]!.fix!.title).toBe("Match it to size 3");
+  });
+
+  it("every value a fix WRITES is a value the axis holds", () => {
+    // The founding premise of this builder is that it cannot state anything the system would
+    // refuse, and the reviewer was the one surface that could: `gap: String(Number(inner) + 2)`
+    // on a document at gap 11 wrote gap="13" onto a palette that stops at 12, which left the
+    // package as unitless raw CSS — the fix that promised to open a gap deleted it.
+    const props = (roots: BuilderNode[]) => {
+      const out = new Map<string, { type: string; props: BuilderNode["props"] }>();
+      const visit = (list: BuilderNode[]) => {
+        for (const n of list) {
+          out.set(n.id, { type: n.type, props: n.props });
+          if (n.children) visit(n.children);
+        }
+      };
+      visit(roots);
+      return out;
+    };
+
+    // The document that produced the defect: the top of the palette, one step apart.
+    const deep = (gap: string) =>
+      node("Stack", { gap }, { children: [node("Text", {}, { text: "a" }), node("Text", {}, { text: "b" })] });
+    const docs: BuilderNode[][] = [
+      [node("Stack", { gap: "12" }, { children: [deep("11"), deep("11")] })],
+      [node("Stack", { gap: "1" }, { children: [deep("1"), deep("1")] })],
+      [node("Card", { size: "4" }, { children: [node("Button", { size: "1" }, { text: "Save" })] })],
+      [node("Text", { size: "1" }, { text: "small" })],
+      [
+        node("Flex", { gap: "3" }, {
+          children: [node("Box", { container: true }, { children: [node("Text", {}, { text: "a" })] }), node("Text", {}, { text: "b" })],
+        }),
+      ],
+    ];
+
+    let checked = 0;
+    for (const roots of docs) {
+      for (const finding of reviewDocument(asDoc(roots))) {
+        if (!finding.fix) continue;
+        const before = props(roots);
+        const after = props(finding.fix.apply(roots));
+        for (const [id, node2] of after) {
+          const was = before.get(id);
+          for (const [key, value] of Object.entries(node2.props)) {
+            if (was && JSON.stringify(was.props[key]) === JSON.stringify(value)) continue;
+            checked++;
+            expect(
+              legalValue(node2.type, key, value),
+              `${finding.rule} wrote ${key}="${String(value)}" onto a ${node2.type}, which the axis does not hold`,
+            ).toBe(true);
+          }
+        }
+      }
+    }
+    expect(checked, "the walk checked no written value at all").toBeGreaterThan(0);
+  });
+
+  it("at the top of the palette a fix TIGHTENS instead, and at both ends it offers none", () => {
+    const deep = (gap: string) =>
+      node("Stack", { gap }, { children: [node("Text", {}, { text: "a" }), node("Text", {}, { text: "b" })] });
+    // ONE tree: a fix closes over the id it was built for, so re-building the document for
+    // the apply makes the repair a no-op that reads like a passing test.
+    const roots = [node("Stack", { gap: "12" }, { children: [deep("11"), deep("11")] })];
+    const top = reviewDocument(asDoc(roots)).find((f) => f.rule === "flat-rhythm")!;
+    expect(top.fix!.title).toMatch(/Tighten/);
+    expect(reviewDocument(asDoc(top.fix!.apply(roots))).filter((f) => f.id === top.id)).toHaveLength(0);
   });
 
   it("a document composed to the brief raises nothing at all", () => {
@@ -926,13 +1211,101 @@ describe("review reads the house style off the document", () => {
     expect(reviewDocument(asDoc([clean]))).toEqual([]);
   });
 
-  it("every rule the catalog can express is reachable — no rule is dead code", () => {
-    // A rule nobody can trigger is a rule nobody maintains.
+  it("EVERY rule fires on a document the grammar allows — no rule is dead code", () => {
+    // The old spelling of this law asserted `typeof rule.run === "function"`, which cannot
+    // fail. What it was reaching for is that a rule nobody can trigger is a rule nobody
+    // maintains — and the audit found two arms that were exactly that: an AlertDialog
+    // exemption for a Button the grammar cannot put there, and a `Tabs` branch whose only
+    // job was to return false.
+    //
+    // Every document below is one the EDITOR can build, checked against the grammar, so a
+    // rule that only fires on an impossible tree fails here.
+    const pair = (gap: string) =>
+      node("Stack", { gap }, { children: [node("Text", {}, { text: "a" }), node("Text", {}, { text: "b" })] });
+    const triggers: Record<string, BuilderNode[]> = {
+      "one-figure": [
+        node("Stack", { gap: "6" }, {
+          children: [
+            node("Card", { size: "3" }, { children: [node("Button", { emphasis: "loud" }, { text: "A" })] }),
+            node("Card", { size: "3" }, { children: [node("Button", { emphasis: "loud" }, { text: "B" })] }),
+          ],
+        }),
+      ],
+      "size-1-retired": [node("Text", { size: "1" }, { text: "small" })],
+      "accessible-name": [node("Checkbox", {})],
+      "empty-container": [node("Stack", { gap: "3" }, { children: [] })],
+      "empty-compound": [node("RadioGroup", { defaultValue: "a", "aria-label": "Pick" }, { children: [] })],
+      "single-child-layout": [node("Stack", {}, { children: [node("Text", {}, { text: "one" })] })],
+      "flat-rhythm": [node("Stack", { gap: "3" }, { children: [pair("3")] })],
+      "heading-space": [
+        node("Stack", { gap: "5" }, {
+          children: [
+            node("Text", { size: "2" }, { text: "Above" }),
+            node("Heading", { size: "6" }, { text: "Title" }),
+            node("Text", { size: "2" }, { text: "Below" }),
+          ],
+        }),
+      ],
+      "mixed-control-sizes": [
+        node("Flex", { gap: "3" }, {
+          children: [
+            node("Button", { size: "2" }, { text: "a" }),
+            node("Button", { size: "2" }, { text: "b" }),
+            node("Button", { size: "4" }, { text: "c" }),
+          ],
+        }),
+      ],
+      "control-scale": [node("Card", { size: "4" }, { children: [node("Button", { size: "1" }, { text: "Save" })] })],
+      "tone-as-decoration": [
+        node("Card", { size: "3" }, {
+          children: [
+            node("Text", { tone: "blue" }, { text: "a" }),
+            node("Text", { tone: "green" }, { text: "b" }),
+            node("Text", { tone: "orange" }, { text: "c" }),
+            node("Text", { tone: "destructive" }, { text: "d" }),
+          ],
+        }),
+      ],
+      "heading-ladder": [node("Heading", { size: "2" }, { text: "Title" })],
+      eyebrow: [
+        node("Stack", { gap: "2" }, {
+          children: [
+            node("Text", { size: "2" }, { text: "PREFERENCES" }),
+            node("Heading", { size: "6" }, { text: "Notifications" }),
+          ],
+        }),
+      ],
+      "filler-text": [CATALOG.Button!.make()],
+      "zero-width-container": [
+        node("Flex", { gap: "3" }, {
+          children: [node("Box", { container: true }, { children: [node("Text", {}, { text: "a" })] }), node("Text", {}, { text: "b" })],
+        }),
+      ],
+      "orphan-part": [node("SegmentedItem", { value: "x" }, { text: "Stray" })],
+    };
+
     for (const rule of RULES) {
-      expect(typeof rule.run).toBe("function");
+      const roots = triggers[rule.id];
+      expect(roots, `${rule.id} has no document that triggers it`).toBeDefined();
+      expect(
+        reviewDocument(asDoc(roots!)).filter((f) => f.rule === rule.id).length,
+        `${rule.id} did not fire on the document written to trigger it`,
+      ).toBeGreaterThan(0);
+      // …and the tree really is one the editor could have built. `orphan-part` is the one
+      // exemption, and it is the rule's whole subject: its `why` says the grammar prevents
+      // this at the drop and a document edited elsewhere can still arrive holding one, so a
+      // trigger the grammar ACCEPTS would mean the rule was checking the wrong thing.
+      if (rule.id === "orphan-part") continue;
+      const legal = (list: BuilderNode[], parentType: string | null, chain: string[]): boolean =>
+        list.every(
+          (n) =>
+            canContainForTest(parentType, n.type, chain) &&
+            legal(n.children ?? [], n.type, [...chain, n.type]),
+        );
+      expect(legal(roots!, null, []), `${rule.id}'s trigger is a tree the grammar refuses`).toBe(true);
     }
-    expect(RULES.length).toBeGreaterThanOrEqual(8);
-    expect(Object.keys(CATALOG).length).toBeGreaterThan(20);
+    // And no rule in the table is missing from the walk.
+    expect(Object.keys(triggers).sort()).toEqual(RULES.map((r) => r.id).sort());
   });
 });
 
@@ -965,6 +1338,13 @@ describe("a template is the brief demonstrated, not decoration", () => {
         `${template.name} does not hold to the house style it is meant to demonstrate`,
       ).toEqual([]);
     }
+  });
+
+  it("the STARTER document holds to it too — it is the first thing anyone sees", () => {
+    // Templates are chosen; the starter arrives. If the screen the builder opens on breaks
+    // the brief, the panel's first act is to disagree with the editor that drew it.
+    const findings = reviewDocument(starterDoc());
+    expect(findings.map((f) => `${f.rule}: ${f.message}`)).toEqual([]);
   });
 
   it("every template serializes to code without throwing", () => {

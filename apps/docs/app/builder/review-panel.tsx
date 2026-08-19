@@ -105,7 +105,7 @@ function Row({
       </Flex>
       <Box pl="3">
         <Button size="1" emphasis="quiet" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-          {finding.rule}
+          {finding.title}
         </Button>
         {open ? (
           <Box pt="1" pr="3">

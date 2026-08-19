@@ -238,7 +238,10 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Button: {
     family: "Control",
     blurb: "tone × emphasis × bordered over the theme's material — never a raw fill.",
-    props: { size: size(), tone, emphasis, bordered: bool, loading: bool, disabled: bool },
+    /* `aria-label` is here for the icon-only case, which §4 ships on purpose: a Button with
+       no text is a glyph with no name, and the review rule that says so had no remedy to
+       point at until this field existed. */
+    props: { size: size(), tone, emphasis, bordered: bool, loading: bool, disabled: bool, "aria-label": text },
     children: "text",
     slots: ["leading", "trailing"],
     make: () => node("Button", {}, { text: "Button" }),
@@ -275,10 +278,12 @@ export const CATALOG: Record<string, CatalogEntry> = {
   RadioGroup: {
     family: "Control",
     blurb: "Wiring for one choice: keyboard and form value. What it looks like is the layout inside it.",
-    props: { defaultValue: text },
+    /* A radiogroup with no accessible name is a real WCAG failure, and this is the one
+       family whose label is architecturally a sibling — so the name has to be stated. */
+    props: { defaultValue: text, "aria-label": text },
     children: "any",
     make: () =>
-      node("RadioGroup", { defaultValue: "a" }, {
+      node("RadioGroup", { defaultValue: "a", "aria-label": "Choice" }, {
         children: ["a", "b"].map((v) =>
           node("Flex", { gap: "3", align: "center" }, {
             children: [
@@ -292,7 +297,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Radio: {
     family: "Control",
     blurb: "One choice's mark. Lives somewhere inside a RadioGroup; its label is a sibling.",
-    props: { value: text, size: size(), disabled: bool },
+    props: { value: text, size: size(), disabled: bool, "aria-label": text },
     children: "none",
     requiresAncestor: "RadioGroup",
     partOf: "RadioGroup",
@@ -349,10 +354,10 @@ export const CATALOG: Record<string, CatalogEntry> = {
   TabsList: {
     family: "Control",
     blurb: "The bar, the hairline, and the one place size is stated.",
-    props: { size: size() },
+    props: { size: size(), "aria-label": text },
     children: { only: ["TabsTab"] },
     partOf: "Tabs",
-    make: () => node("TabsList", {}, { children: [node("TabsTab", { value: "one" }, { text: "First" })] }),
+    make: () => node("TabsList", { "aria-label": "Sections" }, { children: [node("TabsTab", { value: "one" }, { text: "First" })] }),
   },
   TabsTab: {
     family: "Control",

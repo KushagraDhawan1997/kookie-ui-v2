@@ -144,7 +144,7 @@ const activeTier = (w: number): string => {
 /** The starter document: enough to show the idea the second the page opens. Ids are the
     STABLE set — this tree is built during render on both server and client, where the
     module counter is not safe (see withStableIds). */
-const starterDoc = (): BuilderDoc => ({
+export const starterDoc = (): BuilderDoc => ({
   theme: defaultDocTheme(),
   roots: withStableIds([
     node("Card", { size: "3" }, {
