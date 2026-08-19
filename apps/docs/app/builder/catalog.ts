@@ -90,6 +90,47 @@ const gridColumns = (n: number) => `repeat(${n}, minmax(0, 1fr))`;
 const COLUMN_VALUES = [2, 3, 4].map(gridColumns);
 const COLUMN_LABELS = Object.fromEntries([2, 3, 4].map((n) => [gridColumns(n), `${n} columns`]));
 
+/** How a layout primitive takes its share of the parent it sits in (2026-08-20) — the other
+    half of resize, and the half that is about the PARENT rather than the node.
+
+    Both are `scale: null` props the package types raw (§3's flex-child row), offered closed
+    exactly like the flex keywords beside them: `flexGrow` has one useful value, and a span
+    is a count. Neither can state a length, which is what keeps them inside the builder's
+    grammar — the grid span's own value is a shorthand, not a measurement.
+
+    `auto / span N`, never a bare `span N`: measured on a real 3-column grid, the bare form
+    leaves a child 195px (one column) because the shorthand's first slot is the ROW. The
+    stored value is the full shorthand so the interpreter and serializer stay dumb, the way
+    the column track list already is. */
+const spanValue = (n: number) => `auto / span ${n}`;
+const SPAN_VALUES = [2, 3, 4].map(spanValue);
+const SPAN_LABELS = Object.fromEntries([2, 3, 4].map((n) => [spanValue(n), `spans ${n} columns`]));
+
+/** Both are CHILD props: they say nothing about the node and everything about its seat, so
+    they live on every layout primitive and on nothing else. A control cannot carry them —
+    §3 keeps layout props off components — and wrapping does not rescue the flex case:
+    measured, a `flexGrow` Box grows to 261px while the Button inside it stays 62px, because
+    a grown box is not a stretched child. Grid span DOES survive a wrapper (a spanning Box
+    carries its Card the full 397px), which is why the two halves reach different places. */
+const layoutChildProps = {
+  flexGrow: {
+    kind: "options",
+    values: ["1"],
+    labels: { "1": "Fill the row" },
+    optional: true,
+    responsive: true,
+    note: "Takes the free space of a horizontal parent. Unset hugs its contents. On a vertical parent this does nothing — a column's children already stretch across it.",
+  },
+  gridArea: {
+    kind: "options",
+    values: SPAN_VALUES,
+    labels: SPAN_LABELS,
+    optional: true,
+    responsive: true,
+    note: "How many of the parent grid's columns this takes. Unset is one.",
+  },
+} satisfies Record<string, PropSchema>;
+
 const typeProps = { size: typeSize, weight, emphasis, tone };
 
 export const CATALOG: Record<string, CatalogEntry> = {
@@ -97,7 +138,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Stack: {
     family: "Layout",
     blurb: "A column of things with one stated gap.",
-    props: { gap: space, align: { kind: "options", values: ALIGN, optional: true, responsive: true }, justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true }, p: space },
+    props: { gap: space, align: { kind: "options", values: ALIGN, optional: true, responsive: true }, justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true }, p: space, ...layoutChildProps },
     children: "any",
     make: () => node("Stack", { gap: "3" }, { children: [] }),
   },
@@ -111,6 +152,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
       justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true },
       wrap: { kind: "options", values: ["wrap", "nowrap"], optional: true, responsive: true },
       p: space,
+      ...layoutChildProps,
     },
     children: "any",
     make: () => node("Flex", { gap: "3", align: "center" }, { children: [] }),
@@ -118,7 +160,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Grid: {
     family: "Layout",
     blurb: "Equal columns with token gaps.",
-    props: { columns: { kind: "options", values: COLUMN_VALUES, labels: COLUMN_LABELS, optional: true, responsive: true }, gap: space, p: space },
+    props: { columns: { kind: "options", values: COLUMN_VALUES, labels: COLUMN_LABELS, optional: true, responsive: true }, gap: space, p: space, ...layoutChildProps },
     children: "any",
     make: () => node("Grid", { columns: gridColumns(2), gap: "3" }, { children: [] }),
   },
@@ -138,6 +180,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
           "Makes THIS box the region per-tier values inside it measure. Mark boxes layout already sizes — a sidebar with a width, a grid cell, a growing column. A container left to shrink-wrap renders 0px wide (the recorded §2 defect that made containment opt-in).",
       },
       backdrop: bool,
+      ...layoutChildProps,
     },
     children: "any",
     make: () => node("Box", { p: "4" }, { children: [] }),
@@ -148,7 +191,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
     // Derived from themeAxes, never restated — the /preview panel's own rule. `appearance`
     // and `contrast` stay the document store's, exactly as the playground divides them.
     props: Object.fromEntries(
-      (["density", "radius", "pointer", "surfaceLook", "depth", "material"] as const).map((axis) => [
+      (["density", "radius", "pointer", "depth", "material"] as const).map((axis) => [
         axis,
         { kind: "options", values: themeAxes[axis], optional: true } satisfies PropSchema,
       ]),
@@ -776,6 +819,36 @@ export const sanitizeNode = (n: BuilderNode): BuilderNode | null => {
     ...(typeof n.text === "string" ? { text: n.text } : {}),
     ...(children ? { children } : {}),
   };
+};
+
+/* ── What resize may write (2026-08-20, Kushagra: "resize on components increases size") ──
+   The canvas handle is a real gesture with no raw length behind it. A component's designed
+   size vocabulary IS its `size` index, so dragging a corner steps that index — the one
+   answer this system has to "make it bigger". Nothing here is judgment in the drag handler;
+   the handler asks this, the way the drop handler asks `canContain`.
+
+   The index is uniform (a size step moves height, padding, type and corner together), which
+   is why only the CORNER carries it — Figma's own grammar, where a corner means proportional
+   and a side means one axis. A side handle would have to write a width, and a stated raw
+   length is the value class this builder refuses (see EXCLUDED, and §3: width/height are
+   pass-through CSS with no token scale to pick from). */
+export const sizeStepsFor = (type: string): readonly string[] | null => {
+  const schema = CATALOG[type]?.props.size;
+  return schema?.kind === "axis" ? componentAxes[schema.axis] : null;
+};
+
+/** The SIDE handles' half: what a node may say about the seat it sits in. Keyed on the
+    node's own type (only a layout primitive carries these props at all — §3 keeps layout
+    props off components) and on the parent's real layout, which the caller measures rather
+    than infers: `direction` is responsive, so the document cannot answer "is this a row"
+    for the tier actually on screen — only the DOM can. */
+export type SeatVocabulary = { prop: "flexGrow" | "gridArea"; values: readonly string[] };
+
+export const seatVocabularyFor = (type: string, parentLayout: "row" | "column" | "grid" | null): SeatVocabulary | null => {
+  if (parentLayout === null || parentLayout === "column") return null;
+  const prop = parentLayout === "grid" ? "gridArea" : "flexGrow";
+  const schema = CATALOG[type]?.props[prop];
+  return schema?.kind === "options" ? { prop, values: schema.values } : null;
 };
 
 /** The general palette: entries that stand on their own. */

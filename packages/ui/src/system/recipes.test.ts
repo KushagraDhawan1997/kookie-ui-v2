@@ -253,7 +253,6 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
       contrast: "data-contrast",
       pointer: "data-pointer",
       depth: "data-depth",
-      surfaceLook: "data-surface-look",
       material: "data-material",
     };
     const ABSENT = new Set(["appearance:inherit", "material:solid"]);
@@ -272,8 +271,9 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
       }
     }
     // The vacuity guard the first version needed and did not have: an empty or mis-keyed walk
-    // would satisfy every assertion above by making none of them.
-    expect(checked).toBeGreaterThan(20);
+    // would satisfy every assertion above by making none of them. 20 is today's exact count
+    // (surfaceLook's two values left with the axis, 2026-08-20); the floor sits just under it.
+    expect(checked).toBeGreaterThanOrEqual(20);
 
     // AND THE REVERSE, because the arm above only catches a value the table INVENTS. Dropping
     // one is the likelier drift and it fails nothing: an axis whose list has lost a value is

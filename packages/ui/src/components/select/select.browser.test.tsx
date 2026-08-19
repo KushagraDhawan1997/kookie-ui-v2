@@ -52,7 +52,6 @@ const HOSTILE: ThemeProps = {
   radius: "large",
   pointer: "coarse",
   depth: "elevated",
-  surfaceLook: "filled",
   contrast: "high",
 };
 

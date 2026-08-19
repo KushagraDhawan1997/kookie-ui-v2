@@ -252,6 +252,16 @@ describe("a state the shared layer paints has a specimen (§8)", () => {
  * data both routes consume.
  */
 describe("the per-component previews share one structure", () => {
+  it("every section states its intent — a name alone invites every demo to improvise", () => {
+    // Written the day Nesting drifted through three meanings (2026-08-20): the renderer
+    // prints each section's intent under its heading, so the sentence must exist and be a
+    // real one for every section in the fixed order.
+    for (const { key, name, intent } of SECTION_ORDER) {
+      expect(typeof intent, `${key} has no intent`).toBe("string");
+      expect(intent.length, `${name}'s intent is too short to be a contract`).toBeGreaterThan(60);
+    }
+  });
+
   it("the registry has entries and unique slugs — an empty registry audits nothing", () => {
     expect(COMPONENT_PREVIEWS.length).toBeGreaterThan(0);
     const slugs = COMPONENT_PREVIEWS.map((p) => p.slug);

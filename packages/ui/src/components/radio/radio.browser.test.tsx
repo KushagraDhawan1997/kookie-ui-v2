@@ -212,23 +212,16 @@ describe("the look axis reaches it through the family, with no rule of its own (
       </Theme>,
     );
 
-  it.each(APPEARANCES)("%s: filled dresses the box and KEEPS the mark's edge", (appearance) => {
-    // The checkbox's law, one member over — same rewrite, same reason (see that file). A radio
-    // is even more dependent on its hairline: unchecked, the ring IS the entire control.
-    const filled = markOf(radio({ controlLook: "filled", appearance }));
-    const outlined = markOf(radio({ controlLook: "outlined", appearance }));
-    // controlLook is INERT for the mark family since the fill-first flip (2026-08-17):
-    // `outlined` resolves the same dress roles `filled` does. Stated as an identity rather
-    // than deleted — this is what fails if anyone re-separates the two values, which forces
-    // the decision into the open instead of letting the axis drift apart silently.
-    expect(
-      computed(filled, "background-color"),
-      `the control look must resolve one answer in ${appearance}`,
-    ).toBe(computed(outlined, "background-color"));
-    expect(computed(filled, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+  it.each(APPEARANCES)("%s: the dress KEEPS the mark's edge", (appearance) => {
+    // The checkbox's law, one member over — same rewrite, same reason (see that file). A
+    // radio is even more dependent on its hairline: unchecked, the ring IS the entire
+    // control. (This law flipped a `controlLook` that had already been deleted, so both
+    // mounts were the same cell — caught in the surfaceLook deletion sweep, 2026-08-20.)
+    const mark = markOf(radio({ appearance }));
+    expect(computed(mark, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
   });
 
-  it("outlined is the identity — byte-identical to the bare render", () => {
+  it("the themed render is the bare render — no axis, no difference", () => {
     const bare = markOf(
       render(
         <RadioGroup>
@@ -236,9 +229,9 @@ describe("the look axis reaches it through the family, with no rule of its own (
         </RadioGroup>,
       ),
     );
-    const outlined = markOf(radio({ controlLook: "outlined" }));
+    const themed = markOf(radio({}));
     for (const prop of ["background-color", "border-top-color"]) {
-      expect(computed(outlined, prop)).toBe(computed(bare, prop));
+      expect(computed(themed, prop)).toBe(computed(bare, prop));
     }
   });
 

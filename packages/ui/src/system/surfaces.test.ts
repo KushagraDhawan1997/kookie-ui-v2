@@ -62,14 +62,10 @@ describe("the surface layer carries each axis once and never multiplies them (§
   });
 
   it("the default surface seals — alpha belongs to the tone-forward rungs and material", () => {
-    // One hop longer since the look axis (§19): quiet reads the look role, and outlined —
-    // the default — maps the role to the seal. Both hops asserted, so the identity claim
-    // ("the default look is exactly the old chrome") is checked end-to-end, not assumed.
+    // One hop again since the look axis died (§19, 2026-08-20): quiet reads the seal
+    // directly — there is no second resting answer left to route through.
     expect(block(surfaces, '[data-emphasis="quiet"]')).toContain(
-      "--kui-sf-fill-src: var(--look-surface-fill)",
-    );
-    expect(block(raw("tokens/tokens.css"), '[data-surface-look="outlined"]')).toContain(
-      "--look-surface-fill: var(--color-surface)",
+      "--kui-sf-fill-src: var(--color-surface)",
     );
     expect(surfaces).not.toContain("--tone-a1");
   });
@@ -137,10 +133,11 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
   });
 
   it("the floating chrome is declared by BOTH worlds, and flat's is a value, never none (§22)", () => {
-    // The §11 amendment made mechanical (2026-08-09): a shadow under a floating pane is
-    // INFORMATION about overlap, not the expression this switch governs — so flat quiets
-    // the cast (the generator fades the same palette row) but may never remove it. A flat
-    // scope declaring `none` here is the defect this law exists to catch.
+    // Both worlds declare the role so the pointer chain always resolves; since 2026-08-19
+    // flat's VALUE is the no-op layer (flat casts nothing, popups included — the hairline
+    // owns separation there), but the declaration must stay a list-legal value: a flat
+    // scope declaring literal `none` poisons every fallback chain that consults it, which
+    // is the defect this law exists to catch.
     const body = block(surfaces, '[data-depth="elevated"]');
     const flat = block(surfaces, '[data-depth="flat"]');
     expect(body).toContain("--kui-floating-chrome: var(--floating-chrome-elevated)");
@@ -202,10 +199,9 @@ describe("card-as-button: the element brings the interactivity (§10)", () => {
     const outside = surfaces.slice(0, guardStart) + surfaces.slice(guardEnd + 2);
     expect(outside).not.toContain(":hover");
     expect(outside).toContain(":active");
-    // The interactive steps route through the look roles since §19 (outlined maps them to
-    // --color-surface-hover/-active in tokens.css, asserted in the seal law above).
-    expect(surfaces).toContain("--look-surface-fill-hover");
-    expect(surfaces).toContain("--look-surface-fill-active");
+    // The interactive steps read the surface roles directly since the look axis died (§19).
+    expect(surfaces).toContain("--color-surface-hover");
+    expect(surfaces).toContain("--color-surface-active");
   });
 });
 
@@ -355,46 +351,48 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     }
   });
 
-  it("flat's floating cast is the elevated row actually faded, in both appearances (§22)", () => {
-    // The transmission law's sentence one role over: flat is DERIVED from the same palette
-    // row elevated reads, through the same fadeShadow seam, so the two cannot drift. The
-    // row itself is READ from the emitted elevated value rather than hand-pinned here —
-    // the law's copy of "row 4" went stale the day the chrome moved to row 5 (Kushagra's
-    // eye, 2026-08-09), which is the two-homes drift this suite keeps cataloguing. What
-    // stays asserted: elevated names exactly one palette row by reference, and flat is
-    // that row with every alpha x factor, geometry unchanged — the independent parse,
-    // because the copied-regex version of this law is the one the 2026-08-07 audit
-    // demonstrated agreeing with a broken fade.
+  it("flat's floating cast is the NO-OP layer — nothing casts in a flat world, popups included (2026-08-19)", () => {
+    // Kushagra, closing the question the 2026-08-09 amendment left standing: flat means
+    // flat. The old rule ("coverage is information, never none") kept a half-faded cast
+    // under menus; it retired the day the hairline returned in flat, because a flat world
+    // now draws a covering pane's boundary in its own language and the faded shadow was a
+    // second voice saying the same thing. What this law pins: the emitted flat value is the
+    // list-legal no-op (a value, never `none` — `none` inside a fallback chain poisons it),
+    // in BOTH appearances, and elevated still names a real palette row beside it — the
+    // negative control that proves the token pair did not collapse into one.
     for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
       const body = block(tokens, scope);
+      expect(valueOf(body, "--floating-chrome-flat"), `${scope} flat floating cast`).toBe(
+        "0 0 0 0 transparent",
+      );
       const elevated = valueOf(body, "--floating-chrome-elevated");
-      const rowRef = elevated.match(/var\((--shadow-[1-5])\)/);
-      if (!rowRef) throw new Error(`floating-chrome-elevated names no palette row: ${elevated}`);
-      const source = valueOf(body, rowRef[1]!);
-      const sourceAlphas = alphasOf(source);
-      expect(sourceAlphas.length).toBeGreaterThan(0);
-      const flat = valueOf(body, "--floating-chrome-flat");
-      expect(flat, `${scope} flat floating cast is the unfaded row`).not.toBe(source);
-      const got = alphasOf(flat);
-      expect(got.length, "flat kept every layer").toBe(sourceAlphas.length);
-      got.forEach((a, i) => {
-        expect(
-          Math.abs(a - sourceAlphas[i]! * 0.5),
-          `${scope} floating-flat layer ${i}: ${a} is not ${sourceAlphas[i]} x 0.5`,
-        ).toBeLessThan(0.001);
-        expect(a).toBeGreaterThan(0);
-      });
-      expect(flat.replace(/rgba?\([^)]*\)/g, "C")).toBe(source.replace(/rgba?\([^)]*\)/g, "C"));
+      expect(elevated, `${scope} elevated still casts`).toMatch(/var\(--shadow-[1-5]\)/);
     }
   });
 
-  it("high contrast empties the rim — the setting unmakes the glint, and nothing resurrects it (§10)", () => {
-    // The LIFTED variant died 2026-08-17 (it was the brighter 1px edge line; the ring owns
-    // the edge now), so the rim is one recipe and HC empties exactly one name per thickness.
-    expect(tokens).toContain("--material-thin-rim: initial");
-    expect(tokens).toContain("--material-regular-rim: initial");
-    expect(tokens).toContain("--material-thick-rim: initial");
+  it("high contrast KEEPS the rim — an accessibility setting may not delete information (§10)", () => {
+    // REVERSED 2026-08-20 (Kushagra: high contrast made glass look "cheap and incorrect…
+    // it's not taste"). This law used to assert the opposite, and the mechanism it pinned had
+    // outlived its reason: the rim was emptied so high contrast could not "resurrect the
+    // glint it just removed", and that glint — the LIFTED rim variant — was deleted
+    // 2026-08-17 when the ring took the edge. The stand-down went on deleting a thing there
+    // was no longer anything to defend against.
+    //
+    // The argument for keeping it is not aesthetic. The rim is a gradient painted INSIDE the
+    // pane (grain, bloom, sheen, consumed as --kui-sf-light), so it cannot lower the contrast
+    // of anything; emptying it only removes the cue that the pane is a physical thing
+    // catching light. What the setting still trades is the EDGE — the ring is white and
+    // vanishes over a bright backdrop, so pigment replaces it, one line and not two.
+    expect(tokens, "the rim is emptied again — the 2026-08-20 reversal is undone").not.toContain(
+      "--material-thin-rim: initial",
+    );
+    expect(tokens).not.toContain("--material-regular-rim: initial");
+    expect(tokens).not.toContain("--material-thick-rim: initial");
+    // The lifted variant stays dead: this is the resting rim surviving, not the glint back.
     expect(tokens).not.toContain("rim-lifted");
+    // And the edge trade is still made, or "one line, not two" has quietly become none.
+    for (const t of GLASS_MATERIALS) expect(tokens).toContain(`--material-${t}-edge: initial`);
+    expect(tokens).toContain("--material-ring-opacity: 0");
   });
 
   it("the palette's only stylesheet consumers are the world chrome roles", () => {

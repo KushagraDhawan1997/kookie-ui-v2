@@ -29,7 +29,7 @@ import { describe, expect, it } from "vitest";
 import * as Kookie from "@kookie-ui/react";
 import { Theme, componentAxes } from "@kookie-ui/react";
 
-import { CATALOG, EXCLUDED, canContain, sanitizeNode } from "./catalog";
+import { CATALOG, EXCLUDED, canContain, sanitizeNode, seatVocabularyFor, sizeStepsFor } from "./catalog";
 import {
   cloneWithNewIds,
   defaultDocTheme,
@@ -238,7 +238,7 @@ describe("round-trip identity: the exported code IS the canvas", () => {
     const code = serializeDocument(canonicalDoc());
     expect(code).toContain('<Theme density="compact">');
     // Restating a default would pin today's default forever.
-    for (const axis of ["radius", "pointer", "depth", "surfaceLook", "material"]) {
+    for (const axis of ["radius", "pointer", "depth", "material"]) {
       expect(code, `the export restates the default ${axis}`).not.toContain(`${axis}=`);
     }
     const untouched: BuilderDoc = { theme: defaultDocTheme(), roots: [node("Button", {}, { text: "Hi" })] };
@@ -355,6 +355,101 @@ describe("the export speaks tokens only, and refuses everything else", () => {
       roots: [node("Menu", {}, { children: [node("MenuTrigger", {}, { children: [] })] })],
     };
     expect(() => serializeDocument(doc)).toThrow(/no child to pass through render/);
+  });
+});
+
+describe("resize walks a designed index — it cannot state a length", () => {
+  it("a type resizes exactly when it owns a size vocabulary, and the steps ARE the package's", () => {
+    for (const [type, entry] of Object.entries(CATALOG)) {
+      const schema = entry.props.size;
+      const steps = sizeStepsFor(type);
+      if (schema?.kind === "axis") {
+        expect(steps, `${type} states a size axis but offers no resize steps`).toEqual(
+          componentAxes[schema.axis],
+        );
+      } else {
+        // No vocabulary means no handle. The canvas shows a grip only where one writes
+        // something, so this is the assertion behind "a node the system cannot resize
+        // shows none" — the lie the old always-on handles told.
+        expect(steps, `${type} has no size prop yet offers resize steps`).toBeNull();
+      }
+    }
+    // The gesture must reach real components, or the law above passes by covering nothing.
+    expect(sizeStepsFor("Button")).toEqual(componentAxes.size);
+    expect(sizeStepsFor("Stack")).toBeNull();
+  });
+
+  it("every rung the drag can land on survives the export's own refusals", () => {
+    // The point of stepping an index rather than a width: whatever the pointer does, the
+    // document can only hold values the export already permits. Asserted by writing each
+    // rung and running the boundary's own checks over the result.
+    for (const [type, entry] of Object.entries(CATALOG)) {
+      const steps = sizeStepsFor(type);
+      if (!steps || entry.partOf || entry.requiresAncestor) continue;
+      for (const step of steps) {
+        const doc: BuilderDoc = {
+          theme: defaultDocTheme(),
+          roots: [{ ...entry.make(), props: { ...entry.make().props, size: step } }],
+        };
+        const code = serializeDocument(doc);
+        expect(code, `${type} at size ${step} lost the rung`).toContain(`size="${step}"`);
+        expect(code, `${type} at size ${step} leaked a length`).not.toMatch(/\d+px/);
+        expect(code, `${type} at size ${step} leaked a style`).not.toMatch(/style=/);
+      }
+    }
+  });
+});
+
+describe("the seat vocabulary — what a node may say about the space it sits in", () => {
+  it("the parent's layout picks the prop, and a column offers nothing", () => {
+    expect(seatVocabularyFor("Box", "row")?.prop).toBe("flexGrow");
+    expect(seatVocabularyFor("Box", "grid")?.prop).toBe("gridArea");
+    // A column's children already stretch across it — that IS the system's full-width
+    // idiom (showcase.tsx: "the layout does it, the button has no opinion about how wide
+    // it is"), so there is nothing to write and no handle to show.
+    expect(seatVocabularyFor("Box", "column")).toBeNull();
+    expect(seatVocabularyFor("Box", null)).toBeNull();
+  });
+
+  it("only a layout primitive has a seat to speak about", () => {
+    // §3 keeps layout props off components, and wrapping does not rescue the flex case:
+    // measured, a flexGrow Box grows while the Button inside it keeps hugging. A control
+    // therefore gets no side handle rather than one that writes a prop it cannot take.
+    for (const type of ["Button", "Card", "Text", "TextField", "Checkbox"]) {
+      expect(seatVocabularyFor(type, "row"), `${type} is not a layout primitive`).toBeNull();
+      expect(seatVocabularyFor(type, "grid"), `${type} is not a layout primitive`).toBeNull();
+    }
+    for (const type of ["Box", "Flex", "Grid", "Stack"]) {
+      expect(seatVocabularyFor(type, "row"), `${type} should carry flexGrow`).not.toBeNull();
+      expect(seatVocabularyFor(type, "grid"), `${type} should carry gridArea`).not.toBeNull();
+    }
+  });
+
+  it("a span states the COLUMN track — a bare `span n` sets the row and does nothing", () => {
+    // Measured on a real 3-column grid: `grid-area: span 2` leaves the child at one column
+    // (195px), because the shorthand's first slot is the row. `auto / span 2` spans (397px).
+    // Pinned because the wrong form looks tidier and fails silently.
+    const spans = seatVocabularyFor("Box", "grid")!.values;
+    expect(spans.length).toBeGreaterThan(1);
+    for (const v of spans) {
+      expect(v, `"${v}" would set the grid ROW, not the column`).toMatch(/^auto \/ span \d+$/);
+    }
+  });
+
+  it("every seat value the drag can land on survives the export's refusals", () => {
+    for (const layout of ["row", "grid"] as const) {
+      const seat = seatVocabularyFor("Box", layout)!;
+      for (const value of seat.values) {
+        const doc: BuilderDoc = {
+          theme: defaultDocTheme(),
+          roots: [node("Box", { p: "4", [seat.prop]: value }, { children: [] })],
+        };
+        const code = serializeDocument(doc);
+        expect(code).toContain(`${seat.prop}="${value}"`);
+        expect(code, `${seat.prop}=${value} leaked a length`).not.toMatch(/\d+px/);
+        expect(code, `${seat.prop}=${value} leaked a style`).not.toMatch(/style=/);
+      }
+    }
   });
 });
 

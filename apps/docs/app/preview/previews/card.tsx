@@ -9,7 +9,7 @@
  * pressable × material × size on both calm and hostile ground.
  */
 import * as React from "react";
-import { Box, Button, Card, Flex, Grid, Heading, Stack, Text, Theme, themeAxes } from "@kookie-ui/react";
+import { Box, Button, Card, Flex, Grid, Heading, Separator, Stack, Text, TextField, Theme, themeAxes } from "@kookie-ui/react";
 
 import { BEDS, BedSurface, bed } from "../beds";
 import { Demo, SIZES, cap } from "../pieces";
@@ -198,6 +198,64 @@ function Permutations() {
   );
 }
 
+function Nesting() {
+  return (
+  <Stack gap="6">
+    {/* Card-in-card is RENDERED correctly (nested seals separate by border, law-tested) and
+        DISCOURAGED on the literature's argument (2026-08-20, Kushagra: nested cards "feel
+        wrong" — confirmed against Apple's boxes guidance and Material's card definition): a
+        card's whole dress says "independent object", and objects don't contain objects.
+        Subgrouping inside a card uses the quiet vocabulary — spacing, the hairline, type
+        hierarchy — which is what this demo shows instead. The missing third voice (Apple's
+        background STEP, a well/inset surface) is a recorded open question (DECISIONS). */}
+    <Demo label="Grouping inside a card — spacing and the hairline, never a second card">
+      <Box maxWidth="30rem">
+        <Card size="3">
+          <Stack gap="4">
+            <Stack gap="2">
+              <Heading size="4" render={<h3 />}>Billing</Heading>
+              <Text size="2" emphasis="medium">Your plan renews on September 1.</Text>
+            </Stack>
+            <Flex gap="3" align="center" justify="space-between">
+              <Blurb title="Pro plan" body="$24 / month" bodySize="1" />
+              <Button size="1" emphasis="quiet" bordered>Change</Button>
+            </Flex>
+            <Separator />
+            <Flex gap="3" align="center" justify="space-between">
+              <Blurb title="Payment method" body="Visa ending 4242" bodySize="1" />
+              <Button size="1" emphasis="quiet" bordered>Update</Button>
+            </Flex>
+          </Stack>
+        </Card>
+      </Box>
+    </Demo>
+    {/* One glass per stack is STRUCTURAL (§10, 2026-08-16): the pane spends the backdrop,
+        so everything inside it resolves without a second blur — no prop anywhere. Shown
+        with CONTROLS, the rule's real consumers, since 2026-08-20: the first version put a
+        nested card here, which demonstrated the mechanism by committing the composition
+        the demo above refuses. */}
+    <Demo label="Content inside a glass card — one glass per stack, nothing pays twice">
+      <BedSurface bed={bed("photo")}>
+        <Theme material="regular">
+          <Card size="3" style={{ width: "320px" }}>
+            <Stack gap="4">
+              <Stack gap="2">
+                <Heading size="4" render={<h3 />}>Join the beta</Heading>
+                <Text size="2" emphasis="medium">The bed shows through the pane — not through these.</Text>
+              </Stack>
+              <TextField placeholder="you@work.com" aria-label="Email" />
+              <Flex gap="3" justify="flex-end">
+                <Button tone="accent" emphasis="loud">Request access</Button>
+              </Flex>
+            </Stack>
+          </Card>
+        </Theme>
+      </BedSurface>
+    </Demo>
+  </Stack>
+  );
+}
+
 function InUse() {
   return (
   <Stack gap="6">
@@ -248,6 +306,7 @@ export const cardPreview: ComponentPreview = {
     states: { body: <States /> },
     materials: { body: <Materials /> },
     permutations: { body: <Permutations /> },
+    nesting: { body: <Nesting /> },
     tones: {
       absent:
         "Refused (§11): tone and emphasis rank actions, and a container ranks nothing — a card has no tone to sweep. A status surface that colors a container is Callout's job.",

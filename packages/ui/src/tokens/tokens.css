@@ -32,11 +32,11 @@
   --radius-3: calc(9999px * var(--scale));
   --radius-4: calc(9999px * var(--scale));
   --radius-5: calc(9999px * var(--scale));
-  --radius-6: calc(20px * var(--scale));
-  --radius-7: calc(25px * var(--scale));
+  --radius-6: calc(24px * var(--scale));
+  --radius-7: calc(32px * var(--scale));
   --radius-8: calc(40px * var(--scale));
-  --radius-9: calc(45px * var(--scale));
-  --radius-10: calc(50px * var(--scale));
+  --radius-9: calc(48px * var(--scale));
+  --radius-10: calc(56px * var(--scale));
   --radius-full: 9999px;
 
   /* type (§15) — scale and the type bands (§17) reach it, never density */
@@ -318,15 +318,6 @@
   --alert-w-3: calc(360px * var(--scale));
   --alert-w-4: calc(400px * var(--scale));
   --dialog-inset: var(--layout-space-6);
-
-  /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each
-     one-look family declared before the axis existed. A look role holds a COLOUR, so it
-     repeats in every appearance scope like every other colour role — see the dark block. */
-  --look-surface-fill: var(--color-surface);
-  --look-surface-fill-hover: var(--color-surface-hover);
-  --look-surface-fill-active: var(--color-surface-active);
-  --look-surface-border: transparent;
-  --look-surface-border-sealed: initial;
 
   /* colour, generated (§7) — light mode */
   /* neutral */
@@ -905,19 +896,16 @@
   --control-chrome-active-regular: 0 1px 1px rgb(0 0 0 / 0.08), 0 3px 8px -3px rgb(0 0 0 / 0.112), inset 0 -1px 0 rgb(0 0 0 / 0.08);
   --control-chrome-active-thick: 0 1px 1px rgb(0 0 0 / 0.09), 0 3px 8px -3px rgb(0 0 0 / 0.126), inset 0 -1px 0 rgb(0 0 0 / 0.09);
   /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance
-     because BOTH worlds declare one (overlap is information, not expression): flat is
-     the elevated row faded — derived, one source of shadow truth. */
+     because both worlds declare one, and flat's is the list-legal NO-OP: flat casts
+     nothing, floating panes included (2026-08-19 — separation in flat is the hairline's
+     job, not a faded shadow's). */
   --floating-chrome-elevated: var(--shadow-3);
-  --floating-chrome-flat: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 22px -6px rgb(0 0 0 / 0.05), 0 18px 48px -14px rgb(0 0 0 / 0.045);
+  --floating-chrome-flat: 0 0 0 0 transparent;
 
-  /* the look axis's filled pigment (§19), per appearance: an index means the opposite
-     thing in the two modes, so the ladders are not each other's copy. The edges sit
-     inside contrastHighBands.border, which is what keeps contrast="high" able to reach
-     a filled component's boundary at all. */
-  --dress-surface-fill: var(--neutral-2);
-  --dress-surface-fill-hover: var(--neutral-3);
-  --dress-surface-fill-active: var(--neutral-4);
-  --dress-surface-edge: var(--neutral-5);
+  /* the fill-first dress (§19), per appearance: an index means the opposite thing in
+     the two modes, so the ladders are not each other's copy. The edges sit inside
+     contrastHighBands.border, which is what keeps contrast="high" able to reach a
+     dressed component's boundary at all. */
   --dress-field-fill: var(--neutral-a3);
   --dress-field-fill-solid: var(--neutral-3);
   --dress-field-fill-hover: var(--neutral-a4);
@@ -932,6 +920,11 @@
   --dress-mark-fill-active: var(--neutral-a6);
   --dress-mark-fill-active-solid: var(--neutral-6);
   --dress-mark-edge: var(--neutral-a7);
+
+  /* the surface family's resting edge (§19, §10): stood down — light is the edge. Flat
+     and contrast="high" re-declare this to `initial` so var(--tone-border) resolves
+     at the element. */
+  --surface-edge: transparent;
 }
 
 [data-appearance="light"] {
@@ -1511,19 +1504,16 @@
   --control-chrome-active-regular: 0 1px 1px rgb(0 0 0 / 0.08), 0 3px 8px -3px rgb(0 0 0 / 0.112), inset 0 -1px 0 rgb(0 0 0 / 0.08);
   --control-chrome-active-thick: 0 1px 1px rgb(0 0 0 / 0.09), 0 3px 8px -3px rgb(0 0 0 / 0.126), inset 0 -1px 0 rgb(0 0 0 / 0.09);
   /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance
-     because BOTH worlds declare one (overlap is information, not expression): flat is
-     the elevated row faded — derived, one source of shadow truth. */
+     because both worlds declare one, and flat's is the list-legal NO-OP: flat casts
+     nothing, floating panes included (2026-08-19 — separation in flat is the hairline's
+     job, not a faded shadow's). */
   --floating-chrome-elevated: var(--shadow-3);
-  --floating-chrome-flat: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 22px -6px rgb(0 0 0 / 0.05), 0 18px 48px -14px rgb(0 0 0 / 0.045);
+  --floating-chrome-flat: 0 0 0 0 transparent;
 
-  /* the look axis's filled pigment (§19), per appearance: an index means the opposite
-     thing in the two modes, so the ladders are not each other's copy. The edges sit
-     inside contrastHighBands.border, which is what keeps contrast="high" able to reach
-     a filled component's boundary at all. */
-  --dress-surface-fill: var(--neutral-2);
-  --dress-surface-fill-hover: var(--neutral-3);
-  --dress-surface-fill-active: var(--neutral-4);
-  --dress-surface-edge: var(--neutral-5);
+  /* the fill-first dress (§19), per appearance: an index means the opposite thing in
+     the two modes, so the ladders are not each other's copy. The edges sit inside
+     contrastHighBands.border, which is what keeps contrast="high" able to reach a
+     dressed component's boundary at all. */
   --dress-field-fill: var(--neutral-a3);
   --dress-field-fill-solid: var(--neutral-3);
   --dress-field-fill-hover: var(--neutral-a4);
@@ -1538,11 +1528,11 @@
   --dress-mark-fill-active: var(--neutral-a6);
   --dress-mark-fill-active-solid: var(--neutral-6);
   --dress-mark-edge: var(--neutral-a7);
-  --look-surface-fill: var(--color-surface);
-  --look-surface-fill-hover: var(--color-surface-hover);
-  --look-surface-fill-active: var(--color-surface-active);
-  --look-surface-border: transparent;
-  --look-surface-border-sealed: initial;
+
+  /* the surface family's resting edge (§19, §10): stood down — light is the edge. Flat
+     and contrast="high" re-declare this to `initial` so var(--tone-border) resolves
+     at the element. */
+  --surface-edge: transparent;
 }
 
 [data-appearance="dark"] {
@@ -2125,19 +2115,16 @@
   --control-chrome-active-regular: 0 1px 1px rgb(0 0 0 / 0.32), 0 3px 8px -3px rgb(0 0 0 / 0.288);
   --control-chrome-active-thick: 0 1px 1px rgb(0 0 0 / 0.36), 0 3px 8px -3px rgb(0 0 0 / 0.324);
   /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance
-     because BOTH worlds declare one (overlap is information, not expression): flat is
-     the elevated row faded — derived, one source of shadow truth. */
+     because both worlds declare one, and flat's is the list-legal NO-OP: flat casts
+     nothing, floating panes included (2026-08-19 — separation in flat is the hairline's
+     job, not a faded shadow's). */
   --floating-chrome-elevated: inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-3);
-  --floating-chrome-flat: 0 1px 2px rgb(0 0 0 / 0.2), 0 8px 22px -6px rgb(0 0 0 / 0.18), 0 18px 48px -14px rgb(0 0 0 / 0.15);
+  --floating-chrome-flat: 0 0 0 0 transparent;
 
-  /* the look axis's filled pigment (§19), per appearance: an index means the opposite
-     thing in the two modes, so the ladders are not each other's copy. The edges sit
-     inside contrastHighBands.border, which is what keeps contrast="high" able to reach
-     a filled component's boundary at all. */
-  --dress-surface-fill: var(--neutral-3);
-  --dress-surface-fill-hover: var(--neutral-4);
-  --dress-surface-fill-active: var(--neutral-5);
-  --dress-surface-edge: var(--neutral-5);
+  /* the fill-first dress (§19), per appearance: an index means the opposite thing in
+     the two modes, so the ladders are not each other's copy. The edges sit inside
+     contrastHighBands.border, which is what keeps contrast="high" able to reach a
+     dressed component's boundary at all. */
   --dress-field-fill: var(--neutral-a3);
   --dress-field-fill-solid: var(--neutral-3);
   --dress-field-fill-hover: var(--neutral-a4);
@@ -2152,27 +2139,11 @@
   --dress-mark-fill-active: var(--neutral-a7);
   --dress-mark-fill-active-solid: var(--neutral-7);
   --dress-mark-edge: var(--neutral-a7);
-  --look-surface-fill: var(--color-surface);
-  --look-surface-fill-hover: var(--color-surface-hover);
-  --look-surface-fill-active: var(--color-surface-active);
-  --look-surface-border: transparent;
-  --look-surface-border-sealed: initial;
-}
 
-[data-surface-look="outlined"] {
-  --look-surface-fill: var(--color-surface);
-  --look-surface-fill-hover: var(--color-surface-hover);
-  --look-surface-fill-active: var(--color-surface-active);
-  --look-surface-border: transparent;
-  --look-surface-border-sealed: initial;
-}
-
-[data-surface-look="filled"] {
-  --look-surface-fill: var(--dress-surface-fill);
-  --look-surface-fill-hover: var(--dress-surface-fill-hover);
-  --look-surface-fill-active: var(--dress-surface-fill-active);
-  --look-surface-border: var(--dress-surface-edge);
-  --look-surface-border-sealed: var(--dress-surface-edge);
+  /* the surface family's resting edge (§19, §10): stood down — light is the edge. Flat
+     and contrast="high" re-declare this to `initial` so var(--tone-border) resolves
+     at the element. */
+  --surface-edge: transparent;
 }
 
 @supports (color: color(display-p3 0 0 0)) {
@@ -3075,7 +3046,7 @@
   }
 }
 
-:root[data-contrast="high"], [data-appearance="light"][data-contrast="high"] {
+:root[data-contrast="high"], [data-appearance="light"][data-contrast="high"], [data-contrast="high"] [data-appearance="light"]:not([data-contrast="normal"]) {
   --neutral-6: #9fa2a5;
   --neutral-7: #95999c;
   --neutral-8: #8f9397;
@@ -3160,22 +3131,19 @@
   --control-edge: #878b8f;
   --field-edge: #a3a6aa;
   --color-track: var(--neutral-6);
-  --material-thin-alpha: 55%;
-  --material-thin-alpha-hover: 62%;
-  --material-thin-alpha-active: 69%;
+  --material-thin-alpha: 72%;
+  --material-thin-alpha-hover: 77%;
+  --material-thin-alpha-active: 82%;
   --material-thin-edge: initial;
-  --material-thin-rim: initial;
-  --material-regular-alpha: 82%;
-  --material-regular-alpha-hover: 87%;
-  --material-regular-alpha-active: 92%;
+  --material-regular-alpha: 80%;
+  --material-regular-alpha-hover: 84%;
+  --material-regular-alpha-active: 88%;
   --material-regular-edge: initial;
-  --material-regular-rim: initial;
-  --material-thick-alpha: 94%;
-  --material-thick-alpha-hover: 96%;
-  --material-thick-alpha-active: 97%;
+  --material-thick-alpha: 86%;
+  --material-thick-alpha-hover: 89%;
+  --material-thick-alpha-active: 92%;
   --material-thick-edge: initial;
-  --material-thick-rim: initial;
-  --look-surface-border: initial;
+  --surface-edge: initial;
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
   --material-ring-opacity: 0;
@@ -3184,9 +3152,6 @@
 }
 :root[data-contrast="high"] [data-material], [data-appearance="light"][data-contrast="high"] [data-material] {
   --kui-glass-hc-edge: var(--tone-border);
-}
-:root[data-contrast="high"] [data-surface-look], [data-appearance="light"][data-contrast="high"] [data-surface-look] {
-  --look-surface-border: initial;
 }
 @media (prefers-contrast: more) {
   :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -3274,22 +3239,19 @@
     --control-edge: #878b8f;
     --field-edge: #a3a6aa;
     --color-track: var(--neutral-6);
-    --material-thin-alpha: 55%;
-    --material-thin-alpha-hover: 62%;
-    --material-thin-alpha-active: 69%;
+    --material-thin-alpha: 72%;
+    --material-thin-alpha-hover: 77%;
+    --material-thin-alpha-active: 82%;
     --material-thin-edge: initial;
-    --material-thin-rim: initial;
-    --material-regular-alpha: 82%;
-    --material-regular-alpha-hover: 87%;
-    --material-regular-alpha-active: 92%;
+    --material-regular-alpha: 80%;
+    --material-regular-alpha-hover: 84%;
+    --material-regular-alpha-active: 88%;
     --material-regular-edge: initial;
-    --material-regular-rim: initial;
-    --material-thick-alpha: 94%;
-    --material-thick-alpha-hover: 96%;
-    --material-thick-alpha-active: 97%;
+    --material-thick-alpha: 86%;
+    --material-thick-alpha-hover: 89%;
+    --material-thick-alpha-active: 92%;
     --material-thick-edge: initial;
-    --material-thick-rim: initial;
-    --look-surface-border: initial;
+    --surface-edge: initial;
     --dress-field-edge: initial;
     --dress-mark-edge: initial;
     --material-ring-opacity: 0;
@@ -3299,12 +3261,9 @@
   :root:not([data-contrast="normal"]) [data-material], [data-appearance="light"]:not([data-contrast="normal"]) [data-material] {
     --kui-glass-hc-edge: var(--tone-border);
   }
-  :root:not([data-contrast="normal"]) [data-surface-look], [data-appearance="light"]:not([data-contrast="normal"]) [data-surface-look] {
-    --look-surface-border: initial;
-  }
 }
 
-[data-appearance="dark"][data-contrast="high"] {
+[data-appearance="dark"][data-contrast="high"], [data-contrast="high"] [data-appearance="dark"]:not([data-contrast="normal"]) {
   --neutral-6: #646669;
   --neutral-7: #75787b;
   --neutral-8: #8f9397;
@@ -3389,36 +3348,30 @@
   --control-edge: #b0b3b5;
   --field-edge: #95999c;
   --color-track: var(--neutral-6);
-  --material-thin-alpha: 60%;
-  --material-thin-alpha-hover: 67%;
-  --material-thin-alpha-active: 74%;
+  --material-thin-alpha: 76%;
+  --material-thin-alpha-hover: 80%;
+  --material-thin-alpha-active: 84%;
   --material-thin-edge: initial;
-  --material-thin-rim: initial;
-  --material-regular-alpha: 86%;
-  --material-regular-alpha-hover: 90%;
-  --material-regular-alpha-active: 94%;
+  --material-regular-alpha: 84%;
+  --material-regular-alpha-hover: 87%;
+  --material-regular-alpha-active: 90%;
   --material-regular-edge: initial;
-  --material-regular-rim: initial;
-  --material-thick-alpha: 95%;
-  --material-thick-alpha-hover: 96%;
-  --material-thick-alpha-active: 97%;
+  --material-thick-alpha: 90%;
+  --material-thick-alpha-hover: 92%;
+  --material-thick-alpha-active: 94%;
   --material-thick-edge: initial;
-  --material-thick-rim: initial;
-  --look-surface-border: initial;
+  --surface-edge: initial;
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
   --material-ring-opacity: 0;
-  --material-thin-alpha-floating: 60%;
-  --material-regular-alpha-floating: 86%;
-  --material-thick-alpha-floating: 95%;
+  --material-thin-alpha-floating: 76%;
+  --material-regular-alpha-floating: 84%;
+  --material-thick-alpha-floating: 90%;
   --scrim-fill: rgb(0 0 0 / 0.75);
   --scrim-filter: initial;
 }
 [data-appearance="dark"][data-contrast="high"] [data-material] {
   --kui-glass-hc-edge: var(--tone-border);
-}
-[data-appearance="dark"][data-contrast="high"] [data-surface-look] {
-  --look-surface-border: initial;
 }
 @media (prefers-contrast: more) {
   [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -3506,41 +3459,35 @@
     --control-edge: #b0b3b5;
     --field-edge: #95999c;
     --color-track: var(--neutral-6);
-    --material-thin-alpha: 60%;
-    --material-thin-alpha-hover: 67%;
-    --material-thin-alpha-active: 74%;
+    --material-thin-alpha: 76%;
+    --material-thin-alpha-hover: 80%;
+    --material-thin-alpha-active: 84%;
     --material-thin-edge: initial;
-    --material-thin-rim: initial;
-    --material-regular-alpha: 86%;
-    --material-regular-alpha-hover: 90%;
-    --material-regular-alpha-active: 94%;
+    --material-regular-alpha: 84%;
+    --material-regular-alpha-hover: 87%;
+    --material-regular-alpha-active: 90%;
     --material-regular-edge: initial;
-    --material-regular-rim: initial;
-    --material-thick-alpha: 95%;
-    --material-thick-alpha-hover: 96%;
-    --material-thick-alpha-active: 97%;
+    --material-thick-alpha: 90%;
+    --material-thick-alpha-hover: 92%;
+    --material-thick-alpha-active: 94%;
     --material-thick-edge: initial;
-    --material-thick-rim: initial;
-    --look-surface-border: initial;
+    --surface-edge: initial;
     --dress-field-edge: initial;
     --dress-mark-edge: initial;
     --material-ring-opacity: 0;
-    --material-thin-alpha-floating: 60%;
-    --material-regular-alpha-floating: 86%;
-    --material-thick-alpha-floating: 95%;
+    --material-thin-alpha-floating: 76%;
+    --material-regular-alpha-floating: 84%;
+    --material-thick-alpha-floating: 90%;
     --scrim-fill: rgb(0 0 0 / 0.75);
     --scrim-filter: initial;
   }
   [data-appearance="dark"]:not([data-contrast="normal"]) [data-material] {
     --kui-glass-hc-edge: var(--tone-border);
   }
-  [data-appearance="dark"]:not([data-contrast="normal"]) [data-surface-look] {
-    --look-surface-border: initial;
-  }
 }
 
 @supports (color: color(display-p3 0 0 0)) {
-  :root[data-contrast="high"], [data-appearance="light"][data-contrast="high"] {
+  :root[data-contrast="high"], [data-appearance="light"][data-contrast="high"], [data-contrast="high"] [data-appearance="light"]:not([data-contrast="normal"]) {
     --neutral-6: color(display-p3 0.6235 0.6342 0.6476);
     --neutral-7: color(display-p3 0.5863 0.5982 0.6134);
     --neutral-8: color(display-p3 0.5254 0.5391 0.5566);
@@ -3717,7 +3664,7 @@
 }
 
 @supports (color: color(display-p3 0 0 0)) {
-  [data-appearance="dark"][data-contrast="high"] {
+  [data-appearance="dark"][data-contrast="high"], [data-contrast="high"] [data-appearance="dark"]:not([data-contrast="normal"]) {
     --neutral-6: color(display-p3 0.3906 0.4012 0.4148);
     --neutral-7: color(display-p3 0.4568 0.4693 0.4853);
     --neutral-8: color(display-p3 0.5135 0.5274 0.5451);
@@ -4103,11 +4050,11 @@
   --radius-3: calc(8px * var(--scale));
   --radius-4: calc(10px * var(--scale));
   --radius-5: calc(12px * var(--scale));
-  --radius-6: calc(10px * var(--scale));
-  --radius-7: calc(12px * var(--scale));
-  --radius-8: calc(16px * var(--scale));
-  --radius-9: calc(20px * var(--scale));
-  --radius-10: calc(24px * var(--scale));
+  --radius-6: calc(12px * var(--scale));
+  --radius-7: calc(18px * var(--scale));
+  --radius-8: calc(24px * var(--scale));
+  --radius-9: calc(30px * var(--scale));
+  --radius-10: calc(36px * var(--scale));
   --radius-full: 9999px;
   --radius-surface-1: var(--radius-6);
   --radius-surface-2: var(--radius-7);
@@ -4131,11 +4078,11 @@
   --radius-3: calc(12px * var(--scale));
   --radius-4: calc(14px * var(--scale));
   --radius-5: calc(16px * var(--scale));
-  --radius-6: calc(20px * var(--scale));
-  --radius-7: calc(25px * var(--scale));
+  --radius-6: calc(24px * var(--scale));
+  --radius-7: calc(32px * var(--scale));
   --radius-8: calc(40px * var(--scale));
-  --radius-9: calc(45px * var(--scale));
-  --radius-10: calc(50px * var(--scale));
+  --radius-9: calc(48px * var(--scale));
+  --radius-10: calc(56px * var(--scale));
   --radius-full: 9999px;
   --radius-surface-1: var(--radius-6);
   --radius-surface-2: var(--radius-7);
@@ -4159,11 +4106,11 @@
   --radius-3: calc(9999px * var(--scale));
   --radius-4: calc(9999px * var(--scale));
   --radius-5: calc(9999px * var(--scale));
-  --radius-6: calc(20px * var(--scale));
-  --radius-7: calc(25px * var(--scale));
+  --radius-6: calc(24px * var(--scale));
+  --radius-7: calc(32px * var(--scale));
   --radius-8: calc(40px * var(--scale));
-  --radius-9: calc(45px * var(--scale));
-  --radius-10: calc(50px * var(--scale));
+  --radius-9: calc(48px * var(--scale));
+  --radius-10: calc(56px * var(--scale));
   --radius-full: 9999px;
   --radius-surface-1: var(--radius-6);
   --radius-surface-2: var(--radius-7);

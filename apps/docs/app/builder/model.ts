@@ -44,7 +44,6 @@ export type DocTheme = {
   density: NonNullable<ThemeProps["density"]>;
   pointer: NonNullable<ThemeProps["pointer"]>;
   radius: NonNullable<ThemeProps["radius"]>;
-  surfaceLook: NonNullable<ThemeProps["surfaceLook"]>;
   depth: NonNullable<ThemeProps["depth"]>;
   material: NonNullable<ThemeProps["material"]>;
 };
@@ -60,7 +59,6 @@ export const defaultDocTheme = (): DocTheme => ({
   density: themeDefaults.density,
   pointer: themeDefaults.pointer,
   radius: themeDefaults.radius,
-  surfaceLook: themeDefaults.surfaceLook,
   depth: themeDefaults.depth,
   material: themeDefaults.material,
 });

@@ -171,40 +171,9 @@ describe("the cap is the capsule, and `none` still squares it (§6, audit R8's r
   });
 });
 
-describe("outside the look axis, whole (§19 — the instrument rule)", () => {
-  it("every part is byte-identical across outlined and filled, in both appearances", () => {
-    // Slider's and Switch's negative law, third instance. §19's membership test has a
-    // mechanical half — a family is dressed because its sheet CONSUMES the roles — so the
-    // proof is that flipping the axis moves nothing a user can see.
-    for (const appearance of APPEARANCES) {
-      const outlined = parts(<Progress value={40} />, { theme: { appearance, surfaceLook: "outlined" } });
-      const filled = parts(<Progress value={40} />, { theme: { appearance, surfaceLook: "filled" } });
-      for (const prop of ["background-color", "border-top-left-radius", "height", "border-width"]) {
-        expect(
-          computed(filled.root, prop),
-          `${appearance}: the well's ${prop} moved with the look axis`,
-        ).toBe(computed(outlined.root, prop));
-      }
-      expect(computed(filled.fill, "background-color")).toBe(
-        computed(outlined.fill, "background-color"),
-      );
-    }
-  });
-
-  it("the axis really is live in this Theme — the control that keeps the law honest", () => {
-    // Same vacuity guard: if `look` did nothing at all, the law above would pass on a bar that
-    // HAD joined the axis. A SURFACE is the dressed family that still moves (see below).
-    const outlined = mounted(<div className="kui-surface" />, { theme: { surfaceLook: "outlined" } });
-    const filled = mounted(<div className="kui-surface" />, { theme: { surfaceLook: "filled" } });
-    // The honesty control reads the SURFACE role since 2026-08-17: controlLook went inert for
-    // the field and mark families with the fill-first flip, so --dress-field-fill is the same
-    // colour in both worlds and this guard would have proved nothing. surfaceLook still has
-    // two answers, which is what keeps the law above falsifiable.
-    expect(colorOn(filled, "var(--look-surface-fill)")).not.toBe(
-      colorOn(outlined, "var(--look-surface-fill)"),
-    );
-  });
-});
+// The "outside the look axis, whole" describe that stood here (the instrument rule's third
+// instance) left with the look axis itself (surfaceLook deleted 2026-08-20): with no prop,
+// there is no second look to compare against — membership is structural now.
 
 describe("the value is geometry, and AT reads it (Base UI's half, wired by us)", () => {
   it("a determinate bar fills exactly its fraction of the well", () => {

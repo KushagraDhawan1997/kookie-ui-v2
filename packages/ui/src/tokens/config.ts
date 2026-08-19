@@ -41,17 +41,25 @@ export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
 export const radiusLevels = {
   none: { steps: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], full: 0 },
   small: { steps: [0, 2, 3, 4, 5, 6, 5, 6, 8, 10, 12], full: 9999 },
-  medium: { steps: [0, 4, 6, 8, 10, 12, 10, 12, 16, 20, 24], full: 9999 },
-  // The surface band (steps 6-9) is the LAB'S, authored as arcs (lab drawn-squircle × 0.62,
-  // the lab's own engine-fallback ratio): the lab's mini card (40 drawn) is size 2 and the
-  // lab's card (64 drawn) is size 3, so 25 and 40 land those two EXACTLY under the 1.613
-  // corner knob, and 20/45/50 extend the band monotonically around the judged pair
-  // (2026-08-17, Kushagra: match the lab — supersedes the "anchors size 3 at the old flat
-  // value" sentence above for these two levels).
-  large: { steps: [0, 6, 8, 12, 14, 16, 20, 25, 40, 45, 50], full: 9999 },
+  // Medium's surface half re-priced 2026-08-19 with the level LADDER judgment (Kushagra:
+  // "small to medium jump is less compared to medium to large" — the default card read
+  // 8 → 16 → 40, +8 then +24): 12/18/24/30/36, even +6 treads, puts the default card at
+  // 8 → 24 → 40 — balanced +16 jumps. Medium's old size-3 anchor (16, the pre-lab flat
+  // corner) retires the way large's did in the lab port. Small is judged fine and unmoved.
+  medium: { steps: [0, 4, 6, 8, 10, 12, 12, 18, 24, 30, 36], full: 9999 },
+  // The surface band (steps 6-10) is EVEN since 2026-08-19 (Kushagra, the Card manual
+  // audit's first ladder judgment): 24/32/40/48 for the card sizes, 56 for the overlay-only
+  // top, equal 8px treads. The lab port's band (20/25/40/45/50) held the lab's two judged
+  // cells exactly (mini card 25, card 40 — drawn × 0.62, the lab's own engine-fallback
+  // ratio, under the 1.613 corner knob) and extrapolated the rest — judged per CELL, never
+  // as a LADDER, and as a ladder it ran +5/+15/+5: the bottom pair read alike, the top pair
+  // read alike, four sizes read as two. Size 3 keeps the lab's 40 (the one card actually
+  // judged at card scale); size 2 gives up its lab anchor to the ladder. Values are the
+  // ARC (Safari) rendering; squircle engines scale by the knob, so the ratio holds in both.
+  large: { steps: [0, 6, 8, 12, 14, 16, 24, 32, 40, 48, 56], full: 9999 },
   // The surface band caps at `large`'s values rather than medium's: capping lower would
   // make cards squarer as the dial turns up, which is what the level ladder must never do.
-  full: { steps: [0, 9999, 9999, 9999, 9999, 9999, 20, 25, 40, 45, 50], full: 9999 },
+  full: { steps: [0, 9999, 9999, 9999, 9999, 9999, 24, 32, 40, 48, 56], full: 9999 },
 } as const;
 
 export type RadiusLevel = keyof typeof radiusLevels;
@@ -1031,6 +1039,20 @@ export const material = {
   // near-opaque fallbackAlpha below stays what reduced-transparency means; high contrast is
   // a different preference and gets its own designed row (judged 2026-08-05, Kushagra: the
   // first cut reused fallbackAlpha and collapsed all three thicknesses into one).
+  //
+  // RE-PRICED 2026-08-20 (Kushagra): "the rule isn't make everything even more high
+  // contrast, it's ensure a baseline across" — so the row RAISES A FLOOR, which means the
+  // rung furthest from it moves furthest. The old row did the opposite and the numbers say
+  // so: thin moved least (+21 light, +8 dark) while regular moved most (+33 / +19), so the
+  // gap between thin and regular nearly DOUBLED under the setting (15 -> 27 light,
+  // 15 -> 26 dark) instead of closing, and thick landed at 94-97% — solid in all but name,
+  // spending the material's identity on the rung that needed help least.
+  //
+  // Now thin travels furthest (+38 / +24) and thick least (+21 / +10), the gaps compress to
+  // 8 and 6, and thick stays glass at 86 / 90. The three rungs are still three — the
+  // monotonicity law walks every column and would fail on a collapse — they are simply
+  // three defended things rather than three degrees of defence. v0, judged in the
+  // playground.
   /* CONTROL-scale material (lab 2026-08-14, Kushagra: "control surfaces need their own
      parameters"; ported 2026-08-17). A 40px pane is not a 210px card: the card's blur turns
      a small window to mud, its veil prices milk the label ink doesn't need, its sheen is a
@@ -1040,14 +1062,14 @@ export const material = {
      step — the veil holds and only brightness moves (lab 2026-08-14, "hover mode looks
      weird": the quiet-hover was laying an opaque pastel over the pane). */
   light: {
-    thin: { alpha: [34, 42, 50], alphaHigh: [55, 62, 69], filter: "blur(2.4px) saturate(172.5%) brightness(1.03)", edge: 0.5, rim: 0.35, sheen: 13.6, rimLifted: 0.42, control: { alpha: 30, filter: "blur(1.2px) saturate(140%) brightness(1.02)", filterHover: "blur(1.2px) saturate(140%) brightness(1.09)", filterLoud: "blur(1.2px) saturate(220%) brightness(1.1)", sheen: 10 } },
-    regular: { alpha: [49, 57, 65], alphaHigh: [82, 87, 92], filter: "blur(4px) saturate(207%) brightness(1.05)", edge: 0.6, rim: 0.45, sheen: 20.4, rimLifted: 0.52, control: { alpha: 48, filter: "blur(2px) saturate(160%) brightness(1.04)", filterHover: "blur(2px) saturate(160%) brightness(1.09)", filterLoud: "blur(2px) saturate(220%) brightness(1.1)", sheen: 14 } },
-    thick: { alpha: [65, 69, 72], alphaHigh: [94, 96, 97], filter: "blur(5.6px) saturate(241.5%) brightness(1.06)", edge: 0.7, rim: 0.55, sheen: 25.5, rimLifted: 0.62, control: { alpha: 66, filter: "blur(3.2px) saturate(180%) brightness(1.05)", filterHover: "blur(3.2px) saturate(180%) brightness(1.09)", filterLoud: "blur(3.2px) saturate(220%) brightness(1.1)", sheen: 18 } },
+    thin: { alpha: [34, 42, 50], alphaHigh: [72, 77, 82], filter: "blur(2.4px) saturate(172.5%) brightness(1.03)", edge: 0.5, rim: 0.35, sheen: 13.6, rimLifted: 0.42, control: { alpha: 30, filter: "blur(1.2px) saturate(140%) brightness(1.02)", filterHover: "blur(1.2px) saturate(140%) brightness(1.09)", filterLoud: "blur(1.2px) saturate(220%) brightness(1.1)", sheen: 10 } },
+    regular: { alpha: [49, 57, 65], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(207%) brightness(1.05)", edge: 0.6, rim: 0.45, sheen: 20.4, rimLifted: 0.52, control: { alpha: 48, filter: "blur(2px) saturate(160%) brightness(1.04)", filterHover: "blur(2px) saturate(160%) brightness(1.09)", filterLoud: "blur(2px) saturate(220%) brightness(1.1)", sheen: 14 } },
+    thick: { alpha: [65, 69, 72], alphaHigh: [86, 89, 92], filter: "blur(5.6px) saturate(241.5%) brightness(1.06)", edge: 0.7, rim: 0.55, sheen: 25.5, rimLifted: 0.62, control: { alpha: 66, filter: "blur(3.2px) saturate(180%) brightness(1.05)", filterHover: "blur(3.2px) saturate(180%) brightness(1.09)", filterLoud: "blur(3.2px) saturate(220%) brightness(1.1)", sheen: 18 } },
   },
   dark: {
-    thin: { alpha: [52, 60, 68], alphaHigh: [60, 67, 74], filter: "blur(2.4px) saturate(175.5%) brightness(0.92)", edge: 0.1, rim: 0.06, sheen: 2.75, rimLifted: 0.12, control: { alpha: 48, filter: "blur(1.2px) saturate(162.5%) brightness(0.95)", filterHover: "blur(1.2px) saturate(162.5%) brightness(1.02)", filterLoud: "blur(1.2px) saturate(180%) brightness(1)", sheen: 3.2 } },
-    regular: { alpha: [67, 74, 81], alphaHigh: [86, 90, 94], filter: "blur(4px) saturate(195%) brightness(0.9)", edge: 0.14, rim: 0.1, sheen: 3.85, rimLifted: 0.18, control: { alpha: 60, filter: "blur(2px) saturate(175%) brightness(0.94)", filterHover: "blur(2px) saturate(175%) brightness(1.02)", filterLoud: "blur(2px) saturate(180%) brightness(1)", sheen: 4 } },
-    thick: { alpha: [80, 82, 84], alphaHigh: [95, 96, 97], filter: "blur(5.6px) saturate(208%) brightness(0.88)", edge: 0.18, rim: 0.14, sheen: 4.95, rimLifted: 0.24, control: { alpha: 74, filter: "blur(3.2px) saturate(187.5%) brightness(0.92)", filterHover: "blur(3.2px) saturate(187.5%) brightness(1.02)", filterLoud: "blur(3.2px) saturate(180%) brightness(1)", sheen: 4.8 } },
+    thin: { alpha: [52, 60, 68], alphaHigh: [76, 80, 84], filter: "blur(2.4px) saturate(175.5%) brightness(0.92)", edge: 0.1, rim: 0.06, sheen: 2.75, rimLifted: 0.12, control: { alpha: 48, filter: "blur(1.2px) saturate(162.5%) brightness(0.95)", filterHover: "blur(1.2px) saturate(162.5%) brightness(1.02)", filterLoud: "blur(1.2px) saturate(180%) brightness(1)", sheen: 3.2 } },
+    regular: { alpha: [67, 74, 81], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(195%) brightness(0.9)", edge: 0.14, rim: 0.1, sheen: 3.85, rimLifted: 0.18, control: { alpha: 60, filter: "blur(2px) saturate(175%) brightness(0.94)", filterHover: "blur(2px) saturate(175%) brightness(1.02)", filterLoud: "blur(2px) saturate(180%) brightness(1)", sheen: 4 } },
+    thick: { alpha: [80, 82, 84], alphaHigh: [90, 92, 94], filter: "blur(5.6px) saturate(208%) brightness(0.88)", edge: 0.18, rim: 0.14, sheen: 4.95, rimLifted: 0.24, control: { alpha: 74, filter: "blur(3.2px) saturate(187.5%) brightness(0.92)", filterHover: "blur(3.2px) saturate(187.5%) brightness(1.02)", filterLoud: "blur(3.2px) saturate(180%) brightness(1)", sheen: 4.8 } },
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
       passes light, so its cast is the surface row FADED — thin passes most, thick least.
@@ -1531,21 +1553,20 @@ export const kbdRelief = {
  * 2026-08-09 read that a floating pane must sit above everything: the palette is ordered by
  * REACH, not by rank, and a panel's authority comes from covering what is under it, not from
  * out-casting a card three times its size. Dark keeps its inset rim, surfaceChrome's
- * sentence two rows up. Flat is
- * DERIVED, never a second authored shadow: the same row through `fadeShadow` at the
- * factor below (the §10 transmission precedent), quieter because a flat world states
- * depth rather than simulating it — but never none, because overlap is a fact in every
- * world. v0, judged in the playground in both worlds and both modes.
+ * sentence two rows up.
+ *
+ * FLAT CASTS NOTHING — floating panes included (2026-08-19, Kushagra, reversing the
+ * 2026-08-09 "coverage is information, never none" amendment and its half-strength fade).
+ * The old rule held that a covering pane owes SOME shadow in every world; what retired it
+ * is that flat grew its own separation vocabulary the day before — the hairline returns in
+ * flat (surfaces.css, 2026-08-19) — so a menu's boundary is drawn in flat's own language
+ * and the faded cast was a second voice saying the same thing. The emitted flat value is
+ * the list-legal no-op layer, not `none` (a `none` in a fallback chain poisons it).
  */
 export const floatingChrome = {
   light: "var(--shadow-3)",
   dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-3)",
 } as const;
-
-/** How much of the floating cast a FLAT world keeps (0..1). Applied to the palette row by
-    the generator — one source of shadow truth, the flat value can never drift from the
-    elevated one. v0. */
-export const floatingFlatFactor = 0.5;
 
 /**
  * §10 — the seal: what an opaque surface is filled with. Paper ABOVE the page, never the
@@ -1565,132 +1586,38 @@ export const surfaceColor = {
 } as const;
 
 /**
- * §19 — the look axis: the resting dress of the one-look families. An app identity chosen
- * once at Theme, never a per-component knob — the same tier as `depth`.
+ * §19 — the look axis is DELETED (surfaceLook 2026-08-20, controlLook 2026-08-19, both
+ * Kushagra). What it governed survives; the PROP is what died, in two steps for two
+ * different reasons.
  *
- * It was asked TWICE for a while (`surfaceLook` and `controlLook`, split 2026-08-10; see
- * `lookAxes`), because one answer could not say what every real interface says: a plain
- * card holding filled inputs. The CONTROL half was deleted 2026-08-19 (Kushagra): the
- * fill-first flip had made its two values identical, so fields and marks wear the dress
- * unconditionally and only `surfaceLook` remains an axis.
+ * `controlLook` died because the fill-first flip (2026-08-17) made its two values
+ * byte-identical — fields and marks wear the dress unconditionally, reading the
+ * `--dress-field-*` / `--dress-mark-*` roles below directly.
  *
- * The criterion is the border's JOB (decided 2026-08-06): on a control, a border is RANK —
- * Button's `bordered` half-step reorders loudness between call sites and stays a prop; on a
- * one-look family it ranks nothing (a form where one field is louder than the next names
- * nothing), so it is DRESS, and dress belongs to the app. Each family resolves the axis on
- * its own terms — the sentence emphasis already has — which is also the membership law:
- * a family is dressed because its sheet consumes these roles, and only for that reason.
+ * `surfaceLook` died because its second value never earned its keep: `filled` (the darkened
+ * card, a soft dress edge) shipped 2026-08-06 as a derivation, stayed v0, was never judged
+ * and never used by a real screen — while the lab port (2026-08-17) made `outlined` the
+ * judged identity: the pane is BORDERLESS at rest, its edge is light (ring on glass, pool
+ * and cast on solid), and conformance gets a pigment hairline by stand-down. An axis whose
+ * default is the only value anyone has ever seen is a lever every call site can reach and
+ * none has needed. Deleting it forecloses the 2026-08-10 "tinted surfaces" future the split
+ * was priced on — accepted: a tinted surface identity can return as a Theme value the day a
+ * real app wants one, and its return does not need this prop to have survived.
  *
- * `outlined` is the identity: exactly the chrome each family declared before the axis
- * existed, so the default is byte-identical to a world without it. `filled` trades the
- * hairline for a darkened well, one neutral step apart per family — surfaces lightest,
- * fields one darker, marks darkest (Kushagra's hierarchy, 2026-08-06).
- *
- * The field family DID have no hover slots, and the sentence justifying that has since been
- * measured false for one member (audit 2026-08-09). It read "its fill does not move, the
- * border and ring carry its states" — true of a text input, where the ring is a MODE keyed on
- * the caret being inside. Select's trigger is field-shaped and PRESSED: its ring is the
- * skeleton's `:focus-visible`, so it appears for a keyboard and never for a pointer, and the
- * trigger computed rest = hover = press = open, byte-identical across seven properties, with
- * nothing else in the package reading `data-popup-open` on a button. The slots exist now and
- * the pin stays where it was earned: text-field.css and text-area still pin all three sources
- * to the resting fill, so a field a caret enters is untouched, and only the member that is
- * pressed consumes the steps (select.css, law-tested in both directions).
- *
- * The steps are DERIVED, not judged: outlined reuses the surface roles verbatim (the same
- * three the surface and mark families already map), and filled walks the same +1/+2 the two
- * sibling families walk from their own resting step. The dark ladder ends one past the edge
- * step, which is the posture `surface` already ships in dark (fill-active 5, edge 5) — the
- * precedent is what makes this a derivation rather than a fourth opinion. v0 all the same.
- *
- * The FILL values are var() references that bake at the Theme element (§6, substitution-at-
- * declaration) — correct by co-location, because Theme stamps both look attributes beside
- * data-appearance on one element. The BORDERS cannot bake there: the tone system lives on
- * the component ([data-tone], the invalid/disabled remaps, contrast="high"), so outlined's
- * border is `initial` — the role stands down and the consumption site's fallback
- * (var(--tone-border), var(--mark-edge)) resolves AT THE ELEMENT. The material edge's own
- * pattern (§10), reused. Neutral only by the tone-set rule: an accent-tinted value joins as
- * a value on this axis the day a real app wants it, never as a second prop. v0, eye pass
- * pending.
+ * What remains in code: the surface family reads its own roles directly (`--color-surface`
+ * and its two states), and its resting pigment edge is `--surface-edge: transparent` —
+ * emitted in the appearance scopes, stood down to `initial` by the contrast="high" pass and
+ * by `depth="flat"` (no light means the line is back), so the consumption fallback
+ * `var(--tone-border)` resolves AT THE ELEMENT, where the tone lives. The material edge's
+ * own pattern (§10), unchanged.
  */
-export const look = {
-  outlined: {
-    surface: {
-      fill: "var(--color-surface)",
-      "fill-hover": "var(--color-surface-hover)",
-      "fill-active": "var(--color-surface-active)",
-      /* The lab's pane is BORDERLESS (2026-08-17, Kushagra: match the lab): its edge is
-         light — the ring on glass, the seat-line pool and the cast on solid — never a
-         pigment hairline. `transparent` here stands the hairline down at standard contrast;
-         the contrast="high" scopes re-declare this role to `initial`, so the consumption
-         fallback (var(--tone-border), HC-strengthened) returns exactly where conformance
-         needs an edge. `initial` was the old value and is now the HC-only resolution. */
-      border: "transparent",
-      /* What a SEALED pane wears (reduced transparency, 2026-08-19): the live `transparent`
-         above killed the sealed fallback chain — a sealed pane fell through a role that
-         answers, so it got no edge at all (audit 2026-08-18). This slot answers only there:
-         outlined stands down (the tone hairline resolves at the element), filled hands the
-         sealed pane the same dress edge every other card wears. */
-      "border-sealed": "initial",
-    },
-    /* Fields and marks are gone from this table (controlLook DELETED 2026-08-19, Kushagra).
-       The fill-first flip (2026-08-17) made the axis's two values byte-identical for both
-       families — outlined and filled each resolved the same `--dress-*` roles — so the prop
-       stamped an attribute and moved nothing. A dead axis is a lever every call site can
-       reach and none can feel; the component sheets now read the dress roles directly, and
-       the HC scopes stand `--dress-field-edge` / `--dress-mark-edge` down to `initial`, so
-       conformance falls back to the solved --tone-border / --control-edge exactly as the
-       look indirection used to. */
-  },
-  filled: {
-    surface: {
-      fill: "var(--dress-surface-fill)",
-      "fill-hover": "var(--dress-surface-fill-hover)",
-      "fill-active": "var(--dress-surface-fill-active)",
-      border: "var(--dress-surface-edge)",
-      "border-sealed": "var(--dress-surface-edge)",
-    },
-  },
-} as const;
 
 /**
- * §19 — which Theme prop moves which family (split 2026-08-10, Kushagra).
+ * §19 — the fill-first dress, PER APPEARANCE: what a field and a mark rest on. Unconditional
+ * since controlLook's deletion (2026-08-19) — these are not an axis's values, they are the
+ * two families' resting identity, and the sheets read them directly.
  *
- * The axis was one prop until a screenshot settled it: a white card holding grey filled
- * inputs — the most ordinary form on the web — was unreachable, because `filled` moved the
- * card and the field together, one neutral step apart, and one step is mush. The fix is not
- * new pigment (`look` above is untouched); it is that the question gets asked separately of
- * the two groups a designer actually decides separately.
- *
- * The grouping is the one the code already had. `field` and `mark` move together because a
- * filled input beside an outlined checkbox reads as an accident, not as a statement; `surface`
- * is alone because a card, a menu and a dialog are one kind of thing. Refused on the way:
- * taking the surface family OUT of the axis instead (cheaper, and it delivers the same
- * screenshot — but it forecloses the tinted surfaces `filled` is meant to grow into), and one
- * OBJECT-valued prop (partial overrides would need merge semantics no other axis has, and an
- * inline object literal is a fresh identity every render — the memo bug of 2026-08-06).
- *
- * Both halves keep the same values, so an app that sets both to the same thing is exactly the
- * world that shipped before the split. The both-filled cell is still one step apart and still
- * mush; the split neither causes nor fixes it, and it is on the eye-pass list.
- */
-export const lookAxes = {
-  surface: ["surface"],
-  /* `control: ["field", "mark"]` DELETED 2026-08-19 (Kushagra: "delete it"). The 2026-08-17
-     fill-first flip resolved both of its values to the same dress roles, so the split's
-     control half had become a prop that moves nothing. The split itself stands — the white
-     card holding grey filled inputs is still reachable, because fields and marks now wear
-     the dress UNCONDITIONALLY and only the surface family still answers a look question. */
-} as const satisfies Record<string, readonly (keyof (typeof look)["outlined"])[]>;
-
-/**
- * §19 — what `filled` actually paints, PER APPEARANCE. The look block above is one block on
- * purpose (co-location: Theme stamps data-look beside data-appearance on a single element,
- * and a raw `[data-look]` div must resolve under any ancestor appearance), so it can hold
- * only mode-blind mappings. The mode-specific pigment has to arrive by indirection, exactly
- * the way `--color-surface` already carries the seal — which is what these roles are.
- *
- * They exist because sharing one set of neutral INDICES across both modes is a bug this
+ * Per appearance because sharing one set of neutral INDICES across both modes is a bug this
  * system has now shipped three times. `surfaceColor` records the second instance in its own
  * comment (dark's hover equalled its rest, because the steps were hard-coded for both modes
  * while the dark seal sat at --neutral-2). The look axis was the third and worst: `filled`
@@ -1699,27 +1626,18 @@ export const lookAxes = {
  * axis did nothing but delete the card's border. An index is not a colour; it means the
  * opposite thing in the two modes, and only a per-mode table can say which.
  *
- * The direction is stated rather than implied. In light a higher step is DARKER, in dark it
- * is LIGHTER — so "recessed" and "raised" are opposite arithmetic per mode, and the ladders
- * below are not each other's copy. A filled card is one step off the seal in both modes; a
- * field and a mark sit further from their bed; the TRACK moves the other way from everything
- * else, because a well is the one part that reads as sunk INTO its surface.
- *
  * The edges are deliberately inside `contrastHighBands.border` ([5, 6, 7]). That is what
- * keeps `contrast="high"` reaching a filled component's boundary for free: the role holds a
+ * keeps `contrast="high"` reaching a dressed component's boundary for free: the role holds a
  * var() reference, the high-contrast pass re-declares those very steps, and substitution at
  * the element does the rest. A softer edge outside the band would have been an accessibility
- * escape that silently stopped working — which is the shape of the defect this replaces,
- * where `filled` set `border: transparent` and left contrast="high" nothing to strengthen.
+ * escape that silently stopped working.
  *
- * Kushagra's calls, 2026-08-06, judged against the preview's outlined/filled pair: a filled
- * surface KEEPS a border ("filled surfaces can have slight border, but their main pull is
- * filled bg, not border"), so `filled` is no longer a trade — the fill is the signal and the
- * hairline merely softens. v0, eye pass pending.
+ * The SURFACE family's rows died with `surfaceLook` (2026-08-20): they were `filled`'s
+ * pigment, and `filled` was never judged or used. A card rests on the seal and its edge is
+ * light (§10, the lab port) — see the §19 note above for what replaced the axis.
  */
 export const dress = {
   light: {
-    surface: { fill: 2, "fill-hover": 3, "fill-active": 4, edge: 5 },
     /* Fields: edge softened one step with the fill-first flip; the fill went to 2 the same
        day and CAME BACK ("a bit too light") — what read heavy before was the fill plus the
        solved hairline plus the cast, and with those two gone the original well holds
@@ -1728,7 +1646,6 @@ export const dress = {
     mark: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 7 },
   },
   dark: {
-    surface: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 5 },
     field: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 4 },
     mark: { fill: 5, "fill-hover": 6, "fill-active": 7, edge: 7 },
   },

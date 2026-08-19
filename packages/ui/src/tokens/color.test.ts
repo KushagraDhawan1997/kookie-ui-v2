@@ -972,14 +972,14 @@ describe("the standard-mode dress report — measured to know, never to validate
       // Each row: the colour, what it is measured against, and the advisory tier that gives
       // the number a scale — 45 fine detail, 30 large non-text, 15 bare discernibility.
       const rows: Array<[label: string, fg: string, bg: string, tier: number]> = [
-        ["outlined control-edge vs worst bed", emitted("control-edge"), Math.abs(apcaLc(emitted("control-edge"), seal)) < Math.abs(apcaLc(emitted("control-edge"), page)) ? seal : page, apcaFloors.nonText],
-        ["outlined field-edge vs worst bed", emitted("field-edge"), Math.abs(apcaLc(emitted("field-edge"), seal)) < Math.abs(apcaLc(emitted("field-edge"), page)) ? seal : page, apcaFloors.nonTextLarge],
-        ["filled surface edge vs its fill", step(d.surface.edge), step(d.surface.fill), 15],
-        ["filled surface fill vs page", step(d.surface.fill), page, 15],
-        ["filled field edge vs its fill", step(d.field.edge), step(d.field.fill), 15],
-        ["filled field fill vs seal", step(d.field.fill), seal, 15],
-        ["filled mark edge vs its fill", step(d.mark.edge), step(d.mark.fill), 15],
-        ["filled mark fill vs seal", step(d.mark.fill), seal, 15],
+        ["control-edge vs worst bed", emitted("control-edge"), Math.abs(apcaLc(emitted("control-edge"), seal)) < Math.abs(apcaLc(emitted("control-edge"), page)) ? seal : page, apcaFloors.nonText],
+        ["field-edge vs worst bed", emitted("field-edge"), Math.abs(apcaLc(emitted("field-edge"), seal)) < Math.abs(apcaLc(emitted("field-edge"), page)) ? seal : page, apcaFloors.nonTextLarge],
+        // The surface rows died with surfaceLook (2026-08-20): the dress table no longer has
+        // a surface family — a card rests on the seal, measured everywhere else.
+        ["dress field edge vs its fill", step(d.field.edge), step(d.field.fill), 15],
+        ["dress field fill vs seal", step(d.field.fill), seal, 15],
+        ["dress mark edge vs its fill", step(d.mark.edge), step(d.mark.fill), 15],
+        ["dress mark fill vs seal", step(d.mark.fill), seal, 15],
         // The value-control family's two roles, added 2026-08-08. They were the faintest
         // resting dress in the system and the report named neither — which is how an OFF
         // switch (a control made ENTIRELY of the well, with the grip as its only other

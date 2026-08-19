@@ -56,7 +56,7 @@ import {
 } from "@kookie-ui/react";
 
 import { XIcon } from "../icons";
-import { CATALOG, canContain, paletteEntries, sanitizeNode, PALETTE_FAMILIES, type CatalogEntry } from "./catalog";
+import { CATALOG, canContain, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
 import {
   ancestorChain,
   cloneWithNewIds,
@@ -84,7 +84,14 @@ const BLOCKS_KEY = "kookie-builder-blocks-v1";
 const DRAG_TYPE = "application/x-kookie-component";
 const MOVE_TYPE = "application/x-kookie-move";
 
-type DragPayload = { kind: "insert"; type: string } | { kind: "move"; id: string } | { kind: "block"; index: number };
+/* Selection chrome (Figma's grammar): a shape outline tracing the element's own corners,
+   a square-cornered bounding box, a size chip, and corner handles WHERE THE NODE CAN
+   ACTUALLY RESIZE — a handle that writes nothing is the lie this file already deleted once.
+   Purple on purpose: the one hue no token in the system uses, so selection can never be
+   read as focus. */
+const SEL_COLOR = "#a855f7";
+
+type DragPayload ={ kind: "insert"; type: string } | { kind: "move"; id: string } | { kind: "block"; index: number };
 
 /** A resolved drop: tree coordinates plus the instrument that shows them — the gap line,
     or (for an empty container) the dashed box on `boxId`. */
@@ -241,7 +248,16 @@ export function BuilderApp() {
       // Storage denied or corrupt: the session runs from memory, exactly as designed.
     }
   }, []);
+  /* The write-through must not run before the load has landed. Both effects fire on mount in
+     declaration order, so an unguarded write saved the STARTER document — the value this
+     render still holds — straight over the stored one; under StrictMode's double-invocation
+     the second pass then read that starter back, and a reload lost the document outright
+     (measured: two roots before, one after). Guarding on the initial document's IDENTITY is
+     what makes it safe on both passes: there is nothing to persist until the document stops
+     being the one nobody has edited. */
+  const untouched = React.useRef(history.present);
   React.useEffect(() => {
+    if (doc === untouched.current) return;
     try {
       localStorage.setItem(DOC_KEY, JSON.stringify(doc));
     } catch {}
@@ -326,13 +342,20 @@ export function BuilderApp() {
     return moving ? { type: moving.type, movingId: d.id, makeNode: () => moving } : null;
   };
 
+  /** A field's stamp rides its inner input (unknown props spread there — the drag probe's
+      own 2026-08-19 lesson), but the box a human sees is the `.kui-field` wrapper around
+      it. Keyed on the input's class, never the wrapper's, so a stamped control sitting in
+      a field's SLOT keeps its own box. */
+  const visibleEl = (el: Element): Element =>
+    el.classList.contains("kui-field-input") ? (el.closest(".kui-field") ?? el) : el;
+
   /** The DOM element that stands for a node — its own stamp, or (for a phantom root like
       Menu) the first stamped element inside it. */
   const elementFor = (n: BuilderNode): Element | null => {
     const wrap = canvasRef.current;
     if (!wrap) return null;
     const own = wrap.querySelector(`[data-b-id="${n.id}"]`);
-    if (own) return own;
+    if (own) return visibleEl(own);
     for (const c of n.children ?? []) {
       const hit = elementFor(c);
       if (hit) return hit;
@@ -498,32 +521,189 @@ export function BuilderApp() {
 
   /* ── Selection ring: an instrument, measured off the live DOM ─────────────────────── */
 
-  const [ring, setRing] = React.useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  type Ring = { top: number; left: number; width: number; height: number; radius: string; corner: string };
+  const [ring, setRing] = React.useState<Ring | null>(null);
   React.useLayoutEffect(() => {
     const wrap = canvasRef.current;
     if (!wrap || !selection) {
       setRing(null);
       return;
     }
-    const measure = () => {
-      const el = wrap.querySelector(`[data-b-id="${selection}"]`);
-      if (!el) {
+    // The element does not hold still — the hover rise, the press spring, a reflow — so
+    // the instrument tracks it per frame while selected, committing state only on change.
+    // Measured before this: a click-time measurement went 1px stale the moment the hover
+    // travel landed.
+    let raf = 0;
+    const tick = () => {
+      const stamped = wrap.querySelector(`[data-b-id="${selection}"]`);
+      if (!stamped) {
         setRing(null);
-        return;
+      } else {
+        const el = visibleEl(stamped);
+        const a = el.getBoundingClientRect();
+        const b = wrap.getBoundingClientRect();
+        // The shape outline traces the element's OWN corners exactly (a pill stays a
+        // pill), read off the computed style rather than guessed. Radius alone is HALF the
+        // corner: a surface draws its corner as a squircle (§6, the lab port), so the
+        // curvature FAMILY has to travel with the number or the trace bulges past a card's
+        // real edge. Measured: outline follows corner-shape, so one property carries it.
+        // An engine without the property computes "" here and its surfaces draw arcs, so
+        // the trace stays right by construction — the same live-or-die pairing surfaces.css
+        // states for the knob and the shape.
+        const cs = window.getComputedStyle(el as HTMLElement);
+        const radius = [cs.borderTopLeftRadius, cs.borderTopRightRadius, cs.borderBottomRightRadius, cs.borderBottomLeftRadius]
+          .map((v) => v.split(" ")[0])
+          .join(" ");
+        const corner = cs.getPropertyValue("corner-shape");
+        const next: Ring = { top: a.top - b.top, left: a.left - b.left, width: a.width, height: a.height, radius, corner };
+        setRing((prev) =>
+          prev &&
+          prev.top === next.top &&
+          prev.left === next.left &&
+          prev.width === next.width &&
+          prev.height === next.height &&
+          prev.radius === next.radius &&
+          prev.corner === next.corner
+            ? prev
+            : next,
+        );
       }
-      const a = el.getBoundingClientRect();
-      const b = wrap.getBoundingClientRect();
-      setRing({ top: a.top - b.top, left: a.left - b.left, width: a.width, height: a.height });
+      raf = requestAnimationFrame(tick);
     };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [selection, doc, canvasW]);
+    tick();
+    return () => cancelAnimationFrame(raf);
+  }, [selection]);
+
+  /* ── Resize: the corner steps the size index ──────────────────────────────────────────
+     There is no raw length behind this gesture. The catalog says whether the selected type
+     has a size vocabulary at all (`sizeStepsFor`), and the drag walks that index — so the
+     box lands on a value the system designed, never on a number the pointer happened to
+     stop at. The handle follows the BOX, not the pointer: the ring already re-measures per
+     frame, so a step re-renders the real component and the handles arrive with it. */
+
+  const RESIZE_STEP_PX = 30;
+  const [resizing, setResizing] = React.useState<{ label: string } | null>(null);
+  const sizeSteps = selected ? sizeStepsFor(selected.type) : null;
+
+  /* The SIDE handles say how the node takes its seat. Which vocabulary applies depends on
+     the parent's layout, and that is MEASURED: `direction` is responsive, so the document
+     cannot answer "is this a row" for the tier currently on screen — the canvas is a real
+     query container, so only the DOM knows. A column is deliberately absent: its children
+     already stretch across it (the system's own full-width idiom), so there is nothing to
+     write and no handle to show. */
+  const parentLayout = (): "row" | "column" | "grid" | null => {
+    const wrap = canvasRef.current;
+    if (!wrap || !selected) return null;
+    const own = wrap.querySelector(`[data-b-id="${selected.id}"]`);
+    const parentEl = own ? visibleEl(own).parentElement : null;
+    if (!parentEl) return null;
+    const cs = getComputedStyle(parentEl);
+    if (cs.display.includes("grid")) return "grid";
+    if (!cs.display.includes("flex")) return null;
+    return cs.flexDirection.startsWith("row") ? "row" : "column";
+  };
+  const [seat, setSeat] = React.useState<SeatVocabulary | null>(null);
+  React.useEffect(() => {
+    setSeat(selected ? seatVocabularyFor(selected.type, parentLayout()) : null);
+  }, [selected, doc, canvasW]);
+
+  const startResize = (e: React.PointerEvent<HTMLDivElement>, out: readonly [number, number]) => {
+    const wrap = canvasRef.current;
+    if (!wrap || !selected || !sizeSteps) return;
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
+    // The starting rung is READ, never assumed: `size` is optional in the catalog, so an
+    // unstated one is the component's own default — which every component stamps as
+    // `data-size`. The DOM is the only place that knows.
+    const stampedEl = wrap.querySelector(`[data-b-id="${selected.id}"]`);
+    const stamped = stampedEl ? visibleEl(stampedEl).getAttribute("data-size") : null;
+    const stated = typeof selected.props?.size === "string" ? (selected.props.size as string) : null;
+    const from = Math.max(0, sizeSteps.indexOf(stated ?? stamped ?? sizeSteps[0]!));
+
+    stepDrag(e, sizeSteps, from, out, (v) => ({ size: v }), (v) => `size ${v}`);
+  };
+
+  /** The one drag both handle kinds run: walk a closed list, write the rung through the
+      model, one gesture = one undo. The handles differ only in which list they walk and
+      which prop they write — the same shape `canContain` gives the three drop surfaces. */
+  const stepDrag = (
+    e: React.PointerEvent<HTMLDivElement>,
+    steps: readonly string[],
+    from: number,
+    out: readonly [number, number],
+    write: (value: string | undefined) => Record<string, string | undefined>,
+    label: (value: string | undefined) => string,
+  ) => {
+    if (!selected) return;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let last = from;
+    let pushed = false;
+    setResizing({ label: label(steps[from]) });
+
+    const onMove = (ev: PointerEvent) => {
+      // Project the travel onto the handle's own outward direction, so a handle grows when
+      // dragged away from the box and shrinks when dragged into it. A corner's vector has
+      // both components, a side's only one — one expression covers both.
+      const span = Math.abs(out[0]) + Math.abs(out[1]);
+      const along = ((ev.clientX - startX) * out[0] + (ev.clientY - startY) * out[1]) / Math.sqrt(span);
+      const next = Math.min(steps.length - 1, Math.max(-1, from + Math.round(along / RESIZE_STEP_PX)));
+      if (next === last) return;
+      last = next;
+      // -1 is the UNSET rung, which is a real value: a hugging item, a one-column cell.
+      const value = next < 0 ? undefined : steps[next]!;
+      setResizing({ label: label(value) });
+      // Written through the updater form: the document this drag started on goes stale the
+      // moment the first step commits, so each step must read the live present.
+      const push = !pushed;
+      pushed = true;
+      setHistory((h) => {
+        const present = { ...h.present, roots: updateProps(h.present.roots, selected.id, write(value)) };
+        return push ? { past: [...h.past.slice(-63), h.present], present, future: [] } : { ...h, present, future: [] };
+      });
+    };
+    const onUp = () => {
+      setResizing(null);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
+  const startSeatDrag = (e: React.PointerEvent<HTMLDivElement>, out: readonly [number, number]) => {
+    if (!selected || !seat) return;
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    const stated = typeof selected.props?.[seat.prop] === "string" ? (selected.props[seat.prop] as string) : null;
+    const from = stated ? seat.values.indexOf(stated) : -1;
+    const wordFor = (v: string | undefined) =>
+      seat.prop === "flexGrow" ? (v ? "fill" : "hug") : `spans ${v ? v.replace(/\D+/g, "") : "1"}`;
+    stepDrag(e, seat.values, from, out, (v) => ({ [seat.prop]: v }), wordFor);
+  };
 
   const onCanvasClick = (e: React.MouseEvent) => {
-    if ((e.target as Element).closest("[data-kb-width-handle]")) return;
-    const el = (e.target as Element).closest("[data-b-id]");
+    if ((e.target as Element).closest("[data-kb-width-handle], [data-kb-resize]")) return;
+    // Nearest of stamp-or-field-wrapper: a click on a field's padding lands on the
+    // unstamped wrapper, and walking past it would select the field's PARENT.
+    const near = (e.target as Element).closest("[data-b-id], .kui-field");
+    const el =
+      near && !near.hasAttribute("data-b-id")
+        ? near.querySelector(":scope > .kui-field-input[data-b-id]")
+        : near;
     setSelection(el ? el.getAttribute("data-b-id") : null);
+  };
+
+  /* A canvas control never takes real focus: clicking is selection, not operation (the
+     same trade drag-to-move already made of text selection — the inspector is where a
+     field is edited). Blurring in the focus event itself, rather than preventing the
+     mousedown, keeps native drag alive in every engine; the width handle's own focus
+     (arrow-key resize) never matches the stamp and survives. */
+  const onCanvasFocus = (e: React.FocusEvent) => {
+    if ((e.target as Element).closest("[data-b-id]")) (e.target as HTMLElement).blur();
   };
 
   /* The width handle: drag (or arrow keys) to give the canvas a narrower room. */
@@ -760,6 +940,7 @@ export function BuilderApp() {
             <Box
               p="6"
               onClickCapture={onCanvasClick}
+              onFocusCapture={onCanvasFocus}
               onDragStartCapture={onCanvasDragStart}
               onDragOver={onCanvasDragOver}
               onDrop={onCanvasDrop}
@@ -786,7 +967,6 @@ export function BuilderApp() {
                     density={doc.theme.density}
                     pointer={doc.theme.pointer}
                     radius={doc.theme.radius}
-                    surfaceLook={doc.theme.surfaceLook}
                     depth={doc.theme.depth}
                     material={doc.theme.material}
                   >
@@ -836,19 +1016,136 @@ export function BuilderApp() {
                     />
                   </div>
                   {ring ? (
-                    <div
-                      aria-hidden
-                      style={{
-                        position: "absolute",
-                        top: ring.top - 3,
-                        left: ring.left - 3,
-                        width: ring.width + 6,
-                        height: ring.height + 6,
-                        border: "var(--focus-ring-width) solid var(--focus-ring)",
-                        borderRadius: "8px",
-                        pointerEvents: "none",
-                      }}
-                    />
+                    <div aria-hidden style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+                      {/* Both lines are drawn as OUTLINES on a zero-border box: an outline
+                          is painted outside the box without joining it, so the traced
+                          rectangle is the element's own — a border would add its width to
+                          the box and overshoot by 2px in each axis. */}
+                      {/* The shape outline: the element's box and its own corners. */}
+                      <div
+                        style={
+                          {
+                            position: "absolute",
+                            top: ring.top,
+                            left: ring.left,
+                            width: ring.width,
+                            height: ring.height,
+                            outline: `1px solid ${SEL_COLOR}`,
+                            outlineOffset: "-1px",
+                            borderRadius: ring.radius,
+                            // Not in React's CSSProperties yet; assigned through CSSOM,
+                            // where an engine that lacks it drops it harmlessly.
+                            cornerShape: ring.corner,
+                          } as React.CSSProperties
+                        }
+                      />
+                      {/* The bounding box: always rectangular, whatever the shape. */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: ring.top,
+                          left: ring.left,
+                          width: ring.width,
+                          height: ring.height,
+                          outline: `1px solid ${SEL_COLOR}`,
+                          outlineOffset: "-1px",
+                        }}
+                      />
+                      {/* Corner handles, shown only where a size vocabulary exists — their
+                          PRESENCE is the information, so a node the system cannot resize
+                          shows none rather than a grip that writes nothing. */}
+                      {sizeSteps
+                        ? (
+                            [
+                              [ring.top, ring.left, [-1, -1], "nwse-resize"],
+                              [ring.top, ring.left + ring.width, [1, -1], "nesw-resize"],
+                              [ring.top + ring.height, ring.left, [-1, 1], "nesw-resize"],
+                              [ring.top + ring.height, ring.left + ring.width, [1, 1], "nwse-resize"],
+                            ] as [number, number, [number, number], string][]
+                          ).map(([y, x, out, cursor], i) => (
+                            <div
+                              key={i}
+                              data-kb-resize
+                              onPointerDown={(e) => startResize(e, out)}
+                              style={{
+                                position: "absolute",
+                                top: y - 7,
+                                left: x - 7,
+                                width: 14,
+                                height: 14,
+                                cursor,
+                                pointerEvents: "auto",
+                                touchAction: "none",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  inset: 4,
+                                  background: "#fff",
+                                  outline: `1px solid ${SEL_COLOR}`,
+                                }}
+                              />
+                            </div>
+                          ))
+                        : null}
+                      {/* Side handles, on the inline axis only, and only where the parent's
+                          measured layout gives this node something to say about its seat. */}
+                      {seat
+                        ? (
+                            [
+                              [ring.left, [-1, 0]],
+                              [ring.left + ring.width, [1, 0]],
+                            ] as [number, [number, number]][]
+                          ).map(([x, out], i) => (
+                            <div
+                              key={i}
+                              data-kb-resize
+                              onPointerDown={(e) => startSeatDrag(e, out)}
+                              style={{
+                                position: "absolute",
+                                top: ring.top + ring.height / 2 - 11,
+                                left: x - 7,
+                                width: 14,
+                                height: 22,
+                                cursor: "ew-resize",
+                                pointerEvents: "auto",
+                                touchAction: "none",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  insetBlock: 4,
+                                  insetInline: 5,
+                                  background: "#fff",
+                                  outline: `1px solid ${SEL_COLOR}`,
+                                }}
+                              />
+                            </div>
+                          ))
+                        : null}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: ring.top + ring.height + 8,
+                          left: ring.left + ring.width / 2,
+                          transform: "translateX(-50%)",
+                          background: SEL_COLOR,
+                          color: "#fff",
+                          font: "500 11px/1 var(--font-body, system-ui)",
+                          padding: "4px 6px",
+                          borderRadius: "3px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {/* Mid-drag the chip names the RUNG, because that is what the
+                            gesture is writing; the pixels are only its consequence. */}
+                        {resizing
+                          ? `${resizing.label} · ${Math.round(ring.width)} × ${Math.round(ring.height)}`
+                          : `${Math.round(ring.width)} × ${Math.round(ring.height)}`}
+                      </div>
+                    </div>
                   ) : null}
                   {drop?.line ? (
                     <div

@@ -431,21 +431,12 @@ describe("the slots are forced anatomy, and they behave like slots (§10)", () =
   });
 });
 
-describe("the look axis dresses the well, and states outrank it (§19)", () => {
-  // controlLook was DELETED 2026-08-19 (Kushagra): the dress is unconditional, and the laws
-  // below keep every guarantee the axis's laws carried, one cell each instead of two.
-  it.each(APPEARANCES)("%s: the dressed well keeps a live edge, and surfaceLook cannot reach it", (appearance) => {
+describe("the dress is the well's identity, and states outrank it (§19)", () => {
+  // The look axis is fully DELETED (controlLook 2026-08-19, surfaceLook 2026-08-20): the
+  // dress is unconditional, and the laws below keep every guarantee the axis's laws carried.
+  it.each(APPEARANCES)("%s: the dressed well keeps a live edge", (appearance) => {
     const field = mounted(<TextField />, { theme: { appearance }, select: ".kui-field" });
     expect(computed(field, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
-    const underFilled = mounted(<TextField />, {
-      theme: { appearance, surfaceLook: "filled" },
-      select: ".kui-field",
-    });
-    for (const prop of ["background-color", "border-top-color"]) {
-      expect(computed(underFilled, prop), `surfaceLook reached the field's ${prop}`).toBe(
-        computed(field, prop),
-      );
-    }
   });
 
   it.each(APPEARANCES)("%s: a read-only field still paints something", (appearance) => {

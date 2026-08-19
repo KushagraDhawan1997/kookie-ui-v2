@@ -41,12 +41,11 @@ export const themeAxes = {
       family it dresses rather than the question it answers, and that name was needed by the
       look axis's own halves. */
   depth: ["flat", "elevated"],
-  /** §19 — the resting dress of a one-look family: does the app draw a boundary as a hairline
-      or as a darkened well. Border on a CONTROL is rank (Button's `bordered`) and stays a
-      prop; this axis never touches ranked chrome. Surfaces only since 2026-08-19: the
-      `controlLook` half was DELETED (Kushagra) after the fill-first flip made its two values
-      byte-identical — fields and marks wear the dress unconditionally now. */
-  surfaceLook: ["outlined", "filled"],
+  /* The look axis is GONE from this table (§19): `controlLook` deleted 2026-08-19 (the
+     fill-first flip made its two values byte-identical), `surfaceLook` deleted 2026-08-20
+     (its non-default value was never judged or used — the lab's borderless pane is the one
+     surface identity). Fields and marks wear the dress unconditionally; a card rests on the
+     seal with `--surface-edge` stood down, and conformance/flat re-declare that role. */
   /** §10 — see the prop's own note below. `solid` is a member: it is the seal, the rung where
       light stops passing through, not the absence of a material. */
   material: MATERIALS,
@@ -58,7 +57,6 @@ export type RadiusLevel = (typeof themeAxes.radius)[number];
 export type Contrast = (typeof themeAxes.contrast)[number];
 export type Pointer = (typeof themeAxes.pointer)[number];
 export type Depth = (typeof themeAxes.depth)[number];
-export type Look = (typeof themeAxes.surfaceLook)[number];
 
 /** Kept as its own export because eight law files import it by name; it IS `themeAxes.depth`,
     and a law asserts the two are the same array rather than two lists that agree. */
@@ -91,10 +89,6 @@ export type ThemeProps = {
   contrast?: Contrast;
   pointer?: Pointer;
   depth?: Depth;
-  /** §19 — how the app draws a resting SURFACE: cards, and the panels that wear a card's
-      identity (menus, select). Fields and marks answer no look question since 2026-08-19
-      (the deleted `controlLook`): their dress is unconditional. */
-  surfaceLook?: Look;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -163,7 +157,7 @@ const warnOnFramedAncestor = (node: HTMLElement) => {
 type Resolved = Required<
   Pick<
     ThemeProps,
-    "appearance" | "density" | "radius" | "contrast" | "pointer" | "depth" | "surfaceLook" | "material"
+    "appearance" | "density" | "radius" | "contrast" | "pointer" | "depth" | "material"
   >
 >;
 
@@ -184,7 +178,6 @@ export const themeDefaults: Resolved = {
      contact, drop, blast and the pool are what its material IS, so the resting default
      casts. `depth="flat"` survives as the opt-out. */
   depth: "elevated",
-  surfaceLook: "outlined",
   material: "solid",
 };
 
@@ -347,10 +340,9 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       contrast: props.contrast ?? parent.contrast,
       pointer: props.pointer ?? parent.pointer,
       depth: props.depth ?? parent.depth,
-      surfaceLook: props.surfaceLook ?? parent.surfaceLook,
       material: props.material ?? parent.material,
     }),
-    // The eight fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
+    // The seven fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
     // ancestor axis moves, including ones this scope overrides — depending on the identity
     // would rebuild `resolved` (and so re-render every consumer below) on changes that
     // cannot reach it.
@@ -361,7 +353,6 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       props.contrast,
       props.pointer,
       props.depth,
-      props.surfaceLook,
       props.material,
       parent.appearance,
       parent.density,
@@ -369,7 +360,6 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       parent.contrast,
       parent.pointer,
       parent.depth,
-      parent.surfaceLook,
       parent.material,
     ],
   );
@@ -393,7 +383,6 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     ...(contrastSet ? { "data-contrast": resolved.contrast } : {}),
     "data-pointer": resolved.pointer,
     "data-depth": resolved.depth,
-    "data-surface-look": resolved.surfaceLook,
   };
 
   // kui-theme makes the element a query container (§2): responsive props measure the nearest

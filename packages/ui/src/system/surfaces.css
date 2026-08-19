@@ -293,20 +293,20 @@
    context they set for their children. */
 
 .kui-surface[data-emphasis="quiet"] {
-  /* Through the look axis (§19): outlined resolves the seal it always resolved; filled
-     trades it for the darkened well. Quiet only — the tone-forward rungs are ranked chrome
-     and dress never touches rank. */
-  --kui-sf-fill-src: var(--look-surface-fill);
+  /* The seal (§10) — the one resting surface fill since the look axis died (§19,
+     2026-08-20). Quiet only — the tone-forward rungs are ranked chrome. */
+  --kui-sf-fill-src: var(--color-surface);
 }
 
-/* The look's edge, routed AROUND [data-bordered]'s shared rule rather than through it: that
-   rule also serves Button, whose border is rank, not dress (§19). `:where()` keeps this at
-   (0,2,0) so the material blocks below still win on glass by source order — a pane's edge is
-   what the material IS, in either look. Outlined emits `initial`, so the fallback resolves
-   var(--tone-border) AT THE ELEMENT — the material edge's own pattern — which is what keeps
-   contrast="high" and the state remaps reaching the edge exactly as before. */
+/* The pane's resting edge, routed AROUND [data-bordered]'s shared rule rather than through
+   it: that rule also serves Button, whose border is rank, not dress (§19). `:where()` keeps
+   this at (0,2,0) so the material blocks below still win on glass by source order — a pane's
+   edge is what the material IS. `--surface-edge` rests at a live `transparent` (light is the
+   edge, §10 lab port); flat and contrast="high" re-declare it to `initial`, so the fallback
+   resolves var(--tone-border) AT THE ELEMENT — the material edge's own pattern — which is
+   what keeps conformance and the state remaps reaching the edge. */
 .kui-surface[data-emphasis="quiet"]:where([data-bordered]) {
-  --kui-border-color: var(--look-surface-border, var(--tone-border));
+  --kui-border-color: var(--surface-edge, var(--tone-border));
 }
 
 .kui-surface[data-emphasis="medium"] {
@@ -375,7 +375,7 @@
    sources, so a glass card does not flash opaque under the pointer. */
 @media (hover: hover) {
   .kui-surface:where(button, a):hover {
-    background-color: var(--kui-sf-fill-hover, var(--look-surface-fill-hover));
+    background-color: var(--kui-sf-fill-hover, var(--color-surface-hover));
     /* Warming faster than cooling, the control layer's judged asymmetry: arriving is something
        the user did, leaving is something they stopped doing. */
     --kui-sf-paint: var(--motion-hover-in);
@@ -388,7 +388,7 @@
 
 /* Press is unguarded and instant: on touch it is the only feedback there is. */
 .kui-surface:where(button, a):active {
-  background-color: var(--kui-sf-fill-active, var(--look-surface-fill-active));
+  background-color: var(--kui-sf-fill-active, var(--color-surface-active));
   --kui-sf-paint: 0s;
   /* Down hard and fast; the release takes the base clock back because this is restated on the
      STATE rather than swapped globally. */
@@ -433,12 +433,8 @@
   /* Depth comes from the palette (--surface-chrome composes var(--shadow-3)); the border is
      whatever the surface already wears, which keeps the edge sharp and leaves it reachable by
      contrast="high". The top edge reads lighter because every palette shadow falls downward.
-
-     That used to read "the same --tone-border every surface wears", and the look axis made it
-     false: elevation now has TWO compositions, shadow + the tone hairline under `outlined` and
-     shadow + the softer dress edge under `filled`. Elevation deliberately does not re-assert
-     an edge of its own — a lifted card in a filled app is still a filled card — so this rule
-     adds depth and nothing else, which is why it is one declaration. */
+     Elevation deliberately does not re-assert an edge of its own, so this rule adds depth and
+     nothing else, which is why it is one declaration. */
   --kui-surface-chrome: var(--surface-chrome);
   /* The world's light reaches raised CONTROLS too (§5 amended 2026-08-07, §19's four-worlds
      frame): the cast (--control-chrome, the palette's control row) and the catch
@@ -469,8 +465,7 @@
      the palette — handed here so the glass rules below can re-point their chrome; flat
      declares none, so glass never floats in a flat world. And under a sun a pane CATCHES
      harder: (RETIRED 2026-08-17 — the lifted glint WAS the brighter edge line, and the
-     ring owns the edge now, so the rim is one recipe in both worlds; history below)
-     scopes — this block stays mode-blind, the look axis's own rule).
+     ring owns the edge now, so the rim is one recipe in both worlds; history below).
 
      The rim goes through a --kui- pointer like every other value in this block, and that is
      the fix for a real escape hole (audit 2026-08-07). The first cut re-declared the
@@ -506,10 +501,11 @@
      stand-down that stays list-legal. The flat-derivation law reads these VALUES, so "flat
      casts no light" is still asserted — as a no-op layer rather than a keyword. */
   --kui-surface-chrome: 0 0 0 0 transparent;
-  /* NOT none — the §11 amendment made mechanical ("overlap is not expression; a floating
-     layer always states its coverage", 2026-08-09). A flat world quiets the cast (the
-     generator fades the same palette row — one source of truth), it never removes it:
-     a border-only popup over busy content merges into what it covers. */
+  /* Since 2026-08-19 the flat token IS the no-op layer: flat casts nothing, floating panes
+     included (Kushagra, reversing the 2026-08-09 "coverage is information" amendment — the
+     hairline's return in flat gave a covering pane a boundary in flat's own language, and
+     the half-faded cast became a second voice saying the same thing). The pointer shape
+     survives so the two worlds keep one mechanism; the value it resolves is the stand-down. */
   --kui-floating-chrome: var(--floating-chrome-flat);
   --kui-control-chrome: 0 0 0 0 transparent;
   --kui-control-chrome-active: 0 0 0 0 transparent;
@@ -532,20 +528,15 @@
      var() falls through to `none` on its own. The SOLID lighting is mode-only, never
      depth-flavoured, so both worlds point at the same matte recipe. */
   --kui-sf-light: var(--material-solid-rim);
-}
-
-/* The HAIRLINE RETURNS in flat (2026-08-19). "Light replaces line" is the lab's rule and it
-   has a premise: light. The lab port made outlined's border a live `transparent` (the ring,
-   pool and cast are the edge), and in a world that declares all of that away an ordinary
-   Card measured NO boundary of any kind — border rgba(0,0,0,0), both shadow layers
-   transparent, fill 1.026:1 against the page (audit 2026-08-18). No light means the line is
-   back: `initial` stands the look role down so the consumption fallback (var(--tone-border))
-   resolves at the element, where the tone lives — the HC pass's own mechanism. Compound
-   selector so `filled` keeps its dress edge in flat; (0,2,0) beats the look block's (0,1,0)
-   on the same Theme element, so stylesheet order never decides. Elevated is untouched. v0,
-   eye pass. */
-[data-depth="flat"][data-surface-look="outlined"] {
-  --look-surface-border: initial;
+  /* The HAIRLINE RETURNS in flat (2026-08-19). "Light replaces line" is the lab's rule and
+     it has a premise: light. The lab port made the pane's resting edge a live `transparent`
+     (the ring, pool and cast are the edge), and in a world that declares all of that away an
+     ordinary Card measured NO boundary of any kind — border rgba(0,0,0,0), both shadow
+     layers transparent, fill 1.026:1 against the page (audit 2026-08-18). No light means the
+     line is back: `initial` stands the role down so the consumption fallback
+     (var(--tone-border)) resolves at the element, where the tone lives — the HC pass's own
+     mechanism. Elevated is untouched. v0, eye pass. */
+  --surface-edge: initial;
 }
 
 .kui-surface {
@@ -604,15 +595,15 @@
   --kui-control-chrome-thick: none;
   --kui-control-chrome-active-thick: none;
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
-  --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-opaque-alpha), transparent);
-  --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-opaque-alpha), transparent);
+  --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-opaque-alpha), transparent);
+  --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-opaque-alpha), transparent);
 }
 
 @supports (backdrop-filter: blur(1px)) {
   .kui-surface[data-material="thin"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thin-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-thin-alpha-hover), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thin-alpha-active), transparent);
+    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thin-alpha-hover), transparent);
+    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thin-alpha-active), transparent);
     backdrop-filter: var(--kui-lens, ) var(--material-thin-filter);
     /* The pane's own edge and lighting (§10, 2026-08-05): the tone border on glass read as a
        sticker — pigment on a pane of light. The edge is the material's, a translucent
@@ -652,8 +643,8 @@
   }
   .kui-surface[data-material="regular"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-regular-alpha-hover), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-regular-alpha-active), transparent);
+    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-regular-alpha-hover), transparent);
+    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-regular-alpha-active), transparent);
     backdrop-filter: var(--kui-lens, ) var(--material-regular-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
@@ -670,8 +661,8 @@
   }
   .kui-surface[data-material="thick"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-thick-alpha-hover), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-thick-alpha-active), transparent);
+    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thick-alpha-hover), transparent);
+    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thick-alpha-active), transparent);
     backdrop-filter: var(--kui-lens, ) var(--material-thick-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
@@ -786,8 +777,8 @@
    nesting alone (theme.tsx), which is why it is absent from `Material` and from `themeAxes`. */
 .kui-surface[data-material="on-glass"] {
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-on-glass-alpha), transparent);
-  --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-on-glass-alpha), transparent);
-  --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-on-glass-alpha), transparent);
+  --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-on-glass-alpha), transparent);
+  --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-on-glass-alpha), transparent);
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -795,21 +786,19 @@
   .kui-surface[data-material="regular"],
   .kui-surface[data-material="thick"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--look-surface-fill-hover) var(--material-opaque-alpha), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--look-surface-fill-active) var(--material-opaque-alpha), transparent);
+    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-opaque-alpha), transparent);
+    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-opaque-alpha), transparent);
     backdrop-filter: none;
     /* No glass, no pane: the near-opaque fallback takes the ordinary surface dress back — the
        surface's own edge, no rim. The world's depth is untouched: an elevated app stays
        elevated.
 
-       Through the SEALED slot since 2026-08-19. The old chain read the resting look role,
-       written when outlined's border was `initial`; since the lab port outlined resolves a
-       LIVE `transparent` — the ring is the pane's only edge — so the chain handed a sealed
-       pane no edge at all (audit 2026-08-18). `border-sealed` answers only here: outlined
-       stands down so the tone hairline resolves at the element, filled hands the sealed
-       pane the dress edge every other card wears — and the ring stands down with the rim
-       below, because a sealed pane has no light left to speak with. */
-    --kui-border-color: var(--look-surface-border-sealed, var(--tone-border));
+       The tone hairline, directly (2026-08-19, simplified when the look axis died): the old
+       chain read the resting edge role, which resolves a LIVE `transparent` since the lab
+       port — the ring is the pane's only edge — so it handed a sealed pane no edge at all
+       (audit 2026-08-18). A sealed pane has no light left to speak with, so the ring stands
+       down with the rim below and the pigment line is the boundary. */
+    --kui-border-color: var(--tone-border);
     --material-ring-opacity: 0;
     background-image: none;
     /* A sealed pane is no longer glass, so it stops transmitting: dropping its own cast lets

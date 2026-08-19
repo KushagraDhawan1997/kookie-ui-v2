@@ -35,8 +35,6 @@ import {
   layoutSpace,
   letterSpacing,
   lineHeight,
-  look,
-  lookAxes,
   markRadius,
   radiusAtom,
   markSteps,
@@ -57,7 +55,6 @@ import {
   glassInk,
   floatingDark,
   floatingChrome,
-  floatingFlatFactor,
   floatingMinWidth,
   controlMotion,
   floatingMotion,
@@ -352,16 +349,12 @@ export function generateTokens(): string {
   lines.push(...alertWidth.map((px, i) => decl(`alert-w-${i + 1}`, zoom(px))));
   lines.push(...dialogFamily());
 
-  lines.push("", "  /* the look axis (§19) at its default — outlined, the identity: exactly the chrome each");
-  lines.push("     one-look family declared before the axis existed. A look role holds a COLOUR, so it");
-  lines.push("     repeats in every appearance scope like every other colour role — see the dark block. */");
-  lines.push(...lookWorld("outlined"));
-
   lines.push("", "  /* colour, generated (§7) — light mode */");
   lines.push(...colorDeclarations("light"));
 
   lines.push(...surfaceWorld("light"));
   lines.push(...dressWorld("light"));
+  lines.push(...surfaceEdge());
 
   lines.push("}", "");
 
@@ -375,7 +368,7 @@ export function generateTokens(): string {
     ...colorDeclarations("light"),
     ...surfaceWorld("light"),
     ...dressWorld("light"),
-    ...lookWorld("outlined"),
+    ...surfaceEdge(),
     "}",
     "",
   );
@@ -383,57 +376,15 @@ export function generateTokens(): string {
   // The surface declarations repeat inside the dark scope because a var() resolves where it
   // is declared: --color-text baked at :root would carry the LIGHT neutral-12 into a dark
   // subtree (the same lesson --focus-ring taught in §8).
-  //
-  // The look roles repeat for exactly that reason, and they were MISSING here for half a day
-  // (caught by eye in the preview, 2026-08-06): a look role holds a colour — the seal, a
-  // neutral step — so declaring it only at :root baked the LIGHT value and every dark section
-  // that was not ALSO a look scope inherited a white field, a white card and a white mark.
-  // Through Theme this never showed, because Theme stamps data-look beside data-appearance on
-  // one element (§5's co-location) and the [data-look] blocks below re-declare there; the
-  // preview's hand-written `data-appearance="dark"` sections are the un-themed path, and they
-  // are what the promise "an appearance scope works standalone" is about. Consequence stated
-  // rather than hidden: a bare appearance scope carries the DEFAULT look, so a raw
-  // `[data-appearance]` div inside a filled app resets to outlined until it stamps a look —
-  // Theme always stamps both, which is why the sanctioned path cannot hit it.
   lines.push(
     `[data-appearance="dark"] {`,
     ...colorDeclarations("dark"),
     ...surfaceWorld("dark"),
     ...dressWorld("dark"),
-    ...lookWorld("outlined"),
+    ...surfaceEdge(),
     "}",
     "",
   );
-
-  // The look axis (§19) — an app identity: the resting dress of the one-look families.
-  // `outlined` re-declares the :root identity for the same reason `light` does: an outlined
-  // Theme nested inside a filled region must escape by declaration, and Theme renders a div
-  // that :root can never match.
-  //
-  // ONE block per (axis x look), never one per (look x appearance), and that is what forces
-  // the `--dress-*` indirection above. Co-location is the reason: Theme stamps the look
-  // attributes beside data-appearance on a single element, so a compound
-  // `[data-appearance="dark"][data-surface-look]` would resolve for Theme and MISS the
-  // supported un-themed path, where a raw look attribute hangs under an appearance ancestor
-  // and matches neither compound. So these blocks may only hold mode-blind mappings, and every
-  // value here is a var() reference resolved at the element — where the appearance scope has
-  // already decided what the mode's pigment is.
-  //
-  // The two axes (split 2026-08-10) are two independent selectors over disjoint families, NOT
-  // a compound: `surfaceLook` and `controlLook` are answered separately, so each block must
-  // declare only what its own prop owns and leave the other half to whatever declared it. The
-  // families are disjoint by construction (`lookAxes`), so no cell of the 2x2 can have two
-  // rules writing one role — which is what keeps this free of source-order luck.
-  //
-  // `filled` shipped 2026-08-06 with raw --neutral-N steps here instead, which is the same
-  // mistake one level down: a step is not mode-blind. In dark, --neutral-2/3/4 ARE the seal
-  // and its two states, so the surface family resolved byte-identically to `outlined` and the
-  // axis only deleted the card's hairline. The steps now live per appearance in dressWorld().
-  for (const [axis, families] of Object.entries(lookAxes)) {
-    for (const value of Object.keys(look) as (keyof typeof look)[]) {
-      lines.push(`[data-${axis}-look="${value}"] {`, ...lookWorld(value, families), "}", "");
-    }
-  }
 
   // P3 rides on top of the sRGB values rather than replacing them, so a narrow-gamut display
   // keeps a complete system. It is worth the bytes where sRGB constrains a hue most: sky,
@@ -481,39 +432,47 @@ export function generateTokens(): string {
         for (const t of ["thin", "regular", "thick"] as const) {
           decls.push(
             ...materialAlpha(t, material[mode][t].alphaHigh),
+            // The CONTROL's translucent hairline still stands down (recipes.css reads this
+            // name for a glass button, with a var(--tone-border) fallback at the element).
             decl(`material-${t}-edge`, "initial"),
-            decl(`material-${t}-rim`, "initial"),
-            // stand down here too or high contrast would resurrect the glint it just removed.
+            // THE RIM STAYS (2026-08-20, Kushagra: high contrast made glass look "cheap and
+            // incorrect… it's not taste"). It used to be emptied here, and the reason was
+            // written beside it: "or high contrast would resurrect the glint it just
+            // removed" — the glint being the LIFTED rim variant, which was deleted
+            // 2026-08-17 when the ring took the edge. So the stand-down outlived its
+            // mechanism and went on deleting a thing nobody was defending against.
+            //
+            // On its own terms it was also backwards. The rim is a gradient painted INSIDE
+            // the pane (grain, bloom, sheen — `--kui-sf-light`, a background-image); it
+            // cannot lower the contrast of anything, and removing it only deletes the cue
+            // that the pane is a physical thing catching light. An accessibility setting
+            // that removes information is wrong in its own terms, not merely to taste.
+            //
+            // What high contrast still trades on a pane is the EDGE, and that trade is
+            // real: the ring is white, so over a bright backdrop it disappears exactly as
+            // the veil does (measured 1.00 against a pale sky at any opacity), and a ring
+            // plus a pigment border is two lines one pixel apart — the "why am I seeing
+            // this thicker top border" defect of 2026-08-07. One line, made of pigment.
           );
         }
-        // The look axis yields its EDGE for the same reason the material does, and by the same
-        // mechanism (§19, 2026-08-06). A dress edge is deliberately soft — that is the whole
-        // point of `filled` — and a user who asks for high contrast is asking for the tone
-        // system's boundary, not the app's taste. `initial` stands the role down and each
-        // consumption site's fallback (var(--tone-border), var(--mark-edge)) resolves AT THE
-        // ELEMENT, where the tone lives; a scope-level colour here could never do that.
-        //
-        // Written because the alternative silently did not work. The first cut picked the soft
-        // steps out of `contrastHighBands.border` and claimed that made them reachable — but
-        // that band is indexed into the LADDER while token names are 1-based, so
-        // contrastHighBands.border = [5, 6, 7] emits as --neutral-6/7/8, and the chosen
-        // --neutral-5 edges were never re-declared at all. The law that "proved" it compared
-        // 1-indexed names against 0-indexed positions and passed on the mismatch. The
-        // replacement law asserts the OUTCOME — the edge a component computes must change when
-        // contrast="high" is set — so it holds whichever mechanism delivers it, and cannot be
-        // satisfied by an off-by-one.
-        for (const [family, slots] of Object.entries(look.filled)) {
-          if ("border" in slots) decls.push(decl(`look-${family}-border`, "initial"));
-        }
-        // The field and mark families left the look axis when controlLook was deleted
-        // (2026-08-19) — their dress is unconditional now, so the stand-down targets the
-        // dress edges themselves. `initial` makes each consumption site's fallback
-        // (var(--tone-border) for fields, var(--control-edge) for marks) resolve AT THE
-        // ELEMENT, where the tone lives and where contrastHighDeclarations has already
-        // strengthened both. Proximity is safe without scoped arms: dress lives only in
-        // the appearance scopes, and any Theme that re-declares it also co-locates
-        // data-contrast, so this compound wins on specificity at that same element.
-        decls.push(decl("dress-field-edge", "initial"), decl("dress-mark-edge", "initial"));
+        // The resting edges yield for the same reason the material's does, and by the same
+        // mechanism (§19's survivor). A dress edge is deliberately soft, and the surface's
+        // resting edge is deliberately ABSENT (light is the edge, lab port 2026-08-17) — a
+        // user who asks for high contrast is asking for the tone system's boundary, not the
+        // app's taste. `initial` stands each role down and the consumption site's fallback
+        // (var(--tone-border), var(--mark-edge)) resolves AT THE ELEMENT, where the tone
+        // lives and where contrastHighDeclarations has already strengthened both; a
+        // scope-level colour here could never do that. Proximity is safe without scoped
+        // arms since the look axis died (surfaceLook 2026-08-20, controlLook 2026-08-19):
+        // these roles live only in the appearance scopes, and any Theme that re-declares
+        // them also co-locates data-contrast, so this compound wins on specificity at that
+        // same element. (The look blocks used to land on the Theme element ITSELF and beat
+        // this block by inheritance — the 2026-08-17 proximity trap; no look blocks, no trap.)
+        decls.push(
+          decl("surface-edge", "initial"),
+          decl("dress-field-edge", "initial"),
+          decl("dress-mark-edge", "initial"),
+        );
         // A glass pane's only edge is the conic RING — light, not pigment, so it cannot be
         // strengthened; a user asking for high contrast is asking for a pigment boundary
         // (audit 2026-08-18: HC reached a glass pane's edge with exactly zero effect —
@@ -529,29 +488,6 @@ export function generateTokens(): string {
             decls.push(decl(`material-${t}-alpha-floating`, `${material[mode][t].alphaHigh[0]}%`));
           }
         }
-        // …and the stand-down above is NOT ENOUGH on its own, which is the 2026-08-17 fix.
-        // These declarations land on whatever element carries data-contrast — in the supported
-        // docs path that is <html>, because the generated selectors need appearance and
-        // contrast co-located (§5). The look blocks land on the THEME element, which is NEARER
-        // to a field than <html> is, so for a custom property the Theme's value simply wins by
-        // inheritance and this block can never be consulted. It went unnoticed for as long as
-        // outlined's border WAS `initial`: standing down a role that already said `initial`
-        // changes nothing, so the mechanism that actually delivered high contrast was the
-        // fallback resolving to --field-edge / --control-edge, which this block re-solves.
-        // The day outlined started holding a real value (the fill-first flip), that fallback
-        // stopped being reached and contrast="high" reached NO boundary on the surface, field
-        // or mark families — measured byte-identical to standard in both appearances.
-        // The scoped arms below fix it where it breaks: a descendant selector matches the
-        // Theme element itself and carries (0,2,0) against the look block's (0,1,0), so the
-        // stand-down wins on specificity at the element that declared the value, at any
-        // nesting depth. Derived from lookAxes so a widened axis cannot leave a family behind.
-        for (const [axis, families] of Object.entries(lookAxes)) {
-          const borders = families
-            .filter((family) => "border" in look.filled[family as keyof typeof look.filled])
-            .map((family) => decl(`look-${family}-border`, "initial"));
-          if (!borders.length) continue;
-          scopedHigh.push({ attr: `data-${axis}-look`, decls: borders });
-        }
         // The scrim leans the way the glass does (§24): more pigment, and the defocus goes.
         // A blurred backdrop is a legibility AID for the app behind it and a legibility COST
         // for the boundary between the two — a user who asked for high contrast is asking for
@@ -560,16 +496,39 @@ export function generateTokens(): string {
         // resolves at the element and the backdrop simply stops filtering.
         decls.push(decl("scrim-fill", scrim[mode].fillHigh), decl("scrim-filter", "initial"));
       }
-      const high = bases.map((b) => `${b}[data-contrast="high"]`).join(", ");
+      // AND a nested appearance scope, which is the case this block was blind to until
+      // 2026-08-20 (found by eye: a dark card looked identical at both contrasts, while the
+      // glass beside it changed — glass answers through an element-scoped arm below).
+      //
+      // Every name here is one `colorDeclarations` also writes, and those live in the
+      // APPEARANCE scopes. So any `<Theme appearance>` between the element carrying
+      // data-contrast and the component re-declares the whole standard palette NEARER to it,
+      // and a custom property resolves by proximity — the high-contrast values never arrive.
+      // Measured: --control-edge, --field-edge, --neutral-6 and --color-track all equal their
+      // standard values inside `<html data-contrast="high"><Theme appearance="dark">`, which
+      // is the shape the pre-paint script and every dark section produce.
+      //
+      // The ancestor half is deliberately NOT mode-keyed: a light Theme can nest inside a dark
+      // document, so what matters is only that SOME ancestor asked for high contrast. The
+      // descendant carries its own opt-out guard, so a nested `contrast="normal"` still escapes.
+      //
+      // The platform-signal arm below needs none of this: its base is already
+      // `[data-appearance="mode"]:not(...)`, which matches a nested scope on its own. So
+      // `prefers-contrast: more` has always worked here and the explicit prop never did,
+      // which is why this survived every audit.
+      const high = [
+        ...bases.map((b) => `${b}[data-contrast="high"]`),
+        `[data-contrast="high"] [data-appearance="${mode}"]:not([data-contrast="normal"])`,
+      ].join(", ");
       // The platform signal reaches anything that has not explicitly opted out. Theme stamps
       // data-contrast ONLY when the axis was actually chosen, so an unconfigured Theme node
       // carries no attribute and this guard still matches it (§7).
       const auto = bases.map((b) => `${b}:not([data-contrast="normal"])`).join(", ");
-      // The scoped arms repeat the same two guards one level down: `[contrast] [look]` for the
-      // explicit prop, and the platform signal's own `:not([data-contrast="normal"])` base.
-      // BOTH forms are needed and neither replaces the other — the block above still covers the
-      // co-located case (a Theme that carries contrast and look on one element, where these
-      // descendant selectors do not match the element itself).
+      // The scoped arms repeat the same two guards one level down: `[contrast] [data-material]`
+      // for the explicit prop, and the platform signal's own `:not([data-contrast="normal"])`
+      // base. BOTH forms are needed and neither replaces the other — the block above still
+      // covers the co-located case, where these descendant selectors do not match the element
+      // itself.
       const scoped = scopedHigh.flatMap(({ attr, decls: d }) => [
         `${bases.map((b) => `${b}[data-contrast="high"] [${attr}]`).join(", ")} {`,
         ...d,
@@ -800,18 +759,13 @@ function pointerWorld(pointer: string, sets: Record<DensityLevel, DensitySet>): 
 const fadeShadow = (row: string, factor: number): string =>
   row.replace(/\/ ([0-9.]+)\)/g, (_, a: string) => `/ ${Number((parseFloat(a) * factor).toFixed(3))})`);
 
-/** Which palette row a chrome role rides, read FROM the config value — a transmitted or
-    flat derivation must fade the same row the role declares, and a second hand-kept index is
-    the two-homes drift this repo keeps re-catching. It caught this file on 2026-08-16: the
-    surface fade read a literal `shadow[mode][2]` while surfaceChrome moved to row 5, so the
-    glass panes silently kept transmitting the row nothing else used any more. Loud: an
-    unparseable value throws rather than defaulting to a row. */
-const chromeRow = (role: { readonly light: string }, name: string): number => {
-  const m = role.light.match(/var\(--shadow-([1-5])\)/);
-  if (!m) throw new Error(`${name}.light names no shadow row: "${role.light}"`);
-  return Number(m[1]) - 1;
-};
-const floatingRow = () => chromeRow(floatingChrome, "floatingChrome");
+// chromeRow()/floatingRow() died with the flat fade (2026-08-19, flat casts nothing): they
+// read which palette row a chrome role names so a derivation could fade THAT row — the
+// two-homes guard that caught the 2026-08-16 stale-literal drift. The floating chrome's
+// only derivation now is elevated's direct config value, and a mechanism with no consumer
+// is entropy (the curtain's lesson), so the guard went with the fade it guarded. If a
+// derived-from-a-role fade ever returns, re-read the row from the role's own value — never
+// keep a second hand-kept index.
 // The glass TRANSMIT rows come from their own config statement since 2026-08-17 — they used
 // to be parsed out of the chrome roles, and the day the solid chrome took the lab's literal
 // values (no var(--shadow-N) to parse) that weld either threw here or, worse, silently moved
@@ -1126,69 +1080,63 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       decl(`control-chrome-active-${t}`, fadeShadow(controlChromeActive[mode], material.transmission[t])),
     ),
     `  /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance`,
-    `     because BOTH worlds declare one (overlap is information, not expression): flat is`,
-    `     the elevated row faded — derived, one source of shadow truth. */`,
+    `     because both worlds declare one, and flat's is the list-legal NO-OP: flat casts`,
+    `     nothing, floating panes included (2026-08-19 — separation in flat is the hairline's`,
+    `     job, not a faded shadow's). */`,
     decl("floating-chrome-elevated", floatingChrome[mode]),
-    decl("floating-chrome-flat", fadeShadow(shadow[mode][floatingRow()]!, floatingFlatFactor)),
+    decl("floating-chrome-flat", "0 0 0 0 transparent"),
   ];
 }
 
-/** The look axis (§19): the resting dress of one or more families, as roles the member sheets
- *  consume. Role names derive from the config keys — `--look-<family>-<slot>` — so a family or
- *  slot added in config exists in the emitted CSS by construction.
- *
- *  `families` is what the 2026-08-10 split added: a look scope declares only the families its
- *  own prop owns, so `surfaceLook` and `controlLook` can disagree. Omitted means all of them,
- *  which is what the appearance scopes want — those carry the DEFAULT of both halves. */
-function lookWorld(name: keyof typeof look, families?: readonly string[]): string[] {
-  const out: string[] = [];
-  for (const [family, slots] of Object.entries(look[name])) {
-    if (families && !families.includes(family)) continue;
-    for (const [slot, value] of Object.entries(slots) as [string, string][]) {
-      out.push(decl(`look-${family}-${slot}`, value));
-    }
-  }
-  return out;
-}
-
-/** §19 — what `filled` paints in ONE mode, as the pigment behind the look roles.
- *
- *  This is the half of the axis that cannot live in the `[data-look]` blocks. Those are one
- *  block each by design (co-location — see the emission site), so they can only ever hold
- *  mode-blind mappings; a neutral STEP is not mode-blind, because the ramp runs the opposite
- *  way in the two appearances. So the steps land here, in the appearance scopes, and the look
- *  block reads them by name. Same shape as the seal: `--color-surface` is a role for exactly
- *  this reason, and `filled` needed one too and shipped without it.
+/** §19's survivor — the fill-first dress, per appearance: what a field and a mark rest on,
+ *  unconditional since the look axis died (controlLook 2026-08-19, surfaceLook 2026-08-20).
  *
  *  Emitted in every appearance scope for the reason every colour role is — a var() bakes
  *  where it is DECLARED, so a single :root copy would carry light's pigment into every dark
- *  region that is not itself a look scope. That is the half-day bug of 2026-08-06, and these
- *  roles are held to the rule the look roles were then held to. */
+ *  region. A neutral STEP is not mode-blind either: the ramp runs the opposite way in the two
+ *  appearances, which is why the steps live in config's per-mode `dress` table. */
 function dressWorld(mode: "light" | "dark"): string[] {
   const out: string[] = [
     "",
-    `  /* the look axis's filled pigment (§19), per appearance: an index means the opposite`,
-    `     thing in the two modes, so the ladders are not each other's copy. The edges sit`,
-    `     inside contrastHighBands.border, which is what keeps contrast="high" able to reach`,
-    `     a filled component's boundary at all. */`,
+    `  /* the fill-first dress (§19), per appearance: an index means the opposite thing in`,
+    `     the two modes, so the ladders are not each other's copy. The edges sit inside`,
+    `     contrastHighBands.border, which is what keeps contrast="high" able to reach a`,
+    `     dressed component's boundary at all. */`,
   ];
   for (const [family, slots] of Object.entries(dress[mode])) {
     for (const [slot, step] of Object.entries(slots) as [string, number][]) {
-      // INNARDS are alpha, PANES are opaque (2026-08-17, Kushagra — dark cards: "towards
-      // the bottom, switch, input etc nothing is visible"). A card's lighting makes its own
-      // ground a gradient — sheen at the top, the pool's shade at the bottom — so a field
-      // or mark priced as an opaque index against the flat seal vanishes exactly where the
-      // pane darkens. The alpha ramp states the same rendered value ON the seal (that is
-      // its solve) and composites relative to the local ground everywhere else — the
-      // tone-soft move, one layer down. The SURFACE family stays opaque: a filled card is
-      // still a pane, and a pane SEALS (§10 — alpha nesting died by eye 2026-08-04).
-      out.push(decl(`dress-${family}-${slot}`, family === "surface" ? `var(--neutral-${step})` : `var(--neutral-a${step})`));
+      // INNARDS are alpha (2026-08-17, Kushagra — dark cards: "towards the bottom, switch,
+      // input etc nothing is visible"). A card's lighting makes its own ground a gradient —
+      // sheen at the top, the pool's shade at the bottom — so a field or mark priced as an
+      // opaque index against the flat seal vanishes exactly where the pane darkens. The
+      // alpha ramp states the same rendered value ON the seal (that is its solve) and
+      // composites relative to the local ground everywhere else — the tone-soft move, one
+      // layer down.
+      out.push(decl(`dress-${family}-${slot}`, `var(--neutral-a${step})`));
       // The alpha dress's opaque twin (2026-08-19), same step said opaquely — the glass
       // scopes re-point to it so the veil's percentage stays the veil (audit 2026-08-18).
-      if (family !== "surface" && !slot.includes("edge")) out.push(decl(`dress-${family}-${slot}-solid`, `var(--neutral-${step})`));
+      if (!slot.includes("edge")) out.push(decl(`dress-${family}-${slot}-solid`, `var(--neutral-${step})`));
     }
   }
   return out;
+}
+
+/** §19's other survivor — the surface family's resting pigment edge, stood DOWN. The pane is
+ *  borderless at rest (lab port 2026-08-17: light is the edge — the ring on glass, the pool
+ *  and cast on solid), so this role holds a live `transparent` and exists to be re-declared:
+ *  the contrast="high" pass and `depth="flat"` each set it to `initial`, and the consumption
+ *  fallback (var(--tone-border)) resolves AT THE ELEMENT, where the tone lives — the material
+ *  edge's own pattern. Lives in the appearance scopes like the dress, and for the same
+ *  proximity reason: any Theme that re-declares it co-locates data-contrast, so the HC
+ *  compound wins on specificity at that same element. */
+function surfaceEdge(): string[] {
+  return [
+    "",
+    `  /* the surface family's resting edge (§19, §10): stood down — light is the edge. Flat`,
+    `     and contrast="high" re-declare this to \`initial\` so var(--tone-border) resolves`,
+    `     at the element. */`,
+    decl("surface-edge", "transparent"),
+  ];
 }
 
 /** The radius palette for one level (§6). Steps 1-5 control, 6-9 surfaces, 10 the overlay. */

@@ -188,17 +188,8 @@ describe("the track is a WELL, and the segment is a grip (§11, §19, §26)", ()
     expect(computed(chosen(root), "--kui-ct-fill-src-active")).toBe(rest);
   });
 
-  it("it is OUTSIDE the look axis — an instrument, with the switch and the bar (§19)", () => {
-    // The negative law the instruments all carry: neither look prop may move a pixel of
-    // paint, because a well has no boundary-versus-fill trade to make.
-    const base = control({}, { surfaceLook: "outlined" });
-    const flipped = control({}, { surfaceLook: "filled" });
-    expect(computed(flipped, "background-color")).toBe(computed(base, "background-color"));
-    expect(computed(chosen(flipped), "background-color")).toBe(
-      computed(chosen(base), "background-color"),
-    );
-    expect(computed(flipped, "border-top-color")).toBe(computed(base, "border-top-color"));
-  });
+  // The "OUTSIDE the look axis" negative law the instruments carried left with the look axis
+  // itself (surfaceLook deleted 2026-08-20): with no prop, there is no look to flip.
 });
 
 describe("the grip casts always, and stands down when dead (§5, §6, §26)", () => {

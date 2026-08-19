@@ -1025,14 +1025,13 @@ export const ENTRIES: Entry[] = [
     family: "Layout",
     spec: "§5, §7, §12, §19",
     blurb:
-      "Where an app states its identity. Nine axes, each re-pricing tokens for everything beneath it — and they nest, so a section can override the page. Nothing about a Theme is decoration: every prop answers a question the call sites are then forbidden from answering one at a time.",
+      "Where an app states its identity. Seven axes, each re-pricing tokens for everything beneath it — and they nest, so a section can override the page. Nothing about a Theme is decoration: every prop answers a question the call sites are then forbidden from answering one at a time.",
     axes: [
       { name: "appearance", values: "inherit | light | dark", note: "resolved output, never a colour" },
       { name: "contrast", values: "normal | high", note: "an accessibility setting, not a design knob — the conformance surface for edges and signals" },
       { name: "radius", values: "none | small | medium | large | full", note: "selects a designed palette per level, not a factor" },
       { name: "density", values: "compact | default | comfortable", note: "control-only: airiness, never type" },
       { name: "pointer", values: "auto | fine | coarse", note: "two complete geometries, the way there are two colour modes" },
-      { name: "surfaceLook", values: "outlined | filled", note: "how a resting surface is drawn — cards, and the panels that wear a card's identity" },
       { name: "depth", values: "flat | elevated", note: "does light exist: the one sanctioned consumer of the shadow palette" },
       { name: "material", values: "solid | thin | regular | thick", note: "of what the app is BUILT — one VALUE for the whole scope (2026-08-16); expression is placement since 2026-08-17: glass renders only where a backdrop is stated (the backdrop prop / region), so the value names the material and placement decides where it shows" },
     ],
@@ -1048,6 +1047,10 @@ export const ENTRIES: Entry[] = [
       {
         name: "an elevation axis",
         why: "Deleted. Nothing ever varied it per call site — it was a component fact wearing an axis's clothes, and depth is what survived of its logic.",
+      },
+      {
+        name: "the look axis (surfaceLook / controlLook)",
+        why: "Deleted whole (controlLook 2026-08-19, surfaceLook 2026-08-20). controlLook's two values had converged — fields and marks wear the dress unconditionally. surfaceLook's second value was never judged or used: the lab's borderless pane is the one surface identity, so the prop was a lever every call site could reach and none had needed. A tinted surface identity can return as a Theme value the day a real app wants one.",
       },
     ],
     example: (

@@ -40,7 +40,6 @@ type Env = {
   density: NonNullable<ThemeProps["density"]>;
   pointer: NonNullable<ThemeProps["pointer"]>;
   radius: NonNullable<ThemeProps["radius"]>;
-  surfaceLook: NonNullable<ThemeProps["surfaceLook"]>;
   depth: NonNullable<ThemeProps["depth"]>;
   material: NonNullable<ThemeProps["material"]>;
 };
@@ -55,7 +54,6 @@ const DEFAULT_ENV: Env = {
   density: themeDefaults.density,
   pointer: themeDefaults.pointer,
   radius: themeDefaults.radius,
-  surfaceLook: themeDefaults.surfaceLook,
   depth: themeDefaults.depth,
   material: themeDefaults.material,
 };
@@ -165,12 +163,6 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
             value={env.radius}
             options={AXES.radius}
             onChange={(radius) => onChange({ ...env, radius })}
-          />
-          <Chips
-            label="surface look"
-            value={env.surfaceLook}
-            options={AXES.surfaceLook}
-            onChange={(surfaceLook) => onChange({ ...env, surfaceLook })}
           />
           <Chips
             label="depth"
@@ -310,7 +302,6 @@ export function PreviewShell({ children }: { children: React.ReactNode }) {
       density={env.density}
       pointer={env.pointer}
       radius={env.radius}
-      surfaceLook={env.surfaceLook}
       depth={env.depth}
       material={env.material}
     >

@@ -410,23 +410,16 @@ describe("a checked mark is the family's loud rung, and loud rungs catch light (
 });
 
 describe("the dress is unconditional, and it never deletes the mark's edge (§19)", () => {
-  // controlLook was DELETED 2026-08-19 (Kushagra) — the fill-first flip had made its two
-  // values byte-identical here, held for two days as an identity law in this describe. What
-  // survives is every guarantee those laws carried, re-keyed to the one state that exists.
-  it.each(APPEARANCES)("%s: the dressed box KEEPS the mark's edge, and surfaceLook cannot reach it", (appearance) => {
+  // The look axis is fully DELETED (controlLook 2026-08-19, surfaceLook 2026-08-20,
+  // Kushagra). What survives is every guarantee its laws carried, re-keyed to the one state
+  // that exists.
+  it.each(APPEARANCES)("%s: the dressed box KEEPS the mark's edge", (appearance) => {
     // The D2 guarantee, unconditional now: an unchecked box is nothing but its hairline.
     const box = markOf(mounted(<Checkbox />, { theme: { appearance } }));
     expect(
       computed(box, "border-top-color"),
       "an unchecked mark with no edge is not a control, it is a gap",
     ).not.toBe("rgba(0, 0, 0, 0)");
-    // The surviving look prop dresses SURFACES; a mark must not hear it (the partition).
-    const underFilled = markOf(mounted(<Checkbox />, { theme: { appearance, surfaceLook: "filled" } }));
-    for (const prop of ["background-color", "border-top-color"]) {
-      expect(computed(underFilled, prop), `surfaceLook reached the mark's ${prop}`).toBe(
-        computed(box, prop),
-      );
-    }
   });
 
   it("the bare render is the themed render — no axis, no difference", () => {

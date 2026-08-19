@@ -8,7 +8,6 @@ import type { RenderElement } from "../../system/render.ts";
 import { coarse, density } from "../../tokens/config.ts";
 import {
   GLASS_MATERIALS,
-  APPEARANCES,
   SIZES,
   colorOn,
   computed,
@@ -503,44 +502,9 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
 });
 
 describe("the boundary (§3, §13)", () => {
-  it("belongs to no dressed family: byte-identical across looks — border is RANK here (§19)", () => {
-    // The negative half of the look axis's membership law. Button's border is the emphasis
-    // half-step (quiet < quiet+bordered < medium < …), a call-site decision; if the app's
-    // dress could move it, the ranking the call sites wrote would shift under them.
-    // Widened 2026-08-06: it read the RESTING box only, so the app's dress could have moved a
-    // Button's hover or press with the suite green — and the surface family's interactive
-    // steps DO ride the look, which is exactly the leak this law exists to catch one component
-    // over. The state sources are read rather than the states simulated: hover and active live
-    // in the stylesheet keyed on :hover/:active, and these are the variables those rules
-    // resolve, so a look that reached them is visible here without synthesising a pointer.
-    const PROPS = ["background-color", "border-top-color", "color"] as const;
-    const SOURCES = ["--kui-ct-fill-src", "--kui-ct-fill-src-hover", "--kui-ct-fill-src-active"];
-    for (const appearance of APPEARANCES) {
-      for (const emphasis of ["loud", "medium", "quiet"] as const) {
-        const at = (look: "outlined" | "filled") =>
-          mounted(
-            <Button emphasis={emphasis} bordered>
-              Label
-            </Button>,
-            // The axis's one surviving half (controlLook deleted 2026-08-19): a component
-            // that belongs to no dressed family must be unmoved by it.
-            { theme: { surfaceLook: look, appearance }, select: ".kui-button" },
-          );
-        const outlined = at("outlined");
-        const filled = at("filled");
-        for (const prop of PROPS) {
-          expect(computed(filled, prop), `${appearance}/${emphasis} ${prop}`).toBe(
-            computed(outlined, prop),
-          );
-        }
-        for (const name of SOURCES) {
-          expect(ownColor(filled, name), `${appearance}/${emphasis} ${name}`).toBe(
-            ownColor(outlined, name),
-          );
-        }
-      }
-    }
-  });
+  // The look-invariance law that stood here ("byte-identical across looks — border is RANK")
+  // left with the look axis itself (surfaceLook deleted 2026-08-20): with no prop, there is
+  // no second look to compare against, and the guarantee it held is structural now.
 
   it("is LIT in an elevated world: casts the control row, catches light on top (§5, §19)", () => {
     // DELIBERATE REVERSAL of the 2026-08-06 "stays flat" negative law (the four-worlds

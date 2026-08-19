@@ -68,7 +68,6 @@ const HOSTILE: ThemeProps = {
   radius: "large",
   pointer: "coarse",
   depth: "elevated",
-  surfaceLook: "filled",
 };
 
 /** Mount an OPEN menu under a themed root; LOUD when the popup never mounts. */
@@ -740,7 +739,11 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
     );
   });
 
-  it("the popup casts in BOTH worlds — and a flat Card beside it still does not (§11 amended)", () => {
+  it("a flat popup casts NOTHING — flat means flat, floating panes included (2026-08-19)", () => {
+    // Reverses this law's own previous claim ("the popup casts in BOTH worlds", the
+    // 2026-08-09 coverage-is-information amendment): separation in flat is the hairline's
+    // job now, so the half-faded cast retired. The elevated popup is the negative control —
+    // the same pane in the other world must still cast a real shadow.
     for (const depth of DEPTHS) {
       let card: HTMLElement | null = null;
       render(
@@ -750,18 +753,31 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
       );
       const { popup } = openMenu({ depth });
       const cast = computed(popup, "box-shadow");
-      expect(cast, `${depth} popup casts`).not.toBe("none");
       if (depth === "flat") {
-        // The flat world's popup cast is the QUIETER derived value, not elevated's...
-        const { popup: elevatedPopup } = openMenu({ depth: "elevated" });
-        expect(cast).not.toBe(computed(elevatedPopup, "box-shadow"));
-        // ...and the flat world itself is intact: the card beside the menu casts nothing.
-        // Seat only (lab port 2026-08-17): flat removes the cast, never the pool.
+        // Every layer of the popup's list must be invisible — the pool and the world cast
+        // both stand down to no-op layers, and how MANY no-op layers the list holds is
+        // mechanism, not appearance. Zero geometry AND zero alpha per layer: a transparent
+        // shadow with real offsets would also be invisible today, but it would be a value
+        // waiting to paint the moment a color arrives.
+        expect(cast, "flat popup resolves a real list").not.toBe("none");
+        for (const layer of cast.split(/,(?![^(]*\))/)) {
+          expect(layer, "a flat popup layer must be the no-op").toMatch(
+            /^\s*rgba\(0, 0, 0, 0\) 0px 0px 0px 0px\s*$/,
+          );
+        }
+        // ...and the flat world itself is intact: the card beside the menu casts nothing
+        // either. Seat only (lab port 2026-08-17): flat removes the cast, never the pool.
         const seat = document.createElement("div");
         seat.style.boxShadow = "var(--material-pool-solid), 0 0 0 0 transparent";
         card!.append(seat);
         expect(computed(card!, "box-shadow"), "flat Card must stay flat").toBe(computed(seat, "box-shadow"));
         seat.remove();
+      } else {
+        expect(cast, "elevated popup still casts").not.toBe("none");
+        // Visible means at least one layer with real alpha — a computed no-op list would
+        // read rgba(0, 0, 0, 0) only.
+        const alphas = [...cast.matchAll(/rgba?\([^)]*?([\d.]+)\)/g)].map((m) => parseFloat(m[1]!));
+        expect(Math.max(0, ...alphas), "elevated cast is visible").toBeGreaterThan(0);
       }
     }
   });

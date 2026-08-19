@@ -28,13 +28,20 @@ export function ComponentPreviewBody({
 }) {
   return (
     <Stack gap="7">
-      {SECTION_ORDER.map(({ key, name }) => {
+      {SECTION_ORDER.map(({ key, name, intent }) => {
         const section = preview.sections[key];
         return (
           <Stack key={key} gap="4" render={<section id={`${preview.slug}-${key}`} />}>
-            <Heading size="4" render={standalone ? <h2 /> : <h3 />}>
-              {name}
-            </Heading>
+            <Stack gap="1">
+              <Heading size="4" render={standalone ? <h2 /> : <h3 />}>
+                {name}
+              </Heading>
+              {/* The section's contract, on the page: a demo either answers this sentence
+                  or it is visibly in the wrong section (2026-08-20). */}
+              <Text size="2" emphasis="quiet" render={<p />} style={{ maxWidth: "44rem" }}>
+                {intent}
+              </Text>
+            </Stack>
             {"absent" in section && section.absent !== undefined ? (
               <Text size="2" emphasis="quiet" render={<p />} style={{ maxWidth: "36rem" }}>
                 Not applicable — {section.absent}

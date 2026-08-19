@@ -9,7 +9,7 @@ import { cdp } from "vitest/browser";
 import { material } from "../../tokens/config.ts";
 import { Theme } from "../../theme/theme.tsx";
 import {
-  GLASS_MATERIALS, APPEARANCES, colorOn, computed, inMotion, mounted, numberOn, ownColor, render, tokenOn as lengthOn, within } from "../../test/browser.tsx";
+  GLASS_MATERIALS, APPEARANCES, colorOn, computed, inMotion, mounted, numberOn, render, tokenOn as lengthOn, within } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Spinner } from "../spinner/spinner.tsx";
@@ -47,77 +47,38 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
   });
 
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: the filled look fills the card and keeps a softer edge (§19)`, () => {
-      // Rewritten 2026-08-06, and the rewrite is the point. The old spelling asserted
-      // `background-color === var(--neutral-2)` and `border-top-color === transparent` — a
-      // comparison against the token name its author had just typed, which is why it passed
-      // for a day while `filled` did nothing at all in dark: --neutral-2 IS dark's seal, so
-      // the law and the bug agreed with each other.
-      //
-      // The axis is now judged the only way an axis can be: against its OTHER END.
-      const filled = mounted(<Card>Body</Card>, {
-        theme: { surfaceLook: "filled", appearance },
-        select: ".kui-surface",
-      });
-      const outlined = mounted(<Card>Body</Card>, {
-        theme: { surfaceLook: "outlined", appearance },
-        select: ".kui-surface",
-      });
-      expect(
-        computed(filled, "background-color"),
-        `filled resolves to outlined's fill in ${appearance} — the axis paints nothing`,
-      ).not.toBe(computed(outlined, "background-color"));
-      // And the boundary survives the dress (Kushagra, 2026-08-06: a filled surface may keep
-      // a slight border — the fill is the pull, not the absence of an edge).
-      expect(computed(filled, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
-    });
-
-    it(`${appearance}: outlined is the identity — the seal fill, and a borderless edge since the lab port (§19)`, () => {
+    it(`${appearance}: the resting identity — the seal fill, and a borderless edge since the lab port (§10, §19)`, () => {
+      // The one resting surface identity since the look axis died (surfaceLook deleted
+      // 2026-08-20): the seal fill, and NO pigment hairline — the lab's pane is borderless,
+      // its edge carried by light (ring on glass, pool and cast on solid). The tone hairline
+      // survives in the contrast="high" scopes and in depth="flat", which re-declare
+      // `--surface-edge` to `initial` (their own laws).
       const bare = render(<Card>Body</Card>);
-      const outlined = mounted(<Card>Body</Card>, {
-        theme: { surfaceLook: "outlined", appearance },
+      const themed = mounted(<Card>Body</Card>, {
+        theme: { appearance },
         select: ".kui-surface",
       });
-
-      // Rewritten 2026-08-06 (the two-identical-mounts vacuity), and AGAIN 2026-08-17 (lab
-      // port): "byte-identical to a world without the axis" is now false for the BORDER
-      // channel. config's look.outlined.surface.border is `transparent` — the lab's pane is
-      // borderless, its edge carried by light (ring on glass, cast on solid) — and the tone
-      // hairline survives only in the contrast="high" scopes, which re-declare the role to
-      // `initial`. The FILL half of the identity is unchanged and still pinned to the
-      // pre-axis role.
-      expect(computed(outlined, "background-color")).toBe(colorOn(outlined, "var(--color-surface)"));
+      expect(computed(themed, "background-color")).toBe(colorOn(themed, "var(--color-surface)"));
       expect(
-        computed(outlined, "border-top-color"),
+        computed(themed, "border-top-color"),
         "the resting hairline returned — the 2026-08-17 borderless reversal is undone",
       ).toBe("rgba(0, 0, 0, 0)");
 
-      // And filled must NOT satisfy the same assertion, or "identity" is a claim about a
-      // constant rather than about this end of the axis.
-      const filled = mounted(<Card>Body</Card>, {
-        theme: { surfaceLook: "filled", appearance },
-        select: ".kui-surface",
-      });
-      expect(computed(filled, "background-color")).not.toBe(
-        colorOn(filled, "var(--color-surface)"),
-      );
-
       if (appearance === "light") {
-        // And the un-themed document resolves the same chrome the outlined scope does.
-        expect(computed(bare, "background-color")).toBe(computed(outlined, "background-color"));
-        expect(computed(bare, "border-top-color")).toBe(computed(outlined, "border-top-color"));
+        // And the un-themed document resolves the same chrome the themed scope does.
+        expect(computed(bare, "background-color")).toBe(computed(themed, "background-color"));
+        expect(computed(bare, "border-top-color")).toBe(computed(themed, "border-top-color"));
       }
     });
   }
 
-  it("a bare appearance scope re-prices the look — a dark section is not white (§19, §5)", () => {
-    // The defect this law was written against, caught by eye in the preview: a look role holds
-    // a COLOUR, and a var() inside a custom property substitutes where it is DECLARED. Emitted
-    // only at :root, `--look-surface-fill: var(--color-surface)` baked WHITE, and every dark
-    // region that was not itself a look scope inherited it — white cards, white fields, white
-    // marks, in a dark app. Theme hid it by stamping data-look beside data-appearance; this
-    // law uses the UN-THEMED path on purpose, which is the one the emitted stylesheet promises
-    // works standalone. It fails against the pre-fix generator.
+  it("a bare appearance scope re-prices the seal — a dark section is not white (§19, §5)", () => {
+    // The defect this law was written against, caught by eye in the preview: a surface role
+    // holds a COLOUR, and a var() inside a custom property substitutes where it is DECLARED.
+    // Emitted only at :root, the seal baked WHITE, and every dark region inherited it —
+    // white cards, white fields, white marks, in a dark app. Theme hid it by co-locating its
+    // stamps; this law uses the UN-THEMED path on purpose, which is the one the emitted
+    // stylesheet promises works standalone. It fails against the pre-fix generator.
     const host = render(
       <div data-appearance="dark">
         <Card>Body</Card>
@@ -134,35 +95,32 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     expect(computed(el, "background-color")).not.toBe(computed(light, "background-color"));
   });
 
-  it("the look axis reaches THROUGH the glass — material is a fill modifier, not a fill (§10, §19)", () => {
+  it("the rung reaches THROUGH the glass — material is a fill modifier, not a fill (§10, §19)", () => {
     // The 2026-08-16 port audit reported this broken, and it was — in the LAB, whose veil is
     // built from `--color-surface` directly. The package mixes `--kui-sf-fill-src`, the
     // surface's OWN fill source, which is what "material is a fill modifier, never a fill of
     // its own" means. Nothing proved it, though, which is why an auditor reading the lab could
     // not tell the two apart: the claim had no law, so it was indistinguishable from the bug.
     //
-    // What must hold is TWO things at once, and asserting either alone is half a law: the two
-    // looks must resolve DIFFERENT colours (the dress survives the veil) at the SAME alpha
-    // (the veil is still doing the material's job and has not been replaced by a fill). Both
-    // appearances, because filled walks the palette in opposite directions per mode.
+    // The instrument was the look axis until it died (surfaceLook deleted 2026-08-20); the
+    // rungs are the source that still varies — a quiet pane's veil is the seal, a
+    // tone-forward pane's veil carries its own chroma, and a veil built from the seal
+    // directly would render both identical (the lab's exact defect, transplantable). The
+    // subjects are raw panes (the sanctioned `useMaterial()` consumer shape), because Card
+    // rightly refuses tone and this law is about the surface LAYER.
     for (const appearance of APPEARANCES) {
-      // `backdrop` since the lab port (2026-08-17, selectivity §10): an in-flow card
-      // resolves SOLID under a glass theme unless it states the placement, so a law about
-      // GLASS behavior must opt the card over content — the prop is placement, not material.
-      const outlined = mounted(<Card backdrop>B</Card>, {
-        theme: { appearance, material: "regular", surfaceLook: "outlined" },
-      });
-      const filled = mounted(<Card backdrop>B</Card>, {
-        theme: { appearance, material: "regular", surfaceLook: "filled" },
-      });
-      const a = computed(outlined, "background-color");
-      const b = computed(filled, "background-color");
-      expect(a, `${appearance}: the look never reached the pane`).not.toBe(b);
+      const pane = (attrs: Record<string, string>) =>
+        mounted(<div className="kui-surface" data-material="regular" {...attrs} />, {
+          theme: { appearance },
+          select: ".kui-surface",
+        });
+      const quiet = pane({ "data-emphasis": "quiet" });
+      const toned = pane({ "data-emphasis": "medium", "data-tone": "destructive" });
+      const a = computed(quiet, "background-color");
+      const b = computed(toned, "background-color");
+      expect(a, `${appearance}: the rung never reached the pane`).not.toBe(b);
       const alphaOf = (c: string) => c.slice(c.lastIndexOf("/") + 1).replace(")", "").trim();
       expect(alphaOf(a), `${appearance}: the veil is opaque`).not.toBe("1");
-      expect(alphaOf(b), `${appearance}: the looks translucency diverged from outlined's`).toBe(
-        alphaOf(a),
-      );
     }
   });
 
@@ -916,6 +874,45 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
   });
 });
 
+describe("high contrast leans on the glass, it does not unmake it (§7, §10)", () => {
+  // The sentence has been in config since 2026-08-05 and the code stopped honouring it: the
+  // rim was emptied under contrast="high", so a glass pane lost the grain, bloom and sheen
+  // that make it read as a physical thing catching light, and kept only a flat pigment line.
+  // Kushagra, from the playground (2026-08-20): "cheap and incorrect… it's not taste".
+  //
+  // Mounted rather than read off the stylesheet, because the token half was ALREADY law-
+  // pinned — in the wrong direction, and confidently. What could not be faked is whether a
+  // real pane still paints.
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: a glass pane keeps its light under contrast="high"`, () => {
+      const pane = (contrast: "normal" | "high") =>
+        mounted(<Card backdrop>Body</Card>, {
+          theme: { appearance, contrast, material: "regular" },
+          select: ".kui-surface",
+        });
+      const normal = pane("normal");
+      const high = pane("high");
+      // The rim is a background-image (grain / bloom / sheen). `none` is what emptying it
+      // computed to, and it is the exact failure this law exists for.
+      expect(computed(normal, "background-image"), "the pane paints no light at rest").not.toBe("none");
+      expect(
+        computed(high, "background-image"),
+        "high contrast deleted the pane's light — the 2026-08-20 reversal is undone",
+      ).not.toBe("none");
+      // …and it is the SAME recipe, not a lesser one: the setting trades the edge, not this.
+      expect(computed(high, "background-image")).toBe(computed(normal, "background-image"));
+      // The trade it does make, asserted beside it so "keeps its light" cannot quietly become
+      // "changes nothing": the veil thickens, and the edge becomes pigment.
+      expect(computed(high, "background-color"), "the veil never thickened").not.toBe(
+        computed(normal, "background-color"),
+      );
+      expect(computed(high, "border-top-color"), "no pigment boundary arrived").not.toBe(
+        "rgba(0, 0, 0, 0)",
+      );
+    });
+  }
+});
+
 describe("reduced transparency takes the pane away, not the app's dress (§10, §19)", () => {
   // The only media path in this repo that no law had ever executed in a browser, which is why
   // the defect below sat in a rule whose own comment denied it. Emulated over CDP, the same
@@ -928,17 +925,13 @@ describe("reduced transparency takes the pane away, not the app's dress (§10, �
   });
 
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: a glass card's edge matches every other card's under filled`, async () => {
+    it(`${appearance}: a sealed pane trades its light for the tone hairline`, async () => {
       await emulate([{ name: "prefers-reduced-transparency", value: "reduce" }]);
       // The glass mount really asks for glass (theme material + backdrop since the lab
       // port 2026-08-17 — an in-flow card under a glass theme is otherwise solid and this
-      // law compares a card with itself); the plain one is the ordinary solid world.
+      // law compares a card with itself).
       const glass = mounted(<Card backdrop>Body</Card>, {
-        theme: { surfaceLook: "filled", appearance, material: "thin" },
-        select: ".kui-surface",
-      });
-      const plain = mounted(<Card>Body</Card>, {
-        theme: { surfaceLook: "filled", appearance },
+        theme: { appearance, material: "thin" },
         select: ".kui-surface",
       });
 
@@ -947,35 +940,29 @@ describe("reduced transparency takes the pane away, not the app's dress (§10, �
       // most likely to have. No blur means the reduce block really is the one painting.
       expect(computed(glass, "backdrop-filter"), "the reduce block never fired").toBe("none");
 
-      // Pre-fix the reduce block named var(--tone-border) directly. That WAS the ordinary
-      // dress until the look axis existed; under `filled` it made the one surface that asked
-      // for less transparency the only surface wearing the tone hairline.
-      expect(computed(glass, "border-top-color")).toBe(computed(plain, "border-top-color"));
+      // A sealed pane has no light left to speak with — no ring, no veil — so the pigment
+      // line is its boundary (audit 2026-08-18: the pre-fix chain handed it no edge at
+      // all). Deliberately NOT the plain card's rest, which is borderless by design.
+      expect(computed(glass, "border-top-color")).toBe(colorOn(glass, "var(--tone-border)"));
+      expect(computed(glass, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
     });
   }
 });
 
-describe("every slot the axis emits is actually reached (§19)", () => {
-  // Blind spot from the look audit: four of the axis's roles were read by NO law. The resting
-  // fill and edge had laws; the interactive slots — the ones that only exist because a Card
-  // can be a button — had none, so `filled` could have left a card's hover and press sitting
-  // on `outlined`'s values and every test would have agreed. Read as the source variables the
-  // :hover/:active rules resolve, which is where a look that failed to reach them shows up
-  // without synthesising a pointer.
-  const SLOTS = ["--look-surface-fill", "--look-surface-fill-hover", "--look-surface-fill-active"];
-
+describe("the interactive sources are live — a pressable card can actually step (§10, §19)", () => {
+  // The look-audit blind spot's descendant: the interactive sources only exist because a
+  // Card can be a button, and no resting-state law reads them. Read as the roles the
+  // :hover/:active rules resolve, which is where a broken source shows up without
+  // synthesising a pointer. Each must resolve, and differ from the rest — a hover that is
+  // the rest is a press nobody can see.
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: the surface family's interactive slots move with the look`, () => {
-      const at = (look: "outlined" | "filled") =>
-        mounted(<Card>Body</Card>, { theme: { surfaceLook: look, appearance }, select: ".kui-surface" });
-      const outlined = at("outlined");
-      const filled = at("filled");
-      for (const slot of SLOTS) {
-        const a = ownColor(outlined, slot);
-        const b = ownColor(filled, slot);
-        expect(a, `${slot} resolves to nothing under outlined`).not.toBe("");
-        expect(b, `${slot} resolves to nothing under filled`).not.toBe("");
-        expect(b, `${slot} is identical in both looks — the axis does not reach it`).not.toBe(a);
+    it(`${appearance}: the seal's hover and press steps resolve and differ from rest`, () => {
+      const el = mounted(<Card>Body</Card>, { theme: { appearance }, select: ".kui-surface" });
+      const rest = colorOn(el, "var(--color-surface)");
+      for (const role of ["--color-surface-hover", "--color-surface-active"]) {
+        const value = colorOn(el, `var(${role})`);
+        expect(value, `${role} resolves to nothing`).not.toBe("");
+        expect(value, `${role} is the resting seal — the step paints nothing`).not.toBe(rest);
       }
     });
   }

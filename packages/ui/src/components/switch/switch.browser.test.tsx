@@ -27,7 +27,6 @@ import {
   within,
   inMotion,
 } from "../../test/browser.tsx";
-import { Card } from "../card/card.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Slider } from "../slider/slider.tsx";
 import { TextField } from "../text-field/text-field.tsx";
@@ -464,39 +463,9 @@ describe("off is a WELL, on is the family's accent identity (§11)", () => {
   });
 });
 
-describe("the WHOLE switch is outside the look axis — an instrument, like the slider (§19)", () => {
-  it.each(APPEARANCES)("%s: every painted part is byte-identical across looks", (appearance) => {
-    const at = (look: "outlined" | "filled") => {
-      // The one surviving half (controlLook deleted 2026-08-19): leaving an axis means
-      // leaving all of it, and a switch sits on surfaces as often as beside fields.
-      const el = mounted(<Switch />, {
-        theme: { surfaceLook: look, appearance },
-        select: ".kui-switch",
-      });
-      return {
-        track: computed(el, "background-color"),
-        edge: computed(el, "border-top-color"),
-        thumb: computed(el.querySelector(".kui-switch-thumb")!, "background-color"),
-      };
-    };
-    const outlined = at("outlined");
-    const filled = at("filled");
-    for (const key of Object.keys(outlined) as (keyof typeof outlined)[]) {
-      expect(filled[key], `the app's look reached the switch's ${key}`).toBe(outlined[key]);
-    }
-    // The tautology guard (the slider's own): prove the axis was ALIVE in this mount, so
-    // this law cannot pass in a world where `look` simply stopped working.
-    // The guard's subject is a CARD since 2026-08-17 — controlLook is inert for the mark and
-    // field families after the fill-first flip, so a checkbox proves nothing here; surfaceLook
-    // is the half that still has two answers.
-    const cb = (look: "outlined" | "filled") =>
-      computed(
-        mounted(<Card />, { theme: { surfaceLook: look, appearance }, select: ".kui-card" }),
-        "background-color",
-      );
-    expect(cb("filled")).not.toBe(cb("outlined"));
-  });
-});
+// The "WHOLE switch is outside the look axis" describe that stood here left with the look
+// axis itself (surfaceLook deleted 2026-08-20): with no prop, there is no second look to
+// compare against — the instrument exclusion is structural now.
 
 describe("depth: the grip casts always, the well never, the checked capsule catches (§5)", () => {
   for (const appearance of APPEARANCES) {

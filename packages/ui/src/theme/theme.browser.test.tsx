@@ -26,66 +26,27 @@ describe("the axes render as attributes (§5)", () => {
     expect(el.getAttribute("data-radius")).toBe("large");
   });
 
-  // The look axis is ONE prop again (controlLook DELETED 2026-08-19, Kushagra — the
-  // fill-first flip had made its two values byte-identical for fields and marks, so the
-  // prop stamped an attribute and moved nothing). The loop survives so a future second
-  // axis re-enters it instead of shipping un-stamped; the deletion itself is held by the
-  // un-stamped assertion below.
-  const LOOK_AXES = [{ prop: "surfaceLook", attr: "data-surface-look" }] as const;
-
-  for (const { prop, attr } of LOOK_AXES) {
-    it(`${prop} stamps its default and a nested Theme escapes by declaration (§19)`, () => {
-      // Always stamped — unlike contrast there is no platform signal to leave room for, and
-      // the outlined scope must exist for a nested outlined Theme to escape a filled ancestor.
-      expect(render(<Theme />).getAttribute(attr)).toBe("outlined");
-      const outer = render(
-        <Theme {...{ [prop]: "filled" }}>
-          <Theme density="compact" />
-        </Theme>,
-      );
-      expect(outer.getAttribute(attr)).toBe("filled");
-      const inner = outer.querySelector(".kui-theme")!;
-      expect(inner.getAttribute(attr)).toBe("filled");
-      const escaped = render(
-        <Theme {...{ [prop]: "filled" }}>
-          <Theme {...{ [prop]: "outlined" }} />
-        </Theme>,
-      ).querySelector(".kui-theme")!;
-      expect(escaped.getAttribute(attr)).toBe("outlined");
-    });
-  }
-
-  it("controlLook is DELETED — nothing stamps it, and surfaceLook never reaches a field (§19)", () => {
-    // 2026-08-19, Kushagra. The 2026-08-10 split's cell — a plain card holding dressed
-    // inputs — is now the ONLY state: fields and marks wear the dress unconditionally, so
-    // the partition this law used to read as two props over disjoint families survives as
-    // one prop over one family plus an unconditional dress. Three assertions carry it:
-    // the dead attribute never renders, the surface half still cannot reach a field, and
-    // the cell itself still exists.
-    expect(render(<Theme />).hasAttribute("data-control-look"), "the deleted axis re-stamped").toBe(false);
-    const at = (surfaceLook: "outlined" | "filled") => {
-      const el = render(
-        <Theme surfaceLook={surfaceLook}>
-          <Card>
-            <TextField />
-          </Card>
-        </Theme>,
-      );
-      return {
-        card: computed(el.querySelector(".kui-surface")!, "background-color"),
-        field: computed(el.querySelector(".kui-field")!, "background-color"),
-      };
-    };
-    const plain = at("outlined");
-    const both = at("filled");
-    expect(both.field, "the surface half reached into the field family").toBe(plain.field);
-    expect(both.card, "the surface half did not reach the card").not.toBe(plain.card);
-    expect(plain.field, "a field on a plain card is the same colour as the card").not.toBe(
-      plain.card,
+  it("the look axis is DELETED — nothing stamps either attribute, and the split's cell is the only state (§19)", () => {
+    // controlLook died 2026-08-19, surfaceLook 2026-08-20 (both Kushagra). The 2026-08-10
+    // split's cell — a plain card holding dressed inputs — is now the ONLY state: fields and
+    // marks wear the dress unconditionally and a card rests on the seal. Two assertions
+    // carry it: neither dead attribute ever renders, and the cell itself still exists.
+    const el = render(
+      <Theme>
+        <Card>
+          <TextField />
+        </Card>
+      </Theme>,
     );
+    expect(el.hasAttribute("data-control-look"), "the deleted axis re-stamped").toBe(false);
+    expect(el.hasAttribute("data-surface-look"), "the deleted axis re-stamped").toBe(false);
+    expect(
+      computed(el.querySelector(".kui-field")!, "background-color"),
+      "a field on a plain card is the same colour as the card",
+    ).not.toBe(computed(el.querySelector(".kui-surface")!, "background-color"));
   });
 
-  describe("a filled component's edge answers contrast=high (§7, §19)", () => {
+  describe("a dressed component's edge answers contrast=high (§7, §19)", () => {
     // THE law for the reachability guarantee, and it is deliberately an OUTCOME law mounted in
     // a browser rather than a check on which step the config picked.
     //
@@ -100,37 +61,97 @@ describe("the axes render as attributes (§5)", () => {
     // Reading the computed edge off a real component in both contrast states cannot be fooled
     // that way: it does not care whether the answer arrives by band membership, by the
     // stand-down arm, or by something not invented yet.
+    // The surface family's resting edge is deliberately ABSENT since the lab port (light is
+    // the edge), so its case asserts the edge APPEARS under high contrast; the dressed
+    // families rest on a live soft edge, so theirs assert it MOVES. Both shapes end at the
+    // same place: a painted, tone-strength boundary when one is asked for.
     const CASES = [
-      { name: "surface", ui: <Card>Body</Card>, select: ".kui-surface" },
-      { name: "field", ui: <TextField />, select: ".kui-field" },
-      { name: "mark", ui: <Checkbox />, select: ".kui-checkbox" },
+      { name: "surface", ui: <Card>Body</Card>, select: ".kui-surface", restsPainted: false },
+      { name: "field", ui: <TextField />, select: ".kui-field", restsPainted: true },
+      { name: "mark", ui: <Checkbox />, select: ".kui-checkbox", restsPainted: true },
     ] as const;
 
     for (const appearance of APPEARANCES) {
-      for (const { name, ui, select } of CASES) {
-        it(`${appearance}/${name}: the edge moves when high contrast is asked for`, () => {
+      for (const { name, ui, select, restsPainted } of CASES) {
+        it(`${appearance}/${name}: the edge answers when high contrast is asked for`, () => {
           const edge = (contrast: "normal" | "high") =>
-            computed(
-              mounted(ui, {
-                // The three cases span the surface family (still on the axis) and the two
-                // unconditionally-dressed families; the stand-down this law is about is
-                // written once for the look role and once for each dress edge.
-                theme: { surfaceLook: "filled", appearance, contrast },
-                select,
-              }),
-              "border-top-color",
-            );
+            computed(mounted(ui, { theme: { appearance, contrast }, select }), "border-top-color");
           const normal = edge("normal");
           const high = edge("high");
-          expect(normal, "a filled edge that is not painted cannot be strengthened").not.toBe(
+          if (restsPainted) {
+            expect(normal, "a dressed edge that is not painted cannot be strengthened").not.toBe(
+              "rgba(0, 0, 0, 0)",
+            );
+          } else {
+            expect(normal, "the pane rests borderless — light is the edge").toBe("rgba(0, 0, 0, 0)");
+          }
+          expect(high, `${name}'s edge is inert under contrast="high"`).not.toBe(normal);
+          expect(high, "high contrast must paint a boundary, not remove one").not.toBe(
             "rgba(0, 0, 0, 0)",
           );
-          expect(
-            high,
-            `${name}'s filled edge is inert under contrast="high" — the escape does nothing here`,
-          ).not.toBe(normal);
         });
       }
+    }
+
+    // …AND THE SAME THING ONE ELEMENT APART, which is the arrangement every law above is
+    // blind to (2026-08-20, Kushagra, by eye: a dark card looked identical at both contrasts
+    // while the glass beside it changed).
+    //
+    // Every law here co-locates the two axes on one Theme, because that is what `mounted`
+    // builds. The SUPPORTED path does not: the pre-paint script stamps appearance and
+    // contrast on `<html>` (§5's co-location requirement is about those two, and it holds
+    // there), and then the app renders `<Theme appearance="dark">` for a section. That Theme
+    // re-declares the whole standard palette NEARER to the component than `<html>` is, and a
+    // custom property resolves by proximity — so contrast="high" reached NOTHING below it.
+    // Measured before the fix: --control-edge, --field-edge, --neutral-6 and --color-track
+    // all equal their standard values, and the card painted no boundary at all.
+    //
+    // The law drives the DOM directly rather than through `mounted`, because the shape it is
+    // about is precisely the one the harness cannot express.
+    for (const { name, select } of CASES) {
+      it(`${name}: high contrast survives a nested appearance Theme — the supported page shape`, () => {
+        const root = document.documentElement;
+        const before = { a: root.dataset.appearance, c: root.dataset.contrast };
+        try {
+          root.dataset.appearance = "dark";
+          const edge = (contrast: string) => {
+            root.dataset.contrast = contrast;
+            const host = render(
+              <Theme appearance="dark">
+                <Card>Body</Card>
+                <TextField />
+                <Checkbox />
+              </Theme>,
+            );
+            return computed(host.querySelector<HTMLElement>(select)!, "border-top-color");
+          };
+          const normal = edge("normal");
+          const high = edge("high");
+          expect(high, `${name} is deaf to contrast="high" one element away`).not.toBe(normal);
+          expect(high, "high contrast must paint a boundary").not.toBe("rgba(0, 0, 0, 0)");
+
+          // And the escape still escapes: a nested Theme that explicitly asks for `normal`
+          // inside a high-contrast document keeps the standard dress. Without this the fix
+          // would be a rule that cannot be turned off, which is the opposite failure.
+          root.dataset.contrast = "high";
+          const optOut = computed(
+            render(
+              <Theme appearance="dark" contrast="normal">
+                <Card>Body</Card>
+                <TextField />
+                <Checkbox />
+              </Theme>,
+            ).querySelector<HTMLElement>(select)!,
+            "border-top-color",
+          );
+          expect(optOut, `${name}: an explicit contrast="normal" was overridden`).toBe(normal);
+        } finally {
+          if (before.a === undefined) delete root.dataset.appearance;
+          else root.dataset.appearance = before.a;
+          if (before.c === undefined) delete root.dataset.contrast;
+          else root.dataset.contrast = before.c;
+        }
+      });
     }
   });
 
