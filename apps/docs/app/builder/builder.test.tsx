@@ -29,7 +29,7 @@ import { describe, expect, it } from "vitest";
 import * as Kookie from "@kookie-ui/react";
 import { Theme, componentAxes } from "@kookie-ui/react";
 
-import { CATALOG, EXCLUDED, canContain, gapStepsFor, sanitizeNode, seatVocabularyFor, sizeStepsFor } from "./catalog";
+import { CATALOG, EXCLUDED, SLOT_ACCEPTS, canContain, canSit, gapStepsFor, sanitizeNode, seatVocabularyFor, sizeStepsFor, slotsFor } from "./catalog";
 import {
   cloneWithNewIds,
   defaultDocTheme,
@@ -43,7 +43,7 @@ import {
   type BuilderNode,
 } from "./model";
 import { renderNode } from "./render";
-import { serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
+import { deriveParams, serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const packageIndex = join(here, "../../../../packages/ui/src/index.ts");
@@ -155,7 +155,9 @@ const canonicalDoc = (): BuilderDoc => ({
           children: [
             node("Heading", { size: "6" }, { text: "A {curly} & <angled> title " }),
             node("Text", { size: "2", emphasis: "medium" }, { text: "Plain body copy." }),
-            node("TextField", { placeholder: "Name", "aria-label": "Name", disabled: true }),
+            node("TextField", { placeholder: "Name", "aria-label": "Name", disabled: true }, {
+              children: [node("Button", { size: "1", emphasis: "quiet" }, { text: "Clear", slot: "trailing" })],
+            }),
             node("TextArea", { rows: 4, "aria-label": "Notes" }),
             node("Flex", {
               gap: { initial: "2", md: "4" },
@@ -166,7 +168,10 @@ const canonicalDoc = (): BuilderDoc => ({
               children: [
                 node("Checkbox", { defaultChecked: true, "aria-label": "Agree" }),
                 node("Slider", { defaultValue: 35, "aria-label": "Amount" }),
-                node("Button", { tone: "accent", emphasis: "loud", bordered: true }, { text: "Save" }),
+                node("Button", { tone: "accent", emphasis: "loud", bordered: true }, {
+                  text: "Save",
+                  children: [node("Spinner", {}, { slot: "leading" })],
+                }),
               ],
             }),
             node("Separator"),
@@ -198,13 +203,20 @@ const expectedElement = (doc: BuilderDoc): React.ReactElement => {
 /** React's useId salts are positional and documented-unstable; the two renders sit at
     different module depths, so the salts differ while every real byte agrees. Each distinct
     id maps to its order of first appearance — cross-references (aria wiring, the -hidden-input
-    pairing) must still land on the same token, so a wiring change still fails. */
+    pairing) must still land on the same token, so a wiring change still fails.
+
+    BOTH spellings are normalized: Base UI's own `base-ui-…` ids and React's raw `_R_…_`,
+    which a field's slot uses for `aria-describedby`. Missing the second one is what the
+    slot work turned up — the two renders agreed byte for byte except the salt. */
 const normalizeGeneratedIds = (html: string): string => {
   const seen = new Map<string, string>();
-  return html.replace(/base-ui-[A-Za-z0-9_]+/g, (m) => {
-    if (!seen.has(m)) seen.set(m, `base-ui-${seen.size}`);
+  const token = (m: string, prefix: string) => {
+    if (!seen.has(m)) seen.set(m, `${prefix}${seen.size}`);
     return seen.get(m)!;
-  });
+  };
+  return html
+    .replace(/base-ui-[A-Za-z0-9_]+/g, (m) => token(m, "base-ui-"))
+    .replace(/_R_[A-Za-z0-9]*_/g, (m) => token(m, "_rid"));
 };
 
 /** Compile the exported module and hand back its component. */
@@ -252,6 +264,42 @@ describe("round-trip identity: the exported code IS the canvas", () => {
     expect(renderToStaticMarkup(expectedElement(doc))).not.toContain("data-b-id");
   });
 
+  it("a block's CONTENT is parameterized and its axes are not", () => {
+    const block = node("Card", { size: "3" }, {
+      children: [
+        node("Stack", { gap: "2" }, {
+          children: [
+            node("Heading", { size: "6" }, { text: "Media card" }),
+            node("Text", { size: "2", emphasis: "medium" }, { text: "A description." }),
+            node("Text", { size: "1" }, { text: "Meta" }),
+          ],
+        }),
+      ],
+    });
+    const params = deriveParams(block);
+    expect(params.map((p) => p.prop)).toEqual(["title", "body", "body2"]);
+    const code = serializeBlock("media card", block, params);
+    // Content arrives as props with the captured text as defaults…
+    expect(code).toContain('title = "Media card"');
+    expect(code).toContain("{title}");
+    expect(code).toContain("{body}");
+    // …and every axis the author chose is still stated, not handed back.
+    expect(code).toContain('size="3"');
+    expect(code).toContain('emphasis="medium"');
+    expect(code).not.toContain("size = ");
+    // It compiles, and rendering it with no arguments gives the captured document back.
+    const Exported = compileExport(code);
+    expect(normalizeGeneratedIds(renderToStaticMarkup(React.createElement(Exported)))).toBe(
+      normalizeGeneratedIds(renderToStaticMarkup(renderNode(block, "export"))),
+    );
+  });
+
+  it("a block with no text at all exports as a plain component", () => {
+    const block = node("Card", { size: "2" }, { children: [node("Separator")] });
+    const code = serializeBlock("rule card", block, deriveParams(block));
+    expect(code).toContain("export function RuleCard()");
+  });
+
   it("a saved block exports as a named component", () => {
     const block = CATALOG.Card!.make();
     const code = serializeBlock("media card", block);
@@ -295,6 +343,9 @@ describe("the export speaks tokens only, and refuses everything else", () => {
       'gap={{ initial: "2", md: "4" }}',
       'direction={{ initial: "column", md: "row" }}',
       "container",
+      // A seat is a PROP holding one element — the package's own spelling.
+      'leading={<Spinner />}',
+      'trailing={<Button size="1" emphasis="quiet">Clear</Button>}',
     ]) {
       expect(code, `the document states ${stated} and the export lost it`).toContain(stated);
     }
@@ -477,6 +528,35 @@ describe("the seat vocabulary — what a node may say about the space it sits in
         expect(code, `${seat.prop}=${value} leaked a style`).not.toMatch(/style=/);
       }
     }
+  });
+});
+
+describe("slots are seats, not children", () => {
+  it("every type a slot accepts is a real catalog entry", () => {
+    for (const type of SLOT_ACCEPTS) {
+      expect(CATALOG[type], `a slot accepts "${type}", which is not in the catalog`).toBeDefined();
+    }
+  });
+
+  it("only entries that declare slots can seat anything", () => {
+    expect(slotsFor("Button")).toContain("leading");
+    expect(slotsFor("Card")).toHaveLength(0);
+    expect(canSit("Button", "Spinner")).toBe(true);
+    expect(canSit("Card", "Spinner")).toBe(false);
+    // A surface in a control's seat is refused: a slot holds an adornment, not a pane.
+    expect(canSit("Button", "Card")).toBe(false);
+  });
+
+  it("a seated child never lands in the flow children of the export", () => {
+    const seated = node("Button", {}, {
+      text: "Save",
+      children: [node("Spinner", {}, { slot: "leading" })],
+    });
+    const doc: BuilderDoc = { theme: defaultDocTheme(), roots: [seated] };
+    const code = serializeDocument(doc);
+    // The Spinner is in the tag, and the button's own text is still its only content.
+    expect(code).toContain("leading={<Spinner />}");
+    expect(code).toMatch(/<Button leading=\{<Spinner \/>\}>Save<\/Button>/);
   });
 });
 

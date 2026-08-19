@@ -34,11 +34,11 @@ import {
   themeAxes,
 } from "@kookie-ui/react";
 
-import { PlusIcon } from "../icons";
+import { PlusIcon, XIcon } from "../icons";
 import { ENTRIES } from "../(site)/components/registry";
 
-import { CATALOG, type PropSchema } from "./catalog";
-import { TIER_KEYS, type BuilderNode, type DocTheme, type PropValue, type ResponsiveValue } from "./model";
+import { CATALOG, SLOT_ACCEPTS, slotsFor, type PropSchema } from "./catalog";
+import { TIER_KEYS, slottedChild, type BuilderNode, type DocTheme, type PropValue, type ResponsiveValue } from "./model";
 
 const REFUSALS = new Map(ENTRIES.map((e) => [e.name, e.refusals]));
 
@@ -273,11 +273,16 @@ export function Inspector({
   node,
   onProp,
   onText,
+  onSlot,
+  onSelect,
   textRef,
 }: {
   node: BuilderNode;
   onProp: (key: string, next: PropValue | undefined) => void;
   onText: (next: string) => void;
+  /** Seat a component in a named slot, or clear it (§4's adornments). */
+  onSlot: (slot: "leading" | "trailing", type: string | null) => void;
+  onSelect: (id: string) => void;
   /** The editor's ⏎ focuses the content field — the fastest path from "selected" to
       "typing", and the reason canvas text needs no inline editor of its own. */
   textRef?: React.RefObject<HTMLInputElement | null>;
@@ -335,6 +340,55 @@ export function Inspector({
           Nothing to configure — this one is all identity.
         </Text>
       )}
+
+      {slotsFor(node.type).length ? (
+        <Stack gap="2">
+          <Text size="1" weight="medium">
+            Slots
+          </Text>
+          {slotsFor(node.type).map((slot) => {
+            const seated = slottedChild(node, slot);
+            return (
+              <Flex key={slot} gap="2" align="center" justify="space-between">
+                <Text size="1" emphasis="medium">
+                  {slot}
+                </Text>
+                {seated ? (
+                  <Flex gap="1" align="center">
+                    <Button size="1" emphasis="quiet" bordered onClick={() => onSelect(seated.id)}>
+                      {seated.type}
+                    </Button>
+                    <Button size="1" emphasis="quiet" iconOnly aria-label={`Clear the ${slot} slot`} onClick={() => onSlot(slot, null)}>
+                      <XIcon />
+                    </Button>
+                  </Flex>
+                ) : (
+                  <Menu size="1">
+                    <MenuTrigger
+                      render={
+                        <Button size="1" emphasis="quiet" bordered>
+                          Empty
+                        </Button>
+                      }
+                    />
+                    <MenuContent>
+                      {SLOT_ACCEPTS.map((type) => (
+                        <MenuItem key={type} onClick={() => onSlot(slot, type)}>
+                          {type}
+                        </MenuItem>
+                      ))}
+                    </MenuContent>
+                  </Menu>
+                )}
+              </Flex>
+            );
+          })}
+          <Text size="1" emphasis="quiet">
+            An icon goes in by hand: the package ships no icon set, so a builder that wrote one
+            would export an import your app cannot resolve.
+          </Text>
+        </Stack>
+      ) : null}
 
       {refusals?.length ? (
         <Stack gap="2">

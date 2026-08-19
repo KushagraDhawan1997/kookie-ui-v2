@@ -62,6 +62,9 @@ export type CatalogEntry = {
   /** The single child is passed through `render={...}` (the trigger pattern), so the child
       element IS this part's element. Implies phantom for canvas stamping. */
   renderChild?: boolean;
+  /** §4's adornment seats this entry offers, if any. A slot holds ONE node and lays out
+      inside the control's own box — an icon's place, and the place a hosted control sits. */
+  slots?: readonly ("leading" | "trailing")[];
   /** What the palette inserts — a subtree for compounds, so a dropped Menu works on arrival. */
   make: () => BuilderNode;
 };
@@ -237,6 +240,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
     blurb: "tone × emphasis × bordered over the theme's material — never a raw fill.",
     props: { size: size(), tone, emphasis, bordered: bool, loading: bool, disabled: bool },
     children: "text",
+    slots: ["leading", "trailing"],
     make: () => node("Button", {}, { text: "Button" }),
   },
   TextField: {
@@ -244,6 +248,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
     blurb: "A single-line field. No emphasis and no tone: a form does not rank its fields.",
     props: { size: size(), placeholder: text, "aria-label": text, disabled: bool, backdrop: bool },
     children: "none",
+    slots: ["leading", "trailing"],
     make: () => node("TextField", { placeholder: "Placeholder", "aria-label": "Field" }),
   },
   TextArea: {
@@ -463,6 +468,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
     blurb: "One action row. `destructive` is the one meaning a row may carry.",
     props: { tone: { kind: "options", values: ["destructive"], optional: true }, disabled: bool },
     children: "text",
+    slots: ["leading", "trailing"],
     partOf: "Menu",
     make: () => node("MenuItem", {}, { text: "Action" }),
   },
@@ -821,6 +827,9 @@ export const sanitizeNode = (n: BuilderNode): BuilderNode | null => {
     id: n.id,
     type: n.type,
     props,
+    // A seat survives storage only where the entry still offers it, and only for a type it
+    // still accepts — the same "load as the part the system still speaks" rule as props.
+    ...(n.slot && (CATALOG[n.type] ? true : false) ? { slot: n.slot } : {}),
     ...(typeof n.text === "string" ? { text: n.text } : {}),
     ...(children ? { children } : {}),
   };
@@ -863,6 +872,29 @@ export const seatVocabularyFor = (type: string, parentLayout: "row" | "column" |
   const schema = CATALOG[type]?.props[prop];
   return schema?.kind === "options" ? { prop, values: schema.values } : null;
 };
+
+/**
+ * What a slot may hold (2026-08-20).
+ *
+ * NOT an icon — and that refusal is the interesting one. §8 ships no icon dependency on
+ * purpose: icons are `ReactNode` slots the APP fills, so the builder has no icon component
+ * to name, and writing `leading={<SearchIcon/>}` into the export would emit an import the
+ * reader's app cannot resolve. This builder's whole claim is that what it exports compiles;
+ * a placeholder that does not is a worse answer than a written refusal. An icon goes in by
+ * hand, in the one line the export already leaves open.
+ *
+ * What IS here is everything the closed vocabulary can seat honestly: the busy indicator, a
+ * shortcut cap, a hosted control (§4's own case — a field with a button in its trailing
+ * seat), and small type.
+ */
+export const SLOT_ACCEPTS = ["Spinner", "Kbd", "Code", "Text", "Button", "Checkbox", "Switch"] as const;
+
+export const slotsFor = (type: string): readonly ("leading" | "trailing")[] => CATALOG[type]?.slots ?? [];
+
+/** May `childType` sit in a slot of `parentType`? A hosted control keeps its own press, so a
+    Button in a field's trailing seat is legal; a Card in one is not. */
+export const canSit = (parentType: string, childType: string): boolean =>
+  slotsFor(parentType).length > 0 && (SLOT_ACCEPTS as readonly string[]).includes(childType);
 
 /** The general palette: entries that stand on their own. */
 export const PALETTE_FAMILIES = ["Layout", "Surface", "Control", "Type", "Indicator"] as const;
