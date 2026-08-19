@@ -28,6 +28,10 @@ Box, Card or Grid. This is the gesture the multi-selection exists for.
 
 **Right-click anything** for the same commands, from the system's own Menu.
 
+**Rearrange in the Layers tree** with the file-browser thirds: the top quarter of a row means
+*before* it, the bottom quarter *after* it, the middle *into* it. The canvas has its own
+insertion line; the tree now has the same precision.
+
 **Preview.** One toggle and the editor's chrome goes away: menus open, dialogs trap focus,
 fields type. It is the screen you built, actually usable.
 
@@ -109,10 +113,6 @@ pins the canvas. 295 docs tests in total.
 - **JSX import** stays refused. The document is truth; code is a build artifact.
 - **Icons in slots** stay refused, with the reason written in the inspector where it bites.
 - **Freeform positioning** stays impossible — the outer-spacing rule holds inside the tool.
-- **Tree drag** now uses the file-browser thirds — the top quarter of a row means *before*,
-  the bottom quarter *after*, the middle *into* — with the line drawn on the row itself so it
-  cannot drift from the row it names. Both halves fall back to the other when the grammar
-  refuses, because a drop that can land somewhere sensible should.
 - **"Fix all"** is not offered: fixes can interact, and a panel that silently rewrites eight
   things is a panel nobody trusts. One at a time, each undoable.
 
