@@ -65,6 +65,7 @@ import {
   findParent,
   insertNode,
   moveNode,
+  moveNodeTo,
   node,
   removeNode,
   updateProps,
@@ -81,6 +82,18 @@ import { Inspector, ThemePanel } from "./inspector";
 const DOC_KEY = "kookie-builder-doc-v1";
 const BLOCKS_KEY = "kookie-builder-blocks-v1";
 const DRAG_TYPE = "application/x-kookie-component";
+const MOVE_TYPE = "application/x-kookie-move";
+
+type DragPayload = { kind: "insert"; type: string } | { kind: "move"; id: string } | { kind: "block"; index: number };
+
+/** A resolved drop: tree coordinates plus the instrument that shows them — the gap line,
+    or (for an empty container) the dashed box on `boxId`. */
+type DropSpot = {
+  parentId: string | null;
+  index: number;
+  line: { x: number; y: number; w: number; h: number } | null;
+  boxId: string | null;
+};
 
 /** The tier boundaries in px, DERIVED from the package's own table (rem at the 16px root),
     for the width handle's readout. The canvas is a real query container, so the readout is
@@ -168,7 +181,12 @@ export function BuilderApp() {
   const [selection, setSelection] = React.useState<string | null>(null);
   const [blocks, setBlocks] = React.useState<Block[]>([]);
   const [blockName, setBlockName] = React.useState("");
-  const [dropTarget, setDropTarget] = React.useState<string | null>(null);
+  const [drop, setDrop] = React.useState<DropSpot | null>(null);
+  const [dropRow, setDropRow] = React.useState<string | null>(null);
+  /** What is being dragged, held in a ref because HTML5 DnD only surfaces payload DATA on
+      drop — during dragover only the type names are readable, and the grammar needs the
+      component type to say yes or no while hovering. Same-window drags own this fully. */
+  const dragRef = React.useRef<DragPayload | null>(null);
   const [copied, setCopied] = React.useState(false);
   /** null = full width. A dragged width makes the canvas narrower than its column, and
       because the canvas is a container, every per-tier value inside responds for real. */
@@ -287,43 +305,199 @@ export function BuilderApp() {
     setBlockName("");
   };
 
-  /* Drag from the palette; drop onto the nearest container that accepts the type. */
-  const dropParentFor = (el: Element | null, type: string): string | null | undefined => {
-    let cursor = el?.closest("[data-b-id]") ?? null;
+  /* ── Drag and drop: ONE mechanism for palette inserts, block inserts and moves ─────
+     A drop names a (parent, index) in the tree, never a coordinate. The index comes from
+     geometry — which sibling midpoints the pointer has passed, along the container's own
+     axis — and is drawn as a line in the gap it names, so the gesture and the surgery
+     cannot disagree. The grammar gates the whole walk: a container that refuses the type
+     is skipped and its ancestor is asked, exactly like palette insertion. */
+
+  const canvasRef = React.useRef<HTMLDivElement | null>(null);
+
+  const dragged = (): { type: string; movingId: string | null; makeNode: () => BuilderNode } | null => {
+    const d = dragRef.current;
+    if (!d) return null;
+    if (d.kind === "insert") return { type: d.type, movingId: null, makeNode: () => CATALOG[d.type]!.make() };
+    if (d.kind === "block") {
+      const b = blocks[d.index];
+      return b ? { type: b.node.type, movingId: null, makeNode: () => cloneWithNewIds(b.node) } : null;
+    }
+    const moving = findNode(doc.roots, d.id);
+    return moving ? { type: moving.type, movingId: d.id, makeNode: () => moving } : null;
+  };
+
+  /** The DOM element that stands for a node — its own stamp, or (for a phantom root like
+      Menu) the first stamped element inside it. */
+  const elementFor = (n: BuilderNode): Element | null => {
+    const wrap = canvasRef.current;
+    if (!wrap) return null;
+    const own = wrap.querySelector(`[data-b-id="${n.id}"]`);
+    if (own) return own;
+    for (const c of n.children ?? []) {
+      const hit = elementFor(c);
+      if (hit) return hit;
+    }
+    return null;
+  };
+
+  /** Where inside `parent` (null = the document root) does this pointer land, and where
+      does the line draw? Children are measured along the container's own axis; the moving
+      node still counts among them, which is exactly the PRE-move index moveNodeTo speaks. */
+  const spotIn = (parent: BuilderNode | null, clientX: number, clientY: number): DropSpot | null => {
+    const wrap = canvasRef.current;
+    if (!wrap) return null;
+    const wrapRect = wrap.getBoundingClientRect();
+    const children = parent ? (parent.children ?? []) : doc.roots;
+    const containerEl = parent ? elementFor(parent) : wrap;
+    if (!containerEl) return null;
+    const measured = children
+      .map((c) => ({ c, el: elementFor(c) }))
+      .filter((x): x is { c: BuilderNode; el: Element } => x.el !== null)
+      .map(({ c, el }) => ({ c, r: el.getBoundingClientRect() }));
+    if (measured.length === 0) {
+      return { parentId: parent?.id ?? null, index: 0, line: null, boxId: parent?.id ?? null };
+    }
+    const cs = getComputedStyle(containerEl as HTMLElement);
+    const horizontal = cs.display.includes("flex") && cs.flexDirection.startsWith("row");
+    let index = 0;
+    for (const { r } of measured) {
+      const mid = horizontal ? r.left + r.width / 2 : r.top + r.height / 2;
+      if ((horizontal ? clientX : clientY) > mid) index += 1;
+    }
+    const before = measured[index - 1]?.r;
+    const after = measured[index]?.r;
+    const at = horizontal
+      ? before && after
+        ? (before.right + after.left) / 2
+        : before
+          ? before.right + 3
+          : after!.left - 3
+      : before && after
+        ? (before.bottom + after.top) / 2
+        : before
+          ? before.bottom + 3
+          : after!.top - 3;
+    const line = horizontal
+      ? {
+          x: at - wrapRect.left - 1,
+          y: Math.min(...measured.map((m) => m.r.top)) - wrapRect.top,
+          w: 2,
+          h: Math.max(...measured.map((m) => m.r.height)),
+        }
+      : {
+          x: Math.min(...measured.map((m) => m.r.left)) - wrapRect.left,
+          y: at - wrapRect.top - 1,
+          w: Math.max(...measured.map((m) => m.r.width)),
+          h: 2,
+        };
+    return { parentId: parent?.id ?? null, index, line, boxId: null };
+  };
+
+  /** Walk up from the hovered element to the nearest container the grammar accepts,
+      skipping the moving subtree (a node cannot land inside itself). */
+  const resolveDropSpot = (targetEl: Element, clientX: number, clientY: number): DropSpot | null => {
+    const d = dragged();
+    if (!d) return null;
+    const movingNode = d.movingId ? findNode(doc.roots, d.movingId) : null;
+    let cursor: Element | null = targetEl.closest("[data-b-id]");
     while (cursor) {
       const id = cursor.getAttribute("data-b-id")!;
-      const target = findNode(doc.roots, id);
-      if (target && canContain(target.type, type, typesThrough(doc.roots, id))) return id;
+      const insideMoving = movingNode && (id === d.movingId || findNode([movingNode], id) !== null);
+      if (!insideMoving) {
+        const target = findNode(doc.roots, id);
+        if (target && canContain(target.type, d.type, typesThrough(doc.roots, id))) {
+          return spotIn(target, clientX, clientY);
+        }
+      }
       cursor = cursor.parentElement?.closest("[data-b-id]") ?? null;
     }
-    return canContain(null, type, []) ? null : undefined; // null = root; undefined = nowhere
+    return canContain(null, d.type, []) ? spotIn(null, clientX, clientY) : null;
+  };
+
+  const onCanvasDragStart = (e: React.DragEvent) => {
+    const el = (e.target as Element).closest("[data-b-id]");
+    if (!el) return;
+    const id = el.getAttribute("data-b-id")!;
+    dragRef.current = { kind: "move", id };
+    e.dataTransfer.setData(MOVE_TYPE, id);
+    e.dataTransfer.effectAllowed = "move";
+    setSelection(id);
   };
 
   const onCanvasDragOver = (e: React.DragEvent) => {
-    const type = e.dataTransfer.types.includes(DRAG_TYPE) ? "pending" : null;
-    if (!type) return;
-    e.preventDefault(); // the drop is legal somewhere (root at worst); refined on drop
-    const el = e.target as Element;
-    const hit = el.closest("[data-b-id]");
-    const id = hit?.getAttribute("data-b-id") ?? null;
-    if (id !== dropTarget) setDropTarget(id);
+    if (!dragRef.current) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = dragRef.current.kind === "move" ? "move" : "copy";
+    setDrop(resolveDropSpot(e.target as Element, e.clientX, e.clientY));
+  };
+
+  const onCanvasDragLeave = (e: React.DragEvent) => {
+    // Only a real exit clears the indicator — dragleave also fires on every child hop.
+    if (!(e.currentTarget as Element).contains(e.relatedTarget as Node)) setDrop(null);
+  };
+
+  const endDrag = () => {
+    dragRef.current = null;
+    setDrop(null);
+    setDropRow(null);
   };
 
   const onCanvasDrop = (e: React.DragEvent) => {
-    const type = e.dataTransfer.getData(DRAG_TYPE);
-    setDropTarget(null);
-    if (!type || !CATALOG[type]) return;
     e.preventDefault();
-    const parentId = dropParentFor(e.target as Element, type);
-    if (parentId === undefined) return;
-    const fresh = CATALOG[type]!.make();
-    commitRoots(insertNode(doc.roots, parentId, fresh));
-    setSelection(fresh.id);
+    const d = dragged();
+    // Recomputed at the drop point rather than read from hover state — the last dragover
+    // and the drop are the same place, but the fresh read cannot be stale.
+    const spot = d ? resolveDropSpot(e.target as Element, e.clientX, e.clientY) : null;
+    const movingId = d?.movingId ?? null;
+    endDrag();
+    if (!d || !spot) return;
+    if (movingId) {
+      commitRoots(moveNodeTo(doc.roots, movingId, spot.parentId, spot.index));
+      setSelection(movingId);
+    } else {
+      const fresh = d.makeNode();
+      commitRoots(insertNode(doc.roots, spot.parentId, fresh, spot.index));
+      setSelection(fresh.id);
+    }
+  };
+
+  /* Tree rows: drop ON a row means INTO it when its grammar accepts, else right after it. */
+  const rowSpot = (rowId: string): { parentId: string | null; index?: number } | null => {
+    const d = dragged();
+    if (!d) return null;
+    const movingNode = d.movingId ? findNode(doc.roots, d.movingId) : null;
+    if (movingNode && (rowId === d.movingId || findNode([movingNode], rowId) !== null)) return null;
+    const row = findNode(doc.roots, rowId);
+    if (!row) return null;
+    if (canContain(row.type, d.type, typesThrough(doc.roots, rowId))) return { parentId: rowId };
+    const parent = findParent(doc.roots, rowId);
+    const siblings = parent ? (parent.children ?? []) : doc.roots;
+    const index = siblings.findIndex((c) => c.id === rowId) + 1;
+    const chain = parent ? typesThrough(doc.roots, parent.id) : [];
+    if (canContain(parent?.id ? parent.type : null, d.type, chain)) {
+      return parent ? { parentId: parent.id, index } : { parentId: null, index };
+    }
+    return null;
+  };
+
+  const onRowDrop = (rowId: string) => {
+    const d = dragged();
+    const spot = rowSpot(rowId);
+    const movingId = d?.movingId ?? null;
+    endDrag();
+    if (!d || !spot) return;
+    if (movingId) {
+      commitRoots(moveNodeTo(doc.roots, movingId, spot.parentId, spot.index));
+      setSelection(movingId);
+    } else {
+      const fresh = d.makeNode();
+      commitRoots(insertNode(doc.roots, spot.parentId, fresh, spot.index));
+      setSelection(fresh.id);
+    }
   };
 
   /* ── Selection ring: an instrument, measured off the live DOM ─────────────────────── */
 
-  const canvasRef = React.useRef<HTMLDivElement | null>(null);
   const [ring, setRing] = React.useState<{ top: number; left: number; width: number; height: number } | null>(null);
   React.useLayoutEffect(() => {
     const wrap = canvasRef.current;
@@ -487,6 +661,8 @@ export function BuilderApp() {
                           entries={contextualParts}
                           canInsert={() => true}
                           onInsert={insertType}
+                          onDragBegin={(payload) => (dragRef.current = payload)}
+                          onDragFinish={endDrag}
                         />
                       ) : null}
                       {PALETTE_FAMILIES.map((family) => (
@@ -496,6 +672,8 @@ export function BuilderApp() {
                           entries={paletteEntries().filter(([, e]) => e.family === family)}
                           canInsert={(type) => insertionTarget(doc.roots, selection, type) !== null}
                           onInsert={insertType}
+                          onDragBegin={(payload) => (dragRef.current = payload)}
+                          onDragFinish={endDrag}
                         />
                       ))}
                       <Stack gap="2">
@@ -512,6 +690,13 @@ export function BuilderApp() {
                               <Button
                                 size="1"
                                 emphasis="quiet"
+                                draggable
+                                onDragStart={(e) => {
+                                  dragRef.current = { kind: "block", index: i };
+                                  e.dataTransfer.setData(DRAG_TYPE, b.node.type);
+                                  e.dataTransfer.effectAllowed = "copy";
+                                }}
+                                onDragEnd={endDrag}
                                 onClick={() => insertBlock(b)}
                                 style={{ justifyContent: "flex-start", flex: 1 }}
                               >
@@ -542,7 +727,22 @@ export function BuilderApp() {
                         </Text>
                       ) : (
                         doc.roots.map((r) => (
-                          <TreeRows key={r.id} node={r} depth={0} selection={selection} onSelect={setSelection} />
+                          <TreeRows
+                            key={r.id}
+                            node={r}
+                            depth={0}
+                            selection={selection}
+                            onSelect={setSelection}
+                            dropRow={dropRow}
+                            onDragBegin={(id) => {
+                              dragRef.current = { kind: "move", id };
+                              setSelection(id);
+                            }}
+                            onDragFinish={endDrag}
+                            canRowDrop={(id) => rowSpot(id) !== null}
+                            onHoverRow={setDropRow}
+                            onRowDrop={onRowDrop}
+                          />
                         ))
                       )}
                     </Stack>
@@ -560,9 +760,11 @@ export function BuilderApp() {
             <Box
               p="6"
               onClickCapture={onCanvasClick}
+              onDragStartCapture={onCanvasDragStart}
               onDragOver={onCanvasDragOver}
               onDrop={onCanvasDrop}
-              onDragLeave={() => setDropTarget(null)}
+              onDragLeave={onCanvasDragLeave}
+              onDragEnd={endDrag}
               style={{ minHeight: "100%" }}
             >
               <Box maxWidth="880px" style={{ marginInline: "auto" }}>
@@ -648,7 +850,22 @@ export function BuilderApp() {
                       }}
                     />
                   ) : null}
-                  {dropTarget ? <DropHint canvasRef={canvasRef} id={dropTarget} /> : null}
+                  {drop?.line ? (
+                    <div
+                      aria-hidden
+                      style={{
+                        position: "absolute",
+                        left: drop.line.x,
+                        top: drop.line.y,
+                        width: drop.line.w,
+                        height: drop.line.h,
+                        background: "var(--focus-ring)",
+                        borderRadius: "1px",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  ) : null}
+                  {drop && !drop.line && drop.boxId ? <DropHint canvasRef={canvasRef} id={drop.boxId} /> : null}
                 </div>
               </Box>
             </Box>
@@ -735,11 +952,15 @@ function PaletteGroup({
   entries,
   canInsert,
   onInsert,
+  onDragBegin,
+  onDragFinish,
 }: {
   label: string;
   entries: [string, CatalogEntry][];
   canInsert: (type: string) => boolean;
   onInsert: (type: string) => void;
+  onDragBegin: (payload: DragPayload) => void;
+  onDragFinish: () => void;
 }) {
   if (entries.length === 0) return null;
   return (
@@ -757,9 +978,11 @@ function PaletteGroup({
             title={entry.blurb}
             draggable
             onDragStart={(e) => {
+              onDragBegin({ kind: "insert", type });
               e.dataTransfer.setData(DRAG_TYPE, type);
               e.dataTransfer.effectAllowed = "copy";
             }}
+            onDragEnd={onDragFinish}
             onClick={() => onInsert(type)}
             style={{ justifyContent: "flex-start" }}
           >
@@ -776,13 +999,26 @@ function TreeRows({
   depth,
   selection,
   onSelect,
+  dropRow,
+  onDragBegin,
+  onDragFinish,
+  canRowDrop,
+  onHoverRow,
+  onRowDrop,
 }: {
   node: BuilderNode;
   depth: number;
   selection: string | null;
   onSelect: (id: string) => void;
+  dropRow: string | null;
+  onDragBegin: (id: string) => void;
+  onDragFinish: () => void;
+  canRowDrop: (id: string) => boolean;
+  onHoverRow: (id: string | null) => void;
+  onRowDrop: (id: string) => void;
 }) {
   const label = n.text ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}` : n.type;
+  const pass = { dropRow, onDragBegin, onDragFinish, canRowDrop, onHoverRow, onRowDrop };
   return (
     <>
       <Box style={{ paddingInlineStart: `calc(${depth} * var(--layout-space-4))`, display: "flex" }}>
@@ -790,14 +1026,34 @@ function TreeRows({
           size="1"
           emphasis={selection === n.id ? "medium" : "quiet"}
           aria-pressed={selection === n.id}
+          bordered={dropRow === n.id}
           onClick={() => onSelect(n.id)}
+          draggable
+          onDragStart={(e) => {
+            onDragBegin(n.id);
+            e.dataTransfer.setData(MOVE_TYPE, n.id);
+            e.dataTransfer.effectAllowed = "move";
+          }}
+          onDragEnd={onDragFinish}
+          onDragOver={(e) => {
+            if (!canRowDrop(n.id)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            onHoverRow(n.id);
+          }}
+          onDragLeave={() => onHoverRow(null)}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onRowDrop(n.id);
+          }}
           style={{ justifyContent: "flex-start", flex: 1 }}
         >
           {label}
         </Button>
       </Box>
       {n.children?.map((c) => (
-        <TreeRows key={c.id} node={c} depth={depth + 1} selection={selection} onSelect={onSelect} />
+        <TreeRows key={c.id} node={c} depth={depth + 1} selection={selection} onSelect={onSelect} {...pass} />
       ))}
     </>
   );

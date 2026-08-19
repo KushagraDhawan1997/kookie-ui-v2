@@ -8,6 +8,18 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-19 Drag-to-move lands, and a drop names a place in the tree, never a coordinate
+
+The builder's third slice (Kushagra: "I want to add drag to move"). What was open was the SEMANTICS, and three choices closed:
+
+**The canvas element is the handle.** Every stamped node is `draggable` — no grip glyph, no modifier, no select-first. The trade is stated where it bites: text drag-selection inside canvas fields is knowingly given up (canvas text is a specimen; the inspector is where text edits), and components whose own interaction IS a pointer drag are exempted by a catalog flag (`dragOwnsPointer` — the slider, whose thumb rides pointer capture that native drag would race). Rejected: drag-only-when-selected (a second click tax on the most common gesture) and a per-node drag handle (chrome on every element of a canvas whose point is looking like the real screen).
+
+**A drop resolves to (parent, index) by grammar and geometry, drawn as the line it names.** One mechanism now serves palette inserts, block inserts and moves: the walk up from the pointer asks `canContain` and skips the moving subtree, then the index comes from which sibling midpoints the pointer passed ALONG THE CONTAINER'S OWN AXIS (a row measures x, a stack measures y), and an accent line draws in exactly the gap the surgery will use — the gesture and the mutation share one computation, so they cannot disagree. An empty container keeps the dashed into-box. The payload rides a ref, not dataTransfer — HTML5 DnD only surfaces data on drop, and the grammar needs the type while hovering.
+
+**Indices speak PRE-move positions, and `moveNodeTo` owns the arithmetic.** The pointer computes its gap among the current siblings, moving node included; moving later within one parent, the removal shifts everything left, so the stated index would land one late. The adjustment lives in the model op (falsified: removing it fails the law's every downward case), which also means the two gaps flanking the node itself are the same place and correctly no-op.
+
+Tree rows joined both sides (draggable, and a drop ON a row means INTO it when its grammar accepts, else right after it), and blocks drag through the same pipeline as a clone. Verified live through dispatched DragEvents reading the MODEL from storage — the DOM probe lied first (a field's stamp sits on its inner input, so a direct-children scan missed a successful move), the wrong-element instrument mistake caught one more time by disagreeing with a second source. 86 laws.
+
 ## 2026-08-19 The builder learns the container tiers, and the tier table goes public
 
 The responsive slice, same day as the builder itself (Kushagra: "How will [it] work with container queries? … Yes"). The design premise held end to end: because §2's tiers are container-keyed rather than viewport-keyed, a builder needs NO device frames and no second rendering mode — the canvas needs a width.

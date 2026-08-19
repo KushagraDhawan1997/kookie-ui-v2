@@ -42,7 +42,14 @@ export function renderNode(n: BuilderNode, mode: RenderMode): React.ReactElement
     return <Component key={n.id} {...props} />;
   }
 
-  if (mode === "canvas" && !entry.phantom) props["data-b-id"] = n.id;
+  if (mode === "canvas" && !entry.phantom) {
+    props["data-b-id"] = n.id;
+    // Drag-to-move: the canvas element IS the handle. Exempt only components whose own
+    // interaction is a drag (the slider's thumb) — native draggable would race the pointer
+    // capture. Text drag-selection inside canvas fields is knowingly traded away: canvas
+    // text is a specimen, and the inspector is where text is edited.
+    if (!entry.dragOwnsPointer) props.draggable = true;
+  }
 
   if (entry.children === "text") {
     return (

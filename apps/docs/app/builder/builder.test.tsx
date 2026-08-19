@@ -406,6 +406,25 @@ describe("tree surgery holds its own invariants", () => {
     expect(serializeBlock("x", copy)).toBe(serializeBlock("x", original));
   });
 
+  it("a same-parent move speaks PRE-move indices — what a pointer computed in place", () => {
+    // Drag-to-move measures the gap among the CURRENT siblings, moving node included. A
+    // later target therefore names a position that shifts one left once the node leaves;
+    // without the adjustment every downward drag landed one past where the line drew.
+    const [a, b, c] = [node("Button", {}, { text: "a" }), node("Button", {}, { text: "b" }), node("Button", {}, { text: "c" })];
+    const stack = node("Stack", {}, { children: [a, b, c] });
+    const order = (roots: BuilderNode[]) => findNode(roots, stack.id)!.children!.map((n) => n.text);
+    expect(order(moveNodeTo([stack], a.id, stack.id, 2))).toEqual(["b", "a", "c"]);
+    expect(order(moveNodeTo([stack], a.id, stack.id, 3))).toEqual(["b", "c", "a"]);
+    expect(order(moveNodeTo([stack], c.id, stack.id, 0))).toEqual(["c", "a", "b"]);
+    // The gaps on either side of the node itself are the same place: no-ops.
+    expect(order(moveNodeTo([stack], b.id, stack.id, 1))).toEqual(["a", "b", "c"]);
+    expect(order(moveNodeTo([stack], b.id, stack.id, 2))).toEqual(["a", "b", "c"]);
+    // A cross-parent move takes the stated index verbatim — nothing shifted there.
+    const other = node("Stack", {}, { children: [node("Button", {}, { text: "x" })] });
+    const roots = moveNodeTo([stack, other], a.id, other.id, 0);
+    expect(findNode(roots, other.id)!.children!.map((n) => n.text)).toEqual(["a", "x"]);
+  });
+
   it("a node cannot be moved into its own subtree", () => {
     const stack = node("Stack", {}, { children: [node("Flex", {}, { children: [] })] });
     const roots = [stack];
