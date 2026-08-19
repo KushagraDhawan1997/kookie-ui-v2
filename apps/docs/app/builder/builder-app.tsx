@@ -501,10 +501,34 @@ export function BuilderApp() {
     if (!state.selection.includes(id)) setSelection(id);
   };
 
+  /** A drag that reaches the top or bottom of the canvas scrolls it. Without this a tall
+      document can only be reordered as far as one screenful, because the drag owns the
+      pointer and the wheel goes to the page. Bounded and proportional: the closer to the
+      edge, the faster, and never more than a comfortable line at a time. */
+  const autoScroll = (clientY: number) => {
+    // The scroller is FOUND rather than marked: the canvas sits inside a ScrollArea whose
+    // viewport is the primitive's own assembly (§10 — the parts are not API), so the honest
+    // way to reach it is to walk up for the first ancestor that actually scrolls.
+    let viewport: HTMLElement | null = canvasRef.current;
+    while (viewport) {
+      const style = getComputedStyle(viewport);
+      if (/(auto|scroll)/.test(style.overflowY) && viewport.scrollHeight > viewport.clientHeight) break;
+      viewport = viewport.parentElement;
+    }
+    if (!viewport) return;
+    const box = viewport.getBoundingClientRect();
+    const margin = 64;
+    const above = clientY - box.top;
+    const below = box.bottom - clientY;
+    if (above < margin) viewport.scrollTop -= Math.min(24, (margin - above) / 2);
+    else if (below < margin) viewport.scrollTop += Math.min(24, (margin - below) / 2);
+  };
+
   const onCanvasDragOver = (e: React.DragEvent) => {
     if (!dragRef.current) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = dragRef.current.kind === "move" ? "move" : "copy";
+    autoScroll(e.clientY);
     setDrop(resolveDropSpot(e.target as Element, e.clientX, e.clientY));
   };
 
@@ -577,6 +601,10 @@ export function BuilderApp() {
 
   type Ring = { top: number; left: number; width: number; height: number; radius: string; corner: string };
   const [ring, setRing] = React.useState<Ring | null>(null);
+  /** The OTHER selected nodes. The primary keeps the full instrument — handles, chip, gap
+      bands — because those gestures write one node's props; a second selection is a member
+      of a set, so it gets the trace and nothing that could be dragged. */
+  const [alsoRings, setAlsoRings] = React.useState<Ring[]>([]);
 
   /* ── Gap bands: the space between children, shown and draggable ────────────────────────
      DevTools paints a layout's gutters so you can see the space you cannot click. Same
@@ -633,10 +661,14 @@ export function BuilderApp() {
     }
     return out;
   };
+  /* One key for the whole selection: the effect re-arms when ANY member changes, not only
+     when the primary does. */
+  const selectionKey = state.selection.join(",");
   React.useLayoutEffect(() => {
     const wrap = canvasRef.current;
     if (!wrap || !selection) {
       setRing(null);
+      setAlsoRings([]);
       return;
     }
     // The element does not hold still — the hover rise, the press spring, a reflow — so
@@ -677,6 +709,32 @@ export function BuilderApp() {
             ? prev
             : next,
         );
+        // The other members of the selection, traced without an instrument on them.
+        const others = stateRef.current.selection.filter((id) => id !== selection);
+        const nextAlso = others
+          .map((id) => wrap.querySelector(`[data-b-id="${id}"]`))
+          .filter((n): n is Element => n !== null)
+          .map((stampedOther) => {
+            const otherEl = visibleEl(stampedOther);
+            const r = otherEl.getBoundingClientRect();
+            const ocs = window.getComputedStyle(otherEl as HTMLElement);
+            return {
+              top: r.top - b.top,
+              left: r.left - b.left,
+              width: r.width,
+              height: r.height,
+              radius: [ocs.borderTopLeftRadius, ocs.borderTopRightRadius, ocs.borderBottomRightRadius, ocs.borderBottomLeftRadius]
+                .map((v) => v.split(" ")[0])
+                .join(" "),
+              corner: ocs.getPropertyValue("corner-shape"),
+            };
+          });
+        setAlsoRings((prev) =>
+          prev.length === nextAlso.length && prev.every((p, i) => JSON.stringify(p) === JSON.stringify(nextAlso[i]))
+            ? prev
+            : nextAlso,
+        );
+
         const node = findNode(stateRef.current.docs.find((d) => d.id === stateRef.current.activeId)!.roots, selection);
         const nextBands = node && gapStepsFor(node.type) ? measureBands(wrap, el, node) : [];
         setBands((prev) =>
@@ -689,7 +747,7 @@ export function BuilderApp() {
     };
     tick();
     return () => cancelAnimationFrame(raf);
-  }, [selection]);
+  }, [selection, selectionKey]);
 
   /* ── Resize: the corner steps the size index ──────────────────────────────────────────
      There is no raw length behind this gesture. The catalog says whether the selected type
@@ -1188,6 +1246,7 @@ export function BuilderApp() {
                   style={{ position: "relative", width: canvasW ? `${canvasW}px` : "100%", maxWidth: "100%" }}
                 >
                   <Theme
+                    appearance={doc.theme.appearance}
                     density={doc.theme.density}
                     pointer={doc.theme.pointer}
                     radius={doc.theme.radius}
@@ -1249,6 +1308,29 @@ export function BuilderApp() {
                       }}
                     />
                   </div>
+                  {!preview
+                    ? alsoRings.map((r, i) => (
+                        <div
+                          key={i}
+                          aria-hidden
+                          style={
+                            {
+                              position: "absolute",
+                              top: r.top,
+                              left: r.left,
+                              width: r.width,
+                              height: r.height,
+                              outline: `1px solid ${SEL_COLOR}`,
+                              outlineOffset: "-1px",
+                              borderRadius: r.radius,
+                              cornerShape: r.corner,
+                              opacity: 0.55,
+                              pointerEvents: "none",
+                            } as React.CSSProperties
+                          }
+                        />
+                      ))
+                    : null}
                   {ring && !preview ? (
                     <div aria-hidden style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
                       {/* Both lines are drawn as OUTLINES on a zero-border box: an outline

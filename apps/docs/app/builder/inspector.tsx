@@ -384,8 +384,7 @@ export function Inspector({
             );
           })}
           <Text size="1" emphasis="quiet">
-            An icon goes in by hand: the package ships no icon set, so a builder that wrote one
-            would export an import your app cannot resolve.
+            Icons go in by hand — the package ships none, so a written one would not resolve.
           </Text>
         </Stack>
       ) : null}
@@ -397,16 +396,35 @@ export function Inspector({
             Not here, on purpose
           </Text>
           {refusals.map((r) => (
-            <Stack key={r.name} gap="1">
-              <Text size="1" emphasis="medium">
-                {r.name}
-              </Text>
-              <Text size="1" emphasis="quiet">
-                {r.why}
-              </Text>
-            </Stack>
+            <Refusal key={r.name} name={r.name} why={r.why} />
           ))}
         </Stack>
+      ) : null}
+    </Stack>
+  );
+}
+
+/** A refusal reads as its NAME; the argument opens when someone wants it. Three paragraphs
+    of prose sitting between the props and the actions is the panel arguing with itself. */
+function Refusal({ name, why }: { name: string; why: string }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <Stack gap="1">
+      <Button
+        size="1"
+        emphasis="quiet"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        style={{ justifyContent: "flex-start" }}
+      >
+        {`no ${name}`}
+      </Button>
+      {open ? (
+        <Box pl="3" pr="2">
+          <Text size="1" emphasis="quiet">
+            {why}
+          </Text>
+        </Box>
       ) : null}
     </Stack>
   );

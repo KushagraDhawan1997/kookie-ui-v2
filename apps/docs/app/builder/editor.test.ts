@@ -22,7 +22,7 @@ import {
   type CommandContext,
 } from "./commands";
 import { CONTEXT_COMMANDS } from "./chrome";
-import { findNode, node, type BuilderNode } from "./model";
+import { defaultDocTheme, findNode, node, type BuilderDoc, type BuilderNode } from "./model";
 import { canUnwrap, canWrap, insertionTarget } from "./placement";
 import { TEMPLATES, templateDoc } from "./templates";
 import { serializeDocument } from "./serialize";
@@ -424,6 +424,21 @@ describe("review reads the house style off the document", () => {
     }
     expect(RULES.length).toBeGreaterThanOrEqual(8);
     expect(Object.keys(CATALOG).length).toBeGreaterThan(20);
+  });
+});
+
+describe("a document's appearance is its own", () => {
+  it("a new document INHERITS — it does not pin the canvas to a mode", () => {
+    // themeDefaults.appearance is `light`; taking it would stop the canvas following the
+    // site's toggle, which is the regression this law exists for.
+    expect(defaultDocTheme().appearance).toBe("inherit");
+  });
+
+  it("`inherit` exports nothing; a chosen appearance exports", () => {
+    const base: BuilderDoc = { theme: defaultDocTheme(), roots: [node("Button", {}, { text: "ok" })] };
+    expect(serializeDocument(base)).not.toContain("appearance");
+    const dark: BuilderDoc = { ...base, theme: { ...base.theme, appearance: "dark" } };
+    expect(serializeDocument(dark)).toContain('<Theme appearance="dark">');
   });
 });
 

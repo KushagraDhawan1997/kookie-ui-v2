@@ -51,6 +51,10 @@ export type BuilderNode = {
 /** The document's one Theme identity — the axes the canvas Theme is handed. `appearance`
     and `contrast` stay the docs store's, exactly as /preview divides them. */
 export type DocTheme = {
+  /** A screen may legitimately state its own appearance — a dark section inside a light app
+      is a composition, not a preference — so it belongs to the DOCUMENT rather than to the
+      site's toggle. `inherit` is the default and exports nothing. */
+  appearance: NonNullable<ThemeProps["appearance"]>;
   density: NonNullable<ThemeProps["density"]>;
   pointer: NonNullable<ThemeProps["pointer"]>;
   radius: NonNullable<ThemeProps["radius"]>;
@@ -66,6 +70,10 @@ export type BuilderDoc = {
 /** DERIVED from the package (the /preview law's rule): a builder copy of an axis default is
     the drift the environment panel already shipped once. */
 export const defaultDocTheme = (): DocTheme => ({
+  // NOT `themeDefaults.appearance`, which is `light`: a document that states light pins the
+  // canvas light and stops following the site's own toggle, so a new document INHERITS and
+  // only says otherwise when someone chooses.
+  appearance: "inherit",
   density: themeDefaults.density,
   pointer: themeDefaults.pointer,
   radius: themeDefaults.radius,

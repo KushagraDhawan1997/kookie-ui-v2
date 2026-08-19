@@ -149,9 +149,12 @@ const collectTypes = (n: BuilderNode, into: Set<string>): void => {
 /** The document's Theme statement: only the axes that differ from the system's defaults —
     an exported screen restating a default would pin today's default forever. */
 export const themeDiffs = (doc: BuilderDoc): [string, string][] =>
-  (Object.entries(doc.theme) as [keyof BuilderDoc["theme"], string][]).filter(
-    ([axis, value]) => themeDefaults[axis] !== value,
-  );
+  (Object.entries(doc.theme) as [keyof BuilderDoc["theme"], string][]).filter(([axis, value]) => {
+    // `appearance="inherit"` is the absence of a statement, not a statement — exporting it
+    // would put a no-op prop in every screen that never chose an appearance.
+    if (axis === "appearance") return value !== "inherit";
+    return themeDefaults[axis] !== value;
+  });
 
 /** A valid component name from a human label: "media card" → "MediaCard". */
 export const toComponentName = (label: string): string => {
