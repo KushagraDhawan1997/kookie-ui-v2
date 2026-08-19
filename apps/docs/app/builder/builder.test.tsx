@@ -29,7 +29,7 @@ import { describe, expect, it } from "vitest";
 import * as Kookie from "@kookie-ui/react";
 import { Theme, componentAxes } from "@kookie-ui/react";
 
-import { CATALOG, EXCLUDED, canContain, sanitizeNode, seatVocabularyFor, sizeStepsFor } from "./catalog";
+import { CATALOG, EXCLUDED, canContain, gapStepsFor, sanitizeNode, seatVocabularyFor, sizeStepsFor } from "./catalog";
 import {
   cloneWithNewIds,
   defaultDocTheme,
@@ -396,6 +396,33 @@ describe("resize walks a designed index — it cannot state a length", () => {
         expect(code, `${type} at size ${step} leaked a length`).not.toMatch(/\d+px/);
         expect(code, `${type} at size ${step} leaked a style`).not.toMatch(/style=/);
       }
+    }
+  });
+});
+
+describe("gap bands walk the space scale", () => {
+  it("a layout offers gap steps; everything else offers none", () => {
+    for (const [type, entry] of Object.entries(CATALOG)) {
+      const schema = entry.props.gap;
+      const steps = gapStepsFor(type);
+      if (schema?.kind === "axis") expect(steps, `${type} states a gap but offers no steps`).toEqual(componentAxes[schema.axis]);
+      else expect(steps, `${type} has no gap yet offers steps`).toBeNull();
+    }
+    // Vacuity guard: the bands must reach the layouts they exist for.
+    for (const type of ["Stack", "Flex", "Grid"]) expect(gapStepsFor(type)).toEqual(componentAxes.space);
+    expect(gapStepsFor("Button")).toBeNull();
+  });
+
+  it("every step the band can land on is a real layout-space token", () => {
+    for (const step of gapStepsFor("Stack")!) {
+      const code = serializeDocument({
+        theme: defaultDocTheme(),
+        roots: [node("Stack", { gap: step }, { children: [node("Text", {}, { text: "a" }), node("Text", {}, { text: "b" })] })],
+      });
+      expect(code).toContain(`gap="${step}"`);
+      // The export law's own check, applied to the values this gesture can produce.
+      expect(componentAxes.space, `"${step}" is not a layout-space step`).toContain(step);
+      expect(code).not.toMatch(/\d+px/);
     }
   });
 });

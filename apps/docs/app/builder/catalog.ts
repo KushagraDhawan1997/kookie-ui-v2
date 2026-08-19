@@ -837,6 +837,14 @@ export const sizeStepsFor = (type: string): readonly string[] | null => {
   return schema?.kind === "axis" ? componentAxes[schema.axis] : null;
 };
 
+/** The gap bands' vocabulary (2026-08-20): a layout's own `gap`, which is a token index like
+    every other distance here, so dragging a band walks the space scale. Asked of the catalog
+    rather than of a list of type names — the same question `sizeStepsFor` asks one axis over. */
+export const gapStepsFor = (type: string): readonly string[] | null => {
+  const schema = CATALOG[type]?.props.gap;
+  return schema?.kind === "axis" ? componentAxes[schema.axis] : null;
+};
+
 /** The SIDE handles' half: what a node may say about the seat it sits in. Keyed on the
     node's own type (only a layout primitive carries these props at all — §3 keeps layout
     props off components) and on the parent's real layout, which the caller measures rather

@@ -56,7 +56,7 @@ import {
 } from "@kookie-ui/react";
 
 import { XIcon } from "../icons";
-import { CATALOG, canContain, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
+import { CATALOG, canContain, gapStepsFor, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
 import {
   ancestorChain,
   cloneWithNewIds,
@@ -90,6 +90,12 @@ const MOVE_TYPE = "application/x-kookie-move";
    Purple on purpose: the one hue no token in the system uses, so selection can never be
    read as focus. */
 const SEL_COLOR = "#a855f7";
+/** How far a gap band pulls back on every side. Capped per axis at a quarter of that
+    dimension, so a hairline gutter still shows a band rather than insetting itself away. */
+const GAP_BAND_INSET = 6;
+/** The floor a gap band's HIT area grows to. The paint stays the true gutter minus its
+    inset; the target does not, because the bottom of the space scale paints a hairline. */
+const GAP_BAND_HIT = 11;
 
 type DragPayload ={ kind: "insert"; type: string } | { kind: "move"; id: string } | { kind: "block"; index: number };
 
@@ -523,6 +529,62 @@ export function BuilderApp() {
 
   type Ring = { top: number; left: number; width: number; height: number; radius: string; corner: string };
   const [ring, setRing] = React.useState<Ring | null>(null);
+
+  /* ── Gap bands: the space between children, shown and draggable ────────────────────────
+     DevTools paints a layout's gutters so you can see the space you cannot click. Same
+     idea, our vocabulary: a gap here is a token index, so the band is not a ruler you drag
+     to a number — it walks the space scale, and every band moves together because `gap` is
+     ONE prop.
+
+     The children are grouped into visual ROWS by their vertical overlap, which makes one
+     measurement serve all four layouts: a Stack is N rows of one, a Flex row is one row of
+     N, and a wrapped Flex or a Grid is the general case. Nothing here asks the document
+     which layout it is — the boxes say it. */
+  type Band = { x: number; y: number; w: number; h: number; axis: "x" | "y" };
+  const [bands, setBands] = React.useState<Band[]>([]);
+
+  const measureBands = (wrap: HTMLElement, container: Element, node: BuilderNode): Band[] => {
+    const kids = (node.children ?? [])
+      .map((c) => elementFor(c))
+      .filter((el): el is Element => el !== null)
+      .map((el) => el.getBoundingClientRect())
+      .filter((r) => r.width > 0 || r.height > 0);
+    if (kids.length < 2) return [];
+    const b = wrap.getBoundingClientRect();
+    const box = container.getBoundingClientRect();
+
+    const rows: DOMRect[][] = [];
+    for (const r of [...kids].sort((p, q) => p.top - q.top || p.left - q.left)) {
+      const row = rows[rows.length - 1];
+      // Same visual row when the boxes overlap vertically at all — robust against items of
+      // different heights sitting on one line, which a top-coordinate match is not.
+      const sameRow = row && r.top < Math.max(...row.map((x) => x.bottom));
+      if (sameRow) row.push(r);
+      else rows.push([r]);
+    }
+
+    const out: Band[] = [];
+    for (const row of rows) {
+      const sorted = [...row].sort((p, q) => p.left - q.left);
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const gap = sorted[i + 1]!.left - sorted[i]!.right;
+        if (gap > 0.5)
+          out.push({
+            x: sorted[i]!.right - b.left,
+            y: Math.min(...row.map((r) => r.top)) - b.top,
+            w: gap,
+            h: Math.max(...row.map((r) => r.bottom)) - Math.min(...row.map((r) => r.top)),
+            axis: "x",
+          });
+      }
+    }
+    for (let i = 0; i < rows.length - 1; i++) {
+      const bottom = Math.max(...rows[i]!.map((r) => r.bottom));
+      const gap = Math.min(...rows[i + 1]!.map((r) => r.top)) - bottom;
+      if (gap > 0.5) out.push({ x: box.left - b.left, y: bottom - b.top, w: box.width, h: gap, axis: "y" });
+    }
+    return out;
+  };
   React.useLayoutEffect(() => {
     const wrap = canvasRef.current;
     if (!wrap || !selection) {
@@ -566,6 +628,13 @@ export function BuilderApp() {
           prev.corner === next.corner
             ? prev
             : next,
+        );
+        const node = findNode(history.present.roots, selection);
+        const nextBands = node && gapStepsFor(node.type) ? measureBands(wrap, el, node) : [];
+        setBands((prev) =>
+          prev.length === nextBands.length && prev.every((p, i) => JSON.stringify(p) === JSON.stringify(nextBands[i]))
+            ? prev
+            : nextBands,
         );
       }
       raf = requestAnimationFrame(tick);
@@ -671,6 +740,31 @@ export function BuilderApp() {
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+  };
+
+  /** Dragging a band walks the space scale. All bands move at once, because `gap` is one
+      prop — which is also the honest picture: this layout has ONE gutter, not a set of them.
+      A per-tier gap is not dragged: the canvas shows one tier's answer, and silently editing
+      one entry of four while the screen may be showing another is worse than sending the
+      author to the inspector, where every tier is visible at once. */
+  const gapSteps = selected ? gapStepsFor(selected.type) : null;
+  const gapIsResponsive = selected !== null && typeof selected.props?.gap === "object";
+
+  const startGapDrag = (e: React.PointerEvent<HTMLDivElement>, axis: "x" | "y") => {
+    if (!selected || !gapSteps || gapIsResponsive) return;
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    const stated = typeof selected.props?.gap === "string" ? (selected.props.gap as string) : null;
+    const from = stated ? gapSteps.indexOf(stated) : -1;
+    stepDrag(
+      e,
+      gapSteps,
+      from,
+      axis === "x" ? [1, 0] : [0, 1],
+      (v) => ({ gap: v }),
+      (v) => (v ? `gap ${v}` : "no gap"),
+    );
   };
 
   const startSeatDrag = (e: React.PointerEvent<HTMLDivElement>, out: readonly [number, number]) => {
@@ -1051,6 +1145,61 @@ export function BuilderApp() {
                           outlineOffset: "-1px",
                         }}
                       />
+                      {/* The gutters: a soft fill, never an outline — an outline here would
+                          read as another boundary beside the selection's own. */}
+                      {bands.map((g, i) => {
+                        // Inset on all four sides so the band reads as an object lying in the
+                        // gutter rather than a rung fused to the selection outline. Each axis
+                        // caps its own inset at a quarter of that dimension, which is what
+                        // keeps a 2px gap from insetting itself out of existence: the band
+                        // then shrinks WITH the gap instead of disappearing at the bottom of
+                        // the scale. It is a target and a location, not a ruler — the drag
+                        // states the rung, and the chip names it.
+                        const px = Math.min(GAP_BAND_INSET, g.w / 4);
+                        const py = Math.min(GAP_BAND_INSET, g.h / 4);
+                        const h = g.h - py * 2;
+                        const w = g.w - px * 2;
+                        // The PAINT may be a hairline; the target may not. At the bottom of
+                        // the space scale an inset band is 1-2px, so the hit area grows to a
+                        // floor around the true gutter while the paint stays honest — §16's
+                        // own move for the mark family, and the shape the corner handles here
+                        // already use (14px box, 6px square).
+                        const hitH = g.axis === "x" ? g.h : Math.max(g.h, GAP_BAND_HIT);
+                        const hitW = g.axis === "x" ? Math.max(g.w, GAP_BAND_HIT) : g.w;
+                        return (
+                          <div
+                            key={i}
+                            data-kb-resize
+                            onPointerDown={(e) => startGapDrag(e, g.axis)}
+                            style={{
+                              position: "absolute",
+                              top: g.y - (hitH - g.h) / 2,
+                              left: g.x - (hitW - g.w) / 2,
+                              width: hitW,
+                              height: hitH,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              pointerEvents: gapIsResponsive ? "none" : "auto",
+                              cursor: gapIsResponsive ? "default" : g.axis === "x" ? "ew-resize" : "ns-resize",
+                              touchAction: "none",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: w,
+                                height: h,
+                                background: `${SEL_COLOR}22`,
+                                // A capsule: half the SHORT side, which is the system's own
+                                // spelling of `full` (§6 states the control capsule as h/2
+                                // rather than leaving CSS to clamp a huge number). Stating it
+                                // this way also self-limits — a 1px band cannot over-round.
+                                borderRadius: Math.min(w, h) / 2,
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
                       {/* Corner handles, shown only where a size vocabulary exists — their
                           PRESENCE is the information, so a node the system cannot resize
                           shows none rather than a grip that writes nothing. */}
