@@ -34,12 +34,21 @@ import {
   type BuilderDoc,
   type BuilderNode,
 } from "./model";
-import { canUnwrap, canWrap, insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
+import {
+  canAccept,
+  canUnwrap,
+  canWrap,
+  insertableInto,
+  insertionTarget,
+  placeNodes,
+  typesThrough,
+} from "./placement";
 import { TEMPLATES, templateDoc } from "./templates";
 import { serializeDocument } from "./serialize";
 import { RULES, reviewDocument } from "./review";
 import {
   activeDoc,
+  canRedo,
   canUndo,
   initialState,
   loadState,
@@ -106,6 +115,74 @@ describe("the store keeps a document's history to itself", () => {
     expect(canUndo(s)).toBe(true);
     s = reducer(s, { type: "undo" });
     expect(activeDoc(s).roots).toHaveLength(1);
+  });
+
+  it("typing a sentence is ONE undo, not one per character", () => {
+    // Measured before this: the inspector's content field committed a history-pushing edit
+    // per keystroke. A two-line description cost 120 presses to take back, and ~200
+    // characters silently evicted every earlier snapshot — the card you built before you
+    // started typing included, because the stack is capped.
+    const t = node("Text", {}, { text: "" });
+    let s = start(t);
+    for (const word of ["H", "He", "Hel", "Hell", "Hello"]) {
+      s = reducer(s, {
+        type: "edit",
+        roots: [{ ...t, text: word }],
+        coalesce: `text:${t.id}`,
+      });
+    }
+    expect(findNode(activeDoc(s).roots, t.id)!.text).toBe("Hello");
+    s = reducer(s, { type: "undo" });
+    expect(findNode(activeDoc(s).roots, t.id)!.text).toBe("");
+    expect(canUndo(s)).toBe(false);
+  });
+
+  it("a run ends where the gesture does — another field, and a selection in between", () => {
+    const a = node("Text", {}, { text: "" });
+    const b = node("Text", {}, { text: "" });
+    const type = (s: EditorState, n: BuilderNode, roots: BuilderNode[]) =>
+      reducer(s, { type: "edit", roots, coalesce: `text:${n.id}` });
+
+    // A different node ends the run.
+    let s = start(a, b);
+    s = type(s, a, [{ ...a, text: "x" }, b]);
+    s = type(s, a, [{ ...a, text: "xy" }, b]);
+    s = type(s, b, [{ ...a, text: "xy" }, { ...b, text: "z" }]);
+    expect(s.histories[s.activeId]!.past).toHaveLength(2);
+
+    // And so does a SELECTION between keystrokes, with the key otherwise unchanged — which
+    // is the only arrangement that tests it: clicking away and coming back is a second
+    // sentence, so it gets a second entry.
+    let t = start(a);
+    t = type(t, a, [{ ...a, text: "x" }]);
+    t = reducer(t, { type: "select", ids: [a.id] });
+    t = type(t, a, [{ ...a, text: "xy" }]);
+    expect(t.histories[t.activeId]!.past).toHaveLength(2);
+
+    // …and an UNKEYED edit never rides anything, however many arrive in a row.
+    let u = start(a);
+    for (let i = 0; i < 3; i++) u = reducer(u, { type: "edit", roots: [{ ...a, text: String(i) }] });
+    expect(u.histories[u.activeId]!.past).toHaveLength(3);
+  });
+
+  it("an undo interrupts a run — the next keystroke does not resume it", () => {
+    // The first spelling of this law asked whether a coalesced edit clears redo, and could
+    // not fail: an undo rebuilds the history without a key, so the ONLY state that reaches
+    // the riding branch already has an empty future. What is reachable, and worth holding,
+    // is that stepping back mid-sentence starts a new entry rather than silently extending
+    // the one you just undid past.
+    const t = node("Text", {}, { text: "" });
+    let s = start(t);
+    s = reducer(s, { type: "edit", roots: [{ ...t, text: "a" }], coalesce: "k" });
+    s = reducer(s, { type: "edit", roots: [{ ...t, text: "ab" }], coalesce: "k" });
+    expect(s.histories[s.activeId]!.past).toHaveLength(1);
+    s = reducer(s, { type: "undo" });
+    expect(canRedo(s)).toBe(true);
+    s = reducer(s, { type: "edit", roots: [{ ...t, text: "z" }], coalesce: "k" });
+    expect(canRedo(s)).toBe(false);
+    expect(s.histories[s.activeId]!.past).toHaveLength(1);
+    s = reducer(s, { type: "undo" });
+    expect(findNode(activeDoc(s).roots, t.id)!.text).toBe("");
   });
 
   it("an edit that removes a node removes it from the selection too", () => {
@@ -433,6 +510,29 @@ describe("wrapping and unwrapping ask the grammar both ways", () => {
     expect(placed).toHaveLength(3);
     expect(findNode(roots, content.id)!.children!.map((c) => c.text)).toEqual(["one", "two"]);
     expect(roots.map((r) => r.type)).toEqual(["Menu", "Card"]);
+  });
+
+  it("a parent that hands its child to `render` holds exactly one", () => {
+    // The grammar answers per child and says nothing about how many, which was a hole for
+    // the four entries whose child becomes a primitive's `render` element: both the
+    // interpreter and the serializer take flowChildren[0], so a second child was in the
+    // tree, in Layers and in storage, and drawn and exported nowhere.
+    const button = node("Button", { emphasis: "medium" }, { text: "Actions" });
+    const trigger = node("MenuTrigger", {}, { children: [button] });
+    const menu = node("Menu", {}, { children: [trigger, node("MenuContent", {}, { children: [] })] });
+
+    expect(CATALOG.MenuTrigger!.renderChild).toBe(true);
+    // The grammar still says a Button MAY sit there — that is the type question, unchanged.
+    expect(canContainForTest("MenuTrigger", "Button", ["Menu", "MenuTrigger"])).toBe(true);
+    // …and the room question says the seat is taken.
+    expect(canAccept([menu], trigger.id, "Button")).toBe(false);
+    expect(insertableInto([menu], trigger.id)).toEqual([]);
+    // Empty, it accepts one.
+    const empty = node("MenuTrigger", {}, { children: [] });
+    expect(canAccept([node("Menu", {}, { children: [empty] })], empty.id, "Button")).toBe(true);
+    // An ordinary container is unaffected — the gate is about `render`, not about arity.
+    const card = node("Card", { size: "3" }, { children: [node("Text", {}, { text: "a" })] });
+    expect(canAccept([card], card.id, "Text")).toBe(true);
   });
 
   it("nothing is insertable into nothing", () => {

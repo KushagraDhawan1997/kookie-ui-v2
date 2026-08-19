@@ -46,7 +46,25 @@ export type Block = {
 export type StoredDoc = BuilderDoc & { id: string; name: string };
 
 type Snapshot = { theme: DocTheme; roots: BuilderNode[]; selection: string[] };
-type DocHistory = { past: Snapshot[]; future: Snapshot[] };
+type DocHistory = {
+  past: Snapshot[];
+  future: Snapshot[];
+  /**
+   * What the last pushed snapshot was pushed FOR (2026-08-20).
+   *
+   * Typing is one gesture and belongs in one snapshot. Without this, the inspector's content
+   * field committed a history-pushing edit per keystroke: a two-line description cost 120
+   * undo presses to take back, and around 200 characters silently evicted every prior
+   * snapshot — including the card you built before you started typing — because the stack is
+   * capped. The mechanism already existed one file over (a drag pushes once and then rides
+   * `editSilent`); it had simply never reached the highest-frequency edit in the editor.
+   *
+   * Consecutive edits carrying the same key ride the first one's snapshot. Anything else —
+   * a different key, an unkeyed edit, a selection, an undo — ends the run, so moving to
+   * another field starts a new entry.
+   */
+  lastKey?: string;
+};
 
 export type EditorState = {
   docs: StoredDoc[];
@@ -62,8 +80,10 @@ export type Action =
   | { type: "selectStep"; delta: -1 | 1 }
   | { type: "selectParent" }
   | { type: "selectChild" }
-  /** A tree edit that pushes history. `selection` optionally moves with it. */
-  | { type: "edit"; roots: BuilderNode[]; selection?: string[] }
+  /** A tree edit that pushes history. `selection` optionally moves with it. `coalesce` names
+      a GESTURE: consecutive edits carrying the same key ride one snapshot, so typing a
+      sentence is one undo rather than one per character. */
+  | { type: "edit"; roots: BuilderNode[]; selection?: string[]; coalesce?: string }
   /** A tree edit INSIDE a gesture already pushed — a drag's every frame after the first. */
   | { type: "editSilent"; roots: BuilderNode[] }
   | { type: "setTheme"; axis: keyof DocTheme; value: string }
@@ -125,25 +145,53 @@ const commit = (
   next: { theme?: DocTheme; roots?: BuilderNode[] },
   selection: string[] | undefined,
   push: boolean,
+  /** Runs of edits sharing this key ride ONE snapshot — see `DocHistory.lastKey`. */
+  coalesce?: string,
 ): EditorState => {
   const doc = activeDoc(s);
   const updated: StoredDoc = { ...doc, ...next };
   const history = s.histories[s.activeId] ?? emptyHistory();
   const nextSelection = selection ?? s.selection;
+  const riding = push && coalesce !== undefined && history.lastKey === coalesce;
+  const pushed: DocHistory = riding
+    ? // The run's FIRST edit already pushed the state to step back to, so this one changes
+      // nothing but the key it rides on. `future` is provably empty here — reaching this
+      // branch means the previous action was a coalesced edit, and every push clears the
+      // future — which is why the law about it is written about the reachable case (an undo
+      // interrupts a run) rather than about a `future: []` nothing can observe.
+      { past: history.past, future: history.future, lastKey: coalesce }
+    : {
+        past: [...history.past, { theme: doc.theme, roots: doc.roots, selection: s.selection }].slice(-HISTORY_DEPTH),
+        future: [],
+        ...(coalesce !== undefined ? { lastKey: coalesce } : {}),
+      };
   return {
     ...s,
     docs: s.docs.map((d) => (d.id === updated.id ? updated : d)),
     selection: nextSelection,
     histories: {
       ...s.histories,
-      [s.activeId]: push
-        ? {
-            past: [...history.past, { theme: doc.theme, roots: doc.roots, selection: s.selection }].slice(-HISTORY_DEPTH),
-            future: [],
-          }
-        : history,
+      // Anything that does not carry a key ends the run, so leaving a field and coming back
+      // starts a new entry rather than extending the last one.
+      [s.activeId]: push ? pushed : endRunIn(history),
     },
   };
+};
+
+/** One history with any run ended. */
+const endRunIn = (history: DocHistory): DocHistory => {
+  if (history.lastKey === undefined) return history;
+  const rest: DocHistory = { ...history };
+  delete rest.lastKey;
+  return rest;
+};
+
+/** End a coalescing run without touching anything else — what a selection, an undo or a
+    document switch does to a sentence somebody was in the middle of typing. */
+const endRun = (s: EditorState): EditorState => {
+  const history = s.histories[s.activeId];
+  if (!history || history.lastKey === undefined) return s;
+  return { ...s, histories: { ...s.histories, [s.activeId]: endRunIn(history) } };
 };
 
 /** Selection minus the ids a tree no longer holds — every edit runs it, so a deleted node
@@ -154,6 +202,8 @@ const prune = (roots: BuilderNode[], selection: string[]): string[] =>
 export function reducer(s: EditorState, a: Action): EditorState {
   switch (a.type) {
     case "select": {
+      // A selection ends a typing run: the next keystroke is a different sentence.
+      s = endRun(s);
       if (!a.additive) return { ...s, selection: a.ids };
       const set = new Set(s.selection);
       for (const id of a.ids) {
@@ -187,7 +237,7 @@ export function reducer(s: EditorState, a: Action): EditorState {
       // writes next. Identity-preserving, so an untouched subtree still hands React the same
       // object and the interpreter's memo holds (see `normalizeSeats`).
       const roots = normalizeSeats(a.roots);
-      return commit(s, { roots }, prune(roots, a.selection ?? s.selection), true);
+      return commit(s, { roots }, prune(roots, a.selection ?? s.selection), true, a.coalesce);
     }
     case "editSilent": {
       const roots = normalizeSeats(a.roots);
@@ -244,6 +294,7 @@ export function reducer(s: EditorState, a: Action): EditorState {
       };
     }
     case "docSwitch":
+      // fallthrough note: a switch ends any run in the document being left.
       return s.docs.some((d) => d.id === a.id) ? { ...s, activeId: a.id, selection: [] } : s;
     case "docRename":
       return { ...s, docs: s.docs.map((d) => (d.id === a.id ? { ...d, name: a.name } : d)) };

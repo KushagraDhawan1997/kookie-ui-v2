@@ -9,7 +9,15 @@
  */
 
 import { CATALOG, canContain } from "./catalog";
-import { ancestorChain, cloneWithNewIds, findNode, findParent, insertNode, type BuilderNode } from "./model";
+import {
+  ancestorChain,
+  cloneWithNewIds,
+  findNode,
+  findParent,
+  flowChildren,
+  insertNode,
+  type BuilderNode,
+} from "./model";
 
 /** The ancestor TYPES above-and-including a prospective parent — what `canContain` asks. */
 export const typesThrough = (roots: BuilderNode[], parentId: string | null): string[] => {
@@ -20,6 +28,28 @@ export const typesThrough = (roots: BuilderNode[], parentId: string | null): str
 };
 
 export type Insertion = { parentId: string | null; index?: number };
+
+/**
+ * Is there ROOM in this parent? (2026-08-20)
+ *
+ * The grammar answers per child — "may a Button sit in a MenuTrigger" — and says nothing
+ * about how many. For most parents that is right; for the four that hand their child to the
+ * primitive's `render` prop it is a hole. Both the interpreter and the serializer take
+ * `flowChildren(n)[0]`, so a second child in a trigger is in the tree, in Layers and in
+ * storage, and drawn and exported nowhere — the seat ghost's shape, one mechanism over. The
+ * grammar permitted it: `canContain("MenuTrigger", "Button", …)` is true, and right-click →
+ * Insert here → Button was a one-gesture route to it.
+ */
+export const hasRoom = (parent: BuilderNode): boolean =>
+  !CATALOG[parent.type]?.renderChild || flowChildren(parent).length === 0;
+
+/** The whole question a drop asks: does the grammar allow it, and is there room. */
+export const canAccept = (roots: BuilderNode[], parentId: string | null, childType: string): boolean => {
+  if (parentId === null) return canContain(null, childType, []);
+  const parent = findNode(roots, parentId);
+  if (!parent) return false;
+  return canContain(parent.type, childType, typesThrough(roots, parentId)) && hasRoom(parent);
+};
 
 /**
  * Where a palette insertion lands, relative to the selection: the selected node if its
@@ -39,7 +69,7 @@ export const insertionTarget = (
     for (let i = chain.length - 1; i >= 0; i--) {
       const parent = chain[i]!;
       const chainTypes = chain.slice(0, i + 1).map((c) => c.type);
-      if (canContain(parent.type, type, chainTypes)) {
+      if (canContain(parent.type, type, chainTypes) && hasRoom(parent)) {
         const branch = chain[i + 1];
         const at = branch ? (parent.children?.findIndex((c) => c.id === branch.id) ?? -1) + 1 : 0;
         return at > 0 ? { parentId: parent.id, index: at } : { parentId: parent.id };
@@ -63,7 +93,7 @@ export const insertableInto = (
   const node = id ? findNode(roots, id) : null;
   if (!node) return [];
   const chain = typesThrough(roots, node.id);
-  const fits = (type: string) => canContain(node.type, type, chain);
+  const fits = (type: string) => canContain(node.type, type, chain) && hasRoom(node);
   const types = Object.keys(CATALOG).filter(fits);
   const parts = types.filter((t) => CATALOG[t]!.partOf);
   const rest = types.filter((t) => !CATALOG[t]!.partOf);

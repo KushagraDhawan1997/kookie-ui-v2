@@ -71,7 +71,7 @@ import {
   type BuilderNode,
   type DocTheme,
 } from "./model";
-import { insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
+import { canAccept, insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { TEMPLATES, templateDoc } from "./templates";
@@ -248,8 +248,13 @@ export function BuilderApp() {
     [],
   );
   const commitRoots = React.useCallback(
-    (roots: BuilderNode[], nextSelection?: string[]) =>
-      dispatch(nextSelection ? { type: "edit", roots, selection: nextSelection } : { type: "edit", roots }),
+    (roots: BuilderNode[], nextSelection?: string[], coalesce?: string) =>
+      dispatch({
+        type: "edit",
+        roots,
+        ...(nextSelection ? { selection: nextSelection } : {}),
+        ...(coalesce ? { coalesce } : {}),
+      }),
     [],
   );
   const undo = React.useCallback(() => dispatch({ type: "undo" }), []);
@@ -505,7 +510,7 @@ export function BuilderApp() {
       const insideMoving = movingNode && (id === d.movingId || findNode([movingNode], id) !== null);
       if (!insideMoving) {
         const target = findNode(doc.roots, id);
-        if (target && canContain(target.type, d.type, typesThrough(doc.roots, id))) {
+        if (target && canAccept(doc.roots, id, d.type)) {
           return spotIn(target, clientX, clientY);
         }
       }
@@ -597,12 +602,11 @@ export function BuilderApp() {
     const row = findNode(doc.roots, rowId);
     if (!row) return null;
 
-    const intoOk = canContain(row.type, d.type, typesThrough(doc.roots, rowId));
+    const intoOk = canAccept(doc.roots, rowId, d.type);
     const parent = findParent(doc.roots, rowId);
     const siblings = parent ? (parent.children ?? []) : doc.roots;
     const at = siblings.findIndex((c) => c.id === rowId);
-    const chain = parent ? typesThrough(doc.roots, parent.id) : [];
-    const besideOk = canContain(parent ? parent.type : null, d.type, chain);
+    const besideOk = canAccept(doc.roots, parent ? parent.id : null, d.type);
 
     if (mode === "into" && intoOk) return { parentId: rowId };
     if (mode !== "into" && besideOk) {
@@ -1631,8 +1635,21 @@ export function BuilderApp() {
                           <Inspector
                             node={selected}
                             textRef={inspectorTextRef}
-                            onProp={(key, next) => commitRoots(updateProps(doc.roots, selected.id, { [key]: next }))}
-                            onText={(next) => commitRoots(updateText(doc.roots, selected.id, next))}
+                            /* Typing is ONE gesture: every keystroke in a field rides the
+                               first one's snapshot, keyed per node and per prop so moving to
+                               another field starts a new entry. Without it a two-line
+                               description cost 120 undo presses and ~200 characters evicted
+                               the whole structural history. */
+                            onProp={(key, next, continuous) =>
+                              commitRoots(
+                                updateProps(doc.roots, selected.id, { [key]: next }),
+                                undefined,
+                                continuous ? `prop:${selected.id}:${key}` : undefined,
+                              )
+                            }
+                            onText={(next) =>
+                              commitRoots(updateText(doc.roots, selected.id, next), undefined, `text:${selected.id}`)
+                            }
                             onSelect={(id) => setSelection(id)}
                             onSlot={(slot, type) => {
                               const child = type ? CATALOG[type]!.make() : null;
