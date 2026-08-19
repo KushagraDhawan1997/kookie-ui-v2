@@ -225,5 +225,14 @@ export const moveNodeTo = (
   const moving = findNode(roots, id);
   if (!moving) return roots;
   if (newParentId !== null && (id === newParentId || findNode([moving], newParentId))) return roots;
-  return insertNode(removeNode(roots, id), newParentId, moving, index);
+  // `index` speaks PRE-move positions — what a pointer computed while the node still sat
+  // among its siblings. Moving later within the same parent, the removal shifts everything
+  // after the node one left, so the stated index lands one late without this.
+  let at = index;
+  if (at !== undefined) {
+    const siblings = newParentId === null ? roots : (findNode(roots, newParentId)?.children ?? []);
+    const from = siblings.findIndex((n) => n.id === id);
+    if (from !== -1 && from < at) at -= 1;
+  }
+  return insertNode(removeNode(roots, id), newParentId, moving, at);
 };

@@ -56,6 +56,9 @@ export type CatalogEntry = {
   partOf?: string;
   /** Renders no DOM element of its own — the canvas cannot stamp it; the tree selects it. */
   phantom?: boolean;
+  /** The component's own interaction IS a pointer drag (the slider's thumb), so the canvas
+      never marks it draggable — moving it is the tree's job. */
+  dragOwnsPointer?: boolean;
   /** The single child is passed through `render={...}` (the trigger pattern), so the child
       element IS this part's element. Implies phantom for canvas stamping. */
   renderChild?: boolean;
@@ -247,6 +250,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
     blurb: "The whole strip is the control; the thumb is the mark family's grip.",
     props: { size: size(), defaultValue: { kind: "number", min: 0, max: 100 }, "aria-label": text, disabled: bool },
     children: "none",
+    dragOwnsPointer: true,
     make: () => node("Slider", { defaultValue: 40, "aria-label": "Value" }),
   },
   SegmentedControl: {
