@@ -24,6 +24,9 @@ import {
   Menu,
   MenuContent,
   MenuItem,
+  MenuSub,
+  MenuSubContent,
+  MenuSubTrigger,
   MenuTrigger,
   Select,
   SelectContent,
@@ -285,12 +288,19 @@ export function ContextMenu({
   run,
   enabled,
   titleOf,
+  inserts,
+  onInsert,
 }: {
   point: { x: number; y: number } | null;
   onOpenChange: (open: boolean) => void;
   run: (id: string) => void;
   enabled: (id: string) => boolean;
   titleOf: (id: string) => string;
+  /** What may be inserted AT the right-clicked node — grammar-filtered by the caller, so the
+      menu on a Card and the menu on a MenuContent offer different things and neither offers
+      something the tree would refuse. */
+  inserts: string[];
+  onInsert: (type: string) => void;
 }) {
   if (!point) return null;
   return (
@@ -304,6 +314,21 @@ export function ContextMenu({
         }
       />
       <MenuContent>
+        {inserts.length > 0 ? (
+          <>
+            <MenuSub>
+              <MenuSubTrigger>Insert here</MenuSubTrigger>
+              <MenuSubContent>
+                {inserts.map((type) => (
+                  <MenuItem key={type} onClick={() => onInsert(type)}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </MenuSubContent>
+            </MenuSub>
+            <Separator />
+          </>
+        ) : null}
         {CONTEXT_COMMANDS.map((id, i) =>
           id === "·" ? (
             <Separator key={`sep${i}`} />
@@ -321,6 +346,79 @@ export function ContextMenu({
       </MenuContent>
     </Menu>
   );
+}
+
+/* ── The canvas boundary ──────────────────────────────────────────────────────────────── */
+
+/**
+ * The canvas renders REAL components, so a document can reach a state one of them throws on —
+ * a part orphaned by a paste, a value a primitive refuses. Without a boundary that takes the
+ * whole editor down and the document with it, which is the one failure an editor must not
+ * have: the work is still in memory and still undoable, and the only thing between the author
+ * and it would be a blank page. Measured: an orphaned MenuItem, SelectItem or TabsPanel each
+ * throw out of Base UI, and each is now caught with the rest of the editor still working.
+ *
+ * A class component because that is still the only way to catch a render error in React.
+ */
+export class CanvasBoundary extends React.Component<
+  {
+    children: React.ReactNode;
+    onRecover: () => void;
+    canRecover: boolean;
+    /** The tree being drawn — identity, not content. See `componentDidUpdate`. */
+    tree: unknown;
+  },
+  { error: Error | null }
+> {
+  override state: { error: Error | null } = { error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  override componentDidUpdate(prev: { tree: unknown }) {
+    // ANY new tree gets a clean slate — not just a new document. Keying this on the document
+    // id was a dead end: the other route out of a broken canvas is to delete the offending
+    // node in Layers (which draws from the model, so it keeps working), and that leaves the
+    // id unchanged. The boundary would have held its failure over a tree that no longer
+    // contains it, with nothing left to press. The model's writes preserve identity where
+    // nothing changed, so this does not fire on an unrelated edit.
+    if (prev.tree !== this.props.tree && this.state.error) this.setState({ error: null });
+  }
+
+  override render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <Card size="3">
+        <Stack gap="4" align="flex-start">
+          <Stack gap="2">
+            <Text size="3" weight="medium">
+              This document could not be drawn
+            </Text>
+            <Text size="2" emphasis="medium">
+              {this.props.canRecover
+                ? "Your work is safe — it is still in memory and still undoable. Step back to the last state that rendered."
+                : "Your work is safe — the whole tree is still in Layers, which draws from the document rather than from the components. Select the offending node there and delete it."}
+            </Text>
+          </Stack>
+          <Text size="1" emphasis="quiet" render={<pre />} style={{ whiteSpace: "pre-wrap" }}>
+            {this.state.error.message}
+          </Text>
+          {this.props.canRecover ? (
+            <Button
+              emphasis="loud"
+              onClick={() => {
+                this.setState({ error: null });
+                this.props.onRecover();
+              }}
+            >
+              Undo the last change
+            </Button>
+          ) : null}
+        </Stack>
+      </Card>
+    );
+  }
 }
 
 /* ── The empty state ──────────────────────────────────────────────────────────────────── */
