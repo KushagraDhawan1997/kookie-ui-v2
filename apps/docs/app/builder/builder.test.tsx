@@ -27,7 +27,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import * as Kookie from "@kookie-ui/react";
-import { Theme, componentAxes, themeDefaults } from "@kookie-ui/react";
+import { Theme, componentAxes } from "@kookie-ui/react";
 
 import { CATALOG, EXCLUDED, canContain, sanitizeNode } from "./catalog";
 import {
@@ -123,7 +123,7 @@ describe("the grammar is closed over the catalog", () => {
         check(child, [...chain, n.type]);
       }
     };
-    for (const [type, entry] of Object.entries(CATALOG)) {
+    for (const entry of Object.values(CATALOG)) {
       // A part's preset is validated from the ancestors it requires, since that is the only
       // place the palette will ever insert it.
       const chain = entry.requiresAncestor ? [entry.requiresAncestor] : [];
@@ -157,7 +157,12 @@ const canonicalDoc = (): BuilderDoc => ({
             node("Text", { size: "2", emphasis: "medium" }, { text: "Plain body copy." }),
             node("TextField", { placeholder: "Name", "aria-label": "Name", disabled: true }),
             node("TextArea", { rows: 4, "aria-label": "Notes" }),
-            node("Flex", { gap: "2", align: "center", justify: "space-between" }, {
+            node("Flex", {
+              gap: { initial: "2", md: "4" },
+              direction: { initial: "column", md: "row" },
+              align: "center",
+              justify: "space-between",
+            }, {
               children: [
                 node("Checkbox", { defaultChecked: true, "aria-label": "Agree" }),
                 node("Slider", { defaultValue: 35, "aria-label": "Amount" }),
@@ -169,6 +174,9 @@ const canonicalDoc = (): BuilderDoc => ({
           ],
         }),
       ],
+    }),
+    node("Box", { p: "4", container: true }, {
+      children: [node("Text", { size: "2" }, { text: "A measurable region." })],
     }),
     CATALOG.Menu!.make(),
     CATALOG.Select!.make(),
@@ -274,7 +282,20 @@ describe("the export speaks tokens only, and refuses everything else", () => {
     // round-trip law stays green. This law pins the export to the document itself: one
     // statement of every prop kind must surface in the code.
     const code = serializeDocument(canonicalDoc());
-    for (const stated of ['gap="3"', "rows={4}", "defaultChecked", 'tone="destructive"', 'placeholder="Name"', "disabled", 'value="one"']) {
+    for (const stated of [
+      'gap="3"',
+      "rows={4}",
+      "defaultChecked",
+      'tone="destructive"',
+      'placeholder="Name"',
+      "disabled",
+      'value="one"',
+      // The responsive statements, exactly as the package spells them: tiers in resolution
+      // order, initial first. A dropped or reordered tier is a different design.
+      'gap={{ initial: "2", md: "4" }}',
+      'direction={{ initial: "column", md: "row" }}',
+      "container",
+    ]) {
       expect(code, `the document states ${stated} and the export lost it`).toContain(stated);
     }
   });
@@ -289,6 +310,43 @@ describe("the export speaks tokens only, and refuses everything else", () => {
     hostile.props.style = "color: red";
     const doc: BuilderDoc = { theme: defaultDocTheme(), roots: [hostile] };
     expect(() => serializeDocument(doc)).toThrow(/not a prop the builder knows/);
+  });
+
+  it("an unknown tier throws rather than exporting a value the resolver would ignore", () => {
+    const doc: BuilderDoc = {
+      theme: defaultDocTheme(),
+      roots: [node("Stack", { gap: { initial: "2", xl: "6" } as never }, { children: [] })],
+    };
+    expect(() => serializeDocument(doc)).toThrow(/not a tier/);
+  });
+
+  it("a per-tier value on a non-responsive prop throws — an axis is not a breakpoint", () => {
+    const doc: BuilderDoc = {
+      theme: defaultDocTheme(),
+      roots: [node("Button", { size: { initial: "2", md: "3" } }, { text: "Hi" })],
+    };
+    expect(() => serializeDocument(doc)).toThrow(/not a responsive prop/);
+  });
+
+  it("a one-tier object collapses to the plain spelling; an empty one to absence", () => {
+    // { initial } alone states nothing a string does not, so only one spelling may exist —
+    // the false-boolean rule, one value shape over.
+    const doc: BuilderDoc = {
+      theme: defaultDocTheme(),
+      roots: [node("Stack", { gap: { initial: "2" } }, { children: [] }), node("Stack", { gap: {} }, { children: [] })],
+    };
+    const code = serializeDocument(doc);
+    expect(code).toContain('gap="2"');
+    expect(code).not.toContain("initial");
+    expect(code).toContain("<Stack />");
+  });
+
+  it("tiers emit in resolution order however the document states them", () => {
+    const doc: BuilderDoc = {
+      theme: defaultDocTheme(),
+      roots: [node("Stack", { gap: { lg: "8", initial: "2", sm: "4" } }, { children: [] })],
+    };
+    expect(serializeDocument(doc)).toContain('gap={{ initial: "2", sm: "4", lg: "8" }}');
   });
 
   it("a trigger with nothing to render throws rather than exporting a dead control", () => {

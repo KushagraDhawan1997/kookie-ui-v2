@@ -51,6 +51,7 @@ import {
   Text,
   TextField,
   Theme,
+  tiers,
 } from "@kookie-ui/react";
 
 import { CATALOG, canContain, paletteEntries, sanitizeNode, PALETTE_FAMILIES, type CatalogEntry } from "./catalog";
@@ -78,6 +79,16 @@ import { Inspector, ThemePanel } from "./inspector";
 const DOC_KEY = "kookie-builder-doc-v1";
 const BLOCKS_KEY = "kookie-builder-blocks-v1";
 const DRAG_TYPE = "application/x-kookie-component";
+
+/** The tier boundaries in px, DERIVED from the package's own table (rem at the 16px root),
+    for the width handle's readout. The canvas is a real query container, so the readout is
+    a label on real behaviour, not a simulation. */
+const TIER_PX = Object.entries(tiers).map(([name, rem]) => [name, parseFloat(rem) * 16] as const);
+const activeTier = (w: number): string => {
+  let current = "initial";
+  for (const [name, px] of TIER_PX) if (w >= px) current = name;
+  return current;
+};
 
 type Block = { name: string; node: BuilderNode };
 
@@ -157,6 +168,9 @@ export function BuilderApp() {
   const [blockName, setBlockName] = React.useState("");
   const [dropTarget, setDropTarget] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
+  /** null = full width. A dragged width makes the canvas narrower than its column, and
+      because the canvas is a container, every per-tier value inside responds for real. */
+  const [canvasW, setCanvasW] = React.useState<number | null>(null);
 
   const doc = history.present;
   const selected = selection ? findNode(doc.roots, selection) : null;
@@ -328,11 +342,36 @@ export function BuilderApp() {
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [selection, doc]);
+  }, [selection, doc, canvasW]);
 
   const onCanvasClick = (e: React.MouseEvent) => {
+    if ((e.target as Element).closest("[data-kb-width-handle]")) return;
     const el = (e.target as Element).closest("[data-b-id]");
     setSelection(el ? el.getAttribute("data-b-id") : null);
+  };
+
+  /* The width handle: drag (or arrow keys) to give the canvas a narrower room. */
+  const startWidthDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const wrap = canvasRef.current;
+    if (!wrap) return;
+    const startX = e.clientX;
+    const startW = wrap.offsetWidth;
+    const handle = e.currentTarget;
+    handle.setPointerCapture(e.pointerId);
+    const move = (ev: PointerEvent) =>
+      setCanvasW(Math.max(280, Math.round(startW + ev.clientX - startX)));
+    const up = () => {
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", up);
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", up);
+  };
+  const nudgeWidth = (e: React.KeyboardEvent) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const current = canvasW ?? canvasRef.current?.offsetWidth ?? 880;
+    setCanvasW(Math.max(280, current + (e.key === "ArrowRight" ? 16 : -16)));
   };
 
   const code = React.useMemo(() => {
@@ -518,7 +557,20 @@ export function BuilderApp() {
           <ScrollArea style={{ height: "100%" }}>
             <Box p="6" onClickCapture={onCanvasClick} onDragOver={onCanvasDragOver} onDrop={onCanvasDrop} onDragLeave={() => setDropTarget(null)} style={{ minHeight: "100%" }}>
               <Box maxWidth="880px" style={{ marginInline: "auto" }}>
-                <div ref={canvasRef} style={{ position: "relative" }}>
+                <Flex gap="2" align="center" justify="flex-end" pb="2">
+                  <Text size="1" emphasis="quiet">
+                    {canvasW ? `${canvasW}px · ${activeTier(canvasW)}` : "full width — drag the right edge to test tiers"}
+                  </Text>
+                  {canvasW ? (
+                    <Button size="1" emphasis="quiet" onClick={() => setCanvasW(null)}>
+                      Full width
+                    </Button>
+                  ) : null}
+                </Flex>
+                <div
+                  ref={canvasRef}
+                  style={{ position: "relative", width: canvasW ? `${canvasW}px` : "100%", maxWidth: "100%" }}
+                >
                   <Theme
                     density={doc.theme.density}
                     pointer={doc.theme.pointer}
@@ -527,16 +579,51 @@ export function BuilderApp() {
                     depth={doc.theme.depth}
                     material={doc.theme.material}
                   >
-                    <Stack gap="5">
-                      {doc.roots.length === 0 ? (
-                        <Text size="2" emphasis="quiet">
-                          Drop something here, or add it from the palette.
-                        </Text>
-                      ) : (
-                        doc.roots.map((r) => renderNode(r, "canvas"))
-                      )}
-                    </Stack>
+                    {/* The canvas is a REAL query container (§2's opt-in, layout-sized by
+                        the width handle), so a per-tier value inside it answers the canvas's
+                        room — which is what it will answer in an app column. */}
+                    <Box container width="100%">
+                      <Stack gap="5">
+                        {doc.roots.length === 0 ? (
+                          <Text size="2" emphasis="quiet">
+                            Drop something here, or add it from the palette.
+                          </Text>
+                        ) : (
+                          doc.roots.map((r) => renderNode(r, "canvas"))
+                        )}
+                      </Stack>
+                    </Box>
                   </Theme>
+                  <div
+                    data-kb-width-handle
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label="Canvas width"
+                    tabIndex={0}
+                    onPointerDown={startWidthDrag}
+                    onKeyDown={nudgeWidth}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      bottom: 0,
+                      right: "-18px",
+                      width: "12px",
+                      cursor: "ew-resize",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div
+                      aria-hidden
+                      style={{
+                        width: "4px",
+                        height: "44px",
+                        borderRadius: "2px",
+                        background: "var(--color-border)",
+                      }}
+                    />
+                  </div>
                   {ring ? (
                     <div
                       aria-hidden

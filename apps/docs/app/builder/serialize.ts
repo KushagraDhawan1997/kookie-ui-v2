@@ -17,16 +17,50 @@
 import { themeDefaults } from "@kookie-ui/react";
 
 import { CATALOG } from "./catalog";
+import { TIER_KEYS, type PropValue, type ResponsiveValue } from "./model";
 import type { BuilderDoc, BuilderNode } from "./model";
+
+/** A responsive object normalized to what it actually SAYS: tiers in resolution order,
+    unknown tiers refused, `{ initial }` alone collapsed to the plain value (a one-tier
+    object states nothing a string does not), an empty object collapsed to unset. Shared
+    by the serializer and the interpreter through effectiveProps, so the canvas and the
+    export cannot read one statement two ways. */
+const normalizeResponsive = (
+  key: string,
+  type: string,
+  v: ResponsiveValue,
+): string | ResponsiveValue | undefined => {
+  for (const tier of Object.keys(v)) {
+    if (!(TIER_KEYS as readonly string[]).includes(tier)) {
+      throw new Error(`"${tier}" is not a tier on ${type}.${key} — the tiers are ${TIER_KEYS.join(", ")}.`);
+    }
+  }
+  const ordered: ResponsiveValue = {};
+  for (const tier of TIER_KEYS) {
+    const value = v[tier];
+    if (value !== undefined) ordered[tier] = value;
+  }
+  const keys = Object.keys(ordered);
+  if (keys.length === 0) return undefined;
+  if (keys.length === 1 && ordered.initial !== undefined) return ordered.initial;
+  return ordered;
+};
 
 /** The props a node states, in catalog order, with `false` booleans dropped — an unset
     boolean and a false one are the same statement, so only one spelling may exist. */
-export const effectiveProps = (n: BuilderNode): [string, string | number | boolean][] => {
+export const effectiveProps = (n: BuilderNode): [string, PropValue][] => {
   const entry = CATALOG[n.type];
   if (!entry) throw new Error(`Unknown component "${n.type}" — not in the builder catalog.`);
-  const out: [string, string | number | boolean][] = [];
+  const out: [string, PropValue][] = [];
   for (const key of Object.keys(entry.props)) {
-    const v = n.props[key];
+    let v = n.props[key];
+    if (v !== undefined && typeof v === "object") {
+      const schema = entry.props[key]!;
+      if (!("responsive" in schema) || !schema.responsive) {
+        throw new Error(`${n.type}.${key} is not a responsive prop — refusing a per-tier value.`);
+      }
+      v = normalizeResponsive(key, n.type, v);
+    }
     if (v === undefined || v === false) continue;
     out.push([key, v]);
   }
@@ -38,10 +72,15 @@ export const effectiveProps = (n: BuilderNode): [string, string | number | boole
   return out;
 };
 
-const attr = (key: string, value: string | number | boolean): string => {
+const attr = (key: string, value: PropValue): string => {
   // `false` never reaches here — effectiveProps drops it, so `true` is the only boolean.
   if (typeof value === "boolean") return key;
   if (typeof value === "number") return `${key}={${value}}`;
+  if (typeof value === "object") {
+    // The package's own responsive spelling, tiers already in order from normalization.
+    const entries = Object.entries(value).map(([tier, v]) => `${tier}: ${JSON.stringify(v)}`);
+    return `${key}={{ ${entries.join(", ")} }}`;
+  }
   // Clean attribute form when the string is tame; JSON-in-braces when it is not.
   if (!/[\\"\n]/.test(value)) return `${key}="${value}"`;
   return `${key}={${JSON.stringify(value)}}`;
