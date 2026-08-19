@@ -1211,24 +1211,36 @@ export function BuilderApp() {
               {toast}
             </Text>
           ) : null}
-          <Button size="1" emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
-            <UndoIcon />
-          </Button>
-          <Button size="1" emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
-            <RedoIcon />
-          </Button>
-          <Separator orientation="vertical" style={{ height: "20px" }} />
+          {/* The EDITING controls stand down in preview with the panels. Guarding the
+              keyboard and leaving the buttons would be half a guard: a click on undo edits
+              the document just as well as ⌘Z does, and preview draws nothing to say it
+              happened. */}
+          {!preview ? (
+            <>
+              <Button size="1" emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
+                <UndoIcon />
+              </Button>
+              <Button size="1" emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
+                <RedoIcon />
+              </Button>
+              <Separator orientation="vertical" style={{ height: "20px" }} />
+            </>
+          ) : null}
           <Button size="1" emphasis="quiet" onClick={() => setPaletteOpen(true)} trailing={<Kbd>{chordLabel("mod+k")}</Kbd>}>
             Commands
           </Button>
-          <Button
-            size="1"
-            emphasis={reviewOpen ? "medium" : "quiet"}
-            aria-pressed={reviewOpen}
-            onClick={() => setReviewOpen((v) => !v)}
-          >
-            {findings.length ? `Review ${findings.length}` : "Review"}
-          </Button>
+          {/* Review lives in the right pane, which preview hides — a button that opens a
+              panel nobody can see is a dead control. */}
+          {!preview ? (
+            <Button
+              size="1"
+              emphasis={reviewOpen ? "medium" : "quiet"}
+              aria-pressed={reviewOpen}
+              onClick={() => setReviewOpen((v) => !v)}
+            >
+              {findings.length ? `Review ${findings.length}` : "Review"}
+            </Button>
+          ) : null}
           <Button
             size="1"
             emphasis={preview ? "medium" : "quiet"}
@@ -1246,7 +1258,11 @@ export function BuilderApp() {
 
       {/* ── Three panes ── */}
       <Flex align="stretch" style={{ flex: 1, minHeight: 0 }}>
-        {/* Left: add + layers */}
+        {/* Left: add + layers. Both side panes stand down in preview — the mode promises the
+            screen you built, actually usable, and a screen with an editor's panels beside it
+            is the editor with its instruments turned off. The top bar stays, because the way
+            out has to be visible. */}
+        {!preview ? (
         <Box width="272px" style={{ flex: "none", minHeight: 0 }}>
           <ScrollArea style={{ height: "100%" }}>
             <Box p="3">
@@ -1411,13 +1427,15 @@ export function BuilderApp() {
             </Box>
           </ScrollArea>
         </Box>
-        <Separator orientation="vertical" />
+        ) : null}
+        {!preview ? <Separator orientation="vertical" /> : null}
 
         {/* Center: the jump bar, then the live canvas */}
         <Flex direction="column" style={{ flex: 1, minWidth: 0, minHeight: 0, background: "var(--neutral-2)" }}>
           <Breadcrumb
             roots={doc.roots}
-            selection={state.selection}
+            selection={preview ? [] : state.selection}
+            hidePath={preview}
             onSelect={(id) => setSelection(id)}
             extra={
               <Flex align="center" gap="2">
@@ -1804,9 +1822,10 @@ export function BuilderApp() {
             </Box>
           </ScrollArea>
         </Flex>
-        <Separator orientation="vertical" />
+        {!preview ? <Separator orientation="vertical" /> : null}
 
         {/* Right: inspect + theme + review */}
+        {!preview ? (
         <Box width="304px" style={{ flex: "none", minHeight: 0 }}>
           <ScrollArea style={{ height: "100%" }}>
             <Box p="3">
@@ -1926,6 +1945,7 @@ export function BuilderApp() {
             </Box>
           </ScrollArea>
         </Box>
+        ) : null}
       </Flex>
 
       {/* ── The editor's own dialogs ── */}

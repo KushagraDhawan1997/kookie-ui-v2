@@ -155,11 +155,16 @@ export function Breadcrumb({
   selection,
   onSelect,
   extra,
+  hidePath,
 }: {
   roots: BuilderNode[];
   selection: string[];
   onSelect: (id: string) => void;
   extra?: React.ReactNode;
+  /** Preview keeps the VIEWING controls in this bar and drops the selection path: a path is
+      an editing affordance, and "Nothing selected" over a screen you are trying out is the
+      editor talking about itself. */
+  hidePath?: boolean;
 }) {
   const primary = selection[selection.length - 1] ?? null;
   const node = primary ? findNode(roots, primary) : null;
@@ -168,7 +173,7 @@ export function Breadcrumb({
   return (
     <Flex align="center" justify="space-between" gapX="3" px="4" py="1">
       <Flex align="center" gap="1" wrap="wrap" style={{ minWidth: 0 }}>
-        {chain.length === 0 ? (
+        {hidePath ? null : chain.length === 0 ? (
           <Text size="1" emphasis="quiet">
             Nothing selected
           </Text>

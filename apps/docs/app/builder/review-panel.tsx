@@ -32,8 +32,8 @@ export function ReviewPanel({
           Nothing to answer for
         </Text>
         <Text size="2" emphasis="medium">
-          The document holds to the house style: one focal action per surface, distances that
-          differentiate, every control named.
+          The document holds to the house style: one focal action per screen, distances that
+          differentiate, a ladder with real jumps, every control named.
         </Text>
       </Stack>
     );
