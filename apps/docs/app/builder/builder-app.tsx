@@ -183,7 +183,11 @@ export function BuilderApp() {
 
   const [blockName, setBlockName] = React.useState("");
   const [drop, setDrop] = React.useState<DropSpot | null>(null);
-  const [dropRow, setDropRow] = React.useState<string | null>(null);
+  /** Where a drag is hovering in the Layers tree: on a row, and WHERE on it. The thirds are
+      the tree convention every file browser uses — the edges mean "between", the middle means
+      "inside" — and they are what make the tree a rearrangement surface rather than a list of
+      shortcuts. */
+  const [dropRow, setDropRow] = React.useState<{ id: string; mode: "before" | "into" | "after" } | null>(null);
   /** What is being dragged, held in a ref because HTML5 DnD only surfaces payload DATA on
       drop — during dragover only the type names are readable, and the grammar needs the
       component type to say yes or no while hovering. Same-window drags own this fully. */
@@ -566,28 +570,37 @@ export function BuilderApp() {
     }
   };
 
-  /* Tree rows: drop ON a row means INTO it when its grammar accepts, else right after it. */
-  const rowSpot = (rowId: string): { parentId: string | null; index?: number } | null => {
+  /* Tree rows: the thirds. "into" asks the row's own grammar; "before"/"after" ask its
+     parent's, and both fall back to the other when the grammar refuses — a drop that CAN
+     land somewhere sensible should, rather than doing nothing under the pointer. */
+  const rowSpot = (rowId: string, mode: "before" | "into" | "after"): { parentId: string | null; index?: number } | null => {
     const d = dragged();
     if (!d) return null;
     const movingNode = d.movingId ? findNode(doc.roots, d.movingId) : null;
     if (movingNode && (rowId === d.movingId || findNode([movingNode], rowId) !== null)) return null;
     const row = findNode(doc.roots, rowId);
     if (!row) return null;
-    if (canContain(row.type, d.type, typesThrough(doc.roots, rowId))) return { parentId: rowId };
+
+    const intoOk = canContain(row.type, d.type, typesThrough(doc.roots, rowId));
     const parent = findParent(doc.roots, rowId);
     const siblings = parent ? (parent.children ?? []) : doc.roots;
-    const index = siblings.findIndex((c) => c.id === rowId) + 1;
+    const at = siblings.findIndex((c) => c.id === rowId);
     const chain = parent ? typesThrough(doc.roots, parent.id) : [];
-    if (canContain(parent?.id ? parent.type : null, d.type, chain)) {
-      return parent ? { parentId: parent.id, index } : { parentId: null, index };
+    const besideOk = canContain(parent ? parent.type : null, d.type, chain);
+
+    if (mode === "into" && intoOk) return { parentId: rowId };
+    if (mode !== "into" && besideOk) {
+      return { parentId: parent?.id ?? null, index: mode === "before" ? at : at + 1 };
     }
+    // The fallbacks, in the order that surprises least.
+    if (intoOk) return { parentId: rowId };
+    if (besideOk) return { parentId: parent?.id ?? null, index: at + 1 };
     return null;
   };
 
-  const onRowDrop = (rowId: string) => {
+  const onRowDrop = (rowId: string, mode: "before" | "into" | "after") => {
     const d = dragged();
-    const spot = rowSpot(rowId);
+    const spot = rowSpot(rowId, mode);
     const movingId = d?.movingId ?? null;
     endDrag();
     if (!d || !spot) return;
@@ -1198,7 +1211,7 @@ export function BuilderApp() {
                               setSelection(id);
                             }}
                             onDragFinish={endDrag}
-                            canRowDrop={(id) => rowSpot(id) !== null}
+                            canRowDrop={(id, mode) => rowSpot(id, mode) !== null}
                             onHoverRow={setDropRow}
                             onRowDrop={onRowDrop}
                           />
@@ -1868,13 +1881,21 @@ function TreeRows({
   depth: number;
   selection: string[];
   onSelect: (id: string, additive: boolean) => void;
-  dropRow: string | null;
+  dropRow: { id: string; mode: "before" | "into" | "after" } | null;
   onDragBegin: (id: string) => void;
   onDragFinish: () => void;
-  canRowDrop: (id: string) => boolean;
-  onHoverRow: (id: string | null) => void;
-  onRowDrop: (id: string) => void;
+  canRowDrop: (id: string, mode: "before" | "into" | "after") => boolean;
+  onHoverRow: (spot: { id: string; mode: "before" | "into" | "after" } | null) => void;
+  onRowDrop: (id: string, mode: "before" | "into" | "after") => void;
 }) {
+  /** Which third of the row the pointer is in. The edges are deliberately narrow (a quarter
+      each): "into" is the common intent, and a tree where every hover lands between rows is
+      a tree you fight. */
+  const thirdOf = (e: React.DragEvent<HTMLElement>): "before" | "into" | "after" => {
+    const box = e.currentTarget.getBoundingClientRect();
+    const y = (e.clientY - box.top) / box.height;
+    return y < 0.25 ? "before" : y > 0.75 ? "after" : "into";
+  };
   const label = n.text ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}` : n.type;
   const pass = { dropRow, onDragBegin, onDragFinish, canRowDrop, onHoverRow, onRowDrop };
   return (
@@ -1890,7 +1911,7 @@ function TreeRows({
           size="1"
           emphasis={selection.includes(n.id) ? "medium" : "quiet"}
           aria-pressed={selection.includes(n.id)}
-          bordered={dropRow === n.id}
+          bordered={dropRow?.id === n.id && dropRow.mode === "into"}
           onClick={(e) => onSelect(n.id, e.shiftKey || e.metaKey || e.ctrlKey)}
           draggable
           onDragStart={(e) => {
@@ -1900,18 +1921,28 @@ function TreeRows({
           }}
           onDragEnd={onDragFinish}
           onDragOver={(e) => {
-            if (!canRowDrop(n.id)) return;
+            const mode = thirdOf(e);
+            if (!canRowDrop(n.id, mode)) return;
             e.preventDefault();
             e.stopPropagation();
-            onHoverRow(n.id);
+            if (dropRow?.id !== n.id || dropRow.mode !== mode) onHoverRow({ id: n.id, mode });
           }}
           onDragLeave={() => onHoverRow(null)}
           onDrop={(e) => {
+            const mode = thirdOf(e);
             e.preventDefault();
             e.stopPropagation();
-            onRowDrop(n.id);
+            onRowDrop(n.id, mode);
           }}
-          style={{ justifyContent: "flex-start", flex: 1 }}
+          style={{
+            justifyContent: "flex-start",
+            flex: 1,
+            // The between-rows line: drawn on the row itself, so it cannot drift from the
+            // row it names the way a separately positioned overlay could.
+            ...(dropRow?.id === n.id && dropRow.mode !== "into"
+              ? { boxShadow: `inset 0 ${dropRow.mode === "before" ? "" : "-"}2px 0 0 ${SEL_COLOR}` }
+              : {}),
+          }}
         >
           {label}
         </Button>
