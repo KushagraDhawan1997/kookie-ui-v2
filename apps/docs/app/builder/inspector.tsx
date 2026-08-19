@@ -159,7 +159,10 @@ function PropControl({
   name: string;
   schema: PropSchema;
   value: PropValue | undefined;
-  onChange: (next: PropValue | undefined) => void;
+  /** `continuous` marks a value being TYPED — a run of keystrokes that is one gesture and
+      belongs in one undo entry. A pick from a closed list is not continuous: choosing size 2
+      and then size 3 is two decisions, and each should be its own step back. */
+  onChange: (next: PropValue | undefined, continuous?: boolean) => void;
 }) {
   if (schema.kind === "axis" || schema.kind === "options") {
     const values = schema.kind === "axis" ? componentAxes[schema.axis] : schema.values;
@@ -215,7 +218,7 @@ function PropControl({
           value={value === undefined ? "" : String(value)}
           onChange={(e) => {
             const raw = e.target.value;
-            onChange(raw === "" ? undefined : Number(raw));
+            onChange(raw === "" ? undefined : Number(raw), true);
           }}
         />
       </Flex>
@@ -230,7 +233,7 @@ function PropControl({
         size="1"
         aria-label={name}
         value={typeof value === "string" ? value : ""}
-        onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
+        onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value, true)}
       />
     </Stack>
   );
@@ -458,7 +461,7 @@ export function Inspector({
   textRef,
 }: {
   node: BuilderNode;
-  onProp: (key: string, next: PropValue | undefined) => void;
+  onProp: (key: string, next: PropValue | undefined, continuous?: boolean) => void;
   onText: (next: string) => void;
   /** Seat a component in a named slot, or clear it (§4's adornments). */
   onSlot: (slot: "leading" | "trailing", type: string | null) => void;
@@ -516,7 +519,7 @@ export function Inspector({
                 name={name}
                 schema={entry.props[name]!}
                 value={node.props[name]}
-                onChange={(next) => onProp(name, next)}
+                onChange={(next, continuous) => onProp(name, next, continuous)}
               />
               {entry.props[name]!.note ? (
                 <Text size="1" emphasis="quiet">
