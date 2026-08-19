@@ -10,7 +10,19 @@
  * into the exported code, and the round-trip law is what proves that.
  */
 
-import { themeDefaults, type ThemeProps } from "@kookie-ui/react";
+import { themeDefaults, tierNames, type ThemeProps } from "@kookie-ui/react";
+
+/** The tier vocabulary a responsive value may speak, DERIVED from the package's own table
+    (2026-08-19): `initial` plus the container tiers, in resolution order. The serializer
+    emits overrides in this order, and refuses any key outside it. */
+export const TIER_KEYS = ["initial", ...tierNames] as const;
+export type TierKey = (typeof TIER_KEYS)[number];
+
+/** A per-tier value — the package's own `Responsive<string>` object arm. Every tier's
+    value is still a pick from the same closed list; responsiveness multiplies WHERE a
+    token applies, never what a value may be. */
+export type ResponsiveValue = Partial<Record<TierKey, string>>;
+export type PropValue = string | number | boolean | ResponsiveValue;
 
 export type BuilderNode = {
   /** Editor identity. Never serialized. */
@@ -19,7 +31,7 @@ export type BuilderNode = {
   type: string;
   /** Only props the user has stated. Absent means the component's own default — the
       serializer emits nothing, so the exported code says only what was decided. */
-  props: Record<string, string | number | boolean>;
+  props: Record<string, PropValue>;
   /** Text content, for entries whose children mode is "text". */
   text?: string;
   /** Child nodes, for entries whose children mode allows nodes. */
@@ -62,7 +74,7 @@ export const nextId = (): string => `b${++counter}`;
 
 export const node = (
   type: string,
-  props: Record<string, string | number | boolean> = {},
+  props: Record<string, PropValue> = {},
   extra?: { text?: string; children?: BuilderNode[] },
 ): BuilderNode => ({
   id: nextId(),
@@ -168,7 +180,7 @@ export const removeNode = (roots: BuilderNode[], id: string): BuilderNode[] => {
 export const updateProps = (
   roots: BuilderNode[],
   id: string,
-  patch: Record<string, string | number | boolean | undefined>,
+  patch: Record<string, PropValue | undefined>,
 ): BuilderNode[] =>
   mapTree(roots, (n) => {
     if (n.id !== id) return n;

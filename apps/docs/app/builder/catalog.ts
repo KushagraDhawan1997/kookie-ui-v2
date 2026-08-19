@@ -28,14 +28,17 @@ import { node, type BuilderNode } from "./model";
 
 export type PropSchema =
   /** A closed union the package exports. The inspector derives its options; `optional`
-      means unset is meaningful (the component's own default) and gets an explicit choice. */
-  | { kind: "axis"; axis: keyof typeof componentAxes; optional?: boolean }
+      means unset is meaningful (the component's own default) and gets an explicit choice.
+      `responsive` marks the curated layout props that take the package's per-tier object —
+      each tier's value is still a pick from the same closed list. `note` is one quiet
+      sentence the inspector shows under the control, for props that carry a trap. */
+  | { kind: "axis"; axis: keyof typeof componentAxes; optional?: boolean; responsive?: boolean; note?: string }
   /** A designed literal vocabulary the package types as a raw string on purpose. */
-  | { kind: "options"; values: readonly string[]; labels?: Record<string, string>; optional?: boolean }
-  | { kind: "boolean" }
+  | { kind: "options"; values: readonly string[]; labels?: Record<string, string>; optional?: boolean; responsive?: boolean; note?: string }
+  | { kind: "boolean"; note?: string }
   /** Content, not styling: labels, placeholders, values. The one free-text door. */
-  | { kind: "text" }
-  | { kind: "number"; min?: number; max?: number };
+  | { kind: "text"; note?: string }
+  | { kind: "number"; min?: number; max?: number; note?: string };
 
 export type ChildrenMode = "none" | "text" | "any" | { only: readonly string[] };
 
@@ -66,7 +69,9 @@ const tone: PropSchema = { kind: "axis", axis: "tone", optional: true };
 const emphasis: PropSchema = { kind: "axis", axis: "emphasis", optional: true };
 const typeSize: PropSchema = { kind: "axis", axis: "typeSize", optional: true };
 const weight: PropSchema = { kind: "axis", axis: "weight", optional: true };
-const space: PropSchema = { kind: "axis", axis: "space", optional: true };
+/** Layout distances are responsive: the package's curated props all take per-tier values,
+    and these are the ones the builder models. */
+const space: PropSchema = { kind: "axis", axis: "space", optional: true, responsive: true };
 const bool: PropSchema = { kind: "boolean" };
 const text: PropSchema = { kind: "text" };
 
@@ -89,7 +94,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Stack: {
     family: "Layout",
     blurb: "A column of things with one stated gap.",
-    props: { gap: space, align: { kind: "options", values: ALIGN, optional: true }, justify: { kind: "options", values: JUSTIFY, optional: true }, p: space },
+    props: { gap: space, align: { kind: "options", values: ALIGN, optional: true, responsive: true }, justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true }, p: space },
     children: "any",
     make: () => node("Stack", { gap: "3" }, { children: [] }),
   },
@@ -98,10 +103,10 @@ export const CATALOG: Record<string, CatalogEntry> = {
     blurb: "A row (or column) with the flex vocabulary, distances through tokens.",
     props: {
       gap: space,
-      direction: { kind: "options", values: ["row", "column"], optional: true },
-      align: { kind: "options", values: ALIGN, optional: true },
-      justify: { kind: "options", values: JUSTIFY, optional: true },
-      wrap: { kind: "options", values: ["wrap", "nowrap"], optional: true },
+      direction: { kind: "options", values: ["row", "column"], optional: true, responsive: true },
+      align: { kind: "options", values: ALIGN, optional: true, responsive: true },
+      justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true },
+      wrap: { kind: "options", values: ["wrap", "nowrap"], optional: true, responsive: true },
       p: space,
     },
     children: "any",
@@ -110,14 +115,27 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Grid: {
     family: "Layout",
     blurb: "Equal columns with token gaps.",
-    props: { columns: { kind: "options", values: COLUMN_VALUES, labels: COLUMN_LABELS, optional: true }, gap: space, p: space },
+    props: { columns: { kind: "options", values: COLUMN_VALUES, labels: COLUMN_LABELS, optional: true, responsive: true }, gap: space, p: space },
     children: "any",
     make: () => node("Grid", { columns: gridColumns(2), gap: "3" }, { children: [] }),
   },
   Box: {
     family: "Layout",
     blurb: "Token padding and margin around whatever it holds — the one sanctioned outer-spacing escape.",
-    props: { p: space, px: space, py: space, m: space, mx: space, my: space, backdrop: bool },
+    props: {
+      p: space,
+      px: space,
+      py: space,
+      m: space,
+      mx: space,
+      my: space,
+      container: {
+        kind: "boolean",
+        note:
+          "Makes THIS box the region per-tier values inside it measure. Mark boxes layout already sizes — a sidebar with a width, a grid cell, a growing column. A container left to shrink-wrap renders 0px wide (the recorded §2 defect that made containment opt-in).",
+      },
+      backdrop: bool,
+    },
     children: "any",
     make: () => node("Box", { p: "4" }, { children: [] }),
   },

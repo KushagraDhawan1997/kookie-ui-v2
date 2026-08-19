@@ -14,6 +14,8 @@
 import * as React from "react";
 
 import {
+  Box,
+  Button,
   Flex,
   Select,
   SelectContent,
@@ -31,7 +33,7 @@ import {
 import { ENTRIES } from "../(site)/components/registry";
 
 import { CATALOG, type PropSchema } from "./catalog";
-import type { BuilderNode, DocTheme } from "./model";
+import { TIER_KEYS, type BuilderNode, type DocTheme, type PropValue, type ResponsiveValue } from "./model";
 
 const REFUSALS = new Map(ENTRIES.map((e) => [e.name, e.refusals]));
 
@@ -89,17 +91,30 @@ function PropControl({
 }: {
   name: string;
   schema: PropSchema;
-  value: string | number | boolean | undefined;
-  onChange: (next: string | number | boolean | undefined) => void;
+  value: PropValue | undefined;
+  onChange: (next: PropValue | undefined) => void;
 }) {
   if (schema.kind === "axis" || schema.kind === "options") {
     const values = schema.kind === "axis" ? componentAxes[schema.axis] : schema.values;
+    const labels = schema.kind === "options" ? schema.labels : undefined;
+    if (schema.responsive) {
+      return (
+        <ResponsiveControl
+          name={name}
+          values={values}
+          {...(labels ? { labels } : {})}
+          optional={schema.optional ?? false}
+          value={value}
+          onChange={onChange}
+        />
+      );
+    }
     return (
       <PickRow
         label={name}
         value={typeof value === "string" ? value : undefined}
         values={values}
-        {...(schema.kind === "options" && schema.labels ? { labels: schema.labels } : {})}
+        {...(labels ? { labels } : {})}
         optional={schema.optional ?? false}
         onPick={onChange}
       />
@@ -154,13 +169,96 @@ function PropControl({
   );
 }
 
+/**
+ * A responsive prop: the base (`initial`) picker, one indented picker per stated override
+ * tier, and quiet + chips for the tiers not yet stated. Adding a tier copies the current
+ * base so the override is visible immediately; unsetting a tier removes it; when no
+ * overrides remain the value collapses back to a plain string. Each tier's picker is the
+ * SAME closed list — responsiveness multiplies where a token applies, never what a value
+ * may be.
+ */
+function ResponsiveControl({
+  name,
+  values,
+  labels,
+  optional,
+  value,
+  onChange,
+}: {
+  name: string;
+  values: readonly string[];
+  labels?: Record<string, string>;
+  optional: boolean;
+  value: PropValue | undefined;
+  onChange: (next: PropValue | undefined) => void;
+}) {
+  const resp: ResponsiveValue = typeof value === "object" && value !== null ? value : {};
+  const base = typeof value === "string" ? value : resp.initial;
+  const overrideTiers = TIER_KEYS.filter((t) => t !== "initial");
+  const stated = overrideTiers.filter((t) => resp[t] !== undefined);
+  const unstated = overrideTiers.filter((t) => resp[t] === undefined);
+
+  const write = (nextBase: string | undefined, overrides: ResponsiveValue) => {
+    const tiers = Object.keys(overrides).filter((t) => t !== "initial");
+    if (tiers.length === 0) return onChange(nextBase);
+    const next: ResponsiveValue = {};
+    if (nextBase !== undefined) next.initial = nextBase;
+    for (const t of overrideTiers) if (overrides[t] !== undefined) next[t] = overrides[t];
+    onChange(next);
+  };
+
+  return (
+    <Stack gap="1">
+      <PickRow
+        label={name}
+        value={base}
+        values={values}
+        {...(labels ? { labels } : {})}
+        optional={optional}
+        onPick={(v) => write(v, resp)}
+      />
+      {stated.map((tier) => (
+        <Box key={tier} pl="4">
+          <PickRow
+            label={`@ ${tier}`}
+            value={resp[tier]}
+            values={values}
+            {...(labels ? { labels } : {})}
+            optional
+            onPick={(v) => {
+              const next = { ...resp };
+              if (v === undefined) delete next[tier];
+              else next[tier] = v;
+              write(base, next);
+            }}
+          />
+        </Box>
+      ))}
+      {unstated.length ? (
+        <Flex gap="1" justify="flex-end">
+          {unstated.map((tier) => (
+            <Button
+              key={tier}
+              size="1"
+              emphasis="quiet"
+              onClick={() => write(base, { ...resp, [tier]: base ?? values[0]! })}
+            >
+              + {tier}
+            </Button>
+          ))}
+        </Flex>
+      ) : null}
+    </Stack>
+  );
+}
+
 export function Inspector({
   node,
   onProp,
   onText,
 }: {
   node: BuilderNode;
-  onProp: (key: string, next: string | number | boolean | undefined) => void;
+  onProp: (key: string, next: PropValue | undefined) => void;
   onText: (next: string) => void;
 }) {
   const entry = CATALOG[node.type];
@@ -190,13 +288,19 @@ export function Inspector({
       {propNames.length ? (
         <Stack gap="2">
           {propNames.map((name) => (
-            <PropControl
-              key={name}
-              name={name}
-              schema={entry.props[name]!}
-              value={node.props[name]}
-              onChange={(next) => onProp(name, next)}
-            />
+            <Stack key={name} gap="1">
+              <PropControl
+                name={name}
+                schema={entry.props[name]!}
+                value={node.props[name]}
+                onChange={(next) => onProp(name, next)}
+              />
+              {entry.props[name]!.note ? (
+                <Text size="1" emphasis="quiet">
+                  {entry.props[name]!.note}
+                </Text>
+              ) : null}
+            </Stack>
           ))}
         </Stack>
       ) : (
