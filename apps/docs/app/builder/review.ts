@@ -82,6 +82,16 @@ const surfaceOf = (parents: BuilderNode[]): BuilderNode | null => {
   return null;
 };
 
+/** Which way a layout lays its children out. A Stack is a column by construction; a Flex is
+    a row unless it says otherwise, and a per-tier `direction` is read at its base — the
+    canvas shows one tier at a time, and that is the tier the eye is judging. */
+const axisOf = (n: BuilderNode): "row" | "column" => {
+  if (n.type === "Stack") return "column";
+  const direction = n.props.direction;
+  const base = typeof direction === "object" && direction !== null ? direction.initial : direction;
+  return base === "column" ? "column" : "row";
+};
+
 const label = (n: BuilderNode): string => (n.text?.trim() ? `“${n.text.trim().slice(0, 24)}”` : n.type);
 
 export const RULES: Rule[] = [
@@ -203,10 +213,17 @@ export const RULES: Rule[] = [
     title: "A layout around one thing is not a layout",
     severity: "warning",
     why:
-      "Gap needs two things to sit between. A Stack holding one child states a rhythm nothing rides, and every prop on it is a value the export carries for nothing.",
+      "Gap needs two things to sit between, so a layout holding one child whose only word is `gap` states a rhythm nothing rides. A layout that also ALIGNS, JUSTIFIES or PADS is doing real work with one child — right-aligning a lone Save button is a composition, not an accident — and is left alone.",
     run: ({ all }) =>
       all
-        .filter(({ node }) => ["Stack", "Flex", "Grid"].includes(node.type) && (node.children?.length ?? 0) === 1)
+        .filter(({ node }) => {
+          if (!["Stack", "Flex", "Grid"].includes(node.type)) return false;
+          if ((node.children?.length ?? 0) !== 1) return false;
+          // The refinement the templates forced: `gap` is the only prop a single child makes
+          // inert. Anything else on the box is the box earning its place.
+          const stated = Object.keys(node.props).filter((k) => k !== "gap");
+          return stated.length === 0;
+        })
         .map(({ node }) => ({
           id: `single:${node.id}`,
           rule: "A layout around one thing is not a layout",
@@ -222,7 +239,7 @@ export const RULES: Rule[] = [
     title: "Distance is relationship",
     severity: "warning",
     why:
-      "Things that belong together sit closer than things that do not, and the two distances must differ by at least two steps or the eye reads one undifferentiated column (§15, proximity).",
+      "Things that belong together sit closer than things that do not, and the two distances must differ by at least two steps or the eye reads one undifferentiated column (§15, proximity). Only distances on the SAME axis compete: a row's internal gap and the column rhythm around it are not measured against each other by any eye.",
     run: ({ all }) => {
       const out: Finding[] = [];
       for (const { node } of all) {
@@ -231,6 +248,9 @@ export const RULES: Rule[] = [
         if (!outer) continue;
         for (const child of node.children ?? []) {
           if (!["Stack", "Flex"].includes(child.type)) continue;
+          // Same axis or nothing: the rule fired on a row inside a column while writing the
+          // templates, which is the rule being wrong rather than the template.
+          if (axisOf(node) !== axisOf(child)) continue;
           const inner = str(child.props.gap);
           if (!inner) continue;
           const step = Number(outer) - Number(inner);

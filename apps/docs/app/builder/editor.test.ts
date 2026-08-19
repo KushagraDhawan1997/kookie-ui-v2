@@ -10,7 +10,7 @@
 
 import { describe, expect, it, beforeEach } from "vitest";
 
-import { CATALOG } from "./catalog";
+import { CATALOG, canContain as canContainForTest } from "./catalog";
 import {
   COMMANDS,
   chordLabel,
@@ -24,6 +24,8 @@ import {
 import { CONTEXT_COMMANDS } from "./chrome";
 import { findNode, node, type BuilderNode } from "./model";
 import { canUnwrap, canWrap, insertionTarget } from "./placement";
+import { TEMPLATES, templateDoc } from "./templates";
+import { serializeDocument } from "./serialize";
 import { RULES, reviewDocument } from "./review";
 import {
   activeDoc,
@@ -422,6 +424,54 @@ describe("review reads the house style off the document", () => {
     }
     expect(RULES.length).toBeGreaterThanOrEqual(8);
     expect(Object.keys(CATALOG).length).toBeGreaterThan(20);
+  });
+});
+
+/* ── Templates ─────────────────────────────────────────────────────────────────────────── */
+
+describe("a template is the brief demonstrated, not decoration", () => {
+  it("every template raises NOTHING in review", () => {
+    // The property that makes templates worth shipping: this editor can check its own house
+    // style, so the screens it hands you must hold to it. If the brief's rules change, these
+    // fail here until the templates follow.
+    for (const template of TEMPLATES) {
+      const findings = reviewDocument(templateDoc(template));
+      expect(
+        findings.map((f) => `${f.rule}: ${f.message}`),
+        `${template.name} does not hold to the house style it is meant to demonstrate`,
+      ).toEqual([]);
+    }
+  });
+
+  it("every template serializes to code without throwing", () => {
+    for (const template of TEMPLATES) {
+      expect(() => serializeDocument(templateDoc(template)), `${template.name} cannot be exported`).not.toThrow();
+    }
+  });
+
+  it("every template's blurb is a real sentence, and its ids are stable", () => {
+    for (const template of TEMPLATES) {
+      expect(template.blurb.length, `${template.name}'s blurb says nothing`).toBeGreaterThan(20);
+      const once = templateDoc(template);
+      const twice = templateDoc(template);
+      expect(JSON.stringify(once.roots)).toBe(JSON.stringify(twice.roots));
+    }
+  });
+
+  it("templates speak the grammar — every node is placeable where it stands", () => {
+    const check = (list: BuilderNode[], parentType: string | null, chain: string[]) => {
+      for (const n of list) {
+        expect(CATALOG[n.type], `a template places "${n.type}", which is not in the catalog`).toBeDefined();
+        if (parentType) {
+          expect(
+            canContainForTest(parentType, n.type, chain),
+            `a template places a ${n.type} inside a ${parentType}, which the grammar refuses`,
+          ).toBe(true);
+        }
+        check(n.children ?? [], n.type, [...chain, n.type]);
+      }
+    };
+    for (const template of TEMPLATES) check(templateDoc(template).roots, null, []);
   });
 });
 
