@@ -73,4 +73,9 @@ export const componentAxes = {
   weight: Object.keys(fontWeight) as (keyof typeof fontWeight)[],
   typeSize: fontSize.map((_, i) => String(i + 1)),
   space: space.map((_, i) => String(i + 1)),
+  /** The space scale plus its one named value (§3, 2026-08-20). A margin is the only distance
+      that may go negative, so `bleed` — cancel the enclosing surface's padding, and reach the
+      pane's edge — is offerable there and nowhere else. Derived from `space`, never a second
+      copy of the index list. */
+  marginSpace: [...space.map((_, i) => String(i + 1)), "bleed"],
 } as const;

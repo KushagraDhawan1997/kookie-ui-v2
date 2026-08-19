@@ -193,6 +193,11 @@ export const ENTRIES: Entry[] = [
       "The layout engine every other primitive is typed sugar over. It accepts the full curated prop set — spacing, sizing, display, container props — each resolving through tokens, each responsive via container tiers rather than utility classes.",
     axes: [
       { name: "p / m / px / py …", values: "layout space steps", note: "the density-aware layer, never the raw palette" },
+      {
+        name: "m / mx / mt … = \"bleed\"",
+        values: "the one named value on the space scale",
+        note: "cancels the enclosing surface's padding, so this box reaches the pane's edge — a picture across the top of a card is `mt=\"bleed\" mx=\"bleed\"` (§3, 2026-08-20). Margins only: padding and gap reject a negative length. It reads the NEAREST surface, and outside one it computes a real zero rather than a pull",
+      },
       { name: "any prop", values: "value | { initial, sm, md, lg }", note: "container-query tiers, compiled to variable remaps" },
       {
         name: "container",
@@ -209,6 +214,10 @@ export const ENTRIES: Entry[] = [
       {
         name: "utility classes",
         why: "Values ride inline custom properties into fixed arbitration rules, so tokens and raw strings cost the same and the stylesheet never grows with the value set.",
+      },
+      {
+        name: "a `bleed` prop",
+        why: "It is a VALUE on the margin rows, not a prop of its own — which is the whole economy of it. Every per-side and per-tier spelling already exists there, so `bleed`/`bleedX`/`bleedTop` would have meant seven new rows, twenty-eight property registrations, and a second mechanism writing `margin` for the existing var chain to arbitrate against.",
       },
       {
         name: "containment by default",
@@ -275,6 +284,10 @@ export const ENTRIES: Entry[] = [
       {
         name: "tone, emphasis, bordered",
         why: "A card ranks nothing against its siblings. Its edge is light, not a rung — and since 2026-08-17 not a hairline either.",
+      },
+      {
+        name: "a media / cover slot",
+        why: "The corner is a shape, so a pane clips what it holds (2026-08-20), and a child states that it reaches the edge with `<Box mt=\"bleed\" mx=\"bleed\">`. That is the layout every peer solved with a part of its own — Mantine's Card.Section, MUI's CardMedia, Ant's cover — and it needs no anatomy here: the picture is a child that cancels the padding, not a region the card has to know about. An element that must hang OFF the corner escapes with `style={{ overflow: \"visible\" }}`.",
       },
       {
         name: "header / footer slots",

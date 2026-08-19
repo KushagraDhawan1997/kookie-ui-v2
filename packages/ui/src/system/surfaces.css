@@ -99,6 +99,32 @@
      to read as the same corner. */
   border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
   padding: var(--kui-sf-p);
+  /* A pane's corner is its SHAPE, so what it holds obeys it (2026-08-20). Without this a
+     surface drew a rounded — since 2026-08-17, a squircled — boundary that nothing was made
+     to respect: a picture reaching the edge squared off the corner it sat in, and the pane
+     stopped reading as one object. Every peer clips (Mantine, MUI, Ant, Chakra); this system
+     did not, and had never decided not to. It is the other half of `bleed` (§3): the moment
+     a child is allowed to reach the edge, the edge has to be able to hold it.
+
+     `clip` and not `hidden`, for the reason written at length down in the flight rules: a
+     `hidden` box is a SCROLL CONTAINER — scrollable by script and by the browser's own
+     scroll-into-view, just without a scrollbar — which is how a select's panel came to slide
+     its own contents under a growing frame. `clip` is not a scroll container at all, so it
+     takes no offset and unwinds none, and it leaves a sticky child inside a card sticking to
+     the real scrollport rather than to a box that cannot scroll. Those two flight rules used
+     to state this themselves; the fact has one home now.
+
+     What it costs: an element that deliberately hangs off a pane's corner — a badge, an
+     avatar overlapping the edge — cannot, and the escape is `style={{ overflow: "visible" }}`
+     at the call site, where opting out of the shape is visible in review.
+
+     What it OBLIGES: a clipping pane must pad at least the focus ring's reach, or a control
+     resting against the inside of the padding loses the outer edge of its ring. The surface
+     band clears it everywhere (the tightest cell is compact size 1 at 8px against a 4px
+     reach) and the menu's panel did not — which is why --kui-menu-pad is a max() against the
+     ring's own tokens rather than a number, and why that floor is stated where the padding
+     is chosen rather than here. Law-checked across every size × density. */
+  overflow: clip;
 }
 
 /* ── Continuous curvature (§6, ported from the material lab 2026-08-16) ──────────────────
@@ -1058,8 +1084,10 @@
    family's designed seed, and starts at x=0 — the positioner is already holding its start
    edge at the final place, so it simply grows out of the seam. v0. */
 
-/* While the box is deliberately smaller than what it holds, it clips. `overflow-y: auto`
-   computes the OTHER axis to `auto` too, so an unclipped flight is two live scrollbars.
+/* While the box is deliberately smaller than what it holds, it clips — the base `.kui-surface`
+   rule carries that now (2026-08-20, the corner is a shape), so this block only states the
+   flight's own facts. The argument stays here because this is where it was won. `overflow-y:
+   auto` computes the OTHER axis to `auto` too, so an unclipped flight is two live scrollbars.
 
    `clip` and not `hidden`, and the difference is the whole point (2026-08-17, Kushagra:
    *"Select still jumps"*). `hidden` is a SCROLL CONTAINER — scrollable by script and by the
@@ -1077,6 +1105,11 @@
    two are load-bearing together: with `clip` and no hold the page keeps 65px; with `hidden`
    and the hold the page is still but the contents slide. */
 .kui-surface.kui-floating[data-unfurling] {
+  /* RESTATED, and it is not redundant with the base rule (2026-08-20): a select's panel is the
+     one floating member that scrolls itself, so select.css declares `overflow-y: auto` on this
+     same element and beats the base rule on source order. For the flight the box must not be a
+     scroll container at all — that is the entire finding above — so the flight says so where it
+     can win. Deleting this line was tried and put the jump straight back. */
   overflow: clip;
   /* And the width FLOOR is stood down for the whole flight, not just the seed frame —
      which is the bug that made every menu look wrong (Kushagra, playground: *"it starts at a
@@ -1346,13 +1379,13 @@
 }
 /* The flight arrangement: for as long as the entry drives the box, the panel is its
    MEASURED size (the entry writes `--kui-fly-w/h` at open — system/floating's runner measures its own
-   natural box, the floating machinery's mechanism without its anchor) and it clips, because
-   a box deliberately smaller than what it holds must not scroll or spill. Removed at
-   release, so a settled dialog sizes itself again. */
+   natural box, the floating machinery's mechanism without its anchor). A box deliberately
+   smaller than what it holds must not scroll or spill, and the clipping that guarantees it is
+   the base surface rule's since 2026-08-20. Removed at release, so a settled dialog sizes
+   itself again. */
 .kui-surface.kui-alert-popup[data-unfurling] {
   inline-size: var(--kui-fly-w, auto);
   block-size: var(--kui-fly-h, auto);
-  overflow: clip;
 }
 /* The body LEAVES THE FLOW for the flight (the floating body's own mechanism): in flow,
    the growing box and its morphing padding PUSH the content every frame — measured as the

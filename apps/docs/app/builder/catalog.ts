@@ -75,6 +75,11 @@ const weight: PropSchema = { kind: "axis", axis: "weight", optional: true };
 /** Layout distances are responsive: the package's curated props all take per-tier values,
     and these are the ones the builder models. */
 const space: PropSchema = { kind: "axis", axis: "space", optional: true, responsive: true };
+/** Margins take one value padding cannot: `bleed` cancels the enclosing surface's padding, so
+    a child reaches the pane's edge — a picture across the top of a card (§3, 2026-08-20). It is
+    a separate schema and not a widened `space` because offering it on `p` would be offering a
+    negative padding, which CSS rejects outright. */
+const marginSpace: PropSchema = { kind: "axis", axis: "marginSpace", optional: true, responsive: true };
 const bool: PropSchema = { kind: "boolean" };
 const text: PropSchema = { kind: "text" };
 
@@ -171,9 +176,9 @@ export const CATALOG: Record<string, CatalogEntry> = {
       p: space,
       px: space,
       py: space,
-      m: space,
-      mx: space,
-      my: space,
+      m: marginSpace,
+      mx: marginSpace,
+      my: marginSpace,
       container: {
         kind: "boolean",
         note:

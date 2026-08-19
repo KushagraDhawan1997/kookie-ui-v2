@@ -1344,3 +1344,118 @@ describe("contrast=high reaches a GLASS pane — pigment replaces the ring (§7,
     expect(getComputedStyle(high, "::after").opacity, "the ring must yield to pigment").toBe("0");
   });
 });
+
+/**
+ * The corner is a SHAPE, and `bleed` is the child's half of it (§3, §10, 2026-08-20).
+ *
+ * These two shipped together on purpose and neither is complete alone: without clipping a
+ * picture reaching the edge squares off the corner it sits in, and without `bleed` nothing
+ * can reach the edge in the first place — the padding lives on the surface, margin only took
+ * scale indexes, and no arithmetic in the system could subtract one from the other. It was
+ * the one ordinary card layout this library could not build.
+ */
+describe("a pane holds what it contains, and a child may reach its edge (§3, §10, 2026-08-20)", () => {
+  it("every surface clips, and clips rather than hides", () => {
+    // `hidden` would pass a naive "does it clip" law and be wrong in the way that matters: a
+    // hidden box is a scroll container, which is how a select's panel came to slide its own
+    // contents under a growing frame (2026-08-17). The keyword is the assertion.
+    expect(computed(render(<Card>Body</Card>), "overflow")).toBe("clip");
+  });
+
+  it("a bled child sits exactly on the pane's inner edge, at every size", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const card = mounted(
+        <Card size={size}>
+          <Box mt="bleed" mx="bleed" data-testid="bled">
+            Picture
+          </Box>
+        </Card>,
+        { theme: {}, select: ".kui-card" },
+      );
+      const pane = card.getBoundingClientRect();
+      const bled = within(card, "[data-testid='bled']").getBoundingClientRect();
+      // The inner edge is the PADDING box — a bleed cancels padding, never the border, so the
+      // hairline contrast="high" restores still draws around the picture rather than under it.
+      const border = parseFloat(computed(card, "border-top-width"));
+      expect(bled.left - pane.left, `size ${size}: the inline start edge`).toBeCloseTo(border, 1);
+      expect(pane.right - bled.right, `size ${size}: the inline end edge`).toBeCloseTo(border, 1);
+      expect(bled.top - pane.top, `size ${size}: the block start edge`).toBeCloseTo(border, 1);
+      // …and the pane still pads, which is what makes the negative margin a real cancellation
+      // rather than a card that never padded. Falsified by deleting `padding` from the base
+      // rule: the bleed then pulls the child OUT of the pane and this line is what catches it.
+      expect(parseFloat(computed(card, "padding-top"))).toBeGreaterThan(0);
+    }
+  });
+
+  it("an unbled sibling is untouched — the child states this, the card never does", () => {
+    const card = mounted(
+      <Card size="3">
+        <Box data-testid="plain">Body</Box>
+      </Card>,
+      { theme: {}, select: ".kui-card" },
+    );
+    const pane = card.getBoundingClientRect();
+    const plain = within(card, "[data-testid='plain']").getBoundingClientRect();
+    const inset = parseFloat(computed(card, "padding-left")) + parseFloat(computed(card, "border-left-width"));
+    expect(plain.left - pane.left).toBeCloseTo(inset, 1);
+  });
+
+  it("outside any surface it computes a real zero, never a pull", () => {
+    // The `0px` fallback, measured. Written bare — `calc(-1 * var(--kui-sf-p))` — the
+    // declaration goes invalid at computed-value time and margin resets to its initial value,
+    // which happens to be 0 too; this law cannot tell those apart and does not try. What it
+    // forbids is the third outcome: a box that pulls itself sideways by some inherited number.
+    const loose = mounted(<Box mx="bleed">Body</Box>, { theme: {}, select: ".kui-box" });
+    expect(computed(loose, "margin-left")).toBe("0px");
+    expect(computed(loose, "margin-right")).toBe("0px");
+  });
+
+  it("the NEAREST surface wins — a card inside a dialog bleeds to the card", () => {
+    // --kui-sf-p is deliberately not registered `inherits: false`, which is the whole delivery
+    // mechanism; the risk that buys is a child reading a pane it is not touching. It reads the
+    // closest one, so nesting behaves: the outer pane's padding is a larger number, and taking
+    // it would tear the inner child clean out of its own card.
+    const outer = mounted(
+      <Card size="4">
+        <Card size="1" data-testid="inner">
+          <Box mx="bleed" data-testid="bled">Row</Box>
+        </Card>
+      </Card>,
+      { theme: {}, select: ".kui-card" },
+    );
+    const inner = within(outer, "[data-testid='inner']");
+    const bled = within(outer, "[data-testid='bled']").getBoundingClientRect();
+    const innerBox = inner.getBoundingClientRect();
+    const border = parseFloat(computed(inner, "border-left-width"));
+    expect(bled.left - innerBox.left).toBeCloseTo(border, 1);
+    // …and the two paddings really do differ, or the assertion above is a coincidence.
+    expect(parseFloat(computed(outer, "padding-left"))).toBeGreaterThan(
+      parseFloat(computed(inner, "padding-left")),
+    );
+  });
+
+  it("a clipping pane clears the focus ring in every cell it pads", () => {
+    // The obligation clipping creates, checked where it is tightest. A control resting against
+    // the inside of the padding paints its ring OUTSIDE its own border box; if the pane's
+    // padding is shorter than that reach, the clip takes the ring's outer edge. The menu's
+    // panel hit this in 2026-08-09 and answers it with a max() against these same tokens; the
+    // surface band clears it outright, and this law is what keeps that true through a re-tune
+    // of either the ring or the padding picks.
+    for (const density of ["compact", "default", "comfortable"] as const) {
+      for (const size of ["1", "2", "3", "4"] as const) {
+        const card = mounted(<Card size={size}>Body</Card>, {
+          theme: { density },
+          select: ".kui-card",
+        });
+        const reach =
+          parseFloat(lengthOn(card, "--focus-ring-width")) +
+          parseFloat(lengthOn(card, "--focus-ring-offset"));
+        expect(reach, "the ring must actually reach past a control's box").toBeGreaterThan(0);
+        expect(
+          parseFloat(computed(card, "padding-top")),
+          `${density}/${size}: the clip would cut a child's ring`,
+        ).toBeGreaterThanOrEqual(reach);
+      }
+    }
+  });
+});

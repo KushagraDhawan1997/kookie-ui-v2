@@ -22,10 +22,15 @@
      list inside it moves, and the overlay thumb replaces the browser gutter that used to
      cut through the pane. The popup keeps the positioner's bounds as the hard stop (the
      width half is §22, audit 2026-08-09) and clips; the viewport re-derives the height
-     bound below, minus the popup's own border, so the two agree by arithmetic. */
+     bound below, minus the popup's own border, so the two agree by arithmetic.
+
+     The clipping itself is the base surface rule's since 2026-08-20 — a pane holds what it
+     contains — and this rule's own `overflow: hidden` is deleted rather than kept: `hidden`
+     is a scroll container, `clip` is not, and this panel wants the second one. It said the
+     right word in prose and the wrong one in CSS for three days, which cost nothing only
+     because the flight rule was overriding it for the frames where it would have shown. */
   max-height: var(--available-height, none);
   max-width: var(--available-width, none);
-  overflow: hidden;
   /* The physical padding moves onto the VIEWPORT (below): the viewport is the new scroll
      container, and a scroll container clips descendant ink at its padding box — so the
      ring clearance this panel solved on 2026-08-09 has to live wherever the clipping

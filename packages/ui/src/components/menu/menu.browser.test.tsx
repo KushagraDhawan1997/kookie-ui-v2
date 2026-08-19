@@ -2607,7 +2607,13 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // ScrollArea viewport now, so the popup's clip is permanent — it is the pane's own
     // boundary, not a state of the flight. What the release must restore is the viewport's
     // ability to scroll, which is the claim that replaces this one.
-    expect(computed(popup, "overflow-y")).toBe("hidden");
+    //
+    // `clip` since 2026-08-20, and the word is the point. This line asserted `hidden` while
+    // the sentence above it said "clip is permanent" — menu.css had the same split, saying
+    // "clips" in prose and `overflow: hidden` in CSS. A hidden box is a scroll container; the
+    // pane wants a boundary, not a scrollport it never uses. The declaration is deleted and
+    // the base surface rule carries it, which is why this now reads through from the pane.
+    expect(computed(popup, "overflow-y")).toBe("clip");
     // `scroll`, not `auto`: Base UI's viewport asks for a permanent scrollport so its own
     // measurements do not change the box they measure, and the custom bar replaces the one
     // that would otherwise always show (scrollbar-width: none, scroll-area.css).

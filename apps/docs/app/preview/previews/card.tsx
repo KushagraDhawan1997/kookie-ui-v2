@@ -84,6 +84,39 @@ function Sizes() {
         ))}
       </Flex>
     </Demo>
+    {/* The card layout this system could not build until 2026-08-20, at every size — the
+        picture reaching the edge while the padding under it still moves with the index.
+        Two halves, and neither works alone: a pane clips what it holds (the corner is a
+        SHAPE, so the picture takes it), and a child says it reaches the edge with `bleed`
+        on the margin rows it already had. No slot, no media part, nothing added to Card. */}
+    <Demo label="A picture reaching the edge — `mt=&quot;bleed&quot; mx=&quot;bleed&quot;` on a child, at every size">
+      <Flex gap="5" wrap="wrap" align="flex-start">
+        {SIZES.map((size) => (
+          <Box key={size} width="15rem">
+            <Card size={size}>
+              <Stack gap="3">
+                <Box
+                  mt="bleed"
+                  mx="bleed"
+                  height="7rem"
+                  style={{
+                    backgroundImage: `url(${bed("country").image})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                />
+                <Stack gap="2">
+                  <Heading size={TITLE_STEP[size]} render={<h3 />}>Size {size}</Heading>
+                  <Text size={BODY_STEP[size]} emphasis="medium">
+                    The corner holds the picture.
+                  </Text>
+                </Stack>
+              </Stack>
+            </Card>
+          </Box>
+        ))}
+      </Flex>
+    </Demo>
   </Stack>
   );
 }

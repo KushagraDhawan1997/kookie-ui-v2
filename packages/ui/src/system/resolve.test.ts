@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { raw, walkFiles } from "../test/stylesheets.ts";
 import { generatePreview } from "../tokens/preview.ts";
 import { space } from "../tokens/config.ts";
-import { boxProps } from "./props.ts";
+import { boxProps, isMarginProp, marginPropNames, type BoxPropName } from "./props.ts";
 import { resolveBoxProps } from "./resolve.ts";
 
 describe("a value becomes a custom property, and nothing becomes a rule (§2)", () => {
@@ -48,6 +48,57 @@ describe("a value becomes a custom property, and nothing becomes a rule (§2)", 
       "--kui-fd": "column",
       "--kui-gtc": "repeat(3, 1fr)",
     });
+  });
+});
+
+describe("`bleed` — the one named value on the space scale (§3, §10, 2026-08-20)", () => {
+  const BLEED = "calc(-1 * var(--kui-sf-p, 0px))";
+
+  it("a margin prop resolves it against the enclosing surface's own padding hook", () => {
+    // The fallback is the load-bearing half and is asserted as part of the string: outside any
+    // surface the declaration must compute a real zero rather than go invalid at
+    // computed-value time and reset the margin to its initial value.
+    expect(resolveBoxProps({ mt: "bleed" }).style).toEqual({ "--kui-mt": BLEED });
+  });
+
+  it("every margin spelling takes it — which is the reason it is a value and not a prop", () => {
+    // A picture across the top of a card is `mt="bleed" mx="bleed"`. Nothing here was designed
+    // for bleeding: the per-side rows already existed, so the sides question answers itself.
+    for (const name of marginPropNames) {
+      const { var: stem } = boxProps[name];
+      expect(
+        resolveBoxProps({ [name]: "bleed" } as Record<string, string>).style,
+        `${name} does not take bleed`,
+      ).toEqual({ [`--kui-${stem}`]: BLEED });
+    }
+  });
+
+  it("and every tier, because it rides the margin rows' own responsive machinery", () => {
+    expect(resolveBoxProps({ mx: { initial: "bleed", md: "4" } }).style).toEqual({
+      "--kui-mx": BLEED,
+      "--kui-mx-md": "var(--layout-space-4)",
+    });
+  });
+
+  it("a prop that cannot go negative passes the word through, where CSS rejects it visibly", () => {
+    // Padding and gap reject a negative length outright, so emitting the calc there would be a
+    // silent zero — the out-of-range-index rule's own choice, one value over.
+    expect(resolveBoxProps({ p: "bleed" }).style).toEqual({ "--kui-p": "bleed" });
+    expect(resolveBoxProps({ gap: "bleed" }).style).toEqual({ "--kui-g": "bleed" });
+    expect(resolveBoxProps({ width: "bleed" }).style).toEqual({ "--kui-w": "bleed" });
+  });
+
+  it("the type's margin list and the table's margin rows are the same set", () => {
+    // The list is written out so the TYPE can name it, which is the only reason it is a second
+    // home. A margin row added to the table and forgotten here would accept `"bleed"` at the
+    // type level and emit it as a raw keyword — a no-op nobody would see.
+    const fromTable = (Object.keys(boxProps) as BoxPropName[]).filter((name) =>
+      isMarginProp(boxProps[name]),
+    );
+    expect([...fromTable].sort()).toEqual([...marginPropNames].sort());
+    // …and the predicate must actually be selecting something narrower than the whole table.
+    expect(fromTable.length).toBeGreaterThan(0);
+    expect(fromTable.length).toBeLessThan(Object.keys(boxProps).length);
   });
 });
 
