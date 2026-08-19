@@ -849,6 +849,7 @@ export function BuilderApp() {
      declared value (`calc(12px * var(--scale))`), not what this element got; and rebuilding
      the arithmetic here would be a second home for numbers the package already owns — the
      mistake this repo's audits keep finding. So the panel reads the rendered element. */
+  const readoutDoc = React.useDeferredValue(doc);
   type Measured = { label: string; value: string; stated?: string | undefined }[];
   const [measured, setMeasured] = React.useState<Measured>([]);
   React.useEffect(() => {
@@ -904,8 +905,18 @@ export function BuilderApp() {
     }
     setMeasured(rows);
     // The theme axes and the canvas width all move these, so the readout re-measures when
-    // any of them does — a stale number here would be worse than none.
-  }, [selected, doc, canvasW, preview, zoom]);
+    // any of them does — a stale number here would be worse than none. It rides the DEFERRED
+    // document for the same reason the review does: reading a computed style forces a
+    // style-and-layout flush, and the readout is informational, so it can settle after the
+    // character has appeared rather than in front of it.
+    //
+    // Measured, because the first version of this comment guessed and was wrong: deferring it
+    // moves a 320-node document from 21.1ms to 19.9ms per keystroke — real, free, and not
+    // where the time goes. The time goes to React reconciling and the browser laying out 320
+    // live components; the whole per-edit model path (an edit plus the seat normalizer) costs
+    // 0.089ms at that size, and a CPU profile of a typing run names browser layout and
+    // React's own frames, not this file's.
+  }, [selected, readoutDoc, canvasW, preview, zoom]);
 
   const [seat, setSeat] = React.useState<SeatVocabulary | null>(null);
   React.useEffect(() => {
