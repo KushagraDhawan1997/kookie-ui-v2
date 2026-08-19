@@ -23,7 +23,7 @@
  * never touches localStorage, and the app writes state through after it has landed.
  */
 
-import { sanitizeNode } from "./catalog";
+import { normalizeSeats, sanitizeNode } from "./catalog";
 import {
   cloneWithNewIds,
   defaultDocTheme,
@@ -181,10 +181,18 @@ export function reducer(s: EditorState, a: Action): EditorState {
       const first = node?.children?.[0];
       return first ? { ...s, selection: [first.id] } : s;
     }
-    case "edit":
-      return commit(s, { roots: a.roots }, prune(a.roots, a.selection ?? s.selection), true);
-    case "editSilent":
-      return commit(s, { roots: a.roots }, prune(a.roots, s.selection), false);
+    case "edit": {
+      // Every edit passes here, so this is where a seat that came loose is put right — one
+      // home rather than one per operation, and one that covers the operation somebody
+      // writes next. Identity-preserving, so an untouched subtree still hands React the same
+      // object and the interpreter's memo holds (see `normalizeSeats`).
+      const roots = normalizeSeats(a.roots);
+      return commit(s, { roots }, prune(roots, a.selection ?? s.selection), true);
+    }
+    case "editSilent": {
+      const roots = normalizeSeats(a.roots);
+      return commit(s, { roots }, prune(roots, s.selection), false);
+    }
     case "setTheme": {
       const doc = activeDoc(s);
       return commit(s, { theme: { ...doc.theme, [a.axis]: a.value } }, undefined, true);
@@ -294,7 +302,7 @@ const reviveDoc = (d: Persisted["docs"][number]): StoredDoc => ({
   id: d.id || newDocId(),
   name: String(d.name || "Untitled"),
   theme: { ...defaultDocTheme(), ...d.theme },
-  roots: (d.roots ?? []).map(sanitizeNode).filter((n): n is BuilderNode => n !== null).map(cloneWithNewIds),
+  roots: (d.roots ?? []).map((n) => sanitizeNode(n)).filter((n): n is BuilderNode => n !== null).map(cloneWithNewIds),
 });
 
 const reviveBlocks = (raw: unknown): Block[] =>
