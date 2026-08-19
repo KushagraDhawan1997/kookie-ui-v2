@@ -17,6 +17,10 @@ import {
   Box,
   Button,
   Flex,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
   Select,
   SelectContent,
   SelectItem,
@@ -30,6 +34,7 @@ import {
   themeAxes,
 } from "@kookie-ui/react";
 
+import { PlusIcon } from "../icons";
 import { ENTRIES } from "../(site)/components/registry";
 
 import { CATALOG, type PropSchema } from "./catalog";
@@ -48,6 +53,7 @@ function PickRow({
   labels,
   optional,
   onPick,
+  after,
 }: {
   label: string;
   value: string | undefined;
@@ -55,6 +61,8 @@ function PickRow({
   labels?: Record<string, string>;
   optional: boolean;
   onPick: (next: string | undefined) => void;
+  /** A small control seated beside the picker — the responsive row's + menu. */
+  after?: React.ReactNode;
 }) {
   const items: Record<string, string> = {};
   if (optional) items[UNSET] = "(unset)";
@@ -64,21 +72,24 @@ function PickRow({
       <Text size="1" emphasis="medium">
         {label}
       </Text>
-      <Select
-        size="1"
-        items={items}
-        value={value ?? UNSET}
-        onValueChange={(v) => onPick(v === UNSET ? undefined : v)}
-      >
-        <SelectTrigger />
-        <SelectContent>
-          {Object.entries(items).map(([v, l]) => (
-            <SelectItem key={v} value={v}>
-              {l}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Flex gap="1" align="center">
+        <Select
+          size="1"
+          items={items}
+          value={value ?? UNSET}
+          onValueChange={(v) => onPick(v === UNSET ? undefined : v)}
+        >
+          <SelectTrigger />
+          <SelectContent>
+            {Object.entries(items).map(([v, l]) => (
+              <SelectItem key={v} value={v}>
+                {l}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {after}
+      </Flex>
     </Flex>
   );
 }
@@ -216,6 +227,26 @@ function ResponsiveControl({
         {...(labels ? { labels } : {})}
         optional={optional}
         onPick={(v) => write(v, resp)}
+        after={
+          unstated.length ? (
+            <Menu size="1">
+              <MenuTrigger
+                render={
+                  <Button size="1" emphasis="quiet" iconOnly aria-label={`Add a breakpoint to ${name}`}>
+                    <PlusIcon />
+                  </Button>
+                }
+              />
+              <MenuContent>
+                {unstated.map((tier) => (
+                  <MenuItem key={tier} onClick={() => write(base, { ...resp, [tier]: base ?? values[0]! })}>
+                    {`at ${tier}`}
+                  </MenuItem>
+                ))}
+              </MenuContent>
+            </Menu>
+          ) : undefined
+        }
       />
       {stated.map((tier) => (
         <Box key={tier} pl="4">
@@ -234,20 +265,6 @@ function ResponsiveControl({
           />
         </Box>
       ))}
-      {unstated.length ? (
-        <Flex gap="1" justify="flex-end">
-          {unstated.map((tier) => (
-            <Button
-              key={tier}
-              size="1"
-              emphasis="quiet"
-              onClick={() => write(base, { ...resp, [tier]: base ?? values[0]! })}
-            >
-              + {tier}
-            </Button>
-          ))}
-        </Flex>
-      ) : null}
     </Stack>
   );
 }

@@ -39,6 +39,7 @@ import {
   DialogTitle,
   DialogTrigger,
   Flex,
+  Grid,
   Heading,
   Kbd,
   ScrollArea,
@@ -54,6 +55,7 @@ import {
   tiers,
 } from "@kookie-ui/react";
 
+import { XIcon } from "../icons";
 import { CATALOG, canContain, paletteEntries, sanitizeNode, PALETTE_FAMILIES, type CatalogEntry } from "./catalog";
 import {
   ancestorChain,
@@ -396,22 +398,17 @@ export function BuilderApp() {
   return (
     <Flex direction="column" style={{ height: "100dvh" }}>
       {/* ── Top bar ── */}
-      <Flex align="center" justify="space-between" p="3" gapX="4">
-        <Flex align="center" gap="4">
-          <Heading size="4" render={<h1 />}>
-            <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
-              Builder
-            </Link>
-          </Heading>
-          <Text size="1" emphasis="quiet">
-            Compose with tokens; export real code.
-          </Text>
-        </Flex>
+      <Flex align="center" justify="space-between" px="4" py="2" gapX="4">
+        <Heading size="3" render={<h1 />}>
+          <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
+            Builder
+          </Link>
+        </Heading>
         <Flex align="center" gap="2">
-          <Button size="1" emphasis="quiet" bordered disabled={history.past.length === 0} onClick={undo} trailing={<Kbd>⌘Z</Kbd>}>
+          <Button size="1" emphasis="quiet" disabled={history.past.length === 0} onClick={undo} trailing={<Kbd>⌘Z</Kbd>}>
             Undo
           </Button>
-          <Button size="1" emphasis="quiet" bordered disabled={history.future.length === 0} onClick={redo}>
+          <Button size="1" emphasis="quiet" disabled={history.future.length === 0} onClick={redo}>
             Redo
           </Button>
           <AlertDialog size="1">
@@ -507,22 +504,27 @@ export function BuilderApp() {
                         </Text>
                         {blocks.length === 0 ? (
                           <Text size="1" emphasis="quiet">
-                            Select something on the canvas and save it as a block — it becomes a
-                            reusable piece here.
+                            Save a selection as a block and it lands here.
                           </Text>
                         ) : (
                           blocks.map((b, i) => (
-                            <Flex key={`${b.name}-${i}`} gap="2" align="center" justify="space-between">
-                              <Button size="1" emphasis="quiet" bordered onClick={() => insertBlock(b)}>
+                            <Flex key={`${b.name}-${i}`} gap="1" align="center">
+                              <Button
+                                size="1"
+                                emphasis="quiet"
+                                onClick={() => insertBlock(b)}
+                                style={{ justifyContent: "flex-start", flex: 1 }}
+                              >
                                 {b.name}
                               </Button>
                               <Button
                                 size="1"
                                 emphasis="quiet"
-                                tone="destructive"
+                                iconOnly
+                                aria-label={`Remove the block ${b.name}`}
                                 onClick={() => setBlocks((list) => list.filter((_, j) => j !== i))}
                               >
-                                Remove
+                                <XIcon />
                               </Button>
                             </Flex>
                           ))
@@ -553,20 +555,27 @@ export function BuilderApp() {
         <Separator orientation="vertical" />
 
         {/* Center: the live canvas */}
-        <Box style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
+        <Box style={{ flex: 1, minWidth: 0, minHeight: 0, background: "var(--neutral-2)" }}>
           <ScrollArea style={{ height: "100%" }}>
-            <Box p="6" onClickCapture={onCanvasClick} onDragOver={onCanvasDragOver} onDrop={onCanvasDrop} onDragLeave={() => setDropTarget(null)} style={{ minHeight: "100%" }}>
+            <Box
+              p="6"
+              onClickCapture={onCanvasClick}
+              onDragOver={onCanvasDragOver}
+              onDrop={onCanvasDrop}
+              onDragLeave={() => setDropTarget(null)}
+              style={{ minHeight: "100%" }}
+            >
               <Box maxWidth="880px" style={{ marginInline: "auto" }}>
-                <Flex gap="2" align="center" justify="flex-end" pb="2">
-                  <Text size="1" emphasis="quiet">
-                    {canvasW ? `${canvasW}px · ${activeTier(canvasW)}` : "full width — drag the right edge to test tiers"}
-                  </Text>
-                  {canvasW ? (
+                {canvasW ? (
+                  <Flex gap="2" align="center" justify="flex-end" pb="2">
+                    <Text size="1" emphasis="quiet">
+                      {`${canvasW}px · ${activeTier(canvasW)}`}
+                    </Text>
                     <Button size="1" emphasis="quiet" onClick={() => setCanvasW(null)}>
                       Full width
                     </Button>
-                  ) : null}
-                </Flex>
+                  </Flex>
+                ) : null}
                 <div
                   ref={canvasRef}
                   style={{ position: "relative", width: canvasW ? `${canvasW}px` : "100%", maxWidth: "100%" }}
@@ -634,7 +643,7 @@ export function BuilderApp() {
                         width: ring.width + 6,
                         height: ring.height + 6,
                         border: "var(--focus-ring-width) solid var(--focus-ring)",
-                        borderRadius: "var(--radius-control-2)",
+                        borderRadius: "8px",
                         pointerEvents: "none",
                       }}
                     />
@@ -676,7 +685,7 @@ export function BuilderApp() {
                           <Button size="1" emphasis="quiet" bordered onClick={duplicateSelected}>
                             Duplicate
                           </Button>
-                          <Button size="1" emphasis="quiet" tone="destructive" onClick={deleteSelected}>
+                          <Button size="1" emphasis="quiet" tone="destructive" bordered onClick={deleteSelected}>
                             Delete
                           </Button>
                         </Flex>
@@ -738,13 +747,12 @@ function PaletteGroup({
       <Text size="1" weight="medium">
         {label}
       </Text>
-      <Flex gap="2" wrap="wrap">
+      <Grid columns="repeat(2, minmax(0, 1fr))" gap="1">
         {entries.map(([type, entry]) => (
           <Button
             key={type}
             size="1"
             emphasis="quiet"
-            bordered
             disabled={!canInsert(type)}
             title={entry.blurb}
             draggable
@@ -753,11 +761,12 @@ function PaletteGroup({
               e.dataTransfer.effectAllowed = "copy";
             }}
             onClick={() => onInsert(type)}
+            style={{ justifyContent: "flex-start" }}
           >
             {type}
           </Button>
         ))}
-      </Flex>
+      </Grid>
     </Stack>
   );
 }
@@ -776,13 +785,13 @@ function TreeRows({
   const label = n.text ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}` : n.type;
   return (
     <>
-      <Box style={{ paddingInlineStart: `calc(${depth} * var(--layout-space-4))` }}>
+      <Box style={{ paddingInlineStart: `calc(${depth} * var(--layout-space-4))`, display: "flex" }}>
         <Button
           size="1"
-          emphasis="quiet"
+          emphasis={selection === n.id ? "medium" : "quiet"}
           aria-pressed={selection === n.id}
-          bordered={selection === n.id}
           onClick={() => onSelect(n.id)}
+          style={{ justifyContent: "flex-start", flex: 1 }}
         >
           {label}
         </Button>
@@ -819,7 +828,7 @@ function DropHint({ canvasRef, id }: { canvasRef: React.RefObject<HTMLDivElement
         width: rect.width + 4,
         height: rect.height + 4,
         border: "1px dashed var(--focus-ring)",
-        borderRadius: "var(--radius-control-2)",
+        borderRadius: "8px",
         pointerEvents: "none",
       }}
     />
