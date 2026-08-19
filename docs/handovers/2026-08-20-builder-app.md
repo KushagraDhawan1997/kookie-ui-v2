@@ -93,6 +93,21 @@ to `themeDefaults.appearance`, which is `light` — that would have pinned the c
 stopped it following the site's dark toggle. A new document inherits; the law fails if that
 changes.
 
+**Performance was measured, and the first measurement was of the wrong thing.** At 280 nodes
+a keystroke cost 71ms in the dev server. A CPU profile named the top frames: `jsxDEV`,
+`createTask`, `logComponentRender` — React's development build, not this code. In production
+the same document costs **12ms per keystroke**. Two real fixes came out of it anyway, because
+the profile's shape (element creation dominating) pointed at them: the model's writes now
+preserve identity where nothing changed, so an untouched subtree hands React the same object,
+and the interpreter is memoized on that identity so it does not re-render at all. Storage
+moved behind a 400ms idle timer (it was serializing the whole document per character) and
+review yields to typing through a deferred value.
+
+That change also introduced a bug the round-trip law caught immediately: Base UI's `render`
+prop clones its own props onto the element it is given, and a memoized wrapper swallowed
+them — the menu trigger had stopped announcing itself as a menu. The render path uses the raw
+element now.
+
 **The wrong-element instrument mistake, three more times.** My browser probes measured the
 document switcher instead of the theme panel, the outer Stack instead of the Flex, and a
 field's wrapper instead of its input. Every time, a second source (the stored model, the
