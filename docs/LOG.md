@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 Size 2 is the baseline, and the builder was quietly arguing otherwise
+
+Two things closed at once, and only one of them was the wiring.
+
+**The wiring.** The Shell gained a root `size` the day before precisely so an app states its navigation index once (#18, itself from this port). The builder — the consumer that motivated it — went on saying `size="1"` three separate times, on the rail, the sidebar and the inspector. A tool built and never picked up by the call site that asked for it.
+
+**The index.** Kushagra, closing it: *"anything system default should use size 2 as default, that's our baseline."* So the fix is not `<Shell size="1">` with the literal in one place instead of three — it is no literal at all. The panes take the system's baseline, and stating `size="2"` here would be a second home for a number whose one home is the component's own default.
+
+I had picked 1 because the editor's own controls are size 1 throughout, and read the panes as part of that chrome. They are not: a pane's `size` prices its NAV ROWS and its rail squares, which are navigation, not instruments. Measured, the correction is visible and it is an improvement — the rail's squares go 24 → 32 in a column 37 → 41, and the cramped look I had noted in the first screenshot and not acted on was this.
+
+**Still open and NOT closed by this:** the ~96 `size="1"` call sites across the editor's own chrome — every button, field and tab strip in the palette, the layers tree and the inspector. Whether an editor's instruments are allowed to sit a rung below the baseline is a different question from what a pane's navigation is priced at, it changes how the whole app reads, and it wants an eye rather than a rule.
+
+---
+
 ## 2026-08-20 Stillness is not arrival — and a borrowed clock has to be given back
 
 **What.** `catchDissolve` hands back a `release()`, the two "a reopen that lands mid-dissolve is CAUGHT" laws call it the moment they take the dismissal back, and both then wait for the panel to REACH the box it left rather than for the box to stop moving.

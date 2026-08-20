@@ -1325,6 +1325,12 @@ export function BuilderApp() {
        root fills the box it is given and this IS the app root — the one place a viewport
        height is the honest answer. */
     <Shell style={{ height: "100dvh" }}>
+      {/* NO `size`, and that is the statement (Kushagra, 2026-08-21: "anything system
+          default should use size 2 as default, that's our baseline"). The panes said
+          `size="1"` three separate times, which is the default-with-no-home the Shell's own
+          root prop was added to end — and the index they were reaching for was the wrong one
+          anyway. Stating `size="2"` here would be a second home for the baseline; the one
+          that counts lives in the component. */}
       {/* ── Top bar: identity, the document, the modes, the one loud action ── */}
       <ShellHeader>
         <Flex align="center" justify="space-between" px="4" py="2" gapX="4">
@@ -1419,7 +1425,7 @@ export function BuilderApp() {
           TRIGGER as well as a switch, `action="open"` — picking a region the sidebar is not
           showing must show it, or a press on a visible control does nothing, which is the
           dead-control problem the header's Review button answers one screen up. */}
-      <ShellRail aria-label="Panels" size="1" {...(preview ? { open: false } : {})}>
+      <ShellRail aria-label="Panels" {...(preview ? { open: false } : {})}>
         <ShellRailList>
           {LEFT_REGIONS.map(({ id, label, Icon }) => (
             <ShellTrigger
@@ -1445,7 +1451,7 @@ export function BuilderApp() {
           Preview is the one thing that overrules it, and letting go restores whatever it
           was. Passing `!preview` instead would have frozen the pane open on a phone and
           killed the responsive default outright. */}
-      <ShellSidebar aria-label="Editing panels" size="1" width={272} {...(preview ? { open: false } : {})}>
+      <ShellSidebar aria-label="Editing panels" width={272} {...(preview ? { open: false } : {})}>
         <ShellScroll>
           <Box p="3">
             {leftTab === "add" ? (
@@ -2049,7 +2055,6 @@ export function BuilderApp() {
           the rule lives here until a second one wants it. */}
       <ShellInspector
         aria-label="Inspector"
-        size="1"
         width={304}
         open={inspectorShown}
         onOpenChange={setInspectorOpen}
