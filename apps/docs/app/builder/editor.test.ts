@@ -382,15 +382,28 @@ describe("commands are one table, and the surfaces only render it", () => {
     }
   });
 
-  it("a chord matches its own modifiers and no others", () => {
-    // On a non-Apple platform "mod" is Ctrl; the laws run in node, where navigator is absent.
-    expect(chordMatches("mod+d", key("d", { ctrlKey: true }))).toBe(true);
-    expect(chordMatches("mod+d", key("d", { ctrlKey: true, shiftKey: true }))).toBe(false);
-    expect(chordMatches("mod+d", key("d"))).toBe(false);
-    // The OTHER modifier must be absent, or ⌘D would fire Ctrl+D's command.
-    expect(chordMatches("mod+d", key("d", { ctrlKey: true, metaKey: true }))).toBe(false);
-    expect(chordMatches("backspace", key("Backspace"))).toBe(true);
-    expect(chordMatches("mod+shift+z", key("z", { ctrlKey: true, shiftKey: true }))).toBe(true);
+  it("a chord matches its own modifiers and no others, on BOTH platforms", () => {
+    /* This law used to say "the laws run in node, where navigator is absent" and pass a bare
+       ctrlKey event. Node has defined `navigator` since v21 and reports platform "MacIntel"
+       on a Mac, so the premise was false: it was exercising the Apple branch while claiming
+       the other, and the suite went red on a laptop and green on a Linux runner from one
+       commit. The platform is an argument now, so both branches are stated here. */
+    for (const [apple, modKey, otherKey] of [
+      [false, "ctrlKey", "metaKey"],
+      [true, "metaKey", "ctrlKey"],
+    ] as const) {
+      const where = apple ? "apple" : "non-apple";
+      expect(chordMatches("mod+d", key("d", { [modKey]: true }), apple), where).toBe(true);
+      expect(chordMatches("mod+d", key("d", { [modKey]: true, shiftKey: true }), apple), where).toBe(false);
+      expect(chordMatches("mod+d", key("d"), apple), where).toBe(false);
+      // The OTHER modifier must be absent, or ⌘D would fire Ctrl+D's command.
+      expect(chordMatches("mod+d", key("d", { [modKey]: true, [otherKey]: true }), apple), where).toBe(false);
+      // ...and the other modifier ALONE must not satisfy `mod`, which is the half that
+      // catches the two branches being swapped.
+      expect(chordMatches("mod+d", key("d", { [otherKey]: true }), apple), where).toBe(false);
+      expect(chordMatches("backspace", key("Backspace"), apple), where).toBe(true);
+      expect(chordMatches("mod+shift+z", key("z", { [modKey]: true, shiftKey: true }), apple), where).toBe(true);
+    }
   });
 
   it("a chord reads back as something a person can follow", () => {
@@ -410,6 +423,10 @@ describe("commands are one table, and the surfaces only render it", () => {
     expect(alt).toMatch(/↑/);
     // …and two chords differing only by a middle modifier never read the same.
     expect(chordLabel("mod+shift+z")).not.toBe(chordLabel("mod+z"));
+    // Both spellings, stated rather than left to whichever machine runs the suite — the
+    // same ambient-platform trap the chord-matching law above was caught by.
+    expect(chordLabel("mod+shift+z", true)).toBe("⌘⇧Z");
+    expect(chordLabel("mod+shift+z", false)).toBe("Ctrl+Shift+Z");
     expect(chordLabel("mod+alt+arrowup")).not.toBe(chordLabel("mod+arrowup"));
     expect(chordLabel("backspace")).toBe("⌫");
   });

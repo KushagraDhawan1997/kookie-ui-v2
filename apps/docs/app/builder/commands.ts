@@ -48,10 +48,21 @@ import {
 
 export type Chord = string;
 
-const isApple = (): boolean =>
+/**
+ * Which key `mod` means. **Node defines `navigator`** — since v21 — and on a Mac it reports
+ * `platform: "MacIntel"`, so this answers TRUE inside the node test project and the laws that
+ * assumed otherwise were exercising the Apple branch while their comment claimed the other
+ * one. That also made the suite machine-dependent: green on a Linux runner, red on the
+ * author's laptop, from the same commit.
+ *
+ * So the platform is an explicit ARGUMENT everywhere it is consulted, defaulting to this
+ * detection. The app passes nothing and behaves exactly as before; a law states the branch it
+ * means and can therefore state both.
+ */
+export const isApple = (): boolean =>
   typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
-export const chordMatches = (chord: Chord, e: KeyboardEvent): boolean => {
+export const chordMatches = (chord: Chord, e: KeyboardEvent, apple: boolean = isApple()): boolean => {
   const parts = chord.toLowerCase().split("+");
   const key = parts[parts.length - 1]!;
   const want = {
@@ -59,9 +70,9 @@ export const chordMatches = (chord: Chord, e: KeyboardEvent): boolean => {
     shift: parts.includes("shift"),
     alt: parts.includes("alt"),
   };
-  const mod = isApple() ? e.metaKey : e.ctrlKey;
+  const mod = apple ? e.metaKey : e.ctrlKey;
   // The OTHER modifier must be absent, or ⌃D on a Mac would fire ⌘D's command.
-  const otherMod = isApple() ? e.ctrlKey : e.metaKey;
+  const otherMod = apple ? e.ctrlKey : e.metaKey;
   if (otherMod) return false;
   if (mod !== want.mod || e.shiftKey !== want.shift || e.altKey !== want.alt) return false;
   return e.key.toLowerCase() === key;
@@ -82,8 +93,7 @@ const GLYPH: Record<string, string> = {
 };
 
 /** The chord as a person reads it — ⌘⇧D on Apple, Ctrl+Shift+D elsewhere. */
-export const chordLabel = (chord: Chord): string => {
-  const apple = isApple();
+export const chordLabel = (chord: Chord, apple: boolean = isApple()): string => {
   return chord
     .split("+")
     .map((p) => {
