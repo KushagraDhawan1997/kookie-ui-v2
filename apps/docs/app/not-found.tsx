@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Button, Flex, Heading, Stack, Text } from "@kookie-ui/react";
 
-import { SiteChrome } from "./site-chrome";
+import { DocsChrome } from "./(docs)/docs-chrome";
 
 /**
  * The 404, and it exists for two reasons that turn out to be one.
  *
- * It wears the site chrome EXPLICITLY (2026-08-08). Next matches an unmatched URL against no
+ * It wears the docs chrome EXPLICITLY (2026-08-08). Next matches an unmatched URL against no
  * segment, so it wraps this file in the root layout only — a `(site)` group layout never
  * reaches it. When the chrome moved into that group the 404 silently lost the header, the
  * page inset and the `<main>` landmark, and rendered flush in the viewport's top-left corner
@@ -25,7 +25,7 @@ import { SiteChrome } from "./site-chrome";
  */
 export default function NotFound() {
   return (
-    <SiteChrome>
+    <DocsChrome>
       <Stack gap="6" style={{ maxWidth: "34rem" }}>
         <Stack gap="3">
           <Heading size="7" render={<h1 />}>
@@ -45,6 +45,6 @@ export default function NotFound() {
           </Button>
         </Flex>
       </Stack>
-    </SiteChrome>
+    </DocsChrome>
   );
 }
