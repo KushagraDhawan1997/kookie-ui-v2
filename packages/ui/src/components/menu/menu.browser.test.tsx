@@ -944,6 +944,15 @@ describe("behavior: the platform's menu, not a styled div", () => {
     const { userEvent } = await import("vitest/browser");
     popup.focus();
     await userEvent.keyboard("{Escape}");
+    // UNMOUNTED is a STATE, not the next statement (2026-08-20, main's own run: "expected
+    // <div data-side=\"bottom\" …> to be null", where the received popup wore
+    // `data-ending-style` and `data-instant="dismiss"` — it was mid-exit, and Base UI unmounts
+    // a closing popup only once its animations' `finished` promises settle. Reading straight
+    // after the key asserts that the exit is INSTANTANEOUS, which is a claim about the machine
+    // and not about the menu. A popup that genuinely never unmounts still expires the deadline
+    // into the same assertion — falsified with a controlled-open menu, which fails at the full
+    // deadline with the honest received node.
+    await until(() => document.querySelector(".kui-menu-popup") === null, 3000);
     expect(document.querySelector(".kui-menu-popup")).toBeNull();
   });
 
