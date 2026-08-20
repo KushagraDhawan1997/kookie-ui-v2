@@ -22,6 +22,8 @@ import {
   ShellNavGroup,
   ShellNavItem,
   ShellRail,
+  ShellRailItem,
+  ShellRailList,
   ShellScroll,
   ShellSidebar,
   ShellTrigger,
@@ -1073,6 +1075,90 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     expect(viewport.scrollHeight, "nothing overflows the region").toBeGreaterThan(
       viewport.clientHeight,
     );
+  });
+});
+
+describe("the rail: a column of squares whose width is not the app's to state (§27)", () => {
+  const rail = (size: "1" | "2" | "3" | "4") =>
+    mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellRail aria-label="Sections" size={size}>
+          <ShellRailList>
+            <ShellRailItem aria-label="Home" current>
+              H
+            </ShellRailItem>
+            <ShellRailItem aria-label="Search">S</ShellRailItem>
+          </ShellRailList>
+        </ShellRail>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+
+  it("its extent DERIVES from the size it was given — square plus the air, at every index", () => {
+    // The decision this law exists for: shipped, the rail was a flat 64 in both pointer
+    // worlds while its contents were 32 fine and 44 coarse, so the column did not answer the
+    // axis its own contents answer. A width prop can never do this; only a size can.
+    const seen = new Set<number>();
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const shell = rail(size);
+      const pane = within(shell, ".kui-shell-rail");
+      const square = parseFloat(tokenOn(pane, `--control-height-${size}`));
+      const inset = parseFloat(tokenOn(pane, "--shell-nav-inset"));
+      expect(square).toBeGreaterThan(0);
+      expect(inset).toBeGreaterThan(0);
+      // The CONTENT box: the extent is stated as the square plus its air, and the pane's own
+      // seam hairline sits outside that rather than eating into it.
+      expect(pane.clientWidth, `size ${size}: the rail is not its item's box`).toBeCloseTo(
+        square + 2 * inset,
+        0,
+      );
+      seen.add(Math.round(pane.clientWidth));
+      shell.remove();
+    }
+    // And it really MOVES with the index — a rail that answered nothing would pass the
+    // arithmetic above at one width four times over.
+    expect(seen.size, "the rail is the same width at every size").toBe(4);
+  });
+
+  it("the item is a SQUARE, and it stands level with a Button of the same size", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const shell = rail(size);
+      const box = within(shell, ".kui-shell-rail-item").getBoundingClientRect();
+      const h = parseFloat(tokenOn(within(shell, ".kui-shell-rail"), `--control-height-${size}`));
+      expect(box.width, `size ${size}: not square`).toBeCloseTo(box.height, 0);
+      expect(box.width, `size ${size}: not the control's box`).toBeCloseTo(h, 0);
+      shell.remove();
+    }
+  });
+
+  it("the PAINT is inset and the TARGET is not — a press in the gutter is the item's", () => {
+    // Apple's sidebar geometry: the painted rounded rect keeps a margin while the whole
+    // column still takes the click. Measured on both members, because the mechanism is one
+    // rule shared between them and a law about one of two is half a law.
+    const shell = rail("3");
+    const pane = within(shell, ".kui-shell-rail");
+    const paneBox = pane.getBoundingClientRect();
+    const item = within(shell, ".kui-shell-rail-item");
+    const box = item.getBoundingClientRect();
+    const inset = parseFloat(tokenOn(pane, "--shell-nav-inset"));
+    expect(box.left - paneBox.left, "the square is painted edge to edge").toBeCloseTo(inset, 0);
+    const hit = document.elementFromPoint(paneBox.left + 1, box.top + box.height / 2);
+    expect(item.contains(hit), "the gutter beside the square is dead").toBe(true);
+  });
+
+  it("current speaks accent and hover speaks grey here too — one vocabulary, two families", async () => {
+    const shell = rail("3");
+    const [currentItem, plain] = [
+      ...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item"),
+    ];
+    const currentRest = computed(currentItem!, "background-color");
+    expect(currentRest, "the current square rests transparent").not.toContain("rgba(0, 0, 0, 0)");
+    await userEvent.hover(plain!);
+    expect(
+      computed(plain!, "background-color"),
+      "the current square and a hovered one are painted the same",
+    ).not.toBe(currentRest);
   });
 });
 

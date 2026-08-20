@@ -86,9 +86,41 @@
   min-inline-size: 0;
 }
 
+/* THE RAIL'S EXTENT IS ITS ITEM'S (§27, 2026-08-20). Every other pane states a width because
+   a pane's width is the app's content speaking; a rail's is its square plus the air around
+   it, and nothing else can decide it. Shipped, it was a flat 64 in both pointer worlds while
+   its contents were 32 fine and 44 coarse — the column did not answer the axis its own
+   contents answer, which is the icon-box finding (2026-08-10) one level up. So it derives,
+   and it derives from the SIZE the pane was given: `--control-height-N` is the same token
+   the control size join hands every control, read here by a surface that stamps the index. */
+@property --kui-shell-rail-square {
+  syntax: "*";
+  inherits: false;
+}
+
 .kui-shell-rail {
   grid-area: rail;
-  inline-size: var(--kui-shell-w, var(--shell-rail-w));
+  --kui-shell-rail-square: var(--control-height-2);
+  /* CONTENT-box, and the half pixel is why. A pane is border-box like everything else here,
+     so a flush rail's own seam hairline came out of the derived extent rather than sitting
+     outside it: the square landed 3.5px from the edge against a designed 4, and it would
+     have moved again the moment the rail stopped being flush and grew four borders instead
+     of one. Stating the extent as the CONTENT — the square plus its air — is what makes the
+     inset the same number in every posture, and the borders do what borders do. */
+  box-sizing: content-box;
+  inline-size: calc(var(--kui-shell-rail-square) + 2 * var(--shell-nav-inset));
+}
+
+.kui-shell-rail[data-size="1"] {
+  --kui-shell-rail-square: var(--control-height-1);
+}
+
+.kui-shell-rail[data-size="3"] {
+  --kui-shell-rail-square: var(--control-height-3);
+}
+
+.kui-shell-rail[data-size="4"] {
+  --kui-shell-rail-square: var(--control-height-4);
 }
 
 .kui-shell-sidebar {
@@ -399,6 +431,64 @@
    that wraps to two lines still grows and still breathes. */
 .kui-shell-nav-item {
   min-height: var(--kui-ct-h);
+  /* THE PAINT IS INSET; THE TARGET IS NOT (Kushagra, 2026-08-20: "I think I still need inset
+     on rail items too, like sidebar"). Apple's sidebar geometry since Big Sur — a Finder row
+     paints a rounded rectangle with a margin either side while the whole row still takes the
+     click. The margin does the paint; `::after` below gives the press back the full column,
+     which is the mark family's own expander (§16) reused rather than re-invented. The
+     alternative, a row simply narrower than its column, leaves a strip that looks pressable
+     and is not — the paint-versus-target disagreement the checkbox audit already paid for. */
+  inline-size: auto;
+  margin-inline: var(--shell-nav-inset);
+  position: relative;
+}
+
+/* The heading is inset with them so its words start where their labels do — the reserved
+   gutter's whole point, and it would read as a hanging indent otherwise. */
+.kui-shell-nav-label {
+  margin-inline: var(--shell-nav-inset);
+}
+
+.kui-shell-nav-item::after,
+.kui-shell-rail-item::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline: calc(-1 * var(--shell-nav-inset));
+}
+
+/* ── The rail's item (§27) ─────────────────────────────────────────────────────────────────
+   A SQUARE, not a row. A row is icon-then-label with a height of one text line plus air; a
+   rail item has no label beside it, so it is an icon-only control whose box is square by
+   construction — and being square is what makes the rail's own width derivable. Icon-only is
+   the DEFAULT rather than an option because narrow is part of what a rail means: the moment
+   it carries words it is wide enough to read as a small sidebar, which is the confusion the
+   rail-is-not-a-thin-sidebar decision exists to end (LOG 2026-08-20). */
+.kui-shell-rail-item {
+  /* SQUARE by construction rather than by declaration: the control skeleton already sets
+     `min-height: var(--kui-ct-h)`, so stating the same token on the inline axis is the whole
+     of it. A first spelling added `aspect-ratio: 1` beside this and a sabotage proved it
+     dead — both terms come from one size join and cannot disagree. */
+  inline-size: var(--kui-ct-h);
+  /* The square IS the box, so the family's inline padding has nothing to price here. */
+  padding-inline: 0;
+  justify-content: center;
+  margin-inline: var(--shell-nav-inset);
+  position: relative;
+}
+
+/* The rail is a column of squares, and it owns the distance between them for the same reason
+   the group owns the distance between its rows: this is INNER spacing, not the outer kind a
+   component may never have. */
+.kui-shell-rail-list {
+  display: flex;
+  flex-direction: column;
+  /* NOT `align-items: center`. It looks harmless and it is a second mechanism doing the
+     margin's job: with the rail's content box being the square plus twice the air, centring
+     lands the square at exactly the same offset the inset produces, so the two are
+     indistinguishable until one of them changes. A sabotage that deleted the margin
+     survived because of it. One mechanism, and it is the one the target expander is
+     measured from. */
 }
 
 /* HOVER, which the family stands down and this member restores. The stand-down exists for a

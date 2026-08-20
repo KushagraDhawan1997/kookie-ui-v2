@@ -619,6 +619,10 @@ function SidePane({
       ref={paneRef}
       className={cx("kui-surface kui-shell-pane", `kui-shell-${name}`, className)}
       {...stamps}
+      // The pane wears the index as well as providing it: its own geometry reads it (the
+      // rail derives its whole extent from `--control-height-N` at this index), and a
+      // context alone reaches only React.
+      data-size={size}
       data-state={pane.state}
       data-presentation={pane.presentation}
       // Focus lands here programmatically when the pane overlays — a mode, not a keyboard
@@ -633,7 +637,7 @@ function SidePane({
   );
 }
 
-export type ShellRailProps = SidePaneProps;
+export type ShellRailProps = Omit<SidePaneProps, "width">;
 
 /** The narrow icon column — the one that switches sections. Independent of the sidebar:
     nothing excludes anything, because nothing overlaps (§27 deleted v1's thin mode, the
@@ -751,6 +755,73 @@ export function ShellScroll({ className, ...props }: ShellScrollProps) {
    are two small parts a pane may contain, never an anatomy it must have — a tree is a
    kookie-block, and what the pane owes it is a box with a real height, the right region
    scrolling, and `m="bleed"` for rows that want to reach the pane's edge. */
+
+export type ShellRailItemProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
+  /** The region you are in. Announced as well as painted, exactly as a nav row's is. */
+  current?: boolean;
+  /** Be an anchor instead — a rail is primary navigation, and a link is a link. */
+  render?: RenderElement;
+  /**
+   * REQUIRED, because the item is icon-only: an icon with no name is a button nobody can
+   * read (Button's `iconOnly` takes the same line). If the rail ever grows labels, they go
+   * UNDER the icon and stay a switch on the pane — one word under one icon and not the next
+   * is how a column of icons stops lining up.
+   */
+  "aria-label": string;
+  ref?: React.Ref<HTMLElement>;
+};
+
+/**
+ * One square in the rail — a REGION, not a row (§27). The rail holds a few high-level
+ * places and coexists with the sidebar rather than replacing it: the rail picks, the sidebar
+ * shows what was picked, and a sidebar never collapses into one.
+ *
+ * `current` speaks the same two stamps the nav row does, for the same reason: hover is grey
+ * and current is accent, which are different colours rather than two steps on one ramp, so
+ * hovering the current square still moves. The edge bar every Microsoft app uses was
+ * considered and left as the fallback for an item that cannot be tinted — a workspace
+ * avatar, which is exactly why Discord uses one.
+ */
+export function ShellRailItem({
+  current,
+  render,
+  className,
+  children,
+  ref,
+  ...props
+}: ShellRailItemProps) {
+  const size = React.use(ShellSizeContext);
+  const merged = {
+    ...props,
+    "data-size": size,
+    ...(current
+      ? { "aria-current": "page" as const, "data-tone": "accent", "data-emphasis": "medium" }
+      : { "data-emphasis": "quiet" }),
+    className: cx("kui-control kui-shell-rail-item", className),
+    ref,
+  };
+  if (render) return composeRender(render, merged as never, children);
+  return (
+    <button {...(merged as React.ComponentPropsWithoutRef<"button">)} type="button">
+      {children}
+    </button>
+  );
+}
+
+export type ShellRailListProps = Omit<React.ComponentPropsWithoutRef<"div">, "color">;
+
+/**
+ * A run of rail squares. Layout only — the rail owns the distance between its own items the
+ * way a nav group owns the distance between its rows, and a rail typically has two of these:
+ * the regions at the top, and the account and settings squares pinned at the bottom.
+ *
+ * Those two runs behave differently and the difference is deliberate: the bottom one holds
+ * plain actions that open menus and are never "current", so nothing here makes membership
+ * mean selection.
+ */
+export function ShellRailList({ className, ...props }: ShellRailListProps) {
+  return <div {...props} className={cx("kui-shell-rail-list", className)} />;
+}
 
 export type ShellNavGroupProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /** The group's heading. Omit it for an unlabelled cluster. */

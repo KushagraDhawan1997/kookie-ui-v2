@@ -79,8 +79,15 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
 describe("the shell tokens are emitted from config (§27)", () => {
   const tokens = raw("tokens/tokens.css");
 
+  it("the RAIL has no width token at all — its extent is its item's (§27, 2026-08-20)", () => {
+    // The absence IS the decision, so it is asserted rather than left to be noticed. A rail's
+    // width is its square plus the air around it; re-introducing a designed number is how it
+    // stops answering the size it is given.
+    expect(tokens).not.toContain("--shell-rail-w");
+    expect(sheet("components/shell/shell.css")).not.toContain("--shell-rail-w");
+  });
+
   it("the pane defaults ride --scale, straight from shellWidth", () => {
-    expect(tokens).toContain(`--shell-rail-w: calc(${shellWidth.rail}px * var(--scale));`);
     expect(tokens).toContain(`--shell-sidebar-w: calc(${shellWidth.sidebar}px * var(--scale));`);
     expect(tokens).toContain(`--shell-inspector-w: calc(${shellWidth.inspector}px * var(--scale));`);
     expect(tokens).toContain(`--shell-bottom-h: calc(${shellWidth.bottom}px * var(--scale));`);

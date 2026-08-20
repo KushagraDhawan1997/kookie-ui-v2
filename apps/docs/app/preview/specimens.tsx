@@ -60,6 +60,8 @@ import {
   ShellHeader,
   ShellRail,
   ShellSidebar,
+  ShellRailItem,
+  ShellRailList,
   ShellNavItem,
   ShellNavGroup,
   ShellScroll,
@@ -1093,18 +1095,17 @@ function ShellSection() {
                 </Text>
               </Flex>
             </ShellHeader>
-            <ShellRail aria-label="Sections" flush={false}>
-              <Stack gap="2" p="2" align="center">
-                <Text size="2" weight="medium">
-                  A
-                </Text>
-                <Text size="2" emphasis="medium">
-                  B
-                </Text>
-                <Text size="2" emphasis="medium">
-                  C
-                </Text>
-              </Stack>
+            {/* The rail's real anatomy: a column of squares whose width nobody states. It
+                takes a SIZE and its extent follows — square plus air — which is what a
+                `width` could never do, because a rail's width is its item's box. */}
+            <ShellRail aria-label="Sections" size="3" flush={false}>
+              <ShellRailList>
+                <ShellRailItem aria-label="Home" current>
+                  H
+                </ShellRailItem>
+                <ShellRailItem aria-label="Search">S</ShellRailItem>
+                <ShellRailItem aria-label="Extensions">E</ShellRailItem>
+              </ShellRailList>
             </ShellRail>
             <ShellSidebar aria-label="Primary" flush={false}>
               <Stack gap="1" p="3">

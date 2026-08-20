@@ -54,6 +54,7 @@ import {
   glassTransmitRows,
   glassInk,
   floatingDark,
+  shellNavInset,
   shellWidth,
   shellGap,
   floatingChrome,
@@ -356,7 +357,6 @@ export function generateTokens(): string {
   lines.push("     reads, which is the whole future resize architecture. Density- and pointer-");
   lines.push("     invariant: a pane is a room, not a control. The gap is the shell family's one");
   lines.push("     layout-space pick — see shellFamily(). */");
-  lines.push(decl("shell-rail-w", zoom(shellWidth.rail)));
   lines.push(decl("shell-sidebar-w", zoom(shellWidth.sidebar)));
   lines.push(decl("shell-inspector-w", zoom(shellWidth.inspector)));
   lines.push(decl("shell-bottom-h", zoom(shellWidth.bottom)));
@@ -1224,7 +1224,10 @@ function dialogFamily(): string[] {
     for the same substitution reason as the three families above — a compact app's floating
     shell tightens with the rest of its distances. */
 function shellFamily(): string[] {
-  return [decl("shell-gap", `var(--layout-space-${shellGap})`)];
+  return [
+    decl("shell-gap", `var(--layout-space-${shellGap})`),
+    decl("shell-nav-inset", `var(--layout-space-${shellNavInset})`),
+  ];
 }
 
 /** The control radii for one designed set at one level (§6). At `full` the band is the rule

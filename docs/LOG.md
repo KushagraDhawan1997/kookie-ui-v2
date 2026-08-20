@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-20 Building the rail: three declarations that looked load-bearing and were not
+
+The rail and the sidebar's navigation shipped against the decisions logged earlier the same day. What is worth recording is not the design — that entry is above — but what the sabotage passes found in my own CSS, because all three findings are one shape: **a second mechanism quietly doing a first one's job, indistinguishable until one of them changes.**
+
+**`aspect-ratio: 1` on the rail's square was dead.** The item states `inline-size: var(--kui-ct-h)` and the control skeleton already states `min-height: var(--kui-ct-h)`; both come from one size join and cannot disagree, so the square is square by construction. The sabotage that set the ratio to `auto` changed nothing.
+
+**`align-items: center` on the rail's list was dead, and worse than dead.** The rail's content box is the square plus twice the air, so centring lands the square at exactly the offset `margin-inline: var(--shell-nav-inset)` produces. A sabotage deleting the margin outright SURVIVED because of it — and the margin is the mechanism the target expander is measured from (`::after { inset-inline: calc(-1 * var(--shell-nav-inset)) }`), so the redundant one would have kept the paint correct while the press quietly stopped reaching the pane's edge. One mechanism, and it is the one another rule depends on.
+
+**`min-block-size: 0` on the scrolling region was dead** — `.kui-scroll-area` declares it for its own reasons, and ShellScroll IS a ScrollArea. So the pane contributes the flex and the scroller contributes the automatic-minimum override, which is a nicer division than the one I wrote.
+
+The pattern generalises past this component: **a declaration nobody can falsify is a declaration nobody can rely on.** Each of these looked like belt-and-braces and each was actually a second home for one fact — the thing this repo audits other people's code for.
+
+**Two law fixtures were caught the same way, and both were the degenerate-input shape (LOG 2026-08-20, the builder audit's own lesson).** The current-versus-hover law passed for a row that was not current at all, because "different from the hover colour" is also true of transparent — it now asserts the current row rests PAINTED before it asserts anything about which colour. And the scroll law used a long list, where `flex-grow` is irrelevant because shrinking already bounds the region; a SHORT list with a footer under it is the input where growth can be wrong, and that is the fixture the law uses now.
+
+**One real geometry defect, found by a law rather than by eye: the half pixel.** A pane is border-box, so a flush rail's own seam hairline came out of the derived extent instead of sitting outside it, and the square landed 3.5px from the edge against a designed 4. It would have moved again the moment the rail stopped being flush and grew four borders instead of one. Stating the rail's extent as a CONTENT box is what makes the inset the same number in every posture.
+
+**Recorded open: the tab strip.** I argued in the design conversation that a rail is a tab strip stood on its end, and for VS Code's activity bar that is true. But real tab semantics need `role="tablist"`, roving focus and PANELS — and the panels belong to the app, not the shell. A nav rail navigates, where `aria-current` is correct and `role="tab"` would be wrong, so the rail ships the nav row's vocabulary and the tablist variant waits for a shell that owns the panels it would switch. Also open, and named rather than guessed: the labelled rail needs its own designed widths, because a word does not fit in a column priced for a square.
+
+---
+
 ## 2026-08-20 The posture audit: a bound with one end, and a comment that did arithmetic instead of measuring
 
 Ultracode over the posture rewrite (26 agents, six lenses, one skeptic per finding instructed to refute and to default to refuted, plus a completeness critic). Nineteen candidates, fifteen survived, deduping to five repairs and four recorded. Every repair was re-measured by hand before it was believed, and every new or widened law was falsified against sabotaged code.
