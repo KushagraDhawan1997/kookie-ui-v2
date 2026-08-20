@@ -11,7 +11,7 @@
  */
 import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 
 import {
   Shell,
@@ -19,10 +19,14 @@ import {
   ShellContent,
   ShellHeader,
   ShellInspector,
+  ShellNavGroup,
+  ShellNavItem,
   ShellRail,
+  ShellScroll,
   ShellSidebar,
   ShellTrigger,
 } from "./shell.tsx";
+import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
@@ -918,6 +922,157 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     expect(content.top - frame.top, "the gap above").toBeCloseTo(gap, 0);
     // And the flush neighbour is still welded to the frame.
     expect(sidebar.left).toBeCloseTo(frame.left, 0);
+  });
+});
+
+describe("the sidebar's own anatomy: the scrolling region and the nav row (§21, §27)", () => {
+  const nav = (props?: { size?: "1" | "2" | "3" | "4"; rows?: number }) =>
+    mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary" size={props?.size ?? "2"}>
+          <Button size={props?.size ?? "2"}>New project</Button>
+          <ShellScroll>
+            <ShellNavGroup label="Workspace">
+              <ShellNavItem current>Inbox</ShellNavItem>
+              {Array.from({ length: props?.rows ?? 1 }, (_, i) => (
+                <ShellNavItem key={i}>Row {i}</ShellNavItem>
+              ))}
+            </ShellNavGroup>
+          </ShellScroll>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+
+  const rows = (root: HTMLElement) =>
+    [...root.querySelectorAll<HTMLElement>(".kui-shell-nav-item")];
+
+  it("a nav row stands LEVEL with a real Button, at every size", () => {
+    // The segmented control's law verbatim (§26) — measured against a mounted Button rather
+    // than compared as tokens, because "reads the same height" is a claim about pixels. The
+    // menu row is the family's shifted member and its reason (a panel opened for a second,
+    // scanned, dismissed, with no buttons near it) does not reach a permanent column that
+    // sits beside real buttons all day. So this member simply does not take the stand-down,
+    // and it costs no new designed number.
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const shell = nav({ size });
+      const button = within(shell, ".kui-button").getBoundingClientRect().height;
+      const row = rows(shell)[0]!.getBoundingClientRect().height;
+      expect(button).toBeGreaterThan(0);
+      expect(row, `size ${size}: the row and the button beside it disagree`).toBeCloseTo(button, 0);
+      shell.remove();
+    }
+  });
+
+  it("the group's HEADING keeps the family's short box — a caption is not a target", () => {
+    const shell = nav();
+    const label = within(shell, ".kui-shell-nav-label").getBoundingClientRect().height;
+    const row = rows(shell)[0]!.getBoundingClientRect().height;
+    expect(label, "the heading grew into a row").toBeLessThan(row);
+    expect(label).toBeGreaterThan(0);
+  });
+
+  it("hover reaches a nav row — the family's stand-down is about a roving highlight it has none of", async () => {
+    // §21's stand-down exists so a pointer-rested row does not stay lit after the keyboard
+    // moves on (Base UI folds both into `data-highlighted`). A sidebar has no roving
+    // highlight at all, so without this member restating hover the row is simply dead under
+    // the pointer — measured, rest and hover byte-identical.
+    const shell = nav({ rows: 2 });
+    const plain = rows(shell)[1]!;
+    const rest = computed(plain, "background-color");
+    await userEvent.hover(plain);
+    expect(computed(plain, "background-color"), "a nav row does not answer the pointer").not.toBe(
+      rest,
+    );
+  });
+
+  it("current and hover are DIFFERENT currencies, so they compose instead of colliding", async () => {
+    // The fills go rest → hover → press; a fourth step would have nowhere to go. Current is
+    // not a fourth step, it is another colour — the row stamps `data-tone="accent"`, so grey
+    // means the pointer is here and accent means this is where you are. Apple's answer, and
+    // the same call the rail's item takes.
+    const shell = nav({ rows: 2 });
+    const [currentRow, plain] = [rows(shell)[0]!, rows(shell)[1]!];
+    const currentRest = computed(currentRow, "background-color");
+    const plainRest = computed(plain, "background-color");
+    // FIRST: current is a state at all. Without this the law passes for a row that is simply
+    // not current — its own sabotage pass caught exactly that, because "different from the
+    // hover colour" is also true of transparent.
+    expect(currentRest, "the current row rests unpainted").not.toBe(plainRest);
+    expect(currentRest, "the current row rests transparent").not.toContain("rgba(0, 0, 0, 0)");
+    await userEvent.hover(plain);
+    const plainHovered = computed(plain, "background-color");
+    expect(currentRest, "the current row is painted in the hover currency").not.toBe(plainHovered);
+    // And the current row still MOVES under the pointer rather than being a dead end.
+    await userEvent.hover(currentRow);
+    expect(
+      computed(currentRow, "background-color"),
+      "hovering the current row has nowhere to go",
+    ).not.toBe(currentRest);
+  });
+
+  it("being current is ANNOUNCED, and the heading is CONNECTED to its items", () => {
+    // Both are the non-visual halves that force these parts to exist at all (§10's
+    // criterion): a colour tells nobody who cannot see it, and a heading rendered as a
+    // sibling is a heading nobody is told about.
+    const shell = nav();
+    expect(rows(shell)[0]!.getAttribute("aria-current")).toBe("page");
+    const group = within(shell, ".kui-shell-nav-group");
+    const label = within(shell, ".kui-shell-nav-label");
+    expect(group.getAttribute("role")).toBe("group");
+    expect(group.getAttribute("aria-labelledby"), "the heading is not wired to its group").toBe(
+      label.id,
+    );
+    expect(label.id).not.toBe("");
+  });
+
+  it("a SHORT list still fills the pane, so anything after the region pins to the bottom", () => {
+    // The fixture where flex-GROW can be wrong. With a long list the region is bounded by
+    // shrinking, so `flex: 0 1 auto` behaves identically and a law built on overflow proves
+    // nothing about growth — its own sabotage pass caught exactly that. A short list is
+    // where growth is the only thing holding the footer down, and a pinned footer is half of
+    // what "mark the one region that scrolls" is for.
+    const shell = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary">
+          <ShellScroll>
+            <ShellNavItem>Only row</ShellNavItem>
+          </ShellScroll>
+          <Button data-testid="footer">Account</Button>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const pane = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
+    const footer = within(shell, "[data-testid='footer']").getBoundingClientRect();
+    expect(footer.bottom, "the footer floated up under the list instead of pinning").toBeCloseTo(
+      pane.bottom,
+      0,
+    );
+  });
+
+  it("the marked region scrolls and the PANE stops scrolling itself", () => {
+    // The one part, and the one declaration the builder was hand-writing five times: a flex
+    // item's automatic minimum size is its content, so without `min-block-size: 0` a long
+    // list refuses to shrink, the pane grows past its own box, and nothing scrolls anywhere.
+    const shell = nav({ rows: 60 });
+    const pane = within(shell, ".kui-shell-sidebar");
+    const region = within(shell, ".kui-shell-scroll");
+    const viewport = within(shell, ".kui-scroll-viewport");
+    expect(computed(pane, "flex-direction")).toBe("column");
+    // The pane is not a scroll container: its content fits, because the region absorbed it.
+    expect(pane.scrollHeight, "the pane is scrolling itself").toBeLessThanOrEqual(
+      pane.clientHeight + 1,
+    );
+    // The region really did take the leftover room rather than its content's height.
+    expect(region.getBoundingClientRect().height).toBeGreaterThan(0);
+    expect(region.getBoundingClientRect().height).toBeLessThan(400);
+    // And it is the thing that scrolls.
+    expect(viewport.scrollHeight, "nothing overflows the region").toBeGreaterThan(
+      viewport.clientHeight,
+    );
   });
 });
 

@@ -37,7 +37,9 @@ import * as React from "react";
 
 import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
 import { useWindowClass } from "../../system/window.ts";
+import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
+import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /* ── The registry: the one thing that crosses the shell ─────────────────────────────────── */
@@ -159,6 +161,16 @@ type PaneDressProps = {
    */
   flush?: boolean;
 };
+
+/* ── Size context: the panes answer `size`, and every ROW stamps it on its own element ─────
+   Menu's shape exactly (§22): one provider on the pane, because a size-4 app must not hold
+   size-2 navigation, and the stamp lands per element because the control size join keys
+   `[data-size]` per element and its cells are `inherits: false` on purpose. Stating it on
+   the pane rather than on each row is the same call Menu made — a column of navigation is
+   one size of thing, and asking every row would be asking the call site to keep nine
+   answers agreeing. */
+
+const ShellSizeContext = React.createContext<Size>("2");
 
 /* ── Root ───────────────────────────────────────────────────────────────────────────────── */
 
@@ -554,6 +566,13 @@ type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
      * later drag writes where this writes.
      */
     width?: number;
+    /**
+     * The control index the pane's own navigation is priced at — its rows, and (when the
+     * rail's items land) its squares. Not the pane's WIDTH: a pane's extent is a statement
+     * about the app's content and has no ladder, which is why `width` is a raw number and
+     * this is an index.
+     */
+    size?: Size;
     ref?: React.Ref<HTMLElement>;
   };
 
@@ -578,6 +597,7 @@ function SidePane({
     onOpenChange,
     presentation,
     width,
+    size = "2",
     flush = true,
     id,
     className,
@@ -606,7 +626,9 @@ function SidePane({
       tabIndex={-1}
       style={sidePaneStyle(width, style)}
     >
-      <GlassScope material={material}>{children}</GlassScope>
+      <GlassScope material={material}>
+        <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
+      </GlassScope>
     </Element>
   );
 }
@@ -691,6 +713,135 @@ export function ShellBottom(props: ShellBottomProps) {
 }
 
 /* ── Trigger ────────────────────────────────────────────────────────────────────────────── */
+
+/* ── The pane's scrolling region (§27) ─────────────────────────────────────────────────────
+   ONE part, not three. The shell made its panes scroll, so the shell owes the answer — and
+   the answer is to mark the single region that scrolls, after which everything else pins by
+   being an ordinary-sized child of a column. A pinned header and a pinned footer are not
+   parts; they are siblings.
+
+   It is a PANE fact, not a sidebar fact: the inspector has the same pinned-tabs-over-a-
+   scrolling-body shape (Figma's Design/Prototype) and so does the bottom pane (VS Code's tab
+   strip), so one part serves all of them and the name says so.
+
+   The evidence that it was missing is our own builder, which does not use ShellSidebar at
+   all: it rebuilds the panel by hand with 31 raw `style` escapes, five of them `minHeight:
+   0` — the flexbox incantation an inner scroller needs, which everybody gets wrong once and
+   then copies forever. That is the whole of what this part deletes. */
+
+export type ShellScrollProps = ScrollAreaProps;
+
+/**
+ * The one region of a pane that scrolls. Put it in a pane beside anything that should stay
+ * put; the pane becomes a column, this takes the leftover room, and the pane stops scrolling
+ * itself. Custom scrollbars arrive with it because it IS a ScrollArea.
+ *
+ * A DIRECT child of the pane, deliberately: the stylesheet asks the pane whether it has one
+ * (`:has(> …)`) and hands it the leftover room by flex, and neither question survives a
+ * wrapper. Wrapping it is the same mistake as wrapping a pane, one level in.
+ */
+export function ShellScroll({ className, ...props }: ShellScrollProps) {
+  return <ScrollArea {...props} className={cx("kui-shell-scroll", className)} />;
+}
+
+/* ── Navigation: the sidebar's own vocabulary (§21, §27) ───────────────────────────────────
+   OPTIONAL, and the shape has to say so. A sidebar's job is navigation often enough that the
+   system owes it a row and a group, and NOT often enough to make them the only legal
+   content: Womp puts a layers tree here, our own builder puts a component palette. So these
+   are two small parts a pane may contain, never an anatomy it must have — a tree is a
+   kookie-block, and what the pane owes it is a box with a real height, the right region
+   scrolling, and `m="bleed"` for rows that want to reach the pane's edge. */
+
+export type ShellNavGroupProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
+  /** The group's heading. Omit it for an unlabelled cluster. */
+  label?: React.ReactNode;
+};
+
+/**
+ * A cluster of nav items under a heading. The part exists for the non-visual half (§10's
+ * criterion): a heading rendered as a sibling is a heading nobody is told about, so the
+ * group carries `role="group"` and points `aria-labelledby` at its own label. Rendering the
+ * words is the easy part; connecting them is what forces the component.
+ */
+export function ShellNavGroup({ label, id, className, children, ...props }: ShellNavGroupProps) {
+  const size = React.use(ShellSizeContext);
+  const auto = React.useId();
+  const labelId = label === undefined ? undefined : `${id ?? auto}-label`;
+  return (
+    <div
+      {...props}
+      id={id}
+      role="group"
+      aria-labelledby={labelId}
+      className={cx("kui-shell-nav-group", className)}
+    >
+      {label === undefined ? null : (
+        <div id={labelId} data-size={size} className="kui-control kui-row kui-shell-nav-label">
+          {label}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+export type ShellNavItemProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
+  /**
+   * This is the page you are on. Announced (`aria-current="page"`) as well as painted —
+   * "you are here" is information, and a colour alone tells nobody who cannot see it.
+   */
+  current?: boolean;
+  /** Be an anchor instead: a nav item usually navigates, and a link is a link (§13). */
+  render?: RenderElement;
+  ref?: React.Ref<HTMLElement>;
+};
+
+/**
+ * One row of navigation — the row family's SECOND member (§21), and the one that comes due
+ * on its recorded debt.
+ *
+ * It stands level with a Button, which the menu row deliberately does not: a menu row steps
+ * DOWN off the height ladder because it lives in a panel that opens for a second, is scanned
+ * and dismissed, with no buttons anywhere near it. A sidebar row gets none of that reason —
+ * it is there all day, it sits beside real buttons, and it is a target you hit constantly.
+ * So the menu row is the exception and this one is simply unshifted; no new numbers exist.
+ */
+export function ShellNavItem({
+  current,
+  render,
+  className,
+  children,
+  ref,
+  ...props
+}: ShellNavItemProps) {
+  const size = React.use(ShellSizeContext);
+  const merged = {
+    ...props,
+    "data-size": size,
+    // TWO STAMPS AND NO CSS. Being the page you are on is a fixed identity, not an axis
+    // (§21 refuses emphasis on rows because a list of peers ranks nothing — a component
+    // stamping its own rung is Card's precedent, not a call site choosing). The pair is what
+    // makes current and hover DIFFERENT CURRENCIES rather than a fourth step on one ramp:
+    // quiet rests transparent and hovers to soft, medium rests at soft and hovers to
+    // soft-hover, so a plain row hovers grey, a current row rests accent and still has
+    // somewhere to go under the pointer. Naming a colour here instead would have frozen it —
+    // the first spelling painted the hover step directly and hovering the current row
+    // computed byte-identical to its own rest, which its law caught.
+    ...(current
+      ? { "aria-current": "page" as const, "data-tone": "accent", "data-emphasis": "medium" }
+      : { "data-emphasis": "quiet" }),
+    className: cx("kui-control kui-row kui-shell-nav-item", className),
+    ref,
+  };
+  // `type="button"` only on the button this file renders — a render target keeps its own
+  // element semantics (the Button-as-anchor lesson, 2026-08-03).
+  if (render) return composeRender(render, merged as never, children);
+  return (
+    <button {...(merged as React.ComponentPropsWithoutRef<"button">)} type="button">
+      {children}
+    </button>
+  );
+}
 
 export type ShellTriggerProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /** Which pane this button drives. */

@@ -60,6 +60,9 @@ import {
   ShellHeader,
   ShellRail,
   ShellSidebar,
+  ShellNavItem,
+  ShellNavGroup,
+  ShellScroll,
   ShellContent,
   ShellInspector,
   ShellBottom,
@@ -985,21 +988,29 @@ function ShellSection() {
                 </Flex>
               </Flex>
             </ShellHeader>
+            {/* The pane's real anatomy: one region marked as the scroller, everything else
+                pinning by being an ordinary child. The rows stand level with the button
+                above them — which is the whole of why a sidebar row leaves the menu row's
+                height behind. */}
             <ShellSidebar aria-label="Primary">
-              <Stack gap="1" p="3">
-                <Text size="2" weight="medium">
-                  Projects
-                </Text>
-                <Text size="2" emphasis="medium">
-                  Deploys
-                </Text>
-                <Text size="2" emphasis="medium">
-                  Members
-                </Text>
-                <Text size="2" emphasis="medium">
-                  Settings
-                </Text>
-              </Stack>
+              <Box p="2">
+                <Button size="2" emphasis="quiet">
+                  New project
+                </Button>
+              </Box>
+              <ShellScroll>
+                <Box px="2">
+                  <ShellNavGroup label="Workspace">
+                    <ShellNavItem>Projects</ShellNavItem>
+                    <ShellNavItem current>Deploys</ShellNavItem>
+                    <ShellNavItem>Members</ShellNavItem>
+                  </ShellNavGroup>
+                  <ShellNavGroup label="Account">
+                    <ShellNavItem>Settings</ShellNavItem>
+                    <ShellNavItem>Billing</ShellNavItem>
+                  </ShellNavGroup>
+                </Box>
+              </ShellScroll>
             </ShellSidebar>
             <ShellContent>
               <Stack gap="2" p="4">

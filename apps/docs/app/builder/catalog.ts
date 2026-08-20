@@ -815,6 +815,18 @@ export const EXCLUDED: { name: string; why: string }[] = [
     why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellTrigger has no meaning on a canvas with no Shell to arrange it.",
   },
   {
+    name: "ShellScroll",
+    why: "A part of the Shell, and the one that marks which region of a pane scrolls. It only means anything inside a pane that has given it a bounded column to grow into, which is a frame this canvas composes inside rather than places.",
+  },
+  {
+    name: "ShellNavGroup",
+    why: "A part of the Shell's sidebar: a cluster of nav rows wired to its own heading. Navigation belongs to the app frame, and the frame is what this canvas sits inside rather than something it arranges.",
+  },
+  {
+    name: "ShellNavItem",
+    why: "A part of the Shell's sidebar. A nav row navigates — it needs a destination and a notion of which page you are on, neither of which a composition canvas has; a Button is what the builder offers for an action that stays on the screen.",
+  },
+  {
     name: "ScrollArea",
     why: "Its one job needs a stated height, and a stated raw length is exactly what this builder refuses to offer — every distance here is a token index. It joins the palette the day the system gives a scroll region a designed height vocabulary.",
   },

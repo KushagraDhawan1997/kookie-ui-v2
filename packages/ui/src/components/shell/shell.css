@@ -362,6 +362,84 @@
   grid-row-end: bottom-end;
 }
 
+/* ── The pane's scrolling region (§27, 2026-08-20) ─────────────────────────────────────────
+   A pane that contains one becomes a column and STOPS SCROLLING ITSELF — the scroll moves
+   inward to the marked region, which is what lets anything else in the pane pin without
+   saying so. `clip` rather than `hidden` for the pane's own axis: a hidden box is a scroll
+   container, which is exactly what this rule is trying to stop it being (the select entry's
+   own lesson, §23 — a scroll container that nobody meant to create is how a panel came to
+   slide its own contents under a growing frame).
+
+   `:has(> …)` is a direct-child question and the flex sizing below is too, so a wrapped
+   ShellScroll silently gets neither. That is stated in the part's JSDoc rather than guarded,
+   because the same is true of a wrapped pane and the shell has one answer for both. */
+.kui-shell-pane:has(> .kui-shell-scroll) {
+  display: flex;
+  flex-direction: column;
+  overflow: clip;
+}
+
+.kui-shell-scroll {
+  /* Take the leftover room. That is ALL this rule needs to say, and finding out why is the
+     nicer half of the story: the other half of the builder's incantation — `minHeight: 0`,
+     the automatic-minimum override without which a flex item refuses to shrink below its
+     content — is already declared by `.kui-scroll-area` itself. A first spelling repeated it
+     here and a sabotage pass proved the repetition dead: deleting it changed nothing,
+     because ShellScroll IS a ScrollArea and ScrollArea solved this for its own reasons.
+     So the pane contributes the flex and the scroller contributes the minimum, and the five
+     hand-written escapes in our own builder are gone between them. */
+  flex: 1 1 auto;
+}
+
+/* ── Navigation (§21's second member, §27) ─────────────────────────────────────────────────
+   A SIDEBAR ROW STANDS LEVEL WITH A BUTTON, and it costs no new number — it is one
+   declaration, because the row family's height is a stand-DOWN (`min-height: auto`) and this
+   member simply does not take it. The menu row is the exception, with a written reason a
+   permanent nav column does not inherit; the padding-block stays the family's, so a label
+   that wraps to two lines still grows and still breathes. */
+.kui-shell-nav-item {
+  min-height: var(--kui-ct-h);
+}
+
+/* HOVER, which the family stands down and this member restores. The stand-down exists for a
+   ROVING HIGHLIGHT — Base UI unifies pointer and keyboard into `data-highlighted`, and a row
+   that also answered raw hover would keep a pointer-rested row lit after the keyboard moved
+   on (§21, the two-cursors bug). A sidebar has no roving highlight at all, so the reason does
+   not reach here and the row would otherwise be dead under the pointer. Stated as this
+   member's own fact rather than by re-scoping the shared rule: the second member self-keys,
+   and a third non-roving row is what promotes it. Inside the `(hover: hover)` guard, like
+   every hover in this system. */
+@media (hover: hover) {
+  .kui-shell-nav-item:hover:not([data-disabled]) {
+    background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
+    --kui-ct-paint: var(--motion-hover-in);
+  }
+}
+
+/* YOU ARE HERE is TWO STAMPS and no declaration — see ShellNavItem. The row stamps
+   `data-tone="accent"` and `data-emphasis="medium"`, and the emphasis ladder does the rest:
+   quiet rests transparent and hovers to soft, medium rests at soft and hovers to soft-hover.
+   That is what keeps current and hover in different currencies instead of on one ramp —
+   grey means the pointer is here, accent means this is where you are, and the current row
+   still moves under the pointer because it has its own rung to step within. The first
+   spelling painted the hover fill straight onto `[aria-current]`, which read correctly at
+   rest and went dead on hover; the law that caught it is the one named for the composition.
+
+/* A group is layout and a heading; the connection between them is the part's real job. */
+.kui-shell-nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The heading keeps the FAMILY's short box — it is a caption, not a target, so it must not
+   take the member height above. It wears the row skeleton for one reason: its words line up
+   with the rows under it, which is what the reserved gutter buys (the menu label's own
+   move). */
+.kui-shell-nav-label {
+  pointer-events: none;
+  color: var(--color-text-muted);
+}
+
 /* ── The narrow window (§18's boundary — config's `narrowMedia`, law-pinned) ───────────────
    Auto resolves here: the nav columns rest closed, and an open pane presents as an overlay.
    ONE media block so the boundary literal exists once in this file. */
