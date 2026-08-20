@@ -133,6 +133,30 @@ had in mind, applied to a case they did not. That is the same finding this repo'
 audits keep making, and the same answer works — put the rule in one place the whole system
 passes through, then write a law that reads the result rather than the intention.
 
+**Then I audited the night's own work, and it found three defects I had shipped hours
+earlier.** Worth reading in that order, because it is the more useful half:
+
+- **The commit that fixed the drop indicator introduced a new way for it to lie.** Deriving
+  the gutter from the pointer's row looks equivalent to reading the two items that straddle
+  the index, and is not: inside a row holding one item — every row of a Stack — they are the
+  same row, so the line drew through the middle of the item under the pointer. Its five new
+  laws asserted orientation, width and height and never a POSITION, which is how a positional
+  regression got past the laws written in the same commit.
+- **⌘X and ⌘V still edited the document in preview.** The key handler refuses every editing
+  chord there; the clipboard rides the browser's own events through a separate listener that
+  had no guard. And the law that says preview is safe walks the command table, while the
+  sibling law certifies that these commands are not in it — two laws together attesting
+  something false.
+- **⌘B destroyed a saved block.** Making a block save replace by name is what closes the
+  open-edit-save loop, and it made the AUTO-named path destructive: every unnamed Card
+  derives "Card", so a second ⌘B replaced the first block silently, with no history to undo
+  it. A derived name now takes the next free one; a typed name still replaces and says so.
+
+Three more the audit found in older code: the rule deciding which loud action keeps the
+figure budget sorted with `indexOf` over copies, so it did nothing and could flag the earlier
+button; the width handle mixed painted pixels with CSS pixels under zoom; and the row grouping
+existed twice again, because extracting it made a second copy rather than promoting the first.
+
 ## 4. What writing it taught (the part I would read if I were you)
 
 **The templates corrected the reviewer, twice.** I wrote a law saying every template must
@@ -191,9 +215,9 @@ UI's ids already had.
 
 ## 5. Laws
 
-`editor.test.ts` (79) covers the store, the commands, the grammar, the drop scan's
+`editor.test.ts` (82) covers the store, the commands, the grammar, the drop scan's
 arithmetic, review and the canvas boundary; `builder.test.tsx` (98) still covers the
-document's translation into code. 344 docs tests in total.
+document's translation into code. 347 docs tests in total.
 
 Every fix tonight was falsified against the defect it repairs before it was accepted — around
 thirty sabotage runs. Three of those sabotages SURVIVED the first pass, and each one earned a
