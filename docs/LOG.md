@@ -8,6 +8,50 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-20 The builder moves into the Shell, and the frame's hiding mechanism turns out to be dead
+
+The builder shipped its own app frame — a `100dvh` flex column holding a top bar, three fixed-width boxes and four Separators — for the ordinary reason that it was written before the system had one. The Shell landed hours later. Porting it is the same argument the docs refused a docs framework with, and it does not get weaker for the parts that are "just editor chrome": the builder's whole claim is that this system composes, so a builder whose own frame is hand-rolled is arguing the opposite in the place it is loudest.
+
+**What the mapping cost: nothing, which is the point.** Header, sidebar (272), content, inspector (304) each map onto a pane; the panes tile with one hairline per seam, so four `Separator`s and three width boxes are deleted. What the port BUYS, none of it written here: `<main>`, two named `<nav>`s and an `<aside>` as real landmarks instead of divs; the jump bar pinning itself because a `ShellScroll` beside it makes the pane a column; and a phone posture the app never had — the nav columns rest closed under 48rem, resolved in CSS at first paint.
+
+**The Add/Layers strip became the rail, on the Shell's own sentence.** "The rail picks, the sidebar shows what was picked" is exactly what that two-tab strip did. Each square is a `ShellTrigger` with `action="open"` as well as a switch, because picking a region the sidebar is not showing must show it — the dead-control problem the same day's `armed` work named, answered structurally rather than by hiding the button. One list (`LEFT_REGIONS`) feeds the squares and the panel switch, and the panel's last arm is narrowed to `never`, so a third region without a panel fails `tsc` rather than silently showing the second one.
+
+**Preview stopped unmounting the panels.** It was `{!preview ? … : null}` around each side pane, which threw away the panel's React state and scroll position along with its pixels; it is `open` now, so the pane closes and keeps everything. The prop is SPREAD — `{...(preview ? { open: false } : {})}` — and the type is what said so: `exactOptionalPropertyTypes` refuses an explicit `undefined`, which is the API stating that saying nothing and saying "I don't know" are different. Out of preview the nav panes are uncontrolled and keep the CSS-resolved `auto`; passing `!preview` would have frozen the sidebar open on a phone and killed the responsive default outright.
+
+**The inspector is controlled where the sidebar is not, and the asymmetry is the Shell read straight.** A nav column's `auto` means "open on a roomy window", which is what this app wants; an inspector's `auto` means "closed until asked for", which is what it does not. So the one pane whose responsive default says nothing useful states its own — `null` for untouched, resolving through `useWindowClass()`, pinned by the first toggle. Measured before that existed: the builder opened on a 600px window with the inspector overlaying half the screen and a scrim over the canvas. **Recorded open**: this is a third resting rule the library does not offer, and the honest library answer is an inspector whose `auto` an app can mean. It lives in the app until a second consumer wants it.
+
+**Rejected: leaving the frame alone and taking only the parts.** `ShellScroll` and the pane dress would have fixed the jump bar and the seams, and left the landmark question, the phone posture and four Separators exactly where they were — the cheap half of the port with none of the reason for it.
+
+**Rejected: keeping the Add/Layers tabs and adding no rail.** Defensible as a smaller change, and it keeps a 37px column of screen. It also leaves the builder unable to switch regions while the sidebar is closed, and leaves the one component in the library nobody composes with unexercised by the app whose job is to exercise the library.
+
+### And the frame could not hide a pane
+
+Porting it found a defect in the Shell that all 46 of its laws were green through, and the finding is worth more than the port. **A pane holding the recommended anatomy could not be closed at all.**
+
+Measured, on the composition the JSDoc tells people to write: a `data-state="closed"` sidebar computed `display: flex` and stayed on screen at every width, and a sidebar whose `ShellScroll` is its only child rested OPEN on a narrow window — the phone default this component resolves in CSS precisely so it cannot be got wrong.
+
+Two rules decide how a displayed pane lays itself out, both at (0,2,0), both landing later in the cascade than the hides: shell.css's own `:has(> .kui-shell-scroll)` column rule, and surfaces.css's shared `.kui-surface:has(> .kui-scroll-area:only-child)`. The first comes after the hides in the same file; the second comes after the whole file. Against a pane holding a text node — which is what every existing law mounts — neither rule matches, and the hides win by having no opponent.
+
+The fix is one class. Every pane already wears `.kui-surface`, so prefixing the four hide selectors takes them to (0,3,0) and settles it by RANK rather than by order — the shape the `--kui-sf-p` stand-down two dozen lines above already uses, against the same kind of opponent, with the reason already written out. **Not being displayed out-ranks being laid out**, stated once for all four hides rather than three that agree and one that happens to.
+
+**Why no law caught it, and it is the degenerate-fixture lesson on the other side of the repo.** Every hide law reads `display` on a pane whose child is the string `"sidebar"`. That is not a law asserting the wrong thing — it asserts exactly the right thing — it is a law whose INPUT cannot tell a correct implementation from a broken one. The 2026-08-20 builder audit earned that sentence from eight laws at once; this is the ninth, in the package, found by a consumer rather than by a suite.
+
+The new laws repeat all four hide conditions on the input where right and wrong differ, and on BOTH scroller arrangements, because the only-child arm and the sibling arm are beaten by two different rules and a law over one says nothing about the other. Falsified: five of the eight fail with the fix removed. The three that survive are kept and named rather than trimmed, because which ones they are is itself the finding — both explicit-overlay cases (that arm already carried two attributes, so it was the one hide never out-ranked) and the sibling arm at a narrow window (its only opponent is beaten on source order already).
+
+### Four node laws were red on main, and all four had aged rather than caught anything
+
+Found by running the suite before touching it. Every one dates from the same day's rail-and-nav work and none is a code defect; the decisions they trip on are all recorded in DECISIONS or in this file. They are repaired here because a red suite hides the next regression, and each repair was falsified.
+
+**The `@media` count said two and the sheet had three.** The third is `(hover: hover)`, which every hover in this system lives inside — the nav row restated hover because §21 stands it down for a roving highlight a sidebar does not have. Counted at three now, and both survivors NAMED, so a query swapped for another cannot keep the count while changing the claim.
+
+**The overlay-arm law counted seven arms and there are six.** The seventh was `.kui-shell-rail-item::after` — the press-target expander, absolutely positioned, matched because `.kui-shell-rail` is a prefix of `.kui-shell-rail-item`. Updating the count would have demanded a viewport cap on a press target. Bounded with `(?![-\w])`; the count assertion did exactly its job, which was to make a law defect fail loudly instead of quietly becoming a wrong requirement.
+
+**"The shell paints no bed" now has two sanctioned paints, not one.** The nav row's hover fill is the second. What the law owes that rule is not silence but the guarantee it was actually protecting: the paint must reach for the control layer's own fill variable rather than name a colour, so it asserts the exact `var(--kui-ct-fill-hover, …)` form and then excludes it.
+
+**And `data-size` in shell.css is a carve-out with a reason rather than an exemption.** The ban exists because per-size VARIATION belongs to the recipe layer or the cost goes multiplicative. The rail's rules price nothing — they derive the pane's own EXTENT, the one measurement §27 says no ladder can hold, so there is no variation for a shared layer to absorb. Carved out per SELECTOR, not per file: any other `data-size` in shell.css still fails, and a carve-out that stops matching fails too, so a rename cannot silently exempt the sheet.
+
+---
+
 ## 2026-08-20 Building the rail: three declarations that looked load-bearing and were not
 
 The rail and the sidebar's navigation shipped against the decisions logged earlier the same day. What is worth recording is not the design — that entry is above — but what the sabotage passes found in my own CSS, because all three findings are one shape: **a second mechanism quietly doing a first one's job, indistinguishable until one of them changes.**
