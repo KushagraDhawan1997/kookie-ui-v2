@@ -41,6 +41,7 @@ import {
   ScrollArea,
   Separator,
   Stack,
+  Surface,
   Tabs,
   TabsList,
   TabsPanel,
@@ -1622,19 +1623,19 @@ export function BuilderApp() {
                     radius={doc.theme.radius}
                     depth={doc.theme.depth}
                     material={doc.theme.material}
-                    /* THE PAGE. Painted inside the document's own Theme rather than beside it,
-                       so a dark document shows a dark page against the light workbench — the
-                       library owns no page colour (§13: that is always the app's call), and
-                       `--neutral-1` is the value /preview settled on for exactly this job.
-                       It fills the gutter box; the document lays out at its natural height on
-                       top, so nothing about the composition changes — only the bed it sits on
-                       becomes visible, which is what "where is my canvas" was asking. */
-                    style={{
-                      flex: 1,
-                      background: "var(--neutral-1)",
-                      borderRadius: "var(--radius-surface-2)",
-                      boxShadow: "0 0 0 1px var(--color-border)",
-                    }}
+                    /* THE PAGE — and it is a `Surface`, the ground shipped 2026-08-20 for
+                       exactly this. It was three hand-painted values here (a raw `--neutral-1`,
+                       a surface-2 corner and a hairline shadow), the one place in the builder
+                       that stated a colour, and the component's own doc names this canvas as
+                       the call site that went wrong: a size-2 corner around size-3 cards, which
+                       the ground's overlay-band arithmetic makes impossible. Rendered THROUGH
+                       the Theme rather than inside it (`render`, the system's own escape) so
+                       the page is one element wearing both jobs — and painted inside the
+                       document's Theme, so a dark document shows a dark page against the light
+                       workbench. Its padding is the ground's, not a number chosen here, which
+                       is the internal padding the canvas was missing. */
+                    render={<Surface />}
+                    style={{ flex: 1 }}
                   >
                     {/* The canvas is a REAL query container (§2's opt-in, layout-sized by
                         the width handle), so a per-tier value inside it answers the canvas's
