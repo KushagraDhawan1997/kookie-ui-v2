@@ -168,13 +168,30 @@ type PaneDressProps = {
    `[data-size]` per element and its cells are `inherits: false` on purpose. Stating it on
    the pane rather than on each row is the same call Menu made — a column of navigation is
    one size of thing, and asking every row would be asking the call site to keep nine
-   answers agreeing. */
+   answers agreeing.
+
+   ONE CONTEXT SERVES TWO HOPS (2026-08-21). The root provides the app's index, a pane that
+   states none resolves to it, and every pane re-provides whatever it resolved to for its own
+   rows. The literal below is therefore the default in exactly one place — the root's prop —
+   rather than repeated per pane, which is what the builder's port hit: a size-1 editor had
+   to say `size="1"` on the sidebar, the rail and the inspector separately, and would have
+   discovered the day it added a row that a missed one was silently size 2. */
 
 const ShellSizeContext = React.createContext<Size>("2");
 
 /* ── Root ───────────────────────────────────────────────────────────────────────────────── */
 
 export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
+  /**
+   * The control index this app's navigation is priced at — inherited by every pane, and
+   * overridable per pane. An editor is size 1 throughout and was having to say so on each
+   * pane separately (found by the builder's port, 2026-08-21); the per-pane default of `"2"`
+   * was a default with no home, which is the one thing a system with a size axis should not
+   * ship. Not the app's TYPE size and not any pane's WIDTH — a pane's extent is a statement
+   * about content and has no ladder, which is why `width` is a raw number and this is an
+   * index.
+   */
+  size?: Size;
   ref?: React.Ref<HTMLDivElement>;
 };
 
@@ -185,7 +202,7 @@ export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & 
  * `100dvh` box. The root paints nothing — in floating mode the gaps show the app's own page,
  * the same relationship a card has to the page anywhere else.
  */
-export function Shell({ className, style, children, ref, ...props }: ShellProps) {
+export function Shell({ size = "2", className, style, children, ref, ...props }: ShellProps) {
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const [store] = React.useState<ShellStore>(() => ({
     entries: new Map(),
@@ -389,7 +406,7 @@ export function Shell({ className, style, children, ref, ...props }: ShellProps)
         className={cx("kui-shell", className)}
         style={style}
       >
-        {children}
+        <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
         {/* Root-owned and always mounted; CSS shows it exactly when a pane overlays, keyed on
             the same two attributes the JS mirror reads. Hidden from AT: the root's
             containment pass is what takes the rest of the shell out of the tree. */}
@@ -443,7 +460,17 @@ export function ShellContent({ flush = true, className, children, ...props }: Sh
 type PaneState = "auto" | "open" | "closed";
 
 type TogglePaneOwnProps = {
-  /** Controlled open state — Dialog's pattern exactly. */
+  /**
+   * Controlled open state — Dialog's pattern exactly.
+   *
+   * PASSING IT CONDITIONALLY IS SUPPORTED, and stating that is the point of this paragraph
+   * (the builder's port was relying on it while nothing said it was allowed, 2026-08-21).
+   * `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on and
+   * hands control straight back when it goes: the uncontrolled state is kept untouched
+   * throughout rather than being overwritten by the controlled value, so the pane returns to
+   * exactly the state the user last left it in. React warns about this shape for form inputs
+   * because a value has nowhere to go; a pane's does. A law holds the round trip.
+   */
   open?: boolean;
   /** Initial state when uncontrolled. Omit BOTH and the pane is `auto`: the stylesheet
       resolves its resting state per window class, and the first user toggle makes it
@@ -597,7 +624,7 @@ function SidePane({
     onOpenChange,
     presentation,
     width,
-    size = "2",
+    size: statedSize,
     flush = true,
     id,
     className,
@@ -606,6 +633,11 @@ function SidePane({
     ref,
     ...rest
   } = props;
+  // The app's index unless this pane states its own — ONE context serves both hops, because
+  // a pane re-provides whatever it resolved to and its rows read the same name (below).
+  // Destructured out of `rest` under another name as well as resolved: `size` is not an
+  // attribute of `<nav>` or `<aside>`, so leaving it in the spread writes invalid HTML.
+  const size = statedSize ?? React.use(ShellSizeContext);
   const pane = usePane(name, { open, defaultOpen, onOpenChange, presentation: presentation ?? "auto", id });
   // The lens joins the ref chain rather than replacing it: the caller's ref and the registry's
   // both still land (the `render` escape's 2026-08-03 lesson — eight hand-rolled merges is how
