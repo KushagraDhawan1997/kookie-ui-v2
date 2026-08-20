@@ -30,10 +30,11 @@ import {
 } from "./shell.tsx";
 import type { Size } from "../../system/axes.ts";
 import { Button } from "../button/button.tsx";
+import { Separator } from "../separator/separator.tsx";
 import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
-import { computed, mounted, tokenOn, within } from "../../test/browser.tsx";
+import { APPEARANCES, DEPTHS, computed, mounted, tokenOn, within } from "../../test/browser.tsx";
 import { VIEWPORT as WIDE } from "../../test/viewport.ts";
 
 const narrow = () => page.viewport(375, 800);
@@ -138,9 +139,9 @@ describe("anatomy: the landmarks are by construction (§27)", () => {
     expect(computed(within(shell, ".kui-shell-content"), "background-image"), "content too").toBe(
       "none",
     );
-    // The seam colour is untouched by the fill going away — `border-width: 0` hides it, and
-    // contrast="high" is what brings it back.
-    expect(computed(flush, "border-top-color")).toBe(computed(card, "border-top-color"));
+    // Its EDGE is deliberately not a Card's any more (2026-08-21): a card's boundary in the
+    // elevated world is its cast, which a flush pane no longer has, so the seam is a RULE —
+    // pinned to a Separator's colour by its own laws below rather than restated here.
 
     const off = mounted(
       <Shell style={{ height: 400 }}>
@@ -453,6 +454,74 @@ describe("the app states its size once, and control may be handed back (§27)", 
  * surfaces.css's own expression, and what has to stay true is that it lands where a pane the
  * app pulled off the frame lands, at the same size.
  */
+/**
+ * ADDED 2026-08-21 (Kushagra: "what is not so trivial is separation between shell panes when
+ * they are flush… we have used hairline for exactly this"). The per-side widths were always
+ * right — each pane draws only its INNER edge, so two neighbours can never double one — and
+ * the pigment went missing when the pane stopped being a plane: `--surface-edge` rests at a
+ * live `transparent` in the elevated world because there a pane's boundary IS its cast, so
+ * with the cast gone the seam measured 1px of nothing and only appeared under `depth="flat"`.
+ *
+ * These read the PAINTED colour in both worlds, and pin it to the value a Separator resolves
+ * — the system's own answer for a rule between regions, the same pinning Tabs' bar carries.
+ *
+ * Falsified: with the `--kui-border-color` line removed from the flush rule, the elevated half
+ * of the first law reads `rgba(0, 0, 0, 0)` and fails in both appearances, while the flat half
+ * still passes — which is exactly the shape that let this ship.
+ */
+describe("a flush seam is a hairline, and exactly one pane owns each (§7, §27)", () => {
+  const frame = (depth: (typeof DEPTHS)[number], appearance: (typeof APPEARANCES)[number]) =>
+    mounted(
+      <Shell style={{ height: 300 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellRail aria-label="Sections">r</ShellRail>
+        <ShellSidebar aria-label="Primary">s</ShellSidebar>
+        <ShellContent>c</ShellContent>
+        <ShellInspector defaultOpen>i</ShellInspector>
+      </Shell>,
+      { theme: { appearance, depth }, select: ".kui-shell" },
+    );
+
+  for (const appearance of APPEARANCES) {
+    it(`the seam resolves a Separator's own colour, in BOTH worlds — ${appearance}`, () => {
+      for (const depth of DEPTHS) {
+        const shell = frame(depth, appearance);
+        const rule = computed(
+          mounted(<Separator />, { theme: { appearance, depth } }),
+          "background-color",
+        );
+        for (const [sel, side] of [
+          [".kui-shell-header", "bottom"],
+          [".kui-shell-rail", "right"],
+          [".kui-shell-sidebar", "right"],
+          [".kui-shell-inspector", "left"],
+        ] as const) {
+          const el = within(shell, sel);
+          expect(computed(el, `border-${side}-width`), `${depth} ${sel} ${side} width`).toBe("1px");
+          expect(computed(el, `border-${side}-color`), `${depth} ${sel} ${side} colour`).toBe(rule);
+        }
+        shell.remove();
+      }
+    });
+  }
+
+  // Falsified: giving the content pane an inline-start edge fails this at the sidebar seam —
+  // two panes drawing one boundary is the doubling the inner-edge rule exists to prevent.
+  it("exactly one pane draws each boundary — the content draws none at all", () => {
+    const shell = frame("elevated", "light");
+    const content = within(shell, ".kui-shell-content");
+    for (const side of ["top", "right", "bottom", "left"] as const) {
+      expect(computed(content, `border-${side}-width`), `content ${side}`).toBe("0px");
+    }
+    // …and the two boundaries Kushagra named are each owned once: rail|sidebar by the rail's
+    // inner edge, sidebar|content by the sidebar's.
+    expect(computed(within(shell, ".kui-shell-rail"), "border-left-width"), "rail outer").toBe("0px");
+    expect(computed(within(shell, ".kui-shell-sidebar"), "border-left-width"), "sidebar outer").toBe(
+      "0px",
+    );
+  });
+});
+
 describe("a drawer is not part of the frame, whatever the app asked (§27)", () => {
   const offFrame = (size: Size) =>
     mounted(
@@ -476,6 +545,7 @@ describe("a drawer is not part of the frame, whatever the app asked (§27)", () 
     corner: computed(el, "border-top-left-radius"),
     edge: computed(el, "border-left-width"),
     painted: computed(el, "background-color"),
+    edgeColor: computed(el, "border-left-color"),
     light: computed(el, "background-image"),
     casts: computed(el, "box-shadow") !== "none" && !/^rgba\(0, 0, 0, 0\) 0px 0px 0px 0px$/.test(computed(el, "box-shadow")),
   });
