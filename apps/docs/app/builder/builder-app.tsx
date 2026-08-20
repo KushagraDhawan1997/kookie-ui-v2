@@ -38,8 +38,17 @@ import {
   MenuContent,
   MenuItem,
   MenuTrigger,
-  ScrollArea,
   Separator,
+  Shell,
+  ShellContent,
+  ShellHeader,
+  ShellInspector,
+  ShellRail,
+  ShellRailItem,
+  ShellRailList,
+  ShellScroll,
+  ShellSidebar,
+  ShellTrigger,
   Stack,
   Surface,
   Tabs,
@@ -50,9 +59,10 @@ import {
   TextField,
   Theme,
   tiers,
+  useWindowClass,
 } from "@kookie-ui/react";
 
-import { RedoIcon, UndoIcon, XIcon } from "../icons";
+import { LayersIcon, PanelLeftIcon, PanelRightIcon, PlusIcon, RedoIcon, UndoIcon, XIcon } from "../icons";
 import { CATALOG, canContain, gapStepsFor, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
 import {
   cloneWithNewIds,
@@ -112,6 +122,23 @@ import { Breadcrumb, CanvasBoundary, ContextMenu, DocumentBar, ShortcutSheet, Te
 
 /** The rungs the magnifier steps through — a closed list, like everything else here. */
 const ZOOMS: number[] = [0.5, 0.67, 0.8, 1, 1.25, 1.5, 2];
+
+/**
+ * The rail's regions, and the sidebar reads the same list (2026-08-20). One home, because a
+ * square that picks a region the sidebar cannot show is the doc-code drift rule inside one
+ * file — the rail and the panel would have been two lists agreeing by hand.
+ */
+export const LEFT_REGIONS = [
+  { id: "add", label: "Add components", Icon: PlusIcon },
+  { id: "layers", label: "Layers", Icon: LayersIcon },
+] as const;
+
+type LeftRegion = (typeof LEFT_REGIONS)[number]["id"];
+
+/** The unreachable arm of the region switch — see its call site. */
+const noPanel = (region: never): null => {
+  throw new Error(`the rail offers "${String(region)}" and the sidebar has no panel for it`);
+};
 
 const DRAG_TYPE = "application/x-kookie-component";
 const MOVE_TYPE = "application/x-kookie-move";
@@ -248,8 +275,20 @@ export function BuilderApp() {
       cut off is a match nobody can place. */
   const [layerFilter, setLayerFilter] = React.useState("");
   const layerFilterRef = React.useRef<HTMLInputElement | null>(null);
-  /** The left pane is controlled so ⌘F can bring the tree forward before focusing it. */
-  const [leftTab, setLeftTab] = React.useState("add");
+  /** Which region the rail has picked — the sidebar shows it. Controlled so ⌘F can bring
+      the tree forward before focusing it. */
+  const [leftTab, setLeftTab] = React.useState<LeftRegion>("add");
+  /** The inspector states its own open, where the sidebar keeps the Shell's `auto` — see the
+      pane's own comment below for why the asymmetry is the design and not a shortcut.
+      `null` means UNTOUCHED, which is Shell's own word: until somebody says otherwise the
+      pane rests open on a room and closed on a phone, and the first toggle makes it
+      explicit for good. Measured before this existed: the builder opened on a 600px window
+      with the inspector overlaying half the screen and a scrim over the canvas. */
+  const [inspectorOpen, setInspectorOpen] = React.useState<boolean | null>(null);
+  /** `null` on the server and through hydration (§18, honestly) — and `null !== "narrow"`
+      resolves to OPEN, which is the right first paint for a desktop tool. */
+  const roomy = useWindowClass() !== "narrow";
+  const inspectorShown = !preview && (inspectorOpen ?? roomy);
   /** The key listener is mounted once and never re-bound, so it needs the CURRENT mode
       rather than the one that was true when it was attached. */
   const previewRef = React.useRef(preview);
@@ -264,11 +303,17 @@ export function BuilderApp() {
   const [rightTab, setRightTab] = React.useState<"inspect" | "theme" | "review">("inspect");
   const reviewOpen = rightTab === "review";
   const setReviewOpen = React.useCallback(
-    (next: boolean | ((v: boolean) => boolean)) =>
+    (next: boolean | ((v: boolean) => boolean)) => {
       setRightTab((tab) => {
         const want = typeof next === "function" ? next(tab === "review") : next;
+        // AND THE PANE WITH IT. Changing what a closed pane shows is a command whose effect
+        // nobody can see — the `armed` lesson (2026-08-20) in a second home, and the port to
+        // the Shell is what made it reachable: pane visibility is now a fact this app holds,
+        // so the command that wants review can ask for it rather than hope.
+        if (want) setInspectorOpen(true);
         return want ? "review" : tab === "review" ? "inspect" : tab;
-      }),
+      });
+    },
     [],
   );
   const [paletteOpen, setPaletteOpen] = React.useState(false);
@@ -1274,477 +1319,521 @@ export function BuilderApp() {
     : [];
 
   return (
-    <Flex direction="column" style={{ height: "100dvh" }}>
+    /* THE FRAME IS THE SYSTEM'S (§27, 2026-08-20). It was a hand-rolled `100dvh` column
+       holding three fixed-width boxes and four Separators; it is the Shell now, and the
+       builder pays what every app pays for one. `100dvh` is stated here because the Shell
+       root fills the box it is given and this IS the app root — the one place a viewport
+       height is the honest answer. */
+    <Shell style={{ height: "100dvh" }}>
       {/* ── Top bar: identity, the document, the modes, the one loud action ── */}
-      <Flex align="center" justify="space-between" px="4" py="2" gapX="4">
-        <Flex align="center" gap="3" style={{ minWidth: 0 }}>
-          <Heading size="3" render={<h1 />}>
-            <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
-              Builder
-            </Link>
-          </Heading>
-          <DocumentBar state={state} dispatch={dispatch} preview={preview} />
-        </Flex>
-        <Flex align="center" gap="2">
-          {toast ? (
-            <Text size="1" emphasis="quiet" aria-live="polite">
-              {toast}
-            </Text>
-          ) : null}
-          {/* The EDITING controls stand down in preview with the panels. Guarding the
-              keyboard and leaving the buttons would be half a guard: a click on undo edits
-              the document just as well as ⌘Z does, and preview draws nothing to say it
-              happened. */}
-          {!preview ? (
-            <>
-              <Button size="1" emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
-                <UndoIcon />
-              </Button>
-              <Button size="1" emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
-                <RedoIcon />
-              </Button>
-              <Separator orientation="vertical" style={{ height: "20px" }} />
-            </>
-          ) : null}
-          <Button size="1" emphasis="quiet" onClick={() => setPaletteOpen(true)} trailing={<Kbd>{chordLabel("mod+k")}</Kbd>}>
-            Commands
-          </Button>
-          {/* Review lives in the right pane, which preview hides — a button that opens a
-              panel nobody can see is a dead control. */}
-          {!preview ? (
+      <ShellHeader>
+        <Flex align="center" justify="space-between" px="4" py="2" gapX="4">
+          <Flex align="center" gap="3" style={{ minWidth: 0 }}>
+            {/* The two pane toggles sit where every app frame puts them: beside the identity,
+                driving panes BY NAME through the registry rather than through lifted state. */}
+            {!preview ? (
+              <ShellTrigger
+                target="sidebar"
+                render={<Button size="1" emphasis="quiet" iconOnly aria-label="Editing panels" />}
+              >
+                <PanelLeftIcon />
+              </ShellTrigger>
+            ) : null}
+            <Heading size="3" render={<h1 />}>
+              <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
+                Builder
+              </Link>
+            </Heading>
+            <DocumentBar state={state} dispatch={dispatch} preview={preview} />
+          </Flex>
+          <Flex align="center" gap="2">
+            {toast ? (
+              <Text size="1" emphasis="quiet" aria-live="polite">
+                {toast}
+              </Text>
+            ) : null}
+            {/* The EDITING controls stand down in preview with the panels. Guarding the
+                keyboard and leaving the buttons would be half a guard: a click on undo edits
+                the document just as well as ⌘Z does, and preview draws nothing to say it
+                happened. */}
+            {!preview ? (
+              <>
+                <Button size="1" emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
+                  <UndoIcon />
+                </Button>
+                <Button size="1" emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
+                  <RedoIcon />
+                </Button>
+                <Separator orientation="vertical" style={{ height: "20px" }} />
+              </>
+            ) : null}
+            <Button size="1" emphasis="quiet" onClick={() => setPaletteOpen(true)} trailing={<Kbd>{chordLabel("mod+k")}</Kbd>}>
+              Commands
+            </Button>
+            {/* Review is a REGION of the inspector, so the button goes there and takes the
+                pane's visibility with it — the dead-control problem the last audit named,
+                answered structurally this time rather than by hiding the button. It still
+                stands down in preview, where the pane is closed on purpose. */}
+            {!preview ? (
+              <ShellTrigger
+                target="inspector"
+                action="open"
+                onClick={() => setRightTab("review")}
+                render={
+                  <Button
+                    size="1"
+                    emphasis={reviewOpen ? "medium" : "quiet"}
+                    aria-current={reviewOpen ? "true" : undefined}
+                  />
+                }
+              >
+                {findings.length ? `Review ${findings.length}` : "Review"}
+              </ShellTrigger>
+            ) : null}
             <Button
               size="1"
-              emphasis={reviewOpen ? "medium" : "quiet"}
-              aria-pressed={reviewOpen}
-              onClick={() => setReviewOpen((v) => !v)}
+              emphasis={preview ? "medium" : "quiet"}
+              aria-pressed={preview}
+              onClick={() => setPreview((v) => !v)}
             >
-              {findings.length ? `Review ${findings.length}` : "Review"}
+              {preview ? "Editing off" : "Preview"}
             </Button>
-          ) : null}
-          <Button
-            size="1"
-            emphasis={preview ? "medium" : "quiet"}
-            aria-pressed={preview}
-            onClick={() => setPreview((v) => !v)}
-          >
-            {preview ? "Editing off" : "Preview"}
-          </Button>
-          <Button size="1" tone="accent" emphasis="loud" onClick={() => setExportOpen(true)}>
-            Export code
-          </Button>
+            <Button size="1" tone="accent" emphasis="loud" onClick={() => setExportOpen(true)}>
+              Export code
+            </Button>
+            {!preview ? (
+              <ShellTrigger
+                target="inspector"
+                render={<Button size="1" emphasis="quiet" iconOnly aria-label="Inspector" />}
+              >
+                <PanelRightIcon />
+              </ShellTrigger>
+            ) : null}
+          </Flex>
         </Flex>
-      </Flex>
-      <Separator />
+      </ShellHeader>
 
-      {/* ── Three panes ── */}
-      <Flex align="stretch" style={{ flex: 1, minHeight: 0 }}>
-        {/* Left: add + layers. Both side panes stand down in preview — the mode promises the
-            screen you built, actually usable, and a screen with an editor's panels beside it
-            is the editor with its instruments turned off. The top bar stays, because the way
-            out has to be visible. */}
-        {!preview ? (
-        <Box width="272px" style={{ flex: "none", minHeight: 0 }}>
-          <ScrollArea style={{ height: "100%" }}>
-            <Box p="3">
-              <Tabs value={leftTab} onValueChange={(v) => setLeftTab(String(v))}>
-                <TabsList size="1">
-                  <TabsTab value="add">Add</TabsTab>
-                  <TabsTab value="layers">Layers</TabsTab>
-                </TabsList>
-                <TabsPanel value="add">
-                  <Box pt="3">
-                    <Stack gap="4">
-                      {contextualParts.length ? (
-                        <PaletteGroup
-                          label={`Inside ${selected!.type}`}
-                          entries={contextualParts}
-                          canInsert={() => true}
-                          onInsert={insertType}
-                          onDragBegin={(payload) => (dragRef.current = payload)}
-                          onDragFinish={endDrag}
-                        />
-                      ) : null}
-                      {PALETTE_FAMILIES.map((family) => (
-                        <PaletteGroup
-                          key={family}
-                          label={family}
-                          entries={paletteEntries().filter(([, e]) => e.family === family)}
-                          canInsert={(type) => insertionTarget(doc.roots, selection, type) !== null}
-                          onInsert={insertType}
-                          onDragBegin={(payload) => (dragRef.current = payload)}
-                          onDragFinish={endDrag}
-                        />
-                      ))}
-                      <Stack gap="2">
-                        <Text size="1" weight="medium">
-                          Blocks
-                        </Text>
-                        {blocks.length === 0 ? (
-                          <Text size="1" emphasis="quiet">
-                            Save a selection as a block and it lands here.
-                          </Text>
-                        ) : (
-                          blocks.map((b, i) => (
-                            <Flex key={`${b.name}-${i}`} gap="1" align="center">
-                              <Button
-                                size="1"
-                                emphasis="quiet"
-                                draggable
-                                onDragStart={(e) => {
-                                  dragRef.current = { kind: "block", index: i };
-                                  e.dataTransfer.setData(DRAG_TYPE, b.node.type);
-                                  e.dataTransfer.effectAllowed = "copy";
-                                }}
-                                onDragEnd={endDrag}
-                                onClick={() => insertBlock(b)}
-                                style={{ justifyContent: "flex-start", flex: 1 }}
-                              >
-                                {b.name}
+      {/* ── The rail: which region the sidebar shows ──────────────────────────────────────
+          It was a two-tab strip inside the sidebar, and the Shell's own sentence is what it
+          became: "the rail picks, the sidebar shows what was picked". Each square is a
+          TRIGGER as well as a switch, `action="open"` — picking a region the sidebar is not
+          showing must show it, or a press on a visible control does nothing, which is the
+          dead-control problem the header's Review button answers one screen up. */}
+      <ShellRail aria-label="Panels" size="1" {...(preview ? { open: false } : {})}>
+        <ShellRailList>
+          {LEFT_REGIONS.map(({ id, label, Icon }) => (
+            <ShellTrigger
+              key={id}
+              target="sidebar"
+              action="open"
+              onClick={() => setLeftTab(id)}
+              render={<ShellRailItem aria-label={label} current={leftTab === id} />}
+            >
+              <Icon />
+            </ShellTrigger>
+          ))}
+        </ShellRailList>
+      </ShellRail>
+
+      {/* ── The sidebar: whichever region the rail picked ──────────────────────────────────
+          THE PROP IS SPREAD, not passed as `open={preview ? false : undefined}`, and the
+          type is what said so: `exactOptionalPropertyTypes` refuses an explicit `undefined`,
+          which is the API stating that saying nothing and saying "I don't know" are
+          different things. Out of preview this pane is UNCONTROLLED, so it keeps the
+          CSS-resolved `auto` posture — open on a roomy window, an overlay on a phone,
+          decided at first paint with no script — and the user's own toggles keep working.
+          Preview is the one thing that overrules it, and letting go restores whatever it
+          was. Passing `!preview` instead would have frozen the pane open on a phone and
+          killed the responsive default outright. */}
+      <ShellSidebar aria-label="Editing panels" size="1" width={272} {...(preview ? { open: false } : {})}>
+        <ShellScroll>
+          <Box p="3">
+            {leftTab === "add" ? (
+              <Stack gap="4">
+                {contextualParts.length ? (
+                  <PaletteGroup
+                    label={`Inside ${selected!.type}`}
+                    entries={contextualParts}
+                    canInsert={() => true}
+                    onInsert={insertType}
+                    onDragBegin={(payload) => (dragRef.current = payload)}
+                    onDragFinish={endDrag}
+                  />
+                ) : null}
+                {PALETTE_FAMILIES.map((family) => (
+                  <PaletteGroup
+                    key={family}
+                    label={family}
+                    entries={paletteEntries().filter(([, e]) => e.family === family)}
+                    canInsert={(type) => insertionTarget(doc.roots, selection, type) !== null}
+                    onInsert={insertType}
+                    onDragBegin={(payload) => (dragRef.current = payload)}
+                    onDragFinish={endDrag}
+                  />
+                ))}
+                <Stack gap="2">
+                  <Text size="1" weight="medium">
+                    Blocks
+                  </Text>
+                  {blocks.length === 0 ? (
+                    <Text size="1" emphasis="quiet">
+                      Save a selection as a block and it lands here.
+                    </Text>
+                  ) : (
+                    blocks.map((b, i) => (
+                      <Flex key={`${b.name}-${i}`} gap="1" align="center">
+                        <Button
+                          size="1"
+                          emphasis="quiet"
+                          draggable
+                          onDragStart={(e) => {
+                            dragRef.current = { kind: "block", index: i };
+                            e.dataTransfer.setData(DRAG_TYPE, b.node.type);
+                            e.dataTransfer.effectAllowed = "copy";
+                          }}
+                          onDragEnd={endDrag}
+                          onClick={() => insertBlock(b)}
+                          style={{ justifyContent: "flex-start", flex: 1 }}
+                        >
+                          {b.name}
+                        </Button>
+                        <Menu size="1">
+                          <MenuTrigger
+                            render={
+                              <Button size="1" emphasis="quiet" aria-label={`Actions for ${b.name}`}>
+                                ⋯
                               </Button>
-                              <Menu size="1">
-                                <MenuTrigger
-                                  render={
-                                    <Button size="1" emphasis="quiet" aria-label={`Actions for ${b.name}`}>
-                                      ⋯
-                                    </Button>
-                                  }
-                                />
-                                <MenuContent>
-                                  <MenuItem onClick={() => insertBlock(b)}>Insert</MenuItem>
-                                  {/* A block was write-only: you could save one and place
-                                      one, and there was no way back into it — so a typo in
-                                      a saved card meant rebuilding it. It opens as its own
-                                      document now, with fresh ids so editing the copy
-                                      cannot reach into the block or into any screen the
-                                      block was already placed in. Re-saving under the same
-                                      name replaces it. */}
-                                  <MenuItem onClick={() => openBlock(b)}>Open as document</MenuItem>
-                                  <MenuItem
-                                    onClick={() => {
-                                      setExportBlock(i);
-                                      setExportOpen(true);
-                                    }}
-                                  >
-                                    Export as component
-                                  </MenuItem>
-                                  <MenuItem tone="destructive" onClick={() => dispatch({ type: "blockRemove", index: i })}>
-                                    Remove
-                                  </MenuItem>
-                                </MenuContent>
-                              </Menu>
-                            </Flex>
-                          ))
-                        )}
-                      </Stack>
-                    </Stack>
-                  </Box>
-                </TabsPanel>
-                <TabsPanel value="layers">
-                  <Box pt="3">
-                    {/* A tree, said in the markup: assistive technology gets the structure
-                        the eye gets from the indent, and the rows carry their own level. */}
-                    <Stack gap="2">
-                    {canvasChildren(doc).length > 0 ? (
-                      <TextField
-                        size="1"
-                        aria-label="Filter layers"
-                        placeholder="Filter by type or words"
-                        ref={layerFilterRef}
-                        value={layerFilter}
-                        onChange={(e) => setLayerFilter(e.target.value)}
-                        {...(layerFilter
-                          ? {
-                              trailing: (
-                                <Button
-                                  size="1"
-                                  emphasis="quiet"
-                                  iconOnly
-                                  aria-label="Clear the filter"
-                                  onClick={() => setLayerFilter("")}
-                                >
-                                  <XIcon />
-                                </Button>
-                              ),
                             }
-                          : {})}
-                      />
-                    ) : null}
-                    <Stack gap="1" render={<div role="tree" aria-label="Layers" />}>
-                      {canvasChildren(doc).length === 0 ? (
-                        <Text size="1" emphasis="quiet">
-                          The canvas is empty.
-                        </Text>
-                      ) : visibleRows !== null && visibleRows.size === 0 ? (
-                        <Text size="1" emphasis="quiet">
-                          Nothing here is called that.
-                        </Text>
-                      ) : (
-                        doc.roots.map((r) => (
-                          <TreeRows
-                            key={r.id}
-                            node={r}
-                            depth={0}
-                            selection={state.selection}
-                            onSelect={(id, additive) => setSelection(id, additive)}
-                            dropRow={dropRow}
-                            onDragBegin={(id) => {
-                              dragRef.current = { kind: "move", id };
-                              setSelection(id);
-                            }}
-                            onDragFinish={endDrag}
-                            canRowDrop={(id, mode) => rowSpot(id, mode) !== null}
-                            onHoverRow={setDropRow}
-                            onRowDrop={onRowDrop}
-                            visible={visibleRows}
                           />
-                        ))
-                      )}
-                    </Stack>
-                    </Stack>
-                  </Box>
-                </TabsPanel>
-              </Tabs>
-            </Box>
-          </ScrollArea>
-        </Box>
-        ) : null}
-        {!preview ? <Separator orientation="vertical" /> : null}
+                          <MenuContent>
+                            <MenuItem onClick={() => insertBlock(b)}>Insert</MenuItem>
+                            {/* A block was write-only: you could save one and place
+                                one, and there was no way back into it — so a typo in
+                                a saved card meant rebuilding it. It opens as its own
+                                document now, with fresh ids so editing the copy
+                                cannot reach into the block or into any screen the
+                                block was already placed in. Re-saving under the same
+                                name replaces it. */}
+                            <MenuItem onClick={() => openBlock(b)}>Open as document</MenuItem>
+                            <MenuItem
+                              onClick={() => {
+                                setExportBlock(i);
+                                setExportOpen(true);
+                              }}
+                            >
+                              Export as component
+                            </MenuItem>
+                            <MenuItem tone="destructive" onClick={() => dispatch({ type: "blockRemove", index: i })}>
+                              Remove
+                            </MenuItem>
+                          </MenuContent>
+                        </Menu>
+                      </Flex>
+                    ))
+                  )}
+                </Stack>
+              </Stack>
+            ) : leftTab === "layers" ? (
+              /* A tree, said in the markup: assistive technology gets the structure the
+                 eye gets from the indent, and the rows carry their own level. */
+              <Stack gap="2">
+                {canvasChildren(doc).length > 0 ? (
+                  <TextField
+                    size="1"
+                    aria-label="Filter layers"
+                    placeholder="Filter by type or words"
+                    ref={layerFilterRef}
+                    value={layerFilter}
+                    onChange={(e) => setLayerFilter(e.target.value)}
+                    {...(layerFilter
+                      ? {
+                          trailing: (
+                            <Button
+                              size="1"
+                              emphasis="quiet"
+                              iconOnly
+                              aria-label="Clear the filter"
+                              onClick={() => setLayerFilter("")}
+                            >
+                              <XIcon />
+                            </Button>
+                          ),
+                        }
+                      : {})}
+                  />
+                ) : null}
+                <Stack gap="1" render={<div role="tree" aria-label="Layers" />}>
+                  {canvasChildren(doc).length === 0 ? (
+                    <Text size="1" emphasis="quiet">
+                      The canvas is empty.
+                    </Text>
+                  ) : visibleRows !== null && visibleRows.size === 0 ? (
+                    <Text size="1" emphasis="quiet">
+                      Nothing here is called that.
+                    </Text>
+                  ) : (
+                    doc.roots.map((r) => (
+                      <TreeRows
+                        key={r.id}
+                        node={r}
+                        depth={0}
+                        selection={state.selection}
+                        onSelect={(id, additive) => setSelection(id, additive)}
+                        dropRow={dropRow}
+                        onDragBegin={(id) => {
+                          dragRef.current = { kind: "move", id };
+                          setSelection(id);
+                        }}
+                        onDragFinish={endDrag}
+                        canRowDrop={(id, mode) => rowSpot(id, mode) !== null}
+                        onHoverRow={setDropRow}
+                        onRowDrop={onRowDrop}
+                        visible={visibleRows}
+                      />
+                    ))
+                  )}
+                </Stack>
+              </Stack>
+            ) : (
+              /* EXHAUSTIVE, and that is the other half of what one region list buys. The
+                 rail derives its squares from LEFT_REGIONS, so adding a region adds a square
+                 — and with a two-arm ternary the new square would have silently shown the
+                 LAYERS panel, a control that looks like it works. Narrowed to `never` here,
+                 so the missing panel is a build failure instead. */
+              noPanel(leftTab)
+            )}
+          </Box>
+        </ShellScroll>
+      </ShellSidebar>
 
-        {/* Center: the jump bar, then the live canvas */}
-        <Flex direction="column" style={{ flex: 1, minWidth: 0, minHeight: 0, background: "var(--neutral-2)" }}>
-          <Breadcrumb
-            roots={doc.roots}
-            selection={preview ? [] : state.selection}
-            hidePath={preview}
-            onSelect={(id) => setSelection(id)}
-            extra={
-              <Flex align="center" gap="2">
-                <Flex align="center" gap="1">
-                  <Button
-                    size="1"
-                    emphasis="quiet"
-                    iconOnly
-                    aria-label="Zoom out"
-                    disabled={zoom === ZOOMS[0]}
-                    onClick={() => ctx.ui.stepZoom(-1)}
-                  >
-                    −
-                  </Button>
-                  {/* The reading is the button: pressing it goes back to actual size, which
-                      is the only zoom anybody asks for by name. */}
-                  <Button size="1" emphasis="quiet" aria-label="Actual size" onClick={() => ctx.ui.stepZoom(null)}>
-                    {`${Math.round(zoom * 100)}%`}
-                  </Button>
-                  <Button
-                    size="1"
-                    emphasis="quiet"
-                    iconOnly
-                    aria-label="Zoom in"
-                    disabled={zoom === ZOOMS[ZOOMS.length - 1]}
-                    onClick={() => ctx.ui.stepZoom(1)}
-                  >
-                    +
-                  </Button>
-                </Flex>
+      {/* ── The work area: the jump bar, then the live canvas ─────────────────────────────
+          `<main>`, and it stops scrolling itself the moment a ShellScroll is its direct
+          child — which is what pins the jump bar without the bar saying so. The grey
+          workbench moved onto the SCROLLER with the scroll: the pane's own seal is chrome,
+          the region the canvas floats in is the work. */}
+      <ShellContent>
+        <Breadcrumb
+          roots={doc.roots}
+          selection={preview ? [] : state.selection}
+          hidePath={preview}
+          onSelect={(id) => setSelection(id)}
+          extra={
+            <Flex align="center" gap="2">
+              <Flex align="center" gap="1">
                 <Button
                   size="1"
-                  emphasis={tiersView ? "medium" : "quiet"}
-                  aria-pressed={tiersView}
-                  onClick={() => setTiersView((v) => !v)}
+                  emphasis="quiet"
+                  iconOnly
+                  aria-label="Zoom out"
+                  disabled={zoom === ZOOMS[0]}
+                  onClick={() => ctx.ui.stepZoom(-1)}
                 >
-                  Compare tiers
+                  −
                 </Button>
-                {canvasW ? (
-                  <>
-                    <Text size="1" emphasis="quiet">
-                      {`${canvasW}px · ${activeTier(canvasW)}`}
-                    </Text>
-                    <Button size="1" emphasis="quiet" onClick={() => setCanvasW(null)}>
-                      Full width
-                    </Button>
-                  </>
-                ) : null}
+                {/* The reading is the button: pressing it goes back to actual size, which
+                    is the only zoom anybody asks for by name. */}
+                <Button size="1" emphasis="quiet" aria-label="Actual size" onClick={() => ctx.ui.stepZoom(null)}>
+                  {`${Math.round(zoom * 100)}%`}
+                </Button>
+                <Button
+                  size="1"
+                  emphasis="quiet"
+                  iconOnly
+                  aria-label="Zoom in"
+                  disabled={zoom === ZOOMS[ZOOMS.length - 1]}
+                  onClick={() => ctx.ui.stepZoom(1)}
+                >
+                  +
+                </Button>
               </Flex>
-            }
-          />
-          <Separator />
-          {/* `display: grid` is load-bearing, not styling: the viewport is `max-block-size: 100%`
-              with no block-size, so it SHRINK-WRAPS — measured 250px inside an 880px area, which is
-              why the canvas ended just under the card and the grey below it was the region around
-              the canvas rather than the canvas. A grid parent stretches its child in both axes
-              (the same property that makes two buttons fill a grid row), and the cap then lands it
-              exactly on the area's height. */}
-          <ScrollArea className="kb-canvas-scroller" style={{ flex: 1, minHeight: 0, display: "grid" }}>
-            <Box
-              /* 48px, not 24: an elevated Card's own shadow reaches ~44px below its box
-                 (`0 24px 64px -12px`), so the old gutter clipped it by 20px. The gutter is the
-                 whole world a canvas surface has — nothing outside it can be painted into. */
-              p="9"
-              onClickCapture={onCanvasClick}
-              onContextMenu={onContextMenu}
-              onFocusCapture={onCanvasFocus}
-              onDragStartCapture={onCanvasDragStart}
-              onDragOver={onCanvasDragOver}
-              onDrop={onCanvasDrop}
-              onDragLeave={onCanvasDragLeave}
-              onDragEnd={endDrag}
-              style={{ minHeight: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}
-            >
-              {tiersView ? (
-                <TierCompare doc={doc} />
-              ) : (
-              <Box maxWidth="880px" style={{ marginInline: "auto", width: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
+              <Button
+                size="1"
+                emphasis={tiersView ? "medium" : "quiet"}
+                aria-pressed={tiersView}
+                onClick={() => setTiersView((v) => !v)}
+              >
+                Compare tiers
+              </Button>
+              {canvasW ? (
+                <>
+                  <Text size="1" emphasis="quiet">
+                    {`${canvasW}px · ${activeTier(canvasW)}`}
+                  </Text>
+                  <Button size="1" emphasis="quiet" onClick={() => setCanvasW(null)}>
+                    Full width
+                  </Button>
+                </>
+              ) : null}
+            </Flex>
+          }
+        />
+        {/* NO SEPARATOR under the bar, deliberately: the workbench grey below it already
+            draws that seam, and a hairline on top of it is the doubled-edge defect this
+            repo has paid for twice (the material's ring, 2026-08-17).
+
+            `display: grid` is load-bearing, not styling: the viewport is `max-block-size: 100%`
+            with no block-size, so it SHRINK-WRAPS — measured 250px inside an 880px area, which is
+            why the canvas ended just under the card and the grey below it was the region around
+            the canvas rather than the canvas. A grid parent stretches its child in both axes
+            (the same property that makes two buttons fill a grid row), and the cap then lands it
+            exactly on the area's height. */}
+        <ShellScroll
+          className="kb-canvas-scroller"
+          style={{ flex: 1, minHeight: 0, display: "grid", background: "var(--neutral-2)" }}
+        >
+          <Box
+            /* 48px, not 24: an elevated Card's own shadow reaches ~44px below its box
+               (`0 24px 64px -12px`), so the old gutter clipped it by 20px. The gutter is the
+               whole world a canvas surface has — nothing outside it can be painted into. */
+            p="9"
+            onClickCapture={onCanvasClick}
+            onContextMenu={onContextMenu}
+            onFocusCapture={onCanvasFocus}
+            onDragStartCapture={onCanvasDragStart}
+            onDragOver={onCanvasDragOver}
+            onDrop={onCanvasDrop}
+            onDragLeave={onCanvasDragLeave}
+            onDragEnd={endDrag}
+            style={{ minHeight: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}
+          >
+            {tiersView ? (
+              <TierCompare doc={doc} />
+            ) : (
+            <Box maxWidth="880px" style={{ marginInline: "auto", width: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
+              <div
+                ref={canvasRef}
+                style={{
+                  position: "relative",
+                  // The PAINTED width. The overlays live in this box and measure in screen
+                  // pixels, so it has to be the size the content actually occupies.
+                  width: canvasW ? `${Math.round(canvasW * zoom)}px` : "100%",
+                  maxWidth: "100%",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {/* The zoomed box holds ONLY the rendered document. Every overlay below is
+                    its sibling, so their coordinates stay in unscaled pixels. */}
                 <div
-                  ref={canvasRef}
+                  style={
+                    zoom === 1
+                      ? ({ flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
+                      : ({ zoom, width: canvasW ? `${canvasW}px` : "100%", flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
+                  }
+                >
+                <Theme
+                  appearance={doc.theme.appearance}
+                  density={doc.theme.density}
+                  pointer={doc.theme.pointer}
+                  radius={doc.theme.radius}
+                  depth={doc.theme.depth}
+                  material={doc.theme.material}
+                  /* THE PAGE — and it is a `Surface`, the ground shipped 2026-08-20 for
+                     exactly this. It was three hand-painted values here (a raw `--neutral-1`,
+                     a surface-2 corner and a hairline shadow), the one place in the builder
+                     that stated a colour, and the component's own doc names this canvas as
+                     the call site that went wrong: a size-2 corner around size-3 cards, which
+                     the ground's overlay-band arithmetic makes impossible. Rendered THROUGH
+                     the Theme rather than inside it (`render`, the system's own escape) so
+                     the page is one element wearing both jobs — and painted inside the
+                     document's Theme, so a dark document shows a dark page against the light
+                     workbench. Its padding is the ground's, not a number chosen here, which
+                     is the internal padding the canvas was missing. */
+                  render={<Surface />}
+                  style={{ flex: 1 }}
+                >
+                  {/* The canvas is a REAL query container (§2's opt-in, layout-sized by
+                      the width handle), so a per-tier value inside it answers the canvas's
+                      room — which is what it will answer in an app column. */}
+                  <Box container width="100%">
+                    <CanvasBoundary tree={doc.roots} onRecover={undo} canRecover={canUndo(state)}>
+                      <>
+                        {canvasChildren(doc).length === 0 ? (
+                          <TemplatePicker
+                            onPick={(id) => {
+                              const template = TEMPLATES.find((t) => t.id === id);
+                              if (!template) return;
+                              const roots = templateDoc(template).roots.map(cloneWithNewIds);
+                              dispatch({ type: "edit", roots, selection: [] });
+                              // A document nobody has named takes the template's name — but a
+                              // named one keeps its own, because that name was a decision.
+                              if (/^Untitled/.test(activeDoc(stateRef.current).name)) {
+                                dispatch({ type: "docRename", id: stateRef.current.activeId, name: template.name });
+                              }
+                            }}
+                          />
+                        ) : (
+                          doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
+                        )}
+                      </>
+                    </CanvasBoundary>
+                  </Box>
+                </Theme>
+                </div>
+                <div
+                  data-kb-width-handle
+                  role="separator"
+                  aria-orientation="vertical"
+                  aria-label="Canvas width"
+                  tabIndex={0}
+                  onPointerDown={startWidthDrag}
+                  onKeyDown={nudgeWidth}
                   style={{
-                    position: "relative",
-                    // The PAINTED width. The overlays live in this box and measure in screen
-                    // pixels, so it has to be the size the content actually occupies.
-                    width: canvasW ? `${Math.round(canvasW * zoom)}px` : "100%",
-                    maxWidth: "100%",
-                    flex: 1,
+                    position: "absolute",
+                    top: 0,
+                    bottom: 0,
+                    right: "-18px",
+                    width: "12px",
+                    cursor: "ew-resize",
                     display: "flex",
-                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {/* The zoomed box holds ONLY the rendered document. Every overlay below is
-                      its sibling, so their coordinates stay in unscaled pixels. */}
                   <div
-                    style={
-                      zoom === 1
-                        ? ({ flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
-                        : ({ zoom, width: canvasW ? `${canvasW}px` : "100%", flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
-                    }
-                  >
-                  <Theme
-                    appearance={doc.theme.appearance}
-                    density={doc.theme.density}
-                    pointer={doc.theme.pointer}
-                    radius={doc.theme.radius}
-                    depth={doc.theme.depth}
-                    material={doc.theme.material}
-                    /* THE PAGE — and it is a `Surface`, the ground shipped 2026-08-20 for
-                       exactly this. It was three hand-painted values here (a raw `--neutral-1`,
-                       a surface-2 corner and a hairline shadow), the one place in the builder
-                       that stated a colour, and the component's own doc names this canvas as
-                       the call site that went wrong: a size-2 corner around size-3 cards, which
-                       the ground's overlay-band arithmetic makes impossible. Rendered THROUGH
-                       the Theme rather than inside it (`render`, the system's own escape) so
-                       the page is one element wearing both jobs — and painted inside the
-                       document's Theme, so a dark document shows a dark page against the light
-                       workbench. Its padding is the ground's, not a number chosen here, which
-                       is the internal padding the canvas was missing. */
-                    render={<Surface />}
-                    style={{ flex: 1 }}
-                  >
-                    {/* The canvas is a REAL query container (§2's opt-in, layout-sized by
-                        the width handle), so a per-tier value inside it answers the canvas's
-                        room — which is what it will answer in an app column. */}
-                    <Box container width="100%">
-                      <CanvasBoundary tree={doc.roots} onRecover={undo} canRecover={canUndo(state)}>
-                        <>
-                          {canvasChildren(doc).length === 0 ? (
-                            <TemplatePicker
-                              onPick={(id) => {
-                                const template = TEMPLATES.find((t) => t.id === id);
-                                if (!template) return;
-                                const roots = templateDoc(template).roots.map(cloneWithNewIds);
-                                dispatch({ type: "edit", roots, selection: [] });
-                                // A document nobody has named takes the template's name — but a
-                                // named one keeps its own, because that name was a decision.
-                                if (/^Untitled/.test(activeDoc(stateRef.current).name)) {
-                                  dispatch({ type: "docRename", id: stateRef.current.activeId, name: template.name });
-                                }
-                              }}
-                            />
-                          ) : (
-                            doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
-                          )}
-                        </>
-                      </CanvasBoundary>
-                    </Box>
-                  </Theme>
-                  </div>
-                  <div
-                    data-kb-width-handle
-                    role="separator"
-                    aria-orientation="vertical"
-                    aria-label="Canvas width"
-                    tabIndex={0}
-                    onPointerDown={startWidthDrag}
-                    onKeyDown={nudgeWidth}
+                    aria-hidden
                     style={{
-                      position: "absolute",
-                      top: 0,
-                      bottom: 0,
-                      right: "-18px",
-                      width: "12px",
-                      cursor: "ew-resize",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      width: "4px",
+                      height: "44px",
+                      borderRadius: chromeCorner(2),
+                      background: "var(--color-border)",
                     }}
-                  >
-                    <div
-                      aria-hidden
-                      style={{
-                        width: "4px",
-                        height: "44px",
-                        borderRadius: chromeCorner(2),
-                        background: "var(--color-border)",
-                      }}
-                    />
-                  </div>
-                  {!preview
-                    ? alsoRings.map((r, i) => (
-                        <div
-                          key={i}
-                          aria-hidden
-                          style={
-                            {
-                              position: "absolute",
-                              top: r.top,
-                              left: r.left,
-                              width: r.width,
-                              height: r.height,
-                              outline: `1px solid ${SEL_COLOR}`,
-                              outlineOffset: "-1px",
-                              borderRadius: r.radius,
-                              cornerShape: r.corner,
-                              opacity: 0.55,
-                              pointerEvents: "none",
-                            } as React.CSSProperties
-                          }
-                        />
-                      ))
-                    : null}
-                  {ring && !preview ? (
-                    <div aria-hidden style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
-                      {/* Both lines are drawn as OUTLINES on a zero-border box: an outline
-                          is painted outside the box without joining it, so the traced
-                          rectangle is the element's own — a border would add its width to
-                          the box and overshoot by 2px in each axis. */}
-                      {/* The shape outline: the element's box and its own corners. */}
+                  />
+                </div>
+                {!preview
+                  ? alsoRings.map((r, i) => (
                       <div
+                        key={i}
+                        aria-hidden
                         style={
                           {
                             position: "absolute",
-                            top: ring.top,
-                            left: ring.left,
-                            width: ring.width,
-                            height: ring.height,
+                            top: r.top,
+                            left: r.left,
+                            width: r.width,
+                            height: r.height,
                             outline: `1px solid ${SEL_COLOR}`,
                             outlineOffset: "-1px",
-                            borderRadius: ring.radius,
-                            // Not in React's CSSProperties yet; assigned through CSSOM,
-                            // where an engine that lacks it drops it harmlessly.
-                            cornerShape: ring.corner,
+                            borderRadius: r.radius,
+                            cornerShape: r.corner,
+                            opacity: 0.55,
+                            pointerEvents: "none",
                           } as React.CSSProperties
                         }
                       />
-                      {/* The bounding box: always rectangular, whatever the shape. */}
-                      <div
-                        style={{
+                    ))
+                  : null}
+                {ring && !preview ? (
+                  <div aria-hidden style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+                    {/* Both lines are drawn as OUTLINES on a zero-border box: an outline
+                        is painted outside the box without joining it, so the traced
+                        rectangle is the element's own — a border would add its width to
+                        the box and overshoot by 2px in each axis. */}
+                    {/* The shape outline: the element's box and its own corners. */}
+                    <div
+                      style={
+                        {
                           position: "absolute",
                           top: ring.top,
                           left: ring.left,
@@ -1752,304 +1841,337 @@ export function BuilderApp() {
                           height: ring.height,
                           outline: `1px solid ${SEL_COLOR}`,
                           outlineOffset: "-1px",
-                        }}
-                      />
-                      {/* The gutters: a soft fill, never an outline — an outline here would
-                          read as another boundary beside the selection's own. */}
-                      {bands.map((g, i) => {
-                        // Inset on all four sides so the band reads as an object lying in the
-                        // gutter rather than a rung fused to the selection outline. Each axis
-                        // caps its own inset at a quarter of that dimension, which is what
-                        // keeps a 2px gap from insetting itself out of existence: the band
-                        // then shrinks WITH the gap instead of disappearing at the bottom of
-                        // the scale. It is a target and a location, not a ruler — the drag
-                        // states the rung, and the chip names it.
-                        const px = Math.min(GAP_BAND_INSET, g.w / 4);
-                        const py = Math.min(GAP_BAND_INSET, g.h / 4);
-                        const h = g.h - py * 2;
-                        const w = g.w - px * 2;
-                        // The PAINT may be a hairline; the target may not. At the bottom of
-                        // the space scale an inset band is 1-2px, so the hit area grows to a
-                        // floor around the true gutter while the paint stays honest — §16's
-                        // own move for the mark family, and the shape the corner handles here
-                        // already use (14px box, 6px square).
-                        const hitH = g.axis === "x" ? g.h : Math.max(g.h, GAP_BAND_HIT);
-                        const hitW = g.axis === "x" ? Math.max(g.w, GAP_BAND_HIT) : g.w;
-                        return (
+                          borderRadius: ring.radius,
+                          // Not in React's CSSProperties yet; assigned through CSSOM,
+                          // where an engine that lacks it drops it harmlessly.
+                          cornerShape: ring.corner,
+                        } as React.CSSProperties
+                      }
+                    />
+                    {/* The bounding box: always rectangular, whatever the shape. */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: ring.top,
+                        left: ring.left,
+                        width: ring.width,
+                        height: ring.height,
+                        outline: `1px solid ${SEL_COLOR}`,
+                        outlineOffset: "-1px",
+                      }}
+                    />
+                    {/* The gutters: a soft fill, never an outline — an outline here would
+                        read as another boundary beside the selection's own. */}
+                    {bands.map((g, i) => {
+                      // Inset on all four sides so the band reads as an object lying in the
+                      // gutter rather than a rung fused to the selection outline. Each axis
+                      // caps its own inset at a quarter of that dimension, which is what
+                      // keeps a 2px gap from insetting itself out of existence: the band
+                      // then shrinks WITH the gap instead of disappearing at the bottom of
+                      // the scale. It is a target and a location, not a ruler — the drag
+                      // states the rung, and the chip names it.
+                      const px = Math.min(GAP_BAND_INSET, g.w / 4);
+                      const py = Math.min(GAP_BAND_INSET, g.h / 4);
+                      const h = g.h - py * 2;
+                      const w = g.w - px * 2;
+                      // The PAINT may be a hairline; the target may not. At the bottom of
+                      // the space scale an inset band is 1-2px, so the hit area grows to a
+                      // floor around the true gutter while the paint stays honest — §16's
+                      // own move for the mark family, and the shape the corner handles here
+                      // already use (14px box, 6px square).
+                      const hitH = g.axis === "x" ? g.h : Math.max(g.h, GAP_BAND_HIT);
+                      const hitW = g.axis === "x" ? Math.max(g.w, GAP_BAND_HIT) : g.w;
+                      return (
+                        <div
+                          key={i}
+                          data-kb-resize
+                          onPointerDown={(e) => startGapDrag(e, g.axis)}
+                          style={{
+                            position: "absolute",
+                            top: g.y - (hitH - g.h) / 2,
+                            left: g.x - (hitW - g.w) / 2,
+                            width: hitW,
+                            height: hitH,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            pointerEvents: gapIsResponsive ? "none" : "auto",
+                            cursor: gapIsResponsive ? "default" : g.axis === "x" ? "ew-resize" : "ns-resize",
+                            touchAction: "none",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: w,
+                              height: h,
+                              background: `${SEL_COLOR}22`,
+                              // Rounded, but never past the system's own smallest corner:
+                              // half the short side alone made a tall gutter a stadium.
+                              borderRadius: chromeCorner(w / 2, h / 2),
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                    {/* Corner handles, shown only where a size vocabulary exists — their
+                        PRESENCE is the information, so a node the system cannot resize
+                        shows none rather than a grip that writes nothing. */}
+                    {sizeSteps
+                      ? (
+                          [
+                            [ring.top, ring.left, [-1, -1], "nwse-resize"],
+                            [ring.top, ring.left + ring.width, [1, -1], "nesw-resize"],
+                            [ring.top + ring.height, ring.left, [-1, 1], "nesw-resize"],
+                            [ring.top + ring.height, ring.left + ring.width, [1, 1], "nwse-resize"],
+                          ] as [number, number, [number, number], string][]
+                        ).map(([y, x, out, cursor], i) => (
                           <div
                             key={i}
                             data-kb-resize
-                            onPointerDown={(e) => startGapDrag(e, g.axis)}
+                            onPointerDown={(e) => startResize(e, out)}
                             style={{
                               position: "absolute",
-                              top: g.y - (hitH - g.h) / 2,
-                              left: g.x - (hitW - g.w) / 2,
-                              width: hitW,
-                              height: hitH,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              pointerEvents: gapIsResponsive ? "none" : "auto",
-                              cursor: gapIsResponsive ? "default" : g.axis === "x" ? "ew-resize" : "ns-resize",
+                              top: y - 7,
+                              left: x - 7,
+                              width: 14,
+                              height: 14,
+                              cursor,
+                              pointerEvents: "auto",
                               touchAction: "none",
                             }}
                           >
                             <div
                               style={{
-                                width: w,
-                                height: h,
-                                background: `${SEL_COLOR}22`,
-                                // Rounded, but never past the system's own smallest corner:
-                                // half the short side alone made a tall gutter a stadium.
-                                borderRadius: chromeCorner(w / 2, h / 2),
+                                position: "absolute",
+                                inset: 4,
+                                background: "#fff",
+                                outline: `1px solid ${SEL_COLOR}`,
                               }}
                             />
                           </div>
-                        );
-                      })}
-                      {/* Corner handles, shown only where a size vocabulary exists — their
-                          PRESENCE is the information, so a node the system cannot resize
-                          shows none rather than a grip that writes nothing. */}
-                      {sizeSteps
-                        ? (
-                            [
-                              [ring.top, ring.left, [-1, -1], "nwse-resize"],
-                              [ring.top, ring.left + ring.width, [1, -1], "nesw-resize"],
-                              [ring.top + ring.height, ring.left, [-1, 1], "nesw-resize"],
-                              [ring.top + ring.height, ring.left + ring.width, [1, 1], "nwse-resize"],
-                            ] as [number, number, [number, number], string][]
-                          ).map(([y, x, out, cursor], i) => (
+                        ))
+                      : null}
+                    {/* Side handles, on the inline axis only, and only where the parent's
+                        measured layout gives this node something to say about its seat. */}
+                    {seat
+                      ? (
+                          [
+                            [ring.left, [-1, 0]],
+                            [ring.left + ring.width, [1, 0]],
+                          ] as [number, [number, number]][]
+                        ).map(([x, out], i) => (
+                          <div
+                            key={i}
+                            data-kb-resize
+                            onPointerDown={(e) => startSeatDrag(e, out)}
+                            style={{
+                              position: "absolute",
+                              top: ring.top + ring.height / 2 - 11,
+                              left: x - 7,
+                              width: 14,
+                              height: 22,
+                              cursor: "ew-resize",
+                              pointerEvents: "auto",
+                              touchAction: "none",
+                            }}
+                          >
                             <div
-                              key={i}
-                              data-kb-resize
-                              onPointerDown={(e) => startResize(e, out)}
                               style={{
                                 position: "absolute",
-                                top: y - 7,
-                                left: x - 7,
-                                width: 14,
-                                height: 14,
-                                cursor,
-                                pointerEvents: "auto",
-                                touchAction: "none",
+                                insetBlock: 4,
+                                insetInline: 5,
+                                background: "#fff",
+                                outline: `1px solid ${SEL_COLOR}`,
                               }}
-                            >
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  inset: 4,
-                                  background: "#fff",
-                                  outline: `1px solid ${SEL_COLOR}`,
-                                }}
-                              />
-                            </div>
-                          ))
-                        : null}
-                      {/* Side handles, on the inline axis only, and only where the parent's
-                          measured layout gives this node something to say about its seat. */}
-                      {seat
-                        ? (
-                            [
-                              [ring.left, [-1, 0]],
-                              [ring.left + ring.width, [1, 0]],
-                            ] as [number, [number, number]][]
-                          ).map(([x, out], i) => (
-                            <div
-                              key={i}
-                              data-kb-resize
-                              onPointerDown={(e) => startSeatDrag(e, out)}
-                              style={{
-                                position: "absolute",
-                                top: ring.top + ring.height / 2 - 11,
-                                left: x - 7,
-                                width: 14,
-                                height: 22,
-                                cursor: "ew-resize",
-                                pointerEvents: "auto",
-                                touchAction: "none",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  insetBlock: 4,
-                                  insetInline: 5,
-                                  background: "#fff",
-                                  outline: `1px solid ${SEL_COLOR}`,
-                                }}
-                              />
-                            </div>
-                          ))
-                        : null}
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: ring.top + ring.height + 8,
-                          left: ring.left + ring.width / 2,
-                          transform: "translateX(-50%)",
-                          background: SEL_COLOR,
-                          color: "#fff",
-                          font: "500 11px/1 var(--font-body, system-ui)",
-                          padding: "4px 6px",
-                          borderRadius: CHROME_RADIUS,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {/* Mid-drag the chip names the RUNG, because that is what the
-                            gesture is writing; the pixels are only its consequence. */}
-                        {resizing
-                          ? `${resizing.label} · ${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`
-                          : `${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`}
-                      </div>
-                    </div>
-                  ) : null}
-                  {drop?.line && !preview ? (
+                            />
+                          </div>
+                        ))
+                      : null}
                     <div
-                      aria-hidden
                       style={{
                         position: "absolute",
-                        left: drop.line.x,
-                        top: drop.line.y,
-                        width: drop.line.w,
-                        height: drop.line.h,
-                        background: "var(--focus-ring)",
-                        borderRadius: chromeCorner(drop.line.w / 2, drop.line.h / 2),
-                        pointerEvents: "none",
+                        top: ring.top + ring.height + 8,
+                        left: ring.left + ring.width / 2,
+                        transform: "translateX(-50%)",
+                        background: SEL_COLOR,
+                        color: "#fff",
+                        font: "500 11px/1 var(--font-body, system-ui)",
+                        padding: "4px 6px",
+                        borderRadius: CHROME_RADIUS,
+                        whiteSpace: "nowrap",
                       }}
-                    />
-                  ) : null}
-                  {drop && !drop.line && drop.boxId ? <DropHint canvasRef={canvasRef} id={drop.boxId} /> : null}
-                </div>
-              </Box>
-              )}
+                    >
+                      {/* Mid-drag the chip names the RUNG, because that is what the
+                          gesture is writing; the pixels are only its consequence. */}
+                      {resizing
+                        ? `${resizing.label} · ${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`
+                        : `${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`}
+                    </div>
+                  </div>
+                ) : null}
+                {drop?.line && !preview ? (
+                  <div
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      left: drop.line.x,
+                      top: drop.line.y,
+                      width: drop.line.w,
+                      height: drop.line.h,
+                      background: "var(--focus-ring)",
+                      borderRadius: chromeCorner(drop.line.w / 2, drop.line.h / 2),
+                      pointerEvents: "none",
+                    }}
+                  />
+                ) : null}
+                {drop && !drop.line && drop.boxId ? <DropHint canvasRef={canvasRef} id={drop.boxId} /> : null}
+              </div>
             </Box>
-          </ScrollArea>
-        </Flex>
-        {!preview ? <Separator orientation="vertical" /> : null}
+            )}
+          </Box>
+        </ShellScroll>
+      </ShellContent>
 
-        {/* Right: inspect + theme + review */}
-        {!preview ? (
-        <Box width="304px" style={{ flex: "none", minHeight: 0 }}>
-          <ScrollArea style={{ height: "100%" }}>
-            <Box p="3">
-              <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as typeof rightTab)}>
-                <TabsList size="1">
-                  <TabsTab value="inspect">Selected</TabsTab>
-                  <TabsTab value="theme">Theme</TabsTab>
-                  <TabsTab value="review">{findings.length ? `Review ${findings.length}` : "Review"}</TabsTab>
-                </TabsList>
-                <TabsPanel value="inspect">
-                  <Box pt="3">
-                    {selected ? (
-                      <Stack gap="5">
-                        {/* One panel or the other, never both: two `size` pickers over one
-                            selection is a panel arguing with itself about what it edits. */}
-                        {state.selection.length > 1 ? (
-                          <MultiInspector
-                            nodes={selectedNodes}
-                            onProp={(key, next) =>
-                              commitRoots(updatePropsMany(doc.roots, state.selection, { [key]: next }))
-                            }
-                          />
-                        ) : (
-                          <Inspector
-                            node={selected}
-                            textRef={inspectorTextRef}
-                            measured={measured}
-                            /* Typing is ONE gesture: every keystroke in a field rides the
-                               first one's snapshot, keyed per node and per prop so moving to
-                               another field starts a new entry. Without it a two-line
-                               description cost 120 undo presses and ~200 characters evicted
-                               the whole structural history. */
-                            onProp={(key, next, continuous) =>
-                              commitRoots(
-                                updateProps(doc.roots, selected.id, { [key]: next }),
-                                undefined,
-                                continuous ? `prop:${selected.id}:${key}` : undefined,
-                              )
-                            }
-                            onText={(next) =>
-                              commitRoots(updateText(doc.roots, selected.id, next), undefined, `text:${selected.id}`)
-                            }
-                            onSelect={(id) => setSelection(id)}
-                            onSlot={(slot, type) => {
-                              const child = type ? CATALOG[type]!.make() : null;
-                              commitRoots(setSlot(doc.roots, selected.id, slot, child), child ? [child.id] : [selected.id]);
-                            }}
-                          />
-                        )}
-                        <Separator />
-                        <Stack gap="2">
-                          <Text size="1" weight="medium">
-                            Arrange
-                          </Text>
-                          <Flex gap="1" wrap="wrap">
-                            {["moveUp", "moveDown", "duplicate", "wrapInStack", "wrapInFlex", "unwrap", "delete"].map((id) => {
-                              const cmd = COMMANDS.find((c) => c.id === id)!;
-                              const on = ctxRef.current ? armed(cmd, ctxRef.current) : false;
-                              return (
-                                <Button
-                                  key={id}
-                                  size="1"
-                                  emphasis="quiet"
-                                  bordered
-                                  {...(id === "delete" ? { tone: "destructive" as const } : {})}
-                                  disabled={!on}
-                                  onClick={() => runCommand(id)}
-                                >
-                                  {cmd.title}
-                                </Button>
-                              );
-                            })}
-                          </Flex>
-                        </Stack>
-                        <Stack gap="2">
-                          <Text size="1" weight="medium">
-                            Save as block
-                          </Text>
-                          <Flex gap="2">
-                            <TextField
-                              size="1"
-                              placeholder="Block name"
-                              aria-label="Block name"
-                              value={blockName}
-                              onChange={(e) => setBlockName(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && saveBlock()}
-                            />
-                            <Button size="1" emphasis="medium" disabled={!blockName.trim()} onClick={saveBlock}>
-                              Save
-                            </Button>
-                          </Flex>
-                        </Stack>
+      {/* ── The inspector: selected, theme, review ────────────────────────────────────────
+          CONTROLLED, where the sidebar is not, and the asymmetry is the Shell's own design
+          read straight: a nav column's `auto` means "open on a roomy window", which is
+          exactly what this app wants of the sidebar; an inspector's `auto` means "closed
+          until asked for", which is exactly what this app does NOT want. So the one pane
+          whose responsive default says nothing useful is the one that states its own — and
+          holding the boolean here is what lets the Review button and the ⌘-palette's
+          `toggleReview` open it, rather than changing what a closed pane shows.
+
+          What it states is `auto` in the app's own words: untouched is `null`, which reads
+          the window class the way the Shell's CSS does for a nav column, and the first
+          toggle pins it. Recorded open rather than papered over: this is a THIRD resting
+          rule the library does not offer, and the honest library answer is an inspector
+          whose `auto` an app can mean — this app is the first consumer with an opinion, so
+          the rule lives here until a second one wants it. */}
+      <ShellInspector
+        aria-label="Inspector"
+        size="1"
+        width={304}
+        open={inspectorShown}
+        onOpenChange={setInspectorOpen}
+      >
+        <ShellScroll>
+          <Box p="3">
+            <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as typeof rightTab)}>
+              <TabsList size="1">
+                <TabsTab value="inspect">Selected</TabsTab>
+                <TabsTab value="theme">Theme</TabsTab>
+                <TabsTab value="review">{findings.length ? `Review ${findings.length}` : "Review"}</TabsTab>
+              </TabsList>
+              <TabsPanel value="inspect">
+                <Box pt="3">
+                  {selected ? (
+                    <Stack gap="5">
+                      {/* One panel or the other, never both: two `size` pickers over one
+                          selection is a panel arguing with itself about what it edits. */}
+                      {state.selection.length > 1 ? (
+                        <MultiInspector
+                          nodes={selectedNodes}
+                          onProp={(key, next) =>
+                            commitRoots(updatePropsMany(doc.roots, state.selection, { [key]: next }))
+                          }
+                        />
+                      ) : (
+                        <Inspector
+                          node={selected}
+                          textRef={inspectorTextRef}
+                          measured={measured}
+                          /* Typing is ONE gesture: every keystroke in a field rides the
+                             first one's snapshot, keyed per node and per prop so moving to
+                             another field starts a new entry. Without it a two-line
+                             description cost 120 undo presses and ~200 characters evicted
+                             the whole structural history. */
+                          onProp={(key, next, continuous) =>
+                            commitRoots(
+                              updateProps(doc.roots, selected.id, { [key]: next }),
+                              undefined,
+                              continuous ? `prop:${selected.id}:${key}` : undefined,
+                            )
+                          }
+                          onText={(next) =>
+                            commitRoots(updateText(doc.roots, selected.id, next), undefined, `text:${selected.id}`)
+                          }
+                          onSelect={(id) => setSelection(id)}
+                          onSlot={(slot, type) => {
+                            const child = type ? CATALOG[type]!.make() : null;
+                            commitRoots(setSlot(doc.roots, selected.id, slot, child), child ? [child.id] : [selected.id]);
+                          }}
+                        />
+                      )}
+                      <Separator />
+                      <Stack gap="2">
+                        <Text size="1" weight="medium">
+                          Arrange
+                        </Text>
+                        <Flex gap="1" wrap="wrap">
+                          {["moveUp", "moveDown", "duplicate", "wrapInStack", "wrapInFlex", "unwrap", "delete"].map((id) => {
+                            const cmd = COMMANDS.find((c) => c.id === id)!;
+                            const on = ctxRef.current ? armed(cmd, ctxRef.current) : false;
+                            return (
+                              <Button
+                                key={id}
+                                size="1"
+                                emphasis="quiet"
+                                bordered
+                                {...(id === "delete" ? { tone: "destructive" as const } : {})}
+                                disabled={!on}
+                                onClick={() => runCommand(id)}
+                              >
+                                {cmd.title}
+                              </Button>
+                            );
+                          })}
+                        </Flex>
                       </Stack>
-                    ) : (
-                      <Text size="1" emphasis="quiet">
-                        Click something on the canvas, or pick it in Layers.
-                      </Text>
-                    )}
-                  </Box>
-                </TabsPanel>
-                <TabsPanel value="theme">
-                  <Box pt="3">
-                    <ThemePanel theme={doc.theme} onAxis={setThemeAxis} />
-                  </Box>
-                </TabsPanel>
-                <TabsPanel value="review">
-                  <Box pt="3">
-                    <ReviewPanel
-                      findings={findings}
-                      selection={state.selection}
-                      onSelect={(id) => setSelection(id)}
-                      onFix={applyFix}
-                    />
-                  </Box>
-                </TabsPanel>
-              </Tabs>
-            </Box>
-          </ScrollArea>
-        </Box>
-        ) : null}
-      </Flex>
+                      <Stack gap="2">
+                        <Text size="1" weight="medium">
+                          Save as block
+                        </Text>
+                        <Flex gap="2">
+                          <TextField
+                            size="1"
+                            placeholder="Block name"
+                            aria-label="Block name"
+                            value={blockName}
+                            onChange={(e) => setBlockName(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && saveBlock()}
+                          />
+                          <Button size="1" emphasis="medium" disabled={!blockName.trim()} onClick={saveBlock}>
+                            Save
+                          </Button>
+                        </Flex>
+                      </Stack>
+                    </Stack>
+                  ) : (
+                    <Text size="1" emphasis="quiet">
+                      Click something on the canvas, or pick it in Layers.
+                    </Text>
+                  )}
+                </Box>
+              </TabsPanel>
+              <TabsPanel value="theme">
+                <Box pt="3">
+                  <ThemePanel theme={doc.theme} onAxis={setThemeAxis} />
+                </Box>
+              </TabsPanel>
+              <TabsPanel value="review">
+                <Box pt="3">
+                  <ReviewPanel
+                    findings={findings}
+                    selection={state.selection}
+                    onSelect={(id) => setSelection(id)}
+                    onFix={applyFix}
+                  />
+                </Box>
+              </TabsPanel>
+            </Tabs>
+          </Box>
+        </ShellScroll>
+      </ShellInspector>
 
       {/* ── The editor's own dialogs ── */}
       <ContextMenu
@@ -2163,7 +2285,7 @@ export function BuilderApp() {
           : "Nothing selected"}
       </Box>
       <Toast message={toast} />
-    </Flex>
+    </Shell>
   );
 }
 
