@@ -17,6 +17,30 @@
  * bar across the grid claiming to be between two rows the pointer was not between.
  */
 
+/** The narrowest room the canvas will state. Below this a document has nothing to compose in. */
+export const CANVAS_MIN_W = 280;
+
+/**
+ * The canvas's width in CSS pixels — the ROOM, which is what both width gestures write.
+ *
+ * `stated` is the truth whenever there is one, and the two spellings this replaces got that
+ * wrong in opposite directions. Dividing only the pointer's DELTA left the base in painted
+ * pixels, so a grab at 50% jumped the canvas 880 → 442. Dividing the MEASURED box by the zoom
+ * fixed that below 1 and broke it above, because the painted box also carries `maxWidth: 100%`
+ * inside an 880px parent and is therefore clamped past zoom 1 — measured at 150%: styled
+ * 1320px, `offsetWidth` 880 — so a grab that moved ZERO pixels collapsed the canvas 880 → 587
+ * and flipped every container tier inside it.
+ *
+ * The measurement survives only as the opening value, and only at zoom 1: zooming pins the
+ * width before it changes the zoom, so a null width and a zoom other than 1 cannot coexist.
+ */
+export const canvasRoom = (stated: number | null, measured: number, zoom: number): number =>
+  stated ?? measured / zoom;
+
+/** The width a width-drag writes. The pointer travels in SCREEN pixels; the room is CSS ones. */
+export const widthAfterDrag = (startRoom: number, dxScreen: number, zoom: number): number =>
+  Math.max(CANVAS_MIN_W, Math.round(startRoom + dxScreen / zoom));
+
 /** Just enough of a DOMRect to do the arithmetic, so a law can build one by hand. */
 export type Box = { top: number; left: number; right: number; bottom: number; width: number; height: number };
 
