@@ -1,0 +1,121 @@
+A theme is not a colour scheme. It is the set of app-level identities every component resolves
+against — what this app is made of, how close its rhythm is, whether its world has light in it —
+stated once at the root and inherited everywhere.
+
+Seven axes, all optional, all with a default that is the right answer when you have not thought
+about it yet. That inversion is deliberate: the correct thing is what happens when nobody
+decides, and overriding requires knowing something the library does not.
+
+## The seven axes
+
+```tsx
+<Theme
+  appearance="inherit"   // inherit | light | dark
+  density="default"      // compact | default | comfortable
+  radius="full"          // none | small | medium | large | full
+  contrast="normal"      // normal | high
+  pointer="auto"         // fine | coarse | auto
+  depth="elevated"       // flat | elevated
+  material="solid"       // solid | thin | regular | thick
+>
+  {children}
+</Theme>
+```
+
+**`appearance`** is light or dark, and `inherit` is the one you usually want at the root — it
+tells the theme to stamp no appearance of its own and read the mode from `<html>`, where the
+pre-paint script put it. That is the whole dark-mode design; see
+[Installation](/start/installation).
+
+**`density`** re-picks which step of the space palette each semantic distance uses. It does not
+scale anything: a compact theme is not a smaller theme, it is one whose gaps sit lower on the
+same ladder. Type never moves with it, and neither does any corner.
+
+**`radius`** is the corner identity for the whole app. Per-component corners are derived from
+it in bands, so a control, a card and a menu row stay in proportion to each other at every
+level.
+
+**`contrast`** is an accessibility preference, and the conformance surface. It also answers the
+platform signal, so a visitor who asked their operating system for more contrast gets it with
+nobody setting a prop.
+
+**`pointer`** is what is touching the screen. `auto` follows the platform; pinning it forces the
+whole coarse world — geometry, targets and the handheld type band together — which is how you
+judge a phone's sizing on a desktop.
+
+**`depth`** asks whether light exists in this world: do surfaces sit up and cast, or is
+everything in one plane. An app-level statement, never a per-card knob.
+
+**`material`** is what the app is built of. A table and a chair made of the same oak are the same
+oak, so one value covers the whole scope.
+
+## Nesting a theme re-scopes, it does not restart
+
+A nested `Theme` overrides the axes it names and inherits the rest.
+
+```tsx
+<Theme density="comfortable">
+  <Page />
+  {/* A dense region inside a comfortable app. Everything else is unchanged. */}
+  <Theme density="compact">
+    <DataTable />
+  </Theme>
+</Theme>
+```
+
+This is the sanctioned way to make a region behave differently: a dark hero inside a light page,
+a compact inspector inside a comfortable app, a glass panel over a photograph. Nesting is also
+what makes portals correct — every floating layer re-applies the theme inside its portal, so a
+menu opened from a dark section opens dark.
+
+One thing a nested theme does *not* do is create a query container. Layout measurement is
+`<Box container>`'s job, opted into where something inside actually wants measuring.
+
+## The accent is one identity, chosen in config
+
+There is no `accentColor` prop, and this is the most common expectation the system does not
+meet. The accent is authored in the colour config as a hue and a vividness, and the generator
+solves the whole family from it — every step, every role, both appearances, all contrast
+targets. A prop could only hand over a hex, and a hex is exactly the thing this system spends
+its generator avoiding.
+
+So an app has one accent. Sectioned multi-brand — a differently-branded region inside one app —
+is not currently expressible, and saying so is more useful than implying otherwise.
+
+## Read the theme where you must
+
+Most things need nothing: components read the axes through CSS inheritance, which is why there
+is no JavaScript at interaction time. Two hooks exist for the cases that genuinely cannot.
+
+```tsx
+import { useMaterial, useWindowClass } from "@kookie-ui/react";
+
+// A pane of your own that should be made of whatever the app is made of.
+function Pane({ children }: { children: React.ReactNode }) {
+  return <div className="kui-surface" data-material={useMaterial()}>{children}</div>;
+}
+
+// Which interface shape to show. Returns null on the server, honestly.
+function Nav() {
+  const windowClass = useWindowClass(); // "narrow" | "regular" | "wide" | null
+  return windowClass === "narrow" ? <BottomTabs /> : <Sidebar />;
+}
+```
+
+`useWindowClass` returns `null` on the server and through first paint, by design rather than by
+omission: the server cannot know the window, and a hook that guessed would produce a hydration
+mismatch. If you need the right answer *before* paint, express it in CSS — the boundary queries
+are exported as `windowClassQueries` for exactly that.
+
+## Defaults, and why they are what they are
+
+The resting theme is light, default density, `full` radius, normal contrast, automatic pointer,
+elevated depth and solid material. Two of those are worth a sentence.
+
+`depth` defaults to **elevated** because most apps have light in them, and a flat world is the
+deliberate exception rather than the neutral starting point.
+
+`material` defaults to **solid**, and solid is a material — it is the rung where light stops
+passing through, not the absence of one. Glass is opt-in in two steps, and both are required:
+the theme has to be made of glass, and something has to be behind the pane for it to bend. A
+control sitting in ordinary flow resolves solid and pays nothing.

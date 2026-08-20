@@ -1,0 +1,130 @@
+Responsiveness here means adapting to the person at the other end, not reflowing a layout until
+nothing overflows. A phone is not a small desktop: targets are larger, the pointer is a thumb,
+hover does not exist, and the bottom of the screen is the reachable part. Three mechanisms answer
+three different questions, and reaching for the wrong one is the mistake this chapter exists to
+prevent.
+
+## Reflow is the proxy, not the goal
+
+Consumer web has no forcing function — a missed tap is cheap — so "responsive" degraded from
+*adapt to the human on this device* into *reflow without a scrollbar*: the measurable proxy
+replaced the goal. A layout can satisfy that proxy completely while still handing a thumb a
+24-pixel target under a menu that only appears on hover.
+
+What changes between a desktop and a phone is the interaction model — a dialog becomes a sheet, a
+rail becomes a bottom bar, a hover-reveal becomes always visible, a target grows. Those are
+human-factors facts rather than taste, which is why they ship as defaults you opt out of rather
+than options you opt into.
+
+## Three questions, three mechanisms
+
+- **How much room does this component have?** Container tiers, keyed to the nearest opted-in
+  container.
+- **What is touching this?** The pointer axis, keyed to the primary input device.
+- **Which interface should this app show?** Window size classes, keyed to the window.
+
+They are not one mechanism wearing three names: room and navigation shape correlate on a phone and
+stop correlating the moment somebody drags a window to half a display.
+
+### Container tiers: how much room does this component have
+
+Responsive values resolve against the nearest opted-in **container**, never the viewport, so a
+component is correct wherever you put it — the same Flex stacks in a drawer and spreads in a main
+column without knowing which one it is in.
+
+```tsx
+<Box container>
+  <Flex direction={{ initial: "column", md: "row" }} gap="4">
+    <TextField placeholder="Search" />
+    <Button>Filter</Button>
+  </Flex>
+</Box>
+```
+
+Containment is opt-in, because CSS charges for it: a measurable box can never size itself from its
+contents. Mark the boxes layout already sizes — a sidebar with a width, a column that grows, a grid
+cell — and leave the rest plain. A `container` Box left to shrink-wrap renders zero pixels wide,
+and dev builds warn the moment it happens. Tiers in an unmarked box fall through to the root Theme,
+which behaves like the window, so a tier always resolves.
+
+The tiers are few and named: `sm` at 30rem, `md` at 48rem, `lg` at 64rem. Both native platforms
+converged on a handful of named classes rather than per-prop breakpoints.
+
+### The pointer axis: what is touching this
+
+`fine` and `coarse` are two complete geometries, the way light and dark are two complete colour
+modes: same components, same size index, same laws, different placed values. It is not a mobile
+mode, and the signal is never width — a touchscreen laptop on a trackpad reports `fine`, a tablet
+with its keyboard detached reports `coarse`, and both are correct.
+
+Two floors, at different tiers of obligation. **24 CSS pixels is locked** — WCAG 2.2 SC 2.5.8 at
+level AA — and no designed cell in any pointer world at any density falls below it. **44 is the
+opt-out default**: default density, size 2, coarse pointer renders 44, which is SC 2.5.5 at AAA and
+Apple's number. Going under it takes a deliberate act, and a smaller control in a specific place is
+a design choice rather than a defect.
+
+Coarse re-prices control heights, inline padding, the icon box, the icon-to-label gap, control
+radius and reading type. It deliberately does **not** re-price spacing: gutters and gaps hold,
+because a phone needs more content per inch, not less.
+
+```tsx
+// `auto` follows the media query. Pinning forces the whole world, which is
+// also how the coarse geometry gets judged on a desktop.
+<Theme pointer="coarse">{app}</Theme>
+```
+
+### Window size classes: which interface should this app show
+
+The one viewport question. A class picks the navigation shape — bottom bar, rail, sidebar — decided
+once, at the top, against the window: never per container, never per component.
+
+`narrow` is a window at or under 48rem, `wide` is 75rem and over, `regular` is the middle. Two
+numbers make three classes, spelled so that correcting a threshold cannot open a gap or an overlap.
+Boundaries land downward, so a window at exactly 48rem is narrow.
+
+Three, not four: a class picks a navigation shape and there are three shapes. Material's fourth and
+fifth compensate for not having container queries — "at this width, add an inspector" is a *room*
+question, which container tiers already answer inside the pane.
+
+**No token moves with the window class.** Spacing is nobody's, type answers width through its own
+band, geometry belongs to the pointer axis. A law asserts the generated CSS never mentions a window
+class at all.
+
+## Room, never hardware
+
+`phone`, `tablet` and `desktop` were rejected on their own terms: people run apps in windowed mode,
+so device names lie. An app dragged to half a 5K display would be a "tablet" with no tablet near
+it. Every platform that started from device names retreated to window-measured classes. The device
+question is already answered by the pointer axis; a window class is pure room.
+
+## Type answers two questions of its own
+
+Type has two bands, because two unrelated things were being asked at once. The handheld band rides
+`(pointer: coarse)` and raises reading steps 1 to 4, since a held screen is close to the eye. The
+narrow band rides `(max-width: 48rem)` and lowers display steps 8 and 9, since a short line has no
+room for a display heading.
+
+Welding them together got the middle of the range wrong both ways. Apple ships one Dynamic Type
+table for iPhone and iPad — Body is 17pt on both — so a tablet in landscape lost a rise it should
+have had, while a narrow desktop window kept headings it had no room for. Each band emits only the
+steps it moves, which is what lets both apply on a phone without fighting, and the narrow band's
+threshold *is* the narrow window boundary, derived from the one number.
+
+## The server answers null, honestly
+
+`useWindowClass()` returns `"narrow" | "regular" | "wide" | null`, and it returns `null` on the
+server and through the first client paint. No script can change that: React's first render has to
+match the server's HTML, so the null branch paints first whatever an inline script stamped.
+
+A first-paint shell is therefore CSS-shaped. Put both navigations in the HTML and let the exported
+boundary queries decide which shows — no flash, no script. The hook is for decisions after mount,
+which is why Shell resolves an untouched pane's state in CSS at the narrow boundary rather than
+from a mount-time callback.
+
+```tsx
+import { useWindowClass, windowClassQueries } from "@kookie-ui/react";
+
+// Before paint, for CSS: windowClassQueries.narrow is "(max-width: 48rem)".
+// After mount, for components:
+const windowClass = useWindowClass(); // null, then "narrow" | "regular" | "wide"
+```

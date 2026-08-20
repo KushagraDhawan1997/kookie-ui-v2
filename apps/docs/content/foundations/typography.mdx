@@ -1,0 +1,130 @@
+One ramp of nine steps sets every word this system draws — body copy, headings, control labels,
+field values, code. A step is not a font size: it is an index joining three designed values at
+once, and what they render as follows the screen the reader is holding. Weight tops out at
+semibold, so ranking is done with size and ink.
+
+## One ramp, shared by Text and Heading
+
+`Text` and `Heading` are one type system reaching two family slots. A step joins three paired
+tokens at one index — `--font-size-3`, `--line-height-3`, `--letter-spacing-3` — which move
+together or not at all. There is no global line-height ratio, because one ratio is wrong at
+both ends of a range running from 12px to 56px.
+
+Size means the same thing on both. `<Text size="6">` and `<Heading size="6">` are the same
+step; the family slot and the default weight are the only differences. Control labels ride the
+same ramp, so a label inside a `Button` and a `Text` beside it cannot drift apart.
+
+## Size prices the type; `render` names the document
+
+This is the decision people get wrong most often. The visual step and the document outline
+level are independent axes, and each has its own prop.
+
+```tsx
+// The page title: an h1 in the outline, priced at the top of the house ladder
+<Heading size="8" render={<h1 />}>Billing</Heading>
+
+// A card title: an h3 in the outline, priced two steps down
+<Heading size="6" render={<h3 />}>Payment method</Heading>
+```
+
+`Heading` renders an `<h2>` at size 6 by default — a page rarely wants a second `h1`, so the
+default is the level a section actually reaches for. `Text` renders a `<span>` at size 3; a
+paragraph is `render={<p />}`, because flow belongs to the layout that owns the relationship.
+
+There is no `level` prop and no `as` prop doing both jobs: welding them would force a choice
+between a correct outline for a screen reader and a correct picture for an eye, every time the
+two disagree.
+
+## Three weights, and semibold is the ceiling
+
+The set is `--font-weight-regular`, `--font-weight-medium` and `--font-weight-semibold`, and
+the `weight` prop takes those names, never numbers.
+
+**`bold` is refused system-wide.** What made it wrong was redundancy rather than the weight.
+The system already has two designed ways to say one thing outranks another — the nine-step ramp
+and the ink ladder — and a 700 face is a third that is not on a ramp. It is a single step
+landing wherever a call site puts it, which in practice means on everything at once.
+
+It is refused in the *type*, not re-defaulted: `bold` is not a value the `weight` prop accepts,
+so asking for one does not compile, and the token is deleted with it. A value left reachable is
+one every call site can re-introduce. An app that genuinely needs 700 has `style`.
+
+Rank with size, and shade with ink:
+
+```tsx
+// Not this: a heavier face at the same step
+<Heading size="6" weight="semibold">Notifications</Heading>
+<Text size="6" weight="medium">Choose what reaches you.</Text>
+
+// This: a real step down, and the ink saying "supporting"
+<Heading size="6">Notifications</Heading>
+<Text size="3" emphasis="medium">Choose what reaches you.</Text>
+```
+
+## Three family slots
+
+`--font-heading`, `--font-body` and `--font-mono`, set by `Theme`. Components read the slot,
+never a font stack; the Theme props are the only place a stack is written.
+
+`Heading` takes the heading slot; `Text` and `Blockquote` take the body slot. `Code` takes mono
+at a small designed discount, because mono faces run wider with a taller x-height and read a
+step large at equal font-size. `Kbd` is the exception worth knowing — a keycap wears the
+**body** slot, because a mono cell draws ⌘ compact to fit its fixed advance and every platform
+sets shortcuts in the interface sans.
+
+## `emphasis` resolves to ink, and text rests loud
+
+Emphasis is one axis with three resolutions: controls resolve it as fills, surfaces as
+dressing, type as the foreground roles. Loud reads `--color-text`, medium `--color-text-muted`,
+quiet `--color-text-faint`, and a chosen `tone` re-scopes the same rungs onto that family's ink
+trio.
+
+Text **rests loud**, the deliberate inversion of the control default. Full contrast is the
+accessible resting state for reading; a screen ranks its actions, not its paragraphs. If a
+paragraph arrives at medium by default, something has decided that reading is optional.
+
+Quiet sits below the body contrast floor on purpose — the rung for something stood down, an
+option that cannot be taken — so it never carries a reading-length line. That is yours to hold;
+no law can check it.
+
+## The bands: `handheld` and `narrow`
+
+Two media bands re-price the ramp, for two unrelated reasons, deliberately kept apart.
+
+- **`handheld` raises the reading steps.** Keyed on `(pointer: coarse)`, it raises steps 1
+  through 4 — body from 16 to 18. The reason is viewing distance: a held screen is close to the
+  eye. Apple publishes **one** Dynamic Type table for iOS and iPadOS, so the reading question
+  does not distinguish a phone from a tablet, and neither do we.
+- **`narrow` lowers the display steps.** Keyed on `(max-width: 48rem)`, it lowers steps 8 and 9
+  — a page title from 56 to 40. The reason is line length: 56px on a 375px screen is about seven
+  characters a line, which is equally true of a squeezed desktop window with a mouse attached.
+
+They were one band for a day, and welding them got the middle of the range wrong both ways: a
+tablet in landscape lost a rise it should have had, and a narrow desktop window kept its 56px
+headings. Each band now emits only the steps it moves, which is what lets both apply on a phone
+without fighting.
+
+There is nothing to opt into — `--font-size-N` stays the one spelling and a component never
+learns a band exists. What it means for you is that a size index names a *role on the ramp*,
+so never build a layout on a pixel value you once measured a step at.
+
+## The composition ladder
+
+The ramp and the weights are materials; this is the house style for using them, and it is
+taste, named as taste. Every distance in this system answers to an axis, but type has none, so
+a written rule is the only thing standing between a system and nine opinions per screen.
+
+**Five steps, and they are the only five.** Page **8**, section **7**, card or block title
+**6**, body **3**, label and meta **2**. Card title over body is 24 against 16, a real step
+down. Steps 4, 5 and 9 exist for cases none of these cover — a hero, a display number — and
+reaching for one is a decision rather than a default.
+
+**Size ranks; weight does not.** A 16px title over 14px body is 1.14×, which is not a hierarchy,
+it is a rounding error. Tracking rewards the bigger step too: `--letter-spacing-N` is 0 through
+steps 1 to 3 and only turns negative from step 4 up, so a title that stays small never gets the
+tightness the posture depends on.
+
+**Size 1 is retired from composed surfaces.** 12px is for genuinely marginal text — a footer, a
+legal line, a dense table's own chrome. It is not for labels, captions, or "this matters less":
+that is what the muted and faint ink roles say, at 14 or 16. A screen reaching for 12px to make
+room has a spacing problem, not a type problem.

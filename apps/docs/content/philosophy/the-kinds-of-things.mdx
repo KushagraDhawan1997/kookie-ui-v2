@@ -1,0 +1,124 @@
+Most design systems are a list of components. This one is a list of **kinds of things**, and
+the components are what you get when a kind is encapsulated for reuse. That ordering is the
+whole design, and it is why the answer to "which component should I use" is almost never a
+matter of appearance.
+
+A kind decides what a thing can be *asked*. A surface can be told what it is made of; a mark
+cannot, because a mark is not made of anything. A button can be ranked louder than its
+neighbour; a row in a list cannot, because a list of peers ranks nothing. When a prop is
+missing from a component, the first question is which kind it belongs to — the absence is
+usually the kind speaking.
+
+## Grounds, surfaces and objects
+
+Three levels, from the bottom up, and the distinction between the last two is the one people
+most often collapse.
+
+The **page** is what everything sits on. The library paints no page background at all: a theme
+that painted one would repaint the page at every nested appearance scope. `--color-page` exists
+so that you paint it in the system's vocabulary rather than by reaching into a raw palette step.
+
+A **ground** is a bounded region that *holds* things. `Surface` is one. It has no seal of its
+own to speak of and casts nothing, because it is not above anything — it is the bed a set of
+objects lies on, the page pattern scoped to a region.
+
+A **surface** in the strong sense is an object with its own plane. `Card` is the type specimen:
+it seals — an opaque fill, so whatever is behind it stops there — and in a world with light in
+it, it casts.
+
+```tsx
+// A ground holding objects. Not a card inside a card.
+<Surface size="3">
+  <Stack gap="3">
+    <Card size="2">…</Card>
+    <Card size="2">…</Card>
+  </Stack>
+</Surface>
+```
+
+A Card is an object; a Surface is what an object sits on. They are not interchangeable and
+neither is a softer version of the other. When you find yourself nesting a card inside a card to
+make a quiet region, you wanted a ground.
+
+## Controls
+
+A control is a thing you operate. They share one state machine, one size ladder, and one
+loudness axis — and they divide into four kinds that differ in what their box even *is*.
+
+**Buttons** act. They rank: `emphasis` says how loud this action is relative to the ones beside
+it, and `tone` says what it means. One loud action per surface.
+
+**Fields** hold a value you type. They do not rank — a form where one field is louder than the
+next names nothing — so `TextField` and `TextArea` refuse `emphasis` and `tone` entirely. A
+field is a well: something carved into the plane, not a plane above it, which is why no field
+casts a shadow in any platform including this one.
+
+**Marks** are controls that *are* their own mark: `Checkbox`, `Radio`, the `Switch` track, the
+`Slider` thumb. A mark leaves the height ladder while keeping the size index, because its box is
+not a box you put a label in — it sits *beside* a label. Its ladder is the line box, so a mark
+occupies exactly one line of the text next to it and grows with that text on a phone.
+
+**Instruments** show or set a value along an extent: `Slider`, `Progress`. An instrument has no
+resting surface with a boundary, so it never joins a dress axis and never takes a material.
+
+## Marks are the label's sibling, never its parent
+
+The mark and its label are two things in a row, and the row owns the distance between them.
+
+```tsx
+<Flex align="center" gap="2">
+  <Checkbox id="terms" />
+  <Text render={<label htmlFor="terms" />}>Email me about releases</Text>
+</Flex>
+```
+
+There is no `label` prop on a mark, and that is deliberate: a label is prose, prose is `Text`,
+and `Text` already knows about every foreground role, tone and step that prose can need. A
+`label` prop would be a second, worse typography system living inside a checkbox.
+
+## Rows
+
+A row is an interactive line in a list — a menu item, a nav item. It looks like a small button
+and it is a different kind, on one test: rows are **peers**. Nothing in a list of options is
+louder than its neighbours, so the row family refuses `emphasis` and stamps its own quiet
+identity. Being the current row is not a louder rung either; it is a different colour, so a
+current row still has somewhere to go under the pointer.
+
+Rows also leave the height ladder, because a row's box is its text line plus a designed inset
+rather than a control's designed height.
+
+## Type, layout, and the frame
+
+**Type** components read the foreground context their surface sets. `Text`, `Heading`,
+`Blockquote`, `Code` and `Kbd` take no fill of their own; `emphasis` on type resolves to
+foreground roles rather than to fills, which is the same axis answering a different family's
+question.
+
+**Layout** components have no appearance at all. `Box` is the engine; `Flex`, `Stack` and `Grid`
+are typed sugar over it. They resolve tokens and tiers, and they paint nothing.
+
+**The frame** is `Shell`, and it is the one thing here that is a *pattern* rather than a
+component. A pattern's essence is outward coordination — it arranges things it does not own —
+where a component's essence is inward containment. The tell of the category error is a child
+reaching up to configure its parent; when you see that, you are looking at a pattern that was
+forced into component shape.
+
+## Telling near-twins apart
+
+Several pairs in this system render almost identically and are different kinds. The test is
+never appearance. It is **functional dissociation**: can you have one without the other?
+
+- **Tabs or a segmented control.** A tab bar switches what is under it. A segmented control sets
+  a value in place. You can switch views without setting any value, and set a value without
+  anything switching, so they are two operations — which is why the segmented control is a
+  radio group under the hood and a tab bar is not.
+- **Dialog or alert dialog.** A dialog is summoned to host your work. An alert comes at you and
+  stops you with a question. The alert's content is closed and the system lays it out, which is
+  what licenses everything unusual about it.
+- **Menu or select.** A menu chooses an *action*. A select chooses a *value* and submits with a
+  form.
+- **Card or Surface.** An object, or the bed an object lies on.
+
+When two things look alike, ask what each one *does* when the other is absent. If the answer is
+different, they are different kinds, and collapsing them into one component with two variants is
+not a shortcut — it teaches everyone downstream that the distinction is cosmetic.

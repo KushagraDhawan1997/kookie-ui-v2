@@ -1,0 +1,116 @@
+An interface has to say four things about work it is doing: that it started, how far it has got,
+how it ended, and what went wrong. Each has one answer here, and the usual failure is not an
+ugly one — it is giving the wrong answer, a spinner where the fraction is known, or a colour
+where a sentence was needed.
+
+## The four things, and what answers each
+
+| what you are saying | when | the answer |
+|---|---|---|
+| Busy | Work started and you cannot say how long | `Spinner`, or `loading` on the `Button` that started it |
+| Progress | You know the fraction | `Progress` with a `value` |
+| Outcome | It finished | Words where the action was, in the tone that names the result |
+| Error | It failed, or the input was wrong | The control's own invalid state, plus a sentence |
+
+Outcome is the one with no component yet, and that is stated plainly at the end of this chapter
+rather than papered over.
+
+## Busy never costs the label
+
+`loading` on a `Button` swaps the leading slot for a `Spinner`. The glyph's box is reused, so
+nothing shifts, and the label stays — a button that stops saying what it is doing is worse than
+one that changes width.
+
+```tsx
+<Button emphasis="loud" loading={saving}>Save changes</Button>
+```
+
+While it is loading the control keeps its focus and its place in the tab order, announces
+`aria-busy`, and refuses activation. The `Spinner` inside it is hidden from assistive technology
+on purpose: the control already carries the state, and saying it twice is noise.
+
+Standalone, a `Spinner` is for a region that has nothing else to show yet. It fills with
+`currentColor` and takes the icon box of whatever it sits in, so it needs neither a colour nor a
+size of its own.
+
+## Progress when the fraction is known
+
+`Progress` is a well and a fill. A number reports the fraction; `value={null}` sweeps as an
+indeterminate bar. The prop is required by the type, so "I do not know how far along this is"
+has to be said out loud rather than being what you get by forgetting.
+
+It has no `size`, and the absence is a decision rather than a gap: the ladder it might have
+ridden prices a track as a fraction of a slider's thumb, and a bar has no thumb, so there is
+nothing for a size index to be a fraction of. Its extent comes from the container, so the `Box`
+that owns the row decides how wide it is.
+
+```tsx
+<Stack gap="2">
+  <Progress value={uploaded} aria-label="Uploading files" />
+  <Text size="2" emphasis="medium">14 of 24 files</Text>
+</Stack>
+```
+
+Name it. A bar with no accessible name and no heading wired to it is a number nobody can read.
+Prefer the determinate form wherever the fraction exists at all — an indeterminate sweep says
+"something is happening", which is the least a busy indicator can say.
+
+## Motion that is the content slows, it does not stop
+
+Everything else in this system stands down to stillness under `prefers-reduced-motion`. A
+spinner and an indeterminate bar are the exception, and the reason is what they are: their
+movement is not a response to a state change, it *is* the message. Stopping them would remove
+the only thing they were saying, so they slow instead.
+
+That distinction is worth carrying into anything you compose. A skeleton shimmer, a pulsing dot
+and a sweeping bar are all in this category; a hover fill, a panel opening and a ring landing are
+not.
+
+## Status tone is vocabulary, not palette
+
+Four names carry meaning: `success`, `warning`, `info`, `destructive`. Four more are colour as
+data — `blue`, `green`, `orange`, `amber` — for a chart series, a project label, a category,
+where the colour *is* the information and a status word would be dishonest.
+
+`success` and `green` render identically today and are still two separately generated families,
+because a meaning has to stay independently correctable. Do not write `green` when you mean
+success: it looks right, and it is wrong the first time either name is re-judged.
+
+```tsx
+// The thing people reach for
+<Text size="2" tone="green">Deployed</Text>
+
+// The composed answer
+<Text size="2" tone="success">Deployed</Text>
+```
+
+Keep the count down as well. Four or more data tones on one surface is a palette being enjoyed
+rather than a meaning being said; three is a legend — a status set, a three-series key.
+
+## Colour is never the whole message
+
+Colour alone is not sufficient signalling (WCAG 1.4.1), and every status this system paints is
+half a message by design. The border, the ring and the ink are the system's half. The sentence
+is yours.
+
+A field that turns red with nothing beside it, a green dot with no label, a chart keyed only by
+hue — all three fail the same way, and all three fail hardest for exactly the people the tone was
+loudest for. Errors should also say what to do next, which is the part a colour could never have
+carried even if it were enough.
+
+## What has not shipped, and what to compose instead
+
+`Callout`, `Banner` and `Toast` are specified as tone-forward surfaces and none of them exists
+yet. Naming that here is better than a chapter that quietly implies otherwise, and there is a
+reasonable answer for each case in the meantime.
+
+- **An inline outcome.** Put the result where the action was: a `Text` in the matching tone
+  beside or under the control, and move the verb's tense with it — a button that said "Publish"
+  is followed by the word "Published", not by "Success".
+- **A message with a heading.** Compose it — a `Card` holding a `Heading` and a `Text`, with the
+  tone stamped on the words. Do not tint the card. The surface family takes no tone, and
+  reaching for `style` to fake one bakes a pigment into an app that will then never re-theme.
+- **A transient confirmation.** There is no toast, and a fixed-position `Card` is not one: it
+  gets neither the live region that makes an announcement nor the dismissal behaviour people
+  expect from it. Say the outcome inline instead. If it genuinely needs a decision rather than an
+  acknowledgement, that was an `AlertDialog` all along.

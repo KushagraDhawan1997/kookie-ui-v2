@@ -1,0 +1,125 @@
+A form is a set of labelled values and one action that commits them. Most of what this system
+contributes to that is a refusal — fields do not rank, marks carry no label, validity is not a
+prop — and each refusal removes a decision that had no right answer anyway. What is left for you
+is the words, the order and the grouping, which is the part no library can do.
+
+## The label is a sibling
+
+A label is prose. Prose is `Text`, and `Text` already knows every foreground role, step and
+weight that prose can need — so no control in this package has a `label` prop, and adding one
+would put a second, worse typography system inside a checkbox.
+
+```tsx
+<Stack gap="3">
+  <Text size="2" weight="medium" render={<label htmlFor="email" />}>
+    Work email
+  </Text>
+  <TextField id="email" type="email" />
+</Stack>
+```
+
+The association is markup, never proximity: `htmlFor` pointing at an `id`, or a `<label>`
+wrapping the control. A `placeholder` is not a label and cannot stand in for one — it leaves the
+moment somebody types, and it renders in the muted ink because it is real information said
+quietly rather than the field's name.
+
+A mark is the same relationship turned on its side, because a mark sits *beside* its label
+rather than containing it, and the row owns the distance between them.
+
+```tsx
+<Flex align="center" gap="2">
+  <Checkbox id="digest" />
+  <Text render={<label htmlFor="digest" />}>Send me the weekly digest</Text>
+</Flex>
+```
+
+## Fields do not rank
+
+`TextField` and `TextArea` take no `emphasis` and no `tone`, and the absence is the kind
+speaking rather than an oversight. Loudness ranks an action against the actions beside it. **A
+form where one field is louder than the next names nothing** — every field is equally there to
+be filled in, and the one that matters most is a sentence you write, not a fill you pick.
+
+So importance is carried by the label, by the order of the form, and by what you leave out.
+Requirement is `required` on the control and, in a long form, said again in the label. The only
+thing that ranks is the action row at the end.
+
+## One action commits the form
+
+One loud button per screen, spent on the thing the form is for. Everything beside it is medium
+or quiet — a composition with two focal points has none.
+
+```tsx
+<Flex justify="flex-end" gap="3">
+  <Button>Cancel</Button>
+  <Button emphasis="loud">Create project</Button>
+</Flex>
+```
+
+Actions sit at the end of the form and align to its end edge. A lone primary with nothing to
+balance may take the full width instead — the sign-in stack — which is a balance decision, not a
+second rule. Buttons state what happens: "Create project", never "Submit", and the name stays
+the same all the way through the flow.
+
+## Grouping is distance, not enclosure
+
+Distance is relationship. The house intervals are gap 3 from a label to its field, 5 between
+groups and 6 between sections; the within-group distance must sit at least two steps under the
+between-group one, or the eye reads one undifferentiated column. A form where every gap is the
+same number is the failure this rule exists to catch.
+
+Do not add a `Separator` or a `Card` to do work that distance is already doing. Enclosure and
+distance both group, and using both says it twice. A rule belongs only where distance cannot
+group — a channel break in a long settings list, where the groups are already at the section
+interval and something still has to divide them.
+
+## Validity is state, and state outranks dress
+
+There is no `invalid` prop, because nothing chooses to look invalid. The system reads
+`aria-invalid`, and Base UI's `data-invalid` when the control sits inside a `Field.Root`.
+
+```tsx
+<TextField
+  id="email"
+  type="email"
+  aria-invalid={emailError ? true : undefined}
+/>
+```
+
+Being ticked is dress; being invalid is a state; **a state outranks dress**. So an invalid
+checked `Checkbox` looks invalid rather than looking entirely fine — and the stylesheet says so
+by specificity rather than by which file happened to load last, which is the version that
+shipped once and hid the state completely. Disabled outranks both: dead beats wrong.
+
+The border and the ring are the system's half of an error. The message is yours. Colour alone is
+not sufficient signalling (WCAG 1.4.1), so a field that goes red with no words beside it is a
+composition defect rather than a token one.
+
+## A textarea is a paragraph
+
+Reach for `TextArea` when the value is prose the person will read back — a description, a note,
+an address. Its box is a frame of even inset on all four sides, and `rows` states the starting
+height in the content's own unit. Width belongs to the layout that owns the row, so there is no
+`cols`: that attribute is a character-count hack that predates CSS and collides with it.
+
+A composer is not a large textarea. The moment the box wants a toolbar, attachments, a send
+button and a growth rule, it has become its own component with anatomy nobody has designed, and
+building it out of a `TextArea` is how a field quietly acquires parts.
+
+## Helper text earns its line or it is not there
+
+Helper text must carry what the label cannot: a consequence, a scope, a constraint, the reason a
+control is disabled. A definition of the control the reader can already read is filler — delete
+it and let the row collapse.
+
+```tsx
+// Filler — the label above it already said this
+<Text size="2" emphasis="medium">Enter your work email address.</Text>
+
+// Decision-relevant — a scope the label cannot carry
+<Text size="2" emphasis="medium">Receipts and billing notices go here.</Text>
+```
+
+It rides the same ramp as the label — size 2, in the muted ink — because a helper line two rungs
+under the controls beside it reads as a mistake rather than as modesty. Size 1 is retired from
+composed surfaces: "matters less" is what the muted and faint ink roles say at a readable size.

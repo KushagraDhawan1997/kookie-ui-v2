@@ -1,0 +1,113 @@
+Interrupting someone is expensive, and the cost is not the pixels — it is that whatever they
+were doing stops. This system ships four levels of interruption, and the rule is to take the
+lowest one that does the job. Reaching for a dialog because a dialog is easier to write than an
+inline edit is the most common way an interface becomes tiring to use.
+
+## The ladder of interruption
+
+Four rungs, cheapest first.
+
+- **Inline.** Change the thing in place. An error under the field that caused it, a `Switch`
+  that takes effect on the spot, a row that opens. Nothing covers anything, and the person keeps
+  their place.
+- **A menu.** `Menu` for a short list of actions, `Select` for a list of values. It covers a
+  small rectangle, it dismisses on Escape, on an outside press and on choosing, and it leaves
+  the page underneath legible.
+- **A dialog.** `Dialog` puts a scrim over the whole app, traps focus, and hosts work that
+  genuinely needs room away from the page.
+- **An alert.** `AlertDialog` covers the same way and will not let you leave without answering.
+
+`Popover`, `Tooltip` and `Sheet` are specified on this ladder and have not shipped. Until they
+do, a `Menu` covers the anchored case and a `Dialog` covers the rest. If you build a stand-in,
+keep it in one file: the day the real component lands, you want one place to change rather than
+a habit spread across a codebase.
+
+## A dialog is summoned; an alert arrives
+
+The pair looks identical and is two kinds of thing. **A dialog is summoned to host your work.**
+You opened it, it holds a form or a picker or a document, and you can leave it the way you came.
+**An alert comes at you and stops you with a question.** It may not even have a trigger: it is
+raised because something needs deciding before anything else happens.
+
+The boundary is one sentence. **If it needs any control beyond its two buttons, it is a
+Dialog.** A type-to-confirm field, a checkbox, a form of any size — any one of them and the
+thing has become work rather than a choice.
+
+That is also why the alert's content is closed. Title, description, cancel, action, in that
+order, laid out by the component. Its `size` prices everything — the box, the corner, the
+padding, both type steps and both buttons — because the system owns all of that content. A
+`Dialog`'s `size` stops at the box, because a dialog holds content the system did not write, and
+no surface in this system sizes type it does not own.
+
+```tsx
+<AlertDialog>
+  <AlertDialogTrigger render={<Button tone="destructive" emphasis="quiet">Delete</Button>} />
+  <AlertDialogContent>
+    <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+    <AlertDialogDescription>
+      Its documents and their history go with it. This cannot be undone.
+    </AlertDialogDescription>
+    <AlertDialogCancel>Keep it</AlertDialogCancel>
+    <AlertDialogAction tone="destructive">Delete project</AlertDialogAction>
+  </AlertDialogContent>
+</AlertDialog>
+```
+
+Cancel is written first, and that ordering *is* the focus mechanism: it reads first, it sits at
+the start, it flips for right-to-left at no cost, and it takes initial focus because it is the
+first thing that can be tabbed to. The safest action is chosen by document order rather than by
+machinery pointed at it.
+
+## The scrim is the separation
+
+The panel casts nothing of its own. A floating layer owes a statement of what it covers, and a
+dialog states it with the entire viewport going dark — a shadow underneath would be saying the
+same thing twice. What the panel keeps is the world's ordinary surface chrome, the same one a
+`Card` takes: lifted in an app with light in it, flat in a flat one.
+
+That is also what buys the panel the right to move almost not at all when it arrives. The room
+went dark; the thing on top of it does not need to fly in as well.
+
+Under `contrast="high"`, and for a person who has asked their system for reduced transparency,
+the scrim gets the same answer: more pigment, no defocus.
+
+## Focus, dismissal, and the one refusal
+
+Both panels trap focus while they are open and return it where it came from when they close, so
+a keyboard never falls out of the layer and never lands nowhere afterwards. Neither takes an
+initial-focus prop, and that is a refusal rather than a gap: where focus should land is decided
+by what the panel holds, which is why the alert puts Cancel first in its own tab order instead
+of pointing machinery at it.
+
+A dialog closes on Escape, on an outside press, and on any `DialogClose` you place. An alert
+closes on Escape and on its two buttons, and **not** on an outside press: a stray click must not
+be able to answer a question about deleting something.
+
+Escape stays, and the reason is worth stating. A keyboard "not now" is Cancel by another route —
+the same decision, reached by the same person, through the input they happen to be using.
+Removing it would leave a keyboard user shut inside a panel they can only leave by committing to
+one of its answers, which is not a safer design, only a stricter one.
+
+There is no corner ✕ as anatomy, for the reason `Card` has no header slot: it is layout, not
+wiring. `DialogClose` puts a real `Button` wherever the composition wants one, which is also
+what a screen-reader user on a touch device needs in order to get out of a trapped panel.
+
+## Name the consequence, not the mechanism
+
+Confirmation copy says what will happen. "Delete project" beats "OK"; "Keep it" beats "Cancel"
+whenever the safe answer has a name of its own. The description carries the consequence and its
+scope in as few words as will hold them, and it is the one place in a destructive flow where an
+extra clause is worth the reading.
+
+The tone goes on the Action, never on the panel. The alert stays neutral and the destructive act
+is the single red thing inside it, which is figure and ground at the smallest scale this system
+works at. An alert has exactly one Action, so the loud rung is legal here as a default — the
+one-focal-point rule is held by the component's anatomy instead of by anyone remembering it.
+
+## Every covering layer states its coverage
+
+Overlap is information rather than expression, so anything that covers has to bound itself. In
+an app with light in it a menu casts the floating chrome; in a flat app it draws its hairline
+instead, because a flat world's boundary vocabulary is the line. A dialog states it with the
+scrim. None of that is a call-site decision — no component in this system takes a shadow — but
+knowing that the rule exists is what stops anyone reaching for one.

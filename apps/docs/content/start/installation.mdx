@@ -1,0 +1,160 @@
+Getting KookieUI running is three things: the package, one stylesheet, and a `Theme` at the
+root of your tree. There is no configuration file, no plugin, and no build step of your own —
+every value is generated ahead of time and shipped as CSS custom properties.
+
+## The package is not on npm yet
+
+Said plainly, because an install command that fails is a worse first page than an honest one.
+`@kookie-ui/react` is pre-release and unpublished. Today you get it by building the workspace:
+
+```bash
+git clone https://github.com/KushagraDhawan1997/kookie-ui-v2
+cd kookie-ui-v2
+pnpm install
+pnpm run build
+```
+
+Then depend on it from an app in the same workspace, exactly as this site does:
+
+```json
+{
+  "dependencies": {
+    "@kookie-ui/react": "workspace:*"
+  }
+}
+```
+
+When it publishes, the command will be `pnpm add @kookie-ui/react` and everything else on this
+page stays as written. The peer dependencies are React and React DOM 19.
+
+## Import the stylesheet once
+
+```tsx
+import "@kookie-ui/react/styles.css";
+```
+
+Once, at the root of your app. This is the whole design system's CSS: the generated token
+layer, the shared control skeleton, and every component's rules. There is nothing per-component
+to import, and nothing is tree-shaken away, because a design system whose stylesheet varies by
+which components you happened to import is a design system that cannot promise anything about
+the ones you add tomorrow.
+
+The size of that file is a hard gate in this project's own CI. It is measured gzipped on every
+commit and a regression fails the build.
+
+## Wrap the app in a Theme
+
+```tsx
+import "@kookie-ui/react/styles.css";
+import { Theme } from "@kookie-ui/react";
+
+export default function App({ children }: { children: React.ReactNode }) {
+  return <Theme>{children}</Theme>;
+}
+```
+
+`Theme` is the scope every token resolves against. It stamps the app-level identities —
+appearance, radius, density, depth, material, contrast and pointer — onto one element, and
+everything inside reads them by inheritance. See [Theming](/start/theming) for what each axis
+decides.
+
+## Paint the page yourself
+
+The library paints no page background, and that is deliberate: a `Theme` that painted one would
+repaint the page at every nested appearance scope. The role exists so you paint it in the
+system's vocabulary rather than by reaching into a raw palette step.
+
+```css
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+```
+
+If your page is made of cards rather than of content, use `--color-ground` instead — a ground is
+the bed objects lie on.
+
+## Dark mode without a flash
+
+Appearance cannot be resolved on the server: the visitor's stored choice and their operating
+system preference are both client facts. Guessing produces either a flash of the wrong theme or
+a hydration mismatch.
+
+The answer is a synchronous script in `<head>` that stamps the answer on `<html>` before first
+paint, with the root `Theme` running `appearance="inherit"` so it stamps no appearance of its
+own. One element owns the mode, and the server never guessed.
+
+```html
+<script>
+  (function () {
+    var e = document.documentElement;
+    var read = function (k) {
+      try { return localStorage.getItem(k); } catch (err) { return null; }
+    };
+    var a = read("kui-appearance");
+    var dark = a === "light" ? false
+      : a === "dark" ? true
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    e.setAttribute("data-appearance", dark ? "dark" : "light");
+    var c = read("kui-contrast");
+    if (c === "high" || c === "normal") e.setAttribute("data-contrast", c);
+  })();
+</script>
+```
+
+```tsx
+<html lang="en" suppressHydrationWarning>
+  <head>{/* the script above */}</head>
+  <body>
+    <Theme appearance="inherit">{children}</Theme>
+  </body>
+</html>
+```
+
+Two details in that script are load-bearing, and both are scars.
+
+**The read is guarded separately from the stamp.** A browser that throws on storage access —
+Safari with all cookies blocked, and friends — will throw inside `localStorage.getItem`. With
+one `try` around the whole function, the `setAttribute` calls are skipped too, and a visitor
+whose system is dark silently gets the light fallback. `matchMedia` needs no permission and
+always answers, so: read defensively, stamp unconditionally.
+
+**Both attributes go on the same element.** The generated high-contrast rules assume
+`data-appearance` and `data-contrast` are co-located, which `Theme` normally guarantees. Since
+the script is taking over that job for appearance, it has to take contrast with it.
+
+## Fonts
+
+The type layer reads three family slots, and it does not ship faces. Point them at whatever you
+serve:
+
+```css
+:root {
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-heading: var(--font-body);
+  --font-mono: "Berkeley Mono", ui-monospace, monospace;
+}
+```
+
+Leaving them unset falls back to the platform's own stacks, which is a reasonable place to
+start and a poor place to stay.
+
+## Check it worked
+
+```tsx
+import { Button, Card, Stack, Text } from "@kookie-ui/react";
+
+export function Smoke() {
+  return (
+    <Card size="3">
+      <Stack gap="3">
+        <Text>If this has a corner, a seal and a hairline, the stylesheet is loaded.</Text>
+        <Button tone="accent" emphasis="loud">And this should be the only loud thing here</Button>
+      </Stack>
+    </Card>
+  );
+}
+```

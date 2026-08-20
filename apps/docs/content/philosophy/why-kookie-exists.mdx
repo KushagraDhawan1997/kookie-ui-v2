@@ -1,0 +1,82 @@
+KookieUI optimizes for correctness, not adoption. Right, not popular — chosen deliberately,
+because the market cannot perceive the axis being optimized, so the two diverge constantly.
+
+The judges are the two things that cannot flatter: the human-factors literature, and whether
+real products built on it are demonstrably better. Not stars. Not conviction alone.
+
+## Patterns, not components
+
+A **pattern** is a recurring functional structure — context, problem, solution. It exists in
+the world; you discover it. A **component** is a pattern encapsulated for reuse. A **name** is
+a handle.
+
+The order matters, and it is the order almost nobody works in: pattern first, encapsulation
+second, name last and least. The industry works in reverse — names and appearances first,
+function last — and that inversion is the root of every failure below it.
+
+## Function over appearance
+
+A taxonomy has to carve reality at functional joints, not at appearances. The canonical case
+in this system: filtering one view by different data pulls, and switching between peer views,
+are distinct operations. They render as near-identical horizontal segments, and they are not
+the same thing.
+
+Collapsing them into one component with two variants is not an ugly choice. It is a false one.
+Co-categorization manufactures perceived sameness — people compress within-group difference
+and exaggerate between-group difference — so structure teaches whether you intend it or not,
+and reducing function to appearance de-educates everyone downstream.
+
+The library author is the one party obligated to know. That obligation is this whole document:
+encode the real distinctions, teach them, and trust the taught.
+
+## Design is empirical
+
+Much of design has objective floors. Fitts's law is from 1954 and it predicts movement time
+from distance and target width. Touch anthropometry puts a fingerpad near 10mm, which is where
+every platform's 44-point minimum comes from. The Gestalt grouping principles are the
+documented behaviour of the visual grouping system, published in 1923. Contrast has two
+measurable models and this system uses both.
+
+Above those floors is taste within constraints — the exact radius, the material's saturation,
+the specific accent. The discipline is knowing which is which: cite the floors and be
+immovable about them, own the taste as judgment, and never dress one as the other. Asserting
+false precision is the same sin as asserting false sameness, inverted.
+
+## Coherence is negative-cost
+
+Coherence is *cheaper* than incoherence. Shipping the same button twice is easier than
+re-deciding its weight. Incoherence is therefore not saved time — it is re-derivation without
+memory.
+
+A centerless system re-decides every choice locally, in ignorance of the choices already made,
+and local optima do not compose. The cost is real and it is deferred: it is paid at assembly
+scale, by whoever builds the twentieth screen.
+
+## Why the field went this way
+
+Not incompetence. Incentives.
+
+- **Centerless tools won.** Copy-paste component collections have no center by construction.
+  Utility CSS pushes decisions out to the call site by design. Both traded coherence for
+  adoption velocity, on purpose, and both were right about what the market rewards.
+- **Component-thinking got applied to patterns.** A sidebar is a pattern — its essence is
+  outward coordination — not a large component, whose essence is inward containment. The tell
+  of the category error is a child reaching up to configure its parent.
+- **The talent is hidden and mis-selected.** Systematic designers work on private systems
+  inside companies. The public market selects for virality, which rewards isolable, demoable
+  craft and is blind to coherence, because coherence is only visible at assembly.
+- **The human-factors literature was abandoned**, because consumer web has no forcing
+  function. A missed tap is cheap, so "responsiveness" degraded from *adapt to the human on
+  this device* into *reflow without a scrollbar* — the measurable proxy replacing the goal.
+- **AI industrialized incoherence.** Each component is generated in isolation, locally
+  plausible and globally inconsistent, and it looks fine per component, so no alarm fires.
+
+## What this costs you
+
+An honest cap, stated once. A system that optimizes for correctness is harder to adopt than
+one that optimizes for adoption. There is no `variant` prop to reach for when the design does
+not fit; there are refusals with reasons instead. Fewer escape hatches exist, and the ones
+that do are documented rather than incidental.
+
+The trade is deliberate. What you get for it is a system where the twentieth screen costs what
+the second one did.

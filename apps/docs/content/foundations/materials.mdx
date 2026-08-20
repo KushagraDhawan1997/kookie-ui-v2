@@ -1,0 +1,125 @@
+Material is what the application is built of: one value on the Theme, four rungs, and no
+component picks one. Its job is backdrop defense — keeping a foreground legible over whatever
+passes behind it — which is also why it expresses only where something actually passes behind.
+
+## One material for the whole app
+
+```tsx
+<Theme material="regular">
+  <App />
+</Theme>
+```
+
+The rungs are `solid`, `thin`, `regular` and `thick`. `solid` is the default, and it is a
+material rather than the absence of one: the rung where light stops passing through. That is
+also why this is not a boolean — `glass` would still owe a thickness beside it, which is two
+props for one fact.
+
+No component takes a material. The per-subtree escape is a nested `<Theme material>`, the same
+escape every other axis has.
+
+The shape tried first was a per-family ladder: the theme picks a rung, a dialog sits one above
+it, a control one below. One question killed it — what happens when the theme says `thick`?
+**There is no rung above `thick`.** Clamping at the top is an exception, and the same clamp at
+the bottom makes `solid` stop meaning solid.
+
+There was never a ladder to walk. A table and a chair made of the same oak are the same oak;
+they do not get oak plus one. What makes a dialog read heavier than a menu is coverage and its
+scrim, not a second thickness: the same glass over 900 pixels of application obscures far more
+than over a 170-pixel menu.
+
+## Glass expresses where there is a backdrop
+
+One value for the scope, but *expression* is gated on placement. Glass over calm ground blurs
+nothing and still pays a full backdrop readback, so the theme's material reaches only components
+genuinely over something.
+
+Mark the **place**, not each control:
+
+```tsx
+<Box backdrop>
+  <Flex gap="2">
+    <Button>Crop</Button>
+    <Button>Rotate</Button>
+    <TextField placeholder="Layer name" />
+  </Flex>
+</Box>
+```
+
+`backdrop` is a boolean placement fact, never a thickness — a toolbar of five controls is one
+fact, not five props. `Card`, `Button`, `TextField`, `TextArea`, `SelectTrigger` and
+`SegmentedControl` each take it as the one-off escape, and `backdrop={false}` re-marks a
+sub-region as calm. Resolution order is the component's own prop, then the region, then solid.
+Floating panes pass it by construction, because a popup covers the application by definition.
+
+An unmarked in-flow control resolves `solid` and pays nothing. That is the performance half and
+the reason the rule exists: before it, `thin` on a Theme made every control on the page carry a
+backdrop filter to defend against a backdrop that was not there.
+
+## Glass does not stack
+
+A pane that paints a veil scopes its subtree, and every member below resolves to the veil's
+alpha with no filter and no lens. You cannot compose glass on glass, and you are not asked not
+to — the composition is unreachable rather than discouraged.
+
+The reason is physical rather than stylistic. A pane reads as glass because it defocuses what is
+behind it; on top of a second pane there is nothing left to defocus, so the child spends a full
+readback blurring an already-blurred image and reads as a sticker.
+
+A solid pane resets the region too, so an unmarked control on an opaque card stays solid. But a
+solid surface **hosts** glass: an explicit statement made inside it wins, because a map or a
+feed composed inside a card really does have something passing behind it.
+
+```tsx
+<Card>
+  <Box backdrop>
+    {/* the consumer's own map canvas paints here */}
+    <Button>Recenter</Button>
+  </Box>
+</Card>
+```
+
+A `<Theme>` resets the pane scope as well, which is what keeps portals honest: a menu opened
+from inside a glass card is glass again, because it paints over the page rather than inside the
+card. Your own pane is a first-class case, and it is one line:
+
+```tsx
+const material = useMaterial({ backdrop: true });
+return <div className="kui-surface" data-material={material} />;
+```
+
+## The veil is your own fill
+
+Material is a fill **modifier**, never a fill: it takes whatever fill the component would have
+painted, mixes it toward transparent at the thickness's alpha, and adds the filter. It never
+chooses a colour of its own.
+
+So both axes survive the glass. A loud accent button under glass is translucent accent; a medium
+one is a soft veil; a quiet one is bare blur — the absence of a fill, frosted. The rung keeps its
+own label pairing, because the fill is still the rung's, merely translucent.
+
+The first cut did the opposite, with a white veil mixed over the page colour, and it erased tone
+and loudness the moment anything under glass had either. If the veil can tint from neutral, it
+can tint from whatever fill the rung already chose.
+
+## When to reach for it, and when not
+
+Reach for glass where something genuinely passes behind: a toolbar over a canvas, a panel over a
+hero image, chrome that content scrolls *under*. Fixed chrome is the best case, because a
+blurred element that itself moves re-samples its backdrop every frame.
+
+Do not reach for it over a solid surface. Over calm ground it blurs nothing, reads as a muddy
+smudge, and charges a readback per element for the privilege. That is not a policy, it is what
+the material does.
+
+There is no free glass either. A `layered` prop was proposed as exactly that — look like glass,
+cost nothing — and the sealed composite it produced was measured and was not identical. Opting
+out of the cost is the same act as opting out of the look, spelled `material="solid"` on a
+nested Theme.
+
+Two settings reach the glass on their own. `prefers-reduced-transparency` re-seals every pane
+and drops the filter. `contrast="high"` leans on the glass rather than unmaking it: each
+thickness takes a designed, more opaque alpha that raises a floor, so the thinnest rung travels
+furthest and three rungs stay three. The rim stays — it is a gradient inside the pane, so it
+cannot lower anyone's contrast, and removing it would only delete the cue that the pane is a
+physical thing catching light.

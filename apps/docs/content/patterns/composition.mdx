@@ -1,0 +1,144 @@
+Primitives cannot make a screen good. They can make it consistent, which is a different and
+smaller promise: every distance answers to an axis, every colour to a tone, every size to an
+index — and you can still put nine of them on one screen at nine different steps and produce
+something nobody can read.
+
+This is the house style: the rules for composing with the system, rather than for using any
+component in it. Most of them are also live checks in the [builder](/builder), which is the
+part no other guideline document can offer.
+
+## One focal action per surface
+
+A screen has one thing it most wants you to do, and exactly one element should say so. Loud and
+accent together is that element.
+
+```tsx
+// Two loud actions is no loud action.
+<Flex gap="3">
+  <Button tone="accent" emphasis="loud">Save</Button>
+  <Button tone="accent" emphasis="loud">Publish</Button>
+</Flex>
+
+// Rank them. The second one is still perfectly findable.
+<Flex gap="3">
+  <Button emphasis="medium">Save draft</Button>
+  <Button tone="accent" emphasis="loud">Publish</Button>
+</Flex>
+```
+
+Nothing in the library defaults to loud and accent, so the guarantee is structural: a second
+focal point has to be typed deliberately.
+
+The unit is the **screen**, not the nearest container. A dialog is its own screen — it covers
+everything else, so its loud action does not compete with the page underneath. Two tab panels
+never compete either, because only one is visible.
+
+## Distance is relationship
+
+Things that belong together sit closer than things that do not. That is proximity, and it is
+the most reliable grouping cue available — it beats a border, a background and a rule, none of
+which are needed once the spacing is right.
+
+The practical rule: **a group's internal gap must be smaller than the gap separating it from
+its neighbours.** The house intervals are a section at 6 holding groups at 5, or a group at 4
+holding rows at 2 — one clear step apart, not two indistinguishable ones.
+
+```tsx
+<Stack gap="6">
+  <Stack gap="2">
+    <Heading size="6">Notifications</Heading>
+    <Text emphasis="medium">Choose what reaches you, and how.</Text>
+  </Stack>
+  <Stack gap="2">
+    <Heading size="6">Billing</Heading>
+    <Text emphasis="medium">Cards, invoices and the plan you are on.</Text>
+  </Stack>
+</Stack>
+```
+
+A single gap value repeated down a screen is flat rhythm: it renders tidily and communicates no
+structure at all.
+
+## The type ladder
+
+Type is the one thing in this system with no axis to answer to. `size` is a free index, which
+means a written rule is all that stands between the system and nine opinions per screen.
+
+Five steps and a floor:
+
+- **8** — the page title
+- **7** — a section title
+- **6** — a card or dialog title
+- **3** — body copy
+- **2** — labels and metadata
+
+**Size 1 is retired from composed surfaces.** 12px is for genuinely marginal text. When
+something matters less, that is what the muted and faint ink roles say — at 14 or 16, where it
+can still be read.
+
+Two steps apart is a hierarchy. One step is a rounding error: a card title at 18 above body at
+16 reads as an accident rather than a rank.
+
+## Tone is vocabulary, not decoration
+
+A tone is a meaning. Reaching for one because a screen looks grey is how a system's colour
+language stops meaning anything.
+
+```tsx
+// Wrong: green because it is pleasant.
+<Text tone="green">Storage used</Text>
+
+// Right: a status word, in the family that means it.
+<Text tone="success">Backup completed</Text>
+```
+
+`success`, `warning`, `info` and `destructive` are meanings. `blue`, `green`, `orange` and
+`amber` are colour-as-data — a chart series, a project label — where the colour *is* the
+information. Reaching for `green` when you mean success looks right and is wrong the first time
+either name is re-judged.
+
+And colour is never the whole message. A status that is only a hue is a status some readers do
+not receive.
+
+## Same role, same treatment
+
+Controls doing the same job on one surface take the same size. A row of buttons where one is
+size 3 and its neighbour is size 2 reads as two different kinds of thing, and the reader spends
+attention working out which — attention the screen wanted for something else.
+
+A control should also match the surface it sits on. Size 1 controls in a size 4 dialog look
+stranded; the innards of a big box are priced up with it.
+
+## Write the real words
+
+Fill a composition with the real content, or with content the same shape and length as the real
+thing. "Lorem ipsum" and "Card title" hide every problem worth catching: a heading that wraps to
+three lines on a phone, a name longer than its column, a button label that changes the row's
+whole rhythm.
+
+The same goes for helper text: **decision-relevant, or absent.** A caption under a field that
+restates what the field already says is furniture. If it does not change what the reader does
+next, delete it.
+
+## Let the reviewer argue with you
+
+Every rule on this page is a live check in the builder, each finding citing the sentence it
+comes from and carrying a fix. The templates it ships are held to zero findings by a law, which
+is what keeps the rules honest — a rule that cannot be satisfied gets caught the moment someone
+writes it.
+
+Use it on a real screen before shipping one. It will not tell you whether a screen is good; it
+will tell you whether it breaks a rule this system already argued about, which is a smaller
+claim and a much faster one to check.
+
+## The full set
+
+The list below is not written here. It is read out of the reviewer itself, so it is exactly
+what runs — a rule added to the linter appears on this page the same day, and a rule whose
+reason changes changes here too, because the sentence you are reading is the sentence the
+finding prints.
+
+<ReviewRules />
+
+> Everything above this section is prose, and prose can drift. This list cannot: it is the
+> argument and the enforcement reading out of one place.

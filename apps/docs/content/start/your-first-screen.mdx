@@ -1,0 +1,114 @@
+The fastest way to understand this system is to build one ordinary screen with it and notice
+what you never had to decide. This is a settings panel: a title, two groups of controls, and a
+pair of actions. Nothing here picks a colour, states a length, or writes a media query.
+
+## Start with the layout, not the components
+
+Distance between things is the container's job, always. So the first decision is which container
+owns which relationship — not which component goes where.
+
+```tsx
+import { Card, Heading, Stack, Text } from "@kookie-ui/react";
+
+export function Settings() {
+  return (
+    <Card size="4">
+      <Stack gap="6">
+        <Stack gap="2">
+          <Heading size="6">Notifications</Heading>
+          <Text emphasis="medium">Choose what reaches you, and how.</Text>
+        </Stack>
+        {/* groups go here */}
+      </Stack>
+    </Card>
+  );
+}
+```
+
+Two `Stack`s at two different gaps, and the difference is the whole rhythm. The outer one at 6
+separates *sections*; the inner one at 2 binds a heading to the sentence explaining it. Things
+that belong together sit closer than things that do not — that is proximity, and it is the
+oldest reliable grouping cue there is. A screen where every gap is the same is a screen with no
+structure, however tidy it looks.
+
+Note what is absent: no margins anywhere. Components own no outer spacing, so the only way to
+express a distance is through the thing that knows what the relationship is.
+
+## Marks sit beside their labels
+
+```tsx
+import { Checkbox, Flex, Stack, Switch, Text } from "@kookie-ui/react";
+
+function Group() {
+  return (
+    <Stack gap="4">
+      <Flex align="center" gap="3">
+        <Switch id="email" defaultChecked />
+        <Text render={<label htmlFor="email" />}>Email me about releases</Text>
+      </Flex>
+      <Flex align="center" gap="3">
+        <Checkbox id="digest" />
+        <Text render={<label htmlFor="digest" />}>Weekly digest instead of every release</Text>
+      </Flex>
+    </Stack>
+  );
+}
+```
+
+There is no `label` prop on a mark, and the absence is deliberate: a label is prose, and `Text`
+already knows every step, weight and foreground role prose can need. A `label` prop would be a
+second, worse typography system hiding inside a checkbox.
+
+`render={<label htmlFor>}` is the escape that changes the element without changing the
+component — the type keeps its ramp and its ink, the DOM gets a real `<label>`, and the browser
+gives you click-to-toggle for free.
+
+## Rank the actions, once
+
+```tsx
+import { Button, Flex } from "@kookie-ui/react";
+
+function Actions() {
+  return (
+    <Flex gap="3" justify="flex-end">
+      <Button emphasis="quiet" bordered>Cancel</Button>
+      <Button tone="accent" emphasis="loud">Save changes</Button>
+    </Flex>
+  );
+}
+```
+
+`emphasis` is loudness and `tone` is meaning, and they are separate axes on purpose. Every
+system that fuses them into one prop ends up with values like `secondary-outline-destructive` —
+three questions crammed into one answer, none of which can be changed alone.
+
+Nothing in this library defaults to loud and accent. That is the guarantee behind *one focal
+action per surface*: a second loud button on this screen would be a deliberate act rather than
+an accident, which means the rule holds by construction instead of by self-policing.
+
+## What you did not have to decide
+
+Put together, the screen is about thirty lines. Here is what it never asked you:
+
+- **No colour.** Every value came from a tone and a role, resolved by the theme. It follows
+  appearance into dark, answers `contrast="high"`, and survives a rebrand.
+- **No sizes in pixels.** `size` is an index into a designed set. One number moved a control's
+  height, padding, corner, icon box and label step together, in proportion.
+- **No breakpoints.** Targets grow on a touch screen, reading steps rise on a handheld, and the
+  layout answers its container rather than the window. None of that is a media query you wrote.
+- **No focus, hover or press styles.** They are one state machine, resolved in the stylesheet,
+  with no JavaScript running at interaction time.
+- **No accessible plumbing beyond `htmlFor`.** Roles, keyboard behaviour and state announcement
+  come from the primitives underneath.
+
+## Where to go next
+
+Read [the kinds of things that exist](/philosophy/the-kinds-of-things) — it is the shortest path
+to knowing which component you want, because in this system that question is almost never about
+appearance. Then [Colour](/foundations/color) and [Space and layout](/foundations/space-and-layout)
+for the two decisions you will make most often.
+
+If you would rather compose than read, the [builder](/builder) is a live editor over these same
+components: every distance is a token index, every axis a closed list, and the export is the
+React code a person would have written. It also runs the house style as live checks, so it will
+tell you when a screen has two focal points before anybody else does.

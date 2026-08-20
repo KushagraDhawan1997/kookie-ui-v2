@@ -1,0 +1,111 @@
+Motion here describes real travel and nothing else. It runs on two clocks that are different
+kinds of thing — one for what a control says, one for how it moves — and no component owns a
+duration. All of it is CSS: nothing runs JavaScript while your finger is down.
+
+## Two clocks
+
+**Paint is a signal. Geometry is physics.** Colour and opacity ease, and they are short:
+`--motion-duration` and `--motion-easing`. Geometry rides a damped spring baked into a CSS
+`linear()` curve — the config states the damping ratio and the frequency, the generator samples
+the model, and the emitted curve costs the browser exactly what a cubic-bezier costs.
+
+Running both on one clock is what makes an interface read as a slideshow. Keep them apart and a
+control answers you immediately, then arrives.
+
+```css
+/* Reached for: one clock for everything. */
+.thing {
+  transition: all 200ms ease;
+}
+
+/* Here: the signal eases, the travel springs. */
+.thing {
+  transition:
+    background-color var(--motion-duration) var(--motion-easing),
+    translate var(--motion-press) var(--motion-spring-stiff);
+}
+```
+
+## The press keeps its colour
+
+A tap lasts about 60 milliseconds. An eased fill never reaches its colour inside one, so an eased
+press reads as a dead control on a phone — measured on real hardware, invisible under desktop
+emulation, and it cost this system six days of no motion at all before the split resolved it.
+**A press sets its paint clock to zero.** The fill lands on the first frame while the travel
+springs underneath it. That is a floor, not a preference: whatever motion arrives later, press
+stays instant.
+
+Hover is asymmetric — 80 milliseconds in, 220 out. That one is taste, and the reason is honest
+asymmetry: arriving is something you did, leaving is something you stopped doing.
+
+## Each family says how far it moves
+
+Under a finger a Button sinks, down and smaller — down alone reads as sliding, smaller alone as
+receding. An interactive surface sinks too, at its own distances: scale is relative, so a large
+card at the button's factor would move several pixels per edge and read as the page flexing. A
+mark squashes, because a Checkbox has no depth to sink into. A field does nothing at all — it is
+the one control the eye rests inside, and its box never travels or scales.
+
+**Nobody says how long.** The clock belongs to the shared layer and the distance to the family,
+which is what keeps a press one sentence per component and keeps two controls at the same rung
+moving alike.
+
+```tsx
+// This is the whole motion API. Both of these already move correctly.
+<Button emphasis="loud">Deploy</Button>
+<Card render={<button type="button" />}>Choose this plan</Card>
+```
+
+There is no duration prop, no easing prop and nothing named `animate`. A component cannot ease
+something on its own authority either: a duration cannot be written down, because every channel
+of every transition has to resolve to a motion token, so a hand-typed `150ms` fails in CI rather
+than in an audit six weeks later.
+
+## Damping is sacred
+
+Both shipped curves cross their target at most once. A second crossing is a ring, and a ringing
+interface reads mechanical — that failure killed three earlier spellings of the switch.
+
+**When a movement needs to be more visible, give it more travel, never less damping.** This was
+learned by falsification: short-travel controls looked dead, their curves were loosened, and the
+result read as *just spring*. The bouncier curve exists in the lab as the rejected comparison and
+is deliberately not emitted.
+
+Some amplitudes are floors rather than taste. The focus ring's travel is bounded below by the
+engine at about four pixels, because Chrome resolves `outline-offset` to whole pixels: a ring
+with two pixels of room animates in three frames and reads as a stutter. A field's ring is
+therefore instant, and that is a measurement, not a preference.
+
+## Motion that is the content
+
+A Spinner and an indeterminate Progress are a different category. Their movement is not a
+transition between two states — it *is* the information, which is why they answer reduced motion
+differently from everything else.
+
+Under `prefers-reduced-motion: reduce` they **slow**, the Spinner to three seconds, and never
+stop. A busy indicator that stops moving is information lost.
+
+## Reduced motion is total
+
+Everything else stops. A panel is simply there and then simply gone, no control travels, and the
+measurement that exists only to serve an animation is not taken. **A suppression that leaves one
+channel moving is worse than none:** somebody who asked their operating system for stillness gets
+it in pieces, which is the one outcome that setting cannot tolerate.
+
+Structure carries it rather than arithmetic. Which arrival a control gets is a hook, and reduced
+motion stands the *hook* down instead of the rules that read it, so a recipe and its suppression
+share a selector and specificity can never separate them again. It is spelled that way because it
+once was not: `:not()` takes the specificity of its most specific argument rather than summing the
+list, and for six days the focus ring went on landing for exactly the people who had asked it not
+to. The sheet that declares a clock now stands it down itself, on the declaring selector.
+
+## Nothing runs while you are pressing
+
+Hover, press, focus and the validity states are stylesheet work reading data attributes off the
+element. There is no handler measuring anything as you point at a control, which is why a system
+this animated still ships no runtime motion library.
+
+The exceptions exist and none of them is at interaction time: a floating panel measures its
+destination once per open, which is already a scripted moment; a tab bar re-measures its indicator
+when the selection changes; the glass lens is built on mount and on resize. Pointing, pressing and
+focusing reach no JavaScript at all.
