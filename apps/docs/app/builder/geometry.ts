@@ -78,6 +78,20 @@ export const rowsOf = (boxes: readonly Box[]): number[][] => {
   return rows;
 };
 
+/**
+ * The scan's answer translated back into the CHILD LIST's own indices.
+ *
+ * `dropSpot` answers a position among the boxes it was handed, and the app hands it only the
+ * children it could measure. Where those two lists differ — a child the renderer put no
+ * element on — the scan's index counts from the wrong list, and "before the third box I can
+ * see" silently becomes "before the third child", which is a different place.
+ *
+ * `positions` is each measured box's index in the full list, in the same order. One past the
+ * end means "after everything", which is the full list's length, not the measured one's.
+ */
+export const documentIndex = (positions: readonly number[], scanIndex: number, total: number): number =>
+  scanIndex < positions.length ? positions[scanIndex]! : total;
+
 export const dropSpot = (boxes: readonly Box[], container: Box, x: number, y: number): Spot | null => {
   if (boxes.length === 0) return null;
   const rows = rowsOf(boxes);

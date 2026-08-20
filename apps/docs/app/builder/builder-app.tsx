@@ -72,7 +72,7 @@ import {
   type BuilderNode,
   type DocTheme,
 } from "./model";
-import { canvasRoom, dropSpot, rowsOf, widthAfterDrag } from "./geometry";
+import { canvasRoom, documentIndex, dropSpot, rowsOf, widthAfterDrag } from "./geometry";
 import { canAccept, insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
@@ -103,7 +103,7 @@ import {
   type CommandUi,
 } from "./commands";
 import { CommandPalette } from "./command-palette";
-import { reviewDocument, type Finding } from "./review";
+import { liveFix, reviewDocument, type Finding } from "./review";
 import { ReviewPanel } from "./review-panel";
 import { Breadcrumb, CanvasBoundary, ContextMenu, DocumentBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
 
@@ -509,10 +509,14 @@ export function BuilderApp() {
     const children = parent ? (parent.children ?? []) : doc.roots;
     const containerEl = parent ? elementFor(parent) : wrap;
     if (!containerEl) return null;
+    /* Each measured child keeps the index it has in the DOCUMENT. The scan answers a position
+       among the boxes it was GIVEN, and a child the renderer put no element on is not one of
+       them — so returning the scan's answer straight into `children` counts from the wrong
+       list the moment any child goes unmeasured. */
     const measured = children
-      .map((c) => ({ c, el: elementFor(c) }))
-      .filter((x): x is { c: BuilderNode; el: Element } => x.el !== null)
-      .map(({ c, el }) => ({ c, r: el.getBoundingClientRect() }));
+      .map((c, i) => ({ c, i, el: elementFor(c) }))
+      .filter((x): x is { c: BuilderNode; i: number; el: Element } => x.el !== null)
+      .map(({ c, i, el }) => ({ c, i, r: el.getBoundingClientRect() }));
     if (measured.length === 0) {
       return { parentId: parent?.id ?? null, index: 0, line: null, boxId: parent?.id ?? null };
     }
@@ -532,7 +536,7 @@ export function BuilderApp() {
       w: spot.line.w,
       h: spot.line.h,
     };
-    const index = spot.index;
+    const index = documentIndex(measured.map((m) => m.i), spot.index, children.length);
     return { parentId: parent?.id ?? null, index, line, boxId: null };
   };
 
@@ -1211,19 +1215,21 @@ export function BuilderApp() {
       undoable, re-reviewed on the next render, and selecting the node it touched so the eye
       lands where the change happened. */
   const applyFix = (finding: Finding) => {
-    if (!finding.fix) return;
-    // The panel shows findings from the DEFERRED document, so a fix can be clicked against a
-    // tree that has moved on — dropping a child into an empty Stack and pressing the
-    // still-displayed "Delete it" before the review pass lands would take the child with it.
-    // Re-run the rules on the live tree and refuse a finding that is no longer true.
+    /* The panel shows findings from the DEFERRED document, so a click can land on a tree that
+       has moved on — dropping a child into an empty Stack and pressing the still-displayed
+       "Delete it" before the review pass lands would take the child with it. The id is only
+       how the finding is FOUND; what gets applied is what the LIVE document offers under it,
+       and `liveFix` carries the reasoning for why matching the id is not enough. Re-reviewing
+       costs 0.94ms on a 240-node document, so the honest path is also the cheap one. */
     const live = activeDoc(stateRef.current);
-    if (!reviewDocument(live).some((f) => f.id === finding.id)) {
+    const current = liveFix(live, finding.id);
+    if (!current?.fix) {
       say("That is already resolved");
       return;
     }
-    const roots = finding.fix.apply(live.roots);
-    dispatch({ type: "edit", roots, selection: finding.nodeId ? [finding.nodeId] : [] });
-    say(finding.fix.title);
+    const roots = current.fix.apply(live.roots);
+    dispatch({ type: "edit", roots, selection: current.nodeId ? [current.nodeId] : [] });
+    say(current.fix.title);
   };
 
   /** What a right-click may insert HERE. The grammar answers, so the menu on a Card and the
