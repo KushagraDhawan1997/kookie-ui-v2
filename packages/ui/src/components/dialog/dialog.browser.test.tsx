@@ -21,6 +21,8 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose, Dia
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
+import { Box } from "../box/box.tsx";
+import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
@@ -612,3 +614,91 @@ describe("the panel comes into focus, not into view (§24)", () => {
     expect(computed(body, "filter"), "and its content is legible").toBe("none");
   });
 });
+
+/* ── A scroll region inside the panel (§3, §10, 2026-08-21) ───────────────────────────── */
+
+describe("a scroll region inside the panel", () => {
+  const list = (
+    <Box>
+      {Array.from({ length: 24 }, (_, i) => (
+        <Box key={i} data-row={i} height="2rem">Row {i + 1}</Box>
+      ))}
+    </Box>
+  );
+
+  /** An open dialog holding title / scroller / action, sized by the call site. */
+  function scrolling(style: React.CSSProperties) {
+    render(
+      <Theme>
+        <Dialog defaultOpen size="3">
+          <DialogContent style={style}>
+            <DialogTitle>Pick a thing</DialogTitle>
+            <ScrollArea>{list}</ScrollArea>
+            <DialogClose render={<Button />}>Save</DialogClose>
+          </DialogContent>
+        </Dialog>
+      </Theme>,
+    );
+    settleAll();
+    const popups = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+    const popup = popups[popups.length - 1];
+    if (!popup) throw new Error("the panel never mounted");
+    const vp = popup.querySelector<HTMLElement>(".kui-scroll-viewport");
+    if (!vp) throw new Error("the scroller never mounted");
+    return { popup, vp, save: popup.querySelector<HTMLElement>("button")! };
+  }
+
+  it("scrolls, and the control below the list stays inside the panel", () => {
+    // Measured broken 2026-08-21, under BOTH spellings — a 400px panel holding a 1440px
+    // viewport that was never a scroll container, with the Save button at y=1705 and
+    // `overflow: clip` removing it from the page. The cause is one box: `.kui-dialog-body`
+    // exists only so the entry can blur the content (§24) and it stands between the pane and
+    // the caller's children, so every rule in the surface layer's scroll block — each of
+    // which asks about a DIRECT child — stopped at it.
+    for (const [name, style] of [
+      ["height", { height: "25rem" }],
+      ["max-height", { maxHeight: "60dvh" }],
+    ] as const) {
+      const { popup, vp, save } = scrolling(style);
+      expect(vp.scrollHeight, `${name}: the content must overflow, or this proves nothing`)
+        .toBeGreaterThan(vp.clientHeight);
+      const p = popup.getBoundingClientRect();
+      expect(vp.getBoundingClientRect().height, `${name}: the viewport takes the room that is left`)
+        .toBeLessThan(p.height);
+      expect(save.getBoundingClientRect().bottom, `${name}: the action is inside its own panel`)
+        .toBeLessThanOrEqual(p.bottom + 0.5);
+    }
+  });
+
+  it("reaches the panel's inline edges, and the rows keep the panel's own inset", () => {
+    // The bleed half — the pane rule reaching through the body. Inline only: this scroller has
+    // a title above it and an action below it, so it touches neither block edge and takes
+    // neither, which is the same DOM question a Card asks.
+    const { popup, vp } = scrolling({ height: "25rem" });
+    const p = popup.getBoundingClientRect();
+    const v = vp.getBoundingClientRect();
+    const b = parseFloat(computed(popup, "border-left-width"));
+    expect(v.left - p.left - b, "the scroller runs to the panel's left edge").toBeCloseTo(0, 1);
+    expect(p.right - v.right - b, "…and its right").toBeCloseTo(0, 1);
+    const pad = parseFloat(computed(popup, "padding-left"));
+    expect(pad, "the panel must have padding to move").toBeGreaterThan(0);
+    expect(parseFloat(computed(vp, "padding-left")), "which moved inside the viewport").toBeCloseTo(pad, 1);
+    const first = popup.querySelector<HTMLElement>("[data-row='0']")!.getBoundingClientRect();
+    expect(first.left - p.left - b, "so the rows still sit in from the edge").toBeCloseTo(pad, 1);
+    // The block edges are the neighbours', and reclaiming one would have eaten the gap.
+    expect(v.top - p.top - b, "a scroller with a title above it does not reach the top").toBeGreaterThan(10);
+  });
+
+  it("a dialog with no scroller is untouched — the body is still a plain block", () => {
+    // The scope, and the negative control the repair is worth nothing without: the body
+    // becomes a column only when it holds a scroller, because the one input where a block and
+    // a flex column disagree is loose inline content directly inside DialogContent, which a
+    // column would shatter into stacked runs (the card-as-link defect, one component over).
+    const { popup } = openDialog({});
+    const body = popup.querySelector<HTMLElement>(".kui-dialog-body");
+    if (!body) throw new Error("the body never mounted");
+    expect(computed(body, "display"), "no scroller, no column").toBe("block");
+    expect(computed(popup, "display"), "and the panel is the block it has always been").toBe("block");
+  });
+});
+

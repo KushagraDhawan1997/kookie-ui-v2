@@ -30,6 +30,7 @@ import {
   MenuContent,
   MenuItem,
   MenuTrigger,
+  ScrollArea,
   Select,
   SelectContent,
   SelectItem,
@@ -50,6 +51,26 @@ import type { ComponentPreview } from "./types";
 /** The theme's glass thicknesses, DERIVED from the axis. A function, not a module const:
     `themeAxes` is a client module's data and the server route imports this file for its slug
     (card.tsx's own note — the build fails on a module-scope read). */
+/** Enough rows that the list genuinely scrolls — a demo that only scrolls by a hair makes a
+    working mechanism look broken (the Card preview's own lesson, 2026-08-20). */
+const REGIONS = [
+  { city: "Frankfurt", ms: 12 },
+  { city: "Amsterdam", ms: 18 },
+  { city: "London", ms: 24 },
+  { city: "Paris", ms: 27 },
+  { city: "Stockholm", ms: 33 },
+  { city: "Dublin", ms: 38 },
+  { city: "Washington DC", ms: 92 },
+  { city: "Cleveland", ms: 104 },
+  { city: "Portland", ms: 141 },
+  { city: "San Francisco", ms: 148 },
+  { city: "São Paulo", ms: 186 },
+  { city: "Mumbai", ms: 194 },
+  { city: "Singapore", ms: 221 },
+  { city: "Tokyo", ms: 235 },
+  { city: "Sydney", ms: 268 },
+];
+
 const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
 
 type Size = "1" | "2" | "3" | "4";
@@ -200,6 +221,41 @@ function States() {
                   <DialogClose render={<Button size="3" tone="accent" emphasis="loud">Connect</Button>} />
                 </Flex>
               </Stack>
+            </DialogContent>
+          </Dialog>
+        </Flex>
+      </Demo>
+      {/* The OTHER answer to a long dialog, and the pair is the point: above, the panel grows
+          and the viewport scrolls it, so the title leaves the screen with everything else;
+          here the panel states a height and the LIST scrolls inside it, so the title and the
+          actions stay put. What the system supplies is the plumbing — the scroller runs to the
+          panel's own edges, the padding moves inside the viewport, and the action row keeps its
+          place — for a call site that writes one height and nothing else (2026-08-21). */}
+      <Demo label="A panel that stays put while its list moves">
+        <Flex gap="3" align="center" wrap="wrap">
+          <Dialog>
+            <DialogTrigger render={<Button emphasis="medium">Choose a region</Button>} />
+            <DialogContent style={{ maxHeight: "min(32rem, 70dvh)" }}>
+              <Stack gap="2">
+                <DialogTitle>Choose a region</DialogTitle>
+                <DialogDescription>Latency is measured from your last deploy.</DialogDescription>
+              </Stack>
+              <ScrollArea>
+                <Stack gap="1">
+                  {REGIONS.map((r) => (
+                    <Flex key={r.city} justify="space-between" align="center" py="3">
+                      <Text size="2">{r.city}</Text>
+                      <Text size="2" emphasis="medium">
+                        {r.ms} ms
+                      </Text>
+                    </Flex>
+                  ))}
+                </Stack>
+              </ScrollArea>
+              <Flex gap="3" justify="flex-end">
+                <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
+                <DialogClose render={<Button tone="accent" emphasis="loud">Use region</Button>} />
+              </Flex>
             </DialogContent>
           </Dialog>
         </Flex>

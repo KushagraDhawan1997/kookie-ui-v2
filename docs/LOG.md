@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 A pane with neighbours had no column, and the dialog had no reach
+
+The Dialog audit's own leftover, opened as "should we go back to dialog now, card is finally complete?" — and the answer was that Card was not.
+
+**Two measurements, one shape.** A dialog stating `height: 400px`, holding a title, a `ScrollArea` and a Save button, computed a 1440px viewport that was never a scroll container, put the Save button at y=1705 and let `overflow: clip` delete it. The record from 2026-08-20 said the fixed-height case *worked* and only the responsive one failed; that was measured with the height on the SCROLLER, and with it on the PANEL both spellings fail. Then the same fixture on a plain `Card` failed identically — 1440px viewport in a 300px pane, button outside it — which is what turned a dialog bug into a surface-layer one.
+
+**The cause in the pane is that `flex: 1` is inert in a block container.** Every sibling law in the suite mounts `render={<Stack gap="4"/>}`, which is already a column, so the fixture could not tell a working rule from a dead one — the degenerate-fixture lesson (2026-08-20) for the ninth time, and the tenth is that surfaces.css's own head comment NAMED the gap ("what is unguarded is only the sibling case, which needs a flex column for the scroller to take the remaining height at all") and shipped without closing it. DECISIONS had the same fact written as a design: "a header/list/footer panel adds only `render={<Stack gap/>}`". That is a workaround transcribed as an API.
+
+**The fix is `:not(.kui-box)`, and the scope is the whole argument.** The system supplies a column only where the call site stated NO layout. A pane that is a Box said what it wanted: a column already works, and a row or grid is the arrangement surfaces.css records as unsupported — supplying a column there would silently contradict the call site's own word, which is worse than the limit. This does not repeat the `.kui-stack` refusal from the day before: that was rejected for excluding a hand-written `<Box display="flex" direction="column">` on spelling, and this asks whether anyone chose at all, which puts the hand-written Box on the same side as the `<Flex>` one.
+
+**The cause in the dialog is one box, and it is named rather than generalised.** `.kui-dialog-body` exists only so the entry can blur the content (§24) and it stands between the pane and the caller's children, so every rule in the scroll block — each asking about a direct child — stopped at it. The body is now a column when it holds a scroller, and the six member rules read `:is(.kui-surface, .kui-dialog-body)`. It stays a name because it is the only such box in the library: Menu and Select put their scroller OUTSIDE the flying body, and AlertDialog owns its content and holds no scroller. A general "system-inserted wrapper" class would be one home for a fact with one consumer.
+
+**Rejected:** `display: contents` on the body (kills the blur, which is the only reason the box exists, and would not make the structural selectors match anyway); duplicating the six rules into dialog.css under the second-member-self-keys rule (the bleed arithmetic would then have two homes for one consumer); and `.kui-surface > * > .kui-scroll-area` (it would catch a wrapper div a call site wrote, which is content, not the pane's content box).
+
+**Left open on purpose:** whether a dialog holding a scroller should cap itself at the window. Uncapped it grows and the dialog's own viewport scrolls it, which is §24's design and right for every dialog without a scroller; with one inside, that is two scrolling surfaces and every peer caps. A default cap changes every dialog, so it is a design call, not a repair.
+
+Six laws, six sabotage passes — including the two that matter most: deleting `:not(.kui-box)` (a stated row silently became a column) and dropping the body's scoping `:has()` (a dialog with no scroller became a flex column, which is the shatter risk this scope exists for). +48 bytes, baseline re-recorded 30905.
+
+---
+
 ## 2026-08-21 Size 2 is the baseline, and the builder was quietly arguing otherwise
 
 Two things closed at once, and only one of them was the wiring.

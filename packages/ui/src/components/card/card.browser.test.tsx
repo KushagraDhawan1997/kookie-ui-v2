@@ -1684,6 +1684,55 @@ describe("a scroll region inside a pane (§3, §10, 2026-08-20)", () => {
     }
   });
 
+  it("a plain pane with NEIGHBOURS becomes the column itself — nobody has to say so", () => {
+    // Measured broken 2026-08-21, in the most ordinary composition the library has: a card
+    // stating a height, holding a heading, a list and an action. `flex: 1` is inert in a block
+    // container, so the scroller took its CONTENT's height — a 1440px viewport inside a 300px
+    // pane, never a scroll container, no bar — and `overflow: clip` removed the Save button
+    // from the page in silence. Every sibling law above mounts `render={<Stack/>}`, which is
+    // already a column, so the fixture could not tell a working rule from a dead one: the
+    // degenerate-fixture lesson (2026-08-20), and this is the input where they differ.
+    const card = mounted(
+      <Card size="3" style={{ height: "18rem" }}>
+        <Box data-testid="head" height="2rem">Head</Box>
+        <ScrollArea>{list}</ScrollArea>
+        <Box data-testid="foot" height="2rem">Foot</Box>
+      </Card>,
+      { theme: {}, select: ".kui-card" },
+    );
+    expect(computed(card, "flex-direction"), "the system supplies the column").toBe("column");
+    const i = insets(card);
+    expect(i.scrolls, "the scroller must actually be a scroll container").toBe(true);
+    // The claim is not really about the scroller: it is that the thing UNDER it survives.
+    const foot = within(card, "[data-testid='foot']").getBoundingClientRect();
+    const c = card.getBoundingClientRect();
+    expect(foot.bottom, "the control below the list is inside its own pane").toBeLessThanOrEqual(c.bottom + 0.5);
+  });
+
+  it("…but a pane that STATED its layout is never overruled", () => {
+    // The scope, and the half that keeps the rule honest. A row or grid pane holding a
+    // scroller is the arrangement surfaces.css records as unsupported; supplying a column
+    // there would silently contradict the call site's own word, which is worse than the
+    // limit. The system answers only where nobody chose — `:not(.kui-box)` is that question,
+    // not a spelling test: a hand-written `<Box display="flex">` card is excluded because it
+    // chose, exactly as a `<Flex>` one is.
+    for (const [name, render_, axis] of [
+      ["row", <Flex direction="row" />, "row"],
+      ["grid", <Grid columns="1fr 1fr" />, "row"],
+    ] as const) {
+      const card = mounted(
+        <Box width="30rem">
+          <Card size="3" render={render_} style={{ height: "18rem" }}>
+            <Box height="2rem">Head</Box>
+            <ScrollArea>{list}</ScrollArea>
+          </Card>
+        </Box>,
+        { theme: {}, select: ".kui-card" },
+      );
+      expect(computed(card, "flex-direction"), `${name}: the call site's axis stands`).toBe(axis);
+    }
+  });
+
   it("a scroller that is not the pane's DIRECT child is untouched", () => {
     // The negative control, and the reason the rule is safe to make automatic: nesting is how
     // a composition opts out, and two scrollers side by side in a row are nobody's only child.
