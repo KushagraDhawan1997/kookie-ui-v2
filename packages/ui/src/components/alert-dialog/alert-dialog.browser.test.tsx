@@ -582,8 +582,23 @@ describe("the panel materializes (§25)", () => {
     ).toBeLessThan(20);
 
     // 3. And the dissolve is revoked, not merely halted: it comes back to full.
+    //    Waited out to REST rather than to opacity alone — the menu twin's own lesson,
+    //    which this law had not taken (CI, the first main run after the merge: "and it is
+    //    the box it was already occupying: expected 3.171875 to be less than 2"). The paint
+    //    clock finishes well before the scale spring does, and a rect read in between is
+    //    ~3px short of the box through no fault of the mechanism.
     await until(() => parseFloat(computed(popup, "opacity")) === 1, 3000);
     expect(computed(popup, "opacity"), "the dismissal is taken back").toBe("1");
+    let previous = -1;
+    let still = 0;
+    // Three consecutive still frames, not one: a spring crossing its target is momentarily
+    // still at the top of the arc, and one frame of stillness is a shape a moving box makes.
+    await until(() => {
+      const width = popup.getBoundingClientRect().width;
+      still = Math.abs(width - previous) < 0.05 ? still + 1 : 0;
+      previous = width;
+      return still >= 3;
+    }, 3000);
     expect(
       Math.abs(popup.getBoundingClientRect().width - settled.width),
       "and it is the box it was already occupying",
