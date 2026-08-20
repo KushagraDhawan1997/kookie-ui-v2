@@ -9,10 +9,15 @@ import { cdp } from "vitest/browser";
 import { material } from "../../tokens/config.ts";
 import { Theme } from "../../theme/theme.tsx";
 import {
-  GLASS_MATERIALS, APPEARANCES, colorOn, computed, inMotion, mounted, numberOn, render, tokenOn as lengthOn, within } from "../../test/browser.tsx";
+  GLASS_MATERIALS, APPEARANCES, colorOn, computed, inMotion, mounted, numberOn, render, tokenOn as lengthOn, within, until } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Spinner } from "../spinner/spinner.tsx";
+import { ScrollArea } from "../scroll-area/scroll-area.tsx";
+import { Stack } from "../stack/stack.tsx";
+import { Flex } from "../flex/flex.tsx";
+import { Grid } from "../grid/grid.tsx";
+import type * as React from "react";
 import { Card } from "./card.tsx";
 
 /** Every token this file resolves is a colour, and the harness's tokenOn reads lengths — so
@@ -1457,5 +1462,243 @@ describe("a pane holds what it contains, and a child may reach its edge (§3, §
         ).toBeGreaterThanOrEqual(reach);
       }
     }
+  });
+});
+
+/**
+ * A scroll region inside a pane (§3, §10, 2026-08-20) — the shared surface layer's rule, so
+ * its laws sit here beside `bleed`'s rather than in ScrollArea's file: nothing about a
+ * scrollbar is under test, only what a PANE does to a scroller it contains directly.
+ *
+ * The claim in one sentence: the box is the pane's and the padding is the content's. Every
+ * law below reads geometry off a mounted browser, because the whole mechanism is a cascade of
+ * margins and paddings whose declared values are individually unremarkable and whose sum is
+ * the thing that can be wrong.
+ */
+describe("a scroll region inside a pane (§3, §10, 2026-08-20)", () => {
+  const ROWS = Array.from({ length: 14 }, (_, i) => `Row ${i + 1}`);
+  const list = (
+    <Box>
+      {ROWS.map((r) => (
+        <Box key={r} data-row={r} height="2rem">{r}</Box>
+      ))}
+    </Box>
+  );
+  /** The scroller's viewport, measured against the pane's PADDING box — the same reference
+      the bleed laws use, because a bleed cancels padding and never the border. */
+  const insets = (card: HTMLElement) => {
+    const vp = within(card, ".kui-scroll-viewport");
+    const c = card.getBoundingClientRect();
+    const v = vp.getBoundingClientRect();
+    const b = parseFloat(computed(card, "border-left-width"));
+    return {
+      top: v.top - c.top - b,
+      right: c.right - v.right - b,
+      bottom: c.bottom - v.bottom - b,
+      left: v.left - c.left - b,
+      scrolls: vp.scrollHeight > vp.clientHeight,
+    };
+  };
+
+  it("a pane's only child fills its box, and the content keeps the pane's own padding", () => {
+    // The minimal composition — a card that IS a list — at every size, so a re-tuned padding
+    // pick cannot make one cell disagree. The height is the call site's one word.
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const card = mounted(
+        <Card size={size} style={{ height: "12rem" }}>
+          <ScrollArea>{list}</ScrollArea>
+        </Card>,
+        { theme: {}, select: ".kui-card" },
+      );
+      const i = insets(card);
+      for (const side of ["top", "right", "bottom", "left"] as const) {
+        expect(i[side], `size ${size}: the scroller must reach the pane's ${side} edge`).toBeCloseTo(0, 1);
+      }
+      expect(i.scrolls, `size ${size}: it must actually scroll, or this proves nothing`).toBe(true);
+      // …and the content is still inset by exactly the pane's padding, which is the half that
+      // makes this different from simply deleting the padding.
+      const pad = parseFloat(lengthOn(card, `--surface-p-${size}`));
+      expect(pad, "the pane must have padding to move").toBeGreaterThan(0);
+      const first = within(card, "[data-row='Row 1']").getBoundingClientRect();
+      const c = card.getBoundingClientRect();
+      const b = parseFloat(computed(card, "border-left-width"));
+      expect(first.left - c.left - b, `size ${size}: the content keeps the pane's inset`).toBeCloseTo(pad, 1);
+    }
+  });
+
+  it("with neighbours only the INLINE axis is reclaimed, and their gap survives", () => {
+    // The DOM is what decides which block edges bleed: this scroller touches neither the
+    // pane's top nor its bottom, so it takes neither — and a law that only ever mounted the
+    // only-child case would be a law about the special case wearing the general one's name.
+    const card = mounted(
+      <Card size="3" render={<Stack gap="4" />} style={{ height: "18rem" }}>
+        <Box data-testid="head" height="2rem">Head</Box>
+        <ScrollArea>{list}</ScrollArea>
+        <Box data-testid="foot" height="2rem">Foot</Box>
+      </Card>,
+      { theme: {}, select: ".kui-card" },
+    );
+    const i = insets(card);
+    expect(i.left, "the inline axis is reclaimed").toBeCloseTo(0, 1);
+    expect(i.right, "the inline axis is reclaimed").toBeCloseTo(0, 1);
+    expect(i.top, "a scroller with something above it does not reach the top").toBeGreaterThan(10);
+    expect(i.bottom, "…nor the bottom, with something below it").toBeGreaterThan(10);
+    expect(i.scrolls).toBe(true);
+    // The gap is the composition's, and reclaiming a block edge here would have eaten it.
+    const head = within(card, "[data-testid='head']").getBoundingClientRect();
+    const area = within(card, ".kui-scroll-area").getBoundingClientRect();
+    const gap = parseFloat(computed(card, "row-gap"));
+    expect(gap, "the pane must have a gap for this to be about").toBeGreaterThan(0);
+    expect(area.top - head.bottom, "the neighbour's gap survives").toBeCloseTo(gap, 1);
+  });
+
+  it("its content may be wider than it is too — both bars, both inside the pane", async () => {
+    // The law the first cut did not have, and the defect it would have caught (2026-08-20,
+    // Kushagra by eye). The only-child pane becomes the flex container, and DIRECTION decides
+    // which axis `flex: 1` sizes and which `min-*: auto` floors. As a row, `flex: 1` sized the
+    // width while `min-inline-size: auto` refused to go below the content's min-content — so a
+    // wide list made the scroller as wide as its content, the pane clipped it, and BOTH bars
+    // disappeared: the horizontal one because nothing overflowed any more, the vertical one
+    // because it was drawn at the scroller's right edge, outside the pane.
+    //
+    // The INPUT is the whole point: content that overflows only vertically cannot tell a row
+    // from a column, so a law mounted on that content is a law about the special case.
+    const card = mounted(
+      // The pane is narrowed on purpose: a full-width mount is wider than the content, and a
+      // law whose "wide" content is not wide is a law that measures nothing.
+      <Box width="24rem">
+        <Card size="3" style={{ height: "13rem" }}>
+          <ScrollArea>
+            <Box width="48rem">{list}</Box>
+          </ScrollArea>
+        </Card>
+      </Box>,
+      { theme: {}, select: ".kui-card" },
+    );
+    const vp = within(card, ".kui-scroll-viewport");
+    expect(vp.scrollWidth, "the content must actually be wider").toBeGreaterThan(vp.clientWidth);
+    expect(vp.scrollHeight, "…and taller").toBeGreaterThan(vp.clientHeight);
+    // Base UI mounts a bar on the frame after it measures its viewport.
+    await until(() => card.querySelectorAll(".kui-scrollbar").length === 2, 1500);
+    const bars = Array.from(card.querySelectorAll<HTMLElement>(".kui-scrollbar"));
+    expect(bars.length, "an overflow on each axis owes a bar on each axis").toBe(2);
+    const c = card.getBoundingClientRect();
+    for (const bar of bars) {
+      const r = bar.getBoundingClientRect();
+      const orientation = bar.getAttribute("data-orientation");
+      expect(r.right, `the ${orientation} bar is drawn outside the pane`).toBeLessThanOrEqual(c.right + 1);
+      expect(r.bottom, `the ${orientation} bar is drawn outside the pane`).toBeLessThanOrEqual(c.bottom + 1);
+    }
+  });
+
+  it("first-but-not-last and last-but-not-first — the cells where the two selectors DISAGREE", () => {
+    // The audit's own finding about these laws (2026-08-20): every other law here mounts either
+    // the only-child case (first AND last true) or head/scroller/foot (both false), so the
+    // fixture could not tell this spelling from a wrong `:where(:first-child, :last-child)`
+    // one — a law about the general case built on an input where the general case and the
+    // special case give the same answer. These are the two inputs where they must differ.
+    const pane = (children: React.ReactNode) =>
+      mounted(
+        <Card size="3" render={<Stack gap="4" />} style={{ height: "18rem" }}>{children}</Card>,
+        { theme: {}, select: ".kui-card" },
+      );
+    const foot = <Box key="f" data-testid="foot" height="2rem">Foot</Box>;
+    const head = <Box key="h" data-testid="head" height="2rem">Head</Box>;
+
+    // FIRST but not last: reclaims the top, must NOT reclaim the bottom.
+    const top = pane([<ScrollArea key="s">{list}</ScrollArea>, foot]);
+    const ti = insets(top);
+    expect(ti.top, "a scroller against the pane's top takes it").toBeCloseTo(0, 1);
+    expect(ti.bottom, "…and must not take the bottom, where its neighbour is").toBeGreaterThan(10);
+    const tv = within(top, ".kui-scroll-viewport");
+    expect(parseFloat(computed(tv, "padding-top")), "the side that bled must pad").toBeGreaterThan(0);
+    expect(parseFloat(computed(tv, "padding-bottom")), "the side that did not bleed must not pad").toBe(0);
+
+    // LAST but not first: the mirror.
+    const bottom = pane([head, <ScrollArea key="s">{list}</ScrollArea>]);
+    const bi = insets(bottom);
+    expect(bi.bottom, "a scroller against the pane's bottom takes it").toBeCloseTo(0, 1);
+    expect(bi.top, "…and must not take the top").toBeGreaterThan(10);
+    const bv = within(bottom, ".kui-scroll-viewport");
+    expect(parseFloat(computed(bv, "padding-bottom"))).toBeGreaterThan(0);
+    expect(parseFloat(computed(bv, "padding-top"))).toBe(0);
+  });
+
+  it("a pane sized with `max-height` scrolls exactly as one sized with `height`", () => {
+    // The audit's worst finding (2026-08-20). `max-block-size: 100%` on the viewport cannot
+    // resolve against an indefinite parent, so a `max-height` pane handed the viewport its
+    // CONTENT's height: it never scrolled, drew no bar, and `overflow: clip` removed the
+    // overflow in silence. `height` worked, which is what made it a trap rather than a bug
+    // anyone would find. The viewport takes a flex height now, which needs no definite parent.
+    const of = (style: React.CSSProperties) =>
+      mounted(
+        <Box width="24rem">
+          <Card size="3" style={style}>
+            <ScrollArea>{list}</ScrollArea>
+          </Card>
+        </Box>,
+        { theme: {}, select: ".kui-card" },
+      );
+    const fixed = of({ height: "10rem" });
+    const capped = of({ maxHeight: "10rem" });
+    for (const [name, card] of [["height", fixed], ["max-height", capped]] as const) {
+      const vp = within(card, ".kui-scroll-viewport");
+      expect(vp.scrollHeight, `${name}: the content must overflow, or this proves nothing`)
+        .toBeGreaterThan(vp.clientHeight);
+      expect(
+        card.getBoundingClientRect().height,
+        `${name}: the pane must be capped`,
+      ).toBeCloseTo(160, 0);
+    }
+    // …and the two agree, which is the actual claim.
+    expect(within(capped, ".kui-scroll-viewport").clientHeight).toBe(
+      within(fixed, ".kui-scroll-viewport").clientHeight,
+    );
+  });
+
+  it("an ONLY child is safe in any direction — the arm that needs no guard", () => {
+    // The rule assumes a column and cannot check (see surfaces.css). This arm is the part that
+    // needs no assumption: an only child touches all four of the pane's edges whatever the axis,
+    // so the same margins are right in a row, a column and a grid. Mounted in all three, because
+    // a law that only mounts the column would be a law about the case the rule already assumes.
+    for (const [name, render_] of [
+      ["column", <Stack />],
+      ["row", <Flex />],
+      ["grid", <Grid columns="1fr" />],
+    ] as const) {
+      const card = mounted(
+        <Box width="24rem">
+          <Card size="3" render={render_} style={{ height: "12rem" }}>
+            <ScrollArea>{list}</ScrollArea>
+          </Card>
+        </Box>,
+        { theme: {}, select: ".kui-card" },
+      );
+      const i = insets(card);
+      for (const side of ["top", "right", "bottom", "left"] as const) {
+        expect(i[side], `${name}: the only child reaches the pane's ${side} edge`).toBeCloseTo(0, 1);
+      }
+      expect(i.scrolls, `${name}: and it scrolls`).toBe(true);
+      const vp = within(card, ".kui-scroll-viewport");
+      expect(parseFloat(computed(vp, "padding-left")), `${name}: content keeps the inset`).toBeGreaterThan(0);
+    }
+  });
+
+  it("a scroller that is not the pane's DIRECT child is untouched", () => {
+    // The negative control, and the reason the rule is safe to make automatic: nesting is how
+    // a composition opts out, and two scrollers side by side in a row are nobody's only child.
+    const card = mounted(
+      <Card size="3" style={{ height: "12rem" }}>
+        <Box height="100%">
+          <ScrollArea style={{ height: "100%" }}>{list}</ScrollArea>
+        </Box>
+      </Card>,
+      { theme: {}, select: ".kui-card" },
+    );
+    const pad = parseFloat(computed(card, "padding-left"));
+    expect(pad).toBeGreaterThan(0);
+    const i = insets(card);
+    expect(i.left, "a nested scroller answers to its own container").toBeCloseTo(pad, 1);
+    expect(i.top).toBeCloseTo(pad, 1);
   });
 });

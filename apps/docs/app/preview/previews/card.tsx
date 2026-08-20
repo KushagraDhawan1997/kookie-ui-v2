@@ -9,7 +9,7 @@
  * pressable × material × size on both calm and hostile ground.
  */
 import * as React from "react";
-import { Box, Button, Card, Flex, Grid, Heading, Separator, Stack, Text, TextField, Theme, themeAxes } from "@kookie-ui/react";
+import { Box, Button, Card, Flex, Grid, Heading, ScrollArea, Separator, Stack, Text, TextField, Theme, themeAxes } from "@kookie-ui/react";
 
 import { BEDS, BedSurface, bed } from "../beds";
 import { Demo, SIZES, cap } from "../pieces";
@@ -231,6 +231,45 @@ function Permutations() {
   );
 }
 
+/** Real rows for the scroll demos — the same list everywhere, so the only variable is where
+    the scrolling box's edges are.
+ *
+ * LONG on purpose (2026-08-20, Kushagra: "why is this one not scrolling?"). Seven rows in a
+ * 15rem card measured 260px of content inside a 238px box — it scrolled by twenty-two pixels,
+ * which is the same as not scrolling: the thumb fills its track and the pane reads as static.
+ * A scroll demo has to have somewhere to go, or it demonstrates the opposite of its label.
+ */
+const ACTIVITY: readonly (readonly [string, string])[] = [
+  ["Deployed 4a91c2", "2 minutes ago"],
+  ["Merged the segmented-control audit", "18 minutes ago"],
+  ["1,427 laws green", "an hour ago"],
+  ["Opened “Dialog: nothing scrolls”", "3 hours ago"],
+  ["Reverted the row-direction fix", "5 hours ago"],
+  ["Published 0.4.2", "yesterday"],
+  ["Deleted the look axis", "yesterday"],
+  ["Card learned to clip", "yesterday"],
+  ["Surface shipped", "yesterday"],
+  ["Ported the lab's depth", "Tuesday"],
+  ["Tabs and the segmented control", "Tuesday"],
+  ["The material became a theme property", "Monday"],
+  ["Menu adopted the scroll area", "Monday"],
+  ["Dark SSR closed at apps/docs", "last week"],
+];
+
+/** A list row: only its own vertical rhythm. The horizontal inset is the scroller's, which
+    the surface layer moved there — so the rows and the heading above them start on one
+    vertical, and the hairline between them spans exactly what the heading spans. A list that
+    genuinely wants its hairlines running to the pane's edges says so with `mx="bleed"` on the
+    list, which cancels that padding through the same hook it was written from. */
+function ListRow({ title, when }: { title: string; when: string }) {
+  return (
+    <Flex py="3" gap="3" align="center" justify="space-between">
+      <Text size="2">{title}</Text>
+      <Text size="1" emphasis="quiet">{when}</Text>
+    </Flex>
+  );
+}
+
 function Nesting() {
   return (
   <Stack gap="6">
@@ -307,6 +346,58 @@ function InUse() {
               <Button tone="destructive" emphasis="loud">Delete</Button>
             </Flex>
           </Stack>
+        </Card>
+      </Box>
+    </Demo>
+    {/* A card that is nothing but a scrolling list (2026-08-20, Kushagra: "I want it fixed
+        natively… I don't want to burden the call site"). Everything that makes this work is
+        the surface layer's — the scroller runs to the pane's edges, the padding moves inside
+        the viewport where it scrolls with the content — so what is written here is a height
+        and a ScrollArea. Nothing bleeds by hand, nothing states a flex chain, and no call
+        site names a private token. The old spelling cut every leaving row against an
+        invisible line with empty padding under it. */}
+    <Demo label="A card that is a scrolling list — a height, and nothing else">
+      <Box maxWidth="26rem">
+        <Card size="3" style={{ height: "15rem" }}>
+          <ScrollArea>
+            <Stack gap="4">
+              {ACTIVITY.map(([title, when]) => (
+                <Flex key={title} gap="3" align="center" justify="space-between">
+                  <Text size="2">{title}</Text>
+                  <Text size="1" emphasis="quiet">{when}</Text>
+                </Flex>
+              ))}
+            </Stack>
+          </ScrollArea>
+        </Card>
+      </Box>
+    </Demo>
+    {/* The same panel with real neighbours: a header that stays, a list that moves under it,
+        an action row still there when the list is at the bottom. The layer asks the DOM which
+        edges to reclaim, so here only the inline axis bleeds — this scroller's top and bottom
+        are bounded by real content, not by the pane's padding — and the gap the Stack put
+        above it survives. The rows carry their own horizontal inset, which is what lets the
+        hairline between them run edge to edge the way a platform list's does. */}
+    <Demo label="A panel that stays put while its list moves">
+      <Box maxWidth="26rem">
+        <Card size="3" render={<Stack gap="4" />} style={{ height: "22rem" }}>
+          <Stack gap="2">
+            <Heading size="4" render={<h3 />}>Recent activity</Heading>
+            <Text size="2" emphasis="medium">Everything this workspace did today.</Text>
+          </Stack>
+          <ScrollArea>
+            <Stack>
+              {ACTIVITY.map(([title, when], i) => (
+                <React.Fragment key={title}>
+                  {i > 0 ? <Separator /> : null}
+                  <ListRow title={title} when={when} />
+                </React.Fragment>
+              ))}
+            </Stack>
+          </ScrollArea>
+          <Flex gap="3" justify="flex-end">
+            <Button emphasis="quiet" bordered>View all</Button>
+          </Flex>
         </Card>
       </Box>
     </Demo>

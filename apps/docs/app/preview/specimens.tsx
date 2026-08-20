@@ -1554,10 +1554,16 @@ function ScrollAreaSection() {
     <Stack gap="6">
       {/* The scrollbar's whole identity is visible here: no track, an alpha capsule thumb
           that reads on the plain card AND the hostile bed with one value, in only while
-          scrolling or hovering. */}
+          scrolling or hovering.
+
+          The BOX is the pane, the PADDING is the content's (2026-08-20, Kushagra: a row cut
+          short of the edge "gets cut because of the card's padding"). The surface layer does
+          it — a scroller that is a pane's direct child runs to the pane's edges and the
+          padding moves inside the viewport, where it scrolls with the content — so the call
+          site here states a height and nothing else at all. */}
       <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5">
-        <Card size="3">
-          <ScrollArea style={{ height: "200px" }}>
+        <Card size="3" style={{ height: "13rem" }}>
+          <ScrollArea>
             <Stack gap="4">
               {Array.from({ length: 14 }, (_, i) => (
                 <Text key={i} size="2" emphasis="medium">Row {i + 1} — taller than the box it lives in.</Text>
@@ -1565,8 +1571,8 @@ function ScrollAreaSection() {
             </Stack>
           </ScrollArea>
         </Card>
-        <Card size="3">
-          <ScrollArea style={{ height: "200px" }}>
+        <Card size="3" style={{ height: "13rem" }}>
+          <ScrollArea>
             <Box style={{ width: "48rem" }}>
               <Stack gap="4">
                 {Array.from({ length: 10 }, (_, i) => (

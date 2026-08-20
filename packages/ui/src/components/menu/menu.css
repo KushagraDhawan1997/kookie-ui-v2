@@ -31,19 +31,19 @@
      because the flight rule was overriding it for the frames where it would have shown. */
   max-height: var(--available-height, none);
   max-width: var(--available-width, none);
-  /* The physical padding moves onto the VIEWPORT (below): the viewport is the new scroll
-     container, and a scroll container clips descendant ink at its padding box — so the
-     ring clearance this panel solved on 2026-08-09 has to live wherever the clipping
-     happens. --kui-sf-p keeps its value (the concentric corner reads it); only where the
-     pixels sit changes. */
-  padding: 0;
   /* Base UI focuses the popup itself on open. The ring is a keyboard affordance for
      CONTROLS; a panel holding focus is a mode, and its rows carry the highlight. */
   outline: none;
 }
 
 .kui-menu-popup .kui-scroll-viewport {
-  padding: var(--kui-menu-pad);
+  /* The physical padding used to be stated HERE, beside a `padding: 0` on the popup — this
+     panel found "the box is the pane's, the padding is the content's" before anything else
+     did and then kept it (2026-08-17). It is the shared surface layer's rule since
+     2026-08-20 and this panel is one of its consumers, so both declarations are gone: the
+     pane pads by --kui-sf-p, the scroller cancels it and the viewport re-states it, which is
+     the same pixels by a rule every pane obeys. What survives here is the one fact that is
+     genuinely the menu's — the height bound. */
   /* The popup's height bound restated for the element that actually scrolls: the room the
      positioner reports, minus the popup's border box contribution. The fallback keeps the
      calc valid where no positioner exists (the in-flow twin) — `100vh`, not a big round px
