@@ -966,6 +966,40 @@ describe("one measurement serves all four layouts", () => {
     expect(mid.line.x + 1).toBeLessThanOrEqual(row[1]!.left);
   });
 
+  it("a row of UNEQUAL heights ends where the ROW ends, not where its last child does", () => {
+    // The half the repair above still got wrong, and its law could not see because every box
+    // in it was the same height. A row holds a tall card and a short button; the button is
+    // last in document order and, being centred, its bottom edge sits 33px above the card's.
+    // Dropping below the whole row lands after both — correct — but the line was drawn from
+    // the last DOCUMENT neighbour, so it cut through the middle of the card that is still
+    // below it. Measured in a production build: pointer at y=210 under a row spanning
+    // 106–204, line drawn at 173.
+    //
+    // The comment justifying it said the two neighbours "always straddle a row boundary".
+    // They straddle it in document order; they do not bound it in pixels. A row's extent is
+    // the union of its children, so the gutter is read off the ROWS the index falls between.
+    const tall = box(0, 106, 300, 98);
+    const short = box(0, 139, 300, 32);
+    const container = box(0, 94, 300, 122);
+    const below = dropSpot([tall, short], container, 150, 210)!;
+    expect(below.index).toBe(2);
+    expect(below.orientation).toBe("horizontal");
+    expect(below.line.y + 1).toBeGreaterThanOrEqual(tall.bottom);
+
+    // The same in the other direction: a row whose FIRST child is the short one.
+    const above = dropSpot([short, tall], container, 150, 100)!;
+    expect(above.index).toBe(0);
+    expect(above.line.y + 1).toBeLessThanOrEqual(tall.top);
+
+    // …and between two rows of unequal heights, the line is in the real gutter.
+    const rowA = [box(0, 0, 140, 80), box(150, 30, 140, 20)];
+    const rowB = [box(0, 100, 140, 40)];
+    const between = dropSpot([...rowA, ...rowB], box(0, 0, 300, 200), 150, 90)!;
+    expect(between.index).toBe(2);
+    expect(between.line.y + 1).toBeGreaterThanOrEqual(80);
+    expect(between.line.y + 1).toBeLessThanOrEqual(100);
+  });
+
   it("the gap bands and the drop scan group rows the SAME way, because it is one function", () => {
     // `measureBands` carried its own copy of the grouping, comment and all, and the copies
     // had drifted: one filtered zero-size boxes and required two children, the other did

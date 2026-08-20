@@ -126,12 +126,22 @@ export const dropSpot = (boxes: readonly Box[], container: Box, x: number, y: nu
 
      In this branch the two neighbours always straddle a row boundary — a pointer in a gutter
      puts every item above it before and every item below it after, and a pointer inside a
-     single-item row has that item on one side and another row's on the other — so their
-     facing edges are the gutter. */
-  const prev = index > 0 ? boxes[index - 1] : undefined;
-  const next = index < boxes.length ? boxes[index] : undefined;
+     single-item row has that item on one side and another row's on the other.
+
+     Their own edges are NOT the gutter, though, and the first spelling of this said they were.
+     A row's extent is the union of its children, so in a row of unequal heights the last item
+     in document order need not be the lowest: a tall card beside a short centred button ended
+     at 204 while the button ended at 171, and dropping below the row drew the line at 173,
+     through the middle of the card it had just landed after. Read the gutter off the ROWS the
+     index falls between and the arithmetic is the same shape with the right numbers in it. */
+  const rowBefore = index > 0 ? rowOf.get(index - 1)! : undefined;
+  const rowAfter = index < boxes.length ? rowOf.get(index)! : undefined;
   const at =
-    prev && next ? (prev.bottom + next.top) / 2 : prev ? prev.bottom + 3 : next!.top - 3;
+    rowBefore !== undefined && rowAfter !== undefined
+      ? (bottom(rowBefore) + top(rowAfter)) / 2
+      : rowBefore !== undefined
+        ? bottom(rowBefore) + 3
+        : top(rowAfter!) - 3;
   return {
     index,
     pointerRow,
