@@ -266,6 +266,31 @@ async function departed(popup: HTMLElement): Promise<number> {
   return flightClock(popup);
 }
 
+/**
+ * The width a panel comes to REST at — watched, never slept to (2026-08-20).
+ *
+ * The travel law needs the destination to compare its release against, and its own sampling
+ * loop cannot supply one: it stops at the release, so the last width it holds IS the released
+ * width. Waiting a fixed span for the box to settle would put a statement about the machine
+ * inside a statement about the code, which is the failure this file has already recorded three
+ * times. Two identical readings a frame apart is the box holding still; the ceiling is a
+ * guard against a hung channel, not a timing claim, and a slow runner only reaches the same
+ * answer later.
+ */
+async function stillWidth(popup: HTMLElement): Promise<number> {
+  const deadline = performance.now() + 2000;
+  let last = -1;
+  let steady = 0;
+  while (performance.now() < deadline) {
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    const w = Math.round(popup.getBoundingClientRect().width);
+    steady = w === last ? steady + 1 : 0;
+    last = w;
+    if (steady >= 2) return w;
+  }
+  throw new Error("the panel never stopped changing width — there is no resting box to compare against");
+}
+
 /** The facts an axis reaches on the popup surface. */
 function surfaceFacts(el: HTMLElement) {
   const cs = getComputedStyle(el);
@@ -2051,14 +2076,29 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // Watch for the release rather than sleeping past it. Bounded generously — this is a
     // ceiling on a hung flight, not a timing claim.
     let releasedAt = 0;
+    let watched = 0;
     while (performance.now() < real + 400) {
       await new Promise((r) => requestAnimationFrame(() => r(null)));
+      watched++;
       if (!popup.hasAttribute("data-unfurling")) {
         releasedAt = performance.now();
         break;
       }
     }
-    expect(releasedAt, "the flight never released at all — the clock is the subject here").toBeGreaterThan(0);
+    /**
+     * `expected 0 to be greater than 0` is what this used to say on CI, which names the symptom
+     * and nothing else (2026-08-20). The two ways to reach it are opposite — the flight really
+     * hung, or the watch window closed before a legitimately late release — and they are told
+     * apart by the clock, the frames actually observed, and whether the popup is even the live
+     * one any more. All three now travel with the failure.
+     */
+    expect(
+      releasedAt,
+      `the flight never released inside ${Math.round(real + 400 - stale)}ms of the stale deadline: ` +
+        `clock ${Math.round(clock)}ms, gap ${Math.round(real - stale)}ms, ${watched} frames watched, ` +
+        `popup ${popup.isConnected ? "still in the DOM" : "DETACHED — the node was replaced"}, ` +
+        `stamps [${popup.getAttributeNames().filter((n) => n.startsWith("data-")).join(" ")}]`,
+    ).toBeGreaterThan(0);
     // Landed on the RIGHT clock: past the midpoint of the gap is unambiguous, because a stale
     // timer fires at `stale` and the live one at `real`, and nothing fires in between.
     expect(
@@ -2391,20 +2431,34 @@ describe("the panel unfurls out of a seed (§22)", () => {
       }
       await frame();
     }
+    /**
+     * THE SAMPLES TRAVEL WITH EVERY FAILURE (2026-08-20). This law is the suite's flakiest —
+     * it has failed on CI repeatedly, at roughly one run in twenty here — and every one of
+     * those reports has been a single number against a bound, which cannot distinguish an
+     * entry that really snapped from a sampler that missed the middle of a smooth one. Those
+     * are opposite bugs and the fix for each makes the other worse, so the number alone is not
+     * evidence for either. Attached to every arm below rather than the one that happens to be
+     * failing today, because which arm goes first is exactly what is not predictable.
+     */
+    const trace = () =>
+      `\n  widths: ${widths.join(",")}` +
+      `\n  heights: ${heights.join(",")}` +
+      `\n  frame gaps (ms): ${stamps.slice(1).map((s, i) => Math.round(s - stamps[i]!)).join(",")}` +
+      `\n  released at sample ${released} of ${widths.length}`;
     // The first sampled frame is the trigger's SILHOUETTE (2026-08-15): the entry begins as
     // the trigger's own box and unfurls straight into the panel's.
     expect(
       Math.abs(widths[0]! - restingBox.width),
-      "the entry begins at the trigger's own width",
+      `the entry begins at the trigger's own width (${Math.round(restingBox.width)}px)${trace()}`,
     ).toBeLessThanOrEqual(3);
     expect(
       Math.abs(heights[0]! - restingBox.height),
-      "and its height",
+      `and its height (${Math.round(restingBox.height)}px)${trace()}`,
     ).toBeLessThanOrEqual(3);
     // Three distinct values is what "it travelled" looks like; a pinned channel reports two
     // (the seed frame, then its destination) and a dead one reports one.
-    expect(new Set(widths).size, `width never moved: ${widths.join(",")}`).toBeGreaterThan(2);
-    expect(new Set(heights).size, `height never moved: ${heights.join(",")}`).toBeGreaterThan(2);
+    expect(new Set(widths).size, `width never moved${trace()}`).toBeGreaterThan(2);
+    expect(new Set(heights).size, `height never moved${trace()}`).toBeGreaterThan(2);
     /**
      * And it GREW rather than jumping — stated as a SPEED, not as a per-frame share
      * (2026-08-17, CI).
@@ -2429,19 +2483,50 @@ describe("the panel unfurls out of a seed (§22)", () => {
     );
     expect(
       fastest,
-      `width moved ${fastest.toFixed(2)}px/ms against an average of ${average.toFixed(2)}px/ms`,
+      `width moved ${fastest.toFixed(2)}px/ms against an average of ${average.toFixed(2)}px/ms ` +
+        `(${distance}px over ${Math.round(elapsed)}ms in ${widths.length} samples)${trace()}`,
     ).toBeLessThan(average * 6 + 0.5);
-    // And the flight is released only once the LAST channel has landed. Keying the release on
-    // the vertical (which finishes 160ms earlier) puts the width floor back while the panel is
-    // still widening, and the floor beats an animating width — the same clamp, arriving late
-    // instead of early. Asserted against the attribute rather than against a duration, so a
-    // dropped frame cannot make it flaky.
-    expect(released, "the panel never stopped unfurling").toBeGreaterThan(0);
-    expect(widths.length, "too few samples to say anything about travel").toBeGreaterThan(5);
+    /**
+     * And the flight is released only once the LAST channel has landed. Keying the release on
+     * the vertical (which finishes 160ms earlier) puts the width floor back while the panel is
+     * still widening, and the floor beats an animating width — the same clamp, arriving late
+     * instead of early. Asserted against the attribute rather than against a duration, so a
+     * dropped frame cannot make it flaky.
+     *
+     * THE SECOND HALF OF THAT WAS VACUOUS UNTIL 2026-08-20, and by construction rather than by
+     * bad luck: the loop stamps `released = widths.length - 1` and breaks in the same step, so
+     * `widths[released]` and `widths.at(-1)` are one array element under two names, and the
+     * comparison was `|x - x| <= 1` — zero, always, for every implementation. It is the file's
+     * own recurring lesson (a law reading one indirection short of the thing that can be wrong)
+     * in the shape the audits keep finding: the *fixture* could not tell a right release from a
+     * wrong one, because the release frame was the only frame it had.
+     *
+     * Two things have to be right for it to mean anything, and the first spelling of the repair
+     * got only one of them:
+     *
+     * WHICH WIDTH. The release must be compared against the width the panel RESTS at, which
+     * this loop never sees — it stops at the release. So take it afterwards, watching for the
+     * box to hold still rather than sleeping a chosen number of milliseconds, for the reason
+     * every other clock in this file is watched instead of assumed.
+     *
+     * WHICH FRAME. Not the release frame. The loop reads the rect and THEN asks whether the
+     * flight is still on, so the sample it breaks on was taken in the same task that found the
+     * pins already gone — the box is unpinned, and reading it there gets the resting width back
+     * for any implementation whatever. Demonstrated, not reasoned: with the runner's release
+     * cut to a flat 120ms — the flight let go with most of its travel left — that comparison
+     * still passed. The claim lives on the LAST FRAME THAT WAS STILL UNFURLING, which is where
+     * a flight that let go early is still visibly short of its destination.
+     */
+    expect(released, `the panel never stopped unfurling${trace()}`).toBeGreaterThan(0);
+    expect(widths.length, `too few samples to say anything about travel${trace()}`).toBeGreaterThan(5);
+    const restingW = await stillWidth(popup);
+    const lastAirborne = widths[released - 1]!;
     expect(
-      Math.abs(widths[released]! - widths[widths.length - 1]!),
-      `released at ${widths[released]}px with ${widths[widths.length - 1]}px still to reach`,
-    ).toBeLessThanOrEqual(1);
+      Math.abs(lastAirborne - restingW),
+      `the last unfurling frame measured ${lastAirborne}px against a resting ${restingW}px — the ` +
+        `flight let go with ${Math.abs(lastAirborne - restingW)}px still to travel, so the width ` +
+        `floor came back while the panel was still widening${trace()}`,
+    ).toBeLessThanOrEqual(2);
   });
 
   it("the posed CONTENT is held: invisible, molten, and a step below where it lands (§8, §22)", async () => {
