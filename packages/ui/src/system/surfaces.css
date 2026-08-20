@@ -443,6 +443,24 @@
 .kui-surface.kui-ground {
   --kui-sf-fill-src: var(--color-ground);
   --kui-border-color: var(--color-border);
+  /* A ground carries NO pane lighting — no grain, no sheen (2026-08-21, Kushagra: the pane
+     "still reads too heavy"). The rim's own argument is that a pane catches light and that
+     glass needs tooth; a ground is a bed rather than an object, and is never glass. It was
+     wearing one only by inheriting the base rule.
+
+     Measured, not argued: the grain is a fixed white overlay at 4.5%, so what it does depends
+     entirely on what is under it — it lifts a LIGHT ground by 0.002 and a DARK one by 0.042,
+     28x the same token, against tonal steps of 0.011 (page to ground) and 0.011 (ground to
+     card). The texture was louder than the whole ladder it sat in, which is why the fill kept
+     reading wrong while the fill was not the problem. The sheen is already stated per mode
+     (30 light / 10 dark); nobody had noticed the same asymmetry one layer down.
+
+     Stated as the PROPERTY, not the hook: --kui-sf-light is not registered `inherits: false`,
+     so standing it down here reached every pane INSIDE the ground too — measured, the card
+     sitting on it lost its own rim. The var-inheritance trap this file has been bitten by four
+     times, and the law that pins it holds a card inside a ground against one that never met
+     one. */
+  background-image: none;
   /* A ground does not cast, and the stand-down is stated on BOTH hops for the reason the
      2026-08-07 audit recorded: the world's chrome arrives by inheritance and the pane's own
      cast is a separate non-inheriting name consulted first. A hole in a plane throws no

@@ -299,6 +299,28 @@ The flagged interval is `107 -> 110` across a **three millisecond gap**: three r
 
 ---
 
+## 2026-08-21 A ground steps off the page, and it was never able to in dark
+
+**What.** `--color-ground` in dark goes from `--neutral-1` — the page's own value — to a literal midway between `--neutral-1` and `--neutral-2`. And a ground stops carrying the pane rim: no grain, no sheen. Light is untouched.
+
+**Why the colour.** Kushagra, on the builder's canvas in dark: a Surface holding cards read as a hole rather than a bed, and the cards on it were byte-identical to the builder's own panels. Measured, the dark ground and the dark page were ONE value, so only a hairline and the pane sheen separated a region from the page behind it.
+
+**The cause is that light has a free step and dark does not.** A card's fill in light is pure white, which is not on the grey ramp at all — so the page can sit on rung 1 and still leave rung 2 underneath for a ground. Dark has no equivalent: the card cannot be "pure black", so it takes rung 2, the page takes rung 1, and there is no rung 0. `groundColor` was written as "darker in both modes", which is expressible in light and unreachable in dark, and the collapse was recorded at the time as an accepted consequence rather than as the dead end it was.
+
+The rule is now **a ground steps off the page, away from whichever extreme that mode's page sits against** — down from near-white in light, up from near-black in dark. The two modes differ in direction and that is not an inconsistency to tidy: a page sits at an extreme of its own ramp in both, so away-from-it is the only direction there is. Rejected again, for the reason recorded in 2026-08-20's own entry: a relative alpha step still inverts the nesting in dark, because dark's ramp is built from white.
+
+**Why the lighting.** With the ground at the midpoint the pane still read "too heavy", and the fill was not what was wrong. The grain is a fixed 4.5% white overlay, so what it does depends on what is under it: measured, it lifts a light ground by 0.002 and a dark one by 0.042 — the same token, 28× the effect — against tonal steps of 0.011. **The texture was louder than the entire ladder it sat in**, which is why every attempt to fix the colour failed; the ground had to be dialled down to a quarter-step (#101112) just to survive it, and only became judgeable at the midpoint once the rim came off. The sheen is already stated per mode (30 light / 10 dark) — someone noticed this asymmetry one layer up and not one layer down.
+
+Refused: scaling the grain per mode. It keeps a glass texture on something that will never be glass and adds a second per-mode knob to maintain. The rim's own written argument is that a pane catches light and glass needs tooth; a ground is a bed, and the honest answer is that it should never have had one.
+
+**Two instrument findings, both the repo's own documented traps, both made again.**
+
+The rim was first stood down through `--kui-sf-light`, which is not registered `inherits: false` — so it reached every pane INSIDE the ground and stripped the card sitting on it. Caught by measuring rather than by reasoning, and fixed by stating `background-image` directly. That is the var-inheritance trap this layer has now hit five times, and it is why the law holds a card inside a ground against one that never met a ground.
+
+And the first draft of the ordering law parsed luminance with a bare digit scan, which reads the literal **3 in `display-p3`** as the red channel — the calibration bug recorded on 2026-08-08, reproduced by the author who cited it. It failed loudly (`expected 0.07 to be greater than 1.04`) only because the number was absurd.
+
+**One law overclaimed and was corrected before it passed.** "A ground sits between the page and the card" is true in dark and false in light, where the ground is below both (page 0.987, ground 0.967, card white). What the modes actually share is the step off the page, so that is what the law asserts — with the direction checked per mode, which a bare "they differ" assertion would not have caught.
+
 ## 2026-08-20 A scroll region inside a pane: the box is the pane's, the padding is the content's
 
 **What.** A ScrollArea that is a direct child of any `.kui-surface` runs to the pane's own edges and moves the pane's padding inside its viewport. Automatic, in the shared surface layer, nothing at the call site: a card that IS a list states a height, and a header/list/footer panel adds only `render={<Stack gap/>}`. Menu's private spelling of the same idea — `padding: 0` on the popup with the pad restated on its viewport — was deleted onto the shared rule. +62 bytes gzipped.

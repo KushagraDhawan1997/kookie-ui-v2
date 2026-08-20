@@ -2106,7 +2106,7 @@
      quieter. An absolute pair rather than an alpha step: dark's ramp is built from white,
      so a relative ground would land ABOVE the seal and the cards would be darker than the
      ground holding them. See config's groundColor for the measurement. */
-  --color-ground: var(--neutral-1);
+  --color-ground: #121213;
 
   /* the PAGE (§10, §13, 2026-08-20) — the ground this library has always presupposed (the
      seal's comment above calls a card "paper above the page") and never named, so an app

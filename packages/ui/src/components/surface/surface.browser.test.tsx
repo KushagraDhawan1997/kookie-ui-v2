@@ -49,13 +49,84 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     }
   });
 
-  it("in dark the ground IS the page, and only the hairline bounds it", () => {
-    // Stated in config as a consequence rather than discovered later, so it is pinned: a
-    // ground is page-level and the cards are what lift. This is also why the edge cannot be
-    // a prop — in dark it is the only thing that makes the region a region.
-    const el = mounted(<Surface>Region</Surface>, { theme: { appearance: "dark" }, select: ".kui-surface" });
-    expect(computed(el, "background-color")).toBe(tokenOn(el, "--neutral-1"));
-    expect(computed(el, "border-top-color")).not.toBe(computed(el, "background-color"));
+  it("steps off the page, away from the mode's extreme — and never collapses onto it", () => {
+    // The 2026-08-21 rule, replacing "a ground is darker than the page" (which this law used to
+    // pin as "in dark the ground IS the page"). That rule was unreachable in dark: the page is
+    // the ramp's last rung, so there was nothing below it and the ground was set equal to the
+    // page — leaving the hairline and the pane sheen as the only things bounding a region.
+    //
+    // What the two modes share is not a direction, and claiming one is how the first spelling of
+    // this law failed: a ground is NOT between the page and the card in light (page 0.987,
+    // ground 0.967, card white). What they share is that a ground steps OFF the page, away from
+    // whichever extreme that mode's page sits against — down from near-white in light, up from
+    // near-black in dark — and is never equal to the page or to the card.
+    //
+    // Read as luminance off PAINTED colours, because the claim is an ordering and an ordering is
+    // exactly what a token-name comparison cannot check.
+    //
+    // The channel slice is not hygiene: `color(display-p3 …)` carries a literal 3 in its own
+    // colour-space name, so a bare digit scan reads it as the red channel — the calibration bug
+    // this repo recorded on 2026-08-08, and which the first draft of this law made again.
+    const lum = (c: string): number => {
+      const n = c.match(/[\d.]+/g)!.map(Number);
+      const ch = c.startsWith("color(") ? n.slice(1, 4) : n.slice(0, 3).map((x) => x / 255);
+      return ch.reduce((a, b) => a + b, 0) / 3;
+    };
+    for (const appearance of APPEARANCES) {
+      const ground = mounted(
+        <Surface>
+          <Card data-testid="held">Body</Card>
+        </Surface>,
+        { theme: { appearance }, select: ".kui-ground" },
+      );
+      const page = lum(colorOn(ground, "var(--color-page)"));
+      const bed = lum(computed(ground, "background-color"));
+      const card = lum(computed(within(ground, "[data-testid='held']"), "background-color"));
+      // The collapse this rule exists to end, and its mirror.
+      expect(bed, `${appearance}: a ground must not collapse onto the page`).not.toBeCloseTo(page, 4);
+      expect(bed, `${appearance}: nor onto the card it holds`).not.toBeCloseTo(card, 4);
+      // The direction, per mode — the half a "they differ" assertion would not catch.
+      if (appearance === "dark") {
+        expect(bed, "dark: the page is the floor, so a ground steps UP").toBeGreaterThan(page);
+        expect(bed, "dark: …and stops short of the card").toBeLessThan(card);
+      } else {
+        expect(bed, "light: the page is near white, so a ground steps DOWN").toBeLessThan(page);
+        expect(card, "light: the card is the lightest of the three").toBeGreaterThan(page);
+      }
+    }
+  });
+
+  it("carries no pane lighting — and the cards on it keep theirs", () => {
+    // A ground is a bed, not an object catching light, and it is never glass — so the rim's own
+    // argument (a pane catches light; glass needs tooth) does not reach it. It was wearing one
+    // by inheriting the base rule, and the cost was measured rather than argued: the grain is a
+    // fixed white overlay, so it lifts a light ground by 0.002 and a dark one by 0.042 — 28x —
+    // against tonal steps of 0.006 and 0.017. The texture was louder than the ladder it sat in.
+    //
+    // The SECOND half is the law that matters. The first repair stood the rim down through
+    // `--kui-sf-light`, which is not registered `inherits: false`, so every pane INSIDE the
+    // ground lost its lighting too — measured, the held card went bare. Stating the property
+    // directly is what keeps it to the one box.
+    for (const appearance of APPEARANCES) {
+      const ground = mounted(
+        <Surface>
+          <Card data-testid="held">Body</Card>
+        </Surface>,
+        { theme: { appearance }, select: ".kui-ground" },
+      );
+      expect(computed(ground, "background-image"), `${appearance}: a bed carries no lighting`).toBe("none");
+      const held = computed(within(ground, "[data-testid='held']"), "background-image");
+      expect(held, `${appearance}: the card on it must keep its own`).not.toBe("none");
+      // …and it is the real rim, not some other image: grain and sheen, both.
+      expect(held.toLowerCase()).toContain("turbulence");
+      expect(held).toContain("gradient");
+      // The control that makes the inheritance claim mean something: a card with no ground
+      // anywhere resolves the identical lighting.
+      const bare = mounted(<Card>Body</Card>, { theme: { appearance }, select: ".kui-card" });
+      expect(held, `${appearance}: identical to a card that never met a ground`).toBe(
+        computed(bare, "background-image"),
+      );
+    }
   });
 
   it("out-rounds the card it holds, at every size", () => {

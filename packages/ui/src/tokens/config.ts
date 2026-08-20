@@ -1655,24 +1655,42 @@ export const surfaceColor = {
  * holds is --neutral-2 (#141516). The cards would be darker than the ground holding them —
  * the nesting inverted, in exactly the mode where it is hardest to see.
  *
- * So the pair is stated: one step under the seal in light, the page's own value in dark.
- * Both directions of the platform argument were checked and they disagree — Apple's ladders
- * go LIGHTER as you nest deeper in dark (systemBackground #000 → #1C1C1E → #2C2C2E), while
- * GitHub's `canvas.inset` goes DARKER than `canvas.default` in dark. Taken: darker in both
- * modes, because it makes the word mean one thing (a ground is under) and because our seal
- * is already a lifted grey rather than Apple's near-black, so there is room beneath it and
- * not much above.
+ * **A ground steps OFF the page, away from whichever extreme that mode's page sits against**
+ * (2026-08-21, Kushagra, judged on screen; corrected from "darker in both modes"). Down from
+ * near-white in light, up from near-black in dark. Both directions of the platform argument
+ * were checked and they disagree — Apple's ladders go LIGHTER as you nest deeper in dark
+ * (systemBackground #000 → #1C1C1E → #2C2C2E) while GitHub's `canvas.inset` goes DARKER than
+ * `canvas.default` — and darker-in-both was taken first, on the reasoning that it makes the
+ * word mean one thing.
  *
- * The consequence, stated rather than discovered later: in dark a ground sitting directly on
- * the page is the SAME colour as the page, and only its hairline bounds it. That is correct
- * — a ground IS page-level, the cards are what lift — and it is why the edge is part of the
- * component rather than a prop.
+ * **It was unreachable in dark and shipped as a collapse.** The page is --neutral-1, the last
+ * rung there is, so there was nothing below it to step to and the ground was set equal to the
+ * page. Light hides this because the card's fill is pure white, which is not on the grey ramp
+ * at all — a free step that lets the page sit on rung 1 and still leave rung 2 underneath for
+ * a ground. Dark has no equivalent: the card cannot be "pure black", so it takes rung 2, the
+ * page takes rung 1, and there is no rung 0. Measured, a dark ground and the dark page were
+ * one value, and the region was bounded by its hairline and the pane sheen alone.
+ *
+ * So dark's ground is now a value BETWEEN the two rungs — midway between --neutral-1 (#0f0f10)
+ * and --neutral-2 (#141516) — which is the one place the ladder has room. Light is untouched:
+ * it already had room and it already read.
+ *
+ * The two modes therefore differ in DIRECTION and that is not an inconsistency to tidy away.
+ * A page is at an extreme of its own ramp in both, and a ground's job is to step off it; the
+ * only direction that exists is away from the extreme, which is down in light and up in dark.
+ *
+ * **It is an absolute pair, not an alpha**, for the reason measured above — and the collapse
+ * does not change that: a relative step still inverts the nesting in dark.
  *
  * v0 for the eye pass, like every colour here.
  */
 export const groundColor = {
   light: "var(--neutral-2)",
-  dark: "var(--neutral-1)",
+  /* Midway between --neutral-1 (#0f0f10) and --neutral-2 (#141516) — a literal because there is
+     no rung there, which is the whole finding. Judged at a quarter of the way (#101112) first
+     and it read too dark; the midpoint only became judgeable once the ground stopped wearing
+     the pane lighting, because grain and sheen were swamping a 0.011 step (see surfaces.css). */
+  dark: "#121213",
 } as const;
 
 /**
@@ -1691,11 +1709,14 @@ export const groundColor = {
  * **One value, not two, and the second was retired before it was written.** The plan carried
  * a pair — a plain page and a darker one for screens made of cards, which is Apple's own
  * split (systemBackground vs systemGroupedBackground, alternating in light and identical in
- * dark). The pair collapsed when `groundColor` landed: a page for panes is one step under the
- * seal in light and the page's own value in dark, which is `--color-ground` exactly. So an
- * app wanting the Settings look paints `--color-ground` and the second name never existed.
- * One fact, one home — and the two roles read as the pair they are: content sits on the page,
- * cards sit on the ground.
+ * dark). The pair collapsed when `groundColor` landed: a page made of cards is exactly what a
+ * ground is, so an app wanting the Settings look paints `--color-ground` and the second name
+ * never existed. One fact, one home — and the two roles read as the pair they are: content
+ * sits on the page, cards sit on the ground.
+ *
+ * (This clause used to add "which is the page's own value in dark". That was true only while
+ * the dark ground had collapsed onto the page, and it stopped being true on 2026-08-21 — the
+ * argument for ONE name never rested on the two being equal, only on their meaning one thing.)
  *
  * `--neutral-1` in BOTH modes, and it is the palette's own end in each: the lightest step in
  * light, the darkest in dark. There is nowhere further to go, which is what makes it a page.
