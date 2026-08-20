@@ -93,9 +93,19 @@ those revisions (the failing values are all exact 1/64px LayoutUnit steps). On C
 browser this law ran green on all five runs since its `sweep` rewrite this morning. Nothing
 was changed for it and nothing should be.
 
-## 7. What this does not fix
+## 7. The shell's four failures (fixed here after all)
 
-The `claude/kookie-ui-v2-shell-15mm8b` PR's four node-law failures on its new `shell.css`
-(`data-size` in a component sheet, a third viewport query, an uncapped overlay arm, a
-`background` the no-bed law forbids) are real findings in that branch's new code, for that
-branch to resolve.
+While this branch was being verified, the shell PR (#13) merged to `main` still red against
+four of its own node laws, so this branch picked them up after merging main in — otherwise
+no merge could come back green. Every failing rule was a deliberate late addition whose
+reasoning was written in place but never reconciled with the laws. Resolved by the
+system's own precedents, nothing exempted: the `data-size` spellings moved into the
+surfaces.css join (the Dialog's refusal — a component sheet may not name the axis; all 64
+mounted shell laws pass unchanged, proving the move moved nothing); the media law asserts
+the sanctioned set of three `@media` forms instead of a count of two; the no-bed law
+sanctions the nav row's hover restoration *by currency* (it must spend the control layer's
+own fill hooks — pinned, so the exemption can't become a bed); and the overlay-arm law
+gained a member boundary, because its regex had seized the rail *item's* target expander —
+a pseudo-element that must never carry a viewport cap. Five sabotages all still fail. The
+budget came out 2 bytes smaller and the baseline is re-recorded downward. LOG carries the
+full entry.
