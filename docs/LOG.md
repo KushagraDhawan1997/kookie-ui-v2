@@ -82,6 +82,16 @@ The new laws repeat all four hide conditions on the input where right and wrong 
 
 **Postscript (merge with main).** Four of the shell's node laws were red on main when this started, and repairing them was part of this work. Main reached the same four independently and landed first — with a better answer on the one that mattered: the rail's per-index arms and the pane's hook stand-down MOVED into the join layer, following Dialog's own refusal, where this branch had carved them out of the law instead. Main's spelling is what survives the merge; the entry below carries it.
 
+## 2026-08-21 The app states its navigation size once, and `open` may be handed back
+
+Two more from the builder's port, both smaller than the one above and both real.
+
+**`size` had a default with no home.** Every pane defaulted to `"2"` independently, so a size-1 editor said `size="1"` on the sidebar, the rail and the inspector separately — and would have found out the day it added a row that a missed pane was silently size 2. `Shell` takes `size` now and a pane resolves to it unless it states its own. One context serves both hops: the root provides the app's index, a pane re-provides whatever it resolved to, and the rows read the same name. The literal lives in exactly one place, which is the thing a system with a size axis should not have had wrong.
+
+**Passing `open` conditionally is supported, and now says so.** `{...(preview ? { open: false } : {})}` pins a pane closed while a flag is on and hands control straight back when it goes. It already worked — the uncontrolled state is left untouched while the controlled value is in force, so the pane returns to where the user last left it rather than to where the pin was — but nothing said it was allowed, so a refactor could have taken it away silently. React warns about this shape for form inputs because a value has nowhere to go; a pane's does. Documented on the prop and held by a law that closes the pane, opens it, pins it shut, unpins, and asserts it comes back open. Falsified against the alternative implementation (write the controlled value through to the uncontrolled state), where it comes back closed.
+
+---
+
 ## 2026-08-20 The shell's late anatomy outgrew three of its own laws — and one law was seizing a member it never meant to hold
 
 The shell merged to main red against four of its own node laws. Every failing rule was a DELIBERATE late addition with its reasoning written in place — the hover restoration, the rail's per-index arms, the pane's hook stand-down, the rail item's target expander — added after the laws were written and never reconciled with them. The resolution follows the system's own precedents in each direction rather than exempting anything.

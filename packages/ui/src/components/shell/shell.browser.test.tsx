@@ -320,6 +320,78 @@ describe("a pane that holds a scroller still hides (§27)", () => {
  * a desktop width. Every law that existed read `display`, which the CSS answers alone.
  * These read the MIRROR — the aria the JS computes and the containment it drives.
  */
+/**
+ * ADDED 2026-08-21, both from the builder's port — one gap it reported and one behaviour it
+ * was leaning on with nothing to say it was allowed to.
+ */
+describe("the app states its size once, and control may be handed back (§27)", () => {
+  // Falsified: with the root's provider removed, the sidebar's row measures the size-2 cell
+  // against a root that said `1`.
+  it("a pane takes the app's index unless it states its own, and the ROWS follow", () => {
+    const shell = mounted(
+      <Shell size="1" style={{ height: 400 }}>
+        <ShellSidebar aria-label="Primary">
+          <ShellNavItem data-testid="inherited">files</ShellNavItem>
+        </ShellSidebar>
+        <ShellInspector size="3" defaultOpen>
+          <ShellNavItem data-testid="stated">details</ShellNavItem>
+        </ShellInspector>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(within(shell, ".kui-shell-sidebar").dataset.size, "inherited from the root").toBe("1");
+    expect(within(shell, ".kui-shell-inspector").dataset.size, "stated on the pane").toBe("3");
+
+    // And the index is not decoration: the row it prices is a different height in each pane,
+    // read off the RENDERED box rather than off the stamp that asked for it.
+    const px = (el: HTMLElement) => `${el.getBoundingClientRect().height}px`;
+    expect(px(within(shell, '[data-testid="inherited"]'))).toBe(tokenOn(shell, "--control-height-1"));
+    expect(px(within(shell, '[data-testid="stated"]'))).toBe(tokenOn(shell, "--control-height-3"));
+  });
+
+  // Falsified: with usePane's `controlled` branch made unconditional (`inner` written on
+  // every controlled render), the pane comes back CLOSED at the end instead of open — the
+  // uncontrolled state having been overwritten while the pin was on.
+  it("`open` may be passed conditionally: control comes back where the user left it", async () => {
+    function App() {
+      const [pinned, setPinned] = React.useState(false);
+      return (
+        <Shell style={{ height: 400 }}>
+          <ShellHeader>
+            <ShellTrigger target="sidebar">nav</ShellTrigger>
+            <button data-testid="pin" onClick={() => setPinned((p) => !p)}>
+              pin
+            </button>
+          </ShellHeader>
+          <ShellSidebar aria-label="Primary" {...(pinned ? { open: false } : {})}>
+            <ShellScroll>rows</ShellScroll>
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>
+      );
+    }
+    const shell = mounted(<App />, { theme: {}, select: ".kui-shell" });
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    const trigger = within(shell, ".kui-shell-header button");
+    const pin = within(shell, '[data-testid="pin"]');
+
+    // The user closes it and opens it again, so the uncontrolled state is an explicit `open`
+    // rather than the `auto` it mounted with — the distinction the law needs, since `auto`
+    // already resolves open at this width and could not tell a restored state from a reset.
+    await userEvent.click(trigger);
+    await expect.poll(() => sidebar.dataset.state).toBe("closed");
+    await userEvent.click(trigger);
+    await expect.poll(() => sidebar.dataset.state).toBe("open");
+    // …the pin goes on and forces it closed…
+    await userEvent.click(pin);
+    await expect.poll(() => sidebar.dataset.state).toBe("closed");
+    // …and when the pin goes, the pane is where the USER left it, not where the pin was.
+    await userEvent.click(pin);
+    await expect.poll(() => sidebar.dataset.state).toBe("open");
+  });
+});
+
 describe("the JS mirror agrees with the stylesheet, and is read (§27)", () => {
   it("an untouched explicit-overlay pane reports closed AND contains nothing, at a wide window", async () => {
     const shell = mounted(
