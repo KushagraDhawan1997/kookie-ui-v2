@@ -150,9 +150,33 @@ const nearest = (parents: BuilderNode[], set: Set<string>): BuilderNode | null =
 
 const surfaceOf = (parents: BuilderNode[]): BuilderNode | null => nearest(parents, SURFACES);
 const layerOf = (parents: BuilderNode[]): BuilderNode | null => nearest(parents, LAYERS);
-/** The tab panel a node sits in, if any — two nodes in DIFFERENT panels are never on screen
-    together, so they never compete for anything. */
-const panelOf = (parents: BuilderNode[]): BuilderNode | null => nearest(parents, new Set(["TabsPanel"]));
+/**
+ * Which tab a node is behind, per Tabs group it sits inside — `{ tabsId: panelId }`.
+ *
+ * "Which panel am I in" is not enough, and reading it as enough is a real defect: two loud
+ * buttons in two DIFFERENT Tabs groups came out as "different panels", so the rule called them
+ * mutually exclusive and fell silent, while on screen both are visible at once. A tab hides a
+ * node only from its OWN siblings.
+ */
+const tabsPath = (parents: BuilderNode[]): Map<string, string> => {
+  const path = new Map<string, string>();
+  let owner: string | null = null;
+  for (const p of parents) {
+    if (p.type === "Tabs") owner = p.id;
+    else if (p.type === "TabsPanel" && owner) path.set(owner, p.id);
+  }
+  return path;
+};
+
+/** Can these two ever be on screen together? Only one thing separates them: sharing a Tabs
+    group and sitting behind different tabs OF IT. */
+const bothVisible = (a: Map<string, string>, b: Map<string, string>): boolean => {
+  for (const [tabs, panel] of a) {
+    const other = b.get(tabs);
+    if (other !== undefined && other !== panel) return false;
+  }
+  return true;
+};
 
 /** Which way a layout lays its children out. A Stack is a column by construction; a Flex is
     a row unless it says otherwise, and a per-tier `direction` is read at its base — the
@@ -196,7 +220,7 @@ export const RULES: Rule[] = [
       // survived by accident on the plain path and not on the tab path, where the
       // always-visible buttons are prepended — so the rule flagged the EARLIER button and
       // offered to demote the wrong one.
-      type Loud = Entry & { layer: string; panel: string | null; at: number };
+      type Loud = Entry & { layer: string; tabs: Map<string, string>; at: number };
       const loud: Loud[] = [];
       for (const [at, entry] of all.entries()) {
         const { node, parents } = entry;
@@ -205,33 +229,27 @@ export const RULES: Rule[] = [
         // exactly one (§25). Its grammar refuses a plain Button, so this arm is about a
         // document arriving from elsewhere, not about anything the editor can build.
         if (parents.some((p) => p.type === "AlertDialogContent")) continue;
-        loud.push({ ...entry, at, layer: layerOf(parents)?.id ?? "·screen·", panel: panelOf(parents)?.id ?? null });
+        loud.push({ ...entry, at, layer: layerOf(parents)?.id ?? "·screen·", tabs: tabsPath(parents) });
       }
       const out: RawFinding[] = [];
-      const flagged = new Set<string>();
+      /* A loud action is the second one if ANY loud action earlier in the document can be on
+         screen beside it. Asked pairwise rather than by building the sets of what is visible
+         together: a set model has to enumerate one choice of tab per Tabs group, and the
+         version that skipped the enumeration grouped by panel id alone — so two loud buttons
+         in two DIFFERENT Tabs groups read as "different panels", the rule called them
+         mutually exclusive, and a screen showing both at once came back clean. */
       for (const layer of new Set(loud.map((l) => l.layer))) {
-        const here = loud.filter((l) => l.layer === layer);
-        const always = here.filter((l) => l.panel === null);
-        const panels = new Set(here.filter((l) => l.panel !== null).map((l) => l.panel!));
-        // Each panel competes with the always-visible ones and with nobody else. A layer with
-        // no tabs runs this once with the empty panel set.
-        const sets = panels.size === 0 ? [always] : [...panels].map((p) => [...always, ...here.filter((l) => l.panel === p)]);
-        for (const set of sets) {
-          if (set.length < 2) continue;
-          const ordered = set.slice().sort((a, b) => a.at - b.at);
-          // The FIRST keeps the budget; every later one is the finding.
-          for (const { node } of ordered.slice(1)) {
-            if (flagged.has(node.id)) continue;
-            flagged.add(node.id);
-            out.push({
-              nodeId: node.id,
-              message: `${label(node)} is a second loud action on this screen.`,
-              fix: {
-                title: "Make it medium",
-                apply: (roots) => writeProp(roots, node.id, "emphasis", "medium", node.type),
-              },
-            });
-          }
+        const here = loud.filter((l) => l.layer === layer).sort((a, b) => a.at - b.at);
+        for (const [i, { node, tabs }] of here.entries()) {
+          if (!here.slice(0, i).some((earlier) => bothVisible(earlier.tabs, tabs))) continue;
+          out.push({
+            nodeId: node.id,
+            message: `${label(node)} is a second loud action on this screen.`,
+            fix: {
+              title: "Make it medium",
+              apply: (roots) => writeProp(roots, node.id, "emphasis", "medium", node.type),
+            },
+          });
         }
       }
       return out;
@@ -375,7 +393,10 @@ export const RULES: Rule[] = [
               : null;
           out.push({
             // The finding points at the CHILD, because that is the group whose spacing reads
-            // wrong; the fix may edit either end, so the panel selects what the fix touched.
+            // wrong, and that is also what the panel selects when the fix is applied — even
+            // where the repair edits the OUTER group's gap. The eye wants the place the
+            // problem was reported, which is the pair; the child is the half of it that is
+            // named.
             nodeId: child.id,
             message: `A group at gap ${inner} sits inside one at gap ${outer} — the two read as one.`,
             ...(fix

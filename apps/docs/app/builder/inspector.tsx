@@ -421,10 +421,16 @@ export function MultiInspector({
             }
             const values = schema.kind === "axis" ? componentAxes[schema.axis] : schema.values;
             const labels = schema.kind === "options" ? schema.labels : undefined;
-            // A responsive value is an object, and reading only the string arm made an
-            // AGREED per-tier value render as "(unset)" — the panel denying a value both
-            // nodes state. The base is what a plain picker can show; the note below says
-            // what picking here does to the tiers.
+            /* A responsive value is an object, and reading only the string arm made an
+               AGREED per-tier value render as "(unset)" — the panel denying a value both
+               nodes state. The base is what a plain picker can show; the note below says what
+               picking here does to the tiers.
+
+               It shows the BASE, so a value with tiers but no base still reads "(unset)" —
+               reachable by stating a tier and then clearing the base. That is deliberate
+               rather than fixed: a picker showing `md`'s value under a label that means the
+               base would be a truer-looking lie than an honest blank, and the per-tier editor
+               one row down is where that value belongs. */
             const plain =
               typeof first === "string"
                 ? first
