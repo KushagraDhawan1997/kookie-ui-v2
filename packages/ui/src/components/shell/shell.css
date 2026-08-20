@@ -151,9 +151,27 @@
    the reserve is `--touch-target-min` because that is what the strip IS: the tap that closes
    this. A pane whose `width` prop exceeds the window is capped by the same declaration, which
    is what stops it pushing document-level horizontal scroll. */
+/* THE CAP MUST RESOLVE AGAINST THE FRAME, NOT THE PANE'S OWN AREA (audit 2026-08-20,
+   CRITICAL, and it had been shipping since the cap was written). An abspos grid item's
+   containing block is its GRID AREA — which is the whole point on the block axis, and a
+   disaster on the inline one: an out-of-flow item does not size its own `auto` track, so
+   the moment the pane leaves flow its column collapses to ZERO and `calc(100% - 44px)`
+   computes -44px, clamps to 0, and the drawer paints its borders and nothing else.
+   Measured before the fix at a 375px window: rect 1px, clientWidth 0. Every overlaying
+   pane in the library, on every narrow screen, since 2026-08-16.
+
+   The cap's own law could not catch it — "an overlay never takes the whole window" is a
+   ONE-SIDED bound and 1px satisfies it happily. Its replacement below asserts both ends.
+
+   The repair keeps the area for the axis that wants it and widens it for the axis that
+   does not: a side pane spans every COLUMN (its row still comes from `grid-area`, so it
+   still rises exactly under the header with no arithmetic), and the bottom pane spans
+   every ROW. `inset-inline-start: 0` then means the frame's edge, which is where a drawer
+   belongs, and `100%` finally means the frame. */
 .kui-shell-rail[data-presentation="overlay"],
 .kui-shell-sidebar[data-presentation="overlay"] {
   position: absolute;
+  grid-column: 1 / -1;
   inset-block: 0;
   inset-inline-start: 0;
   max-inline-size: calc(100% - var(--touch-target-min));
@@ -162,6 +180,7 @@
 
 .kui-shell-inspector[data-presentation="overlay"] {
   position: absolute;
+  grid-column: 1 / -1;
   inset-block: 0;
   inset-inline-end: 0;
   max-inline-size: calc(100% - var(--touch-target-min));
@@ -170,6 +189,7 @@
 
 .kui-shell-bottom[data-presentation="overlay"] {
   position: absolute;
+  grid-row: 1 / -1;
   inset-inline: 0;
   inset-block-end: 0;
   max-block-size: calc(100% - var(--touch-target-min));
@@ -281,7 +301,19 @@
    correctly beside each other: out of flow their grid areas both collapse to zero width and
    they would land on the same edge, stacked. The band is the scrim's, deliberately: the
    scrim is a later sibling, so an overlay's scrim covers a floating pane, which is right. */
-.kui-shell:has(> .kui-shell-content[data-flush]) > .kui-shell-pane:not([data-flush]) {
+/* :where() ZEROES this rule's weight, and that is the whole point (audit 2026-08-20). The
+   comment above used to claim the overlay arm's `z-index: 2` "simply outranks this, in
+   either source order" — false, and asserting specificity arithmetic instead of measuring it
+   is the exact mistake this repo keeps writing down. `:has()` takes the specificity of its
+   most specific argument, so the prefix alone was (0,3,0) and the whole selector (0,5,0)
+   against the arm's (0,2,0): a pane that was BOTH non-flush and overlaying computed z-index
+   1, tied with the scrim, and lost to it on tree order — so the drawer was painted over by
+   its own scrim and every press inside it dismissed the pane. Measured: hit at the drawer's
+   centre returned `.kui-shell-scrim`. At (0,1,0) the arm wins on specificity, which is
+   order-independent and does not need a `:not([data-presentation])` guard — one of those
+   would have killed floating for the `auto` panes that are the common case. */
+:where(.kui-shell:has(> .kui-shell-content[data-flush]))
+  > .kui-shell-pane:where(:not([data-flush])) {
   z-index: 1;
 }
 
@@ -289,15 +321,32 @@
    floating pane's own start or end line — `grid-template-areas` mints those line names for
    free — so it grows only on the sides something actually floats on, and a flush header
    above a floating sidebar still pushes the content down rather than being painted over.
-   The rail line is stated after the sidebar's so it wins on source order when both float,
-   which is the only ordering question in this block. The subject carries `[data-flush]`,
+   When BOTH nav columns float the rail's line is the one that must win, and it does so on
+   SPECIFICITY, not source order: its intervening-pane guard below is a `:not(:has(...))`,
+   which carries its argument's weight and puts the rule at (0,7,0) against the sidebar's
+   (0,5,0). This comment claimed source order until 2026-08-20, when the guard landed and
+   quietly made the claim false — measured both ways with the two blocks swapped, and the
+   answer is `rail-start` either way. Specificity is the better mechanism to depend on, but
+   only because it was checked rather than asserted. The subject carries `[data-flush]`,
    and that IS the derivation's condition: the content can only be underneath if it is
    flush, so a grounded content simply never matches and its non-flush siblings ground. */
 .kui-shell:has(> .kui-shell-sidebar:not([data-flush])) > .kui-shell-content[data-flush] {
   grid-column-start: sidebar-start;
 }
 
-.kui-shell:has(> .kui-shell-rail:not([data-flush])) > .kui-shell-content[data-flush] {
+/* ...and the rail's line is claimed only when nothing FLUSH stands between the two (audit
+   2026-08-20). The derivation's premise is "the content is underneath THIS pane", and a
+   flush sidebar between a floating rail and the content means it is not: growing to
+   `rail-start` swallowed the sidebar's column, and since both are static grid items at
+   `z-index: auto` with the content later in DOM, the content's opaque seal painted the
+   sidebar out entirely — measured 288px of sidebar at x=80 under a content pane spanning
+   0..1280, with the hit-test at the sidebar's centre returning the content. With the guard
+   the rail simply grounds instead, which is what the rule says should happen when nothing
+   is behind a pane. Stated as `:not(:has(...))` rather than a positive re-point so a shell
+   with no sidebar at all still floats its rail, and so the both-columns-floating canvas
+   posture is untouched. */
+.kui-shell:has(> .kui-shell-rail:not([data-flush])):not(:has(> .kui-shell-sidebar[data-flush]))
+  > .kui-shell-content[data-flush] {
   grid-column-start: rail-start;
 }
 
@@ -324,10 +373,16 @@
   }
 
   /* `auto` presentation resolves to overlay — the explicit arms above, restated for the
-     resolved value; the mounted agreement law holds the two treatments identical. */
+     resolved value; the mounted agreement law holds the two treatments identical. The
+     grid-span repair belongs in BOTH copies, and forgetting it here is how the fix for the
+     collapsed-area defect stayed half-applied for one run: the explicit path measured 288px
+     and the auto path — the one every phone actually takes — still measured 1. That is the
+     2026-08-06 clause in its sharpest form, and the agreement law that was supposed to hold
+     these two together read four properties, none of them the width. */
   .kui-shell-rail[data-presentation="auto"],
   .kui-shell-sidebar[data-presentation="auto"] {
     position: absolute;
+    grid-column: 1 / -1;
     inset-block: 0;
     inset-inline-start: 0;
     max-inline-size: calc(100% - var(--touch-target-min));
@@ -336,6 +391,7 @@
 
   .kui-shell-inspector[data-presentation="auto"] {
     position: absolute;
+    grid-column: 1 / -1;
     inset-block: 0;
     inset-inline-end: 0;
     max-inline-size: calc(100% - var(--touch-target-min));
@@ -344,6 +400,7 @@
 
   .kui-shell-bottom[data-presentation="auto"] {
     position: absolute;
+    grid-row: 1 / -1;
     inset-inline: 0;
     inset-block-end: 0;
     max-block-size: calc(100% - var(--touch-target-min));

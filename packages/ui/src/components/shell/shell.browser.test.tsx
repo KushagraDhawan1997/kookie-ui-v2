@@ -107,13 +107,35 @@ describe("anatomy: the landmarks are by construction (§27)", () => {
     expect(computed(sidebar, "border-top-color")).toBe(computed(card, "border-top-color"));
   });
 
-  it("no pane carries a positive z-index at rest — internal layering stays inside the shell's isolate (§20)", () => {
-    const shell = mountShell();
-    expect(computed(shell, "isolation")).toBe("isolate");
+  it("whatever the shell layers internally stays INSIDE its own isolate (§20)", () => {
+    // RESTATED 2026-08-20. This law used to say "no pane carries a positive z-index at rest"
+    // and mounted an all-flush shell, where that cannot be false; a floating pane now carries
+    // z-index 1 permanently, so the old sentence was false the day the posture landed and the
+    // fixture could not tell. The guarantee §20 actually needs is not that the numbers are
+    // absent but that they are CONTAINED — the root isolates and takes no z-index of its own,
+    // so a portal outside the theme frame still wins on DOM order however the shell layers.
+    const flush = mountShell();
+    expect(computed(flush, "isolation")).toBe("isolate");
+    expect(computed(flush, "z-index"), "the root joined the layering it is supposed to bound").toBe(
+      "auto",
+    );
     for (const sel of [".kui-shell-header", ".kui-shell-sidebar", ".kui-shell-content"]) {
-      expect(computed(within(shell, sel), "z-index"), sel).toBe("auto");
+      expect(computed(within(flush, sel), "z-index"), sel).toBe("auto");
     }
-    expect(computed(shell, "z-index")).toBe("auto");
+    flush.remove();
+    // And the fixture where it CAN be false: a floating pane lifts, and the root still does not.
+    const floating = mounted(
+      <Shell style={{ height: 300 }}>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          nav
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(Number(computed(within(floating, ".kui-shell-sidebar"), "z-index"))).toBeGreaterThan(0);
+    expect(computed(floating, "isolation")).toBe("isolate");
+    expect(computed(floating, "z-index")).toBe("auto");
   });
 });
 
@@ -330,15 +352,33 @@ describe("the overlay treatment: one element, dressed — and its obligations (�
     expect(sidebar.getBoundingClientRect().top).toBeCloseTo(header.bottom, 0);
   });
 
-  it("explicit overlay at a wide window ≡ auto at a narrow one — two spellings, one treatment (the agreement law)", async () => {
-    const read = (el: Element) =>
-      ["position", "z-index", "inset-inline-start", "inset-block-start"].map((p) => computed(el, p));
+  it("explicit overlay ≡ auto-at-narrow — two spellings, one treatment (the agreement law)", async () => {
+    // WIDENED 2026-08-20. The first spelling read four properties, none of them the one that
+    // could differ: when the collapsed-grid-area repair was applied to the explicit arms and
+    // not to the `auto` restatement, the explicit drawer measured 288px and the auto drawer —
+    // the path every phone takes — measured 1, and this law was green. It now reads the
+    // BOX-DECIDING properties and the rendered width, and it mounts both spellings at the
+    // SAME viewport, without which the two boxes were never comparable in the first place.
+    const read = (el: Element) => ({
+      props: [
+        "position",
+        "z-index",
+        "inset-inline-start",
+        "inset-block-start",
+        "max-inline-size",
+        "grid-column-start",
+        "grid-column-end",
+      ].map((p) => computed(el, p)),
+      width: el.getBoundingClientRect().width,
+    });
+    await narrow();
     const explicit = mountShell({ sidebar: { presentation: "overlay", defaultOpen: true } });
     const a = read(within(explicit, ".kui-shell-sidebar"));
-    await narrow();
+    explicit.remove();
     const auto = mountShell({ sidebar: { defaultOpen: true } });
     const b = read(within(auto, ".kui-shell-sidebar"));
     expect(a).toEqual(b);
+    expect(a.width, "both spellings agree on a drawer nobody can see").toBeGreaterThan(100);
   });
 
   it("Escape puts it back, and tells the owner", async () => {
@@ -553,6 +593,18 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
       // And the strip is really the scrim, not merely empty space.
       const hit = document.elementFromPoint(root.right - strip / 2, root.top + root.height / 2);
       expect(hit?.classList.contains("kui-shell-scrim"), "the strip is not the scrim").toBe(true);
+      // THE OTHER END, added 2026-08-20 after the audit. This law was written as a bound in
+      // ONE direction and shipped a critical defect underneath it for four days: the cap
+      // resolved `100%` against the pane's own collapsed grid area, so every drawer on every
+      // narrow screen rendered 1px wide (clientWidth 0) — and a 1px pane leaves a 374px
+      // strip, which the assertion above welcomes. A bound with one end is half a bound.
+      const designed = parseFloat(tokenOn(shell, "--shell-sidebar-w"));
+      expect(designed).toBeGreaterThan(0);
+      expect(pane.width, `the drawer collapsed at ${width}px`).toBeCloseTo(
+        Math.min(designed, root.width - floor),
+        0,
+      );
+      expect(sidebar.clientWidth, "the drawer has no content box").toBeGreaterThan(floor);
     });
   }
 
@@ -561,8 +613,41 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
     const shell = mountShell({ sidebar: { defaultOpen: true, width: 480 } });
     const sidebar = within(shell, ".kui-shell-sidebar");
     await expect.poll(() => computed(sidebar, "position")).toBe("absolute");
-    expect(sidebar.getBoundingClientRect().width).toBeLessThan(375);
+    const capped = sidebar.getBoundingClientRect().width;
+    expect(capped).toBeLessThan(375);
+    // Capped, not collapsed — the same one-sided hole as above: `1 < 375` is true too.
+    const floor = parseFloat(tokenOn(shell, "--touch-target-min"));
+    expect(capped, "the oversized drawer collapsed instead of being capped").toBeCloseTo(375 - floor, 0);
     expect(shell.scrollWidth, "the shell scrolls sideways").toBeLessThanOrEqual(shell.clientWidth);
+  });
+
+  it("a NON-FLUSH pane that overlays still outranks the scrim and takes its own presses", async () => {
+    // The cascade defect the audit found (2026-08-20): the floating rule was (0,5,0) —
+    // `:has()` takes the specificity of its most specific argument — against the overlay
+    // arm's (0,2,0), so a pane that was both non-flush and overlaying computed z-index 1,
+    // tied with the scrim, and lost to it on tree order. Every press inside the open drawer
+    // hit the scrim and dismissed it. The shipped comment asserted the opposite arithmetic
+    // rather than measuring it, which is the mistake this file exists to catch.
+    await page.viewport(375, 800);
+    const shell = mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen flush={false}>
+          nav
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    const scrim = shell.querySelector(".kui-shell-scrim") as HTMLElement;
+    await expect.poll(() => computed(scrim, "display")).toBe("block");
+    expect(Number(computed(sidebar, "z-index")), "the drawer sank into the scrim's band").toBeGreaterThan(
+      Number(computed(scrim, "z-index")),
+    );
+    const box = sidebar.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    expect(sidebar.contains(hit), "a press inside the drawer landed on the scrim").toBe(true);
   });
 });
 
@@ -749,6 +834,70 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     ).toBeUndefined();
   });
 
+  it("a FLUSH pane standing between a floating one and the content is not buried by it", () => {
+    // Audit 2026-08-20. `grid-column-start: rail-start` asked only whether the RAIL floats,
+    // so a flush sidebar between the two had the content's area grown straight across it —
+    // and the content, later in DOM and at the same `z-index: auto`, painted its opaque seal
+    // over 288px of sidebar. The derivation's premise is "the content is underneath THIS
+    // pane", and a flush pane in between means it is not, so the rail grounds instead.
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellRail aria-label="Sections" flush={false}>
+          rail
+        </ShellRail>
+        <ShellSidebar aria-label="Primary">sidebar</ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    const box = sidebar.getBoundingClientRect();
+    const content = within(shell, ".kui-shell-content").getBoundingClientRect();
+    expect(content.left, "the content grew across the flush pane in its way").toBeGreaterThanOrEqual(
+      box.right - 0.5,
+    );
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + 200);
+    expect(sidebar.contains(hit), "the flush pane is painted over and unhittable").toBe(true);
+  });
+
+  it("two floating columns tile: the rail's line wins, and BOTH are reachable", () => {
+    // The tie the shipped comment leans on — the rail growth rule is stated after the
+    // sidebar's and both are equal specificity — had no law at all, so swapping the two
+    // blocks changed the shipped geometry with the suite green (audit 2026-08-20). This is
+    // also the fixture where the general case and the special case give different answers:
+    // with only ONE nav column floating, either ordering produces the same layout.
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellRail aria-label="Sections" flush={false}>
+          rail
+        </ShellRail>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          sidebar
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const frame = shell.getBoundingClientRect();
+    const rail = within(shell, ".kui-shell-rail");
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    const content = within(shell, ".kui-shell-content").getBoundingClientRect();
+    // The rail's line is the outermost one, so the content reaches the frame's own edge —
+    // stopping at the sidebar's line would leave the rail sitting on nothing.
+    expect(content.left, "the content stopped at the inner column's line").toBeCloseTo(frame.left, 0);
+    // And neither column is buried by the other or by the content.
+    for (const [name, el] of [
+      ["rail", rail],
+      ["sidebar", sidebar],
+    ] as const) {
+      const b = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+      expect(el.contains(hit), `the ${name} is not on top of the content it floats over`).toBe(true);
+    }
+    // They tile rather than stack: the sidebar begins after the rail ends.
+    expect(sidebar.getBoundingClientRect().left).toBeGreaterThan(rail.getBoundingClientRect().right);
+  });
+
   it("a grounded content in flush chrome takes the FULL gap on every side", () => {
     // The mixed regime: the frame pays nothing and the flush panes pay nothing, so the one
     // non-flush pane pays in full — which is what makes its gap to the chrome equal to its
@@ -896,6 +1045,34 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     expect(pane.dataset.material, "the pane and the Card disagree over a backdrop").toBe(
       card.dataset.material,
     );
+  });
+
+  it("a glass pane BUILDS THE LENS — glass here is defended like glass everywhere else", () => {
+    // Audit 2026-08-20. `usePaneDress` stamped the material and scoped the subtree but never
+    // called `useLensRef`, so a glass shell pane computed a bare blur/saturate/brightness
+    // chain while Card, Button, TextField, Select, Menu, Dialog and the rest all prepend
+    // `url(#kui-lens-N)`. §10's own porting note says the near-clear ladder is NOT
+    // self-sufficient — blur hides a backdrop, the lens re-states it — so the shell was the
+    // one glass in the library defended by blur alone, on the largest boxes in the library.
+    const shell = mounted(
+      <Shell style={{ height: 300, width: 600 }}>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          nav
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: { material: "regular" }, select: ".kui-shell" },
+    );
+    const pane = within(shell, ".kui-shell-sidebar");
+    const filter = computed(pane, "backdrop-filter");
+    expect(filter, "the pane declares no material at all").toContain("blur");
+    const id = filter.match(/^url\("([^"]+)"\)/)?.[1];
+    expect(id, `the glass pane is defended by blur alone: ${filter}`).toBeTruthy();
+    // The map is this box's own — a lens encodes ONE rounded rect, which is why the property
+    // is non-inheriting and why a shared map would be wrong rather than merely wasteful.
+    expect(pane.style.getPropertyValue("--kui-lens")).not.toBe("");
+    // And a flush pane in the same shell resolves solid, so it honestly has none.
+    expect(within(shell, ".kui-shell-content").style.getPropertyValue("--kui-lens")).toBe("");
   });
 
   it("a Card composed inside a glass pane goes ON-GLASS — glass does not stack", () => {

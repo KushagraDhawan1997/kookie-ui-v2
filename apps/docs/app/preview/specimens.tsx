@@ -1122,6 +1122,72 @@ function ShellSection() {
         </Box>
       </Demo>
 
+      {/* ALL CARDS: every pane non-flush. Nothing is behind anything, so nothing floats —
+          the frame pays half the gap and each pane pays half, which is the one regime where
+          that construction is exact. Restored 2026-08-20: the commit that special-cased this
+          posture replaced its only demo instead of converting it. */}
+      <Demo label="All cards — every pane pulled off the frame, so nothing floats">
+        <Box height="22rem">
+          <Shell>
+            <ShellHeader flush={false}>
+              <Flex align="center" gap="3" px="3" py="2">
+                <Text size="2" weight="medium">
+                  Kookie Studio
+                </Text>
+              </Flex>
+            </ShellHeader>
+            <ShellSidebar aria-label="Primary" flush={false}>
+              <Stack gap="1" p="3">
+                <Text size="2" weight="medium">
+                  Inbox
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Drafts
+                </Text>
+              </Stack>
+            </ShellSidebar>
+            <ShellContent flush={false}>
+              <Stack gap="2" p="4">
+                <Heading size="6">Inbox</Heading>
+                <Text size="2" emphasis="medium">
+                  Every gap here is the same distance, pane to pane and pane to edge.
+                </Text>
+              </Stack>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+
+      {/* GLASS: the posture is what makes the material legible. A floating column is the one
+          pane with something genuinely behind it, so it takes the theme's glass without the
+          shell deciding anything — and over a photograph you can see what it is bending. */}
+      <Demo label="Floating over a photograph — the posture is what earns the material">
+        <HostileBed>
+          <Box height="20rem">
+            <Shell>
+              <ShellSidebar aria-label="Primary" flush={false}>
+                <Stack gap="1" p="3">
+                  <Text size="2" weight="medium">
+                    Layers
+                  </Text>
+                  <Text size="2" emphasis="medium">
+                    Frame 1
+                  </Text>
+                  <Text size="2" emphasis="medium">
+                    Frame 2
+                  </Text>
+                </Stack>
+              </ShellSidebar>
+              <ShellContent>
+                <Stack gap="2" p="4">
+                  <Heading size="6">Canvas</Heading>
+                </Stack>
+              </ShellContent>
+            </Shell>
+          </Box>
+        </HostileBed>
+      </Demo>
+
     </Stack>
   );
 }

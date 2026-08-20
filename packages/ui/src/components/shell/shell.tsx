@@ -37,6 +37,7 @@ import * as React from "react";
 
 import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
 import { useWindowClass } from "../../system/window.ts";
+import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /* ── The registry: the one thing that crosses the shell ─────────────────────────────────── */
@@ -109,7 +110,7 @@ const cx = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(" ")
     here** (2026-08-20), which closes the API question this comment used to carry open: a
     pane pulled off the frame has something behind it and a welded one does not, so the
     posture prop already answers the material's question and no second prop is owed. */
-function usePaneDress(flush: boolean) {
+function usePaneDress(flush: boolean, forwarded?: React.Ref<HTMLElement>) {
   // ONE-DIRECTIONAL, and the direction matters (corrected before shipping, 2026-08-20 — the
   // first spelling passed `backdrop: !flush` and two existing laws caught it). A NON-FLUSH
   // pane is the CARD case and answers for itself: something is behind it either way — the
@@ -134,7 +135,15 @@ function usePaneDress(flush: boolean) {
     // Solid is the absence of a material, so it writes no attribute (§10).
     ...(material !== "solid" ? { "data-material": material } : {}),
   } as const;
-  return { material, stamps };
+  // THE LENS, added 2026-08-20 (audit): a pane that resolves glass was computing a bare
+  // `blur() saturate() brightness()` chain while every other glass-capable surface in the
+  // package prepends `url(#kui-lens-N)`. §10's own porting note says the near-clear ladder is
+  // not self-sufficient — blur HIDES a backdrop and the lens RE-STATES it — so a shell pane
+  // was the one glass in the library defended by blur alone. Same call as Card's, `on-glass`
+  // excluded for the same reason: an on-glass pane declares no backdrop-filter at all, so a
+  // map built for it could never be substituted into anything.
+  const ref = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", forwarded);
+  return { material, stamps, ref };
 }
 
 /** Every pane's posture prop. */
@@ -386,11 +395,12 @@ export type ShellHeaderProps = Omit<React.ComponentPropsWithoutRef<"header">, "c
 /** Full-width by definition — the criterion, not an option: if it isn't wide, it's a header
     inside ShellContent. Renders a real `<header>` landmark. */
 export function ShellHeader({ flush = true, className, children, ...props }: ShellHeaderProps) {
-  const { material, stamps } = usePaneDress(flush);
+  const { material, stamps, ref } = usePaneDress(flush);
   return (
     <header
       {...props}
       {...stamps}
+      ref={ref}
       className={cx("kui-surface kui-shell-pane kui-shell-header", className)}
     >
       <GlassScope material={material}>{children}</GlassScope>
@@ -403,11 +413,12 @@ export type ShellContentProps = Omit<React.ComponentPropsWithoutRef<"main">, "co
 
 /** The work area — renders `<main>`, scrolls itself, takes whatever room the panes leave. */
 export function ShellContent({ flush = true, className, children, ...props }: ShellContentProps) {
-  const { material, stamps } = usePaneDress(flush);
+  const { material, stamps, ref } = usePaneDress(flush);
   return (
     <main
       {...props}
       {...stamps}
+      ref={ref}
       className={cx("kui-surface kui-shell-pane kui-shell-content", className)}
     >
       <GlassScope material={material}>{children}</GlassScope>
@@ -575,14 +586,17 @@ function SidePane({
     ref,
     ...rest
   } = props;
-  const { material, stamps } = usePaneDress(flush);
   const pane = usePane(name, { open, defaultOpen, onOpenChange, presentation: presentation ?? "auto", id });
+  // The lens joins the ref chain rather than replacing it: the caller's ref and the registry's
+  // both still land (the `render` escape's 2026-08-03 lesson — eight hand-rolled merges is how
+  // one of them overwrites another).
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, mergeRefs(ref, pane.paneRef));
   const Element = element;
   return (
     <Element
       {...rest}
       id={pane.id}
-      ref={mergeRefs(ref, pane.paneRef)}
+      ref={paneRef}
       className={cx("kui-surface kui-shell-pane", `kui-shell-${name}`, className)}
       {...stamps}
       data-state={pane.state}
@@ -647,7 +661,6 @@ export function ShellBottom(props: ShellBottomProps) {
     ref,
     ...rest
   } = props;
-  const { material, stamps } = usePaneDress(flush);
   const pane = usePane("bottom", {
     open,
     defaultOpen,
@@ -655,11 +668,12 @@ export function ShellBottom(props: ShellBottomProps) {
     presentation: presentation ?? "auto",
     id,
   });
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, mergeRefs(ref, pane.paneRef));
   return (
     <aside
       {...rest}
       id={pane.id}
-      ref={mergeRefs(ref, pane.paneRef)}
+      ref={paneRef}
       className={cx("kui-surface kui-shell-pane kui-shell-bottom", className)}
       {...stamps}
       data-state={pane.state}
