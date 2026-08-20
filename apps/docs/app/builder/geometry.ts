@@ -75,18 +75,28 @@ export const dropSpot = (boxes: readonly Box[], container: Box, x: number, y: nu
     }
   }
 
-  // A row holding ONE item stacks with the rows around it, so the pointer's half of THAT
-  // item is decided on Y — which is what makes a Stack read correctly without anyone naming
-  // it a column. A row holding several is decided on X.
+  /* Which axis decides the pointer's half of the item it is OVER. A container whose every
+     row holds one item is a column — the items stack, so the half is vertical, and that is
+     what makes a Stack read correctly without anyone naming it one. Anything else flows
+     horizontally within its rows.
+
+     Asking it per ROW instead was wrong on the case that has both: a wrapped Flex whose last
+     line holds one item. Measured — six cards wrapping to two lines, hovering the LEFT half
+     of the only item on line two — the per-row reading called that line a column, decided on
+     Y and inserted AFTER the item the pointer was pointing at the front of. The container is
+     what flows, not the row. */
+  const columnar = rows.every((r) => r.length === 1);
   const isAfter = (i: number): boolean => {
     const k = rowOf.get(i)!;
     if (pointerRow !== k) return pointerRow > k;
     const b = boxes[i]!;
-    return rows[k]!.length === 1 ? y > b.top + b.height / 2 : x > b.left + b.width / 2;
+    return columnar ? y > b.top + b.height / 2 : x > b.left + b.width / 2;
   };
   const index = boxes.map((_, i) => i).filter(isAfter).length;
 
-  const inRow = Number.isInteger(pointerRow) && rows[pointerRow]!.length > 1;
+  // …and the line follows the same axis, so a single item on a wrapped line gets a vertical
+  // line beside it rather than a full-width bar through the gutter it is not in.
+  const inRow = Number.isInteger(pointerRow) && !columnar;
   if (inRow) {
     const row = [...rows[pointerRow]!].sort((p, q) => boxes[p]!.left - boxes[q]!.left);
     const beforeB = [...row].reverse().find((i) => x > boxes[i]!.left + boxes[i]!.width / 2);
