@@ -10,7 +10,7 @@
  * (the identity arrives on its elements) and Select's OWN facts (the field-shaped trigger,
  * the value machinery), not a second copy of the family proofs.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, onTestFinished } from "vitest";
 import { userEvent } from "vitest/browser";
 
 import {
@@ -36,6 +36,8 @@ import {
   probeIn,
   tokenOn,
   colorOn,
+  until,
+  sweep,
   DENSITIES,
 } from "../../test/browser.tsx";
 
@@ -1013,15 +1015,25 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
   });
 
   it("the box actually MOVES across the entry — membership is not the same as motion", async () => {
+    /**
+     * Swept by the transition's own clock rather than by frames (2026-08-20). Sampled once per
+     * rAF, "more than two distinct heights" is a claim about how many frames the host could
+     * spare: a stalling runner reports the two ends of a perfectly smooth entry, which is
+     * exactly what a dead channel reports. The menu's twin died of this three times in one day.
+     *
+     * `height`, not `block-size` — the logical property resolves before the transition object
+     * exists — and the read is the RENDERED box, so a channel that is declared, listed and
+     * sprung and then clamped by a floor still reports one value here.
+     */
     const popup = await openFlying();
-    const heights: number[] = [];
-    const deadline = performance.now() + 3000;
-    while (performance.now() < deadline) {
-      heights.push(Math.round(popup.getBoundingClientRect().height));
-      if (!popup.hasAttribute("data-unfurling")) break;
-      await frame();
-    }
+    await until(() => !popup.hasAttribute("data-seed"), 3000);
+    const heights = await sweep(popup, "height", () => Math.round(popup.getBoundingClientRect().height));
     expect(new Set(heights).size, `it never moved: ${heights.join(",")}`).toBeGreaterThan(2);
+    // It travels from the silhouette to the panel, rather than jittering somewhere in between.
+    expect(
+      Math.max(...heights) - Math.min(...heights),
+      `it moved, but not across a panel's worth of travel: ${heights.join(",")}`,
+    ).toBeGreaterThan(20);
   });
 
   it("it lands with the CHOSEN ROW on the trigger — placed before it is posed (§23)", async () => {
@@ -1229,38 +1241,67 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     await new Promise((r) => setTimeout(r, 600));
     await userEvent.click(document.querySelector<HTMLElement>(".kui-select-trigger")!);
 
-    deadline = performance.now() + 3000;
-    const flight: number[] = [];
-    let landed: HTMLElement | null = null;
+    /**
+     * THE REPLAY IS READ AS AN EVENT, NOT SAMPLED (rewritten 2026-08-20, on CI's own failure:
+     * "the flight must end in a released panel: expected null not to be null").
+     *
+     * The old spelling discovered every fact about the second flight by looking at whatever
+     * frames the host happened to paint: it found the seed by catching a frame while the
+     * attribute was on, and the release by catching one after it went off. A runner that stalls
+     * through a 680ms entry paints neither, and then reports a panel that never landed — which
+     * is exactly what a panel that genuinely never lands reports. The two are opposite bugs and
+     * no bound on a frame count separates them.
+     *
+     * A mutation observer is armed before the click instead. It cannot miss the stamps, because
+     * they are delivered rather than sampled, and it reads the silhouette in the callback that
+     * announces it — the runner writes the seed synchronously with the stamp, so that box is
+     * the seed however long the next paint takes.
+     *
+     * What is NOT claimed here any more is the release seam. It was `|last flying frame −
+     * resting|`, and the last flying frame is whichever one the host could spare: a stall puts
+     * it anywhere in the entry, so the number was a claim about the machine. The seam has a law
+     * of its own that reads it exactly ("the panel's floor is the trigger's RESTING width",
+     * above), which is where a claim belongs when one law can measure it and another can only
+     * photograph it.
+     */
+    let flew = false;
+    let silhouette: number | null = null;
+    const watch = new MutationObserver((records) => {
+      for (const record of records) {
+        const el = record.target as HTMLElement;
+        if (!el.classList.contains("kui-select-popup")) continue;
+        if (record.attributeName === "data-seed" && el.hasAttribute("data-seed") && silhouette === null)
+          silhouette = el.getBoundingClientRect().height;
+        if (record.attributeName === "data-unfurling" && el.hasAttribute("data-unfurling")) flew = true;
+      }
+    });
+    watch.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-seed", "data-unfurling"],
+    });
+    onTestFinished(() => watch.disconnect());
+
     const triggerH = document
       .querySelector<HTMLElement>(".kui-select-trigger")!
       .getBoundingClientRect().height;
-    while (performance.now() < deadline) {
-      const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();
-      if (popup?.hasAttribute("data-unfurling")) {
-        // HEIGHT, since the morph: the seed is the trigger's box, and a select's trigger is
-        // routinely exactly as wide as its panel — the width channel is legitimately static
-        // there, while the height always has a panel's worth of rows to grow.
-        flight.push(popup.getBoundingClientRect().height);
-      } else if (flight.length) {
-        landed = popup ?? null;
-        break;
-      }
-      await frame();
-    }
-    expect(flight.length, "the second open never flew — the entry ran once per lifetime").toBeGreaterThan(0);
-    // Anchored to the TRIGGER's height (2026-08-15, the silhouette): the seed is the
-    // trigger's own box, so a replayed flight must start down at that height — a flight
-    // that begins mid-size means the entry did not replay from its seed.
-    expect(Math.min(...flight), "it must fly FROM the silhouette, not from mid-size").toBeLessThanOrEqual(
+    await userEvent.click(document.querySelector<HTMLElement>(".kui-select-trigger")!);
+    await until(() => flew, 3000);
+    watch.disconnect();
+
+    expect(flew, "the second open never flew — the entry ran once per lifetime").toBe(true);
+    // Anchored to the TRIGGER's height (2026-08-15, the silhouette): the seed is the trigger's
+    // own box, so a replayed flight must start down at that height — a flight that begins
+    // mid-size means the entry did not replay from its seed.
+    expect(silhouette, "the replay never posed — there was no silhouette to fly from").not.toBeNull();
+    expect(silhouette!, "it must fly FROM the silhouette, not from mid-size").toBeLessThanOrEqual(
       triggerH + 4,
     );
-    expect(landed, "the flight must end in a released panel").not.toBeNull();
-    expect(
-      Math.abs(landed!.getBoundingClientRect().height - flight.at(-1)!),
-      `it snapped at release: ${flight.at(-1)} -> ${landed!.getBoundingClientRect().height}`,
-    ).toBeLessThanOrEqual(1.5);
-    expect(landed!.getBoundingClientRect().height, "and the panel it ends in is a real one").toBeGreaterThan(
+
+    const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
+    await until(() => !popup.hasAttribute("data-unfurling"), 3000);
+    expect(popup.hasAttribute("data-unfurling"), "the flight must end in a released panel").toBe(false);
+    expect(popup.getBoundingClientRect().height, "and the panel it ends in is a real one").toBeGreaterThan(
       triggerH * 1.5,
     );
   });
