@@ -51,7 +51,7 @@ export function ReviewPanel({
         .filter((section) => section.rows.length > 0)
         .map((section) => (
           <Stack key={section.label} gap="3">
-            <Text size="1" emphasis="quiet">
+            <Text size="2" emphasis="quiet">
               {section.label} · {section.rows.length}
             </Text>
             <Stack gap="3">
@@ -88,7 +88,6 @@ function Row({
       <Flex gap="2" align="flex-start" justify="space-between">
         <Box style={{ minWidth: 0, flex: 1 }}>
           <Button
-            size="1"
             emphasis={selected ? "medium" : "quiet"}
             tone={finding.severity === "error" ? "destructive" : "neutral"}
             onClick={() => finding.nodeId && onSelect(finding.nodeId)}
@@ -98,13 +97,13 @@ function Row({
           </Button>
         </Box>
         {finding.fix ? (
-          <Button size="1" emphasis="medium" onClick={() => onFix(finding)}>
+          <Button emphasis="medium" onClick={() => onFix(finding)}>
             Fix
           </Button>
         ) : null}
       </Flex>
       <Box pl="3">
-        <Button size="1" emphasis="quiet" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        <Button emphasis="quiet" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
           {finding.title}
         </Button>
         {open ? (

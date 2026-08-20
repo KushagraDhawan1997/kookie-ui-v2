@@ -1340,7 +1340,7 @@ export function BuilderApp() {
             {!preview ? (
               <ShellTrigger
                 target="sidebar"
-                render={<Button size="1" emphasis="quiet" iconOnly aria-label="Editing panels" />}
+                render={<Button emphasis="quiet" iconOnly aria-label="Editing panels" />}
               >
                 <PanelLeftIcon />
               </ShellTrigger>
@@ -1354,7 +1354,7 @@ export function BuilderApp() {
           </Flex>
           <Flex align="center" gap="2">
             {toast ? (
-              <Text size="1" emphasis="quiet" aria-live="polite">
+              <Text size="2" emphasis="quiet" aria-live="polite">
                 {toast}
               </Text>
             ) : null}
@@ -1364,16 +1364,16 @@ export function BuilderApp() {
                 happened. */}
             {!preview ? (
               <>
-                <Button size="1" emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
+                <Button emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
                   <UndoIcon />
                 </Button>
-                <Button size="1" emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
+                <Button emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
                   <RedoIcon />
                 </Button>
                 <Separator orientation="vertical" style={{ height: "20px" }} />
               </>
             ) : null}
-            <Button size="1" emphasis="quiet" onClick={() => setPaletteOpen(true)} trailing={<Kbd>{chordLabel("mod+k")}</Kbd>}>
+            <Button emphasis="quiet" onClick={() => setPaletteOpen(true)} trailing={<Kbd>{chordLabel("mod+k")}</Kbd>}>
               Commands
             </Button>
             {/* Review is a REGION of the inspector, so the button goes there and takes the
@@ -1387,7 +1387,6 @@ export function BuilderApp() {
                 onClick={() => setRightTab("review")}
                 render={
                   <Button
-                    size="1"
                     emphasis={reviewOpen ? "medium" : "quiet"}
                     aria-current={reviewOpen ? "true" : undefined}
                   />
@@ -1397,20 +1396,19 @@ export function BuilderApp() {
               </ShellTrigger>
             ) : null}
             <Button
-              size="1"
               emphasis={preview ? "medium" : "quiet"}
               aria-pressed={preview}
               onClick={() => setPreview((v) => !v)}
             >
               {preview ? "Editing off" : "Preview"}
             </Button>
-            <Button size="1" tone="accent" emphasis="loud" onClick={() => setExportOpen(true)}>
+            <Button tone="accent" emphasis="loud" onClick={() => setExportOpen(true)}>
               Export code
             </Button>
             {!preview ? (
               <ShellTrigger
                 target="inspector"
-                render={<Button size="1" emphasis="quiet" iconOnly aria-label="Inspector" />}
+                render={<Button emphasis="quiet" iconOnly aria-label="Inspector" />}
               >
                 <PanelRightIcon />
               </ShellTrigger>
@@ -1451,7 +1449,7 @@ export function BuilderApp() {
           Preview is the one thing that overrules it, and letting go restores whatever it
           was. Passing `!preview` instead would have frozen the pane open on a phone and
           killed the responsive default outright. */}
-      <ShellSidebar aria-label="Editing panels" width={272} {...(preview ? { open: false } : {})}>
+      <ShellSidebar aria-label="Editing panels" width={320} {...(preview ? { open: false } : {})}>
         <ShellScroll>
           <Box p="3">
             {leftTab === "add" ? (
@@ -1478,7 +1476,7 @@ export function BuilderApp() {
                   />
                 ))}
                 <Stack gap="2">
-                  <Text size="1" weight="medium">
+                  <Text size="2" weight="medium">
                     Blocks
                   </Text>
                   {blocks.length === 0 ? (
@@ -1489,7 +1487,6 @@ export function BuilderApp() {
                     blocks.map((b, i) => (
                       <Flex key={`${b.name}-${i}`} gap="1" align="center">
                         <Button
-                          size="1"
                           emphasis="quiet"
                           draggable
                           onDragStart={(e) => {
@@ -1503,10 +1500,10 @@ export function BuilderApp() {
                         >
                           {b.name}
                         </Button>
-                        <Menu size="1">
+                        <Menu>
                           <MenuTrigger
                             render={
-                              <Button size="1" emphasis="quiet" aria-label={`Actions for ${b.name}`}>
+                              <Button emphasis="quiet" aria-label={`Actions for ${b.name}`}>
                                 ⋯
                               </Button>
                             }
@@ -1545,7 +1542,6 @@ export function BuilderApp() {
               <Stack gap="2">
                 {canvasChildren(doc).length > 0 ? (
                   <TextField
-                    size="1"
                     aria-label="Filter layers"
                     placeholder="Filter by type or words"
                     ref={layerFilterRef}
@@ -1555,7 +1551,6 @@ export function BuilderApp() {
                       ? {
                           trailing: (
                             <Button
-                              size="1"
                               emphasis="quiet"
                               iconOnly
                               aria-label="Clear the filter"
@@ -1627,7 +1622,6 @@ export function BuilderApp() {
             <Flex align="center" gap="2">
               <Flex align="center" gap="1">
                 <Button
-                  size="1"
                   emphasis="quiet"
                   iconOnly
                   aria-label="Zoom out"
@@ -1638,11 +1632,10 @@ export function BuilderApp() {
                 </Button>
                 {/* The reading is the button: pressing it goes back to actual size, which
                     is the only zoom anybody asks for by name. */}
-                <Button size="1" emphasis="quiet" aria-label="Actual size" onClick={() => ctx.ui.stepZoom(null)}>
+                <Button emphasis="quiet" aria-label="Actual size" onClick={() => ctx.ui.stepZoom(null)}>
                   {`${Math.round(zoom * 100)}%`}
                 </Button>
                 <Button
-                  size="1"
                   emphasis="quiet"
                   iconOnly
                   aria-label="Zoom in"
@@ -1653,7 +1646,6 @@ export function BuilderApp() {
                 </Button>
               </Flex>
               <Button
-                size="1"
                 emphasis={tiersView ? "medium" : "quiet"}
                 aria-pressed={tiersView}
                 onClick={() => setTiersView((v) => !v)}
@@ -1662,10 +1654,10 @@ export function BuilderApp() {
               </Button>
               {canvasW ? (
                 <>
-                  <Text size="1" emphasis="quiet">
+                  <Text size="2" emphasis="quiet">
                     {`${canvasW}px · ${activeTier(canvasW)}`}
                   </Text>
-                  <Button size="1" emphasis="quiet" onClick={() => setCanvasW(null)}>
+                  <Button emphasis="quiet" onClick={() => setCanvasW(null)}>
                     Full width
                   </Button>
                 </>
@@ -2062,7 +2054,7 @@ export function BuilderApp() {
         <ShellScroll>
           <Box p="3">
             <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as typeof rightTab)}>
-              <TabsList size="1">
+              <TabsList>
                 <TabsTab value="inspect">Selected</TabsTab>
                 <TabsTab value="theme">Theme</TabsTab>
                 <TabsTab value="review">{findings.length ? `Review ${findings.length}` : "Review"}</TabsTab>
@@ -2109,7 +2101,7 @@ export function BuilderApp() {
                       )}
                       <Separator />
                       <Stack gap="2">
-                        <Text size="1" weight="medium">
+                        <Text size="2" weight="medium">
                           Arrange
                         </Text>
                         <Flex gap="1" wrap="wrap">
@@ -2119,7 +2111,6 @@ export function BuilderApp() {
                             return (
                               <Button
                                 key={id}
-                                size="1"
                                 emphasis="quiet"
                                 bordered
                                 {...(id === "delete" ? { tone: "destructive" as const } : {})}
@@ -2133,19 +2124,18 @@ export function BuilderApp() {
                         </Flex>
                       </Stack>
                       <Stack gap="2">
-                        <Text size="1" weight="medium">
+                        <Text size="2" weight="medium">
                           Save as block
                         </Text>
                         <Flex gap="2">
                           <TextField
-                            size="1"
                             placeholder="Block name"
                             aria-label="Block name"
                             value={blockName}
                             onChange={(e) => setBlockName(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && saveBlock()}
                           />
-                          <Button size="1" emphasis="medium" disabled={!blockName.trim()} onClick={saveBlock}>
+                          <Button emphasis="medium" disabled={!blockName.trim()} onClick={saveBlock}>
                             Save
                           </Button>
                         </Flex>
@@ -2199,8 +2189,13 @@ export function BuilderApp() {
       />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} ctx={ctx} />
       <ShortcutSheet open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      {/* SIZE 4, and the code is why (2026-08-21): the export block is a `<pre>` that must
+          not wrap, and moving the editor to the baseline index made its longest line — the
+          import — 20% wider. The box that holds content grows with the content, which is the
+          sidebar's own sentence one surface over; a dialog whose code you read by scrolling
+          sideways is a dialog that fits nothing. */}
       <Dialog
-        size="3"
+        size="4"
         open={exportOpen}
         onOpenChange={(open) => {
           setExportOpen(open);
@@ -2219,7 +2214,7 @@ export function BuilderApp() {
             </Stack>
             <Card size="2">
               <Box overflow="auto" style={{ maxHeight: "50vh" }}>
-                <Text size="1" render={<pre />} style={{ fontFamily: "var(--font-mono)" }}>
+                <Text size="2" render={<pre />} style={{ fontFamily: "var(--font-mono)" }}>
                   {code}
                 </Text>
               </Box>
@@ -2316,10 +2311,10 @@ function TierCompare({ doc }: { doc: BuilderDoc }) {
       {rooms.map(([name, width]) => (
         <Stack key={name} gap="2">
           <Flex align="center" gap="2">
-            <Text size="1" weight="medium">
+            <Text size="2" weight="medium">
               {name}
             </Text>
-            <Text size="1" emphasis="quiet">
+            <Text size="2" emphasis="quiet">
               {width}
             </Text>
           </Flex>
@@ -2359,14 +2354,13 @@ function PaletteGroup({
   if (entries.length === 0) return null;
   return (
     <Stack gap="2">
-      <Text size="1" weight="medium">
+      <Text size="2" weight="medium">
         {label}
       </Text>
       <Grid columns="repeat(2, minmax(0, 1fr))" gap="1">
         {entries.map(([type, entry]) => (
           <Button
             key={type}
-            size="1"
             emphasis="quiet"
             disabled={!canInsert(type)}
             title={entry.blurb}
@@ -2443,7 +2437,6 @@ function TreeRows({
         style={{ paddingInlineStart: `calc(${depth} * var(--layout-space-4))`, display: "flex" }}
       >
         <Button
-          size="1"
           emphasis={selection.includes(n.id) ? "medium" : "quiet"}
           aria-pressed={selection.includes(n.id)}
           bordered={dropRow?.id === n.id && dropRow.mode === "into"}
