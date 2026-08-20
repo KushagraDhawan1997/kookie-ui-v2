@@ -232,6 +232,87 @@ describe("auto until touched: CSS resolves the untouched pane per window class (
 });
 
 /**
+ * NOT BEING DISPLAYED OUT-RANKS BEING LAID OUT (2026-08-20, found by porting the builder onto
+ * this frame — not by a law, which is the finding worth keeping).
+ *
+ * Every law above reads `display` on a pane holding a TEXT NODE, and a pane holding a text
+ * node is the one composition where the hide has no opponent. The recommended anatomy — a
+ * `ShellScroll` in the pane — has two, both at (0,2,0) and both landing later in the cascade:
+ * this file's own column rule, and surfaces.css's `:has(> .kui-scroll-area:only-child)`. So
+ * the whole hiding mechanism was dead on the shape the JSDoc tells people to write, with 46
+ * laws green: a closed pane stayed on screen at every width, and a sidebar rested OPEN on a
+ * phone.
+ *
+ * This is the degenerate-fixture lesson (2026-08-20) on the other side of the repo: the laws
+ * asserted the right thing about the wrong input. So these repeat all four hide conditions on
+ * the input where a right implementation and a wrong one give DIFFERENT answers — and on both
+ * scroller arrangements, because the only-child arm and the sibling arm are beaten by two
+ * different rules and a law over one says nothing about the other.
+ *
+ * Falsified: with `.kui-surface` taken back off the four hide selectors, FIVE of the eight
+ * fail and every law above still passes. The three that survive are named rather than
+ * trimmed, because which ones they are is the finding: both explicit-overlay cases (that arm
+ * already carried two attributes, so it was the one hide never out-ranked), and the narrow
+ * window with the scroller as a SIBLING — there the only opponent is this file's own column
+ * rule, which the media block already beat on source order. Keeping them is what makes the
+ * pair of arrangements a real sweep instead of a claim about the harder one.
+ */
+describe("a pane that holds a scroller still hides (§27)", () => {
+  /** The pane's content in the two arrangements the shared rules distinguish. */
+  const scroller = (arrangement: "only" | "sibling") => (
+    <>
+      {arrangement === "sibling" ? <Box p="3">pinned</Box> : null}
+      <ShellScroll>
+        <Box p="3">rows</Box>
+      </ShellScroll>
+    </>
+  );
+
+  const frame = (arrangement: "only" | "sibling", props: Parameters<typeof fixture>[0] = {}) =>
+    mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellHeader>
+          <ShellTrigger target="sidebar">menu</ShellTrigger>
+        </ShellHeader>
+        <ShellSidebar aria-label="Primary" {...props.sidebar}>
+          {scroller(arrangement)}
+        </ShellSidebar>
+        <ShellContent>content</ShellContent>
+        <ShellInspector {...props.inspector}>{scroller(arrangement)}</ShellInspector>
+        <ShellBottom {...props.bottom}>{scroller(arrangement)}</ShellBottom>
+      </Shell>,
+      { theme: {} },
+    );
+
+  for (const arrangement of ["only", "sibling"] as const) {
+    describe(`the scroller is the pane's ${arrangement === "only" ? "only child" : "second child"}`, () => {
+      it("an explicitly closed pane is gone", () => {
+        const shell = frame(arrangement, { sidebar: { defaultOpen: false } });
+        expect(computed(within(shell, ".kui-shell-sidebar"), "display")).toBe("none");
+      });
+
+      it("an untouched inspector and bottom rest closed", () => {
+        const shell = frame(arrangement);
+        expect(computed(within(shell, ".kui-shell-inspector"), "display")).toBe("none");
+        expect(computed(within(shell, ".kui-shell-bottom"), "display")).toBe("none");
+      });
+
+      it("an untouched explicit-overlay pane rests closed", () => {
+        const shell = frame(arrangement, { sidebar: { presentation: "overlay" } });
+        expect(computed(within(shell, ".kui-shell-sidebar"), "display")).toBe("none");
+      });
+
+      it("an untouched sidebar rests closed on a narrow window — the phone default", async () => {
+        const shell = frame(arrangement);
+        expect(computed(within(shell, ".kui-shell-sidebar"), "display")).not.toBe("none");
+        await narrow();
+        expect(computed(within(shell, ".kui-shell-sidebar"), "display")).toBe("none");
+      });
+    });
+  }
+});
+
+/**
  * THE MIRROR ITSELF (added 2026-08-16, ultracode audit). §27, LOG and shell.css each claimed
  * the CSS/JS agreement was "law-pinned" — and the audit proved it false by sabotage: breaking
  * the mirror's explicit-overlay arm left all 33 laws green while an untouched

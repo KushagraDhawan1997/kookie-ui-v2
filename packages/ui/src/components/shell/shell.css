@@ -167,20 +167,42 @@
    JS decided anything. The JS mirror (usePane's `expanded`) exists only for aria-expanded
    and the toggle's starting point; a mounted law asserts the two agree. */
 
+/* EVERY HIDE BELOW CARRIES `.kui-surface`, and it is load-bearing rather than decorative
+   (2026-08-20, found by porting the builder onto this frame). Not being displayed must
+   out-rank how a displayed pane lays itself out, and the two rules that decide the second
+   thing both sit at (0,2,0) — this file's own `:has(> .kui-shell-scroll)` column rule, and
+   the shared `.kui-surface:has(> .kui-scroll-area:only-child)` in surfaces.css. The first
+   comes AFTER these hides in this file; the second comes after this whole file. So a pane
+   holding the recommended anatomy could not be closed at all, and MEASURED, on the
+   composition the JSDoc tells people to write:
+
+     - `data-state="closed"` computed `display: flex` at every width — a pane the app had
+       just closed, still on screen, still in the tab order;
+     - a sidebar whose ShellScroll is its ONLY child stayed OPEN on a narrow window, which
+       is the phone default this component resolves in CSS precisely so it cannot be got
+       wrong.
+
+   Adding the class every pane already wears takes the hides to (0,3,0) and settles it by
+   RANK rather than by order — the shape the `--kui-sf-p` stand-down above already uses, for
+   the same reason, against the same kind of opponent. The overlay-rest arm further down was
+   already at (0,3,0) by having two attributes, which is why it alone was never wrong; it
+   takes the class too, so the four hides are one sentence rather than three that agree and
+   one that happens to. */
+
 /* Closed is closed: the pane leaves flow and the accessibility tree together. */
-.kui-shell-pane[data-state="closed"] {
+.kui-surface.kui-shell-pane[data-state="closed"] {
   display: none;
 }
 
 /* An inspector or bottom pane rests closed at every width — detail is asked for. */
-.kui-shell-inspector[data-state="auto"],
-.kui-shell-bottom[data-state="auto"] {
+.kui-surface.kui-shell-inspector[data-state="auto"],
+.kui-surface.kui-shell-bottom[data-state="auto"] {
   display: none;
 }
 
 /* An explicitly-overlay nav pane rests closed too: an overlay is summoned, never ambient. */
-.kui-shell-rail[data-state="auto"][data-presentation="overlay"],
-.kui-shell-sidebar[data-state="auto"][data-presentation="overlay"] {
+.kui-surface.kui-shell-rail[data-state="auto"][data-presentation="overlay"],
+.kui-surface.kui-shell-sidebar[data-state="auto"][data-presentation="overlay"] {
   display: none;
 }
 
@@ -550,9 +572,11 @@
    Auto resolves here: the nav columns rest closed, and an open pane presents as an overlay.
    ONE media block so the boundary literal exists once in this file. */
 @media (max-width: 48rem) {
-  /* Untouched nav columns rest closed on a narrow window. */
-  .kui-shell-rail[data-state="auto"],
-  .kui-shell-sidebar[data-state="auto"] {
+  /* Untouched nav columns rest closed on a narrow window. The class is the hide rule's, not
+     this block's — a media query adds no specificity, so this arm was losing to a rule one
+     FILE away and the phone default was the loudest casualty. */
+  .kui-surface.kui-shell-rail[data-state="auto"],
+  .kui-surface.kui-shell-sidebar[data-state="auto"] {
     display: none;
   }
 
