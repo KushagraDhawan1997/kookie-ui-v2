@@ -96,12 +96,40 @@ point per pane is written down in DECISIONS §15. So the check is a walk over a 
 system already understands. That is why this is a design-system feature rather than a
 builder feature, and why no general-purpose builder can copy it.
 
-## 3. The night's second half: two audits, and what they found
+## 3. The night's second half: three audits, and what they found
 
-Two adversarial audits ran over the builder — one over the editor's code, one over the review
-engine against the brief it claims to enforce. Every finding was re-measured against the
-shipped code before anything was changed, and each fix was falsified against the defect. The
-five worth knowing about:
+Three adversarial audits ran over the builder — one over the editor's code, one over the
+review engine against the brief it claims to enforce, and a third over the fixes the first two
+produced. Every finding was re-measured against the shipped code before anything was changed,
+and each fix was falsified against the defect.
+
+**Start with the two the third audit found, because they are the ones a person would hit.**
+
+**Preview could delete your document.** Preview promises the screen without the editor, and the
+guard for that lived in the keyboard handler, where it was written. The ⌘K palette lists the
+same command table and never asked: measured in a production build with every editor pane
+gone, it offered **66 editing commands**, and Delete removed a node with nothing on screen to
+say so. The `⋯` document menu survived too, offering to delete the whole document. `preview` is
+part of the command context now and `armed(cmd, ctx)` is the one gate every surface asks —
+keyboard, palette, context menu, inspector row. Preview offers seven commands, all read-only.
+The law that should have caught this had walked the commands the KEYBOARD lets through and
+certified the bypass, two lines from the end, by asserting the palette is one of them.
+
+**The canvas width handle collapsed the canvas when you touched it above 100%.** The painted
+box is clamped by its parent past zoom 1 — measured at 150%: styled 1320px, `offsetWidth` 880 —
+so reading the box and dividing by the zoom answered 587 for a canvas 880 wide, and a grab
+that moved *zero pixels* dropped it by a third and flipped every container tier inside. It is
+the first version's defect reflected through 1 (that one divided only the pointer's delta and
+jumped 880 → 442 at 50%). The width arithmetic now lives in `geometry.ts` with the drop scan's,
+because the drag and the arrow keys had already drifted into two spellings of one fact.
+
+**And the review panel could apply a repair the reviewer would no longer offer.** A finding's
+id is `rule:nodeId`, so the staleness guard only caught findings that had vanished — while
+several repairs bake a computed value into their closure. A button 3 among siblings at 2 offers
+"Match it to size 2"; change the siblings to 4 and the stale closure still wrote 2, leaving its
+own finding standing.
+
+**From the first two audits, the five worth knowing about:**
 
 **A component dragged out of a slot became a ghost.** `slot` rides on the node, so moving a
 Spinner out of a Button's `leading` seat handed the Stack a child still claiming a seat the
@@ -218,22 +246,40 @@ UI's ids already had.
 
 ## 5. Laws
 
-`editor.test.ts` (84) covers the store, the commands, the grammar, the drop scan's
-arithmetic, review and the canvas boundary; `builder.test.tsx` (98) still covers the
-document's translation into code. 349 docs tests in total.
+`editor.test.ts` (90) covers the store, the commands, the grammar, the drop scan's
+arithmetic, the canvas width, review and the canvas boundary; `builder.test.tsx` (98) still
+covers the document's translation into code. **355 docs tests, all passing.**
 
-**Two of those laws exist because the drop scan was still wrong twice after I rewrote
-it, and I found both by dragging.** A wrapped Flex whose last line holds one item was
-read as a column, so hovering the left half of that item inserted after it; and the
-insertion line was drawn from the last child in DOCUMENT order rather than the row's own
-bottom edge, so in a row holding a tall card and a short button, a drop below the row
-drew its line 33px up inside the card. Both are fixed and both are now law-tested. The
-reason neither existing law saw them is worth carrying forward: **each had a degenerate
-subject** — the wrapped-row law's probe points gave the same answer under either
-spelling, and the line law used boxes of identical height, where document order and
-pixel order cannot disagree. A law over the general case needs an input where the
-general case and the special case answer DIFFERENTLY, or it is a law about the special
-case wearing the general one's name.
+**The single most useful thing in this document is the reason eight laws failed to catch
+eight defects, because it is one reason.** Not that they asserted the wrong thing — that
+their FIXTURE could not tell a right implementation from a wrong one:
+
+- The drop line's law used three boxes of identical height, where document order and pixel
+  order cannot disagree — so a row holding a tall card and a short button drew its insertion
+  line 33px inside the card and the law was green. Four separate sabotages survived it.
+- The row-grouping law called the shared function and claimed to speak for the gap bands,
+  which are a closure inside the app it cannot reach: pasting the private copy back left it
+  green. Its fixture was all one height too, where the property it sells cannot be tested.
+- The run-end law walked a path where the call under test was a no-op, because an earlier
+  action in the same walk had already done the work.
+- The chord-label law asked that the label was not the raw chord and held no "mod" — both
+  survive a label that drops every middle modifier, printing Undo's chord for Redo everywhere.
+- The one-figure ordering law built its fixture top-down, so ids (minted sequentially) and
+  document positions were the same list, and a sort by id passed for a sort by position.
+
+**A law over a general case must be built on an input where the general case and the special
+case give different answers, or it is a law about the special case wearing the general one's
+name.** That is the 2026-08-03 lesson sharpened: that one said read the computed value, not
+the declared one; this one says the input matters as much as the output.
+
+One law needed a shape not used here before. Proving that a stale fix and a live fix differ,
+and that `liveFix` picks the right one, still says nothing about the button a person presses —
+both hold by `liveFix`'s own construction, and the staleness lives at a call site no node test
+can mount. So it reads the SOURCE: the handler may hold a finding only to learn its id, and
+`finding.fix` anywhere in the app is the defect coming back. The same shape covers the gap
+bands, through a brace-matching extractor that THROWS — the first spelling used two `indexOf`
+calls, found the markers in the other order, and sliced backwards to `""`, which would have
+passed every negative assertion about a body it never read.
 
 Every fix tonight was falsified against the defect it repairs before it was accepted — around
 thirty sabotage runs. Three of those sabotages SURVIVED the first pass, and each one earned a
@@ -251,8 +297,29 @@ law that did not exist:
 
 Three laws are new in kind and worth knowing about: every value a fix writes must be a member
 of the axis it writes to; every rule must fire on a document the grammar allows (which is what
-catches a dead exemption arm); and every global command must be unable to edit, which is what
-makes preview safe by construction rather than by a list.
+catches a dead exemption arm); and every command reachable in preview must be unable to edit,
+which is what makes preview safe by construction rather than by a list.
+
+### What `pnpm run ci` will tell you, and one thing it was not telling anyone
+
+`turbo.json` gained `globalPassThroughEnv` for Playwright's two browser-path variables, and
+that is a fix worth a sentence because of what it was hiding. Turbo hands each task a filtered
+environment, so wherever Playwright's browsers live outside its default cache the package's
+browser project **could not launch a browser at all** — and reported `Test Files 8 passed (37)`
+rather than failing. A launch failure that reads like a pass. With the variable passed through,
+the same command runs the package's 1,414 browser laws. This is the 2026-08-08 `docs:test`
+cache-hit finding in a second home, by a different mechanism and with the same failure mode:
+not a red build, a green one that checked less than it claimed.
+
+So `pnpm run ci` now shows something it did not before: **two to three of the package's
+browser laws fail, and which ones rotates between runs.** They are animation-timing laws
+(`motion`, `menu`, `select` entries) failing on this sandbox's Chromium, they are
+pre-existing, and this branch touches no file under `packages/` — `git diff --name-only
+origin/main...HEAD -- packages/` is empty. A fourth failure appears only under turbo's
+concurrent load: `window.test.ts` times out at 5s because the machine is saturated; it passes
+in 1.5s on its own. Nothing here was quarantined or given a longer timeout to go green. The
+docs package, which is what this branch changes, is 355/355, and the CSS budget is unmoved at
+29,756 gzipped.
 
 ## 6. Open, on purpose
 
