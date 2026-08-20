@@ -163,7 +163,10 @@ describe("the platform-signal guard agrees with what Theme stamps (§7, added 20
     //
     // So the rule is stated as the property rather than the location: a guarded selector is
     // legal outside the media query exactly when it also demands `[data-contrast="high"]`.
-    const css = generateTokens();
+    //
+    // The module's own `css` (line 48), not a second generation: the generator measures ~4s
+    // and this law spent it inside its own 5s timeout, which is a law that fails on a slow
+    // runner for a reason that has nothing to do with what it claims.
     for (const line of guarded) {
       if (line.includes('[data-contrast="high"]')) continue;
       const before = css.slice(0, css.indexOf(line));
