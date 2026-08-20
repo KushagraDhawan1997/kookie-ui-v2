@@ -16,6 +16,7 @@ import { Box, Dialog, DialogContent, DialogTitle, Flex, Kbd, ScrollArea, Stack, 
 
 import {
   COMMANDS,
+  armed,
   chordLabel,
   insertCommands,
   matches,
@@ -55,15 +56,18 @@ export function CommandPalette({
       ...(c.chord ? { hint: chordLabel(c.chord) } : {}),
       run: () => c.run(ctx),
     });
-    const commands = COMMANDS.filter((c) => c.enabled(ctx) && matches(c, query)).map(asRow);
+    const commands = COMMANDS.filter((c) => armed(c, ctx) && matches(c, query)).map(asRow);
     const templates = templateCommands()
-      .filter((c) => matches(c, query))
+      .filter((c) => armed(c, ctx) && matches(c, query))
       .map((c): Row => ({ key: c.id, title: c.title, group: "Templates", run: () => c.run(ctx) }));
     const inserts = insertCommands(ctx)
       .filter((c) => matches(c, query))
       .map(asRow);
     const asQuery = (title: string): Command => ({ id: "", title, group: "Insert", enabled: () => true, run: () => {} });
-    const blocks: Row[] = ctx.state.blocks
+    /* Blocks and templates are insertion by another name, and a document switch changes what
+       preview is previewing. None of them are on the command table, so `armed` cannot reach
+       them and the mode has to be asked once, here, where the rows are built. */
+    const blocks: Row[] = (ctx.preview ? [] : ctx.state.blocks)
       .map((b, i) => ({ b, i }))
       .filter(({ b }) => matches(asQuery(`Insert block ${b.name}`), query))
       .map(({ b, i }) => ({
@@ -72,7 +76,7 @@ export function CommandPalette({
         group: "Blocks",
         run: () => ctx.ui.insertBlockByIndex(i),
       }));
-    const documents: Row[] = ctx.state.docs
+    const documents: Row[] = (ctx.preview ? [] : ctx.state.docs)
       .filter((d) => d.id !== ctx.state.activeId)
       .filter((d) => matches(asQuery(`Switch to ${d.name}`), query))
       .map((d) => ({

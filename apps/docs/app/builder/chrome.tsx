@@ -48,9 +48,13 @@ import { activeDoc, type Action, type EditorState } from "./store";
 export function DocumentBar({
   state,
   dispatch,
+  preview = false,
 }: {
   state: EditorState;
   dispatch: (a: Action) => void;
+  /** Preview keeps the SWITCHER — choosing which screen to look at is navigation — and
+      loses the ⋯ menu, whose every item (new, rename, duplicate, delete) writes. */
+  preview?: boolean;
 }) {
   const doc = activeDoc(state);
   const [renaming, setRenaming] = React.useState(false);
@@ -75,6 +79,7 @@ export function DocumentBar({
           ))}
         </SelectContent>
       </Select>
+      {preview ? null : (
       <Menu size="1">
         <MenuTrigger
           render={
@@ -103,6 +108,7 @@ export function DocumentBar({
           </MenuItem>
         </MenuContent>
       </Menu>
+      )}
 
       <Dialog size="2" open={renaming} onOpenChange={setRenaming}>
         <DialogContent>
