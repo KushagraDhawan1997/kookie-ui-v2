@@ -37,6 +37,7 @@ import {
   MenuContent,
   MenuItem,
   MenuTrigger,
+  ScrollArea,
   Separator,
   Shell,
   ShellContent,
@@ -2217,12 +2218,21 @@ export function BuilderApp() {
                 object sitting on the dialog, it is a well recessed into it, which is also why
                 it neither seals nor casts. Size 2 against the dialog's 4: a ground reads the
                 overlay band, so it stays well inside the corner of the box holding it. */}
+            {/* A ScrollArea, and it must be the ground's ONLY child (2026-08-21). The shared
+                surface layer pulls a pane's direct-child scroller out to the pane's edges with
+                a negative margin and re-states the padding on the viewport inside, so the bar
+                sits ON the edge and the code scrolls UNDER the padding. A plain
+                `Box overflow="auto"` reaches none of that rule: measured, it sat 25px inside a
+                24px-padded ground with margin 0, stranding the bar in the middle of the well
+                and CUTTING the first line at the padding — the export opened reading "port {"
+                where the code says "import {". Only the height is stated, which is the
+                arrangement that comment describes: a pane that IS a list says nothing else. */}
             <Surface size="2">
-              <Box overflow="auto" style={{ maxHeight: "50vh" }}>
+              <ScrollArea style={{ maxHeight: "50vh" }}>
                 <Text size="2" render={<pre />} style={{ fontFamily: "var(--font-mono)" }}>
                   {code}
                 </Text>
-              </Box>
+              </ScrollArea>
             </Surface>
             <Flex gap="3" justify="flex-end">
               <Button emphasis="quiet" bordered onClick={() => ui.downloadDocument()}>
