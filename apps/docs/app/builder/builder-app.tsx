@@ -510,13 +510,18 @@ export function BuilderApp() {
     const containerEl = parent ? elementFor(parent) : wrap;
     if (!containerEl) return null;
     /* Each measured child keeps the index it has in the DOCUMENT. The scan answers a position
-       among the boxes it was GIVEN, and a child the renderer put no element on is not one of
-       them — so returning the scan's answer straight into `children` counts from the wrong
-       list the moment any child goes unmeasured. */
+       among the boxes it was GIVEN, and a child that is not one of them — no element, or a
+       box with no area — would otherwise make the answer count from the wrong list.
+
+       The zero-area filter is the gap bands' own, which had it from the day both were written
+       while this one did not: a box of no size sorts to the top by its own coordinates and
+       joins whatever row it lands beside, so an empty Box among two cards could put the whole
+       grouping out. One rule now, both consumers. */
     const measured = children
       .map((c, i) => ({ c, i, el: elementFor(c) }))
       .filter((x): x is { c: BuilderNode; i: number; el: Element } => x.el !== null)
-      .map(({ c, i, el }) => ({ c, i, r: el.getBoundingClientRect() }));
+      .map(({ c, i, el }) => ({ c, i, r: el.getBoundingClientRect() }))
+      .filter(({ r }) => r.width > 0 || r.height > 0);
     if (measured.length === 0) {
       return { parentId: parent?.id ?? null, index: 0, line: null, boxId: parent?.id ?? null };
     }

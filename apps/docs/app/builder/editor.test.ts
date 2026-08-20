@@ -66,6 +66,29 @@ import {
   type EditorState,
 } from "./store";
 
+/**
+ * One function's body out of a source file, by matching its braces — LOUD, because the
+ * alternative is not.
+ *
+ * A pair of `indexOf` calls is how the first spelling of the caller here read a closure, and
+ * it silently answered "" (the two markers were in the other order, so the slice ran
+ * backwards) — every negative assertion about that body would have passed on nothing. Missing
+ * the marker or its brace throws instead, which is the rule `test/stylesheets.ts` already
+ * carries one package over.
+ */
+const fnBody = (source: string, marker: string): string => {
+  const at = source.indexOf(marker);
+  if (at === -1) throw new Error(`no "${marker}" in this source — the law is reading nothing`);
+  const open = source.indexOf("{", at);
+  if (open === -1) throw new Error(`"${marker}" has no body`);
+  let depth = 0;
+  for (let i = open; i < source.length; i++) {
+    if (source[i] === "{") depth++;
+    else if (source[i] === "}" && --depth === 0) return source.slice(open, i + 1);
+  }
+  throw new Error(`"${marker}" never closes`);
+};
+
 /* ── A memory-backed localStorage, so the persistence laws can run in node ─────────────── */
 
 class MemoryStorage {
@@ -969,27 +992,76 @@ describe("one measurement serves all four layouts", () => {
     const container = box(0, 0, 300, 200);
     const at = (y: number) => dropSpot(kids, container, 150, y)!;
 
-    // For every pointer position, the line sits between the two items the INDEX names.
+    /* For every pointer position, the line sits between the two items the INDEX names.
+
+       This walk shipped unable to fail, and four sabotages proved it: a line drawn ON an
+       item's edge rather than in the gutter, a line drawn ±3000px away at either end of the
+       list, a horizontal line at `container.left + 9999`, and a vertical line 9999px above
+       its own row — all four green. Three reasons, all fixed here. `lo`/`hi` fell back to
+       ∓Infinity at the ends, so the two arms that draw ±3 from a single edge were unbounded;
+       the ±4 slack swallowed a line sitting exactly on an edge; and it read `line.y` alone,
+       never x, w or h, so half the rectangle was undescribed. */
     for (const y of [5, 15, 25, 35, 45, 55, 95, 105, 135, 150]) {
       const s = at(y);
       const prev = s.index > 0 ? kids[s.index - 1] : undefined;
       const next = s.index < kids.length ? kids[s.index] : undefined;
-      const lo = prev ? prev.bottom : -Infinity;
-      const hi = next ? next.top : Infinity;
-      expect(s.line.y + 1, `at y=${y} the line is not in the gutter index ${s.index} names`).toBeGreaterThanOrEqual(lo - 4);
-      expect(s.line.y + 1).toBeLessThanOrEqual(hi + 4);
+      // Past the ends the line is just outside the list, never off in space: an 8px leash,
+      // which the shipped ±3 clears and a wild value does not.
+      const lo = prev ? prev.bottom : kids[0]!.top - 8;
+      const hi = next ? next.top : kids[kids.length - 1]!.bottom + 8;
+      const mid = s.line.y + s.line.h / 2;
+      expect(mid, `at y=${y} the line is above the gutter index ${s.index} names`).toBeGreaterThanOrEqual(lo);
+      expect(mid, `at y=${y} the line is below the gutter index ${s.index} names`).toBeLessThanOrEqual(hi);
+      /* And where there is a real gutter it is IN it, not flush against the item above —
+         which reads as an underline on that item rather than a place between two. A line
+         drawn exactly on `prev.bottom` was the one sabotage the bounds above still let
+         through. Only asserted where the gutter has room; abutting items have no inside. */
+      if (hi - lo > 2) {
+        expect(mid, `at y=${y} the line is flush against the item above`).toBeGreaterThan(lo);
+        expect(mid, `at y=${y} the line is flush against the item below`).toBeLessThan(hi);
+      }
+      // The whole rectangle, not one coordinate of it: a bar between rows spans the container.
+      expect(s.orientation).toBe("horizontal");
+      expect(s.line.x).toBe(container.left);
+      expect(s.line.w).toBe(container.width);
+      expect(s.line.h).toBeGreaterThan(0);
     }
-    // …and two DIFFERENT drops never draw the same line.
-    expect(at(15).line.y).not.toBe(at(35).line.y);
+    /* Two different DROPS never draw the same line — over every pair, not the one the
+       original checked. The subject is the drop and not the pointer: y=35 and y=55 straddle
+       the same gutter from opposite sides and land at the same index, so they SHOULD draw one
+       line, and an earlier spelling here demanded six distinct lines from six pointer
+       positions and failed on that agreement. Index is the thing the line must track. */
+    const seen = new Map<number, number>();
+    for (const y of [5, 15, 25, 35, 45, 55, 95, 105, 135, 150]) {
+      const s = at(y);
+      const already = seen.get(s.index);
+      if (already !== undefined) expect(s.line.y, `index ${s.index} drew two lines`).toBe(already);
+      for (const [index, line] of seen)
+        if (index !== s.index) expect(s.line.y, `index ${index} and ${s.index} share a line`).not.toBe(line);
+      seen.set(s.index, s.line.y);
+    }
+    expect(seen.size, "every pointer landed at one index — the walk proves nothing").toBeGreaterThan(3);
     expect(at(15).index).toBe(0);
     expect(at(35).index).toBe(1);
 
-    // A row of several: the vertical line sits between the two cells its index names.
+    // A row of several: the vertical line sits between the two cells its index names, and is
+    // exactly as tall as the row — the other half nothing was reading.
     const row = [box(0, 0, 90, 60), box(105, 0, 90, 60), box(210, 0, 90, 60)];
     const mid = dropSpot(row, container, 95, 30)!;
     expect(mid.index).toBe(1);
-    expect(mid.line.x + 1).toBeGreaterThanOrEqual(row[0]!.right);
-    expect(mid.line.x + 1).toBeLessThanOrEqual(row[1]!.left);
+    expect(mid.orientation).toBe("vertical");
+    expect(mid.line.x + mid.line.w / 2).toBeGreaterThanOrEqual(row[0]!.right);
+    expect(mid.line.x + mid.line.w / 2).toBeLessThanOrEqual(row[1]!.left);
+    expect(mid.line.y).toBe(0);
+    expect(mid.line.h).toBe(60);
+    // …and at the row's ends it stays beside the row rather than wandering off it.
+    for (const x of [2, 298]) {
+      const end = dropSpot(row, container, x, 30)!;
+      expect(end.line.x).toBeGreaterThanOrEqual(row[0]!.left - 8);
+      expect(end.line.x).toBeLessThanOrEqual(row[2]!.right + 8);
+      expect(end.line.y).toBe(0);
+      expect(end.line.h).toBe(60);
+    }
   });
 
   it("a row of UNEQUAL heights ends where the ROW ends, not where its last child does", () => {
@@ -1032,6 +1104,23 @@ describe("one measurement serves all four layouts", () => {
     // neither. A fix to either could not reach the other, and only one of them had laws.
     const kids = [box(0, 0, 90, 60), box(105, 0, 90, 60), box(0, 75, 90, 60)];
     expect(rowsOf(kids)).toEqual([[0, 1], [2]]);
+
+    /* Membership is "overlaps the row SO FAR", against the lowest edge any member reaches —
+       and the first fixture here was three boxes of one height, where that is the same answer
+       as comparing against the last box alone. So the property the grouping is sold on went
+       untested: a tall box followed by a short one followed by a third that overlaps only the
+       TALL one's extent. Reading the last box's bottom breaks the row here; the row's does
+       not. */
+    const ragged = [box(0, 0, 90, 120), box(100, 0, 90, 20), box(200, 60, 90, 40)];
+    expect(rowsOf(ragged)).toEqual([[0, 1, 2]]);
+
+    /* And the law could not reach the second consumer at all — `measureBands` is a closure
+       inside the app, so pasting the private copy back left this green. It cannot be mounted
+       from node, so the source says it: the bands ask the shared function, and the app holds
+       no second grouping. */
+    const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    const bands = fnBody(app, "const measureBands =");
+    expect(bands).toContain("rowsOf(");
     // A DOMRect satisfies Box structurally, which is what lets one function serve both.
     const asRects = kids.map((k) => ({ ...k }));
     expect(rowsOf(asRects)).toEqual(rowsOf(kids));
