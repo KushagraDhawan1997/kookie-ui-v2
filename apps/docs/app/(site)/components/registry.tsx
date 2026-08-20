@@ -61,6 +61,11 @@ import {
   SelectLabel,
   SelectTrigger,
   Separator,
+  Shell,
+  ShellHeader,
+  ShellSidebar,
+  ShellContent,
+  ShellTrigger,
   Slider,
   Spinner,
   Surface,
@@ -827,6 +832,73 @@ export const ENTRIES: Entry[] = [
           <Text size="2" emphasis="medium">Below</Text>
         </Stack>
       </Card>
+    ),
+  },
+  {
+    slug: "shell",
+    name: "Shell",
+    family: "Layout",
+    spec: "§27",
+    blurb:
+      "The app frame: header, rail, sidebar, content, inspector and bottom, each pane a surface placing itself in one grid — the shell never inspects its children, and DOM order stays reading order. An untouched pane is `auto`: the stylesheet resolves its resting state per window class (nav columns open on roomy windows, closed on narrow ones, where opening presents them as an overlay behind a scrim), so first paint is right with no script and no callback can fire at mount. State lives on each pane in the library's one controlled pattern; the only thing that crosses the shell is a trigger finding its pane by name. Each pane takes `flush`, and what happens when you turn it off is derived rather than chosen: a pane floats above the content if the content is underneath it, which it is only when the content is itself flush; otherwise the pane grounds and becomes its own surface on the page. One boolean reaches the tiled app frame, the canvas app whose work area runs under its panels, the console whose work area is a card in flush chrome, and the all-cards frame — and a floating pane picks up the theme's material for free, because it is finally the one thing with something behind it.",
+    axes: [
+      { name: "flush", values: "boolean, per pane (default true)", note: "is this pane part of the app frame — tiled with one-hairline seams. Turn it off and the pane floats over the content or grounds beside it, whichever is true; you never state which, and a floating pane picks up the theme's material because it is the one with something behind it" },
+      { name: "open / defaultOpen / onOpenChange", values: "per pane", note: "Dialog's controlled pattern exactly; omit both and the pane is auto — resolved by CSS per window class, explicit after the first toggle" },
+      { name: "presentation", values: "auto | fixed | overlay", note: "how an open pane presents: in flow, or floating over content behind a scrim (Escape closes, the rest of the shell goes inert, focus returns); auto follows the window class" },
+      { name: "width / height", values: "number (px)", note: "the system's first sanctioned raw length — a pane's width is the app's content speaking, and no ladder can price it; it writes the one custom property a future resize will write. NOT on the rail: a rail's width is its item's box, so it takes a size instead" },
+      { name: "size", values: "1 | 2 | 3 | 4 (per pane)", note: "the control index the pane's own navigation is priced at — its rows and its squares. On the rail it decides the pane's whole extent, because a column of squares is as wide as a square plus its air" },
+    ],
+    refusals: [
+      { name: "a gap prop", why: "Floating IS the gap. The distance is one layout-space pick, so a compact app's shell tightens with the rest of its distances; a per-shell number is how a shell drifts off its own app's rhythm (v1 documented overriding --shell-inset-gap)." },
+      { name: "a header position axis", why: "The header is full-width by definition — if it isn't wide, it's a header inside ShellContent. One geometry; the Linear posture is composition, not configuration." },
+      { name: "a thin sidebar mode, and Rail×Sidebar exclusivity", why: "v1's thin mode was a rail wearing a sidebar's name — the same region twice under two names, which is what forced the exclusivity warning, the child scanning and the close-cascade. Renamed, nothing overlaps: rail and sidebar are independent columns, and an app that wants them linked writes three lines." },
+      { name: "a close-cascade between rail and sidebar", why: "Not universally true (VS Code's columns are independent; Slack's rail cannot close), so it is an app opinion, not a shell rule with a conflict-resolution protocol." },
+      { name: "drag-to-resize (deferred, not refused)", why: "It is JS at interaction time by definition, so it lands with a written carve-out plus min/max, persistence and the ARIA wiring v1 never finished. The room is already left: a drag writes the same custom property the width prop writes today." },
+      { name: "peek", why: "Deferred until a real screen asks — v1's peek was its least load-bearing feature at its highest structural cost (a context slice, absolute overlays, a z-band, per-pane CSS)." },
+      { name: "a floating / stacked presentation value", why: "v1 shipped `stacked` (a pane over the content) and `inset` (a pane pulled off the frame) as two features that never met, which is why neither could express a canvas running under its own layers panel. They are one idea, and it is `flush={false}` — the pane leaves the tiling and what it becomes is derived, so there is no third presentation to choose." },
+    ],
+    parts: [
+        { part: "ShellHeader", blurb: "The full-width top bar — a real <header> landmark; a header that isn't full-width belongs inside ShellContent" },
+        { part: "ShellRail", blurb: "The narrow icon column that switches sections — a <nav>, independent of the sidebar; give each nav an aria-label when both are present" },
+        { part: "ShellSidebar", blurb: "The wide navigation column — a <nav>; untouched it rests open on roomy windows and closed on narrow ones, with no script deciding" },
+        { part: "ShellContent", blurb: "The work area — a real <main>, scrolls itself, takes whatever room the panes leave; the one pane every shell should have" },
+        { part: "ShellRailItem", blurb: "One square in the rail — a high-level region, not a row. Icon-only by default, because narrow is part of what a rail means: the moment it carries words beside the icon it reads as a small sidebar. `aria-label` is required, `current` announces and paints, and the paint is inset while the whole column still takes the press" },
+        { part: "ShellRailList", blurb: "A run of rail squares. A rail typically has two — the regions at the top and the account and settings squares pinned at the bottom — and the second run holds plain actions that are never \"current\"" },
+        { part: "ShellScroll", blurb: "The one region of a pane that scrolls. Mark it and everything else in the pane pins by being an ordinary child — the pane becomes a column, this takes the leftover room, and the pane stops scrolling itself. It IS a ScrollArea, so the custom scrollbars arrive with it. A pane fact, not a sidebar one: the inspector and the bottom pane have the same pinned-header-over-a-scrolling-body shape" },
+        { part: "ShellNavGroup", blurb: "A cluster of nav rows under a heading. The part exists for the half you cannot see: a heading rendered as a sibling is a heading nobody is told about, so the group carries role=\"group\" and points aria-labelledby at its own label" },
+        { part: "ShellNavItem", blurb: "One row of navigation, and the row family's second member — it stands level with a Button, which a menu row deliberately does not, because a menu row lives in a panel opened for a second while this sits beside real buttons all day. `current` both announces (aria-current) and paints, and it paints in a different currency from hover: grey means your pointer is here, accent means this is where you are" },
+        { part: "ShellInspector", blurb: "The right-hand detail column — an <aside> that rests closed until asked for; pass defaultOpen for one that starts open" },
+        { part: "ShellBottom", blurb: "The bottom pane for terminals and logs — an <aside> spanning the full width below the columns, resting closed" },
+        { part: "ShellTrigger", blurb: "The one crossing: a button that drives a pane by name through the registry — stamps aria-expanded and aria-controls, composes over a Kookie Button via render" },
+    ],
+    example: (
+      <Box height="14rem">
+        <Shell>
+          <ShellHeader>
+            <Flex align="center" gap="3" px="3" py="2">
+              <ShellTrigger
+                target="sidebar"
+                render={<Button size="1" emphasis="quiet" aria-label="Toggle navigation" />}
+              >
+                Nav
+              </ShellTrigger>
+              <Text size="2" weight="medium">Kookie Studio</Text>
+            </Flex>
+          </ShellHeader>
+          <ShellSidebar aria-label="Primary">
+            <Stack gap="1" p="3">
+              <Text size="2" weight="medium">Projects</Text>
+              <Text size="2" emphasis="medium">Deploys</Text>
+              <Text size="2" emphasis="medium">Settings</Text>
+            </Stack>
+          </ShellSidebar>
+          <ShellContent>
+            <Stack gap="2" p="4">
+              <Text size="2" emphasis="medium">The content pane scrolls itself; the shell never does.</Text>
+            </Stack>
+          </ShellContent>
+        </Shell>
+      </Box>
     ),
   },
   {

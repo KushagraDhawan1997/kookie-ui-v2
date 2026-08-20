@@ -42,6 +42,7 @@ import radioCss from "../components/radio/radio.css?raw";
 import scrollAreaCss from "../components/scroll-area/scroll-area.css?raw";
 import segmentedControlCss from "../components/segmented-control/segmented-control.css?raw";
 import separatorCss from "../components/separator/separator.css?raw";
+import shellCss from "../components/shell/shell.css?raw";
 import sliderCss from "../components/slider/slider.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
 import switchCss from "../components/switch/switch.css?raw";
@@ -81,6 +82,7 @@ export function installStyles(): void {
     scrollAreaCss,
     segmentedControlCss,
     separatorCss,
+    shellCss,
     sliderCss,
     switchCss,
     tabsCss,

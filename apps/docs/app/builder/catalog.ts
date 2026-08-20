@@ -804,6 +804,58 @@ export const CATALOG: Record<string, CatalogEntry> = {
  */
 export const EXCLUDED: { name: string; why: string }[] = [
   {
+    name: "Shell",
+    why: "The builder composes what goes INSIDE an app frame; the Shell is that frame. It claims the whole window, owns landmarks the canvas already provides, and its panes place themselves by grid area rather than by a drop — so a Shell on this canvas would be an app inside an app. Its parts are excluded for the same reason: none of them means anything outside the frame that arranges them.",
+  },
+  {
+    name: "ShellHeader",
+    why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellHeader has no meaning on a canvas with no Shell to arrange it.",
+  },
+  {
+    name: "ShellRail",
+    why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellRail has no meaning on a canvas with no Shell to arrange it.",
+  },
+  {
+    name: "ShellSidebar",
+    why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellSidebar has no meaning on a canvas with no Shell to arrange it.",
+  },
+  {
+    name: "ShellContent",
+    why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellContent has no meaning on a canvas with no Shell to arrange it.",
+  },
+  {
+    name: "ShellInspector",
+    why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellInspector has no meaning on a canvas with no Shell to arrange it.",
+  },
+  {
+    name: "ShellBottom",
+    why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellBottom has no meaning on a canvas with no Shell to arrange it.",
+  },
+  {
+    name: "ShellTrigger",
+    why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellTrigger has no meaning on a canvas with no Shell to arrange it.",
+  },
+  {
+    name: "ShellScroll",
+    why: "A part of the Shell, and the one that marks which region of a pane scrolls. It only means anything inside a pane that has given it a bounded column to grow into, which is a frame this canvas composes inside rather than places.",
+  },
+  {
+    name: "ShellRailItem",
+    why: "A part of the Shell's rail: one square in the column that switches which region of the app you are in. Regions are the app frame's business, and the frame is what this canvas composes inside rather than something it places.",
+  },
+  {
+    name: "ShellRailList",
+    why: "A part of the Shell's rail — the run its squares stack in. It has no meaning outside a rail, and the rail has none outside the app frame this canvas sits inside.",
+  },
+  {
+    name: "ShellNavGroup",
+    why: "A part of the Shell's sidebar: a cluster of nav rows wired to its own heading. Navigation belongs to the app frame, and the frame is what this canvas sits inside rather than something it arranges.",
+  },
+  {
+    name: "ShellNavItem",
+    why: "A part of the Shell's sidebar. A nav row navigates — it needs a destination and a notion of which page you are on, neither of which a composition canvas has; a Button is what the builder offers for an action that stays on the screen.",
+  },
+  {
     name: "ScrollArea",
     why: "Its one job needs a stated height, and a stated raw length is exactly what this builder refuses to offer — every distance here is a token index. It joins the palette the day the system gives a scroll region a designed height vocabulary.",
   },

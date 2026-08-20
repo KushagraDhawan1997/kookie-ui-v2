@@ -56,6 +56,19 @@ import {
   Radio,
   RadioGroup,
   Separator,
+  Shell,
+  ShellHeader,
+  ShellRail,
+  ShellSidebar,
+  ShellRailItem,
+  ShellRailList,
+  ShellNavItem,
+  ShellNavGroup,
+  ShellScroll,
+  ShellContent,
+  ShellInspector,
+  ShellBottom,
+  ShellTrigger,
   Slider,
   Spinner,
   Surface,
@@ -998,6 +1011,252 @@ function SeparatorSection() {
   );
 }
 
+function ShellSection() {
+  return (
+    <Stack gap="6">
+      {/* Flush: the app-chrome posture — panes tile, each seam one hairline. The sidebar is
+          untouched (`auto`): open here, closed on a narrow window, resolved by CSS alone —
+          drag the window across 48rem and nothing re-renders. */}
+      <Demo label="Flush — auto sidebar, trigger in the header, bottom pane on demand">
+        <Box height="22rem">
+          <Shell>
+            <ShellHeader>
+              <Flex align="center" justify="between" px="3" py="2">
+                <Flex align="center" gap="3">
+                  <ShellTrigger
+                    target="sidebar"
+                    render={<Button size="2" emphasis="quiet" aria-label="Toggle navigation" />}
+                  >
+                    Nav
+                  </ShellTrigger>
+                  <Text size="2" weight="medium">
+                    Kookie Studio
+                  </Text>
+                </Flex>
+                <Flex gap="2">
+                  <ShellTrigger target="bottom" render={<Button size="2" emphasis="quiet" />}>
+                    Terminal
+                  </ShellTrigger>
+                  <ShellTrigger target="inspector" render={<Button size="2" emphasis="quiet" />}>
+                    Inspect
+                  </ShellTrigger>
+                </Flex>
+              </Flex>
+            </ShellHeader>
+            {/* The pane's real anatomy: one region marked as the scroller, everything else
+                pinning by being an ordinary child. The rows stand level with the button
+                above them — which is the whole of why a sidebar row leaves the menu row's
+                height behind. */}
+            <ShellSidebar aria-label="Primary">
+              <Box p="2">
+                <Button size="2" emphasis="quiet">
+                  New project
+                </Button>
+              </Box>
+              <ShellScroll>
+                <Box px="2">
+                  <ShellNavGroup label="Workspace">
+                    <ShellNavItem>Projects</ShellNavItem>
+                    <ShellNavItem current>Deploys</ShellNavItem>
+                    <ShellNavItem>Members</ShellNavItem>
+                  </ShellNavGroup>
+                  <ShellNavGroup label="Account">
+                    <ShellNavItem>Settings</ShellNavItem>
+                    <ShellNavItem>Billing</ShellNavItem>
+                  </ShellNavGroup>
+                </Box>
+              </ShellScroll>
+            </ShellSidebar>
+            <ShellContent>
+              <Stack gap="2" p="4">
+                <Heading size="6">Deploys</Heading>
+                <Text size="2" emphasis="medium">
+                  Three environments, all green. The content pane scrolls itself; the shell
+                  never does.
+                </Text>
+              </Stack>
+            </ShellContent>
+            <ShellInspector>
+              <Stack gap="2" p="3">
+                <Text size="2" weight="medium">
+                  Inspector
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Rests closed until asked for.
+                </Text>
+              </Stack>
+            </ShellInspector>
+            <ShellBottom>
+              <Stack p="3">
+                <Text size="2" emphasis="medium">
+                  Build finished in 41s.
+                </Text>
+              </Stack>
+            </ShellBottom>
+          </Shell>
+        </Box>
+      </Demo>
+
+      {/* GROUNDED (Canva, Xcode): the content is pulled off the frame and becomes its own
+          surface, while the chrome around it stays welded. One word on one pane. */}
+      <Demo label="Grounded content — the chrome stays flush, the work area becomes a surface">
+        <Box height="22rem">
+          <Shell>
+            <ShellHeader>
+              <Flex align="center" gap="3" px="3" py="2">
+                <Text size="2" weight="medium">
+                  Kookie Studio
+                </Text>
+              </Flex>
+            </ShellHeader>
+            <ShellSidebar aria-label="Primary">
+              <Stack gap="1" p="3">
+                <Text size="2" weight="medium">
+                  Inbox
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Drafts
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Archive
+                </Text>
+              </Stack>
+            </ShellSidebar>
+            <ShellContent flush={false}>
+              <Stack gap="2" p="4">
+                <Heading size="6">Inbox</Heading>
+                <Text size="2" emphasis="medium">
+                  Nothing is behind it, so it rests on the ground rather than floating — the
+                  system derives that from the panes around it.
+                </Text>
+              </Stack>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+
+      {/* FLOATING (Figma, Womp): the content stays flush, so it is underneath — and the nav
+          columns lift over it. Watch the content's own surface run out to the frame edge
+          behind the rail and the sidebar. */}
+      <Demo label="Floating nav — the content stays whole and the columns sit over it">
+        <Box height="22rem">
+          <Shell>
+            <ShellHeader>
+              <Flex align="center" gap="3" px="3" py="2">
+                <Text size="2" weight="medium">
+                  Kookie Studio
+                </Text>
+              </Flex>
+            </ShellHeader>
+            {/* The rail's real anatomy: a column of squares whose width nobody states. It
+                takes a SIZE and its extent follows — square plus air — which is what a
+                `width` could never do, because a rail's width is its item's box. */}
+            <ShellRail aria-label="Sections" size="3" flush={false}>
+              <ShellRailList>
+                <ShellRailItem aria-label="Home" current>
+                  H
+                </ShellRailItem>
+                <ShellRailItem aria-label="Search">S</ShellRailItem>
+                <ShellRailItem aria-label="Extensions">E</ShellRailItem>
+              </ShellRailList>
+            </ShellRail>
+            <ShellSidebar aria-label="Primary" flush={false}>
+              <Stack gap="1" p="3">
+                <Text size="2" weight="medium">
+                  Layers
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Frame 1
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Frame 2
+                </Text>
+              </Stack>
+            </ShellSidebar>
+            <ShellContent>
+              <Stack gap="2" p="4">
+                <Heading size="6">Canvas</Heading>
+                <Text size="2" emphasis="medium">
+                  The work area runs the full width of the frame and the columns rest on top
+                  of it. Under a glass theme this is where the material finally has something
+                  to show through to.
+                </Text>
+              </Stack>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+
+      {/* ALL CARDS: every pane non-flush. Nothing is behind anything, so nothing floats —
+          the frame pays half the gap and each pane pays half, which is the one regime where
+          that construction is exact. Restored 2026-08-20: the commit that special-cased this
+          posture replaced its only demo instead of converting it. */}
+      <Demo label="All cards — every pane pulled off the frame, so nothing floats">
+        <Box height="22rem">
+          <Shell>
+            <ShellHeader flush={false}>
+              <Flex align="center" gap="3" px="3" py="2">
+                <Text size="2" weight="medium">
+                  Kookie Studio
+                </Text>
+              </Flex>
+            </ShellHeader>
+            <ShellSidebar aria-label="Primary" flush={false}>
+              <Stack gap="1" p="3">
+                <Text size="2" weight="medium">
+                  Inbox
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Drafts
+                </Text>
+              </Stack>
+            </ShellSidebar>
+            <ShellContent flush={false}>
+              <Stack gap="2" p="4">
+                <Heading size="6">Inbox</Heading>
+                <Text size="2" emphasis="medium">
+                  Every gap here is the same distance, pane to pane and pane to edge.
+                </Text>
+              </Stack>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+
+      {/* GLASS: the posture is what makes the material legible. A floating column is the one
+          pane with something genuinely behind it, so it takes the theme's glass without the
+          shell deciding anything — and over a photograph you can see what it is bending. */}
+      <Demo label="Floating over a photograph — the posture is what earns the material">
+        <HostileBed>
+          <Box height="20rem">
+            <Shell>
+              <ShellSidebar aria-label="Primary" flush={false}>
+                <Stack gap="1" p="3">
+                  <Text size="2" weight="medium">
+                    Layers
+                  </Text>
+                  <Text size="2" emphasis="medium">
+                    Frame 1
+                  </Text>
+                  <Text size="2" emphasis="medium">
+                    Frame 2
+                  </Text>
+                </Stack>
+              </ShellSidebar>
+              <ShellContent>
+                <Stack gap="2" p="4">
+                  <Heading size="6">Canvas</Heading>
+                </Stack>
+              </ShellContent>
+            </Shell>
+          </Box>
+        </HostileBed>
+      </Demo>
+
+    </Stack>
+  );
+}
+
 function SliderSection() {
   return (
     <Stack gap="6">
@@ -1742,6 +2001,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "scroll-area", name: "Scroll area", body: <ScrollAreaSection /> },
   { id: "segmented-control", name: "Segmented control", body: <SegmentedControlSection /> },
   { id: "separator", name: "Separator", body: <SeparatorSection /> },
+  { id: "shell", name: "Shell", body: <ShellSection /> },
   { id: "slider", name: "Slider", body: <SliderSection /> },
   { id: "spinner", name: "Spinner", body: <SpinnerSection /> },
   { id: "surface", name: "Surface", body: <SurfaceSection /> },

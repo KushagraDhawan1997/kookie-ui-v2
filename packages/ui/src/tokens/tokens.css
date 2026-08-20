@@ -319,6 +319,17 @@
   --alert-w-4: calc(400px * var(--scale));
   --dialog-inset: var(--layout-space-6);
 
+  /* the SHELL's pane defaults (§26) — raw px through --scale (the overlayWidth genus).
+     A pane's width prop overrides by writing the same custom property the stylesheet
+     reads, which is the whole future resize architecture. Density- and pointer-
+     invariant: a pane is a room, not a control. The gap is the shell family's one
+     layout-space pick — see shellFamily(). */
+  --shell-sidebar-w: calc(288px * var(--scale));
+  --shell-inspector-w: calc(320px * var(--scale));
+  --shell-bottom-h: calc(200px * var(--scale));
+  --shell-gap: var(--layout-space-3);
+  --shell-nav-inset: var(--layout-space-2);
+
   /* colour, generated (§7) — light mode */
   /* neutral */
   --neutral-1: #fcfcfc;
@@ -3932,6 +3943,8 @@
   --surface-p-4: var(--layout-space-7);
   --floating-p: var(--layout-space-2);
   --dialog-inset: var(--layout-space-6);
+  --shell-gap: var(--layout-space-3);
+  --shell-nav-inset: var(--layout-space-2);
 }
 
 [data-density="default"] {
@@ -3981,6 +3994,8 @@
   --surface-p-4: var(--layout-space-7);
   --floating-p: var(--layout-space-2);
   --dialog-inset: var(--layout-space-6);
+  --shell-gap: var(--layout-space-3);
+  --shell-nav-inset: var(--layout-space-2);
 }
 
 [data-density="comfortable"] {
@@ -4030,6 +4045,8 @@
   --surface-p-4: var(--layout-space-7);
   --floating-p: var(--layout-space-2);
   --dialog-inset: var(--layout-space-6);
+  --shell-gap: var(--layout-space-3);
+  --shell-nav-inset: var(--layout-space-2);
 }
 
 [data-radius="none"] {
