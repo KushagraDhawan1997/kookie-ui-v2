@@ -8,6 +8,18 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-20 A flight is seized by its clocks — except where its subject is a wall-time loop
+
+The first green merge did not hold: the next two main runs each surfaced another member of the same rotation, all in `menu.browser.test.tsx`'s flight laws, all rAF samplers. Two failures, three laws rewritten, and one instrument boundary discovered by being on the wrong side of it.
+
+**`seizeFlight` (menu.browser.test.tsx): the flight is stepped, not sampled.** Armed before the press, it pauses every animation under the panel in the microtask the pose comes off — the depart edge — and steps them TOGETHER through forty-one stations of the engine's own rendering. The upward-containment law (CI: "the flight was never sampled: expected 4 to be greater than 6" — four frames is all a loaded runner painted, and the minimum-sample calibration failed honestly on a sound flight) and the end-aligned content law take it; both make RELATIVE claims — body inside panel, body against the panel's own edge — which survive what the seizure cannot reproduce. Falsified: a content-sized containing block under flight fails containment ("panel 60px held only 13px of its 59px body"), a deleted end pin fails the drift law with the full station series in the message. The containment law's ORIGINAL sabotage (delete the scroll-area stretch) went dead the same day it was written — main's scroll-region work now sizes the scroll area a second way — so the falsification target moved to the mechanism itself.
+
+**And the release-seam law is deliberately NOT seized, because its subject includes a clock the seizure cannot step.** Fast-forwarding the springs renders the finished box under an EARLY placement — floating-ui's positioning is a wall-time loop that converges across the real flight, and it is not an Animation — measured as a 1-2px phantom jump, mirrored by alignment, in a state the browser never paints. The old law's own numbers proved the phantom (its before and after both read the converged position). So `before` is now a PROVEN-STILL flying frame: the natural end plateau — springs done, floating-ui converged, the strip a margin away — established the way the reopen law proves rest, three identical frames with the flight attribute still on. If the strip beats the proof, the GESTURE is re-run rather than asserted on a stale pair (CI: "it jumped vertically: expected 27.816 to be less than 1" — 27.8px of legitimate travel between two samples ~200ms apart); a seam that genuinely jumps fails on the first proven pair however many openings that takes, and three misses is an instrument failure that says so by name. Falsified: an 8px pin skew fails both alignments at exactly 8.
+
+**The boundary, stated.** A clock seizure owns everything the engine renders FROM those clocks — sizes, poses, relative anatomy — and nothing that converges in wall time beside them. A claim whose subject includes a wall-time mechanism (a positioner, a timer's strip) must let real time deliver the state it asserts about, and prove that state by measurement (stillness, an edge) rather than by catching frames.
+
+---
+
 ## 2026-08-20 The shell's late anatomy outgrew three of its own laws — and one law was seizing a member it never meant to hold
 
 The shell merged to main red against four of its own node laws. Every failing rule was a DELIBERATE late addition with its reasoning written in place — the hover restoration, the rail's per-index arms, the pane's hook stand-down, the rail item's target expander — added after the laws were written and never reconciled with them. The resolution follows the system's own precedents in each direction rather than exempting anything.
