@@ -190,16 +190,22 @@ export const RULES: Rule[] = [
     why:
       "Boldness is spent exactly once. Two loud actions on one screen means neither is the point — the second one is medium, and the composition still says which is which (§15, figure/ground). A dialog or a menu is its own screen; two tab panels are never on screen together.",
     run: ({ all }) => {
-      type Loud = Entry & { layer: string; panel: string | null };
+      // `at` is the DOCUMENT-ORDER index, captured here. Sorting by `all.indexOf(copy)`
+      // looked equivalent and was dead: these are spread COPIES, so indexOf answered -1 for
+      // every one, the comparator was constantly 0 and the sort was a no-op. Document order
+      // survived by accident on the plain path and not on the tab path, where the
+      // always-visible buttons are prepended — so the rule flagged the EARLIER button and
+      // offered to demote the wrong one.
+      type Loud = Entry & { layer: string; panel: string | null; at: number };
       const loud: Loud[] = [];
-      for (const entry of all) {
+      for (const [at, entry] of all.entries()) {
         const { node, parents } = entry;
         if (node.type !== "Button" || str(node.props.emphasis) !== "loud") continue;
         // An alert's Action is loud BY ANATOMY — the component owns the row and there is
         // exactly one (§25). Its grammar refuses a plain Button, so this arm is about a
         // document arriving from elsewhere, not about anything the editor can build.
         if (parents.some((p) => p.type === "AlertDialogContent")) continue;
-        loud.push({ ...entry, layer: layerOf(parents)?.id ?? "·screen·", panel: panelOf(parents)?.id ?? null });
+        loud.push({ ...entry, at, layer: layerOf(parents)?.id ?? "·screen·", panel: panelOf(parents)?.id ?? null });
       }
       const out: RawFinding[] = [];
       const flagged = new Set<string>();
@@ -212,7 +218,7 @@ export const RULES: Rule[] = [
         const sets = panels.size === 0 ? [always] : [...panels].map((p) => [...always, ...here.filter((l) => l.panel === p)]);
         for (const set of sets) {
           if (set.length < 2) continue;
-          const ordered = set.slice().sort((a, b) => all.indexOf(a) - all.indexOf(b));
+          const ordered = set.slice().sort((a, b) => a.at - b.at);
           // The FIRST keeps the budget; every later one is the finding.
           for (const { node } of ordered.slice(1)) {
             if (flagged.has(node.id)) continue;

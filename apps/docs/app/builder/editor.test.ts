@@ -168,6 +168,20 @@ describe("the store keeps a document's history to itself", () => {
     expect(u.histories[u.activeId]!.past).toHaveLength(3);
   });
 
+  it("leaving the document ends the run too — undo may not reach across the trip", () => {
+    // The key lives per document, so without ending the run here, typing, switching away,
+    // switching back and typing again would extend a snapshot taken before the trip: one
+    // undo reaching across a gap the person spent somewhere else.
+    const t = node("Text", {}, { text: "" });
+    let s = start(t);
+    s = reducer(s, { type: "edit", roots: [{ ...t, text: "a" }], coalesce: "k" });
+    const first = s.docs[0]!.id;
+    s = reducer(s, { type: "docNew", name: "Elsewhere" });
+    s = reducer(s, { type: "docSwitch", id: first });
+    s = reducer(s, { type: "edit", roots: [{ ...t, text: "ab" }], coalesce: "k" });
+    expect(s.histories[first]!.past).toHaveLength(2);
+  });
+
   it("an undo interrupts a run — the next keystroke does not resume it", () => {
     // The first spelling of this law asked whether a coalesced edit clears redo, and could
     // not fail: an undo rebuilds the history without a key, so the ONLY state that reaches
@@ -342,8 +356,13 @@ describe("commands are one table, and the surfaces only render it", () => {
   });
 
   it("a chord reads back as something a person can follow", () => {
-    expect(chordLabel("mod+shift+z")).toMatch(/z/i);
+    // `toMatch(/z/i)` alone passes for the identity function, so the modifiers are named too.
+    const label = chordLabel("mod+shift+z");
+    expect(label).toMatch(/z/i);
+    expect(label).not.toBe("mod+shift+z");
+    expect(label.toLowerCase()).not.toContain("mod");
     expect(chordLabel("backspace")).toBe("⌫");
+    expect(chordLabel("mod+alt+arrowup")).toMatch(/↑/);
   });
 
   it("the palette's matcher wants every word, in any order", () => {
@@ -889,6 +908,52 @@ describe("one measurement serves all four layouts", () => {
     expect(at(130, 80).index).toBe(3); // after it — a row of ONE is decided on Y
   });
 
+  it("the line goes where the drop goes — the half no law was reading", () => {
+    // The five laws above asserted orientation, width and height, and never a POSITION. That
+    // is the half of "the indicator lied about it" that shipped a regression: deriving the
+    // gutter from the pointer's ROW puts the line through the middle of the item the pointer
+    // is over whenever that row holds one item, which is every row of a Stack. Measured
+    // before the repair: hovering the lower half of the first of three stacked items gave
+    // index 1 and drew the line at y=19 — above the pointer, through item zero — while the
+    // drop landed at 45. Two different drops drew the same line.
+    const kids = [box(0, 0, 300, 40), box(0, 50, 300, 40), box(0, 100, 300, 40)];
+    const container = box(0, 0, 300, 200);
+    const at = (y: number) => dropSpot(kids, container, 150, y)!;
+
+    // For every pointer position, the line sits between the two items the INDEX names.
+    for (const y of [5, 15, 25, 35, 45, 55, 95, 105, 135, 150]) {
+      const s = at(y);
+      const prev = s.index > 0 ? kids[s.index - 1] : undefined;
+      const next = s.index < kids.length ? kids[s.index] : undefined;
+      const lo = prev ? prev.bottom : -Infinity;
+      const hi = next ? next.top : Infinity;
+      expect(s.line.y + 1, `at y=${y} the line is not in the gutter index ${s.index} names`).toBeGreaterThanOrEqual(lo - 4);
+      expect(s.line.y + 1).toBeLessThanOrEqual(hi + 4);
+    }
+    // …and two DIFFERENT drops never draw the same line.
+    expect(at(15).line.y).not.toBe(at(35).line.y);
+    expect(at(15).index).toBe(0);
+    expect(at(35).index).toBe(1);
+
+    // A row of several: the vertical line sits between the two cells its index names.
+    const row = [box(0, 0, 90, 60), box(105, 0, 90, 60), box(210, 0, 90, 60)];
+    const mid = dropSpot(row, container, 95, 30)!;
+    expect(mid.index).toBe(1);
+    expect(mid.line.x + 1).toBeGreaterThanOrEqual(row[0]!.right);
+    expect(mid.line.x + 1).toBeLessThanOrEqual(row[1]!.left);
+  });
+
+  it("the gap bands and the drop scan group rows the SAME way, because it is one function", () => {
+    // `measureBands` carried its own copy of the grouping, comment and all, and the copies
+    // had drifted: one filtered zero-size boxes and required two children, the other did
+    // neither. A fix to either could not reach the other, and only one of them had laws.
+    const kids = [box(0, 0, 90, 60), box(105, 0, 90, 60), box(0, 75, 90, 60)];
+    expect(rowsOf(kids)).toEqual([[0, 1], [2]]);
+    // A DOMRect satisfies Box structurally, which is what lets one function serve both.
+    const asRects = kids.map((k) => ({ ...k }));
+    expect(rowsOf(asRects)).toEqual(rowsOf(kids));
+  });
+
   it("nothing to measure is no answer at all, not index zero", () => {
     expect(dropSpot([], container, 10, 10)).toBeNull();
   });
@@ -996,6 +1061,36 @@ describe("review reads the house style off the document", () => {
         }),
       ]),
     ).toHaveLength(0);
+    // WHICH node is flagged, not just how many. The sort that decides "the first keeps the
+    // budget" ran `all.indexOf` over spread COPIES, so it answered -1 every time and did
+    // nothing — document order survived by accident on the plain path and not on the tab
+    // path, where the always-visible buttons are prepended. The rule flagged the EARLIER
+    // button and offered to demote the wrong one; five existing cases all passed, because
+    // every one of them counted findings and none of them read an id.
+    const deploy = loud("Deploy");
+    const publish = loud("Publish");
+    const tabbed = figures([
+      node("Stack", { gap: "6" }, {
+        children: [
+          node("Tabs", { defaultValue: "a" }, {
+            children: [
+              node("TabsList", { "aria-label": "S" }, { children: [node("TabsTab", { value: "a" }, { text: "A" })] }),
+              node("TabsPanel", { value: "a" }, { children: [deploy] }),
+            ],
+          }),
+          publish,
+        ],
+      }),
+    ]);
+    expect(tabbed).toHaveLength(1);
+    expect(tabbed[0]!.nodeId, "the FIRST in document order keeps the budget").toBe(publish.id);
+
+    // …and on the plain path too, which is where it was right by accident.
+    const first = loud("first");
+    const second = loud("second");
+    const plain = figures([node("Card", { size: "3" }, { children: [first, second] })]);
+    expect(plain[0]!.nodeId).toBe(second.id);
+
     // …but two in ONE panel are.
     expect(
       figures([

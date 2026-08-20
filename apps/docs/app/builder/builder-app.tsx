@@ -72,7 +72,7 @@ import {
   type BuilderNode,
   type DocTheme,
 } from "./model";
-import { dropSpot } from "./geometry";
+import { dropSpot, rowsOf } from "./geometry";
 import { canAccept, insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
@@ -366,6 +366,13 @@ export function BuilderApp() {
     const onCopy = (e: ClipboardEvent, cut: boolean) => {
       const ctx = ctxRef.current;
       if (!ctx || inField(e.target) || ctx.state.selection.length === 0) return;
+      // CUT edits; copy does not. Preview refuses the one that does, for the same reason the
+      // key handler refuses every editing chord: the mode draws no selection, so a structural
+      // edit there is invisible. Measured before this guard: ⌘X in preview removed the
+      // selected node with nothing on screen but a toast — and the preview law could not see
+      // it, because the clipboard rides the browser's own events rather than the command
+      // table the law walks.
+      if (cut && previewRef.current) return;
       const nodes = ctx.state.selection
         .map((id) => findNode(activeDoc(ctx.state).roots, id))
         .filter((n): n is BuilderNode => n !== null);
@@ -382,7 +389,7 @@ export function BuilderApp() {
     };
     const onPaste = (e: ClipboardEvent) => {
       const ctx = ctxRef.current;
-      if (!ctx || inField(e.target)) return;
+      if (!ctx || inField(e.target) || previewRef.current) return;
       const text = e.clipboardData?.getData("text/plain") ?? "";
       const nodes = decodeNodes(text);
       if (!nodes || nodes.length === 0) return;
@@ -438,11 +445,16 @@ export function BuilderApp() {
     if (ctx && cmd && cmd.enabled(ctx)) cmd.run(ctx);
   };
 
+  /** The TYPED path keeps replace-by-name — that is the route "open a block, edit it, save it
+      back" runs through — but it says which of the two happened, because a save that quietly
+      overwrote something is a save nobody can audit. */
   const saveBlock = () => {
     if (!selected || !blockName.trim()) return;
-    dispatch({ type: "blockSave", block: { name: blockName.trim(), node: cloneWithNewIds(selected) } });
+    const name = blockName.trim();
+    const replaced = state.blocks.some((b) => b.name === name);
+    dispatch({ type: "blockSave", block: { name, node: cloneWithNewIds(selected) } });
     setBlockName("");
-    say(`Saved “${blockName.trim()}”`);
+    say(`${replaced ? "Replaced" : "Saved"} “${name}”`);
   };
 
   /* ── Drag and drop: ONE mechanism for palette inserts, block inserts and moves ─────
@@ -692,15 +704,11 @@ export function BuilderApp() {
     const b = wrap.getBoundingClientRect();
     const box = container.getBoundingClientRect();
 
-    const rows: DOMRect[][] = [];
-    for (const r of [...kids].sort((p, q) => p.top - q.top || p.left - q.left)) {
-      const row = rows[rows.length - 1];
-      // Same visual row when the boxes overlap vertically at all — robust against items of
-      // different heights sitting on one line, which a top-coordinate match is not.
-      const sameRow = row && r.top < Math.max(...row.map((x) => x.bottom));
-      if (sameRow) row.push(r);
-      else rows.push([r]);
-    }
+    // ONE row-grouping, in `geometry.ts` with the laws. This used to be a second copy of it,
+    // comment and all — and the copies had already drifted (this one filters zero-size boxes
+    // and requires two children; the drop scan's did neither), so a fix to either could not
+    // reach the other.
+    const rows: DOMRect[][] = rowsOf(kids).map((row) => row.map((i) => kids[i]!));
 
     const out: Band[] = [];
     for (const row of rows) {
@@ -969,8 +977,12 @@ export function BuilderApp() {
       // dragged away from the box and shrinks when dragged into it. A corner's vector has
       // both components, a side's only one — one expression covers both.
       const span = Math.abs(out[0]) + Math.abs(out[1]);
-      const along =
-        ((ev.clientX - startX) * out[0] + (ev.clientY - startY) * out[1]) / Math.sqrt(span) / zoomRef.current;
+      // NOT divided by the zoom. This writes a rung INDEX, so the distance per step is
+      // ergonomic rather than a length: dividing made it zoom-dependent and backwards —
+      // twice as twitchy at 50%, which is exactly when you are zoomed out to see a whole
+      // page and precision is hardest. The width handle divides because the value it writes
+      // IS a length, and this is where that was copied from.
+      const along = ((ev.clientX - startX) * out[0] + (ev.clientY - startY) * out[1]) / Math.sqrt(span);
       const next = Math.min(steps.length - 1, Math.max(-1, from + Math.round(along / RESIZE_STEP_PX)));
       if (next === last) return;
       last = next;
@@ -1074,7 +1086,11 @@ export function BuilderApp() {
     const wrap = canvasRef.current;
     if (!wrap) return;
     const startX = e.clientX;
-    const startW = wrap.offsetWidth;
+    // Both halves in the same space. `canvasRef` is styled `canvasW * zoom`, so its
+    // `offsetWidth` is PAINTED pixels while `canvasW` is CSS pixels — dividing only the
+    // delta left the base scaled, so grabbing the handle at 50% jumped the canvas from 880
+    // to 442 and flipped every container tier inside it.
+    const startW = wrap.offsetWidth / zoomRef.current;
     const handle = e.currentTarget;
     handle.setPointerCapture(e.pointerId);
     // The pointer travels in SCREEN pixels; the width it writes is CSS pixels, and at 50%
@@ -1156,7 +1172,15 @@ export function BuilderApp() {
     saveBlockFromSelection: () => {
       const node = primaryNode(stateRef.current);
       if (!node) return;
-      const name = node.text?.trim() || node.type;
+      // The name is DERIVED here, so it collides constantly — every unnamed Card is "Card".
+      // Saving under a taken name replaces it, which is right when somebody typed that name
+      // and wrong when nobody chose it: two different cards saved with ⌘B would have left
+      // one block, with an identical toast both times, no prompt, and no way back (a block
+      // save pushes no history). A derived name takes the next free one instead.
+      const taken = new Set(stateRef.current.blocks.map((b) => b.name));
+      const base = node.text?.trim() || node.type;
+      let name = base;
+      for (let n = 2; taken.has(name); n++) name = `${base} ${n}`;
       dispatch({ type: "blockSave", block: { name, node: cloneWithNewIds(node) } });
       say(`Saved “${name}”`);
     },
@@ -1188,7 +1212,16 @@ export function BuilderApp() {
       lands where the change happened. */
   const applyFix = (finding: Finding) => {
     if (!finding.fix) return;
-    const roots = finding.fix.apply(activeDoc(stateRef.current).roots);
+    // The panel shows findings from the DEFERRED document, so a fix can be clicked against a
+    // tree that has moved on — dropping a child into an empty Stack and pressing the
+    // still-displayed "Delete it" before the review pass lands would take the child with it.
+    // Re-run the rules on the live tree and refuse a finding that is no longer true.
+    const live = activeDoc(stateRef.current);
+    if (!reviewDocument(live).some((f) => f.id === finding.id)) {
+      say("That is already resolved");
+      return;
+    }
+    const roots = finding.fix.apply(live.roots);
     dispatch({ type: "edit", roots, selection: finding.nodeId ? [finding.nodeId] : [] });
     say(finding.fix.title);
   };
