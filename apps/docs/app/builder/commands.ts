@@ -152,7 +152,25 @@ export type CommandContext = {
   state: EditorState;
   dispatch: (a: Action) => void;
   ui: CommandUi;
+  /** Preview is a MODE of the context, not a fact about the keyboard — see `armed`. */
+  preview: boolean;
 };
+
+/**
+ * The one gate every surface passes through before it offers or runs a command (2026-08-20).
+ *
+ * `enabled` alone is not the question. Preview promises the screen without the editor, and
+ * that promise is only as good as the number of doors that know about it. It was enforced
+ * inside the keydown handler, so the KEYBOARD kept the promise and the ⌘K palette — which
+ * lists the same table — did not: measured in a production build, preview on and every
+ * editor pane gone, the palette offered 66 editing commands and "Delete" removed a node from
+ * the document with nothing on screen to say so.
+ *
+ * That is the second home this file was written to abolish, so the rule moves to where the
+ * table is. A surface asks `armed`; nothing asks `enabled` directly.
+ */
+export const armed = (cmd: Command, ctx: CommandContext): boolean =>
+  (!ctx.preview || cmd.global === true) && cmd.enabled(ctx);
 
 export type CommandGroup = "Edit" | "Arrange" | "Insert" | "Select" | "Document" | "View";
 
@@ -540,7 +558,11 @@ export const COMMANDS: Command[] = [
     group: "Select",
     chord: "mod+f",
     keywords: "search filter locate layers tree",
-    enabled: () => true,
+    // `global` is about reaching past a focused FIELD — ⌘F must work with the caret in the
+    // inspector. Preview is a separate question and `enabled` is where it belongs: the
+    // Layers pane is not rendered there, so this would put the caret in a filter nobody can
+    // see. Same argument that stands the Review button down.
+    enabled: (c) => !c.preview,
     run: (c) => c.ui.focusLayerFilter(),
   },
   {
@@ -660,7 +682,7 @@ export const insertCommands = (ctx: CommandContext): Command[] =>
         });
       },
     }))
-    .filter((cmd) => cmd.enabled(ctx));
+    .filter((cmd) => armed(cmd, ctx));
 
 /** Every command a surface may offer right now, insertables included. */
 export const allCommands = (ctx: CommandContext): Command[] => [

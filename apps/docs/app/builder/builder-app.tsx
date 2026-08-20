@@ -93,6 +93,7 @@ import {
 } from "./store";
 import {
   COMMANDS,
+  armed,
   chordLabel,
   chordMatches,
   decodeNodes,
@@ -344,8 +345,7 @@ export function BuilderApp() {
         // measured: with a canvas checkbox focused (Base UI draws one as a <button>, so the
         // typing guard does not see it), Backspace deleted the selected node with no ring,
         // no toast and nothing on screen to say it had happened.
-        if (previewRef.current && !cmd.global) return;
-        if (!cmd.enabled(ctx)) return;
+        if (!armed(cmd, ctx)) return;
         e.preventDefault();
         cmd.run(ctx);
         return;
@@ -442,7 +442,7 @@ export function BuilderApp() {
   const runCommand = (id: string) => {
     const ctx = ctxRef.current;
     const cmd = COMMANDS.find((c) => c.id === id);
-    if (ctx && cmd && cmd.enabled(ctx)) cmd.run(ctx);
+    if (ctx && cmd && armed(cmd, ctx)) cmd.run(ctx);
   };
 
   /** The TYPED path keeps replace-by-name — that is the route "open a block, edit it, save it
@@ -1198,7 +1198,7 @@ export function BuilderApp() {
     },
     importDocument: () => fileInputRef.current?.click(),
   };
-  const ctx: CommandContext = { state, dispatch, ui };
+  const ctx: CommandContext = { state, dispatch, ui, preview };
   ctxRef.current = ctx;
 
   /** The review is ADVISORY, so it yields to typing: React renders the document first and
@@ -1252,7 +1252,7 @@ export function BuilderApp() {
               Builder
             </Link>
           </Heading>
-          <DocumentBar state={state} dispatch={dispatch} />
+          <DocumentBar state={state} dispatch={dispatch} preview={preview} />
         </Flex>
         <Flex align="center" gap="2">
           {toast ? (
@@ -1932,7 +1932,7 @@ export function BuilderApp() {
                           <Flex gap="1" wrap="wrap">
                             {["moveUp", "moveDown", "duplicate", "wrapInStack", "wrapInFlex", "unwrap", "delete"].map((id) => {
                               const cmd = COMMANDS.find((c) => c.id === id)!;
-                              const on = ctxRef.current ? cmd.enabled(ctxRef.current) : false;
+                              const on = ctxRef.current ? armed(cmd, ctxRef.current) : false;
                               return (
                                 <Button
                                   key={id}
@@ -2007,7 +2007,7 @@ export function BuilderApp() {
         }}
         enabled={(id) => {
           const cmd = COMMANDS.find((c) => c.id === id);
-          return Boolean(cmd && ctxRef.current && cmd.enabled(ctxRef.current));
+          return Boolean(cmd && ctxRef.current && armed(cmd, ctxRef.current));
         }}
         titleOf={(id) => COMMANDS.find((c) => c.id === id)?.title ?? id}
         inserts={contextInserts}

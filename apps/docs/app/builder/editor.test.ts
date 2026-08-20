@@ -13,6 +13,8 @@ import { describe, expect, it, beforeEach } from "vitest";
 import { CATALOG, canContain as canContainForTest, normalizeSeats, sanitizeNode, sharedProps } from "./catalog";
 import {
   COMMANDS,
+  allCommands,
+  armed,
   chordLabel,
   chordMatches,
   decodeNodes,
@@ -394,25 +396,47 @@ describe("commands are one table, and the surfaces only render it", () => {
     const a = node("Button", {}, { text: "a" });
     let s = start(node("Stack", { gap: "3" }, { children: [a] }));
     s = reducer(s, { type: "select", ids: [a.id] });
-    for (const cmd of COMMANDS.filter((c) => c.global)) {
+    const ui = () => new Proxy({}, { get: () => () => {} }) as CommandContext["ui"];
+
+    /* The law used to walk `COMMANDS.filter(c => c.global)` — the commands the KEYBOARD lets
+       through — and it certified the very bypass it was written to prevent, two lines from
+       the end, by asserting the palette is global. The palette lists the same table and did
+       not ask about preview at all: measured in a production build, preview on and every
+       editor pane gone, it offered 66 editing commands and "Delete" removed a node.
+
+       So the subject is `armed`, the one gate every surface now passes through, and the walk
+       is over EVERY command rather than the flagged ones. A command reachable in preview must
+       not be able to edit; the flag is how that is spelled, not what is being asked. */
+    let reachable = 0;
+    for (const cmd of allCommands({ state: s, dispatch: () => {}, ui: ui(), preview: true })) {
       let touched = false;
       const ctx: CommandContext = {
         state: s,
         dispatch: (action) => {
           if (action.type !== "select") touched = true;
         },
-        ui: new Proxy({}, { get: () => () => {} }) as CommandContext["ui"],
+        ui: ui(),
+        preview: true,
       };
-      if (!cmd.enabled(ctx)) continue;
+      if (!armed(cmd, ctx)) continue;
+      reachable += 1;
       cmd.run(ctx);
-      expect(touched, `"${cmd.id}" is global, so it fires in preview — and it edits`).toBe(false);
+      expect(touched, `"${cmd.id}" is reachable in preview — and it edits`).toBe(false);
     }
-    // …and the set is not empty, or the walk proves nothing.
-    expect(COMMANDS.filter((c) => c.global).length).toBeGreaterThan(0);
+    // …and something IS reachable, or the walk proves nothing.
+    expect(reachable).toBeGreaterThan(0);
     // The two that MUST be reachable: you have to be able to leave preview, and the palette
     // is how everything else is reached.
     expect(COMMANDS.find((c) => c.id === "preview")!.global).toBe(true);
     expect(COMMANDS.find((c) => c.id === "palette")!.global).toBe(true);
+
+    // The other half, which the flag-shaped law could not state: OUT of preview the same
+    // commands are offered, so the gate stands down rather than being a permanent ban.
+    const editing = allCommands({ state: s, dispatch: () => {}, ui: ui(), preview: false }).filter((c) =>
+      armed(c, { state: s, dispatch: () => {}, ui: ui(), preview: false }),
+    );
+    expect(editing.length).toBeGreaterThan(reachable);
+    expect(editing.some((c) => c.id === "delete")).toBe(true);
   });
 
   it("a command the browser delivers as its own event says so, and is never global", () => {
@@ -432,7 +456,7 @@ describe("commands are one table, and the surfaces only render it", () => {
     // Enabled-ness is the guard; a command that is enabled must also be safe to run.
     const state = start();
     const ui = new Proxy({}, { get: () => () => {} }) as CommandContext["ui"];
-    const ctx: CommandContext = { state, dispatch: () => {}, ui };
+    const ctx: CommandContext = { state, dispatch: () => {}, ui, preview: false };
     for (const cmd of COMMANDS) {
       if (!cmd.enabled(ctx)) continue;
       expect(() => cmd.run(ctx), `${cmd.id} threw on an empty document`).not.toThrow();
