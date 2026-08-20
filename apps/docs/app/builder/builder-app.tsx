@@ -41,6 +41,7 @@ import {
   ScrollArea,
   Separator,
   Stack,
+  Surface,
   Tabs,
   TabsList,
   TabsPanel,
@@ -61,6 +62,8 @@ import {
   findParent,
   insertNode,
   moveNodeTo,
+  canvasChildren,
+  canvasNode,
   node,
   removeNode,
   setSlot,
@@ -122,6 +125,19 @@ const SEL_COLOR = "#a855f7";
 /** How far a gap band pulls back on every side. Capped per axis at a quarter of that
     dimension, so a hairline gutter still shows a band rather than insetting itself away. */
 const GAP_BAND_INSET = 6;
+/** The corner every editor instrument wears. The chrome is not system UI, but it sits in the
+    app's own Theme and has no business inventing numbers the system already names — and the
+    SEMANTIC token is the one to reach for: measured at this scope, `--radius-control-1` is
+    14px while the raw `--radius-1` is 9999px, because the palette's own entries are capsule
+    sentinels at `radius="full"`. That is §6's "never --radius-N in a component" showing its
+    teeth in an app.
+
+    Always through `min()` against the box's own half-extent, never alone: a gap band is as
+    tall as the gutter it fills, so an unbounded capsule turned a large gap into a stadium
+    (Kushagra, by eye), and a hairline band would over-round the other way. */
+const CHROME_RADIUS = "var(--radius-control-1)";
+const chromeCorner = (...halves: number[]) => `min(${CHROME_RADIUS}, ${Math.min(...halves)}px)`;
+
 /** The floor a gap band's HIT area grows to. The paint stays the true gutter minus its
     inset; the target does not, because the bottom of the space scale paints a hairline. */
 const GAP_BAND_HIT = 11;
@@ -152,7 +168,10 @@ const activeTier = (w: number): string => {
     module counter is not safe (see withStableIds). */
 export const starterDoc = (): BuilderDoc => ({
   theme: defaultDocTheme(),
+  // The canvas wraps the starter exactly as it wraps every other document — a document that
+  // skipped it would hand `isCanvasId` the wrong node and freeze the real first root.
   roots: withStableIds([
+    canvasNode([
     node("Card", { size: "3" }, {
       children: [
         node("Stack", { gap: "5" }, {
@@ -174,6 +193,7 @@ export const starterDoc = (): BuilderDoc => ({
         }),
       ],
     }),
+    ]),
   ]),
 });
 
@@ -1424,7 +1444,7 @@ export function BuilderApp() {
                     {/* A tree, said in the markup: assistive technology gets the structure
                         the eye gets from the indent, and the rows carry their own level. */}
                     <Stack gap="2">
-                    {doc.roots.length > 0 ? (
+                    {canvasChildren(doc).length > 0 ? (
                       <TextField
                         size="1"
                         aria-label="Filter layers"
@@ -1450,7 +1470,7 @@ export function BuilderApp() {
                       />
                     ) : null}
                     <Stack gap="1" render={<div role="tree" aria-label="Layers" />}>
-                      {doc.roots.length === 0 ? (
+                      {canvasChildren(doc).length === 0 ? (
                         <Text size="1" emphasis="quiet">
                           The canvas is empty.
                         </Text>
@@ -1548,9 +1568,18 @@ export function BuilderApp() {
             }
           />
           <Separator />
-          <ScrollArea style={{ flex: 1, minHeight: 0 }}>
+          {/* `display: grid` is load-bearing, not styling: the viewport is `max-block-size: 100%`
+              with no block-size, so it SHRINK-WRAPS — measured 250px inside an 880px area, which is
+              why the canvas ended just under the card and the grey below it was the region around
+              the canvas rather than the canvas. A grid parent stretches its child in both axes
+              (the same property that makes two buttons fill a grid row), and the cap then lands it
+              exactly on the area's height. */}
+          <ScrollArea className="kb-canvas-scroller" style={{ flex: 1, minHeight: 0, display: "grid" }}>
             <Box
-              p="6"
+              /* 48px, not 24: an elevated Card's own shadow reaches ~44px below its box
+                 (`0 24px 64px -12px`), so the old gutter clipped it by 20px. The gutter is the
+                 whole world a canvas surface has — nothing outside it can be painted into. */
+              p="9"
               onClickCapture={onCanvasClick}
               onContextMenu={onContextMenu}
               onFocusCapture={onCanvasFocus}
@@ -1559,12 +1588,12 @@ export function BuilderApp() {
               onDrop={onCanvasDrop}
               onDragLeave={onCanvasDragLeave}
               onDragEnd={endDrag}
-              style={{ minHeight: "100%" }}
+              style={{ minHeight: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}
             >
               {tiersView ? (
                 <TierCompare doc={doc} />
               ) : (
-              <Box maxWidth="880px" style={{ marginInline: "auto" }}>
+              <Box maxWidth="880px" style={{ marginInline: "auto", width: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
                 <div
                   ref={canvasRef}
                   style={{
@@ -1573,6 +1602,9 @@ export function BuilderApp() {
                     // pixels, so it has to be the size the content actually occupies.
                     width: canvasW ? `${Math.round(canvasW * zoom)}px` : "100%",
                     maxWidth: "100%",
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
                   {/* The zoomed box holds ONLY the rendered document. Every overlay below is
@@ -1580,8 +1612,8 @@ export function BuilderApp() {
                   <div
                     style={
                       zoom === 1
-                        ? undefined
-                        : ({ zoom, width: canvasW ? `${canvasW}px` : "100%" } as React.CSSProperties)
+                        ? ({ flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
+                        : ({ zoom, width: canvasW ? `${canvasW}px` : "100%", flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
                     }
                   >
                   <Theme
@@ -1591,14 +1623,27 @@ export function BuilderApp() {
                     radius={doc.theme.radius}
                     depth={doc.theme.depth}
                     material={doc.theme.material}
+                    /* THE PAGE — and it is a `Surface`, the ground shipped 2026-08-20 for
+                       exactly this. It was three hand-painted values here (a raw `--neutral-1`,
+                       a surface-2 corner and a hairline shadow), the one place in the builder
+                       that stated a colour, and the component's own doc names this canvas as
+                       the call site that went wrong: a size-2 corner around size-3 cards, which
+                       the ground's overlay-band arithmetic makes impossible. Rendered THROUGH
+                       the Theme rather than inside it (`render`, the system's own escape) so
+                       the page is one element wearing both jobs — and painted inside the
+                       document's Theme, so a dark document shows a dark page against the light
+                       workbench. Its padding is the ground's, not a number chosen here, which
+                       is the internal padding the canvas was missing. */
+                    render={<Surface />}
+                    style={{ flex: 1 }}
                   >
                     {/* The canvas is a REAL query container (§2's opt-in, layout-sized by
                         the width handle), so a per-tier value inside it answers the canvas's
                         room — which is what it will answer in an app column. */}
                     <Box container width="100%">
                       <CanvasBoundary tree={doc.roots} onRecover={undo} canRecover={canUndo(state)}>
-                        <Stack gap="5">
-                          {doc.roots.length === 0 ? (
+                        <>
+                          {canvasChildren(doc).length === 0 ? (
                             <TemplatePicker
                               onPick={(id) => {
                                 const template = TEMPLATES.find((t) => t.id === id);
@@ -1615,7 +1660,7 @@ export function BuilderApp() {
                           ) : (
                             doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
                           )}
-                        </Stack>
+                        </>
                       </CanvasBoundary>
                     </Box>
                   </Theme>
@@ -1645,7 +1690,7 @@ export function BuilderApp() {
                       style={{
                         width: "4px",
                         height: "44px",
-                        borderRadius: "2px",
+                        borderRadius: chromeCorner(2),
                         background: "var(--color-border)",
                       }}
                     />
@@ -1754,11 +1799,9 @@ export function BuilderApp() {
                                 width: w,
                                 height: h,
                                 background: `${SEL_COLOR}22`,
-                                // A capsule: half the SHORT side, which is the system's own
-                                // spelling of `full` (§6 states the control capsule as h/2
-                                // rather than leaving CSS to clamp a huge number). Stating it
-                                // this way also self-limits — a 1px band cannot over-round.
-                                borderRadius: Math.min(w, h) / 2,
+                                // Rounded, but never past the system's own smallest corner:
+                                // half the short side alone made a tall gutter a stadium.
+                                borderRadius: chromeCorner(w / 2, h / 2),
                               }}
                             />
                           </div>
@@ -1848,7 +1891,7 @@ export function BuilderApp() {
                           color: "#fff",
                           font: "500 11px/1 var(--font-body, system-ui)",
                           padding: "4px 6px",
-                          borderRadius: "3px",
+                          borderRadius: CHROME_RADIUS,
                           whiteSpace: "nowrap",
                         }}
                       >
@@ -1870,7 +1913,7 @@ export function BuilderApp() {
                         width: drop.line.w,
                         height: drop.line.h,
                         background: "var(--focus-ring)",
-                        borderRadius: "1px",
+                        borderRadius: chromeCorner(drop.line.w / 2, drop.line.h / 2),
                         pointerEvents: "none",
                       }}
                     />
@@ -2254,7 +2297,14 @@ function TreeRows({
     const y = (e.clientY - box.top) / box.height;
     return y < 0.25 ? "before" : y > 0.75 ? "after" : "into";
   };
-  const label = n.text ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}` : n.type;
+  // The root row reads "Canvas": it is a real Stack (and exports as one), but its ROLE in the
+  // document is the page every other node sits on, and `depth === 0` is exactly that node.
+  const label =
+    depth === 0
+      ? `Canvas · ${n.type}`
+      : n.text
+        ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}`
+        : n.type;
   const pass = { dropRow, onDragBegin, onDragFinish, canRowDrop, onHoverRow, onRowDrop, visible };
   return (
     <>
@@ -2337,7 +2387,7 @@ function DropHint({ canvasRef, id }: { canvasRef: React.RefObject<HTMLDivElement
         width: rect.width + 4,
         height: rect.height + 4,
         border: "1px dashed var(--focus-ring)",
-        borderRadius: "8px",
+        borderRadius: "var(--radius-control-2)",
         pointerEvents: "none",
       }}
     />

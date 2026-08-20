@@ -1637,6 +1637,75 @@ export const surfaceColor = {
 } as const;
 
 /**
+ * THE GROUND (§10, 2026-08-20) — the second thing a surface can be, and the one the system
+ * has been missing since it had surfaces at all.
+ *
+ * A Card is an OBJECT: it seals, it catches light, it casts. A ground is what an object sits
+ * ON — a bounded region of a page that holds cards (the builder's canvas), or a bed inside a
+ * card that holds something quieter (a code block, a settings group). Until now every one of
+ * those was a hand-painted div picking a raw neutral, a radius and a hairline at the call
+ * site, which is how the builder's own canvas ended up with a SMALLER corner than the cards
+ * inside it.
+ *
+ * **It is an absolute pair, not an alpha, and that was measured rather than assumed.** The
+ * obvious design is a relative step down from whatever is behind it — one value, adapts
+ * anywhere, flips direction by mode for free (the alpha ramp's own property, §7). It is
+ * wrong in dark, and the arithmetic says so: dark's alpha ramp is built from white, so a
+ * ground over the dark page (--neutral-1, #0f0f10) lands around #161617 while the CARD it
+ * holds is --neutral-2 (#141516). The cards would be darker than the ground holding them —
+ * the nesting inverted, in exactly the mode where it is hardest to see.
+ *
+ * So the pair is stated: one step under the seal in light, the page's own value in dark.
+ * Both directions of the platform argument were checked and they disagree — Apple's ladders
+ * go LIGHTER as you nest deeper in dark (systemBackground #000 → #1C1C1E → #2C2C2E), while
+ * GitHub's `canvas.inset` goes DARKER than `canvas.default` in dark. Taken: darker in both
+ * modes, because it makes the word mean one thing (a ground is under) and because our seal
+ * is already a lifted grey rather than Apple's near-black, so there is room beneath it and
+ * not much above.
+ *
+ * The consequence, stated rather than discovered later: in dark a ground sitting directly on
+ * the page is the SAME colour as the page, and only its hairline bounds it. That is correct
+ * — a ground IS page-level, the cards are what lift — and it is why the edge is part of the
+ * component rather than a prop.
+ *
+ * v0 for the eye pass, like every colour here.
+ */
+export const groundColor = {
+  light: "var(--neutral-2)",
+  dark: "var(--neutral-1)",
+} as const;
+
+/**
+ * THE PAGE (§10, §13, 2026-08-20) — the ground the library has always presupposed and never
+ * named. The seal's own comment calls a card "paper above the page"; until now there was no
+ * page, so an app painting its own background reached past the roles and picked a raw palette
+ * step, which is the one thing this system forbids everywhere else. apps/docs did exactly
+ * that, in the file that judges every other value by eye.
+ *
+ * **The library still paints nothing**, and that is not a gap either — the page is the app's
+ * call, stated twice (LOG 2026-08-09/10). This is a NAME, in the same class as `--shadow-1`:
+ * published in the token contract, read by no component, and a law forbids one from reading
+ * it. Theme does not apply it; a Theme that painted a background would make every nested
+ * appearance scope repaint the page.
+ *
+ * **One value, not two, and the second was retired before it was written.** The plan carried
+ * a pair — a plain page and a darker one for screens made of cards, which is Apple's own
+ * split (systemBackground vs systemGroupedBackground, alternating in light and identical in
+ * dark). The pair collapsed when `groundColor` landed: a page for panes is one step under the
+ * seal in light and the page's own value in dark, which is `--color-ground` exactly. So an
+ * app wanting the Settings look paints `--color-ground` and the second name never existed.
+ * One fact, one home — and the two roles read as the pair they are: content sits on the page,
+ * cards sit on the ground.
+ *
+ * `--neutral-1` in BOTH modes, and it is the palette's own end in each: the lightest step in
+ * light, the darkest in dark. There is nowhere further to go, which is what makes it a page.
+ */
+export const pageColor = {
+  light: "var(--neutral-1)",
+  dark: "var(--neutral-1)",
+} as const;
+
+/**
  * §19 — the look axis is DELETED (surfaceLook 2026-08-20, controlLook 2026-08-19, both
  * Kushagra). What it governed survives; the PROP is what died, in two steps for two
  * different reasons.

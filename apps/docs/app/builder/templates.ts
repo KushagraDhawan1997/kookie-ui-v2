@@ -8,7 +8,8 @@
  * values, no lengths, no colours. Nothing here can say anything a call site could not.
  */
 
-import { defaultDocTheme, node, withStableIds, type BuilderDoc, type BuilderNode } from "./model";
+import {
+  canvasNode, defaultDocTheme, node, withStableIds, type BuilderDoc, type BuilderNode } from "./model";
 
 export type Template = {
   id: string;
@@ -252,5 +253,7 @@ export const TEMPLATES: Template[] = [
     a template can be built during render, where the module counter is not safe. */
 export const templateDoc = (template: Template): BuilderDoc => ({
   theme: defaultDocTheme(),
-  roots: withStableIds(template.build(), `t-${template.id}-`),
+  // A template's blocks are the canvas's CHILDREN — the template describes a screen, and the
+  // screen sits in the canvas like everything else.
+  roots: withStableIds([canvasNode(template.build())], `t-${template.id}-`),
 });

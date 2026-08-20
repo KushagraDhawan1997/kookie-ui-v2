@@ -950,6 +950,45 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
   const rows = (root: HTMLElement) =>
     [...root.querySelectorAll<HTMLElement>(".kui-shell-nav-item")];
 
+  it("a pane's padding HOOK stands down with its padding, so a scroller bleeds to nothing", () => {
+    // The merge with main, 2026-08-20, and neither branch had it alone. A pane has said
+    // `padding: 0` since the day it shipped, but left `--kui-sf-p` declared at the surface
+    // size join's value — and main's new scroll-in-a-pane rule reads exactly that hook to
+    // bleed a scroller out to the pane's edges. Measured before the fix: a ShellScroll at
+    // x = -16, 319px wide inside a 288px pane, hanging past both edges. Read on BOTH a pane
+    // that stamps a size and one that does not, because the first spelling of the fix lost to
+    // the join's own specificity on exactly the panes that carry an index.
+    const shell = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary">
+          <Button>New</Button>
+          <ShellScroll>
+            <div style={{ height: 900 }}>tall</div>
+          </ShellScroll>
+        </ShellSidebar>
+        <ShellContent>
+          <ShellScroll>
+            <div style={{ height: 900 }}>tall</div>
+          </ShellScroll>
+        </ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    for (const sel of [".kui-shell-sidebar", ".kui-shell-content"]) {
+      const pane = within(shell, sel);
+      const scroller = pane.querySelector<HTMLElement>(".kui-scroll-area")!;
+      expect(tokenOn(pane, "--kui-sf-p"), `${sel}: the hook contradicts the padding`).toBe("0px");
+      const p = pane.getBoundingClientRect();
+      const b = scroller.getBoundingClientRect();
+      expect(b.left, `${sel}: the scroller hangs past the start edge`).toBeGreaterThanOrEqual(
+        p.left - 0.5,
+      );
+      expect(b.right, `${sel}: the scroller hangs past the end edge`).toBeLessThanOrEqual(
+        p.right + 0.5,
+      );
+    }
+  });
+
   it("a nav row stands LEVEL with a real Button, at every size", () => {
     // The segmented control's law verbatim (§26) — measured against a mounted Button rather
     // than compared as tokens, because "reads the same height" is a claim about pixels. The

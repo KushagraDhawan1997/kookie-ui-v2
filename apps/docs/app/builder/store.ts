@@ -25,6 +25,8 @@
 
 import { normalizeSeats, sanitizeNode } from "./catalog";
 import {
+  CANVAS_TYPE,
+  canvasNode,
   cloneWithNewIds,
   defaultDocTheme,
   findNode,
@@ -128,7 +130,9 @@ export const makeDoc = (name: string, doc?: BuilderDoc): StoredDoc => ({
   id: newDocId(),
   name,
   theme: doc?.theme ?? defaultDocTheme(),
-  roots: doc?.roots ?? [],
+  // Every document has a canvas, including an empty one — there is no state in which the
+  // root is missing, so nothing downstream has to ask.
+  roots: doc?.roots ?? [canvasNode()],
 });
 
 export const initialState = (first: StoredDoc): EditorState => ({
@@ -366,11 +370,24 @@ type Persisted = {
   blocks: Block[];
 };
 
+/** Every stored document passes through here, which is why the canvas migration lives here
+    and nowhere else: a document saved before the canvas became a node has N roots, and is
+    read back as those N inside one. A document saved after has exactly one root already and
+    is left alone — checked by SHAPE (one root, of the canvas type) rather than by a version
+    number, so a hand-edited or half-migrated file lands on its feet either way. */
+const asCanvas = (roots: BuilderNode[]): BuilderNode[] => {
+  const only = roots.length === 1 ? roots[0] : null;
+  if (only && only.type === CANVAS_TYPE && only.children) return roots;
+  return [canvasNode(roots)];
+};
+
 const reviveDoc = (d: Persisted["docs"][number]): StoredDoc => ({
   id: d.id || newDocId(),
   name: String(d.name || "Untitled"),
   theme: { ...defaultDocTheme(), ...d.theme },
-  roots: (d.roots ?? []).map((n) => sanitizeNode(n)).filter((n): n is BuilderNode => n !== null).map(cloneWithNewIds),
+  roots: asCanvas(
+    (d.roots ?? []).map((n) => sanitizeNode(n)).filter((n): n is BuilderNode => n !== null),
+  ).map(cloneWithNewIds),
 });
 
 const reviveBlocks = (raw: unknown): Block[] =>

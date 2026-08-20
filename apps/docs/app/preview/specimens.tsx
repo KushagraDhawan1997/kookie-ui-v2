@@ -71,6 +71,7 @@ import {
   ShellTrigger,
   Slider,
   Spinner,
+  Surface,
   Stack,
   SegmentedControl,
   SegmentedItem,
@@ -931,6 +932,58 @@ function SelectSection() {
   );
 }
 
+function SurfaceSection() {
+  return (
+    <Stack gap="6">
+      {/* A GROUND holding cards — the case the component exists for (2026-08-20). Every one
+          of these was a hand-painted div before: a raw neutral, a guessed radius, a hairline.
+          The corner is the tell — a container has to out-round what it holds, and the
+          builder's own hand-built canvas got that backwards. */}
+      <Box maxWidth="34rem">
+        <Surface>
+          <Stack gap="4">
+            <Card size="2">
+              <Stack gap="1">
+                <Text size="3" weight="medium">Rename project</Text>
+                <Text size="2" emphasis="medium">Everyone with access will see the new name.</Text>
+              </Stack>
+            </Card>
+            <Card size="2">
+              <Stack gap="1">
+                <Text size="3" weight="medium">Transfer ownership</Text>
+                <Text size="2" emphasis="medium">Only the owner can delete a project.</Text>
+              </Stack>
+            </Card>
+          </Stack>
+        </Surface>
+      </Box>
+      {/* And a BED inside a card — the same statement at the other scale, no second value.
+          The fill is one pair for both, which is why there is no prop to pick. */}
+      <Box maxWidth="30rem">
+        <Card size="3">
+          <Stack gap="4">
+            <Stack gap="1">
+              <Text size="3" weight="medium">Deploy hook</Text>
+              <Text size="2" emphasis="medium">Send a POST to trigger a build.</Text>
+            </Stack>
+            <Surface size="1">
+              <Code size="2">curl -X POST https://api.kookie.dev/hooks/8f21</Code>
+            </Surface>
+          </Stack>
+        </Card>
+      </Box>
+      {/* The four sizes: padding and corner, both a step up from the card band. */}
+      <Flex gap="5" wrap="wrap" align="flex-start">
+        {SIZES.map((size) => (
+          <Surface key={size} size={size} style={{ width: "11rem" }}>
+            <Text size="2" emphasis="medium">Size {size}</Text>
+          </Surface>
+        ))}
+      </Flex>
+    </Stack>
+  );
+}
+
 function SeparatorSection() {
   return (
     <Stack gap="6">
@@ -1760,10 +1813,16 @@ function ScrollAreaSection() {
     <Stack gap="6">
       {/* The scrollbar's whole identity is visible here: no track, an alpha capsule thumb
           that reads on the plain card AND the hostile bed with one value, in only while
-          scrolling or hovering. */}
+          scrolling or hovering.
+
+          The BOX is the pane, the PADDING is the content's (2026-08-20, Kushagra: a row cut
+          short of the edge "gets cut because of the card's padding"). The surface layer does
+          it — a scroller that is a pane's direct child runs to the pane's edges and the
+          padding moves inside the viewport, where it scrolls with the content — so the call
+          site here states a height and nothing else at all. */}
       <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5">
-        <Card size="3">
-          <ScrollArea style={{ height: "200px" }}>
+        <Card size="3" style={{ height: "13rem" }}>
+          <ScrollArea>
             <Stack gap="4">
               {Array.from({ length: 14 }, (_, i) => (
                 <Text key={i} size="2" emphasis="medium">Row {i + 1} — taller than the box it lives in.</Text>
@@ -1771,8 +1830,8 @@ function ScrollAreaSection() {
             </Stack>
           </ScrollArea>
         </Card>
-        <Card size="3">
-          <ScrollArea style={{ height: "200px" }}>
+        <Card size="3" style={{ height: "13rem" }}>
+          <ScrollArea>
             <Box style={{ width: "48rem" }}>
               <Stack gap="4">
                 {Array.from({ length: 10 }, (_, i) => (
@@ -1945,6 +2004,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "shell", name: "Shell", body: <ShellSection /> },
   { id: "slider", name: "Slider", body: <SliderSection /> },
   { id: "spinner", name: "Spinner", body: <SpinnerSection /> },
+  { id: "surface", name: "Surface", body: <SurfaceSection /> },
   { id: "switch", name: "Switch", body: <SwitchSection /> },
   { id: "tabs", name: "Tabs", body: <TabsSection /> },
   { id: "text", name: "Text", body: <TextSection /> },

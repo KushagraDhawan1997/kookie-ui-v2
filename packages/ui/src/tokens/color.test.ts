@@ -29,6 +29,13 @@ import {
 } from "./color.ts";
 import { generateTokens } from "./generate.ts";
 
+// Generated ONCE, at module scope (2026-08-20). `generateTokens()` solves its contrast
+// targets by search and measures ~4s — most of a law's 5s timeout on an idle machine — so a
+// call inside an `it` is a law that answers on this laptop and TIMES OUT on a two-core
+// runner, which is what CI reported. The generator is pure, so one result serves every law
+// in the file and the cost lands in the collection phase, where the runner accounts for it.
+const emitted = generateTokens();
+
 const toOklch = converter("oklch");
 const toRgb = converter("rgb");
 
@@ -877,7 +884,7 @@ describe("the ink ladder renders its stated targets, in every family and both mo
     // The second home this rewrite closed: `--color-text*` used to spell neutral's steps a
     // second time, which is exactly how it would have kept the old picked ladder while every
     // family moved. A law rather than a comment, because the restatement is one edit away.
-    const css = generateTokens();
+    const css = emitted;
     for (const [role, ink] of [
       ["color-text", "neutral-ink"],
       ["color-text-muted", "neutral-ink-muted"],

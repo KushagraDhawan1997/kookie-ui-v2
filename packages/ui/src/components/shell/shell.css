@@ -64,6 +64,21 @@
    shell composed inside another surface cannot inherit that ancestor's corner. */
 .kui-shell-pane {
   padding: 0;
+  /* AND THE HOOK WITH IT (merge with main, 2026-08-20). A pane has said `padding: 0` since
+     the day it shipped — "a pane's content owns its own inset" — but it left `--kui-sf-p`
+     declared at the surface join's value, which is a hook other layers READ. Main's new
+     scroll-in-a-pane rule reads exactly that hook to bleed a scroller out to the pane's
+     edges, so a ShellScroll rendered at x = -16 and 319px wide inside a 288px pane: it hung
+     16px past both edges. Neither branch had the defect alone. Standing the hook down beside
+     the padding is what makes the two agree — the bleed then resolves to nothing, which is
+     the right answer for a pane that has no padding to bleed past.
+
+     It needs the SURFACE class with it: the hook is declared by the surface size join at
+     (0,2,0) — `.kui-surface[data-size="N"]` — and shell panes stamp an index now, because
+     the rail derives its whole extent from one. A bare `.kui-shell-pane` at (0,1,0) simply
+     lost, measured: 16px survived the first spelling of this fix. So the stand-down carries
+     the attribute too and out-ranks the join outright, which is the shape the floating
+     panel's own override already uses one file over — no ordering claim to get wrong. */
   border-radius: var(--radius-surface-3);
   min-inline-size: 0;
   min-block-size: 0;
@@ -71,6 +86,10 @@
   /* Focus lands on an overlaying pane programmatically — a mode, not an affordance (§8):
      the pane's own controls carry the ring. */
   outline: none;
+}
+
+.kui-surface.kui-shell-pane[data-size] {
+  --kui-sf-p: 0;
 }
 
 .kui-shell-header {
@@ -411,17 +430,14 @@
   overflow: clip;
 }
 
-.kui-shell-scroll {
-  /* Take the leftover room. That is ALL this rule needs to say, and finding out why is the
-     nicer half of the story: the other half of the builder's incantation — `minHeight: 0`,
-     the automatic-minimum override without which a flex item refuses to shrink below its
-     content — is already declared by `.kui-scroll-area` itself. A first spelling repeated it
-     here and a sabotage pass proved the repetition dead: deleting it changed nothing,
-     because ShellScroll IS a ScrollArea and ScrollArea solved this for its own reasons.
-     So the pane contributes the flex and the scroller contributes the minimum, and the five
-     hand-written escapes in our own builder are gone between them. */
-  flex: 1 1 auto;
-}
+/* NOTHING LEFT TO SAY HERE (merge with main, 2026-08-20), and that is the good outcome. Both
+   halves of the builder's incantation now come from the scroller itself: `.kui-scroll-area`
+   has always declared the automatic-minimum override, and main's shared rule gives any
+   scroller that is a direct child of a surface `flex: 1`. A first spelling of this file wrote
+   both, and both were proved dead by sabotage — the minimum before the merge, the flex by it.
+   What the shell still contributes is the sibling case below: main's rule makes a pane a
+   column only when the scroller is its ONLY child, and a sidebar is a button, a list and an
+   account chip. */
 
 /* ── Navigation (§21's second member, §27) ─────────────────────────────────────────────────
    A SIDEBAR ROW STANDS LEVEL WITH A BUTTON, and it costs no new number — it is one

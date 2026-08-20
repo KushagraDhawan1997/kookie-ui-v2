@@ -83,6 +83,13 @@ type RawFinding = {
 type Entry = { node: BuilderNode; parents: BuilderNode[] };
 type RuleContext = { roots: BuilderNode[]; all: Entry[] };
 
+/** The document's own root — the CANVAS since 2026-08-20. Rules whose remedy is "unwrap it"
+    or "cut it" cannot speak to it: the canvas is not optional, so a finding against it names
+    a fault with no available fix, which is noise rather than review. Both such rules ask
+    this, so the exemption is one sentence in one place rather than a condition each rule
+    remembers to carry. */
+const isCanvas = (e: Entry): boolean => e.parents.length === 0;
+
 const walk = (roots: BuilderNode[]): Entry[] => {
   const out: Entry[] = [];
   const visit = (list: BuilderNode[], parents: BuilderNode[]) => {
@@ -312,6 +319,8 @@ export const RULES: Rule[] = [
       "A layout with nothing in it still takes its padding and its place in the rhythm — it reads as a mistake to the eye and as noise to the export. Fill it or cut it (§15, emphasis by subtraction).",
     run: ({ all }) =>
       all
+        // An empty document is a legitimate state, and the canvas cannot be cut.
+        .filter((e) => !isCanvas(e))
         .filter(({ node }) => ["Stack", "Flex", "Grid", "Box", "Card"].includes(node.type) && (node.children?.length ?? 0) === 0)
         .map(({ node }) => ({
           nodeId: node.id,
@@ -348,6 +357,9 @@ export const RULES: Rule[] = [
       "Gap needs two things to sit between, so a layout holding one child whose only word is `gap` states a rhythm nothing rides. A layout that also ALIGNS, JUSTIFIES or PADS is doing real work with one child — right-aligning a lone Save button is a composition, not an accident — and is left alone.",
     run: ({ all }) =>
       all
+        // A canvas holding one root is the most ordinary document there is, and "unwrap it"
+        // is not a move available here.
+        .filter((e) => !isCanvas(e))
         .filter(({ node }) => {
           if (!isLayout(node)) return false;
           if ((node.children?.length ?? 0) !== 1) return false;

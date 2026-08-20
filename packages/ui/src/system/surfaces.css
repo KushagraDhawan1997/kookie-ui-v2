@@ -127,6 +127,117 @@
   overflow: clip;
 }
 
+/* ── A scroll region inside a pane ────────────────────────────────────────────────────────
+   §3, §10 (2026-08-20, Kushagra: "I want it fixed natively, independently, easily, I don't
+   want to burden the call site"). A pane's padding and a scroller's box want opposite things,
+   and the resolution is the one the MENU found first and kept to itself: the box is the
+   pane's, the padding is the CONTENT'S. The scroller runs to the pane's own edges — so a row
+   leaves under the corner and the bar hangs where every platform hangs it — while the padding
+   moves inside the viewport, where it scrolls WITH the content, so the first and last rows
+   still sit in from the edges at rest. A padded pane holding an inset scroller does the
+   opposite: it slices every leaving row against an invisible line with empty padding beneath
+   it, which is the thing this rule exists to end.
+
+   IT ASSUMES THE PANE IS A COLUMN, AND IT CANNOT CHECK (2026-08-20, the audit). The first cut
+   argued that being a DIRECT child was guard enough — "two scrollers side by side in a Flex are
+   not children of the pane". That is true when the Flex is nested inside the card and FALSE
+   when the card IS the Flex, which is one prop value away from the `render={<Stack/>}` this
+   same paragraph recommends. Measured in a 480px row pane: two scrollers overlapped by 36px,
+   and a point inside the left one's own rows hit-tested to the right one. Every part of this
+   rule asks a question whose answer flips with the axis — `:first-child` means "touches the
+   top" in a column and "touches the left" in a row, the cross axis is the one always fully
+   touched, and `flex: 1` sizes the main axis where `min-inline-size: auto` refuses to let a
+   wide list shrink. There is no spelling that is right for both.
+
+   A style query on the layout layer's own `--kui-fd` was built, measured working, and BACKED
+   OUT: §2's stem law forbids any layer from so much as mentioning a name layout declares, and
+   it forbids reading for the same reason it forbids writing. A `.kui-stack` class was the
+   other route and was refused too — Stack is `<Box display="flex" direction="column">` with
+   zero CSS of its own, and a hand-written Box saying the same thing would then be excluded for
+   spelling rather than for meaning. So the limit is STATED instead of detected: a row or grid
+   pane holding a scroller is not supported, and DECISIONS records it. Nothing in the package or
+   the docs writes one. The only-child arm below is safe in any direction by construction — an
+   only child touches all four edges whatever the axis — so what is unguarded is only the
+   sibling case, which needs a flex column for the scroller to take the remaining height at all.
+
+   Which block edges bleed is asked of the DOM, never of a prop. A scroller with a heading
+   above it is not touching the pane's top edge, so it reclaims nothing there and its
+   neighbour's gap survives; `:first-child` / `:last-child` are that question. The viewport's
+   padding mirrors them exactly — a side that did not bleed must not pad, or the gap doubles.
+   KNOWN AND NOT FIXED: a `mt="bleed"` inside such a scroller still resolves against the PANE's
+   padding, which that side of the viewport is not restating, so it pulls content into a strip
+   a scroll container can never reach. One custom property cannot hold two different per-axis
+   answers, and the honest reading is that a vertical bleed inside a scroller whose top is not
+   the pane's top has nothing to bleed TO. Recorded in DECISIONS rather than papered over.
+
+   THE SCROLLER IS ITSELF A COLUMN, and that one declaration is what makes `max-height` work
+   (2026-08-20, the audit). `max-block-size: 100%` in scroll-area.css cannot resolve against an
+   indefinite parent, so a pane sized with `max-height` rather than `height` handed the viewport
+   its CONTENT's height: measured a 160px pane holding a 496px viewport whose scrollHeight
+   equalled its clientHeight, so it never scrolled, drew no bar, and clipped 336px away in
+   silence. `height` worked, which is what made it a trap rather than a bug anyone would find.
+   Making the scroller a flex column gives the viewport a definite height from the flex line,
+   and the percentage then resolves — measured identical under `height` and `max-height`
+   (viewport 158 of 496, scrolling, in both). The first repair also stood the percentage down
+   on the viewport and credited THAT for the fix; reversing those two declarations changed
+   nothing at all, so they were inert and are gone. The menu never hit this because it restates
+   its bound absolutely; that half of its spelling had not come across with the other.
+
+   The negative margin is the system writing a member's outer spacing as a function of the
+   container it is in — the non-negotiable governs a PROP on a component, and the shared layer
+   has done this since a menu's separator took the panel's rhythm.
+
+   No `0px` fallback on the hook, and not only because the tokens-only law forbids the literal
+   (it caught it): a pane always declares --kui-sf-p — the base rule above reads it bare for
+   the padding itself — and if one ever did not, `calc()` over an unset property is invalid at
+   computed-value time, which resets the margin to its initial `0`. The safe answer is the one
+   the absence already gives. */
+
+/* A pane whose ONLY child is a scroller becomes the column itself, so the minimal composition
+   — a card that IS a list — states nothing but its height. It declares the layout layer's stem
+   as well as the property, which is what lets the guarded block above see it: a plain Card is
+   not a Box and writes no stem of its own, and this is the one arrangement where the system,
+   not the call site, is the thing that made the pane a column.
+
+   It overrides a stated `render={<Flex/>}` or `render={<Grid/>}`, and that is deliberate
+   rather than incidental: with one child there is nothing to lay out beside it, and the column
+   is what lets it take the pane's height. DECISIONS said for one day that a row and a column
+   are the same layout with a single item — they are not, and the comment below is the
+   counter-example that killed it. */
+.kui-surface:has(> .kui-scroll-area:only-child) {
+  display: flex;
+  flex-direction: column;
+}
+
+/* A COLUMN, and the first cut's `display: flex` alone on the pane was a real defect (caught
+   by eye, on the card whose content is wider than it is): direction decides which axis
+   `flex: 1` sizes and which axis `min-*: auto` floors. As a ROW item, `flex: 1` sized the
+   WIDTH while `min-inline-size: auto` refused to let the box below its content's min-content
+   — a 48rem list made the scroller 48rem wide, the pane clipped it, and BOTH bars vanished.
+   The scroller is itself a column so its viewport can take a flex height (see the head). */
+.kui-surface > .kui-scroll-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-inline: calc(-1 * var(--kui-sf-p));
+}
+.kui-surface > .kui-scroll-area:first-child {
+  margin-block-start: calc(-1 * var(--kui-sf-p));
+}
+.kui-surface > .kui-scroll-area:last-child {
+  margin-block-end: calc(-1 * var(--kui-sf-p));
+}
+.kui-surface > .kui-scroll-area > .kui-scroll-viewport {
+  padding-inline: var(--kui-sf-p);
+}
+.kui-surface > .kui-scroll-area:first-child > .kui-scroll-viewport {
+  padding-block-start: var(--kui-sf-p);
+}
+.kui-surface > .kui-scroll-area:last-child > .kui-scroll-viewport {
+  padding-block-end: var(--kui-sf-p);
+}
+
+
 /* ── Continuous curvature (§6, ported from the material lab 2026-08-16) ──────────────────
    The difference between a rounded box and an object. A squircle spreads its curvature along
    the edges instead of concentrating it in a quarter-circle, which is the Apple corner and
@@ -301,6 +412,73 @@
 }
 .kui-surface.kui-overlay.kui-alert-popup[data-size="4"] {
   --kui-overlay-w: var(--alert-w-4);
+}
+
+/* ── The GROUND (§10, 2026-08-20) — the second thing a surface can be ────────────────────────
+   A Card is an OBJECT: it seals, it catches light, it casts. A ground is what an object sits
+   ON. Two shapes, one statement: a bounded region of a page that holds cards (the builder's
+   own canvas), and a bed inside a card that holds something quieter (a code block, a settings
+   group). Both are "a region with its own ground", which is why they are one component and
+   not two — if they had needed two looks they would have needed props, and props are what
+   would have made this an escape hatch instead of a component.
+
+   It carries NO axis. Not a fill choice, not a border toggle, not tone, not emphasis. The
+   ground and the hairline ARE the component. That is what keeps it from being used to
+   re-make Card badly: the seal is not on its menu, so a Surface composed into a "card" is
+   visibly not one — and the danger a system cannot recover from is not people building
+   something different, it is people building something the SAME that then drifts out of
+   reach of a fix.
+
+   THE HAIRLINE IS NOT AN EMPHASIS STEP, which is the question Button's `bordered` invites.
+   There the border ranks (quiet < quiet+border < medium) and the three rungs say different
+   things about how loud the action is. Here two grounds, one lined and one not, would say
+   exactly the same thing — the test an axis has to pass, and the one `surfaceLook` failed
+   the day before this shipped. It is also load-bearing in dark, where the ground and the
+   page are the same colour and the line is the only thing that bounds the region.
+
+   --color-border and not the tone fallback: a ground has no family, so it wears the
+   family-less hairline (Separator's own role, §7, §11). Blockquote's spelling and its
+   reason — a `var(--tone-border, …)` here would silently take the family of any stamped
+   ancestor, because custom properties inherit. */
+.kui-surface.kui-ground {
+  --kui-sf-fill-src: var(--color-ground);
+  --kui-border-color: var(--color-border);
+  /* A ground does not cast, and the stand-down is stated on BOTH hops for the reason the
+     2026-08-07 audit recorded: the world's chrome arrives by inheritance and the pane's own
+     cast is a separate non-inheriting name consulted first. A hole in a plane throws no
+     shadow — and the pool is the seat-line a solid pane pools at its own bottom, which a
+     ground has no business having either. `0 0 0 0 transparent` and never `none`: `none` is
+     illegal inside a shadow list, which is why every no-op in this file is spelled this way. */
+  --kui-sf-cast: 0 0 0 0 transparent;
+  --kui-sf-pool: 0 0 0 0 transparent;
+}
+
+/* Its size join reads the OVERLAY band — deliberately, and the sharing is the point (§6).
+   A pane that CONTAINS panes must out-round what it holds, or the nesting reads inside-out:
+   the builder's hand-painted canvas wore a size-2 corner around size-3 cards, which is the
+   exact mistake this arithmetic exists to prevent. Dialog established the relationship on
+   2026-08-10 (an overlay wears the corner of the card one size up, at every level) and the
+   padding followed on 2026-08-17. A ground holds cards for the same reason a dialog does,
+   so it wants the same relationship rather than a second copy of it.
+
+   The band's NAME is now wrong and that is recorded rather than fixed here: with two
+   unrelated consumers it is no longer "the overlay band", it is the band a container of
+   panes wears. Renaming it touches generated tokens and belongs in its own change. */
+.kui-surface.kui-ground[data-size="1"] {
+  --kui-sf-radius: var(--radius-overlay-1);
+  --kui-sf-p: var(--surface-p-2);
+}
+.kui-surface.kui-ground[data-size="2"] {
+  --kui-sf-radius: var(--radius-overlay-2);
+  --kui-sf-p: var(--surface-p-3);
+}
+.kui-surface.kui-ground[data-size="3"] {
+  --kui-sf-radius: var(--radius-overlay-3);
+  --kui-sf-p: var(--surface-p-4);
+}
+.kui-surface.kui-ground[data-size="4"] {
+  --kui-sf-radius: var(--radius-overlay-4);
+  --kui-sf-p: var(--surface-p-4);
 }
 
 /* Concentric arithmetic is undefined at zero: at `none` the control corner is already 0,

@@ -53,6 +53,7 @@ export { Text, type TextProps, type TypeSize, type Weight } from "./components/t
 export { TextArea, type TextAreaProps } from "./components/text-area/text-area.tsx";
 export { TextField, type TextFieldProps } from "./components/text-field/text-field.tsx";
 export { Spinner, type SpinnerProps } from "./components/spinner/spinner.tsx";
+export { Surface, type SurfaceProps } from "./components/surface/surface.tsx";
 export { Flex, type FlexProps } from "./components/flex/flex.tsx";
 export { Grid, type GridProps } from "./components/grid/grid.tsx";
 export { Stack, type StackProps } from "./components/stack/stack.tsx";

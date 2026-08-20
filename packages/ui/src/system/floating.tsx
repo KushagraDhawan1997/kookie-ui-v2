@@ -282,10 +282,11 @@ const FLIGHT_GEOMETRY = /^(inline-size|block-size|width|height|translate|scale|p
     explicitly-sided consumer would get. */
 const BESIDE = /^(inline-start|inline-end|left|right)$/;
 
-/** The popup's CURRENT flight's release, so a new entry can retire the old one first (the
-    quick-reopen fix, 2026-08-16): a reopen can begin before the previous flight's clock has
-    fired, and that stale timer — keyed on the very attributes the new flight also wears —
-    would otherwise strip the new flight mid-air. */
+/** The popup's CURRENT flight's release, so a new entry can retire the old one first
+    (2026-08-16): a panel that is kept mounted can be reopened before the previous flight's
+    clock has fired, and that stale timer — keyed on the very attributes the new flight also
+    wears — would otherwise strip the new flight mid-air. Reached by the starting stamp, which
+    is the only announcement left since the quick reopen became a catch (2026-08-20). */
 const flights = new WeakMap<HTMLElement, () => void>();
 
 function useFlight(plan: FlightPlan) {
@@ -703,10 +704,10 @@ function useFlight(plan: FlightPlan) {
           const depart = () => {
             popup.removeAttribute("data-seed");
             // The dismissal listener arms HERE, the frame the flight departs, and never at
-            // begin (2026-08-16, the quick-reopen probe): a flight born mid-exit cancels the
-            // exit's own dying transitions the moment the pose's `transition: none` lands,
-            // and a listener armed earlier caught those dying events as a dismissal and
-            // released the newborn flight on the spot.
+            // begin (2026-08-16): a flight born while an exit is still dying cancels that
+            // exit's own transitions the moment the pose's `transition: none` lands, and a
+            // listener armed earlier caught those dying events as a dismissal and released the
+            // newborn flight on the spot.
             popup.addEventListener("transitioncancel", onCancel);
             // The deadline is read HERE, after the pose is off: the pose pins
             // `transition: none` — so the aim's writes cannot start cancellable transitions —
@@ -787,26 +788,53 @@ function useFlight(plan: FlightPlan) {
         if (popup.hasAttribute("data-seed")) return;
         if (popup.hasAttribute("data-starting-style")) return begin();
         /**
-         * The QUICK REOPEN (2026-08-16, probed): a reopen that lands mid-dissolve finds the
-         * popup still mounted — Base UI flips it back with no fresh mount and no starting
-         * stamp at all (the measured stream is data-closed off → data-open on →
-         * data-ending-style off) — so an observer keyed on the starting stamp alone missed the
-         * open entirely and the panel merely recovered from its half-dissolved pose: a bit of
-         * scale and fade, no entry.
+         * The QUICK REOPEN is CAUGHT, not replayed (2026-08-20, Kushagra: *"on second quick
+         * click it does show wrong animation"* — and it did).
          *
-         * The announcement is the DISMISSAL BEING REVOKED — the ending stamp leaving while the
-         * panel is open — and not `data-open` merely being present, which is the first
-         * spelling and is true for the whole life of every ordinary open: it re-posed panels
-         * that had already flown, measured as an alert re-blurring its own content at exit.
-         * A state that is true continuously cannot announce an event.
+         * A reopen that lands mid-dissolve finds the popup still mounted: Base UI flips it
+         * back with no fresh mount and no starting stamp at all (the measured stream is
+         * data-closed off → data-open on → data-ending-style off), so nothing below announces
+         * an open and no flight begins. That is the whole of the fix. The panel is already on
+         * screen, already at its natural box, already placed; the ending stamp leaving takes
+         * the exit's target styles off, and the paint clock carries it back to rest from
+         * wherever the dissolve had got to.
+         *
+         * It replayed the entry here from 2026-08-16 until this was measured, on the reading
+         * that a reopen with no birth was an open that had lost its animation. What that
+         * bought was a JUMP: the pose is the trigger's silhouette, so a panel dissolving at
+         * 355 x 98 and 58% opacity became 239 x 32 at full opacity in the next frame — 116px
+         * narrower and 66px shorter, instantly, three times out of three — and then unfurled
+         * again. An entry is how a panel ARRIVES, and this one has never left; the reversal is
+         * the gesture being taken back, and a taken-back gesture continues from where it is
+         * rather than starting over. Every interruptible animation on every platform reads
+         * this way, and §8's own two clocks already say it: the box is physics, and physics
+         * does not teleport.
+         *
+         * So the reopen is told from the OPEN by what the panel was doing when `data-open`
+         * arrived. A kept-mounted panel is reopened with no starting stamp at all, so the
+         * arrival IS its only announcement and deleting the branch outright took its ordinary
+         * second open with it — measured by select's own law, "the entry ran once per
+         * lifetime". The two cases separate cleanly at that instant: mid-dissolve the ending
+         * stamp is still ON (the panel is on screen, coming apart), and on a real open it is
+         * long gone.
+         *
+         * The ARRIVAL, never the presence — `data-open` is true for the whole life of every
+         * ordinary open, and a state that is true continuously cannot announce an event (the
+         * first spelling of this in 2026-08-16 re-posed panels that had already flown, measured
+         * as an alert re-blurring its own content at exit). `oldValue` is what makes it an
+         * edge, which is why the observer asks for it.
          */
-        const revoked = records.some(
-          (r) => r.attributeName === "data-ending-style" && !popup.hasAttribute("data-ending-style"),
+        const opened = records.some(
+          (record) =>
+            record.attributeName === "data-open" &&
+            record.oldValue === null &&
+            popup.hasAttribute("data-open"),
         );
-        if (revoked && popup.hasAttribute("data-open")) begin();
+        if (opened && !popup.hasAttribute("data-ending-style")) begin();
       });
       observer.observe(popup, {
         attributes: true,
+        attributeOldValue: true,
         attributeFilter: ["data-starting-style", "data-open", "data-ending-style"],
       });
       return () => {
