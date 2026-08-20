@@ -105,14 +105,23 @@ export const dropSpot = (boxes: readonly Box[], container: Box, x: number, y: nu
     };
   }
 
-  const above = Math.floor(pointerRow);
-  const below = Math.ceil(pointerRow);
+  /* The line goes in the gutter the INDEX names, read off the two items that straddle it in
+     document order. Deriving it from the pointer's row instead looks equivalent and is not:
+     inside a row holding ONE item — every row of a Stack — `above` and `below` are the same
+     row, and the midpoint of a row is the middle of the item the pointer is over, not the
+     gutter the drop lands in. Measured, before this: hovering the lower half of the first of
+     three stacked items gave index 1 and drew the line at y=19, through the middle of item
+     zero and ABOVE the pointer, while the drop landed at y≈45. Two different drops drew the
+     same line.
+
+     In this branch the two neighbours always straddle a row boundary — a pointer in a gutter
+     puts every item above it before and every item below it after, and a pointer inside a
+     single-item row has that item on one side and another row's on the other — so their
+     facing edges are the gutter. */
+  const prev = index > 0 ? boxes[index - 1] : undefined;
+  const next = index < boxes.length ? boxes[index] : undefined;
   const at =
-    above >= 0 && below < rows.length
-      ? (bottom(above) + top(below)) / 2
-      : above < 0
-        ? top(0) - 3
-        : bottom(rows.length - 1) + 3;
+    prev && next ? (prev.bottom + next.top) / 2 : prev ? prev.bottom + 3 : next!.top - 3;
   return {
     index,
     pointerRow,

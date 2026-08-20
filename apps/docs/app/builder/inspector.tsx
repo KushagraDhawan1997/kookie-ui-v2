@@ -421,7 +421,16 @@ export function MultiInspector({
             }
             const values = schema.kind === "axis" ? componentAxes[schema.axis] : schema.values;
             const labels = schema.kind === "options" ? schema.labels : undefined;
-            const plain = typeof first === "string" ? first : undefined;
+            // A responsive value is an object, and reading only the string arm made an
+            // AGREED per-tier value render as "(unset)" — the panel denying a value both
+            // nodes state. The base is what a plain picker can show; the note below says
+            // what picking here does to the tiers.
+            const plain =
+              typeof first === "string"
+                ? first
+                : first && typeof first === "object"
+                  ? (first as Record<string, string>).initial
+                  : undefined;
             return (
               <Stack key={name} gap="1">
                 <PickRow

@@ -285,6 +285,10 @@ export function reducer(s: EditorState, a: Action): EditorState {
     }
     case "docNew": {
       const doc = makeDoc(a.name ?? `Untitled ${s.docs.length + 1}`, a.doc);
+      // Leaving a document ends its typing run, and a NEW document leaves one just as much
+      // as switching does. The law found this second path: without it, typing here, opening
+      // a document, coming back and typing again extended the snapshot from before the trip.
+      s = a.select === false ? s : endRun(s);
       return {
         ...s,
         docs: [...s.docs, doc],
@@ -293,9 +297,15 @@ export function reducer(s: EditorState, a: Action): EditorState {
         histories: { ...s.histories, [doc.id]: emptyHistory() },
       };
     }
-    case "docSwitch":
-      // fallthrough note: a switch ends any run in the document being left.
-      return s.docs.some((d) => d.id === a.id) ? { ...s, activeId: a.id, selection: [] } : s;
+    case "docSwitch": {
+      if (!s.docs.some((d) => d.id === a.id)) return s;
+      // A switch ends the typing run in the document being LEFT. The key lives per document,
+      // so without this, leaving mid-sentence and coming back would extend a snapshot taken
+      // before the switch — one undo reaching across a gap the person spent in another
+      // document. (This line was a comment describing a repair it did not make, which is the
+      // exact shape of the `sanitizeNode` tautology fixed the same night.)
+      return { ...endRun(s), activeId: a.id, selection: [] };
+    }
     case "docRename":
       return { ...s, docs: s.docs.map((d) => (d.id === a.id ? { ...d, name: a.name } : d)) };
     case "docDuplicate": {

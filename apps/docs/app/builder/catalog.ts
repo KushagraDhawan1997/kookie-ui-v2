@@ -853,6 +853,10 @@ const seatsIt = (parentType: string, slot: "leading" | "trailing", childType: st
     `slottedChild` takes the first, so the second was drawn nowhere and exported nowhere
     while still sitting in the document. The first keeps the seat; the rest join the flow. */
 const dedupeSeats = (children: BuilderNode[]): BuilderNode[] => {
+  // The overwhelmingly common list has no seats at all, and `normalizeSeats` reaches this at
+  // EVERY list in the tree on every edit — mapping and discarding allocated an array per
+  // list for nothing, which is not what "costs a walk and nothing else" means.
+  if (!children.some((c) => c.slot)) return children;
   const taken = new Set<string>();
   let changed = false;
   const out = children.map((c) => {
