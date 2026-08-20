@@ -1,7 +1,13 @@
-/* Docs-app base — consumer CSS, deliberately this small. The page paints --neutral-1 (§10:
-   surfaces seal ABOVE the page; the page itself is step 1) and reads the foreground context.
-   Everything visible beyond this file is @kookie-ui/react — the docs are the first real
-   consumer, and the stance is that they use nothing else. */
+/* Docs-app base — consumer CSS, deliberately this small. The page paints --color-page and
+   reads the foreground context. Everything visible beyond this file is @kookie-ui/react —
+   the docs are the first real consumer, and the stance is that they use nothing else.
+
+   It said `--neutral-1` until 2026-08-20, and that was the whole argument for naming the
+   page: this file had to reach past the roles into the raw palette, in the app that judges
+   every other value by eye, because the library had never named the ground it has always
+   presupposed (the seal's own comment calls a card "paper above the page"). The role resolves
+   to exactly what was here, so nothing moves — which is the check on whether the name was
+   honest. A page made of CARDS is --color-ground instead; see §10. */
 /* Reserve the scrollbar's gutter always (2026-08-16). Opening any anchored panel makes Base
    UI lock the page — `body { overflow: hidden }`, with no gutter of its own — and on a
    platform whose scrollbars take space that widens the content area by ~15px for as long as
@@ -18,7 +24,7 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--neutral-1);
+  background: var(--color-page);
   color: var(--color-text);
   font-family: var(--font-body);
 }

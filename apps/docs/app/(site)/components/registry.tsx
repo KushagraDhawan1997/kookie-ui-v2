@@ -63,6 +63,7 @@ import {
   Separator,
   Slider,
   Spinner,
+  Surface,
   Stack,
   Switch,
   Tabs,
@@ -263,6 +264,43 @@ export const ENTRIES: Entry[] = [
         <Button emphasis="quiet" bordered>More</Button>
         <Button tone="destructive" emphasis="quiet">Delete</Button>
       </Flex>
+    ),
+  },
+  {
+    slug: "surface",
+    name: "Surface",
+    family: "Surface",
+    spec: "§10",
+    blurb:
+      "A ground — what an object sits ON, and the pair that completes the family: a Card is an object, a Surface is a ground. An object seals, catches light and casts; a ground does none of those. Two shapes, one statement: a bounded region of a page that holds cards, and a bed inside a card that holds something quieter — a code block, a settings group. Before it, every one of those was a hand-painted div picking a raw neutral, a radius and a hairline at the call site, which is how the builder's own canvas came to wear a SMALLER corner than the cards inside it. Its ground is an absolute pair rather than a relative step, and that was measured: dark's alpha ramp is built from white, so a ground that stepped down from its parent would land ABOVE the seal and the cards would be darker than the ground holding them. In dark it is the page's own colour, and the hairline is the only thing bounding it — which is why the edge is part of the component and not a choice.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "padding and corner from the CONTAINER band, one step up from a card's — a container must out-round what it holds" },
+    ],
+    refusals: [
+      {
+        name: "a fill or an edge prop",
+        why: "The ground and the hairline ARE the component. With a fill/edge vocabulary the first thing anyone reaches for is a seal plus a hairline, which is the outlined card deleted on 2026-08-19, reachable again from every call site. The failure a system cannot recover from is not somebody building something DIFFERENT — it is somebody building the same thing a second way, which then drifts out of reach of a fix. A ground cannot pass for a card, so it cannot start that.",
+      },
+      {
+        name: "a border toggle, on Button's `bordered` precedent",
+        why: "There the border RANKS: quiet, quiet-with-a-border and medium say three different things about how loud the action is. Two grounds, one lined and one not, would say exactly the same thing — the test an axis has to pass, and the one `surfaceLook` failed the day before this shipped. The line is also load-bearing in dark, where the ground and the page are the same colour.",
+      },
+      {
+        name: "material and backdrop",
+        why: "Glass defends a pane against something passing BEHIND it, and a ground's backdrop is its own parent, which is not a backdrop. Inside a glass card it participates in the scope already there and opens none of its own — a Surface leaves a card's material scope exactly as it found it.",
+      },
+      {
+        name: "tone, emphasis, a shadow",
+        why: "Card's refusals, unchanged: a container ranks nothing, and a hole in a plane throws no shadow.",
+      },
+    ],
+    example: (
+      <Surface size="3">
+        <Stack gap="3">
+          <Card size="2"><Text size="2">A card on a ground</Text></Card>
+          <Card size="2"><Text size="2">And another</Text></Card>
+        </Stack>
+      </Surface>
     ),
   },
   {

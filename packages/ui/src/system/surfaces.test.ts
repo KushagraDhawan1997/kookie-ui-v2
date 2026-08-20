@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { GLASS_MATERIALS, RUNGS } from "./axes.ts";
 
 import { tones } from "../tokens/color-config.ts";
-import { block, from, raw, sheet } from "../test/stylesheets.ts";
+import { allStylesheets, block, from, raw, sheet, stripped } from "../test/stylesheets.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const surfaces = sheet("system/surfaces.css");
@@ -648,5 +648,39 @@ describe("continuous curvature (§6, ported 2026-08-16)", () => {
     expect(block(css, ".kui-surface {")).toContain(
       "border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1))",
     );
+  });
+});
+
+/**
+ * The PAGE is a name, not a mechanism (§10, §13, 2026-08-20). It joins `--shadow-1..5` in the
+ * small set of things the token contract publishes and the library itself never reads: the
+ * page is the app's call, stated twice (LOG 2026-08-09/10), and a component that painted one
+ * would be painting a background behind every nested appearance scope.
+ */
+describe("the page is published and never consumed (§10, §13, 2026-08-20)", () => {
+  const tokens = sheet("tokens/tokens.css");
+
+  it("both grounds are emitted in every appearance scope", () => {
+    // The pair reads as a pair: content sits on the page, cards sit on the ground. Asserted in
+    // the artifact rather than through a mount, because the question is what the generator
+    // WROTE — a role missing from one appearance scope is invisible to a light-mode mount.
+    for (const scope of ["light", "dark"]) {
+      const body = block(tokens, `[data-appearance="${scope}"]`);
+      expect(body, `${scope} has no page`).toContain("--color-page:");
+      expect(body, `${scope} has no ground`).toContain("--color-ground:");
+    }
+  });
+
+  it("no stylesheet in the package paints the page, and the ground has exactly one consumer", () => {
+    // The fenced-resource law's own sentence, one role over. A component reading the page
+    // would be deciding the app's background; one reading the ground directly would be
+    // re-making Surface without its corner, its padding or its edge.
+    const files = allStylesheets().map((path) => [path, stripped(raw(path))] as const);
+    expect(files.length, "the walk must reach the stylesheets").toBeGreaterThan(5);
+    for (const [file, css] of files) {
+      expect(css, `${file} paints the app's page`).not.toContain("--color-page");
+    }
+    const consumers = files.filter(([, css]) => css.includes("var(--color-ground)")).map(([f]) => f);
+    expect(consumers).toEqual(["system/surfaces.css"]);
   });
 });

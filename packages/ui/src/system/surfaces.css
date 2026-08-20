@@ -303,6 +303,73 @@
   --kui-overlay-w: var(--alert-w-4);
 }
 
+/* ── The GROUND (§10, 2026-08-20) — the second thing a surface can be ────────────────────────
+   A Card is an OBJECT: it seals, it catches light, it casts. A ground is what an object sits
+   ON. Two shapes, one statement: a bounded region of a page that holds cards (the builder's
+   own canvas), and a bed inside a card that holds something quieter (a code block, a settings
+   group). Both are "a region with its own ground", which is why they are one component and
+   not two — if they had needed two looks they would have needed props, and props are what
+   would have made this an escape hatch instead of a component.
+
+   It carries NO axis. Not a fill choice, not a border toggle, not tone, not emphasis. The
+   ground and the hairline ARE the component. That is what keeps it from being used to
+   re-make Card badly: the seal is not on its menu, so a Surface composed into a "card" is
+   visibly not one — and the danger a system cannot recover from is not people building
+   something different, it is people building something the SAME that then drifts out of
+   reach of a fix.
+
+   THE HAIRLINE IS NOT AN EMPHASIS STEP, which is the question Button's `bordered` invites.
+   There the border ranks (quiet < quiet+border < medium) and the three rungs say different
+   things about how loud the action is. Here two grounds, one lined and one not, would say
+   exactly the same thing — the test an axis has to pass, and the one `surfaceLook` failed
+   the day before this shipped. It is also load-bearing in dark, where the ground and the
+   page are the same colour and the line is the only thing that bounds the region.
+
+   --color-border and not the tone fallback: a ground has no family, so it wears the
+   family-less hairline (Separator's own role, §7, §11). Blockquote's spelling and its
+   reason — a `var(--tone-border, …)` here would silently take the family of any stamped
+   ancestor, because custom properties inherit. */
+.kui-surface.kui-ground {
+  --kui-sf-fill-src: var(--color-ground);
+  --kui-border-color: var(--color-border);
+  /* A ground does not cast, and the stand-down is stated on BOTH hops for the reason the
+     2026-08-07 audit recorded: the world's chrome arrives by inheritance and the pane's own
+     cast is a separate non-inheriting name consulted first. A hole in a plane throws no
+     shadow — and the pool is the seat-line a solid pane pools at its own bottom, which a
+     ground has no business having either. `0 0 0 0 transparent` and never `none`: `none` is
+     illegal inside a shadow list, which is why every no-op in this file is spelled this way. */
+  --kui-sf-cast: 0 0 0 0 transparent;
+  --kui-sf-pool: 0 0 0 0 transparent;
+}
+
+/* Its size join reads the OVERLAY band — deliberately, and the sharing is the point (§6).
+   A pane that CONTAINS panes must out-round what it holds, or the nesting reads inside-out:
+   the builder's hand-painted canvas wore a size-2 corner around size-3 cards, which is the
+   exact mistake this arithmetic exists to prevent. Dialog established the relationship on
+   2026-08-10 (an overlay wears the corner of the card one size up, at every level) and the
+   padding followed on 2026-08-17. A ground holds cards for the same reason a dialog does,
+   so it wants the same relationship rather than a second copy of it.
+
+   The band's NAME is now wrong and that is recorded rather than fixed here: with two
+   unrelated consumers it is no longer "the overlay band", it is the band a container of
+   panes wears. Renaming it touches generated tokens and belongs in its own change. */
+.kui-surface.kui-ground[data-size="1"] {
+  --kui-sf-radius: var(--radius-overlay-1);
+  --kui-sf-p: var(--surface-p-2);
+}
+.kui-surface.kui-ground[data-size="2"] {
+  --kui-sf-radius: var(--radius-overlay-2);
+  --kui-sf-p: var(--surface-p-3);
+}
+.kui-surface.kui-ground[data-size="3"] {
+  --kui-sf-radius: var(--radius-overlay-3);
+  --kui-sf-p: var(--surface-p-4);
+}
+.kui-surface.kui-ground[data-size="4"] {
+  --kui-sf-radius: var(--radius-overlay-4);
+  --kui-sf-p: var(--surface-p-4);
+}
+
 /* Concentric arithmetic is undefined at zero: at `none` the control corner is already 0,
    and "0 + padding" would round a square pane by exactly its padding — a bug wearing the
    formula. None means none. Same (0,3,0) as the arms above — source order is the win,

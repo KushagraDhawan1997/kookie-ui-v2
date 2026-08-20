@@ -841,6 +841,21 @@
   --color-surface-hover: var(--neutral-2);
   --color-surface-active: var(--neutral-3);
 
+  /* the GROUND (§10, 2026-08-20) — what an object sits ON, the seal's opposite number. A
+     bounded region of a page holding cards, or a bed inside a card holding something
+     quieter. An absolute pair rather than an alpha step: dark's ramp is built from white,
+     so a relative ground would land ABOVE the seal and the cards would be darker than the
+     ground holding them. See config's groundColor for the measurement. */
+  --color-ground: var(--neutral-2);
+
+  /* the PAGE (§10, §13, 2026-08-20) — the ground this library has always presupposed (the
+     seal's comment above calls a card "paper above the page") and never named, so an app
+     painting its background picked a raw palette step. A NAME and nothing more: the page
+     is the app's call, no component reads this, and a law forbids one from starting. A
+     page made of CARDS is --color-ground above — the pair Apple splits into two page
+     colours collapses here, because a ground already is the second one. */
+  --color-page: var(--neutral-1);
+
   /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in
      THIS family"; this answers "the edge of a thing that has no family" — a Separator, and
      the resting box of a control whose tone belongs to its ON state alone (Checkbox, Radio,
@@ -1448,6 +1463,21 @@
   --color-surface: #ffffff;
   --color-surface-hover: var(--neutral-2);
   --color-surface-active: var(--neutral-3);
+
+  /* the GROUND (§10, 2026-08-20) — what an object sits ON, the seal's opposite number. A
+     bounded region of a page holding cards, or a bed inside a card holding something
+     quieter. An absolute pair rather than an alpha step: dark's ramp is built from white,
+     so a relative ground would land ABOVE the seal and the cards would be darker than the
+     ground holding them. See config's groundColor for the measurement. */
+  --color-ground: var(--neutral-2);
+
+  /* the PAGE (§10, §13, 2026-08-20) — the ground this library has always presupposed (the
+     seal's comment above calls a card "paper above the page") and never named, so an app
+     painting its background picked a raw palette step. A NAME and nothing more: the page
+     is the app's call, no component reads this, and a law forbids one from starting. A
+     page made of CARDS is --color-ground above — the pair Apple splits into two page
+     colours collapses here, because a ground already is the second one. */
+  --color-page: var(--neutral-1);
 
   /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in
      THIS family"; this answers "the edge of a thing that has no family" — a Separator, and
@@ -2059,6 +2089,21 @@
   --color-surface: var(--neutral-2);
   --color-surface-hover: var(--neutral-3);
   --color-surface-active: var(--neutral-4);
+
+  /* the GROUND (§10, 2026-08-20) — what an object sits ON, the seal's opposite number. A
+     bounded region of a page holding cards, or a bed inside a card holding something
+     quieter. An absolute pair rather than an alpha step: dark's ramp is built from white,
+     so a relative ground would land ABOVE the seal and the cards would be darker than the
+     ground holding them. See config's groundColor for the measurement. */
+  --color-ground: var(--neutral-1);
+
+  /* the PAGE (§10, §13, 2026-08-20) — the ground this library has always presupposed (the
+     seal's comment above calls a card "paper above the page") and never named, so an app
+     painting its background picked a raw palette step. A NAME and nothing more: the page
+     is the app's call, no component reads this, and a law forbids one from starting. A
+     page made of CARDS is --color-ground above — the pair Apple splits into two page
+     colours collapses here, because a ground already is the second one. */
+  --color-page: var(--neutral-1);
 
   /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in
      THIS family"; this answers "the edge of a thing that has no family" — a Separator, and

@@ -116,6 +116,34 @@ Three defects in the builder with one shape, each closed by making the mode a fa
 
 ---
 
+## 2026-08-20 Surface is a ground — the pair that completes the family
+
+An agent reported that the system cannot say "quiet grey box", so people reach for a card inside a card, which we tell them not to do. The conversation that followed reversed my position twice, and both reversals are the record.
+
+**First I checked what the platforms actually do, and the report's framing was wrong about iOS.** Apple ships two background sets — plain and *grouped* — three levels each, and you pick a set per screen. In Settings the **page steps down and the groups sit at the normal surface level.** Apple has never shipped a grey group inside a white card. macOS is the same shape, and where it does recess something inside a container it is almost always a control (a text view, a list, a colour well), not a layout box. So the platform answer is three answers, none of them a grey box: step the page, or it is a control with its own dress, or use separators and type. We already had the last two. On that reading I recommended doing nothing but naming the page.
+
+**Then Kushagra pushed back and I tested my own claim, which did not survive.** The system has no way to make a surface *at all*: every surface is a library component with a pinned identity, so an app or a block needing a region we did not ship hand-paints a div. I proposed exposing the surface layer as `Surface` with `fill` and `edge`.
+
+**He refuted that, and the refutation has a sharp form:** `fill="seal"` plus `edge="hairline"` **is** the outlined card deleted the day before, reachable from every call site. So bounding the vocabulary is not the fix — having no vocabulary is. Walking the cases I had used to justify a general capability, only one was actually uncovered: sidebar beds, toolbars, tiles and empty states are all Card with `render` or `backdrop` today. The hole is one ground, not a capability.
+
+**His builder canvas is what settled the shape** — a hand-painted div holding two cards, and it wears a **smaller corner than the cards inside it**, which is exactly the arithmetic a call site cannot be expected to carry. It also showed the thing is not a well inside a card: it is a ground holding cards, the page pattern scoped to a region.
+
+**One measurement killed the elegant version.** The obvious design is a relative alpha step under whatever is behind it — one value, adapts anywhere, flips by mode for free, which is the alpha ramp's own property and an argument I had made twice. It is wrong in dark: dark's ramp is built from white, so a ground over the page lands near #161617 while the card it holds is #141516. The cards would be **darker than the ground holding them**, inverted in the mode where it is hardest to see. So the ground is an absolute pair. The platforms disagree on direction — Apple nests lighter in dark, GitHub's `canvas.inset` goes darker — and darker in both modes was taken, because it makes the word mean one thing and because our seal is a lifted grey rather than Apple's near-black.
+
+**On whether the hairline should be a prop, on Button's `bordered` precedent:** no. There the border ranks, and quiet / quiet-with-a-border / medium say three different things. Two grounds, one lined and one not, say the same thing — the test an axis has to pass and the one `surfaceLook` had just failed. It is also load-bearing in dark, where the ground and the page are the same colour and the line is all that bounds the region.
+
+**On the harm of someone composing a "card" out of it**, which was the standing worry: with no vocabulary they cannot. A ground is visibly not a card — no seal, no cast, no light. And the harm worth fearing is not people building something *different*, it is people building the same thing a second way, which then drifts out of reach of a fix. Anyone determined to hand-build a card can already do it in one line of `style`; this just means one legitimate thing stops requiring that.
+
+**Rejected along the way:** a `background` prop on Box, Flex and friends (it supplies one fact of five — colour, but not corner, padding, clipping or text context — so it makes the thing hand-buildable rather than buildable, and it splits fill from ink, which is the rule the whole colour system rests on); layout props on Surface (measured unnecessary — `<Surface render={<Stack/>}>` already yields one element that is both); a formal ground *ladder* like Material's five container levels (a ladder needs a bottom you own, and we do not own the page, so only a relative step or a stated pair is expressible); and `Well` as a name (Bootstrap shipped one and deleted it in v4; almost nobody else has one, and the thing is a ground, not a hole).
+
+**Its size join reads the overlay band deliberately** — a pane that contains panes must out-round its contents, which is Dialog's own 2026-08-10 relationship. Recorded, not fixed: with two unrelated consumers that band's name is wrong.
+
+**The page took its name in the same change, and lost its twin doing it.** The plan carried two page roles, on Apple's own split. The second collapsed the moment `groundColor` was written: a page for panes is one step under the seal in light and the page's own value in dark, which IS the ground. So one role, `--color-page` (`--neutral-1` in both modes, the palette's end in each), and the pair reads as content-on-the-page, cards-on-the-ground. It is a name and not a mechanism — the library still paints nothing, a law walks every stylesheet and forbids one from reading it, and apps/docs stopped reaching into the raw palette in the file that judges every other value by eye. It resolves to the same pixels it had, which is the check on whether the name was honest.
+
+Nine mounted laws, five sabotage passes. Two of the laws were instrument bugs first and both were caught by their own runs: one compared a raw radius token against a painted corner (the squircle multiplier sits between them), and the material-scope law gave its held card an explicit `backdrop`, which resolves through any pane scope — so it passed with a `GlassScope` deliberately transplanted in. A scope reset kills the *region*, so the region is what the law has to depend on. +70 bytes, baseline 29826.
+
+---
+
 ## 2026-08-20 A pane holds what it contains, and a child may reach its edge
 
 Kushagra asked for Card to be checked for technical completeness against shadcn, Radix Themes, MUI, Material 3, Chakra, Mantine and Ant — not visuals, coverage. Everything the peers have and this system refuses turned out to be refused **on record** (anatomy slots, variant/elevation, tone). Three things nobody refuses were simply missing, and two of them were one hole seen from two sides.

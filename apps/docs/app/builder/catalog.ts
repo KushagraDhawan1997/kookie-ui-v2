@@ -226,6 +226,27 @@ export const CATALOG: Record<string, CatalogEntry> = {
         ],
       }),
   },
+  Surface: {
+    family: "Surface",
+    blurb: "A ground — what a card sits ON. One fixed treatment, no fill or edge to pick.",
+    props: { size: size() },
+    children: "any",
+    make: () =>
+      node("Surface", { size: "3" }, {
+        children: [
+          node("Stack", { gap: "3" }, {
+            children: [
+              node("Card", { size: "2" }, {
+                children: [node("Text", { size: "2" }, { text: "A card on a ground" })],
+              }),
+              node("Card", { size: "2" }, {
+                children: [node("Text", { size: "2" }, { text: "And another" })],
+              }),
+            ],
+          }),
+        ],
+      }),
+  },
   Separator: {
     family: "Surface",
     blurb: "The quiet hairline. Extent is the container's.",
