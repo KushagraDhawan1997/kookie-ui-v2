@@ -22,6 +22,8 @@ I had picked 1 because the editor's own controls are size 1 throughout, and read
 
 **Two mechanics worth stating, both of which a blind sweep gets wrong.** A CONTROL drops the prop, because 2 is what Button, TextField, TabsList, Menu and Select already default to and re-stating a default is a second home for it. A `<Text>` must state `size="2"`, because Text anchors at **3** — dropping it there would have jumped every label two rungs, not settled it at the baseline. Kbd is a third case again: it has no default at all by design, so it drops the prop and inherits the line it sits in.
 
+**And the export dialog's code well was a Card standing in for a ground** (Kushagra, same day). It is a `Surface` now — the pair's own sentence is that a Card is an object and a Surface is a ground, and the component's doc names this exact shape, *"a bed inside a card that holds something quieter"*. Measured after the swap: no cast, its own fill, the family-less hairline, and a corner inside the dialog's (77.4 against 90.3). This is the drift Surface was minted to stop, found in the builder for the second time — the canvas page was the first — and worth recording because both times the call site had reached for the only container that existed.
+
 **Two boxes grew, and the argument is the same one both times: the content got bigger, so the box that holds it does.** The palette's longest name clipped by exactly 20px per column at the new index, so the sidebar goes 272 → 320 (measured against every pane afterwards: nothing clipped anywhere). And the export dialog goes size 3 → 4, because its code block is a `<pre>` that must not wrap and its longest line — the import — got 20% wider; at 720 the body fits and only the import still scrolls, which is what code does.
 
 ---

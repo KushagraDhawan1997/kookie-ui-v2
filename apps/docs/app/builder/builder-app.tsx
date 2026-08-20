@@ -24,7 +24,6 @@ import Link from "next/link";
 import {
   Box,
   Button,
-  Card,
   Dialog,
   DialogClose,
   DialogContent,
@@ -2212,13 +2211,19 @@ export function BuilderApp() {
                   : "A component with your words as props and every axis frozen — what the block's author decided stays decided."}
               </DialogDescription>
             </Stack>
-            <Card size="2">
+            {/* A SURFACE, not a Card (Kushagra, 2026-08-21). The pair's own sentence: a Card
+                is an object, a Surface is a ground — and the component's doc names this exact
+                shape, "a bed inside a card that holds something quieter". The code is not an
+                object sitting on the dialog, it is a well recessed into it, which is also why
+                it neither seals nor casts. Size 2 against the dialog's 4: a ground reads the
+                overlay band, so it stays well inside the corner of the box holding it. */}
+            <Surface size="2">
               <Box overflow="auto" style={{ maxHeight: "50vh" }}>
                 <Text size="2" render={<pre />} style={{ fontFamily: "var(--font-mono)" }}>
                   {code}
                 </Text>
               </Box>
-            </Card>
+            </Surface>
             <Flex gap="3" justify="flex-end">
               <Button emphasis="quiet" bordered onClick={() => ui.downloadDocument()}>
                 Download JSON
