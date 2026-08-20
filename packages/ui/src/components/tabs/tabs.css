@@ -1,0 +1,119 @@
+/* Tabs adds the bar, the tab's ink and the rule — the parts only a tab bar has (§8, §11, §26).
+ *
+ * Everything else arrives shared: the box is the control skeleton on the height ladder, the
+ * quiet rung supplies the resting bareness and the hover step, the focus ring, the cursor and
+ * the disabled remap are the control layer's, and the press is the family's. This file never
+ * mentions a size — the tabs stamp the index on their own elements and the join does the rest.
+ */
+
+/* The bar. `position: relative` is structural, not dress: the rule is absolutely positioned
+   against this box, and Base UI measures the active tab's offset from THIS element, so the
+   containing block and the measuring frame have to be the same box or the rule lands wrong.
+
+   `align-items: stretch` so every tab is the height of the tallest, which is what keeps the
+   rule a straight line under a bar whose labels wrap differently.
+
+   No gap. The tabs sit flush and their own inline padding is what separates the labels —
+   which is also what lets the rule span the tab's whole box rather than just its text, the
+   relationship every underlined tab bar has. A gap here would leave the rule floating short
+   of the thing it marks.
+
+   The hairline is `--color-border`, the quiet no-family edge Checkbox minted and Separator
+   wears whole (§7, §11): the line under a tab bar is the same object as a separator, and a
+   law asserts the two resolve one colour. It is deliberately NOT `--control-edge` — that is
+   the solved fine-detail tier for a box you read as a small surface, and this is a rule. */
+.kui-tabs-list {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+/* A tab reads CONTENT ink, standing DOWN at rest (§15, §21's own sentence one family over).
+   The row family reads `--tone-ink` because every row in a list is equally there; a tab bar
+   is different — exactly one tab is the one you are on, and the others are places you could
+   go. So the resting rung is the MUTED ink and the active tab takes the full one, which is
+   the ink ladder used as what it is (§15): loud for the thing being read, medium for real
+   information said quietly.
+
+   The roles are the TONE-LESS foreground pair, not the ink trio: `--tone-ink` exists only
+   under a stamped `[data-tone]`, and tabs refuse tone (§11) — a bar where one tab is a
+   different family names nothing. `--color-text` and `--color-text-muted` are the surface's
+   own foreground context, which is what a tab should read: drop the bar onto a tone-forward
+   surface and its labels follow the surface, exactly as Text does (§11, §15).
+
+   Placed after the emphasis ladder by IMPORT ORDER — the quiet rung declares
+   --kui-ct-label-color at the same (0,1,0), and this file loads after recipes.css, which is
+   the only reason it wins. The row family's rule records the same trap: stated in the wrong
+   block it silently loses. */
+.kui-tab {
+  --kui-ct-label-color: var(--color-text-muted);
+}
+
+/* The one you are on. `data-active` is Base UI's spelling for the selected tab.
+
+   The ink is the whole of it — no fill, no weight change. A louder FILL would make the active
+   tab read as a button among links, and a heavier WEIGHT reflows the bar every time you
+   switch, because a semibold label is wider than a medium one and every tab after it shifts.
+   The rule underneath is what carries the state; the ink is what confirms it. */
+.kui-tab[data-active] {
+  --kui-ct-label-color: var(--color-text);
+}
+
+/* The rule — the bar under the active tab, and the only part of Tabs that moves when the
+   selection changes (§26; §8's motion pass owns whether that movement is animated — nothing
+   here transitions).
+
+   Drawn by `left` + `width`, which is what Base UI's own example does and what every other
+   library does. It shipped drawn by BOTH inline edges instead, on the argument that two edges
+   can travel at two speeds and it costs the same two declarations either way. The second half
+   of that was false (audit 2026-08-19, D4): Base UI computes `--active-tab-right` as
+   `scrollWidth − left − width`, in the list's SCROLL coordinate space, while CSS resolves an
+   absolutely positioned box's `right` against its containing block's PADDING box. The two
+   agree only while the bar fits. Measured, four ordinary tabs in a 200px column with a
+   353px scroll width: the rule rendered ZERO pixels wide, degrading a pixel per pixel of
+   overflow on the way there — the ordinary narrow-window path, invisible to the suite because
+   its viewport is pinned wide.
+
+   `left` and `--active-tab-width` are the pair Base UI computes in one space, so they cannot
+   disagree with each other. Two edges is a thing to reach for when a motion actually needs
+   them, and it will need a coordinate fix first (LOG 2026-08-19).
+
+   PHYSICAL left, not the logical inset this package otherwise prefers, because the
+   measurement it consumes is physical: `--active-tab-left` is `tabRect.left − listRect.left`.
+   Pairing a physical measurement with a logical property puts the rule on the wrong side of an
+   RTL bar — the two have to agree, and the measurement is the half we do not own.
+
+   It sits ON the hairline, not above it: the list's border is outside the padding box, so
+   `bottom: calc(-1 * --border-width)` puts the rule's underside flush with the hairline's and
+   the accent covers the neutral line rather than stacking on top of it.
+
+   Both variables come from OUTSIDE this package's vocabulary — Base UI writes them onto this
+   element after it measures. The fallbacks are what the rule is before any measurement exists:
+   no width, at the bar's start, which paints nothing and agrees with the `[hidden]` Base UI
+   sets in the same state. They also stop a dangling `var()` from disarming the whole
+   declaration, which is the shape the --floating-rise law was written for. */
+.kui-tab-rule {
+  position: absolute;
+  bottom: calc(-1 * var(--border-width));
+  left: var(--active-tab-left, 0);
+  inline-size: var(--active-tab-width, 0);
+  block-size: var(--tab-rule);
+  border-radius: var(--tab-rule);
+  background-color: var(--tone-solid);
+}
+
+.kui-tab-rule[hidden] {
+  display: none;
+}
+
+/* The panel paints nothing (§26) — a region of the page is not a surface, and one that draws
+   its own box is a Card. All it owes is the ring it earns by being focusable: Base UI gives
+   the panel a tabindex so a keyboard user can reach content holding no focusable child, and
+   a focusable element with no visible focus state is a WCAG 2.4.7 failure. The ring tokens
+   are the system's one ring (§8) — this restates the recipe rather than reaching for a new
+   one, because the panel is not a `.kui-control` and the skeleton's rule cannot reach it. */
+.kui-tab-panel:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

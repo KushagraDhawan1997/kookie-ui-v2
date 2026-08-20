@@ -65,27 +65,29 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
         <Card size="4">{entry.example}</Card>
       </Section>
 
-      <Section title="Axes">
-        <Stack gap="4">
-          {entry.axes.map((axis) => (
-            <Stack key={axis.name} gap="2">
-              <Flex gap="3" align="center" wrap="wrap">
-                <Code size="2" weight="medium">
-                  {axis.name}
-                </Code>
-                <Text size="2" emphasis="medium">
-                  {axis.values}
-                </Text>
-              </Flex>
-              {axis.note ? (
-                <Text size="2" emphasis="quiet" render={<p />}>
-                  {axis.note}
-                </Text>
-              ) : null}
-            </Stack>
-          ))}
-        </Stack>
-      </Section>
+      {entry.axes.length ? (
+        <Section title="Axes">
+                <Stack gap="4">
+                  {entry.axes.map((axis) => (
+                    <Stack key={axis.name} gap="2">
+                      <Flex gap="3" align="center" wrap="wrap">
+                        <Code size="2" weight="medium">
+                          {axis.name}
+                        </Code>
+                        <Text size="2" emphasis="medium">
+                          {axis.values}
+                        </Text>
+                      </Flex>
+                      {axis.note ? (
+                        <Text size="2" emphasis="quiet" render={<p />}>
+                          {axis.note}
+                        </Text>
+                      ) : null}
+                    </Stack>
+                  ))}
+                </Stack>
+              </Section>
+      ) : null}
 
       {entry.parts ? (
         <Section title="Parts">

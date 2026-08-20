@@ -1,14 +1,14 @@
 # Handover: the Shell — spec'd, built, audited, repaired (2026-08-16)
 
 Plain-English summary for reviewing this branch. The governance docs are the source of truth
-(DECISIONS §26, LOG 2026-08-16 ×2); this repeats them for a reader who wasn't in the room.
+(DECISIONS §27, LOG 2026-08-16 ×2); this repeats them for a reader who wasn't in the room.
 
 ## What happened
 
 Two things, in order, on one branch:
 
 1. **The spec.** We read v1's Shell whole (~4,300 lines of TS, 643 of CSS, 46 test files,
-   plus its own audit report with open P0 bugs) and wrote DECISIONS §26 from the autopsy.
+   plus its own audit report with open P0 bugs) and wrote DECISIONS §27 from the autopsy.
    Almost everything is a deletion. The calls you made in the conversation are all recorded:
    the header is full-width by definition (otherwise it's a content header), drag-to-resize
    comes later but the architecture leaves room for it, pane widths are real numbers (the
@@ -120,7 +120,7 @@ both are fixed and noted in LOG.
   answers the key and nothing else hears it. The one placement not claimed is a Shell dropped
   into a larger page as a widget — there the surrounding page stays keyboard-reachable behind
   an open panel (mouse users are fine, the dim layer covers it).
-- **One limit still open**, in §26: the switching-off only works once JavaScript loads, so a
+- **One limit still open**, in §27: the switching-off only works once JavaScript loads, so a
   page arriving from the server with a panel already open is briefly unprotected for keyboard
   and screen-reader users. Not patched quietly, because a half-answer would look like the
   answer.

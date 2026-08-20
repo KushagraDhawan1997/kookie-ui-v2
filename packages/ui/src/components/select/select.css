@@ -49,11 +49,16 @@
      so a rule that re-points two of them leaves the third resolving no source at all and the
      box paints transparent in that state. Restating the field's resting fill costs nothing
      and makes the trigger's fill readable in one place instead of two files. */
-  --kui-ct-fill-src: var(--look-field-fill);
-  --kui-ct-fill-src-hover: var(--look-field-fill-hover);
-  --kui-ct-fill-src-active: var(--look-field-fill-active);
-  --kui-ct-fill-hover: var(--kui-ct-fill-src-hover);
-  --kui-ct-fill-active: var(--kui-ct-fill-src-active);
+  --kui-ct-fill-src: var(--dress-field-fill);
+  --kui-ct-fill-src-hover: var(--dress-field-fill-hover);
+  --kui-ct-fill-src-active: var(--dress-field-fill-active);
+  /* The DERIVED pair pin is GONE (2026-08-19). It existed to counter text-field.css pinning
+     the derived fills too — "a glass trigger would otherwise stay frozen while a solid one
+     moved" — and that premise died with the field pin in the fill-first flip. What it did
+     after that was pure harm: this (0,2,0) raw value beat the material blocks' veil mixes on
+     the tie, so a hovered glass trigger dropped out of the veil entirely and stopped
+     compositing like the TextField beside it — measured at roughly double the field's hover
+     alpha in both modes (audit 2026-08-18). The shared layer's chain is the right one now. */
 }
 
 /* The open state moved to the shared layer 2026-08-10 — the menu trigger was the third

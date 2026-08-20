@@ -253,8 +253,6 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
       contrast: "data-contrast",
       pointer: "data-pointer",
       depth: "data-depth",
-      surfaceLook: "data-surface-look",
-      controlLook: "data-control-look",
       material: "data-material",
     };
     const ABSENT = new Set(["appearance:inherit", "material:solid"]);
@@ -273,8 +271,9 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
       }
     }
     // The vacuity guard the first version needed and did not have: an empty or mis-keyed walk
-    // would satisfy every assertion above by making none of them.
-    expect(checked).toBeGreaterThan(20);
+    // would satisfy every assertion above by making none of them. 20 is today's exact count
+    // (surfaceLook's two values left with the axis, 2026-08-20); the floor sits just under it.
+    expect(checked).toBeGreaterThanOrEqual(20);
 
     // AND THE REVERSE, because the arm above only catches a value the table INVENTS. Dropping
     // one is the likelier drift and it fails nothing: an axis whose list has lost a value is
@@ -282,15 +281,28 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     // — deleting `inherit` from the appearance list left this law green until this arm existed.
     // The emitted stylesheet is the independent second source: a selector reading a value the
     // table does not offer means one of the two is wrong, and neither can be trusted to notice.
+    // `on-glass` is the one styled value no axis offers, and that is the design (§10,
+    // 2026-08-16): it is RESOLVED from nesting — a member whose backdrop a pane below already
+    // spent — and nothing may ask for it. A Theme that could set it would be re-introducing
+    // glass-on-glass through the front door. Exempted by name, so the exemption is a decision
+    // in this file rather than a hole in the walk.
+    const RESOLVED_ONLY = new Set(["data-material:on-glass"]);
     for (const [axis, attr] of Object.entries(ATTR)) {
       const offered = new Set(themeAxes[axis as keyof typeof themeAxes] as readonly string[]);
       for (const m of all.matchAll(new RegExp(`\\[${attr}="([a-z-]+)"\\]`, "g"))) {
         const value = m[1]!;
+        if (RESOLVED_ONLY.has(`${attr}:${value}`)) continue;
         expect(
           offered.has(value),
           `${attr}="${value}" is styled by the shipped CSS and themeAxes.${axis} does not offer it`,
         ).toBe(true);
       }
+    }
+    // And the exemption must be REAL: a resolved-only value that no stylesheet reads is a
+    // stale carve-out, which is how an exemption list rots into a blindfold.
+    for (const key of RESOLVED_ONLY) {
+      const [attr, value] = key.split(":");
+      expect(all, `${key} is exempted but no rule reads it`).toContain(`[${attr}="${value}"]`);
     }
   });
 
@@ -327,7 +339,7 @@ describe("the mark family lives in the shared layer, once (§4, promoted 2026-08
     // silently re-dress the slider thumb.
     expect(recipes).toContain(".kui-mark:where(:not(.kui-control *)) {");
     expect(block(recipes, ".kui-mark:where(:not(.kui-control *)) {")).toContain(
-      "--tone-border: var(--look-mark-border, var(--control-edge))",
+      "--tone-border: var(--dress-mark-edge, var(--control-edge))",
     );
     expect(recipes).toContain(".kui-mark:where(:not(.kui-control *))::after");
     expect(recipes).toContain('.kui-mark:where([data-checked], [data-indeterminate])');
@@ -474,30 +486,6 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     }
   });
 
-  it("a row reads CONTENT ink, and its rule sits after the emphasis ladder (§15, §21)", () => {
-    // The weight reversal's other half (2026-08-09): --tone-label is the button-label ink
-    // (#454648 neutral, #6c3230 destructive — a grey and a brown), and a row is a line in a
-    // list you read. Both facts are the law, because the first spelling declared the ink in
-    // the box block and SILENTLY LOST to the quiet rung at the same (0,1,0).
-    const ink = ".kui-row {";
-    expect(block(recipes.slice(recipes.indexOf('[data-emphasis="quiet"]')), ink)).toContain(
-      "--kui-ct-label-color: var(--tone-ink)",
-    );
-    expect(recipes.lastIndexOf(ink)).toBeGreaterThan(recipes.indexOf('[data-emphasis="quiet"]'));
-    // The box block must NOT also declare it — one home, and the losing spelling stays gone.
-    expect(block(recipes, ".kui-row {")).not.toContain("--kui-ct-label-color");
-  });
-
-  it("the disabled arm stands down BOTH ink vocabularies (§21)", () => {
-    // A remap that covers one of two dims whichever controls happen to use that one — the
-    // slider-handle shape the 2026-08-07 audit caught. Rows read --tone-ink now, so the arm
-    // owes it the same stand-down it always gave --tone-label.
-    const arm = block(recipes, ".kui-control[data-disabled]:not([data-loading]),");
-    for (const role of ["--tone-label", "--tone-ink"]) {
-      expect(arm, `the disabled arm leaves ${role} live`).toContain(`${role}: var(--neutral-8)`);
-    }
-  });
-
   it("the row stand-down sits AFTER the shared hover rule — it wins on order, not weight", () => {
     // The comment here used to claim (0,4,0) over (0,3,0). It is a TIE: `:not()` takes the
     // specificity of its most specific argument rather than summing its list, so both rules
@@ -552,10 +540,17 @@ describe("the icon box is a mechanism, declared once (§4, ENGINEERING §4)", ()
 });
 
 describe("the shared layer carries the variation, once (§2)", () => {
-  it("every rung is defined exactly once, for every component that will ever exist", () => {
+  it("every rung's RESTING recipe is defined exactly once; glass arms are counted, not free", () => {
+    // Re-structured 2026-08-19 (the 2026-08-08 lesson, relearned): this law spent two days
+    // as a tally — {loud: 10, medium: 3, quiet: 1} — which fails on any legitimate refactor
+    // and passes on ten wrong arms, with only its own comment standing between the two. The
+    // claim the tally had buried is structural and is what gets asserted now: the RESTING
+    // definition — the bare `[data-emphasis="X"] {` rule — exists exactly once per rung.
+    // Every other mention is a compound arm (a glass re-pricing, a press key), and an arm's
+    // correctness is each arm's own mounted law's job, not a census's.
     for (const rung of RUNGS) {
-      const occurrences = recipes.match(new RegExp(`\\[data-emphasis="${rung}"\\]`, "g")) ?? [];
-      expect(occurrences).toHaveLength(1);
+      const resting = recipes.match(new RegExp(`^\\[data-emphasis="${rung}"\\] \\{`, "gm")) ?? [];
+      expect(resting, `${rung}'s resting definition`).toHaveLength(1);
     }
   });
 
@@ -627,15 +622,87 @@ describe("invalid is a state remap, and it belongs to every control (§8)", () =
 });
 
 describe("material on a control: backdrop defense, three environments (§10)", () => {
-  it("each material appears exactly seven times — three environments plus the field family's pane parts", () => {
-    // Three environments, not three designs — the same shape the surface layer wears —
-    // plus four mentions for the FIELD family's glass parts (2026-08-07): two selectors in
-    // the shared origin rule and two in the per-thickness edge/rim rule, because a field
-    // is bordered by identity and its glass wears the pane's own edge where a button,
-    // borderless by rank, needs none.
+  it("each material appears exactly eight times — three environments plus the pane parts", () => {
+    // Three environments, not three designs — the same shape the surface layer wears — plus
+    // the mentions for the glass PANE PARTS: two selectors in the field family's shared
+    // origin rule, and three in the per-thickness edge/rim rule (2026-08-16, up from two).
+    //
+    // The button joined that rule when the rim grew from a 1px edge catch into the lab's
+    // four-layer lighting. It had been excluded outright rather than composed, because
+    // `background-image` on a button is already spoken for by the elevated world's gradient
+    // catch — so a glass Button wore no rim at all, while every glass button in the lab wears
+    // one. Both layers are listed now, which is legal exactly where it is not for a shadow:
+    // `none` is a valid background-image layer, and that asymmetry is why §10 keeps the rim
+    // out of the shadow list to begin with.
+    // Re-structured 2026-08-19: the tally this held (8, then 16, then 17 — three bumps in
+    // two days, each with a paragraph naming its arms) is the count anti-pattern the
+    // 2026-08-08 audit retired. The claim that matters is SYMMETRY: the three thicknesses
+    // are one recipe at three strengths, so every arm that names one must name all three —
+    // a merge that leaves one thickness reading another's tokens breaks the equality, while
+    // a refactor that splits an arm for all three moves the counts together and passes.
+    const counts = GLASS_MATERIALS.map(
+      (m) => (recipes.match(new RegExp(`\\[data-material="${m}"\\]`, "g")) ?? []).length,
+    );
+    expect(counts[0], "no glass arms at all").toBeGreaterThan(0);
+    expect(new Set(counts).size, `the thicknesses diverged: ${GLASS_MATERIALS.join("/")} = ${counts.join("/")}`).toBe(1);
+  });
+
+  it("a pressed loud glass control consults the GLASS active chain first (2026-08-19)", () => {
+    // The mounted half (button.browser) proves the faded press rows exist and differ from
+    // the rest rows; this is the consumption half — the press rule must actually read the
+    // glass-active value, or the rows resolve for nobody and the pressed glass cast is the
+    // resting one again (the exact defect, audit 2026-08-18).
+    expect(recipes).toContain(
+      "--kui-ct-cast: var(--kui-ct-cast-glass-active, var(--kui-ct-cast-glass, var(--kui-control-chrome-active, none)));",
+    );
+    // And every thickness declares the active glass value beside its resting one.
     for (const m of GLASS_MATERIALS) {
-      const occurrences = recipes.match(new RegExp(`\\[data-material="${m}"\\]`, "g")) ?? [];
-      expect(occurrences).toHaveLength(7);
+      expect(recipes).toContain(
+        `--kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-active-${m}, 0 0 0 0 transparent);`,
+      );
+    }
+  });
+
+  it("a glass CONTROL is lit without the pane's wash, and keeps the world's catch under it", () => {
+    // Two defects, one rule. First: `background-image` on a button is already spoken for by
+    // the elevated world's gradient catch, so the button was excluded from the rim rule
+    // outright rather than composed into it — a glass Button wore no lighting at all.
+    //
+    // Second, and the reason a control takes its OWN recipe: a pane's fill is a near-white
+    // veil, so a broad white bloom and sheen read as light lying on it. A control's fill is
+    // its IDENTITY, and the same two layers read as that identity fading — a loud accent
+    // button under the pane recipe measured pale blue with a halo. Grain and the edge catch
+    // are the material; the wash is the pane's.
+    const supports = from(recipes, "@supports (backdrop-filter");
+    for (const m of GLASS_MATERIALS) {
+      const body = block(supports, `.kui-button:where([data-material="${m}"])`);
+      expect(body, `a glass button has no ${m} lighting`).toContain(`var(--material-${m}-rim-control, none)`);
+      expect(body, "the world's catch was displaced by the lighting").toContain("var(--kui-ct-light, none)");
+    }
+  });
+
+  it("the control recipe is the pane's minus the wash — same grain, same edge, no bloom", () => {
+    // Asserted as a RELATIONSHIP, not two independent value checks: the two recipes must
+    // share their texture and their edge and differ only in the wash, or "the control's
+    // lighting is the pane's minus the wash" becomes two recipes free to drift apart.
+    const tokensCss = raw("tokens/tokens.css");
+    for (const scope of ['[data-appearance="light"]', '[data-appearance="dark"]']) {
+      const body = block(tokensCss, scope);
+      const valueOf = (name: string) => {
+        const line = body.split("\n").find((l) => l.includes(`${name}:`));
+        if (!line) throw new Error(`no ${name} in ${scope}`);
+        return line.slice(line.indexOf(":") + 1).trim();
+      };
+      for (const m of GLASS_MATERIALS) {
+        const pane = valueOf(`--material-${m}-rim`);
+        const control = valueOf(`--material-${m}-rim-control`);
+        expect(control, `${scope} ${m}: the control lost the grain`).toContain("feTurbulence");
+        expect(control, `${scope} ${m}: the control kept the bloom`).not.toContain("radial-gradient");
+        expect(control, `${scope} ${m}: the control kept the sheen`).not.toContain("linear-gradient(180deg");
+        const edge = (v: string) => v.slice(v.lastIndexOf("linear-gradient(rgb"));
+        expect(edge(control), `${scope} ${m}: the edges diverged`).toBe(edge(pane));
+        expect(pane, "the pane lost its wash").toContain("radial-gradient");
+      }
     }
   });
 
@@ -662,17 +729,31 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     // a missed one would flash the opaque page-designed fill over glass.
     const supports = from(recipes, "@supports (backdrop-filter");
     for (const m of GLASS_MATERIALS) {
-      const body = block(supports, `[data-material="${m}"]`);
+      // Named at the RULE, not by the first substring that happens to match (2026-08-17):
+      // the pool arm is a `:where(thin, regular, thick)` list declared above the per-thickness
+      // blocks, so a substring search found a body holding one unrelated declaration and this
+      // law reported the veil missing for two of the three materials. A law that has to guess
+      // which rule it meant is one rename away from measuring nothing.
+      const body = block(supports, `.kui-control[data-material="${m}"] {`);
+      // Control-scale material (2026-08-17): a control prices the ladder at its own box, so
+      // the alpha is the CONTROL cell — and it is ONE alpha across rest/hover/active, because
+      // on glass hover is light (the filter's hover variant), never a heavier veil. The
+      // states still derive from the rung's own -src chain: tone rides in through the SOURCE.
       expect(body).toContain(
-        `--kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-${m}-alpha), transparent)`,
+        `--kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-${m}-control-alpha), transparent)`,
       );
       expect(body).toContain(
-        `--kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-${m}-alpha-hover), transparent)`,
+        `--kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-${m}-control-alpha), transparent)`,
       );
       expect(body).toContain(
-        `--kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-${m}-alpha-active), transparent)`,
+        `--kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-${m}-control-alpha), transparent)`,
       );
-      expect(body).toContain(`backdrop-filter: var(--material-${m}-filter)`);
+      // The lens is PREPENDED to the material's chain and never replaces it (§10,
+      // 2026-08-16): `var(--kui-lens, )` is empty on every surface that is not glass and in
+      // every engine that cannot render an SVG filter in a backdrop-filter, so the chain the
+      // stylesheet declares is what those get. Both halves asserted — the empty fallback is
+      // what makes the lens additive, and a lens spelled without it could subtract glass.
+      expect(body).toContain(`backdrop-filter: var(--kui-lens, ) var(--material-${m}-control-filter)`);
     }
     for (const env of [
       recipes.slice(0, recipes.indexOf("@supports")),
@@ -691,7 +772,16 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     // designed label (--tone-contrast stays paired to a loud fill that is still there,
     // merely translucent). A material block naming a colour or a label would mean it has
     // quietly become a fill again.
-    const materialBlock = from(recipes, '[data-material="thin"]');
+    //
+    // ONE sanctioned exception since 2026-08-19: the opaque-twin re-point, a declaration of
+    // the exact shape `--X: var(--X-solid)` — the same rung said opaquely, because the veil
+    // multiplies an alpha source (audit 2026-08-18). It renames no rung, changes no pairing
+    // and picks no colour, so it is stripped before the assertion rather than allowed
+    // through it: a material block naming any tone role in any OTHER shape still fails.
+    const materialBlock = from(recipes, '[data-material="thin"]').replace(
+      /--([\w-]+): var\(--\1-solid\);/g,
+      "",
+    );
     expect(materialBlock).not.toMatch(/--(tone|accent|neutral|destructive|color)-/);
     expect(materialBlock).not.toContain("--kui-ct-label-color");
   });
@@ -722,15 +812,67 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     }
   });
 
+  it("no component source attaches an interaction-time handler (ENGINEERING §1.5)", () => {
+    // REWRITTEN 2026-08-17 (drift audit #24): the law above asserts that :hover appears in a
+    // stylesheet, which was never in doubt — it stayed green if every component also added a
+    // pointermove handler, so the claim "no JS at interaction time is CHECKABLE" was itself
+    // unchecked. This half reads the component SOURCES for the thing that could actually
+    // breach it: a hover/move/enter handler, or an interaction-event listener. The named
+    // exemptions are the rule's own doctrine, each with its recorded reason — anything new
+    // failing here is a decision, not a cleanup.
+    const EXEMPT: Record<string, readonly string[]> = {
+      // The caret-on-click contract (§4): a click on the wrapper's padding must focus the
+      // input. That is a POINTER-DOWN commitment, not per-frame interaction work.
+      "components/text-field/text-field.tsx": ["onMouseDown"],
+      // The floating layer's seam (§20/§22): the entry runner holds the page during the
+      // opening frames and observes its own transitions — mount/flight machinery, the seam
+      // the doctrine names, never per-frame pointer tracking.
+      "system/floating.tsx": ["addEventListener"],
+      // The lens builds on mount and resize (§10's stated seam), never on pointer events.
+      "system/refraction.tsx": ["addEventListener"],
+    };
+    const banned = /on(?:Pointer|Mouse|Touch)(?:Move|Enter|Leave|Over|Out|Down|Up)\s*=|addEventListener\(\s*["'](?:pointer|mouse|touch|scroll|wheel)/g;
+    const files = [
+      ...walkFiles("components", ".tsx").filter((f) => !f.includes("test")),
+      ...walkFiles("system", ".tsx").filter((f) => !f.includes("test")),
+      ...walkFiles("theme", ".tsx").filter((f) => !f.includes("test")),
+    ];
+    expect(files.length, "the walk must find the component sources").toBeGreaterThan(10);
+    for (const file of files) {
+      const source = stripped(raw(file));
+      const hits = [...source.matchAll(banned)].map((m) => m[0]);
+      const allowed = EXEMPT[file] ?? [];
+      const offending = hits.filter((h) => !allowed.some((a) => h.includes(a)));
+      expect(offending, `${file} attaches an interaction-time handler: ${offending.join(", ")}`).toEqual([]);
+    }
+  });
+
   it("every :hover rule is guarded by (hover: hover) — and :active never is", () => {
     // A touch device synthesises :hover on tap and keeps it until you tap elsewhere, so an
     // unguarded hover rule leaves a pressed control stuck in its hover fill. Structural rather
     // than mounted, because the browser project cannot change a media feature mid-run: what is
-    // asserted is that no :hover declaration exists outside the guard.
-    const guardStart = recipes.indexOf("@media (hover: hover)");
-    expect(guardStart).toBeGreaterThan(-1);
-    const guardEnd = recipes.indexOf("\n}", recipes.indexOf("}", guardStart));
-    const outside = recipes.slice(0, guardStart) + recipes.slice(guardEnd + 2);
+    // asserted is that no :hover declaration exists outside a guard.
+    //
+    // EVERY guard, not the first (2026-08-17): the control-scale port added a second
+    // `@media (hover: hover)` block nested inside @supports, and the old spelling — first
+    // block only, with a hand-rolled end-of-block guess — reported that block's own :hover
+    // as unguarded. Brace-matched so a guard inside another at-rule strips whole.
+    let outside = recipes;
+    let start = outside.indexOf("@media (hover: hover)");
+    expect(start).toBeGreaterThan(-1);
+    while (start !== -1) {
+      let depth = 0;
+      let i = outside.indexOf("{", start);
+      for (; i < outside.length; i += 1) {
+        if (outside[i] === "{") depth += 1;
+        else if (outside[i] === "}") {
+          depth -= 1;
+          if (depth === 0) break;
+        }
+      }
+      outside = outside.slice(0, start) + outside.slice(i + 1);
+      start = outside.indexOf("@media (hover: hover)");
+    }
     expect(outside).not.toContain(":hover");
     // Press is the only feedback a touch device gets; guarding it would remove it entirely.
     expect(outside).toContain(":active");
@@ -805,8 +947,18 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
    * this substitutes EVERY declaration the sheet gives a hook and requires all of them to
    * hold: a single arm pointing somewhere it should not is what this is for.
    */
+  /**
+   * BOTH private stems, not just the control layer's (widened 2026-08-17). This was written
+   * when `.kui-control` was the only thing in the package that moved, so it knew `--kui-ct-`
+   * and nothing else. The day the interactive surface got its two clocks, its channels read
+   * `var(--kui-sf-move)` — a hook this could not follow — and the two laws below reported a
+   * correctly-sprung translate as unsprung and a correctly-tokenised duration as hand-typed.
+   * They were right to fail: an unresolvable hook is indistinguishable from a made-up one.
+   * The stems are the layers' own (`ct` control, `sf` surface, §12's namespace rule), so a
+   * third layer that starts moving joins here rather than getting a law of its own.
+   */
   function resolveHooks(sheetBody: string, channel: string): string {
-    return channel.replace(/var\((--kui-ct-[\w-]+)\)/g, (_, name: string) => {
+    return channel.replace(/var\((--kui-(?:ct|sf)-[\w-]+)\)/g, (_, name: string) => {
       const declared = [...sheetBody.matchAll(new RegExp(`${name}:\\s*([^;]+);`, "g"))].map(
         (m) => m[1]!.trim(),
       );
@@ -901,7 +1053,17 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // --kui-anchor-w: the entry's synchronous width floor, written in begin() before the
     //   floor chains consult it. --kui-floating-gap: the side offset, stamped inline by
     //   MenuContent/SelectContent on the popup itself before any seed rule can match.
-    const runtime = new Set(["--kui-anchor-w", "--kui-floating-gap"]);
+    // --scroll-area-thumb-height/-width: Base UI's OWN published measurements, written onto
+    //   the thumb it renders (2026-08-17). They are the one case here the library does not
+    //   write itself, and they take no fallback on purpose: there is no honest default extent
+    //   for a thumb — a guessed one would paint a wrong-length bar on the frame before the
+    //   measurement lands, which is worse than the rule not matching at all.
+    const runtime = new Set([
+      "--kui-anchor-w",
+      "--kui-floating-gap",
+      "--scroll-area-thumb-height",
+      "--scroll-area-thumb-width",
+    ]);
     let reads = 0;
     for (const file of allStylesheets()) {
       const body = sheet(file);
@@ -1081,9 +1243,16 @@ describe("the ring and the chrome are designed once, applied wherever they land 
     // a grip that does not sit above its rail stops reading as a grip, so both read the
     // palette row's VALUE rather than the world switch), and the key cap's (2026-08-08,
     // the day-one refusal reversed: a cap is a picture of a raised physical key, so depth
-    // is role semantics — the grips' sentence one family over). A SEVENTH consumer
-    // appearing is a decision, not a drift, and it should fail here first.
-    expect(found).toBe(6);
+    // is role semantics — the grips' sentence one family over).
+    //
+    // The SEVENTH arrived 2026-08-17 with the segmented control, and it is the grips' own
+    // exception a third time rather than a new one: the selected segment is a grip sitting in
+    // a channel — the switch's thumb with a label in it — so it reads --grip-cast's VALUE, not
+    // the world switch, for the reason the other two do. A grip that does not sit above its
+    // rail stops reading as a grip, and in a segmented control the raised segment IS the
+    // answer to "which one is chosen". An EIGHTH consumer appearing is a decision, not a
+    // drift, and it should fail here first.
+    expect(found).toBe(7);
     // The control indirection stays honest end-to-end: the cast the button paints is the
     // rung's statement, and a lit rung's cast IS the world chrome — nothing in between may
     // substitute its own value.

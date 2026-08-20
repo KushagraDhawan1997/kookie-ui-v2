@@ -1,0 +1,191 @@
+/* The segmented control adds its channel and its segments — the parts only it has (§4, §11,
+ * §19, §26).
+ *
+ * Everything else arrives shared: the track's box is the control skeleton on the height
+ * ladder, the segments are the hosted-control rule with N hosts, the quiet rung supplies a
+ * segment's resting bareness and its hover step, and the focus ring, cursor and disabled
+ * remap are the control layer's. This file never mentions a size.
+ */
+
+/* The TRACK is a well, not a dressed surface — the switch's own argument, verbatim (§11
+   "track low", §19). A segmented control is felt for as a channel with one segment raised out
+   of it; it is not a small surface you read. So the fill is the tone-independent well role in
+   both looks, and the control leaves the look axis with the switch, the slider and the bar.
+
+   All three sources, the field's lesson (§8): the shared layer swaps to -hover/-active under
+   the pointer, and a rule that declared only rest would fall back to the rung's values
+   mid-interaction — the channel would light up when the pointer crossed it.
+
+   No border, and no edge melted into the well either: the switch keeps its hairline so a
+   toggling box does not change size, and nothing here toggles its own box. A channel with an
+   outline reads as a container of buttons, which is the thing this is not.
+
+   The inline padding the skeleton gives a control is wrong for a track: the skeleton pads for
+   a LABEL, and a track's content is segments, which own their own padding. What the track
+   owes them is the channel inset, on all four sides. */
+.kui-segmented {
+  display: inline-flex;
+  align-items: stretch;
+  padding: var(--segment-inset);
+  /* The skeleton's border is stood DOWN, and it has to be (audit 2026-08-19, D2). `.kui-control`
+     declares `border: var(--border-width) solid …` under `box-sizing: border-box`, and a
+     TRANSPARENT border still occupies layout — so the track's content box was `h − 2·border −
+     2·inset` while the segment demanded `h − 2·inset`, and the track's border box grew to
+     `h + 2` in all 24 cells. Measured 30/34/42/50 against a Button's 28/32/40/48: the one
+     invariant this component exists to hold, broken in every cell, with the comment below
+     asserting the premise that would have prevented it.
+
+     Stood down by WIDTH, not by colour: naming the painted border variable is the checkbox's
+     audit defect (a), and a law forbids it in this directory. The width also keeps the corner
+     honest — `--kui-ct-radius` at `full` is half the LADDER RUNG, so a track two pixels taller
+     than its rung was under-rounded, and the concentric subtraction below inherited the error.
+
+     A well has no edge to lose. The switch keeps its hairline because a toggling box must not
+     change size; nothing here toggles its own box. */
+  border-width: 0;
+  --kui-ct-fill-src: var(--color-track);
+  --kui-ct-fill-src-hover: var(--color-track);
+  --kui-ct-fill-src-active: var(--color-track);
+  gap: 0;
+
+  /* No space between segments (Kushagra, 2026-08-19). The skeleton's `gap: var(--kui-ct-gap)`
+     is the ICON-TO-LABEL distance (config.ts) and it was reaching the track by inheritance —
+     4/8/8/12 fine and 8/12/12/16 coarse, so at coarse size 4 sixteen pixels of bare well showed
+     between segments, eight times the inset that is this component's only designed separation,
+     re-priced by pointer and size while staying deaf to density. Nothing owned that value.
+
+     Overridden as `gap`, deliberately NOT as `--kui-ct-gap`: a segment is itself a `.kui-control`
+     and reads that token for its own icon-to-label distance, so re-pointing the variable would
+     silently re-price the inside of every segment.
+
+     No border is DECLARED either, and that is the point: the skeleton paints a border colour that
+     resolves transparent unless a control opts in with `data-bordered`, which this one does
+     not. Forcing it transparent by writing the painted name here is the checkbox's audit
+     defect (a) exactly — a component that writes a painted name puts itself beyond the reach
+     of the invalid and disabled remaps, which rewrite the ROLE and expect the paint to
+     follow. A law forbids it, by name, in this directory.
+
+     The skeleton's button cursor is deliberately NOT stood down. The visible track is the
+     inset frame around the segments — two pixels — and standing it down would mean minting a
+     fifth cursor (§8 tokenises four) for a strip nobody aims at. The affordance is not a lie
+     either: the box IS a control, and every pixel of it that a pointer can meaningfully land
+     on belongs to a segment. */
+}
+
+/* A SEGMENT is a control hosted in a control, and §4 already owns that geometry: the hosted
+   box is the container minus a designed inset on every side, and the inset is designed so the
+   box is what derives (the switch's sentence — thumb = track − 2 × inset — with N thumbs).
+
+   `--kui-ct-h` is inherited from the track, where the size join declared it: the segment
+   stamps no `data-size` of its own, so there is exactly one place the index is read and the
+   two boxes cannot disagree. The subtraction is the two insets ALONE, and that is true only
+   because the rule above stands the skeleton's border down — the first spelling of this file
+   asserted the same thing while the border was still there, which cost every cell two pixels
+   (audit 2026-08-19, D2). The two lines are one fact and must move together.
+
+   `min-height`, not `height`, for the skeleton's reason: a hard height clips a 200%-resized
+   label (WCAG 1.4.4).
+
+   The resting ink is the MUTED foreground, and it is declared HERE rather than in a rule of
+   its own after the checked one — which is where it was first written, and it silently lost:
+   `:where()` contributes nothing, so `.kui-segment:where([data-checked])` and `.kui-segment`
+   tie at (0,1,0) and source order is the whole contest. Stated before the state that
+   overrides it, which is the order that makes the sentence true. */
+.kui-segment {
+  flex: 1 1 0;
+  --kui-ct-label-color: var(--color-text-muted);
+  min-height: calc(var(--kui-ct-h) - 2 * var(--segment-inset));
+  /* The concentric corner (§6, §22's own rule one family over): the inner radius is the
+     outer minus the inset between them, which is what keeps two curves parallel instead of
+     merely both round.
+
+     The `max()` is the guard `radius="none"` needs, and it is spelled as "never subtract more
+     corner than there is" rather than as "clamp the result at zero" — same answer, and it
+     needs no zero literal, which the tokens-only law does not allow one of. Left to clamp
+     itself the declaration would be relying on the range-clamping rule of the property, and
+     this system has already been bitten once by a corner that asked CSS to work something out
+     instead of stating it (the 9999px capsule, §6). */
+  border-radius: calc(max(var(--kui-ct-radius), var(--segment-inset)) - var(--segment-inset));
+}
+
+/* The SELECTED segment is the grip (§11, §26) — and there is no separate indicator element to
+   move, which is the design, not a shortcut. Base UI's Tabs ships an indicator because it
+   measures the active tab for you; RadioGroup ships none, so a gliding thumb here means
+   writing the measurement ourselves, and a mechanism whose only consumer is a motion nobody
+   has designed is the entropy this repo keeps paying for (the curtain, deleted 2026-08-17).
+
+   Its fill is `--color-thumb`, the value-control grip's role (§11, "dark shouldn't be dark"):
+   light keeps the seal, dark goes near-white, because a grip must be the most findable object
+   on its rail. The whole triple, and all three the same value: a grip does not fill, it moves
+   — so hover and press must not step it, or the selected segment would brighten under a
+   pointer that cannot change anything about it.
+
+   The ink steps up with it: an unselected segment reads the muted foreground and the chosen
+   one reads full — the tab bar's own sentence, the others are places you could go. The
+   TONE-LESS pair, deliberately: the root stamps `accent` so the family resolves for anything
+   that needs it, and reading `--tone-ink` here would put accent-coloured text on the grip. */
+.kui-segment:where([data-checked]) {
+  --kui-ct-fill-src: var(--color-thumb);
+  --kui-ct-fill-src-hover: var(--color-thumb);
+  --kui-ct-fill-src-active: var(--color-thumb);
+  /* The ink that pairs with the GRIP, not with the page (audit 2026-08-19, D1). `--color-text`
+     was measured painting the chosen label in its own fill in dark — `--color-thumb` is
+     neutral-12 there and so is `--color-text`, identical by construction, 1.00:1, with
+     `contrast="high"` moving neither. `--color-thumb-label` is stated beside the fill it
+     answers to, per mode, out of values the generator had already solved. */
+  --kui-ct-label-color: var(--color-thumb-label);
+  /* The grip casts ALWAYS — flat world included (§5, §6): the slider thumb's exception,
+     inherited with the role rather than re-argued, and mechanically the same reading — the
+     grip role's VALUE (`--grip-cast`), never the world switch, which is what "always" means.
+     The seventh box-shadow consumer in the package, and the count law is where that decision
+     is recorded. */
+  --kui-ct-cast: var(--grip-cast, none);
+  box-shadow: var(--kui-ct-cast, none);
+}
+
+/* Dead, the grip stops casting but does not melt (§8, the switch's 2026-08-08 correction one
+   control over). The first spelling of the switch's disabled arm sent the thumb to the same
+   remapped fill the track takes and the grip vanished into its own channel; the position of
+   the grip IS the control's state, so the state must survive the state. Same shape here: the
+   cast stands down, the fill dims to an alpha of the grip role, and which segment is chosen
+   stays readable. */
+/* Dead, the CHANNEL and the LABELS stand down too (audit 2026-08-19, D6). The shared disabled
+   arm rewrites tone ROLES, and all three of this component's resting colours are non-tone —
+   `--color-track`, `--color-text-muted`, `--color-thumb-label` — so the remap could not reach
+   any of them and a disabled control measured byte-identical to a live one in both appearances
+   except for the grip's cast and the cursor. In light that residual was about a three percent
+   shift, and on touch, with no cursor, the cast was the whole report.
+
+   Restated as the dim rather than as a colour, which is slider.css's own shape for the rail:
+   the same factor every dead thing in the system uses, so this follows the role wherever it
+   goes. The track's three sources move together for the field's reason — a rule that dimmed
+   only rest would light back up under the pointer. */
+.kui-segmented[data-disabled] {
+  --kui-ct-fill-src: color-mix(in srgb, var(--color-track) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-hover: color-mix(in srgb, var(--color-track) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-active: color-mix(in srgb, var(--color-track) var(--disabled-dim), transparent);
+}
+
+.kui-segment[data-disabled] {
+  --kui-ct-label-color: color-mix(
+    in srgb,
+    var(--color-text-muted) var(--disabled-dim),
+    transparent
+  );
+}
+
+.kui-segment:where([data-checked])[data-disabled] {
+  --kui-ct-cast: none;
+  --kui-ct-label-color: color-mix(
+    in srgb,
+    var(--color-thumb-label) var(--disabled-dim),
+    transparent
+  );
+  --kui-ct-fill-src: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-hover: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-active: color-mix(
+    in srgb,
+    var(--color-thumb) var(--disabled-dim),
+    transparent
+  );
+}

@@ -56,6 +56,7 @@ import {
   renderSettled,
   settle,
   flushFlight,
+  until,
   asksForStillness,
   type Cell,
 } from "../../test/browser.tsx";
@@ -67,7 +68,6 @@ const HOSTILE: ThemeProps = {
   radius: "large",
   pointer: "coarse",
   depth: "elevated",
-  surfaceLook: "filled",
 };
 
 /** Mount an OPEN menu under a themed root; LOUD when the popup never mounts. */
@@ -95,7 +95,94 @@ function openMenu(theme: ThemeProps, ui?: React.ReactNode, size?: "1" | "2" | "3
   const popup = popups[popups.length - 1];
   if (!popup) throw new Error("the popup never mounted — every law below would assert nothing");
   settle(popup);
-  return { host, popup, items: [...popup.querySelectorAll<HTMLElement>(".kui-menu-item")] };
+  return { host, popup, pad: padBox(popup), items: [...popup.querySelectorAll<HTMLElement>(".kui-menu-item")] };
+}
+
+/**
+ * The element carrying the panel's PHYSICAL padding, and the one that clips (2026-08-17).
+ *
+ * Until ScrollArea the popup was both: it padded its rows and, being `overflow-y: auto`, it
+ * was the scroll container whose padding box clipped their ink. The list now scrolls inside a
+ * ScrollArea viewport, so the popup keeps the geometry that is about the PANE — its corner,
+ * its bounds, its cast — and the viewport took the padding and the clipping with the
+ * scrolling. Every law below that used to read `popup` for a distance INSIDE the panel reads
+ * this instead; the ones about the pane itself still read the popup, which is the split worth
+ * keeping visible. Throws rather than falling back to the popup: a silent fallback would let
+ * this whole group go green against a menu that had lost its viewport entirely.
+ */
+/**
+ * Wait until the entry has actually BEGUN, rather than assuming it began on a fixed frame
+ * (2026-08-17). The runner poses in a layout effect, but Base UI's ScrollArea measures its
+ * viewport before it draws, so adopting it pushed the pose one frame later — and a law that
+ * samples "the first frame after the click" then reads the panel at its natural size and
+ * reports the entry starting 46.5px wide of its trigger, which is a scheduling artifact
+ * wearing a defect's clothes. Waiting on `data-seed` is the same discipline the sampling loop
+ * below already applies at the other end (the panel's own signal, never a frame count), and
+ * it CANNOT paper over a dead entry: an entry that never begins times out here and the law
+ * fails on this line instead of on a number.
+ */
+/**
+ * Open a menu the way a POINTER does (2026-08-17). `element.click()` dispatches an activation
+ * with no pointer sequence behind it, and Base UI reads that as a non-reveal and stamps
+ * `data-instant` — which the entry runner honours by design (an instant change must not be
+ * animated, §22). So a law that opens with a bare click is not testing an entry at all; it is
+ * testing the suppression. Measured both ways in a real page: synthetic click → `data-instant`
+ * and no pose; a real pointer press → `data-seed` and the panel starting at its trigger's 56px
+ * silhouette. This file already opened one law's menu this way (the render-merge law); the
+ * flight laws now do the same, which is what makes their subject the flight.
+ */
+async function press(trigger: HTMLElement): Promise<void> {
+  // userEvent, not a dispatched MouseEvent: Base UI's reveal test only trusts input the
+  // browser itself generated, and hand-built events are `isTrusted: false` — dispatching the
+  // full pointerdown/mousedown/click sequence still produced `data-instant` and no pose.
+  // vitest's userEvent drives CDP, so these are the real thing.
+  const { userEvent } = await import("vitest/browser");
+  await userEvent.click(trigger);
+}
+
+/**
+ * Capture the runner's own measurement AT POSE TIME (2026-08-17).
+ *
+ * `seeded()` below waits for a seed that is still on the element; this is for the laws that
+ * need a value the release STRIPS (the FLIGHT_VARS). Driving real input takes multiple frames,
+ * so by the time an `await press(...)` resolves the entry can already be over — the pose came
+ * and went between two statements, and a law that looks afterwards concludes there was never
+ * an entry at all. Armed before the click, this sees it happen.
+ */
+function watchPose(): Promise<{ flyW: number }> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      observer.disconnect();
+      reject(new Error("the entry never posed — no data-seed inside a second"));
+    }, 1000);
+    const observer = new MutationObserver(() => {
+      const posed = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find((el) =>
+        el.hasAttribute("data-seed"),
+      );
+      if (!posed) return;
+      const flyW = parseFloat(posed.style.getPropertyValue("--kui-fly-w"));
+      if (Number.isNaN(flyW)) return;
+      clearTimeout(timer);
+      observer.disconnect();
+      resolve({ flyW });
+    });
+    observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["data-seed", "style"] });
+  });
+}
+
+async function seeded(popup: HTMLElement): Promise<void> {
+  const deadline = performance.now() + 1000;
+  while (performance.now() < deadline) {
+    if (popup.hasAttribute("data-seed")) return;
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+  }
+  throw new Error("the entry never posed — no data-seed inside a second");
+}
+
+function padBox(popup: HTMLElement): HTMLElement {
+  const viewport = popup.querySelector<HTMLElement>(".kui-scroll-viewport");
+  if (!viewport) throw new Error("the menu's scroll viewport never mounted — it carries the panel's padding");
+  return viewport;
 }
 
 /**
@@ -151,6 +238,32 @@ async function openUnsettled(theme: ThemeProps = {}, ui?: React.ReactNode, size?
   // law here reads a pose whose numbers have not been written and measures NaN.
   await flushFlight();
   return { popup, body: popup.querySelector<HTMLElement>(".kui-floating-body")! };
+}
+
+/** The flight's own deadline in ms, read the way the runner reads it: the longest
+    duration-plus-delay on the popup, plus the runner's margin. Derived rather than written
+    down, so a law about interrupting a flight cannot drift when the clocks are retuned — as
+    they were on 2026-08-16, which is what made two hardcoded waits go stale at once.
+
+    It must be read with the pose OFF, which is the runner's own lesson one file over: the
+    pose declares `transition: none`, so a posed read answers zero and every wait derived
+    from it collapses — silently turning a law about interrupting a flight into a law about
+    nothing. `departed()` below is how a law gets there. */
+function flightClock(popup: HTMLElement): number {
+  const style = getComputedStyle(popup);
+  const delays = style.transitionDelay.split(",");
+  const spans = style.transitionDuration
+    .split(",")
+    .map((d, i) => parseFloat(d) + parseFloat(delays[i % delays.length] ?? "0"));
+  return Math.max(...spans, 0) * 1000 + 50;
+}
+
+/** The flight in the air: measured, posed, and one frame past the pose coming off. */
+async function departed(popup: HTMLElement): Promise<number> {
+  await flushFlight();
+  for (let i = 0; i < 3; i++) await new Promise((r) => requestAnimationFrame(() => r(null)));
+  if (popup.hasAttribute("data-seed")) throw new Error("the pose never came off — the clock would read zero");
+  return flightClock(popup);
 }
 
 /** The facts an axis reaches on the popup surface. */
@@ -411,8 +524,9 @@ describe("rows ride the existing control cells in all 24 cells (§21)", () => {
         tokenOn(popup, `--radius-row-${cell.size}`),
       );
       // Full width: the row spans the panel's content box exactly.
+      const box = padBox(popup);
       expect(row.getBoundingClientRect().width, label).toBeCloseTo(
-        popup.clientWidth - parseFloat(computed(popup, "padding-left")) * 2,
+        box.clientWidth - parseFloat(computed(box, "padding-left")) * 2,
         0,
       );
     });
@@ -550,11 +664,24 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
         const row = items[0];
         if (!row) throw new Error("row missing");
         const rowCorner = parseFloat(computed(row, "border-top-left-radius"));
-        const pad = parseFloat(computed(popup, "padding-top"));
+        const pad = parseFloat(computed(padBox(popup), "padding-top"));
+        // Lab port 2026-08-17: the panel is a SURFACE, and under `@supports (corner-shape:
+        // squircle)` a surface draws its authored corner × --kui-corner-k (1.613). The ROW's
+        // corner is NOT multiplied — controls never take squircle — so the concentric sum is
+        // still authored as rowCorner + pad, and the knob applies once, to the panel's paint.
+        // Derived through a probe inside the same panel so a non-squircle engine (knob
+        // fallback 1) passes unchanged, and a re-priced knob moves both sides.
+        const expected = parseFloat(
+          probeIn(
+            popup,
+            (el) => (el.style.borderRadius = `calc(${rowCorner + pad}px * var(--kui-corner-k, 1))`),
+            (s) => s.borderTopLeftRadius,
+          ),
+        );
         expect(
           parseFloat(computed(popup, "border-top-left-radius")),
           `${radius} × size ${size}`,
-        ).toBeCloseTo(rowCorner + pad, 1);
+        ).toBeCloseTo(expected, 1);
       }
     }
     // Concentric arithmetic is undefined at zero: `none` means square, not "rounded by
@@ -564,8 +691,10 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
   });
 
   it("padding and min-width are the menu's own designed tokens", () => {
-    const { popup } = openMenu({});
-    expect(computed(popup, "padding-top")).toBe(tokenOn(popup, "--floating-p"));
+    const { popup, pad } = openMenu({});
+    // The padding is the panel's fact and the viewport is where it is SPENT (2026-08-17) —
+    // the token is still the menu's own, read on the element that now applies it.
+    expect(computed(pad, "padding-top")).toBe(tokenOn(popup, "--floating-p"));
     expect(popup.getBoundingClientRect().width).toBeGreaterThanOrEqual(
       parseFloat(tokenOn(popup, "--floating-min-w")),
     );
@@ -610,7 +739,11 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
     );
   });
 
-  it("the popup casts in BOTH worlds — and a flat Card beside it still does not (§11 amended)", () => {
+  it("a flat popup casts NOTHING — flat means flat, floating panes included (2026-08-19)", () => {
+    // Reverses this law's own previous claim ("the popup casts in BOTH worlds", the
+    // 2026-08-09 coverage-is-information amendment): separation in flat is the hairline's
+    // job now, so the half-faded cast retired. The elevated popup is the negative control —
+    // the same pane in the other world must still cast a real shadow.
     for (const depth of DEPTHS) {
       let card: HTMLElement | null = null;
       render(
@@ -620,21 +753,49 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
       );
       const { popup } = openMenu({ depth });
       const cast = computed(popup, "box-shadow");
-      expect(cast, `${depth} popup casts`).not.toBe("none");
       if (depth === "flat") {
-        // The flat world's popup cast is the QUIETER derived value, not elevated's...
-        const { popup: elevatedPopup } = openMenu({ depth: "elevated" });
-        expect(cast).not.toBe(computed(elevatedPopup, "box-shadow"));
-        // ...and the flat world itself is intact: the card beside the menu casts nothing.
-        expect(computed(card!, "box-shadow"), "flat Card must stay flat").toBe("none");
+        // Every layer of the popup's list must be invisible — the pool and the world cast
+        // both stand down to no-op layers, and how MANY no-op layers the list holds is
+        // mechanism, not appearance. Zero geometry AND zero alpha per layer: a transparent
+        // shadow with real offsets would also be invisible today, but it would be a value
+        // waiting to paint the moment a color arrives.
+        expect(cast, "flat popup resolves a real list").not.toBe("none");
+        for (const layer of cast.split(/,(?![^(]*\))/)) {
+          expect(layer, "a flat popup layer must be the no-op").toMatch(
+            /^\s*rgba\(0, 0, 0, 0\) 0px 0px 0px 0px\s*$/,
+          );
+        }
+        // ...and the flat world itself is intact: the card beside the menu casts nothing
+        // either. Seat only (lab port 2026-08-17): flat removes the cast, never the pool.
+        const seat = document.createElement("div");
+        seat.style.boxShadow = "var(--material-pool-solid), 0 0 0 0 transparent";
+        card!.append(seat);
+        expect(computed(card!, "box-shadow"), "flat Card must stay flat").toBe(computed(seat, "box-shadow"));
+        seat.remove();
+      } else {
+        expect(cast, "elevated popup still casts").not.toBe("none");
+        // Visible means at least one layer with real alpha — a computed no-op list would
+        // read rgba(0, 0, 0, 0) only.
+        const alphas = [...cast.matchAll(/rgba?\([^)]*?([\d.]+)\)/g)].map((m) => parseFloat(m[1]!));
+        expect(Math.max(0, ...alphas), "elevated cast is visible").toBeGreaterThan(0);
       }
     }
   });
 
   it("a glass popup keeps the floating cast in both worlds — coverage outranks transmission", () => {
+    // Since the pool port (2026-08-17) the two popups differ in their FIRST layer by design —
+    // glass wears the pane's bottom shade, solid its seat line — so the claim is about the
+    // CAST: everything after the pool must be byte-identical, the floating chrome in both
+    // worlds. Comparing whole strings again would quietly re-litigate the pool.
+    // Lab port 2026-08-17: split on LAYER commas, not on the first "px," — the glass pool
+    // serializes as "… -14px inset," (no "px,"), so the old slice ate the pool AND the
+    // contact row and compared unequal tails. Commas inside rgb(…) are excluded by the
+    // lookahead; layer one is dropped, the cast is the rest.
+    const layersOf = (shadow: string) => shadow.split(/,(?![^(]*\))/).map((l) => l.trim());
+    const castOf = (shadow: string) => layersOf(shadow).slice(1).join(", ");
     for (const depth of DEPTHS) {
       const { popup: solidPopup } = openMenu({ depth });
-      const solidShadow = computed(solidPopup, "box-shadow");
+      const solidShadow = castOf(computed(solidPopup, "box-shadow"));
       // Fresh mount with glass: the filter engages, the fill goes translucent, and the
       // cast is byte-identical to the solid popup's — the floating chrome, not the
       // transmitted row (which is none in flat, where this assertion has teeth).
@@ -652,7 +813,25 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
       if (!glass) throw new Error("glass popup never mounted");
       const g = glass as HTMLElement;
       expect(computed(g, "backdrop-filter"), depth).not.toBe("none");
-      expect(computed(g, "box-shadow"), `${depth} glass cast`).toBe(solidShadow);
+      const glassShadow = computed(g, "box-shadow");
+      expect(castOf(glassShadow), `${depth} glass cast`).toBe(solidShadow);
+      // And the first layer is the WORLD's surface pool, or the cast comparison above is
+      // comparing tails of two one-layer lists and proving nothing. Lab port 2026-08-17:
+      // read the first LAYER (the old first-"px," slice never contained the pool at all)
+      // against the same token the glass rule consumes — `--kui-surface-pool` rides the
+      // world pointers, so elevated resolves the inset shade and flat stands it down to
+      // the list-legal no-op ("flat means flat": the pool is matter, and flat quiets it
+      // with the same stroke as the chrome).
+      const pool = layersOf(glassShadow)[0]!;
+      const expectedPool = probeIn(
+        g,
+        (el) => (el.style.boxShadow = "var(--kui-surface-pool, 0 0 0 0 transparent)"),
+        (s) => s.boxShadow,
+      );
+      expect(pool, `${depth} glass pool is the world's`).toBe(expectedPool);
+      // The teeth: in the elevated world that pool really is an inner shade — without this,
+      // a world that stopped declaring the pool entirely would satisfy the equality above.
+      if (depth === "elevated") expect(pool, "elevated glass pool is inner").toContain("inset");
     }
   });
 });
@@ -855,7 +1034,7 @@ describe("what the panel does to what is inside it (§22)", () => {
     if (!loose || !grouped || !row) throw new Error("both separators and a row must mount");
     // Calibration: the panel's padding is a real distance, so "spans the rows" and "spans
     // the panel" are distinguishable answers in this cell.
-    expect(parseFloat(computed(popup, "padding-left")), "nothing to inset").toBeGreaterThan(0);
+    expect(parseFloat(computed(padBox(popup), "padding-left")), "nothing to inset").toBeGreaterThan(0);
     // The rows' extent, both edges, both separators.
     const rowBox = row.getBoundingClientRect();
     for (const [name, el] of [["loose", loose], ["grouped", grouped]] as const) {
@@ -869,8 +1048,8 @@ describe("what the panel does to what is inside it (§22)", () => {
     // the selector left this law green). A law about one member of a two-member rule is
     // half a law, the same lesson the Progress axis taught.
     for (const [name, el] of [["loose", loose], ["grouped", grouped]] as const) {
-      expect(computed(el, "margin-top"), `${name} rhythm above`).toBe(computed(popup, "padding-top"));
-      expect(computed(el, "margin-bottom"), `${name} rhythm below`).toBe(computed(popup, "padding-top"));
+      expect(computed(el, "margin-top"), `${name} rhythm above`).toBe(computed(padBox(popup), "padding-top"));
+      expect(computed(el, "margin-bottom"), `${name} rhythm below`).toBe(computed(padBox(popup), "padding-top"));
     }
   });
 
@@ -992,7 +1171,7 @@ describe("a submenu meets its parent panel where §22 says it does", () => {
       // Calibration: the seam is a real distance in this cell, so an offset of zero would
       // be visibly wrong rather than accidentally right.
       const seam =
-        parseFloat(computed(parent, "padding-top")) +
+        parseFloat(computed(padBox(parent), "padding-top")) +
         parseFloat(computed(parent, "border-top-width"));
       expect(seam, `${density}: nothing to align`).toBeGreaterThan(0);
 
@@ -1033,10 +1212,14 @@ describe("a focused row's ring survives the panel that scrolls it (§8)", () => 
       expect(reach, `${density}: no ring to contain`).toBeGreaterThan(0);
       expect(computed(row, "outline-style"), density).toBe("solid");
 
-      const pad = parseFloat(computed(popup, "padding-left"));
+      // The CLIPPER is the subject, and since 2026-08-17 that is the scroll viewport rather
+      // than the popup: clearance has to exist wherever the clipping happens, which is the
+      // whole reason the padding moved with the scrolling instead of staying on the pane.
+      const box = padBox(popup);
+      const pad = parseFloat(computed(box, "padding-left"));
       expect(pad, `${density}: the panel must clear the ring`).toBeGreaterThanOrEqual(reach);
       // Both axes, because both are clipped — the one-sided-law lesson (Progress, 2026-08-08).
-      expect(parseFloat(computed(popup, "padding-top")), density).toBeGreaterThanOrEqual(reach);
+      expect(parseFloat(computed(box, "padding-top")), density).toBeGreaterThanOrEqual(reach);
     }
   });
 
@@ -1440,6 +1623,112 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(computed(popup, "pointer-events"), "the flight must hit-test").toBe("auto");
   });
 
+  it("a panel that lands BESIDE its trigger grows out of the SEAM, not out of the row (§22)", async () => {
+    /**
+     * The silhouette's one exception, and it is decided by the placement rather than by the
+     * component (2026-08-17, Kushagra: *"the way submenu appears is quite aggressive… it ends
+     * up traveling a lot, especially if dropdown menu is wide"*).
+     *
+     * A silhouette is honest where the panel LANDS on the thing it came out of. A submenu
+     * lands beside the panel its row sits in, so the row-shaped seed started it somewhere it
+     * will never be: measured on this mount before the fix, a 353 x 30 seed at x=10 flying
+     * into a 92 x 73 panel at x=376 — 366px of travel while SHRINKING to a quarter of its
+     * width, and both numbers are the parent panel's width, which is what makes it worse the
+     * wider the menu is.
+     *
+     * The parent row is deliberately long. A narrow menu would pass this law with the old
+     * code, because there the row and the seam are nearly the same place — which is exactly
+     * how the wrong rule survived being looked at.
+     *
+     * And it is opened by HOVER, not by `defaultOpen` on the sub. That was the first spelling
+     * and it measured nothing: mounting both panels in one commit places the child against a
+     * parent that has not settled, so the aim read a positioner still sitting near the row and
+     * the pre-fix travel came out at 5.8px instead of the 366 a real open produces. A law that
+     * cannot see the defect it was written for is worse than no law.
+     */
+    mount(
+      <Theme>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>Open</Button>} />
+          <MenuContent>
+            <MenuItem>Duplicate this whole project into a new workspace</MenuItem>
+            <MenuSub>
+              <MenuSubTrigger>Export as</MenuSubTrigger>
+              <MenuSubContent>
+                <MenuItem>PNG</MenuItem>
+                <MenuItem>SVG</MenuItem>
+              </MenuSubContent>
+            </MenuSub>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    inMotion();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const settledParent = document.querySelector<HTMLElement>(".kui-menu-popup")!;
+    const subTrigger = [...settledParent.querySelectorAll<HTMLElement>("[role='menuitem']")].find((el) =>
+      el.textContent?.includes("Export as"),
+    )!;
+    const { userEvent } = await import("vitest/browser");
+    await userEvent.hover(subTrigger);
+
+    /**
+     * The LAST seeded frame, not the first — and the difference is a whole order of magnitude.
+     * The runner aims twice (a microtask, then a correcting frame, because floating-ui can
+     * place the positioner after the measurement lands), so the first aimed frame is read
+     * against a positioner still sitting at the document's origin: the pre-fix offset measured
+     * 10px there and 366px one frame later. The frame that starts the flight is the one before
+     * the pose comes off, so that is the frame this law is about.
+     */
+    let child: HTMLElement | undefined;
+    let seed: DOMRect | undefined;
+    let fromX = "";
+    let seedW = "";
+    for (let i = 0; i < 40; i++) {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      const panels = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].slice(1);
+      const posed = panels.find((el) => el.hasAttribute("data-seed") && el.hasAttribute("data-aimed"));
+      if (posed) {
+        child = posed;
+        seed = posed.getBoundingClientRect();
+        fromX = posed.style.getPropertyValue("--kui-from-x");
+        seedW = posed.style.getPropertyValue("--kui-seed-w");
+      } else if (child) break;
+    }
+    if (!child || !seed) throw new Error("the submenu never reached an aimed seed frame");
+
+    const rowBox = subTrigger.getBoundingClientRect();
+    // Calibration: a short row cannot tell the two rules apart, and this law's whole subject
+    // is what happens when the parent is wide.
+    expect(rowBox.width, "the parent row must be long enough to matter").toBeGreaterThan(200);
+    expect(child.parentElement?.getAttribute("data-side"), "and the panel must land beside it").toMatch(
+      /^(inline-start|inline-end|left|right)$/,
+    );
+
+    // It starts at the panel's own start edge — no travel across the parent at all. Read as
+    // the flight's own offset rather than by differencing two boxes, because that is the one
+    // number the fix writes.
+    expect(fromX, "no lateral travel").toBe("0px");
+    expect(Math.abs(seed.left - rowBox.left), "the pre-fix code sat ON the row").toBeGreaterThan(100);
+
+    // And it GROWS. The width photograph is gone — the seed falls back to the family's
+    // designed diameter — while the row's height and corner stay, because that edge is real.
+    expect(seedW, "no width photograph").toBe("");
+    expect(seed.width, "the seed is the family's designed one").toBeCloseTo(
+      parseFloat(tokenOn(child, "--floating-seed")),
+      0,
+    );
+    expect(seed.width, "a fraction of the row it came from").toBeLessThan(rowBox.width / 2);
+    expect(Math.abs(seed.height - rowBox.height), "at the row's own height").toBeLessThan(3);
+
+    // The direction of the unfurl, which is the whole complaint: the box must be smaller than
+    // what it becomes, in both axes.
+    const flyW = parseFloat(child.style.getPropertyValue("--kui-fly-w"));
+    const flyH = parseFloat(child.style.getPropertyValue("--kui-fly-h"));
+    expect(seed.width, `it must open into ${flyW}px, not shrink to it`).toBeLessThan(flyW);
+    expect(seed.height, `and into ${flyH}px`).toBeLessThan(flyH);
+  });
+
   it("the box it grows into is measured, and it is the panel's own", async () => {
     // The cell is chosen, not default: a panel whose natural width lands on a whole pixel
     // cannot test a claim about fractions, and the default one lands exactly on its 112px
@@ -1613,23 +1902,33 @@ describe("the panel unfurls out of a seed (§22)", () => {
     }
     mount(<Host />);
     inMotion();
-    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    await wait(600); // land the first flight
+    // Awaited for its own sake: `departed` is what puts the flight in the air, and it THROWS
+    // if the pose never came off — the clock it returns is no longer read here, because every
+    // wait below is a state rather than a duration.
+    await departed(popup);
+    // Every wait here is a STATE, not a duration (`until`, 2026-08-17): sleeping a computed
+    // number of milliseconds and reading once is what made three laws fail on a loaded CI
+    // runner and never here.
+    await until(() => !popup.hasAttribute("data-unfurling"));
+    expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight landed").toBe(false);
     flushSync(() => setOpen(false));
-    await wait(60); // mid-dissolve (the dissolve clock is 140ms)
+    // Mid-dissolve is a WINDOW, and a fixed 60ms into a 140ms clock is the shape that
+    // overshoots. Sampled, the stamp is caught the frame it lands.
+    await until(() => popup.hasAttribute("data-ending-style"), 400);
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
     expect(popup.hasAttribute("data-ending-style"), "the premise: mid-dissolve").toBe(true);
     flushSync(() => setOpen(true)); // the quick reopen
-    // Not a microtask wait: Base UI removes the ending stamp on its own FRAME (probed —
-    // at 0ms the announcement has not landed yet), and the begin follows it.
-    await wait(50);
+    // Base UI removes the ending stamp on its own FRAME (probed — at 0ms the announcement has
+    // not landed yet) and the runner's begin follows it, so this waits for the pose rather
+    // than for a number of milliseconds it hopes is long enough.
+    await until(() => popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"), 800);
     expect(
       popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"),
       "the reopen begins a fresh flight, not a recovery from the half-dissolved pose",
     ).toBe(true);
-    await wait(600); // and it LANDS — the new flight's own clock releases it
+    await until(() => !popup.hasAttribute("data-unfurling")); // and it LANDS
     expect(popup.hasAttribute("data-unfurling"), "the stale clock did not strip the new flight").toBe(false);
     expect(computed(popup, "opacity")).toBe("1");
   });
@@ -1710,21 +2009,64 @@ describe("the panel unfurls out of a seed (§22)", () => {
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    await flushFlight();
-    await wait(200); // mid-flight: the entry runs to ~480ms
+    const clock = await departed(popup);
+    /**
+     * WHEN each flight is due is MEASURED, and the release is WATCHED (2026-08-17, after this
+     * law failed once on CI and never once here, loaded or idle).
+     *
+     * It used to sleep to a computed instant — `wait(clock - interrupt / 2)` with `interrupt`
+     * a hardcoded 240 — and read the attribute exactly once when it woke. The whole gap
+     * between the stale deadline and the real one is about 245ms, so the read sat roughly
+     * 155ms clear of the far edge, and `setTimeout` is a MINIMUM: a runner busy enough to
+     * overshoot by that much lands the read after the flight has legitimately finished and the
+     * law reports a defect that is not there. That is the same shape as the three laws fixed
+     * this morning — a statement about the machine wearing a statement about the code.
+     *
+     * Watching inverts the failure direction, which is the point. A slow runner samples LESS
+     * often, so a late observation only moves the release later, which can only make the claim
+     * easier to satisfy — never harder. The claim itself is unchanged and is still the one
+     * thing this law exists for: the panel outlives the interrupted flight's clock.
+     */
+    const airborneAt = performance.now();
+    await wait(200); // mid-flight
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight is airborne").toBe(true);
     flushSync(() => setOpen(false));
-    await wait(40); // mid-dissolve (the dissolve clock is 140ms)
+    // The stamp, not a stopwatch: a fixed 40ms into a 140ms dissolve is the same overshoot
+    // hazard the rest of this law was rewritten to remove.
+    await until(() => popup.hasAttribute("data-ending-style"), 400);
     expect(popup.hasAttribute("data-ending-style"), "the premise: dismissed, not yet gone").toBe(true);
     flushSync(() => setOpen(true));
     await flushFlight();
     expect(popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling")).toBe(true);
-    // Past the interrupted flight's own deadline (~290 from here), short of this one's (~530).
-    await wait(400);
+
+    // The two deadlines, measured off the clock the runner actually reads. `stale` is an UPPER
+    // bound rather than the exact instant — `airborneAt` is stamped after `departed()` has
+    // spent its frames, so the first flight's timer was really set a little earlier — and the
+    // approximation errs the safe way: a later `stale` raises the bar below, so it can only
+    // make this law stricter, never more permissive.
+    const stale = airborneAt + clock;
+    const real = performance.now() + clock;
+    expect(real - stale, "the premise: the two deadlines must be far enough apart to tell apart").toBeGreaterThan(150);
+
+    // Watch for the release rather than sleeping past it. Bounded generously — this is a
+    // ceiling on a hung flight, not a timing claim.
+    let releasedAt = 0;
+    while (performance.now() < real + 400) {
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      if (!popup.hasAttribute("data-unfurling")) {
+        releasedAt = performance.now();
+        break;
+      }
+    }
+    expect(releasedAt, "the flight never released at all — the clock is the subject here").toBeGreaterThan(0);
+    // Landed on the RIGHT clock: past the midpoint of the gap is unambiguous, because a stale
+    // timer fires at `stale` and the live one at `real`, and nothing fires in between.
     expect(
-      popup.hasAttribute("data-unfurling"),
-      "the interrupted flight's clock must not land on the flight that replaced it",
-    ).toBe(true);
+      releasedAt,
+      `released ${Math.round(releasedAt - stale)}ms after the stale deadline, ` +
+        `${Math.round(releasedAt - real)}ms from the real one — the interrupted flight's clock ` +
+        `must not land on the flight that replaced it`,
+    ).toBeGreaterThan((stale + real) / 2);
   });
 
   it("the panel's CONTENT does not slide in from the side when it opens end-aligned (§22)", async () => {
@@ -1753,7 +2095,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
       </Theme>,
     );
     inMotion();
-    document.querySelector<HTMLElement>(".kui-button")!.click();
+    await press(document.querySelector<HTMLElement>(".kui-button")!);
     const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
     await tick();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
@@ -1811,7 +2153,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
         </Theme>,
       );
       inMotion();
-      document.querySelector<HTMLElement>(".kui-button")!.click();
+      await press(document.querySelector<HTMLElement>(".kui-button")!);
       const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
       await tick();
       const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
@@ -1872,14 +2214,13 @@ describe("the panel unfurls out of a seed (§22)", () => {
     inMotion();
     const trigger = document.querySelector<HTMLElement>(".kui-button")!;
     const triggerLeft = trigger.getBoundingClientRect().left;
-    trigger.click();
+    const posed = watchPose();
+    await press(trigger);
+    const { flyW: natural } = await posed;
     const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-    await tick();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
     if (!popup) throw new Error("the popup never opened");
-
     const seed = parseFloat(tokenOn(popup, "--floating-seed"));
-    const natural = parseFloat(popup.style.getPropertyValue("--kui-fly-w"));
     // Calibration, both halves: the seed must fit where the panel does not, or the flip this
     // law exists to forbid was never reachable in this cell.
     expect(triggerLeft + seed, "the seed must fit — else the pre-fix code passes").toBeLessThan(
@@ -2020,11 +2361,12 @@ describe("the panel unfurls out of a seed (§22)", () => {
     );
     inMotion();
     const restingBox = document.querySelector<HTMLElement>(".kui-button")!.getBoundingClientRect();
-    document.querySelector<HTMLElement>(".kui-button")!.click();
+    await press(document.querySelector<HTMLElement>(".kui-button")!);
     const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
     await frame();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
     if (!popup) throw new Error("the popup never opened");
+    await seeded(popup);
 
     // Sampled across the WHOLE entry, not its first frames: the floor that clamped the width
     // could also come back mid-flight, and a short window cannot see the difference between a
@@ -2035,12 +2377,14 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // suite, where this law duly failed on its first full run for no reason but scheduling.
     const widths: number[] = [];
     const heights: number[] = [];
+    const stamps: number[] = [];
     let released = -1;
     const deadline = performance.now() + 2000;
     while (performance.now() < deadline) {
       const box = popup.getBoundingClientRect();
       widths.push(Math.round(box.width));
       heights.push(Math.round(box.height));
+      stamps.push(performance.now());
       if (!popup.hasAttribute("data-unfurling")) {
         released = widths.length - 1;
         break;
@@ -2061,14 +2405,32 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // (the seed frame, then its destination) and a dead one reports one.
     expect(new Set(widths).size, `width never moved: ${widths.join(",")}`).toBeGreaterThan(2);
     expect(new Set(heights).size, `height never moved: ${heights.join(",")}`).toBeGreaterThan(2);
-    // And it grew rather than jumping: no single frame covers most of the distance.
+    /**
+     * And it GREW rather than jumping — stated as a SPEED, not as a per-frame share
+     * (2026-08-17, CI).
+     *
+     * "No single frame covers more than a fifth of the distance" is a true claim about a spring
+     * at 60fps and a claim about the MACHINE anywhere else: a loaded runner hands this loop one
+     * frame where an idle one hands it ten, and the same smooth animation then reports a 45px
+     * step out of 47 and fails a law about smoothness. Measured on CI, on an entry that was
+     * fine.
+     *
+     * Pixels per millisecond is the frame-rate-free form of the same sentence. A spring's
+     * fastest moment runs two to three times its own average, so six times the average is
+     * generous and still nowhere near a snap — a channel that lets go covers the whole distance
+     * in one frame, which is tens of times its average whatever the frame rate.
+     */
     const distance = Math.max(...widths) - Math.min(...widths);
-    const jump = Math.max(...widths.slice(1).map((w, i) => w - widths[i]!));
-    // A spring's fastest frame covers about a tenth of the distance at 60fps. A fifth means
-    // something let go — the floor coming back mid-flight snaps whatever is left in one frame.
-    expect(jump, `width jumped ${jump}px of ${distance}px in one frame`).toBeLessThan(
-      distance * 0.2,
+    const elapsed = stamps.at(-1)! - stamps[0]!;
+    expect(elapsed, "the entry was never sampled over time").toBeGreaterThan(0);
+    const average = distance / elapsed;
+    const fastest = Math.max(
+      ...widths.slice(1).map((w, i) => Math.abs(w - widths[i]!) / Math.max(stamps[i + 1]! - stamps[i]!, 1)),
     );
+    expect(
+      fastest,
+      `width moved ${fastest.toFixed(2)}px/ms against an average of ${average.toFixed(2)}px/ms`,
+    ).toBeLessThan(average * 6 + 0.5);
     // And the flight is released only once the LAST channel has landed. Keying the release on
     // the vertical (which finishes 160ms earlier) puts the width floor back while the panel is
     // still widening, and the floor beats an animating width — the same clamp, arriving late
@@ -2082,9 +2444,156 @@ describe("the panel unfurls out of a seed (§22)", () => {
     ).toBeLessThanOrEqual(1);
   });
 
+  it("the posed CONTENT is held: invisible, molten, and a step below where it lands (§8, §22)", async () => {
+    /**
+     * The family's content sentence, all three channels, read on the pose (2026-08-15: the rows
+     * must be *"blurred out, empty"* while the box is still becoming, and print as one piece as
+     * it lands; the small rise joined on 2026-08-16 so the content ARRIVES rather than merely
+     * appearing).
+     *
+     * It exists because the rise went missing and nothing failed (2026-08-17). It was collateral
+     * from a gesture built and then deleted, and the whole suite stayed green: every law here
+     * read the BOX, and the three channels the body moves had no law of their own. A mechanism
+     * with no law is a mechanism one refactor from being gone.
+     */
+    const { popup } = await openUnsettled();
+    const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
+    expect(popup.hasAttribute("data-seed"), "the read must land on the posed frame").toBe(true);
+    expect(parseFloat(computed(body, "opacity")), "the content is not held back").toBe(0);
+    expect(computed(body, "filter"), "the content is not molten").toContain("blur");
+    // The echo: a step BELOW where it will land, so the print reads as an arrival. Asserted as
+    // a downward offset rather than against the token's number — the distance is v0 and the
+    // claim is the direction.
+    const [, y] = computed(body, "translate").split(" ");
+    expect(parseFloat(y ?? "0"), "the content does not rise into place").toBeGreaterThan(0);
+    /**
+     * And it ARRIVES: everything above is a pose, and a pose that never comes off is a panel
+     * whose rows never appear.
+     *
+     * Waited to the VALUES, not to the pose coming off (2026-08-17, after this failed on CI
+     * and never here). The pose is stripped on the flight's clock, and the body's own print
+     * runs on a clock of its own that is still finishing its last frames at that instant —
+     * measured on the runner at `blur(0.093377px)`, a tenth of a pixel short of `none`. The
+     * deadline is a ceiling on a print that never lands, not a timing claim: if the content
+     * genuinely never sharpens, the loop expires and the assertions below fail holding
+     * whatever it was left with.
+     */
+    const deadline = performance.now() + 3000;
+    const arrived = () =>
+      !popup.hasAttribute("data-unfurling") &&
+      computed(body, "filter") === "none" &&
+      computed(body, "translate") === "none";
+    while (!arrived() && performance.now() < deadline)
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+    expect(parseFloat(computed(body, "opacity")), "the content never printed").toBeCloseTo(1, 1);
+    expect(computed(body, "filter"), "the content never sharpened").toBe("none");
+    expect(computed(body, "translate"), "the content never landed").toBe("none");
+  });
+
+  it("a panel that opens UPWARD keeps its content INSIDE it, every frame (§22, §23)", async () => {
+    /**
+     * Kushagra: *"whenever menu opens to the top, the content doesnt load, it comes after
+     * animation completes."* It loaded on frame one. It was outside the pane.
+     *
+     * The flight pins the body absolutely so the panel is sized by the measurement rather than
+     * by its content, and that pin resolves against the nearest positioned ancestor. ScrollArea
+     * landed between the body and the panel on 2026-08-17 and its root is `position: relative`
+     * — written INLINE by Base UI, so no stylesheet can take it — which made the scroll area
+     * the containing block. Its height is its content's, and the pin has just taken that
+     * content out of flow, so it collapses to its own padding: measured, 8px.
+     *
+     * Bottom-opening panels survived by luck: that 8px box sits at the panel's top, so
+     * `inset-block-start` from it lands about where a downward-growing panel wanted the rows.
+     * A top-opening panel measures `inset-block-end` from the same box's bottom — four pixels
+     * below the panel's TOP — so the body sat above the pane and was clipped for the whole
+     * entry. Measured before the fix: 0px of a 92px body inside the panel for the first
+     * two-thirds of the flight, 8px at the end, and the rows appearing all at once when the
+     * flight released and the body returned to flow.
+     *
+     * The claim is containment per FRAME, because the defect is invisible in every static
+     * read: at rest, before and after, the body is in flow and perfectly placed.
+     */
+    render(
+      <Theme>
+        <div style={{ position: "absolute", bottom: "20px", left: "20px" }}>
+          <Menu>
+            <MenuTrigger render={<Button>Open</Button>} />
+            <MenuContent>
+              <MenuItem>Alpha</MenuItem>
+              <MenuItem>Beta</MenuItem>
+              <MenuItem>Gamma</MenuItem>
+            </MenuContent>
+          </Menu>
+        </div>
+      </Theme>,
+    );
+    inMotion();
+    const { userEvent } = await import("vitest/browser");
+    // Armed BEFORE the press: real input is slow enough that a whole entry can finish between
+    // two statements (the recorded instrument lesson), and a synthetic `.click()` is no escape
+    // — Base UI stamps `data-instant` for it and the flight is correctly suppressed.
+    const seen: { side: string | null; panel: number; body: number; inside: number }[] = [];
+    let frames = 0;
+    const watch = () => {
+      const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
+      const body = popup?.querySelector<HTMLElement>(".kui-floating-body");
+      if (popup?.hasAttribute("data-unfurling") && body) {
+        const p = popup.getBoundingClientRect();
+        const b = body.getBoundingClientRect();
+        seen.push({
+          side: popup.getAttribute("data-side"),
+          panel: p.height,
+          body: b.height,
+          inside: Math.max(0, Math.min(p.bottom, b.bottom) - Math.max(p.top, b.top)),
+        });
+      }
+      if (frames++ < 60) requestAnimationFrame(watch);
+    };
+    requestAnimationFrame(watch);
+    await userEvent.click(document.querySelector<HTMLElement>(".kui-button")!);
+    await until(() => frames >= 60, 4000);
+
+    // Calibration first, both halves: the case only exists if the panel actually opened
+    // upward, and the law only means something if it watched the flight rather than the rest.
+    expect(seen.length, "the flight was never sampled — every assertion below is vacuous").toBeGreaterThan(6);
+    expect(seen.every((f) => f.side === "top"), `the panel must open upward: ${seen[0]?.side}`).toBe(true);
+    expect(Math.max(...seen.map((f) => f.panel)), "and it must actually grow").toBeGreaterThan(
+      Math.min(...seen.map((f) => f.panel)) + 20,
+    );
+
+    // The claim: once the pane is tall enough to hold the body, the body is in it. Frames where
+    // the pane is still smaller than its content are exempt — there the content cannot fit by
+    // definition, and the family clips on purpose.
+    const holdable = seen.filter((f) => f.panel >= f.body);
+    expect(holdable.length, "the pane must reach its content's height while still flying").toBeGreaterThan(2);
+    for (const f of holdable)
+      expect(
+        f.inside,
+        `panel ${f.panel.toFixed(0)}px held only ${f.inside.toFixed(0)}px of its ${f.body.toFixed(0)}px body`,
+      ).toBeGreaterThan(f.body * 0.9);
+  });
+
   it("the panel clips while it is not its own size (§22)", async () => {
     const { popup } = await openUnsettled();
     expect(popup.hasAttribute("data-unfurling")).toBe(true);
+    /**
+     * CLIP, not `hidden` (2026-08-17, Kushagra: *"Select still jumps"*). The two clip
+     * identically; they differ in whether the box can be SCROLLED, and that difference is the
+     * bug. Base UI focuses the selected row while the panel is still mid-flight and
+     * deliberately smaller than its content, so the browser scrolls the nearest scrollable
+     * ancestor to reveal it — and `hidden` IS one. Measured on an eight-row select with the
+     * fifth selected: the panel took `scrollTop: 57`, which nothing settles at (the whole list
+     * fits the instant the box finishes growing), so the browser clamped it back down frame by
+     * frame and the contents slid under a growing frame. `clip` cannot take an offset at all:
+     * measured 0 in every frame.
+     *
+     * `hidden` was tried FIRST, for the opposite reason and against the same symptom — an
+     * unscrollable panel sends the browser one step up and the PAGE moves instead. That half
+     * is real and is held in the runner rather than absorbed here (system/floating.tsx), which
+     * is what lets this box refuse the scroll outright. Measured both ways: `clip` with no
+     * hold leaves the page 65px down, `hidden` with the hold leaves the page still and the
+     * contents sliding.
+     */
     expect(computed(popup, "overflow-y")).toBe("clip");
     // And it scrolls again once it has arrived — a long menu is why the panel has an overflow
     // at all, and `overflow-y: auto` computes the OTHER axis to auto with it.
@@ -2094,7 +2603,21 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(computed(popup, "min-width")).toBe("0px");
     popup.removeAttribute("data-unfurling");
     popup.removeAttribute("data-seed");
-    expect(computed(popup, "overflow-y")).toBe("auto");
+    // The panel does NOT take its scrolling back (2026-08-17): the list scrolls inside a
+    // ScrollArea viewport now, so the popup's clip is permanent — it is the pane's own
+    // boundary, not a state of the flight. What the release must restore is the viewport's
+    // ability to scroll, which is the claim that replaces this one.
+    //
+    // `clip` since 2026-08-20, and the word is the point. This line asserted `hidden` while
+    // the sentence above it said "clip is permanent" — menu.css had the same split, saying
+    // "clips" in prose and `overflow: hidden` in CSS. A hidden box is a scroll container; the
+    // pane wants a boundary, not a scrollport it never uses. The declaration is deleted and
+    // the base surface rule carries it, which is why this now reads through from the pane.
+    expect(computed(popup, "overflow-y")).toBe("clip");
+    // `scroll`, not `auto`: Base UI's viewport asks for a permanent scrollport so its own
+    // measurements do not change the box they measure, and the custom bar replaces the one
+    // that would otherwise always show (scrollbar-width: none, scroll-area.css).
+    expect(computed(padBox(popup), "overflow-y")).toBe("scroll");
     expect(parseFloat(computed(popup, "min-width")), "and it comes back").toBeGreaterThan(0);
   });
 
@@ -2170,19 +2693,14 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(child.getAttribute("data-side")).toMatch(/right|inline-end/);
     expect(computed(child, "transform-origin")).toBe("0px 0px");
     expect(computed(child, "margin-inline-start")).toBe("0px");
-    // A submenu's seed is its trigger ROW's silhouette (2026-08-15) — the same measured
-    // overlay every anchor gets, no arm of its own. The 2026-08-10 morph refused this
-    // (its lean flew the row in from the side); measurement removed the objection.
     expect(child.hasAttribute("data-seed"), "the read must land on the seed frame").toBe(true);
-    // One frame for the aim.
-    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-    const row = parent.querySelector<HTMLElement>(".kui-menu-sub-trigger, [data-popup-open]")!;
-    const rowBox = row.getBoundingClientRect();
-    const seed = child.getBoundingClientRect();
-    expect(Math.abs(seed.left - rowBox.left), "sitting on its own trigger row").toBeLessThan(3);
-    expect(Math.abs(seed.top - rowBox.top)).toBeLessThan(3);
-    expect(Math.abs(seed.width - rowBox.width), "the row's own width").toBeLessThan(3);
-    expect(Math.abs(seed.height - rowBox.height), "and height").toBeLessThan(3);
+    // The seed's own GEOMETRY is no longer this law's subject (2026-08-17). It used to assert
+    // the row's silhouette — left, top, width and height all within 3px of the trigger row —
+    // and that rule is gone: a panel landing BESIDE its trigger flies from the seam instead
+    // (see "a panel that lands BESIDE its trigger grows out of the SEAM"). This law keeps the
+    // half that did not change, which is the edge the positioner holds and the pivot that
+    // follows it. Splitting them is deliberate: the seam law has to open by hover to measure
+    // anything real, and this one is about a fact readable the moment the panel exists.
   });
 });
 
@@ -2197,9 +2715,13 @@ describe("a portalled panel is glass again — the escape the stacking rule need
     // The negative control is the card itself, which must stay glass: without it, a rule that
     // switched the whole app to solid would satisfy the assertion below.
     let panel: HTMLElement | null = null;
+    // `backdrop` (lab port 2026-08-17): Cards are SOLID by default even under a glass
+    // theme — glass is selective — so the negative control must state the over-content
+    // placement to be glass at all. The panel portals out and expresses the theme's glass
+    // regardless; without the prop the "card stays glass" half would assert nothing.
     const host = render(
       <Theme material="regular">
-        <Card id="host">
+        <Card id="host" backdrop>
           <Menu defaultOpen>
             <MenuTrigger render={<Button>Open</Button>} />
             <MenuContent ref={(n: HTMLDivElement | null) => void (panel = n)}>
@@ -2233,7 +2755,83 @@ describe("a portalled panel is glass again — the escape the stacking rule need
     const p = panel as HTMLElement;
     expect(p.dataset["material"]).toBe("regular");
     const inner = p.querySelector<HTMLElement>("#inner")!;
-    expect(inner.dataset["material"]).toBeUndefined();
+    // `on-glass` (2026-08-16): it must not filter — the panel already spent the backdrop —
+    // and it must not seal either, or a card in a glass menu reads as a slab punched through
+    // the panel. Both halves, since the attribute alone would pass on a rule that paints
+    // nothing and the filter alone would pass on an opaque card.
+    expect(inner.dataset["material"]).toBe("on-glass");
     expect(computed(inner, "backdrop-filter")).toBe("none");
+    const alpha = (c: string) => (c.includes("/") ? parseFloat(c.slice(c.lastIndexOf("/") + 1)) : 1);
+    expect(alpha(computed(inner, "background-color")), "the card sealed itself onto the panel").toBeLessThan(1);
+  });
+});
+
+describe("the ScrollArea adoption holds its a11y and its keyboard physics (2026-08-19)", () => {
+  it("the viewport carries NO tabindex, so role=presentation is real and menu owns menuitem", () => {
+    // ARIA's conflict rule voids `presentation` on any focusable element. Base UI stamps a
+    // tabindex on the viewport unconditionally (0 scrollable, -1 not), so the first adoption
+    // exposed a nameless `generic` between role="menu" and its items and put a tab stop
+    // inside a roving-focus widget (audit 2026-08-18, read off the CDP accessibility tree).
+    // The menu passes `focusable={false}` and the wrapper strips the attribute — asserted on
+    // the attribute because the attribute is the entire mechanism the AX tree keys on.
+    const { popup } = openMenu({});
+    const viewport = popup.querySelector<HTMLElement>(".kui-scroll-viewport")!;
+    expect(viewport.getAttribute("role")).toBe("presentation");
+    expect(viewport.hasAttribute("tabindex"), "a focusable viewport voids presentation").toBe(false);
+    // The standalone ScrollArea keeps its tab stop — a bare scroll region must be reachable
+    // by keyboard, and losing THAT to this fix would trade one a11y defect for another.
+  });
+
+  it("a KEYBOARD open flies — Base UI 1.7's instant stamp is exempt for real opens (§8, §22)", async () => {
+    // Base UI 1.7 stamps instantType "click" for any trigger press with detail === 0 —
+    // every keyboard Enter/Space — and the runner's bail honoured it, so a keyboard user
+    // got no entry at all while a mouse user got the full silhouette flight (audit
+    // 2026-08-18): a decision this system never made. An open is an open; stillness belongs
+    // to reduced-motion, not to the keyboard. The runner and the stylesheet both exempt
+    // `data-instant="click"` now, and this law drives a real keyboard.
+    render(
+      <Theme>
+        <Menu>
+          <MenuTrigger render={<Button>Open</Button>} />
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+            <MenuItem>Beta</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    inMotion();
+    const trigger = document.querySelector<HTMLButtonElement>(".kui-button")!;
+    const { userEvent } = await import("vitest/browser");
+    // Armed BEFORE the press — real input is slow enough that the whole entry can finish
+    // between two statements (the recorded instrument lesson).
+    const posed = watchPose();
+    trigger.focus();
+    await userEvent.keyboard("{Enter}");
+    const { flyW } = await posed;
+    expect(flyW, "the keyboard entry posed a real flight").toBeGreaterThan(0);
+  });
+});
+
+describe("reduced transparency SEALS a floating pane (§10 — audit 2026-08-18)", () => {
+  it("the popup's veil goes near-opaque, not just blur-less", async () => {
+    // The sealed-veil arm was (0,2,0) and the dark-floating fill rules are (0,3,0), so the
+    // preference stripped the blur and LEFT the translucency — a menu stayed ~50% see-through
+    // with raw page content reading straight through the rows, strictly worse than leaving
+    // the preference off. The restated floating arm seals the veil at the floating rules'
+    // own weight.
+    const { cdp } = await import("vitest/browser");
+    await cdp().send("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
+    });
+    try {
+      const { popup } = openMenu({ material: "regular" });
+      expect(computed(popup, "backdrop-filter")).toBe("none");
+      const fill = computed(popup, "background-color");
+      const alpha = fill.includes("/") ? parseFloat(fill.split("/")[1]!) : 1;
+      expect(alpha, `a sealed pane must be near-opaque, got ${fill}`).toBeGreaterThan(0.85);
+    } finally {
+      await cdp().send("Emulation.setEmulatedMedia", { features: [] });
+    }
   });
 });

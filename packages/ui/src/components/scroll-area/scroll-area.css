@@ -1,0 +1,106 @@
+/* ScrollArea (2026-08-17): custom scrollbars over native scrolling. The bar is OVERLAY —
+   no drawn track, no gutter, a capsule thumb floating over the content and gone at rest.
+   Every number is a token; the thumb's fill is the alpha ramp, so one value reads on the
+   page, on a pooled dark card bottom, and on glass. */
+
+.kui-scroll-area {
+  /* The scrollbars position against the root; the root takes whatever box its caller's
+     layout gives it (a scrollbar has no opinion about size — Progress's sentence). */
+  position: relative;
+  display: block;
+  min-block-size: 0;
+}
+
+.kui-scroll-viewport {
+  /* border-box, and it is load-bearing rather than hygiene (2026-08-17, measured): the
+     viewport is `inline-size: 100%` and a CONSUMER pads it — the menu moved the panel's whole
+     padding here when the scrolling moved. Under the initial content-box that padding is
+     added OUTSIDE the 100%, so the viewport rendered 2 × padding wider than the box clipping
+     it: 8px of overflow at compact, which pushed a submenu 8px off flush and let the rows run
+     under the pane's own corner. The mark family learned this exact lesson at audit R1 —
+     a ladder is the PAINTED box — and it is the same fix one family over. */
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-block-size: 100%;
+  overflow: auto;
+  /* The custom bar REPLACES the native one, so the native one must go — both spellings,
+     because Safari answered only the pseudo for years and the property is the standard. */
+  scrollbar-width: none;
+}
+.kui-scroll-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+/* The bar: absolute against the root, inset from the edge, invisible at rest. Paint is a
+   signal (§8): in fast under the hand, out slow after it leaves — the hover rule's own
+   asymmetry, on the one property that is pure paint.
+
+   It is still stood down under reduced motion (below), against this comment's first claim
+   that "reduced motion owes nothing here". Pure paint is not the exemption it sounds like:
+   the floating family's dissolve is opacity too and carries a stand-down, and a fade is the
+   one clock a person who asked for stillness is most likely to notice on a bar that appears
+   under their own hand. The system's answer is one answer, not one per property. */
+.kui-scrollbar {
+  position: absolute;
+  opacity: 0;
+  transition: opacity var(--motion-hover-out) var(--motion-easing);
+}
+/* The inset is a MARGIN, not an inset (2026-08-17, measured while writing the laws): Base UI
+   pins the bar to its edges with INLINE `top` / `bottom` / `inset-inline-end`, and an inline
+   declaration beats every stylesheet rule, so the first spelling — `inset-block` and
+   `inset-inline-end` — resolved to nothing at all and the bar shipped flush against the
+   corner. `!important` would win and is refused for the reason the entry runner refuses it:
+   it wins the cascade and leaves the library's intent unstated. A margin is a channel Base UI
+   does not write, so the two layers compose instead of fighting — the bar keeps the extent
+   the library gives it, minus the room the system asks for. */
+.kui-scrollbar[data-orientation="vertical"] {
+  margin-block: var(--scrollbar-inset);
+  margin-inline-end: var(--scrollbar-inset);
+  inline-size: var(--scrollbar-size);
+}
+.kui-scrollbar[data-orientation="horizontal"] {
+  margin-inline: var(--scrollbar-inset);
+  margin-block-end: var(--scrollbar-inset);
+  block-size: var(--scrollbar-size);
+}
+.kui-scrollbar:where([data-scrolling], [data-hovering]) {
+  opacity: 1;
+  transition-duration: var(--motion-hover-in);
+}
+
+/* The thumb: a capsule on the alpha ramp. Base UI publishes its extent as CSS variables;
+   the cross axis fills the bar. Darker under the pointer's grip — one step pair from
+   config, not a mix invented here. */
+.kui-scroll-thumb {
+  border-radius: calc(var(--scrollbar-size) / 2);
+  background-color: var(--scrollbar-thumb);
+}
+.kui-scrollbar[data-orientation="vertical"] .kui-scroll-thumb {
+  inline-size: 100%;
+  block-size: var(--scroll-area-thumb-height);
+}
+.kui-scrollbar[data-orientation="horizontal"] .kui-scroll-thumb {
+  block-size: 100%;
+  inline-size: var(--scroll-area-thumb-width);
+}
+.kui-scroll-thumb:active {
+  background-color: var(--scrollbar-thumb-active);
+}
+
+/* The corner exists so two live bars never overlap — and paints nothing: there is no track
+   to meet, so there is nothing to draw. */
+.kui-scroll-corner {
+  background: none;
+}
+
+/* Stillness (§8, 2026-08-10's doctrine): the stand-down is declared on the SAME selector as
+   the recipe, so specificity can never separate them. The bar still appears and still goes —
+   it just arrives at once. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-scrollbar {
+    transition: none;
+  }
+  .kui-scrollbar:where([data-scrolling], [data-hovering]) {
+    transition: none;
+  }
+}

@@ -1,5 +1,5 @@
-/* Shell (§26). The app frame — and deliberately almost no paint of its own: every pane is a
-   `.kui-surface`, so the seal, edge, look axis, material and the world's depth all arrive
+/* Shell (§27). The app frame — and deliberately almost no paint of its own: every pane is a
+   `.kui-surface`, so the seal, edge, material and the world's depth all arrive
    from surfaces.css exactly as they do for a Card. What this sheet states is GEOMETRY (the
    grid, the pane extents, the two postures) and the pane STATES (auto/open/closed, and the
    overlay treatment with its scrim).
@@ -110,7 +110,7 @@
   block-size: var(--kui-shell-h, var(--shell-bottom-h));
 }
 
-/* ── State: closed, and what an UNTOUCHED pane means (§26 "auto until touched") ────────────
+/* ── State: closed, and what an UNTOUCHED pane means (§27 "auto until touched") ────────────
    Resolved here rather than in JS so the first paint is right with no script, on the server
    and the client alike — and so no open/close callback can fire at mount, because nothing in
    JS decided anything. The JS mirror (usePane's `expanded`) exists only for aria-expanded
@@ -135,7 +135,7 @@
 
 /* ── The overlay treatment ─────────────────────────────────────────────────────────────────
    The same element leaving flow — never a second component (v1's Sheet branch, the defect
-   §26 exists to delete). An absolutely positioned grid item resolves its insets against its
+   §27 exists to delete). An absolutely positioned grid item resolves its insets against its
    own GRID AREA, so a left pane rises exactly under the header row and above the bottom row
    with no arithmetic: the area's column has collapsed to zero width and the pane's stated
    inline-size grows it over the content from that edge.
@@ -199,11 +199,11 @@
   }
 }
 
-/* ── The two postures: flush and floating (§26) ────────────────────────────────────────────
+/* ── The two postures: flush and floating (§27) ────────────────────────────────────────────
    FLUSH tiles the panes edge to edge: corners square, and each seam is ONE hairline — a pane
    draws only its inner edge and the content draws none, so two neighbours never double a
    border. The border-width overrides leave the surface's border COLOR untouched, which is
-   what keeps the seams reachable by the look axis and contrast="high" exactly as a card's
+   what keeps the seams reachable by contrast="high" exactly as a card's
    edge is. */
 .kui-shell[data-panes="flush"] > .kui-shell-pane {
   border-radius: var(--radius-0);

@@ -14,6 +14,8 @@ export { Select, SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectLa
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
+export { SegmentedControl, SegmentedItem, type SegmentedControlProps, type SegmentedItemProps } from "./components/segmented-control/segmented-control.tsx";
+export { ScrollArea, type ScrollAreaProps } from "./components/scroll-area/scroll-area.tsx";
 export {
   Shell,
   ShellHeader,
@@ -36,6 +38,7 @@ export {
 } from "./components/shell/shell.tsx";
 export { Slider, type SliderProps } from "./components/slider/slider.tsx";
 export { Switch, type SwitchProps } from "./components/switch/switch.tsx";
+export { Tabs, TabsList, TabsTab, TabsPanel, type TabsProps, type TabsListProps, type TabsTabProps, type TabsPanelProps } from "./components/tabs/tabs.tsx";
 export { Text, type TextProps, type TypeSize, type Weight } from "./components/text/text.tsx";
 export { TextArea, type TextAreaProps } from "./components/text-area/text-area.tsx";
 export { TextField, type TextFieldProps } from "./components/text-field/text-field.tsx";
@@ -52,6 +55,11 @@ export {
   type ThemeProps,
 } from "./theme/theme.tsx";
 export { useWindowClass, windowClassQueries, type WindowClass } from "./system/window.ts";
+export { componentAxes } from "./system/axes.ts";
 export type { Emphasis, Material, Size, Tone } from "./system/axes.ts";
 export type { Responsive } from "./system/resolve.ts";
+// The tier TABLE beside its type (2026-08-19, the componentAxes sentence for §2's axis):
+// the builder's tier chips and its canvas width readout derive names and boundaries from
+// this one home, instead of restating 30/48/64rem where they would go stale.
+export { tiers, tierNames } from "./system/props.ts";
 export type { Tier } from "./system/props.ts";

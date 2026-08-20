@@ -2,6 +2,19 @@
    surfaces seal ABOVE the page; the page itself is step 1) and reads the foreground context.
    Everything visible beyond this file is @kookie-ui/react — the docs are the first real
    consumer, and the stance is that they use nothing else. */
+/* Reserve the scrollbar's gutter always (2026-08-16). Opening any anchored panel makes Base
+   UI lock the page — `body { overflow: hidden }`, with no gutter of its own — and on a
+   platform whose scrollbars take space that widens the content area by ~15px for as long as
+   the panel is open. Nothing moves sideways, because the page is left-aligned; what moves is
+   /preview's `wrap` specimen rows, which sit close enough to a wrap boundary that 15px pulls
+   a control up onto the previous line and everything below it jumps (measured: one row went
+   76px to 32px across a single boundary). Reserving the gutter makes the lock free. This is
+   the APP's line to write, not the library's: the library paints no page background for the
+   same reason — the page is the consumer's. */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   min-height: 100dvh;

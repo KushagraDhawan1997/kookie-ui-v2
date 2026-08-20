@@ -161,8 +161,21 @@ describe("the ring lands where landing reads as motion, and nowhere else (§8)",
     expect(Math.max(...seen), "it must begin outside its resting offset").toBeCloseTo(rest + land, 1);
     expect(Math.min(...seen), "and settle exactly on it").toBeCloseTo(rest, 1);
     // Whole pixels, every one of them — the fact that bounds how short a ring's travel can be.
+    // This is also the interpolation check: an engine that started interpolating would report
+    // fractions, not fewer steps.
     for (const value of seen) expect(value, `${seen.join(",")}`).toBe(Math.round(value));
-    expect(seen.length, "a landing needs enough pixels to read as one").toBeGreaterThan(3);
+    // It genuinely moves through values rather than snapping between the two ends.
+    expect(seen.length, "the ring did not travel at all").toBeGreaterThan(2);
+    /**
+     * And the CONSTRAINT is stated on the token, not on how many frames the sampler caught
+     * (2026-08-17, CI). "More than three distinct values" is a claim about the DESIGNED travel
+     * — whole pixels mean a 4px landing renders as five steps and a 2px one as three — but a
+     * sampler only sees a value if a frame was painted on it, and a loaded runner drops frames:
+     * measured, three values on CI for a travel that crosses four pixels, failing a law about
+     * the design because of the machine it ran on. The travel is the thing that must not shrink.
+     */
+    expect(land, "a landing needs enough pixels to read as one").toBeGreaterThanOrEqual(4);
+    expect(Math.max(...seen) - Math.min(...seen), "and it must cross all of them").toBeCloseTo(land, 1);
   });
 
   it("a field's ring is instant — the one arrival the mechanism cannot carry", async () => {
@@ -216,7 +229,7 @@ describe("hover reaches every family, including the two with no fill to step (§
    * self, which is what "no hover state at all" looks like in numbers.
    */
   for (const appearance of APPEARANCES) {
-    it(`the boundary steps under a real pointer — ${appearance}`, async () => {
+    it(`hover is one step in one currency, under a real pointer — ${appearance}`, async () => {
       const root = render(
         <Theme appearance={appearance}>
           <TextField placeholder="a" />
@@ -230,11 +243,33 @@ describe("hover reaches every family, including the two with no fill to step (§
         ["textarea", root.querySelector<HTMLElement>(".kui-textarea")!],
         ["checkbox", root.querySelector<HTMLElement>(".kui-checkbox")!],
       ];
+      // THE CURRENCY CHANGED 2026-08-17, and with it this law's subject property.
+      //
+      // It was written (2026-08-10) for exactly the two families whose FILL was held still: a
+      // field pinned to the seal, a mark stepping invisibly inside it. With no fill to move,
+      // their hover had to be carried by the boundary, so the shared layer stepped the border
+      // toward the family's ink. The fill-first flip gave both families a dress fill with
+      // designed hover and active slots, so the ordinary fill rule reaches them — and keeping
+      // the border mix as well made a hovered field move in TWO currencies at once, which is
+      // what Kushagra saw as "hover too aggressive". The boundary rule was deleted.
+      //
+      // What survives is the principle, and it is the stronger claim: hover is ONE step, in
+      // the one currency the control's identity is made of. So this asserts the fill moves AND
+      // that the border does not — a law that only checked the fill would go green again the
+      // day someone re-adds a second channel.
       for (const [name, el] of subjects) {
-        const rest = computed(el, "border-color");
+        const restFill = computed(el, "background-color");
+        const restEdge = computed(el, "border-color");
         await userEvent.hover(el);
         expect(el.matches(":hover"), `${name}: the harness must really be hovering`).toBe(true);
-        expect(computed(el, "border-color"), `${name} does not answer the pointer`).not.toBe(rest);
+        expect(
+          computed(el, "background-color"),
+          `${name} does not answer the pointer`,
+        ).not.toBe(restFill);
+        expect(
+          computed(el, "border-color"),
+          `${name} moves in two currencies at once`,
+        ).toBe(restEdge);
         await userEvent.unhover(el);
       }
     });
@@ -278,8 +313,15 @@ describe("a field does not move (§8)", () => {
     expect(wrapper.matches(":hover"), "the harness must really be hovering").toBe(true);
     expect(computed(wrapper, "translate"), "a field has nowhere to go — §8").toBe("none");
     expect(computed(wrapper, "scale")).toBe("none");
-    // The fill's own invariant, read through the pointer rather than off the declaration: the
-    // border carries a field's states, and the seal underneath does not move with them.
-    expect(computed(wrapper, "background-color")).toBe(restingFill);
+    // The fill INVARIANT INVERTED 2026-08-17, and the law is about the box either way. "The
+    // border carries a field's states and the seal does not move" was the bordered-box
+    // identity's sentence; the field rests on a well now, so its fill is exactly what a
+    // pointer moves (one step, one currency — motion's hover law above). What this law owns
+    // is the GEOMETRY claim: a field does not travel or scale. The fill assertion stays, with
+    // its polarity corrected, so the two laws cannot both be satisfied by a dead control.
+    expect(
+      computed(wrapper, "background-color"),
+      "a field's own currency is its fill, and the pointer moves it",
+    ).not.toBe(restingFill);
   });
 });

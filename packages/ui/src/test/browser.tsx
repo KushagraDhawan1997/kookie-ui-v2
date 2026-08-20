@@ -39,11 +39,14 @@ import menuCss from "../components/menu/menu.css?raw";
 import selectCss from "../components/select/select.css?raw";
 import progressCss from "../components/progress/progress.css?raw";
 import radioCss from "../components/radio/radio.css?raw";
+import scrollAreaCss from "../components/scroll-area/scroll-area.css?raw";
+import segmentedControlCss from "../components/segmented-control/segmented-control.css?raw";
 import separatorCss from "../components/separator/separator.css?raw";
 import shellCss from "../components/shell/shell.css?raw";
 import sliderCss from "../components/slider/slider.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
 import switchCss from "../components/switch/switch.css?raw";
+import tabsCss from "../components/tabs/tabs.css?raw";
 import textAreaCss from "../components/text-area/text-area.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
 import layoutCss from "../system/layout.css?raw";
@@ -76,10 +79,13 @@ export function installStyles(): void {
   selectCss,
     progressCss,
     radioCss,
+    scrollAreaCss,
+    segmentedControlCss,
     separatorCss,
     shellCss,
     sliderCss,
     switchCss,
+    tabsCss,
     textFieldCss,
     textAreaCss,
   ].join("\n");
@@ -135,6 +141,33 @@ function holdStill(): void {
     document.head.append(stillness);
   }
   stillness.disabled = wantsMotion;
+}
+
+/**
+ * Wait for a STATE, never for a duration (2026-08-17).
+ *
+ * Every motion law that sleeps to a computed instant and reads once is measuring the machine.
+ * `setTimeout` is a minimum, and a loaded runner overshoots it — so a law that sleeps into a
+ * window ("mid-dissolve", "between the two deadlines") wakes up after the window has closed
+ * and reports a defect that is not there. Three such laws failed on CI in one morning and
+ * none of them could be reproduced here, idle or under full load.
+ *
+ * Sampling inverts the failure direction, which is the whole point: a slow runner samples LESS
+ * often, so an observation lands later, and later can only make "has it happened yet" easier
+ * to satisfy — never harder. It cannot make a law weaker either. If the thing genuinely never
+ * happens, no amount of waiting invents it and the deadline expires into the same assertion
+ * the law always made.
+ *
+ * The deadline is a CEILING on something hung, not a timing claim, so it is set generously
+ * against the clock in question rather than tuned to it. The condition is returned rather than
+ * thrown on so the caller still writes the assertion — a helper that threw would move the
+ * law's own claim in here, where its failure message could not name it.
+ */
+export async function until(condition: () => boolean, ms = 3000): Promise<boolean> {
+  const deadline = performance.now() + ms;
+  while (!condition() && performance.now() < deadline)
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+  return condition();
 }
 
 /**

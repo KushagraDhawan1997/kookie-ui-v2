@@ -1,5 +1,5 @@
 /**
- * Shell node laws (§26) — what can be read off the shipped files without a browser.
+ * Shell node laws (§27) — what can be read off the shipped files without a browser.
  *
  * The mounted laws live in shell.browser.test.tsx; these pin the two seams that cross
  * files: the viewport boundary (shell.css is the ONE component sheet sanctioned to key on
@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { narrowMedia, shellGap, shellWidth } from "../../tokens/config.ts";
 import { block, raw, sheet } from "../../test/stylesheets.ts";
 
-describe("the shell's viewport boundary is config's, verbatim (§18, §26)", () => {
+describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () => {
   const css = sheet("components/shell/shell.css");
 
   it("the one width query is the narrow boundary — derived here, so a respelled literal fails", () => {
@@ -65,7 +65,7 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §26)", () 
     }
   });
 
-  it("the shell paints no bed, casts nothing, and moves nothing — the absences ARE the design (§26)", () => {
+  it("the shell paints no bed, casts nothing, and moves nothing — the absences ARE the design (§27)", () => {
     // Panes are surfaces: fill, edge, depth and material all arrive from surfaces.css. A
     // background, box-shadow or transition appearing in this sheet means the shell has
     // started painting on its own account. The scrim's fill is the one sanctioned paint.
@@ -76,7 +76,7 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §26)", () 
   });
 });
 
-describe("the shell tokens are emitted from config (§26)", () => {
+describe("the shell tokens are emitted from config (§27)", () => {
   const tokens = raw("tokens/tokens.css");
 
   it("the pane defaults ride --scale, straight from shellWidth", () => {

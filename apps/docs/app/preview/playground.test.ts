@@ -21,8 +21,27 @@ import { describe, expect, it } from "vitest";
 
 import { themeDefaults } from "@kookie-ui/react";
 
+import { COMPONENT_PREVIEWS } from "./previews";
+import { SECTION_ORDER } from "./previews/types";
+
 const here = fileURLToPath(new URL(".", import.meta.url));
 const packageIndex = join(here, "../../../../packages/ui/src/index.ts");
+
+/** Every .tsx under the preview route, RECURSIVELY — the per-component spec files live in
+    previews/ and the standalone route in [slug]/, and a walk that stopped at the top level
+    would un-count every specimen the day it ported (2026-08-19). */
+function allPreviewSources(): string {
+  const files: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith(".tsx")) files.push(full);
+    }
+  };
+  walk(here);
+  return files.map((f) => readFileSync(f, "utf8")).join("\n");
+}
 
 /** Uppercase value exports of the public surface — components, not hooks or types. */
 function exportedComponents(): string[] {
@@ -37,10 +56,7 @@ function exportedComponents(): string[] {
 }
 
 describe("every exported component appears in the playground", () => {
-  const rendered = readdirSync(here)
-    .filter((f) => f.endsWith(".tsx"))
-    .map((f) => readFileSync(join(here, f), "utf8"))
-    .join("\n");
+  const rendered = allPreviewSources();
 
   const components = exportedComponents();
 
@@ -78,10 +94,7 @@ describe("a state the shared layer paints has a specimen (§8)", () => {
     join(here, "../../../../packages/ui/src/system/recipes.css"),
     "utf8",
   ).replace(/\/\*[\s\S]*?\*\//g, " ");
-  const sources = readdirSync(here)
-    .filter((f) => f.endsWith(".tsx"))
-    .map((f) => readFileSync(join(here, f), "utf8"))
-    .join("\n");
+  const sources = allPreviewSources();
 
   const marksHaveCheckedInvalidRule = /\.kui-mark[^{]*data-checked[^{]*(data-invalid|aria-invalid)/.test(
     recipes,
@@ -134,6 +147,36 @@ describe("a state the shared layer paints has a specimen (§8)", () => {
     // `appearance` is the one deliberate literal: the preview starts by inheriting the docs'
     // own appearance, which is a choice this panel makes rather than a default it copies.
     expect(block).toContain('appearance: "inherit"');
+  });
+
+  it("every axis the panel HOLDS, it also drives — a chip and a prop, or it is dead", () => {
+    // Earned 2026-08-16, and it is the law above being one indirection short. `material` became
+    // a Theme axis, the panel gained the Env field and the derived default — so the derivation
+    // law passed, green — and the axis reached NOTHING: no chip to flip it, and the canvas
+    // <Theme> was never handed it. The one surface whose job is judging the system's newest
+    // decision could not show it. A default that derives is not an axis that works.
+    //
+    // Both halves, because either alone is half the mechanism: a chip with no prop moves state
+    // nothing reads, a prop with no chip is pinned at its default forever.
+    // The canvas Theme lives in PreviewShell since 2026-08-19 — the shell both routes share,
+    // extracted so the standalone pages could not grow a drifting panel copy.
+    const app = readFileSync(join(here, "preview-app.tsx"), "utf8");
+    const panel = app.slice(app.indexOf("function EnvPanel"), app.indexOf("export function PreviewApp"));
+    const canvas = app.slice(app.indexOf("export function PreviewShell"));
+    expect(panel, "EnvPanel is not where this law thinks").toContain("Chips");
+    expect(canvas, "the canvas Theme is not where this law thinks").toContain("<Theme");
+
+    // `appearance` and `contrast` are the store's, per the law above: appearance is applied
+    // through its own spread arm (a pinned value only), contrast has no Theme prop at all.
+    const axes = Object.keys(themeDefaults).filter((a) => a !== "appearance" && a !== "contrast");
+    expect(axes.length, "themeDefaults carries no axes to check").toBeGreaterThan(4);
+    for (const axis of axes) {
+      expect(panel, `no chip flips ${axis} — the panel holds an axis it cannot move`).toContain(
+        `options={AXES.${axis}}`,
+      );
+      expect(canvas, `${axis} never reaches the canvas Theme — flipping its chip does nothing`)
+        .toContain(`${axis}={env.${axis}}`);
+    }
   });
 
   it("the showcase renders whole screens, not one more specimen", () => {
@@ -197,5 +240,76 @@ describe("a state the shared layer paints has a specimen (§8)", () => {
       withInvalid.length,
       "no selected RadioGroup contains an invalid Radio — the wash cannot be judged",
     ).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * The per-component preview structure (2026-08-19, Kushagra: "one thing I hate the most is
+ * inconsistency"). One shape, every ported component: six sections in one fixed order, a
+ * missing section declared with a written reason, and both routes reading ONE registry so
+ * the collection page and the standalone pages cannot drift. These laws import the registry
+ * at runtime — the real objects, not a regex over the file — because the claim is about the
+ * data both routes consume.
+ */
+describe("the per-component previews share one structure", () => {
+  it("every section states its intent — a name alone invites every demo to improvise", () => {
+    // Written the day Nesting drifted through three meanings (2026-08-20): the renderer
+    // prints each section's intent under its heading, so the sentence must exist and be a
+    // real one for every section in the fixed order.
+    for (const { key, name, intent } of SECTION_ORDER) {
+      expect(typeof intent, `${key} has no intent`).toBe("string");
+      expect(intent.length, `${name}'s intent is too short to be a contract`).toBeGreaterThan(60);
+    }
+  });
+
+  it("the registry has entries and unique slugs — an empty registry audits nothing", () => {
+    expect(COMPONENT_PREVIEWS.length).toBeGreaterThan(0);
+    const slugs = COMPONENT_PREVIEWS.map((p) => p.slug);
+    expect(new Set(slugs).size, "two previews share a slug — one page would shadow the other").toBe(
+      slugs.length,
+    );
+  });
+
+  it("every spec answers every section — specimens, or a written reason, never silence", () => {
+    for (const p of COMPONENT_PREVIEWS) {
+      for (const { key } of SECTION_ORDER) {
+        const section = p.sections[key];
+        expect(section, `${p.slug} is missing the "${key}" section entirely`).toBeTruthy();
+        const hasBody = "body" in section && section.body != null;
+        const hasAbsent = "absent" in section && typeof section.absent === "string";
+        expect(
+          hasBody !== hasAbsent,
+          `${p.slug}.${key} must carry specimens OR a reason, exactly one — both/neither is a section nobody decided`,
+        ).toBe(true);
+        // The cheapest way to satisfy a structure law is an empty declaration; a refusal
+        // must be a real sentence (the component reference's own anti-rot clause).
+        if (hasAbsent) {
+          expect(
+            (section.absent as string).length,
+            `${p.slug}.${key}'s absence reason is too short to be a reason`,
+          ).toBeGreaterThan(40);
+        }
+      }
+    }
+  });
+
+  it("the standalone route derives its pages from the registry — no second list", () => {
+    const route = readFileSync(join(here, "[slug]/page.tsx"), "utf8");
+    expect(route, "the route no longer reads the registry").toContain("COMPONENT_PREVIEWS");
+    expect(route, "without generateStaticParams the pages are not derived").toContain(
+      "generateStaticParams",
+    );
+    // A hand-written slug literal in the route would be the second list this law forbids.
+    expect(route.includes('"card"'), "the route hard-codes a slug beside the registry").toBe(false);
+  });
+
+  it("a ported component's collection entry derives from the same spec the standalone page renders", () => {
+    const specimens = readFileSync(join(here, "specimens.tsx"), "utf8");
+    for (const p of COMPONENT_PREVIEWS) {
+      expect(
+        specimens.includes(`ported("${p.slug}")`),
+        `${p.slug} is in the registry but the collection page does not derive its section — it renders a stale hand copy or nothing`,
+      ).toBe(true);
+    }
   });
 });

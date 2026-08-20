@@ -152,3 +152,21 @@ export const boxProps = {
 
 export type BoxPropName = keyof typeof boxProps;
 export const boxPropNames = Object.keys(boxProps) as BoxPropName[];
+
+/**
+ * The props that pull a box OUTWARD, and therefore the only ones `"bleed"` means anything on
+ * (§3, 2026-08-20). A margin is the one distance in this table that may go negative — padding
+ * and gap reject a negative length outright, and `inset` was left out deliberately rather than
+ * generalised into: reaching a pane's edge from normal flow is the case that exists, and a
+ * second spelling for a case nobody has asked for is entropy bought on credit.
+ *
+ * Written out rather than derived so the TYPE can name them, and pinned to the table by a law
+ * in resolve.test.ts — a margin row added here and forgotten there would take `"bleed"` and
+ * emit it as a raw CSS keyword, which is a silent no-op.
+ */
+export type MarginPropName = "m" | "mx" | "my" | "mt" | "mr" | "mb" | "ml";
+export const marginPropNames: MarginPropName[] = ["m", "mx", "my", "mt", "mr", "mb", "ml"];
+
+/** A margin prop's value resolves against the enclosing surface's padding (see `resolveValue`). */
+export const isMarginProp = (def: PropDef): boolean =>
+  def.css.every((property) => property.startsWith("margin"));

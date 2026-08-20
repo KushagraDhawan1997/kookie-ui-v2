@@ -32,7 +32,9 @@ import {
   settleAll,
   computed,
   tokenOn,
+  probeIn,
   inMotion,
+  until,
   asksForStillness,
   SIZES,
 } from "../../test/browser.tsx";
@@ -44,7 +46,6 @@ const HOSTILE: ThemeProps = {
   radius: "large",
   pointer: "coarse",
   depth: "elevated",
-  surfaceLook: "filled",
   contrast: "high",
 };
 
@@ -227,7 +228,18 @@ describe("the box", () => {
     const bumped = { "1": "2", "2": "3", "3": "4", "4": "4" } as const;
     for (const size of SIZES) {
       const { popup } = openAlert({}, { size });
-      expect(computed(popup, "border-top-left-radius")).toBe(tokenOn(popup, `--radius-overlay-${size}`));
+      // Lab port 2026-08-17: under `@supports (corner-shape: squircle)` every surface DRAWS
+      // its authored corner × --kui-corner-k (1.613 — the lab's 0.62 inverted), so the band
+      // token alone is one factor short of the painted number. Derived, never restated: the
+      // probe reads the same token and the same knob the surface rule does, so a re-priced
+      // band or knob moves both sides — and a non-squircle engine resolves the knob's
+      // fallback of 1 and this law holds unchanged.
+      const expected = probeIn(
+        popup,
+        (el) => (el.style.borderRadius = `calc(var(--radius-overlay-${size}) * var(--kui-corner-k, 1))`),
+        (s) => s.borderTopLeftRadius,
+      );
+      expect(computed(popup, "border-top-left-radius")).toBe(expected);
       expect(computed(popup, "padding-top")).toBe(tokenOn(popup, `--surface-p-${bumped[size]}`));
     }
   });
@@ -494,10 +506,12 @@ describe("the panel materializes (§25)", () => {
     }
     render(<Host />);
     inMotion();
-    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-alert-popup")!;
-    await wait(1000); // land the first flight (the longest box clock is spread, 800)
+    // A STATE, not a duration (`until`, 2026-08-17): a flat 1000ms assumes the runner gives
+    // the animation as much progress as the wall clock gives the timer, and a loaded one does
+    // not — the sibling law measured `blur(0.093377px)` where it expected `none`.
+    await until(() => !popup.hasAttribute("data-unfurling"));
     // Asserted, not assumed (2026-08-16 audit): if the first flight has NOT landed, its
     // leftover `data-unfurling` satisfies this law's one load-bearing assertion further down
     // and the law reports green for exactly the defect it exists to catch. A premise that is
@@ -506,21 +520,34 @@ describe("the panel materializes (§25)", () => {
       false,
     );
     flushSync(() => setOpen(false));
-    await wait(60); // mid-dissolve (the dissolve clock is 140ms)
+    // Mid-dissolve is a WINDOW: a fixed 60ms into a 140ms clock overshoots on a slow runner
+    // and the premise below reports the exit already over.
+    await until(() => popup.hasAttribute("data-ending-style"), 400);
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
     expect(popup.hasAttribute("data-ending-style"), "the premise: mid-dissolve").toBe(true);
     flushSync(() => setOpen(true)); // the quick reopen
-    // Not a microtask wait: Base UI removes the ending stamp on its own FRAME (probed —
-    // at 0ms the announcement has not landed yet), and the begin follows it.
-    await wait(50);
+    /**
+     * WAITED FOR, not slept past (2026-08-17, after this failed on CI and never here).
+     *
+     * Base UI removes the ending stamp on its own FRAME — at 0ms the announcement has not
+     * landed yet — and the runner's begin follows it, so the first spelling slept a flat 50ms
+     * and read once. On a loaded runner that observer callback and its pose can land later
+     * than 50ms, and the law then reports the recovery it exists to forbid: a false failure
+     * that looks exactly like the real defect.
+     *
+     * A poll cannot make the claim weaker. If the reopen genuinely produces no fresh pose, no
+     * amount of waiting invents one and the deadline expires into the same assertion.
+     */
+    await until(() => popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"), 800);
     expect(
       popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"),
       "the reopen begins a fresh materialization, not a recovery from the half-dissolved pose",
     ).toBe(true);
     // Airborne in the gap between the two deadlines is the retirement's own claim, and it has
     // its own law one family over (menu: "a reopen RETIRES the flight it interrupts") — here
-    // the claim is only that the replay LANDS.
-    await wait(1100); // and it lands — the new flight's own clock releases it
+    // the claim is only that the replay LANDS. Polled for the same reason as above, with the
+    // ceiling generous against the box clock rather than tuned to it.
+    await until(() => !popup.hasAttribute("data-unfurling"));
     expect(popup.hasAttribute("data-unfurling"), "the replayed flight arrives").toBe(false);
     expect(computed(popup, "opacity")).toBe("1");
   });

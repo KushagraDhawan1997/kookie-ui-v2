@@ -3,7 +3,7 @@
 /**
  * The playground: the Radix Themes playground's structure in this system's vocabulary. One
  * long page, every component in alphabetical order, dense specimen tables — and the theme
- * panel is OUR panel: the seven Theme axes, switchable in place, landing on one nested
+ * panel is OUR panel: every Theme axis (derived from `themeAxes`, so this sentence cannot go stale again — it said seven while the panel rendered nine), switchable in place, landing on one nested
  * <Theme> around the whole canvas so flipping an axis re-renders every specimen at once.
  *
  * Appearance is scoped to the canvas: "inherit" follows the site, light/dark pin it.
@@ -31,6 +31,7 @@ import {
 } from "@kookie-ui/react";
 
 import { setContrast, useAppearance, type ContrastChoice } from "../appearance";
+import { StandaloneLink } from "./component-preview";
 import { Showcase } from "./showcase";
 import { SECTIONS } from "./specimens";
 
@@ -39,8 +40,6 @@ type Env = {
   density: NonNullable<ThemeProps["density"]>;
   pointer: NonNullable<ThemeProps["pointer"]>;
   radius: NonNullable<ThemeProps["radius"]>;
-  surfaceLook: NonNullable<ThemeProps["surfaceLook"]>;
-  controlLook: NonNullable<ThemeProps["controlLook"]>;
   depth: NonNullable<ThemeProps["depth"]>;
   material: NonNullable<ThemeProps["material"]>;
 };
@@ -55,8 +54,6 @@ const DEFAULT_ENV: Env = {
   density: themeDefaults.density,
   pointer: themeDefaults.pointer,
   radius: themeDefaults.radius,
-  surfaceLook: themeDefaults.surfaceLook,
-  controlLook: themeDefaults.controlLook,
   depth: themeDefaults.depth,
   material: themeDefaults.material,
 };
@@ -168,22 +165,16 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
             onChange={(radius) => onChange({ ...env, radius })}
           />
           <Chips
-            label="surface look"
-            value={env.surfaceLook}
-            options={AXES.surfaceLook}
-            onChange={(surfaceLook) => onChange({ ...env, surfaceLook })}
-          />
-          <Chips
-            label="control look"
-            value={env.controlLook}
-            options={AXES.controlLook}
-            onChange={(controlLook) => onChange({ ...env, controlLook })}
-          />
-          <Chips
             label="depth"
             value={env.depth}
             options={AXES.depth}
             onChange={(depth) => onChange({ ...env, depth })}
+          />
+          <Chips
+            label="material"
+            value={env.material}
+            options={AXES.material}
+            onChange={(material) => onChange({ ...env, material })}
           />
           <Chips label="contrast" value={contrast} options={CONTRASTS} onChange={setContrast} />
           <Separator />
@@ -234,6 +225,75 @@ const LANE_CSS = `
 `;
 
 export function PreviewApp() {
+  return (
+    <PreviewShell>
+      <Stack gap="6">
+        <Stack gap="3">
+          <Heading size="8" render={<h1 />}>
+            Playground
+          </Heading>
+          <Text emphasis="medium" render={<p />} style={{ maxWidth: "36rem" }}>
+            Every shipped component, every axis — and, first, real screens made only of
+            them. The panel moves whole worlds, including its own, and nothing on this
+            page picks a colour or invents a length.
+          </Text>
+        </Stack>
+        {/* Twenty sections is more than a page can be scrolled through by guess.
+            Quiet buttons rendered as anchors: the index is made of the system too.
+
+            The label above the chips is the ENVIRONMENT PANEL's own arrangement, reused
+            (2026-08-09): the page already has an idiom for "a labelled group of chips",
+            and a second, unlabelled wrap of the same buttons read as stray links under
+            the lede rather than as an index. One idiom, twice. */}
+        <Stack gap="2" render={<nav aria-label="Sections" />}>
+          <Text size="2" emphasis="quiet" id="pv-jump">
+            Jump to
+          </Text>
+          <Flex gap="1" wrap="wrap" aria-labelledby="pv-jump">
+            {[{ id: "showcase", name: "Real screens" }, ...SECTIONS].map((section) => (
+              <Button
+                key={section.id}
+                size="1"
+                emphasis="quiet"
+                render={<a href={`#${section.id}`} />}
+              >
+                {section.name}
+              </Button>
+            ))}
+          </Flex>
+        </Stack>
+      </Stack>
+      <Showcase />
+      {SECTIONS.map((section) => (
+        // The boundary is the component, not a borrowed borderTop — the playground
+        // dogfoods the hairline it demonstrates. Its own Separator section sits a
+        // few boundaries down the very rules that frame it.
+        <React.Fragment key={section.id}>
+          <Separator />
+          <Stack gap="6" render={<section id={section.id} />}>
+            <Flex gap="3" align="center" justify="space-between" wrap="wrap">
+              <Heading size="7" render={<h2 />}>
+                {section.name}
+              </Heading>
+              {/* A ported component has a standalone page — the one performance checks and
+                  deep judging run on. The collection stays the walk-through. */}
+              {section.standalone ? <StandaloneLink slug={section.standalone} /> : null}
+            </Flex>
+            {section.body}
+          </Stack>
+        </React.Fragment>
+      ))}
+    </PreviewShell>
+  );
+}
+
+/**
+ * The shell every preview route shares (2026-08-19): the canvas Theme, the environment
+ * panel, the lane. Extracted the day the per-component pages landed — a standalone page
+ * with its own panel copy would be the panel drift the derivation laws exist to catch,
+ * one file over.
+ */
+export function PreviewShell({ children }: { children: React.ReactNode }) {
   const [env, setEnv] = React.useState<Env>(DEFAULT_ENV);
 
   return (
@@ -242,9 +302,8 @@ export function PreviewApp() {
       density={env.density}
       pointer={env.pointer}
       radius={env.radius}
-      surfaceLook={env.surfaceLook}
-      controlLook={env.controlLook}
       depth={env.depth}
+      material={env.material}
     >
       {/* The canvas paints a page itself so a pinned appearance is a real page, not dark
           specimens floating on a light bed. The panel lives INSIDE the canvas Theme on
@@ -267,57 +326,7 @@ export function PreviewApp() {
               page read unconstrained because most of it was empty width (Kushagra, 2026-08-08). */}
           <Box style={{ maxWidth: "60rem", marginInline: "auto" }}>
             <Stack gap="8" pt="8">
-              <Stack gap="6">
-                <Stack gap="3">
-                  <Heading size="8" render={<h1 />}>
-                    Playground
-                  </Heading>
-                  <Text emphasis="medium" render={<p />} style={{ maxWidth: "36rem" }}>
-                    Every shipped component, every axis — and, first, real screens made only of
-                    them. The panel moves whole worlds, including its own, and nothing on this
-                    page picks a colour or invents a length.
-                  </Text>
-                </Stack>
-                {/* Twenty sections is more than a page can be scrolled through by guess.
-                    Quiet buttons rendered as anchors: the index is made of the system too.
-
-                    The label above the chips is the ENVIRONMENT PANEL's own arrangement, reused
-                    (2026-08-09): the page already has an idiom for "a labelled group of chips",
-                    and a second, unlabelled wrap of the same buttons read as stray links under
-                    the lede rather than as an index. One idiom, twice. */}
-                <Stack gap="2" render={<nav aria-label="Sections" />}>
-                  <Text size="2" emphasis="quiet" id="pv-jump">
-                    Jump to
-                  </Text>
-                  <Flex gap="1" wrap="wrap" aria-labelledby="pv-jump">
-                    {[{ id: "showcase", name: "Real screens" }, ...SECTIONS].map((section) => (
-                      <Button
-                        key={section.id}
-                        size="1"
-                        emphasis="quiet"
-                        render={<a href={`#${section.id}`} />}
-                      >
-                        {section.name}
-                      </Button>
-                    ))}
-                  </Flex>
-                </Stack>
-              </Stack>
-              <Showcase />
-              {SECTIONS.map((section) => (
-                // The boundary is the component, not a borrowed borderTop — the playground
-                // dogfoods the hairline it demonstrates. Its own Separator section sits a
-                // few boundaries down the very rules that frame it.
-                <React.Fragment key={section.id}>
-                  <Separator />
-                  <Stack gap="6" render={<section id={section.id} />}>
-                    <Heading size="7" render={<h2 />}>
-                      {section.name}
-                    </Heading>
-                    {section.body}
-                  </Stack>
-                </React.Fragment>
-              ))}
+              {children}
             </Stack>
           </Box>
         </Box>

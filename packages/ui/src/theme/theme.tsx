@@ -41,11 +41,11 @@ export const themeAxes = {
       family it dresses rather than the question it answers, and that name was needed by the
       look axis's own halves. */
   depth: ["flat", "elevated"],
-  /** §19 — the resting dress of a one-look family: does the app draw a boundary as a hairline
-      or as a darkened well. Border on a CONTROL is rank (Button's `bordered`) and stays a
-      prop; this axis never touches ranked chrome. Asked twice, of two family groups. */
-  surfaceLook: ["outlined", "filled"],
-  controlLook: ["outlined", "filled"],
+  /* The look axis is GONE from this table (§19): `controlLook` deleted 2026-08-19 (the
+     fill-first flip made its two values byte-identical), `surfaceLook` deleted 2026-08-20
+     (its non-default value was never judged or used — the lab's borderless pane is the one
+     surface identity). Fields and marks wear the dress unconditionally; a card rests on the
+     seal with `--surface-edge` stood down, and conformance/flat re-declare that role. */
   /** §10 — see the prop's own note below. `solid` is a member: it is the seal, the rung where
       light stops passing through, not the absence of a material. */
   material: MATERIALS,
@@ -57,7 +57,6 @@ export type RadiusLevel = (typeof themeAxes.radius)[number];
 export type Contrast = (typeof themeAxes.contrast)[number];
 export type Pointer = (typeof themeAxes.pointer)[number];
 export type Depth = (typeof themeAxes.depth)[number];
-export type Look = (typeof themeAxes.surfaceLook)[number];
 
 /** Kept as its own export because eight law files import it by name; it IS `themeAxes.depth`,
     and a law asserts the two are the same array rather than two lists that agree. */
@@ -90,12 +89,6 @@ export type ThemeProps = {
   contrast?: Contrast;
   pointer?: Pointer;
   depth?: Depth;
-  /** §19 — how the app draws a resting SURFACE: cards, and the panels that wear a card's
-      identity (menus, select). */
-  surfaceLook?: Look;
-  /** §19 — how the app draws a resting CONTROL: fields and marks, which move together because
-      a filled input beside an outlined checkbox reads as an accident. */
-  controlLook?: Look;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -164,7 +157,7 @@ const warnOnFramedAncestor = (node: HTMLElement) => {
 type Resolved = Required<
   Pick<
     ThemeProps,
-    "appearance" | "density" | "radius" | "contrast" | "pointer" | "depth" | "surfaceLook" | "controlLook" | "material"
+    "appearance" | "density" | "radius" | "contrast" | "pointer" | "depth" | "material"
   >
 >;
 
@@ -181,9 +174,10 @@ export const themeDefaults: Resolved = {
   radius: "full",
   contrast: "normal",
   pointer: "auto",
-  depth: "flat",
-  surfaceLook: "outlined",
-  controlLook: "outlined",
+  /* `elevated` since 2026-08-17 (Kushagra: match the lab). The lab has no flat world —
+     contact, drop, blast and the pool are what its material IS, so the resting default
+     casts. `depth="flat"` survives as the opt-out. */
+  depth: "elevated",
   material: "solid",
 };
 
@@ -232,30 +226,93 @@ export const useThemeRooted = (): boolean => React.use(ThemeContext).rooted;
  * bare Theme inside its portal (§20), so a menu opened from a glass card is glass again — it
  * paints over the page, not inside the card — while a field composed inside that same card is
  * opaque, with nobody having typed anything.
+ *
+ * TRI-STATE since 2026-08-17 (selectivity, Kushagra: "cards have no reason to have thin
+ * material, yet if I want dropdown menu to have thin material, I am forced to use it on
+ * theme"). The scope now records what kind of pane is above: `"glass"` (backdrop spent —
+ * members go on-glass), `"solid"` (an opaque pane — members are on calm ground and resolve
+ * solid, paying nothing), or `null` (no pane — the element sits on whatever the app put
+ * behind it, and expresses the theme's material if its kind warrants it).
  */
-const GlassContext = React.createContext(false);
+const PaneContext = React.createContext<"glass" | "solid" | null>(null);
 
 /**
- * The material this element should stamp — the theme's, or `solid` if a glass ancestor
- * already spent the backdrop.
+ * The resolution a member gets when a glass ancestor already spent the backdrop: the veil's
+ * alpha, no backdrop-filter, no lens. It is a RESOLVED value, never an authorable one — it
+ * is deliberately absent from `Material` and from `themeAxes`, because nothing may ask for
+ * it and a Theme that could set it would be re-introducing glass-on-glass by the back door.
+ */
+export const ON_GLASS = "on-glass";
+export type SurfaceMaterial = Material | typeof ON_GLASS;
+
+/**
+ * Marks a REGION where content passes behind the components in it (2026-08-17, Kushagra:
+ * "a button should behave non glassy until it's over a hostile background — there is no
+ * point of having a glass button unless there is something behind to refract"). Placement
+ * is a fact about a PLACE, not about each control: a toolbar floating over a canvas is
+ * marked once, and every button, field and select inside it expresses the theme's material;
+ * the same toolbar in a sidebar is solid, pays no backdrop-filter and builds no lens.
+ * Provided by `<Box backdrop>`; a component's own `backdrop` prop is the one-off escape.
+ */
+export const BackdropContext = React.createContext<boolean>(false);
+
+/**
+ * The material this element should stamp. SELECTIVE since 2026-08-17 (Kushagra): material is
+ * priced where a backdrop exists, never everywhere the theme reaches.
+ *
+ *   on a GLASS pane   → `on-glass` (backdrop spent: the veil's alpha, no filter — 2026-08-16,
+ *                       "a glass element acting on top of glass renders solid WITH ALPHA")
+ *   on a SOLID pane   → `solid` BY DEFAULT, because the pane resets the ambient region — but
+ *                       an explicit statement made inside the pane (the `backdrop` prop, a
+ *                       `<Box backdrop>` opened within, the hook's own argument) resolves the
+ *                       theme's material: a solid surface HOSTS glass (2026-08-19, Kushagra)
+ *   no pane above     → `backdrop ? theme material : solid`. A floating pane is over content
+ *                       by construction and always passes true; an in-flow component reads
+ *                       its own `backdrop` prop first and the ambient BackdropContext second,
+ *                       so a marked region turns a whole toolbar's controls to glass while a
+ *                       bare control on calm ground resolves solid and pays nothing. This
+ *                       replaced the express-by-default resolution the same day it shipped —
+ *                       a glass control on a calm card had nothing to refract and still paid
+ *                       a full readback per element.
  *
  * Public, because a consumer's own pane is a first-class case (Kushagra, 2026-08-16: "I want
- * consumers to be easily be able to add materials on their custom components"). The whole of
- * it is `<div className="kui-surface" data-material={useMaterial()} />` — the same shape
- * Kookie's own surfaces use, with the nesting rule already applied.
+ * consumers to be easily be able to add materials on their custom components"): the whole of
+ * it is `<div className="kui-surface" data-material={useMaterial({ backdrop: true })} />`.
  */
-export function useMaterial(): Material {
+export function useMaterial(opts?: { backdrop?: boolean }): SurfaceMaterial {
   const { material } = React.use(ThemeContext);
-  const insideGlass = React.use(GlassContext);
-  return insideGlass ? "solid" : material;
+  const pane = React.use(PaneContext);
+  const region = React.use(BackdropContext);
+  if (pane === "glass") return material === "solid" ? "solid" : ON_GLASS;
+  // A SOLID pane is not an arm of its own (2026-08-19, Kushagra: "the whole point of a solid
+  // surface is to be able to host glass"). Glass-on-glass is physics — the backdrop is spent,
+  // so the glass arm above overrides the author. Solid-hosts-nothing was only ever an
+  // INFERENCE ("nothing passes behind an opaque pane"), and an explicit `backdrop` — the
+  // prop, a `<Box backdrop>` region opened INSIDE the pane, or `useMaterial({backdrop:true})`
+  // — is the author contradicting that inference in writing: a map or a feed composed inside
+  // a card is exactly §10's case list. The inference survives as the DEFAULT because
+  // GlassScope resets BackdropContext below: a region marked OUTSIDE the pane never leaks
+  // through it, so an unmarked control on a solid card still resolves solid and pays nothing.
+  return (opts?.backdrop ?? region) ? material : "solid";
 }
 
-/** Marks a subtree as sitting on spent backdrop. Rendered by every member that paints a veil;
-    the provider is skipped entirely when the material is `solid`, so an opaque card costs
-    nothing and does not stand its children down. */
-export function GlassScope({ material, children }: { material: Material; children: React.ReactNode }) {
-  if (material === "solid") return children;
-  return <GlassContext.Provider value={true}>{children}</GlassContext.Provider>;
+/** Marks a subtree as sitting on a pane. Every member that paints marks — a glass pane so its
+    members go on-glass, a solid pane so its members know they stand on calm ground and stop
+    expressing the theme's material (the selectivity rule's second half: a button on an opaque
+    card never wears glass the card itself refused). */
+export function GlassScope({ material, children }: { material: SurfaceMaterial; children: React.ReactNode }) {
+  // The pane RESETS the region (2026-08-19): its own face is the ground its members stand on,
+  // so a `<Box backdrop>` marked outside it stops at its edge — on a solid pane because the
+  // pane sealed that backdrop away, on a glass pane because the backdrop is spent. A member
+  // that wants glass INSIDE a pane states its own placement (the prop, or a fresh region
+  // opened inside), which is also what keeps a nested <Theme> honest: Theme resets the pane
+  // mark for portals, and without this reset that made an in-flow nested Theme inside a glass
+  // card re-open glass-on-glass through the stale outer region.
+  return (
+    <PaneContext.Provider value={material === "solid" ? "solid" : "glass"}>
+      <BackdropContext.Provider value={false}>{children}</BackdropContext.Provider>
+    </PaneContext.Provider>
+  );
 }
 
 /**
@@ -283,11 +340,9 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       contrast: props.contrast ?? parent.contrast,
       pointer: props.pointer ?? parent.pointer,
       depth: props.depth ?? parent.depth,
-      surfaceLook: props.surfaceLook ?? parent.surfaceLook,
-      controlLook: props.controlLook ?? parent.controlLook,
       material: props.material ?? parent.material,
     }),
-    // The nine fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
+    // The seven fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
     // ancestor axis moves, including ones this scope overrides — depending on the identity
     // would rebuild `resolved` (and so re-render every consumer below) on changes that
     // cannot reach it.
@@ -298,8 +353,6 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       props.contrast,
       props.pointer,
       props.depth,
-      props.surfaceLook,
-      props.controlLook,
       props.material,
       parent.appearance,
       parent.density,
@@ -307,8 +360,6 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       parent.contrast,
       parent.pointer,
       parent.depth,
-      parent.surfaceLook,
-      parent.controlLook,
       parent.material,
     ],
   );
@@ -332,8 +383,6 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
     ...(contrastSet ? { "data-contrast": resolved.contrast } : {}),
     "data-pointer": resolved.pointer,
     "data-depth": resolved.depth,
-    "data-surface-look": resolved.surfaceLook,
-    "data-control-look": resolved.controlLook,
   };
 
   // kui-theme makes the element a query container (§2): responsive props measure the nearest
@@ -341,14 +390,14 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
   const themeClass = className ? `kui-theme ${className}` : "kui-theme";
   const merged = { ...attrs, className: themeClass, style, ref: warnOnBodyMount };
 
-  // The glass mark resets here, deliberately: a Theme is a new world, and the portal wrapper
+  // The pane mark resets here, deliberately: a Theme is a new world, and the portal wrapper
   // IS a bare Theme (§20), which is what lets a menu opened from inside a glass card be glass
   // again while a field composed inside that card stays opaque.
   return (
     <ThemeContext.Provider value={ctx}>
-      <GlassContext.Provider value={false}>
+      <PaneContext.Provider value={null}>
         {render ? composeRender(render, merged, children) : <div {...merged}>{children}</div>}
-      </GlassContext.Provider>
+      </PaneContext.Provider>
     </ThemeContext.Provider>
   );
 }

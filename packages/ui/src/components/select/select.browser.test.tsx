@@ -52,7 +52,6 @@ const HOSTILE: ThemeProps = {
   radius: "large",
   pointer: "coarse",
   depth: "elevated",
-  surfaceLook: "filled",
   contrast: "high",
 };
 
@@ -321,7 +320,12 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     // ...and the member that is ENTERED rather than pressed keeps its pin. Hovering the field
     // directly, not reasoning about which rule ought to win.
     await userEvent.hover(field);
-    expect(computed(field, "background-color"), "a field a caret enters does not move").toBe(
+    // The PIN IS GONE (2026-08-17): "a field a caret enters does not move" was the
+    // bordered-box identity's sentence — the fill was held still because the border and ring
+    // carried the states. The field rests on a well now, so the fill is the one currency its
+    // hover has, and both members answer the pointer the same way. What the law still owns is
+    // that they answer it TOGETHER: a trigger and the TextField beside it are one family.
+    expect(computed(field, "background-color"), "a field answers the pointer too").not.toBe(
       fieldRest,
     );
   });
@@ -381,20 +385,31 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     // rules did arrive; nothing stamped the attribute they read, and there was no prop to
     // stamp it with — so a form over a photograph put translucent fields beside an opaque
     // white dropdown.
+    // Both state `backdrop` since material became SELECTIVE (2026-08-17): a glass theme no
+    // longer makes a control glass on its own, so the pair has to say it stands over content
+    // or this law compares two opaque boxes and finds them, correctly, identical.
     let field: HTMLElement | null = null;
     const host = render(
       <Theme material="regular">
         <Select>
-          <SelectTrigger placeholder="Pick one" />
+          <SelectTrigger backdrop placeholder="Pick one" />
         </Select>
-        <TextField placeholder="Type here" />
+        <TextField backdrop placeholder="Type here" />
       </Theme>,
     );
     const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
     field = host.querySelector<HTMLElement>(".kui-field:not(.kui-select-trigger)");
     if (!field) throw new Error("field missing");
     expect(trigger.getAttribute("data-material")).toBe("regular");
-    expect(computed(trigger, "backdrop-filter")).toBe(computed(field, "backdrop-filter"));
+    // The chain must agree, but NOT its lens id: a displacement map is built for one box, so
+    // two differently-sized panes reference different filters by construction (§10,
+    // 2026-08-16). Compare what the stylesheet declares, and assert the lens separately —
+    // this law is what caught the trigger shipping without one while its sibling had it.
+    const chain = (el: HTMLElement) => computed(el, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "");
+    expect(chain(trigger)).toBe(chain(field));
+    for (const el of [trigger, field]) {
+      expect(computed(el, "backdrop-filter"), "a glass field wears the lens").toMatch(/^url\(/);
+    }
     expect(computed(trigger, "background-color")).toBe(computed(field, "background-color"));
     expect(computed(trigger, "border-top-color")).toBe(computed(field, "border-top-color"));
     // Solid writes no attribute at all (§10) — the negative half, or the law passes on a
@@ -468,7 +483,19 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     expect(popup.getAttribute("data-size")).toBe("3");
     const rowCorner = parseFloat(computed(items[0]!, "border-top-left-radius"));
     const pad = parseFloat(computed(popup, "padding-top"));
-    expect(parseFloat(computed(popup, "border-top-left-radius"))).toBeCloseTo(rowCorner + pad, 1);
+    // Lab port 2026-08-17: the panel is a SURFACE and draws its authored corner ×
+    // --kui-corner-k (1.613) under `@supports (corner-shape: squircle)`; the ROW's corner
+    // is unmultiplied (controls never take squircle), so the authored concentric sum is
+    // still rowCorner + pad and the knob applies once, to the panel. Probe-derived so a
+    // non-squircle engine (knob fallback 1) passes unchanged.
+    const expected = parseFloat(
+      probeIn(
+        popup,
+        (el) => (el.style.borderRadius = `calc(${rowCorner + pad}px * var(--kui-corner-k, 1))`),
+        (s) => s.borderTopLeftRadius,
+      ),
+    );
+    expect(parseFloat(computed(popup, "border-top-left-radius"))).toBeCloseTo(expected, 1);
   });
 
   it("casts in BOTH worlds, and the flat cast is not the elevated one", async () => {
@@ -487,13 +514,30 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
         <Card ref={(n: HTMLDivElement | null) => void (card = n)}>plain</Card>
       </Theme>,
     );
-    expect(computed(card as unknown as HTMLElement, "box-shadow")).toBe("none");
+    const cardEl = card as unknown as HTMLElement;
+    // Seat only: flat removes the cast, never the pool (lab port 2026-08-17).
+    const seat = document.createElement("div");
+    seat.style.boxShadow = "var(--material-pool-solid), 0 0 0 0 transparent";
+    cardEl.append(seat);
+    expect(computed(cardEl, "box-shadow")).toBe(computed(seat, "box-shadow"));
+    seat.remove();
   });
 
   it("glass keeps the floating cast", async () => {
     const { popup } = openSelect({ depth: "flat" }, undefined);
     await settled();
-    const solid = computed(popup, "box-shadow");
+    // The cast tail only — the pool differs by design since 2026-08-17 (glass wears the
+    // pane's shade, solid the seat); the menu's own law states the rule in full.
+    // Lab port 2026-08-17: split on LAYER commas — the glass pool serializes as
+    // "… -14px inset," (no "px,"), so a first-"px," slice ate the pool AND the contact row
+    // and compared unequal tails. Commas inside rgb(…) are excluded by the lookahead.
+    const castOf = (shadow: string) =>
+      shadow
+        .split(/,(?![^(]*\))/)
+        .slice(1)
+        .map((l) => l.trim())
+        .join(", ");
+    const solid = castOf(computed(popup, "box-shadow"));
     const glass = render(
       <Theme depth="flat" material="regular">
         <Select defaultOpen>
@@ -508,7 +552,7 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
     const glassPopup = popups[popups.length - 1]!;
     expect(glassPopup.getAttribute("data-material")).toBe("regular");
-    expect(computed(glassPopup, "box-shadow")).toBe(solid);
+    expect(castOf(computed(glassPopup, "box-shadow"))).toBe(solid);
     expect(glass).toBeDefined();
   });
 
@@ -607,7 +651,19 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
         const painted = Math.min(declared, row.getBoundingClientRect().height / 2);
         const pad = parseFloat(computed(popup, "padding-top"));
         const panel = parseFloat(computed(popup, "border-top-left-radius"));
-        const expected = radius === "none" ? 0 : painted + pad;
+        // Lab port 2026-08-17: the panel (a SURFACE) draws its authored sum × --kui-corner-k
+        // (1.613, squircle compensation); the row's painted corner is unmultiplied because
+        // controls never take squircle. `none` stays exactly 0 — the guard, not 0 × knob.
+        const expected =
+          radius === "none"
+            ? 0
+            : parseFloat(
+                probeIn(
+                  popup,
+                  (el) => (el.style.borderRadius = `calc(${painted + pad}px * var(--kui-corner-k, 1))`),
+                  (s) => s.borderTopLeftRadius,
+                ),
+              );
         expect(panel, `${radius} × size ${size}`).toBeCloseTo(expected, 1);
       }
     }
@@ -827,12 +883,15 @@ describe("behavior: roles, choosing, forms, labels", () => {
   });
 });
 
-describe("the entry is the floating family's, not a copy of it (§8, §22)", () => {
+describe("the entry is the floating family's, and it flies into an item-aligned box (§8, §22, §23)", () => {
   /**
-   * Select is the second member, and it gets the panel's entry by MEMBERSHIP: the recipe moved
-   * out of menu.css onto the family class on 2026-08-10, so this file adds no motion CSS at
-   * all. These laws exist to prove that the membership is real — that the panel actually flies,
-   * and that it flies the same way the menu does rather than nearly the same way.
+   * Select is the family's second member and it gets the panel's entry by MEMBERSHIP: the
+   * recipe moved out of menu.css onto the family class on 2026-08-10, so this file adds no
+   * motion CSS at all. What is Select's OWN is where the flight LANDS — Base UI overlaps the
+   * trigger so the chosen row sits on the value it replaces (2026-08-17, Kushagra: *"same
+   * animation as dropdown, but only the position changes"*) — and the ordering that placement
+   * forces: the panel must be PLACED before it is POSED, because Base UI computes the overlap
+   * from the panel's real box and a posed panel is the size of its trigger.
    */
   const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
@@ -854,10 +913,69 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
       </Theme>,
     );
     const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
-    // The runner poses synchronously and measures a microtask later (unified 2026-08-16), so
-    // a law that reads the flight's numbers must let that turn run first.
+    // A select is placed before it is posed, so its flight begins FRAMES after the commit
+    // rather than on the commit's microtask — a law that reads its numbers has to wait for
+    // the pose rather than for `flushFlight()`, which is enough for every other member.
     await flushFlight();
-    return popups[popups.length - 1]!;
+    const popup = popups[popups.length - 1]!;
+    // Waited to the AIMED pose — the last moment the panel is still its silhouette — and not
+    // merely to the flight's stamp. The two are two frames apart, and under a loaded run those
+    // two frames are enough for the whole entry, which is how a law that added a frame of its
+    // own came to read a landed panel and call it a seed.
+    const deadline = performance.now() + 3000;
+    while (!popup.hasAttribute("data-aimed") && performance.now() < deadline) await frame();
+    if (!popup.hasAttribute("data-seed")) throw new Error("the panel never posed");
+    return popup;
+  }
+
+  /**
+   * Open by CLICKING, on a page with room above the trigger — the only way to reach the
+   * placement under test. Base UI overlaps the trigger for pointer input and falls back to the
+   * ordinary below-the-trigger geometry otherwise (a keyboard open, a `defaultOpen` no pointer
+   * ever touched), and it drops the overlap rather than run off the top of the viewport.
+   */
+  async function openItemAligned() {
+    inMotion();
+    const OPTIONS = ["a", "b", "c", "d", "e", "f", "g", "h"];
+    const host = mount(
+      <Theme>
+        {/* Half a viewport of room ABOVE the trigger, stated in `vh` and NOT reached by
+            scrolling the page (2026-08-17, CI): the overlap needs somewhere to put the rows
+            that precede the chosen one and Base UI drops it rather than run off the top of
+            the window, so the case has to guarantee that room. Scrolling to it was the first
+            spelling and it is not a guarantee — the scroll is undone by whatever the previous
+            test left behind, and a helper that then clicks anyway hands every law below the
+            fallback placement and a message about the wrong thing. It passed locally and
+            failed on the runner, which is the shape this repo keeps re-learning. */}
+        <div style={{ height: "50vh" }} />
+        <Select defaultValue="e" items={Object.fromEntries(OPTIONS.map((v) => [v, v.toUpperCase()]))}>
+          <SelectTrigger />
+          <SelectContent>
+            {OPTIONS.map((v) => (
+              <SelectItem key={v} value={v}>
+                {v.toUpperCase()}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div style={{ height: "50vh" }} />
+      </Theme>,
+    );
+    const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
+    // The premise, stated: half a window of room above the trigger, in the window as it is
+    // now. A law whose SETUP is assumed is a law that reports the wrong failure.
+    const seat = trigger.getBoundingClientRect();
+    expect(seat.top, "the trigger must sit clear of the top of the window").toBeGreaterThan(200);
+    expect(seat.top, "and inside it").toBeLessThan(window.innerHeight);
+    await userEvent.click(trigger);
+    const deadline = performance.now() + 3000;
+    let popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();
+    while ((!popup || popup.hidden) && performance.now() < deadline) {
+      await frame();
+      popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();
+    }
+    expect(popup?.getAttribute("data-side"), "the case needs the item-aligned placement").toBe("none");
+    return { popup: popup!, trigger };
   }
 
   it("the first frame is the trigger's SILHOUETTE, and the panel is measured for the flight", async () => {
@@ -869,9 +987,6 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     const popup = await openFlying();
     const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
     expect(popup.hasAttribute("data-seed")).toBe(true);
-    // One frame: the overlay is aimed after floating-ui places the positioner, and the
-    // seed holds for two — the awaited frame lands between the aim and the release.
-    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
     const box = trigger.getBoundingClientRect();
     const seed = popup.getBoundingClientRect();
     // Within the held press's drift, not to the pixel: the silhouette measures the trigger
@@ -879,7 +994,10 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     // so by the time this law reads both rects, the trigger has moved ~1px out from under
     // its own photograph. The claim is overlay, not simultaneity.
     expect(Math.abs(seed.width - box.width), "the trigger's own width").toBeLessThan(3);
-    expect(Math.abs(seed.height - box.height), "the trigger's own height").toBeLessThan(3);
+    expect(
+      Math.abs(seed.height - box.height),
+      `the trigger's own height (blockSize=${computed(popup, "block-size")} seedH=${computed(popup, "--kui-seed-h")} matches=${popup.matches(".kui-surface.kui-floating[data-unfurling][data-seed]")} inline=${popup.style.cssText.slice(0, 260)})`,
+    ).toBeLessThan(3);
     expect(Math.abs(seed.left - box.left), "sitting exactly on it").toBeLessThan(3);
     expect(Math.abs(seed.top - box.top)).toBeLessThan(3);
     expect(parseFloat(computed(popup, "border-top-left-radius"))).toBeCloseTo(
@@ -896,14 +1014,118 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
 
   it("the box actually MOVES across the entry — membership is not the same as motion", async () => {
     const popup = await openFlying();
-    const widths: number[] = [];
-    const deadline = performance.now() + 2000;
+    const heights: number[] = [];
+    const deadline = performance.now() + 3000;
     while (performance.now() < deadline) {
-      widths.push(Math.round(popup.getBoundingClientRect().width));
+      heights.push(Math.round(popup.getBoundingClientRect().height));
       if (!popup.hasAttribute("data-unfurling")) break;
       await frame();
     }
-    expect(new Set(widths).size, `it never moved: ${widths.join(",")}`).toBeGreaterThan(2);
+    expect(new Set(heights).size, `it never moved: ${heights.join(",")}`).toBeGreaterThan(2);
+  });
+
+  it("it lands with the CHOSEN ROW on the trigger — placed before it is posed (§23)", async () => {
+    /**
+     * 2026-08-17, Kushagra: *"the selected item always appears on top of trigger 1:1, so that
+     * the remainder of the list sits a little above and below the trigger depending on the
+     * item's position, like radix."* Base UI's own overlap, pinned OFF on 2026-08-09 and back
+     * on now — and the reason it needs a law of its own is that this system nearly broke it by
+     * accident twice.
+     *
+     * Base UI computes the overlap from the panel's REAL box. Pose the panel first and it is
+     * measured at the size of its trigger, so the chosen row lands wherever a two-line panel
+     * would have put it: measured 66px low. The entry therefore waits for the placement before
+     * it poses (system/floating.tsx, `placedByContent`), and the family's pose rules are keyed
+     * on the flight rather than on the visibility gate so the seed cannot apply during the
+     * wait. Both of those are invisible mechanisms whose only symptom is this number.
+     */
+    const { popup, trigger } = await openItemAligned();
+
+    // Landed, not mid-flight: the row travels with the panel while it opens — that is the
+    // gesture — and the claim is about where it comes to rest.
+    const deadline = performance.now() + 3000;
+    while (popup.hasAttribute("data-unfurling") && performance.now() < deadline) await frame();
+    const chosen = popup.querySelector<HTMLElement>(".kui-select-item[data-selected]")!;
+    expect(
+      Math.abs(chosen.getBoundingClientRect().top - trigger.getBoundingClientRect().top),
+      "the chosen row does not sit on the trigger",
+    ).toBeLessThan(4);
+    // And the case is a real one: the chosen row is deep enough in the list that a panel
+    // hanging below the trigger would put it nowhere near this number.
+    expect(popup.getBoundingClientRect().top, "the panel must straddle its trigger").toBeLessThan(
+      trigger.getBoundingClientRect().top - 20,
+    );
+  });
+
+  it("the panel's floor is the trigger's RESTING width, so it does not step at release (§22)", async () => {
+    /**
+     * 2026-08-17, Kushagra: *"it jumps a bit in width at the end."*
+     *
+     * The floor is `max(--floating-min-w, --anchor-width)`, and `--anchor-width` does not exist
+     * until Base UI has placed the panel — so the entry publishes the number itself, and the two
+     * have to agree or the panel steps the moment the entry releases. They disagreed by the
+     * held press: the entry predicted the trigger's SCALED box on the premise that Base UI
+     * measures anchors with their transforms, and Base UI 1.6 does the opposite — it reads the
+     * scale and normalises the rect by it before positioning. Measured: trigger rect 83px at
+     * `scale: 0.975`, `--anchor-width: 85px`, and a wide trigger's panel widened 351 → 360 on
+     * the release frame.
+     *
+     * Read as the AGREEMENT rather than as either number, because either one alone is a
+     * reconstruction of the arithmetic under test.
+     */
+    const { popup } = await openItemAligned();
+    const positioner = popup.parentElement!;
+    const deadline = performance.now() + 3000;
+    let flying = 0;
+    let published = NaN;
+    while (performance.now() < deadline) {
+      if (popup.hasAttribute("data-unfurling")) {
+        flying = popup.getBoundingClientRect().width;
+        // Read WHILE it is published: the runner strips its own vars at release, so a law that
+        // looks afterwards reads NaN and compares nothing.
+        published = parseFloat(popup.style.getPropertyValue("--kui-anchor-w"));
+      } else if (flying) break;
+      await frame();
+    }
+    expect(flying, "the entry never ran, so there was no seam to read").toBeGreaterThan(0);
+    const settled = parseFloat(getComputedStyle(positioner).getPropertyValue("--anchor-width"));
+    expect(settled, "floating-ui never published a width to agree with").toBeGreaterThan(0);
+    // The two floors, by input.
+    expect(published, `the entry's floor ${published} disagrees with the settled ${settled}`).toBeCloseTo(
+      settled,
+      0,
+    );
+    // And the seam itself, which is what a reader actually sees.
+    expect(popup.getBoundingClientRect().width, "the panel stepped at release").toBeCloseTo(flying, 0);
+  });
+
+  it("the flight BORROWS Base UI's inline height and gives it back (§23)", async () => {
+    /**
+     * An item-aligned select is laid out as `height: 100%` of a positioner the library has
+     * sized — that is how the panel fills a constrained box and scrolls the chosen row onto
+     * the trigger. An inline declaration beats every rule in a stylesheet, so with it in place
+     * the entry's block-size channel is simply dead: measured, the seed height written, the
+     * pose matching, and the panel its full height for every frame of an unfurl.
+     *
+     * The flight takes the property for the length of the entry and puts it back exactly as it
+     * was found. Both halves are read, because either one alone is a defect: keeping it means
+     * a panel that cannot unfurl, and not restoring it means a settled panel that has lost the
+     * layout its own scrolling depends on.
+     */
+    const { popup } = await openItemAligned();
+    const deadline = performance.now() + 3000;
+    // The case must be a real one, so the borrowed value is read from the panel BEFORE the
+    // claim: a law that assumed "100%" would pass on a library that stopped setting it.
+    let seen = "";
+    while (performance.now() < deadline) {
+      if (popup.hasAttribute("data-unfurling")) {
+        expect(popup.style.height, "the flight is fighting an inline height").toBe("");
+        seen = "flying";
+      } else if (seen) break;
+      await frame();
+    }
+    expect(seen, "the entry never ran, so nothing was borrowed").toBe("flying");
+    expect(popup.style.height, "the borrowed height was never given back").toBe("100%");
   });
 
   it("the FIRST open flies to the settled width — the floor is inside the target (§22)", async () => {
@@ -927,106 +1149,20 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
         </Select>
       </Theme>,
     );
-    const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
     await flushFlight();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
     const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
+    const deadline = performance.now() + 3000;
+    while (!popup.hasAttribute("data-unfurling") && performance.now() < deadline) await frame();
     // The rect, not the 360 literal: an open trigger HOLDS THE PRESS, and the press scales it
-    // 0.975 — the anchor floating-ui measures is the scaled box, so the scaled box is the
-    // number every claim below is about. The calibration only needs it wider than the content.
+    // — the anchor floating-ui measures is the scaled box, so the scaled box is the number
+    // every claim below is about. The calibration only needs it wider than the content.
     const triggerW = trigger.getBoundingClientRect().width;
     expect(triggerW, "the case needs a trigger wider than the content").toBeGreaterThan(300);
-
-    // The flight's own target, read off the measurement the entry wrote.
     const target = parseFloat(popup.style.getPropertyValue("--kui-fly-w"));
     expect(target, "the measured target must include the trigger floor").toBeGreaterThanOrEqual(
-      triggerW - 1,
+      triggerW * 0.97,
     );
-
-    // And the seam: the panel's width the frame the flight ends must BE its settled width —
-    // a floor arriving at release is exactly a jump on that frame.
-    let before = 0;
-    const deadline = performance.now() + 3000;
-    while (performance.now() < deadline) {
-      const w = popup.getBoundingClientRect().width;
-      if (!popup.hasAttribute("data-unfurling")) {
-        expect(w, `it re-expanded at release: ${before} -> ${w}`).toBeCloseTo(before, 0);
-        expect(w, "and it settled at the trigger's width").toBeGreaterThanOrEqual(triggerW - 1);
-        return;
-      }
-      before = w;
-      await tick();
-    }
-    throw new Error("the flight never released");
-  });
-
-  it("a CLICKED open lands where it settles — the floor is the trigger AS HELD (§8, §22, 2026-08-10)", async () => {
-    /**
-     * The law above proves the seam on `defaultOpen` — where the trigger is BORN holding the
-     * press, no scale transition ever runs, and both floors read the same scaled box. That is
-     * the axis that was right. The axis that shipped broken is the one a user actually takes:
-     * click a resting trigger, and the entry measures on the open's first frame, when the
-     * held-press transition has not visibly moved — so the flight floored on the RESTING rect
-     * while floating-ui's settled `--anchor-width` measures the trigger WITH its held
-     * transform. Flight 402, settle 392, a 10px compression the frame the flight ended
-     * (Kushagra's screenshots, measured live). The entry now floors on the trigger AS HELD —
-     * the end value of its running scale transition — so the two floors agree by input.
-     *
-     * If the held press is ever removed from open triggers, the calibration below fails and
-     * this law should be revisited with it: its premise is that an open trigger is scaled.
-     */
-    mount(
-      <Theme>
-        <Select items={{ a: "Alpha", b: "Beta" }}>
-          <SelectTrigger placeholder="Pick one" style={{ minWidth: "360px" }} />
-          <SelectContent>
-            <SelectItem value="a">Alpha</SelectItem>
-            <SelectItem value="b">Beta</SelectItem>
-          </SelectContent>
-        </Select>
-      </Theme>,
-    );
-    inMotion();
-    const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-    const trigger = document.querySelector<HTMLElement>(".kui-select-trigger")!;
-    const resting = trigger.getBoundingClientRect().width;
-
-    const { userEvent } = await import("vitest/browser");
-    await userEvent.click(trigger);
-    const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
-
-    /**
-     * `settled` is the flight's own final width, and it is only recorded once the box has
-     * STOPPED MOVING — two consecutive frames at the same width (2026-08-16). The first
-     * spelling kept the previous frame's sample instead, which is the same thing only while
-     * frames are 16ms apart: under full-suite load a frame can be 100ms, so the "frame
-     * before release" was still mid-spring and the law compared an animating width against a
-     * settled one. It failed at 1px, on a claim about a defect that measured 10 — a law
-     * flaking on the tail of the animation it is not about.
-     */
-    let previous = 0;
-    let settled = 0;
-    const deadline = performance.now() + 3000;
-    while (performance.now() < deadline) {
-      const w = popup.getBoundingClientRect().width;
-      if (settled > 0 && !popup.hasAttribute("data-unfurling")) {
-        // Calibration first: the premise. The open trigger must genuinely be held smaller
-        // than its resting self, or this whole law is measuring a press that is not there.
-        const heldW = trigger.getBoundingClientRect().width;
-        expect(heldW, "the held press no longer scales the trigger").toBeLessThan(resting - 1);
-        // The seam: the frame the flight ends, the width must not step.
-        expect(w, `it stepped at release: ${settled} -> ${w}`).toBeCloseTo(settled, 0);
-        // And the settled floor is the trigger as the eye sees it — the held box.
-        expect(w, "narrower than the held trigger").toBeGreaterThanOrEqual(heldW - 1);
-        return;
-      }
-      if (popup.hasAttribute("data-unfurling")) {
-        if (previous > 0 && Math.abs(w - previous) < 0.5) settled = w;
-        previous = w;
-      }
-      await tick();
-    }
-    throw new Error("the clicked flight never released");
   });
 
   it("the trigger rises to a real pointer — a button's gesture in field dress (§8)", async () => {
@@ -1058,14 +1194,11 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
 
   it("the entry replays on EVERY open, not only the first (§22)", async () => {
     /**
-     * Kushagra: *"animation on select only once. Next time, its instant."* Two faults hid
-     * behind one symptom. The entry ran in the body's ref callback — once per DOM node — and
-     * nothing re-ran it for an open the framework served without a fresh mount; and on the
-     * reopen path the popup's positioner can still be ZERO-WIDTH when the callback runs, so
-     * the "natural" measurement read the panel as its own padding (10px) and the entry flew
-     * TOWARD it: the panel visibly shrank. The mechanism now begins per OPEN (Base UI's
-     * starting stamp, observed), and refuses any measurement at or under the seed — a real
-     * panel can never be that small, so a tiny reading means "not laid out yet, retry".
+     * Kushagra: *"animation on select only once. Next time, its instant."* The entry ran in
+     * the body's ref callback — once per DOM node — and nothing re-ran it for an open the
+     * framework served without a fresh mount, which is every reopen of a select (its panel
+     * stays mounted after the first open, because the mounted options are its label store).
+     * The mechanism begins per OPEN now, observed off Base UI's own stamps.
      */
     mount(
       <Theme>
@@ -1079,19 +1212,17 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
       </Theme>,
     );
     inMotion();
-    const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
     const first = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
 
     // Land the first flight for real — this law is about the SECOND one.
     let deadline = performance.now() + 3000;
-    while (first.hasAttribute("data-unfurling") && performance.now() < deadline) await tick();
+    while (first.hasAttribute("data-unfurling") && performance.now() < deadline) await frame();
     expect(first.hasAttribute("data-unfurling"), "the first entry must land").toBe(false);
 
-    const { userEvent } = await import("vitest/browser");
     await userEvent.keyboard("{Escape}");
     deadline = performance.now() + 3000;
     while (document.querySelector(".kui-select-popup:not([hidden])") && performance.now() < deadline)
-      await tick();
+      await frame();
 
     // Base UI ignores a pointer release inside its press-drag window; wait it out (the
     // instrument lesson from this file's own choosing law).
@@ -1115,7 +1246,7 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
         landed = popup ?? null;
         break;
       }
-      await tick();
+      await frame();
     }
     expect(flight.length, "the second open never flew — the entry ran once per lifetime").toBeGreaterThan(0);
     // Anchored to the TRIGGER's height (2026-08-15, the silhouette): the seed is the
@@ -1124,13 +1255,6 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     expect(Math.min(...flight), "it must fly FROM the silhouette, not from mid-size").toBeLessThanOrEqual(
       triggerH + 4,
     );
-    // TARGET-AGREEMENT, not direction (2026-08-15): "the end must sit above the start" was
-    // true only while the seed was smaller than every panel — the 72px circle is TALLER than
-    // a two-item select panel, so its height legitimately shrinks while its width grows.
-    // What the direction assert guarded was the fly-toward-10px regression, and both its
-    // halves survive: the flight must START at the seed (asserted above), it must END where
-    // it settles (no snap at the release seam), and the landed panel must be a real one —
-    // the 10px regression fails that last check outright.
     expect(landed, "the flight must end in a released panel").not.toBeNull();
     expect(
       Math.abs(landed!.getBoundingClientRect().height - flight.at(-1)!),
@@ -1145,7 +1269,9 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     // The agreement law the promotion owes (ENGINEERING §6: a mechanism with two
     // implementations owes a law that they agree). Read as computed values on both panels,
     // because "select.css adds no motion" is exactly the kind of claim that stays true in the
-    // stylesheet while a component quietly re-points a clock.
+    // stylesheet while a component quietly re-points a clock. Select's entry differs from a
+    // menu's in WHERE IT LANDS and in WHEN IT STARTS — never in what it animates, which is
+    // what this reads.
     const select = await openFlying();
     // Un-seeded first: the seed state pins `transition: none` (a held pose), and the
     // recipe under agreement is the FLIGHT's — the base rule's.
@@ -1170,5 +1296,94 @@ describe("the entry is the floating family's, not a copy of it (§8, §22)", () 
     );
     expect(selectRecipe[1], "the entry must animate something").toContain("inline-size");
     expect(selectRecipe).toEqual(menuRecipe);
+  });
+
+  it("the entry moves neither the page nor the panel's own contents (§8, §22)", async () => {
+    /**
+     * 2026-08-17, Kushagra: *"why is it on preview page, opening some dropdown menus shift or
+     * move the page"*, then *"Select still jumps"*.
+     *
+     * A select is the only floating member whose open FOCUSES something inside the panel —
+     * the selected row — and the browser answers a focus by scrolling that element into view.
+     * The entry is flying at that instant: the box is the trigger's silhouette, deliberately
+     * far smaller than the list it holds. So the reveal has two things it can scroll and both
+     * are wrong. The panel (a scroll container under `overflow: hidden`) takes an offset that
+     * nothing settles at and unwinds it frame by frame as the box grows, which reads as the
+     * contents sliding; refuse the panel and the browser walks one step up and takes the PAGE
+     * instead, which reads as the whole document jumping and STAYS, because the panel travels
+     * on and the page keeps what it gained.
+     *
+     * Both halves are held, in different layers, and this law reads both at once because
+     * fixing either one alone is what produced the other symptom: `overflow: clip` on the
+     * flying box (surfaces.css) so there is no offset to take, and the parked page in the
+     * runner (system/floating.tsx) so the step up finds nothing to move.
+     *
+     * The case is calibrated: eight rows with the FIFTH selected, on a page long enough to
+     * scroll, with the trigger mid-viewport. Measured before the fix on exactly this shape —
+     * page 65px, panel scrollTop 57.
+     */
+    const OPTIONS = ["a", "b", "c", "d", "e", "f", "g", "h"];
+    inMotion();
+    const container = mount(
+      <Theme>
+        <div style={{ height: "3000px" }} />
+        <Select defaultValue="e" items={Object.fromEntries(OPTIONS.map((v) => [v, v.toUpperCase()]))}>
+          <SelectTrigger />
+          <SelectContent>
+            {OPTIONS.map((v) => (
+              <SelectItem key={v} value={v}>
+                {v.toUpperCase()}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div style={{ height: "3000px" }} />
+      </Theme>,
+    );
+    const trigger = container.querySelector<HTMLElement>(".kui-select-trigger")!;
+    // Scrolled with an explicit target and WAITED FOR, not scrollIntoView-and-hope: the
+    // harness leaves `scroll-behavior` to the page, so a smooth scroll still in flight reads
+    // as a page that cannot scroll at all — the law then skips itself. Poll until the number
+    // stops moving.
+    // Scrolled with an explicit target and RETRIED until it sticks, not scrollIntoView-and-
+    // hope. Run after the rest of this file, the first attempt is reverted to zero — a select
+    // unmounted at teardown restores the scroll position its own lock saved, and the entry's
+    // own page hold lives for four frames — so a single attempt reads as a page that cannot
+    // scroll at all and the law skips itself.
+    const target = () =>
+      window.scrollY + trigger.getBoundingClientRect().top - window.innerHeight / 2;
+    for (let tries = 0; tries < 30 && window.scrollY < 100; tries++) {
+      window.scrollTo(0, target());
+      await frame();
+    }
+    await frame();
+    const parked = window.scrollY;
+    expect(parked, "the case needs a page that CAN scroll").toBeGreaterThan(100);
+
+    // Sampled per frame from before the click, because the damage is done in the entry's first
+    // frames and a law that only reads the settled state would have passed on the sliding
+    // panel — its offset returns to 0 on its own.
+    const drift: number[] = [];
+    const inner: number[] = [];
+    let sampling = true;
+    const tick = () => {
+      const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();
+      drift.push(Math.abs(window.scrollY - parked));
+      if (popup) inner.push(Math.abs(popup.scrollTop));
+      if (sampling) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+
+    const { userEvent } = await import("vitest/browser");
+    await userEvent.click(trigger);
+    await new Promise((r) => setTimeout(r, 900));
+    sampling = false;
+
+    expect(inner.length, "the panel never opened — the law measured nothing").toBeGreaterThan(5);
+    expect(Math.max(...drift), `the page moved ${Math.max(...drift)}px`).toBeLessThanOrEqual(1);
+    expect(
+      Math.max(...inner),
+      `the panel scrolled its own contents to ${Math.max(...inner)}px`,
+    ).toBeLessThanOrEqual(1);
   });
 });

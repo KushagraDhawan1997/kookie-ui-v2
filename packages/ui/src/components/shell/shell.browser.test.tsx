@@ -1,5 +1,5 @@
 /**
- * Shell mounted laws (§26) — computed values through a real <Theme>, per the 2026-08-03
+ * Shell mounted laws (§27) — computed values through a real <Theme>, per the 2026-08-03
  * standard. The viewport is resized for real where a law is about the window (the
  * window.browser.test.tsx pattern): matchMedia and the media block are the mechanism, and a
  * law that stubs the mechanism it is testing proves nothing.
@@ -23,6 +23,7 @@ import {
   ShellSidebar,
   ShellTrigger,
 } from "./shell.tsx";
+import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
 import { computed, mounted, tokenOn, within } from "../../test/browser.tsx";
@@ -77,7 +78,7 @@ function pressEscape(from: HTMLElement) {
   );
 }
 
-describe("anatomy: the landmarks are by construction (§26)", () => {
+describe("anatomy: the landmarks are by construction (§27)", () => {
   it("header, main, nav, aside — the elements, not roles bolted on", () => {
     const shell = mountShell({ rail: true, inspector: { defaultOpen: true }, bottom: { defaultOpen: true } });
     expect(within(shell, ".kui-shell-header").tagName).toBe("HEADER");
@@ -88,7 +89,7 @@ describe("anatomy: the landmarks are by construction (§26)", () => {
     expect(within(shell, ".kui-shell-bottom").tagName).toBe("ASIDE");
   });
 
-  it("a pane IS a surface: its seal and edge are a Card's, computed (§10, §26)", () => {
+  it("a pane IS a surface: its seal and edge are a Card's, computed (§10, §27)", () => {
     const shell = mountShell();
     const card = mounted(<Card>c</Card>, { theme: {} });
     const sidebar = within(shell, ".kui-shell-sidebar");
@@ -106,7 +107,7 @@ describe("anatomy: the landmarks are by construction (§26)", () => {
   });
 });
 
-describe("geometry: the header criterion and the columns (§26)", () => {
+describe("geometry: the header criterion and the columns (§27)", () => {
   it("the header is full-width by definition; the columns sit beneath it", () => {
     const shell = mountShell();
     const header = within(shell, ".kui-shell-header").getBoundingClientRect();
@@ -126,7 +127,7 @@ describe("geometry: the header criterion and the columns (§26)", () => {
     expect(sidebar.width + content.width).toBeCloseTo(shell.getBoundingClientRect().width, 0);
   });
 
-  it("the width prop writes the ONE custom property the stylesheet reads — the resize room (§26)", () => {
+  it("the width prop writes the ONE custom property the stylesheet reads — the resize room (§27)", () => {
     const shell = mountShell({ sidebar: { width: 320 } });
     const sidebar = within(shell, ".kui-shell-sidebar");
     expect(computed(sidebar, "--kui-shell-w")).toBe("320px");
@@ -141,7 +142,7 @@ describe("geometry: the header criterion and the columns (§26)", () => {
   });
 });
 
-describe("auto until touched: CSS resolves the untouched pane per window class (§18, §26)", () => {
+describe("auto until touched: CSS resolves the untouched pane per window class (§18, §27)", () => {
   // Falsified: with the narrow media block's display rule deleted, the narrow half of the
   // first law reads `block` and fails.
   it("an untouched sidebar rests open on a roomy window and closed on a narrow one", async () => {
@@ -176,7 +177,7 @@ describe("auto until touched: CSS resolves the untouched pane per window class (
     expect(computed(within(openAtNarrow, ".kui-shell-sidebar"), "display")).not.toBe("none");
   });
 
-  it("no open/close callback fires at mount or on a window-class crossing — structurally (§26)", async () => {
+  it("no open/close callback fires at mount or on a window-class crossing — structurally (§27)", async () => {
     const onOpenChange = vi.fn();
     const shell = mountShell({ sidebar: { onOpenChange } });
     // Settle past the registry's post-mount stamping…
@@ -193,14 +194,14 @@ describe("auto until touched: CSS resolves the untouched pane per window class (
 });
 
 /**
- * THE MIRROR ITSELF (added 2026-08-16, ultracode audit). §26, LOG and shell.css each claimed
+ * THE MIRROR ITSELF (added 2026-08-16, ultracode audit). §27, LOG and shell.css each claimed
  * the CSS/JS agreement was "law-pinned" — and the audit proved it false by sabotage: breaking
  * the mirror's explicit-overlay arm left all 33 laws green while an untouched
  * `presentation="overlay"` pane reported aria-expanded="true" and inerted the whole shell at
  * a desktop width. Every law that existed read `display`, which the CSS answers alone.
  * These read the MIRROR — the aria the JS computes and the containment it drives.
  */
-describe("the JS mirror agrees with the stylesheet, and is read (§26)", () => {
+describe("the JS mirror agrees with the stylesheet, and is read (§27)", () => {
   it("an untouched explicit-overlay pane reports closed AND contains nothing, at a wide window", async () => {
     const shell = mounted(
       <Shell style={{ height: 400 }}>
@@ -246,7 +247,7 @@ describe("the JS mirror agrees with the stylesheet, and is read (§26)", () => {
   });
 });
 
-describe("the trigger: the one crossing (§26)", () => {
+describe("the trigger: the one crossing (§27)", () => {
   it("controls its pane by name: aria-controls is the pane's id, aria-expanded its effective state", async () => {
     const shell = mountShell();
     const trigger = within(shell, ".kui-shell-header button");
@@ -299,7 +300,7 @@ describe("the trigger: the one crossing (§26)", () => {
   });
 });
 
-describe("the overlay treatment: one element, dressed — and its obligations (§26)", () => {
+describe("the overlay treatment: one element, dressed — and its obligations (§27)", () => {
   // Falsified: with the :has() scrim rule deleted the scrim law reads `none`; with the
   // effect's inert lines removed the inert law reads false; with the auto arm's
   // inset-inline-start skewed to 40px the agreement law fails on the inline offset.
@@ -389,7 +390,7 @@ describe("the overlay treatment: one element, dressed — and its obligations (�
  * Falsified against the pre-repair code (per-pane inert effects): every law in this block
  * fails there, and the first two fail on the ordinary pointer path with no controlled props.
  */
-describe("two overlays at once — the plural the critical defect lived in (§26)", () => {
+describe("two overlays at once — the plural the critical defect lived in (§27)", () => {
   const twoOverlays = () =>
     mounted(
       <Shell style={{ height: 600 }}>
@@ -523,7 +524,7 @@ describe("two overlays at once — the plural the critical defect lived in (§26
   });
 });
 
-describe("an overlay never takes the whole window (§26, audit 2026-08-16)", () => {
+describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () => {
   // At 320 CSS px an uncapped overlay measured exactly the root's width: the scrim rendered
   // 0px wide, every hit-test across the shell returned the pane, and with the rest of the
   // shell contained there was no pointer route back at all.
@@ -555,7 +556,7 @@ describe("an overlay never takes the whole window (§26, audit 2026-08-16)", () 
   });
 });
 
-describe("flush and floating: one fact, two postures (§26)", () => {
+describe("flush and floating: one fact, two postures (§27)", () => {
   it("flush: each seam is ONE hairline — a pane draws its inner edge, content draws none", () => {
     const shell = mountShell();
     const sidebar = within(shell, ".kui-shell-sidebar");
@@ -640,7 +641,7 @@ describe("flush and floating: one fact, two postures (§26)", () => {
 });
 
 /**
- * PLACEMENT (§26, added 2026-08-16 — Kushagra: "Shell should be able to sit at app root, its
+ * PLACEMENT (§27, added 2026-08-16 — Kushagra: "Shell should be able to sit at app root, its
  * designed for it, or be placed in a modal or dialog or whatever too").
  *
  * The shell is designed for the app root, and at the root its containment is complete by
@@ -650,7 +651,7 @@ describe("flush and floating: one fact, two postures (§26)", () => {
  * Escape closed the pane AND the dialog around it, the same layer-blindness the audit fixed
  * in the other direction. Falsified against the code without `stopPropagation`.
  */
-describe("placement: at the root, and composed inside another layer (§26)", () => {
+describe("placement: at the root, and composed inside another layer (§27)", () => {
   it("inside a Dialog: the shell lays out, contains its own children, and answers Escape ALONE", async () => {
     const onOpenChange = vi.fn();
     mounted(
@@ -705,7 +706,7 @@ describe("placement: at the root, and composed inside another layer (§26)", () 
 
   it("at the root: containing every child of the shell IS containing the app", async () => {
     // The root placement's own claim, stated as a law so the "containment stops at the shell
-    // root" limit in §26 is scoped rather than vague: every child of the root — including one
+    // root" limit in §27 is scoped rather than vague: every child of the root — including one
     // the app rendered itself, not just panes — is contained while a pane overlays.
     await narrow();
     const shell = mounted(
@@ -729,21 +730,65 @@ describe("placement: at the root, and composed inside another layer (§26)", () 
   });
 });
 
-describe("material reaches the panes as it reaches a Card (§10, §26)", () => {
-  it("a glass theme's pane stamps the material; what sits ON the pane resolves solid", () => {
-    const shell = mounted(fixture(), { theme: { material: "regular" } });
-    const sidebar = within(shell, ".kui-shell-sidebar");
-    expect(sidebar.dataset.material).toBe("regular");
-    // GlassScope: a Card composed inside the pane is opaque — glass does not stack.
-    const inner = mounted(
-      <Shell style={{ height: 300 }}>
-        <ShellContent>
-          <Card>on the pane</Card>
-        </ShellContent>
-      </Shell>,
-      { theme: { material: "regular" } },
+describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
+  // REWRITTEN on the merge with main 2026-08-20. The old law asserted that a glass theme's
+  // pane stamps the theme's material — true under the material model the shell was built
+  // against, and false since selectivity (§10, 2026-08-17): a surface expresses the theme's
+  // glass only where a BACKDROP is stated, and resolves solid on calm ground. The pane was
+  // behaving correctly and the law was encoding the old system.
+  //
+  // It is stated RELATIVELY now, against a Card under identical placement, because "a pane is
+  // a card among cards" is the shell's own identity claim (§27) and an absolute assertion here
+  // would rot again the next time the material model moves. What it pins is membership, not a
+  // value: whatever a Card resolves in a given placement, a pane resolves the same.
+  const paneAndCardIn = (backdrop: boolean) => {
+    const host = mounted(
+      <Box backdrop={backdrop}>
+        <Shell style={{ height: 300 }}>
+          <ShellSidebar aria-label="Primary">nav</ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>
+        <Card>beside it</Card>
+      </Box>,
+      { theme: { material: "regular" }, select: "[data-kui-backdrop], div" },
     );
-    const card = within(inner, ".kui-card");
-    expect(card.dataset.material).toBeUndefined();
+    const root = host.closest(".kui-theme") ?? host;
+    return {
+      pane: within(root, ".kui-shell-sidebar"),
+      card: within(root, ".kui-card"),
+    };
+  };
+
+  it("on calm ground both resolve solid — selectivity, and a pane pays nothing for it", () => {
+    const { pane, card } = paneAndCardIn(false);
+    expect(card.dataset.material, "the reference Card expressed glass on calm ground").toBeUndefined();
+    expect(pane.dataset.material, "the pane and the Card disagree on calm ground").toBe(
+      card.dataset.material,
+    );
+  });
+
+  it("inside a marked backdrop region both express the theme's material, identically", () => {
+    const { pane, card } = paneAndCardIn(true);
+    expect(card.dataset.material, "the reference Card did not express the theme's glass").toBe(
+      "regular",
+    );
+    expect(pane.dataset.material, "the pane and the Card disagree over a backdrop").toBe(
+      card.dataset.material,
+    );
+  });
+
+  it("a Card composed inside a glass pane goes ON-GLASS — glass does not stack", () => {
+    const shell = mounted(
+      <Box backdrop>
+        <Shell style={{ height: 300 }}>
+          <ShellContent>
+            <Card>on the pane</Card>
+          </ShellContent>
+        </Shell>
+      </Box>,
+      { theme: { material: "regular" }, select: ".kui-shell" },
+    );
+    expect(within(shell, ".kui-shell-content").dataset.material).toBe("regular");
+    expect(within(shell, ".kui-card").dataset.material).toBe("on-glass");
   });
 });

@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
 import { resolveBoxProps, type BoxStyleProps } from "../../system/resolve.ts";
+import { BackdropContext } from "../../theme/theme.tsx";
 
 /**
  * The dev flag, resolved ONCE and defensively (audit 2026-08-08). A bare
@@ -39,6 +40,15 @@ export type BoxProps = BoxStyleProps &
      * happens (§2).
      */
     container?: boolean;
+    /**
+     * §10 — marks a REGION where content passes behind the components inside it (2026-08-17):
+     * a toolbar floating over a canvas, a panel over a hero image. Every material-expressing
+     * component within (buttons, fields, cards, selects) resolves the theme's material here
+     * instead of solid — placement is a fact about the place, stated once, not a prop
+     * sprinkled per control. `backdrop={false}` re-marks a sub-region as calm. Layout is
+     * untouched: the mark is a React context, not a style.
+     */
+    backdrop?: boolean;
   };
 
 /**
@@ -54,7 +64,7 @@ export type BoxProps = BoxStyleProps &
  * an escape that loses to the default is not an escape.
  */
 export function Box(props: BoxProps) {
-  const { ref, render, className, style: userStyle, container, ...rest } = props;
+  const { ref, render, className, style: userStyle, container, backdrop, ...rest } = props;
   const { style, rest: domProps } = resolveBoxProps(rest);
 
   // Dev-only: a container Box whose width was worked out from its contents is 0px wide —
@@ -116,7 +126,14 @@ export function Box(props: BoxProps) {
     ...domProps,
   };
 
-  if (render) return composeRender(render, merged as never);
+  const node = render ? (
+    composeRender(render, merged as never)
+  ) : (
+    <div {...(merged as React.ComponentPropsWithRef<"div">)} />
+  );
 
-  return <div {...(merged as React.ComponentPropsWithRef<"div">)} />;
+  // The region mark rides context, not the DOM: components resolve their material in React
+  // (useMaterial), so an attribute would be a second, unread home for the same fact.
+  if (backdrop === undefined) return node;
+  return <BackdropContext.Provider value={backdrop}>{node}</BackdropContext.Provider>;
 }

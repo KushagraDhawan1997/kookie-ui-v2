@@ -26,8 +26,10 @@ import {
   PortalScope,
   useAmbientDirection,
 } from "../../system/floating.tsx";
-import type { Material, Size, SlotName } from "../../system/axes.ts";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import type { Size, SlotName } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
+import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
+import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 
 /* ── Designed constants (§22, v0 — the switchInset precedent: Base UI takes numbers, so
       these cannot ride CSS tokens; one home, judged in the playground) ─────────────────── */
@@ -60,8 +62,16 @@ const gapVar = (px: number) => ({ "--kui-floating-gap": `${px}px` }) as React.CS
 const panelSeam = (trigger: HTMLElement | null): number => {
   const panel = trigger?.closest<HTMLElement>(".kui-menu-popup");
   if (!panel) return 0;
-  const cs = getComputedStyle(panel);
-  return parseFloat(cs.paddingTop) + parseFloat(cs.borderTopWidth);
+  // The two terms come from two ELEMENTS since 2026-08-17, and reading both off the panel is
+  // the defect ScrollArea introduced: the list scrolls inside a viewport now, so the padding
+  // moved there with the clipping while the border stayed on the pane. Read off the panel
+  // alone, `paddingTop` computed 0 and the seam lost its padding term entirely — the child's
+  // first row sat exactly one padding above its trigger (measured 4px at compact, and the law
+  // that caught it is the one written for this function's FIRST version of the same mistake).
+  // The fallback keeps a panel with no viewport positioning rather than throwing at runtime;
+  // the law is what makes its absence loud.
+  const box = panel.querySelector<HTMLElement>(".kui-scroll-viewport") ?? panel;
+  return parseFloat(getComputedStyle(box).paddingTop) + parseFloat(getComputedStyle(panel).borderTopWidth);
 };
 
 /* ── Size context: the menu answers `size` like Button (Kushagra, 2026-08-09 — a size-4
@@ -218,7 +228,7 @@ export type MenuContentProps = {
     menu.css re-states the padding the surface size join would otherwise pick. */
 function popupProps(
   size: Size,
-  material: Material,
+  material: SurfaceMaterial,
   anchored: boolean,
   className?: string,
 ) {
@@ -291,18 +301,32 @@ function MenuPopup({
   style?: React.CSSProperties | undefined;
   ref?: React.Ref<HTMLDivElement> | undefined;
 }) {
-  const material = useMaterial();
+  // A floating pane is over content BY CONSTRUCTION (2026-08-17, the backdrop selectivity):
+  // it covers the app, so it always has something to bend and always expresses the theme.
+  const material = useMaterial({ backdrop: true });
+  // §10 — the lens on the pane itself (see Card).
+  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   return (
     <BaseMenu.Popup
       {...popupProps(React.use(MenuSizeContext), material, anchored, className)}
       /* The gap the entry publishes is the positioner's own number — stamped, not
          re-derived, so the two cannot disagree (§22). */
       style={{ ...gapVar(side), ...style }}
-      {...(ref !== undefined ? { ref } : {})}
+      ref={lensRef}
     >
-      <FloatingBody>
-        <GlassScope material={material}>{children}</GlassScope>
-      </FloatingBody>
+      {/* The list scrolls, the PANEL never does (2026-08-17, ScrollArea): the popup keeps
+          its glass, corner and cast; the viewport inside carries the overflow and the ring
+          clearance (menu.css moves the physical padding onto it), and the overlay thumb
+          replaces the browser's gutter cutting through the pane. `focusable={false}` is
+          what makes the wrapper's role="presentation" REAL (audit 2026-08-18): ARIA voids
+          presentation on a focusable element, so Base UI's viewport tabindex was exposing a
+          generic node between role="menu" and its menuitems and adding a tab stop inside a
+          roving-focus widget. The menu scrolls its own highlight into view. */}
+      <ScrollArea focusable={false}>
+        <FloatingBody>
+          <GlassScope material={material}>{children}</GlassScope>
+        </FloatingBody>
+      </ScrollArea>
     </BaseMenu.Popup>
   );
 }

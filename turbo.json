@@ -1,5 +1,14 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  // Turbo hands each task a FILTERED environment, so a variable that relocates a tool's
+  // assets does not reach the task that needs it. `pnpm run ci` — the command this repo tells
+  // everyone to run before claiming a task done — could not launch a browser at all wherever
+  // Playwright's browsers live outside its default cache: `vitest run` in the package found
+  // them, `turbo run test` in the same shell did not, and the browser project reported
+  // "8 passed (37)" rather than a failure. That is the 2026-08-08 `docs:test` finding in a
+  // second home — a law that did not run is a way of not failing — so the two variables that
+  // say where the browsers are pass through.
+  "globalPassThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH", "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

@@ -14,12 +14,12 @@
 import * as React from "react";
 import {
   AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogCancel,
   AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+  AlertDialogTrigger,
   Blockquote,
   Box,
   Button,
@@ -27,36 +27,39 @@ import {
   Checkbox,
   Code,
   Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
   DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
   Flex,
   Grid,
   Heading,
   Kbd,
   Menu,
-  MenuTrigger,
-  MenuContent,
-  MenuItem,
-  MenuGroup,
-  MenuLabel,
   MenuCheckboxItem,
+  MenuContent,
+  MenuGroup,
+  MenuItem,
+  MenuLabel,
   MenuRadioGroup,
   MenuRadioItem,
   MenuSub,
-  MenuSubTrigger,
   MenuSubContent,
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectGroup,
-  SelectLabel,
+  MenuSubTrigger,
+  MenuTrigger,
   Progress,
   Radio,
   RadioGroup,
+  ScrollArea,
+  SegmentedControl,
+  SegmentedItem,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
   Separator,
   Shell,
   ShellHeader,
@@ -67,6 +70,9 @@ import {
   Spinner,
   Stack,
   Switch,
+  Tabs,
+  TabsList,
+  TabsTab,
   Text,
   TextArea,
   TextField,
@@ -192,17 +198,31 @@ export const ENTRIES: Entry[] = [
       "The layout engine every other primitive is typed sugar over. It accepts the full curated prop set — spacing, sizing, display, container props — each resolving through tokens, each responsive via container tiers rather than utility classes.",
     axes: [
       { name: "p / m / px / py …", values: "layout space steps", note: "the density-aware layer, never the raw palette" },
+      {
+        name: "m / mx / mt … = \"bleed\"",
+        values: "the one named value on the space scale",
+        note: "cancels the enclosing surface's padding, so this box reaches the pane's edge — a picture across the top of a card is `mt=\"bleed\" mx=\"bleed\"` (§3, 2026-08-20). Margins only: padding and gap reject a negative length. It reads the NEAREST surface, and outside one it computes a real zero rather than a pull",
+      },
       { name: "any prop", values: "value | { initial, sm, md, lg }", note: "container-query tiers, compiled to variable remaps" },
       {
         name: "container",
         values: "boolean",
         note: "makes THIS Box the region responsive values inside it measure; absent, they measure the nearest marked ancestor, ultimately the Theme root",
       },
+      {
+        name: "backdrop",
+        values: "boolean",
+        note: "marks a REGION where content passes behind the components inside it (§10, 2026-08-17) — every material-expressing component within resolves the theme's material; placement is a fact about the place, stated once, and backdrop={false} re-marks a sub-region as calm",
+      },
     ],
     refusals: [
       {
         name: "utility classes",
         why: "Values ride inline custom properties into fixed arbitration rules, so tokens and raw strings cost the same and the stylesheet never grows with the value set.",
+      },
+      {
+        name: "a `bleed` prop",
+        why: "It is a VALUE on the margin rows, not a prop of its own — which is the whole economy of it. Every per-side and per-tier spelling already exists there, so `bleed`/`bleedX`/`bleedTop` would have meant seven new rows, twenty-eight property registrations, and a second mechanism writing `margin` for the existing var chain to arbitrate against.",
       },
       {
         name: "containment by default",
@@ -227,6 +247,7 @@ export const ENTRIES: Entry[] = [
       { name: "tone", values: "any family", note: "picks the hue; accent resolves through the Theme" },
       { name: "emphasis", values: "loud | medium | quiet", note: "three rungs, because a rung must earn a visible step" },
       { name: "bordered", values: "boolean", note: "containment, and honestly half a rung: medium+bordered reads louder than medium" },
+      { name: "backdrop", values: "boolean", note: "placement, not material (§10, 2026-08-17): content passes behind this, so the theme's glass may express; unset it reads the ambient <Box backdrop> region" },
       { name: "leading / trailing", values: "ReactNode", note: "an icon, or a whole hosted control" },
     ],
     refusals: [
@@ -237,7 +258,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a shadow prop",
-        why: "Elevation is deleted. Depth is an app identity, set once by Theme surfaces, never chosen per call site.",
+        why: "Elevation is deleted. Depth is an app identity, set once by Theme depth, never chosen per call site.",
       },
     ],
     example: (
@@ -255,18 +276,23 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§9, §10",
     blurb:
-      "A shell, deliberately: one fixed treatment — an opaque seal and a border — with size as its only prop, and no stylesheet of its own. It was stripped back to this on the finding that a card with tone, emphasis and anatomy slots was a layout pretending to be a component.",
+      "A shell, deliberately: one fixed treatment — an opaque seal, BORDERLESS at standard contrast since 2026-08-17 (the lab's pane: the edge is light — cast and seat-line pool on solid, the ring on glass — never a pigment hairline; contrast='high' restores the tone system's edge) — with size and the `backdrop` placement fact as its only props, and no stylesheet of its own. It was stripped back to this on the finding that a card with tone, emphasis and anatomy slots was a layout pretending to be a component. Rendered as a button or a link it becomes interactive, and since 2026-08-17 it MOVES like one: the control layer's two clocks, its lively recovery and stiff press, its ring landing, and the same one-pixel rise to meet the pointer. Only the press distances are the surface's own — a card sinks 1px and shrinks to 0.995, because scale is relative and a button's 0.975 would move a wide card's edge five pixels and read as the page flexing.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "padding and corner, not height" },
+      { name: "backdrop", values: "boolean", note: "a PLACEMENT fact (§10, 2026-08-17): content passes behind this, so the theme's material may express — unset it reads the ambient <Box backdrop> region; it can never choose a thickness" },
     ],
     refusals: [
       {
         name: "a material prop",
-        why: "Material moved to the Theme on 2026-08-16: it answers what the APP is built of, which is one value for a whole scope rather than a per-card choice. There is no rung to walk and no ceiling at `thick`, and what makes one pane read heavier than another is coverage and its scrim, not a second thickness. A subtree that must differ says so with a nested Theme, exactly like every other axis; nesting itself is handled — a pane inside a pane resolves solid, because a second pane has no unblurred backdrop left to defocus.",
+        why: "Material moved to the Theme on 2026-08-16: it answers what the APP is built of, which is one value for a whole scope rather than a per-card choice. There is no rung to walk and no ceiling at `thick`, and what makes one pane read heavier than another is coverage and its scrim, not a second thickness. A subtree that must differ says so with a nested Theme; and since 2026-08-17 EXPRESSION is placement-gated — a component renders the theme's glass only where a backdrop exists (`<Box backdrop>` marks the region; Card, Button, TextField, TextArea and SelectTrigger take the same prop as a one-off; popups pass it by construction), so `thin` no longer makes every in-flow control pay a filter. Nesting itself is handled — a pane inside a glass pane resolves `on-glass` (the veil's alpha, no second blur), and a pane on a solid pane resolves solid.",
       },
       {
         name: "tone, emphasis, bordered",
-        why: "A card ranks nothing against its siblings. Its border is identity, not a rung.",
+        why: "A card ranks nothing against its siblings. Its edge is light, not a rung — and since 2026-08-17 not a hairline either.",
+      },
+      {
+        name: "a media / cover slot",
+        why: "The corner is a shape, so a pane clips what it holds (2026-08-20), and a child states that it reaches the edge with `<Box mt=\"bleed\" mx=\"bleed\">`. That is the layout every peer solved with a part of its own — Mantine's Card.Section, MUI's CardMedia, Ant's cover — and it needs no anatomy here: the picture is a child that cancels the padding, not a region the card has to know about. An element that must hang OFF the corner escapes with `style={{ overflow: \"visible\" }}`.",
       },
       {
         name: "header / footer slots",
@@ -482,12 +508,12 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "size", values: "1–9, optional", note: "unset inherits the line, like Code" },
       { name: "emphasis", values: "loud | medium | quiet", note: "the ink's axis" },
-      { name: "tone", values: "any family", note: "moves the ink, the fill and the edge" },
+      { name: "tone", values: "any family", note: "moves the ink and the fill; the edge is the cap's own achromatic relief line since 2026-08-17, tone-blind so it reads the same on any bed" },
     ],
     refusals: [
       {
         name: "a world-switched shadow",
-        why: "The cap casts ALWAYS — flat world included — because a key cap is a picture of a raised physical object, so depth here is role semantics (the slider and switch grips' own exception), never the app's elevation dial. What stays refused is the cast moving with Theme surfaces.",
+        why: "The cap carries RELIEF always — flat world included — a top-face catch and a whisper of drop (`--kbd-relief`, its own cap-scale value since 2026-08-17: the lit button chrome it used to read made a bare cap read as a small floating button), because a key cap is a picture of a raised physical object; a glass pane stands even that down (relief in the pane, not a sticker on it). What stays refused is the cast moving with Theme depth.",
       },
     ],
     example: (
@@ -502,7 +528,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§20, §21, §22",
     blurb:
-      "A floating list of actions: the first portalled component and the row family's first member. The popup is a Card that floats — same seal, same edge, and a CONCENTRIC corner: its rows' own corner plus its padding, derived per size and radius level (two fixed corners were tried and rejected by eye first) — and it casts in BOTH surfaces worlds, because a shadow under a floating pane is information about overlap, not the expression the app switch governs. The part vocabulary follows shadcn/ui's dropdown-menu (MIT), adopted with credit; behavior is Base UI's menu end to end.",
+      "A floating list of actions: the first portalled component and the row family's first member. The popup is a Card that floats — same seal, same edge, and a CONCENTRIC corner: its rows' own corner plus its padding, derived per size and radius level (two fixed corners were tried and rejected by eye first) — and it casts in BOTH depth worlds, because a shadow under a floating pane is information about overlap, not the expression the app switch governs. The part vocabulary follows shadcn/ui's dropdown-menu (MIT), adopted with credit; behavior is Base UI's menu end to end.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "on the root, like Button — a size-4 trigger must not open a size-2 dropdown; rows take the control cells' padding and type, and their HEIGHT from the text line plus a designed inset, a notch under the button ladder" },
       { name: "tone (Item)", values: "destructive", note: "a union of one — the single meaning a row may carry; not a palette, and widening it is a decision, never a default" },
@@ -531,7 +557,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "Arrow, Backdrop, Viewport, LinkItem, collision knobs",
-        why: "Menus don't point; light-dismiss needs no scrim; long menus scroll inside the panel via the positioner's own measurements; navigation rows arrive with Sidebar; collision handling is a designed default.",
+        why: "Menus don't point; light-dismiss needs no scrim; long menus scroll inside a system-owned ScrollArea viewport (the panel itself never scrolls — it keeps the glass, corner and cast); navigation rows arrive with Sidebar; collision handling is a designed default.",
       },
     ],
     parts: [
@@ -585,6 +611,7 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "on the root, like Button and Menu — the trigger and its option rows price from one index" },
       { name: "items", values: "Record<value, label>", note: "value → label for the CLOSED trigger: Base UI resolves labels from mounted options, and a panel that never opened has none — pass it whenever a defaultValue can paint first" },
+      { name: "backdrop", values: "boolean", note: "placement, not material (§10, 2026-08-17): content passes behind the TRIGGER, so the theme's glass may express; unset it reads the ambient <Box backdrop> region" },
     ],
     refusals: [
       {
@@ -608,8 +635,8 @@ export const ENTRIES: Entry[] = [
         why: "The value IS the trigger's content, and a re-rooted trigger would re-open the accessibility question Base UI already answers with a real button wearing role=combobox.",
       },
       {
-        name: "item-aligned positioning (and the scroll arrows)",
-        why: "Base UI's default overlaps the trigger macOS-style and needs scroll-arrow parts plus a different height model. The panel takes the dropdown geometry the menu designed; the macOS mode is recorded open, whole, for when a real shell wants it.",
+        name: "the scroll arrows",
+        why: "The panel is placed item-aligned — the chosen row sits on the trigger, macOS-style — and it still flies out of that trigger the way a menu does. The scroll ARROWS that Base UI pairs with that placement are refused: they are a mouse-only affordance for a list taller than its panel, the panel scrolls by wheel, trackpad and keyboard without them, and an arrow is a control this system has not designed. The panel also hangs a little to the LEFT of the trigger, which is the placement working rather than a bug: item-aligned lines the chosen option's text up with the trigger's value text, and the rows reserve a gutter for the tick that the trigger has no equivalent of.",
       },
       {
         name: "multiple",
@@ -720,6 +747,33 @@ export const ENTRIES: Entry[] = [
     ),
   },
   {
+    slug: "scroll-area",
+    name: "ScrollArea",
+    family: "Surface",
+    spec: "§10",
+    blurb:
+      "Custom scrollbars over native scrolling: the platform keeps the physics, the system draws the bar — an overlay capsule thumb on the alpha ramp, visible only while scrolling or hovering, with no drawn track and no gutter. One export; the viewport, bars and corner are assembly, not API. The one behavioral prop is focusable: a standalone region keeps its keyboard tab stop, and a host widget that owns keyboard scrolling (Menu) passes false so the presentation wrappers stay structural.",
+    axes: [],
+    refusals: [
+      { name: "size", why: "One designed thickness — a scrollbar has no box of its own to index (Progress's sentence)." },
+      { name: "tone / emphasis", why: "An instrument: it ranks nothing and means nothing, it shows where you are." },
+      { name: "material", why: "It draws over content INSIDE a pane; the pane already answered the theme." },
+      { name: "render", why: "The anatomy is Base UI's contract — the parts are assembly the caller cannot reach." },
+      { name: "orientation", why: "Both bars are declared and Base UI mounts only the ones the content actually needs, on the frame after it measures — orientation is a fact the content decides, not a prop." },
+    ],
+    example: (
+      <Card size="3">
+        <ScrollArea style={{ height: "160px" }}>
+          <Stack gap="4">
+            {Array.from({ length: 12 }, (_, i) => (
+              <Text key={i} size="2" emphasis="medium">Row {i + 1} of a list taller than its box.</Text>
+            ))}
+          </Stack>
+        </ScrollArea>
+      </Card>
+    ),
+  },
+  {
     slug: "separator",
     name: "Separator",
     family: "Surface",
@@ -746,7 +800,7 @@ export const ENTRIES: Entry[] = [
     slug: "shell",
     name: "Shell",
     family: "Layout",
-    spec: "§26",
+    spec: "§27",
     blurb:
       "The app frame: header, rail, sidebar, content, inspector and bottom, each pane a surface placing itself in one grid — the shell never inspects its children, and DOM order stays reading order. An untouched pane is `auto`: the stylesheet resolves its resting state per window class (nav columns open on roomy windows, closed on narrow ones, where opening presents them as an overlay behind a scrim), so first paint is right with no script and no callback can fire at mount. State lives on each pane in the library's one controlled pattern; the only thing that crosses the shell is a trigger finding its pane by name. `panes=\"floating\"` separates the panes — the gap and the visible corners are just what not-touching looks like, the distance answers density, and the gaps show the app's own page.",
     axes: [
@@ -866,6 +920,45 @@ export const ENTRIES: Entry[] = [
     ),
   },
   {
+    slug: "segmented-control",
+    name: "SegmentedControl",
+    family: "Control",
+    spec: "§4, §11, §19, §26",
+    blurb:
+      "One choice among a few, shown all at once. It is a radio group, not a row of toggle buttons — picking one of several is what a radio group IS, and that is what a screen reader then hears. The track is a well on the height ladder so it stands level with the button beside it — law-asserted against a mounted Button's rendered box, after the first spelling compared two declared heights and was green over a track two pixels too tall. Each segment is §4's hosted-control rule with N hosts; the segments sit flush; and the chosen one is the grip, casting like the switch's thumb and wearing the ink that pairs with the grip rather than with the page.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "prices the track; the segments derive from the channel" },
+    ],
+    refusals: [
+      {
+        name: "tone and emphasis",
+        why: "The family has one tone as an identity. A segment louder than its neighbours is not a segmented control.",
+      },
+      {
+        name: "an indicator element",
+        why: "The chosen segment paints its own box. A measuring hook whose only consumer is a motion nobody has designed yet is a mechanism with no consumer.",
+      },
+      {
+        name: "multi-select",
+        why: "That is a set of toggle buttons and a different component. Toggle Button has its own row in §11.",
+      },
+      {
+        name: "nativeButton and render",
+        why: "Closed with the mark family's own reasons, and pinned by type probes after an audit found nativeButton reopened here: set on a segment it breaks Space selection, which is the defect Checkbox closed on this same primitive.",
+      },
+      { name: "readOnly", why: "Inherited from Radio — the platform has no read-only selection control." },
+    ],
+    parts: [
+        { part: "SegmentedItem", blurb: "One segment — a control hosted in the channel, holding its own label and reporting its own checked state" },
+    ],
+    example: (
+      <SegmentedControl defaultValue="grid" aria-label="View">
+        <SegmentedItem value="list">List</SegmentedItem>
+        <SegmentedItem value="grid">Grid</SegmentedItem>
+      </SegmentedControl>
+    ),
+  },
+  {
     slug: "switch",
     name: "Switch",
     family: "Control",
@@ -892,6 +985,45 @@ export const ENTRIES: Entry[] = [
           <Text size="2" render={<label htmlFor="s2" />}>Beta features</Text>
         </Flex>
       </Stack>
+    ),
+  },
+  {
+    slug: "tabs",
+    name: "Tabs",
+    family: "Control",
+    spec: "§11, §15, §26",
+    blurb:
+      "A bar of places you can go, and the one you are on. The active tab is marked by ink and a rule, never by a louder fill or a heavier label — a fill would make it read as a button among links, and a heavier weight reflows the whole bar every time you switch. The rule is drawn by an offset and a width, the pair Base UI computes in one coordinate space: the both-edges spelling it shipped with collapsed to zero width whenever the bar overflowed.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "on the list, once — a bar of mixed sizes is not a thing anyone means" },
+    ],
+    refusals: [
+      {
+        name: "tone and emphasis",
+        why: "A bar where one tab is louder than the next names nothing. Which tab is active is a state, not a rung a call site picks.",
+      },
+      {
+        name: "TabsTrigger / TabsContent",
+        why: "shadcn's names, and the one place this package does not take them: a trigger here opens a floating layer, and a tab opens nothing. TabsPanel follows the role it announces.",
+      },
+      {
+        name: "material",
+        why: "A tab bar paints no pane. There is nothing behind it to defocus, so glass has nothing to do.",
+      },
+      { name: "an exported indicator", why: "The rule is structure, not API. A consumer who has to place it is one who will forget." },
+    ],
+    parts: [
+        { part: "TabsList", blurb: "The bar, the hairline, and the one place the size is stated — it places the rule itself, which is why nobody has to remember to" },
+        { part: "TabsTab", blurb: "One tab: a control on the height ladder wearing the quiet rung, marked active by ink rather than by a fill" },
+        { part: "TabsPanel", blurb: "What the tab reveals. Paints nothing — a region that draws its own box is a Card" },
+    ],
+    example: (
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTab value="overview">Overview</TabsTab>
+          <TabsTab value="activity">Activity</TabsTab>
+        </TabsList>
+      </Tabs>
     ),
   },
   {
@@ -930,6 +1062,7 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "control height survives as a min-height; growth is rows" },
       { name: "rows", values: "number", note: "the height, because a composer is its own component" },
+      { name: "backdrop", values: "boolean", note: "placement, not material (§10, 2026-08-17): content passes behind this, so the theme's glass may express; unset it reads the ambient <Box backdrop> region" },
     ],
     refusals: [
       { name: "emphasis and tone", why: "A form where one field is louder than the next is incoherent — TextField's argument." },
@@ -948,6 +1081,7 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "" },
       { name: "leading / trailing", values: "ReactNode", note: "an icon, or a hosted control that keeps its own press" },
+      { name: "backdrop", values: "boolean", note: "placement, not material (§10, 2026-08-17): content passes behind this, so the theme's glass may express; unset it reads the ambient <Box backdrop> region" },
     ],
     refusals: [
       { name: "emphasis and tone", why: "Loudness ranks actions. A form where one field is louder than the next names nothing." },
@@ -969,17 +1103,15 @@ export const ENTRIES: Entry[] = [
     family: "Layout",
     spec: "§5, §7, §12, §19",
     blurb:
-      "Where an app states its identity. Nine axes, each re-pricing tokens for everything beneath it — and they nest, so a section can override the page. Nothing about a Theme is decoration: every prop answers a question the call sites are then forbidden from answering one at a time.",
+      "Where an app states its identity. Seven axes, each re-pricing tokens for everything beneath it — and they nest, so a section can override the page. Nothing about a Theme is decoration: every prop answers a question the call sites are then forbidden from answering one at a time.",
     axes: [
       { name: "appearance", values: "inherit | light | dark", note: "resolved output, never a colour" },
       { name: "contrast", values: "normal | high", note: "an accessibility setting, not a design knob — the conformance surface for edges and signals" },
       { name: "radius", values: "none | small | medium | large | full", note: "selects a designed palette per level, not a factor" },
       { name: "density", values: "compact | default | comfortable", note: "control-only: airiness, never type" },
       { name: "pointer", values: "auto | fine | coarse", note: "two complete geometries, the way there are two colour modes" },
-      { name: "surfaceLook", values: "outlined | filled", note: "how a resting surface is drawn — cards, and the panels that wear a card's identity" },
-      { name: "controlLook", values: "outlined | filled", note: "how a resting control is drawn — fields and marks, which move together" },
       { name: "depth", values: "flat | elevated", note: "does light exist: the one sanctioned consumer of the shadow palette" },
-      { name: "material", values: "solid | thin | regular | thick", note: "of what the app is BUILT — one value for the whole scope, moved here from nine component props 2026-08-16; a dialog and a menu under one theme are the same glass, and what makes a dialog read heavier is coverage and its scrim, not a second thickness" },
+      { name: "material", values: "solid | thin | regular | thick", note: "of what the app is BUILT — one VALUE for the whole scope (2026-08-16); expression is placement since 2026-08-17: glass renders only where a backdrop is stated (the backdrop prop / region), so the value names the material and placement decides where it shows" },
     ],
     refusals: [
       {
@@ -992,7 +1124,11 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "an elevation axis",
-        why: "Deleted. Nothing ever varied it per call site — it was a component fact wearing an axis's clothes, and surfaces is what survived of its logic.",
+        why: "Deleted. Nothing ever varied it per call site — it was a component fact wearing an axis's clothes, and depth is what survived of its logic.",
+      },
+      {
+        name: "the look axis (surfaceLook / controlLook)",
+        why: "Deleted whole (controlLook 2026-08-19, surfaceLook 2026-08-20). controlLook's two values had converged — fields and marks wear the dress unconditionally. surfaceLook's second value was never judged or used: the lab's borderless pane is the one surface identity, so the prop was a lever every call site could reach and none had needed. A tinted surface identity can return as a Theme value the day a real app wants one.",
       },
     ],
     example: (

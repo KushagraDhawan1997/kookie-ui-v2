@@ -17,14 +17,15 @@ import { Select as BaseSelect } from "@base-ui/react/select";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
 import {
-  FloatingBody,
+  SelectBody,
   FloatingDirectionContext,
   PortalScope,
   useAmbientDirection,
 } from "../../system/floating.tsx";
 import { mergeRefs } from "../../system/render.ts";
-import type { Material, Size, SlotName } from "../../system/axes.ts";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import type { Size, SlotName } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
+import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 
 /** Gap between the trigger's edge and the panel — the menu's designed constant, restated
     because the second member self-keys (§23). */
@@ -115,6 +116,9 @@ export type SelectTriggerProps = Omit<
 > & {
   /** Shown, in the faint role, while no value is chosen — an empty select INVITES (§15). */
   placeholder?: string;
+  /** §10 — a placement fact (2026-08-17): content passes behind this trigger, so the
+   *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */
+  backdrop?: boolean;
   className?: string;
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
@@ -132,15 +136,20 @@ export type SelectTriggerProps = Omit<
  */
 export function SelectTrigger({
   placeholder,
+  backdrop,
   className,
   ref,
   ...props
 }: SelectTriggerProps) {
   const size = React.use(SelectSizeContext);
   // §10 — the app's material (2026-08-16); the trigger stands in flow, so no portal subtlety.
-  const material = useMaterial();
+  // It states placement only (backdrop, 2026-08-17): calm ground resolves solid.
+  const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // The trigger is the one in-flow node a select owns — where ambient direction is read (§20).
   const { measure } = React.use(FloatingDirectionContext);
+  // §10 — the lens. The trigger IS a member of the field family, so it owes the same glass
+  // its TextField sibling wears, lens included; on-glass never filters, never bends.
+  const lensRef = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", undefined);
   const cls = "kui-control kui-field kui-select-trigger";
   return (
     <BaseSelect.Trigger
@@ -151,7 +160,7 @@ export function SelectTrigger({
       // spelling).
       data-material={material === "solid" ? undefined : material}
       {...props}
-      ref={mergeRefs(ref, measure)}
+      ref={mergeRefs(ref, measure, lensRef)}
     >
       <BaseSelect.Value
         className="kui-select-value"
@@ -183,7 +192,7 @@ export type SelectContentProps = {
 
 /** The panel's surface identity — the menu popup's constants, self-keyed (§23). data-size
     is stamped for the concentric corner (the floating size join reads it). */
-function popupProps(size: Size, material: Material, className?: string) {
+function popupProps(size: Size, material: SurfaceMaterial, className?: string) {
   const identity = "kui-surface kui-floating kui-select-popup";
   return {
     "data-size": size,
@@ -196,11 +205,31 @@ function popupProps(size: Size, material: Material, className?: string) {
 }
 
 /**
- * No positioning props at all — a select's geometry is the system's: below the trigger,
- * start-aligned, the designed offset. `alignItemWithTrigger` is pinned FALSE: Base UI's
- * default overlaps the trigger macOS-style, which needs the scroll-arrow parts and a
- * different height model; the dropdown geometry is the one the menu already designed.
- * Recorded open, with the scroll arrows, in the registry's refusals.
+ * No positioning props at all — a select's geometry is the system's: the designed offset,
+ * start-aligned, and the CHOSEN ROW ON THE TRIGGER (2026-08-17, Kushagra: *"the selected item
+ * always appear on top of trigger 1:1, so that the remainder of the list sits a little above
+ * and below the trigger depending on the item's position"*).
+ *
+ * `alignItemWithTrigger` was pinned FALSE on 2026-08-09 and is now Base UI's own default
+ * again, which is the macOS and Radix placement. The reversal is not a taste swing: the
+ * item-aligned panel is what makes a select's entry HONEST. Our panel animates, and the
+ * browser reveals the selected row the instant the select opens — so a panel that is still
+ * travelling is a panel whose row is somewhere it will not stay, and the page moved to follow
+ * it (see LOG 2026-08-17). Welded to the trigger, the row is already where it ends up and
+ * there is nothing for the reveal to chase.
+ *
+ * Base UI falls back to the ordinary side placement by itself — for keyboard opens, and when
+ * the row cannot reach the trigger near a viewport edge — and it stamps `data-side="none"`
+ * when the overlap is live.
+ *
+ * The ENTRY is the family's, unchanged: the panel still flies out of the trigger's own box the
+ * way a menu does (§22). What the overlap costs is an ORDERING — Base UI computes it from the
+ * panel's real box, so the panel must be placed before it is posed (`placedByContent` in
+ * system/floating.tsx).
+ *
+ * Still refused, and still recorded in the registry: the scroll ARROW parts. They are the
+ * mouse-only affordance for a list taller than its panel; the panel scrolls by wheel, trackpad
+ * and keyboard without them, and an arrow is a control we have not designed.
  */
 /** Split out so `useMaterial()` is read INSIDE `PortalScope` — a select opened from a glass
     card paints over the page, not inside the card, and React context follows the tree rather
@@ -216,16 +245,26 @@ function SelectPopup({
   style?: React.CSSProperties | undefined;
   ref?: React.Ref<HTMLDivElement> | undefined;
 }) {
-  const material = useMaterial();
+  // A floating pane is over content BY CONSTRUCTION (2026-08-17, the backdrop selectivity):
+  // it covers the app, so it always has something to bend and always expresses the theme.
+  const material = useMaterial({ backdrop: true });
+  // §10 — the lens on the pane itself (see Card).
+  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   return (
     <BaseSelect.Popup
       {...popupProps(React.use(SelectSizeContext), material, className)}
       style={{ ...GAP_VAR, ...style }}
-      {...(ref !== undefined ? { ref } : {})}
+      ref={lensRef}
     >
-      <FloatingBody>
+      {/* DELIBERATELY no ScrollArea here while Menu has one (2026-08-17, Kushagra: "skip it
+          on select for now"). Two mechanisms care about WHO the scroll container is: the
+          overlap placement (Base UI aligns the chosen row on the trigger by controlling its
+          own scroller's position) and the curtain (the reveal reads row rects, §23). An
+          interposed viewport changes both, and that is a measurement, not an assumption —
+          measure the overlap and the curtain against a ScrollArea viewport before adopting. */}
+      <SelectBody>
         <GlassScope material={material}>{children}</GlassScope>
-      </FloatingBody>
+      </SelectBody>
     </BaseSelect.Popup>
   );
 }
@@ -234,7 +273,7 @@ export function SelectContent({ children, className, style, ref }: SelectContent
   return (
     <BaseSelect.Portal>
       <PortalScope>
-        <BaseSelect.Positioner side="bottom" align="start" sideOffset={SIDE_OFFSET} alignItemWithTrigger={false}>
+        <BaseSelect.Positioner side="bottom" align="start" sideOffset={SIDE_OFFSET}>
           <SelectPopup className={className} style={style} ref={ref}>
             {children}
           </SelectPopup>

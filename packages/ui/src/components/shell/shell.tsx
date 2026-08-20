@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Shell (§26) — the app frame, spec'd from v1's corpse (LOG 2026-08-16).
+ * Shell (§27) — the app frame, spec'd from v1's corpse (LOG 2026-08-16).
  *
  * Eight flat exports: Shell, ShellHeader, ShellRail, ShellSidebar, ShellContent,
  * ShellInspector, ShellBottom, ShellTrigger. The design is mostly deletions from v1, and each
@@ -30,15 +30,14 @@
  * registers its toggle by name on mount; the trigger looks it up and stamps
  * `aria-expanded` / `aria-controls`. The registry carries no layout state.
  *
- * Deferred, not refused (§26): drag-to-resize (the one-variable width design below is the
+ * Deferred, not refused (§27): drag-to-resize (the one-variable width design below is the
  * room left for it), peek, the `stacked` presentation, the mixed flush/floating posture.
  */
 import * as React from "react";
 
 import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
 import { useWindowClass } from "../../system/window.ts";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
-import type { Material } from "../../system/axes.ts";
+import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 
 /* ── The registry: the one thing that crosses the shell ─────────────────────────────────── */
 
@@ -102,9 +101,16 @@ type VarStyle = React.CSSProperties & Record<`--${string}`, string>;
 const cx = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(" ");
 
 /** The surface identity every pane wears — Card's stamps, fixed rather than chosen (§10,
-    §26: a pane is a card among cards; seal, edge, look, material and depth all arrive from
-    surfaces.css and this file's stylesheet paints nothing). */
-function surfaceStamps(material: Material) {
+    §27: a pane is a card among cards; seal, edge, material and depth all arrive from
+    surfaces.css and this file's stylesheet paints nothing).
+
+    The material is SELECTIVE since 2026-08-17 (§10, merged from main 2026-08-20): a pane
+    reads the theme's glass only where a backdrop is stated — the ambient `<Box backdrop>`
+    region — and resolves `solid` on the page's calm ground, `on-glass` inside a glass pane.
+    A shell pane sits on the app's own ground, so `solid` is the honest default and costs
+    nothing; whether a pane should take `backdrop` of its own is an open API question, and
+    the overlay pane is its real case (it is the one with content genuinely behind it). */
+function surfaceStamps(material: SurfaceMaterial) {
   return {
     "data-tone": "neutral",
     "data-emphasis": "quiet",
@@ -118,7 +124,7 @@ function surfaceStamps(material: Material) {
 
 export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /**
-   * §26 — are the panes touching? `flush` tiles them edge to edge, each seam one hairline;
+   * §27 — are the panes touching? `flush` tiles them edge to edge, each seam one hairline;
    * `floating` separates them, and the gap and visible corners are just what not-touching
    * looks like. The distance is the system's (`--shell-gap`, a layout-space pick, so it
    * answers density); there is no gap prop, deliberately.
@@ -217,7 +223,7 @@ export function Shell({ panes = "flush", className, style, children, ref, ...pro
    *
    * What it does NOT do, honestly: contain anything OUTSIDE the shell root. A shell that is
    * not the whole page leaves the page around it tabbable while a pane overlays. That is
-   * recorded open in §26 rather than patched here — it is a design question (does a shell
+   * recorded open in §27 rather than patched here — it is a design question (does a shell
    * overlay trap like a dialog, or is a shell the page?), and the pointer half is already
    * covered because the scrim spans the root.
    */
@@ -312,7 +318,7 @@ export function Shell({ panes = "flush", className, style, children, ref, ...pro
    *
    * And the event STOPS here when this handler consumes it, because the shell is blind to
    * what is BELOW it in the same way: a Shell placed inside a Dialog is a supported
-   * placement (§26 — the shell is designed for the app root and must also compose), and
+   * placement (§27 — the shell is designed for the app root and must also compose), and
    * measured before this line existed, one Escape closed the pane AND the dialog around it.
    * The pane is the innermost dismissible thing the user is in, so it answers the key and
    * nothing else hears it. `preventDefault` is deliberately NOT called: this is a dismissal,
@@ -504,7 +510,7 @@ function usePane(
 type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
   TogglePaneOwnProps & {
     /**
-     * §26 — the system's first sanctioned raw length: a pane's width is the app's content
+     * §27 — the system's first sanctioned raw length: a pane's width is the app's content
      * speaking, and no ladder exists that could price it. In CSS pixels. It overrides the
      * designed default by writing the one custom property the stylesheet reads
      * (`--kui-shell-w`) — which is deliberately the whole future resize architecture: a
@@ -567,7 +573,7 @@ function SidePane({
 export type ShellRailProps = SidePaneProps;
 
 /** The narrow icon column — the one that switches sections. Independent of the sidebar:
-    nothing excludes anything, because nothing overlaps (§26 deleted v1's thin mode, the
+    nothing excludes anything, because nothing overlaps (§27 deleted v1's thin mode, the
     exclusivity rule and the close-cascade in one renaming). Renders `<nav>`; when two nav
     landmarks are present, give each an `aria-label`. */
 export function ShellRail(props: ShellRailProps) {
@@ -591,7 +597,7 @@ export function ShellInspector(props: ShellInspectorProps) {
 
 export type ShellBottomProps = Omit<React.ComponentPropsWithoutRef<"aside">, "color"> &
   TogglePaneOwnProps & {
-    /** §26 — the bottom pane's block extent, the width prop's sentence turned 90°. */
+    /** §27 — the bottom pane's block extent, the width prop's sentence turned 90°. */
     height?: number;
     ref?: React.Ref<HTMLElement>;
   };
@@ -653,7 +659,7 @@ export type ShellTriggerProps = Omit<React.ComponentPropsWithoutRef<"button">, "
 };
 
 /**
- * The one crossing (§26): a button anywhere in the shell drives a pane by name, through the
+ * The one crossing (§27): a button anywhere in the shell drives a pane by name, through the
  * registry — no state is lifted for it. Stamps `aria-expanded` (the pane's effective state;
  * omitted while an auto pane honestly cannot know, i.e. before mount) and `aria-controls`.
  */

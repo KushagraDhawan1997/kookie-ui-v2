@@ -257,9 +257,32 @@ describe("neutral off, accent on (§11)", () => {
         </Theme>,
       );
       const mark = markOf(el);
-      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--control-edge)"));
-      expect(computed(mark, "border-top-color")).not.toBe(colorOn(el, "var(--color-border)"));
-      expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
+      // REWRITTEN 2026-08-17 (the fill-first flip): the mark family's resting identity is no
+      // longer "the seal, wearing the solved --control-edge". It is a WELL — the look's dress
+      // fill — with the dress edge supplementing it, which is the same sentence the field
+      // family now states one family over: fill is identity, the boundary only supplements.
+      // The D2 argument that minted --control-edge ("an unchecked mark has no identity but
+      // this hairline") is what expired: the mark has a fill to be recognised by now.
+      expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--dress-mark-fill)"));
+      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--dress-mark-edge)"));
+      // And the WELL is a real one — not the page it sits on, which is what would make the
+      // whole rewrite vacuous.
+      expect(computed(mark, "background-color")).not.toBe(colorOn(el, "var(--color-surface)"));
+      // The floor claim moves with the value, it is not dropped: a dress fill answers to
+      // taste at rest (Kushagra, 2026-08-07 — "taste over APCA rules in standard"), and
+      // contrast="high" is the conformance surface, so THAT is where the boundary must
+      // still move. This half caught a real defect the day it was written: the look block
+      // held the border at the Theme scope, where the high-contrast stand-down on <html>
+      // could never outrank it, and the request reached no boundary at all.
+      const high = render(
+        <Theme appearance={appearance} contrast="high">
+          <Checkbox />
+        </Theme>,
+      );
+      expect(
+        computed(markOf(high), "border-top-color"),
+        "contrast=high must still reach the mark's boundary",
+      ).not.toBe(computed(mark, "border-top-color"));
     });
 
     it(`${appearance}: checked fills with the accent solid and pairs its glyph`, () => {
@@ -386,44 +409,29 @@ describe("a checked mark is the family's loud rung, and loud rungs catch light (
   });
 });
 
-describe("the look axis dresses the resting box, never the tick (§19)", () => {
-  it.each(APPEARANCES)("%s: filled dresses the box and KEEPS the mark's edge", (appearance) => {
-    // Rewritten 2026-08-06. The old spelling asserted the fill equalled `var(--neutral-4)` and
-    // the border equalled transparent — both true, both useless: the first compared the mark
-    // to the name its author had typed, and the second asserted the defect. `filled` was
-    // deleting --control-edge, the boundary audit D2 minted BECAUSE an unchecked box is nothing
-    // but its hairline, dropping it to |Lc| 0.0 against the card. Now judged against the
-    // other end of the axis, and against the guarantee D2 bought.
-    const filled = markOf(mounted(<Checkbox />, { theme: { controlLook: "filled", appearance } }));
-    const outlined = markOf(mounted(<Checkbox />, { theme: { controlLook: "outlined", appearance } }));
+describe("the dress is unconditional, and it never deletes the mark's edge (§19)", () => {
+  // The look axis is fully DELETED (controlLook 2026-08-19, surfaceLook 2026-08-20,
+  // Kushagra). What survives is every guarantee its laws carried, re-keyed to the one state
+  // that exists.
+  it.each(APPEARANCES)("%s: the dressed box KEEPS the mark's edge", (appearance) => {
+    // The D2 guarantee, unconditional now: an unchecked box is nothing but its hairline.
+    const box = markOf(mounted(<Checkbox />, { theme: { appearance } }));
     expect(
-      computed(filled, "background-color"),
-      `filled resolves to outlined's fill in ${appearance}`,
-    ).not.toBe(computed(outlined, "background-color"));
-    expect(
-      computed(filled, "border-top-color"),
+      computed(box, "border-top-color"),
       "an unchecked mark with no edge is not a control, it is a gap",
     ).not.toBe("rgba(0, 0, 0, 0)");
   });
 
-  it("outlined is the identity — byte-identical to the bare render", () => {
+  it("the bare render is the themed render — no axis, no difference", () => {
     const bare = markOf(render(<Checkbox />));
-    const outlined = markOf(mounted(<Checkbox />, { theme: { controlLook: "outlined" } }));
+    const themed = markOf(mounted(<Checkbox />, { theme: {} }));
     for (const prop of ["background-color", "border-top-color"]) {
-      expect(computed(outlined, prop)).toBe(computed(bare, prop));
+      expect(computed(themed, prop)).toBe(computed(bare, prop));
     }
   });
 
-  it("checked is an identity, not dress: identical in both looks", () => {
-    const outlined = markOf(mounted(<Checkbox defaultChecked />, { theme: { controlLook: "outlined" } }));
-    const filled = markOf(mounted(<Checkbox defaultChecked />, { theme: { controlLook: "filled" } }));
-    for (const prop of ["background-color", "border-top-color"]) {
-      expect(computed(filled, prop)).toBe(computed(outlined, prop));
-    }
-  });
-
-  it("invalid outranks dress: the error edge shows through filled's transparent border", () => {
-    const el = mounted(<Checkbox aria-invalid="true" />, { theme: { controlLook: "filled" } });
+  it("invalid outranks dress: the error edge shows through the dress edge", () => {
+    const el = mounted(<Checkbox aria-invalid="true" />, { theme: {} });
     expect(computed(markOf(el), "border-top-color")).toBe(colorOn(el, "var(--invalid-edge)"));
   });
 });
@@ -440,24 +448,23 @@ describe("what it inherits from the shared layer, and what it must not (§8)", (
     // The first spelling asserted opacity and cursor, neither of which could be wrong (audit
     // D6): the resting fill is the surface seal, not a tone role, so the shared arm could not
     // reach it and a disabled unchecked checkbox computed byte-identical to a live one.
-    // Widened 2026-08-06 to loop the LOOK as well as the appearance. It had cells for one axis
-    // the state interacts with and not the other, so `filled` — which re-points the very fill
-    // this arm has to override — was never once disabled in a test. A state must outrank dress
-    // in both worlds or the rule is only half true.
+    // The 2026-08-06 widening looped the LOOK too; the axis died 2026-08-19 (controlLook
+    // deleted), so the dress this state must outrank is unconditional and one loop is the
+    // whole space again.
     for (const appearance of APPEARANCES) {
-      for (const look of ["outlined", "filled"] as const) {
+      {
         const at = (props: { disabled?: boolean; defaultChecked?: boolean }) =>
           render(
-            <Theme appearance={appearance} controlLook={look}>
+            <Theme appearance={appearance}>
               <Checkbox {...props} />
             </Theme>,
           );
-        const where = `${appearance}/${look}`;
+        const where = appearance;
         const off = at({ disabled: true });
         const on = at({ disabled: true, defaultChecked: true });
         for (const el of [off, on]) {
           expect(computed(markOf(el), "background-color"), where).toBe(
-            colorOn(el, "var(--neutral-3)"),
+            colorOn(el, "var(--disabled-fill)"),
           );
           expect(computed(markOf(el), "opacity"), where).toBe("1");
         }

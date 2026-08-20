@@ -13,7 +13,8 @@ import { Checkbox } from "../components/checkbox/checkbox.tsx";
 import { TextField } from "../components/text-field/text-field.tsx";
 import { APPEARANCES, computed, mounted, render } from "../test/browser.tsx";
 import { density, radiusLevels } from "../tokens/config.ts";
-import { DEPTHS, Theme, themeAxes, themeDefaults } from "./theme.tsx";
+import { DEPTHS, Theme, themeAxes, themeDefaults, useMaterial } from "./theme.tsx";
+import { Button } from "../components/button/button.tsx";
 
 /** Reads through real properties: a custom property hands back its unresolved token stream. */
 const probe = <div id="probe" style={{ height: "var(--control-height-2)", borderRadius: "var(--radius-control-2)" }} />;
@@ -25,71 +26,27 @@ describe("the axes render as attributes (§5)", () => {
     expect(el.getAttribute("data-radius")).toBe("large");
   });
 
-  // Both halves of the look axis, each on its own attribute (split 2026-08-10). Looped rather
-  // than written twice: the two are one mechanism asked of two family groups, and a law that
-  // covered only `surfaceLook` would have let `controlLook` ship un-stamped.
-  const LOOK_AXES = [
-    { prop: "surfaceLook", attr: "data-surface-look" },
-    { prop: "controlLook", attr: "data-control-look" },
-  ] as const;
-
-  for (const { prop, attr } of LOOK_AXES) {
-    it(`${prop} stamps its default and a nested Theme escapes by declaration (§19)`, () => {
-      // Always stamped — unlike contrast there is no platform signal to leave room for, and
-      // the outlined scope must exist for a nested outlined Theme to escape a filled ancestor.
-      expect(render(<Theme />).getAttribute(attr)).toBe("outlined");
-      const outer = render(
-        <Theme {...{ [prop]: "filled" }}>
-          <Theme density="compact" />
-        </Theme>,
-      );
-      expect(outer.getAttribute(attr)).toBe("filled");
-      const inner = outer.querySelector(".kui-theme")!;
-      expect(inner.getAttribute(attr)).toBe("filled");
-      const escaped = render(
-        <Theme {...{ [prop]: "filled" }}>
-          <Theme {...{ [prop]: "outlined" }} />
-        </Theme>,
-      ).querySelector(".kui-theme")!;
-      expect(escaped.getAttribute(attr)).toBe("outlined");
-    });
-  }
-
-  it("the two look halves are independent — a plain card can hold filled controls (§19)", () => {
-    // THE law the 2026-08-10 split exists for. Under one axis this cell was unreachable: a
-    // white card holding grey filled inputs — the most ordinary form on the web — because
-    // `filled` moved the surface and the field together, one neutral step apart.
-    //
-    // Read as computed paint on real components, not as attributes: the split is only real if
-    // the emitted scopes declare disjoint families, and an attribute law would pass on a
-    // stylesheet where one block still wrote both.
-    const at = (surfaceLook: "outlined" | "filled", controlLook: "outlined" | "filled") => {
-      const el = render(
-        <Theme surfaceLook={surfaceLook} controlLook={controlLook}>
-          <Card>
-            <TextField />
-          </Card>
-        </Theme>,
-      );
-      return {
-        card: computed(el.querySelector(".kui-surface")!, "background-color"),
-        field: computed(el.querySelector(".kui-field")!, "background-color"),
-      };
-    };
-    const plain = at("outlined", "outlined");
-    const split = at("outlined", "filled");
-    const both = at("filled", "filled");
-
-    expect(split.card, "the control half dressed the card").toBe(plain.card);
-    expect(split.field, "the control half left the field at rest").not.toBe(plain.field);
-    expect(both.card, "the surface half did not reach the card").not.toBe(plain.card);
-    // And the cell the whole thing is for: a card that stayed put while its field filled.
-    expect(split.field, "a filled field on a plain card is the same colour as the card").not.toBe(
-      split.card,
+  it("the look axis is DELETED — nothing stamps either attribute, and the split's cell is the only state (§19)", () => {
+    // controlLook died 2026-08-19, surfaceLook 2026-08-20 (both Kushagra). The 2026-08-10
+    // split's cell — a plain card holding dressed inputs — is now the ONLY state: fields and
+    // marks wear the dress unconditionally and a card rests on the seal. Two assertions
+    // carry it: neither dead attribute ever renders, and the cell itself still exists.
+    const el = render(
+      <Theme>
+        <Card>
+          <TextField />
+        </Card>
+      </Theme>,
     );
+    expect(el.hasAttribute("data-control-look"), "the deleted axis re-stamped").toBe(false);
+    expect(el.hasAttribute("data-surface-look"), "the deleted axis re-stamped").toBe(false);
+    expect(
+      computed(el.querySelector(".kui-field")!, "background-color"),
+      "a field on a plain card is the same colour as the card",
+    ).not.toBe(computed(el.querySelector(".kui-surface")!, "background-color"));
   });
 
-  describe("a filled component's edge answers contrast=high (§7, §19)", () => {
+  describe("a dressed component's edge answers contrast=high (§7, §19)", () => {
     // THE law for the reachability guarantee, and it is deliberately an OUTCOME law mounted in
     // a browser rather than a check on which step the config picked.
     //
@@ -104,36 +61,97 @@ describe("the axes render as attributes (§5)", () => {
     // Reading the computed edge off a real component in both contrast states cannot be fooled
     // that way: it does not care whether the answer arrives by band membership, by the
     // stand-down arm, or by something not invented yet.
+    // The surface family's resting edge is deliberately ABSENT since the lab port (light is
+    // the edge), so its case asserts the edge APPEARS under high contrast; the dressed
+    // families rest on a live soft edge, so theirs assert it MOVES. Both shapes end at the
+    // same place: a painted, tone-strength boundary when one is asked for.
     const CASES = [
-      { name: "surface", ui: <Card>Body</Card>, select: ".kui-surface" },
-      { name: "field", ui: <TextField />, select: ".kui-field" },
-      { name: "mark", ui: <Checkbox />, select: ".kui-checkbox" },
+      { name: "surface", ui: <Card>Body</Card>, select: ".kui-surface", restsPainted: false },
+      { name: "field", ui: <TextField />, select: ".kui-field", restsPainted: true },
+      { name: "mark", ui: <Checkbox />, select: ".kui-checkbox", restsPainted: true },
     ] as const;
 
     for (const appearance of APPEARANCES) {
-      for (const { name, ui, select } of CASES) {
-        it(`${appearance}/${name}: the edge moves when high contrast is asked for`, () => {
+      for (const { name, ui, select, restsPainted } of CASES) {
+        it(`${appearance}/${name}: the edge answers when high contrast is asked for`, () => {
           const edge = (contrast: "normal" | "high") =>
-            computed(
-              mounted(ui, {
-                // Both halves: the three cases span both family groups, and the stand-down
-                // this law is about is written once for every look role.
-                theme: { surfaceLook: "filled", controlLook: "filled", appearance, contrast },
-                select,
-              }),
-              "border-top-color",
-            );
+            computed(mounted(ui, { theme: { appearance, contrast }, select }), "border-top-color");
           const normal = edge("normal");
           const high = edge("high");
-          expect(normal, "a filled edge that is not painted cannot be strengthened").not.toBe(
+          if (restsPainted) {
+            expect(normal, "a dressed edge that is not painted cannot be strengthened").not.toBe(
+              "rgba(0, 0, 0, 0)",
+            );
+          } else {
+            expect(normal, "the pane rests borderless — light is the edge").toBe("rgba(0, 0, 0, 0)");
+          }
+          expect(high, `${name}'s edge is inert under contrast="high"`).not.toBe(normal);
+          expect(high, "high contrast must paint a boundary, not remove one").not.toBe(
             "rgba(0, 0, 0, 0)",
           );
-          expect(
-            high,
-            `${name}'s filled edge is inert under contrast="high" — the escape does nothing here`,
-          ).not.toBe(normal);
         });
       }
+    }
+
+    // …AND THE SAME THING ONE ELEMENT APART, which is the arrangement every law above is
+    // blind to (2026-08-20, Kushagra, by eye: a dark card looked identical at both contrasts
+    // while the glass beside it changed).
+    //
+    // Every law here co-locates the two axes on one Theme, because that is what `mounted`
+    // builds. The SUPPORTED path does not: the pre-paint script stamps appearance and
+    // contrast on `<html>` (§5's co-location requirement is about those two, and it holds
+    // there), and then the app renders `<Theme appearance="dark">` for a section. That Theme
+    // re-declares the whole standard palette NEARER to the component than `<html>` is, and a
+    // custom property resolves by proximity — so contrast="high" reached NOTHING below it.
+    // Measured before the fix: --control-edge, --field-edge, --neutral-6 and --color-track
+    // all equal their standard values, and the card painted no boundary at all.
+    //
+    // The law drives the DOM directly rather than through `mounted`, because the shape it is
+    // about is precisely the one the harness cannot express.
+    for (const { name, select } of CASES) {
+      it(`${name}: high contrast survives a nested appearance Theme — the supported page shape`, () => {
+        const root = document.documentElement;
+        const before = { a: root.dataset.appearance, c: root.dataset.contrast };
+        try {
+          root.dataset.appearance = "dark";
+          const edge = (contrast: string) => {
+            root.dataset.contrast = contrast;
+            const host = render(
+              <Theme appearance="dark">
+                <Card>Body</Card>
+                <TextField />
+                <Checkbox />
+              </Theme>,
+            );
+            return computed(host.querySelector<HTMLElement>(select)!, "border-top-color");
+          };
+          const normal = edge("normal");
+          const high = edge("high");
+          expect(high, `${name} is deaf to contrast="high" one element away`).not.toBe(normal);
+          expect(high, "high contrast must paint a boundary").not.toBe("rgba(0, 0, 0, 0)");
+
+          // And the escape still escapes: a nested Theme that explicitly asks for `normal`
+          // inside a high-contrast document keeps the standard dress. Without this the fix
+          // would be a rule that cannot be turned off, which is the opposite failure.
+          root.dataset.contrast = "high";
+          const optOut = computed(
+            render(
+              <Theme appearance="dark" contrast="normal">
+                <Card>Body</Card>
+                <TextField />
+                <Checkbox />
+              </Theme>,
+            ).querySelector<HTMLElement>(select)!,
+            "border-top-color",
+          );
+          expect(optOut, `${name}: an explicit contrast="normal" was overridden`).toBe(normal);
+        } finally {
+          if (before.a === undefined) delete root.dataset.appearance;
+          else root.dataset.appearance = before.a;
+          if (before.c === undefined) delete root.dataset.contrast;
+          else root.dataset.contrast = before.c;
+        }
+      });
     }
   });
 
@@ -320,5 +338,164 @@ describe("the axis table is the one home, and the defaults live inside it (§5, 
     // it defers to is written against that attribute — the asymmetry with `inherit` is real
     // and worth pinning, since making them agree would break one of them.
     expect(render(<Theme pointer="auto">x</Theme>).getAttribute("data-pointer")).toBe("auto");
+  });
+});
+
+describe("only the outermost Theme is a query container (§2, narrowed 2026-08-16)", () => {
+  /* Earned by a shipped regression. `.kui-theme` carried `container-type: inline-size`
+     unconditionally, with the collapse written down beside it as an accepted caveat — and it
+     WAS acceptable while a nested Theme only ever re-scoped an axis on a region that already
+     had a width. `material` became a Theme property on 2026-08-16, which made
+     <Theme material="thin"> the ordinary way to put one pane behind glass; every glass
+     specimen in the playground then rendered zero pixels wide, stacked on its neighbours,
+     from the commit that shipped it. Nothing failed: 1300 laws passed on both sides of the
+     fix, because not one of them read a nested Theme's width or its containment.
+
+     The measurement is the WIDTH, not `container-type`. A law reading the property would be
+     the 2026-08-03 lesson again — one indirection short of the thing that was actually
+     wrong, which was a box with nothing in it. */
+  const inRow = (child: React.ReactNode) =>
+    render(<Theme><div style={{ display: "flex", width: "600px" }}>{child}</div></Theme>);
+
+  it("a nested Theme in a flex row is as wide as its content, not 0px", () => {
+    const row = inRow(<Theme material="thin"><Card size="2">Glass</Card></Theme>);
+    const nested = row.querySelector<HTMLElement>(".kui-theme");
+    if (!nested) throw new Error("the nested Theme never mounted");
+    expect(nested.getBoundingClientRect().width, "the nested Theme collapsed").toBeGreaterThan(40);
+    expect(computed(nested, "container-type")).toBe("normal");
+
+    // The negative control, or the law passes for the wrong reason on an empty row: a Box
+    // that DID opt in collapses in the same slot, so the row itself is a shrink-wrapping one.
+    const opted = inRow(<Box container>Glass</Box>).querySelector<HTMLElement>("[data-container]");
+    expect(opted!.getBoundingClientRect().width).toBe(0);
+  });
+
+  it("the root Theme is still the container a tier falls back to", () => {
+    // The floor §2 asks for: narrowing containment must not leave a tier with nothing to
+    // read. Falsified by narrowing the selector to exclude the root as well.
+    const root = render(
+      <Theme style={{ width: "900px" }}>
+        <Box p={{ initial: "1", md: "9" }} />
+        <Box p="9" />
+      </Theme>,
+    );
+    expect(computed(root, "container-type")).toBe("inline-size");
+    const [tiered, reference] = [...root.querySelectorAll<HTMLElement>(".kui-box")];
+    // Against a mounted reference rather than a token string: `--layout-space-9` hands back
+    // `calc(48px * 1)` unresolved, and comparing an unresolved stream to a resolved length is
+    // how a law ends up asserting the spelling instead of the width.
+    expect(computed(tiered!, "padding-top")).toBe(computed(reference!, "padding-top"));
+    expect(computed(tiered!, "padding-top")).not.toBe("0px");
+  });
+
+  it("a nested Theme still carries every axis it was given — containment was the only loss", () => {
+    // The narrowing is about MEASUREMENT and must not touch what a nested Theme is for.
+    // `backdrop` (lab port 2026-08-17): a Card under a glass theme resolves SOLID by
+    // default — glass is selective, and a card is the page's calm ground unless the call
+    // site states the over-content placement. A plain Card here would stamp nothing and
+    // this law would be reading the selectivity rule, not whether the axis crossed.
+    const row = inRow(
+      <Theme density="compact" radius="none" material="thick">
+        <Card size="2" backdrop>x</Card>
+      </Theme>,
+    );
+    const nested = row.querySelector<HTMLElement>(".kui-theme")!;
+    expect(nested.getAttribute("data-density")).toBe("compact");
+    expect(nested.getAttribute("data-radius")).toBe("none");
+    // `material` is the one axis with no attribute on the Theme itself: it travels by React
+    // context and each component stamps its own, so all 28 selectors stay element-keyed
+    // (2026-08-16). Read where it actually lands, or this asserts the wrong element.
+    expect(row.querySelector(".kui-surface")?.getAttribute("data-material")).toBe("thick");
+  });
+});
+
+describe("a solid surface HOSTS glass — the pane scopes the region, never the author (§10, 2026-08-19)", () => {
+  // Kushagra, closing the 2026-08-18 audit's headline: "the whole point of a solid surface
+  // is to be able to host glass." The old solid-pane arm returned `solid` unconditionally,
+  // which silently vetoed the `backdrop` prop, the `<Box backdrop>` region and the public
+  // useMaterial({backdrop:true}) alike — every documented placement statement was
+  // unexpressible inside any Card, and since panes default solid, that was the ordinary
+  // case. Now the pane RESETS the ambient region (its face is the ground its members stand
+  // on) and an explicit statement made INSIDE it resolves the theme's material.
+
+  it("an explicit region inside a solid pane expresses the theme's material", () => {
+    const host = render(
+      <Theme material="thin">
+        <Card>
+          <Box backdrop>
+            <Button>Zoom</Button>
+          </Box>
+        </Card>
+      </Theme>,
+    );
+    const button = host.querySelector("button")!;
+    expect(button.dataset.material, "the region was swallowed by the pane").toBe("thin");
+    expect(computed(button, "backdrop-filter")).not.toBe("none");
+  });
+
+  it("but a region marked OUTSIDE the pane stops at its edge — calm ground by default", () => {
+    // The pane here must actually BE solid to test the reset — a bare Card inside a marked
+    // region correctly expresses glass itself (placement is a fact about a place), so the
+    // mount pins it solid with its own prop. Without the reset, the button would read the
+    // stale outer region and go glass on the solid card's calm face.
+    const host = render(
+      <Theme material="thin">
+        <Box backdrop>
+          <Card backdrop={false}>
+            <Button>Label</Button>
+          </Card>
+        </Box>
+      </Theme>,
+    );
+    expect(host.querySelector(".kui-surface")!.getAttribute("data-material"), "the pinned card must be solid").toBeNull();
+    const button = host.querySelector("button")!;
+    expect(button.dataset.material, "the outer region leaked through the pane").toBeUndefined();
+    expect(computed(button, "backdrop-filter")).toBe("none");
+  });
+
+  it("the public hook's own argument wins inside a pane too", () => {
+    function Probe() {
+      return <div data-probe data-material={useMaterial({ backdrop: true })} />;
+    }
+    const host = render(
+      <Theme material="regular">
+        <Card>
+          <Probe />
+        </Card>
+      </Theme>,
+    );
+    expect(host.querySelector<HTMLElement>("[data-probe]")!.dataset.material).toBe("regular");
+  });
+
+  it("a nested Theme inside a GLASS pane resolves solid — the reset closed the glass-on-glass escape", () => {
+    // Theme resets the pane mark for portals; before the pane also reset the REGION, an
+    // in-flow nested Theme inside a glass card re-opened the stale outer region and put
+    // full glass on glass — double blur, double readback (audit 2026-08-18). The member
+    // must re-state its own placement to get glass back.
+    const host = render(
+      <Theme material="thin">
+        <Box backdrop>
+          <Card backdrop>
+            <Theme>
+              <Button>Label</Button>
+            </Theme>
+          </Card>
+        </Box>
+      </Theme>,
+    );
+    const button = host.querySelector("button")!;
+    expect(button.dataset.material, "glass-on-glass through the nested-Theme escape").toBeUndefined();
+    // The control case that must keep working: WITHOUT the nested Theme, the same member is
+    // the pane's on-glass content — proof the mount can see the scope at all.
+    const control = render(
+      <Theme material="thin">
+        <Box backdrop>
+          <Card backdrop>
+            <Button>Label</Button>
+          </Card>
+        </Box>
+      </Theme>,
+    );
+    expect(control.querySelector("button")!.dataset.material).toBe("on-glass");
   });
 });

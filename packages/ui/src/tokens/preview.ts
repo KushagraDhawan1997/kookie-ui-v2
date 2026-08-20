@@ -174,6 +174,9 @@ function roleValue(s: Scale, role: (typeof ROLES)[number], mode: Mode): string {
     case "soft": return s.steps[2]!;
     case "soft-hover": return s.steps[3]!;
     case "soft-active": return s.steps[4]!;
+    case "soft-solid": return s.steps[mode === "dark" ? 3 : 2]!;
+    case "soft-hover-solid": return s.steps[mode === "dark" ? 4 : 3]!;
+    case "soft-active-solid": return s.steps[mode === "dark" ? 5 : 4]!;
     case "solid": return s.solid;
     case "solid-hover": return s.solidHover;
     case "solid-active": return s.solidActive;
@@ -755,44 +758,24 @@ function surfaceSection(mode: Mode): string {
           )}</button>`,
         ) +
         demo(
-          "The look axis — outlined vs filled, asked once of surfaces and once of controls; Button identical in every cell <code>\u00a719</code>",
-          kuiBox(
-            { display: "flex", gap: "5", align: "flex-start" },
-            (["outlined", "filled"] as const)
-              .map(
-                (l) =>
-                  // A real Theme co-locates every axis it resolves on ONE element, and the hc
-                  // scopes select on that pairing ([data-appearance][data-contrast]) — a bare
-                  // data-look div is a scope Theme can never produce, and it escapes the
-                  // high-contrast stand-down (measured 2026-08-07: the pinned filled card kept
-                  // the dress edge while every root-level card sharpened). So the panel stamps
-                  // data-appearance too and the toggles co-stamp it like any other scope;
-                  // data-look-pinned exempts it from the page-wide look select alone.
-                  `<div data-appearance="${mode}" data-surface-look="${l}" data-control-look="${l}" data-look-pinned style="flex: 1">${kuiBox(
-                    { display: "flex", direction: "column", gap: "4" },
-                    `<strong>${cap(l)}</strong>` +
-                      card(
-                        kuiBox(
-                          { display: "flex", direction: "column", gap: "4" },
-                          `${field({ placeholder: "Email" })}${textarea({ placeholder: "Message" })}${kuiBox(
-                            // A GRID with definite tracks, not a flex row — a layout choice
-                            // now, not a workaround. It began as the blanket-containment
-                            // workaround the checkbox section records; containment went opt-in
-                            // 2026-08-08 (§2, the `container` prop), these boxes are plain, and
-                            // a flex row would render fine. All three mark members sit here on
-                            // purpose: one shared rule dresses them, so a divergence shows up
-                            // in this row first.
-                            { display: "grid", columns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "3" },
-                            `${checkbox({ label: "Remember" })}${radio({ label: "Daily" })}${radio({ checked: true, label: "Weekly" })}`,
-                          )}${slider({ width: "100%" })}${kuiBox(
-                            { display: "grid", columns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "3" },
-                            `${button({ tone: "accent", emphasis: "loud" }, "Send")}${button({ bordered: true }, "Cancel")}`,
-                          )}`,
-                        ),
-                      ),
-                  )}</div>`,
-              )
-              .join(""),
+          "The dress — a plain card holding dressed fields and marks, the one resting state since the look axis died (surfaceLook 2026-08-20) <code>\u00a719</code>",
+          card(
+            kuiBox(
+              { display: "flex", direction: "column", gap: "4" },
+              `${field({ placeholder: "Email" })}${textarea({ placeholder: "Message" })}${kuiBox(
+                // A GRID with definite tracks, not a flex row — a layout choice now, not a
+                // workaround. It began as the blanket-containment workaround the checkbox
+                // section records; containment went opt-in 2026-08-08 (§2, the `container`
+                // prop), these boxes are plain, and a flex row would render fine. All three
+                // mark members sit here on purpose: one shared rule dresses them, so a
+                // divergence shows up in this row first.
+                { display: "grid", columns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "3" },
+                `${checkbox({ label: "Remember" })}${radio({ label: "Daily" })}${radio({ checked: true, label: "Weekly" })}`,
+              )}${slider({ width: "100%" })}${kuiBox(
+                { display: "grid", columns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "3" },
+                `${button({ tone: "accent", emphasis: "loud" }, "Send")}${button({ bordered: true }, "Cancel")}`,
+              )}`,
+            ),
           ),
         ) +
         demo(
@@ -894,6 +877,9 @@ const ROLE_NOTES: Record<(typeof ROLES)[number], [string, string]> = {
   soft: ["step 3", "medium emphasis, resting fill"],
   "soft-hover": ["step 4", "medium emphasis, hover (+1 step)"],
   "soft-active": ["step 5", "medium emphasis, pressed (+2 steps)"],
+  "soft-solid": ["step 3, opaque", "the trio's opaque twin — glass re-points here (2026-08-19)"],
+  "soft-hover-solid": ["step 4, opaque", "hover twin, glass only"],
+  "soft-active-solid": ["step 5, opaque", "pressed twin, glass only"],
   border: ["step 7", "the bordered boolean, separators"],
   solid: ["step 9, or step 12 when low chroma", "loud emphasis, resting fill"],
   "solid-hover": ["generated, away from the label", "loud emphasis, hover"],
@@ -1165,12 +1151,6 @@ export function generatePreview(): string {
   <label>density
       <select id="density">${LEVELS.map((l) => `<option${l === "default" ? " selected" : ""}>${l}</option>`).join("")}</select>
     </label>
-  <label>surface look
-      <select id="surface-look"><option selected>outlined</option><option>filled</option></select>
-    </label>
-  <label>control look
-      <select id="control-look"><option selected>outlined</option><option>filled</option></select>
-    </label>
   </div>
 </div></header>
 <main>
@@ -1388,23 +1368,6 @@ ${brandSection("dark")}
     document.documentElement.dataset.density = e.target.value;
     readout();
   });
-
-  // Page-wide look (§19), the app identity a real Theme sets once — TWO selects since the
-  // 2026-08-10 split, because the cell worth judging is the one a single axis could not
-  // reach: a plain card holding filled fields. Stamped on the root AND on every
-  // [data-appearance] scope, for the reason the contrast toggle does the same: a look role
-  // holds a colour, so the appearance blocks declare the DEFAULT look's values, and a
-  // root-only stamp would be overridden inside every dark section. Theme has this for free by
-  // co-locating every attribute on one element; this page arranges it by hand.
-  for (const [id, key] of [["surface-look", "surfaceLook"], ["control-look", "controlLook"]]) {
-    document.getElementById(id).addEventListener("change", (e) => {
-      // :not([data-look-pinned]) — the §19 demo's panels pin their own look (they ARE the
-      // outlined-vs-filled comparison); every other axis toggle still reaches them.
-      for (const el of [document.documentElement, ...document.querySelectorAll("[data-appearance]:not([data-look-pinned])")]) {
-        el.dataset[key] = e.target.value;
-      }
-    });
-  }
 
   // The coarse matrix (§16) — and, since 2026-08-05, the handheld type band with it (§17):
   // pinning coarse is how phone type is judged on a desktop, there is no separate device

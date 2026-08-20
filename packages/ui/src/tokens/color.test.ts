@@ -35,6 +35,29 @@ const toRgb = converter("rgb");
 const MODES = Object.keys(lightness) as Mode[];
 const TONES = Object.keys(tones) as ToneName[];
 
+/**
+ * The emitted colour declarations for a mode, generated ONCE (2026-08-17).
+ *
+ * `colorDeclarations` regenerates the whole palette on every call — every family solved
+ * against its beds — and the laws below reach for it inside their loops, so one of them was
+ * paying for it forty times (two modes × ten tones × two rungs). Measured 1.56s locally and
+ * 9.06s on a CI runner, which is past vitest's 5s default: the law that failed the build was
+ * not wrong, it was slow, and it had been slow since the ink ladder was rewritten.
+ *
+ * A cache and not a hoist, because the call sites are spread across a dozen laws and hoisting
+ * one loop leaves the next author to rediscover this. The generator is pure — the same mode
+ * answers the same lines — so memoising it is stating that, not assuming it.
+ */
+const DECLARATIONS = new Map<Mode, string[]>();
+function declarationsFor(mode: Mode): string[] {
+  let lines = DECLARATIONS.get(mode);
+  if (!lines) {
+    lines = colorDeclarations(mode);
+    DECLARATIONS.set(mode, lines);
+  }
+  return lines;
+}
+
 /** APCA's body-text target — read from the config, where the generator reads it too, and
     pinned by its own law below: shared home, standard-anchored values. */
 const BODY = apcaFloors.body;
@@ -584,7 +607,7 @@ describe("the interaction ladder is monotone in the EMITTED declarations (§7, �
   for (const mode of MODES) {
     for (const level of ["normal", "high"] as const) {
       it(`${mode}, contrast="${level}": rest -> hover -> active moves one way, every tone`, () => {
-        const map = declared(colorDeclarations(mode));
+        const map = declared(declarationsFor(mode));
         if (level === "high") {
           for (const [k, v] of declared(contrastHighDeclarations(mode))) map.set(k, v);
         }
@@ -632,7 +655,7 @@ describe("the focus ring clears its contrast floor against the page (§8, WCAG 2
     // The law above proves a colour; this proves the stylesheet ships that colour. Without it
     // the two could drift apart silently, which is how --tone-solid got missed in §7.
     for (const mode of MODES) {
-      const emitted = colorDeclarations(mode).find((l) => l.includes("--focus-ring:"));
+      const emitted = declarationsFor(mode).find((l) => l.includes("--focus-ring:"));
       expect(emitted).toContain(mode === "dark" ? "var(--accent-11)" : "var(--accent-solid)");
     }
   });
@@ -644,16 +667,49 @@ describe("the soft ladder is §8's +1/+2 rule, in the emitted declarations (§7,
   // them could be changed to any step and the whole suite stayed green. The rung's feedback
   // amount is the thing being guaranteed — that every rung moves by the SAME amount, so
   // pressing a medium button and pressing a quiet one feel like one gesture.
-  it("soft rests on 3, hovers to 4, presses to 5, for every tone", () => {
+  // The ladder moved onto the ALPHA ramp 2026-08-17 (an opaque indexed step is priced against
+  // one bed, and a dark panel one step from the page swallowed it), and it re-bases per mode:
+  // light rests on a3, dark on a4. What the law guarantees is unchanged and is the reason it
+  // exists — the DELTA, not the index. Rest, +1, +2, identically for every tone, so pressing a
+  // medium button and pressing a quiet one stay one gesture. The resting index is pinned too,
+  // or a silent re-base of the whole ladder reads as compliance.
+  const softBase = { light: 3, dark: 4 } as const;
+
+  it("soft rests on the mode's ramp step, hovers +1, presses +2, for every tone", () => {
     for (const mode of MODES) {
-      const declared = colorDeclarations(mode);
+      const declared = declarationsFor(mode);
+      const base = softBase[mode as keyof typeof softBase];
       for (const tone of TONES) {
         const at = (role: string) => declared.find((l) => l.trimStart().startsWith(`--${tone}-${role}:`));
-        expect(at("soft")).toContain(`var(--${tone}-3)`);
-        expect(at("soft-hover")).toContain(`var(--${tone}-4)`);
-        expect(at("soft-active")).toContain(`var(--${tone}-5)`);
+        // `-a`, asserted explicitly: an opaque `var(--tone-3)` here satisfies every +1/+2
+        // arithmetic below and is exactly the thing this move was made to stop shipping.
+        expect(at("soft"), `${mode}/${tone}`).toContain(`var(--${tone}-a${base})`);
+        expect(at("soft-hover"), `${mode}/${tone}`).toContain(`var(--${tone}-a${base + 1})`);
+        expect(at("soft-active"), `${mode}/${tone}`).toContain(`var(--${tone}-a${base + 2})`);
+        // The OPAQUE twins ride beside the trio (2026-08-19): the same rung said opaquely,
+        // for the glass scopes — the material veil is color-mix(source alpha%, transparent)
+        // and an alpha source multiplies through it (a glass field's 62% veil measured 4.1%,
+        // audit 2026-08-18). Same indices, no `a`: by the recomposition law they are the
+        // trio's own colours on the seal.
+        expect(at("soft-solid"), `${mode}/${tone}`).toContain(`var(--${tone}-${base})`);
+        expect(at("soft-hover-solid"), `${mode}/${tone}`).toContain(`var(--${tone}-${base + 1})`);
+        expect(at("soft-active-solid"), `${mode}/${tone}`).toContain(`var(--${tone}-${base + 2})`);
       }
     }
+  });
+
+  it("and the two modes differ only in where the ladder starts — the same three-step walk", () => {
+    // The per-mode base is a fact about compression at black, not a second design: if dark
+    // ever grew a wider or narrower walk than light, the rungs would stop feeling like one
+    // gesture across appearances and nothing above would notice.
+    const walk = (mode: "light" | "dark") => {
+      const declared = declarationsFor(mode);
+      const step = (role: string) =>
+        Number(/-a(\d+)\)/.exec(declared.find((l) => l.trimStart().startsWith(`--accent-${role}:`))!)![1]);
+      return [step("soft"), step("soft-hover"), step("soft-active")];
+    };
+    const [light, dark] = [walk("light"), walk("dark")];
+    expect(dark.map((n, i) => n - light[i]!), "the modes drifted apart mid-ladder").toEqual([1, 1, 1]);
   });
 });
 
@@ -668,7 +724,7 @@ describe("the control edge renders its stated targets, and the floors bind under
   // not a conformance guarantee; that lives in the high-contrast law, where the floors bind.
   // Both directions read the EMITTED hex, so the solve is in the loop.
   const hexOf = (mode: (typeof MODES)[number], name: string) => {
-    const line = colorDeclarations(mode).find((l) => l.includes(`--${name}:`))!;
+    const line = declarationsFor(mode).find((l) => l.includes(`--${name}:`))!;
     return line.match(/#[0-9a-fA-F]{6}/)![0];
   };
   const FAMILIES = [
@@ -748,7 +804,7 @@ describe("the ink ladder renders its stated targets, in every family and both mo
       .join("")}`;
   };
   const fadeOf = (mode: Mode, tone: ToneName, slot: "muted" | "faint") => {
-    const line = colorDeclarations(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
+    const line = declarationsFor(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
     const m = line.match(/var\(--[\w-]+\)\s+(\d+)%/);
     expect(m, `${tone}-ink-${slot} is not a solved fade: ${line}`).toBeTruthy();
     return Number(m![1]) / 100;
@@ -786,7 +842,7 @@ describe("the ink ladder renders its stated targets, in every family and both mo
       // the system's most-used ink at the mercy of a target number is the change this refuses.
       for (const tone of TONES) {
         const step = tone === "neutral" ? 12 : 11;
-        const line = colorDeclarations(mode).find((l) => l.includes(`--${tone}-ink:`))!;
+        const line = declarationsFor(mode).find((l) => l.includes(`--${tone}-ink:`))!;
         expect(line, `${tone}'s loud ink is not the designed step`).toContain(
           `var(--${tone}-${step})`,
         );
@@ -808,7 +864,7 @@ describe("the ink ladder renders its stated targets, in every family and both mo
     for (const mode of MODES) {
       for (const tone of TONES) {
         for (const slot of ["muted", "faint"] as const) {
-          const line = colorDeclarations(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
+          const line = declarationsFor(mode).find((l) => l.includes(`--${tone}-ink-${slot}:`))!;
           expect(line, `${mode}/${tone} ${slot} is not a fade of its own ink`).toMatch(
             new RegExp(`color-mix\\(in oklab, var\\(--${tone}-\\d+\\) \\d+%, transparent\\)`),
           );
@@ -865,7 +921,7 @@ describe("the standard-mode dress report — measured to know, never to validate
       const page = step(1);
       const seal = mode === "dark" ? step(2) : "#ffffff";
       const emitted = (name: string) =>
-        colorDeclarations(mode)
+        declarationsFor(mode)
           .find((l) => l.includes(`--${name}:`))!
           .match(/#[0-9a-fA-F]{6}/)![0];
       /**
@@ -877,32 +933,58 @@ describe("the standard-mode dress report — measured to know, never to validate
        * a different step and this follows, where a hard-coded step would keep printing the
        * old one and the report would quietly describe a palette that is no longer shipped.
        */
-      const role = (name: string): string => {
-        const value = colorDeclarations(mode)
-          .find((l) => l.includes(`--${name}:`))!
-          .split(":")[1]!
-          .replace(";", "")
-          .trim();
+      const role = (name: string, over: string): string => {
+        const declared = (n: string) =>
+          declarationsFor(mode)
+            .find((l) => l.includes(`--${n}:`))!
+            .split(":")
+            .slice(1)
+            .join(":")
+            .replace(";", "")
+            .trim();
+        const value = declared(name);
         const hex = value.match(/#[0-9a-fA-F]{6}/);
         if (hex) return hex[0];
         const neutral = value.match(/var\(--neutral-(\d+)\)/);
         if (neutral) return step(Number(neutral[1]));
         if (value === "var(--color-surface)") return seal;
+        // The ALPHA ramp (2026-08-17): the well left the opaque steps, so a role can now point
+        // at a translucent value and there is no hex to read. Composite it over the bed the
+        // caller says it sits on — which is what the ramp MEANS, and the only resolution that
+        // keeps this report measuring the colour a person actually sees. Throwing instead
+        // (the first behaviour) took the report offline the day the well moved: two laws that
+        // print rather than assert, dark for the one axis the report exists to watch.
+        const ramp = value.match(/var\(--neutral-(a\d+)\)/);
+        if (ramp) {
+          const mix = /color-mix\(in srgb,\s*(#[0-9a-fA-F]{6})\s*([\d.]+)%/.exec(
+            declared(`neutral-${ramp[1]}`),
+          );
+          if (!mix) throw new Error(`the dress report cannot read the ramp step --neutral-${ramp[1]}`);
+          const [fg, bg, a] = [toRgb(mix[1]!)!, toRgb(over)!, Number(mix[2]) / 100];
+          const channel = (f: number, b: number) =>
+            Math.round((f * a + b * (1 - a)) * 255)
+              .toString(16)
+              .padStart(2, "0");
+          return `#${channel(fg.r, bg.r)}${channel(fg.g, bg.g)}${channel(fg.b, bg.b)}`;
+        }
         throw new Error(`the dress report cannot resolve --${name}: ${value}`);
       };
+      // Resolved once, in dependency order: the well sits on the page, the grip sits on the well.
+      const well = role("color-track", page);
+      const grip = role("color-thumb", well);
       const d = dress[mode];
 
       // Each row: the colour, what it is measured against, and the advisory tier that gives
       // the number a scale — 45 fine detail, 30 large non-text, 15 bare discernibility.
       const rows: Array<[label: string, fg: string, bg: string, tier: number]> = [
-        ["outlined control-edge vs worst bed", emitted("control-edge"), Math.abs(apcaLc(emitted("control-edge"), seal)) < Math.abs(apcaLc(emitted("control-edge"), page)) ? seal : page, apcaFloors.nonText],
-        ["outlined field-edge vs worst bed", emitted("field-edge"), Math.abs(apcaLc(emitted("field-edge"), seal)) < Math.abs(apcaLc(emitted("field-edge"), page)) ? seal : page, apcaFloors.nonTextLarge],
-        ["filled surface edge vs its fill", step(d.surface.edge), step(d.surface.fill), 15],
-        ["filled surface fill vs page", step(d.surface.fill), page, 15],
-        ["filled field edge vs its fill", step(d.field.edge), step(d.field.fill), 15],
-        ["filled field fill vs seal", step(d.field.fill), seal, 15],
-        ["filled mark edge vs its fill", step(d.mark.edge), step(d.mark.fill), 15],
-        ["filled mark fill vs seal", step(d.mark.fill), seal, 15],
+        ["control-edge vs worst bed", emitted("control-edge"), Math.abs(apcaLc(emitted("control-edge"), seal)) < Math.abs(apcaLc(emitted("control-edge"), page)) ? seal : page, apcaFloors.nonText],
+        ["field-edge vs worst bed", emitted("field-edge"), Math.abs(apcaLc(emitted("field-edge"), seal)) < Math.abs(apcaLc(emitted("field-edge"), page)) ? seal : page, apcaFloors.nonTextLarge],
+        // The surface rows died with surfaceLook (2026-08-20): the dress table no longer has
+        // a surface family — a card rests on the seal, measured everywhere else.
+        ["dress field edge vs its fill", step(d.field.edge), step(d.field.fill), 15],
+        ["dress field fill vs seal", step(d.field.fill), seal, 15],
+        ["dress mark edge vs its fill", step(d.mark.edge), step(d.mark.fill), 15],
+        ["dress mark fill vs seal", step(d.mark.fill), seal, 15],
         // The value-control family's two roles, added 2026-08-08. They were the faintest
         // resting dress in the system and the report named neither — which is how an OFF
         // switch (a control made ENTIRELY of the well, with the grip as its only other
@@ -910,8 +992,8 @@ describe("the standard-mode dress report — measured to know, never to validate
         // rows are advisory like the rest; what makes them matter is that these two are the
         // only resting colours a whole control can consist of, so "a well is subtle by
         // design" stops being a complete answer the moment nothing else is painted.
-        ["well vs page", role("color-track"), page, 15],
-        ["grip vs well", role("color-thumb"), role("color-track"), 15],
+        ["well vs page", well, page, 15],
+        ["grip vs well", grip, well, 15],
       ];
 
       for (const [label, fg, bg, tier] of rows) {
@@ -964,7 +1046,7 @@ describe("the invalid edge clears the non-text floor, in both modes (§8, WCAG 1
 
   it("and the emitted token is the step the law just checked", () => {
     for (const mode of MODES) {
-      const emitted = colorDeclarations(mode).find((l) => l.includes("--invalid-edge:"));
+      const emitted = declarationsFor(mode).find((l) => l.includes("--invalid-edge:"));
       expect(emitted).toContain(mode === "dark" ? "var(--destructive-11)" : "var(--destructive-solid)");
     }
   });

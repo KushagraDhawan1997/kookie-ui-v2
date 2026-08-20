@@ -47,7 +47,6 @@ const HOSTILE: ThemeProps = {
   radius: "large",
   pointer: "coarse",
   depth: "elevated",
-  surfaceLook: "filled",
   contrast: "high",
 };
 
@@ -211,7 +210,17 @@ describe("the panel's box", () => {
         const { popup } = openDialog({ radius }, { size });
         const overlay = tokenOn(popup, `--radius-overlay-${size}`);
         const surface = tokenOn(popup, `--radius-surface-${size}`);
-        expect(computed(popup, "border-top-left-radius"), `size ${size} @ ${radius}`).toBe(overlay);
+        // Lab port 2026-08-17: under `@supports (corner-shape: squircle)` every surface
+        // DRAWS its authored corner × --kui-corner-k (1.613 — the lab's 0.62 inverted), so
+        // the band token alone is one factor short of the painted number. Probe-derived
+        // through the same token and knob the surface rule reads: a non-squircle engine
+        // resolves the knob's fallback of 1 and this law holds unchanged.
+        const drawn = probeIn(
+          popup,
+          (el) => (el.style.borderRadius = `calc(var(--radius-overlay-${size}) * var(--kui-corner-k, 1))`),
+          (s) => s.borderTopLeftRadius,
+        );
+        expect(computed(popup, "border-top-left-radius"), `size ${size} @ ${radius}`).toBe(drawn);
         // The band leans one step up the surface band, which is what makes "an overlay is not
         // a card" true in pixels rather than in prose (§6's Card amendment, one band over).
         expect(parseFloat(overlay), `size ${size} @ ${radius}`).toBeGreaterThan(parseFloat(surface));
@@ -233,7 +242,13 @@ describe("the panel's box", () => {
     // law and fail this one.
     for (const size of SIZES) {
       const { popup } = openDialog({}, { size });
-      expect(computed(popup, "padding-top")).toBe(tokenOn(popup, `--surface-p-${size}`));
+      // ONE SIZE UP since 2026-08-17 (Kushagra: "dialog seems to have less padding than it
+      // should"), and the step is the whole overlay family's now — it used to live on the
+      // alert's own arms, where the reasoning was never alert-specific: an overlay wears the
+      // corner of the card one size up, and a bigger curve wants a bigger inset or the words
+      // crowd the sweep. Size 4 holds at the top pick, exactly as the corner band's does.
+      const up = size === "4" ? "4" : String(Number(size) + 1);
+      expect(computed(popup, "padding-top")).toBe(tokenOn(popup, `--surface-p-${up}`));
     }
   });
 
@@ -332,7 +347,13 @@ describe("a dialog does not float", () => {
     // Kushagra, 2026-08-10: no cast, but material must be respected. Membership delivers it —
     // the surface layer's own rules — and this asserts the panel actually reached them.
     const { popup, backdrop } = openDialog({ appearance: "light" }, { material: "regular" });
-    expect(computed(popup, "backdrop-filter")).toBe(filterOn(popup, "--material-regular-filter"));
+    // The declared chain, with the lens stripped: a displacement map is built for one box, so
+    // its filter id is per-pane and cannot be compared against a token (§10, 2026-08-16). The
+    // lens is asserted as its own fact rather than folded into this one.
+    expect(computed(popup, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "")).toBe(
+      filterOn(popup, "--material-regular-filter"),
+    );
+    expect(computed(popup, "backdrop-filter"), "a glass panel wears the lens").toMatch(/^url\(/);
     expect(alphaOf(computed(popup, "background-color"))).toBeLessThan(1);
     // The dim behind it is the APP's, not the pane's, so it does not move with the material.
     const solid = openDialog({ appearance: "light" });

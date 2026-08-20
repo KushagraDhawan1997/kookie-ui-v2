@@ -78,7 +78,10 @@ describe("a page-shaped route gets the page chrome — including the one Next re
     // (/preview owns its viewport on purpose) — so it is allowed, and it has to be listed.
     // "lab" and "lab2" are the material scratch surfaces — temporary judging routes,
     // deleted when the recipes they exist to find move into config.
-    const BARE = new Set(["preview", "lab", "lab2", "lab3"]);
+    // "builder" is the composition editor (2026-08-19): a full-height three-pane app that
+    // owns its viewport the way /preview does — site chrome around an editor would nest a
+    // scroll inside a scroll.
+    const BARE = new Set(["preview", "lab", "lab2", "lab3", "builder"]);
     const outside = readdirSync(app, { withFileTypes: true })
       .filter((e) => e.isDirectory() && !e.name.startsWith("(") && !e.name.startsWith("_"))
       .filter((e) => {

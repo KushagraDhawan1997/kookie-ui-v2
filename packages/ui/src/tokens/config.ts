@@ -41,11 +41,25 @@ export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
 export const radiusLevels = {
   none: { steps: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], full: 0 },
   small: { steps: [0, 2, 3, 4, 5, 6, 5, 6, 8, 10, 12], full: 9999 },
-  medium: { steps: [0, 4, 6, 8, 10, 12, 10, 12, 16, 20, 24], full: 9999 },
-  large: { steps: [0, 6, 8, 12, 14, 16, 16, 20, 24, 28, 32], full: 9999 },
+  // Medium's surface half re-priced 2026-08-19 with the level LADDER judgment (Kushagra:
+  // "small to medium jump is less compared to medium to large" — the default card read
+  // 8 → 16 → 40, +8 then +24): 12/18/24/30/36, even +6 treads, puts the default card at
+  // 8 → 24 → 40 — balanced +16 jumps. Medium's old size-3 anchor (16, the pre-lab flat
+  // corner) retires the way large's did in the lab port. Small is judged fine and unmoved.
+  medium: { steps: [0, 4, 6, 8, 10, 12, 12, 18, 24, 30, 36], full: 9999 },
+  // The surface band (steps 6-10) is EVEN since 2026-08-19 (Kushagra, the Card manual
+  // audit's first ladder judgment): 24/32/40/48 for the card sizes, 56 for the overlay-only
+  // top, equal 8px treads. The lab port's band (20/25/40/45/50) held the lab's two judged
+  // cells exactly (mini card 25, card 40 — drawn × 0.62, the lab's own engine-fallback
+  // ratio, under the 1.613 corner knob) and extrapolated the rest — judged per CELL, never
+  // as a LADDER, and as a ladder it ran +5/+15/+5: the bottom pair read alike, the top pair
+  // read alike, four sizes read as two. Size 3 keeps the lab's 40 (the one card actually
+  // judged at card scale); size 2 gives up its lab anchor to the ladder. Values are the
+  // ARC (Safari) rendering; squircle engines scale by the knob, so the ratio holds in both.
+  large: { steps: [0, 6, 8, 12, 14, 16, 24, 32, 40, 48, 56], full: 9999 },
   // The surface band caps at `large`'s values rather than medium's: capping lower would
   // make cards squarer as the dial turns up, which is what the level ladder must never do.
-  full: { steps: [0, 9999, 9999, 9999, 9999, 9999, 16, 20, 24, 28, 32], full: 9999 },
+  full: { steps: [0, 9999, 9999, 9999, 9999, 9999, 24, 32, 40, 48, 56], full: 9999 },
 } as const;
 
 export type RadiusLevel = keyof typeof radiusLevels;
@@ -570,6 +584,43 @@ export const switchW = [34, 40, 44, 48] as const;
 export const switchInset = 2;
 
 /**
+ * §26 — the segmented control's channel inset: the gap the track keeps around the segment it
+ * carries. The thumb's diameter derives from it (segment height = track − 2 × inset), exactly
+ * as the switch's does, so the gap is designed once and the box is what follows.
+ *
+ * It is numerically `switchInset` and it means the same thing — a grip sitting in a channel —
+ * and it is deliberately NOT shared yet. This repo's rule is that the second member of a
+ * family self-keys and the THIRD promotes (the field family on TextArea, the mark family on
+ * the slider thumb): a shared inset would want a family name (`gripInset`), and renaming
+ * `switchInset` to earn it is a change to a shipped token with one consumer. When a third
+ * channel-and-grip control arrives, the promotion is the rename, and this entry goes with it.
+ *
+ * 2 rather than a pick from `slotInset` (3/3/4/4 fine default), which is the hosted-control
+ * inset and would be the obvious reuse: a segment is a control hosted in a control, so the
+ * rule fits — but `slotInset` is designed for a control hosted in a control that has a BORDER
+ * between them, and it lands the segment at 24 in a 32 track where iOS holds 28. The track
+ * here is an edgeless well (the switch's own argument, §19), so the inset is all the
+ * separation there is and it prices tighter. v0.
+ */
+export const segmentInset = 2;
+
+/**
+ * §26 — the tab rule: the thickness of the bar that marks the active tab, one designed value
+ * for every size and both pointer worlds.
+ *
+ * One value rather than a ladder, for Progress's reason exactly (§11): the thickness a rule
+ * needs to read as a rule is a perception floor, not a proportion of the box above it, and
+ * the ladders that exist price fractions of boxes a tab does not have — `--slider-track-N` is
+ * a quarter of the MARK, and a tab has no mark. Separator's shape instead: one thickness,
+ * extent from the tab it marks.
+ *
+ * 2 rather than `--border-width`'s 1, because the rule is a SIGNAL and the hairline under it
+ * is dress — a 1px accent line sitting on a 1px neutral line reads as a colour change in the
+ * same object rather than a mark on top of it. v0, judged in the playground.
+ */
+export const tabRule = 2;
+
+/**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and
  * focus are constant facts about a control, not things that get louder as it gets bigger.
  *
@@ -715,6 +766,33 @@ export const controlMotion = {
   /** How far a pressed button sinks, and how far it shrinks doing it. */
   pressTravel: 2,
   pressScale: 0.975,
+  /**
+   * The same press on an INTERACTIVE SURFACE — a card-as-button (2026-08-17, Kushagra: *"should
+   * work like button, but because of larger area, perhaps a little different physics"*).
+   *
+   * Only the DISTANCES are the surface's own, which is §8's rule stated exactly: a family says
+   * how far it moves and never how long it takes. It rides the same two clocks, the same stiff
+   * press and lively recovery, and the same ring — the surface REUSES the control state machine
+   * rather than inventing one (§10's card-as-button rule, now true of the motion layer too).
+   *
+   * The scale is the number that could not be shared, because scale is RELATIVE and these boxes
+   * are not the same size. A button ~64px wide at 0.975 moves each edge 0.8px; a 400px card at
+   * the same factor moves each edge 5px, which reads as the page flexing rather than as a
+   * press. 0.995 puts a 400px card at 1.0px per edge — matched to the button's EDGE movement,
+   * which is what the eye actually reads, rather than to its ratio, which it does not.
+   *
+   * A separate SPRING was proposed with these and refuted by arithmetic before it was built:
+   * §24's "mass forbids overshoot" argues for `poised` over `lively`, but lively's overshoot is
+   * 10.7% and 10.7% of one pixel is a tenth of a pixel. There is nothing to see, so there is
+   * nothing to fix, and a second curve would have been entropy bought with a plausible story.
+   *
+   * The hover rise stays `hoverTravel` — one pixel means the same thing on both, since it is an
+   * absolute distance and not a ratio.
+   *
+   * Both v0, for the eye pass.
+   */
+  surfacePressTravel: 1,
+  surfacePressScale: 0.995,
   /** A pressed mark squashes rather than sinking — it has no depth to sink into. */
   pressSquash: 0.9,
   /**
@@ -763,20 +841,25 @@ export const floatingMotion = {
    * width made every menu unfurl sideways and then drop. A menu falls out of its trigger and
    * then opens; the vertical arrives first.
    */
-  fall: 320,
+  fall: 460,
   /** The horizontal channel — width, and the lateral travel — and it TRAILS, which is what
       makes the direction of travel legible. */
-  spread: 480,
+  spread: 680,
   /** The corner and the settle-scale, between the two. */
-  corner: 380,
+  corner: 560,
   /** The panel's own fade-in, and its rows'. Paint is signal: it does not ride a spring. */
-  reveal: 200,
-  /** Rows wait for the SHAPE, not just the commit (80 -> 280, 2026-08-15, Kushagra: the
+  reveal: 260,
+  /** 60 since 2026-08-16 (Kushagra: "I prefer whatever is on lab" — the lab's menus have
+      carried these five clocks since 2026-08-14 and were judged there ever since, while the
+      package was never brought level with them). This REVERSES the 280 below, which is kept
+      as the argument it was: the number moved, the reasoning it displaced did not evaporate,
+      so if a row ever reads as arriving before its panel, this is the line to move back.
+      Rows wait for the SHAPE, not just the commit (80 -> 280, 2026-08-15, Kushagra: the
       content must be "blurred out, empty" while the circle is still becoming the container,
       and show up "as the circle takes the shape" — at 80ms the rows printed onto a box that
       was still mostly circle, which is what made the entry read as a rectangle dropdown
       fading in). 280 starts the print as the fall (320) is landing; v0, judged live. */
-  revealDelay: 280,
+  revealDelay: 60,
   /** Exit: the dissolve itself. */
   dissolve: 140,
   /** Exit: the hair of scale the pane settles back through while dissolving. */
@@ -956,24 +1039,107 @@ export const material = {
   // near-opaque fallbackAlpha below stays what reduced-transparency means; high contrast is
   // a different preference and gets its own designed row (judged 2026-08-05, Kushagra: the
   // first cut reused fallbackAlpha and collapsed all three thicknesses into one).
+  //
+  // RE-PRICED 2026-08-20 (Kushagra): "the rule isn't make everything even more high
+  // contrast, it's ensure a baseline across" — so the row RAISES A FLOOR, which means the
+  // rung furthest from it moves furthest. The old row did the opposite and the numbers say
+  // so: thin moved least (+21 light, +8 dark) while regular moved most (+33 / +19), so the
+  // gap between thin and regular nearly DOUBLED under the setting (15 -> 27 light,
+  // 15 -> 26 dark) instead of closing, and thick landed at 94-97% — solid in all but name,
+  // spending the material's identity on the rung that needed help least.
+  //
+  // Now thin travels furthest (+38 / +24) and thick least (+21 / +10), the gaps compress to
+  // 8 and 6, and thick stays glass at 86 / 90. The three rungs are still three — the
+  // monotonicity law walks every column and would fail on a collapse — they are simply
+  // three defended things rather than three degrees of defence. v0, judged in the
+  // playground.
+  /* CONTROL-scale material (lab 2026-08-14, Kushagra: "control surfaces need their own
+     parameters"; ported 2026-08-17). A 40px pane is not a 210px card: the card's blur turns
+     a small window to mud, its veil prices milk the label ink doesn't need, its sheen is a
+     floodlight on a coin. Same ladder, re-priced for the box. Values are the lab's EFFECTIVE
+     numbers (written × the frost dial and mode knobs), the extraction rule every material
+     number in this file already follows. filterHover: on glass, hover is LIGHT, not a fill
+     step — the veil holds and only brightness moves (lab 2026-08-14, "hover mode looks
+     weird": the quiet-hover was laying an opaque pastel over the pane). */
   light: {
-    thin: { alpha: [30, 38, 46], alphaHigh: [55, 62, 69], filter: "blur(5px) saturate(130%) brightness(1.02)", edge: 0.5, rim: 0.35, rimLifted: 0.42 },
-    regular: { alpha: [64, 72, 80], alphaHigh: [82, 87, 92], filter: "blur(16px) saturate(165%) brightness(1.06)", edge: 0.6, rim: 0.45, rimLifted: 0.52 },
-    thick: { alpha: [88, 92, 95], alphaHigh: [94, 96, 97], filter: "blur(32px) saturate(210%) brightness(1.12)", edge: 0.7, rim: 0.55, rimLifted: 0.62 },
+    thin: { alpha: [34, 42, 50], alphaHigh: [72, 77, 82], filter: "blur(2.4px) saturate(172.5%) brightness(1.03)", edge: 0.5, rim: 0.35, sheen: 13.6, rimLifted: 0.42, control: { alpha: 30, filter: "blur(1.2px) saturate(140%) brightness(1.02)", filterHover: "blur(1.2px) saturate(140%) brightness(1.09)", filterLoud: "blur(1.2px) saturate(220%) brightness(1.1)", sheen: 10 } },
+    regular: { alpha: [49, 57, 65], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(207%) brightness(1.05)", edge: 0.6, rim: 0.45, sheen: 20.4, rimLifted: 0.52, control: { alpha: 48, filter: "blur(2px) saturate(160%) brightness(1.04)", filterHover: "blur(2px) saturate(160%) brightness(1.09)", filterLoud: "blur(2px) saturate(220%) brightness(1.1)", sheen: 14 } },
+    thick: { alpha: [65, 69, 72], alphaHigh: [86, 89, 92], filter: "blur(5.6px) saturate(241.5%) brightness(1.06)", edge: 0.7, rim: 0.55, sheen: 25.5, rimLifted: 0.62, control: { alpha: 66, filter: "blur(3.2px) saturate(180%) brightness(1.05)", filterHover: "blur(3.2px) saturate(180%) brightness(1.09)", filterLoud: "blur(3.2px) saturate(220%) brightness(1.1)", sheen: 18 } },
   },
   dark: {
-    thin: { alpha: [38, 46, 54], alphaHigh: [60, 67, 74], filter: "blur(5px) saturate(130%) brightness(0.95)", edge: 0.1, rim: 0.06, rimLifted: 0.12 },
-    regular: { alpha: [71, 78, 85], alphaHigh: [86, 90, 94], filter: "blur(16px) saturate(165%) brightness(0.88)", edge: 0.14, rim: 0.1, rimLifted: 0.18 },
-    thick: { alpha: [92, 94, 96], alphaHigh: [95, 96, 97], filter: "blur(32px) saturate(210%) brightness(0.78)", edge: 0.18, rim: 0.14, rimLifted: 0.24 },
+    thin: { alpha: [52, 60, 68], alphaHigh: [76, 80, 84], filter: "blur(2.4px) saturate(175.5%) brightness(0.92)", edge: 0.1, rim: 0.06, sheen: 2.75, rimLifted: 0.12, control: { alpha: 48, filter: "blur(1.2px) saturate(162.5%) brightness(0.95)", filterHover: "blur(1.2px) saturate(162.5%) brightness(1.02)", filterLoud: "blur(1.2px) saturate(180%) brightness(1)", sheen: 3.2 } },
+    regular: { alpha: [67, 74, 81], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(195%) brightness(0.9)", edge: 0.14, rim: 0.1, sheen: 3.85, rimLifted: 0.18, control: { alpha: 60, filter: "blur(2px) saturate(175%) brightness(0.94)", filterHover: "blur(2px) saturate(175%) brightness(1.02)", filterLoud: "blur(2px) saturate(180%) brightness(1)", sheen: 4 } },
+    thick: { alpha: [80, 82, 84], alphaHigh: [90, 92, 94], filter: "blur(5.6px) saturate(208%) brightness(0.88)", edge: 0.18, rim: 0.14, sheen: 4.95, rimLifted: 0.24, control: { alpha: 74, filter: "blur(3.2px) saturate(187.5%) brightness(0.92)", filterHover: "blur(3.2px) saturate(187.5%) brightness(1.02)", filterLoud: "blur(3.2px) saturate(180%) brightness(1)", sheen: 4.8 } },
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
-      passes light, so its cast is the surface row FADED — thin passes most, thick least,
-      and even thick keeps less than a solid slab. Mode-independent: transmission is a
-      property of the pane, not of the night. v0, judged in the preview. */
-  transmission: { thin: 0.35, regular: 0.55, thick: 0.75 },
+      passes light, so its cast is the surface row FADED — thin passes most, thick least.
+      Mode-independent: transmission is a property of the pane, not of the night.
+
+      THE VALUES ARE THE LAB'S, read off its judged alphas 2026-08-17 (regular glass casts
+      .08/.09/.08 against the solid card's .1/.11 — a ratio of ~0.8). The 0.35/0.55/0.75
+      that stood here were frost-era numbers: with near-clear glass they made a pane cast
+      HALF its solid twin's shadow, so the two visibly disagreed on the one bed where the
+      convergence rule says they must not. Near-clear stone passes most of the light. */
+  transmission: { thin: 0.6, regular: 0.8, thick: 0.9 },
+
+  /* THE RING (lab, ported 2026-08-17): the pane's edge is a 1px conic LIGHT, not a pigment
+     hairline — bright facing the light, cool flanks, faint on the shade side, a warm collect
+     opposite. Conic, not linear (lab 2026-08-15: a linear gradient cannot wrap a ring — its
+     bright band terminates where the corner curves away; a conic's first and last stops
+     meet, so there is no seam). The angle is the light model's fixed 165°; the pointer-
+     tracked version stays in the lab (JS at interaction time, and a second light model).
+     a = facing the light, b = flanks, c = shade side, d = warm collect. */
+  ring: {
+    light: { a: "rgb(255 255 255 / 0.95)", b: "rgb(240 248 255 / 0.34)", c: "rgb(255 255 255 / 0.1)", d: "rgb(255 250 240 / 0.26)", opacity: 1 },
+    dark: { a: "rgb(255 255 255 / 0.34)", b: "rgb(210 230 255 / 0.1)", c: "rgb(255 255 255 / 0.04)", d: "rgb(255 245 235 / 0.08)", opacity: 1 },
+  },
+  /* Deep glass splits light: THICK's ring folds spectral stops into itself (the lab's
+     .l2-thick::after; dark is the corrected copy from the dialog — the audit's "dark thick
+     renders light's spectral rim" bug, fixed by taking the copy that was right). */
+  ringSpectral: {
+    light: ["rgb(255 255 255 / 0.97)", "rgb(255 190 170 / 0.4)", "rgb(170 205 255 / 0.34)", "rgb(255 255 255 / 0.1)", "rgb(255 246 235 / 0.28)"],
+    dark: ["rgb(255 255 255 / 0.44)", "rgb(255 200 180 / 0.14)", "rgb(180 210 255 / 0.12)", "rgb(255 255 255 / 0.05)", "rgb(255 245 235 / 0.1)"],
+  },
+
+  /* THE POOL (lab, ported 2026-08-17): the shade that settles at a pane's bottom INSIDE it —
+     matter, not elevation, so it lives in both depth worlds and joins the cast in the one
+     box-shadow list. Surfaces take the card geometry, controls the button's. The SOLID
+     surface's pool is its seat line (light only — lab's dark solid has none): the crisp
+     1px settle under an opaque slab. */
+  pool: {
+    // The SOLID seat is DEAD (2026-08-17, Kushagra): paired with the contact shadow it drew
+    // two lines hugging the bottom edge — the "double line" on every elevated solid card.
+    // The lab's .l2-solid does carry it, but at the app's card sizes the two never merge the
+    // way they do on the lab's 340px specimen, and the doubled edge is worse than the lost
+    // seat. The GLASS pools stay: soft inner washes, not lines.
+    light: { surface: "inset 0 -10px 20px -14px rgb(0 0 0 / 0.06)", control: "inset 0 -6px 12px -10px rgb(0 0 0 / 0.06)", solid: "0 0 0 0 transparent" },
+    dark: { surface: "inset 0 -10px 20px -14px rgb(0 0 0 / 0.18)", control: "inset 0 -6px 12px -10px rgb(0 0 0 / 0.18)", solid: "0 0 0 0 transparent" },
+  },
+  /** §10 — the SOLID pane's own lighting (2026-08-17, measured off the lab's .l2-solid):
+      matte per the lock — grain plus ONE sheen washing down to 55%, no bloom, no 1px top
+      catch. It had been borrowing the regular GLASS rim (bloom + 45% sheen + a 0.52 white
+      catch line), which is a glass recipe: in dark the catch stacked on the old inset
+      rim-light and drew the "weird boundary" double edge, and in light the bloom read as a
+      glow no matte slab has. Percent sheen alphas, the glass cells' own unit. */
+  sealSheen: { light: 30, dark: 10 },
+  /** §10 — the WASHES a glass CONTROL's louder rungs keep (lab, rendered values 2026-08-17):
+      the pane-minus-wash rule holds for the box itself, but the lab's grid gives the filled
+      rungs their own light — loud sheen 10, medium 8 (bloom rides at ×1.4 in the recipe);
+      dark a whisper. Quiet is bare and keeps nothing. Emitted as bloom+sheen gradient pairs
+      (--material-control-wash-*) that the loud/medium glass arms point --kui-ct-light at. */
+  controlWash: { loud: { light: 10, dark: 4 }, medium: { light: 8, dark: 3 } },
   /** Where backdrop-filter is unavailable or transparency is reduced: near-opaque, still a mix
       so a whisper of the backdrop survives where that is safe. */
   fallbackAlpha: 95,
+
+  /** The ON-GLASS alpha (§10, 2026-08-16): what a member paints when a pane below it already
+      spent the backdrop. Glass does not stack, so this element must not filter — but going
+      fully opaque makes it a slab sitting on light, which is what a dialog's Cancel button
+      looked like. It keeps the veil and drops the filter, so it reads as part of the pane it
+      sits on rather than as a hole in it. One number for every thickness on purpose: it is a
+      fact about the element's OWN translucency, and the pane under it has already decided how
+      much of the world gets through. v0. */
+  onGlassAlpha: 62,
 } as const;
 
 /**
@@ -1051,9 +1217,55 @@ export const floatingMinWidth = 112;
  * v0 for the eye pass.
  */
 export const scrim = {
-  light: { fill: "rgb(0 0 0 / 0.4)", filter: "blur(4px)", fillHigh: "rgb(0 0 0 / 0.62)" },
-  dark: { fill: "rgb(0 0 0 / 0.55)", filter: "blur(4px)", fillHigh: "rgb(0 0 0 / 0.75)" },
+  // THE LAB'S SCRIM (2026-08-17, judged 2026-08-15 in lab2 and never ported): far less
+  // pigment than the first cut (0.18/0.32 against 0.4/0.55 — the veil does the readability
+  // work, the scrim only states recession), blur 8 with desaturation carrying the push-back,
+  // and dark leaning through brightness as well. fillHigh keeps the conformance posture:
+  // more pigment, no defocus change.
+  light: { fill: "rgb(0 0 0 / 0.18)", filter: "blur(8px) saturate(0.8)", fillHigh: "rgb(0 0 0 / 0.62)" },
+  dark: { fill: "rgb(0 0 0 / 0.32)", filter: "blur(8px) saturate(0.8) brightness(0.9)", fillHigh: "rgb(0 0 0 / 0.75)" },
 } as const;
+
+/**
+ * §10 — QUIET PAINT ON GLASS IS ALPHA, NOT PIGMENT (lab 2026-08-15, ported 2026-08-17).
+ * A pigment grey is an absolute colour: over a bright backdrop an opaque mid-grey is DARKER
+ * than what is behind it and the dim semantic inverts — the disabled row read emphasised.
+ * On glass, "quiet" must mean "more backdrop through the letters": same ink, less alpha.
+ * Stated as a ROLE REMAP on the pane (the system's own pattern for disabled and invalid),
+ * so rows, labels, separators, keycaps and plain Text inherit the corrected role with no
+ * rule of their own. Solid keeps the pigments: on an opaque panel they are right.
+ */
+export const glassInk = {
+  light: {
+    muted: "rgb(0 0 0 / 0.62)",
+    faint: "rgb(0 0 0 / 0.42)",
+    border: "rgb(0 0 0 / 0.12)",
+    disabled: "rgb(0 0 0 / 0.32)",
+    wash: "rgb(0 0 0 / 0.07)",
+    kbdFill: "rgb(0 0 0 / 0.05)",
+    kbdEdge: "rgb(0 0 0 / 0.1)",
+    kbdInk: "rgb(0 0 0 / 0.58)",
+  },
+  dark: {
+    muted: "rgb(255 255 255 / 0.72)",
+    faint: "rgb(255 255 255 / 0.45)",
+    border: "rgb(255 255 255 / 0.16)",
+    disabled: "rgb(255 255 255 / 0.38)",
+    wash: "rgb(255 255 255 / 0.12)",
+    kbdFill: "rgb(255 255 255 / 0.1)",
+    kbdEdge: "rgb(255 255 255 / 0.16)",
+    kbdInk: "rgb(255 255 255 / 0.75)",
+  },
+} as const;
+
+/**
+ * §10 — dark FLOATING panes LIGHTEN, they never subtract (lab 2026-08-15, ported
+ * 2026-08-17; the system's own "in dark, height is lightness", and macOS dark menus do the
+ * same): the veil lifts toward white instead of sinking toward black. Light floating veils
+ * are the in-flow veils — only dark splits. `base` is the percent of surface mixed toward
+ * white before the alpha mix; alphas per thickness.
+ */
+export const floatingDark = { base: 88, alpha: { thin: 46, regular: 62, thick: 78 } } as const;
 
 /**
  * §24 — the OVERLAY pane's width, one designed raw-px ladder on the size index (the switchW
@@ -1099,11 +1311,11 @@ export const alertWidth = [280, 320, 360, 400] as const;
 export const dialogInset = 6;
 
 /**
- * §26 — the SHELL's designed pane geometry: the app frame's default widths (and the bottom
+ * §27 — the SHELL's designed pane geometry: the app frame's default widths (and the bottom
  * pane's height), raw px through --scale (the overlayWidth genus: no palette rung lives at
  * pane scale, and a pane's extent is not a distance BETWEEN things, so layout space is the
  * wrong layer). These are DEFAULTS, not a ladder — a pane's width is the app's content
- * speaking, which is why §26 sanctions the raw-number prop as the system's first: the prop
+ * speaking, which is why §27 sanctions the raw-number prop as the system's first: the prop
  * overrides by writing the SAME custom property the stylesheet reads (`--kui-shell-w` /
  * `--kui-shell-h`), which is deliberately the whole future resize architecture — a later
  * drag writes where the prop writes, and nothing about this shape is revisited when it
@@ -1114,7 +1326,7 @@ export const dialogInset = 6;
 export const shellWidth = { rail: 64, sidebar: 288, inspector: 320, bottom: 200 } as const;
 
 /**
- * §26 — the floating shell's gap, ONE pick into layout space (the dialogInset sentence at
+ * §27 — the floating shell's gap, ONE pick into layout space (the dialogInset sentence at
  * shell scale). Floating IS the gap — panes that are not touching — so the distance is the
  * system's and answers density through the one layer every distance goes through. There is
  * deliberately NO consumer-facing gap prop and no override variable (v1 documented
@@ -1139,32 +1351,51 @@ export const shellGap = 3;
  * dark pages swallow shadow.
  */
 export const shadow = {
-  // SHARP by construction (researched 2026-08-04; anatomy redesigned 2026-08-07): every
-  // drop row is the same TWO-PART anatomy at a different height — a CONTACT line (small
-  // offset, near-zero blur, the crisp dark line right under the edge) plus an AMBIENT halo
-  // (larger offset/blur, negative spread, low alpha). The contact line is what reads sharp;
-  // the ambient is what reads raised. Rules that survive from the first design: one light
-  // source (x always 0, y grows with the row), negative spread on the reaching layer, depth
-  // as offset growth rather than fog. v0 values, judged in the preview.
+  // SHARP by construction (researched 2026-08-04; anatomy redesigned 2026-08-07, and again
+  // 2026-08-16 when the material lab's depth was adopted whole). Every drop row is the same
+  // THREE-PART anatomy at a different height:
+  //   CONTACT — 0 1px 2px, no spread: the crisp dark line right under the edge, what reads
+  //     sharp. Constant across the ladder, because contact does not change with height: an
+  //     object either touches its bed or it does not.
+  //   DROP — mid offset and blur, negative spread: the body of the shadow, what reads raised.
+  //   BLAST — the far, wide, heavily pulled-in reach (up to 32px/80px at the top rung). This
+  //     is the layer the palette did not have and the layer the lab's depth is mostly made
+  //     of; the old ladder topped out at 16px/32px, less than half this reach, which is why
+  //     ported glass read flat beside the lab it came from.
+  // Rules that survive every redesign: one light source (x always 0, y grows with the row),
+  // negative spread on both reaching layers, depth as offset growth rather than fog.
+  //
+  // The ladder is ordered by REACH and the chrome roles pick their rung (surfaceChrome takes
+  // the top, floatingChrome the middle) — the lab prices a shadow by the size of the box
+  // casting it, "a smaller caster owes a smaller shadow, or it reads swollen", and a card is
+  // a bigger box than a menu. The palette stays one ordered resource; which rung a family
+  // reads is the role's job, which is what the roles are for.
   light: [
     "inset 0 1px 1px rgb(0 0 0 / 0.12), inset 0 2px 4px rgb(0 0 0 / 0.06)",
-    // Row 2's two edge rules (Kushagra, from the preview: "a dark line at top, a light at
-    // bottom"): the CONTACT hugs — no negative spread, so no bright seam opens between the
-    // bottom edge and its own shadow — and the AMBIENT stays strictly below the top edge
-    // (blur − offset − pull-in < 0; at exactly 0 it kisses the edge and reads as a fringe).
-    "0 1px 1px rgb(0 0 0 / 0.1), 0 2px 4px -2.5px rgb(0 0 0 / 0.08)",
-    "0 1px 1px -0.5px rgb(0 0 0 / 0.11), 0 3px 8px -3px rgb(0 0 0 / 0.11)",
-    "0 2px 2px -1px rgb(0 0 0 / 0.11), 0 8px 16px -5px rgb(0 0 0 / 0.12)",
-    "0 3px 3px -1.5px rgb(0 0 0 / 0.11), 0 16px 32px -8px rgb(0 0 0 / 0.14)",
+    // Row 2, the CONTROL rung — the lab's button (5/14, 12/30). Its two edge rules still
+    // hold (Kushagra, from the preview: "a dark line at top, a light at bottom"): the
+    // contact hugs — no negative spread, so no bright seam opens between the bottom edge and
+    // its own shadow — and no reaching layer may cross the top edge.
+    "0 1px 2px rgb(0 0 0 / 0.1), 0 5px 14px -4px rgb(0 0 0 / 0.1), 0 12px 30px -8px rgb(0 0 0 / 0.09)",
+    // Row 3, the FLOATING rung — the lab's menu (8/22, 18/48).
+    "0 1px 2px rgb(0 0 0 / 0.1), 0 8px 22px -6px rgb(0 0 0 / 0.1), 0 18px 48px -14px rgb(0 0 0 / 0.09)",
+    // Row 4 — the lab's SOLID card, VERBATIM (2026-08-17, measured off .l2-solid: contact
+    // 0.1 + one 24/64 drop at 0.11, no middle layer — the interpolated 10/26 rung that stood
+    // here made a solid card read visibly heavier than the lab's, because two stacked drops
+    // are darker than one even at matched alphas).
+    "0 1px 2px rgb(0 0 0 / 0.1), 0 24px 64px -12px rgb(0 0 0 / 0.11)",
+    // Row 5, the SURFACE rung — the lab's card (12/32, 32/80), the deepest thing it casts.
+    "0 1px 2px rgb(0 0 0 / 0.1), 0 12px 32px -8px rgb(0 0 0 / 0.11), 0 32px 80px -16px rgb(0 0 0 / 0.1)",
   ],
   // Same geometry — the light source does not move at night — with alpha carrying the load,
-  // because a dark page swallows shadow.
+  // because a dark page swallows shadow. The lab's dark panels run 0.3-0.4 against light's
+  // 0.06-0.11, roughly four times the pigment for the same geometry.
   dark: [
     "inset 0 1px 1px rgb(0 0 0 / 0.5), inset 0 2px 4px rgb(0 0 0 / 0.25)",
-    "0 1px 1px rgb(0 0 0 / 0.45), 0 2px 4px -2.5px rgb(0 0 0 / 0.35)",
-    "0 1px 1px -0.5px rgb(0 0 0 / 0.45), 0 3px 8px -3px rgb(0 0 0 / 0.4)",
-    "0 2px 2px -1px rgb(0 0 0 / 0.45), 0 8px 16px -5px rgb(0 0 0 / 0.45)",
-    "0 3px 3px -1.5px rgb(0 0 0 / 0.45), 0 16px 32px -8px rgb(0 0 0 / 0.5)",
+    "0 1px 2px rgb(0 0 0 / 0.4), 0 5px 14px -4px rgb(0 0 0 / 0.36), 0 12px 30px -8px rgb(0 0 0 / 0.3)",
+    "0 1px 2px rgb(0 0 0 / 0.4), 0 8px 22px -6px rgb(0 0 0 / 0.36), 0 18px 48px -14px rgb(0 0 0 / 0.3)",
+    "0 1px 2px rgb(0 0 0 / 0.4), 0 24px 64px -12px rgb(0 0 0 / 0.45)",
+    "0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -8px rgb(0 0 0 / 0.4), 0 32px 80px -16px rgb(0 0 0 / 0.34)",
   ],
 } as const;
 
@@ -1184,8 +1415,14 @@ export const shadow = {
  * drop shadow cannot express — the inset top rim-light a dark fill needs. v0, by eye.
  */
 export const surfaceChrome = {
-  light: "var(--shadow-3)",
-  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-3)",
+  // Row 4, not 5 (2026-08-17, Kushagra, judged against the lab's calm bed): a SOLID card
+  // casts the lab's solid row — one 24/64 drop — while row 5's two stacked drops belong to
+  // GLASS, whose per-thickness transmitted rows (--surface-chrome-thin/regular/thick) still
+  // derive from row 5 and are untouched. Dark's inset rim-light is gone for the same
+  // judgment: the lab's dark solid has no rim-light, and stacked with the solid lighting's
+  // top catch it doubled into the "weird boundary" line.
+  light: "var(--shadow-4)",
+  dark: "var(--shadow-4)",
 } as const;
 
 /**
@@ -1206,32 +1443,131 @@ export const surfaceChrome = {
  * the surface chrome's own sentence one scale down.
  */
 export const controlChrome = {
-  // BOTH modes carry the crisp inset rim (researched 2026-08-07: Primer's shadow-highlight,
-  // the tactile-button recipes — the top catch that reads as a machined edge is a 1px inset
-  // LINE, not a gradient wash; light shipped without it and its buttons read as fills with
-  // shadows rather than objects). The rim lives in the chrome, so every rung that casts
-  // also catches the edge — the gradient is a separate, loud-only statement.
-  light: "inset 0 1px 0 rgb(255 255 255 / 0.25), var(--shadow-2)",
-  dark: "inset 0 1px 0 rgb(255 255 255 / 0.06), var(--shadow-2)",
+  // THE LAB'S LIT RUNG, VERBATIM (2026-08-17, Kushagra: "buttons look horrible" — measured
+  // against .l2-lit). What stood here was the glass button's palette row plus a white inset
+  // rim the lab never wrote: the 12/30 blast layer read swollen on a 32px box and the rim
+  // drew a machined line the lab's gradient catch already says better. The lab's solid
+  // button is contact + ONE 8/20 drop + a bottom shade folded into the pigment — and the
+  // shade is per-rung (medium melts it to 0.04, the fog rule) and per-state (a press
+  // tightens the blast toward the page), which is what the `medium` and `active` variants
+  // below carry. Dark's lock: no bottom shade, heavier air. The palette's row 2 survives as
+  // the GLASS transmit source (--control-chrome-thin/regular/thick), the same division the
+  // surface chrome drew between row 4 and row 5.
+  light: "0 1px 2px rgb(0 0 0 / 0.1), 0 8px 20px -6px rgb(0 0 0 / 0.16), inset 0 -1px 0 rgb(0 0 0 / 0.12)",
+  dark: "0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -6px rgb(0 0 0 / 0.42)",
 } as const;
 
 /**
- * The CATCH half (§19): light from above, painted as background-image layers over whatever
+ * §10 — which palette row a GLASS pane transmits, per family (2026-08-17). This used to be
+ * DERIVED by parsing `var(--shadow-N)` out of the chrome roles, which welded two different
+ * facts together: what a SOLID member casts (the lit chrome above, now the lab's literal
+ * values) and what a GLASS member lets through (the lab's glass anatomy — the two-drop rows).
+ * The weld broke the day the solid chrome moved off its row: the surface transmit would have
+ * silently followed it down to row 4. Stated on its own, 1-indexed into `shadow`.
+ */
+export const glassTransmitRows = { surface: 5, control: 2 } as const;
+
+/** The lit rung's MEDIUM variant (§19's fog rule, lab 2026-08-14: inside a pale pastel the
+    0.12 shade read as a drawn line — it melts to 0.04; dark carries no shade, so its medium
+    is the resting chrome verbatim). */
+/** The lit rung's PRESS variant (lab: "a press travels toward the page, so the blast
+    tightens with the travel"). */
+export const controlChromeActive = {
+  light: "0 1px 1px rgb(0 0 0 / 0.1), 0 3px 8px -3px rgb(0 0 0 / 0.14), inset 0 -1px 0 rgb(0 0 0 / 0.1)",
+  dark: "0 1px 1px rgb(0 0 0 / 0.4), 0 3px 8px -3px rgb(0 0 0 / 0.36)",
+} as const;
+
+/**
+ * The CATCH half (§19): light from above, painted as a background-image layer over whatever
  * fill the rung chose — tone-independent by construction, one recipe lights every tone.
- * Layer 1 is the catch (white fading from the top edge), layer 2 the seat (a faint dark
- * settle at the bottom). NOT a shadow: flat worlds declare `none`, and a gradient list can
- * hold it where a shadow list cannot (the material rim's own reasoning, §10). The light
- * never moves with state — the fill steps beneath it. v0 alphas, judged in the preview.
+ * NOT a shadow: flat worlds declare `none`, and a gradient list can hold it where a shadow
+ * list cannot (the material rim's own reasoning, §10). The light never moves with state —
+ * the fill steps beneath it.
  */
 export const controlLight = {
-  // The two layers OVERLAP through the middle (catch fades to zero at 55%, seat starts
-  // rising at 45%) — the first cut ended the catch at 45% and started the seat at 62%,
-  // which cut the fill into three zones whose boundaries read as LINES on a pale medium
-  // fill (Kushagra, on sight). A gradient may never leave a visible shelf: every stop
-  // sits where its layer's alpha is already near zero.
-  light:
-    "linear-gradient(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0) 62%), linear-gradient(rgb(0 0 0 / 0) 38%, rgb(0 0 0 / 0.05))",
-  dark: "linear-gradient(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.01) 62%), linear-gradient(rgb(0 0 0 / 0) 38%, rgb(0 0 0 / 0.10))",
+  // THE LAB'S CATCH, VERBATIM since 2026-08-17 (.l2-lit): one white wash falling from the
+  // top to 60%, no gradient seat — the seat is the chrome's inset shade, stated once. The
+  // two-layer catch+seat that stood here drew its own shelf lines on a pale medium fill.
+  // Dark's lock: a near-white fill has little for white light to add, so a whisper.
+  light: "linear-gradient(180deg, rgb(255 255 255 / 0.16), transparent 60%)",
+  dark: "linear-gradient(180deg, rgb(255 255 255 / 0.07), transparent 60%)",
+} as const;
+
+/**
+ * The keycap's RELIEF (2026-08-17, Kushagra — the lens applied to Kbd): the pane treatment
+ * stopped being the exception and became the base. A bare cap had kept the pre-material
+ * identity — a drawn --tone-border plus the full lit control chrome, which reads as a small
+ * floating button. A key is pressed INTO the surface it sits on, so its base is the relief:
+ * a top-face catch plus a whisper of drop, cap-scale, and an alpha edge instead of a solved
+ * hairline. Alpha on purpose — the same values read on any bed, which is what let the pane
+ * rule keep only its `none` cast override. v0, eye pass pending.
+ */
+/**
+ * The GRIP's cast (2026-08-17, Kushagra: the slider thumb "still reads old") — the two
+ * grips (slider thumb, switch thumb) cast ALWAYS by role semantics, and until today they
+ * read --control-chrome, which the lab port turned into the lit BUTTON chrome: an
+ * 8px/20px blast plus an inset bottom shade, priced for a 32-44px box. Under a 16-28px
+ * cap that blast is swollen ("a smaller caster owes a smaller shadow") and the inset
+ * shade draws a line inside a white circle. Cap-scale contact + a short drop, per mode;
+ * the kbdRelief's sentence one role over. v0, eye pass pending.
+ */
+/**
+ * THE DEAD DIM (2026-08-17, Kushagra: "is it a rule we can use elsewhere? minimal entropy")
+ * — the disabled treatment for roles OUTSIDE the tone system. Tone roles dim through the one
+ * dead palette (the shared disabled remap); the roles minted for role semantics
+ * (--color-thumb, --color-track) have no palette row to stand down to, and each had grown —
+ * or was about to grow — its own number. One factor, consumed as
+ * `color-mix(in srgb, var(--role) var(--disabled-dim), transparent)`: alpha, so the dimmed
+ * part recedes relative to its LOCAL ground, the same reason the dead palette went to the
+ * alpha ramp the same day. 70 is the judged switch-thumb value; a melt to the tone system is
+ * the recorded failure (LOG: one indistinguishable capsule).
+ */
+export const disabledDim = 70;
+
+/**
+ * §8 — the dead palette's alpha steps, PER MODE (2026-08-19). One rule: dead recedes from
+ * live, one ramp step under the live wells' RESTING step in its own mode. The single a3 that
+ * preceded this table delivered that only in dark (live soft rests at a4 there); in light the
+ * live trio rests at a3, so a disabled button's box was byte-identical to a live medium
+ * button's and the dead state rode on label colour alone (audit 2026-08-18). The border
+ * recedes the same way — the old opaque --neutral-6 out-contrasted a live field's a4 edge in
+ * dark, making the one disabled control the strongest boundary on the row.
+ */
+export const disabledSteps = {
+  light: { fill: 2, border: 3 },
+  dark: { fill: 3, border: 3 },
+} as const;
+
+export const gripCast = {
+  light: "0 1px 2px rgb(0 0 0 / 0.16), 0 2px 6px -1px rgb(0 0 0 / 0.18)",
+  dark: "0 1px 2px rgb(0 0 0 / 0.5), 0 2px 6px -1px rgb(0 0 0 / 0.4)",
+} as const;
+
+/**
+ * The SCROLLBAR (2026-08-17, with ScrollArea): overlay posture — no drawn track, a capsule
+ * thumb floating over content, visible only while scrolling or hovering (macOS's own
+ * arrangement). The thumb is a non-tone instrument role over unknown ground, so its fill is
+ * the ALPHA ramp (the disabled-dim rule's sibling): it reads on the page, on a dark card's
+ * pooled bottom, and on glass, with one number. Size and inset are raw designed px — a
+ * scrollbar has no size index (Progress's sentence: no box of its own to ride). v0.
+ */
+export const scrollbar = {
+  size: 7,
+  inset: 2,
+  /** Alpha-ramp steps: resting thumb, and the darker one under the pointer's grip. */
+  thumbStep: 6,
+  thumbActiveStep: 8,
+} as const;
+
+export const kbdRelief = {
+  light: {
+    edge: "rgb(0 0 0 / 0.08)",
+    relief: "inset 0 1px 0 rgb(255 255 255 / 0.4), 0 1px 2px rgb(0 0 0 / 0.1)",
+  },
+  dark: {
+    edge: "rgb(255 255 255 / 0.1)",
+    relief: "inset 0 1px 0 rgb(255 255 255 / 0.08), 0 1px 2px rgb(0 0 0 / 0.4)",
+  },
 } as const;
 
 /**
@@ -1240,23 +1576,26 @@ export const controlLight = {
  * `surfaces` choice), a shadow under a menu is information (the popup genuinely covers
  * other content, and the cast states "above, not part of") — and facts don't turn off
  * with the style switch (Kushagra, 2026-08-09: "shadow is information"). Elevated reads
- * row 5 — the palette's top, because a floating pane sits above everything, lifted cards
- * included (row 4 shipped first and read too low beside the panel it covers; Kushagra,
- * same day) — with dark's inset rim, surfaceChrome's sentence two rows up. Flat is
- * DERIVED, never a second authored shadow: the same row through `fadeShadow` at the
- * factor below (the §10 transmission precedent), quieter because a flat world states
- * depth rather than simulating it — but never none, because overlap is a fact in every
- * world. v0, judged in the playground in both worlds and both modes.
+ * row 3 — the MENU rung (2026-08-16, adopting the lab's depth: it prices a cast by the size
+ * of the box throwing it, "a smaller caster owes a smaller shadow, or it reads swollen", and
+ * a menu is a smaller box than the card that now takes the top rung). This reverses the
+ * 2026-08-09 read that a floating pane must sit above everything: the palette is ordered by
+ * REACH, not by rank, and a panel's authority comes from covering what is under it, not from
+ * out-casting a card three times its size. Dark keeps its inset rim, surfaceChrome's
+ * sentence two rows up.
+ *
+ * FLAT CASTS NOTHING — floating panes included (2026-08-19, Kushagra, reversing the
+ * 2026-08-09 "coverage is information, never none" amendment and its half-strength fade).
+ * The old rule held that a covering pane owes SOME shadow in every world; what retired it
+ * is that flat grew its own separation vocabulary the day before — the hairline returns in
+ * flat (surfaces.css, 2026-08-19) — so a menu's boundary is drawn in flat's own language
+ * and the faded cast was a second voice saying the same thing. The emitted flat value is
+ * the list-legal no-op layer, not `none` (a `none` in a fallback chain poisons it).
  */
 export const floatingChrome = {
-  light: "var(--shadow-5)",
-  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-5)",
+  light: "var(--shadow-3)",
+  dark: "inset 0 1px 0 rgb(255 255 255 / 0.05), var(--shadow-3)",
 } as const;
-
-/** How much of the floating cast a FLAT world keeps (0..1). Applied to the palette row by
-    the generator — one source of shadow truth, the flat value can never drift from the
-    elevated one. v0. */
-export const floatingFlatFactor = 0.5;
 
 /**
  * §10 — the seal: what an opaque surface is filled with. Paper ABOVE the page, never the
@@ -1276,131 +1615,38 @@ export const surfaceColor = {
 } as const;
 
 /**
- * §19 — the look axis: the resting dress of the one-look families. An app identity chosen
- * once at Theme, never a per-component knob — the same tier as `depth`.
+ * §19 — the look axis is DELETED (surfaceLook 2026-08-20, controlLook 2026-08-19, both
+ * Kushagra). What it governed survives; the PROP is what died, in two steps for two
+ * different reasons.
  *
- * It is asked TWICE, of two family groups (`surfaceLook` and `controlLook`, split 2026-08-10;
- * see `lookAxes`), because one answer could not say what every real interface says: a plain
- * card holding filled inputs. Under one axis the two moved together, one neutral step apart,
- * and a filled field on a filled card read as mush. The values below are unchanged by the
- * split — what changed is which of them a single Theme prop can move.
+ * `controlLook` died because the fill-first flip (2026-08-17) made its two values
+ * byte-identical — fields and marks wear the dress unconditionally, reading the
+ * `--dress-field-*` / `--dress-mark-*` roles below directly.
  *
- * The criterion is the border's JOB (decided 2026-08-06): on a control, a border is RANK —
- * Button's `bordered` half-step reorders loudness between call sites and stays a prop; on a
- * one-look family it ranks nothing (a form where one field is louder than the next names
- * nothing), so it is DRESS, and dress belongs to the app. Each family resolves the axis on
- * its own terms — the sentence emphasis already has — which is also the membership law:
- * a family is dressed because its sheet consumes these roles, and only for that reason.
+ * `surfaceLook` died because its second value never earned its keep: `filled` (the darkened
+ * card, a soft dress edge) shipped 2026-08-06 as a derivation, stayed v0, was never judged
+ * and never used by a real screen — while the lab port (2026-08-17) made `outlined` the
+ * judged identity: the pane is BORDERLESS at rest, its edge is light (ring on glass, pool
+ * and cast on solid), and conformance gets a pigment hairline by stand-down. An axis whose
+ * default is the only value anyone has ever seen is a lever every call site can reach and
+ * none has needed. Deleting it forecloses the 2026-08-10 "tinted surfaces" future the split
+ * was priced on — accepted: a tinted surface identity can return as a Theme value the day a
+ * real app wants one, and its return does not need this prop to have survived.
  *
- * `outlined` is the identity: exactly the chrome each family declared before the axis
- * existed, so the default is byte-identical to a world without it. `filled` trades the
- * hairline for a darkened well, one neutral step apart per family — surfaces lightest,
- * fields one darker, marks darkest (Kushagra's hierarchy, 2026-08-06).
- *
- * The field family DID have no hover slots, and the sentence justifying that has since been
- * measured false for one member (audit 2026-08-09). It read "its fill does not move, the
- * border and ring carry its states" — true of a text input, where the ring is a MODE keyed on
- * the caret being inside. Select's trigger is field-shaped and PRESSED: its ring is the
- * skeleton's `:focus-visible`, so it appears for a keyboard and never for a pointer, and the
- * trigger computed rest = hover = press = open, byte-identical across seven properties, with
- * nothing else in the package reading `data-popup-open` on a button. The slots exist now and
- * the pin stays where it was earned: text-field.css and text-area still pin all three sources
- * to the resting fill, so a field a caret enters is untouched, and only the member that is
- * pressed consumes the steps (select.css, law-tested in both directions).
- *
- * The steps are DERIVED, not judged: outlined reuses the surface roles verbatim (the same
- * three the surface and mark families already map), and filled walks the same +1/+2 the two
- * sibling families walk from their own resting step. The dark ladder ends one past the edge
- * step, which is the posture `surface` already ships in dark (fill-active 5, edge 5) — the
- * precedent is what makes this a derivation rather than a fourth opinion. v0 all the same.
- *
- * The FILL values are var() references that bake at the Theme element (§6, substitution-at-
- * declaration) — correct by co-location, because Theme stamps both look attributes beside
- * data-appearance on one element. The BORDERS cannot bake there: the tone system lives on
- * the component ([data-tone], the invalid/disabled remaps, contrast="high"), so outlined's
- * border is `initial` — the role stands down and the consumption site's fallback
- * (var(--tone-border), var(--mark-edge)) resolves AT THE ELEMENT. The material edge's own
- * pattern (§10), reused. Neutral only by the tone-set rule: an accent-tinted value joins as
- * a value on this axis the day a real app wants it, never as a second prop. v0, eye pass
- * pending.
+ * What remains in code: the surface family reads its own roles directly (`--color-surface`
+ * and its two states), and its resting pigment edge is `--surface-edge: transparent` —
+ * emitted in the appearance scopes, stood down to `initial` by the contrast="high" pass and
+ * by `depth="flat"` (no light means the line is back), so the consumption fallback
+ * `var(--tone-border)` resolves AT THE ELEMENT, where the tone lives. The material edge's
+ * own pattern (§10), unchanged.
  */
-export const look = {
-  outlined: {
-    surface: {
-      fill: "var(--color-surface)",
-      "fill-hover": "var(--color-surface-hover)",
-      "fill-active": "var(--color-surface-active)",
-      border: "initial",
-    },
-    field: {
-      fill: "var(--color-surface)",
-      "fill-hover": "var(--color-surface-hover)",
-      "fill-active": "var(--color-surface-active)",
-      border: "initial",
-    },
-    mark: {
-      fill: "var(--color-surface)",
-      "fill-hover": "var(--color-surface-hover)",
-      "fill-active": "var(--color-surface-active)",
-      border: "initial",
-    },
-  },
-  filled: {
-    surface: {
-      fill: "var(--dress-surface-fill)",
-      "fill-hover": "var(--dress-surface-fill-hover)",
-      "fill-active": "var(--dress-surface-fill-active)",
-      border: "var(--dress-surface-edge)",
-    },
-    field: {
-      fill: "var(--dress-field-fill)",
-      "fill-hover": "var(--dress-field-fill-hover)",
-      "fill-active": "var(--dress-field-fill-active)",
-      border: "var(--dress-field-edge)",
-    },
-    mark: {
-      fill: "var(--dress-mark-fill)",
-      "fill-hover": "var(--dress-mark-fill-hover)",
-      "fill-active": "var(--dress-mark-fill-active)",
-      border: "var(--dress-mark-edge)",
-    },
-  },
-} as const;
 
 /**
- * §19 — which Theme prop moves which family (split 2026-08-10, Kushagra).
+ * §19 — the fill-first dress, PER APPEARANCE: what a field and a mark rest on. Unconditional
+ * since controlLook's deletion (2026-08-19) — these are not an axis's values, they are the
+ * two families' resting identity, and the sheets read them directly.
  *
- * The axis was one prop until a screenshot settled it: a white card holding grey filled
- * inputs — the most ordinary form on the web — was unreachable, because `filled` moved the
- * card and the field together, one neutral step apart, and one step is mush. The fix is not
- * new pigment (`look` above is untouched); it is that the question gets asked separately of
- * the two groups a designer actually decides separately.
- *
- * The grouping is the one the code already had. `field` and `mark` move together because a
- * filled input beside an outlined checkbox reads as an accident, not as a statement; `surface`
- * is alone because a card, a menu and a dialog are one kind of thing. Refused on the way:
- * taking the surface family OUT of the axis instead (cheaper, and it delivers the same
- * screenshot — but it forecloses the tinted surfaces `filled` is meant to grow into), and one
- * OBJECT-valued prop (partial overrides would need merge semantics no other axis has, and an
- * inline object literal is a fresh identity every render — the memo bug of 2026-08-06).
- *
- * Both halves keep the same values, so an app that sets both to the same thing is exactly the
- * world that shipped before the split. The both-filled cell is still one step apart and still
- * mush; the split neither causes nor fixes it, and it is on the eye-pass list.
- */
-export const lookAxes = {
-  surface: ["surface"],
-  control: ["field", "mark"],
-} as const satisfies Record<string, readonly (keyof (typeof look)["outlined"])[]>;
-
-/**
- * §19 — what `filled` actually paints, PER APPEARANCE. The look block above is one block on
- * purpose (co-location: Theme stamps data-look beside data-appearance on a single element,
- * and a raw `[data-look]` div must resolve under any ancestor appearance), so it can hold
- * only mode-blind mappings. The mode-specific pigment has to arrive by indirection, exactly
- * the way `--color-surface` already carries the seal — which is what these roles are.
- *
- * They exist because sharing one set of neutral INDICES across both modes is a bug this
+ * Per appearance because sharing one set of neutral INDICES across both modes is a bug this
  * system has now shipped three times. `surfaceColor` records the second instance in its own
  * comment (dark's hover equalled its rest, because the steps were hard-coded for both modes
  * while the dark seal sat at --neutral-2). The look axis was the third and worst: `filled`
@@ -1409,33 +1655,27 @@ export const lookAxes = {
  * axis did nothing but delete the card's border. An index is not a colour; it means the
  * opposite thing in the two modes, and only a per-mode table can say which.
  *
- * The direction is stated rather than implied. In light a higher step is DARKER, in dark it
- * is LIGHTER — so "recessed" and "raised" are opposite arithmetic per mode, and the ladders
- * below are not each other's copy. A filled card is one step off the seal in both modes; a
- * field and a mark sit further from their bed; the TRACK moves the other way from everything
- * else, because a well is the one part that reads as sunk INTO its surface.
- *
  * The edges are deliberately inside `contrastHighBands.border` ([5, 6, 7]). That is what
- * keeps `contrast="high"` reaching a filled component's boundary for free: the role holds a
+ * keeps `contrast="high"` reaching a dressed component's boundary for free: the role holds a
  * var() reference, the high-contrast pass re-declares those very steps, and substitution at
  * the element does the rest. A softer edge outside the band would have been an accessibility
- * escape that silently stopped working — which is the shape of the defect this replaces,
- * where `filled` set `border: transparent` and left contrast="high" nothing to strengthen.
+ * escape that silently stopped working.
  *
- * Kushagra's calls, 2026-08-06, judged against the preview's outlined/filled pair: a filled
- * surface KEEPS a border ("filled surfaces can have slight border, but their main pull is
- * filled bg, not border"), so `filled` is no longer a trade — the fill is the signal and the
- * hairline merely softens. v0, eye pass pending.
+ * The SURFACE family's rows died with `surfaceLook` (2026-08-20): they were `filled`'s
+ * pigment, and `filled` was never judged or used. A card rests on the seal and its edge is
+ * light (§10, the lab port) — see the §19 note above for what replaced the axis.
  */
 export const dress = {
   light: {
-    surface: { fill: 2, "fill-hover": 3, "fill-active": 4, edge: 5 },
-    field: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 5 },
+    /* Fields: edge softened one step with the fill-first flip; the fill went to 2 the same
+       day and CAME BACK ("a bit too light") — what read heavy before was the fill plus the
+       solved hairline plus the cast, and with those two gone the original well holds
+       (2026-08-17, Kushagra). v0, eye pass pending. */
+    field: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 4 },
     mark: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 7 },
   },
   dark: {
-    surface: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 5 },
-    field: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 5 },
+    field: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 4 },
     mark: { fill: 5, "fill-hover": 6, "fill-active": 7, edge: 7 },
   },
 } as const;

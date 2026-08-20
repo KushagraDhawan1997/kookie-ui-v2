@@ -50,6 +50,17 @@
   syntax: "*";
   inherits: false;
 }
+@property --kui-ct-cast-glass-active {
+  syntax: "*";
+  inherits: false;
+}
+/* The pool-only glass value (2026-08-17, elevation went selective): what the rungs that no
+   longer ELEVATE still keep on glass — the inner seat shade is matter. Same non-inheritance
+   lesson as the full chain above. */
+@property --kui-ct-pool-glass {
+  syntax: "*";
+  inherits: false;
+}
 
 /* Registered as a LENGTH, and that is the whole mechanism. An unregistered custom property
    inherits as a token stream, so `var(--kui-ct-h)` inside it would be substituted on the element
@@ -319,10 +330,10 @@
    Specificity is deliberately equal to the block above (`:where()` contributes nothing), so
    this wins on source order alone and reads top-to-bottom as identity-then-dress. */
 .kui-mark:where(:not(.kui-control *)) {
-  --kui-ct-fill-src: var(--look-mark-fill);
-  --kui-ct-fill-src-hover: var(--look-mark-fill-hover);
-  --kui-ct-fill-src-active: var(--look-mark-fill-active);
-  --tone-border: var(--look-mark-border, var(--control-edge));
+  --kui-ct-fill-src: var(--dress-mark-fill);
+  --kui-ct-fill-src-hover: var(--dress-mark-fill-hover);
+  --kui-ct-fill-src-active: var(--dress-mark-fill-active);
+  --tone-border: var(--dress-mark-edge, var(--control-edge));
 }
 
 /* ── The target: a control of its size, painted or not (§4, §16) ─────────────────────────────
@@ -799,11 +810,15 @@
   --kui-ct-fill-src-active: var(--tone-soft-active);
   /* A control label is not a link: --tone-label sits between steps 11 and 12 (§7). */
   --kui-ct-label-color: var(--tone-label);
-  /* Raised, so it casts — but no catch: a white wash over a pastel fill can only read as
-     fog (judged three times in the preview, 2026-08-07). Gradient light is for saturated
-     solid fills; a pale button carries shadow alone, which is what the reference buttons
-     this world was designed from do. */
-  --kui-ct-cast: var(--kui-ct-cast-glass, var(--kui-control-chrome, none));
+  /* NOT raised (2026-08-17, Kushagra — elevation is selective: "depth separates the focal
+     and the floating"): a medium fill is a wash ON the plane, not an object above it, and
+     when it cast beside loud the rank stopped reading — Cancel floated exactly as hard as
+     Save. (Its chrome token was deleted outright 2026-08-19 — it had been emitted, declared
+     in three world scopes and stood down in the disabled arm for a value nothing read.) On glass the POOL survives alone: the inner seat shade
+     is what glass IS (matter), while the transmitted cast was elevation and goes with it.
+     And no catch: a white wash over a pastel fill can only read as fog (judged three times
+     in the preview, 2026-08-07). */
+  --kui-ct-cast: var(--kui-ct-pool-glass, none);
   --kui-ct-light: none;
 }
 
@@ -815,8 +830,12 @@
   --kui-ct-fill-src-active: var(--tone-soft-hover);
   --kui-ct-label-color: var(--tone-label);
   /* Nothing to light — and declared, not omitted, so a quiet control inside a louder
-     surface cannot inherit the ancestor's cast (every rung fully declares its tokens). */
-  --kui-ct-cast: none;
+     surface cannot inherit the ancestor's cast (every rung fully declares its tokens).
+     On GLASS the pool survives (2026-08-19): a quiet glass button is a full pane — blur,
+     ring, veil — and the inner seat shade is what glass IS (matter, not elevation), so
+     writing a literal `none` here made quiet the one glass control with no seat while the
+     medium button beside it, same pane and same ring, had one (audit 2026-08-18). */
+  --kui-ct-cast: var(--kui-ct-pool-glass, none);
   --kui-ct-light: none;
 }
 
@@ -890,16 +909,15 @@
   /* The glass edge slots into the chain HERE, outside the material section, so the material
      rules never name a tone role: undeclared for a solid field, the chain falls through to
      the look and tone exactly as before. */
-  --kui-border-color: var(--kui-ct-glass-edge, var(--look-field-border, var(--tone-border)));
-  /* The field REJOINS elevation — at control scale (§5, the third flip, 2026-08-07,
-     Kushagra: fields "need the same shadow elevation button got"). What 2026-08-06
-     rejected was SURFACE-scale depth: fields lifting with the cards. Control-scale light
-     did not exist then; under the four-worlds frame a field is a raised CONTROL, and it
-     casts the same row 2 every raised control casts — never the card's row (shadcn and
-     Stripe ship exactly this posture). Routed like the button's: the world token stands
-     down in flat, inside panes (one lift), and under the disabled arm. No catch — a field
-     has no solid fill to light. */
-  --kui-ct-cast: var(--kui-ct-cast-glass, var(--kui-control-chrome, none));
+  --kui-border-color: var(--kui-ct-glass-edge, var(--dress-field-edge, var(--tone-border)));
+  /* The field LEAVES elevation — the fourth flip, and the fill-first identity is why
+     (2026-08-17, Kushagra — the lens: a well is carved INTO the plane, not raised off it).
+     The 2026-08-07 rejoin was priced on the bordered-box identity, where a field was a
+     raised control like its button; now its identity is the well fill, and a raised shadow
+     under a recess is a contradiction the eye reads immediately. On glass the POOL alone
+     survives — a glass field is a small pane and the inner seat shade is matter, not
+     elevation. No catch either — a well has no top face to light. */
+  --kui-ct-cast: var(--kui-ct-pool-glass, none);
   box-shadow: var(--kui-ct-cast, none);
 }
 
@@ -963,37 +981,15 @@
     background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
   }
 
-  /* ── The BOUNDARY steps, for the families whose fill does not (§8, 2026-08-10) ─────────────
-     Kushagra, on the playground: *"there's no hover darkening of border on text field or
-     checkbox"*. There was not, and it was not a tuning miss — the rule above steps the FILL,
-     and these two families are precisely the ones whose fill is held still. A field's is pinned
-     by an invariant it has carried since 2026-08-04 (three sources, then the derived pair, so a
-     glass field stops lightening under the pointer); a mark's steps so faintly inside its own
-     seal that the box reads unchanged. Measured before this was written: a hovered TextField
-     and a hovered TextArea computed byte-identical to their resting selves, border AND fill, in
-     both appearances. §8 has said since it was written that a field's states are carried by the
-     border and the ring — and hover was reaching neither.
-
-     Mixed toward the family's own INK rather than picked off a ladder. The two solved edges sit
-     BETWEEN rungs by construction (binary-searched against APCA tiers), so "+1 step" is not
-     defined on them; a mix also carries the tone — a destructive field darkens its own red —
-     and needs no second number for dark, where the ink is light and the edge therefore steps
-     the way dark actually reads.
-
-     Two precedence facts, both deliberate. It writes the PAINTED name while reading the role,
-     because writing the role would be a cycle — and it keeps the glass edge first in the chain,
-     so a material still outranks a state that is only a pointer resting on the box. And it is
-     `:where()`-wrapped to (0,2,0) so that `invalid` and `disabled`, which re-point the role
-     itself further down this file, still win the tie on source order: being wrong or being dead
-     outranks being pointed at. */
-  .kui-field:hover:not(:where([data-disabled])),
-  .kui-textarea:hover:not(:where([data-disabled])),
-  .kui-mark:hover:not(:where([data-disabled])) {
-    --kui-border-color: var(
-      --kui-ct-glass-edge,
-      color-mix(in oklab, var(--tone-border), var(--tone-ink) var(--edge-hover-mix))
-    );
-  }
+  /* The BOUNDARY hover rule died here 2026-08-17, and the fill-first flip is what killed it.
+     It existed (§8, 2026-08-10) for exactly the two families whose fill was held still — a
+     field pinned to the seal, a mark stepping invisibly inside its own seal — so their hover
+     had to be carried by the border. Both families now rest on a dress fill with designed
+     hover/active slots, so the shared fill rule above reaches them, and keeping the border
+     mix meant a hovered field moved in TWO currencies at once (judged: "hover too
+     aggressive"). The principle it leaves behind: hover is ONE step in the one currency the
+     control's identity is made of. `--edge-hover-mix` left config and the emission with the rule
+     (a token no rule consumes is a lever waiting to be pulled by hand). */
 }
 
 /* IN USE, not hovered (§21's sentence, promoted 2026-08-10 on its third member). A control
@@ -1011,6 +1007,22 @@
 
 /* Press is deliberately NOT guarded: it fires on every input, and on touch it is the only
    feedback there is — it is what "quiet fills on touch" (§9) literally means. */
+/* A press travels toward the page, so the blast tightens with the travel (the lab's
+   .l2-lit:active, ported 2026-08-17). Keyed to LOUD since elevation went selective
+   (2026-08-17): the tighten is what a CAST does under travel, so it can only belong to the
+   one rung that still casts — an unkeyed rule here handed a pressed medium button and a
+   clicked field a shadow their resting state no longer owns. Its own rule, not a line in
+   the press rule below, because the rung's `--kui-ct-cast` is only (0,1,0) against a
+   pressed state's (0,2,0). */
+.kui-control[data-emphasis="loud"]:active:not([data-disabled], [data-loading]) {
+  /* The glass chain has its own active value (2026-08-19): --kui-ct-cast-glass sits first
+     in this chain and resolves on every glass control, so the solid active variant behind
+     it was unreachable there and a pressed loud glass button computed its resting cast,
+     byte-identical (audit 2026-08-18). The active glass value carries the pool plus the
+     transmitted PRESS row — faded per thickness like everything glass casts. */
+  --kui-ct-cast: var(--kui-ct-cast-glass-active, var(--kui-ct-cast-glass, var(--kui-control-chrome-active, none)));
+}
+
 .kui-control:active:not([data-disabled], [data-loading]) {
   background-color: var(--kui-ct-fill-active, var(--kui-ct-fill-src-active));
   /* Instant, and this is the 2026-08-03 finding rather than a preference: a tap lasts about
@@ -1149,13 +1161,25 @@
   /* The hand promises a response; a disabled control makes no such promise. Back to the
      arrow — never `not-allowed`, which no native platform uses. */
   cursor: var(--cursor-disabled);
-  --tone-soft: var(--neutral-3);
-  --tone-soft-hover: var(--neutral-3);
-  --tone-soft-active: var(--neutral-3);
-  --tone-solid: var(--neutral-3);
-  --tone-solid-hover: var(--neutral-3);
-  --tone-solid-active: var(--neutral-3);
-  --tone-border: var(--neutral-6);
+  /* ALPHA since 2026-08-17 (the dark settings card: a disabled off switch was invisible at
+     the pane's darkened bottom), and PER MODE since 2026-08-19: the literal a3 this remap
+     carried was one step under dark's live wells and byte-identical to light's — a disabled
+     button in light computed exactly a live medium button's box, in all four painted
+     channels (audit 2026-08-18). --disabled-fill states "one ramp step under the live rest"
+     in each mode's own ramp; --disabled-border recedes the same way, where the old opaque
+     --neutral-6 OUT-contrasted a live field's alpha edge in dark. Both emitted from
+     config's disabledSteps — one home. The soft-solid twins stand down with the trio, or a
+     dead glass control would keep a LIVE well through the glass re-point. */
+  --tone-soft: var(--disabled-fill);
+  --tone-soft-hover: var(--disabled-fill);
+  --tone-soft-active: var(--disabled-fill);
+  --tone-soft-solid: var(--disabled-fill-solid);
+  --tone-soft-hover-solid: var(--disabled-fill-solid);
+  --tone-soft-active-solid: var(--disabled-fill-solid);
+  --tone-solid: var(--disabled-fill);
+  --tone-solid-hover: var(--disabled-fill);
+  --tone-solid-active: var(--disabled-fill);
+  --tone-border: var(--disabled-border);
   --tone-label: var(--neutral-8);
   --tone-contrast: var(--neutral-8);
   /* The INK trio stands down with them (added 2026-08-09, when the row family moved onto it):
@@ -1170,7 +1194,8 @@
      rule's fallback resolves the re-pointed --tone-border at this element; under outlined
      this is a no-op. Marks need no arm — their border IS --tone-border, and this rule
      already wins that battle at (0,2,0). */
-  --look-field-border: initial;
+  --dress-field-edge: initial;
+  --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;
   /* And the elevated light stands down the same way (§5, 2026-08-07): a disabled control
      makes no promise, so it neither hovers above the page nor catches light. `initial`
@@ -1193,6 +1218,11 @@
   --kui-control-chrome-thin: initial;
   --kui-control-chrome-regular: initial;
   --kui-control-chrome-thick: initial;
+  /* The lit-rung press variant and the pool joined the world 2026-08-17 and stand down
+     with it — without these a dead glass field kept painting its inner pool. (The -medium
+     pointer left this list when the token was deleted, 2026-08-19.) */
+  --kui-control-chrome-active: initial;
+  --kui-control-pool: initial;
 }
 
 /* Invalid is a TONE REMAP too, and for the same reason disabled is one (§8): the control keeps
@@ -1229,7 +1259,8 @@
   /* State outranks dress (§19) — same sentence as the disabled arm above: filled's
      transparent resting border must not swallow the error edge, and neither must the
      material's glass edge (2026-08-07). */
-  --look-field-border: initial;
+  --dress-field-edge: initial;
+  --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;
 }
 
@@ -1272,40 +1303,100 @@
 
 @supports (backdrop-filter: blur(1px)) {
   .kui-control[data-material="thin"] {
-    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thin-alpha), transparent);
-    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thin-alpha-hover), transparent);
-    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thin-alpha-active), transparent);
-    backdrop-filter: var(--material-thin-filter);
+    /* CONTROL-SCALE MATERIAL (lab 2026-08-14, ported 2026-08-17 — "control surfaces need
+       their own parameters"): a 40px pane is not a 210px card. Half the blur, a leaner
+       veil, and ONE alpha for every state: on glass, hover is LIGHT — the veil holds and
+       only brightness moves (the filter's hover variant below) — because stepping the fill
+       laid an opaque pastel over the pane ("hover mode looks weird"). Loud and medium still
+       answer hover: their SOURCE moves (the tone's own hover solid), carried in the veil at
+       the same alpha. */
+    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thin-control-alpha), transparent);
+    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thin-control-alpha), transparent);
+    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thin-control-alpha), transparent);
+    backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
        none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
        rungs that already cast consume it (quiet glass stays uncast), and the sealed
-       fallback and reduced-transparency stand it down — a sealed pane is not glass. */
-    --kui-ct-cast-glass: var(--kui-control-chrome-thin, none);
+       fallback and reduced-transparency stand it down — a sealed pane is not glass.
+       The POOL joined the list (2026-08-17, lab .l2-btn: the inner shade settling at the
+       pane's bottom curve is part of what glass IS — matter, not elevation). Inside a
+       glass PANE the inherited chrome rows resolve `none`, which invalidates this whole
+       list and the computed shadow falls to none — exactly the pane's one-lift rule, by
+       the same mechanism the flat no-op spelling documents. */
+    --kui-ct-cast-glass: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-thin, 0 0 0 0 transparent);
+    --kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-active-thin, 0 0 0 0 transparent);
+  }
+  /* The pool ALONE, thickness-invariant — for the rungs and the field family that left
+     elevation (2026-08-17) but keep glass's matter. One rule, not three: the pool never
+     varied per thickness, so per-block copies would be three homes for one fact. */
+  .kui-control:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+    --kui-ct-pool-glass: var(--kui-control-pool, none);
+  }
+  /* GLASS TAKES THE OPAQUE TWINS (2026-08-19). The veil is color-mix(source alpha%,
+     transparent), and that formula assumes an opaque source — the percentage IS the veil.
+     The 2026-08-17 alpha-ramp move made the mid rungs' and both dress families' sources
+     alphas, and the mix multiplied: a glass field's designed 62% veil measured 4.1%, its
+     value and placeholder sitting on raw backdrop (audit 2026-08-18). aN over the seal IS
+     step N (the recomposition law), so re-pointing each source to the same rung's opaque
+     twin restores exactly the colour the ladder was judged with. `[data-material]` matches
+     all four glass values and never a solid control — solid stamps no attribute — and the
+     compound outweighs the [data-tone] indirection at the same element. */
+  .kui-control[data-material] {
+    --tone-soft: var(--tone-soft-solid);
+    --tone-soft-hover: var(--tone-soft-hover-solid);
+    --tone-soft-active: var(--tone-soft-active-solid);
+    --dress-field-fill: var(--dress-field-fill-solid);
+    --dress-field-fill-hover: var(--dress-field-fill-hover-solid);
+    --dress-field-fill-active: var(--dress-field-fill-active-solid);
+    --dress-mark-fill: var(--dress-mark-fill-solid);
+    --dress-mark-fill-hover: var(--dress-mark-fill-hover-solid);
+    --dress-mark-fill-active: var(--dress-mark-fill-active-solid);
+    --disabled-fill: var(--disabled-fill-solid);
   }
   .kui-control[data-material="regular"] {
-    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-regular-alpha), transparent);
-    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-regular-alpha-hover), transparent);
-    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-regular-alpha-active), transparent);
-    backdrop-filter: var(--material-regular-filter);
+    /* Control-scale material — see the thin block. */
+    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-regular-control-alpha), transparent);
+    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-regular-control-alpha), transparent);
+    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-regular-control-alpha), transparent);
+    backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
        none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
        rungs that already cast consume it (quiet glass stays uncast), and the sealed
        fallback and reduced-transparency stand it down — a sealed pane is not glass. */
-    --kui-ct-cast-glass: var(--kui-control-chrome-regular, none);
+    --kui-ct-cast-glass: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-regular, 0 0 0 0 transparent);
+    --kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-active-regular, 0 0 0 0 transparent);
   }
   .kui-control[data-material="thick"] {
-    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thick-alpha), transparent);
-    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thick-alpha-hover), transparent);
-    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thick-alpha-active), transparent);
-    backdrop-filter: var(--material-thick-filter);
+    /* Control-scale material — see the thin block. */
+    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thick-control-alpha), transparent);
+    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thick-control-alpha), transparent);
+    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thick-control-alpha), transparent);
+    backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
        none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
        rungs that already cast consume it (quiet glass stays uncast), and the sealed
        fallback and reduced-transparency stand it down — a sealed pane is not glass. */
-    --kui-ct-cast-glass: var(--kui-control-chrome-thick, none);
+    --kui-ct-cast-glass: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-thick, 0 0 0 0 transparent);
+    --kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-active-thick, 0 0 0 0 transparent);
+  }
+  /* Hover is LIGHT on glass (lab 2026-08-14): the same chain with only brightness moved.
+     The lens stays prepended — the bend does not blink off under the pointer. Guarded like
+     every other hover rule in this layer (audit 2026-08-18: a dead glass control held its
+     fill and still brightened its filter under the pointer — a promise the control cannot
+     keep, one property over from the guarded fill rule). */
+  @media (hover: hover) {
+    .kui-control[data-material="thin"]:hover:not(:where([data-disabled], :disabled)) {
+      backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter-hover);
+    }
+    .kui-control[data-material="regular"]:hover:not(:where([data-disabled], :disabled)) {
+      backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter-hover);
+    }
+    .kui-control[data-material="thick"]:hover:not(:where([data-disabled], :disabled)) {
+      backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter-hover);
+    }
   }
 
   /* The pane parts reach the FIELD family (§10, 2026-08-07, Kushagra: "text field and
@@ -1321,21 +1412,170 @@
   .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
     background-origin: border-box;
   }
+  .kui-button:where([data-material="thin"]),
   .kui-field:where([data-material="thin"]),
   .kui-textarea:where([data-material="thin"]) {
     --kui-ct-glass-edge: var(--material-thin-edge);
-    background-image: var(--kui-material-thin-rim, var(--material-thin-rim, none));
+    /* The pane's own lighting, and the WORLD's catch under it. Two things want
+       background-image on a glass button — the material's grain/bloom/sheen/edge and
+       the elevated world's gradient — and the button used to be excluded from this
+       rule entirely rather than composed, so a glass Button had no rim at all while
+       every glass button in the lab has one (found 2026-08-16, by measuring the two).
+       Listing both is legal here where it is not for a shadow: `none` is a valid
+       background-image layer, which is exactly why §10 keeps the rim out of the
+       shadow list in the first place. */
+    background-image: var(--material-thin-rim-control, none),
+      var(--kui-ct-light, none);
   }
+  .kui-button:where([data-material="regular"]),
   .kui-field:where([data-material="regular"]),
   .kui-textarea:where([data-material="regular"]) {
     --kui-ct-glass-edge: var(--material-regular-edge);
-    background-image: var(--kui-material-regular-rim, var(--material-regular-rim, none));
+    /* The pane's own lighting, and the WORLD's catch under it. Two things want
+       background-image on a glass button — the material's grain/bloom/sheen/edge and
+       the elevated world's gradient — and the button used to be excluded from this
+       rule entirely rather than composed, so a glass Button had no rim at all while
+       every glass button in the lab has one (found 2026-08-16, by measuring the two).
+       Listing both is legal here where it is not for a shadow: `none` is a valid
+       background-image layer, which is exactly why §10 keeps the rim out of the
+       shadow list in the first place. */
+    background-image: var(--material-regular-rim-control, none),
+      var(--kui-ct-light, none);
   }
+  .kui-button:where([data-material="thick"]),
   .kui-field:where([data-material="thick"]),
   .kui-textarea:where([data-material="thick"]) {
     --kui-ct-glass-edge: var(--material-thick-edge);
-    background-image: var(--kui-material-thick-rim, var(--material-thick-rim, none));
+    /* The pane's own lighting, and the WORLD's catch under it. Two things want
+       background-image on a glass button — the material's grain/bloom/sheen/edge and
+       the elevated world's gradient — and the button used to be excluded from this
+       rule entirely rather than composed, so a glass Button had no rim at all while
+       every glass button in the lab has one (found 2026-08-16, by measuring the two).
+       Listing both is legal here where it is not for a shadow: `none` is a valid
+       background-image layer, which is exactly why §10 keeps the rim out of the
+       shadow list in the first place. */
+    background-image: var(--material-thick-rim-control, none),
+      var(--kui-ct-light, none);
   }
+
+  /* LOUD GLASS RUNS HOT (lab l2-btn-loud, ported 2026-08-17). At the control veil alphas a
+     loud pigment reads WASHED beside its solid counterpart — the white page supplies the
+     missing percent and the sheen pours milk on top, the opposite of rank. The lab's answer:
+     the veil is the family's own solid with its chroma BOOSTED at high alpha — backlit
+     stained glass, not a painted button — so thick and solid CONVERGE on a calm bed
+     (Kushagra: "solid should look exactly like any material on non hostile plain white bg").
+     The boost ceiling was measured in the lab, not tasted: past ~1.45 orange clips out of
+     sRGB and renders red; 1.18 is the judged value. Grey tones are untouched by construction
+     (chroma ~0 scales to ~0). States re-derive from the rung's own hover/active solids
+     through the -src chain, so interaction keeps its designed step. :where() on the material
+     keeps this at the material blocks' own specificity — later source order wins the tie,
+     and the reduced-transparency arm below still outranks it the same way. */
+  .kui-control:where([data-material="thin"], [data-material="regular"], [data-material="thick"])[data-emphasis="loud"] {
+    /* The RENDERED lab values, not the stylesheet's (2026-08-17, the extraction rule yet
+       again: the lab's written 1.18/0.72 sat under live dials, and the screen showed
+       c×1.6 at α0.8 (first derived as 1.455 against the wrong source chroma — measured
+       twice now, against accent's own solid) — porting the text shipped a washed-out loud). */
+    --kui-ct-fill: oklch(from var(--kui-ct-fill-src) calc(l * 1.04) calc(c * 1.6) h / 0.8);
+    --kui-ct-fill-hover: oklch(from var(--kui-ct-fill-src-hover) calc(l * 1.04) calc(c * 1.6) h / 0.8);
+    --kui-ct-fill-active: oklch(from var(--kui-ct-fill-src-active) calc(l * 1.04) calc(c * 1.6) h / 0.8);
+    /* And loud KEEPS a wash (the lab grid's own sheen-10 cell): the pane-minus-wash rule is
+       about the neutral box, not about rank — a committed pigment is lit like the pane. */
+    --kui-ct-light: var(--material-control-wash-loud, none);
+  }
+  .kui-control:where([data-material="thin"], [data-material="regular"], [data-material="thick"])[data-emphasis="medium"] {
+    --kui-ct-light: var(--material-control-wash-medium, none);
+  }
+  /* Loud's filter runs HOT (rendered lab: saturate 2.2, brightness 1.1) — per thickness so
+     the blur stays the cell's. Restated for :hover below the hover-media block would tie at
+     a lower specificity and lose; the rung's own filter must win in BOTH states, so the
+     hover restatement carries the same value. */
+  .kui-control:where([data-material="thin"])[data-emphasis="loud"] {
+    backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter-loud);
+  }
+  .kui-control:where([data-material="regular"])[data-emphasis="loud"] {
+    backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter-loud);
+  }
+  .kui-control:where([data-material="thick"])[data-emphasis="loud"] {
+    backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter-loud);
+  }
+  @media (hover: hover) {
+    .kui-control:where([data-material="thin"])[data-emphasis="loud"]:hover {
+      backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter-loud);
+    }
+    .kui-control:where([data-material="regular"])[data-emphasis="loud"]:hover {
+      backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter-loud);
+    }
+    .kui-control:where([data-material="thick"])[data-emphasis="loud"]:hover {
+      backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter-loud);
+    }
+  }
+}
+
+/* ── The RING reaches glass BUTTONS (2026-08-17, Kushagra: the lab's Accent/Blue wear a
+   crisp light rim the package's never had). What shipped as the button's "rim" was only the
+   1px top background line — deleted with the pane's — so the button was edgeless while the
+   lab's ring wraps the whole capsule. Same anatomy as the pane's ring in surfaces.css: a
+   conic light masked to its own 1px annulus, per-thickness per-mode tokens, the fixed 165°
+   light. Buttons only — a glass FIELD's edge is its translucent border (state arms need a
+   border to stand down), and on-glass members are flush with their pane and take nothing. */
+.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+  position: relative;
+}
+.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  corner-shape: inherit;
+  padding: var(--border-width);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: var(--material-ring-opacity, 1);
+}
+.kui-button:where([data-material="thin"])::after {
+  background: var(--material-thin-ring);
+}
+.kui-button:where([data-material="regular"])::after {
+  background: var(--material-regular-ring);
+}
+.kui-button:where([data-material="thick"])::after {
+  background: var(--material-thick-ring);
+}
+
+/* ON GLASS (§10, 2026-08-16) — the control half; see surfaces.css for the reasoning. This is
+   what a dialog's Cancel button takes: the veil's alpha, no filter, no lens. */
+.kui-control[data-material="on-glass"] {
+  --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-on-glass-alpha), transparent);
+  --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-on-glass-alpha), transparent);
+  --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-on-glass-alpha), transparent);
+  /* Relief in the pane, not a lit sticker on it (the lab's keycap sentence): the world's
+     gradient catch stands down on a pane member the way the cast already does. */
+  --kui-ct-light: none;
+}
+/* The rungs on glass, per the lab (2026-08-15, ported 2026-08-17). One generic alpha cannot
+   say what rank says: LOUD commits — visibly translucent so the pane shows through, but never
+   asked to compete with the backdrop at the pane's own alpha ("why do these look so light");
+   MEDIUM carries the soft pigment in the veil at the lab's judged steps, so hover moves within
+   the rung and never climbs into loud's band. Quiet needs no arm: its resting src is
+   transparent and its wash ladder already rides the -src chain through the base mix above.
+   :where() keeps the material at zero weight so these tie with the block above and win on
+   source order — the same mechanism the loud-hot rule uses. */
+.kui-control:where([data-material="on-glass"])[data-emphasis="loud"] {
+  --kui-ct-fill: oklch(from var(--kui-ct-fill-src) l calc(c * 1.1) h / 0.88);
+  --kui-ct-fill-hover: oklch(from var(--kui-ct-fill-src-hover) l calc(c * 1.1) h / 0.93);
+  --kui-ct-fill-active: oklch(from var(--kui-ct-fill-src-active) l calc(c * 1.1) h / 0.96);
+}
+.kui-control:where([data-material="on-glass"])[data-emphasis="medium"] {
+  --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) 55%, transparent);
+  --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) 62%, transparent);
+  --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) 70%, transparent);
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -1352,5 +1592,7 @@
     --kui-ct-glass-edge: initial;
     background-image: none;
     --kui-ct-cast-glass: initial;
+    /* And the pool with it — a sealed pane has no glass matter to settle (2026-08-17). */
+    --kui-ct-pool-glass: initial;
   }
 }

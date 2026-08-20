@@ -36,8 +36,9 @@ import {
 } from "../../system/floating.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
-import type { Material, Size } from "../../system/axes.ts";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import type { Size } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
+import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 
 /* ── Size context: the dialog answers `size` like Menu (Kushagra, 2026-08-10) — the index
       prices the box (width, padding, corner) and nothing else. Type is NOT on it: no surface
@@ -184,7 +185,7 @@ export type DialogContentProps = {
     overlay scale). `kui-overlay` is the family class the shared layer's overlay size join keys
     on: it reads this same `data-size` and answers with the overlay band's corner and the
     designed maximum width (§24). Per-size spellings live there, never in a component sheet. */
-function popupProps(size: Size, material: Material, className?: string) {
+function popupProps(size: Size, material: SurfaceMaterial, className?: string) {
   const identity = "kui-surface kui-overlay kui-dialog-popup";
   return {
     "data-size": size,
@@ -241,12 +242,16 @@ function DialogPopup({
   ref?: React.Ref<HTMLDivElement> | undefined;
 }) {
   const size = React.use(DialogSizeContext);
-  const material = useMaterial();
+  // A floating pane is over content BY CONSTRUCTION (2026-08-17, the backdrop selectivity):
+  // it covers the app, so it always has something to bend and always expresses the theme.
+  const material = useMaterial({ backdrop: true });
+  // §10 — the lens on the pane itself (see Card).
+  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   return (
     <BaseDialog.Popup
       {...popupProps(size, material, className)}
       {...(style !== undefined ? { style } : {})}
-      {...(ref !== undefined ? { ref } : {})}
+      ref={lensRef}
     >
             {/**
               * The body exists for ONE reason and holds one channel: the content comes into

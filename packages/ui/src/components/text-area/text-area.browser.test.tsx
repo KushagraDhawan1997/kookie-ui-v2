@@ -14,6 +14,7 @@ import { APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../te
 import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { TextArea } from "./text-area.tsx";
+import { material } from "../../tokens/config.ts";
 
 /** Differs from the harness placement on purpose: a <textarea> renders no children, so the
     probe must sit BESIDE the element — the parent is the nearest scope that can host it. */
@@ -126,14 +127,23 @@ describe("one treatment: the field family's identity (§9, §11)", () => {
     void (<TextArea m="4" />);
   });
 
-  it("the fill is the opaque seal, and it does not move when you point at it", () => {
+  it("the fill is the well, and it steps when you point at it", () => {
     const el = render(<TextArea />);
-    expect(computed(el, "background-color")).toBe(bgOn(el, "var(--color-surface)"));
+    // THE WELL, not the seal (2026-08-17, the fill-first flip): a field's resting identity is
+    // the look's dress fill — "a field resolves to a light fill solid, border supplements"
+    // (Kushagra) — where it used to be `--color-surface` with a solved hairline carrying it.
+    expect(computed(el, "background-color")).toBe(bgOn(el, "var(--dress-field-fill)"));
+    expect(computed(el, "background-color")).not.toBe(bgOn(el, "var(--color-surface)"));
     // Same trap as the field: all three sources must resolve, or pointing at the box makes
     // the fill declaration invalid at computed-value time and it vanishes.
+    // The pin is gone (2026-08-17), TextField's sentence one member over: the chains must
+    // still RESOLVE — that trap survives — and they must now STEP, because the well made the
+    // fill the one currency this family's hover has.
     const rest = computed(el, "background-color");
-    expect(stateFill(el, "hover")).toBe(rest);
-    expect(stateFill(el, "active")).toBe(rest);
+    for (const [name, value] of [["hover", stateFill(el, "hover")], ["active", stateFill(el, "active")]] as const) {
+      expect(value, `${name} resolves to nothing`).not.toBe("rgba(0, 0, 0, 0)");
+      expect(value, `${name} did not step`).not.toBe(rest);
+    }
   });
 
   it("wears a caret, not a hand; the text is content — selectable, regular weight (§15)", () => {
@@ -151,7 +161,10 @@ describe("one treatment: the field family's identity (§9, §11)", () => {
     // One tier below the mark's ring, because a field is a large element and the guidance
     // holds large non-text to 30 where fine detail owes 45 — at equal colour the long border
     // of a big box reads far heavier than a mark's ring (Kushagra, judged in the preview).
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--field-edge"));
+    // The DRESS edge (2026-08-17, the fill-first flip): the solved --field-edge was what a
+    // bordered field was recognised BY, and the well took that job. The solved ladder still
+    // exists and conformance still reaches it — contrast="high" stands the dress down.
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--dress-field-edge"));
   });
 
   it("offers the one resize axis that cannot break a layout, as raw CSS", () => {
@@ -192,7 +205,10 @@ describe("validity is state, never a prop (§8)", () => {
     el.setAttribute("data-invalid", "");
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
     el.removeAttribute("data-invalid");
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--field-edge"));
+    // The DRESS edge (2026-08-17, the fill-first flip): the solved --field-edge was what a
+    // bordered field was recognised BY, and the well took that job. The solved ladder still
+    // exists and conformance still reaches it — contrast="high" stands the dress down.
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--dress-field-edge"));
   });
 
   it("the ring moves with the border — the invalid state's own reversal of one-ring (§8)", () => {
@@ -212,7 +228,7 @@ describe("disabled arrives as the native attribute, and the shared remap reads i
     // layer without the arm: the colour assertions here failed.
     const el = render(<TextArea disabled placeholder="hint" />);
     expect((el as HTMLTextAreaElement).disabled).toBe(true);
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--disabled-border"));
     expect(computed(el, "color")).toBe(tokenOn(el, "--neutral-8"));
     expect(computed(el, "opacity")).toBe("1");
     expect(computed(el, "cursor")).toBe("default");
@@ -226,14 +242,14 @@ describe("disabled arrives as the native attribute, and the shared remap reads i
     const el = render(<TextArea />) as HTMLTextAreaElement;
     const live = computed(el, "border-top-color");
     el.disabled = true;
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--disabled-border"));
     el.disabled = false;
     expect(computed(el, "border-top-color")).toBe(live);
   });
 
   it("disabled outranks invalid, deterministically", () => {
     const el = render(<TextArea disabled aria-invalid="true" />);
-    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--neutral-6"));
+    expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--disabled-border"));
   });
 });
 
@@ -257,7 +273,7 @@ describe("readOnly drops the well, and keeps everything else (§8)", () => {
     const off = render(<TextArea disabled />);
     expect(computed(off, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
     const ro = render(<TextArea readOnly />);
-    expect(computed(ro, "border-top-color")).not.toBe(tokenOn(ro, "--neutral-6"));
+    expect(computed(ro, "border-top-color")).not.toBe(tokenOn(ro, "--disabled-border"));
   });
 });
 
@@ -270,48 +286,30 @@ describe("the placeholder is a designed role, not a UA default (§7, §15)", () 
   });
 });
 
-describe("the look axis dresses the well — the field family answers once (§19)", () => {
-  it.each(APPEARANCES)("%s: filled matches TextField exactly — one family, one answer", (appearance) => {
-    // The law's own title named a comparison it did not make: it asserted --neutral-3 and a
-    // transparent border, so it would have passed with TextField resolving to something else
-    // entirely, and it agreed with `filled` painting no edge. It now compares the two members
-    // to EACH OTHER, which is the family claim, and to the axis's other end, which is the
-    // claim the axis makes.
-    const area = mounted(<TextArea />, {
-      theme: { controlLook: "filled", appearance },
-      select: ".kui-textarea",
-    });
-    const field = mounted(<TextField />, {
-      theme: { controlLook: "filled", appearance },
-      select: ".kui-field",
-    });
+describe("the dress is the family's, unconditional (§19 — controlLook deleted 2026-08-19)", () => {
+  it.each(APPEARANCES)("%s: matches TextField exactly — one family, one answer", (appearance) => {
+    // The family claim survives the axis: the two members compare to EACH OTHER, in paint.
+    const area = mounted(<TextArea />, { theme: { appearance }, select: ".kui-textarea" });
+    const field = mounted(<TextField />, { theme: { appearance }, select: ".kui-field" });
     for (const prop of ["background-color", "border-top-color"]) {
       expect(computed(area, prop), `the field family disagrees with itself on ${prop}`).toBe(
         computed(field, prop),
       );
     }
-    const outlined = mounted(<TextArea />, {
-      theme: { controlLook: "outlined", appearance },
-      select: ".kui-textarea",
-    });
-    expect(computed(area, "background-color")).not.toBe(computed(outlined, "background-color"));
     expect(computed(area, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
   });
 
-  it("outlined is the identity — byte-identical to the bare render", () => {
+  it("the bare render is the themed render — no axis, no difference", () => {
     const bare = render(<TextArea />);
-    const outlined = mounted(<TextArea />, {
-      theme: { controlLook: "outlined" },
-      select: ".kui-textarea",
-    });
+    const themed = mounted(<TextArea />, { theme: {}, select: ".kui-textarea" });
     for (const prop of ["background-color", "border-top-color"]) {
-      expect(computed(outlined, prop)).toBe(computed(bare, prop));
+      expect(computed(themed, prop)).toBe(computed(bare, prop));
     }
   });
 });
 
 describe("the app's identities reach it without it knowing (§5, §10)", () => {
-  it("casts the CONTROL row in an elevated world, flat in flat — TextField's third flip (§5)", () => {
+  it("does NOT cast in either world — TextField's fourth flip (§5)", () => {
     // The family answers together: a field is a raised control since 2026-08-07, and it
     // casts row 2 through the world token — flat worlds stay shadowless.
     expect(computed(render(<TextArea />), "box-shadow")).toBe("none");
@@ -321,23 +319,36 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
       </Theme>,
     );
     const el = host.querySelector<HTMLElement>(".kui-textarea")!;
-    expect(computed(el, "box-shadow")).not.toBe("none");
+    // The FOURTH flip (2026-08-17): the field family left elevation with the fill-first
+    // identity — a well is carved into the plane, not raised off it. TextField's own law
+    // carries the reasoning and the both-halves probe; this is the family answering together.
+    expect(computed(el, "box-shadow"), "a well is not raised off the plane").toBe("none");
     // @ts-expect-error — depth is an app identity; nothing chooses a shadow
     void (<TextArea shadow="2" />);
   });
 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
-    const glass = mounted(<TextArea />, { theme: { material: "regular" } });
-    expect(computed(glass, "backdrop-filter")).toContain("blur(16px)");
+    const glass = mounted(<TextArea backdrop />, { theme: { material: "regular" } });
+    // Derived, not restated: the radius is config's to move (2026-08-16).
+    expect(computed(glass, "backdrop-filter")).toContain(
+      // The CONTROL cell's blur, not the pane's (control-scale material, lab port
+      // 2026-08-17): a 40px box re-prices the ladder — half the blur, a leaner veil.
+      `blur(${material.light.regular.control.filter.match(/blur\(([\d.]+)px\)/)![1]}px)`,
+    );
     expect(computed(glass, "background-color")).toBe(
       bgOn(
         glass,
-        "color-mix(in srgb, var(--color-surface) var(--material-regular-alpha), transparent)",
+        // The OPAQUE twin, not the alpha dress (2026-08-19): the veil multiplies an alpha
+        // source, so the glass scopes re-point the sources to the same rung said opaquely —
+        // a glass field's designed veil measured 4.1% before (audit 2026-08-18).
+        "color-mix(in srgb, var(--dress-field-fill-solid) var(--material-regular-control-alpha), transparent)",
       ),
     );
-    // And the glass fill does not move either — the ramp is pinned to rest, like the field's.
+    // And on glass the veil's ALPHA holds while the SOURCE under it steps (2026-08-17):
+    // control-scale material replaced the old three-alpha mix ramp with one alpha and moving
+    // sources, which is what let the pin go.
     const derived = getComputedStyle(glass).getPropertyValue("--kui-ct-fill-hover").trim();
-    expect(bgOn(glass, derived)).toBe(computed(glass, "background-color"));
+    expect(bgOn(glass, derived)).not.toBe(computed(glass, "background-color"));
   });
 
   it("resolves differently under a dark Theme — both directions of every axis", () => {
@@ -345,7 +356,11 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
     const dark = mounted(<TextArea />, { theme: { appearance: "dark" } });
     expect(computed(dark, "background-color")).not.toBe(computed(light, "background-color"));
     expect(computed(dark, "border-top-color")).not.toBe(computed(light, "border-top-color"));
-    expect(computed(dark, "background-color")).toBe(bgOn(dark, "var(--color-surface)"));
+    // THE WELL, not the seal (2026-08-17, the fill-first flip): a field's resting identity is
+    // the look's dress fill — "a field resolves to a light fill solid, border supplements"
+    // (Kushagra) — where it used to be `--color-surface` with a solved hairline carrying it.
+    expect(computed(dark, "background-color")).toBe(bgOn(dark, "var(--dress-field-fill)"));
+    expect(computed(dark, "background-color")).not.toBe(bgOn(dark, "var(--color-surface)"));
   });
 });
 

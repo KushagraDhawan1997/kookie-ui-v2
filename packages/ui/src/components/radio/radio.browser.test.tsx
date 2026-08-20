@@ -119,7 +119,7 @@ describe("the circle is role semantics, and the radius axis never reaches it (§
 
 describe("neutral off, accent on — the family identity, not a per-component copy (§11)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: rests as the seal wearing the control edge`, () => {
+    it(`${appearance}: rests as a well wearing the dress edge`, () => {
       const el = render(
         <Theme appearance={appearance}>
           <RadioGroup>
@@ -128,8 +128,14 @@ describe("neutral off, accent on — the family identity, not a per-component co
         </Theme>,
       );
       const mark = el.querySelector(".kui-radio")!;
-      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--control-edge)"));
-      expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--color-surface)"));
+      // REWRITTEN 2026-08-17 (the fill-first flip), the checkbox's sentence one member over:
+      // the mark family rests on a WELL — the look's dress fill — with the dress edge
+      // supplementing it, rather than on the seal wearing the solved --control-edge. The D2
+      // argument that minted that edge ("an unchecked mark has no identity but this hairline")
+      // is what expired; there is a fill to recognise the mark by now.
+      expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--dress-mark-fill)"));
+      expect(computed(mark, "border-top-color")).toBe(colorOn(el, "var(--dress-mark-edge)"));
+      expect(computed(mark, "background-color")).not.toBe(colorOn(el, "var(--color-surface)"));
     });
 
     it(`${appearance}: selected fills with the accent solid and pairs its dot`, () => {
@@ -154,7 +160,7 @@ describe("neutral off, accent on — the family identity, not a per-component co
         </Theme>,
       );
       const mark = el.querySelector(".kui-radio")!;
-      expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--neutral-3)"));
+      expect(computed(mark, "background-color")).toBe(colorOn(el, "var(--disabled-fill)"));
       expect(computed(mark, "opacity")).toBe("1");
     });
   }
@@ -206,19 +212,16 @@ describe("the look axis reaches it through the family, with no rule of its own (
       </Theme>,
     );
 
-  it.each(APPEARANCES)("%s: filled dresses the box and KEEPS the mark's edge", (appearance) => {
-    // The checkbox's law, one member over — same rewrite, same reason (see that file). A radio
-    // is even more dependent on its hairline: unchecked, the ring IS the entire control.
-    const filled = markOf(radio({ controlLook: "filled", appearance }));
-    const outlined = markOf(radio({ controlLook: "outlined", appearance }));
-    expect(
-      computed(filled, "background-color"),
-      `filled resolves to outlined's fill in ${appearance}`,
-    ).not.toBe(computed(outlined, "background-color"));
-    expect(computed(filled, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+  it.each(APPEARANCES)("%s: the dress KEEPS the mark's edge", (appearance) => {
+    // The checkbox's law, one member over — same rewrite, same reason (see that file). A
+    // radio is even more dependent on its hairline: unchecked, the ring IS the entire
+    // control. (This law flipped a `controlLook` that had already been deleted, so both
+    // mounts were the same cell — caught in the surfaceLook deletion sweep, 2026-08-20.)
+    const mark = markOf(radio({ appearance }));
+    expect(computed(mark, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
   });
 
-  it("outlined is the identity — byte-identical to the bare render", () => {
+  it("the themed render is the bare render — no axis, no difference", () => {
     const bare = markOf(
       render(
         <RadioGroup>
@@ -226,21 +229,20 @@ describe("the look axis reaches it through the family, with no rule of its own (
         </RadioGroup>,
       ),
     );
-    const outlined = markOf(radio({ controlLook: "outlined" }));
+    const themed = markOf(radio({}));
     for (const prop of ["background-color", "border-top-color"]) {
-      expect(computed(outlined, prop)).toBe(computed(bare, prop));
+      expect(computed(themed, prop)).toBe(computed(bare, prop));
     }
   });
 
   it("resolves to exactly what a checkbox resolves to — one family, one answer", () => {
-    // The claim the promotion makes. If either component ever grows its own look rule, these
-    // two diverge here first.
-    for (const look of ["outlined", "filled"] as const) {
-      const mark = markOf(radio({ controlLook: look }));
-      const box = mounted(<Checkbox />, { theme: { controlLook: look }, select: ".kui-checkbox" });
-      for (const prop of ["background-color", "border-top-color"]) {
-        expect(computed(mark, prop), `${look}/${prop}`).toBe(computed(box, prop));
-      }
+    // The claim the promotion makes. If either component ever grows its own dress rule,
+    // these two diverge here first. (The look loop left with controlLook, 2026-08-19 —
+    // the dress is unconditional, so there is one cell to compare.)
+    const mark = markOf(radio({}));
+    const box = mounted(<Checkbox />, { theme: {}, select: ".kui-checkbox" });
+    for (const prop of ["background-color", "border-top-color"]) {
+      expect(computed(mark, prop), prop).toBe(computed(box, prop));
     }
   });
 });
@@ -279,7 +281,7 @@ describe("the group owns the selection (§11)", () => {
       </RadioGroup>,
     );
     for (const mark of host.querySelectorAll(".kui-radio")) {
-      expect(computed(mark, "background-color")).toBe(colorOn(host, "var(--neutral-3)"));
+      expect(computed(mark, "background-color")).toBe(colorOn(host, "var(--disabled-fill)"));
     }
   });
 

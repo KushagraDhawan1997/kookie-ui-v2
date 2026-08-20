@@ -21,6 +21,7 @@ import {
   lowChromaThreshold,
   controlEdgeLc,
   thumbFill,
+  thumbLabel,
   trackWellStep,
   trackWellStepHigh,
   solidBand,
@@ -546,9 +547,29 @@ export function colorDeclarations(
     // and its job is differentiating nested surfaces, where the wider gamut buys nothing.
     if (gamut === "srgb") s.alpha.forEach((v, i) => out.push(decl(`${tone}-a${i + 1}`, v)));
     out.push(
-      decl(`${tone}-soft`, `var(--${tone}-3)`),
-      decl(`${tone}-soft-hover`, `var(--${tone}-4)`),
-      decl(`${tone}-soft-active`, `var(--${tone}-5)`),
+      // The soft trio is the ALPHA ramp since 2026-08-17 (Kushagra, off the dark AlertDialog:
+      // "the Keep it button barely has any bg... we have solved it by how we do hover states
+      // on dropdown — why are buttons not?"). An opaque indexed step is priced against ONE
+      // bed, so a dark panel one step from the page swallowed it; the alpha solve composites
+      // the SAME rendered colour over the seal and lifts on any other ground by construction —
+      // the menu row wash's principle, promoted. Dark sits one step up: its 2→3 delta is
+      // under a noticeable difference on the panel bed (a3 there is ~4% white), which is a
+      // fact about compression at black, not a taste asymmetry — the focus ring's own
+      // per-mode precedent. The ramp is sRGB in both gamut blocks on purpose (its own note
+      // above), so these resolve the sRGB solve everywhere.
+      decl(`${tone}-soft`, `var(--${tone}-a${mode === "dark" ? 4 : 3})`),
+      decl(`${tone}-soft-hover`, `var(--${tone}-a${mode === "dark" ? 5 : 4})`),
+      decl(`${tone}-soft-active`, `var(--${tone}-a${mode === "dark" ? 6 : 5})`),
+      // The trio's OPAQUE twins (2026-08-19), for the one bed where an alpha source is a
+      // defect: GLASS. The material veil is color-mix(source alpha%, transparent) and that
+      // formula assumes an opaque source — the percentage IS the veil. An alpha source
+      // multiplies through it (audit 2026-08-18: a glass field's designed 62% veil rendered
+      // at 4.1%, a photo passing straight through the input's box). By the recomposition
+      // law aN over the seal IS step N, so the twin is the same rung said opaquely; the
+      // glass scopes re-point the generic roles to these.
+      decl(`${tone}-soft-solid`, `var(--${tone}-${mode === "dark" ? 4 : 3})`),
+      decl(`${tone}-soft-hover-solid`, `var(--${tone}-${mode === "dark" ? 5 : 4})`),
+      decl(`${tone}-soft-active-solid`, `var(--${tone}-${mode === "dark" ? 6 : 5})`),
       decl(`${tone}-solid`, s.solid),
       decl(`${tone}-solid-hover`, s.solidHover),
       decl(`${tone}-solid-active`, s.solidActive),
@@ -627,12 +648,21 @@ export function colorDeclarations(
   // for its fill, so its off part can only be neutral through a tone-independent role.
   // Deliberately quieter than the mark edge — a well is a region the fill moves through,
   // not a hairline identity, and every platform ships it subtle.
-  out.push(decl("color-track", `var(--neutral-${trackWellStep[mode]})`));
+  // ALPHA since 2026-08-17 (with the dress innards): a track runs inside panes whose own
+  // lighting shades their ground, and an opaque low step vanishes at a dark card's bottom —
+  // the off switches in the dark settings card, measured invisible. The a-step renders
+  // identically on the seal and lifts relative to any local ground. HC keeps its opaque
+  // step below: conformance wants the designed contrast, not adaptation.
+  out.push(decl("color-track", `var(--neutral-a${trackWellStep[mode]})`));
 
   // The thumb's fill (§11, 2026-08-07) — the family's third role: a grip must be the most
   // findable object on the rail, so dark goes near-white (iOS's own posture) where light
   // keeps the seal. See thumbFill's comment in color-config.ts.
   out.push(decl("color-thumb", thumbFill[mode]));
+  // And the ink that pairs with it (§26, 2026-08-19). Emitted beside the fill because it
+  // answers to the fill: a grip that carries a label needs one, and the two must move together
+  // or the label goes invisible the next time the grip is re-priced.
+  out.push(decl("color-thumb-label", thumbLabel[mode]));
 
   return out;
 }

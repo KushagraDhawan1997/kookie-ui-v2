@@ -82,23 +82,40 @@ export function generateLayoutCss(): string {
   // every box. inline-size only: containment on the block axis would break height-from-content.
   lines.push(".kui-box[data-container] {", "  container-type: inline-size;", "}", "");
 
-  // Theme IS always a container (§2, decided 2026-08-02; unchanged by the 2026-08-08 opt-in):
-  // it is the guaranteed outermost measurable ancestor, so a tier always has something to
-  // read — worst case the whole themed area, which behaves like the window. The one caveat:
-  // inline-size containment means a Theme's width cannot come from its contents, so a Theme
-  // rendered onto a shrink-to-fit element (flex child at width:auto, inline-block) collapses.
-  lines.push(".kui-theme {", "  container-type: inline-size;", "}", "");
-
-  // ...except at a portal's landing spot (§20, 2026-08-09). That wrapper is a body-level box
-  // the AUTHOR never wrote, so making it a query container silently re-targets every
-  // responsive tier inside the popup at the viewport — measured, a tiered Box computed 48px
-  // of padding portalled against 2px in flow, inside a 138px panel. The author's own opted-in
-  // container is bypassed by DOM relocation rather than being absent, which is not the case
-  // §2's "fall back to the Theme root" floor was written for. With no eligible container the
-  // tiers resolve to `initial`, which is the honest answer for a small panel and the same
-  // behaviour the subtree would have had with no wrapper at all. Making the POPUP the
-  // container was rejected: it re-creates the 2026-08-08 shrink-wrap collapse.
-  lines.push(".kui-theme.kui-portal {", "  container-type: normal;", "}", "");
+  // The app's OUTERMOST Theme is the container, and since 2026-08-16 ONLY it (§2, narrowed
+  // from "every Theme", decided 2026-08-02). The floor §2 asks for is unchanged: the root is
+  // the guaranteed measurable ancestor, so a tier always has something to read — worst case
+  // the whole themed area, which behaves like the window.
+  //
+  // A NESTED Theme is not a container, and the reason is the 2026-08-08 Box shrink-wrap
+  // collapse arriving one element over. Containment means a box's width cannot come from its
+  // own contents, so a `container-type` div dropped into a flex or grid row computes 0px and
+  // its children pile up invisibly on each other. The rule above STATED that as an accepted
+  // caveat, and it was defensible while a nested Theme only ever re-scoped an axis on a region
+  // that already had a width. `material` becoming a Theme property (2026-08-16) ended that:
+  // <Theme material="thin"> is now the ordinary way to put ONE pane behind glass, so nested
+  // Themes sit in flow everywhere — and every glass specimen in the playground rendered zero
+  // pixels wide from the commit that shipped it, which is how this was found.
+  //
+  // Box's own rule already answers the question the blanket mark was answering: containment
+  // serves a box's CHILDREN, so the box's own props are no signal for it, and it is opt-in via
+  // `<Box container>`. A Theme's axis props are no signal either — "this region is compact" or
+  // "this pane is glass" says nothing about whether anything inside wants to measure it. Tiers
+  // in a nested Theme now fall back through opted-in ancestors to the root, which is exactly
+  // the path they take inside a plain Box.
+  //
+  // The portal wrapper is excluded HERE rather than by a following override (§20, 2026-08-09).
+  // That wrapper is a body-level box the AUTHOR never wrote, so making it a query container
+  // silently re-targets every responsive tier inside the popup at the viewport — measured, a
+  // tiered Box computed 48px of padding portalled against 2px in flow, inside a 138px panel.
+  // The author's own opted-in container is bypassed by DOM relocation rather than being absent,
+  // which is not the case §2's fallback floor was written for; with no eligible container the
+  // tiers resolve to `initial`, the honest answer for a small panel and the same behaviour the
+  // subtree would have had with no wrapper at all. Making the POPUP the container was rejected:
+  // it re-creates the 2026-08-08 collapse. It is one selector because a separate
+  // `.kui-theme.kui-portal` override would now TIE this rule on specificity (0,2,0) and depend
+  // on source order — one home for which Themes are containers, not two that must stay ordered.
+  lines.push(".kui-theme:not(.kui-theme *, .kui-portal) {", "  container-type: inline-size;", "}", "");
 
   // The stacking frame (§20, decided 2026-08-08): the DOM-outermost theme is a stacking
   // context, so every z-index inside the app resolves inside it and a body-level portal —
