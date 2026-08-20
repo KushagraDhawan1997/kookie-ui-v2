@@ -297,8 +297,19 @@
    its INNER edge and the content draws none, so two neighbours never double a border. The
    border-width overrides leave the surface's border COLOR untouched, which is what keeps a
    seam reachable by contrast="high" exactly as a card's edge is. Keyed on the pane's own
-   attribute now rather than on the root's, which is the whole of the API change in CSS. */
+   attribute now rather than on the root's, which is the whole of the API change in CSS.
+
+   AND IT PAINTS NOTHING (2026-08-21, Kushagra: "flush should have no background at all, it's
+   flush to page"). A flush pane is level with the page, so it is not a plane and has no fill
+   of its own — `--kui-sf-fill` is the hook surfaces.css already reads first, so the material
+   chain underneath (`--kui-sf-fill-src`) is untouched and a pane that leaves the frame gets
+   its fill back by the hook going away. Measured before the change: header, sidebar and
+   content all painted the identical seal, which is the same value a Card paints, so the fill
+   told you nothing that the hairlines were not already saying. What it means in exchange is
+   that a flush shell no longer supplies the app's background — the page does, which is the
+   app's call in this system and always was. */
 .kui-shell-pane[data-flush] {
+  --kui-sf-fill: transparent;
   border-radius: var(--radius-0);
   border-width: 0;
 }
@@ -318,6 +329,37 @@
 
 .kui-shell-bottom[data-flush] {
   border-block-start-width: var(--border-width);
+}
+
+/* THE ONE EXCEPTION, AND IT IS NOT THE APP'S TO STATE (2026-08-21, Kushagra: "when it becomes
+   a drawer, it stops being flush… a drawer has a surface, so it gets surface"). `flush` is a
+   statement about the FRAME, and a pane sitting over the content is not in the frame while it
+   does so — so it takes the surface identity back: its fill, its corner, its four edges.
+   Measured before this, on a phone with the app having said nothing at all: corner 0px and
+   border 0px, against 40px and 1px on a pane the app had pulled off the frame itself. A
+   square, borderless slab sliding over an article, and after the fill left the frame it would
+   have been a see-through one.
+
+   Keyed at (0,3,0) rather than placed after the flush block, because "flush AND overlaying"
+   is the exception's real shape and specificity states it where source order only implies it
+   — the first spelling put these declarations inside the position rules above, which lose to
+   the flush block below them, so the drawer stayed square (caught by the law, not by reading).
+
+   Resolved in CSS and not in JS on purpose: the JS knows a pane is overlaying only after
+   mount, so a server-rendered `defaultOpen` drawer would paint square for a frame and then
+   correct — and first paint being right with no script is the whole of §27.
+
+   The corner is the base rule's own token, one hop up this file, because THAT is what a pane
+   off the frame wears here: the shell pins every pane to `--radius-surface-3` rather than
+   riding the surface size join, so a drawer at size 1 must match a pulled-off pane at size 1
+   and not what a Card of that size would wear. A first spelling restated surfaces.css's join
+   expression instead and came out 38.712px against 40 — the law caught it, and the lesson is
+   that "restore the surface identity" means restore what THIS component gives a pane off the
+   frame, not what the shared layer would give some other box. */
+.kui-shell-pane[data-flush][data-presentation="overlay"] {
+  --kui-sf-fill: initial;
+  border-radius: var(--radius-surface-3);
+  border-width: var(--border-width);
 }
 
 /* NOT FLUSH: nothing to state. The pane keeps the full surface identity it already has —
@@ -561,6 +603,16 @@
    Auto resolves here: the nav columns rest closed, and an open pane presents as an overlay.
    ONE media block so the boundary literal exists once in this file. */
 @media (max-width: 48rem) {
+  /* `auto` overlays here, so the drawer exception applies to it too — restated for the
+     resolved value, the way every overlay fact in this block is. Dropping it here is the
+     shape of the 2026-08-16 half-applied width-cap repair, which reached the explicit arms
+     and not this one: the path every phone takes. */
+  .kui-shell-pane[data-flush][data-presentation="auto"] {
+    --kui-sf-fill: initial;
+    border-radius: var(--radius-surface-3);
+    border-width: var(--border-width);
+  }
+
   /* Untouched nav columns rest closed on a narrow window. The class is the hide rule's, not
      this block's — a media query adds no specificity, so this arm was losing to a rule one
      FILE away and the phone default was the loudest casualty. */

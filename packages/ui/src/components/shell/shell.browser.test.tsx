@@ -28,6 +28,7 @@ import {
   ShellSidebar,
   ShellTrigger,
 } from "./shell.tsx";
+import type { Size } from "../../system/axes.ts";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
@@ -105,12 +106,45 @@ describe("anatomy: the landmarks are by construction (§27)", () => {
     expect(within(shell, ".kui-shell-bottom").tagName).toBe("ASIDE");
   });
 
-  it("a pane IS a surface: its seal and edge are a Card's, computed (§10, §27)", () => {
+  /**
+   * REVERSED 2026-08-21 (Kushagra: "flush should have no background at all, it's flush to
+   * page"). This law used to assert that a FLUSH pane's seal is a Card's, and it was true —
+   * measured, header and sidebar and content all painting the identical value a Card paints,
+   * which is exactly why the fill was carrying no information. A pane level with the page is
+   * not a plane, so it has no fill; the surface identity is what a pane wears when it LEAVES
+   * the frame, which is the half this law states now.
+   *
+   * The edge is deliberately still compared: `border-width: 0` leaves the surface's border
+   * COLOR in place so a seam stays reachable by contrast="high", and that has not changed.
+   *
+   * Falsified: with the flush stand-down removed, the first half reads the seal and fails;
+   * with the non-flush pane's fill left standing down, the second half fails.
+   */
+  it("a flush pane paints nothing; a pane off the frame paints a Card's seal (§10, §27)", () => {
     const shell = mountShell();
     const card = mounted(<Card>c</Card>, { theme: {} });
-    const sidebar = within(shell, ".kui-shell-sidebar");
-    expect(computed(sidebar, "background-color")).toBe(computed(card, "background-color"));
-    expect(computed(sidebar, "border-top-color")).toBe(computed(card, "border-top-color"));
+    const flush = within(shell, ".kui-shell-sidebar");
+    expect(computed(flush, "background-color"), "a flush pane is level with the page").toBe(
+      "rgba(0, 0, 0, 0)",
+    );
+    // The seam colour is untouched by the fill going away — `border-width: 0` hides it, and
+    // contrast="high" is what brings it back.
+    expect(computed(flush, "border-top-color")).toBe(computed(card, "border-top-color"));
+
+    const off = mounted(
+      <Shell style={{ height: 400 }}>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          nav
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const pulled = within(off, ".kui-shell-sidebar");
+    expect(computed(pulled, "background-color"), "a pane off the frame IS a card").toBe(
+      computed(card, "background-color"),
+    );
+    expect(computed(pulled, "border-top-color")).toBe(computed(card, "border-top-color"));
   });
 
   it("whatever the shell layers internally stays INSIDE its own isolate (§20)", () => {
@@ -389,6 +423,78 @@ describe("the app states its size once, and control may be handed back (§27)", 
     // …and when the pin goes, the pane is where the USER left it, not where the pin was.
     await userEvent.click(pin);
     await expect.poll(() => sidebar.dataset.state).toBe("open");
+  });
+});
+
+/**
+ * ADDED 2026-08-21. `flush` is the app's statement about the FRAME, and a pane sitting over
+ * the content is not in the frame while it does so — so it takes the surface identity back,
+ * whatever the app asked for. Before this, a drawer on a phone was a square, borderless slab
+ * with the app having said nothing at all: `[data-flush]` was still stamped and the frame
+ * dress still applied (measured, corner 0px and border 0px against 40px and 1px on a pane the
+ * app had pulled off the frame itself).
+ *
+ * Both arms are walked because the treatment is written twice — the explicit
+ * `presentation="overlay"` at any width, and `auto` resolved by the narrow media block, which
+ * is the path every phone takes and the half the 2026-08-16 width-cap repair forgot.
+ *
+ * The corner is read as an AGREEMENT rather than against a number: the drawer's rule restates
+ * surfaces.css's own expression, and what has to stay true is that it lands where a pane the
+ * app pulled off the frame lands, at the same size.
+ */
+describe("a drawer is not part of the frame, whatever the app asked (§27)", () => {
+  const offFrame = (size: Size) =>
+    mounted(
+      <Shell size={size} style={{ height: 400 }}>
+        <ShellSidebar aria-label="Primary" flush={false} defaultOpen>
+          nav
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+
+  const dress = (el: HTMLElement) => ({
+    corner: computed(el, "border-top-left-radius"),
+    edge: computed(el, "border-left-width"),
+    painted: computed(el, "background-color"),
+  });
+
+  // Falsified: with the restore dropped from the explicit arms, corner reads 0px and the
+  // pane paints rgba(0, 0, 0, 0) — a see-through, square drawer over the content.
+  it("an EXPLICIT overlay pane wears the surface, at a roomy window and at every size", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const shell = mounted(
+        <Shell size={size} style={{ height: 400 }}>
+          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+            nav
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: {}, select: ".kui-shell" },
+      );
+      expect(shell.querySelector(".kui-shell-sidebar")!.hasAttribute("data-flush"), size).toBe(true);
+      expect(dress(within(shell, ".kui-shell-sidebar")), `size ${size}`).toEqual(
+        dress(within(offFrame(size), ".kui-shell-sidebar")),
+      );
+    }
+  });
+
+  // Falsified: with the restore dropped from the narrow media block ONLY, this fails and the
+  // law above still passes — which is the half-applied shape the agreement rule exists for.
+  it("a drawer on a phone wears it too — the resolved arm, not just the explicit one", async () => {
+    await narrow();
+    const shell = mountShell();
+    await userEvent.click(within(shell, ".kui-shell-header button"));
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => sidebar.dataset.state).toBe("open");
+    expect(sidebar.dataset.presentation, "resolved by CSS, not restamped").toBe("auto");
+    expect(sidebar.hasAttribute("data-flush"), "the app's statement is untouched").toBe(true);
+
+    const off = within(offFrame("2"), ".kui-shell-sidebar");
+    expect(dress(sidebar)).toEqual(dress(off));
+    // And the thing a person actually meets: you cannot read the page through the menu.
+    expect(computed(sidebar, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
   });
 });
 

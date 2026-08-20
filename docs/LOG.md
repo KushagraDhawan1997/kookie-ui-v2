@@ -102,6 +102,26 @@ The new laws repeat all four hide conditions on the input where right and wrong 
 
 **Postscript (merge with main).** Four of the shell's node laws were red on main when this started, and repairing them was part of this work. Main reached the same four independently and landed first — with a better answer on the one that mattered: the rail's per-index arms and the pane's hook stand-down MOVED into the join layer, following Dialog's own refusal, where this branch had carved them out of the law instead. Main's spelling is what survives the merge; the entry below carries it.
 
+## 2026-08-21 Flush means flush to the page — so a flush pane paints nothing, and a drawer is not flush
+
+**What.** Kushagra, on the shell: *"If a panel, content, etc is flush, why does it have any background? Flush should mean letting light pass"* — then, precisely: *"it should have no background at all. It's flush to page."* And on the objection I raised: *"when it becomes a drawer, it stops being flush… a drawer has a surface, so it gets surface."*
+
+**The measurement that settled the first half.** In a flush frame, header, sidebar and content all painted `rgb(255,255,255)` in light and the identical near-black in dark — the same value a Card paints, all three the same as each other. The fill carried no information. And flush ALREADY deleted the corner and the border, so the fill was the last thing left of a surface identity the posture had otherwise stripped. A pane level with the page is not a plane.
+
+**The objection I raised, and why it was wrong.** I said one case breaks it: a drawer on a phone, whose background is the only thing stopping you reading the article through the menu. Measured, and the drawer was already broken in the other direction — corner 0px, border 0px, a square borderless slab, because `[data-flush]` was still stamped while the pane sat over the content. So it was not a constraint on the change; it was a defect the change would have made visible. `flush` is the app's statement about the frame, and a pane over the content is not in the frame while it does so.
+
+**Rejected: a new axis.** My first framing was "a pane paints when it is over something", which is true and is exactly what the deleted floating/stacked vocabulary said. Kushagra: *"we are no longer using terms like floating etc."* The whole point of the 2026-08-20 collapse to one boolean is that the outcome is derived, so this is one exception on the existing attribute pair and no new word.
+
+**Rejected: resolving it in JS.** `usePane` already computes whether a pane is overlaying, and passing that into the dressing is a two-line change. It is also wrong: the window class is null until mount, so a server-rendered `defaultOpen` drawer would paint square for a frame and then correct. §27 exists to make first paint right with no script.
+
+**Two mistakes kept, both caught by a law rather than by reading.** The exception's declarations went into the position rules first — which sit ABOVE the flush block in this file and therefore lose to it, so the drawer stayed square. Specificity states the exception where source order only implies it: `[data-flush][data-presentation="overlay"]` at (0,3,0). And the corner restore first restated surfaces.css's own join expression, which came out 38.712px against the 40 a pulled-off pane wears — because this file pins every pane to `--radius-surface-3` flat rather than riding the size join. **Restoring "the surface identity" means restoring what THIS component gives a pane off the frame, not what the shared layer would give some other box.**
+
+**What it costs, stated.** A flush shell no longer supplies the app's background; the page does. That is the app's call in this system and always was, and the same hazard already existed for every Card on an unpainted page in dark — the shell filling the window was papering over it. In dark the frame steps from the seal down to the page and the change is visible; in light the two differ by a hair.
+
+**What it opens.** Every flush pane is now the page colour, so "why is my sidebar the same colour as my editor" is the only question left — which is the §19 background-step gap, arriving from the Shell after arriving from the Card. Recorded there, not decided here.
+
+---
+
 ## 2026-08-21 The app states its navigation size once, and `open` may be handed back
 
 Two more from the builder's port, both smaller than the one above and both real.
