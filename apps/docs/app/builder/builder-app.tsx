@@ -122,6 +122,19 @@ const SEL_COLOR = "#a855f7";
 /** How far a gap band pulls back on every side. Capped per axis at a quarter of that
     dimension, so a hairline gutter still shows a band rather than insetting itself away. */
 const GAP_BAND_INSET = 6;
+/** The corner every editor instrument wears. The chrome is not system UI, but it sits in the
+    app's own Theme and has no business inventing numbers the system already names — and the
+    SEMANTIC token is the one to reach for: measured at this scope, `--radius-control-1` is
+    14px while the raw `--radius-1` is 9999px, because the palette's own entries are capsule
+    sentinels at `radius="full"`. That is §6's "never --radius-N in a component" showing its
+    teeth in an app.
+
+    Always through `min()` against the box's own half-extent, never alone: a gap band is as
+    tall as the gutter it fills, so an unbounded capsule turned a large gap into a stadium
+    (Kushagra, by eye), and a hairline band would over-round the other way. */
+const CHROME_RADIUS = "var(--radius-control-1)";
+const chromeCorner = (...halves: number[]) => `min(${CHROME_RADIUS}, ${Math.min(...halves)}px)`;
+
 /** The floor a gap band's HIT area grows to. The paint stays the true gutter minus its
     inset; the target does not, because the bottom of the space scale paints a hairline. */
 const GAP_BAND_HIT = 11;
@@ -1670,7 +1683,7 @@ export function BuilderApp() {
                       style={{
                         width: "4px",
                         height: "44px",
-                        borderRadius: "2px",
+                        borderRadius: chromeCorner(2),
                         background: "var(--color-border)",
                       }}
                     />
@@ -1779,11 +1792,9 @@ export function BuilderApp() {
                                 width: w,
                                 height: h,
                                 background: `${SEL_COLOR}22`,
-                                // A capsule: half the SHORT side, which is the system's own
-                                // spelling of `full` (§6 states the control capsule as h/2
-                                // rather than leaving CSS to clamp a huge number). Stating it
-                                // this way also self-limits — a 1px band cannot over-round.
-                                borderRadius: Math.min(w, h) / 2,
+                                // Rounded, but never past the system's own smallest corner:
+                                // half the short side alone made a tall gutter a stadium.
+                                borderRadius: chromeCorner(w / 2, h / 2),
                               }}
                             />
                           </div>
@@ -1873,7 +1884,7 @@ export function BuilderApp() {
                           color: "#fff",
                           font: "500 11px/1 var(--font-body, system-ui)",
                           padding: "4px 6px",
-                          borderRadius: "3px",
+                          borderRadius: CHROME_RADIUS,
                           whiteSpace: "nowrap",
                         }}
                       >
@@ -1895,7 +1906,7 @@ export function BuilderApp() {
                         width: drop.line.w,
                         height: drop.line.h,
                         background: "var(--focus-ring)",
-                        borderRadius: "1px",
+                        borderRadius: chromeCorner(drop.line.w / 2, drop.line.h / 2),
                         pointerEvents: "none",
                       }}
                     />
@@ -2362,7 +2373,7 @@ function DropHint({ canvasRef, id }: { canvasRef: React.RefObject<HTMLDivElement
         width: rect.width + 4,
         height: rect.height + 4,
         border: "1px dashed var(--focus-ring)",
-        borderRadius: "8px",
+        borderRadius: "var(--radius-control-2)",
         pointerEvents: "none",
       }}
     />
