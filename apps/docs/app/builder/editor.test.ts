@@ -24,7 +24,7 @@ import {
   type CommandContext,
 } from "./commands";
 import { CanvasBoundary, CONTEXT_COMMANDS } from "./chrome";
-import { box, dropSpot, rowsOf } from "./geometry";
+import { CANVAS_MIN_W, box, canvasRoom, dropSpot, rowsOf, widthAfterDrag } from "./geometry";
 import { MIXED, UNSET, pickOrder, readPick } from "./inspector";
 import {
   defaultDocTheme,
@@ -1037,6 +1037,51 @@ describe("one measurement serves all four layouts", () => {
 
   it("nothing to measure is no answer at all, not index zero", () => {
     expect(dropSpot([], container, 10, 10)).toBeNull();
+  });
+});
+
+describe("a magnifier may not change the room — the canvas width at every rung", () => {
+  // The rungs the app steps through. Restated here on purpose: this law is about the shape of
+  // the arithmetic across zooms, and it should keep asking after a rung is added or removed.
+  const ZOOMS = [0.5, 0.67, 0.8, 1, 1.25, 1.5, 2];
+  const PARENT = 880;
+  /** What the DOM would report: the painted box, clamped by the parent's `maxWidth: 100%`. */
+  const measured = (room: number, zoom: number) => Math.min(room * zoom, PARENT);
+
+  it("a grab that moves NOTHING writes back the width it started with", () => {
+    // Both defects this replaces were invisible here until the clamp was modelled. Measured
+    // in a production build at 150%: styled 1320px, offsetWidth 880 — so reading the box and
+    // dividing by the zoom answered 587 for a canvas that was 880 wide, and a grab that never
+    // moved collapsed it by a third, flipping every container tier inside.
+    for (const zoom of ZOOMS) {
+      const room = 880;
+      const start = canvasRoom(room, measured(room, zoom), zoom);
+      expect(widthAfterDrag(start, 0, zoom), `a still grab at ${zoom}× moved the wall`).toBe(room);
+    }
+  });
+
+  it("a grab travels the distance the POINTER did, in the room's own pixels", () => {
+    // The other end of the same mistake: at 50% one screen pixel is two room pixels, and a
+    // handle that writes screen pixels drags twice as far as the hand.
+    for (const zoom of ZOOMS) {
+      const start = canvasRoom(600, measured(600, zoom), zoom);
+      expect(widthAfterDrag(start, 100 * zoom, zoom)).toBe(700);
+      expect(widthAfterDrag(start, -100 * zoom, zoom)).toBe(500);
+    }
+  });
+
+  it("the measurement is the OPENING value only, and only where it is honest", () => {
+    // A stated width outranks the box at every rung — that is what makes the clamp harmless.
+    for (const zoom of ZOOMS) expect(canvasRoom(742, measured(742, zoom), zoom)).toBe(742);
+    // With nothing stated the zoom is 1 by construction (zooming pins the width first), and
+    // there the divide is a no-op and the box is the room.
+    expect(canvasRoom(null, 859, 1)).toBe(859);
+  });
+
+  it("the room has a floor, and it is stated in room pixels", () => {
+    expect(widthAfterDrag(300, -4000, 1)).toBe(CANVAS_MIN_W);
+    // …at every zoom, or a magnifier would change how narrow the canvas may get.
+    for (const zoom of ZOOMS) expect(widthAfterDrag(300, -4000 * zoom, zoom)).toBe(CANVAS_MIN_W);
   });
 });
 

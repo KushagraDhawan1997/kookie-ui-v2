@@ -72,7 +72,7 @@ import {
   type BuilderNode,
   type DocTheme,
 } from "./model";
-import { dropSpot, rowsOf } from "./geometry";
+import { canvasRoom, dropSpot, rowsOf, widthAfterDrag } from "./geometry";
 import { canAccept, insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
@@ -1082,21 +1082,20 @@ export function BuilderApp() {
   };
 
   /* The width handle: drag (or arrow keys) to give the canvas a narrower room. */
+  /** The room the canvas states, in CSS pixels. The arithmetic and its reasoning live in
+      `geometry.ts` so a law can reach them — this is the app's one binding of the measurement. */
+  const roomWidth = (): number => canvasRoom(canvasW, canvasRef.current?.offsetWidth ?? 880, zoomRef.current);
+
   const startWidthDrag = (e: React.PointerEvent<HTMLDivElement>) => {
     const wrap = canvasRef.current;
     if (!wrap) return;
     const startX = e.clientX;
-    // Both halves in the same space. `canvasRef` is styled `canvasW * zoom`, so its
-    // `offsetWidth` is PAINTED pixels while `canvasW` is CSS pixels — dividing only the
-    // delta left the base scaled, so grabbing the handle at 50% jumped the canvas from 880
-    // to 442 and flipped every container tier inside it.
-    const startW = wrap.offsetWidth / zoomRef.current;
+    const startW = roomWidth();
     const handle = e.currentTarget;
     handle.setPointerCapture(e.pointerId);
     // The pointer travels in SCREEN pixels; the width it writes is CSS pixels, and at 50%
     // one screen pixel is two of them.
-    const move = (ev: PointerEvent) =>
-      setCanvasW(Math.max(280, Math.round(startW + (ev.clientX - startX) / zoomRef.current)));
+    const move = (ev: PointerEvent) => setCanvasW(widthAfterDrag(startW, ev.clientX - startX, zoomRef.current));
     const up = () => {
       handle.removeEventListener("pointermove", move);
       handle.removeEventListener("pointerup", up);
@@ -1107,8 +1106,9 @@ export function BuilderApp() {
   const nudgeWidth = (e: React.KeyboardEvent) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
-    const current = canvasW ?? canvasRef.current?.offsetWidth ?? 880;
-    setCanvasW(Math.max(280, current + (e.key === "ArrowRight" ? 16 : -16)));
+    // A keyboard step is stated in ROOM pixels already — a magnifier does not change how far
+    // an arrow key moves the wall — so there is no screen-to-room conversion to make.
+    setCanvasW(widthAfterDrag(roomWidth(), e.key === "ArrowRight" ? 16 : -16, 1));
   };
 
   const code = React.useMemo(() => {
