@@ -970,12 +970,16 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     expect(seat.top, "the trigger must sit clear of the top of the window").toBeGreaterThan(200);
     expect(seat.top, "and inside it").toBeLessThan(window.innerHeight);
     await userEvent.click(trigger);
-    const deadline = performance.now() + 3000;
-    let popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();
-    while ((!popup || popup.hidden) && performance.now() < deadline) {
-      await frame();
+    // `data-side` is Base UI's ANSWER, and it can answer twice: a fallback side is stamped
+    // first and the overlap placement replaces it once the panel's real box has been measured.
+    // Waited for as a STATE (`until`, 2026-08-17) — reading the first un-hidden frame raced
+    // that second answer on a loaded runner (CI: "expected 'bottom' to be 'none'"). A placement
+    // that genuinely never resolves item-aligned expires the deadline into the same assertion.
+    let popup: HTMLElement | undefined;
+    await until(() => {
       popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();
-    }
+      return !!popup && !popup.hidden && popup.getAttribute("data-side") === "none";
+    }, 3000);
     expect(popup?.getAttribute("data-side"), "the case needs the item-aligned placement").toBe("none");
     return { popup: popup!, trigger };
   }
@@ -1239,7 +1243,6 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     // Base UI ignores a pointer release inside its press-drag window; wait it out (the
     // instrument lesson from this file's own choosing law).
     await new Promise((r) => setTimeout(r, 600));
-    await userEvent.click(document.querySelector<HTMLElement>(".kui-select-trigger")!);
 
     /**
      * THE REPLAY IS READ AS AN EVENT, NOT SAMPLED (rewritten 2026-08-20, on CI's own failure:
@@ -1253,9 +1256,24 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
      * no bound on a frame count separates them.
      *
      * A mutation observer is armed before the click instead. It cannot miss the stamps, because
-     * they are delivered rather than sampled, and it reads the silhouette in the callback that
-     * announces it — the runner writes the seed synchronously with the stamp, so that box is
-     * the seed however long the next paint takes.
+     * they are delivered rather than sampled.
+     *
+     * THE GESTURE IS ONE CLICK (2026-08-20, on the next three CI failures — "never flew",
+     * "silhouette 70 ≤ 36", "panel it ends in is a real one: expected 0"). The rewrite armed
+     * the observer before a NEW click and left the old reopen click standing above it, so the
+     * law reopened the select twice: the first flight ran before the observer was armed, and
+     * the second click landed on an OPEN select and closed it. Which of the three assertions
+     * failed was a race between the pose, the observer, and the toggle — reproduced 3/3 under
+     * CPU load, in two of the three modes. One gesture, observed from before its first frame,
+     * is the law's own premise.
+     *
+     * THE SILHOUETTE IS READ AT THE DEPART EDGE — `data-seed` leaving while `data-unfurling`
+     * stays — not at the seed stamp. A select's pose is finished by writes that land AFTER the
+     * stamp (the aim, and the borrowed inline height of an item-aligned panel: floating.tsx),
+     * so a read in the stamp's own callback raced them and measured the un-posed box (CI: 70
+     * against a 32px trigger). The depart edge is the moment the claim is ABOUT: the box
+     * rendered there is the value the flight's transition departs from, however long the next
+     * paint takes, and it cannot be read too early because the runner itself defines it.
      *
      * What is NOT claimed here any more is the release seam. It was `|last flying frame −
      * resting|`, and the last flying frame is whichever one the host could spare: a stall puts
@@ -1271,15 +1289,18 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     // node the guess lands on depends on what ran before. The observer already holds the
     // right node, so the guess had no reason to exist.
     let flyer: HTMLElement | null = null;
-    const seeded = new Map<HTMLElement, number>();
+    const posed = new Set<HTMLElement>();
+    const departedFrom = new Map<HTMLElement, number>();
     const watch = new MutationObserver((records) => {
       for (const record of records) {
         const el = record.target as HTMLElement;
         if (!el.classList.contains("kui-select-popup")) continue;
-        if (record.attributeName === "data-seed" && el.hasAttribute("data-seed") && !seeded.has(el))
-          seeded.set(el, el.getBoundingClientRect().height);
         if (record.attributeName === "data-unfurling" && el.hasAttribute("data-unfurling") && !flyer)
           flyer = el;
+        if (record.attributeName !== "data-seed") continue;
+        if (el.hasAttribute("data-seed")) posed.add(el);
+        else if (el.hasAttribute("data-unfurling") && !departedFrom.has(el))
+          departedFrom.set(el, el.getBoundingClientRect().height);
       }
     });
     watch.observe(document.body, {
@@ -1293,7 +1314,10 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
       .querySelector<HTMLElement>(".kui-select-trigger")!
       .getBoundingClientRect().height;
     await userEvent.click(document.querySelector<HTMLElement>(".kui-select-trigger")!);
-    await until(() => flyer !== null, 3000);
+    // 5000, not the usual 3000: an item-aligned reopen legitimately spends up to twelve frames
+    // waiting for its placement to hold still before it may pose (floating.tsx), and a stalled
+    // runner's frames are the slow thing this deadline is a ceiling over.
+    await until(() => flyer !== null && departedFrom.has(flyer!), 5000);
     watch.disconnect();
 
     expect(flyer, "the second open never flew — the entry ran once per lifetime").not.toBeNull();
@@ -1302,8 +1326,11 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     // own box, so a replayed flight must start down at that height — a flight that begins
     // mid-size means the entry did not replay from its seed. Read off the panel that flew, so
     // a stale panel's pose cannot answer for it.
-    const silhouette = seeded.get(popup);
-    expect(silhouette, "the replay never posed — there was no silhouette to fly from").toBeDefined();
+    expect(posed.has(popup), "the replay never posed — there was no silhouette to fly from").toBe(
+      true,
+    );
+    const silhouette = departedFrom.get(popup);
+    expect(silhouette, "the flight departed unobserved — the depart edge never fired").toBeDefined();
     expect(silhouette!, "it must fly FROM the silhouette, not from mid-size").toBeLessThanOrEqual(
       triggerH + 4,
     );

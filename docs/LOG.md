@@ -8,6 +8,40 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-20 The shell's late anatomy outgrew three of its own laws — and one law was seizing a member it never meant to hold
+
+The shell merged to main red against four of its own node laws. Every failing rule was a DELIBERATE late addition with its reasoning written in place — the hover restoration, the rail's per-index arms, the pane's hook stand-down, the rail item's target expander — added after the laws were written and never reconciled with them. The resolution follows the system's own precedents in each direction rather than exempting anything.
+
+**The per-index facts moved into the join layer.** `.kui-surface.kui-shell-pane[data-size]` (the `--kui-sf-p` stand-down) and the rail's three `[data-size="N"]` square arms now live in surfaces.css beside the overlay and ground joins — a component sheet may not name `data-size` (the Dialog's own refusal, 2026-08-10), and the alert-popup arms are the in-file precedent for a component-classed arm in the join. shell.css keeps only the axis-free size-2 rest; specificity carries the same outcome regardless of file order, and all 64 mounted shell laws pass unchanged, which is the move proving it moved nothing.
+
+**The media law asserts the sanctioned SET, not a count.** The nav row's `(hover: hover)` guard is a capability query the count-of-two law had never met. The law now equals the exact set — the narrow boundary (derived from config), reduced-transparency, the hover guard — because a count of three would let a fourth form ride in by replacing one of these, while a set still fails first on any new @media.
+
+**The no-bed law sanctions the hover restoration BY CURRENCY.** The restored hover must spend the control layer's own fill hooks (`--kui-ct-fill-hover`, pinned by the law), so the exemption is the row's state paint re-keyed and cannot quietly become a bed. The third non-roving row promotes the restoration into recipes.css, and the exemption dies with the promotion.
+
+**The overlay-arm law grew a member boundary.** Its `[^{]*` ate `-item::after`, so the day the rail grew its anatomy the law seized the item's §16 target expander — a pseudo-element that must never carry a viewport cap — and failed on its own calibration message. The lookahead holds the set to the four panes; removed cap, added uncapped arm, fourth @media, raw hover colour and a header bed all still fail (five sabotages, run post-fix).
+
+Budget −2 (30847 → 30845), the move compressing better; the baseline is re-recorded downward so the ratchet stays tight.
+
+---
+
+## 2026-08-20 The rotation's last four laws were each a window the machine could outrun — and a window is held open, not raced
+
+The morning's deflaking round ("three different lies about time", below) left CI still red on 14 of the last 20 runs, rotating between two files. Every remaining failure was the same shape one layer deeper: a law whose PREMISE was a real-time window — a panel mid-dissolve, a pose still applied, a trigger clear of the panel covering it — reached by awaiting toward it, so a runner that stalled past the window failed the law on its own premise. All four are fixed by removing the race, not by widening a bound, and every rewrite was falsified against sabotaged code first.
+
+**The select replay law was running TWO gestures, and its three CI failure modes were one defect.** The 8987e33 rewrite armed its mutation observer before a NEW reopen click and left the old reopen click standing above it — so the law reopened the select, then clicked the trigger of an OPEN select, and Base UI's toggle raced the observer's arming and the entry's own stamps. Which assertion failed ("never flew", "silhouette 70 ≤ 36", "the panel it ends in is a real one: expected 0") was pure scheduling: reproduced 3 of 3 under CPU load, in two of the three modes, and 4 of 4 green with the leftover click deleted. A law's gesture is part of its fixture, and a fixture with two gestures is a law about neither.
+
+**The silhouette is read at the DEPART EDGE now, because the seed stamp is not the pose.** For a panel placed by its own contents, `begin()` stamps `data-seed` ALONE as the visibility gate — the geometry lands with the measurement, frames later, exactly as floating.tsx's own comment says — so reading the box in the seed stamp's callback races writes that legitimately come later and measures the un-posed panel (CI: 70 against a 32px trigger; the pose-skip sabotage reproduces the number exactly). `data-seed` leaving while `data-unfurling` stays is the runner's own definition of departure, and the box rendered at that instant is the value the flight's transitions depart from — a transition renders its start value until its clock advances, so the read cannot be too early and cannot be stale. The claim's own moment, read at the claim's own edge.
+
+**`catchDissolve` (test/browser.tsx): a mid-dissolve premise is seized, not polled for.** Both "a reopen that lands mid-dissolve is CAUGHT" laws needed a panel visibly half-gone and still mounted — a window ~200ms of wall clock wide, which CI outlived between two statements ("the premise: the exit is still running: expected false to be true"). The instrument arms before the close and, the microtask the ending stamp lands, pauses every exit animation and sets its clock 60% in — `sweep`'s lesson pointed at a window instead of a series. The pause is also what holds the popup mounted BY MECHANISM rather than by scheduling luck: Base UI unmounts a closing popup when `Promise.all(getAnimations().map((a) => a.finished))` settles, and a paused animation's `finished` never does. The revocation then retargets the paused transitions exactly as it would live ones — measured: the recovery runs, the box is caught within a pixel of where it was held. Falsified against the restored replay branch: `388px -> 66px`, and the alert fails on the flight arrangement.
+
+**Two premises stopped being assumptions about where things already were.** The open-trigger law put the pointer on the trigger while the entry's silhouette — the trigger's own box, sitting exactly ON it, hit-testing by design — was still covering it, so the hover landed on the panel and `:hover` read false; the trigger's center is now waited REACHABLE (`elementFromPoint`) before the pointer is put there. And `openItemAligned` read `data-side` off the first un-hidden frame, racing Base UI's second answer — a fallback side is stamped first and the overlap placement replaces it once the panel's real box is measured (CI: "expected 'bottom' to be 'none'"); it waits for the answer as a state now, and a placement that genuinely never resolves item-aligned expires into the same assertion. The alert's exit law had the same shape from the other side: `openByClick` resolves with the materialization still running, and a pose is a declared VALUE the transition pins cannot strip — the entry is landed before the ending stamp goes on.
+
+**The standing rule gains its second half.** The morning's rule was: derive every instant from the runner's own observable events, never from the test's wall clock. The four remaining laws obeyed the letter of it — every wait was a state — and still raced, because a *premise* that is a real-time window closes on its own schedule however faithfully you poll toward it. So: when a law needs the world held in a particular mid-flight state, it either seizes the animation's own clock and holds the window open (`catchDissolve`), or it anchors the read on the runner's edge that defines the moment (the depart edge) — and where neither is possible the premise is not a law's to have.
+
+---
+
+---
+
 ## 2026-08-20 Building the rail: three declarations that looked load-bearing and were not
 
 The rail and the sidebar's navigation shipped against the decisions logged earlier the same day. What is worth recording is not the design — that entry is above — but what the sabotage passes found in my own CSS, because all three findings are one shape: **a second mechanism quietly doing a first one's job, indistinguishable until one of them changes.**

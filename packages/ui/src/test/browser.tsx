@@ -238,6 +238,57 @@ export async function sweep<T>(
 }
 
 /**
+ * CATCH A DISSOLVE MID-AIR, by seizing its own clock (2026-08-20).
+ *
+ * The "a reopen that lands mid-dissolve is CAUGHT" laws need a panel that is visibly half-gone
+ * and still mounted — a real-time window about 200ms wide. Polling into it is the `until`
+ * lesson inverted: the window is wall clock, so a runner that stalls past it finds the popup
+ * already unmounted and the law fails on its own premise (CI: "the premise: the exit is still
+ * running: expected false to be true").
+ *
+ * So the window is not raced, it is HELD OPEN — `sweep`'s lesson pointed at a window instead
+ * of a series. Armed BEFORE the close; the microtask the ending stamp lands, every exit
+ * animation is paused and its clock is set 60% in, which is also what holds the popup mounted
+ * BY MECHANISM rather than by scheduling luck: Base UI unmounts a closing popup when
+ * `Promise.all(getAnimations().map((a) => a.finished))` settles, and a paused animation's
+ * `finished` never does. The revocation the law then performs retargets the paused
+ * transitions — the browser cancels them and travels back from the held value, exactly as it
+ * does to a live dissolve; TIME is the only thing the instrument changed.
+ *
+ * Resolves with the box and opacity rendered at the held instant. Rejects if the stamp lands
+ * with no clock to seize — an exit with no running dissolve cannot be caught mid-dissolve,
+ * and that premise failure deserves its own message rather than whichever assertion trips
+ * downstream of it.
+ */
+export function catchDissolve(popup: HTMLElement): Promise<{ box: DOMRect; fading: number }> {
+  return new Promise((resolve, reject) => {
+    const seize = () => {
+      const exits = popup.getAnimations({ subtree: true });
+      if (exits.length === 0)
+        return reject(new Error("the ending stamp landed with no running exit to catch"));
+      for (const exit of exits) {
+        exit.pause();
+        const timing = exit.effect?.getComputedTiming();
+        const span = Number(timing?.activeDuration ?? 0);
+        if (Number.isFinite(span) && span > 0)
+          exit.currentTime = Number(timing?.delay ?? 0) + span * 0.6;
+      }
+      resolve({
+        box: popup.getBoundingClientRect(),
+        fading: parseFloat(getComputedStyle(popup).opacity),
+      });
+    };
+    if (popup.hasAttribute("data-ending-style")) return seize();
+    const watch = new MutationObserver(() => {
+      if (!popup.hasAttribute("data-ending-style")) return;
+      watch.disconnect();
+      seize();
+    });
+    watch.observe(popup, { attributes: true, attributeFilter: ["data-ending-style"] });
+  });
+}
+
+/**
  * Let this test's subject move. Order-free on purpose — it sets a flag the harness honours on
  * every render for the rest of the test, rather than a switch a later `render` would flip back:
  * the first spelling was position-dependent, and calling it one line too early silently gave

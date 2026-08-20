@@ -35,6 +35,7 @@ import {
   probeIn,
   inMotion,
   until,
+  catchDissolve,
   asksForStillness,
   SIZES,
 } from "../../test/browser.tsx";
@@ -153,14 +154,17 @@ describe("an alert is an alert, not a small dialog", () => {
     const dialog = dialogs[dialogs.length - 1]!;
     settleAll();
     await userEvent.click(dialog.parentElement!, { position: { x: 8, y: 8 } });
-    await new Promise((r) => setTimeout(r, 400));
+    // A STATE, not a sleep (`until`, 2026-08-17): the dialog leaves on its exit's own clock,
+    // and a stalled runner outlives a fixed 400ms — the focus law next door failed CI's
+    // first PR run exactly this way.
+    await until(() => !dialog.isConnected, 3000);
     expect(dialog.isConnected, "the dialog control did not dismiss — the instrument is blind").toBe(false);
   });
 
   it("still dismisses on Escape — 'not now' by keyboard", async () => {
     const { popup } = openAlert({});
     await userEvent.keyboard("{Escape}");
-    await new Promise((r) => setTimeout(r, 400));
+    await until(() => !popup.isConnected, 3000);
     expect(popup.isConnected).toBe(false);
   });
 
@@ -183,7 +187,12 @@ describe("an alert is an alert, not a small dialog", () => {
     );
     await userEvent.click(document.querySelector<HTMLElement>(".kui-button")!);
     settleAll();
-    await new Promise((r) => setTimeout(r, 100));
+    // A STATE, not a sleep (`until`, 2026-08-17): Base UI moves focus into the popup
+    // asynchronously, and a 100ms sleep read the TRIGGER still holding it on CI's first
+    // PR run ("expected 'Delete…' to be 'Keep it'" — 'Delete…' is the trigger's label).
+    // If focus genuinely lands elsewhere, the deadline expires into the same assertion —
+    // falsified with Action first in the DOM, which fails here at the full deadline.
+    await until(() => document.activeElement?.textContent === "Keep it", 3000);
     expect(document.activeElement?.textContent).toBe("Keep it");
   });
 
@@ -199,7 +208,7 @@ describe("an alert is an alert, not a small dialog", () => {
       ),
     });
     await userEvent.click(buttons[1]!);
-    await new Promise((r) => setTimeout(r, 400));
+    await until(() => !popup.isConnected, 3000);
     expect(fired).toBe(1);
     expect(popup.isConnected).toBe(false);
   });
@@ -459,6 +468,13 @@ describe("the panel materializes (§25)", () => {
 
   it("the exit dissolves — the box holds its size, settles a hair, and leaves as one (§24)", async () => {
     const popup = await openByClick();
+    // LANDED first (2026-08-20, CI: "the content dissolves with its box: expected 'blur(6px)'
+    // to be 'none'"): the click resolves with the materialization still running, so on a
+    // stalled runner the hand stamp below landed on a panel still POSED molten — and a pose is
+    // a declared VALUE, not a transition, so the pins below cannot strip it. An exit is read
+    // off a panel that has arrived, which is also the gesture this law models.
+    await until(() => !popup.hasAttribute("data-seed") && !popup.hasAttribute("data-unfurling"), 3000);
+    expect(popup.hasAttribute("data-unfurling"), "the premise: the entry has landed").toBe(false);
     // The ending recipe, read as computed values under the hand-applied stamp (the menu
     // exit law's pattern): lists first with live clocks, then pinned for the pose.
     popup.setAttribute("data-ending-style", "");
@@ -526,16 +542,15 @@ describe("the panel materializes (§25)", () => {
     );
     const settled = popup.getBoundingClientRect();
 
-    flushSync(() => setOpen(false));
-    await until(() => popup.hasAttribute("data-ending-style"), 3000);
     // Far enough in that the panel is visibly half-gone — the state a replay would discard.
-    await until(() => parseFloat(computed(popup, "opacity")) < 0.9, 3000);
+    // HELD there, not polled for (`catchDissolve`, 2026-08-20): the menu's twin failed this
+    // premise on CI when a stalled runner outlived the ~200ms fade, and this law is the same
+    // gesture one family over.
+    const seized = catchDissolve(popup);
+    flushSync(() => setOpen(false));
+    const { box: dissolving, fading } = await seized;
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
-    const dissolving = popup.getBoundingClientRect();
-    expect(
-      parseFloat(computed(popup, "opacity")),
-      "the premise: the panel is visibly mid-dissolve",
-    ).toBeLessThan(0.9);
+    expect(fading, "the premise: the panel is visibly mid-dissolve").toBeLessThan(0.9);
 
     flushSync(() => setOpen(true)); // the quick reopen
     /**
