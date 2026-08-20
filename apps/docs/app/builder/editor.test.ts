@@ -207,6 +207,17 @@ describe("the store keeps a document's history to itself", () => {
     s = reducer(s, { type: "docSwitch", id: first });
     s = reducer(s, { type: "edit", roots: [{ ...t, text: "ab" }], coalesce: "k" });
     expect(s.histories[first]!.past).toHaveLength(2);
+
+    /* …and the SWITCH itself, which the walk above never exercised. `docNew` ends the run on
+       the document being left, so by the time `docSwitch` ran, the doc it acted on was the
+       brand-new one with no run in progress — its call was a no-op in this law's own
+       scenario, and deleting it left the law green. Leaving for a document that already
+       exists is the path that needs it. */
+    const other = s.docs.find((d) => d.id !== first)!.id;
+    s = reducer(s, { type: "docSwitch", id: other });
+    s = reducer(s, { type: "docSwitch", id: first });
+    s = reducer(s, { type: "edit", roots: [{ ...t, text: "abc" }], coalesce: "k" });
+    expect(s.histories[first]!.past).toHaveLength(3);
   });
 
   it("an undo interrupts a run — the next keystroke does not resume it", () => {
@@ -383,13 +394,24 @@ describe("commands are one table, and the surfaces only render it", () => {
   });
 
   it("a chord reads back as something a person can follow", () => {
-    // `toMatch(/z/i)` alone passes for the identity function, so the modifiers are named too.
+    /* `toMatch(/z/i)` alone passes for the identity function, so the modifiers are named too —
+       and naming them is not the same as KEEPING them, which is where this stopped one short.
+       It asked that the label was not the raw chord and held no "mod", and both survive a
+       label that drops every modifier in the middle: ⌘⇧Z reads "⌘Z" and Redo prints Undo's
+       chord across the palette, the shortcut sheet and every Kbd, with the law green. Every
+       part must be represented. */
     const label = chordLabel("mod+shift+z");
     expect(label).toMatch(/z/i);
     expect(label).not.toBe("mod+shift+z");
     expect(label.toLowerCase()).not.toContain("mod");
+    expect(label, "shift vanished from the label").toMatch(/⇧|shift/i);
+    const alt = chordLabel("mod+alt+arrowup");
+    expect(alt, "alt vanished from the label").toMatch(/⌥|alt/i);
+    expect(alt).toMatch(/↑/);
+    // …and two chords differing only by a middle modifier never read the same.
+    expect(chordLabel("mod+shift+z")).not.toBe(chordLabel("mod+z"));
+    expect(chordLabel("mod+alt+arrowup")).not.toBe(chordLabel("mod+arrowup"));
     expect(chordLabel("backspace")).toBe("⌫");
-    expect(chordLabel("mod+alt+arrowup")).toMatch(/↑/);
   });
 
   it("the palette's matcher wants every word, in any order", () => {
@@ -1303,8 +1325,13 @@ describe("review reads the house style off the document", () => {
     // path, where the always-visible buttons are prepended. The rule flagged the EARLIER
     // button and offered to demote the wrong one; five existing cases all passed, because
     // every one of them counted findings and none of them read an id.
-    const deploy = loud("Deploy");
+    /* Created in the REVERSE of the order they appear, on purpose: ids are minted
+       sequentially, so a fixture built top-down makes creation order and document order the
+       same list and a sort by id passes for a sort by position. In the editor an id records
+       when a node was made, never where it sits, so a button dragged above another would be
+       judged backwards with the law green. */
     const publish = loud("Publish");
+    const deploy = loud("Deploy");
     const tabbed = figures([
       node("Stack", { gap: "6" }, {
         children: [
@@ -1322,8 +1349,8 @@ describe("review reads the house style off the document", () => {
     expect(tabbed[0]!.nodeId, "the FIRST in document order keeps the budget").toBe(publish.id);
 
     // …and on the plain path too, which is where it was right by accident.
-    const first = loud("first");
     const second = loud("second");
+    const first = loud("first");
     const plain = figures([node("Card", { size: "3" }, { children: [first, second] })]);
     expect(plain[0]!.nodeId).toBe(second.id);
 
@@ -1335,6 +1362,27 @@ describe("review reads the house style off the document", () => {
         }),
       ]),
     ).toHaveLength(1);
+
+    /* And two SEPARATE Tabs groups are not tabs of each other. The rule grouped by panel id
+       alone, so one loud button in each read as "different panels", the pair came out
+       mutually exclusive and a screen showing both at once came back clean. A tab hides a
+       node from its own siblings and from nobody else. */
+    const twoGroups = (defA: string, defB: string) =>
+      figures([
+        node("Stack", { gap: "6" }, {
+          children: [
+            node("Tabs", { defaultValue: defA }, {
+              children: [node("TabsPanel", { value: defA }, { children: [loud("left")] })],
+            }),
+            node("Tabs", { defaultValue: defB }, {
+              children: [node("TabsPanel", { value: defB }, { children: [loud("right")] })],
+            }),
+          ],
+        }),
+      ]);
+    expect(twoGroups("a", "b")).toHaveLength(1);
+    // …including when the two groups happen to use the same tab NAMES, which is ordinary.
+    expect(twoGroups("a", "a")).toHaveLength(1);
   });
 
   it("the house intervals are not a fault — a between against a between never competes", () => {
