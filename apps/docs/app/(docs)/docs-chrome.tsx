@@ -102,7 +102,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
         </ShellSidebar>
 
         <ShellContent>
-          <ShellScroll>
+          <ShellScroll className="kd-scroll">
             {/* The page states its own measure, deliberately. A chapter is a reading column
                 with a table of contents beside it; a component page is a reading column with
                 wide tables under it; the home page is neither. One max-width here would have

@@ -84,6 +84,33 @@
   border-block-end: none;
 }
 
+/* ── The page scroller must not inherit its content's appetite ─────────────────────────────
+   Base UI's ScrollArea puts `min-width: fit-content` on its content wrapper AS AN INLINE
+   STYLE, so that content wider than the viewport can be scrolled to rather than crushed. That
+   is right for the box doing the scrolling and wrong one level up, because the demand
+   PROPAGATES: a fenced code block sets `white-space: pre`, its own scroller refuses to shrink
+   below the longest line, and that refusal travels out through every ancestor until it reaches
+   the page.
+
+   Measured at a 700px window before this rule: the page's content box computed 784px inside a
+   685px pane, so a chapter's prose ran off the right edge — every code-heavy page, on every
+   phone. The reading column's own `max-inline-size` did not save it; a maximum stops being a
+   maximum once an ancestor is sized by fit-content.
+
+   `!important` is here because the declaration it beats is inline, which nothing else can
+   out-rank — the one place this repo's usual objection ("it wins the cascade and leaves the
+   library's intent unstated") does not apply, since the intent is stated right here. Scoped to
+   the PAGE scroller alone (`.kd-scroll`), so the nested scroller inside every code block keeps
+   its appetite and long lines still scroll sideways within their own well.
+
+   This is `globals.css`'s builder rule one axis over — same component, same shrink-wrap, block
+   axis instead of inline — which makes it the second app to have to say this. Whether
+   `ShellScroll` should contain its content's intrinsic demand by construction is a package
+   question, recorded in the handover rather than decided here. */
+.kd-scroll > * > .kui-scroll-content {
+  min-inline-size: 0 !important;
+}
+
 /* ── The table of contents ─────────────────────────────────────────────────────────────────
    A sticky aside in the gutter the reading measure leaves over. Two properties are the app's
    to state and neither belongs in a component: how wide this column is (a measurement about

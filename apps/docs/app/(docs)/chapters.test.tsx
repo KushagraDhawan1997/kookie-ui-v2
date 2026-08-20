@@ -384,6 +384,34 @@ const components = useMDXComponents({
 const renderChapter = (chapter: Chapter) =>
   renderToStaticMarkup(<chapter.Content components={components} />);
 
+/* ── The page scroller's overflow guard is wired to something ──────────────────────────── */
+
+describe("the narrow-window overflow guard is still connected", () => {
+  /**
+   * A CSS rule and the class it targets are two halves of one mechanism, and this pair broke a
+   * real page: at a 700px window every code-heavy chapter ran off the right edge, because Base
+   * UI's ScrollArea puts `min-width: fit-content` on its content wrapper and a fenced block's
+   * refusal to shrink propagates out through every ancestor to the page.
+   *
+   * WHAT THIS LAW IS, HONESTLY. It reads source, which this repo rates below reading a
+   * computed value — and rightly, since a rule present in a stylesheet still has to WIN. It
+   * cannot see 685 against 784; only a browser can, and the docs app has no browser project.
+   * What it CAN see is the failure that actually happens to a pair like this: one half gets
+   * renamed or deleted and the other is left pointing at nothing. That is worth catching, and
+   * saying plainly what it does not catch is worth more than a law that implies otherwise.
+   */
+  it("the rule and its class both exist, and name each other", () => {
+    const css = read(join(here, "prose.css"));
+    const chrome = read(join(here, "docs-chrome.tsx"));
+    expect(css).toContain(".kd-scroll > * > .kui-scroll-content");
+    expect(css).toMatch(/min-inline-size:\s*0\s*!important/);
+    // The class has to be on the CONTENT pane's scroller specifically. Putting it on the
+    // sidebar's would neutralise the wrong scroller and leave the page overflowing exactly as
+    // before, with the rule sitting there looking applied.
+    expect(chrome).toMatch(/<ShellScroll className="kd-scroll">/);
+  });
+});
+
 /* ── The two compilers are one compiler ────────────────────────────────────────────────── */
 
 describe("the site and the suite compile MDX the same way", () => {
