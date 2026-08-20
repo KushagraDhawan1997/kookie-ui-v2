@@ -782,7 +782,7 @@ function useFlight(plan: FlightPlan) {
       // CLOSED (kept-mounted) is not posed while `display: none` reports every box as zero.
       if (!popup.hidden) begin();
 
-      const observer = new MutationObserver(() => {
+      const observer = new MutationObserver((records) => {
         // The pose is on: this flight is already ours, and the stamp that just moved is one
         // of our own writes coming back through the filter.
         if (popup.hasAttribute("data-seed")) return;
@@ -810,11 +810,33 @@ function useFlight(plan: FlightPlan) {
          * this way, and §8's own two clocks already say it: the box is physics, and physics
          * does not teleport.
          *
-         * So there is no branch here, and the absence is the design. The observer's one job is
-         * the starting stamp above — a panel that is genuinely being born.
+         * So the reopen is told from the OPEN by what the panel was doing when `data-open`
+         * arrived. A kept-mounted panel is reopened with no starting stamp at all, so the
+         * arrival IS its only announcement and deleting the branch outright took its ordinary
+         * second open with it — measured by select's own law, "the entry ran once per
+         * lifetime". The two cases separate cleanly at that instant: mid-dissolve the ending
+         * stamp is still ON (the panel is on screen, coming apart), and on a real open it is
+         * long gone.
+         *
+         * The ARRIVAL, never the presence — `data-open` is true for the whole life of every
+         * ordinary open, and a state that is true continuously cannot announce an event (the
+         * first spelling of this in 2026-08-16 re-posed panels that had already flown, measured
+         * as an alert re-blurring its own content at exit). `oldValue` is what makes it an
+         * edge, which is why the observer asks for it.
          */
+        const opened = records.some(
+          (record) =>
+            record.attributeName === "data-open" &&
+            record.oldValue === null &&
+            popup.hasAttribute("data-open"),
+        );
+        if (opened && !popup.hasAttribute("data-ending-style")) begin();
       });
-      observer.observe(popup, { attributes: true, attributeFilter: ["data-starting-style"] });
+      observer.observe(popup, {
+        attributes: true,
+        attributeOldValue: true,
+        attributeFilter: ["data-starting-style", "data-open", "data-ending-style"],
+      });
       return () => {
         observer.disconnect();
         // Unmounted mid-flight: the pending clock and the listener go with the panel rather

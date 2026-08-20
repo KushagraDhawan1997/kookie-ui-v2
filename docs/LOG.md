@@ -10,7 +10,9 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ## 2026-08-20 A dismissal taken back is CAUGHT, not replayed — the quick reopen reversed
 
-**What.** A reopen that lands while the panel is still dissolving no longer replays the entry. The runner's observer keeps one announcement — the starting stamp, a panel genuinely being born — and the `revoked` branch that watched for the ending stamp leaving is deleted. On that path nothing is posed, nothing is measured and no flight begins: Base UI takes the exit's target styles off, and the paint clock carries the panel back to rest from wherever the dissolve reached. Reverses the 2026-08-16 decision one paragraph below its own comment. Menu, Select, Dialog and AlertDialog all take it — it is the shared runner.
+**What.** A reopen that lands while the panel is still dissolving no longer replays the entry. On that path nothing is posed, nothing is measured and no flight begins: Base UI takes the exit's target styles off, and the paint clock carries the panel back to rest from wherever the dissolve reached. Reverses the 2026-08-16 decision one paragraph below its own comment. Menu, Select, Dialog and AlertDialog all take it — it is the shared runner.
+
+**A reopen is told from an OPEN by what the panel was doing when `data-open` arrived.** Mid-dissolve the ending stamp is still on — the panel is on screen, coming apart — and on a real open it is long gone. The arrival, never the presence: `data-open` is true for the whole life of every ordinary open, and a state that is true continuously cannot announce an event, which is the defect the 2026-08-16 spelling had already been through (it re-posed panels that had flown, measured as an alert re-blurring its own content at exit). `oldValue` is what makes it an edge.
 
 **Why.** Kushagra, on a real dropdown: *"on second quick click it does show wrong animation"*. Measured, three times out of three: a panel dissolving at 355 x 98 and 58% opacity became 239 x 32 at full opacity **in the next frame** — 116px narrower, 66px shorter, instantly — and then unfurled again from the trigger's silhouette. With a short trigger the jump measures 358px → 64px.
 
@@ -22,10 +24,11 @@ That is what replaying costs, and the cost was never measured on 2026-08-16. The
 
 **Two laws changed sides, and one was replaced whole.** Menu's and AlertDialog's "a reopen that lands mid-dissolve REPLAYS the entry" now assert the opposite, both falsified against the restored branch (`358px -> 64px`, three runs; `no pose: expected true to be false`). Menu's "a reopen RETIRES the flight it interrupts" lost its premise outright — there is no second flight to retire — and is replaced by the hazard it actually guarded: dismiss a panel WHILE AIRBORNE, take it back, and the interrupted flight's own pending clock must still land it, because it is now the only clock coming.
 
+**The first cut deleted the branch outright, and Select's own law failed it.** A kept-mounted panel is reopened with no starting stamp at all, so that announcement is its ONLY one — "the entry replays on EVERY open, not only the first" came back with `the second open never flew — the entry ran once per lifetime`. The gesture to suppress was never "this announcement" but "this announcement in this state", and a branch is the wrong granularity for a claim that has a condition in it. Both directions are falsified now: drop the mid-dissolve guard and the two catch laws fail (`357px -> 65px`), remove the branch and Select's replay law fails.
+
 **The instrument lesson, and it is this file's oldest one.** The first spelling of the new law read the box one animation frame after the click, which is a statement about the machine: on a quick pass Base UI has not removed the ending stamp yet, so there is nothing to see and the sabotaged runner PASSED it three times. It is anchored on the revocation now — waiting for the ending stamp to leave puts the read after the very microtask that would have posed the panel — and the sabotage fails 3/3 with the same message every time.
 
 ---
-
 ## 2026-08-20 The three flakiest laws in the suite were three different lies about time, and one was measuring an animation it could not see
 
 Red on 9 of 13 CI runs, green here, rotating between three laws in `menu.browser.test.tsx`. Bound-tuning had already been tried twice. None of the three defects was the one the failures looked like.
