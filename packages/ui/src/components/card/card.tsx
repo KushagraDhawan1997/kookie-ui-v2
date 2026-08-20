@@ -2,9 +2,10 @@
 
 import * as React from "react";
 
-import { composeRender, type RenderElement } from "../../system/render.ts";
+import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
+import { useClipWarning } from "../../system/clip.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 export type CardProps = Omit<
@@ -68,8 +69,11 @@ export function Card({
   // `on-glass` excluded like every sibling consumer: an on-glass pane declares no
   // backdrop-filter at all, so a map built for it could never be substituted into anything.
   const lensRef = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", ref);
+  // A pane clips, so content wider than it is is not reachable at all (§3, 2026-08-21).
+  // Dev-only, stripped in production.
+  const clipRef = useClipWarning("<Card>");
   const merged = {
-    ref: lensRef,
+    ref: mergeRefs(lensRef, clipRef),
     "data-size": size,
     // Fixed identity, not API. The tone indirection needs a family to resolve --tone-border,
     // which is the only reason neutral is named here: the fill is the opaque seal, not a tone

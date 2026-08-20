@@ -366,3 +366,40 @@ describe("never owns outer spacing, whatever element it renders (§3, §5)", () 
     expect(computed(h1, "font-size")).toBe("24px");
   });
 });
+
+
+describe("a word longer than its line WRAPS, because a pane deletes what it cannot hold (§3, 2026-08-21)", () => {
+  it("every family inherits the break from the Theme root, in flow and in a portal", () => {
+    // A surface clips since the bleed shipped (2026-08-20), which turned an overflow from a
+    // visible spill into a silent deletion — an ordinary share link measured 481px inside a
+    // 440px dialog with the tail simply gone. The declaration is on the Theme root because it
+    // INHERITS: one rule covers text a component wrote, text a call site wrote, and text
+    // inside a portal, which renders its own bare Theme (§20).
+    const text = mounted(<Text>word</Text>, { theme: {}, select: ".kui-text" });
+    expect(computed(text, "overflow-wrap")).toBe("break-word");
+    const heading = mounted(<Heading>word</Heading>, { theme: {}, select: ".kui-heading" });
+    expect(computed(heading, "overflow-wrap"), "a heading breaks too — a long name is a name").toBe("break-word");
+  });
+
+  it("is `break-word` and NOT `anywhere` — the difference is a measurement, not a spelling", () => {
+    // `anywhere` also lets a long word shrink an element's MIN-CONTENT width, which would
+    // quietly change how every flex and grid item in the library is sized. `break-word` breaks
+    // at paint and leaves intrinsic sizing alone. The law reads the value rather than merely
+    // asserting "something is set", because the wrong one of the two would satisfy that.
+    const text = mounted(<Text>word</Text>, { theme: {}, select: ".kui-text" });
+    expect(computed(text, "overflow-wrap")).not.toBe("anywhere");
+  });
+
+  it("does not reach content that must not wrap — that is a ScrollArea's job", () => {
+    // The scope, and the negative control. `white-space: pre` beats a wrap rule, which is
+    // correct: code and tables keep their shape and go in a scroller. A law that only checked
+    // the wrapping half would pass with a rule that broke a `<pre>` apart.
+    const card = mounted(
+      <Card size="3"><pre data-testid="pre">{"a b"}</pre></Card>,
+      { theme: {}, select: ".kui-card" },
+    );
+    const pre = card.querySelector<HTMLElement>("[data-testid='pre']");
+    if (!pre) throw new Error("the pre never mounted");
+    expect(computed(pre, "white-space"), "a pre still refuses to wrap").toBe("pre");
+  });
+});

@@ -32,6 +32,28 @@
   initial-value: 1;
 }
 
+/* ── A word longer than its line (2026-08-21) ─────────────────────────────────────────────
+   A surface CLIPS since the bleed shipped (§3, 2026-08-20), which is what lets a child reach
+   the pane's edge without squaring the corner it sits in — and it turned every overflow into
+   a silent deletion. Measured in a size-2 dialog: an ordinary share link ran 481px inside a
+   440px panel, and the tail of it was simply gone. A URL, a file path, a hash, an error
+   string with no spaces in it — the cases are ordinary, and the failure has no symptom.
+
+   `break-word` and not `anywhere`, and the difference is deliberate: `anywhere` also lets a
+   long word shrink an element's MIN-CONTENT width, which would silently change how flex and
+   grid items are sized all over the library. `break-word` breaks the word at paint and leaves
+   every measurement alone, which is the whole of what is wanted here.
+
+   On the Theme root because it INHERITS: one declaration covers text a component wrote, text
+   a call site wrote, and text inside a portal (a portalled panel renders its own bare Theme,
+   §20). What it does not reach is content that must not wrap — a `<pre>`, a table, a wide
+   image — and that is correct: those go in a ScrollArea, and the pane rule now makes that
+   composition work. The dev warning on a clipping surface is what makes the difference
+   discoverable rather than invisible. */
+.kui-theme {
+  overflow-wrap: break-word;
+}
+
 /* The family is the Theme's slot (§5), never a stack written here. `--font-heading` chains
    to the body stack until an app sets it, so the split costs nothing by default. A quote is
    body copy set apart, so it joins the body slot rather than growing a third one — the slot

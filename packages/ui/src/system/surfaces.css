@@ -204,7 +204,38 @@
    is what lets it take the pane's height. DECISIONS said for one day that a row and a column
    are the same layout with a single item — they are not, and the comment below is the
    counter-example that killed it. */
-.kui-surface:has(> .kui-scroll-area:only-child) {
+.kui-surface:not(.kui-box):has(> .kui-scroll-area),
+.kui-surface:has(> .kui-scroll-area:only-child),
+.kui-surface:has(> .kui-dialog-body > .kui-scroll-area) {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The SIBLING case, which shipped unguarded for a day and lost content in silence (measured
+   2026-08-21, the Dialog audit): a card stating `height: 300px` and holding a heading, a
+   scroller and a button computed a 1440px viewport that never scrolled and a Save button
+   outside its own pane, removed by the `overflow: clip` the bleed obliges. `flex: 1` below is
+   inert in a block container, so the scroller simply took its content's height — the same
+   shape as the `max-block-size: 100%` trap above, by a different road, and the head comment
+   named this exact gap ("what is unguarded is only the sibling case") without closing it.
+
+   The scope is the honest one: the system supplies a column only where the call site stated
+   NO layout. A pane that is a Box said what it wanted — a column already works, and a row or
+   grid is the unsupported arrangement the head comment records, which this must not silently
+   restate as a column. That is a question about whether anyone chose, not about spelling, so
+   it does not repeat the `.kui-stack` refusal: a hand-written `<Box display="flex">` card is
+   excluded because it chose, not because of the class it wears.
+
+   The dialog arm is the same fact reaching through ONE box. `.kui-dialog-body` exists only so
+   the entry can blur the content (§24), and it stands between the pane and the caller's
+   children, so every rule here — each of which asks about a DIRECT child — stopped at it: no
+   ScrollArea in a dialog has ever bled, and none has ever become a scroll container, whatever
+   height the call site stated. Named rather than generalised, because it is the only such box
+   in the library: the menu and the select put their scroller OUTSIDE the flying body, and the
+   alert owns its content and holds no scroller at all. */
+.kui-dialog-body:has(> .kui-scroll-area) {
+  flex: 1;
+  min-block-size: 0;
   display: flex;
   flex-direction: column;
 }
@@ -215,25 +246,25 @@
    WIDTH while `min-inline-size: auto` refused to let the box below its content's min-content
    — a 48rem list made the scroller 48rem wide, the pane clipped it, and BOTH bars vanished.
    The scroller is itself a column so its viewport can take a flex height (see the head). */
-.kui-surface > .kui-scroll-area {
+:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   margin-inline: calc(-1 * var(--kui-sf-p));
 }
-.kui-surface > .kui-scroll-area:first-child {
+:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area:first-child {
   margin-block-start: calc(-1 * var(--kui-sf-p));
 }
-.kui-surface > .kui-scroll-area:last-child {
+:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area:last-child {
   margin-block-end: calc(-1 * var(--kui-sf-p));
 }
-.kui-surface > .kui-scroll-area > .kui-scroll-viewport {
+:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area > .kui-scroll-viewport {
   padding-inline: var(--kui-sf-p);
 }
-.kui-surface > .kui-scroll-area:first-child > .kui-scroll-viewport {
+:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area:first-child > .kui-scroll-viewport {
   padding-block-start: var(--kui-sf-p);
 }
-.kui-surface > .kui-scroll-area:last-child > .kui-scroll-viewport {
+:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area:last-child > .kui-scroll-viewport {
   padding-block-end: var(--kui-sf-p);
 }
 

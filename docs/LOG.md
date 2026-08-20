@@ -8,6 +8,48 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 The dialog took four props and threw the rest away
+
+Four findings from the Dialog audit, and they turned out to be one mistake with four faces.
+
+**The wrapper declared what it wanted and dropped everything else, silently.** `DialogContent` took `children`, `className`, `style` and `ref`. I passed `id`, `aria-label`, `data-testid` and an `onKeyDown`: none of them reached the element, and none of them failed to type-check. The Select audit found the same shape in 2026-08-09 (a blocked `id`), and Menu's before that; this is its third home, and the reason it keeps coming back is that a hand-written prop list reads like a design decision when it is usually just what the author happened to need that day.
+
+**Its second victim was the accessible name.** A dialog with no `DialogTitle` has `aria-labelledby` null and `aria-label` null, so a screen reader announces "dialog" and stops — and the obvious repair, `aria-label` on the panel, was accepted by the types and discarded. So a name was unreachable by BOTH routes at once, which is the only reason nobody had noticed one of them was missing. Both halves ship together: the prop reaches the element, and a dev build warns when neither is there. Warning, not a thrown error — a name is an accessibility obligation, not a structural one, and a half-built dialog in a scratch file should still render. The check reads the DOM rather than the props, because the name can arrive by either route and the element is the only place both answers are visible.
+
+**`onOpenChange` was `(open: boolean) => void`, so a dialog could be told it closed and never why.** That makes the guard every form dialog owes — "you have unsaved changes, are you sure?" — impossible to write at all, and Base UI had been handing us both the reason and a `cancel()` the whole time. The second argument is now `{ reason, event, cancel }`. Two choices inside that: the reason STRINGS are Base UI's own (`escape-key`, `outside-press`, `close-press`…) rather than translated, because they are already plain and a mapping table would be a second home for one fact plus a way to drift; but the TYPE is declared here, so the API is the package's. The rename risk that creates is answered by the laws, which provoke a real Escape, a real outside press and a real close press and read the string back — never a table.
+
+**And content wider than the panel was being deleted, which was one day old and mine.** A pane clips since `m="bleed"` shipped, so an overflow stopped being a visible spill and became a silent removal: measured in a size-2 dialog, an ordinary share link at 481px inside a 440px panel, a 12-column table at 718, a `<pre>` at 952 — no bar, no spill, no error. The synthetic 2000px box in the first audit made this look like a corner case; the realistic content showed it is not.
+
+Two halves, and only one of them is a fix. Text that CAN wrap now does — `overflow-wrap: break-word` on the Theme root, which inherits, so one declaration covers a component's text, a call site's text and a portal's own bare Theme. **`break-word` and not `anywhere`**, and that is a measurement rather than a preference: `anywhere` also lets a long word shrink an element's min-content width, which would quietly change how every flex and grid item in the library is sized, while `break-word` breaks at paint and leaves every measurement alone. Both were tested; both fix the link.
+
+What is left is content that must not wrap, and there the system's answer is a ScrollArea — which works as of the same day. So a **dev warning** ships on the three panes that hold content a call site wrote (Card, Surface, Dialog), naming the overflow and the fix. **Rejected: making the panel scroll sideways.** CSS resolves `overflow-x: auto` beside a clipped `overflow-y` to `hidden`, and hidden is a scroll container — the exact thing the flight rules spent two days keeping panes out of, and the reason a select's panel once slid its own contents under a growing frame. The pane keeps its clip and the author gets told.
+
+**One mechanism finding, caught by the suite rather than by reasoning.** The clip warning's first spelling measured inside its own `ResizeObserver` callback, and Chromium answers that with "ResizeObserver loop completed with undelivered notifications" — which the browser project reports as a page error. Measured: zero on clean HEAD, one per run with the inline read, zero again with the measurement moved into a frame. Box's observer never hit it because it watches only the handful of boxes that opted into containment; this one watches every card.
+
+Eight sabotage passes, all caught — including the two that matter most: spreading the call site's props AFTER the system's identity (a call site could then take `data-size`), and letting the name warning ignore `aria-label` (it would fire forever on a correctly labelled dialog). +25 bytes, baseline re-recorded 30988.
+
+---
+
+## 2026-08-21 A pane with neighbours had no column, and the dialog had no reach
+
+The Dialog audit's own leftover, opened as "should we go back to dialog now, card is finally complete?" — and the answer was that Card was not.
+
+**Two measurements, one shape.** A dialog stating `height: 400px`, holding a title, a `ScrollArea` and a Save button, computed a 1440px viewport that was never a scroll container, put the Save button at y=1705 and let `overflow: clip` delete it. The record from 2026-08-20 said the fixed-height case *worked* and only the responsive one failed; that was measured with the height on the SCROLLER, and with it on the PANEL both spellings fail. Then the same fixture on a plain `Card` failed identically — 1440px viewport in a 300px pane, button outside it — which is what turned a dialog bug into a surface-layer one.
+
+**The cause in the pane is that `flex: 1` is inert in a block container.** Every sibling law in the suite mounts `render={<Stack gap="4"/>}`, which is already a column, so the fixture could not tell a working rule from a dead one — the degenerate-fixture lesson (2026-08-20) for the ninth time, and the tenth is that surfaces.css's own head comment NAMED the gap ("what is unguarded is only the sibling case, which needs a flex column for the scroller to take the remaining height at all") and shipped without closing it. DECISIONS had the same fact written as a design: "a header/list/footer panel adds only `render={<Stack gap/>}`". That is a workaround transcribed as an API.
+
+**The fix is `:not(.kui-box)`, and the scope is the whole argument.** The system supplies a column only where the call site stated NO layout. A pane that is a Box said what it wanted: a column already works, and a row or grid is the arrangement surfaces.css records as unsupported — supplying a column there would silently contradict the call site's own word, which is worse than the limit. This does not repeat the `.kui-stack` refusal from the day before: that was rejected for excluding a hand-written `<Box display="flex" direction="column">` on spelling, and this asks whether anyone chose at all, which puts the hand-written Box on the same side as the `<Flex>` one.
+
+**The cause in the dialog is one box, and it is named rather than generalised.** `.kui-dialog-body` exists only so the entry can blur the content (§24) and it stands between the pane and the caller's children, so every rule in the scroll block — each asking about a direct child — stopped at it. The body is now a column when it holds a scroller, and the six member rules read `:is(.kui-surface, .kui-dialog-body)`. It stays a name because it is the only such box in the library: Menu and Select put their scroller OUTSIDE the flying body, and AlertDialog owns its content and holds no scroller. A general "system-inserted wrapper" class would be one home for a fact with one consumer.
+
+**Rejected:** `display: contents` on the body (kills the blur, which is the only reason the box exists, and would not make the structural selectors match anyway); duplicating the six rules into dialog.css under the second-member-self-keys rule (the bleed arithmetic would then have two homes for one consumer); and `.kui-surface > * > .kui-scroll-area` (it would catch a wrapper div a call site wrote, which is content, not the pane's content box).
+
+**Left open on purpose:** whether a dialog holding a scroller should cap itself at the window. Uncapped it grows and the dialog's own viewport scrolls it, which is §24's design and right for every dialog without a scroller; with one inside, that is two scrolling surfaces and every peer caps. A default cap changes every dialog, so it is a design call, not a repair.
+
+Six laws, six sabotage passes — including the two that matter most: deleting `:not(.kui-box)` (a stated row silently became a column) and dropping the body's scoping `:has()` (a dialog with no scroller became a flex column, which is the shatter risk this scope exists for). +49 bytes, baseline re-recorded 30963.
+
+---
+
 ## 2026-08-21 Size 2 is the baseline, and the builder was quietly arguing otherwise
 
 Two things closed at once, and only one of them was the wiring.

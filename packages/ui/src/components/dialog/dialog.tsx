@@ -38,6 +38,7 @@ import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
+import { useClipWarning } from "../../system/clip.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 
 /* ── Size context: the dialog answers `size` like Menu (Kushagra, 2026-08-10) — the index
@@ -51,12 +52,48 @@ const DialogSizeContext = React.createContext<Size>("3");
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
+/**
+ * Why a dialog is opening or closing (2026-08-21).
+ *
+ * The strings are Base UI's own and are kept rather than translated: they are already plain,
+ * and a mapping table would be a second home for a fact with one consumer plus a silent way
+ * to drift. What is NOT taken from Base UI is the type — this union is declared here, so the
+ * API is the package's, and three mounted laws provoke a real Escape, a real outside press
+ * and a real close button and read the string back, which is what catches a rename upstream.
+ */
+export type DialogOpenChangeReason =
+  | "trigger-press"
+  | "outside-press"
+  | "escape-key"
+  | "close-press"
+  | "focus-out"
+  | "imperative-action"
+  | "none";
+
+/**
+ * The second argument to `onOpenChange`, and the reason it exists: without it a dialog can be
+ * told that it closed and never why, so the most ordinary guard a form dialog owes — "you have
+ * unsaved changes" — could not be written at all (measured 2026-08-21, the audit).
+ *
+ * `cancel()` stops the dismissal. Deliberately narrower than Base UI's own details object: it
+ * publishes the three members that mean something at this layer and leaves the rest, so the
+ * package's surface is the package's rather than whatever the primitive happens to carry.
+ */
+export type DialogOpenChangeDetails = {
+  /** Why it is changing — an outside press, Escape, a close button, the trigger. */
+  reason: DialogOpenChangeReason;
+  /** The native event behind it. */
+  event: Event;
+  /** Refuse the change. A dialog that must ask before closing calls this and asks. */
+  cancel: () => void;
+};
+
 export type DialogProps = {
   /** §4, §24 — prices the popup's max width, its padding and its corner. */
   size?: Size;
   open?: boolean;
   defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange?: (open: boolean, details: DialogOpenChangeDetails) => void;
   children?: React.ReactNode;
 };
 
@@ -81,7 +118,16 @@ export function Dialog({ size = "3", open, defaultOpen, onOpenChange, children }
           <BaseDialog.Root
             {...(open !== undefined ? { open } : {})}
             {...(defaultOpen !== undefined ? { defaultOpen } : {})}
-            {...(onOpenChange !== undefined ? { onOpenChange } : {})}
+            {...(onOpenChange !== undefined
+              ? {
+                  onOpenChange: (next: boolean, details: { reason: string; event: Event; cancel: () => void }) =>
+                    onOpenChange(next, {
+                      reason: details.reason as DialogOpenChangeReason,
+                      event: details.event,
+                      cancel: details.cancel,
+                    }),
+                }
+              : {})}
           >
             {children}
           </BaseDialog.Root>
@@ -110,12 +156,14 @@ function rootsInButton(el: RenderElement, depth = 0): boolean {
   return true;
 }
 
-type ButtonPartProps = {
+type ButtonPartProps = Omit<
+  React.ComponentPropsWithoutRef<"button">,
+  "color" | "style" | "className"
+> & {
   /** Usually a Kookie Button: `<DialogTrigger render={<Button/>}>Delete…</DialogTrigger>`. */
   render?: RenderElement;
   /** Whether the rendered element really is a `<button>` — inferred from `render` (§5). */
   nativeButton?: boolean;
-  disabled?: boolean;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -172,9 +220,63 @@ export function DialogClose({ render, nativeButton, ref, ...props }: DialogClose
   );
 }
 
+/**
+ * The dev flag, resolved once and defensively — Box's own spelling and its own scar: an
+ * ABSENT `process` means dev, not production, and written the other way round the warning
+ * dies in every browser that has no such global (audit 2026-08-08).
+ */
+const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
+
+/**
+ * A dialog with no name is announced as "dialog" and nothing else (measured 2026-08-21:
+ * `role="dialog"`, `aria-labelledby` null, `aria-label` null, no warning anywhere). Base UI
+ * wires the name when a `DialogTitle` mounts, and until this change there was no second route
+ * — `aria-label` type-checked and was dropped, so the obvious repair silently did nothing.
+ *
+ * Both halves ship together: the prop reaches the element now, and a dev build says so when
+ * neither is there. Not a thrown error, because a name is an accessibility obligation rather
+ * than a structural one and a half-built dialog in a scratch file should still render.
+ *
+ * It reads the DOM rather than the props on purpose. The name can arrive by either route and
+ * one of them is Base UI's, so the only place both answers are visible is the element itself.
+ */
+function useNameWarning(): (node: HTMLDivElement | null) => void {
+  const seen = React.useRef(false);
+  return React.useCallback((node: HTMLDivElement | null) => {
+    if (!DEV || !node || seen.current) return;
+    // After paint: Base UI stamps `aria-labelledby` when the Title child registers, which has
+    // not happened while the popup's own ref is being attached.
+    requestAnimationFrame(() => {
+      if (seen.current || !node.isConnected) return;
+      if (node.getAttribute("aria-labelledby") || node.getAttribute("aria-label")) return;
+      seen.current = true;
+      console.warn(
+        "[kookie-ui] A <Dialog> has no accessible name: a screen reader announces it as " +
+          "\"dialog\" and nothing else. Add a <DialogTitle>, or pass aria-label to " +
+          "<DialogContent> when the panel genuinely has no visible title.",
+      );
+    });
+  }, []);
+}
+
 /* ── Content: the fold (§24) ───────────────────────────────────────────────────────────── */
 
-export type DialogContentProps = {
+/**
+ * The panel's own props, and the fix for a hole every part in this file had (2026-08-21, the
+ * audit). Four props were declared and everything else was dropped in silence — measured with
+ * `id`, `aria-label`, `data-testid` and an `onKeyDown`, none of which reached the element and
+ * none of which failed to type-check. That is the Select audit's blocked-`id` finding in a
+ * third home, and here it had a second victim: with no `DialogTitle` the panel had NO
+ * accessible name and `aria-label` was the obvious repair, accepted and discarded.
+ *
+ * `style` and `className` are re-declared because they dress the POPUP specifically, and
+ * `color` is omitted for the same reason every surface in this package omits it (the HTML
+ * presentational attribute, not the CSS property).
+ */
+export type DialogContentProps = Omit<
+  React.ComponentPropsWithoutRef<"div">,
+  "color" | "style" | "className"
+> & {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -210,13 +312,13 @@ function popupProps(size: Size, material: SurfaceMaterial, className?: string) {
  * instead of trapping its own overflow, so the title of a long dialog is reachable by
  * scrolling rather than lost above a clipped box.
  */
-export function DialogContent({ children, className, style, ref }: DialogContentProps) {
+export function DialogContent({ children, className, style, ref, ...rest }: DialogContentProps) {
   return (
     <BaseDialog.Portal>
       <PortalScope>
         <BaseDialog.Backdrop className="kui-dialog-backdrop" />
         <BaseDialog.Viewport className="kui-dialog-viewport">
-          <DialogPopup className={className} style={style} ref={ref}>
+          <DialogPopup className={className} style={style} ref={ref} rest={rest}>
             {children}
           </DialogPopup>
         </BaseDialog.Viewport>
@@ -235,11 +337,13 @@ function DialogPopup({
   className,
   style,
   ref,
+  rest,
 }: {
   children?: React.ReactNode | undefined;
   className?: string | undefined;
   style?: React.CSSProperties | undefined;
   ref?: React.Ref<HTMLDivElement> | undefined;
+  rest: Record<string, unknown>;
 }) {
   const size = React.use(DialogSizeContext);
   // A floating pane is over content BY CONSTRUCTION (2026-08-17, the backdrop selectivity):
@@ -247,11 +351,15 @@ function DialogPopup({
   const material = useMaterial({ backdrop: true });
   // §10 — the lens on the pane itself (see Card).
   const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
+  const nameRef = useNameWarning();
+  // A pane clips (§3, 2026-08-21): content wider than the panel is not reachable at all.
+  const clipRef = useClipWarning("<Dialog>");
   return (
     <BaseDialog.Popup
+      {...rest}
       {...popupProps(size, material, className)}
       {...(style !== undefined ? { style } : {})}
-      ref={lensRef}
+      ref={mergeRefs(lensRef, nameRef, clipRef)}
     >
             {/**
               * The body exists for ONE reason and holds one channel: the content comes into
@@ -276,7 +384,10 @@ function DialogPopup({
 
 /* ── Title and Description: the one anatomy something non-visual forces (§10) ──────────── */
 
-export type DialogTitleProps = {
+export type DialogTitleProps = Omit<
+  React.ComponentPropsWithoutRef<"h2">,
+  "color" | "style" | "className"
+> & {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -306,7 +417,10 @@ export function DialogTitle({ children, ...props }: DialogTitleProps) {
   );
 }
 
-export type DialogDescriptionProps = {
+export type DialogDescriptionProps = Omit<
+  React.ComponentPropsWithoutRef<"p">,
+  "color" | "style" | "className"
+> & {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;

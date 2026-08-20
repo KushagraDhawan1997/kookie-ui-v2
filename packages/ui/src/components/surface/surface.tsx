@@ -2,7 +2,8 @@
 
 import * as React from "react";
 
-import { composeRender, type RenderElement } from "../../system/render.ts";
+import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
+import { useClipWarning } from "../../system/clip.tsx";
 import type { Size } from "../../system/axes.ts";
 
 export type SurfaceProps = Omit<
@@ -51,8 +52,10 @@ export type SurfaceProps = Omit<
  * not exist, exactly as Card's does not.
  */
 export function Surface({ size = "3", render, className, style, children, ref, ...props }: SurfaceProps) {
+  // A pane clips, so content wider than it is is not reachable at all (§3, 2026-08-21).
+  const clipRef = useClipWarning("<Surface>");
   const merged = {
-    ref,
+    ref: mergeRefs(ref, clipRef),
     "data-size": size,
     className: className ? `kui-surface kui-ground ${className}` : "kui-surface kui-ground",
     style,
