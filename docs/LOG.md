@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 The dialog took four props and threw the rest away
+
+Four findings from the Dialog audit, and they turned out to be one mistake with four faces.
+
+**The wrapper declared what it wanted and dropped everything else, silently.** `DialogContent` took `children`, `className`, `style` and `ref`. I passed `id`, `aria-label`, `data-testid` and an `onKeyDown`: none of them reached the element, and none of them failed to type-check. The Select audit found the same shape in 2026-08-09 (a blocked `id`), and Menu's before that; this is its third home, and the reason it keeps coming back is that a hand-written prop list reads like a design decision when it is usually just what the author happened to need that day.
+
+**Its second victim was the accessible name.** A dialog with no `DialogTitle` has `aria-labelledby` null and `aria-label` null, so a screen reader announces "dialog" and stops — and the obvious repair, `aria-label` on the panel, was accepted by the types and discarded. So a name was unreachable by BOTH routes at once, which is the only reason nobody had noticed one of them was missing. Both halves ship together: the prop reaches the element, and a dev build warns when neither is there. Warning, not a thrown error — a name is an accessibility obligation, not a structural one, and a half-built dialog in a scratch file should still render. The check reads the DOM rather than the props, because the name can arrive by either route and the element is the only place both answers are visible.
+
+**`onOpenChange` was `(open: boolean) => void`, so a dialog could be told it closed and never why.** That makes the guard every form dialog owes — "you have unsaved changes, are you sure?" — impossible to write at all, and Base UI had been handing us both the reason and a `cancel()` the whole time. The second argument is now `{ reason, event, cancel }`. Two choices inside that: the reason STRINGS are Base UI's own (`escape-key`, `outside-press`, `close-press`…) rather than translated, because they are already plain and a mapping table would be a second home for one fact plus a way to drift; but the TYPE is declared here, so the API is the package's. The rename risk that creates is answered by the laws, which provoke a real Escape, a real outside press and a real close press and read the string back — never a table.
+
+**And content wider than the panel was being deleted, which was one day old and mine.** A pane clips since `m="bleed"` shipped, so an overflow stopped being a visible spill and became a silent removal: measured in a size-2 dialog, an ordinary share link at 481px inside a 440px panel, a 12-column table at 718, a `<pre>` at 952 — no bar, no spill, no error. The synthetic 2000px box in the first audit made this look like a corner case; the realistic content showed it is not.
+
+Two halves, and only one of them is a fix. Text that CAN wrap now does — `overflow-wrap: break-word` on the Theme root, which inherits, so one declaration covers a component's text, a call site's text and a portal's own bare Theme. **`break-word` and not `anywhere`**, and that is a measurement rather than a preference: `anywhere` also lets a long word shrink an element's min-content width, which would quietly change how every flex and grid item in the library is sized, while `break-word` breaks at paint and leaves every measurement alone. Both were tested; both fix the link.
+
+What is left is content that must not wrap, and there the system's answer is a ScrollArea — which works as of the same day. So a **dev warning** ships on the three panes that hold content a call site wrote (Card, Surface, Dialog), naming the overflow and the fix. **Rejected: making the panel scroll sideways.** CSS resolves `overflow-x: auto` beside a clipped `overflow-y` to `hidden`, and hidden is a scroll container — the exact thing the flight rules spent two days keeping panes out of, and the reason a select's panel once slid its own contents under a growing frame. The pane keeps its clip and the author gets told.
+
+**One mechanism finding, caught by the suite rather than by reasoning.** The clip warning's first spelling measured inside its own `ResizeObserver` callback, and Chromium answers that with "ResizeObserver loop completed with undelivered notifications" — which the browser project reports as a page error. Measured: zero on clean HEAD, one per run with the inline read, zero again with the measurement moved into a frame. Box's observer never hit it because it watches only the handful of boxes that opted into containment; this one watches every card.
+
+Eight sabotage passes, all caught — including the two that matter most: spreading the call site's props AFTER the system's identity (a call site could then take `data-size`), and letting the name warning ignore `aria-label` (it would fire forever on a correctly labelled dialog). +25 bytes, baseline re-recorded 30988.
+
+---
+
 ## 2026-08-21 A pane with neighbours had no column, and the dialog had no reach
 
 The Dialog audit's own leftover, opened as "should we go back to dialog now, card is finally complete?" — and the answer was that Card was not.
@@ -24,7 +46,7 @@ The Dialog audit's own leftover, opened as "should we go back to dialog now, car
 
 **Left open on purpose:** whether a dialog holding a scroller should cap itself at the window. Uncapped it grows and the dialog's own viewport scrolls it, which is §24's design and right for every dialog without a scroller; with one inside, that is two scrolling surfaces and every peer caps. A default cap changes every dialog, so it is a design call, not a repair.
 
-Six laws, six sabotage passes — including the two that matter most: deleting `:not(.kui-box)` (a stated row silently became a column) and dropping the body's scoping `:has()` (a dialog with no scroller became a flex column, which is the shatter risk this scope exists for). +48 bytes, baseline re-recorded 30905.
+Six laws, six sabotage passes — including the two that matter most: deleting `:not(.kui-box)` (a stated row silently became a column) and dropping the body's scoping `:has()` (a dialog with no scroller became a flex column, which is the shatter risk this scope exists for). +49 bytes, baseline re-recorded 30963.
 
 ---
 

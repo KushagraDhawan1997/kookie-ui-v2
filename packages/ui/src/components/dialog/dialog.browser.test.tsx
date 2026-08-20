@@ -14,10 +14,18 @@
  * the follow-up commit — which is a sequencing fact, not a design one.
  */
 import * as React from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from "./dialog.tsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  DialogTrigger,
+  type DialogOpenChangeDetails,
+} from "./dialog.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
@@ -702,3 +710,173 @@ describe("a scroll region inside the panel", () => {
   });
 });
 
+
+/* ── The panel's own props, its name, and why it closed (2026-08-21, the audit) ────────── */
+
+describe("what the call site can say to a dialog", () => {
+  const lastPopup = () => {
+    const ps = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+    const p = ps[ps.length - 1];
+    if (!p) throw new Error("the panel never mounted — every law below would assert nothing");
+    return p;
+  };
+
+  /** Warnings raised while `run` executes, filtered to the one being asked about. */
+  async function warnings(needle: string, run: () => void): Promise<number> {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      run();
+      settleAll();
+      // Both warnings are deliberately post-paint: the name arrives when the Title child
+      // registers, and the clip check runs in an effect. Reading at the statement after the
+      // mount would measure nothing at all — and would pass whatever the code did.
+      await new Promise((r) => setTimeout(r, 60));
+      return spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes(needle)).length;
+    } finally {
+      spy.mockRestore();
+    }
+  }
+
+  it("ordinary props reach the panel — and the system's identity still wins", () => {
+    // Measured broken 2026-08-21: `DialogContent` declared four props and dropped every other
+    // one in silence, so `id`, `aria-label`, `data-*` and event handlers all type-checked and
+    // vanished. That is the Select audit's blocked-`id` finding in a third home, and here it
+    // also took away the only repair for a dialog with no title.
+    render(
+      <Theme>
+        <Dialog defaultOpen>
+          {/* `data-size` is the system's own stamp, and the call site must not be able to take
+              it: the props are spread BEFORE the identity, so a hostile value loses. */}
+          <DialogContent aria-label="Rename" id="rename-panel" data-testid="panel" data-size="1">
+            <Text>Body</Text>
+          </DialogContent>
+        </Dialog>
+      </Theme>,
+    );
+    settleAll();
+    const p = lastPopup();
+    expect(p.getAttribute("aria-label"), "aria-label reaches the element").toBe("Rename");
+    expect(p.id, "so does id — what a `label for` needs, and every other component takes").toBe("rename-panel");
+    expect(p.getAttribute("data-testid"), "and arbitrary data attributes").toBe("panel");
+    expect(p.getAttribute("data-size"), "but the size index stays the system's").toBe("3");
+  });
+
+  it("a dialog with no name says so in dev — and a title or a label silences it", async () => {
+    // The defect this exists for: `role="dialog"` with no `aria-labelledby` and no
+    // `aria-label`, which a screen reader announces as "dialog" and nothing else. Measured,
+    // with no warning anywhere. All three arms, because a warning that never stops is worse
+    // than none — a law that only mounted the failing case could not tell the two apart.
+    const bare = await warnings("accessible name", () =>
+      render(
+        <Theme>
+          <Dialog defaultOpen>
+            <DialogContent><Text>No title</Text></DialogContent>
+          </Dialog>
+        </Theme>,
+      ),
+    );
+    expect(bare, "no title and no label — warn once").toBe(1);
+
+    const titled = await warnings("accessible name", () =>
+      render(
+        <Theme>
+          <Dialog defaultOpen>
+            <DialogContent><DialogTitle>Named</DialogTitle></DialogContent>
+          </Dialog>
+        </Theme>,
+      ),
+    );
+    expect(titled, "a title names it — silence").toBe(0);
+
+    const labelled = await warnings("accessible name", () =>
+      render(
+        <Theme>
+          <Dialog defaultOpen>
+            <DialogContent aria-label="Named"><Text>x</Text></DialogContent>
+          </Dialog>
+        </Theme>,
+      ),
+    );
+    expect(labelled, "an explicit label names it too — silence").toBe(0);
+  });
+
+  it("says WHY it is closing, and a dialog may refuse", async () => {
+    // Without this a dialog is told that it closed and never why, so the guard every form
+    // dialog owes — "you have unsaved changes" — could not be written (measured 2026-08-21).
+    //
+    // The reasons are provoked, never asserted from a table: they are Base UI's own strings
+    // kept as this package's union, so a rename upstream is exactly the failure this must
+    // catch, and only a real Escape and a real press can catch it.
+    const seen: string[] = [];
+    render(
+      <Theme>
+        <Dialog
+          defaultOpen
+          onOpenChange={(open: boolean, details: DialogOpenChangeDetails) => {
+            seen.push(`${open}:${details.reason}`);
+            if (details.reason === "escape-key") details.cancel();
+          }}
+        >
+          <DialogContent>
+            <DialogTitle>Unsaved</DialogTitle>
+            <DialogClose render={<Button />}>Discard</DialogClose>
+          </DialogContent>
+        </Dialog>
+      </Theme>,
+    );
+    settleAll();
+
+    await userEvent.keyboard("{Escape}");
+    expect(seen[0], "Escape is reported as Escape").toBe("false:escape-key");
+    expect(
+      document.querySelectorAll(".kui-dialog-popup").length,
+      "…and cancel() refused it: the panel is still there",
+    ).toBeGreaterThan(0);
+
+    const close = lastPopup().querySelector<HTMLElement>("button");
+    if (!close) throw new Error("the close button never mounted");
+    await userEvent.click(close);
+    expect(seen[1], "a close button is a different reason").toBe("false:close-press");
+    expect(
+      document.querySelectorAll(".kui-dialog-popup").length,
+      "…and that one was not refused",
+    ).toBe(0);
+  });
+
+  it("warns when content is wider than the panel, because a pane clips it away", async () => {
+    // A `<pre>` cannot wrap, so it overflows a panel that clips — and since the bleed shipped
+    // (2026-08-20) that is a silent deletion rather than a visible spill: measured 952px of
+    // content inside a 440px panel, no bar, no overflow, no error. There is no repair to make
+    // — CSS resolves `overflow-x: auto` beside a clipped `overflow-y` to `hidden`, which is a
+    // scroll container — so what ships is the warning that makes the ScrollArea findable.
+    const clipped = await warnings("wider than it is", () =>
+      render(
+        <Theme>
+          <Dialog defaultOpen size="2">
+            <DialogContent>
+              <DialogTitle>Log</DialogTitle>
+              <pre>{"const url = 'https://example.com/a/path/that/never/breaks/anywhere-at-all-ok'"}</pre>
+            </DialogContent>
+          </Dialog>
+        </Theme>,
+      ),
+    );
+    expect(clipped, "content that cannot wrap and cannot be reached").toBe(1);
+
+    // The other half, and the one that makes this a law rather than a tripwire: ordinary prose
+    // with an unbreakable word in it now WRAPS (type.css), so it must not warn.
+    const prose = await warnings("wider than it is", () =>
+      render(
+        <Theme>
+          <Dialog defaultOpen size="2">
+            <DialogContent>
+              <DialogTitle>Share</DialogTitle>
+              <Text>https://example.com/a/path/that/never/breaks/anywhere-at-all-whatsoever</Text>
+            </DialogContent>
+          </Dialog>
+        </Theme>,
+      ),
+    );
+    expect(prose, "a long word wraps, so there is nothing to warn about").toBe(0);
+  });
+});

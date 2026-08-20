@@ -430,6 +430,10 @@ export const ENTRIES: Entry[] = [
         why: "Layout, not anatomy — Card's own cut. A title, a description and an action row are a Stack the call site writes, and blessing one arrangement deprecates every other. Title and Description ARE parts here, because something non-visual forces them: they carry the panel's accessible name and description.",
       },
       {
+        name: "a height, and a way to keep a long panel inside the window",
+        why: "The extent is the call site's, the same class of value as a card's: state a height (or a max-height) on DialogContent and a ScrollArea inside it becomes the thing that scrolls, with the title and the action row staying put. State nothing and the panel grows and the dialog's own viewport scrolls it, so a long form is still reachable. Whether a panel holding a scroller should cap itself at the window without being asked is recorded open.",
+      },
+      {
         name: "a system-drawn ✕",
         why: "The same positioned slot, refused for the same reason. Escape and an outside press both dismiss, and DialogClose puts a real Button wherever the composition wants one — which is also what a touch screen-reader user needs to escape a trapped panel.",
       },
@@ -448,7 +452,7 @@ export const ENTRIES: Entry[] = [
     ],
     parts: [
         { part: "DialogTrigger", blurb: "The button that opens it — usually render={<Button/>}, and the one node a dialog may own in ordinary flow; a dialog driven by app state needs no trigger at all" },
-        { part: "DialogContent", blurb: "The whole fold: portals, re-applies the theme (§20), paints the scrim, and centres the panel in a viewport that scrolls when the panel is taller than the window" },
+        { part: "DialogContent", blurb: "The whole fold: portals, re-applies the theme (§20), paints the scrim, and centres the panel in a viewport that scrolls when the panel is taller than the window. Takes the ordinary props of the element it renders — id, aria-label, data attributes, handlers — spread before the system's own identity, so a call site can name the panel but cannot take its size index" },
         { part: "DialogTitle", blurb: "The panel's accessible name, wired by aria-labelledby — a real heading element, dressed by the type layer at the composition brief's card-title step" },
         { part: "DialogDescription", blurb: "The supporting line, wired by aria-describedby — body copy in the muted ink, which is what 'said quietly' means since the ladder was solved" },
         { part: "DialogClose", blurb: "A dismissing button the call site places: there is no corner glyph, so the one action zone stays where the composition put it" },
