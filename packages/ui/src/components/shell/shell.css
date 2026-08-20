@@ -73,12 +73,11 @@
      the padding is what makes the two agree — the bleed then resolves to nothing, which is
      the right answer for a pane that has no padding to bleed past.
 
-     It needs the SURFACE class with it: the hook is declared by the surface size join at
-     (0,2,0) — `.kui-surface[data-size="N"]` — and shell panes stamp an index now, because
-     the rail derives its whole extent from one. A bare `.kui-shell-pane` at (0,1,0) simply
-     lost, measured: 16px survived the first spelling of this fix. So the stand-down carries
-     the attribute too and out-ranks the join outright, which is the shape the floating
-     panel's own override already uses one file over — no ordering claim to get wrong. */
+     The stand-down itself lives in the SHELL PANE JOIN (system/surfaces.css), not here: it
+     must carry the surface class and the size attribute to out-rank the join's (0,2,0) —
+     a bare `.kui-shell-pane` at (0,1,0) simply lost, measured: 16px survived the first
+     spelling — and a component sheet may not name `data-size` (recipes.test.ts walks for
+     it; the Dialog's own refusal, 2026-08-10). The join is where per-index facts go. */
   border-radius: var(--radius-surface-3);
   min-inline-size: 0;
   min-block-size: 0;
@@ -86,10 +85,6 @@
   /* Focus lands on an overlaying pane programmatically — a mode, not an affordance (§8):
      the pane's own controls carry the ring. */
   outline: none;
-}
-
-.kui-surface.kui-shell-pane[data-size] {
-  --kui-sf-p: 0;
 }
 
 .kui-shell-header {
@@ -119,6 +114,9 @@
 
 .kui-shell-rail {
   grid-area: rail;
+  /* Size 2, the unstamped rest — the PER-INDEX arms live in the shell pane join
+     (system/surfaces.css), because a component sheet may not name `data-size`. They
+     out-rank this default at (0,2,0) over (0,1,0), whichever file loads first. */
   --kui-shell-rail-square: var(--control-height-2);
   /* CONTENT-box, and the half pixel is why. A pane is border-box like everything else here,
      so a flush rail's own seam hairline came out of the derived extent rather than sitting
@@ -128,18 +126,6 @@
      inset the same number in every posture, and the borders do what borders do. */
   box-sizing: content-box;
   inline-size: calc(var(--kui-shell-rail-square) + 2 * var(--shell-nav-inset));
-}
-
-.kui-shell-rail[data-size="1"] {
-  --kui-shell-rail-square: var(--control-height-1);
-}
-
-.kui-shell-rail[data-size="3"] {
-  --kui-shell-rail-square: var(--control-height-3);
-}
-
-.kui-shell-rail[data-size="4"] {
-  --kui-shell-rail-square: var(--control-height-4);
 }
 
 .kui-shell-sidebar {

@@ -25,11 +25,21 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     expect(queries[0]!.replace(/\s+/g, " ")).toBe(`@media ${narrowMedia}`);
   });
 
-  it("no other viewport query hides in the sheet — the boundary, and one a11y preference, is all", () => {
-    // The narrow block plus prefers-reduced-transparency (the scrim's, dialog.css's own
-    // pair). A third @media appearing is a decision, and it fails here first.
-    expect(css.match(/@media/g) ?? []).toHaveLength(2);
-    expect(css).toContain("@media (prefers-reduced-transparency: reduce)");
+  it("no other viewport query hides in the sheet — every @media is one of three sanctioned forms", () => {
+    // The narrow block, the scrim's prefers-reduced-transparency (dialog.css's own pair),
+    // and the nav row's `(hover: hover)` guard — a capability query, not a viewport one,
+    // arrived 2026-08-20 with the hover restoration and failed the old count of 2, which is
+    // this law doing its job: any @media appearing here is a decision, and a NEW one still
+    // fails first. Asserted as the exact SET rather than a count, because a count of three
+    // would let a fourth form ride in by replacing one of these.
+    const queries = (css.match(/@media[^{]+/g) ?? []).map((q) => q.replace(/\s+/g, " ").trim());
+    expect(queries.sort()).toEqual(
+      [
+        `@media ${narrowMedia}`,
+        "@media (hover: hover)",
+        "@media (prefers-reduced-transparency: reduce)",
+      ].sort(),
+    );
   });
 
   it("EVERY overlay arm caps its extent — the strip is not decoration (audit 2026-08-16)", () => {
@@ -38,9 +48,16 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // mounted laws prove two arms at two widths; this proves the SET, so a seventh arm added
     // tomorrow cannot ship uncapped. Derived from the rules themselves rather than a count:
     // every rule that positions a pane absolutely must also cap it.
+    //
+    // The member boundary is load-bearing (2026-08-20): the first spelling's `[^{]*` ate
+    // `-item::after`, so the day the rail grew its anatomy this law seized the ITEM's target
+    // expander — a §16 pseudo-element, not a pane, and one that must never carry a viewport
+    // cap — and failed on its own calibration. The lookahead holds the set to the four PANES.
     const arms = css
       .split("}")
-      .filter((rule) => /\.kui-shell-(rail|sidebar|inspector|bottom)[^{]*\{[^{]*position:\s*absolute/.test(rule));
+      .filter((rule) =>
+        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])[^{]*\{[^{]*position:\s*absolute/.test(rule),
+      );
     expect(arms.length, "the overlay arms are not where this law thinks").toBe(6);
     for (const arm of arms) {
       expect(
@@ -68,9 +85,20 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
   it("the shell paints no bed, casts nothing, and moves nothing — the absences ARE the design (§27)", () => {
     // Panes are surfaces: fill, edge, depth and material all arrive from surfaces.css. A
     // background, box-shadow or transition appearing in this sheet means the shell has
-    // started painting on its own account. The scrim's fill is the one sanctioned paint.
-    const withoutScrim = css.replace(/\.kui-shell-scrim\s*\{[^}]*\}/g, " ");
-    expect(withoutScrim).not.toMatch(/background/);
+    // started painting on its own account. TWO paints are sanctioned: the scrim's fill, and
+    // the nav row's hover restoration (2026-08-20, the member that restores what the row
+    // family stands down) — which must spend the CONTROL layer's own currency, the pin
+    // below, so the exemption is the row's state paint re-keyed and can never quietly
+    // become a bed. The third non-roving row promotes the restoration into recipes.css,
+    // and this exemption dies with the promotion.
+    expect(
+      block(css, ".kui-shell-nav-item:hover:not([data-disabled])"),
+      "the restored hover must spend the control layer's own currency",
+    ).toContain("background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover))");
+    const sanctioned = css
+      .replace(/\.kui-shell-scrim\s*\{[^}]*\}/g, " ")
+      .replace(/\.kui-shell-nav-item:hover[^{]*\{[^}]*\}/g, " ");
+    expect(sanctioned).not.toMatch(/background/);
     expect(css).not.toMatch(/box-shadow/);
     expect(css).not.toMatch(/[^-\w]transition\s*:/);
   });

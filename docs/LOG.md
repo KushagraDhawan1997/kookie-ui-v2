@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-20 The shell's late anatomy outgrew three of its own laws — and one law was seizing a member it never meant to hold
+
+The shell merged to main red against four of its own node laws. Every failing rule was a DELIBERATE late addition with its reasoning written in place — the hover restoration, the rail's per-index arms, the pane's hook stand-down, the rail item's target expander — added after the laws were written and never reconciled with them. The resolution follows the system's own precedents in each direction rather than exempting anything.
+
+**The per-index facts moved into the join layer.** `.kui-surface.kui-shell-pane[data-size]` (the `--kui-sf-p` stand-down) and the rail's three `[data-size="N"]` square arms now live in surfaces.css beside the overlay and ground joins — a component sheet may not name `data-size` (the Dialog's own refusal, 2026-08-10), and the alert-popup arms are the in-file precedent for a component-classed arm in the join. shell.css keeps only the axis-free size-2 rest; specificity carries the same outcome regardless of file order, and all 64 mounted shell laws pass unchanged, which is the move proving it moved nothing.
+
+**The media law asserts the sanctioned SET, not a count.** The nav row's `(hover: hover)` guard is a capability query the count-of-two law had never met. The law now equals the exact set — the narrow boundary (derived from config), reduced-transparency, the hover guard — because a count of three would let a fourth form ride in by replacing one of these, while a set still fails first on any new @media.
+
+**The no-bed law sanctions the hover restoration BY CURRENCY.** The restored hover must spend the control layer's own fill hooks (`--kui-ct-fill-hover`, pinned by the law), so the exemption is the row's state paint re-keyed and cannot quietly become a bed. The third non-roving row promotes the restoration into recipes.css, and the exemption dies with the promotion.
+
+**The overlay-arm law grew a member boundary.** Its `[^{]*` ate `-item::after`, so the day the rail grew its anatomy the law seized the item's §16 target expander — a pseudo-element that must never carry a viewport cap — and failed on its own calibration message. The lookahead holds the set to the four panes; removed cap, added uncapped arm, fourth @media, raw hover colour and a header bed all still fail (five sabotages, run post-fix).
+
+Budget −2 (30847 → 30845), the move compressing better; the baseline is re-recorded downward so the ratchet stays tight.
+
+---
+
 ## 2026-08-20 The rotation's last four laws were each a window the machine could outrun — and a window is held open, not raced
 
 The morning's deflaking round ("three different lies about time", below) left CI still red on 14 of the last 20 runs, rotating between two files. Every remaining failure was the same shape one layer deeper: a law whose PREMISE was a real-time window — a panel mid-dissolve, a pose still applied, a trigger clear of the panel covering it — reached by awaiting toward it, so a runner that stalled past the window failed the law on its own premise. All four are fixed by removing the race, not by widening a bound, and every rewrite was falsified against sabotaged code first.
