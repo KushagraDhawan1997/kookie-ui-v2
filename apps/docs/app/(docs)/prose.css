@@ -1,0 +1,160 @@
+/**
+ * The docs' own CSS, and it is deliberately this short.
+ *
+ * Everything here is one of two things, never a third: a prose primitive the system has not
+ * shipped (a list, an inline link, a data table), or the code theme's variable bindings. Both
+ * resolve entirely through the public token contract (§13) — there is no raw colour and no
+ * raw distance in this file — so a re-judged palette or a density change moves the docs with
+ * the system rather than leaving them behind.
+ *
+ * The three gaps are recorded in LOG 2026-08-21. §11 has planned `Link` since the defaults
+ * table was written and plans a table ROW as an interactive surface; a list has never been
+ * named by anything. Each rule below is the app drawing one for itself, which is what the
+ * escape hatch is for, and each is small enough to delete the day the component lands.
+ */
+
+/* ── Lists ─────────────────────────────────────────────────────────────────────────────────
+   Type and ink arrive from `<Text render={<ul/>}>` and inherit; what is left is the indent
+   and the marker. `li + li` rather than a gap, because a flex list stops generating markers
+   — the browser's list-item layout is the thing being kept here, and it is also what makes a
+   nested list indent correctly with no rule of its own. */
+.kd-list {
+  padding-inline-start: var(--layout-space-5);
+  margin: 0;
+}
+
+.kd-list li + li,
+.kd-list .kd-list {
+  margin-block-start: var(--layout-space-2);
+}
+
+/* The marker is furniture, not content — the faint role is exactly the rung §15 minted for
+   "something stood down". */
+.kd-list li::marker {
+  color: var(--color-text-faint);
+}
+
+/* ── Inline links ──────────────────────────────────────────────────────────────────────────
+   Tone comes from `<Text tone="accent">`, so this owns only the underline. Offset and
+   thickness are stated because the UA's default underline sits on the baseline and cuts every
+   descender in the line. */
+.kd-link {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-color: var(--color-border);
+}
+
+.kd-link:hover {
+  text-decoration-color: currentcolor;
+}
+
+/* ── Tables ────────────────────────────────────────────────────────────────────────────────
+   A data table, which the system has never specified. The horizontal scroller is the app's
+   own: a table is the one block in prose whose content can genuinely exceed the measure, and
+   a page that scrolls sideways because of one table is worse than a table that does. */
+.kd-table-wrap {
+  overflow-x: auto;
+}
+
+.kd-table {
+  border-collapse: collapse;
+  inline-size: 100%;
+  text-align: start;
+}
+
+.kd-table th,
+.kd-table td {
+  padding: var(--layout-space-2) var(--layout-space-3);
+  border-block-end: var(--border-width) solid var(--color-border);
+  text-align: start;
+  vertical-align: baseline;
+}
+
+.kd-table th {
+  color: var(--color-text);
+}
+
+.kd-table td {
+  color: var(--color-text-muted);
+}
+
+.kd-table tr:last-child td {
+  border-block-end: none;
+}
+
+/* ── The table of contents ─────────────────────────────────────────────────────────────────
+   A sticky aside in the gutter the reading measure leaves over. Two properties are the app's
+   to state and neither belongs in a component: how wide this column is (a measurement about
+   this page's layout, not about any component's box) and when the two-column arrangement
+   stops fitting.
+
+   The breakpoint is a WINDOW query rather than a container tier, and that is the §18
+   distinction rather than laziness: this is a question about which interface shape the page
+   shows, not about how much room a component has been given. 64rem is where a 46rem reading
+   column plus this column plus the sidebar stop coexisting. */
+.kd-toc {
+  position: sticky;
+  inset-block-start: 0;
+  inline-size: 14rem;
+  flex: none;
+}
+
+.kd-toc-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.kd-toc-link:hover {
+  text-decoration-line: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media (max-width: 64rem) {
+  .kd-toc {
+    display: none;
+  }
+}
+
+/* ── The code theme ────────────────────────────────────────────────────────────────────────
+   Shiki emits `var(--kd-code-token-*)`; this is where those names become KookieUI colours.
+
+   Every one of them resolves to a SOLVED value — the ink ladder (§15, 2026-08-10) states two
+   contrast targets and the generator solves each family's fade against the harder of the seal
+   and the page, in both appearances. So the syntax colours are not a palette anybody picked:
+   they are the same numbers the rest of the type on the page is held to, which is the whole
+   argument for not shipping a stock highlight theme. Nothing here needs a dark variant,
+   because every token on the right-hand side already has one.
+
+   The assignments themselves are v0 and belong to the eye pass, like every other pigment
+   decision in this system. What is NOT v0 is the shape: a token colour is a family's ink, and
+   a family means what §7 says it means. Strings are green because a string is data; a keyword
+   is the brand because the language's own vocabulary is the one constant in every sample;
+   inserted/deleted/changed are the three status families, so a diff in the docs reads with the
+   same three colours a status callout would. */
+.kd-code {
+  --kd-code-foreground: var(--color-text);
+  --kd-code-background: transparent;
+
+  --kd-code-token-comment: var(--color-text-faint);
+  --kd-code-token-keyword: var(--accent-ink);
+  --kd-code-token-string: var(--green-ink);
+  --kd-code-token-string-expression: var(--green-ink);
+  --kd-code-token-function: var(--blue-ink);
+  --kd-code-token-constant: var(--orange-ink);
+  --kd-code-token-parameter: var(--color-text);
+  --kd-code-token-punctuation: var(--color-text-muted);
+  --kd-code-token-link: var(--accent-ink);
+
+  --kd-code-token-inserted: var(--success-ink);
+  --kd-code-token-deleted: var(--destructive-ink);
+  --kd-code-token-changed: var(--warning-ink);
+}
+
+/* A fence sets its own measure — code is not reading-length text, and wrapping it would put a
+   line break somewhere the language does not have one. The ScrollArea around it is what makes
+   that safe. */
+.kd-code {
+  white-space: pre;
+}

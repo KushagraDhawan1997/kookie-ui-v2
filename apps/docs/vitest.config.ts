@@ -1,3 +1,5 @@
+import mdx from "@mdx-js/rollup";
+import remarkGfm from "remark-gfm";
 import { defineConfig } from "vitest/config";
 
 /**
@@ -15,6 +17,17 @@ export default defineConfig({
   // so the runtime is stated here. Needed since 2026-08-08, when the shell laws started
   // rendering the layouts rather than reading them.
   esbuild: { jsx: "automatic" },
+  // THE SAME COMPILER THE SITE USES (2026-08-21). The chapter law renders every chapter to
+  // static markup, which means the suite has to be able to import a `.mdx` — and importing
+  // one through a DIFFERENT compiler than `next build` uses would make the law an assertion
+  // about a second pipeline nobody ships. `@mdx-js/rollup` and `@next/mdx` are two adapters
+  // over one `@mdx-js/mdx`, which is the arrangement that keeps "it renders here" meaning
+  // "it renders there".
+  // The GFM plugin is passed here too, and it MUST match `next.config.ts`. A suite whose
+  // compiler differs from the site's is a suite asserting things about a pipeline nobody
+  // ships — and the divergence would be silent in exactly the direction that matters, since
+  // a chapter's table would render here and not there.
+  plugins: [mdx({ remarkPlugins: [remarkGfm] })],
   test: {
     name: "docs",
     // .tsx as well: a law that renders a layout is JSX, and the app's only laws until

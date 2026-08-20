@@ -7,8 +7,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint app next.config.ts && tsc -p tsconfig.json",
-    "test": "vitest run"
+    "lint": "eslint app next.config.ts scripts && tsc -p tsconfig.json",
+    "test": "vitest run",
+    "api": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-api.ts",
+    "api:check": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-api.ts --check"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.2.3",
@@ -19,11 +21,18 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@mdx-js/loader": "^3.1.1",
+    "@mdx-js/react": "^3.1.1",
+    "@mdx-js/rollup": "^3.1.1",
+    "@next/mdx": "^16.3.1",
+    "@types/mdx": "^2.0.14",
     "@types/node": "^26.1.2",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "esbuild": "^0.28.1",
     "eslint": "^9.30.0",
+    "remark-gfm": "^4.0.1",
+    "shiki": "^4.4.3",
     "typescript": "^5.8.0",
     "vitest": "^4.1.0"
   }
