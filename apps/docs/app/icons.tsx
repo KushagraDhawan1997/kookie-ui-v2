@@ -42,6 +42,8 @@ import {
   PlusSignIcon,
   Search01Icon,
   Settings02Icon,
+  SidebarLeftIcon,
+  SidebarRightIcon,
   SquareLock02Icon,
   Tick02Icon,
   UserMultiple02Icon,
@@ -83,6 +85,8 @@ export const UndoIcon = glyph(ArrowTurnBackwardIcon);
 export const RedoIcon = glyph(ArrowTurnForwardIcon);
 export const PreviewIcon = glyph(EyeIcon);
 export const LayersIcon = glyph(LayerIcon);
+export const PanelLeftIcon = glyph(SidebarLeftIcon);
+export const PanelRightIcon = glyph(SidebarRightIcon);
 export const CopyIcon = glyph(Copy01Icon);
 export const TrashIcon = glyph(Delete02Icon);
 export const WarnIcon = glyph(Alert02Icon);

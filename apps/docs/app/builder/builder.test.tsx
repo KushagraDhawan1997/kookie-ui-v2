@@ -43,6 +43,7 @@ import {
   type BuilderNode,
 } from "./model";
 import { renderNode } from "./render";
+import { BuilderApp, LEFT_REGIONS } from "./builder-app";
 import { deriveParams, serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -651,5 +652,82 @@ describe("tree surgery holds its own invariants", () => {
     roots = removeNode(roots, b.id);
     expect(findNode(roots, b.id)).toBeNull();
     expect(findNode(roots, a.id)).not.toBeNull();
+  });
+});
+
+/**
+ * THE FRAME IS THE SYSTEM'S (§27, 2026-08-20).
+ *
+ * The builder shipped its own app frame — a `100dvh` flex column holding three fixed-width
+ * boxes and four Separators — for the ordinary reason: it was written before the system had
+ * one. That is the same argument the docs refused a docs framework with, and it does not get
+ * weaker for the parts that are "just editor chrome". So the frame is `Shell` now, and these
+ * hold it there.
+ *
+ * The instrument is a real server render of the whole app. `renderToStaticMarkup` gives the
+ * first-paint DOM, which is the one that matters here: Shell resolves an untouched pane's
+ * resting state in CSS precisely so it is right before any script runs, and a law that mounted
+ * and settled would be reading the second answer.
+ */
+describe("the editor's own frame (§27)", () => {
+  const html = renderToStaticMarkup(<BuilderApp />);
+  /** The landmark tags in document order, with the pane class each carries. */
+  const panes = [...html.matchAll(/<(?:header|nav|main|aside)\b[^>]*\bclass="([^"]*kui-shell-pane[^"]*)"[^>]*>/g)].map(
+    (m) => m[1]!.split(/\s+/).find((c) => c.startsWith("kui-shell-") && c !== "kui-shell-pane"),
+  );
+
+  // Falsified by swapping the rail and the sidebar in the source — the law reads the real
+  // document order, not the presence of five names. (Against the pre-port app the question
+  // does not arise: that file mentions `Shell` nowhere, so `panes` is empty.)
+  it("is a Shell, in the reading order an app frame has", () => {
+    expect(panes).toEqual([
+      "kui-shell-header",
+      "kui-shell-rail",
+      "kui-shell-sidebar",
+      "kui-shell-content",
+      "kui-shell-inspector",
+    ]);
+  });
+
+  it("names both nav landmarks — two of them on one page is a page with two anonymous navs", () => {
+    const labels = [...html.matchAll(/<nav\b[^>]*\baria-label="([^"]*)"/g)].map((m) => m[1]);
+    expect(labels).toHaveLength(2);
+    expect(new Set(labels).size).toBe(2);
+  });
+
+  /**
+   * The port's whole behavioural claim, and the reason it is worth a law: preview used to
+   * UNMOUNT the side panes with `{!preview ? … : null}`, so the mode threw away the panel's
+   * scroll position and its React state along with its pixels. A pane is the Shell's to
+   * close now — `display: none`, state intact — and re-wrapping one in that guard would take
+   * the behaviour back without changing anything a rendered law can see, since preview is
+   * this component's own state and no static render can reach it.
+   *
+   * So this one reads the SOURCE, for the reason the `finding.fix` law reads it: what can go
+   * wrong lives at a call site no node test can mount. Falsified by restoring the guard
+   * around any one pane.
+   */
+  it("preview closes the panes; it does not unmount them", () => {
+    const source = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    for (const pane of ["ShellRail", "ShellSidebar", "ShellContent", "ShellInspector"]) {
+      expect(source.match(new RegExp(`<${pane}\\b`, "g")), `${pane} is rendered exactly once`).toHaveLength(1);
+    }
+    const guarded = source.match(/\{\s*!preview\s*\?\s*\(\s*<Shell(?:Rail|Sidebar|Content|Inspector)\b/g);
+    expect(guarded, "a pane inside a preview guard is a pane preview unmounts").toBeNull();
+  });
+
+  /**
+   * ONE LIST BEHIND THE RAIL AND THE PANEL. A square that picks a region the sidebar cannot
+   * show is the doc-code drift rule inside a single file, and the two halves are held by
+   * different mechanisms: the squares DERIVE from the list (here), and the panel switch is
+   * narrowed to `never` (a third region with no panel fails `tsc`, checked by adding one).
+   */
+  it("the rail offers exactly the regions the sidebar has panels for", () => {
+    const squares = [...html.matchAll(/<button\b[^>]*\bkui-shell-rail-item[^>]*>/g)].map((m) => m[0]);
+    expect(squares).toHaveLength(LEFT_REGIONS.length);
+    for (const region of LEFT_REGIONS) {
+      expect(squares.some((s) => s.includes(`aria-label="${region.label}"`))).toBe(true);
+    }
+    expect(squares.filter((s) => s.includes('aria-current="page"'))).toHaveLength(1);
   });
 });
