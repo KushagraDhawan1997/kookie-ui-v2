@@ -854,14 +854,19 @@ export function BuilderApp() {
   const [measured, setMeasured] = React.useState<Measured>([]);
   React.useEffect(() => {
     const wrap = canvasRef.current;
-    if (!wrap || !selected) return setMeasured([]);
-    const el = wrap.querySelector(`[data-b-id="${selected.id}"]`);
+    // Read the node out of the DEFERRED document, and depend on the selection's ID rather
+    // than on the node object. `selected` is derived from the live document, so it changes
+    // identity on the very keystroke this effect is trying to stay out of the way of —
+    // deferring the document while depending on `selected` is a deferral that does nothing.
+    const node = selection ? findNode(readoutDoc.roots, selection) : null;
+    if (!wrap || !node) return setMeasured([]);
+    const el = wrap.querySelector(`[data-b-id="${node.id}"]`);
     if (!el) return setMeasured([]);
     const target = visibleEl(el);
     const cs = getComputedStyle(target);
     const px = (v: string) => (v && v !== "normal" && parseFloat(v) > 0 ? `${Math.round(parseFloat(v) * 10) / 10}px` : null);
     const stated = (key: string) => {
-      const v = selected.props[key];
+      const v = node.props[key];
       return typeof v === "string" ? v : undefined;
     };
     // The box comes from the COMPUTED style, not the rect. A rect is in painted pixels, so
@@ -895,7 +900,7 @@ export function BuilderApp() {
     // Stack's is inherited — reporting it would be the panel answering a question this node
     // does not ask.
     const font = px(cs.fontSize);
-    const ownsType = CATALOG[selected.type]?.family === "Type" || CATALOG[selected.type]?.family === "Control";
+    const ownsType = CATALOG[node.type]?.family === "Type" || CATALOG[node.type]?.family === "Control";
     if (font && ownsType) {
       rows.push({
         label: "type",
@@ -916,7 +921,7 @@ export function BuilderApp() {
     // live components; the whole per-edit model path (an edit plus the seat normalizer) costs
     // 0.089ms at that size, and a CPU profile of a typing run names browser layout and
     // React's own frames, not this file's.
-  }, [selected, readoutDoc, canvasW, preview, zoom]);
+  }, [selection, readoutDoc, canvasW, preview, zoom]);
 
   const [seat, setSeat] = React.useState<SeatVocabulary | null>(null);
   React.useEffect(() => {
