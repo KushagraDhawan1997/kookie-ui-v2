@@ -57,6 +57,7 @@ import {
   settle,
   flushFlight,
   until,
+  catchDissolve,
   asksForStillness,
   type Cell,
 } from "../../test/browser.tsx";
@@ -1593,6 +1594,17 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // rests on the trigger it pressed: expected false to be true"). Where the driver leaves the
     // mouse after a click is a fact about Playwright, and this law is about what an OPEN trigger
     // does in each pointer state — both of which it goes on to exercise explicitly.
+    //
+    // And the trigger must be REACHABLE before the pointer is put there (the same CI failure's
+    // second cause): the entry's seed is the trigger's own silhouette sitting exactly ON it,
+    // and the flight hit-tests by design — so for the seed's frames, and longer on a stalled
+    // runner, a hover aimed at the trigger lands on the panel covering it and `:hover` reads
+    // false. Waited out as a STATE: the panel rests below its trigger, so the point clears.
+    await until(() => {
+      const box = trigger!.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return hit !== null && (hit === trigger || trigger!.contains(hit));
+    }, 3000);
     await userEvent.hover(trigger!);
     expect(trigger!.matches(":hover"), "the pointer must be on the trigger for the held read").toBe(true);
     // HELD DOWN, not locked at rest (revised the same hour): the press put it down, the open
@@ -1953,14 +1965,16 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight landed").toBe(false);
     const settled = popup.getBoundingClientRect();
 
-    flushSync(() => setOpen(false));
-    await until(() => popup.hasAttribute("data-ending-style"), 3000);
     // Far enough into the dissolve that the panel is visibly half-gone — the state a replay
-    // would throw away. Read rather than timed: the law wants a fading panel, not a duration.
-    await until(() => parseFloat(computed(popup, "opacity")) < 0.9, 3000);
+    // would throw away. HELD there, not polled for (`catchDissolve`, 2026-08-20): the fade is
+    // ~200ms of wall clock, and a runner that stalls past it finds the popup already unmounted
+    // and fails this law on its own premise (CI: "the premise: the exit is still running:
+    // expected false to be true"). Seizing the exit's own clocks the microtask its stamp lands
+    // pins the panel mid-dissolve for exactly as long as the gesture takes.
+    const seized = catchDissolve(popup);
+    flushSync(() => setOpen(false));
+    const { box: dissolving, fading } = await seized;
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
-    const dissolving = popup.getBoundingClientRect();
-    const fading = parseFloat(computed(popup, "opacity"));
     expect(fading, "the premise: the panel is visibly mid-dissolve").toBeLessThan(0.9);
 
     flushSync(() => setOpen(true)); // the quick reopen
