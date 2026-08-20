@@ -904,8 +904,31 @@ describe("one measurement serves all four layouts", () => {
     expect(rowsOf(kids)).toEqual([[0, 1], [2]]);
     expect(at(280, 20).index).toBe(2); // after both of line one
     expect(at(10, 70).index).toBe(2); // before the wrapped item
-    // 70 is the item's exact midpoint, so the half below it starts after that.
-    expect(at(130, 80).index).toBe(3); // after it — a row of ONE is decided on Y
+    expect(at(130, 60).index).toBe(3); // after it
+  });
+
+  it("the LAST line of a wrap holds one item and is still a ROW — the container flows, not the row", () => {
+    // Mine, one commit old and found by dragging: the rule "a row holding ONE item is decided
+    // on Y" was written for a Stack, where every row holds one, and it also fires on the last
+    // line of a wrap. Measured in the browser — six cards wrapping to two lines, hovering the
+    // LEFT half of the only item on line two — it read the pointer's half on Y, and because
+    // the pointer sat below that item's middle it inserted AFTER the item the pointer was
+    // pointing at the front of. The question is what the CONTAINER flows, and only a container
+    // whose every row holds one item is a column.
+    const kids = [box(0, 0, 140, 40), box(150, 0, 140, 40), box(0, 50, 140, 40)];
+    const at = (x: number, y: number) => dropSpot(kids, container, x, y)!;
+    // x=70 is the wrapped item's horizontal middle, y=70 its vertical one. Every point here
+    // is on the far side of the Y midpoint from the X one, so the two readings disagree.
+    expect(at(10, 80).index).toBe(2); // left half, low: BEFORE it
+    expect(at(130, 60).index).toBe(3); // right half, high: after it
+    // …and the line follows the same axis: beside the item, not a bar through a gutter the
+    // pointer is not in.
+    expect(at(10, 80).orientation).toBe("vertical");
+    expect(at(10, 80).line.h).toBe(40);
+    // The Stack reading survives: there, every row really does hold one item.
+    const stacked = [box(0, 0, 300, 40), box(0, 50, 300, 40)];
+    expect(dropSpot(stacked, container, 10, 30)!.index).toBe(1);
+    expect(dropSpot(stacked, container, 10, 30)!.orientation).toBe("horizontal");
   });
 
   it("the line goes where the drop goes — the half no law was reading", () => {
