@@ -8,6 +8,54 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-20 Preview is a MODE of the command context, and a promise is worth the number of doors that keep it
+
+The builder's preview mode promises the screen without the editor, and it kept that promise in the keydown handler — where the guard was written. The ⌘K palette lists the same command table and never asked. Measured in a production build, preview on and every editor pane gone: the palette offered **66 editing commands**, and pressing Delete removed a node from the document with nothing on screen to say so. The `⋯` document menu survived too, with New, Rename, Duplicate and Delete-the-whole-document on it.
+
+That is precisely the second home `commands.ts` was written to abolish, one layer up: the file exists so that "duplicate" has one implementation rather than one per surface, and then the RULE about when a command may run grew a second home anyway. It moves to where the table is. `CommandContext` carries `preview`, `armed(cmd, ctx)` is the single gate, and every surface asks it — key handler, palette, context menu, inspector row. Nothing calls `enabled` directly any more; the palette's three non-command row groups (templates, blocks, document switches) are gated where they are built, because the table cannot reach them.
+
+**⌘F went with it, and that is a distinction worth keeping.** `global` had been carrying two questions: "does this work while a field has focus" and "does this work in preview". They are not the same question — ⌘F must reach past a focused inspector field, and must not put the caret in a Layers filter that preview does not render. So `global` keeps the first and `enabled` answers the second, now that the context holds what it needs.
+
+**The law is the other half of the story, and it certified the bypass.** Titled "nothing that can EDIT the document is armed in preview", it walked `COMMANDS.filter(c => c.global)` — the set the KEYBOARD lets through — and asserted, two lines from the end, that the palette is global. It walks every command through `armed` now, checks the reachable set is non-empty, and checks the gate STANDS DOWN outside preview, which the flag-shaped version could not state at all. Falsified both ways: with no gate "duplicate" edits; with a mode-blind gate nothing is reachable and preview cannot be left. Preview offers seven commands now, all read-only.
+
+---
+
+## 2026-08-20 A law over the general case needs an input where the general case can be wrong
+
+Ten findings from an audit of the same night's work, and after the two headline defects (above, and the width handle below) the pattern in what remained was one thing: **eight laws whose subject was degenerate.** Not laws that asserted the wrong thing — laws whose FIXTURE could not tell the right implementation from the wrong one.
+
+- The drop line's positional law used three boxes of identical height, where document order and pixel order cannot disagree, so a row of a tall card and a short button drew its line 33px inside the card and the law was green. Four separate sabotages survived it — a line drawn on an item's edge, a line ±3000px away, a horizontal line 9999px right, a vertical line 9999px above its row — because its end arms fell back to ∓Infinity, its ±4 slack swallowed an on-the-edge line, and it read `line.y` alone and never the other three numbers.
+- The row-grouping law called the shared function and claimed to speak for the gap bands, which are a closure inside the app it cannot reach: pasting the private copy back left it green. Its fixture was also all one height, where "overlaps the row's lowest edge" and "overlaps the last box" agree.
+- The run-end law walked a path where the call it was testing was a no-op, because an earlier action in the same walk had already done the work.
+- The chord-label law asked that the label was not the raw chord and held no "mod" — both survive a label that drops every modifier in the middle, printing Undo's chord for Redo across the whole app.
+- The one-figure ordering law built its fixture top-down, so ids (minted sequentially) and document positions were the same list and a sort by id passed for a sort by position.
+
+The rule this earns, and it is a sharpening of the 2026-08-03 lesson rather than a new one: that lesson said read the computed value, not the declared one. This one says the INPUT matters as much as the output — **a law over a general case must be built on an input where the general case and the special case give different answers, or it is a law about the special case wearing the general one's name.** A fixture of identical boxes, a fixture built in reading order, a walk whose earlier steps do the work of the step under test: each is a way of asking a question whose answer cannot come out wrong.
+
+Two real defects fell out of writing the replacements. Two SEPARATE `Tabs` groups were being treated as tabs of each other, so one loud button in each read as "different panels", the figure budget called them mutually exclusive and a screen showing both came back clean — now each loud action carries the tab it is behind per group, and co-visibility is asked pairwise. And the review panel applied the fix its DEFERRED finding was holding: a finding's id is `rule:nodeId`, so matching it proves only that the finding still exists, while several repairs bake a computed value into their closure — a button 3 among siblings at 2 offers "Match it to size 2", and with the siblings changed to 4 the stale closure still writes 2, the value the live reviewer rejects, leaving its own finding standing.
+
+That last law needed a shape this repo had not used here: proving the two fixes differ, and that `liveFix` picks the right one, still says nothing about the button a person presses, because both hold by `liveFix`'s own construction. The staleness lives at the call site, which no node test can mount. So the law reads the SOURCE — the handler may hold a finding only to learn its id, and `finding.fix` anywhere in the app is the defect coming back.
+
+---
+
+## 2026-08-20 A magnifier may not change the room, in the OTHER direction
+
+The canvas width handle, fixed once and wrong again. The canvas is styled `canvasW * zoom` and also carries `maxWidth: 100%` inside an 880px parent, so past zoom 1 the painted box is CLAMPED and `offsetWidth` is no longer the width times the zoom. Measured at 150%: styled 1320px, `offsetWidth` 880. Dividing that by the zoom answers 587 for a canvas 880 wide, so a grab that moved **zero pixels** collapsed the canvas by a third and flipped every container tier inside it.
+
+It is the first spelling's defect reflected through 1. That one divided only the pointer's DELTA and left the base in painted pixels, jumping 880 → 442 at 50%; the repair divided the measured box instead, which is right below 1 and wrong above. Both spellings share a premise — that the painted box is a reliable statement of the room — and the room is a thing the app already knows. A stated width is the truth at every rung; the measurement survives only as the opening value, and only at zoom 1, where zooming has not yet pinned a width and the divide is a no-op.
+
+The arithmetic moved to `geometry.ts` beside the drop scan's, for the reason that file exists: the drag and the arrow keys had already drifted into different spellings of the same fact, and neither could be held to a law where it was. The laws model the CLAMP explicitly, which is what neither previous piece of reasoning did, and they fail against all three historical versions.
+
+---
+
+## 2026-08-20 A check that cannot run is a check that cannot fail — `turbo` and the browser laws
+
+`pnpm run ci` is the command this repo tells everyone to run before claiming a task done, and in any environment where Playwright's browsers live outside its default cache it could not launch a browser at all. Turbo hands each task a filtered environment, so `PLAYWRIGHT_BROWSERS_PATH` never reached the browser project: `vitest run` inside the package found the browsers, `turbo run test` in the same shell did not, and the reported result was `Test Files 8 passed (37)` — a launch failure that reads like a pass. With the variable passed through, the same command runs 1,414 browser laws.
+
+This is the 2026-08-08 `docs:test` finding in a second home. There, a missing build edge meant a law reading across a package boundary served a cache hit and silently did not run; here, a filtered environment means the same thing by another mechanism. Both times the failure mode was identical and it is the dangerous one: not a red build, but a green one that checked less than it claimed.
+
+---
+
 ## 2026-08-20 One measurement serves all four layouts — the drop scan asked the wrong question
 
 The builder's drop scan asked the container's `display` and got two answers: "flex row", measured on X, and everything else, measured on Y. That is wrong for half the layouts the builder ships, and the arithmetic says exactly how. Two cells of one grid row share a vertical midpoint, so the scan's `if (pointer > mid) index += 1` stepped over both at once — index went 0 → 2 and **position 1 did not exist**, unreachable by any gesture — while the indicator drew a full-width bar across the grid claiming to be between two rows the pointer was not between. A wrapped `Flex` failed the mirror case: measured on X alone, the wrap boundary was invisible, so the last item of one line and the first of the next were compared on an axis they do not share.
