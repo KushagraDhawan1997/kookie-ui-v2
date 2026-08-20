@@ -65,7 +65,6 @@ export function DocumentBar({
   return (
     <Flex align="center" gap="1" style={{ minWidth: 0 }}>
       <Select
-        size="1"
         items={items}
         value={doc.id}
         onValueChange={(id) => dispatch({ type: "docSwitch", id })}
@@ -80,10 +79,10 @@ export function DocumentBar({
         </SelectContent>
       </Select>
       {preview ? null : (
-      <Menu size="1">
+      <Menu>
         <MenuTrigger
           render={
-            <Button size="1" emphasis="quiet" aria-label="Document actions">
+            <Button emphasis="quiet" aria-label="Document actions">
               ⋯
             </Button>
           }
@@ -180,19 +179,18 @@ export function Breadcrumb({
     <Flex align="center" justify="space-between" gapX="3" px="4" py="1">
       <Flex align="center" gap="1" wrap="wrap" style={{ minWidth: 0 }}>
         {hidePath ? null : chain.length === 0 ? (
-          <Text size="1" emphasis="quiet">
+          <Text size="2" emphasis="quiet">
             Nothing selected
           </Text>
         ) : (
           chain.map((n, i) => (
             <React.Fragment key={n.id}>
               {i > 0 ? (
-                <Text size="1" emphasis="quiet" aria-hidden>
+                <Text size="2" emphasis="quiet" aria-hidden>
                   ›
                 </Text>
               ) : null}
               <Button
-                size="1"
                 emphasis="quiet"
                 aria-current={n.id === primary ? "true" : undefined}
                 onClick={() => onSelect(n.id)}
@@ -203,7 +201,7 @@ export function Breadcrumb({
           ))
         )}
         {selection.length > 1 ? (
-          <Text size="1" emphasis="medium">
+          <Text size="2" emphasis="medium">
             +{selection.length - 1} more
           </Text>
         ) : null}
@@ -315,7 +313,7 @@ export function ContextMenu({
 }) {
   if (!point) return null;
   return (
-    <Menu size="1" open onOpenChange={onOpenChange}>
+    <Menu open onOpenChange={onOpenChange}>
       <MenuTrigger
         render={
           <span

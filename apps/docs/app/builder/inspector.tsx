@@ -122,12 +122,11 @@ function PickRow({
   const items: Record<string, string> = Object.fromEntries(order);
   return (
     <Flex gap="3" align="center" justify="space-between">
-      <Text size="1" emphasis="medium">
+      <Text size="2" emphasis="medium">
         {label}
       </Text>
       <Flex gap="1" align="center">
         <Select
-          size="1"
           items={items}
           value={mixed ? MIXED : (value ?? UNSET)}
           onValueChange={(v) => {
@@ -193,11 +192,10 @@ function PropControl({
   if (schema.kind === "boolean") {
     return (
       <Flex gap="3" align="center" justify="space-between">
-        <Text size="1" emphasis="medium">
+        <Text size="2" emphasis="medium">
           {name}
         </Text>
         <Switch
-          size="1"
           checked={value === true}
           onCheckedChange={(checked) => onChange(checked ? true : undefined)}
           aria-label={name}
@@ -208,11 +206,10 @@ function PropControl({
   if (schema.kind === "number") {
     return (
       <Flex gap="3" align="center" justify="space-between">
-        <Text size="1" emphasis="medium">
+        <Text size="2" emphasis="medium">
           {name}
         </Text>
         <TextField
-          size="1"
           type="number"
           aria-label={name}
           value={value === undefined ? "" : String(value)}
@@ -226,11 +223,10 @@ function PropControl({
   }
   return (
     <Stack gap="1">
-      <Text size="1" emphasis="medium">
+      <Text size="2" emphasis="medium">
         {name}
       </Text>
       <TextField
-        size="1"
         aria-label={name}
         value={typeof value === "string" ? value : ""}
         onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value, true)}
@@ -288,10 +284,10 @@ function ResponsiveControl({
         onPick={(v) => write(v, resp)}
         after={
           unstated.length ? (
-            <Menu size="1">
+            <Menu>
               <MenuTrigger
                 render={
-                  <Button size="1" emphasis="quiet" iconOnly aria-label={`Add a breakpoint to ${name}`}>
+                  <Button emphasis="quiet" iconOnly aria-label={`Add a breakpoint to ${name}`}>
                     <PlusIcon />
                   </Button>
                 }
@@ -374,7 +370,7 @@ export function MultiInspector({
         <Text size="2" weight="medium">
           {nodes.length} selected
         </Text>
-        <Text size="1" emphasis="medium">
+        <Text size="2" emphasis="medium">
           {types.length === 1 ? `${types.length && types[0]}, all of them` : types.join(", ")}
         </Text>
       </Stack>
@@ -393,14 +389,13 @@ export function MultiInspector({
             if (schema.kind === "boolean") {
               return (
                 <Flex key={name} gap="3" align="center" justify="space-between">
-                  <Text size="1" emphasis="medium">
+                  <Text size="2" emphasis="medium">
                     {name}
                   </Text>
                   <Flex gap="1" align="center">
                     {/* Two buttons rather than a switch: a switch has no way to say "these
                         disagree", and one drawn OFF over a mixed set would be a lie. */}
                     <Button
-                      size="1"
                       emphasis={agreed && first === true ? "medium" : "quiet"}
                       bordered
                       onClick={() => onProp(name, true)}
@@ -408,7 +403,6 @@ export function MultiInspector({
                       On
                     </Button>
                     <Button
-                      size="1"
                       emphasis={agreed && first !== true ? "medium" : "quiet"}
                       bordered
                       onClick={() => onProp(name, undefined)}
@@ -502,7 +496,6 @@ export function Inspector({
           </Text>
           {SLUGS.has(node.type) ? (
             <Button
-              size="1"
               emphasis="quiet"
               render={<a href={"/components/" + SLUGS.get(node.type)} target="_blank" rel="noreferrer" />}
             >
@@ -510,18 +503,17 @@ export function Inspector({
             </Button>
           ) : null}
         </Flex>
-        <Text size="1" emphasis="medium">
+        <Text size="2" emphasis="medium">
           {entry.blurb}
         </Text>
       </Stack>
 
       {entry.children === "text" ? (
         <Stack gap="1">
-          <Text size="1" emphasis="medium">
+          <Text size="2" emphasis="medium">
             text
           </Text>
           <TextField
-            size="1"
             aria-label="Text content"
             {...(textRef ? { ref: textRef } : {})}
             value={node.text ?? ""}
@@ -556,30 +548,30 @@ export function Inspector({
 
       {slotsFor(node.type).length ? (
         <Stack gap="2">
-          <Text size="1" weight="medium">
+          <Text size="2" weight="medium">
             Slots
           </Text>
           {slotsFor(node.type).map((slot) => {
             const seated = slottedChild(node, slot);
             return (
               <Flex key={slot} gap="2" align="center" justify="space-between">
-                <Text size="1" emphasis="medium">
+                <Text size="2" emphasis="medium">
                   {slot}
                 </Text>
                 {seated ? (
                   <Flex gap="1" align="center">
-                    <Button size="1" emphasis="quiet" bordered onClick={() => onSelect(seated.id)}>
+                    <Button emphasis="quiet" bordered onClick={() => onSelect(seated.id)}>
                       {seated.type}
                     </Button>
-                    <Button size="1" emphasis="quiet" iconOnly aria-label={`Clear the ${slot} slot`} onClick={() => onSlot(slot, null)}>
+                    <Button emphasis="quiet" iconOnly aria-label={`Clear the ${slot} slot`} onClick={() => onSlot(slot, null)}>
                       <XIcon />
                     </Button>
                   </Flex>
                 ) : (
-                  <Menu size="1">
+                  <Menu>
                     <MenuTrigger
                       render={
-                        <Button size="1" emphasis="quiet" bordered>
+                        <Button emphasis="quiet" bordered>
                           Empty
                         </Button>
                       }
@@ -605,20 +597,20 @@ export function Inspector({
       {measured && measured.length > 1 ? (
         <Stack gap="2">
           <Separator />
-          <Text size="1" weight="medium">
+          <Text size="2" weight="medium">
             What that comes to
           </Text>
           {measured.map((row) => (
             <Flex key={row.label} gap="3" align="center" justify="space-between">
-              <Text size="1" emphasis="medium">
+              <Text size="2" emphasis="medium">
                 {row.label}
                 {row.stated ? (
-                  <Text size="1" emphasis="quiet">
+                  <Text size="2" emphasis="quiet">
                     {` ${row.stated}`}
                   </Text>
                 ) : null}
               </Text>
-              <Text size="1" render={<code />}>
+              <Text size="2" render={<code />}>
                 {row.value}
               </Text>
             </Flex>
@@ -633,7 +625,7 @@ export function Inspector({
       {refusals?.length ? (
         <Stack gap="2">
           <Separator />
-          <Text size="1" weight="medium">
+          <Text size="2" weight="medium">
             Not here, on purpose
           </Text>
           {refusals.map((r) => (
@@ -652,7 +644,6 @@ function Refusal({ name, why }: { name: string; why: string }) {
   return (
     <Stack gap="1">
       <Button
-        size="1"
         emphasis="quiet"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}

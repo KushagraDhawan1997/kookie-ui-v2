@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 Size 2 is the baseline, and the builder was quietly arguing otherwise
+
+Two things closed at once, and only one of them was the wiring.
+
+**The wiring.** The Shell gained a root `size` the day before precisely so an app states its navigation index once (#18, itself from this port). The builder — the consumer that motivated it — went on saying `size="1"` three separate times, on the rail, the sidebar and the inspector. A tool built and never picked up by the call site that asked for it.
+
+**The index.** Kushagra, closing it: *"anything system default should use size 2 as default, that's our baseline."* So the fix is not `<Shell size="1">` with the literal in one place instead of three — it is no literal at all. The panes take the system's baseline, and stating `size="2"` here would be a second home for a number whose one home is the component's own default.
+
+I had picked 1 because the editor's own controls are size 1 throughout, and read the panes as part of that chrome. They are not: a pane's `size` prices its NAV ROWS and its rail squares, which are navigation, not instruments. Measured, the correction is visible and it is an improvement — the rail's squares go 24 → 32 in a column 37 → 41, and the cramped look I had noted in the first screenshot and not acted on was this.
+
+**And then the same day, the rest of it** (Kushagra: *"other than helper text, we should assume size 2 as default"*). The ~96 remaining `size="1"` sites across the editor's own chrome are swept: every button, field, menu, tab strip and label takes the baseline, and **helper text is the one carve-out** — a standalone explanatory sentence, or a diagnostic, stays at 1. Fourteen sites qualified and were named individually rather than matched by a pattern, because the obvious pattern (quiet ink) mis-classifies in both directions: the breadcrumb's `›` separator and its "Nothing selected" placeholder are quiet and belong with the controls they sit among, and the Theme panel's one explanatory line is medium and is helper text all the same.
+
+**Two mechanics worth stating, both of which a blind sweep gets wrong.** A CONTROL drops the prop, because 2 is what Button, TextField, TabsList, Menu and Select already default to and re-stating a default is a second home for it. A `<Text>` must state `size="2"`, because Text anchors at **3** — dropping it there would have jumped every label two rungs, not settled it at the baseline. Kbd is a third case again: it has no default at all by design, so it drops the prop and inherits the line it sits in.
+
+**And the export dialog's code well was a Card standing in for a ground** (Kushagra, same day). It is a `Surface` now — the pair's own sentence is that a Card is an object and a Surface is a ground, and the component's doc names this exact shape, *"a bed inside a card that holds something quieter"*. Measured after the swap: no cast, its own fill, the family-less hairline, and a corner inside the dialog's (77.4 against 90.3). This is the drift Surface was minted to stop, found in the builder for the second time — the canvas page was the first — and worth recording because both times the call site had reached for the only container that existed.
+
+**Two boxes grew, and the argument is the same one both times: the content got bigger, so the box that holds it does.** The palette's longest name clipped by exactly 20px per column at the new index, so the sidebar goes 272 → 320 (measured against every pane afterwards: nothing clipped anywhere). And the export dialog goes size 3 → 4, because its code block is a `<pre>` that must not wrap and its longest line — the import — got 20% wider; at 720 the body fits and only the import still scrolls, which is what code does.
+
+---
+
 ## 2026-08-20 Stillness is not arrival — and a borrowed clock has to be given back
 
 **What.** `catchDissolve` hands back a `release()`, the two "a reopen that lands mid-dissolve is CAUGHT" laws call it the moment they take the dismissal back, and both then wait for the panel to REACH the box it left rather than for the box to stop moving.

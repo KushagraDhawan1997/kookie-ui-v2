@@ -155,7 +155,7 @@ export function CommandPalette({
                       <React.Fragment key={row.key}>
                         {header ? (
                           <Box pt={i === 0 ? "1" : "3"} pb="1">
-                            <Text size="1" emphasis="quiet">
+                            <Text size="2" emphasis="quiet">
                               {header}
                             </Text>
                           </Box>
@@ -174,7 +174,7 @@ export function CommandPalette({
                         >
                           <Flex align="center" justify="space-between" gap="4">
                             <Text size="2">{row.title}</Text>
-                            {row.hint ? <Kbd size="1">{row.hint}</Kbd> : null}
+                            {row.hint ? <Kbd>{row.hint}</Kbd> : null}
                           </Flex>
                         </Box>
                       </React.Fragment>
