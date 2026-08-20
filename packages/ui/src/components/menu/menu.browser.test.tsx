@@ -2055,11 +2055,16 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // pins the panel mid-dissolve for exactly as long as the gesture takes.
     const seized = catchDissolve(popup);
     flushSync(() => setOpen(false));
-    const { box: dissolving, fading } = await seized;
+    const { box: dissolving, fading, release } = await seized;
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
     expect(fading, "the premise: the panel is visibly mid-dissolve").toBeLessThan(0.9);
 
     flushSync(() => setOpen(true)); // the quick reopen
+    // The borrowed clocks go back with the gesture (the alert twin's CI finding): a paused
+    // transition keeps rendering its held value, so a seized exit left paused holds the panel
+    // a percent small for good, and every measurement after this point would be of the
+    // instrument rather than the mechanism.
+    release();
     /**
      * Anchored on the REVOCATION, not on a frame. The replay this law forbids is triggered by
      * the ending stamp leaving, and how long Base UI takes to remove it is a property of the
@@ -2094,16 +2099,11 @@ describe("the panel unfurls out of a seed (§22)", () => {
     //    through no fault of the mechanism.
     await until(() => parseFloat(computed(popup, "opacity")) === 1, 3000);
     expect(computed(popup, "opacity"), "the dismissal is revoked, not merely halted").toBe("1");
-    let previous = -1;
-    let still = 0;
-    // Three consecutive still frames, not one: a spring crossing its target is momentarily
-    // still at the top of the arc, and one frame of stillness is a shape a moving box makes.
-    await until(() => {
-      const width = popup.getBoundingClientRect().width;
-      still = Math.abs(width - previous) < 0.05 ? still + 1 : 0;
-      previous = width;
-      return still >= 3;
-    }, 3000);
+    // ARRIVAL, not stillness (2026-08-20, the alert twin's CI failures — 3.17 and 3.11 against
+    // a 2px bound, each of them 1% of its panel): a box that is STUCK is perfectly still, so
+    // stillness cannot say it got where it was going. The destination is what the wait names,
+    // and a recovery that never arrives expires the deadline into the same assertion.
+    await until(() => Math.abs(popup.getBoundingClientRect().width - settled.width) < 2, 3000);
     expect(
       Math.abs(popup.getBoundingClientRect().width - settled.width),
       "and it comes back to the box it was already occupying",

@@ -8,6 +8,17 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-20 Stillness is not arrival — and a borrowed clock has to be given back
+
+**What.** `catchDissolve` hands back a `release()`, the two "a reopen that lands mid-dissolve is CAUGHT" laws call it the moment they take the dismissal back, and both then wait for the panel to REACH the box it left rather than for the box to stop moving.
+
+**Why.** That law failed on main twice with the same shape — `expected 3.171875 to be less than 2`, then `3.109375` — and both numbers are 1% of the panel, which is the exit's own `scale: 0.99`. The recovery had not happened at all. **Holding a clock is borrowing it**: `catchDissolve` pauses the exit's animations to hold the window open, and a paused transition goes on rendering its held value, so a panel whose exit was seized can sit a percent small indefinitely if the browser's retarget does not displace it. Locally it always did (measured after the fix's first draft: `scale: none`, width exact, no animations left), which is why this only ever appeared on CI.
+
+**The deeper error was mine, and it is worth more than the repair.** The first fix for that failure waited for "three consecutive still frames", reasoning that the spring needed outlasting. **Stillness cannot tell a box that has ARRIVED from a box that is STUCK** — and a paused transition is perfectly still. So the wait passed instantly on precisely the broken state it was written to outlast, and the law failed a second time with a nearly identical number. A wait must name the DESTINATION when the destination is what the claim is about; a recovery that never arrives then expires the deadline into the same assertion, with the honest number in the message.
+
+**Both laws falsified after the change** (restore the replay branch in floating.tsx): `the reopen must catch the box where it is: 388px -> 66px`, and the alert on its flight arrangement. Green under CPU load and at `KUI_STALL=20`.
+
+---
 ## 2026-08-20 A law that must catch a MOMENT does not run where the clock is not ours
 
 **What.** `watchesFrames` (test/browser.tsx) excludes five laws from CI — the ones whose claim depends on WHEN they look. They still run in the `pnpm run ci` a human owes before pushing, the set is pinned by `src/test/frames.test.ts` in both directions, and vitest prints the skip count on the CI run itself.

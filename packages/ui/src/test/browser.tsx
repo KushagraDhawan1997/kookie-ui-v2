@@ -311,12 +311,20 @@ export async function sweep<T>(
  * transitions — the browser cancels them and travels back from the held value, exactly as it
  * does to a live dissolve; TIME is the only thing the instrument changed.
  *
- * Resolves with the box and opacity rendered at the held instant. Rejects if the stamp lands
- * with no clock to seize — an exit with no running dissolve cannot be caught mid-dissolve,
- * and that premise failure deserves its own message rather than whichever assertion trips
- * downstream of it.
+ * Resolves with the box and opacity rendered at the held instant, and a `release()` the caller
+ * MUST call once it has taken the dismissal back. Holding a clock is borrowing it: a paused
+ * transition keeps rendering its held value, so a panel whose exit was seized can sit at
+ * `scale: 0.99` for good if the browser's retarget does not displace it — measured on CI as a
+ * recovered panel 3.1px narrow, which is exactly 1% of its 311px box. `release()` cancels the
+ * seized animations so the reopen's own transitions are unencumbered.
+ *
+ * Rejects if the stamp lands with no clock to seize — an exit with no running dissolve cannot
+ * be caught mid-dissolve, and that premise failure deserves its own message rather than
+ * whichever assertion trips downstream of it.
  */
-export function catchDissolve(popup: HTMLElement): Promise<{ box: DOMRect; fading: number }> {
+export function catchDissolve(
+  popup: HTMLElement,
+): Promise<{ box: DOMRect; fading: number; release: () => void }> {
   return new Promise((resolve, reject) => {
     const seize = () => {
       const exits = popup.getAnimations({ subtree: true });
@@ -332,6 +340,9 @@ export function catchDissolve(popup: HTMLElement): Promise<{ box: DOMRect; fadin
       resolve({
         box: popup.getBoundingClientRect(),
         fading: parseFloat(getComputedStyle(popup).opacity),
+        release: () => {
+          for (const exit of exits) exit.cancel();
+        },
       });
     };
     if (popup.hasAttribute("data-ending-style")) return seize();
