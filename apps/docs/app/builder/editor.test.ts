@@ -8,6 +8,8 @@
  * that stays quiet, and nothing but running the fix and re-reviewing can prove it.
  */
 
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it, beforeEach } from "vitest";
 
 import { CATALOG, canContain as canContainForTest, normalizeSeats, sanitizeNode, sharedProps } from "./catalog";
@@ -24,7 +26,7 @@ import {
   type CommandContext,
 } from "./commands";
 import { CanvasBoundary, CONTEXT_COMMANDS } from "./chrome";
-import { CANVAS_MIN_W, box, canvasRoom, dropSpot, rowsOf, widthAfterDrag } from "./geometry";
+import { CANVAS_MIN_W, box, canvasRoom, documentIndex, dropSpot, rowsOf, widthAfterDrag } from "./geometry";
 import { MIXED, UNSET, pickOrder, readPick } from "./inspector";
 import {
   defaultDocTheme,
@@ -50,7 +52,7 @@ import {
 import { TEMPLATES, templateDoc } from "./templates";
 import { starterDoc } from "./builder-app";
 import { serializeDocument } from "./serialize";
-import { RULES, legalValue, reviewDocument } from "./review";
+import { RULES, legalValue, liveFix, reviewDocument } from "./review";
 import {
   activeDoc,
   canRedo,
@@ -1038,6 +1040,25 @@ describe("one measurement serves all four layouts", () => {
   it("nothing to measure is no answer at all, not index zero", () => {
     expect(dropSpot([], container, 10, 10)).toBeNull();
   });
+
+  it("the scan counts boxes; the tree counts children — and they are not the same list", () => {
+    // The scan is handed only the children the canvas could measure, and its answer used to
+    // go straight back into the FULL child list as an insertion index. With every child
+    // measured the two lists coincide, which is why this never showed; the moment one child
+    // renders no element, "before the third box I can see" silently becomes "before the third
+    // child", a different place.
+    //
+    // Children 0, 2 and 5 are the measurable ones, so a scan position of 1 means "before
+    // child 2", not "before child 1".
+    const positions = [0, 2, 5];
+    expect(documentIndex(positions, 0, 7)).toBe(0);
+    expect(documentIndex(positions, 1, 7)).toBe(2);
+    expect(documentIndex(positions, 2, 7)).toBe(5);
+    // One past the last measured box is the end of the FULL list, not of the measured one.
+    expect(documentIndex(positions, 3, 7)).toBe(7);
+    // With everything measured it is the identity, which is why the defect hid.
+    expect([0, 1, 2, 3].map((i) => documentIndex([0, 1, 2], i, 3))).toEqual([0, 1, 2, 3]);
+  });
 });
 
 describe("a magnifier may not change the room — the canvas width at every rung", () => {
@@ -1462,6 +1483,65 @@ describe("review reads the house style off the document", () => {
     expect(found).toHaveLength(1);
     expect(found[0]!.message).toContain("size 1 in a row of size 3");
     expect(found[0]!.fix!.title).toBe("Match it to size 3");
+  });
+
+  it("a fix is only ever the LIVE finding's — a stale closure writes a rejected value", () => {
+    /* The panel renders findings from the DEFERRED document, so what it shows can be one
+       render behind the tree. The guard for that asked whether the finding's id still existed
+       — and an id is `rule:nodeId`, so it catches a finding that VANISHED and nothing else.
+       Several fixes bake a computed value into the closure, and those move while the id
+       stands still.
+
+       This is the same defect the round-trip law was strengthened for, on the path that law
+       does not walk: applying a repair the current reviewer would not offer. */
+    // ONE tree, with the siblings' size changed under it — same node ids, which is the whole
+    // point: the id cannot tell the two documents apart.
+    const row = node("Flex", { gap: "3" }, {
+      children: [
+        node("Button", { size: "3" }, { text: "odd" }),
+        node("Button", { size: "2" }, { text: "a" }),
+        node("Button", { size: "2" }, { text: "b" }),
+      ],
+    });
+    const at = (siblingSize: string) => ({
+      ...row,
+      children: row.children!.map((c, i) => (i === 0 ? c : { ...c, props: { ...c.props, size: siblingSize } })),
+    });
+    const rule = (roots: ReturnType<typeof node>[]) =>
+      reviewDocument(asDoc(roots)).find((f) => f.rule === "mixed-control-sizes")!;
+
+    const stale = rule([at("2")]);
+    const live = rule([at("4")]);
+    // The id is identical across the two documents, which is exactly why matching on it
+    // cannot tell them apart — and the fixes disagree about what to write.
+    expect(live.id).toBe(stale.id);
+    expect(stale.fix!.title).toBe("Match it to size 2");
+    expect(live.fix!.title).toBe("Match it to size 4");
+
+    // Applying the STALE fix to the LIVE tree writes the value the live reviewer rejects, and
+    // leaves its own finding standing — a fix that resolves nothing.
+    const liveRoots = [at("4")];
+    const afterStale = stale.fix!.apply(liveRoots);
+    expect(reviewDocument(asDoc(afterStale)).some((f) => f.rule === "mixed-control-sizes")).toBe(true);
+
+    /* …and the CHOICE, which is the half a law about the two fixes alone could not reach.
+       `liveFix` is what the panel's button goes through, so this is the defect's own path. */
+    const chosen = liveFix(asDoc(liveRoots), stale.id)!;
+    expect(chosen.fix!.title).toBe("Match it to size 4");
+    const after = chosen.fix!.apply(liveRoots);
+    expect(reviewDocument(asDoc(after)).some((f) => f.rule === "mixed-control-sizes")).toBe(false);
+
+    // A finding that has genuinely gone is refused rather than applied blind.
+    expect(liveFix(asDoc(after), stale.id)).toBeUndefined();
+
+    /* And the app REACHES for it. The two assertions above hold by `liveFix`'s construction,
+       so on their own they say nothing about the button the person actually presses — the
+       staleness lives at the call site, which no node test can mount. Read the source: the
+       panel's handler may hold a finding only to learn its ID, and a `finding.fix` anywhere in
+       the app is the defect coming back. */
+    const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    expect(app).toContain("liveFix(live, finding.id)");
+    expect(app.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "")).not.toContain("finding.fix");
   });
 
   it("every value a fix WRITES is a value the axis holds", () => {

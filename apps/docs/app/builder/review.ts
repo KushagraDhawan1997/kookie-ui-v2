@@ -677,6 +677,25 @@ export const reviewDocument = (doc: BuilderDoc): Finding[] => {
   });
 };
 
+/**
+ * Which repair a click actually applies (2026-08-20).
+ *
+ * The panel renders findings from the DEFERRED document, so what it shows can be a render
+ * behind the tree, and clicking one must be checked against the tree it will edit. The first
+ * guard asked whether the finding's id was still there — but an id is `rule:nodeId`, so it
+ * only sees a finding that VANISHED. Several repairs bake a computed value into their closure
+ * (`mixed-control-sizes` its majority, `control-scale` its pane, `differentiated-rhythm` a
+ * stepped gap and a different node), and those move while the id stands still: a button 3
+ * among siblings at 2 offers "Match it to size 2"; change the siblings to 4 and the stale
+ * closure still writes 2 — the value the live reviewer explicitly rejects — leaving its own
+ * finding standing, which is this file's own "a fix may not trade one finding for another"
+ * broken on the one path the round-trip law does not walk.
+ *
+ * So the id is how the finding is FOUND, and the live one is what is applied.
+ */
+export const liveFix = (doc: BuilderDoc, id: string): Finding | undefined =>
+  reviewDocument(doc).find((f) => f.id === id && f.fix);
+
 /** For the law: the parent chain a rule sees, exposed so a test can build one cheaply. */
 export const parentsOf = (roots: BuilderNode[], id: string): BuilderNode[] => {
   const chain: BuilderNode[] = [];
