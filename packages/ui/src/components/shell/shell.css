@@ -1,7 +1,7 @@
 /* Shell (§27). The app frame — and deliberately almost no paint of its own: every pane is a
    `.kui-surface`, so the seal, edge, material and the world's depth all arrive
    from surfaces.css exactly as they do for a Card. What this sheet states is GEOMETRY (the
-   grid, the pane extents, the two postures) and the pane STATES (auto/open/closed, and the
+   grid, the pane extents, the posture derivation) and the pane STATES (auto/open/closed, and the
    overlay treatment with its scrim).
 
    This is the ONE stylesheet sanctioned to key on the viewport (§13's carve-out; §18's
@@ -199,46 +199,118 @@
   }
 }
 
-/* ── The two postures: flush and floating (§27) ────────────────────────────────────────────
-   FLUSH tiles the panes edge to edge: corners square, and each seam is ONE hairline — a pane
-   draws only its inner edge and the content draws none, so two neighbours never double a
-   border. The border-width overrides leave the surface's border COLOR untouched, which is
-   what keeps the seams reachable by contrast="high" exactly as a card's
-   edge is. */
-.kui-shell[data-panes="flush"] > .kui-shell-pane {
+/* ── Posture: flush, grounded, floating (§27, rewritten 2026-08-20) ────────────────────────
+   The axis used to sit on the ROOT as `panes="flush" | "floating"`, and it named the wrong
+   thing: it kept every pane in its own column and put gaps between them, so nothing ever
+   overlapped and a canvas could not run behind its own layers panel. v1 had the missing half
+   under a third name (`presentation="stacked"`, "positions above content without displacing
+   it") and never joined it to the first. Both halves are here, and the API is ONE BOOLEAN per
+   pane, because the author knows what a pane IS and only the stylesheet knows what is BEHIND
+   it: **a pane floats if the content is underneath it, and the content is underneath it only
+   if the content is itself flush; otherwise it grounds.** Nothing states `grounded` or
+   `floating` — they are outcomes, which is why the three-value spelling was dropped along
+   with the three attempts at naming its values (LOG 2026-08-20). */
+
+/* FLUSH: part of the frame. Corners square, and each seam is ONE hairline — a pane draws only
+   its INNER edge and the content draws none, so two neighbours never double a border. The
+   border-width overrides leave the surface's border COLOR untouched, which is what keeps a
+   seam reachable by contrast="high" exactly as a card's edge is. Keyed on the pane's own
+   attribute now rather than on the root's, which is the whole of the API change in CSS. */
+.kui-shell-pane[data-flush] {
   border-radius: var(--radius-0);
   border-width: 0;
 }
 
-.kui-shell[data-panes="flush"] > .kui-shell-header {
+.kui-shell-header[data-flush] {
   border-block-end-width: var(--border-width);
 }
 
-.kui-shell[data-panes="flush"] > .kui-shell-rail,
-.kui-shell[data-panes="flush"] > .kui-shell-sidebar {
+.kui-shell-rail[data-flush],
+.kui-shell-sidebar[data-flush] {
   border-inline-end-width: var(--border-width);
 }
 
-.kui-shell[data-panes="flush"] > .kui-shell-inspector {
+.kui-shell-inspector[data-flush] {
   border-inline-start-width: var(--border-width);
 }
 
-.kui-shell[data-panes="flush"] > .kui-shell-bottom {
+.kui-shell-bottom[data-flush] {
   border-block-start-width: var(--border-width);
 }
 
-/* FLOATING IS THE GAP: half of it on the frame's padding, half on every pane's margin, so
-   pane-to-pane and pane-to-edge distances are equal by construction at every pane
-   combination — including the absent ones (v1 put whole margins on each pane, and the
-   doubling between neighbours was a spacing nobody chose). The panes keep their full card
-   identity: all four borders, the surface corner, and the gaps show the app's own page —
-   the shell paints no bed. */
-.kui-shell[data-panes="floating"] {
+/* NOT FLUSH: nothing to state. The pane keeps the full surface identity it already has —
+   four borders, the surface corner, the world's depth — because a pane pulled off the frame
+   IS a card, and `.kui-surface` has said so since the day this file was written. What arrives
+   with it and is worth naming: a grounded pane in a `depth="flat"` world draws its boundary
+   because `[data-depth="flat"]` re-declares `--surface-edge: initial` in surfaces.css, so
+   `var(--tone-border)` resolves at the element. No shell rule buys that. */
+
+/* SPACING. A non-flush pane pays for its own air, in full, on every side — which is exactly
+   right against the frame edge and against a flush neighbour, because neither of those pays
+   anything. It is NOT right between two non-flush neighbours, which double to 2g.
+
+   That gap is forced, not a spelling problem: requiring flush|flush to be 0 and
+   grounded|grounded to be g fixes grounded|flush at g/2 for EVERY split of the gap between
+   the frame's padding, the grid's gap and the panes' margins — two non-flush panes each pay
+   a share and a flush pane pays none, so a mixed boundary gets one share instead of two.
+   Paying in full moves the error off the boundary that matters (a card against the chrome
+   beside it) and onto the one that does not exist in any app in front of us (two non-flush
+   panes adjacent). Deferred deliberately, logged 2026-08-20: closing it means about eight
+   `:has()` rules of the form "if the thing next to you is non-flush, give it air". */
+.kui-shell-pane:not([data-flush]) {
+  margin: var(--shell-gap);
+}
+
+/* ...unless NOTHING is flush, which is the all-cards frame. There the gap splits — half on
+   the frame's padding, half on every pane's margin — so pane-to-pane and pane-to-edge come
+   out equal by construction at every pane combination, including the absent ones. This is
+   the construction the shipped axis used everywhere; it is exact in this regime and only
+   this one, which is why it is now scoped to it. */
+.kui-shell:not(:has(> .kui-shell-pane[data-flush])) {
   padding: calc(var(--shell-gap) / 2);
 }
 
-.kui-shell[data-panes="floating"] > .kui-shell-pane {
+.kui-shell:not(:has(> .kui-shell-pane[data-flush])) > .kui-shell-pane {
   margin: calc(var(--shell-gap) / 2);
+}
+
+/* FLOATING, half one: the pane lifts above the content. `z-index` on a grid item works with
+   no `position` at all, which is what keeps the overlay treatment's own `position: absolute`
+   uncontested — an overlaying pane sits at 2 and simply outranks this, in either source
+   order. Staying IN FLOW is also what makes a floating rail and a floating sidebar tile
+   correctly beside each other: out of flow their grid areas both collapse to zero width and
+   they would land on the same edge, stacked. The band is the scrim's, deliberately: the
+   scrim is a later sibling, so an overlay's scrim covers a floating pane, which is right. */
+.kui-shell:has(> .kui-shell-content[data-flush]) > .kui-shell-pane:not([data-flush]) {
+  z-index: 1;
+}
+
+/* FLOATING, half two: the content reaches UNDER it. The content's grid area grows to the
+   floating pane's own start or end line — `grid-template-areas` mints those line names for
+   free — so it grows only on the sides something actually floats on, and a flush header
+   above a floating sidebar still pushes the content down rather than being painted over.
+   The rail line is stated after the sidebar's so it wins on source order when both float,
+   which is the only ordering question in this block. The subject carries `[data-flush]`,
+   and that IS the derivation's condition: the content can only be underneath if it is
+   flush, so a grounded content simply never matches and its non-flush siblings ground. */
+.kui-shell:has(> .kui-shell-sidebar:not([data-flush])) > .kui-shell-content[data-flush] {
+  grid-column-start: sidebar-start;
+}
+
+.kui-shell:has(> .kui-shell-rail:not([data-flush])) > .kui-shell-content[data-flush] {
+  grid-column-start: rail-start;
+}
+
+.kui-shell:has(> .kui-shell-inspector:not([data-flush])) > .kui-shell-content[data-flush] {
+  grid-column-end: inspector-end;
+}
+
+.kui-shell:has(> .kui-shell-header:not([data-flush])) > .kui-shell-content[data-flush] {
+  grid-row-start: header-start;
+}
+
+.kui-shell:has(> .kui-shell-bottom:not([data-flush])) > .kui-shell-content[data-flush] {
+  grid-row-end: bottom-end;
 }
 
 /* ── The narrow window (§18's boundary — config's `narrowMedia`, law-pinned) ───────────────

@@ -37,26 +37,36 @@ afterEach(async () => {
 
 /** A whole shell; every pane present unless a law states its own. */
 function fixture(props: {
-  panes?: "flush" | "floating";
+  /** Applied to EVERY pane: `false` is the all-cards frame, the one regime where the gap
+      splits half onto the frame's padding (§27, rewritten 2026-08-20). */
+  flush?: boolean;
   sidebar?: React.ComponentProps<typeof ShellSidebar>;
   inspector?: React.ComponentProps<typeof ShellInspector>;
   bottom?: React.ComponentProps<typeof ShellBottom>;
   rail?: boolean;
 } = {}) {
   return (
-    <Shell panes={props.panes ?? "flush"} style={{ height: 600 }}>
-      <ShellHeader>
+    <Shell style={{ height: 600 }}>
+      <ShellHeader flush={props.flush ?? true}>
         <ShellTrigger target="sidebar" data-testid="trigger">
           menu
         </ShellTrigger>
       </ShellHeader>
-      {props.rail ? <ShellRail aria-label="Sections">rail</ShellRail> : null}
-      <ShellSidebar aria-label="Primary" {...props.sidebar}>
+      {props.rail ? (
+        <ShellRail aria-label="Sections" flush={props.flush ?? true}>
+          rail
+        </ShellRail>
+      ) : null}
+      <ShellSidebar aria-label="Primary" flush={props.flush ?? true} {...props.sidebar}>
         sidebar
       </ShellSidebar>
-      <ShellContent>content</ShellContent>
-      <ShellInspector {...props.inspector}>inspector</ShellInspector>
-      <ShellBottom {...props.bottom}>bottom</ShellBottom>
+      <ShellContent flush={props.flush ?? true}>content</ShellContent>
+      <ShellInspector flush={props.flush ?? true} {...props.inspector}>
+        inspector
+      </ShellInspector>
+      <ShellBottom flush={props.flush ?? true} {...props.bottom}>
+        bottom
+      </ShellBottom>
     </Shell>
   );
 }
@@ -576,7 +586,7 @@ describe("flush and floating: one fact, two postures (§27)", () => {
   });
 
   it("floating IS the gap: pane-to-pane and pane-to-edge distances are equal, and they are the system's", () => {
-    const shell = mountShell({ panes: "floating" });
+    const shell = mountShell({ flush: false });
     const gap = parseFloat(tokenOn(shell, "--shell-gap"));
     expect(gap).toBeGreaterThan(0);
     const root = shell.getBoundingClientRect();
@@ -598,11 +608,15 @@ describe("flush and floating: one fact, two postures (§27)", () => {
     // read 336px of "gap").
     const shell = mounted(
       <div data-frame style={{ height: 600, width: 900 }}>
-        <Shell panes="floating" style={{ height: "100%" }}>
-          <ShellHeader>h</ShellHeader>
-          <ShellSidebar aria-label="Primary">s</ShellSidebar>
-          <ShellContent>c</ShellContent>
-          <ShellBottom defaultOpen>b</ShellBottom>
+        <Shell style={{ height: "100%" }}>
+          <ShellHeader flush={false}>h</ShellHeader>
+          <ShellSidebar aria-label="Primary" flush={false}>
+            s
+          </ShellSidebar>
+          <ShellContent flush={false}>c</ShellContent>
+          <ShellBottom flush={false} defaultOpen>
+            b
+          </ShellBottom>
         </Shell>
       </div>,
       { theme: {}, select: ".kui-shell" },
@@ -621,8 +635,8 @@ describe("flush and floating: one fact, two postures (§27)", () => {
     ).toBeLessThanOrEqual(f.height + 0.5);
   });
 
-  it("floating panes are cards: the full edge and the surface corner come back", () => {
-    const shell = mountShell({ panes: "floating" });
+  it("a non-flush pane is a card: the full edge and the surface corner come back", () => {
+    const shell = mountShell({ flush: false });
     const sidebar = within(shell, ".kui-shell-sidebar");
     const hairline = tokenOn(shell, "--border-width");
     expect(computed(sidebar, "border-inline-start-width")).toBe(hairline);
@@ -632,7 +646,7 @@ describe("flush and floating: one fact, two postures (§27)", () => {
 
   it("the gap answers density through the layer — it IS the layout-space pick, in every scope", () => {
     for (const density of ["compact", "default", "comfortable"] as const) {
-      const shell = mountShell({ panes: "floating" });
+      const shell = mountShell({ flush: false });
       const themed = mounted(<div />, { theme: { density } });
       expect(tokenOn(themed, "--shell-gap"), density).toBe(tokenOn(themed, "--layout-space-3"));
       shell.remove();
@@ -651,6 +665,113 @@ describe("flush and floating: one fact, two postures (§27)", () => {
  * Escape closed the pane AND the dialog around it, the same layer-blindness the audit fixed
  * in the other direction. Falsified against the code without `stopPropagation`.
  */
+describe("the derivation: what a non-flush pane BECOMES is read off the content (§27)", () => {
+  /* The load-bearing pair. Both mounts are the same shell with the same non-flush sidebar;
+     the ONLY difference is one prop on a DIFFERENT pane. That is deliberate — a law over a
+     derivation needs an input where the derivation can be wrong, or it is a law about
+     whichever branch the fixture happened to pick (LOG 2026-08-20, the builder audit's own
+     lesson). Both are falsified: pin the derivation to either answer and exactly one fails. */
+  const derived = (contentFlush: boolean) =>
+    mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          nav
+        </ShellSidebar>
+        <ShellContent flush={contentFlush}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+
+  it("content flush → the sidebar FLOATS: the work area runs out to the frame edge under it", () => {
+    const shell = derived(true);
+    const frame = shell.getBoundingClientRect();
+    const sidebar = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
+    const content = within(shell, ".kui-shell-content").getBoundingClientRect();
+    // The whole point: the content is UNDERNEATH, so its box reaches the frame's own edge
+    // and the sidebar sits inside it rather than beside it.
+    expect(content.left, "the content stopped at the sidebar instead of running under it").toBeCloseTo(frame.left, 0);
+    expect(sidebar.left).toBeGreaterThan(content.left);
+    expect(sidebar.right).toBeLessThan(content.right);
+  });
+
+  it("content NOT flush → the same sidebar GROUNDS: nothing is behind it, so it sits beside", () => {
+    const shell = derived(false);
+    const sidebar = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
+    const content = within(shell, ".kui-shell-content").getBoundingClientRect();
+    expect(content.left, "the content ran under a pane with nothing to float over").toBeGreaterThanOrEqual(
+      sidebar.right - 0.5,
+    );
+  });
+
+  it("a floating pane paints ABOVE the content it covers, without a positioned box", () => {
+    const shell = derived(true);
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    const box = sidebar.getBoundingClientRect();
+    // Read the browser's own answer rather than a declaration: z-index on a grid item works
+    // with `position: static`, which is what keeps the overlay treatment's `absolute`
+    // uncontested — so asserting a `position` declaration would measure the wrong thing.
+    expect(computed(sidebar, "position"), "a floating pane should not need positioning").toBe("static");
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    expect(sidebar.contains(hit), "the content won the hit-test over the pane on top of it").toBe(true);
+  });
+
+  it("the content grows ONLY on the sides something floats on — a flush header still pushes it down", () => {
+    const shell = derived(true);
+    const header = within(shell, ".kui-shell-header").getBoundingClientRect();
+    const content = within(shell, ".kui-shell-content").getBoundingClientRect();
+    expect(content.top, "the content slid under a header that never left the frame").toBeCloseTo(
+      header.bottom,
+      0,
+    );
+  });
+
+  it("a non-flush pane expresses the theme's material on CALM GROUND; a flush one does not", () => {
+    // The one-directional rule (corrected 2026-08-20): a non-flush pane answers for itself
+    // because something is behind it either way; a flush pane follows the ambient region,
+    // which is what keeps full-window vibrancy — a flush translucent sidebar — reachable.
+    const shell = mounted(
+      <Shell style={{ height: 300 }}>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          nav
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: { material: "regular" }, select: ".kui-shell" },
+    );
+    expect(
+      within(shell, ".kui-shell-sidebar").dataset.material,
+      "a pane pulled off the frame did not take the material it now has a backdrop for",
+    ).toBe("regular");
+    expect(
+      within(shell, ".kui-shell-content").dataset.material,
+      "a welded pane expressed glass with nothing stated behind the shell",
+    ).toBeUndefined();
+  });
+
+  it("a grounded content in flush chrome takes the FULL gap on every side", () => {
+    // The mixed regime: the frame pays nothing and the flush panes pay nothing, so the one
+    // non-flush pane pays in full — which is what makes its gap to the chrome equal to its
+    // gap to the window edge. (Halving it is the defect this spelling exists to avoid.)
+    const shell = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary">nav</ShellSidebar>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const gap = parseFloat(tokenOn(shell, "--shell-gap"));
+    const frame = shell.getBoundingClientRect();
+    const sidebar = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
+    const content = within(shell, ".kui-shell-content").getBoundingClientRect();
+    expect(content.left - sidebar.right, "the gap against the chrome").toBeCloseTo(gap, 0);
+    expect(frame.right - content.right, "the gap against the window edge").toBeCloseTo(gap, 0);
+    expect(content.top - frame.top, "the gap above").toBeCloseTo(gap, 0);
+    // And the flush neighbour is still welded to the frame.
+    expect(sidebar.left).toBeCloseTo(frame.left, 0);
+  });
+});
+
 describe("placement: at the root, and composed inside another layer (§27)", () => {
   it("inside a Dialog: the shell lays out, contains its own children, and answers Escape ALONE", async () => {
     const onOpenChange = vi.fn();

@@ -37,7 +37,7 @@ import * as React from "react";
 
 import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
 import { useWindowClass } from "../../system/window.ts";
-import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
+import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /* ── The registry: the one thing that crosses the shell ─────────────────────────────────── */
 
@@ -104,32 +104,56 @@ const cx = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(" ")
     §27: a pane is a card among cards; seal, edge, material and depth all arrive from
     surfaces.css and this file's stylesheet paints nothing).
 
-    The material is SELECTIVE since 2026-08-17 (§10, merged from main 2026-08-20): a pane
-    reads the theme's glass only where a backdrop is stated — the ambient `<Box backdrop>`
-    region — and resolves `solid` on the page's calm ground, `on-glass` inside a glass pane.
-    A shell pane sits on the app's own ground, so `solid` is the honest default and costs
-    nothing; whether a pane should take `backdrop` of its own is an open API question, and
-    the overlay pane is its real case (it is the one with content genuinely behind it). */
-function surfaceStamps(material: SurfaceMaterial) {
-  return {
+    The material is SELECTIVE since 2026-08-17 (§10, merged from main 2026-08-20): a surface
+    reads the theme's glass only where a backdrop is stated. **`flush` is what states it
+    here** (2026-08-20), which closes the API question this comment used to carry open: a
+    pane pulled off the frame has something behind it and a welded one does not, so the
+    posture prop already answers the material's question and no second prop is owed. */
+function usePaneDress(flush: boolean) {
+  // ONE-DIRECTIONAL, and the direction matters (corrected before shipping, 2026-08-20 — the
+  // first spelling passed `backdrop: !flush` and two existing laws caught it). A NON-FLUSH
+  // pane is the CARD case and answers for itself: something is behind it either way — the
+  // content if it floats, the ground if it does not — so it states the backdrop and resolves
+  // the theme's material exactly as `<Card backdrop>` does. "Floating gets the material" then
+  // needs no shell rule of its own; it is §10's selectivity read from the other end.
+  //
+  // A FLUSH pane states NOTHING and follows the ambient region, because its backdrop is a
+  // question about what the APP put behind the shell, not about the pane. Passing `false`
+  // here would have been the author contradicting an enclosing `<Box backdrop>` in writing,
+  // and that forecloses full-window vibrancy — a macOS sidebar is flush against the window
+  // edge AND translucent over the wallpaper, which is the oldest glass app frame there is.
+  const material = useMaterial(flush ? undefined : { backdrop: true });
+  const stamps = {
     "data-tone": "neutral",
     "data-emphasis": "quiet",
     "data-bordered": true,
+    // The pane states only its OWN fact. Whether a non-flush pane floats or grounds is
+    // derived in the stylesheet, because it depends on a sibling's prop and must be right at
+    // first paint — the same reason `auto` is resolved in CSS rather than in JS (§27).
+    ...(flush ? { "data-flush": "" } : {}),
     // Solid is the absence of a material, so it writes no attribute (§10).
     ...(material !== "solid" ? { "data-material": material } : {}),
   } as const;
+  return { material, stamps };
 }
+
+/** Every pane's posture prop. */
+type PaneDressProps = {
+  /**
+   * §27 — is this pane part of the app frame? `flush` (the default) tiles it against its
+   * neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what
+   * happens next is DERIVED rather than chosen: a pane floats if the content is underneath
+   * it, and the content is underneath it only if the content is itself flush; otherwise it
+   * grounds — its own surface resting on the app's ground, the card relationship at pane
+   * scale. One boolean per pane reaches all four postures, and the derivation cannot be told
+   * the lie a three-value axis could (a floating sidebar beside a grounded content card).
+   */
+  flush?: boolean;
+};
 
 /* ── Root ───────────────────────────────────────────────────────────────────────────────── */
 
 export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
-  /**
-   * §27 — are the panes touching? `flush` tiles them edge to edge, each seam one hairline;
-   * `floating` separates them, and the gap and visible corners are just what not-touching
-   * looks like. The distance is the system's (`--shell-gap`, a layout-space pick, so it
-   * answers density); there is no gap prop, deliberately.
-   */
-  panes?: "flush" | "floating";
   ref?: React.Ref<HTMLDivElement>;
 };
 
@@ -140,7 +164,7 @@ export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & 
  * `100dvh` box. The root paints nothing — in floating mode the gaps show the app's own page,
  * the same relationship a card has to the page anywhere else.
  */
-export function Shell({ panes = "flush", className, style, children, ref, ...props }: ShellProps) {
+export function Shell({ className, style, children, ref, ...props }: ShellProps) {
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const [store] = React.useState<ShellStore>(() => ({
     entries: new Map(),
@@ -342,7 +366,6 @@ export function Shell({ panes = "flush", className, style, children, ref, ...pro
         {...props}
         ref={mergeRefs(ref, rootRef)}
         className={cx("kui-shell", className)}
-        data-panes={panes}
         style={style}
       >
         {children}
@@ -357,16 +380,17 @@ export function Shell({ panes = "flush", className, style, children, ref, ...pro
 
 /* ── The static panes: Header and Content ───────────────────────────────────────────────── */
 
-export type ShellHeaderProps = Omit<React.ComponentPropsWithoutRef<"header">, "color">;
+export type ShellHeaderProps = Omit<React.ComponentPropsWithoutRef<"header">, "color"> &
+  PaneDressProps;
 
 /** Full-width by definition — the criterion, not an option: if it isn't wide, it's a header
     inside ShellContent. Renders a real `<header>` landmark. */
-export function ShellHeader({ className, children, ...props }: ShellHeaderProps) {
-  const material = useMaterial();
+export function ShellHeader({ flush = true, className, children, ...props }: ShellHeaderProps) {
+  const { material, stamps } = usePaneDress(flush);
   return (
     <header
       {...props}
-      {...surfaceStamps(material)}
+      {...stamps}
       className={cx("kui-surface kui-shell-pane kui-shell-header", className)}
     >
       <GlassScope material={material}>{children}</GlassScope>
@@ -374,15 +398,16 @@ export function ShellHeader({ className, children, ...props }: ShellHeaderProps)
   );
 }
 
-export type ShellContentProps = Omit<React.ComponentPropsWithoutRef<"main">, "color">;
+export type ShellContentProps = Omit<React.ComponentPropsWithoutRef<"main">, "color"> &
+  PaneDressProps;
 
 /** The work area — renders `<main>`, scrolls itself, takes whatever room the panes leave. */
-export function ShellContent({ className, children, ...props }: ShellContentProps) {
-  const material = useMaterial();
+export function ShellContent({ flush = true, className, children, ...props }: ShellContentProps) {
+  const { material, stamps } = usePaneDress(flush);
   return (
     <main
       {...props}
-      {...surfaceStamps(material)}
+      {...stamps}
       className={cx("kui-surface kui-shell-pane kui-shell-content", className)}
     >
       <GlassScope material={material}>{children}</GlassScope>
@@ -508,7 +533,8 @@ function usePane(
 }
 
 type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
-  TogglePaneOwnProps & {
+  TogglePaneOwnProps &
+  PaneDressProps & {
     /**
      * §27 — the system's first sanctioned raw length: a pane's width is the app's content
      * speaking, and no ladder exists that could price it. In CSS pixels. It overrides the
@@ -541,6 +567,7 @@ function SidePane({
     onOpenChange,
     presentation,
     width,
+    flush = true,
     id,
     className,
     style,
@@ -548,7 +575,7 @@ function SidePane({
     ref,
     ...rest
   } = props;
-  const material = useMaterial();
+  const { material, stamps } = usePaneDress(flush);
   const pane = usePane(name, { open, defaultOpen, onOpenChange, presentation: presentation ?? "auto", id });
   const Element = element;
   return (
@@ -557,7 +584,7 @@ function SidePane({
       id={pane.id}
       ref={mergeRefs(ref, pane.paneRef)}
       className={cx("kui-surface kui-shell-pane", `kui-shell-${name}`, className)}
-      {...surfaceStamps(material)}
+      {...stamps}
       data-state={pane.state}
       data-presentation={pane.presentation}
       // Focus lands here programmatically when the pane overlays — a mode, not a keyboard
@@ -596,7 +623,8 @@ export function ShellInspector(props: ShellInspectorProps) {
 }
 
 export type ShellBottomProps = Omit<React.ComponentPropsWithoutRef<"aside">, "color"> &
-  TogglePaneOwnProps & {
+  TogglePaneOwnProps &
+  PaneDressProps & {
     /** §27 — the bottom pane's block extent, the width prop's sentence turned 90°. */
     height?: number;
     ref?: React.Ref<HTMLElement>;
@@ -611,6 +639,7 @@ export function ShellBottom(props: ShellBottomProps) {
     onOpenChange,
     presentation,
     height,
+    flush = true,
     id,
     className,
     style,
@@ -618,7 +647,7 @@ export function ShellBottom(props: ShellBottomProps) {
     ref,
     ...rest
   } = props;
-  const material = useMaterial();
+  const { material, stamps } = usePaneDress(flush);
   const pane = usePane("bottom", {
     open,
     defaultOpen,
@@ -632,7 +661,7 @@ export function ShellBottom(props: ShellBottomProps) {
       id={pane.id}
       ref={mergeRefs(ref, pane.paneRef)}
       className={cx("kui-surface kui-shell-pane kui-shell-bottom", className)}
-      {...surfaceStamps(material)}
+      {...stamps}
       data-state={pane.state}
       data-presentation={pane.presentation}
       tabIndex={-1}

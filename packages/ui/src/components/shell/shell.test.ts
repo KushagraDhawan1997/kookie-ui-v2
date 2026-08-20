@@ -108,4 +108,18 @@ describe("the shell tokens are emitted from config (§27)", () => {
     expect([...consumed].sort()).toEqual([...emitted].sort());
     expect(consumed.size).toBeGreaterThanOrEqual(5);
   });
+
+  it("the deleted root axis leaves NO trace — posture is a pane's own fact (§27, 2026-08-20)", () => {
+    // The shape the look axis's deletion earned (2026-08-20): a value left reachable in the
+    // stylesheet is a value every call site can re-introduce, and here it would be worse than
+    // dead — `data-panes` named the ROOT as the owner of a fact that is now per pane and
+    // partly derived, so a surviving rule would silently outrank the derivation. The comment
+    // strip matters, and `sheet()` already does it: shell.css's own prose quotes the old
+    // spelling to explain what it replaced, so a raw read would pass on the documentation.
+    const css = sheet("components/shell/shell.css");
+    expect(css).not.toContain("data-panes");
+    // And the fact it was replaced with is really keyed on the pane, not re-centralised.
+    expect(css).toContain(".kui-shell-pane[data-flush]");
+    expect(css).toContain(".kui-shell-pane:not([data-flush])");
+  });
 });

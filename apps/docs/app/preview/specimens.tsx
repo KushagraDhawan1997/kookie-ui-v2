@@ -1031,12 +1031,11 @@ function ShellSection() {
         </Box>
       </Demo>
 
-      {/* Floating: the same shell, not touching — the gap and the corners are what
-          not-touching looks like, and the gaps show the page, not a painted bed. The rail
-          joins as the second nav column: nothing excludes anything. */}
-      <Demo label="Floating — rail + sidebar, panes as cards, gap from layout space">
+      {/* GROUNDED (Canva, Xcode): the content is pulled off the frame and becomes its own
+          surface, while the chrome around it stays welded. One word on one pane. */}
+      <Demo label="Grounded content — the chrome stays flush, the work area becomes a surface">
         <Box height="22rem">
-          <Shell panes="floating">
+          <Shell>
             <ShellHeader>
               <Flex align="center" gap="3" px="3" py="2">
                 <Text size="2" weight="medium">
@@ -1044,19 +1043,6 @@ function ShellSection() {
                 </Text>
               </Flex>
             </ShellHeader>
-            <ShellRail aria-label="Sections">
-              <Stack gap="2" p="2" align="center">
-                <Text size="2" weight="medium">
-                  A
-                </Text>
-                <Text size="2" emphasis="medium">
-                  B
-                </Text>
-                <Text size="2" emphasis="medium">
-                  C
-                </Text>
-              </Stack>
-            </ShellRail>
             <ShellSidebar aria-label="Primary">
               <Stack gap="1" p="3">
                 <Text size="2" weight="medium">
@@ -1070,18 +1056,72 @@ function ShellSection() {
                 </Text>
               </Stack>
             </ShellSidebar>
-            <ShellContent>
+            <ShellContent flush={false}>
               <Stack gap="2" p="4">
                 <Heading size="6">Inbox</Heading>
                 <Text size="2" emphasis="medium">
-                  A glass theme makes these panes translucent over the page — floating is
-                  where material finally has something to show through to.
+                  Nothing is behind it, so it rests on the ground rather than floating — the
+                  system derives that from the panes around it.
                 </Text>
               </Stack>
             </ShellContent>
           </Shell>
         </Box>
       </Demo>
+
+      {/* FLOATING (Figma, Womp): the content stays flush, so it is underneath — and the nav
+          columns lift over it. Watch the content's own surface run out to the frame edge
+          behind the rail and the sidebar. */}
+      <Demo label="Floating nav — the content stays whole and the columns sit over it">
+        <Box height="22rem">
+          <Shell>
+            <ShellHeader>
+              <Flex align="center" gap="3" px="3" py="2">
+                <Text size="2" weight="medium">
+                  Kookie Studio
+                </Text>
+              </Flex>
+            </ShellHeader>
+            <ShellRail aria-label="Sections" flush={false}>
+              <Stack gap="2" p="2" align="center">
+                <Text size="2" weight="medium">
+                  A
+                </Text>
+                <Text size="2" emphasis="medium">
+                  B
+                </Text>
+                <Text size="2" emphasis="medium">
+                  C
+                </Text>
+              </Stack>
+            </ShellRail>
+            <ShellSidebar aria-label="Primary" flush={false}>
+              <Stack gap="1" p="3">
+                <Text size="2" weight="medium">
+                  Layers
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Frame 1
+                </Text>
+                <Text size="2" emphasis="medium">
+                  Frame 2
+                </Text>
+              </Stack>
+            </ShellSidebar>
+            <ShellContent>
+              <Stack gap="2" p="4">
+                <Heading size="6">Canvas</Heading>
+                <Text size="2" emphasis="medium">
+                  The work area runs the full width of the frame and the columns rest on top
+                  of it. Under a glass theme this is where the material finally has something
+                  to show through to.
+                </Text>
+              </Stack>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+
     </Stack>
   );
 }
