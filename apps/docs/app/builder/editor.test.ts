@@ -29,6 +29,8 @@ import { CanvasBoundary, CONTEXT_COMMANDS } from "./chrome";
 import { CANVAS_MIN_W, box, canvasRoom, documentIndex, dropSpot, rowsOf, widthAfterDrag } from "./geometry";
 import { MIXED, UNSET, pickOrder, readPick } from "./inspector";
 import {
+  CANVAS_TYPE,
+  canvasNode,
   defaultDocTheme,
   findNode,
   flowChildren,
@@ -307,8 +309,9 @@ describe("the store keeps a document's history to itself", () => {
 
     const back = loadState("fallback")!;
     expect(back.docs[0]!.name).toBe("Sign in");
-    expect(back.docs[0]!.roots[0]!.type).toBe("Card");
-    expect(back.docs[0]!.roots[0]!.children![0]!.text).toBe("hello");
+    expect(back.docs[0]!.roots[0]!.type, "the root is the canvas").toBe(CANVAS_TYPE);
+    expect(back.docs[0]!.roots[0]!.children![0]!.type).toBe("Card");
+    expect(back.docs[0]!.roots[0]!.children![0]!.children![0]!.text).toBe("hello");
     expect(canUndo(back)).toBe(false);
   });
 
@@ -323,7 +326,8 @@ describe("the store keeps a document's history to itself", () => {
     );
     const migrated = loadState("Untitled")!;
     expect(migrated.docs).toHaveLength(1);
-    expect(migrated.docs[0]!.roots[0]!.type).toBe("Card");
+    expect(migrated.docs[0]!.roots[0]!.type, "a v1 document is read back inside a canvas").toBe(CANVAS_TYPE);
+    expect(migrated.docs[0]!.roots[0]!.children![0]!.type).toBe("Card");
     expect(migrated.blocks[0]!.name).toBe("Old block");
   });
 
@@ -344,8 +348,11 @@ describe("the store keeps a document's history to itself", () => {
       activeId: "d1",
     });
     const back = loadState("Untitled")!;
-    expect(back.docs[0]!.roots.map((n) => n.type)).toEqual(["Button"]);
-    expect(back.docs[0]!.roots[0]!.props).toEqual({ emphasis: "loud" });
+    // The stale "Widget" is dropped and the survivor is read back INSIDE the canvas, which is
+    // where a document's content lives.
+    expect(back.docs[0]!.roots.map((n) => n.type)).toEqual([CANVAS_TYPE]);
+    expect(back.docs[0]!.roots[0]!.children!.map((n) => n.type)).toEqual(["Button"]);
+    expect(back.docs[0]!.roots[0]!.children![0]!.props).toEqual({ emphasis: "loud" });
   });
 
   it("storage denied leaves the editor working from memory", () => {
@@ -1280,7 +1287,12 @@ describe("a broken canvas never takes the document with it", () => {
 
 /* ── The review engine ─────────────────────────────────────────────────────────────────── */
 
-const asDoc = (roots: BuilderNode[]) => ({ theme: makeDoc("x").theme, roots });
+/** A document, shaped the way a real one is: the content sits INSIDE the canvas. Reviewing a
+    bare root list stopped describing anything real when the canvas became the document's one
+    root, and the difference is load-bearing here — the canvas is exempt from the
+    empty-container rule, so a law that roots its subject directly would be reviewing an
+    exempt node without meaning to. */
+const asDoc = (roots: BuilderNode[]) => ({ theme: makeDoc("x").theme, roots: [canvasNode(roots)] });
 
 describe("review reads the house style off the document", () => {
   it("every rule is written to be read: a real sentence, a unique id", () => {

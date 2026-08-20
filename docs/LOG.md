@@ -200,6 +200,22 @@ Verified live: a Box in a flex row 24px → 842px on the drag and back to 24px w
 
 ---
 
+## 2026-08-20 The canvas becomes a node — a wrapper you cannot see is a wrapper that lies
+
+Kushagra, looking at the Layers tree: *"the canvas should render also in the layers, because isn't it a Flex too? … I still expect to see parent Canvas in layers so that I can manually adjust padding and gap."* He is right, and it was worse than a missing row: the wrapper already existed and already lied.
+
+**The measurement that settles it.** The canvas rendered the document's roots inside a `Stack gap="5"` that the tree never showed, the inspector could not reach, and the SERIALIZER never emitted — the export wraps multiple roots in a Fragment. Measured on two roots: 16px between the cards on screen, nothing at all in the generated code. **And the law written to catch exactly this could not see it.** "Round-trip identity: the exported code IS the canvas" builds its expected side by re-implementing the tree with a Fragment, so both sides of the comparison agreed with each other while disagreeing with the canvas nobody rendered. One indirection short of the thing that was wrong, on the law whose title claims the opposite — this repo's oldest lesson, on the builder's anchor law.
+
+**The shape: the canvas IS the document's single root**, a real `Stack` carrying `gap="5"`. That choice is what keeps it from becoming a second kind of thing — `findNode`, the drag, selection, undo, review and the serializer all speak `roots` already, so an ordinary node at `roots[0]` needs no special case in any of them. The serializer's own fragment branch simply stops firing, because there is always exactly one root. Rejected: a `doc.canvas` props bag beside the roots (delivers the same UI and buys four permanent special cases — tree row, inspector case, export wrapper, storage field), and a bespoke `Canvas` catalog type (the coverage law requires every catalog key to be a real package export, and inventing a component to name a role is the drift that law exists to stop). The row reads **"Canvas · Stack"**: the role first, the truth beside it, because it exports as a Stack and the label should not pretend otherwise.
+
+**What it forced, each caught by a failing law rather than by foresight.** The migration lives in `reviveDoc`, the one gate every stored document passes, and is keyed on SHAPE rather than a version number — one root of the canvas type is already migrated, anything else gets wrapped — so a hand-edited or half-migrated file lands on its feet. Every document-producing path had to agree: `makeDoc`, the templates, and the starter, which was missed on the first pass and produced the sharpest failure — `isCanvasId` trusted position alone, so an unmigrated document handed the guard the user's own first element and froze it undeletable. The guard checks the TYPE too now, which turns that into a graceful decline. And **two review rules had to exempt it**: `empty-container` and `single-child-layout` both prescribe "cut it" or "unwrap it", and a finding against a node that cannot be removed is noise rather than review — an empty new document was being reported as a fault, and a canvas holding one card as a pointless layout. The exemption is one named predicate both rules ask, because that list will grow.
+
+The review LAWS moved with it: `asDoc` now builds content inside a canvas, the way a real document is shaped. Reviewing a bare root list stopped describing anything real, and left alone it would have silently reviewed an exempt node.
+
+Verified live: the row reads "Canvas · Stack" above the content, the inspector offers its gap and padding, Delete/Unwrap/Duplicate are refused on it and still offered on an ordinary Card, and the export now opens with the `<Stack gap="5">` the canvas actually draws. 355 laws.
+
+---
+
 ## 2026-08-20 The canvas is a room, not a shrink-wrap — and the gutter is the world a shadow has
 
 Kushagra, on a card in the builder: *"its shadows are cut. I'm having difficulty understanding whats my canvas."* Two symptoms, and measuring them found one cause each.

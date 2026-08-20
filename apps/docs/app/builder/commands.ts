@@ -20,6 +20,7 @@ import { CATALOG, canContain } from "./catalog";
 import {
   cloneWithNewIds,
   findNode,
+  isCanvasId,
   findParent,
   insertNode,
   moveNode,
@@ -221,7 +222,17 @@ export type Command = {
 /* ── Helpers shared by several commands ────────────────────────────────────────────────── */
 
 const roots = (ctx: CommandContext) => activeDoc(ctx.state).roots;
-const hasSelection = (ctx: CommandContext) => ctx.state.selection.length > 0;
+
+/** The canvas IS the document (2026-08-20), so no command may delete it, move it, copy it,
+    dissolve it or save it as a block. Asked once here rather than in each command's own
+    `enabled`, because the list of structural commands grows and a guard repeated per command
+    is a guard that will be forgotten by one of them. Editing its props is untouched — that
+    is the inspector, and adjusting the canvas's padding and gap is the whole point of it
+    being visible. */
+const touchesCanvas = (ctx: CommandContext) =>
+  ctx.state.selection.some((id) => isCanvasId(activeDoc(ctx.state), id));
+const hasSelection = (ctx: CommandContext) => ctx.state.selection.length > 0 && !touchesCanvas(ctx);
+const oneSelected = (ctx: CommandContext) => ctx.state.selection.length === 1 && !touchesCanvas(ctx);
 
 /** Insert nodes where the selection says, selecting the first arrival. */
 const insertNodes = (ctx: CommandContext, nodes: BuilderNode[]): void => {
@@ -356,7 +367,7 @@ export const COMMANDS: Command[] = [
     group: "Arrange",
     chord: "mod+alt+arrowup",
     keywords: "reorder earlier before",
-    enabled: (c) => c.state.selection.length === 1,
+    enabled: oneSelected,
     run: (c) => c.dispatch({ type: "edit", roots: moveNode(roots(c), primaryId(c.state)!, -1) }),
   },
   {
@@ -365,7 +376,7 @@ export const COMMANDS: Command[] = [
     group: "Arrange",
     chord: "mod+alt+arrowdown",
     keywords: "reorder later after",
-    enabled: (c) => c.state.selection.length === 1,
+    enabled: oneSelected,
     run: (c) => c.dispatch({ type: "edit", roots: moveNode(roots(c), primaryId(c.state)!, 1) }),
   },
   {
@@ -430,7 +441,7 @@ export const COMMANDS: Command[] = [
     keywords: "dissolve remove container ungroup",
     enabled: (c) => {
       const id = primaryId(c.state);
-      return Boolean(id && c.state.selection.length === 1 && canUnwrap(roots(c), id));
+      return Boolean(id && oneSelected(c) && canUnwrap(roots(c), id));
     },
     run: (c) => {
       const id = primaryId(c.state)!;
@@ -556,7 +567,7 @@ export const COMMANDS: Command[] = [
     group: "Document",
     chord: "mod+b",
     keywords: "component reuse library",
-    enabled: (c) => c.state.selection.length === 1,
+    enabled: oneSelected,
     run: (c) => c.ui.saveBlockFromSelection(),
   },
 

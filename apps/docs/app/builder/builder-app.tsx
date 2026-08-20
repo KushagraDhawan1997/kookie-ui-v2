@@ -61,6 +61,8 @@ import {
   findParent,
   insertNode,
   moveNodeTo,
+  canvasChildren,
+  canvasNode,
   node,
   removeNode,
   setSlot,
@@ -165,7 +167,10 @@ const activeTier = (w: number): string => {
     module counter is not safe (see withStableIds). */
 export const starterDoc = (): BuilderDoc => ({
   theme: defaultDocTheme(),
+  // The canvas wraps the starter exactly as it wraps every other document — a document that
+  // skipped it would hand `isCanvasId` the wrong node and freeze the real first root.
   roots: withStableIds([
+    canvasNode([
     node("Card", { size: "3" }, {
       children: [
         node("Stack", { gap: "5" }, {
@@ -187,6 +192,7 @@ export const starterDoc = (): BuilderDoc => ({
         }),
       ],
     }),
+    ]),
   ]),
 });
 
@@ -1437,7 +1443,7 @@ export function BuilderApp() {
                     {/* A tree, said in the markup: assistive technology gets the structure
                         the eye gets from the indent, and the rows carry their own level. */}
                     <Stack gap="2">
-                    {doc.roots.length > 0 ? (
+                    {canvasChildren(doc).length > 0 ? (
                       <TextField
                         size="1"
                         aria-label="Filter layers"
@@ -1463,7 +1469,7 @@ export function BuilderApp() {
                       />
                     ) : null}
                     <Stack gap="1" render={<div role="tree" aria-label="Layers" />}>
-                      {doc.roots.length === 0 ? (
+                      {canvasChildren(doc).length === 0 ? (
                         <Text size="1" emphasis="quiet">
                           The canvas is empty.
                         </Text>
@@ -1635,8 +1641,8 @@ export function BuilderApp() {
                         room — which is what it will answer in an app column. */}
                     <Box container width="100%">
                       <CanvasBoundary tree={doc.roots} onRecover={undo} canRecover={canUndo(state)}>
-                        <Stack gap="5">
-                          {doc.roots.length === 0 ? (
+                        <>
+                          {canvasChildren(doc).length === 0 ? (
                             <TemplatePicker
                               onPick={(id) => {
                                 const template = TEMPLATES.find((t) => t.id === id);
@@ -1653,7 +1659,7 @@ export function BuilderApp() {
                           ) : (
                             doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
                           )}
-                        </Stack>
+                        </>
                       </CanvasBoundary>
                     </Box>
                   </Theme>
@@ -2290,7 +2296,14 @@ function TreeRows({
     const y = (e.clientY - box.top) / box.height;
     return y < 0.25 ? "before" : y > 0.75 ? "after" : "into";
   };
-  const label = n.text ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}` : n.type;
+  // The root row reads "Canvas": it is a real Stack (and exports as one), but its ROLE in the
+  // document is the page every other node sits on, and `depth === 0` is exactly that node.
+  const label =
+    depth === 0
+      ? `Canvas · ${n.type}`
+      : n.text
+        ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}`
+        : n.type;
   const pass = { dropRow, onDragBegin, onDragFinish, canRowDrop, onHoverRow, onRowDrop, visible };
   return (
     <>

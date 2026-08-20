@@ -64,8 +64,37 @@ export type DocTheme = {
 
 export type BuilderDoc = {
   theme: DocTheme;
+  /** ALWAYS exactly one node: the canvas (2026-08-20, Kushagra: "I still expect to see parent
+      Canvas in layers so that I can manually adjust padding and gap"). It stays an array
+      because every traversal, every drag, every id lookup in this file already speaks it —
+      making the canvas the single ROOT is what lets it be an ordinary node everywhere rather
+      than a second kind of thing beside them.
+
+      It existed before this, hidden: the canvas rendered its children inside a `Stack gap="5"`
+      that the tree never showed and the EXPORT never emitted, so two roots sat 16px apart on
+      screen and flush in the generated code (measured). A wrapper you cannot see is a wrapper
+      that lies; this makes it a node you can select, retune and read in the export. */
   roots: BuilderNode[];
 };
+
+/** The canvas is a real Stack, so it exports as one and needs no special case anywhere in the
+    serializer. `gap="5"` is the value the hidden wrapper already used, kept so existing
+    documents look the way they looked. */
+export const CANVAS_TYPE = "Stack";
+export const canvasNode = (children: BuilderNode[] = []): BuilderNode =>
+  node(CANVAS_TYPE, { gap: "5" }, { children });
+
+/** The one node no command may delete, move, unwrap or reparent: the document IS it. */
+export const isCanvasId = (doc: BuilderDoc, id: string): boolean => {
+  const root = doc.roots[0];
+  // The TYPE is checked as well as the position, so the failure is graceful: a document that
+  // somehow skipped the migration has an ordinary node at roots[0], and the guard declines to
+  // freeze it rather than silently making the user's first element undeletable.
+  return doc.roots.length === 1 && root?.id === id && root.type === CANVAS_TYPE;
+};
+
+/** A document's content, which is what every "is it empty" question actually means. */
+export const canvasChildren = (doc: BuilderDoc): BuilderNode[] => doc.roots[0]?.children ?? [];
 
 /** DERIVED from the package (the /preview law's rule): a builder copy of an axis default is
     the drift the environment panel already shipped once. */
