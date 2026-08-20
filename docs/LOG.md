@@ -144,6 +144,20 @@ The new laws repeat all four hide conditions on the input where right and wrong 
 
 **Postscript (merge with main).** Four of the shell's node laws were red on main when this started, and repairing them was part of this work. Main reached the same four independently and landed first — with a better answer on the one that mattered: the rail's per-index arms and the pane's hook stand-down MOVED into the join layer, following Dialog's own refusal, where this branch had carved them out of the law instead. Main's spelling is what survives the merge; the entry below carries it.
 
+## 2026-08-21 Main went red on two laws that raced a window, one day after the rule against it
+
+**What.** CI failed on `fix(dialog): the wrapper took four props and threw the rest away`. Two failures, neither in what that commit changed, and both the same shape: a law whose premise is a WINDOW rather than a state.
+
+**The dialog's name warning.** `useNameWarning` fires inside a `requestAnimationFrame`, on purpose — Base UI stamps `aria-labelledby` when the Title child registers, so reading at the statement after the mount measures nothing and passes whatever the code does. The law answered that with `await setTimeout(60)`. On a quiet machine the frame lands inside 60ms; on CI it did not, and the arm that must warn counted zero. **Fixed by seizing rather than waiting:** the helper now takes what it expects, so the arm expecting a warning returns the moment one arrives and no bound can be too short, while the arms expecting silence wait the full deadline — the fair direction, and the one where a late warning would be a real defect rather than a slow machine. Falsified against a sabotaged warning.
+
+**The select's release seam.** `the panel's floor is the trigger's RESTING width` reads `--kui-anchor-w`, which exists only while the flight does, and the panel's width on the release frame. It failed at 112 against 115.45 — the flight had not landed on the frame the loop read. **Its own sibling three laws down was already recorded in the excluded set for reading the same transient**, so this is the same kind and was simply never marked. Marked and recorded now, with the transient it must catch, per the registry's own rule.
+
+**Both are one day younger than the rule they break** (*a premise that is a window is seized or edge-anchored, never raced*, 2026-08-20). The dialog one could be seized and was; the select one cannot, because floating-ui converges in wall time — which is precisely the criterion the exclusion exists for.
+
+**Stated honestly: I could not reproduce either failure locally.** `KUI_STALL=20` passes both, which is consistent with the 2026-08-20 finding that the cause is bursty scheduling rather than slowness, and no bound defends against that. So the dialog repair is argued from the mechanism (the race is removed, and the law still fails against a sabotaged warning) rather than from a reproduction — and that limit is written here rather than left implied.
+
+---
+
 ## 2026-08-21 Taking the plane away took the seam with it — a flush boundary is a rule
 
 **What.** Kushagra, after the panes went flat: *"what is not so trivial is separation between shell panes when they are flush… we have used hairline for exactly this and I don't see why we can't use it here also. What is tricky is to see what gets it."*
