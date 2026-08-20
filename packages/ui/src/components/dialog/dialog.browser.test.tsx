@@ -722,16 +722,33 @@ describe("what the call site can say to a dialog", () => {
   };
 
   /** Warnings raised while `run` executes, filtered to the one being asked about. */
-  async function warnings(needle: string, run: () => void): Promise<number> {
+  /**
+   * SEIZED, NOT RACED (2026-08-21). Both warnings are deliberately post-paint — the name
+   * arrives when the Title child registers, and the clip check runs in an effect — so reading
+   * at the statement after the mount measures nothing and passes whatever the code does. The
+   * first spelling answered that with `await setTimeout(60)`, which is a WINDOW: it held on a
+   * quiet machine and failed on CI, where the frame had not run inside 60ms and the arm that
+   * must warn counted zero. That is the 2026-08-20 rule (*a premise that is a window is
+   * seized or edge-anchored, never raced*) walked into one day after it was written.
+   *
+   * `want` is what makes it seizable. Expecting a warning, this returns the moment one
+   * arrives, so no bound can be too short. Expecting silence, it waits the whole deadline
+   * before answering — the fair direction, and the one where a late warning would be a real
+   * defect rather than a slow machine.
+   */
+  async function warnings(needle: string, want: number, run: () => void): Promise<number> {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const count = () =>
+      spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes(needle)).length;
     try {
       run();
       settleAll();
-      // Both warnings are deliberately post-paint: the name arrives when the Title child
-      // registers, and the clip check runs in an effect. Reading at the statement after the
-      // mount would measure nothing at all — and would pass whatever the code did.
-      await new Promise((r) => setTimeout(r, 60));
-      return spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes(needle)).length;
+      const deadline = 2000;
+      for (let waited = 0; waited < deadline; waited += 16) {
+        if (want > 0 && count() >= want) break;
+        await new Promise((r) => setTimeout(r, 16));
+      }
+      return count();
     } finally {
       spy.mockRestore();
     }
@@ -766,7 +783,7 @@ describe("what the call site can say to a dialog", () => {
     // `aria-label`, which a screen reader announces as "dialog" and nothing else. Measured,
     // with no warning anywhere. All three arms, because a warning that never stops is worse
     // than none — a law that only mounted the failing case could not tell the two apart.
-    const bare = await warnings("accessible name", () =>
+    const bare = await warnings("accessible name", 1, () =>
       render(
         <Theme>
           <Dialog defaultOpen>
@@ -777,7 +794,7 @@ describe("what the call site can say to a dialog", () => {
     );
     expect(bare, "no title and no label — warn once").toBe(1);
 
-    const titled = await warnings("accessible name", () =>
+    const titled = await warnings("accessible name", 0, () =>
       render(
         <Theme>
           <Dialog defaultOpen>
@@ -788,7 +805,7 @@ describe("what the call site can say to a dialog", () => {
     );
     expect(titled, "a title names it — silence").toBe(0);
 
-    const labelled = await warnings("accessible name", () =>
+    const labelled = await warnings("accessible name", 0, () =>
       render(
         <Theme>
           <Dialog defaultOpen>
@@ -849,7 +866,7 @@ describe("what the call site can say to a dialog", () => {
     // content inside a 440px panel, no bar, no overflow, no error. There is no repair to make
     // — CSS resolves `overflow-x: auto` beside a clipped `overflow-y` to `hidden`, which is a
     // scroll container — so what ships is the warning that makes the ScrollArea findable.
-    const clipped = await warnings("wider than it is", () =>
+    const clipped = await warnings("wider than it is", 1, () =>
       render(
         <Theme>
           <Dialog defaultOpen size="2">
@@ -865,7 +882,7 @@ describe("what the call site can say to a dialog", () => {
 
     // The other half, and the one that makes this a law rather than a tripwire: ordinary prose
     // with an unbreakable word in it now WRAPS (type.css), so it must not warn.
-    const prose = await warnings("wider than it is", () =>
+    const prose = await warnings("wider than it is", 0, () =>
       render(
         <Theme>
           <Dialog defaultOpen size="2">
