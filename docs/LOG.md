@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-20 A dismissal taken back is CAUGHT, not replayed — the quick reopen reversed
+
+**What.** A reopen that lands while the panel is still dissolving no longer replays the entry. The runner's observer keeps one announcement — the starting stamp, a panel genuinely being born — and the `revoked` branch that watched for the ending stamp leaving is deleted. On that path nothing is posed, nothing is measured and no flight begins: Base UI takes the exit's target styles off, and the paint clock carries the panel back to rest from wherever the dissolve reached. Reverses the 2026-08-16 decision one paragraph below its own comment. Menu, Select, Dialog and AlertDialog all take it — it is the shared runner.
+
+**Why.** Kushagra, on a real dropdown: *"on second quick click it does show wrong animation"*. Measured, three times out of three: a panel dissolving at 355 x 98 and 58% opacity became 239 x 32 at full opacity **in the next frame** — 116px narrower, 66px shorter, instantly — and then unfurled again from the trigger's silhouette. With a short trigger the jump measures 358px → 64px.
+
+That is what replaying costs, and the cost was never measured on 2026-08-16. The reading then was that a reopen with no fresh mount and no starting stamp was an open that had lost its animation, which is true of the STAMPS and false of the panel: the panel is on screen, at its natural box, already placed by floating-ui. An entry is how a panel ARRIVES, and this one has never left. What a revoked dismissal owes is the dismissal being taken back, and §8's own two clocks already say how — the box is physics, and physics does not teleport. Every interruptible animation on every platform reads this way.
+
+**Rejected: replaying from the panel's current box.** It removes the teleport and keeps the unfurl, so it looked like the compromise. It is not one: the panel would still shrink before it grew, which is a second gesture the user did not make, and it costs a seed measured per reopen for the privilege. The absence is cheaper and truer.
+
+**Rejected: a threshold.** "Catch it while the panel is still substantially there, replay it once the dissolve is nearly done" — the whole exit is about 200ms, so a user clicking again inside that window is doing a rapid toggle, and a threshold nobody has designed is a number the system would then have to defend at every rung.
+
+**Two laws changed sides, and one was replaced whole.** Menu's and AlertDialog's "a reopen that lands mid-dissolve REPLAYS the entry" now assert the opposite, both falsified against the restored branch (`358px -> 64px`, three runs; `no pose: expected true to be false`). Menu's "a reopen RETIRES the flight it interrupts" lost its premise outright — there is no second flight to retire — and is replaced by the hazard it actually guarded: dismiss a panel WHILE AIRBORNE, take it back, and the interrupted flight's own pending clock must still land it, because it is now the only clock coming.
+
+**The instrument lesson, and it is this file's oldest one.** The first spelling of the new law read the box one animation frame after the click, which is a statement about the machine: on a quick pass Base UI has not removed the ending stamp yet, so there is nothing to see and the sabotaged runner PASSED it three times. It is anchored on the revocation now — waiting for the ending stamp to leave puts the read after the very microtask that would have posed the panel — and the sabotage fails 3/3 with the same message every time.
+
+---
+
 ## 2026-08-20 The three flakiest laws in the suite were three different lies about time, and one was measuring an animation it could not see
 
 Red on 9 of 13 CI runs, green here, rotating between three laws in `menu.browser.test.tsx`. Bound-tuning had already been tried twice. None of the three defects was the one the failures looked like.

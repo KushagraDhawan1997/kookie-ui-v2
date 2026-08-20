@@ -480,12 +480,19 @@ describe("the panel materializes (§25)", () => {
     expect(computed(title, "filter"), "the content dissolves with its box").toBe("none");
   });
 
-  it("a reopen that lands mid-dissolve REPLAYS the entry (§24, 2026-08-16)", async () => {
+  it("a reopen that lands mid-dissolve is CAUGHT, never replayed (§24, 2026-08-20)", async () => {
     /**
-     * The menu's quick-reopen finding, one family over (probed there): a reopen lands on a
-     * popup still mounted mid-exit — no fresh mount, no starting stamp — and a runner keyed
-     * on the node's birth missed the open entirely; the panel merely recovered from its
-     * half-dissolved pose. The announcement is data-open returning as the ending leaves.
+     * The menu's finding, one family over, and the reversal with it (measured there, 2026-08-20):
+     * a reopen lands on a popup still mounted mid-exit — no fresh mount, no starting stamp —
+     * and from 2026-08-16 the runner replayed the whole materialization on that path. The
+     * panel has never left, so replaying it teleports the box back to a seed it is nowhere
+     * near and forms it again. What a revoked dismissal owes is the dismissal being taken
+     * back: the panel recovers from wherever the dissolve reached, on the paint clock.
+     *
+     * An overlay's box barely travels — it is 3% of scale and a blur, not the menu's unfurl —
+     * so the claim here is the MECHANISM rather than a jump in pixels: no pose, no
+     * measurement, and the panel returns to full opacity from where it was caught. Falsified
+     * against the pre-fix runner (restore the `revoked` branch in floating.tsx).
      */
     let setOpen!: (v: boolean) => void;
     function Host() {
@@ -512,44 +519,60 @@ describe("the panel materializes (§25)", () => {
     // the animation as much progress as the wall clock gives the timer, and a loaded one does
     // not — the sibling law measured `blur(0.093377px)` where it expected `none`.
     await until(() => !popup.hasAttribute("data-unfurling"));
-    // Asserted, not assumed (2026-08-16 audit): if the first flight has NOT landed, its
-    // leftover `data-unfurling` satisfies this law's one load-bearing assertion further down
-    // and the law reports green for exactly the defect it exists to catch. A premise that is
-    // only a comment is a premise the law cannot be failed by.
+    // Asserted, not assumed (2026-08-16 audit): a premise that is only a comment is a premise
+    // the law cannot be failed by.
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight has landed").toBe(
       false,
     );
+    const settled = popup.getBoundingClientRect();
+
     flushSync(() => setOpen(false));
-    // Mid-dissolve is a WINDOW: a fixed 60ms into a 140ms clock overshoots on a slow runner
-    // and the premise below reports the exit already over.
-    await until(() => popup.hasAttribute("data-ending-style"), 400);
+    await until(() => popup.hasAttribute("data-ending-style"), 3000);
+    // Far enough in that the panel is visibly half-gone — the state a replay would discard.
+    await until(() => parseFloat(computed(popup, "opacity")) < 0.9, 3000);
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
-    expect(popup.hasAttribute("data-ending-style"), "the premise: mid-dissolve").toBe(true);
+    const dissolving = popup.getBoundingClientRect();
+    expect(
+      parseFloat(computed(popup, "opacity")),
+      "the premise: the panel is visibly mid-dissolve",
+    ).toBeLessThan(0.9);
+
     flushSync(() => setOpen(true)); // the quick reopen
     /**
-     * WAITED FOR, not slept past (2026-08-17, after this failed on CI and never here).
-     *
-     * Base UI removes the ending stamp on its own FRAME — at 0ms the announcement has not
-     * landed yet — and the runner's begin follows it, so the first spelling slept a flat 50ms
-     * and read once. On a loaded runner that observer callback and its pose can land later
-     * than 50ms, and the law then reports the recovery it exists to forbid: a false failure
-     * that looks exactly like the real defect.
-     *
-     * A poll cannot make the claim weaker. If the reopen genuinely produces no fresh pose, no
-     * amount of waiting invents one and the deadline expires into the same assertion.
+     * Anchored on the REVOCATION, not on a frame (2026-08-20). The replay this law forbids is
+     * triggered by the ending stamp leaving, and how long Base UI takes to remove it is a
+     * property of the machine — read one rAF after the click instead and a sabotaged runner
+     * passes, because on a quick pass the stamp has not left yet and there is nothing to see.
+     * Waiting for the announcement puts the read after the very microtask that would have
+     * posed the panel, which is what makes the claim about the mechanism rather than the load.
      */
-    await until(() => popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"), 800);
+    await until(() => !popup.hasAttribute("data-ending-style"), 3000);
+    expect(popup.isConnected, "the premise: this is the panel that was dissolving").toBe(true);
+    expect(popup.hasAttribute("data-ending-style"), "the premise: the dismissal was revoked").toBe(
+      false,
+    );
+
+    // 1. No flight was begun at all — and the measurement that only serves one was not taken.
+    expect(popup.hasAttribute("data-seed"), "no pose: a panel that never left is not re-formed").toBe(
+      false,
+    );
+    expect(popup.hasAttribute("data-unfurling"), "and no flight arrangement").toBe(false);
+    expect(popup.style.getPropertyValue("--kui-fly-w"), "not even the measurement").toBe("");
+
+    // 2. The box is caught where it is rather than thrown back to a seed.
+    const next = popup.getBoundingClientRect();
     expect(
-      popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"),
-      "the reopen begins a fresh materialization, not a recovery from the half-dissolved pose",
-    ).toBe(true);
-    // Airborne in the gap between the two deadlines is the retirement's own claim, and it has
-    // its own law one family over (menu: "a reopen RETIRES the flight it interrupts") — here
-    // the claim is only that the replay LANDS. Polled for the same reason as above, with the
-    // ceiling generous against the box clock rather than tuned to it.
-    await until(() => !popup.hasAttribute("data-unfurling"));
-    expect(popup.hasAttribute("data-unfurling"), "the replayed flight arrives").toBe(false);
-    expect(computed(popup, "opacity")).toBe("1");
+      Math.abs(next.width - dissolving.width),
+      `the reopen must catch the box where it is: ${Math.round(dissolving.width)}px -> ${Math.round(next.width)}px`,
+    ).toBeLessThan(20);
+
+    // 3. And the dissolve is revoked, not merely halted: it comes back to full.
+    await until(() => parseFloat(computed(popup, "opacity")) === 1, 3000);
+    expect(computed(popup, "opacity"), "the dismissal is taken back").toBe("1");
+    expect(
+      Math.abs(popup.getBoundingClientRect().width - settled.width),
+      "and it is the box it was already occupying",
+    ).toBeLessThan(2);
   });
 
   it("suppression is total: under reduced motion the panel is simply there (§8)", async () => {

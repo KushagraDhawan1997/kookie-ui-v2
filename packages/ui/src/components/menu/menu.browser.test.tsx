@@ -1904,14 +1904,25 @@ describe("the panel unfurls out of a seed (§22)", () => {
     }
   });
 
-  it("a reopen that lands mid-dissolve REPLAYS the entry (§22, 2026-08-16)", async () => {
+  it("a reopen that lands mid-dissolve is CAUGHT, never replayed (§22, 2026-08-20)", async () => {
     /**
-     * Probed before it was fixed: a quick close→reopen finds the popup still MOUNTED —
-     * Base UI flips it back with no starting stamp at all (the measured stream is
-     * data-closed off → data-open on → data-ending-style off), so an observer keyed on
-     * data-starting-style alone missed the open entirely and the panel merely recovered
-     * from its half-dissolved pose: a bit of scale and fade, no entry. The open
-     * announcement on this path is data-open returning while the ending attribute leaves.
+     * Kushagra, on a real menu: *"on second quick click it does show wrong animation"* — and
+     * it did. A quick close→reopen finds the popup still MOUNTED (Base UI flips it back with
+     * no fresh mount and no starting stamp: data-closed off → data-open on → data-ending-style
+     * off), and from 2026-08-16 the runner treated that as an open that had lost its entry and
+     * replayed the whole flight. The pose is the TRIGGER'S silhouette, so what the replay
+     * bought was a teleport: measured three times out of three, a panel dissolving at 355 x 98
+     * and 58% opacity became 239 x 32 at full opacity in the very next frame — 116px narrower
+     * and 66px shorter — and then unfurled again from there.
+     *
+     * The claim now is the opposite one, and it is deterministic rather than sampled: the
+     * frame BEFORE the reopen against the frame AFTER it. Nothing about that pair depends on
+     * how fast the runner is, which is the whole reason it is written this way — every law in
+     * this describe that reasoned about a RATE across an animation has been rewritten at least
+     * once for reading the machine instead of the mechanism.
+     *
+     * Falsified against the pre-fix runner (restore the `revoked` branch in floating.tsx):
+     * the box jumps 116px and the pose lands, so both halves fail.
      */
     let setOpen!: (v: boolean) => void;
     function Host() {
@@ -1920,10 +1931,12 @@ describe("the panel unfurls out of a seed (§22)", () => {
       return (
         <Theme>
           <Menu open={open} onOpenChange={set}>
+            {/* A label wide enough that the trigger's silhouette and the panel's box differ —
+                a replay that seeded from an equally wide trigger would jump by nothing. */}
             <MenuTrigger render={<Button>Open</Button>} />
             <MenuContent>
               <MenuItem>Alpha</MenuItem>
-              <MenuItem>Beta</MenuItem>
+              <MenuItem>Beta with a much longer label than the trigger has</MenuItem>
             </MenuContent>
           </Menu>
         </Theme>
@@ -1933,33 +1946,72 @@ describe("the panel unfurls out of a seed (§22)", () => {
     inMotion();
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    // Awaited for its own sake: `departed` is what puts the flight in the air, and it THROWS
-    // if the pose never came off — the clock it returns is no longer read here, because every
-    // wait below is a state rather than a duration.
+    // Awaited for its own sake: `departed` THROWS if the pose never came off, so the premise
+    // that there WAS a first flight to interrupt is checked rather than assumed.
     await departed(popup);
-    // Every wait here is a STATE, not a duration (`until`, 2026-08-17): sleeping a computed
-    // number of milliseconds and reading once is what made three laws fail on a loaded CI
-    // runner and never here.
     await until(() => !popup.hasAttribute("data-unfurling"));
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight landed").toBe(false);
+    const settled = popup.getBoundingClientRect();
+
     flushSync(() => setOpen(false));
-    // Mid-dissolve is a WINDOW, and a fixed 60ms into a 140ms clock is the shape that
-    // overshoots. Sampled, the stamp is caught the frame it lands.
     await until(() => popup.hasAttribute("data-ending-style"), 3000);
+    // Far enough into the dissolve that the panel is visibly half-gone — the state a replay
+    // would throw away. Read rather than timed: the law wants a fading panel, not a duration.
+    await until(() => parseFloat(computed(popup, "opacity")) < 0.9, 3000);
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
-    expect(popup.hasAttribute("data-ending-style"), "the premise: mid-dissolve").toBe(true);
+    const dissolving = popup.getBoundingClientRect();
+    const fading = parseFloat(computed(popup, "opacity"));
+    expect(fading, "the premise: the panel is visibly mid-dissolve").toBeLessThan(0.9);
+
     flushSync(() => setOpen(true)); // the quick reopen
-    // Base UI removes the ending stamp on its own FRAME (probed — at 0ms the announcement has
-    // not landed yet) and the runner's begin follows it, so this waits for the pose rather
-    // than for a number of milliseconds it hopes is long enough.
-    await until(() => popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"), 3000);
+    /**
+     * Anchored on the REVOCATION, not on a frame. The replay this law forbids is triggered by
+     * the ending stamp leaving, and how long Base UI takes to remove it is a property of the
+     * machine — read one rAF after the click instead and the sabotage passes, because on a
+     * quick runner the stamp has not left yet and there is nothing to see. Waiting for the
+     * announcement puts the read after the very microtask that would have posed the panel.
+     */
+    await until(() => !popup.hasAttribute("data-ending-style"), 3000);
+    expect(popup.isConnected, "the premise: the panel is still the one that was dissolving").toBe(true);
+    expect(popup.hasAttribute("data-ending-style"), "the premise: the dismissal was revoked").toBe(false);
+    const next = popup.getBoundingClientRect();
+
+    // 1. The box does not teleport. The pre-fix pair is 355 -> 239; the bound is wide enough
+    //    that it is not the number doing the work.
     expect(
-      popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling"),
-      "the reopen begins a fresh flight, not a recovery from the half-dissolved pose",
-    ).toBe(true);
-    await until(() => !popup.hasAttribute("data-unfurling")); // and it LANDS
-    expect(popup.hasAttribute("data-unfurling"), "the stale clock did not strip the new flight").toBe(false);
-    expect(computed(popup, "opacity")).toBe("1");
+      Math.abs(next.width - dissolving.width),
+      `the reopen must catch the box where it is: ${Math.round(dissolving.width)}px -> ${Math.round(next.width)}px`,
+    ).toBeLessThan(20);
+    expect(
+      Math.abs(next.height - dissolving.height),
+      `and in the block axis too: ${Math.round(dissolving.height)}px -> ${Math.round(next.height)}px`,
+    ).toBeLessThan(20);
+
+    // 2. And it is caught because no flight was begun at all — the mechanism, not its symptom.
+    expect(popup.hasAttribute("data-seed"), "no pose: a panel that never left is not re-born").toBe(false);
+    expect(popup.hasAttribute("data-unfurling"), "and no flight arrangement").toBe(false);
+    expect(popup.style.getPropertyValue("--kui-fly-w"), "not even the measurement").toBe("");
+
+    // 3. It recovers: the dissolve is taken back and the panel returns to the box it left.
+    //    Waited out to REST rather than to opacity alone — the paint clock finishes well
+    //    before the scale spring does, and a rect read in between is 2.8px short of the box
+    //    through no fault of the mechanism.
+    await until(() => parseFloat(computed(popup, "opacity")) === 1, 3000);
+    expect(computed(popup, "opacity"), "the dismissal is revoked, not merely halted").toBe("1");
+    let previous = -1;
+    let still = 0;
+    // Three consecutive still frames, not one: a spring crossing its target is momentarily
+    // still at the top of the arc, and one frame of stillness is a shape a moving box makes.
+    await until(() => {
+      const width = popup.getBoundingClientRect().width;
+      still = Math.abs(width - previous) < 0.05 ? still + 1 : 0;
+      previous = width;
+      return still >= 3;
+    }, 3000);
+    expect(
+      Math.abs(popup.getBoundingClientRect().width - settled.width),
+      "and it comes back to the box it was already occupying",
+    ).toBeLessThan(2);
   });
 
   it("suppression is total: under reduced motion nothing is posed and no clock survives (§8)", async () => {
@@ -2000,23 +2052,25 @@ describe("the panel unfurls out of a seed (§22)", () => {
     //    pose, and asserting one anyway would have been a law about a rule that no longer exists.
   });
 
-  it("a reopen RETIRES the flight it interrupts, so no stale clock strips the new one (§22, 2026-08-16)", async () => {
+  it("a dismissal taken back MID-FLIGHT lands on the flight it interrupted (§22, 2026-08-20)", async () => {
     /**
-     * The second half of the quick-reopen repair, and the half the replay law above cannot
-     * see: that one lets the first flight LAND before closing, so its release has already
-     * fired and there is no stale clock to disarm — deleting the retirement leaves it green.
+     * The hardest case the catch has to survive, and it replaces the law that used to live
+     * here ("a reopen RETIRES the flight it interrupts").
      *
-     * Here the reopen interrupts a flight that is still airborne. Each flight schedules its
-     * release off its own clock — 730ms, read from the popup's computed transition list at
-     * `flightClock`, and not the ~530 an earlier version of this comment asserted — so the
-     * interrupted one is due well before the flight that replaced it. Without the retirement
-     * the first timer lands inside the second flight, strips the pins, and the box jumps to
-     * its natural size a quarter of a second before it should have arrived. The claim is made
-     * in the gap between the two deadlines — past the stale one, short of the real one — and
-     * it is simply: the panel is still becoming.
+     * That law drove the same gesture and asserted the opposite outcome: it timed two
+     * overlapping flights and checked that the first one's stale clock did not strip the
+     * second. There is no second flight any more — a reopen mid-dissolve is CAUGHT rather than
+     * replayed (2026-08-20, see the law above) — so its premise is gone. The HAZARD it existed
+     * for is not: the interrupted flight's release timer is still pending, still keyed on the
+     * very attributes the panel is still wearing, and it is now the ONLY thing coming to land
+     * the panel. If catching a reopen left that clock unaccounted for, the panel would sit
+     * pinned to a mid-flight box with nothing to release it.
      *
-     * One law for both families because there is now one runner (unified 2026-08-16); before
-     * that this mechanism existed twice and would have needed asserting twice.
+     * So the claim is the outcome rather than the bookkeeping: close a panel while it is still
+     * in the air, take the dismissal back, and the panel must finish the flight it was already
+     * on — at full opacity, at its natural box, with every flight variable cleared. Timed
+     * against nothing: every wait is a state, which is what the three laws in this describe
+     * were rewritten for.
      */
     let setOpen!: (v: boolean) => void;
     function Host() {
@@ -2028,7 +2082,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
             <MenuTrigger render={<Button>Open</Button>} />
             <MenuContent>
               <MenuItem>Alpha</MenuItem>
-              <MenuItem>Beta</MenuItem>
+              <MenuItem>Beta with a much longer label than the trigger has</MenuItem>
             </MenuContent>
           </Menu>
         </Theme>
@@ -2036,122 +2090,49 @@ describe("the panel unfurls out of a seed (§22)", () => {
     }
     mount(<Host />);
     inMotion();
-    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-    /**
-     * BOTH deadlines are stamped from the runner's OWN departures (2026-08-20).
-     *
-     * A flight sets its release timer inside `depart()`, on the frame the pose comes off — so
-     * the observable moment is `data-seed` leaving while `data-unfurling` stays. Reading the
-     * clock off the test's wall clock instead put the machine inside both numbers: `stale` was
-     * stamped after `departed()` had spent a flush and three frames, which on a loaded runner
-     * is 150ms of over-estimate, and every millisecond of it moves the bar below later. That
-     * is why this law kept failing on CI and never here — the over-estimate is a function of
-     * how slow the runner is.
-     */
-    const departures: number[] = [];
-    const departWatch = new MutationObserver((records) => {
-      for (const record of records) {
-        const el = record.target as HTMLElement;
-        if (record.attributeName !== "data-seed") continue;
-        if (!el.hasAttribute("data-seed") && el.hasAttribute("data-unfurling")) {
-          departures.push(performance.now());
-        }
-      }
-    });
-    departWatch.observe(document.body, {
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["data-seed"],
-    });
-    // Torn down whatever happens: an assertion throwing between here and the disconnect below
-    // would otherwise leave this observing every menu the rest of the file mounts.
-    onTestFinished(() => departWatch.disconnect());
 
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    const clock = await departed(popup);
-    /**
-     * WHEN each flight is due is MEASURED, and the release is WATCHED (2026-08-17, after this
-     * law failed once on CI and never once here, loaded or idle).
-     *
-     * It used to sleep to a computed instant — `wait(clock - interrupt / 2)` with `interrupt`
-     * a hardcoded 240 — and read the attribute exactly once when it woke. The whole gap
-     * between the stale deadline and the real one is about 245ms, so the read sat roughly
-     * 155ms clear of the far edge, and `setTimeout` is a MINIMUM: a runner busy enough to
-     * overshoot by that much lands the read after the flight has legitimately finished and the
-     * law reports a defect that is not there. That is the same shape as the three laws fixed
-     * this morning — a statement about the machine wearing a statement about the code.
-     *
-     * Watching inverts the failure direction, which is the point. A slow runner samples LESS
-     * often, so a late observation only moves the release later, which can only make the claim
-     * easier to satisfy — never harder. The claim itself is unchanged and is still the one
-     * thing this law exists for: the panel outlives the interrupted flight's clock.
-     */
-    await until(() => departures.length >= 1, 2000);
-    const airborneAt = departures[0];
-    expect(airborneAt, "the first flight's departure was never observed").toBeDefined();
-    await wait(200); // mid-flight
+    // THROWS if the pose never came off, so "the flight is in the air" is checked, not assumed.
+    await departed(popup);
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight is airborne").toBe(true);
+
+    // Dismissed WHILE AIRBORNE — the pins are on, the release timer is pending, and the exit
+    // now runs over a box that is still growing.
     flushSync(() => setOpen(false));
-    // The stamp, not a stopwatch: a fixed 40ms into a 140ms dissolve is the same overshoot
-    // hazard the rest of this law was rewritten to remove.
     await until(() => popup.hasAttribute("data-ending-style"), 3000);
-    expect(popup.hasAttribute("data-ending-style"), "the premise: dismissed, not yet gone").toBe(true);
+    expect(popup.hasAttribute("data-unfurling"), "the premise: dismissed mid-flight, not after it").toBe(true);
+    expect(popup.isConnected, "the premise: the panel is still mounted").toBe(true);
+
+    // And taken back.
     flushSync(() => setOpen(true));
-    await flushFlight();
-    expect(popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling")).toBe(true);
+    await until(() => !popup.hasAttribute("data-ending-style"), 3000);
+    expect(popup.isConnected, "the premise: this is the panel that was dissolving").toBe(true);
 
-    // The second flight's own departure, waited for the same way — so both deadlines are the
-    // runner's, stamped where it actually sets its timers, and neither carries the test's
-    // scheduling.
-    await until(() => departures.length >= 2, 2000);
-    departWatch.disconnect();
-    expect(departures.length, `the replacement flight never departed: ${departures.length} departures`).toBeGreaterThan(1);
-    const stale = airborneAt! + clock;
-    const real = departures[1]! + clock;
-    expect(real - stale, "the premise: the two deadlines must be far enough apart to tell apart").toBeGreaterThan(150);
+    // 1. No second flight was begun — the catch, under the one condition where a replay would
+    //    have had a live flight to fight with.
+    expect(popup.hasAttribute("data-seed"), "no fresh pose").toBe(false);
 
-    /**
-     * The ceiling is a guard against a hung flight and NOT a timing claim, so it is set where
-     * no runner can reach it. It used to be `real + 400`, which is a timing claim wearing a
-     * guard's clothes: a release that legitimately lands past it reports `releasedAt` 0 and the
-     * law says `expected 0 to be greater than 0` — the exact CI failure. Watching longer cannot
-     * weaken anything here, because the claim is that the release is LATE; a bigger ceiling
-     * only lets a late release be seen and judged instead of being reported as a hang.
-     */
-    let releasedAt = 0;
-    let watched = 0;
-    while (performance.now() < real + 3000) {
-      await new Promise((r) => requestAnimationFrame(() => r(null)));
-      watched++;
-      if (!popup.hasAttribute("data-unfurling")) {
-        releasedAt = performance.now();
-        break;
-      }
+    // 2. The pending clock is the only one, and it lands: the pins come off and every variable
+    //    the flight wrote is cleared. A stale timer that had been retired would leave these on
+    //    forever, which is the failure this law inherits.
+    await until(() => !popup.hasAttribute("data-unfurling"), 3000);
+    expect(
+      popup.hasAttribute("data-unfurling"),
+      "the interrupted flight's own clock must still land the panel it left airborne",
+    ).toBe(false);
+    for (const name of ["--kui-fly-w", "--kui-fly-h", "--kui-seed-w", "--kui-seed-h"]) {
+      expect(popup.style.getPropertyValue(name), `${name} is cleared at release`).toBe("");
     }
-    /**
-     * `expected 0 to be greater than 0` is what this used to say on CI, which names the symptom
-     * and nothing else (2026-08-20). The two ways to reach it are opposite — the flight really
-     * hung, or the watch window closed before a legitimately late release — and they are told
-     * apart by the clock, the frames actually observed, and whether the popup is even the live
-     * one any more. All three now travel with the failure.
-     */
+
+    // 3. And what the user is left looking at is an ordinary open menu.
+    await until(() => parseFloat(computed(popup, "opacity")) === 1, 3000);
+    expect(computed(popup, "opacity"), "the dismissal was taken back, not merely halted").toBe("1");
+    const row = popup.querySelector<HTMLElement>(".kui-menu-item")!;
     expect(
-      releasedAt,
-      `the flight never released inside ${Math.round(real + 3000 - stale)}ms of the stale deadline: ` +
-        `clock ${Math.round(clock)}ms, gap ${Math.round(real - stale)}ms, ${watched} frames watched, ` +
-        `popup ${popup.isConnected ? "still in the DOM" : "DETACHED — the node was replaced"}, ` +
-        `stamps [${popup.getAttributeNames().filter((n) => n.startsWith("data-")).join(" ")}]`,
-    ).toBeGreaterThan(0);
-    // Landed on the RIGHT clock: past the midpoint of the gap is unambiguous, because a stale
-    // timer fires at `stale` and the live one at `real`, and nothing fires in between.
-    expect(
-      releasedAt,
-      `released ${Math.round(releasedAt - stale)}ms after the stale deadline, ` +
-        `${Math.round(releasedAt - real)}ms from the real one — the interrupted flight's clock ` +
-        `must not land on the flight that replaced it`,
-    ).toBeGreaterThan((stale + real) / 2);
+      popup.getBoundingClientRect().width,
+      "and the panel is at least as wide as the rows it holds",
+    ).toBeGreaterThanOrEqual(row.getBoundingClientRect().width);
   });
 
   it("the panel's CONTENT does not slide in from the side when it opens end-aligned (§22)", async () => {
