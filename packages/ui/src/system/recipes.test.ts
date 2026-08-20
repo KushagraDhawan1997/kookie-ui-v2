@@ -50,38 +50,11 @@ describe("a component's own CSS names no axis (§2, §9)", () => {
     }
   });
 
-  /**
-   * THE ONE SIZE JOIN A COMPONENT SHEET OWNS, and it is a carve-out with a written reason
-   * rather than a blanket (2026-08-20 — the law had been failing since the rail shipped, and
-   * the failure was the law's, not the sheet's).
-   *
-   * The ban exists because per-size VARIATION belongs to the recipe layer, or the cost goes
-   * multiplicative. The rail's rules price nothing: they derive the pane's own EXTENT, which
-   * is the one measurement §27 says no ladder can hold — every other pane states a raw width
-   * because a pane's width is the app's content speaking, and a rail's is its square plus the
-   * air around it, so it must read the index the pane was given. There is nothing for a shared
-   * layer to absorb, because there is no variation, only one derivation.
-   *
-   * Named per line rather than per file: any OTHER `data-size` in shell.css still fails here,
-   * which is what keeps this a carve-out instead of an exemption. (`--kui-sf-p: 0` carries the
-   * attribute for a different reason again — it must out-rank the surface size join it stands
-   * down — and that reason is written at its own site.)
-   */
-  const SIZE_JOIN_CARVE_OUTS: Record<string, RegExp[]> = {
-    "shell.css": [/\.kui-shell-rail\[data-size="\d"\]/g, /\.kui-surface\.kui-shell-pane\[data-size\]/g],
-  };
-
   for (const [name, css] of components) {
     it(`${name} contains no tone, no rung, no size index, and no material`, () => {
       for (const tone of TONE_NAMES) expect(css).not.toContain(`--${tone}-`);
       for (const rung of RUNGS) expect(css).not.toContain(rung);
-      const carved = (SIZE_JOIN_CARVE_OUTS[name] ?? []).reduce((text, re) => text.replace(re, " "), css);
-      // The carve-outs have to still MATCH, or a renamed selector silently exempts the file —
-      // the blinded-law shape this suite's own parser throws over.
-      for (const re of SIZE_JOIN_CARVE_OUTS[name] ?? []) {
-        expect(css, `a carve-out for ${name} matches nothing: ${re}`).toMatch(re);
-      }
-      expect(carved).not.toMatch(/data-size/);
+      expect(css).not.toMatch(/data-size/);
       expect(css).not.toMatch(/data-material|--material-/);
       // If this ever fails, the recipe layer has stopped absorbing variation and the cost has
       // quietly become multiplicative — which is the moment to fix the layer, not the component.

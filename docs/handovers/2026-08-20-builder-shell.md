@@ -67,6 +67,6 @@ survive is part of the finding.
   to the region the canvas floats in, which is what it was always describing.
 - **The divider under the jump bar is gone** — the grey below it already draws that line, and
   two lines in one seam is a defect this repo has paid for twice.
-- **CSS budget +8 bytes** (30,847 → 30,855), all of it the four longer selectors.
+- **CSS budget +7 bytes** (30,845 → 30,852), all of it the four longer selectors.
 - **Four new builder tests, eight new Shell tests**, every one broken on purpose first and
   required to fail.
