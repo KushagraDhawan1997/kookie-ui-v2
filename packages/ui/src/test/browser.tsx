@@ -184,6 +184,58 @@ export async function flushFlight(): Promise<void> {
 }
 
 /**
+ * SWEEP AN ARRIVAL BY ITS OWN CLOCK, not by the host's frames (2026-08-20).
+ *
+ * Every law in this suite that asked "does this actually move?" sampled the rendered box once
+ * per `requestAnimationFrame` and then made a claim about the series. All of them are claims
+ * about the MACHINE. A loaded runner hands the loop two frames where an idle one hands it
+ * thirty, so a perfectly smooth arrival reports the same two values a frozen one does — and
+ * those are opposite bugs whose repairs pull in opposite directions, which is why every new
+ * bound bought one more week and then went red again (menu: three metrics in one day; the
+ * focus ring: "expected 2 to be greater than 2").
+ *
+ * A running transition or animation is an object with a clock of its own. Pause it, put its
+ * clock where you want it, and read what the engine RENDERS there — the whole curve, at a
+ * resolution the host cannot change, in one synchronous block that no dropped frame can
+ * interrupt. Sabotaging the thing under test moves the numbers; loading the runner does not.
+ *
+ * `property` is the PHYSICAL name the engine transitions (`height`, not `block-size` — the
+ * logical property is resolved before the transition is created), or a keyframe animation's
+ * name. The subject is left playing from where it was, so a law may go on watching it.
+ */
+export async function sweep<T>(
+  el: Element,
+  property: string,
+  read: () => T,
+  stations = 40,
+): Promise<T[]> {
+  const named = (a: Animation) =>
+    (a as CSSTransition).transitionProperty === property ||
+    (a as CSSAnimation).animationName === property;
+  const arrival = el.getAnimations().find(named);
+  if (!arrival)
+    throw new Error(
+      `nothing is arriving on ${property} — running: ` +
+        el
+          .getAnimations()
+          .map((a) => (a as CSSTransition).transitionProperty ?? (a as CSSAnimation).animationName)
+          .join(", "),
+    );
+  const clock = Number(arrival.effect!.getComputedTiming().activeDuration);
+  if (!(clock > 0)) throw new Error(`${property} has no clock to step through`);
+  const was = arrival.currentTime;
+  arrival.pause();
+  const series: T[] = [];
+  for (let station = 0; station <= stations; station++) {
+    arrival.currentTime = (clock * station) / stations;
+    series.push(read());
+  }
+  arrival.currentTime = was;
+  arrival.play();
+  return series;
+}
+
+/**
  * Let this test's subject move. Order-free on purpose — it sets a flag the harness honours on
  * every render for the rest of the test, rather than a switch a later `render` would flip back:
  * the first spelling was position-dependent, and calling it one line too early silently gave

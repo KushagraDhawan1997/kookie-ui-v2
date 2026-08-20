@@ -20,6 +20,7 @@ import {
   inMotion,
   mounted,
   render,
+  sweep,
   tokenOn,
 } from "../test/browser.tsx";
 import { Button } from "../components/button/button.tsx";
@@ -150,30 +151,57 @@ describe("the ring lands where landing reads as motion, and nowhere else (§8)",
      * jaggedy". The law pins the mechanism rather than the taste: if this ever reports fewer
      * steps than the pixels it crosses, the engine started interpolating and the refusal below
      * is worth reopening.
+     *
+     * IT DRIVES THE ANIMATION'S OWN CLOCK, AND UNTIL 2026-08-20 IT WATCHED FRAMES (CI: "the
+     * ring did not travel at all: expected 2 to be greater than 2").
+     *
+     * A sampler only ever sees a value some frame happened to be painted on, so on a loaded
+     * runner it reports two — which is what a ring that never moved reports as well. Those are
+     * opposite bugs and the metric cannot tell them apart, so no bound on it is evidence for
+     * either; that is the whole lesson of the menu's three sampled metrics the same day. The
+     * 2026-08-17 pass moved ONE of the claims onto the token and left the other three reading
+     * the machine.
+     *
+     * The animation is paused and stepped instead. What is read is what the engine RENDERS at
+     * each station of the arrival — the interpolation question this law actually asks — at a
+     * resolution nothing about the host can change, so the series is the same on an idle laptop
+     * and a stalling CI runner. It is also a STRONGER instrument: a hundred stations across a
+     * 4px travel is where "the engine quantises to whole pixels" can be seen at all, and the
+     * frame sampler could never have caught more than a handful of them.
      */
     const el = mounted(<Button>Press</Button>, { theme: {} });
     inMotion();
     el.focus();
     const rest = parseFloat(tokenOn(el, "--focus-ring-offset"));
     const land = parseFloat(tokenOn(el, "--focus-ring-land"));
-    const seen = [...new Set(await track(el, "outline-offset", 400))].map(parseFloat);
 
-    expect(Math.max(...seen), "it must begin outside its resting offset").toBeCloseTo(rest + land, 1);
-    expect(Math.min(...seen), "and settle exactly on it").toBeCloseTo(rest, 1);
+    // The arrival is grabbed in the statement after the focus that starts it, because a CSS
+    // animation is gone from getAnimations() once it has finished and a stalled runner can
+    // spend the whole ~200ms between two statements. The re-focus is a retry that costs
+    // nothing when the first try works, which is every time.
+    const landing = () =>
+      el.getAnimations().some((a) => "animationName" in a && a.animationName === "kui-ring-land");
+    for (let retry = 0; retry < 5 && !landing(); retry++) {
+      el.blur();
+      el.focus();
+    }
+    expect(landing(), "the ring must land by an animation — it is the subject").toBe(true);
+
+    const series = await sweep(el, "kui-ring-land", () => parseFloat(computed(el, "outline-offset")), 100);
+    const seen = [...new Set(series)];
+
+    expect(series[0]!, "it must begin outside its resting offset").toBeCloseTo(rest + land, 1);
+    expect(series.at(-1)!, "and settle exactly on it").toBeCloseTo(rest, 1);
     // Whole pixels, every one of them — the fact that bounds how short a ring's travel can be.
-    // This is also the interpolation check: an engine that started interpolating would report
-    // fractions, not fewer steps.
+    // Read across the whole arrival rather than at the frames that happened to land, so a
+    // single interpolated station anywhere in it fails here.
     for (const value of seen) expect(value, `${seen.join(",")}`).toBe(Math.round(value));
-    // It genuinely moves through values rather than snapping between the two ends.
-    expect(seen.length, "the ring did not travel at all").toBeGreaterThan(2);
-    /**
-     * And the CONSTRAINT is stated on the token, not on how many frames the sampler caught
-     * (2026-08-17, CI). "More than three distinct values" is a claim about the DESIGNED travel
-     * — whole pixels mean a 4px landing renders as five steps and a 2px one as three — but a
-     * sampler only sees a value if a frame was painted on it, and a loaded runner drops frames:
-     * measured, three values on CI for a travel that crosses four pixels, failing a law about
-     * the design because of the machine it ran on. The travel is the thing that must not shrink.
-     */
+    // It genuinely moves through values rather than snapping between the two ends. A claim
+    // about the ENGINE now, not about how many frames the host could spare.
+    expect(seen.length, `the ring did not travel at all: ${seen.join(",")}`).toBeGreaterThan(2);
+    // And the travel is stated on the TOKEN (2026-08-17): whole pixels mean a 4px landing
+    // renders as five steps and a 2px one as three, so the pixels are the thing that must not
+    // shrink. Kept as it was — it was the one claim here that never read the machine.
     expect(land, "a landing needs enough pixels to read as one").toBeGreaterThanOrEqual(4);
     expect(Math.max(...seen) - Math.min(...seen), "and it must cross all of them").toBeCloseTo(land, 1);
   });
