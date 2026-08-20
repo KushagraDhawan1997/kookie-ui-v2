@@ -2574,57 +2574,69 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(new Set(widths).size, `width never moved${trace()}`).toBeGreaterThan(2);
     expect(new Set(heights).size, `height never moved${trace()}`).toBeGreaterThan(2);
     /**
-     * And it GREW rather than jumping — stated as a SPEED, not as a per-frame share
-     * (2026-08-17, CI).
+     * And it GREW rather than jumping — asserted as a SHAPE, after two rate metrics failed
+     * (2026-08-20, on CI's own numbers).
      *
-     * "No single frame covers more than a fifth of the distance" is a true claim about a spring
-     * at 60fps and a claim about the MACHINE anywhere else: a loaded runner hands this loop one
-     * frame where an idle one hands it ten, and the same smooth animation then reports a 45px
-     * step out of 47 and fails a law about smoothness. Measured on CI, on an entry that was
-     * fine.
+     * "No frame covers more than a fifth of the distance" was a claim about the MACHINE: a
+     * loaded runner hands this loop one frame where an idle one hands it ten, and the same
+     * smooth entry reports a 45px step out of 47. Pixels per millisecond was meant to be the
+     * frame-rate-free form of it and is not, for the opposite reason — it is unbounded as the
+     * interval shrinks. CI printed the series that proves it:
      *
-     * Pixels per millisecond is the frame-rate-free form of the same sentence. A spring's
-     * fastest moment runs two to three times its own average, so six times the average is
-     * generous and still nowhere near a snap — a channel that lets go covers the whole distance
-     * in one frame, which is tens of times its average whatever the frame rate.
+     *   widths 67,67,67,94,99,104,107,110,112,114,115,116,116,116,114,113,113,112,112,112,112
+     *   gaps      66,61,92,34,16,19, 3,11, 13, 28, 16, 13, 21, 87, 21,  9, 68, 68, 85, 72
+     *
+     * The offending interval is 107 -> 110 across a THREE millisecond gap: three rounded
+     * pixels, 1.07px/ms, flagged as a snap on an entry that is visibly a spring. Any two rAF
+     * callbacks that land close together turn the width's own 1px quantum into an arbitrarily
+     * large rate, so the metric cannot be repaired by moving its bound — which this file has
+     * now tried twice.
+     *
+     * What "it grew rather than jumping" actually means is that the box was SEEN somewhere in
+     * between. A channel that lets go goes from the seed to its destination with nothing
+     * observed in the middle, however finely you sample; a channel that travels is caught
+     * there by any sampler that looks at all. The claim carries no rate, no bound tuned to a
+     * frame rate, and no arithmetic that a short interval can inflate.
+     *
+     * It is deliberately WEAKER than the rate metric in one case, and that case has a better
+     * home. A width mistuned to sprint in 40ms still lands a sample in the middle third, so
+     * this cannot see it — but `recipes.test.ts` can and does, exactly and without frames:
+     * sabotaged that way, "inline-size 40ms linear — hand-typed duration" and "inline-size
+     * moves a box, it must spring" both fail. A law that watches frames should own only what
+     * the setup cannot show, and what the setup cannot show is a channel that is declared
+     * perfectly and CLAMPED — which is the defect this law was written for and still catches
+     * (remove `inline-size` from the entry's transition and it reports "width never moved").
      */
-    /**
-     * Scanned over the AIRBORNE samples only, and that is the last thing making this law flaky
-     * (2026-08-20). The loop reads the rect and THEN asks whether the flight is still on, so
-     * its final sample is taken with the pins already stripped — the box has left its animated
-     * `inline-size` for its natural layout in the same task. That step is a discontinuity by
-     * construction and it is not travel, but it landed inside the scan and it is instantaneous,
-     * which is the one shape pixels-per-millisecond cannot normalise: the CI failure read
-     * `1.58px/ms against an average of 0.05`, and 1.58 is ten times the peak rate of a 730ms
-     * spring over this distance.
-     *
-     * Frame drops were never the problem here and this is why the fix is not another bound.
-     * Both terms are per-millisecond, so a runner that hands this loop three frames where an
-     * idle one hands it thirty reports a `fastest` that moves TOWARD its average, not away from
-     * it — coarse sampling makes this claim easier, which is the direction a law is allowed to
-     * degrade in. Only an instantaneous step breaks it, and the release is the only one in the
-     * window.
-     */
-    const flightWidths = released > 0 ? widths.slice(0, released) : widths;
-    const flightStamps = released > 0 ? stamps.slice(0, released) : stamps;
+    // The AIRBORNE samples: the loop reads the rect and then asks whether the flight is still
+    // on, so its final sample is taken with the pins already stripped and the box already in
+    // its natural layout. That is a discontinuity by construction and it is not travel.
+    const airborne = released > 0 ? entry.slice(0, released) : entry;
+    const flightWidths = airborne.map((f) => f.w);
     expect(
       flightWidths.length,
-      `too few airborne samples to say anything about smoothness${trace()}`,
+      `too few airborne samples to say anything about travel${trace()}`,
     ).toBeGreaterThan(2);
-    const distance = Math.max(...flightWidths) - Math.min(...flightWidths);
-    const elapsed = flightStamps.at(-1)! - flightStamps[0]!;
-    expect(elapsed, "the entry was never sampled over time").toBeGreaterThan(0);
-    const average = distance / elapsed;
-    const fastest = Math.max(
-      ...flightWidths
-        .slice(1)
-        .map((w, i) => Math.abs(w - flightWidths[i]!) / Math.max(flightStamps[i + 1]! - flightStamps[i]!, 1)),
-    );
-    expect(
-      fastest,
-      `width moved ${fastest.toFixed(2)}px/ms against an average of ${average.toFixed(2)}px/ms ` +
-        `(${distance}px over ${Math.round(elapsed)}ms in ${flightWidths.length} airborne samples)${trace()}`,
-    ).toBeLessThan(average * 6 + 0.5);
+
+    const middleThird = (series: number[]) => {
+      const from = series[0]!;
+      const far = Math.max(...series);
+      const span = far - from;
+      const band = series.filter((v) => v > from + span / 3 && v < from + (span * 2) / 3);
+      return { from, far, span, band };
+    };
+    for (const [axis, series] of [
+      ["width", flightWidths],
+      ["height", airborne.map((f) => f.h)],
+    ] as const) {
+      const { from, far, span, band } = middleThird(series);
+      expect(span, `${axis} never travelled at all${trace()}`).toBeGreaterThan(4);
+      expect(
+        band.length,
+        `${axis} was never seen between ${Math.round(from + span / 3)}px and ` +
+          `${Math.round(from + (span * 2) / 3)}px — it went from ${from}px to ${far}px with nothing ` +
+          `observed in the middle, which is what a channel that lets go looks like${trace()}`,
+      ).toBeGreaterThan(0);
+    }
     /**
      * And the flight is released only once the LAST channel has landed. Keying the release on
      * the vertical (which finishes 160ms earlier) puts the width floor back while the panel is
