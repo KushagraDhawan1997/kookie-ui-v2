@@ -1264,15 +1264,22 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
      * above), which is where a claim belongs when one law can measure it and another can only
      * photograph it.
      */
-    let flew = false;
-    let silhouette: number | null = null;
+    // THE SUBJECT IS THE ELEMENT THAT FLEW, named by the observer that saw it (CI, one push
+    // after the rewrite: "and the panel it ends in is a real one: expected 0 to be greater
+    // than 48"). Taking the last `.kui-select-popup` in the document is a guess — this file
+    // leaves portalled panels behind, a closed one is kept mounted at zero height, and which
+    // node the guess lands on depends on what ran before. The observer already holds the
+    // right node, so the guess had no reason to exist.
+    let flyer: HTMLElement | null = null;
+    const seeded = new Map<HTMLElement, number>();
     const watch = new MutationObserver((records) => {
       for (const record of records) {
         const el = record.target as HTMLElement;
         if (!el.classList.contains("kui-select-popup")) continue;
-        if (record.attributeName === "data-seed" && el.hasAttribute("data-seed") && silhouette === null)
-          silhouette = el.getBoundingClientRect().height;
-        if (record.attributeName === "data-unfurling" && el.hasAttribute("data-unfurling")) flew = true;
+        if (record.attributeName === "data-seed" && el.hasAttribute("data-seed") && !seeded.has(el))
+          seeded.set(el, el.getBoundingClientRect().height);
+        if (record.attributeName === "data-unfurling" && el.hasAttribute("data-unfurling") && !flyer)
+          flyer = el;
       }
     });
     watch.observe(document.body, {
@@ -1286,21 +1293,24 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
       .querySelector<HTMLElement>(".kui-select-trigger")!
       .getBoundingClientRect().height;
     await userEvent.click(document.querySelector<HTMLElement>(".kui-select-trigger")!);
-    await until(() => flew, 3000);
+    await until(() => flyer !== null, 3000);
     watch.disconnect();
 
-    expect(flew, "the second open never flew — the entry ran once per lifetime").toBe(true);
+    expect(flyer, "the second open never flew — the entry ran once per lifetime").not.toBeNull();
+    const popup = flyer as unknown as HTMLElement;
     // Anchored to the TRIGGER's height (2026-08-15, the silhouette): the seed is the trigger's
     // own box, so a replayed flight must start down at that height — a flight that begins
-    // mid-size means the entry did not replay from its seed.
-    expect(silhouette, "the replay never posed — there was no silhouette to fly from").not.toBeNull();
+    // mid-size means the entry did not replay from its seed. Read off the panel that flew, so
+    // a stale panel's pose cannot answer for it.
+    const silhouette = seeded.get(popup);
+    expect(silhouette, "the replay never posed — there was no silhouette to fly from").toBeDefined();
     expect(silhouette!, "it must fly FROM the silhouette, not from mid-size").toBeLessThanOrEqual(
       triggerH + 4,
     );
 
-    const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
     await until(() => !popup.hasAttribute("data-unfurling"), 3000);
     expect(popup.hasAttribute("data-unfurling"), "the flight must end in a released panel").toBe(false);
+    expect(popup.hidden, "and it is the OPEN panel, not a kept-mounted closed one").toBe(false);
     expect(popup.getBoundingClientRect().height, "and the panel it ends in is a real one").toBeGreaterThan(
       triggerH * 1.5,
     );
