@@ -884,9 +884,13 @@
   --shadow-4: 0 1px 2px rgb(0 0 0 / 0.1), 0 24px 64px -12px rgb(0 0 0 / 0.11);
   --shadow-5: 0 1px 2px rgb(0 0 0 / 0.1), 0 12px 32px -8px rgb(0 0 0 / 0.11), 0 32px 80px -16px rgb(0 0 0 / 0.1);
 
-  /* the elevated world's dressing (§5, §10, §19) — composed FROM the palette: surface
-     depth is var(--shadow-3), control depth var(--shadow-2); dark adds only the
-     rim-lights. The edge stays --tone-border. The control light is the CATCH half:
+  /* the elevated world's dressing (§5, §10) — surface depth is var(--shadow-4), the lab's
+     SOLID card row, while row 5 is what a glass pane transmits; control depth is the lab's
+     LIT RUNG authored whole rather than a palette row, because row 2's blast read swollen
+     on a 32px box and row 2 survives as the GLASS transmit source. Both rows moved in the
+     lab port (2026-08-17) and this comment still said 3 and 2 until 2026-08-20 — two lines
+     above the declarations that disagreed with it. Dark's inset rim-lights retired with
+     the port. The edge stays --tone-border. The control light is the CATCH half:
      background-image layers, not shadow, so flat can declare none (§10's rim). */
   --surface-chrome: var(--shadow-4);
   --control-chrome: 0 1px 2px rgb(0 0 0 / 0.1), 0 8px 20px -6px rgb(0 0 0 / 0.16), inset 0 -1px 0 rgb(0 0 0 / 0.12);
@@ -1507,9 +1511,13 @@
   --shadow-4: 0 1px 2px rgb(0 0 0 / 0.1), 0 24px 64px -12px rgb(0 0 0 / 0.11);
   --shadow-5: 0 1px 2px rgb(0 0 0 / 0.1), 0 12px 32px -8px rgb(0 0 0 / 0.11), 0 32px 80px -16px rgb(0 0 0 / 0.1);
 
-  /* the elevated world's dressing (§5, §10, §19) — composed FROM the palette: surface
-     depth is var(--shadow-3), control depth var(--shadow-2); dark adds only the
-     rim-lights. The edge stays --tone-border. The control light is the CATCH half:
+  /* the elevated world's dressing (§5, §10) — surface depth is var(--shadow-4), the lab's
+     SOLID card row, while row 5 is what a glass pane transmits; control depth is the lab's
+     LIT RUNG authored whole rather than a palette row, because row 2's blast read swollen
+     on a 32px box and row 2 survives as the GLASS transmit source. Both rows moved in the
+     lab port (2026-08-17) and this comment still said 3 and 2 until 2026-08-20 — two lines
+     above the declarations that disagreed with it. Dark's inset rim-lights retired with
+     the port. The edge stays --tone-border. The control light is the CATCH half:
      background-image layers, not shadow, so flat can declare none (§10's rim). */
   --surface-chrome: var(--shadow-4);
   --control-chrome: 0 1px 2px rgb(0 0 0 / 0.1), 0 8px 20px -6px rgb(0 0 0 / 0.16), inset 0 -1px 0 rgb(0 0 0 / 0.12);
@@ -2133,9 +2141,13 @@
   --shadow-4: 0 1px 2px rgb(0 0 0 / 0.4), 0 24px 64px -12px rgb(0 0 0 / 0.45);
   --shadow-5: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -8px rgb(0 0 0 / 0.4), 0 32px 80px -16px rgb(0 0 0 / 0.34);
 
-  /* the elevated world's dressing (§5, §10, §19) — composed FROM the palette: surface
-     depth is var(--shadow-3), control depth var(--shadow-2); dark adds only the
-     rim-lights. The edge stays --tone-border. The control light is the CATCH half:
+  /* the elevated world's dressing (§5, §10) — surface depth is var(--shadow-4), the lab's
+     SOLID card row, while row 5 is what a glass pane transmits; control depth is the lab's
+     LIT RUNG authored whole rather than a palette row, because row 2's blast read swollen
+     on a 32px box and row 2 survives as the GLASS transmit source. Both rows moved in the
+     lab port (2026-08-17) and this comment still said 3 and 2 until 2026-08-20 — two lines
+     above the declarations that disagreed with it. Dark's inset rim-lights retired with
+     the port. The edge stays --tone-border. The control light is the CATCH half:
      background-image layers, not shadow, so flat can declare none (§10's rim). */
   --surface-chrome: var(--shadow-4);
   --control-chrome: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -6px rgb(0 0 0 / 0.42);
