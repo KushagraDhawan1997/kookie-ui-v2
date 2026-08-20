@@ -1548,9 +1548,18 @@ export function BuilderApp() {
             }
           />
           <Separator />
-          <ScrollArea style={{ flex: 1, minHeight: 0 }}>
+          {/* `display: grid` is load-bearing, not styling: the viewport is `max-block-size: 100%`
+              with no block-size, so it SHRINK-WRAPS — measured 250px inside an 880px area, which is
+              why the canvas ended just under the card and the grey below it was the region around
+              the canvas rather than the canvas. A grid parent stretches its child in both axes
+              (the same property that makes two buttons fill a grid row), and the cap then lands it
+              exactly on the area's height. */}
+          <ScrollArea className="kb-canvas-scroller" style={{ flex: 1, minHeight: 0, display: "grid" }}>
             <Box
-              p="6"
+              /* 48px, not 24: an elevated Card's own shadow reaches ~44px below its box
+                 (`0 24px 64px -12px`), so the old gutter clipped it by 20px. The gutter is the
+                 whole world a canvas surface has — nothing outside it can be painted into. */
+              p="9"
               onClickCapture={onCanvasClick}
               onContextMenu={onContextMenu}
               onFocusCapture={onCanvasFocus}
@@ -1559,12 +1568,12 @@ export function BuilderApp() {
               onDrop={onCanvasDrop}
               onDragLeave={onCanvasDragLeave}
               onDragEnd={endDrag}
-              style={{ minHeight: "100%" }}
+              style={{ minHeight: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}
             >
               {tiersView ? (
                 <TierCompare doc={doc} />
               ) : (
-              <Box maxWidth="880px" style={{ marginInline: "auto" }}>
+              <Box maxWidth="880px" style={{ marginInline: "auto", width: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
                 <div
                   ref={canvasRef}
                   style={{
@@ -1573,6 +1582,9 @@ export function BuilderApp() {
                     // pixels, so it has to be the size the content actually occupies.
                     width: canvasW ? `${Math.round(canvasW * zoom)}px` : "100%",
                     maxWidth: "100%",
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
                   {/* The zoomed box holds ONLY the rendered document. Every overlay below is
@@ -1580,8 +1592,8 @@ export function BuilderApp() {
                   <div
                     style={
                       zoom === 1
-                        ? undefined
-                        : ({ zoom, width: canvasW ? `${canvasW}px` : "100%" } as React.CSSProperties)
+                        ? ({ flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
+                        : ({ zoom, width: canvasW ? `${canvasW}px` : "100%", flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
                     }
                   >
                   <Theme
@@ -1591,6 +1603,19 @@ export function BuilderApp() {
                     radius={doc.theme.radius}
                     depth={doc.theme.depth}
                     material={doc.theme.material}
+                    /* THE PAGE. Painted inside the document's own Theme rather than beside it,
+                       so a dark document shows a dark page against the light workbench — the
+                       library owns no page colour (§13: that is always the app's call), and
+                       `--neutral-1` is the value /preview settled on for exactly this job.
+                       It fills the gutter box; the document lays out at its natural height on
+                       top, so nothing about the composition changes — only the bed it sits on
+                       becomes visible, which is what "where is my canvas" was asking. */
+                    style={{
+                      flex: 1,
+                      background: "var(--neutral-1)",
+                      borderRadius: "var(--radius-surface-2)",
+                      boxShadow: "0 0 0 1px var(--color-border)",
+                    }}
                   >
                     {/* The canvas is a REAL query container (§2's opt-in, layout-sized by
                         the width handle), so a per-tier value inside it answers the canvas's

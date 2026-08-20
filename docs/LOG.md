@@ -200,6 +200,22 @@ Verified live: a Box in a flex row 24px → 842px on the drag and back to 24px w
 
 ---
 
+## 2026-08-20 The canvas is a room, not a shrink-wrap — and the gutter is the world a shadow has
+
+Kushagra, on a card in the builder: *"its shadows are cut. I'm having difficulty understanding whats my canvas."* Two symptoms, and measuring them found one cause each.
+
+**The shadow was clipped by 20px at the bottom, and the gutter is why.** An elevated Card casts `0 24px 64px -12px`, which reaches ~44px below its own box; the canvas gutter was `p="6"` — 24px — and a scroll container clips at its padding box, so the bottom fifth of the cast was simply not painted. The other three sides fit, which is why only the bottom looked wrong. The gutter is now `p="9"` (48px): the whole world a canvas surface has is the padding around it, because nothing outside that box can be painted into.
+
+**The canvas ended just under the document, and everything below it was NOT the canvas.** Measured: a 250px scroller inside an 880px region, and `elementFromPoint` 250px lower answering with the region AROUND the canvas rather than the canvas. Nothing was drawn to say so, so the eye had no way to find the boundary — the question was exactly right. The cause is in ScrollArea: the viewport is `max-block-size: 100%` with no block-size and its Content wrapper is unstyled, so both shrink-wrap. That is correct for the component's first consumer, a menu panel that hugs its rows until it hits the cap, and wrong for a canvas, which is a room. The root takes `display: grid` at the call site — a grid parent stretches its child, and the cap then lands it exactly on the area's height (250 → 880) — and the Content wrapper takes a scoped rule in the docs app's own stylesheet, because the component exposes no hook for it. §13's escape, spelled in the app rather than widened into a component for a case no other caller has.
+
+**The page is painted INSIDE the document's own Theme**, which is the half that could not be guessed: the library owns no page colour (that is always the app's call), and the document carries its own appearance, so a page painted beside the Theme would show a light bed under a dark document. On the Theme element it takes `--neutral-1` in whatever appearance the document chose — the value /preview settled on for this exact job — with a hairline and the surface corner, against the workbench grey outside it.
+
+The height threads down by FLEX rather than percentages: the ancestors between the scroller and the Theme are auto-height, and the zoom wrapper is conditional, so a percentage chain dies twice on the way. `min-height: 100%` plus padding also needs `border-box`, or the page hangs exactly one gutter past the scroller — measured at −48px before the fix, which is the same shorthand trap the ScrollArea's own comment records for its viewport.
+
+**The document still sits flush against the page's edges, and that is deliberate**: a Card at the root of a page with no padding does sit flush, and inventing an inset here would have the canvas showing spacing the export does not have. What fills is the bed, never the composition. Verified live after: an even 48px gutter on all four sides, the shadow with 630px of room, the width handle still dragging the page 826 → 626, and a Separator dropped into the empty page below the document landing at the document root.
+
+---
+
 ## 2026-08-20 The selection chrome stops impersonating focus, and traces the real shape
 
 Kushagra, on a selected TextField: *"selecting an input field shows two selection boxes… there is an offset and it looks the same as focus ring of textfield."* Both halves were true, and there were three independent causes under them.

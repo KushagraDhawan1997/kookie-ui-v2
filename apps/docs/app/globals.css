@@ -22,3 +22,20 @@ body {
   color: var(--color-text);
   font-family: var(--font-body);
 }
+
+/* The builder's canvas fills its scroller (2026-08-20). ScrollArea's viewport is
+   `max-block-size: 100%` with no block-size, and its Content wrapper is unstyled, so both
+   SHRINK-WRAP — correct for the menu the component was built for, where a panel hugs its
+   rows until it hits the cap, and wrong for a canvas, which is a room. Measured before the
+   fix: a 250px viewport inside an 880px area, so the canvas ended just under the document
+   and the grey below it was the region AROUND the canvas rather than the canvas — which is
+   exactly what could not be told apart by eye. The root gets `display: grid` at the call
+   site (a grid parent stretches its child, and the cap then lands it on the area's height);
+   the Content wrapper needs this rule, because the component exposes no hook for it.
+
+   Scoped to the one consumer that wants it. This is the APP reaching into a class the
+   library owns, which is §13's escape — spelled here, where review sees it, rather than
+   widened into the component for a case no other caller has. */
+.kb-canvas-scroller .kui-scroll-content {
+  block-size: 100%;
+}
