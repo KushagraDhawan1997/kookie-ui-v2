@@ -66,7 +66,10 @@ ladder and a Text's is the type ladder, so that pair gets no size knob at all.
 
 **Zoom the canvas**, 50% to 200%, from the bar or with the usual chords. It is a magnifying
 glass and not a resize: at 67% the canvas still measures 880px and still answers the `md`
-tier, so nothing you see is a different room from the one you are designing.
+tier, so nothing you see is a different room from the one you are designing. Verified with a
+document whose `direction` is a column below `md` and a row above it — the row survives 67%
+and 150% untouched, and dragging the canvas narrower to 624px flips it to a column, which is
+what proves the zoom result is a real negative rather than a blind one.
 
 **Filter the Layers tree** (⌘F). It hides rather than dims, and keeps the path to every match.
 
