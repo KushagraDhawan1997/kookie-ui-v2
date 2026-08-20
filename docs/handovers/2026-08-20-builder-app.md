@@ -218,9 +218,22 @@ UI's ids already had.
 
 ## 5. Laws
 
-`editor.test.ts` (82) covers the store, the commands, the grammar, the drop scan's
+`editor.test.ts` (84) covers the store, the commands, the grammar, the drop scan's
 arithmetic, review and the canvas boundary; `builder.test.tsx` (98) still covers the
-document's translation into code. 347 docs tests in total.
+document's translation into code. 349 docs tests in total.
+
+**Two of those laws exist because the drop scan was still wrong twice after I rewrote
+it, and I found both by dragging.** A wrapped Flex whose last line holds one item was
+read as a column, so hovering the left half of that item inserted after it; and the
+insertion line was drawn from the last child in DOCUMENT order rather than the row's own
+bottom edge, so in a row holding a tall card and a short button, a drop below the row
+drew its line 33px up inside the card. Both are fixed and both are now law-tested. The
+reason neither existing law saw them is worth carrying forward: **each had a degenerate
+subject** — the wrapped-row law's probe points gave the same answer under either
+spelling, and the line law used boxes of identical height, where document order and
+pixel order cannot disagree. A law over the general case needs an input where the
+general case and the special case answer DIFFERENTLY, or it is a law about the special
+case wearing the general one's name.
 
 Every fix tonight was falsified against the defect it repairs before it was accepted — around
 thirty sabotage runs. Three of those sabotages SURVIVED the first pass, and each one earned a
