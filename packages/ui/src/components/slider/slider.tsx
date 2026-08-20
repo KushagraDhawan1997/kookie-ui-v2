@@ -22,6 +22,12 @@ export type SliderProps = Omit<
   // the knob would make the track's endpoints a per-call-site opinion.
   "children" | "render" | "className" | "orientation" | "thumbAlignment"
 > & {
+  /** §4 — the control HEIGHT ladder, taken on the root, because the root is the control: the
+      whole strip is pressable, so a slider is exactly as tall a target as the Button beside
+      it and §16's floors arrive with no mechanism of its own. The same index then prices the
+      parts through the families they belong to — the thumb off the mark ladder (one line of
+      the label's type), the rail off its own designed track ladder — so a handle and the
+      checkbox above it in one form read as the same size of thing. */
   size?: Size;
   /** Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;

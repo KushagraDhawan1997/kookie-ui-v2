@@ -32,6 +32,11 @@ export type TextFieldProps = Omit<
   // API promised something the DOM cannot do. The slots are the way in (§4).
   "color" | "style" | "className" | "size" | "children" | "type"
 > & {
+  /** §4 — the control family's index, Button's ladder exactly: height, inline padding,
+      corner, the value's type step and the slot geometry all price from one number, so a
+      field and the button that submits it stand level. It replaces the platform's own `size`
+      attribute rather than joining it — that one is a character-count width hack predating
+      CSS, and it would collide. The WRAPPER wears it, because the wrapper is the control. */
   size?: Size;
   /** §10 — a placement fact (2026-08-17): content passes behind this control, so the
    *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */

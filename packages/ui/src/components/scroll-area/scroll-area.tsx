@@ -4,6 +4,10 @@ import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import * as React from "react";
 
 export type ScrollAreaProps = {
+  /** The content that scrolls. It lands inside the viewport, never beside the bars — the
+      viewport, the scrollbars and the corner are assembly rather than API (§10), so there is
+      nothing else to place. The scroll region needs a bounded height to be a scroll region:
+      state it here through `style`, or let a Shell pane or a menu's popup bound it. */
   children?: React.ReactNode;
   /** Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;

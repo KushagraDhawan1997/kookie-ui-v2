@@ -19,6 +19,18 @@ export type TabsListProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseTabs.List>,
   "className"
 > & {
+  /**
+   * §4, §26 — the control height ladder, priced on the LIST and not on the tabs.
+   *
+   * SegmentedControl's decision one component over, and the thing a reader gets wrong exactly
+   * once: the bar is what carries the index, and each tab derives its box from that channel
+   * and stamps no index of its own. So a mixed-size bar is not expressible, which is right — a
+   * bar of tabs at two sizes is not a thing anyone means, and asking every tab to repeat the
+   * number is an invitation to disagree.
+   *
+   * It sits here rather than on `Tabs` because the list is the part that HAS a box; the root
+   * owns no layout at all.
+   */
   size?: Size;
   /** Dresses the bar. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;

@@ -19,6 +19,11 @@ export type TextAreaProps = Omit<
   // which is exactly what a multi-line control's initial height should be.
   "color" | "children" | "cols"
 > & {
+  /** §4 — the control family's index, minus the one join a growing box cannot take. Padding,
+      corner, type and border all price from it; HEIGHT does not, because the content decides
+      that (`rows`) — this is §4's "non-fixed-height components: padding is the dimension".
+      The block padding is derived so that a one-row textarea is geometrically the TextField
+      at the same index, and the control height survives as a floor rather than a ceiling. */
   size?: Size;
   /** §10 — a placement fact (2026-08-17): content passes behind this control, so the
    *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */

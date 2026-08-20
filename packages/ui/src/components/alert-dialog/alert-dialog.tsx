@@ -64,9 +64,17 @@ export type AlertDialogProps = {
       and the two buttons. It can reach the type where Dialog's cannot, because the content
       here is the system's own. */
   size?: Size;
+  /** Controlled open state, paired with `onOpenChange` — Dialog's pattern, which the whole
+      library shares. */
   open?: boolean;
+  /** Uncontrolled starting state. Mutually exclusive with `open`. */
   defaultOpen?: boolean;
+  /** Fires on every open and close. It carries no dismissal details, and that is the role
+      rather than an omission: an alert refuses outside presses (§25), so the only ways out
+      are the two buttons and Escape, and Escape IS the Cancel action by another route. */
   onOpenChange?: (open: boolean) => void;
+  /** The trigger and the content. AlertDialog renders no DOM of its own — state and wiring
+      only — so this is `<AlertDialogTrigger>` and `<AlertDialogContent>`. */
   children?: React.ReactNode;
 };
 
@@ -113,7 +121,12 @@ export type AlertDialogTriggerProps = {
   render?: RenderElement;
   /** Whether the rendered element really is a `<button>` — inferred from `render` (§5). */
   nativeButton?: boolean;
+  /** Stands the trigger down — the alert cannot be raised from here. */
   disabled?: boolean;
+  /** The button's words, and they name what is about to be RISKED rather than the alert:
+      "Delete…" opens the confirmation, and the ellipsis is the platform's own promise that a
+      question is coming. They land on the `render` target, so a Kookie Button plus children
+      is one button. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -139,6 +152,11 @@ export function AlertDialogTrigger({ render, nativeButton, ref, ...props }: Aler
 /* ── Content: the fold, and the layout the component owns (§25) ───────────────────────── */
 
 export type AlertDialogContentProps = {
+  /** The alert's parts, in reading order: `AlertDialogTitle`, `AlertDialogDescription`, then
+      `AlertDialogCancel` and `AlertDialogAction`. A LIST of parts, never a Flex — Content owns
+      the layout (§25), which is what lets the entry animate the content and what makes
+      Cancel-first mean reading order, start side and initial focus at once. Anything beyond
+      those four makes the thing a Dialog. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -212,6 +230,9 @@ function AlertPopup({
 /* ── Title and Description: the same forcing as Dialog's, plus the index (§10, §15) ────── */
 
 export type AlertDialogTitleProps = {
+  /** The question, phrased as one. It is the alert's accessible name as well as its heading,
+      so it should say what is about to happen and to what — "Delete three files?" — where a
+      title naming the widget leaves the buttons underneath meaningless. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -230,6 +251,9 @@ export function AlertDialogTitle({ children, ...props }: AlertDialogTitleProps) 
 }
 
 export type AlertDialogDescriptionProps = {
+  /** What proceeding COSTS — the consequence the title could not fit, said once. It is
+      announced together with the title, so it adds (what is lost, whether it comes back)
+      rather than restating the question in longer words. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -249,8 +273,15 @@ export function AlertDialogDescription({ children, ...props }: AlertDialogDescri
 /* ── The two actions: real Buttons the component prices and places (§11, §25) ──────────── */
 
 export type AlertDialogCancelProps = {
+  /** The retreat, in words. "Cancel" always reads; naming what staying means often reads
+      better ("Keep editing"), and the pair is judged together — two named sides is what makes
+      the alert a choice rather than a warning with a dismiss button. */
   children?: React.ReactNode;
+  /** Runs on the press, before the alert closes. Cancel ALWAYS closes, so this is for the
+      tidying — never for deciding whether to. */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  /** Stands the safe way out down. Rarely right: it leaves Escape as the only retreat from a
+      panel that refuses outside presses (§25). */
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -289,8 +320,15 @@ export type AlertDialogActionProps = {
   /** The one meaning an action may carry beyond proceeding — `destructive` for the deletes
       this component mostly exists for. Neutral (the accent identity) otherwise. */
   tone?: Tone;
+  /** The committing choice, in words — the VERB. "OK" makes the user re-read the title to
+      remember what they are agreeing to; "Delete" answers the question where it is pressed. */
   children?: React.ReactNode;
+  /** Where the work starts. The alert closes on the same press, because its job ends when a
+      choice is made — an action that must await a result and report back belongs to a Dialog
+      whose `open` the caller controls. */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  /** Stands the committing action down — for a confirmation that is not satisfied yet (a
+      typed-name gate, a pending check). Cancel stays live, so this is never a trap. */
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;

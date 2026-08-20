@@ -10,7 +10,14 @@ export type HeadingProps = Omit<
   React.ComponentPropsWithoutRef<"h2">,
   "color" | "style" | "className"
 > & {
+  /** §15 — a step on the SAME ramp Text reads; one type system, not two, so the index means
+      the same thing on both. It prices the TYPE and nothing else — the document's outline
+      level is `render`'s job — which is what lets a sidebar's `h2` sit at 4 while the hero's
+      sits at 8. Anchors at 6, §15's card-title step. */
   size?: TypeSize;
+  /** §15 — token names, never numbers. Rests semibold, which is also the top of the ladder —
+      `bold` is refused system-wide — so a heading takes its weight from the step it stands on
+      and the ink role it wears, never from a heavier face. */
   weight?: Weight;
   /** §9, §15 — the type ladder: a muted eyebrow or section label without leaving the axis. */
   emphasis?: Emphasis;

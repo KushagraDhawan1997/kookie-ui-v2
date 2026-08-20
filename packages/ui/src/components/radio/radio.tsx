@@ -31,6 +31,12 @@ export type RadioProps = Omit<
   // Ant never shipped one). Checkbox refused it and Radio inherits the refusal.
   "children" | "render" | "className" | "nativeButton" | "readOnly"
 > & {
+  /** §4 — the MARK ladder, the checkbox's index verbatim: `mark(n)` is one line of the label
+      beside it, and the diameter is that square's, so a radio and the checkbox above it in a
+      form are the same size of thing by construction rather than by two ladders agreeing. The
+      painted box leaves the control height ladder; the TARGET does not — it stays a control of
+      this size capped at the touch floor (§16). Density never touches it: a mark is content,
+      and it grows only where the type it matches grows (§17). */
   size?: Size;
   /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;
