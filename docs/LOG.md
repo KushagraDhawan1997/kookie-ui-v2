@@ -144,6 +144,22 @@ The new laws repeat all four hide conditions on the input where right and wrong 
 
 **Postscript (merge with main).** Four of the shell's node laws were red on main when this started, and repairing them was part of this work. Main reached the same four independently and landed first — with a better answer on the one that mattered: the rail's per-index arms and the pane's hook stand-down MOVED into the join layer, following Dialog's own refusal, where this branch had carved them out of the law instead. Main's spelling is what survives the merge; the entry below carries it.
 
+## 2026-08-21 Taking the plane away took the seam with it — a flush boundary is a rule
+
+**What.** Kushagra, after the panes went flat: *"what is not so trivial is separation between shell panes when they are flush… we have used hairline for exactly this and I don't see why we can't use it here also. What is tricky is to see what gets it."*
+
+**The ownership half was already right and is worth stating.** Each pane draws only its INNER edge — header bottom, rail and sidebar inline-end, inspector inline-start, bottom block-start, content nothing at all — so two neighbours can never draw one boundary twice. Both cases in the question are covered by that: rail|sidebar is the rail's inner edge, sidebar|content is the sidebar's. It is now law-asserted rather than left in a comment, including the negative (the content pane draws zero on all four sides), and giving the content an inline-start edge fails it.
+
+**The pigment is what went missing, and my change is what removed it.** `--surface-edge` rests at a live `transparent` in the elevated world by design, because there a pane's boundary IS its cast. Standing the cast down left that promise with nothing behind it: measured 1px of `rgba(0, 0, 0, 0)` in elevated, and the correct hairline under `depth="flat"` — which is why the mechanism looked fine in one world and did nothing in the other.
+
+**`--color-border`, not `--tone-border`.** The first is what a Separator draws and what a tab bar's hairline draws, both already law-pinned to resolve one colour; §7's edge order puts a frame seam exactly where a separator sits. The second is the pane-BOUNDARY role, and a flush pane has no boundary of its own to state — it is not a pane, it is a region of the page. In `flat` the two resolve identically, so nothing moves there; in `elevated` the seam appears, which is the whole repair.
+
+**Rejected: re-pointing the role, which is what the rule says to do.** A component re-points a ROLE and only the shared layer touches the painted name (the checkbox audit's defect (a), and a law that walks every component sheet). Tried it: the surface edge role is not registered `inherits: false`, so setting it on the pane hands every card INSIDE the pane a visible edge in the elevated world — the `--kui-sf-light` trap, now the sixth time this system has been bitten by an unregistered custom property. **Rejected: moving the declaration into the shared layer**, which is where painting is allowed and where the shell's per-index facts already live — it works, but the seam's other half (the narrow-window drawer arm) has to stay in shell.css because the viewport boundary literal is law-pinned to appear exactly once there, and splitting one decision across two files to satisfy a rule about a third thing is worse than the alternative. **Taken: the property.** It reaches this box and no other, and the law's spirit is met rather than dodged, because the line carries no state — a pane has no invalid or disabled arm for a remap to have to reach.
+
+**Two more node laws caught this on the way in, and both were in the half I keep skipping.** The painted-variable ban, and the axis-list ban — my new seam law had written `["elevated", "flat"]` and `["light", "dark"]` by hand, which is exactly the fourteen-private-copies problem the 2026-08-16 entry closed. Both are now derived from `DEPTHS` and `APPEARANCES`. This is the third time in two days that running only the browser project has hidden a node failure from me; the root command is the one the repo tells everyone to run, and it is the one I keep not running.
+
+---
+
 ## 2026-08-21 A fill is one of three things a plane does — the first pass stood down one
 
 **What.** The flush change shipped, and Kushagra looked at it: *"why does it still seem to have background?"* Correct. The pane's `background-color` was gone and the pane was still visibly lighter than the page, still with a soft gradient down its top and a shadow at its edges.
