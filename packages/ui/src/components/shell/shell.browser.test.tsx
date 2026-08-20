@@ -127,6 +127,17 @@ describe("anatomy: the landmarks are by construction (§27)", () => {
     expect(computed(flush, "background-color"), "a flush pane is level with the page").toBe(
       "rgba(0, 0, 0, 0)",
     );
+    // A fill is one of THREE things a plane does, and reading only the fill is how a flush
+    // pane went on catching light and casting a shadow with this law green (2026-08-21).
+    expect(computed(flush, "background-image"), "a flush pane catches no light").toBe("none");
+    expect(
+      computed(flush, "box-shadow").replace(/rgba\(0, 0, 0, 0\) 0px 0px 0px 0px/g, "").replace(/[\s,]/g, ""),
+      "a flush pane throws no shadow",
+    ).toBe("");
+    // …while a pane off the frame does all three.
+    expect(computed(within(shell, ".kui-shell-content"), "background-image"), "content too").toBe(
+      "none",
+    );
     // The seam colour is untouched by the fill going away — `border-width: 0` hides it, and
     // contrast="high" is what brings it back.
     expect(computed(flush, "border-top-color")).toBe(computed(card, "border-top-color"));
@@ -454,10 +465,19 @@ describe("a drawer is not part of the frame, whatever the app asked (§27)", () 
       { theme: {}, select: ".kui-shell" },
     );
 
+  /**
+   * EVERYTHING A PLANE DOES, not just its fill (widened 2026-08-21, second pass). The first
+   * spelling read the fill, the corner and the edge — and a flush pane went on catching light
+   * and casting a shadow with all three laws green, which is what a person actually saw. The
+   * cast is read as a boolean rather than a value because the drawer sits over a scrim and
+   * only has to HAVE one; the light is read whole, because it is the restated expression.
+   */
   const dress = (el: HTMLElement) => ({
     corner: computed(el, "border-top-left-radius"),
     edge: computed(el, "border-left-width"),
     painted: computed(el, "background-color"),
+    light: computed(el, "background-image"),
+    casts: computed(el, "box-shadow") !== "none" && !/^rgba\(0, 0, 0, 0\) 0px 0px 0px 0px$/.test(computed(el, "box-shadow")),
   });
 
   // Falsified: with the restore dropped from the explicit arms, corner reads 0px and the

@@ -310,6 +310,26 @@
    app's call in this system and always was. */
 .kui-shell-pane[data-flush] {
   --kui-sf-fill: transparent;
+  /* AND IT CATCHES NO LIGHT AND THROWS NO SHADOW (2026-08-21, second pass — the first one
+     stood down the fill alone and Kushagra caught the rest by eye: "why does it still seem to
+     have background?"). A fill is only one of the three things a plane does. Measured on a
+     flush pane after the fill went: a grain-and-bloom `background-image` still painting the
+     pane lighter at its top, and a full `0 1px 2px` + `0 24px 64px -12px` cast — every pane in
+     the frame throwing a surface shadow at its neighbours. Both are what a PLANE does, and a
+     pane level with the page is not one.
+
+     Ground's own spelling, copied deliberately (surfaces.css, 2026-08-20): the light stands
+     down as the PROPERTY and never as `--kui-sf-light`, because that hook is not registered
+     `inherits: false` and setting it here would reach every card INSIDE the pane and strip
+     its rim too — the var-inheritance trap this system has now been bitten by five times. The
+     fill above is safe as a hook because `--kui-sf-fill` IS registered non-inheriting; checked
+     rather than assumed. The cast stands down on the pane's own non-inheriting name, which is
+     consulted before the world's inherited chrome, so one declaration closes both hops; the
+     pool goes with it, being the seat-line a pane pools at its own bottom. `0 0 0 0
+     transparent` and never `none`, because `none` is illegal inside a shadow list. */
+  background-image: none;
+  --kui-sf-cast: 0 0 0 0 transparent;
+  --kui-sf-pool: 0 0 0 0 transparent;
   border-radius: var(--radius-0);
   border-width: 0;
 }
@@ -358,6 +378,15 @@
    frame, not what the shared layer would give some other box. */
 .kui-shell-pane[data-flush][data-presentation="overlay"] {
   --kui-sf-fill: initial;
+  /* The hook alone, with no fallback and deliberately no material NAMED — a component sheet
+     may not name one (recipes.test.ts). Every pane the surface layer dresses sets this hook
+     for its own rung, so the bare `var()` resolves; where it somehow would not, an invalid
+     `background-image` computes to `none`, which is the flush answer and a safe way to be
+     wrong. The law does not take this on trust: it reads the drawer's light against a pane
+     the app pulled off the frame. */
+  background-image: var(--kui-sf-light);
+  --kui-sf-cast: initial;
+  --kui-sf-pool: initial;
   border-radius: var(--radius-surface-3);
   border-width: var(--border-width);
 }
@@ -609,6 +638,9 @@
      and not this one: the path every phone takes. */
   .kui-shell-pane[data-flush][data-presentation="auto"] {
     --kui-sf-fill: initial;
+    background-image: var(--kui-sf-light);
+    --kui-sf-cast: initial;
+    --kui-sf-pool: initial;
     border-radius: var(--radius-surface-3);
     border-width: var(--border-width);
   }
