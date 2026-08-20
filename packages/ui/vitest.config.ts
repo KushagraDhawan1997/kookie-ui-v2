@@ -55,6 +55,22 @@ export default defineConfig({
             "@base-ui/react/tabs",
           ],
         },
+        /**
+         * THE TWO FACTS A BROWSER LAW CANNOT ASK FOR ITSELF (2026-08-20).
+         *
+         * Browser mode runs the laws in a real page: there is no `process`, and Vite's
+         * `import.meta.env` carries only its own five keys (measured). So the two facts that
+         * decide whether this machine's clock can be trusted have to be compiled IN.
+         *
+         * `__KUI_CI__` is what `watchesFrames` reads (test/browser.tsx carries the criterion
+         * and the reason). `__KUI_STALL__` is the CPU throttle the stall audit sets, which is
+         * how that set is DERIVED rather than guessed — `KUI_STALL=20 pnpm test` makes a fast
+         * machine reproduce a starved one on demand.
+         */
+        define: {
+          __KUI_CI__: JSON.stringify(Boolean(process.env.CI)),
+          __KUI_STALL__: JSON.stringify(Number(process.env.KUI_STALL ?? 0)),
+        },
         test: {
           name: "browser",
           include: ["src/**/*.browser.test.tsx"],

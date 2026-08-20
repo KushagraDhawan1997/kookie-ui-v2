@@ -57,6 +57,7 @@ import {
   settle,
   flushFlight,
   until,
+  watchesFrames,
   catchDissolve,
   asksForStillness,
   type Cell,
@@ -1733,7 +1734,10 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(computed(popup, "pointer-events"), "the flight must hit-test").toBe("auto");
   });
 
-  it("a panel that lands BESIDE its trigger grows out of the SEAM, not out of the row (§22)", async () => {
+  // WATCHES FRAMES: it hunts for the last AIMED SEED frame — a pose that holds about two
+  // frames — by polling, so a stalled runner misses the window and reports a submenu that
+  // never posed. Local only (test/browser.tsx carries the criterion).
+  watchesFrames("a panel that lands BESIDE its trigger grows out of the SEAM, not out of the row (§22)", async () => {
     /**
      * The silhouette's one exception, and it is decided by the placement rather than by the
      * component (2026-08-17, Kushagra: *"the way submenu appears is quite aggressive… it ends
@@ -2135,7 +2139,9 @@ describe("the panel unfurls out of a seed (§22)", () => {
     //    pose, and asserting one anyway would have been a law about a rule that no longer exists.
   });
 
-  it("a dismissal taken back MID-FLIGHT lands on the flight it interrupted (§22, 2026-08-20)", async () => {
+  // WATCHES FRAMES: its premise is "dismissed WHILE AIRBORNE" — a window that a stalled
+  // runner sleeps through, leaving a landed panel and a premise that fails honestly.
+  watchesFrames("a dismissal taken back MID-FLIGHT lands on the flight it interrupted (§22, 2026-08-20)", async () => {
     /**
      * The hardest case the catch has to survive, and it replaces the law that used to live
      * here ("a reopen RETIRES the flight it interrupts").
@@ -2273,19 +2279,110 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(drift, `the content slid ${drift.toFixed(0)}px within the box: ${seen.map((n) => n.toFixed(0)).join(",")}`).toBeLessThan(30);
   });
 
+  /**
+   * THE SEAM, AS TWO STATIC STATES — the half that needs no clock at all (2026-08-20).
+   *
+   * Kushagra: *"the inside of the menu jumps after animation finishes"*. It did, by the
+   * panel's own padding, and the cause is that an absolutely positioned box resolves its
+   * insets against its containing block's PADDING box — so the body pinned at `inset: 0` sat
+   * inside the border and outside the padding for the whole flight, then snapped one padding
+   * inward the moment it returned to normal flow.
+   *
+   * That defect is a DIFFERENCE BETWEEN TWO STATES, not an event in time — the body under the
+   * flight's pin against the body in ordinary flow — so it is read as two states on a landed
+   * panel with the clocks pinned off, and it runs everywhere, CI included. Its real-time twin
+   * below owns only what a static read cannot see: that nothing moves across the actual strip.
+   *
+   * TWO THINGS THE FIRST DRAFT GOT WRONG, both caught by running it. The pin takes the body
+   * OUT OF FLOW, so a panel left to size itself collapsed from 215px to nothing — which is
+   * precisely why the flight sizes the panel from its measurement, and why this law has to
+   * supply that measurement (`--kui-fly-w/h`) exactly as the runner does. And it drove the
+   * alignment by COLLISION, which a landed panel does not reproduce ('start' where the
+   * pressed one resolves 'end'): the arms are stamped here instead, which is the same
+   * technique as stamping the flight itself and reaches both of them in every mount rather
+   * than one per lucky placement.
+   */
+  it("the flight's pin puts the body where flow puts it — both arms (§22)", () => {
+    render(
+      <Theme>
+        <div style={{ position: "absolute", top: "40px", left: "8px" }}>
+          <Menu defaultOpen>
+            <MenuTrigger render={<Button>Open</Button>} />
+            <MenuContent>
+              <MenuItem>Duplicate</MenuItem>
+              <MenuItem>Rename something longer</MenuItem>
+            </MenuContent>
+          </Menu>
+        </div>
+      </Theme>,
+    );
+    const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
+    if (!popup) throw new Error("the popup never opened");
+    const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
+
+    // The panel in flow, and the box the flight would have measured for it.
+    const inFlow = body.getBoundingClientRect();
+    const box = popup.getBoundingClientRect();
+    expect(box.width, "the panel must have a real box to hold").toBeGreaterThan(40);
+    const align = popup.getAttribute("data-align");
+
+    popup.style.setProperty("--kui-fly-w", `${box.width}px`);
+    popup.style.setProperty("--kui-fly-h", `${box.height}px`);
+    popup.setAttribute("data-unfurling", "");
+    try {
+      for (const arm of ["start", "end"] as const) {
+        popup.setAttribute("data-align", arm);
+        const held = popup.getBoundingClientRect();
+        // The room must be the same room, or the two body reads are not comparable.
+        expect(Math.abs(held.width - box.width), `${arm}: the panel's own box must be held`).toBeLessThan(0.5);
+        expect(Math.abs(held.height - box.height), `${arm}: in both axes`).toBeLessThan(0.5);
+        const pinned = body.getBoundingClientRect();
+        // THE BLOCK AXIS IN BOTH ARMS — pinned identically by both, independent of where the
+        // panel sits, and exactly where the padding defect bit (it fails here at 4px, one
+        // padding, when the insets are taken from the border box again).
+        expect(Math.abs(pinned.top - inFlow.top), `${arm}: the pin moves the body vertically`).toBeLessThan(1);
+        // The INLINE axis is claimed for the start arm only, and the restraint is the point.
+        // End-aligned, `inset-inline-start: auto` makes the body shrink-to-fit against the end
+        // edge by design, and where that edge lands is the POSITIONER's answer — a hand-stamped
+        // arm on a panel floating-ui placed as `start` is not that state, and asserting it here
+        // would be a law about the reproduction rather than about the system. The end arm's
+        // inline behaviour has two homes that can see it honestly: "the panel's CONTENT does
+        // not slide in from the side" (clock-seized, on CI) and the real-time twin below.
+        if (arm === "start") {
+          expect(
+            Math.abs(pinned.left - inFlow.left),
+            "start: the pinned inline edge is not where flow put it",
+          ).toBeLessThan(1);
+        }
+      }
+    } finally {
+      popup.removeAttribute("data-unfurling");
+      if (align === null) popup.removeAttribute("data-align");
+      else popup.setAttribute("data-align", align);
+      popup.style.removeProperty("--kui-fly-w");
+      popup.style.removeProperty("--kui-fly-h");
+    }
+  });
+
   for (const [where, side] of [["start", "left"], ["end", "right"]] as const) {
-    it(`nothing jumps on the frame the flight ends — ${where}-aligned (§22)`, async () => {
-      /**
-       * Kushagra: *"the inside of the menu jumps after animation finishes"*. It did, by the
-       * panel's own padding, and the cause is that an absolutely positioned box resolves its
-       * insets against its containing block's PADDING box — so the body pinned at `inset: 0`
-       * sat inside the border and outside the padding for the whole flight, then snapped one
-       * padding inward the moment it returned to normal flow.
-       *
-       * The law is deliberately about the SEAM rather than about the padding: any property
-       * that differs between the flying state and the settled one produces exactly this, and a
-       * law that named the padding would only ever catch the spelling I already fixed.
-       */
+    /**
+     * And the same claim across the REAL release, which is the half no instrument can pin.
+     *
+     * `before` is a proven-still flying frame — at the natural end of a flight the springs are
+     * done and floating-ui has converged, and the release timer strips the attributes a margin
+     * later, so stillness is provable (three identical frames; a spring is momentarily still
+     * for less than one) while the flight attribute is still on. The strip then changes
+     * nothing, which is the claim.
+     *
+     * It cannot be seized by the clocks (`seizeFlight`): fast-forwarding the springs renders
+     * the finished box under an EARLY placement, because the panel's PLACE is floating-ui's —
+     * a wall-time loop that is not an Animation — measured as a 1-2px phantom jump the browser
+     * never paints. A law whose subject includes a wall-time mechanism must let real time
+     * deliver the state it asserts about, which is exactly why it does not run where the clock
+     * is not ours: on CI the plateau is a window a stalled runner sleeps through, and it
+     * reported 27.816px of ordinary flight travel as a release jump.
+     */
+    watchesFrames(`nothing jumps on the frame the flight ends — ${where}-aligned (§22)`, async () => {
       render(
         <Theme>
           <div style={{ position: "absolute", top: "40px", [side]: "8px" }}>
@@ -2300,68 +2397,38 @@ describe("the panel unfurls out of a seed (§22)", () => {
         </Theme>,
       );
       inMotion();
-      /**
-       * `before` IS A PROVEN-STILL FLYING FRAME, never "whichever frame came last" (2026-08-20,
-       * CI: "it jumped vertically: expected 27.816 to be less than 1" — under a stall the
-       * previous sample is anywhere in the entry, so 27.8px of legitimate flight travel read
-       * as a release jump). At the natural end of a flight there is a still plateau BY
-       * MECHANISM — the springs are done and floating-ui has converged, and the release timer
-       * strips the attributes a margin later — so stillness is proved the way the reopen law
-       * proves rest (three identical frames; a spring is momentarily still for less than one),
-       * while the flight attribute is still on. The strip then changes nothing, which is the
-       * claim.
-       *
-       * Deliberately NOT seized by the clocks (`seizeFlight`): fast-forwarding the springs
-       * renders a state the browser never paints, because the panel's PLACE is floating-ui's
-       * — a wall-time loop that converges across the real flight — and stepping the springs
-       * without it reconstructs an early placement under a finished box (measured: a 1-2px
-       * phantom jump in both alignments). A law about the strip must let real time deliver
-       * the state the strip acts on. If the strip beats the three-frame proof — a stalled
-       * runner can sleep through the whole plateau — the GESTURE is re-run rather than
-       * asserted on a stale pair; a seam that genuinely jumps fails on the first proven pair
-       * however many openings that takes, and three misses is an instrument failure that says
-       * so by name.
-       */
-      const trigger = document.querySelector<HTMLElement>(".kui-button")!;
-      let pair: { before: DOMRect; after: DOMRect } | null = null;
-      for (let attempt = 0; attempt < 3 && !pair; attempt++) {
-        await press(trigger);
-        const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
-        if (!popup) throw new Error("the popup never opened");
-        const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
-        let last: DOMRect | null = null;
-        let still = 0;
-        let before: DOMRect | null = null;
-        await until(() => {
-          if (!popup.hasAttribute("data-unfurling")) return true; // the flight is over
-          const now = body.getBoundingClientRect();
-          still = last && Math.abs(now.left - last.left) < 0.05 && Math.abs(now.top - last.top) < 0.05 ? still + 1 : 0;
-          last = now;
-          if (still >= 3) before = now; // the latest proven-still flying frame
-          return false;
-        }, 4000);
-        if (before) {
-          // Calibration: a law that never saw the flight would pass trivially.
-          expect(popup.getAttribute("data-align")).toBe(where);
-          pair = { before, after: body.getBoundingClientRect() };
-        } else {
-          // The strip beat the proof — close and run the gesture again.
-          await press(trigger);
-          await until(
-            () =>
-              [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].every(
-                (p) => !p.isConnected || p.hidden,
-              ),
-            3000,
-          );
-        }
-      }
-      if (!pair) throw new Error("no opening yielded a proven-still flying frame in three attempts");
-      expect(Math.abs(pair.after.left - pair.before.left), "it jumped sideways").toBeLessThan(1);
-      expect(Math.abs(pair.after.top - pair.before.top), "it jumped vertically").toBeLessThan(1);
+      await press(document.querySelector<HTMLElement>(".kui-button")!);
+      const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
+      if (!popup) throw new Error("the popup never opened");
+      const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
+
+      let last: DOMRect | null = null;
+      let still = 0;
+      // A one-slot holder rather than a `let`: the assignment happens inside the callback, so
+      // TypeScript's flow analysis still believes the variable is its initial `null` at the
+      // guard below and types it `never` after it — `error TS2339: Property 'left' does not
+      // exist on type 'never'`, which is the compiler being right about what it can see.
+      const proven: DOMRect[] = [];
+      await until(() => {
+        if (!popup.hasAttribute("data-unfurling")) return true; // the flight is over
+        const now = body.getBoundingClientRect();
+        still =
+          last && Math.abs(now.left - last.left) < 0.05 && Math.abs(now.top - last.top) < 0.05
+            ? still + 1
+            : 0;
+        last = now;
+        if (still >= 3) proven[0] = now; // the latest proven-still flying frame
+        return false;
+      }, 4000);
+      const before = proven[0];
+      if (!before) throw new Error("the flight never held still before the strip");
+      // Calibration: a law that never saw the flight would pass trivially.
+      expect(popup.getAttribute("data-align")).toBe(where);
+      const after = body.getBoundingClientRect();
+      expect(Math.abs(after.left - before.left), "it jumped sideways").toBeLessThan(1);
+      expect(Math.abs(after.top - before.top), "it jumped vertically").toBeLessThan(1);
     });
   }
-
   it("the side it opens on is decided ONCE, not re-decided as it grows (§22)", async () => {
     /**
      * Kushagra: *"it opens and then as it animates it realises it must open on the other side,
