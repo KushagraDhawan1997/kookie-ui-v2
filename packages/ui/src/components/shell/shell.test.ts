@@ -95,9 +95,32 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       block(css, ".kui-shell-nav-item:hover:not([data-disabled])"),
       "the restored hover must spend the control layer's own currency",
     ).toContain("background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover))");
+    // A THIRD AND FOURTH RULE ARE SANCTIONED (2026-08-21), and they are the opposite of a
+    // paint: a flush pane stands the surface's own lighting DOWN (`background-image: none`,
+    // stated as the property because `--kui-sf-light` is not registered `inherits: false` and
+    // the hook would strip the rim off every card inside the pane), and a drawer hands it
+    // BACK by re-pointing at that same hook. The guarantee this law exists for is that the
+    // shell never paints on its own account, so the exemption is bounded by VALUE rather than
+    // by selector: neither rule may name a colour, and the only values they may carry are
+    // `none` and the surface layer's own hook. A bed cannot hide inside that.
+    const standDowns = [
+      /\.kui-shell-pane\[data-flush\]\s*\{[^}]*\}/g,
+      /\.kui-shell-pane\[data-flush\]\[data-presentation="(?:overlay|auto)"\]\s*\{[^}]*\}/g,
+    ];
+    for (const re of standDowns) {
+      for (const rule of css.match(re) ?? []) {
+        for (const decl of rule.match(/background[^;]*/g) ?? []) {
+          expect(decl, "a stand-down may not paint").toMatch(
+            /^background-image:\s*(none|var\(--kui-sf-light\))$/,
+          );
+        }
+      }
+    }
     const sanctioned = css
       .replace(/\.kui-shell-scrim\s*\{[^}]*\}/g, " ")
-      .replace(/\.kui-shell-nav-item:hover[^{]*\{[^}]*\}/g, " ");
+      .replace(/\.kui-shell-nav-item:hover[^{]*\{[^}]*\}/g, " ")
+      .replace(standDowns[0]!, " ")
+      .replace(standDowns[1]!, " ");
     expect(sanctioned).not.toMatch(/background/);
     expect(css).not.toMatch(/box-shadow/);
     expect(css).not.toMatch(/[^-\w]transition\s*:/);

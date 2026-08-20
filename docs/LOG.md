@@ -102,6 +102,24 @@ The new laws repeat all four hide conditions on the input where right and wrong 
 
 **Postscript (merge with main).** Four of the shell's node laws were red on main when this started, and repairing them was part of this work. Main reached the same four independently and landed first — with a better answer on the one that mattered: the rail's per-index arms and the pane's hook stand-down MOVED into the join layer, following Dialog's own refusal, where this branch had carved them out of the law instead. Main's spelling is what survives the merge; the entry below carries it.
 
+## 2026-08-21 A fill is one of three things a plane does — the first pass stood down one
+
+**What.** The flush change shipped, and Kushagra looked at it: *"why does it still seem to have background?"* Correct. The pane's `background-color` was gone and the pane was still visibly lighter than the page, still with a soft gradient down its top and a shadow at its edges.
+
+**Measured, with the fill already transparent:** a `background-image` carrying the surface's grain, bloom and sheen, and `box-shadow` at `0 1px 2px` + `0 24px 64px -12px` — every pane in the frame casting a full surface shadow at its neighbours. A pane level with the page is not a plane, and it does none of the three.
+
+**Why the first pass missed it.** I reached for the fill because "background" in my head meant `background-color`. The law I wrote at the same time read `background-color` and nothing else, so it agreed with me — the same shape as every other law in this repo that measured the axis that was right. It now reads all three, and the drawer's dress comparison does too.
+
+**Ground had already solved it, and the spelling matters.** `Surface` stands its light down as `background-image: none`, the PROPERTY, with a comment recording why: `--kui-sf-light` is not registered `inherits: false`, so standing down the hook reaches every pane inside and strips its rim — measured there when a card on a ground lost its own. Copied here for the same reason. `--kui-sf-fill` is different and IS registered non-inheriting, so the fill could safely be a hook; I checked rather than assumed, because the cost of being wrong is every card in a sidebar going transparent.
+
+**A law had to widen, and the widening is bounded by VALUE not by selector.** `the shell paints no bed` forbade the word `background` anywhere outside two sanctioned rules — which catches a stand-down as readily as a paint, because it checks the spelling rather than the guarantee. The two new rules are exempted, and inside them the only values permitted are `none` and the surface layer's own hook: a bed cannot hide in that. Falsified both ways — a `background-color` smuggled into the flush rule fails, and a `linear-gradient` in the drawer's restore fails.
+
+**And the drawer's restore may not name a material.** The first spelling restated the surface layer's full expression, `var(--kui-sf-light, var(--material-regular-rim, none))`, which a component sheet is forbidden to write (recipes.test.ts, the Dialog's own 2026-08-10 refusal). The bare hook is enough — every pane the surface layer dresses sets it — and where it somehow would not, an invalid `background-image` computes to `none`, which is the flush answer anyway. The mounted law reads the drawer's light against a pulled-off pane rather than taking that on trust.
+
+**Two process failures worth recording, both the same shape.** I judged the first pass from a screenshot taken before `pnpm run build` ran, so I was looking at the previous stylesheet and called it correct. And I recorded the budget from `pnpm --filter … run measure`, which skips turbo's `dependsOn: ["build"]` edge and weighs a stale artifact — that is what broke CI on the merge. **The gate ran and answered honestly about the wrong input**, which is the degenerate-fixture rule one layer out: it is not enough for the measurement to be right, the thing measured has to be current. Both are the root command's job, and both were avoided by using the filtered form.
+
+---
+
 ## 2026-08-21 Flush means flush to the page — so a flush pane paints nothing, and a drawer is not flush
 
 **What.** Kushagra, on the shell: *"If a panel, content, etc is flush, why does it have any background? Flush should mean letting light pass"* — then, precisely: *"it should have no background at all. It's flush to page."* And on the objection I raised: *"when it becomes a drawer, it stops being flush… a drawer has a surface, so it gets surface."*
