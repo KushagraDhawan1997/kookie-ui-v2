@@ -18,7 +18,7 @@
  * of fourteen findings sat behind a green suite.
  */
 import * as React from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, onTestFinished } from "vitest";
 import { flushSync } from "react-dom";
 
 import {
@@ -170,14 +170,13 @@ function watchPose(): Promise<{ flyW: number }> {
   });
 }
 
-async function seeded(popup: HTMLElement): Promise<void> {
-  const deadline = performance.now() + 1000;
-  while (performance.now() < deadline) {
-    if (popup.hasAttribute("data-seed")) return;
-    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-  }
-  throw new Error("the entry never posed — no data-seed inside a second");
-}
+/* `seeded()` lived here until 2026-08-20 and is deliberately gone rather than kept for a future
+   caller. It waited for `data-seed` to APPEAR on a popup handed to it, which reads as a helper
+   and is a race: the pose is stamped in the commit and lasts about two frames, so anything that
+   found the popup first — every caller did — was already looking after the fact. Its one
+   consumer failed 6 runs of 6 when the file was run alone and passed inside the full file,
+   which is a helper teaching its callers to depend on the machine. `watchPose()` above is the
+   shape that works: armed BEFORE the interaction, so the pose is observed rather than hunted. */
 
 function padBox(popup: HTMLElement): HTMLElement {
   const viewport = popup.querySelector<HTMLElement>(".kui-scroll-viewport");
@@ -2003,12 +2002,13 @@ describe("the panel unfurls out of a seed (§22)", () => {
      * fired and there is no stale clock to disarm — deleting the retirement leaves it green.
      *
      * Here the reopen interrupts a flight that is still airborne. Each flight schedules its
-     * release off its own clock (~530ms: the 480 spread plus the runner's margin), so the
-     * interrupted one is due ~290ms after the reopen and the flight that replaced it ~530ms
-     * after. Without the retirement the first timer lands inside the second flight, strips
-     * the pins, and the box jumps to its natural size a quarter of a second before it should
-     * have arrived. The claim is therefore made in the gap between the two deadlines — past
-     * the stale one, short of the real one — and it is simply: the panel is still becoming.
+     * release off its own clock — 730ms, read from the popup's computed transition list at
+     * `flightClock`, and not the ~530 an earlier version of this comment asserted — so the
+     * interrupted one is due well before the flight that replaced it. Without the retirement
+     * the first timer lands inside the second flight, strips the pins, and the box jumps to
+     * its natural size a quarter of a second before it should have arrived. The claim is made
+     * in the gap between the two deadlines — past the stale one, short of the real one — and
+     * it is simply: the panel is still becoming.
      *
      * One law for both families because there is now one runner (unified 2026-08-16); before
      * that this mechanism existed twice and would have needed asserting twice.
@@ -2032,6 +2032,37 @@ describe("the panel unfurls out of a seed (§22)", () => {
     mount(<Host />);
     inMotion();
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    /**
+     * BOTH deadlines are stamped from the runner's OWN departures (2026-08-20).
+     *
+     * A flight sets its release timer inside `depart()`, on the frame the pose comes off — so
+     * the observable moment is `data-seed` leaving while `data-unfurling` stays. Reading the
+     * clock off the test's wall clock instead put the machine inside both numbers: `stale` was
+     * stamped after `departed()` had spent a flush and three frames, which on a loaded runner
+     * is 150ms of over-estimate, and every millisecond of it moves the bar below later. That
+     * is why this law kept failing on CI and never here — the over-estimate is a function of
+     * how slow the runner is.
+     */
+    const departures: number[] = [];
+    const departWatch = new MutationObserver((records) => {
+      for (const record of records) {
+        const el = record.target as HTMLElement;
+        if (record.attributeName !== "data-seed") continue;
+        if (!el.hasAttribute("data-seed") && el.hasAttribute("data-unfurling")) {
+          departures.push(performance.now());
+        }
+      }
+    });
+    departWatch.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-seed"],
+    });
+    // Torn down whatever happens: an assertion throwing between here and the disconnect below
+    // would otherwise leave this observing every menu the rest of the file mounts.
+    onTestFinished(() => departWatch.disconnect());
+
     flushSync(() => setOpen(true));
     const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
     const clock = await departed(popup);
@@ -2052,7 +2083,9 @@ describe("the panel unfurls out of a seed (§22)", () => {
      * easier to satisfy — never harder. The claim itself is unchanged and is still the one
      * thing this law exists for: the panel outlives the interrupted flight's clock.
      */
-    const airborneAt = performance.now();
+    await until(() => departures.length >= 1, 2000);
+    const airborneAt = departures[0];
+    expect(airborneAt, "the first flight's departure was never observed").toBeDefined();
     await wait(200); // mid-flight
     expect(popup.hasAttribute("data-unfurling"), "the premise: the first flight is airborne").toBe(true);
     flushSync(() => setOpen(false));
@@ -2064,20 +2097,27 @@ describe("the panel unfurls out of a seed (§22)", () => {
     await flushFlight();
     expect(popup.hasAttribute("data-seed") || popup.hasAttribute("data-unfurling")).toBe(true);
 
-    // The two deadlines, measured off the clock the runner actually reads. `stale` is an UPPER
-    // bound rather than the exact instant — `airborneAt` is stamped after `departed()` has
-    // spent its frames, so the first flight's timer was really set a little earlier — and the
-    // approximation errs the safe way: a later `stale` raises the bar below, so it can only
-    // make this law stricter, never more permissive.
-    const stale = airborneAt + clock;
-    const real = performance.now() + clock;
+    // The second flight's own departure, waited for the same way — so both deadlines are the
+    // runner's, stamped where it actually sets its timers, and neither carries the test's
+    // scheduling.
+    await until(() => departures.length >= 2, 2000);
+    departWatch.disconnect();
+    expect(departures.length, `the replacement flight never departed: ${departures.length} departures`).toBeGreaterThan(1);
+    const stale = airborneAt! + clock;
+    const real = departures[1]! + clock;
     expect(real - stale, "the premise: the two deadlines must be far enough apart to tell apart").toBeGreaterThan(150);
 
-    // Watch for the release rather than sleeping past it. Bounded generously — this is a
-    // ceiling on a hung flight, not a timing claim.
+    /**
+     * The ceiling is a guard against a hung flight and NOT a timing claim, so it is set where
+     * no runner can reach it. It used to be `real + 400`, which is a timing claim wearing a
+     * guard's clothes: a release that legitimately lands past it reports `releasedAt` 0 and the
+     * law says `expected 0 to be greater than 0` — the exact CI failure. Watching longer cannot
+     * weaken anything here, because the claim is that the release is LATE; a bigger ceiling
+     * only lets a late release be seen and judged instead of being reported as a hang.
+     */
     let releasedAt = 0;
     let watched = 0;
-    while (performance.now() < real + 400) {
+    while (performance.now() < real + 3000) {
       await new Promise((r) => requestAnimationFrame(() => r(null)));
       watched++;
       if (!popup.hasAttribute("data-unfurling")) {
@@ -2094,7 +2134,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
      */
     expect(
       releasedAt,
-      `the flight never released inside ${Math.round(real + 400 - stale)}ms of the stale deadline: ` +
+      `the flight never released inside ${Math.round(real + 3000 - stale)}ms of the stale deadline: ` +
         `clock ${Math.round(clock)}ms, gap ${Math.round(real - stale)}ms, ${watched} frames watched, ` +
         `popup ${popup.isConnected ? "still in the DOM" : "DETACHED — the node was replaced"}, ` +
         `stamps [${popup.getAttributeNames().filter((n) => n.startsWith("data-")).join(" ")}]`,
@@ -2254,10 +2294,62 @@ describe("the panel unfurls out of a seed (§22)", () => {
     inMotion();
     const trigger = document.querySelector<HTMLElement>(".kui-button")!;
     const triggerLeft = trigger.getBoundingClientRect().left;
+
+    /**
+     * THE WINDOW IS THE FLIGHT, and the observer is armed before the press (2026-08-20).
+     *
+     * This law was red on 9 of 13 CI runs and green here, and both spellings before this one
+     * were instruments rather than claims. The observer used to be installed AFTER the pose had
+     * been awaited and the click had resolved, and it forbade any change FROM a value — on the
+     * premise that the attribute goes straight from absent to its answer.
+     *
+     * Measured, it does not. Base UI stamps the default `start`, the runner pins the positioner
+     * to the panel's real box, and floating-ui then answers `end` — one flip, always, at every
+     * throttle rate: 87ms pose → 93ms flip → 128ms depart at 1x, and 379 → 530 → 755 at 20x.
+     * That flip is the DECISION, not a re-decide, and whether the old observer arrived before
+     * or after it was pure scheduling. That is the whole flake.
+     *
+     * The defect §22 names is re-deciding AS IT GROWS, so the window is after the flight
+     * departs. Sabotaged — the positioner pin removed — the same probe reads depart at 117ms
+     * and the flip at 850ms, on the other side of the line. Nothing is loosened by this: the
+     * observer now catches flips the old one could not see at all, and the claim moved onto the
+     * moment the bug is defined by.
+     */
+    const timeline: string[] = [];
+    let departed = false;
+    const late: string[] = [];
+    const t0 = performance.now();
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        const el = record.target as HTMLElement;
+        const name = record.attributeName!;
+        const now = `${(performance.now() - t0).toFixed(0)}ms`;
+        // The flight departs when the pose comes off while the flight attribute stays on.
+        if (name === "data-seed" && !el.hasAttribute("data-seed") && el.hasAttribute("data-unfurling")) {
+          departed = true;
+          timeline.push(`${now} DEPART`);
+          continue;
+        }
+        if (name !== "data-side" && name !== "data-align") continue;
+        const change = `${now} ${name}: ${record.oldValue} -> ${el.getAttribute(name)}`;
+        timeline.push(change);
+        // Only a change FROM a value counts, and only after departure: the first stamping of an
+        // absent attribute is Base UI deciding, and the pin's own answer lands before the
+        // flight starts.
+        if (departed && record.oldValue !== null) late.push(change);
+      }
+    });
+    observer.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeOldValue: true,
+      attributeFilter: ["data-side", "data-align", "data-seed"],
+    });
+    onTestFinished(() => observer.disconnect());
+
     const posed = watchPose();
     await press(trigger);
     const { flyW: natural } = await posed;
-    const tick = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
     if (!popup) throw new Error("the popup never opened");
     const seed = parseFloat(tokenOn(popup, "--floating-seed"));
@@ -2268,37 +2360,34 @@ describe("the panel unfurls out of a seed (§22)", () => {
     );
     expect(triggerLeft + natural, "the panel must NOT fit").toBeGreaterThan(window.innerWidth);
 
-    // OBSERVED, not frame-sampled (2026-08-15): the first spelling polled per rAF and asked
-    // for six samples, which is a frame-count wait wearing a calibration's clothes — under a
-    // loaded full suite the whole entry fits in two frames and the law failed for
-    // scheduling. A MutationObserver is the honest instrument AND the stronger one: a flip
-    // between two sampled frames was invisible to the poll, and is a record here. The first
-    // stamping of an absent attribute is Base UI deciding; a change FROM a value is Base UI
-    // re-deciding, which is the defect.
-    const flips: string[] = [];
-    const observer = new MutationObserver((records) => {
-      for (const record of records) {
-        if (record.oldValue !== null) {
-          flips.push(`${record.attributeName}: ${record.oldValue} -> ${popup.getAttribute(record.attributeName!)}`);
-        }
-      }
-    });
-    observer.observe(popup, {
-      attributes: true,
-      attributeOldValue: true,
-      attributeFilter: ["data-side", "data-align"],
-    });
-    const deadline = performance.now() + 2000;
-    let watched = 0;
-    while (performance.now() < deadline) {
-      if (popup.hasAttribute("data-unfurling")) watched += 1;
-      else if (watched > 0) break;
-      await tick();
-    }
+    /**
+     * Watched until the BOX IS AT REST, not until the flight attribute drops — and the
+     * difference is the whole sabotage. The defect's signature is the alignment changing while
+     * the box is still changing size, and with the pin removed that lands within a frame or
+     * two of the release: measured, depart 117ms, release 848ms, flip 850ms. Stopping on the
+     * attribute disconnected the observer two milliseconds early and the sabotage walked out
+     * through the gap — it failed this law on its calibration instead of on its claim, which is
+     * a law passing for the wrong reason waiting to happen.
+     *
+     * Rest is only recognised AFTER the release, so a spring that plateaus for two frames
+     * mid-flight cannot end the watch early. Watching longer can only make this law stricter:
+     * every extra frame is another chance to catch a late flip, and there is nothing else in
+     * this mount that could move the panel.
+     */
+    await until(() => departed, 3000);
+    await until(() => !popup.hasAttribute("data-unfurling"), 3000);
+    await stillWidth(popup);
     observer.disconnect();
-    expect(watched, "the entry must actually have run").toBeGreaterThan(0);
-    expect(popup.getAttribute("data-align"), "it must settle end-aligned in this cell").toBe("end");
-    expect(flips, `it re-decided mid-flight: ${flips.join(" | ")}`).toEqual([]);
+
+    const evidence = `\n  timeline: ${timeline.join("\n            ") || "(nothing observed)"}`;
+    // Calibration: a flight nobody saw depart makes every claim below vacuous.
+    expect(departed, `the entry never departed${evidence}`).toBe(true);
+    expect(
+      timeline.some((e) => e.includes("data-align")),
+      `the alignment never resolved at all — this cell must exercise a collision${evidence}`,
+    ).toBe(true);
+    expect(popup.getAttribute("data-align"), `it must settle end-aligned in this cell${evidence}`).toBe("end");
+    expect(late, `it re-decided mid-flight${evidence}`).toEqual([]);
   });
 
   it("survives being mounted twice — the measurement is of the PANEL, never of the seed (§22)", async () => {
@@ -2401,36 +2490,61 @@ describe("the panel unfurls out of a seed (§22)", () => {
     );
     inMotion();
     const restingBox = document.querySelector<HTMLElement>(".kui-button")!.getBoundingClientRect();
+
+    /**
+     * THE SAMPLER IS ARMED BEFORE THE PRESS (2026-08-20), and until it was, this law could not
+     * run on a fast machine at all.
+     *
+     * It used to press, wait a frame, then call `seeded()` to find the pose. Real input takes
+     * several frames to drive, and the pose lasts two — measured, seed at 87ms and depart at
+     * 128ms — so whether the pose still existed when `press()` resolved was a race with the
+     * machine. Run as part of the full file it usually won; run ALONE it lost every time, 6 of
+     * 6 here and 3 of 3 on the unmodified file, dying on "the entry never posed" while the
+     * popup plainly carried `data-unfurling` and `data-aimed`. A law whose fixture only
+     * assembles when some earlier test has slowed the machine down is not a law about the code.
+     *
+     * Sampling from before the click removes the race in the direction that cannot hurt: the
+     * loop is already running when the popup appears, so it captures the silhouette frame
+     * whatever the frame rate, and a slower runner simply contributes fewer samples to the same
+     * series.
+     */
+    type Sample = { w: number; h: number; t: number; flying: boolean; posed: boolean };
+    const samples: Sample[] = [];
+    let stop = false;
+    const sample = () => {
+      const live = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
+      if (live) {
+        const box = live.getBoundingClientRect();
+        samples.push({
+          w: Math.round(box.width),
+          h: Math.round(box.height),
+          t: performance.now(),
+          flying: live.hasAttribute("data-unfurling"),
+          posed: live.hasAttribute("data-seed"),
+        });
+      }
+      if (!stop) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+    onTestFinished(() => void (stop = true));
     await press(document.querySelector<HTMLElement>(".kui-button")!);
-    const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-    await frame();
+    // Watched to the end of the flight by the panel's own signal, never by a frame count or a
+    // clock: a sample that was flying, then one that is not.
+    await until(() => samples.some((f) => f.flying) && samples.at(-1)?.flying === false, 3000);
+    stop = true;
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
     if (!popup) throw new Error("the popup never opened");
-    await seeded(popup);
 
-    // Sampled across the WHOLE entry, not its first frames: the floor that clamped the width
-    // could also come back mid-flight, and a short window cannot see the difference between a
-    // channel that finished and one that was cut off.
-    //
-    // Bounded by the CLOCK and by the panel's own signal, never by a frame count. Thirty-four
-    // frames is 566ms on an idle machine and considerably less work than that under a loaded
-    // suite, where this law duly failed on its first full run for no reason but scheduling.
-    const widths: number[] = [];
-    const heights: number[] = [];
-    const stamps: number[] = [];
-    let released = -1;
-    const deadline = performance.now() + 2000;
-    while (performance.now() < deadline) {
-      const box = popup.getBoundingClientRect();
-      widths.push(Math.round(box.width));
-      heights.push(Math.round(box.height));
-      stamps.push(performance.now());
-      if (!popup.hasAttribute("data-unfurling")) {
-        released = widths.length - 1;
-        break;
-      }
-      await frame();
-    }
+    // The series starts at the POSE — the runner's own first styled frame — and ends at the
+    // first sample that is no longer flying. Indices are found in the record rather than
+    // assumed, because the sampler was running before any of it existed.
+    const first = samples.findIndex((f) => f.posed);
+    const flewFrom = first >= 0 ? first : samples.findIndex((f) => f.flying);
+    const entry = flewFrom >= 0 ? samples.slice(flewFrom) : [];
+    const widths = entry.map((f) => f.w);
+    const heights = entry.map((f) => f.h);
+    const stamps = entry.map((f) => f.t);
+    const released = entry.findIndex((f) => !f.flying);
     /**
      * THE SAMPLES TRAVEL WITH EVERY FAILURE (2026-08-20). This law is the suite's flakiest —
      * it has failed on CI repeatedly, at roughly one run in twenty here — and every one of
@@ -2474,17 +2588,42 @@ describe("the panel unfurls out of a seed (§22)", () => {
      * generous and still nowhere near a snap — a channel that lets go covers the whole distance
      * in one frame, which is tens of times its average whatever the frame rate.
      */
-    const distance = Math.max(...widths) - Math.min(...widths);
-    const elapsed = stamps.at(-1)! - stamps[0]!;
+    /**
+     * Scanned over the AIRBORNE samples only, and that is the last thing making this law flaky
+     * (2026-08-20). The loop reads the rect and THEN asks whether the flight is still on, so
+     * its final sample is taken with the pins already stripped — the box has left its animated
+     * `inline-size` for its natural layout in the same task. That step is a discontinuity by
+     * construction and it is not travel, but it landed inside the scan and it is instantaneous,
+     * which is the one shape pixels-per-millisecond cannot normalise: the CI failure read
+     * `1.58px/ms against an average of 0.05`, and 1.58 is ten times the peak rate of a 730ms
+     * spring over this distance.
+     *
+     * Frame drops were never the problem here and this is why the fix is not another bound.
+     * Both terms are per-millisecond, so a runner that hands this loop three frames where an
+     * idle one hands it thirty reports a `fastest` that moves TOWARD its average, not away from
+     * it — coarse sampling makes this claim easier, which is the direction a law is allowed to
+     * degrade in. Only an instantaneous step breaks it, and the release is the only one in the
+     * window.
+     */
+    const flightWidths = released > 0 ? widths.slice(0, released) : widths;
+    const flightStamps = released > 0 ? stamps.slice(0, released) : stamps;
+    expect(
+      flightWidths.length,
+      `too few airborne samples to say anything about smoothness${trace()}`,
+    ).toBeGreaterThan(2);
+    const distance = Math.max(...flightWidths) - Math.min(...flightWidths);
+    const elapsed = flightStamps.at(-1)! - flightStamps[0]!;
     expect(elapsed, "the entry was never sampled over time").toBeGreaterThan(0);
     const average = distance / elapsed;
     const fastest = Math.max(
-      ...widths.slice(1).map((w, i) => Math.abs(w - widths[i]!) / Math.max(stamps[i + 1]! - stamps[i]!, 1)),
+      ...flightWidths
+        .slice(1)
+        .map((w, i) => Math.abs(w - flightWidths[i]!) / Math.max(flightStamps[i + 1]! - flightStamps[i]!, 1)),
     );
     expect(
       fastest,
       `width moved ${fastest.toFixed(2)}px/ms against an average of ${average.toFixed(2)}px/ms ` +
-        `(${distance}px over ${Math.round(elapsed)}ms in ${widths.length} samples)${trace()}`,
+        `(${distance}px over ${Math.round(elapsed)}ms in ${flightWidths.length} airborne samples)${trace()}`,
     ).toBeLessThan(average * 6 + 0.5);
     /**
      * And the flight is released only once the LAST channel has landed. Keying the release on
