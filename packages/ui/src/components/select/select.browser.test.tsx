@@ -37,6 +37,7 @@ import {
   tokenOn,
   colorOn,
   until,
+  watchesFrames,
   sweep,
   DENSITIES,
 } from "../../test/browser.tsx";
@@ -1144,7 +1145,9 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     expect(popup.style.height, "the borrowed height was never given back").toBe("100%");
   });
 
-  it("the FIRST open flies to the settled width — the floor is inside the target (§22)", async () => {
+  // WATCHES FRAMES: `--kui-anchor-w` exists only while the flight does, so the read has to
+  // land inside the flight — the runner strips it at release and the law compares NaN.
+  watchesFrames("the FIRST open flies to the settled width — the floor is inside the target (§22)", async () => {
     /**
      * Kushagra, checking the fixes: *"it opens like this, then it expands after a second."*
      * The panel's floor is "never narrower than the trigger", spelled through floating-ui's
@@ -1376,7 +1379,10 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     expect(selectRecipe).toEqual(menuRecipe);
   });
 
-  it("the entry moves neither the page nor the panel's own contents (§8, §22)", async () => {
+  // WATCHES FRAMES: a per-frame sampler over the entry's opening frames, where the damage
+  // is done and undone — its own "the law measured nothing" calibration is the CI failure
+  // shape ("expected 4 to be greater than 6") one file over.
+  watchesFrames("the entry moves neither the page nor the panel's own contents (§8, §22)", async () => {
     /**
      * 2026-08-17, Kushagra: *"why is it on preview page, opening some dropdown menus shift or
      * move the page"*, then *"Select still jumps"*.

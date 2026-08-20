@@ -548,11 +548,15 @@ describe("the panel materializes (§25)", () => {
     // gesture one family over.
     const seized = catchDissolve(popup);
     flushSync(() => setOpen(false));
-    const { box: dissolving, fading } = await seized;
+    const { box: dissolving, fading, release } = await seized;
     expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
     expect(fading, "the premise: the panel is visibly mid-dissolve").toBeLessThan(0.9);
 
     flushSync(() => setOpen(true)); // the quick reopen
+    // The borrowed clocks go back the moment the gesture is made: a paused transition keeps
+    // rendering its held value, and a panel whose exit was seized can sit at `scale: 0.99`
+    // for good — measured on CI as a recovery 3.1px narrow, which is 1% of its 311px box.
+    release();
     /**
      * Anchored on the REVOCATION, not on a frame (2026-08-20). The replay this law forbids is
      * triggered by the ending stamp leaving, and how long Base UI takes to remove it is a
@@ -582,23 +586,18 @@ describe("the panel materializes (§25)", () => {
     ).toBeLessThan(20);
 
     // 3. And the dissolve is revoked, not merely halted: it comes back to full.
-    //    Waited out to REST rather than to opacity alone — the menu twin's own lesson,
-    //    which this law had not taken (CI, the first main run after the merge: "and it is
-    //    the box it was already occupying: expected 3.171875 to be less than 2"). The paint
-    //    clock finishes well before the scale spring does, and a rect read in between is
-    //    ~3px short of the box through no fault of the mechanism.
+    //
+    //    WAITED FOR ARRIVAL, NOT FOR STILLNESS (2026-08-20, and this is the second correction
+    //    of this passage). "Three consecutive still frames" was meant to outlast the scale
+    //    spring, and it cannot: stillness does not distinguish a box that has ARRIVED from one
+    //    that is STUCK, and a seized exit left paused is perfectly still at 0.99 forever. CI
+    //    read exactly that twice — 3.171875 and 3.109375 against a 2px bound, both of them 1%
+    //    of the panel. The box's own destination is the thing being waited for, so it is what
+    //    the wait names; a recovery that never arrives expires the deadline into the same
+    //    assertion, with the honest number in the message.
     await until(() => parseFloat(computed(popup, "opacity")) === 1, 3000);
     expect(computed(popup, "opacity"), "the dismissal is taken back").toBe("1");
-    let previous = -1;
-    let still = 0;
-    // Three consecutive still frames, not one: a spring crossing its target is momentarily
-    // still at the top of the arc, and one frame of stillness is a shape a moving box makes.
-    await until(() => {
-      const width = popup.getBoundingClientRect().width;
-      still = Math.abs(width - previous) < 0.05 ? still + 1 : 0;
-      previous = width;
-      return still >= 3;
-    }, 3000);
+    await until(() => Math.abs(popup.getBoundingClientRect().width - settled.width) < 2, 3000);
     expect(
       Math.abs(popup.getBoundingClientRect().width - settled.width),
       "and it is the box it was already occupying",

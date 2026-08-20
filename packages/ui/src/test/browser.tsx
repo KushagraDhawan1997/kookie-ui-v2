@@ -16,7 +16,7 @@
  */
 import type { ReactElement } from "react";
 import { cdp } from "@vitest/browser/context";
-import { afterEach } from "vitest";
+import { afterEach, beforeAll, it } from "vitest";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 
@@ -91,6 +91,62 @@ export function installStyles(): void {
   ].join("\n");
   document.head.append(sheet);
   installed = true;
+}
+
+declare const __KUI_CI__: boolean;
+declare const __KUI_STALL__: number;
+
+/** Compiled in by vitest.config.ts — a page has no `process` to ask (measured 2026-08-20). */
+export const onCI: boolean = __KUI_CI__;
+
+/**
+ * A LAW THAT MUST CATCH A MOMENT DOES NOT RUN WHERE THE CLOCK IS NOT OURS (2026-08-20,
+ * Kushagra: *"lets remove the core cause, dont test animations on ci machine"*).
+ *
+ * THE CRITERION, and it is narrow on purpose: a law wears this marker when its claim depends
+ * on WHEN it looks — a transient state it has to be looking at while it exists (a pose, a
+ * mid-flight box, a plateau), or a series it samples as the animation runs. It is NOT "the
+ * subject animates": 47 laws call `inMotion()` and almost all of them read DECLARATIONS —
+ * the transition list, the spring's baked curve, which clock a channel is on — which persist
+ * and are as true on a starved machine as on an idle one. Those stay on CI, where they
+ * belong.
+ *
+ * Three mechanisms already move a law from the second kind to the first, and they are tried
+ * BEFORE this marker is reached for: seize the animation's own clock and step it (`sweep`,
+ * `catchDissolve`, `seizeFlight`), read a DELIVERED event rather than a sampled frame (a
+ * MutationObserver armed before the gesture cannot miss what it watches for), or make the
+ * claim against the setup instead (recipes.test.ts fails a hand-typed duration exactly, with
+ * no frames at all). What is left after those three is a residue whose subject genuinely is
+ * wall time — floating-ui converges in it, and a release timer fires in it — and no
+ * instrument can make an observation of wall time deterministic on a machine that stalls for
+ * 340ms at a stretch (measured, CI's own printed frame gaps).
+ *
+ * Keeping them on CI was the expensive option, and it was measured: 15 of 21 runs red while
+ * the components were correct every time, which does not protect the code — it teaches
+ * everyone to read a red run as noise, and that is how a real defect walks in.
+ *
+ * WHAT THIS IS NOT ALLOWED TO BECOME. "Did not run" is this repo's own favourite way of not
+ * failing (the `docs:test` cache hit, 2026-08-08; turbo's filtered env starving the browser
+ * project, 2026-08-20). So the exclusion is loud rather than quiet: it is per-law at the call
+ * site, vitest reports every one as skipped with a count on the CI run itself, the set is
+ * pinned by a node law (test/frames.test.ts) that fails until a new opt-out is recorded with
+ * its reason, and every one of them still runs in the `pnpm run ci` a human owes before
+ * pushing — which is where this suite's own contributing rule already puts the gate.
+ */
+export const watchesFrames = it.skipIf(onCI);
+
+/**
+ * THE STALL AUDIT — `KUI_STALL=20 pnpm test` (2026-08-20).
+ *
+ * The set above is DERIVED, not judged: CDP throttles the renderer, so a fast machine
+ * reproduces a starved one on demand and every law whose claim depends on the machine says
+ * so by failing. It is how the marked set was chosen, and it is how the next person can check
+ * that it is still the right set instead of trusting this comment.
+ */
+if (__KUI_STALL__ > 1) {
+  beforeAll(async () => {
+    await cdp().send("Emulation.setCPUThrottlingRate", { rate: __KUI_STALL__ });
+  });
 }
 
 /**
@@ -255,12 +311,20 @@ export async function sweep<T>(
  * transitions — the browser cancels them and travels back from the held value, exactly as it
  * does to a live dissolve; TIME is the only thing the instrument changed.
  *
- * Resolves with the box and opacity rendered at the held instant. Rejects if the stamp lands
- * with no clock to seize — an exit with no running dissolve cannot be caught mid-dissolve,
- * and that premise failure deserves its own message rather than whichever assertion trips
- * downstream of it.
+ * Resolves with the box and opacity rendered at the held instant, and a `release()` the caller
+ * MUST call once it has taken the dismissal back. Holding a clock is borrowing it: a paused
+ * transition keeps rendering its held value, so a panel whose exit was seized can sit at
+ * `scale: 0.99` for good if the browser's retarget does not displace it — measured on CI as a
+ * recovered panel 3.1px narrow, which is exactly 1% of its 311px box. `release()` cancels the
+ * seized animations so the reopen's own transitions are unencumbered.
+ *
+ * Rejects if the stamp lands with no clock to seize — an exit with no running dissolve cannot
+ * be caught mid-dissolve, and that premise failure deserves its own message rather than
+ * whichever assertion trips downstream of it.
  */
-export function catchDissolve(popup: HTMLElement): Promise<{ box: DOMRect; fading: number }> {
+export function catchDissolve(
+  popup: HTMLElement,
+): Promise<{ box: DOMRect; fading: number; release: () => void }> {
   return new Promise((resolve, reject) => {
     const seize = () => {
       const exits = popup.getAnimations({ subtree: true });
@@ -276,6 +340,9 @@ export function catchDissolve(popup: HTMLElement): Promise<{ box: DOMRect; fadin
       resolve({
         box: popup.getBoundingClientRect(),
         fading: parseFloat(getComputedStyle(popup).opacity),
+        release: () => {
+          for (const exit of exits) exit.cancel();
+        },
       });
     };
     if (popup.hasAttribute("data-ending-style")) return seize();
