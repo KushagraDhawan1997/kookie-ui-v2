@@ -16,6 +16,36 @@ export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./comp
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
 export { SegmentedControl, SegmentedItem, type SegmentedControlProps, type SegmentedItemProps } from "./components/segmented-control/segmented-control.tsx";
 export { ScrollArea, type ScrollAreaProps } from "./components/scroll-area/scroll-area.tsx";
+export {
+  Shell,
+  ShellHeader,
+  ShellRail,
+  ShellSidebar,
+  ShellContent,
+  ShellInspector,
+  ShellBottom,
+  ShellScroll,
+  ShellRailItem,
+  ShellRailList,
+  ShellNavGroup,
+  ShellNavItem,
+  ShellTrigger,
+  type ShellProps,
+  type ShellHeaderProps,
+  type ShellRailProps,
+  type ShellSidebarProps,
+  type ShellContentProps,
+  type ShellInspectorProps,
+  type ShellBottomProps,
+  type ShellScrollProps,
+  type ShellRailItemProps,
+  type ShellRailListProps,
+  type ShellNavGroupProps,
+  type ShellNavItemProps,
+  type ShellTriggerProps,
+  type ShellPaneTarget,
+  type ShellPresentation,
+} from "./components/shell/shell.tsx";
 export { Slider, type SliderProps } from "./components/slider/slider.tsx";
 export { Switch, type SwitchProps } from "./components/switch/switch.tsx";
 export { Tabs, TabsList, TabsTab, TabsPanel, type TabsProps, type TabsListProps, type TabsTabProps, type TabsPanelProps } from "./components/tabs/tabs.tsx";

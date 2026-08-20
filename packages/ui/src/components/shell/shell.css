@@ -1,0 +1,597 @@
+/* Shell (§27). The app frame — and deliberately almost no paint of its own: every pane is a
+   `.kui-surface`, so the seal, edge, material and the world's depth all arrive
+   from surfaces.css exactly as they do for a Card. What this sheet states is GEOMETRY (the
+   grid, the pane extents, the posture derivation) and the pane STATES (auto/open/closed, and the
+   overlay treatment with its scrim).
+
+   This is the ONE stylesheet sanctioned to key on the viewport (§13's carve-out; §18's
+   boundary). The `48rem` literal below is the narrow window boundary and may not drift from
+   config — shell.test.ts derives the expected string from `narrowMedia` and fails on any
+   respelling. All the narrow-window rules live in the single media block at the bottom so
+   the literal exists ONCE.
+
+   No motion yet, on Menu's own precedent (shipped instant, moved the next day): the panes'
+   spring entry is the recorded follow-up, and shipping zero transitions means the reduced-
+   motion laws have nothing here to stand down yet. */
+
+/* The pane extents must NOT inherit — the `--kui-h` trap, one family over (§12, LOG
+   2026-08-05, raised again by the 2026-08-16 audit). A custom property inherits by default,
+   so a sidebar carrying `--kui-shell-w: 320px` handed that width to every descendant, and a
+   Shell composed inside a pane would size its own panes from the outer pane's prop. The
+   registration is what makes the fallback in each pane rule reachable instead of shadowed. */
+@property --kui-shell-w {
+  syntax: "*";
+  inherits: false;
+}
+@property --kui-shell-h {
+  syntax: "*";
+  inherits: false;
+}
+
+/* ── The frame ─────────────────────────────────────────────────────────────────────────────
+   A grid whose areas the panes CLAIM — placement by name, so the root never inspects its
+   children (v1's displayName scanning, deleted) and DOM order stays the author's reading
+   order. A missing pane's `auto` track collapses to zero; the spacing below never uses track
+   gaps, so an empty track costs nothing (a grid gap would bill the empty track's two sides).
+
+   `isolation: isolate` keeps the overlay layering INSIDE the shell's own stacking context:
+   nothing here competes with portals, which land outside the theme frame and win by DOM
+   order (§20) — and the root itself carries no z-index, so it cannot invert that frame. */
+.kui-shell {
+  /* border-box, and it is load-bearing rather than hygiene (audit 2026-08-16): the floating
+     posture spends half its gap as the frame's own PADDING, and under the initial
+     content-box that padding is added OUTSIDE the declared block-size: 100%. Measured, a
+     floating shell in a 600px box rendered 608px tall — it overflowed its own container by
+     the full gap, the block-end gap read as 0 against the frame while reading 8 against the
+     shell, and in the documented 100dvh posture the whole app frame gained a scrollbar. */
+  box-sizing: border-box;
+  display: grid;
+  grid-template-areas:
+    "header header header header"
+    "rail sidebar content inspector"
+    "bottom bottom bottom bottom";
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  block-size: 100%;
+  position: relative;
+  isolation: isolate;
+}
+
+/* ── The panes ─────────────────────────────────────────────────────────────────────────────
+   Surface members with no size index: the surface join's padding is stood down — a pane's
+   content owns its own inset — and the corner is stated explicitly as the default card's
+   (the size-3 surface band step) rather than left to the `.kui-surface` fallback, so a
+   shell composed inside another surface cannot inherit that ancestor's corner. */
+.kui-shell-pane {
+  padding: 0;
+  /* AND THE HOOK WITH IT (merge with main, 2026-08-20). A pane has said `padding: 0` since
+     the day it shipped — "a pane's content owns its own inset" — but it left `--kui-sf-p`
+     declared at the surface join's value, which is a hook other layers READ. Main's new
+     scroll-in-a-pane rule reads exactly that hook to bleed a scroller out to the pane's
+     edges, so a ShellScroll rendered at x = -16 and 319px wide inside a 288px pane: it hung
+     16px past both edges. Neither branch had the defect alone. Standing the hook down beside
+     the padding is what makes the two agree — the bleed then resolves to nothing, which is
+     the right answer for a pane that has no padding to bleed past.
+
+     It needs the SURFACE class with it: the hook is declared by the surface size join at
+     (0,2,0) — `.kui-surface[data-size="N"]` — and shell panes stamp an index now, because
+     the rail derives its whole extent from one. A bare `.kui-shell-pane` at (0,1,0) simply
+     lost, measured: 16px survived the first spelling of this fix. So the stand-down carries
+     the attribute too and out-ranks the join outright, which is the shape the floating
+     panel's own override already uses one file over — no ordering claim to get wrong. */
+  border-radius: var(--radius-surface-3);
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: auto;
+  /* Focus lands on an overlaying pane programmatically — a mode, not an affordance (§8):
+     the pane's own controls carry the ring. */
+  outline: none;
+}
+
+.kui-surface.kui-shell-pane[data-size] {
+  --kui-sf-p: 0;
+}
+
+.kui-shell-header {
+  grid-area: header;
+  /* A header does not scroll — its box is its row. `visible` on the block axis keeps the
+     focus ring of a control at its edge (the pane default clips it, which is why this arm
+     exists), but the INLINE axis is bounded: left fully visible, a header whose content
+     outgrew it pushed document-level horizontal scroll and the app frame stopped bounding
+     the app (audit 2026-08-16). `clip` rather than `auto` because a header does not scroll,
+     and the pair is legal — the clipped axis is the one with no ring to lose. */
+  overflow-block: visible;
+  overflow-inline: clip;
+  min-inline-size: 0;
+}
+
+/* THE RAIL'S EXTENT IS ITS ITEM'S (§27, 2026-08-20). Every other pane states a width because
+   a pane's width is the app's content speaking; a rail's is its square plus the air around
+   it, and nothing else can decide it. Shipped, it was a flat 64 in both pointer worlds while
+   its contents were 32 fine and 44 coarse — the column did not answer the axis its own
+   contents answer, which is the icon-box finding (2026-08-10) one level up. So it derives,
+   and it derives from the SIZE the pane was given: `--control-height-N` is the same token
+   the control size join hands every control, read here by a surface that stamps the index. */
+@property --kui-shell-rail-square {
+  syntax: "*";
+  inherits: false;
+}
+
+.kui-shell-rail {
+  grid-area: rail;
+  --kui-shell-rail-square: var(--control-height-2);
+  /* CONTENT-box, and the half pixel is why. A pane is border-box like everything else here,
+     so a flush rail's own seam hairline came out of the derived extent rather than sitting
+     outside it: the square landed 3.5px from the edge against a designed 4, and it would
+     have moved again the moment the rail stopped being flush and grew four borders instead
+     of one. Stating the extent as the CONTENT — the square plus its air — is what makes the
+     inset the same number in every posture, and the borders do what borders do. */
+  box-sizing: content-box;
+  inline-size: calc(var(--kui-shell-rail-square) + 2 * var(--shell-nav-inset));
+}
+
+.kui-shell-rail[data-size="1"] {
+  --kui-shell-rail-square: var(--control-height-1);
+}
+
+.kui-shell-rail[data-size="3"] {
+  --kui-shell-rail-square: var(--control-height-3);
+}
+
+.kui-shell-rail[data-size="4"] {
+  --kui-shell-rail-square: var(--control-height-4);
+}
+
+.kui-shell-sidebar {
+  grid-area: sidebar;
+  inline-size: var(--kui-shell-w, var(--shell-sidebar-w));
+}
+
+.kui-shell-content {
+  grid-area: content;
+}
+
+.kui-shell-inspector {
+  grid-area: inspector;
+  inline-size: var(--kui-shell-w, var(--shell-inspector-w));
+}
+
+.kui-shell-bottom {
+  grid-area: bottom;
+  block-size: var(--kui-shell-h, var(--shell-bottom-h));
+}
+
+/* ── State: closed, and what an UNTOUCHED pane means (§27 "auto until touched") ────────────
+   Resolved here rather than in JS so the first paint is right with no script, on the server
+   and the client alike — and so no open/close callback can fire at mount, because nothing in
+   JS decided anything. The JS mirror (usePane's `expanded`) exists only for aria-expanded
+   and the toggle's starting point; a mounted law asserts the two agree. */
+
+/* Closed is closed: the pane leaves flow and the accessibility tree together. */
+.kui-shell-pane[data-state="closed"] {
+  display: none;
+}
+
+/* An inspector or bottom pane rests closed at every width — detail is asked for. */
+.kui-shell-inspector[data-state="auto"],
+.kui-shell-bottom[data-state="auto"] {
+  display: none;
+}
+
+/* An explicitly-overlay nav pane rests closed too: an overlay is summoned, never ambient. */
+.kui-shell-rail[data-state="auto"][data-presentation="overlay"],
+.kui-shell-sidebar[data-state="auto"][data-presentation="overlay"] {
+  display: none;
+}
+
+/* ── The overlay treatment ─────────────────────────────────────────────────────────────────
+   The same element leaving flow — never a second component (v1's Sheet branch, the defect
+   §27 exists to delete). An absolutely positioned grid item resolves its insets against its
+   own GRID AREA, so a left pane rises exactly under the header row and above the bottom row
+   with no arithmetic: the area's column has collapsed to zero width and the pane's stated
+   inline-size grows it over the content from that edge.
+
+   These arms serve the EXPLICIT presentation at any width; the narrow media block at the
+   bottom restates them for `auto`, and the mounted agreement law holds the two identical
+   (a mechanism with two implementations owes a law that they agree, 2026-08-06). */
+/* THE STRIP IS NOT DECORATION (audit 2026-08-16). An overlaying pane keeps its designed
+   width, which on a 320px screen is the whole window — the inspector's 320 measured exactly
+   the root's 320, the scrim rendered 0px wide, every hit-test across the shell returned the
+   pane, and with the rest of the shell contained there was no pointer route back at all. So
+   every overlay arm caps at the room that is left once a dismissal target is reserved, and
+   the reserve is `--touch-target-min` because that is what the strip IS: the tap that closes
+   this. A pane whose `width` prop exceeds the window is capped by the same declaration, which
+   is what stops it pushing document-level horizontal scroll. */
+/* THE CAP MUST RESOLVE AGAINST THE FRAME, NOT THE PANE'S OWN AREA (audit 2026-08-20,
+   CRITICAL, and it had been shipping since the cap was written). An abspos grid item's
+   containing block is its GRID AREA — which is the whole point on the block axis, and a
+   disaster on the inline one: an out-of-flow item does not size its own `auto` track, so
+   the moment the pane leaves flow its column collapses to ZERO and `calc(100% - 44px)`
+   computes -44px, clamps to 0, and the drawer paints its borders and nothing else.
+   Measured before the fix at a 375px window: rect 1px, clientWidth 0. Every overlaying
+   pane in the library, on every narrow screen, since 2026-08-16.
+
+   The cap's own law could not catch it — "an overlay never takes the whole window" is a
+   ONE-SIDED bound and 1px satisfies it happily. Its replacement below asserts both ends.
+
+   The repair keeps the area for the axis that wants it and widens it for the axis that
+   does not: a side pane spans every COLUMN (its row still comes from `grid-area`, so it
+   still rises exactly under the header with no arithmetic), and the bottom pane spans
+   every ROW. `inset-inline-start: 0` then means the frame's edge, which is where a drawer
+   belongs, and `100%` finally means the frame. */
+.kui-shell-rail[data-presentation="overlay"],
+.kui-shell-sidebar[data-presentation="overlay"] {
+  position: absolute;
+  grid-column: 1 / -1;
+  inset-block: 0;
+  inset-inline-start: 0;
+  max-inline-size: calc(100% - var(--touch-target-min));
+  z-index: 2;
+}
+
+.kui-shell-inspector[data-presentation="overlay"] {
+  position: absolute;
+  grid-column: 1 / -1;
+  inset-block: 0;
+  inset-inline-end: 0;
+  max-inline-size: calc(100% - var(--touch-target-min));
+  z-index: 2;
+}
+
+.kui-shell-bottom[data-presentation="overlay"] {
+  position: absolute;
+  grid-row: 1 / -1;
+  inset-inline: 0;
+  inset-block-end: 0;
+  max-block-size: calc(100% - var(--touch-target-min));
+  z-index: 2;
+}
+
+/* The scrim: root-owned, always mounted, shown exactly when a pane overlays. Under the
+   panes (z 1 against their 2), over everything in flow. Dialog's scrim recipe (§24), same
+   tokens, same reduced-transparency answer — more pigment, no defocus. */
+.kui-shell-scrim {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: var(--scrim-fill);
+  backdrop-filter: var(--scrim-filter, none);
+}
+
+.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"]) > .kui-shell-scrim {
+  display: block;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .kui-shell-scrim {
+    background-color: var(--scrim-fill-high);
+    backdrop-filter: none;
+  }
+}
+
+/* ── Posture: flush, grounded, floating (§27, rewritten 2026-08-20) ────────────────────────
+   The axis used to sit on the ROOT as `panes="flush" | "floating"`, and it named the wrong
+   thing: it kept every pane in its own column and put gaps between them, so nothing ever
+   overlapped and a canvas could not run behind its own layers panel. v1 had the missing half
+   under a third name (`presentation="stacked"`, "positions above content without displacing
+   it") and never joined it to the first. Both halves are here, and the API is ONE BOOLEAN per
+   pane, because the author knows what a pane IS and only the stylesheet knows what is BEHIND
+   it: **a pane floats if the content is underneath it, and the content is underneath it only
+   if the content is itself flush; otherwise it grounds.** Nothing states `grounded` or
+   `floating` — they are outcomes, which is why the three-value spelling was dropped along
+   with the three attempts at naming its values (LOG 2026-08-20). */
+
+/* FLUSH: part of the frame. Corners square, and each seam is ONE hairline — a pane draws only
+   its INNER edge and the content draws none, so two neighbours never double a border. The
+   border-width overrides leave the surface's border COLOR untouched, which is what keeps a
+   seam reachable by contrast="high" exactly as a card's edge is. Keyed on the pane's own
+   attribute now rather than on the root's, which is the whole of the API change in CSS. */
+.kui-shell-pane[data-flush] {
+  border-radius: var(--radius-0);
+  border-width: 0;
+}
+
+.kui-shell-header[data-flush] {
+  border-block-end-width: var(--border-width);
+}
+
+.kui-shell-rail[data-flush],
+.kui-shell-sidebar[data-flush] {
+  border-inline-end-width: var(--border-width);
+}
+
+.kui-shell-inspector[data-flush] {
+  border-inline-start-width: var(--border-width);
+}
+
+.kui-shell-bottom[data-flush] {
+  border-block-start-width: var(--border-width);
+}
+
+/* NOT FLUSH: nothing to state. The pane keeps the full surface identity it already has —
+   four borders, the surface corner, the world's depth — because a pane pulled off the frame
+   IS a card, and `.kui-surface` has said so since the day this file was written. What arrives
+   with it and is worth naming: a grounded pane in a `depth="flat"` world draws its boundary
+   because `[data-depth="flat"]` re-declares `--surface-edge: initial` in surfaces.css, so
+   `var(--tone-border)` resolves at the element. No shell rule buys that. */
+
+/* SPACING. A non-flush pane pays for its own air, in full, on every side — which is exactly
+   right against the frame edge and against a flush neighbour, because neither of those pays
+   anything. It is NOT right between two non-flush neighbours, which double to 2g.
+
+   That gap is forced, not a spelling problem: requiring flush|flush to be 0 and
+   grounded|grounded to be g fixes grounded|flush at g/2 for EVERY split of the gap between
+   the frame's padding, the grid's gap and the panes' margins — two non-flush panes each pay
+   a share and a flush pane pays none, so a mixed boundary gets one share instead of two.
+   Paying in full moves the error off the boundary that matters (a card against the chrome
+   beside it) and onto the one that does not exist in any app in front of us (two non-flush
+   panes adjacent). Deferred deliberately, logged 2026-08-20: closing it means about eight
+   `:has()` rules of the form "if the thing next to you is non-flush, give it air". */
+.kui-shell-pane:not([data-flush]) {
+  margin: var(--shell-gap);
+}
+
+/* ...unless NOTHING is flush, which is the all-cards frame. There the gap splits — half on
+   the frame's padding, half on every pane's margin — so pane-to-pane and pane-to-edge come
+   out equal by construction at every pane combination, including the absent ones. This is
+   the construction the shipped axis used everywhere; it is exact in this regime and only
+   this one, which is why it is now scoped to it. */
+.kui-shell:not(:has(> .kui-shell-pane[data-flush])) {
+  padding: calc(var(--shell-gap) / 2);
+}
+
+.kui-shell:not(:has(> .kui-shell-pane[data-flush])) > .kui-shell-pane {
+  margin: calc(var(--shell-gap) / 2);
+}
+
+/* FLOATING, half one: the pane lifts above the content. `z-index` on a grid item works with
+   no `position` at all, which is what keeps the overlay treatment's own `position: absolute`
+   uncontested — an overlaying pane sits at 2 and simply outranks this, in either source
+   order. Staying IN FLOW is also what makes a floating rail and a floating sidebar tile
+   correctly beside each other: out of flow their grid areas both collapse to zero width and
+   they would land on the same edge, stacked. The band is the scrim's, deliberately: the
+   scrim is a later sibling, so an overlay's scrim covers a floating pane, which is right. */
+/* :where() ZEROES this rule's weight, and that is the whole point (audit 2026-08-20). The
+   comment above used to claim the overlay arm's `z-index: 2` "simply outranks this, in
+   either source order" — false, and asserting specificity arithmetic instead of measuring it
+   is the exact mistake this repo keeps writing down. `:has()` takes the specificity of its
+   most specific argument, so the prefix alone was (0,3,0) and the whole selector (0,5,0)
+   against the arm's (0,2,0): a pane that was BOTH non-flush and overlaying computed z-index
+   1, tied with the scrim, and lost to it on tree order — so the drawer was painted over by
+   its own scrim and every press inside it dismissed the pane. Measured: hit at the drawer's
+   centre returned `.kui-shell-scrim`. At (0,1,0) the arm wins on specificity, which is
+   order-independent and does not need a `:not([data-presentation])` guard — one of those
+   would have killed floating for the `auto` panes that are the common case. */
+:where(.kui-shell:has(> .kui-shell-content[data-flush]))
+  > .kui-shell-pane:where(:not([data-flush])) {
+  z-index: 1;
+}
+
+/* FLOATING, half two: the content reaches UNDER it. The content's grid area grows to the
+   floating pane's own start or end line — `grid-template-areas` mints those line names for
+   free — so it grows only on the sides something actually floats on, and a flush header
+   above a floating sidebar still pushes the content down rather than being painted over.
+   When BOTH nav columns float the rail's line is the one that must win, and it does so on
+   SPECIFICITY, not source order: its intervening-pane guard below is a `:not(:has(...))`,
+   which carries its argument's weight and puts the rule at (0,7,0) against the sidebar's
+   (0,5,0). This comment claimed source order until 2026-08-20, when the guard landed and
+   quietly made the claim false — measured both ways with the two blocks swapped, and the
+   answer is `rail-start` either way. Specificity is the better mechanism to depend on, but
+   only because it was checked rather than asserted. The subject carries `[data-flush]`,
+   and that IS the derivation's condition: the content can only be underneath if it is
+   flush, so a grounded content simply never matches and its non-flush siblings ground. */
+.kui-shell:has(> .kui-shell-sidebar:not([data-flush])) > .kui-shell-content[data-flush] {
+  grid-column-start: sidebar-start;
+}
+
+/* ...and the rail's line is claimed only when nothing FLUSH stands between the two (audit
+   2026-08-20). The derivation's premise is "the content is underneath THIS pane", and a
+   flush sidebar between a floating rail and the content means it is not: growing to
+   `rail-start` swallowed the sidebar's column, and since both are static grid items at
+   `z-index: auto` with the content later in DOM, the content's opaque seal painted the
+   sidebar out entirely — measured 288px of sidebar at x=80 under a content pane spanning
+   0..1280, with the hit-test at the sidebar's centre returning the content. With the guard
+   the rail simply grounds instead, which is what the rule says should happen when nothing
+   is behind a pane. Stated as `:not(:has(...))` rather than a positive re-point so a shell
+   with no sidebar at all still floats its rail, and so the both-columns-floating canvas
+   posture is untouched. */
+.kui-shell:has(> .kui-shell-rail:not([data-flush])):not(:has(> .kui-shell-sidebar[data-flush]))
+  > .kui-shell-content[data-flush] {
+  grid-column-start: rail-start;
+}
+
+.kui-shell:has(> .kui-shell-inspector:not([data-flush])) > .kui-shell-content[data-flush] {
+  grid-column-end: inspector-end;
+}
+
+.kui-shell:has(> .kui-shell-header:not([data-flush])) > .kui-shell-content[data-flush] {
+  grid-row-start: header-start;
+}
+
+.kui-shell:has(> .kui-shell-bottom:not([data-flush])) > .kui-shell-content[data-flush] {
+  grid-row-end: bottom-end;
+}
+
+/* ── The pane's scrolling region (§27, 2026-08-20) ─────────────────────────────────────────
+   A pane that contains one becomes a column and STOPS SCROLLING ITSELF — the scroll moves
+   inward to the marked region, which is what lets anything else in the pane pin without
+   saying so. `clip` rather than `hidden` for the pane's own axis: a hidden box is a scroll
+   container, which is exactly what this rule is trying to stop it being (the select entry's
+   own lesson, §23 — a scroll container that nobody meant to create is how a panel came to
+   slide its own contents under a growing frame).
+
+   `:has(> …)` is a direct-child question and the flex sizing below is too, so a wrapped
+   ShellScroll silently gets neither. That is stated in the part's JSDoc rather than guarded,
+   because the same is true of a wrapped pane and the shell has one answer for both. */
+.kui-shell-pane:has(> .kui-shell-scroll) {
+  display: flex;
+  flex-direction: column;
+  overflow: clip;
+}
+
+/* NOTHING LEFT TO SAY HERE (merge with main, 2026-08-20), and that is the good outcome. Both
+   halves of the builder's incantation now come from the scroller itself: `.kui-scroll-area`
+   has always declared the automatic-minimum override, and main's shared rule gives any
+   scroller that is a direct child of a surface `flex: 1`. A first spelling of this file wrote
+   both, and both were proved dead by sabotage — the minimum before the merge, the flex by it.
+   What the shell still contributes is the sibling case below: main's rule makes a pane a
+   column only when the scroller is its ONLY child, and a sidebar is a button, a list and an
+   account chip. */
+
+/* ── Navigation (§21's second member, §27) ─────────────────────────────────────────────────
+   A SIDEBAR ROW STANDS LEVEL WITH A BUTTON, and it costs no new number — it is one
+   declaration, because the row family's height is a stand-DOWN (`min-height: auto`) and this
+   member simply does not take it. The menu row is the exception, with a written reason a
+   permanent nav column does not inherit; the padding-block stays the family's, so a label
+   that wraps to two lines still grows and still breathes. */
+.kui-shell-nav-item {
+  min-height: var(--kui-ct-h);
+  /* THE PAINT IS INSET; THE TARGET IS NOT (Kushagra, 2026-08-20: "I think I still need inset
+     on rail items too, like sidebar"). Apple's sidebar geometry since Big Sur — a Finder row
+     paints a rounded rectangle with a margin either side while the whole row still takes the
+     click. The margin does the paint; `::after` below gives the press back the full column,
+     which is the mark family's own expander (§16) reused rather than re-invented. The
+     alternative, a row simply narrower than its column, leaves a strip that looks pressable
+     and is not — the paint-versus-target disagreement the checkbox audit already paid for. */
+  inline-size: auto;
+  margin-inline: var(--shell-nav-inset);
+  position: relative;
+}
+
+/* The heading is inset with them so its words start where their labels do — the reserved
+   gutter's whole point, and it would read as a hanging indent otherwise. */
+.kui-shell-nav-label {
+  margin-inline: var(--shell-nav-inset);
+}
+
+.kui-shell-nav-item::after,
+.kui-shell-rail-item::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline: calc(-1 * var(--shell-nav-inset));
+}
+
+/* ── The rail's item (§27) ─────────────────────────────────────────────────────────────────
+   A SQUARE, not a row. A row is icon-then-label with a height of one text line plus air; a
+   rail item has no label beside it, so it is an icon-only control whose box is square by
+   construction — and being square is what makes the rail's own width derivable. Icon-only is
+   the DEFAULT rather than an option because narrow is part of what a rail means: the moment
+   it carries words it is wide enough to read as a small sidebar, which is the confusion the
+   rail-is-not-a-thin-sidebar decision exists to end (LOG 2026-08-20). */
+.kui-shell-rail-item {
+  /* SQUARE by construction rather than by declaration: the control skeleton already sets
+     `min-height: var(--kui-ct-h)`, so stating the same token on the inline axis is the whole
+     of it. A first spelling added `aspect-ratio: 1` beside this and a sabotage proved it
+     dead — both terms come from one size join and cannot disagree. */
+  inline-size: var(--kui-ct-h);
+  /* The square IS the box, so the family's inline padding has nothing to price here. */
+  padding-inline: 0;
+  justify-content: center;
+  margin-inline: var(--shell-nav-inset);
+  position: relative;
+}
+
+/* The rail is a column of squares, and it owns the distance between them for the same reason
+   the group owns the distance between its rows: this is INNER spacing, not the outer kind a
+   component may never have. */
+.kui-shell-rail-list {
+  display: flex;
+  flex-direction: column;
+  /* NOT `align-items: center`. It looks harmless and it is a second mechanism doing the
+     margin's job: with the rail's content box being the square plus twice the air, centring
+     lands the square at exactly the same offset the inset produces, so the two are
+     indistinguishable until one of them changes. A sabotage that deleted the margin
+     survived because of it. One mechanism, and it is the one the target expander is
+     measured from. */
+}
+
+/* HOVER, which the family stands down and this member restores. The stand-down exists for a
+   ROVING HIGHLIGHT — Base UI unifies pointer and keyboard into `data-highlighted`, and a row
+   that also answered raw hover would keep a pointer-rested row lit after the keyboard moved
+   on (§21, the two-cursors bug). A sidebar has no roving highlight at all, so the reason does
+   not reach here and the row would otherwise be dead under the pointer. Stated as this
+   member's own fact rather than by re-scoping the shared rule: the second member self-keys,
+   and a third non-roving row is what promotes it. Inside the `(hover: hover)` guard, like
+   every hover in this system. */
+@media (hover: hover) {
+  .kui-shell-nav-item:hover:not([data-disabled]) {
+    background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
+    --kui-ct-paint: var(--motion-hover-in);
+  }
+}
+
+/* YOU ARE HERE is TWO STAMPS and no declaration — see ShellNavItem. The row stamps
+   `data-tone="accent"` and `data-emphasis="medium"`, and the emphasis ladder does the rest:
+   quiet rests transparent and hovers to soft, medium rests at soft and hovers to soft-hover.
+   That is what keeps current and hover in different currencies instead of on one ramp —
+   grey means the pointer is here, accent means this is where you are, and the current row
+   still moves under the pointer because it has its own rung to step within. The first
+   spelling painted the hover fill straight onto `[aria-current]`, which read correctly at
+   rest and went dead on hover; the law that caught it is the one named for the composition.
+
+/* A group is layout and a heading; the connection between them is the part's real job. */
+.kui-shell-nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The heading keeps the FAMILY's short box — it is a caption, not a target, so it must not
+   take the member height above. It wears the row skeleton for one reason: its words line up
+   with the rows under it, which is what the reserved gutter buys (the menu label's own
+   move). */
+.kui-shell-nav-label {
+  pointer-events: none;
+  color: var(--color-text-muted);
+}
+
+/* ── The narrow window (§18's boundary — config's `narrowMedia`, law-pinned) ───────────────
+   Auto resolves here: the nav columns rest closed, and an open pane presents as an overlay.
+   ONE media block so the boundary literal exists once in this file. */
+@media (max-width: 48rem) {
+  /* Untouched nav columns rest closed on a narrow window. */
+  .kui-shell-rail[data-state="auto"],
+  .kui-shell-sidebar[data-state="auto"] {
+    display: none;
+  }
+
+  /* `auto` presentation resolves to overlay — the explicit arms above, restated for the
+     resolved value; the mounted agreement law holds the two treatments identical. The
+     grid-span repair belongs in BOTH copies, and forgetting it here is how the fix for the
+     collapsed-area defect stayed half-applied for one run: the explicit path measured 288px
+     and the auto path — the one every phone actually takes — still measured 1. That is the
+     2026-08-06 clause in its sharpest form, and the agreement law that was supposed to hold
+     these two together read four properties, none of them the width. */
+  .kui-shell-rail[data-presentation="auto"],
+  .kui-shell-sidebar[data-presentation="auto"] {
+    position: absolute;
+    grid-column: 1 / -1;
+    inset-block: 0;
+    inset-inline-start: 0;
+    max-inline-size: calc(100% - var(--touch-target-min));
+    z-index: 2;
+  }
+
+  .kui-shell-inspector[data-presentation="auto"] {
+    position: absolute;
+    grid-column: 1 / -1;
+    inset-block: 0;
+    inset-inline-end: 0;
+    max-inline-size: calc(100% - var(--touch-target-min));
+    z-index: 2;
+  }
+
+  .kui-shell-bottom[data-presentation="auto"] {
+    position: absolute;
+    grid-row: 1 / -1;
+    inset-inline: 0;
+    inset-block-end: 0;
+    max-block-size: calc(100% - var(--touch-target-min));
+    z-index: 2;
+  }
+
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"]) > .kui-shell-scrim {
+    display: block;
+  }
+}
