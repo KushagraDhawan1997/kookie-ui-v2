@@ -154,14 +154,17 @@ describe("an alert is an alert, not a small dialog", () => {
     const dialog = dialogs[dialogs.length - 1]!;
     settleAll();
     await userEvent.click(dialog.parentElement!, { position: { x: 8, y: 8 } });
-    await new Promise((r) => setTimeout(r, 400));
+    // A STATE, not a sleep (`until`, 2026-08-17): the dialog leaves on its exit's own clock,
+    // and a stalled runner outlives a fixed 400ms — the focus law next door failed CI's
+    // first PR run exactly this way.
+    await until(() => !dialog.isConnected, 3000);
     expect(dialog.isConnected, "the dialog control did not dismiss — the instrument is blind").toBe(false);
   });
 
   it("still dismisses on Escape — 'not now' by keyboard", async () => {
     const { popup } = openAlert({});
     await userEvent.keyboard("{Escape}");
-    await new Promise((r) => setTimeout(r, 400));
+    await until(() => !popup.isConnected, 3000);
     expect(popup.isConnected).toBe(false);
   });
 
@@ -184,7 +187,12 @@ describe("an alert is an alert, not a small dialog", () => {
     );
     await userEvent.click(document.querySelector<HTMLElement>(".kui-button")!);
     settleAll();
-    await new Promise((r) => setTimeout(r, 100));
+    // A STATE, not a sleep (`until`, 2026-08-17): Base UI moves focus into the popup
+    // asynchronously, and a 100ms sleep read the TRIGGER still holding it on CI's first
+    // PR run ("expected 'Delete…' to be 'Keep it'" — 'Delete…' is the trigger's label).
+    // If focus genuinely lands elsewhere, the deadline expires into the same assertion —
+    // falsified with Action first in the DOM, which fails here at the full deadline.
+    await until(() => document.activeElement?.textContent === "Keep it", 3000);
     expect(document.activeElement?.textContent).toBe("Keep it");
   });
 
@@ -200,7 +208,7 @@ describe("an alert is an alert, not a small dialog", () => {
       ),
     });
     await userEvent.click(buttons[1]!);
-    await new Promise((r) => setTimeout(r, 400));
+    await until(() => !popup.isConnected, 3000);
     expect(fired).toBe(1);
     expect(popup.isConnected).toBe(false);
   });
