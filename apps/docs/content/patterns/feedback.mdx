@@ -118,8 +118,9 @@ Write what to do next in an error. A colour could never carry that instruction.
 
 ## What has not shipped
 
-The specification names `Callout`, `Banner` and `Toast` as tone-forward surfaces. None of the
-three exists yet. Compose one of these three answers instead.
+The specification names one tone-forward surface: `Notice`. It does not exist yet. `Toast` is
+refused and will never ship, and `Callout` and `Banner` are dead names for the same component
+(§29). Compose one of these three answers instead.
 
 - **An inline outcome.** Put the result where the action was. Use a `Text` in the matching tone
   beside or under the control. Move the tense of the verb with it. A button that said "Publish"
@@ -127,7 +128,9 @@ three exists yet. Compose one of these three answers instead.
 - **A message with a heading.** Compose a `Card` that holds a `Heading` and a `Text`. Put the
   tone on the words. Do not tint the card. The surface family takes no tone, and reaching for
   `style` to fake one writes a fixed colour into an app that then cannot re-theme.
-- **A transient confirmation.** There is no toast, and a `Card` at a fixed position is not one.
-  It gets neither the live region that makes an announcement nor the dismissal behaviour people
-  expect. State the outcome inline instead. Use an `AlertDialog` when the moment needs a decision
-  rather than an acknowledgement.
+- **A transient confirmation.** There is no toast, and there will not be one. A `Card` at a
+  fixed position is not a substitute: it gets neither the live region that makes an announcement
+  nor the dismissal behaviour people expect. The rule is that an action which deserves attention
+  gets that attention before it runs. Use an `AlertDialog` when the moment needs a decision. For
+  everything else, state the outcome where the action was. A condition that stays true is a
+  `Notice`, when it ships.

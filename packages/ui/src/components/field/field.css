@@ -1,0 +1,30 @@
+/**
+ * Field (§28) — the column, and that is the whole stylesheet.
+ *
+ * Everything about how the parts READ arrives from the type layer: the label, the description
+ * and the error are `Text` with a step, a weight and an ink role, so this file names no colour,
+ * no size index and no family. What is left is the one thing a wrapper owes its children —
+ * the direction they stack in and the distance between them.
+ *
+ * The distance is ONE value and not four. A label and its description are one group and the
+ * error belongs to the control, so the obvious move is two distances that separate the groups
+ * — and this system carries grouping with SIZE and the ink roles rather than with space (§15).
+ * The description is already a step of muted text under a medium label; adding a second gap
+ * says the same thing twice. v0 for the eye pass, like every other distance in the library.
+ */
+.kui-field-group {
+  display: flex;
+  flex-direction: column;
+  /* Not `stretch`: a control decides its own inline extent, and a label that filled the row
+     would make a hit target out of the empty space beside the words (§16 — a target is the
+     thing, not the room around it). */
+  align-items: flex-start;
+  row-gap: var(--layout-space-3);
+}
+
+/* The control is the one part that spans, because a field's width is the control's width and
+   the label sits above whatever that turns out to be. Named by the control family's own class
+   rather than by a part name: whatever a caller puts here is a control or it is not a field. */
+.kui-field-group > .kui-control {
+  align-self: stretch;
+}

@@ -6,6 +6,7 @@ import * as React from "react";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { useMaterial } from "../../theme/theme.tsx";
+import { useControlSize } from "../../system/control-size.ts";
 
 export type TextAreaProps = Omit<
   React.ComponentPropsWithoutRef<"textarea">,
@@ -59,12 +60,14 @@ export type TextAreaProps = Omit<
  * control), it lands here as the native attribute, and the shared remap reads `:disabled`.
  */
 export function TextArea({
-  size = "2",
+  size: sizeProp,
   backdrop,
   className,
   ref,
   ...props
 }: TextAreaProps) {
+  // §28 — a Field states the whole unit's index; an explicit prop here always wins.
+  const size = useControlSize(sizeProp);
   // §10 — the app's material, or on-glass inside a glass ancestor (2026-08-16).
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // §10 — the lens (see Card); on-glass never filters, so it never bends.

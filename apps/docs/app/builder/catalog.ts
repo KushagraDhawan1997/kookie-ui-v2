@@ -267,6 +267,47 @@ export const CATALOG: Record<string, CatalogEntry> = {
     slots: ["leading", "trailing"],
     make: () => node("Button", {}, { text: "Button" }),
   },
+  Field: {
+    family: "Control",
+    blurb: "The unit that makes one input make sense: a label, a description, the control and an error, wired so they are read as one thing. The index prices all four.",
+    props: { size: size(), disabled: bool },
+    children: { only: ["FieldLabel", "FieldDescription", "FieldError", "TextField", "TextArea", "Checkbox", "Switch", "Select", "SegmentedControl", "Slider", "RadioGroup"] },
+    make: () =>
+      node("Field", {}, {
+        children: [
+          node("FieldLabel", {}, { text: "Email" }),
+          node("FieldDescription", {}, { text: "We use this for receipts." }),
+          node("TextField", { placeholder: "mira@kookie.dev", "aria-label": "Email" }),
+        ],
+      }),
+  },
+  FieldLabel: {
+    family: "Control",
+    blurb: "The field's name, associated by id — clicking it lands the caret.",
+    props: {},
+    children: "text",
+    requiresAncestor: "Field",
+    partOf: "Field",
+    make: () => node("FieldLabel", {}, { text: "Label" }),
+  },
+  FieldDescription: {
+    family: "Control",
+    blurb: "What to enter, before you enter it. Sits above the control: instruction before the act.",
+    props: {},
+    children: "text",
+    requiresAncestor: "Field",
+    partOf: "Field",
+    make: () => node("FieldDescription", {}, { text: "What to enter here." }),
+  },
+  FieldError: {
+    family: "Control",
+    blurb: "What went wrong, after it went wrong. Below the control, and only while the field is invalid.",
+    props: {},
+    children: "text",
+    requiresAncestor: "Field",
+    partOf: "Field",
+    make: () => node("FieldError", {}, { text: "That is not a valid entry." }),
+  },
   TextField: {
     family: "Control",
     blurb: "A single-line field. No emphasis and no tone: a form does not rank its fields.",
