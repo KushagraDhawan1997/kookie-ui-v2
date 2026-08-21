@@ -4,8 +4,9 @@ about announcing the answer rather than painting it.
 
 ## The frame is a pattern
 
-`Shell` arranges things it does not own, so it is a pattern. A component contains things it owns.
-A child that reaches up to configure its parent is a pattern written in the wrong shape.
+`Shell` arranges things it does not own, so it is a pattern. A component contains things it
+owns. If a child has to reach up and configure its parent, you have built a pattern as a
+component.
 
 Every pane owns its own `open`, exactly as `Dialog` does. Nothing scans the children, and no pane
 closes another one. Only `ShellTrigger` crosses the frame, and it finds a pane by name.
@@ -25,8 +26,8 @@ closes another one. Only `ShellTrigger` crosses the frame, and it finds a pane b
 The header is full-width by definition. A header that is not full-width is a header inside the
 content. This is a criterion, not a layout option. The frame has one geometry.
 
-Compose the posture where a sidebar runs the full height under a header that covers the content
-only. Write no `ShellHeader`, and write a header inside `ShellContent`.
+To run a sidebar the full height under a header that covers only the content, write no
+`ShellHeader` and put a header inside `ShellContent` instead.
 
 The rail and the sidebar are two independent columns. The rail is the narrow icon column that
 picks a high-level region. The sidebar is the wide column that shows what the rail picked. They
@@ -41,6 +42,33 @@ the person asks for detail.
 `ShellScroll` marks the one region of a pane that scrolls. Everything else in that column pins by
 being an ordinary sized child of the pane. A pinned header and a pinned footer in a sidebar are
 siblings, not parts.
+
+## A pane pads its own content
+
+Every pane is a surface, and it pads like one. The inset comes from the pane's `size`, so a
+`size="3"` pane gives its content more room than a `size="1"` pane does. Do not write your own
+`p` or `px` on the first child of a pane. You would be adding a second inset to one that is
+already there.
+
+The header's height comes out of the same rule: one control row at the pane's index, inside the
+pane's padding. So at one index a header is exactly as tall as the rail is wide. It is a floor
+rather than a fixed height. Something taller grows it, and something shorter centres in it.
+
+Two things still reach the pane's edges, and both are automatic.
+
+- **A `ShellScroll` reaches the edges on its own.** It is a `ScrollArea`, and a scroll area that
+  is the direct child of a surface bleeds out to that surface's edge and re-pads its own
+  viewport. So a highlighted nav row still spans its column.
+- **Anything else says `m="bleed"`.** A picture across the top of the content pane, or a canvas
+  that wants the whole box, cancels the pane's padding with the same value any surface takes.
+
+```tsx
+<ShellContent>
+  <Box m="bleed">
+    <canvas />
+  </Box>
+</ShellContent>
+```
 
 ## An untouched pane rests on auto
 
@@ -85,15 +113,15 @@ list and owns panels.
 ```
 
 Multi-select formatting is neither of them. Italic and underline both on at once is a set of
-toggle buttons, which is a third component. A radio group holds one answer, so it cannot state
-that set.
+toggle buttons, which is a third component. A radio group holds one answer, so it cannot express
+that.
 
 ## Choose between a menu and a select
 
 Apply the same test one family over. A `Menu` is a list of actions. Choosing one runs the action
 and closes the panel. A `Select` is a list of values. Choosing one fills a control that submits
 with a form. A select renders a hidden input and announces itself as a combobox that opens a list
-of options. A styled menu cannot state that accessibility contract.
+of options. A styled menu cannot provide that.
 
 Two consequences follow. A select places its panel so that the chosen row lands on the value it
 replaces. The panel can therefore hang above and below the trigger. A select that nobody has
@@ -110,7 +138,7 @@ monochrome display.
 ```tsx
 <Shell size="2">
   <ShellHeader>
-    <Flex align="center" gap="3" px="3" py="2">
+    <Flex align="center" gap="3">
       <ShellTrigger target="sidebar" render={<Button size="1" emphasis="quiet" />}>
         Menu
       </ShellTrigger>
@@ -134,9 +162,9 @@ monochrome display.
 </Shell>
 ```
 
-The paint is a tone and a rung, not a louder step on one ramp. Grey states that the pointer is
-over the row. Accent states that this is the place you are in. The two use different colours, so
-a current row still changes under the pointer.
+The colour comes from a tone and a loudness level, not from a louder step on one ramp. Grey
+means the pointer is over the row. Accent means this is the place you are in. The two use
+different colours, so a current row still changes under the pointer.
 
 The row family ranks nothing, because every item in a list of places is a peer. Being current is
-a state the component states. It is not an emphasis a call site picks.
+a state the component sets. It is not an emphasis a call site picks.

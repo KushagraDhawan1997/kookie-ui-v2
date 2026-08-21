@@ -26,6 +26,7 @@ import {
 } from "@kookie-ui/react";
 
 import { Example } from "../../example";
+import { InlineCode } from "../../../inline-code";
 import { API } from "../api.generated";
 import { propDescription } from "../prop-description";
 import { BY_SLUG, ENTRIES } from "../registry";
@@ -96,7 +97,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
           {entry.name}
         </Heading>
         <Text size="4" emphasis="medium" render={<p />}>
-          {entry.blurb}
+          <InlineCode text={entry.blurb} />
         </Text>
       </Stack>
 
@@ -121,7 +122,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                   </Text>
                 </Flex>
                 <Text size="2" emphasis="medium" render={<p />}>
-                  {axis.note}
+                  <InlineCode text={axis.note} />
                 </Text>
               </Stack>
             ))}
@@ -141,7 +142,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                   {part.part}
                 </Code>
                 <Text size="2" emphasis="medium" render={<p />}>
-                  {part.blurb}
+                  <InlineCode text={part.blurb} />
                 </Text>
               </Stack>
             ))}
@@ -160,7 +161,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                 {refusal.name}
               </Text>
               <Text size="2" emphasis="medium" render={<p />}>
-                {refusal.why}
+                <InlineCode text={refusal.why} />
               </Text>
             </Stack>
           ))}
@@ -211,7 +212,9 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                         {prop.type}
                       </Code>
                     </td>
-                    <td>{propDescription(prop)}</td>
+                    <td>
+                      <InlineCode text={propDescription(prop)} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

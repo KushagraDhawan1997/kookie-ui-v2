@@ -10,9 +10,11 @@ export type SurfaceProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
-  /** §4, §6 — padding and corner from the CONTAINER band, one step up from a card's. */
+  /** Sets the padding and the corner, one step larger than a card at the same index, because
+      a container needs a larger corner than the things inside it. */
   size?: Size;
-  /** Render into an element you already have — a `<section>`, an `<aside>`, a layout (§5). */
+  /** Render into an element you already have, such as a `<section>`, an `<aside>` or a
+      layout primitive. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

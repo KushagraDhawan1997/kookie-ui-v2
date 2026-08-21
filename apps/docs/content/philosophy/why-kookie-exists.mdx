@@ -1,8 +1,8 @@
-KookieUI optimizes for correctness, not for adoption. These two goals separate often, because
-the market cannot measure correctness.
+KookieUI optimizes for correctness, not for adoption. The two separate often, because the
+market cannot measure correctness.
 
-Two things judge this system: the human-factors literature, and whether products built on it
-work better. Stars do not judge it.
+Two tests judge this system. Does it match the published research on how people use
+interfaces? Do products built on it work better? GitHub stars are not a test.
 
 ## Patterns, not components
 
@@ -15,22 +15,19 @@ Work in this order: find the pattern, then package it, then name it. Most teams 
 opposite order. They start with a name and an appearance, and they decide the function last.
 That order causes the faults below.
 
-## Function decides the taxonomy, not appearance
+## Split by function, not by appearance
 
-Split components by what they do. Do not split them by how they look.
+Tabs and SegmentedControl look almost the same. Both draw a horizontal row of segments. They
+do different jobs.
 
-Take the example this system uses most. Filtering one view by different data is one operation.
-Switching between two views is a different operation. Both render as a horizontal row of
-segments. They are still two operations.
+Tabs switches between views, and the panel below it changes. SegmentedControl sets a value in
+place, and the chart below it stays where it is.
 
 Do not merge them into one component with two variants. The merge is not ugly. It is wrong.
-When you put two things in one category, readers treat them as the same thing. Your structure
-teaches, whether you intend it or not.
-
-So the system ships two components, and the code states which operation you mean:
+When you put two things in one category, readers treat them as the same thing.
 
 ```tsx
-// Switching between two views. The panels below change.
+// Switching between views. The panel below changes.
 <Tabs defaultValue="usage">
   <TabsList>
     <TabsTab value="usage">Usage</TabsTab>
@@ -53,11 +50,8 @@ So the system ships two components, and the code states which operation you mean
 ```
 
 `Tabs` announces a tab list, and each panel gets a name. `SegmentedControl` announces a radio
-group, so a screen reader states "3 of 3 selected" and the arrow keys change the value. Neither
+group, so a screen reader says "3 of 3 selected" and the arrow keys change the value. Neither
 behaviour is available from the other component.
-
-The library author must know the difference. This document exists to state the differences and
-to teach them.
 
 ## Design has measured limits
 
@@ -74,47 +68,44 @@ Above these limits, the work is judgment: the exact radius, the saturation of a 
 specific accent colour.
 
 Know which kind of answer you have. Cite the measurement and do not move it. Own the judgment
-and call it a judgment. Presenting a judgment as a measurement is a fault. Presenting two
-different things as the same thing is the same fault, inverted.
+and call it a judgment. Calling a judgment a measurement is a fault. So is calling two
+different things one thing.
 
 ## Consistency costs less than inconsistency
 
-Consistency is cheaper. Shipping the same button twice costs less than deciding its weight a
-second time.
+Shipping the same button twice costs less than deciding its weight a second time.
 
-An inconsistent system does not save time. It repeats decisions without memory. It decides
-each case locally, and it does not know what the earlier cases decided. Local answers do not
-combine into a good whole.
-
-You pay this cost later, when you build the twentieth screen.
+An inconsistent system does not save time. It repeats decisions without memory. Each screen
+decides alone, and it cannot see what the earlier screens decided. You pay for that on the
+twentieth screen.
 
 ## Why the field works this way
 
 The cause is incentives, not skill.
 
-- **Tools with no centre won.** A copy-paste component collection has no centre, by
-  construction. Utility CSS moves decisions to the call site, by design. Both traded
-  consistency for adoption speed. Both were right about what the market rewards.
-- **Teams applied component thinking to patterns.** A sidebar is a pattern. It coordinates
-  things outside itself. It is not a large component, which contains things inside itself. You
-  can see the error when a child reaches up to configure its parent.
-- **The market selects the wrong signal.** Systematic designers work on private systems inside
-  companies. The public market rewards work that demonstrates well on its own. It cannot see
-  consistency, because consistency appears only when you assemble many screens.
-- **Teams stopped reading the human-factors literature.** Consumer web has no strong penalty
-  for error. A missed tap costs little. So "responsive" changed meaning. It once meant "adapt
-  to the human on this device". It now means "reflow without a horizontal scrollbar". The
-  measurable substitute replaced the goal.
-- **AI increased the rate.** A model generates each component alone. Each one looks correct.
-  The set is inconsistent, and nothing reports the fault.
+- **The popular tools have no centre.** shadcn/ui gives you source code to copy into your
+  project. Once you copy it, it is your code, and nothing updates it. Tailwind puts each style
+  choice on the element that uses it. Both are quick to adopt. Neither can hold a rule in one
+  place.
+- **Teams build patterns as if they were components.** A component contains things. A sidebar
+  coordinates things it does not contain: the header, the content, the width of the window.
+  You can see the mistake when a child component has to reach up and configure its parent.
+- **Public work rewards the single screenshot.** Most systematic design happens inside
+  companies, on private systems nobody sees. Public work is judged one component at a time.
+  Consistency does not show up in one component. It shows up when you assemble twenty screens.
+- **Teams stopped reading the research.** A missed tap on a website costs little, so nothing
+  punishes the error. "Responsive" changed meaning because of this. It used to mean "adapt to
+  the person holding this device". It now means "reflow without a horizontal scrollbar". The
+  easy measurement replaced the goal.
+- **AI makes more of it, faster.** A model writes each component on its own. Each one looks
+  correct. The set is inconsistent, and nothing reports it.
 
 ## What this costs you
 
-A system that optimizes for correctness is harder to adopt than one that optimizes for
-adoption.
+A system built for correctness is harder to adopt than one built for adoption.
 
 There is no `variant` prop to reach for when a design does not fit. There are refusals, and
-each refusal states a reason. There are fewer escape routes, and this document names the ones
+each refusal gives a reason. There are fewer escape routes, and this document names the ones
 that exist.
 
-You get one result for that cost: the twentieth screen costs what the second screen cost.
+You get one thing for that cost. The twentieth screen costs what the second screen cost.

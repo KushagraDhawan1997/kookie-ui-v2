@@ -32,15 +32,12 @@ export type SwitchProps = Omit<
   // same answer.
   "children" | "render" | "className" | "nativeButton" | "readOnly"
 > & {
-  /** §4 — the MARK ladder, SHIFTED: the track is `mark(n + 1)`, the one-index step every peer
-      system arrives at by hand, so a switch reads one weight class above the checkbox at the
-      same index while the two still belong to one family. The shift lives in the shared size
-      join, so this component states no geometry of its own; the width rides the same index
-      through the family's designed ladder, and the thumb derives from the channel rather than
-      restating it. The TARGET is still a control of this size capped at the touch floor
-      (§16). Density never touches it — a mark grows only where its label does (§17), and at
-      coarse size 4 the band prices two type steps alike, so the shift is inert there and a
-      switch stands exactly level with its checkbox. */
+  /**
+   * The mark ladder, one step up. The track is the checkbox's mark at the next index, which is
+   * the relationship every peer system arrives at by hand, so a switch reads one weight class
+   * above the checkbox at the same number while both stay in one family. The width follows the
+   * same index. Defaults to 2.
+   */
   size?: Size;
   /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;

@@ -41,20 +41,11 @@ export type CheckboxProps = Omit<
   "children" | "render" | "className" | "nativeButton" | "readOnly"
 > & {
   /**
-   * §4 — an index into the MARK ladder, which is the one ladder every control that IS its own
-   * mark shares. It leaves the height ladder (that is the geometry of a box that CONTAINS a
-   * label; this one sits beside one) and keeps the index, so a checkbox, a radio and a switch
-   * at the same step read as the same size of thing rather than as three ladders that drift.
-   *
-   * The rungs ARE the line box — `--mark-N` resolves to `--line-height-N` — so the square is
-   * exactly one line of the label beside it: it aligns by construction, never disturbs the
-   * text rhythm, and grows on a phone because §17's handheld band raises the type and the mark
-   * rides it, with nothing designed twice.
-   *
-   * What the index still buys from the control family is the TARGET (§16): the invisible hit
-   * area is a control of this size capped at the touch floor, so a checkbox is exactly as
-   * large a thing to aim at as the Button beside it. Density never touches a mark — it is
-   * content, and a mark that grew while its label held would stop matching its line.
+   * An index into the mark ladder, which every control that is its own mark shares. It leaves
+   * the height ladder, because that is the geometry of a box that contains a label and this one
+   * sits beside one. It keeps the index, so a checkbox, a radio and a switch at the same number
+   * read as the same size of thing. The ladder is the line box, so the mark is exactly one line
+   * of the label beside it and lines up with no offset. Defaults to 2.
    */
   size?: Size;
   /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */

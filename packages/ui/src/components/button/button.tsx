@@ -14,62 +14,57 @@ type ButtonBase = Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * §4 — an index into the control family, never a measurement. One number joins five
-   * independent scales at once — the height ladder, the inline padding, the corner, the icon
-   * box and the label's type step — so every control at the same index stands level with
-   * every other, and re-pricing a step is one config line rather than a sweep of call sites.
-   * `2` is the baseline. Density and the pointer world re-price what the index resolves to;
-   * they never change what it means.
+   * An index into the control family, never a measurement. One number sets five things at
+   * once: the height, the side padding, the corner, the icon box and the label's type step.
+   * Every control at the same index stands level with every other, and re-pricing a step is
+   * one config line rather than a sweep of call sites. Density and the pointer setting change
+   * what the index resolves to. They never change what it means. Defaults to `2`.
    */
   size?: Size;
   /**
-   * §7 — the semantic family, and a MEANING rather than a colour: `destructive` says what
-   * the press does and the theme decides the pigment, which is what lets a palette move
-   * without a single call site being edited. Rests `neutral` (§11), so nothing is accent by
-   * accident — an accent button is always something somebody asked for.
+   * What the action means, not what colour it is. `destructive` says what the press does, and
+   * the theme decides the colour, which is what lets a palette move without a call site being
+   * edited. Defaults to `neutral`, so nothing is accent by accident.
    */
   tone?: Tone;
   /**
-   * §9 — loudness, and the only ranking axis in the system: there is no `variant`, and the
-   * deletion is load-bearing — one axis cannot mean colour and prominence at once.
+   * How loud this action is against the actions beside it. It is the only ranking axis in the
+   * system, and there is no `variant`: one prop cannot mean colour and prominence at once.
    *
-   * Resolved for a CONTROL as fills (surfaces take the same ladder as dressing, type as
-   * foreground roles): loud is the tone's solid, medium its soft wash, quiet bare. So the
-   * rung ranks this button against the ones beside it, and a row of actions is read in the
-   * order the fills state. Rests `medium` (§11): a screen earns one loud button by asking.
+   * On a button it picks a fill. Loud is the tone's solid colour, medium is a soft wash, and
+   * quiet has no fill at all. Read a row of actions in the order the fills state. Defaults to
+   * `medium`, so a screen earns its one loud button by asking for it.
    */
   emphasis?: Emphasis;
-  /** §10 — containment, orthogonal to loudness: `quiet + bordered` is the old outline. */
+  /** Adds a hairline. It is separate from loudness: quiet with a border is the old outline
+   *  button, and it reads half a step above quiet. */
   bordered?: boolean;
-  /** Blocks interaction and shows a Spinner, without ever hiding the label (§8). */
+  /** Blocks the press and shows a Spinner. The label never goes away. */
   loading?: boolean;
   /**
-   * Leading slot. Swapped for the Spinner while loading, so nothing shifts (§8).
-   *
-   * Named `leading`/`trailing` rather than `icon`/`iconEnd` (renamed 2026-08-04): ENGINEERING §3
-   * forbids two spellings for one axis, and TextField had already shipped the better pair. It is
-   * better on the merits too — the names are RTL-correct where `End` is not, and a trailing slot
-   * frequently holds a button rather than an icon, which `iconEnd` misdescribes.
+   * The slot before the label, usually an icon. While `loading` is true the Spinner takes this
+   * slot, in the same box, so nothing shifts.
    */
   leading?: React.ReactNode;
-  /** Trailing slot — a chevron, a count, a control. Never replaced by the Spinner. */
+  /** The slot after the label: a chevron, a count, or a whole control. The Spinner never
+   *  replaces it. */
   trailing?: React.ReactNode;
-  /** Keep focus when the button becomes disabled mid-interaction. */
+  /** Keep focus on the button when it becomes disabled part-way through an interaction. */
   focusableWhenDisabled?: boolean;
   /**
-   * Whether the rendered element really is a `<button>`. Inferred from `render` and almost
-   * never worth passing: it exists because Base UI branches its whole a11y contract on it, and
-   * getting it wrong is silent. See the note on the `render` escape below.
+   * Whether the rendered element really is a `<button>`. It is inferred from `render`, and you
+   * almost never need to pass it. It exists because Base UI decides its whole accessibility
+   * contract from this value, and getting it wrong fails silently.
    */
   nativeButton?: boolean;
-  /** §10 — a placement fact (2026-08-17): content passes behind this button, so the theme's
-   *  material may express. Unset, reads the ambient `<Box backdrop>` region. Cannot choose
-   *  a material — only state that there is something to bend. */
+  /** Says that content passes behind this button, so the theme's material can show. Unset, it
+   *  follows the surrounding `<Box backdrop>` region. It cannot pick a material. It only says
+   *  there is something behind this to bend. */
   backdrop?: boolean;
-  /** Render into an element you already have — a link, a `<summary>` (§5). The dress and the
-      behaviour stay this component's; only the tag changes. Base UI branches its whole a11y
-      contract on whether the result is a real `<button>`, which is inferred from what is
-      passed here — see `nativeButton` for the case that cannot be inspected. */
+  /** Render into an element you already have, such as a link or a `<summary>`. The appearance
+      and the behaviour stay this component's, and only the tag changes. Base UI decides its
+      accessibility contract from what the result is, which is inferred from what you pass
+      here. See `nativeButton` for the case that cannot be inspected. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;
@@ -98,16 +93,16 @@ type IconOnly =
 export type ButtonProps = ButtonBase & (IconOnly | { iconOnly?: false | undefined });
 
 /**
- * The primary control (§9, §11). Base UI supplies the semantics — real `<button>`, keyboard
- * behaviour, `data-disabled` — and every visible decision is ours, resolved through the token
- * layer: `tone` picks a family, `emphasis` picks a loudness, `size` joins five scales at one
- * index, and the stylesheet does the rest with no JS at interaction time.
+ * The action control. Base UI supplies the semantics: a real `<button>`, the keyboard
+ * behaviour and the disabled state. Every visible decision is this system's, resolved through
+ * tokens. `tone` picks a meaning, `emphasis` picks a loudness, `size` sets five scales at one
+ * index, and the stylesheet does the rest with no JavaScript at interaction time.
  *
- * No margin prop, by construction (§3): outer spacing belongs to the layout that owns the
- * relationship. `<Box m="4"><Button/></Box>` is the honest spelling.
+ * There is no margin prop. Outer spacing belongs to the layout that owns the relationship, so
+ * write `<Box m="4"><Button/></Box>`.
  *
- * Defaults are `medium` and `neutral` (§11): nothing is loud-and-accent by accident, so a
- * screen has one focal point unless somebody deliberately asks for a second.
+ * It defaults to `medium` and `neutral`, so nothing is loud and accent by accident and a
+ * screen has one focal point unless somebody asks for a second.
  */
 export function Button({
   size = "2",

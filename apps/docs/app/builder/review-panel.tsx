@@ -12,6 +12,8 @@ import * as React from "react";
 
 import { Box, Button, Flex, Separator, Stack, Text } from "@kookie-ui/react";
 
+import { InlineCode } from "../inline-code";
+
 import type { Finding } from "./review";
 
 export function ReviewPanel({
@@ -116,10 +118,10 @@ function Row({
       <Box pl="3" pr="3">
         <Stack gap="1">
           <Text size="2" emphasis="medium">
-            {finding.title}
+            <InlineCode text={finding.title} />
           </Text>
           <Text size="1" emphasis="quiet">
-            {finding.why}
+            <InlineCode text={finding.why} />
           </Text>
         </Stack>
       </Box>

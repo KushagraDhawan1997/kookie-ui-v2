@@ -1,15 +1,15 @@
 Every distance on a KookieUI screen belongs to a container. It never belongs to the element
-inside the container. Four primitives place things, one space scale prices them, and one
-density axis re-picks that scale for the whole app.
+inside the container. Four primitives place things, one space scale sets the distances, and
+one density axis re-picks that scale for the whole app.
 
 ## A component sets no outer spacing
 
 The distance between two siblings is the container's `gap`. No control takes a margin prop, and
 none ever will.
 
-A margin states a relationship. It is not a property of an element. The correct distance
+A margin describes a relationship. It is not a property of an element. The correct distance
 between a button and the field above it depends on three things: what the neighbour is, how
-dense the app is set, and what the group states. The button reads none of the three from inside
+dense the app is set, and what the group is doing. The button reads none of the three from inside
 itself. A component that ships its own margin answers a question it cannot ask, so every
 composition after it starts by cancelling that margin.
 
@@ -32,15 +32,14 @@ is not.
 </Box>
 ```
 
-## Box is the engine, and Flex, Stack and Grid name the intent
+## Box is the engine
 
-`Box` carries the curated prop set: tokenised spacing, pass-through sizing, structural
-keywords, and the flex and grid child props. `Flex`, `Grid` and `Stack` are typed sugar over
-`Box`. Each one presets `display`, narrows the props to the layout model it names, and ships no
-CSS of its own.
+`Box` holds the whole prop set: spacing, width and height, a few structural keywords, and the
+props a flex or grid child needs. `Flex`, `Grid` and `Stack` are `Box` with a fixed `display`
+and a shorter prop list. None of the three ships any CSS of its own.
 
-The narrowing is the design. Raw CSS accepts every property on every element and ignores the
-wrong ones in silence. Here, `columns` on a `Flex` is a type error.
+The shorter list is the point. Raw CSS accepts every property on every element and ignores the
+wrong ones in silence. Here, `columns` on a `Flex` does not compile.
 
 Use `Stack` for vertical flow. Use `Flex` when direction or alignment is the decision. Use
 `Grid` when the arrangement is two-dimensional. Use `Box` when you need what the narrowed types
@@ -57,7 +56,7 @@ escape that loses to the default is not an escape.
 </Stack>
 ```
 
-## Two layers of space, and the props read the second
+## Two layers of space
 
 `--space-1` through `--space-12` is the palette. It is near-linear at the bottom, where 12, 16
 and 24 are all distinct and constantly used. It is geometric at the top, where an eight-pixel
@@ -91,10 +90,11 @@ stays visible in the file.
 `density` is a Theme axis with three levels: `compact`, `default` and `comfortable`. It is an
 app-level choice, not a per-component knob.
 
-Density selects a designed set. Each level re-declares the control family as placed values, and
-re-picks twelve steps out of the untouched palette. Nothing is a product, so nothing resolves
-to 26.78px and every cell stays correctable on its own. A multiplier could only move a whole
-level at once, which would make every taste correction global. This is a judgment.
+Each density level is a set of hand-picked numbers. It restates every control height and
+padding directly, and it picks twelve steps out of the palette, which itself never moves. No
+value is a multiplication, so nothing resolves to 26.78px and you can correct any one cell on
+its own. A multiplier could only move a whole level at once, which would make every taste
+correction global. This is a judgment.
 
 Density never touches two things. It never touches the palette, so a compact app cannot
 collapse its page gutters. The picks move the lower steps by one, and the gutter band 9 through
@@ -103,14 +103,14 @@ buys room at a fixed label size. If you want the text to move as well, you want 
 
 ```tsx
 <Theme density="compact">
-  <Stack gap="4">{/* every distance below re-prices */}</Stack>
+  <Stack gap="4">{/* every distance below changes */}</Stack>
 </Theme>
 ```
 
 ## Responsive values key to the container
 
-Any curated prop takes one value for each tier as an object. `initial` is the base, and `sm`,
-`md` and `lg` layer over it.
+Any layout prop takes one value per tier, written as an object. `initial` is the base, and
+`sm`, `md` and `lg` layer over it.
 
 A tier measures the nearest measurable ancestor. It does not measure the window. The same
 `Grid` is therefore correct in a sidebar and in a main column.
@@ -143,7 +143,11 @@ margin prop it resolves to the negative of the enclosing surface's padding.
 `bleed` is a value, not a prop. Every per-side and per-tier spelling already exists on the
 margin rows, so `mt="bleed" mx="bleed"` bleeds the top and the sides at no new cost. The
 nearest surface wins, so a card inside a dialog bleeds to the card. Outside any surface it
-computes a real zero. It works on a margin only. Padding and `gap` reject a negative length, so
+computes a real zero.
+
+A `Shell` pane is a surface too, and it pads like one, so `bleed` is how a canvas or a picture
+reaches a pane's edges. A `ShellScroll` needs no help: a scroll area that is the direct child
+of a surface bleeds out on its own and re-pads its own viewport. It works on a margin only. Padding and `gap` reject a negative length, so
 the word reaches CSS as written and CSS rejects it where you can see it.
 
 ```tsx

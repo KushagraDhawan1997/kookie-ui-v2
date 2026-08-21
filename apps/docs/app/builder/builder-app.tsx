@@ -1451,7 +1451,7 @@ export function BuilderApp() {
           killed the responsive default outright. */}
       <ShellSidebar aria-label="Editing panels" width={320} {...(preview ? { open: false } : {})}>
         <ShellScroll>
-          <Box p="3">
+          <Box>
             {leftTab === "add" ? (
               <Stack gap="4">
                 {contextualParts.length ? (

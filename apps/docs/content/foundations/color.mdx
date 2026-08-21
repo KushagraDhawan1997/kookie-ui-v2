@@ -1,4 +1,4 @@
-Colour states meaning. You name a tone, and the theme resolves that name into a value. It
+Colour carries meaning. You name a tone, and the theme resolves that name into a value. It
 resolves against the current appearance, the current contrast setting, and the surface below.
 
 One generator produces every value from two numbers for each family. You write no hex value.
@@ -19,7 +19,7 @@ Name a tone at the call site.
 A hex value never changes. It does not follow the appearance into dark mode. It does not
 answer `contrast="high"`. It does not survive a rebrand. Under a translucent material it has
 no relationship to the fill it mixes into. A tone answers all four cases, because the tone
-states the intent and the theme produces the value.
+says what you mean and the theme produces the value.
 
 The package has no `color` prop and no `variant` prop. The escape is `style`, and a `style`
 attribute is easy to see in a review. If you write `style` more than rarely, a family is
@@ -44,7 +44,7 @@ only a category.
 ### A semantic family is not an alias
 
 `success` and `green` render the same value today. They are still two generated families. A
-name states a meaning, and each meaning must stay correctable on its own. `success` can move
+name carries a meaning, and each meaning must stay correctable on its own. `success` can move
 toward teal without moving a colour-as-data name with it. `accent` and `blue` share one
 recipe for the same reason. A consumer who rebrands to green moves `accent` and leaves `blue`
 where it is.
@@ -74,9 +74,9 @@ all exist, so one role name works across all ten families.
 
 ## The ink ladder
 
-Type resolves `emphasis` as three foreground roles. Loud reads `--color-text`. Medium reads
-`--color-text-muted`. Quiet reads `--color-text-faint`. A chosen tone moves the same three
-rungs onto that family's ink trio.
+On text, `emphasis` picks one of three ink colours. Loud is `--color-text`. Medium is
+`--color-text-muted`. Quiet is `--color-text-faint`. Set a `tone` and those same three levels
+move onto that family's own inks.
 
 ```tsx
 <Card size="3">
@@ -97,11 +97,12 @@ rungs onto that family's ink trio.
 ```
 
 The heading and the first line rest loud. The retry date is real information that the screen
-does not emphasise, so it takes medium. The refund line is stood down, so it takes quiet. One
-tone reaches both the label and the button, because every family emits the same roles.
+does not emphasise, so it takes medium. The refund line is a rule the reader cannot act on, so
+it takes quiet. One tone reaches both the label and the button, because every family has the
+same roles.
 
-The generator solves each rung against a contrast target. It solves one value for each family
-in each appearance, so every family reaches the same contrast on the same rung.
+The generator solves each level against a contrast target, once per family and once per
+appearance, so every family reaches the same contrast at the same level.
 
 - **The generator does not solve loud.** Loud stays the family's own designed text colour.
   This is a judgment: the system uses this ink more than any other, so a target number must
@@ -109,11 +110,11 @@ in each appearance, so every family reaches the same contrast on the same rung.
 - **Medium sits on the body floor.** The target is APCA Lc 60, which is a measured limit. Use
   medium for real information the screen does not emphasise: a placeholder, a timestamp, a
   group label.
-- **Quiet sits at APCA Lc 30.** This value is below the reading floor. Quiet is the rung for
-  something the system stands down, such as an option the reader cannot take. The system
-  states this exception in writing.
+- **Quiet sits at APCA Lc 30.** This value is below the reading floor. Use quiet for
+  something the system has turned off, such as an option the reader cannot take. This is a
+  written exception to the floor, not an oversight.
 
-Do not use the quiet rung for a full line of text. Nothing stops you. Text that matters less
+Do not use quiet for a full line of text. Nothing stops you. Text that matters less
 stays loud at a smaller step, or moves to medium.
 
 ## The high contrast setting
@@ -126,8 +127,8 @@ operating system for more contrast receives it.
 <Theme contrast="high">{children}</Theme>
 ```
 
-A resting border and a resting fill are dress. The system judges them by eye and holds them to
-no contrast floor in standard mode. Under `contrast="high"` the APCA floors bind, and every
+A resting border and a resting fill are decoration. The system judges them by eye and holds
+them to no contrast floor in standard mode. Under `contrast="high"` the APCA floors bind, and every
 solved edge targets one. This split is a judgment. Text, the focus ring and the invalid edge
 meet their floors in standard mode, because those three are signals. A signal that works only
 under an opt-in setting is not a signal.
@@ -137,14 +138,14 @@ increase. A bright hue's border band already sits at the limit the hue holds, an
 contrast turns yellow to olive. A bright hue takes its gain in the text band instead. A band
 that does not move is the correct result for that band.
 
-## The three grounds
+## The three background colours
 
-Three named beds sit under everything, from the bottom up.
+Three named backgrounds sit under everything, from the bottom up.
 
 ```css
 --color-page      /* the app's background. No component reads it. */
 --color-ground    /* a bounded region that holds objects */
---color-surface   /* the seal: an object's own opaque fill */
+--color-surface   /* an object's own opaque fill */
 ```
 
 The library paints no page background. A `Theme` that painted one would repaint the page at

@@ -14,7 +14,7 @@ export type ProgressProps = Omit<
   //
   // Base UI's `Progress.Label` and `Progress.Value` parts are deliberately not surfaced.
   // The anatomy criterion (§10, LOG 2026-08-04) admits system-owned slots only where
-  // something NON-VISUAL forces them — Dialog's focus wiring, Callout's status role. Neither
+  // something NON-VISUAL forces them — Dialog's focus wiring, Notice's status role. Neither
   // part clears it: a label is `aria-label` or a `<Text>` with `id`, and a formatted value is
   // a `<Text>`. Both would be anatomy bought for layout, which is what kookie-blocks is for.
   "children" | "render" | "className"

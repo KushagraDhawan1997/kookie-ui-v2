@@ -65,21 +65,26 @@ const AlertSizeContext = React.createContext<Size>("2");
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
 export type AlertDialogProps = {
-  /** §4, §25 — prices the whole alert: box, corner, padding, title and description steps,
-      and the two buttons. It can reach the type where Dialog's cannot, because the content
-      here is the system's own. */
+  /**
+   * Sets the whole alert: the box, the corner, the padding, the title and description type steps,
+   * and the two buttons. It may reach the type where Dialog's size cannot, because the content
+   * here is the system's own.
+   */
   size?: Size;
-  /** Controlled open state, paired with `onOpenChange` — Dialog's pattern, which the whole
-      library shares. */
+  /** Controlled open state, paired with `onOpenChange`, in the pattern the whole library shares. */
   open?: boolean;
   /** Uncontrolled starting state. Mutually exclusive with `open`. */
   defaultOpen?: boolean;
-  /** Fires on every open and close. It carries no dismissal details, and that is the role
-      rather than an omission: an alert refuses outside presses (§25), so the only ways out
-      are the two buttons and Escape, and Escape IS the Cancel action by another route. */
+  /**
+   * Fires on every open and close. It carries no dismissal details, and that follows from the
+   * role rather than being an omission: an alert refuses outside presses, so the only ways out are
+   * the two buttons and Escape, and Escape is the Cancel action by another route.
+   */
   onOpenChange?: (open: boolean, details: OverlayOpenChangeDetails) => void;
-  /** The trigger and the content. AlertDialog renders no DOM of its own — state and wiring
-      only — so this is `<AlertDialogTrigger>` and `<AlertDialogContent>`. */
+  /**
+   * The trigger and the content. AlertDialog renders no DOM of its own, only state and wiring, so
+   * this is an `<AlertDialogTrigger>` and an `<AlertDialogContent>`.
+   */
   children?: React.ReactNode;
 };
 
@@ -127,14 +132,16 @@ export type AlertDialogTriggerProps = Omit<
 > & {
   /** Usually a Kookie Button: `<AlertDialogTrigger render={<Button/>}>Delete…</AlertDialogTrigger>`. */
   render?: RenderElement;
-  /** Whether the rendered element really is a `<button>` — inferred from `render` (§5). */
+  /** Whether the rendered element really is a `<button>`. It is inferred from `render`. */
   nativeButton?: boolean;
-  /** Stands the trigger down — the alert cannot be raised from here. */
+  /** Turns the trigger off, so the alert cannot be raised from here. */
   disabled?: boolean;
-  /** The button's words, and they name what is about to be RISKED rather than the alert:
-      "Delete…" opens the confirmation, and the ellipsis is the platform's own promise that a
-      question is coming. They land on the `render` target, so a Kookie Button plus children
-      is one button. */
+  /**
+   * The button's words. Name what is about to be risked rather than the alert itself:
+   * "Delete…" opens the confirmation, and the ellipsis is the platform's own promise that a
+   * question is coming. They land on the `render` target, so a Kookie Button plus children is one
+   * button.
+   */
   children?: React.ReactNode;
   /** Your classes, appended rather than replacing the component's own. They land on the trigger,
       and with `render` on the element you rendered into. */
@@ -167,11 +174,13 @@ export type AlertDialogContentProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
-  /** The alert's parts, in reading order: `AlertDialogTitle`, `AlertDialogDescription`, then
-      `AlertDialogCancel` and `AlertDialogAction`. A LIST of parts, never a Flex — Content owns
-      the layout (§25), which is what lets the entry animate the content and what makes
-      Cancel-first mean reading order, start side and initial focus at once. Anything beyond
-      those four makes the thing a Dialog. */
+  /**
+   * The alert's parts, in reading order: `AlertDialogTitle`, `AlertDialogDescription`, then
+   * `AlertDialogCancel` and `AlertDialogAction`. Write a list of parts, never a Flex, because
+   * Content owns the layout. That is what lets the entry animate the content, and what makes
+   * Cancel-first mean reading order, start side and initial focus at once. Anything beyond those
+   * four makes the thing a Dialog.
+   */
   children?: React.ReactNode;
   /** Your classes, appended rather than replacing the component's own. They land on the panel,
       not on the scrim and not on the scrollable viewport between them. */
@@ -260,9 +269,11 @@ export type AlertDialogTitleProps = Omit<
   React.ComponentPropsWithoutRef<"h2">,
   "color" | "style" | "className"
 > & {
-  /** The question, phrased as one. It is the alert's accessible name as well as its heading,
-      so it should say what is about to happen and to what — "Delete three files?" — where a
-      title naming the widget leaves the buttons underneath meaningless. */
+  /**
+   * The question, phrased as one. It is the alert's accessible name as well as its heading, so it
+   * should say what is about to happen and to what. "Delete three files?" works. A title naming
+   * the widget leaves the buttons underneath meaningless.
+   */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -284,9 +295,11 @@ export type AlertDialogDescriptionProps = Omit<
   React.ComponentPropsWithoutRef<"p">,
   "color" | "style" | "className"
 > & {
-  /** What proceeding COSTS — the consequence the title could not fit, said once. It is
-      announced together with the title, so it adds (what is lost, whether it comes back)
-      rather than restating the question in longer words. */
+  /**
+   * What going ahead costs: the consequence the title could not fit, said once. It is announced
+   * together with the title, so it should add something, such as what is lost and whether it comes
+   * back, rather than restate the question in longer words.
+   */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -309,15 +322,21 @@ export type AlertDialogCancelProps = Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {
-  /** The retreat, in words. "Cancel" always reads; naming what staying means often reads
-      better ("Keep editing"), and the pair is judged together — two named sides is what makes
-      the alert a choice rather than a warning with a dismiss button. */
+  /**
+   * The way out, in words. "Cancel" always reads, and naming what staying means often reads
+   * better, such as "Keep editing". Judge the two buttons together: two named sides is what makes
+   * the alert a choice rather than a warning with a dismiss button.
+   */
   children?: React.ReactNode;
-  /** Runs on the press, before the alert closes. Cancel ALWAYS closes, so this is for the
-      tidying — never for deciding whether to. */
+  /**
+   * Runs on the press, before the alert closes. Cancel always closes, so use this for tidying up,
+   * never for deciding whether to close.
+   */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  /** Stands the safe way out down. Rarely right: it leaves Escape as the only retreat from a
-      panel that refuses outside presses (§25). */
+  /**
+   * Turns off the safe way out. It is rarely right, because it leaves Escape as the only retreat
+   * from a panel that refuses outside presses.
+   */
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -356,18 +375,27 @@ export type AlertDialogActionProps = Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {
-  /** The one meaning an action may carry beyond proceeding — `destructive` for the deletes
-      this component mostly exists for. Neutral (the accent identity) otherwise. */
+  /**
+   * The one meaning an action may carry beyond going ahead. Use `destructive` for the deletes this
+   * component mostly exists for. Neutral otherwise.
+   */
   tone?: Tone;
-  /** The committing choice, in words — the VERB. "OK" makes the user re-read the title to
-      remember what they are agreeing to; "Delete" answers the question where it is pressed. */
+  /**
+   * The committing choice, in words, and it should be the verb. "OK" makes the reader go back to
+   * the title to remember what they are agreeing to. "Delete" answers the question where it is
+   * pressed.
+   */
   children?: React.ReactNode;
-  /** Where the work starts. The alert closes on the same press, because its job ends when a
-      choice is made — an action that must await a result and report back belongs to a Dialog
-      whose `open` the caller controls. */
+  /**
+   * Where the work starts. The alert closes on the same press, because its job ends when a choice
+   * is made. An action that has to wait for a result and report back belongs in a Dialog whose
+   * `open` you control.
+   */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  /** Stands the committing action down — for a confirmation that is not satisfied yet (a
-      typed-name gate, a pending check). Cancel stays live, so this is never a trap. */
+  /**
+   * Turns the committing action off, for a confirmation that is not satisfied yet, such as a
+   * typed-name gate or a pending check. Cancel stays live, so this is never a trap.
+   */
   disabled?: boolean;
   className?: string;
   style?: React.CSSProperties;

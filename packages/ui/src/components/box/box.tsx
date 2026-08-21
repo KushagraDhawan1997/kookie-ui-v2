@@ -24,44 +24,42 @@ const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "product
 
 export type BoxProps = BoxStyleProps &
   Omit<React.ComponentPropsWithoutRef<"div">, keyof BoxStyleProps> & {
-    /** Render into an element you already have, instead of adding a wrapper (§5). */
+    /** Render into an element you already have, instead of adding a wrapper. */
     render?: RenderElement;
     ref?: React.Ref<HTMLElement>;
     /**
-     * Make this Box measurable: responsive values (`{ initial, sm, md, lg }`) on anything
-     * inside resolve against THIS Box's width instead of the nearest measurable ancestor
-     * (the Theme root, absent a nearer one).
+     * Make this Box measurable. Responsive values such as `{ initial, sm, md, lg }` on anything
+     * inside it then resolve against this Box's width instead of against the nearest measurable
+     * ancestor, which is the Theme root when there is nothing nearer.
      *
-     * The trade, imposed by CSS itself: a measurable box can never size itself around its
-     * contents — its width must come from outside. Put `container` on things layout already
-     * sizes (a sidebar with a width, a main column that grows, a grid cell), or state
-     * `width` / `flexGrow` / `flexBasis` yourself. A container Box left to shrink-wrap
-     * (e.g. as a plain flex-row item) renders ZERO pixels wide; dev builds warn when that
-     * happens (§2).
+     * CSS imposes a trade here: a measurable box can never size itself around its contents, so its
+     * width has to come from outside. Put `container` on things the layout already sizes, such as a
+     * sidebar with a width, a main column that grows, or a grid cell. Or state `width`, `flexGrow`
+     * or `flexBasis` yourself. A container Box left to shrink-wrap, for example as a plain flex-row
+     * item, renders zero pixels wide, and a development build warns you when that happens.
      */
     container?: boolean;
     /**
-     * §10 — marks a REGION where content passes behind the components inside it (2026-08-17):
-     * a toolbar floating over a canvas, a panel over a hero image. Every material-expressing
-     * component within (buttons, fields, cards, selects) resolves the theme's material here
-     * instead of solid — placement is a fact about the place, stated once, not a prop
-     * sprinkled per control. `backdrop={false}` re-marks a sub-region as calm. Layout is
-     * untouched: the mark is a React context, not a style.
+     * Marks a region where content passes behind the components inside it, such as a toolbar
+     * over a canvas or a panel over a hero image. Every glass-capable component within it
+     * (buttons, fields, cards, selects) then resolves the theme's material instead of solid.
+     * Say it once for the region rather than on every control. `backdrop={false}` marks a
+     * sub-region as plain again. Layout is untouched: this is a React context, not a style.
      */
     backdrop?: boolean;
   };
 
 /**
- * The layout engine and the sanctioned escape hatch (§3).
+ * The layout engine, and the escape the system sanctions.
  *
- * Box carries the full curated prop set, container props included, so a responsive flex-to-grid
- * switch is expressible; Flex, Grid and Stack are typed sugar that preset `display` and narrow
- * these types. It is also where one-off spacing lives: controls own no outer spacing, and
- * `<Box m="4"><Button/></Box>` is the honest spelling of a positioning decision — a wrapper you
- * can see in review rather than a margin prop buried on a control.
+ * Box takes the whole prop set, container props included, so a responsive switch from flex to
+ * grid is expressible. Flex, Grid and Stack are Box with a fixed `display` and a shorter prop
+ * list. It is also where one-off spacing lives: a control owns no outer spacing, so
+ * `<Box m="4"><Button/></Box>` is how you write a positioning decision. It is a wrapper a
+ * reviewer can see, rather than a margin buried on a control.
  *
- * Anything not in the prop table is one `style={{ }}` away, and consumer `style` merges last:
- * an escape that loses to the default is not an escape.
+ * Anything outside the prop table is one `style={{ }}` away, and your `style` merges last. An
+ * escape that loses to the default is not an escape.
  */
 export function Box(props: BoxProps) {
   const { ref, render, className, style: userStyle, container, backdrop, ...rest } = props;

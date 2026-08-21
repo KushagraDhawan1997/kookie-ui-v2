@@ -23,6 +23,56 @@ These pages follow ASD-STE100. Apply these rules to every sentence.
 - **Do not use more than three nouns together.** Break up long noun groups.
 - **Give each paragraph one topic.** Use a maximum of six sentences.
 
+## Register: four habits that keep coming back
+
+The rules above are about words. These four are about the shape of a sentence. They are the
+faults a reviewer finds most often, and each one has a different fix.
+
+**1. Do not put a comma tail on a heading.** The head names the thing. A tail that explains
+the head is a subtitle glued on with a comma.
+
+- Wrong: `## Three claims, and where to read about each`
+- Right: `## Three claims`
+- Wrong: `## Size prices the type, and render names the document`
+- Right: `## Size sets the step, render sets the element`
+
+`X, not Y` is a different construction and it is allowed. "An index, not a measurement"
+defines by exclusion and it is short. `X, and Y` crams two facts into one heading.
+
+**2. Name the thing.** Do not describe a product instead of naming it.
+
+- Wrong: "A copy-paste component collection has no centre."
+- Right: "shadcn/ui gives you source code to copy into your project."
+- Wrong: "Tools with no centre won."
+- Right: "shadcn/ui and Tailwind are both quick to adopt. Neither can hold a rule in one place."
+
+A reader cannot check a claim about a thing you refuse to name.
+
+**3. Do not bolt a qualifier onto a claim.** ", by construction", ", by design" and ", by
+derivation" assert that something is necessarily true without showing why. Either show why or
+delete the tail.
+
+**4. Do not write an aphorism as a heading.** A heading says what the section tells the reader
+to do. It is not a four-word verdict.
+
+- Wrong: `## Tone is a vocabulary`
+- Right: `## Use a tone for its meaning`
+- Wrong: `## A ladder can refuse`
+- Right: `## Ask whether a ladder fits before you add size`
+
+**Vocabulary that is banned because it is invented.** Do not write that a component "prices" a
+value, "rides" a media query, "owes" a rule, or "stands down" a colour. Do not write "rung",
+"veil", "posture", "seal", "bed" or "dress" as nouns for parts of the system. These are the
+internal words of `docs/DECISIONS.md`, and a reader outside the project cannot decode them.
+
+**Do not overuse "states".** It was doing six jobs at once: means, shows, sets, says, declares
+and tells. Pick the one you mean.
+
+- "the corner states nothing" → "the corner tells you nothing"
+- "each density level states its own four heights" → "each density level sets its own four heights"
+- "a tone states a meaning" → "a tone carries a meaning"
+- "the shape states the role" → "the shape carries the role"
+
 ## What belongs in a chapter, and what does not
 
 A chapter tells a reader what a thing is, when to use it, what it refuses, and how to write
@@ -121,7 +171,7 @@ Do not present a judgment as a measured limit.
 ## Rules that no chapter can contradict
 
 - A component does not set outer spacing. Use `<Box m>`.
-- There is no `variant` prop. `tone` states meaning. `emphasis` states loudness.
+- There is no `variant` prop. `tone` is meaning. `emphasis` is loudness.
 - A component does not set a shadow.
 - The weight ladder stops at semibold.
 - You choose the meaning. The theme resolves the colour.

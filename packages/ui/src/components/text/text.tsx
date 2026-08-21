@@ -28,28 +28,26 @@ export type TextProps = Omit<
   React.ComponentPropsWithoutRef<"span">,
   "color" | "style" | "className"
 > & {
-  /** §15 — a step on the type ramp, and the ramp is three designed scales joined at one
-      index: font-size, line height and letter spacing move together, so a step can never
-      change the size without the leading that makes it readable. Nine steps rather than the
-      control family's four — reading has the wider dynamic range (§4 shares the numeral, not
-      the scale). Anchors at 3, the body step §15's composition ladder is built around. */
+  /** A step on the type ramp. One index sets three things together: font size, line height
+      and letter spacing, so a step can never change the size without the leading that makes
+      it readable. There are nine steps here, against the four a control has, because reading
+      covers a wider range. Defaults to 3, the body step. */
   size?: TypeSize;
-  /** §15 — the face, named rather than numbered: a token is the system's to re-point and a
-      `600` is not. Three rungs, and the ladder tops out at semibold because `bold` is refused
-      system-wide — a 700 face is a fifth way to say "important" competing with three the
-      system already designs. Rests regular: body copy is what everything else is heavier
-      than. */
+  /** The weight, named rather than numbered, because a token is the system's to re-point and
+      a `600` is not. There are three, and semibold is the heaviest: `bold` is refused across
+      the system, since a 700 face is another way to say "important" competing with the size
+      ramp and the ink colours. Defaults to regular. */
   weight?: Weight;
-  /** §9, §15 — the one loudness axis, resolved for type as foreground roles: loud reads
-      --color-text, medium the muted role, quiet the faint one. Rests loud — full contrast
-      is the accessible resting state for reading, the inversion of the control default.
-      Quiet is below body-copy contrast by design; never a reading-length line. */
+  /** On text, this picks an ink colour: loud is `--color-text`, medium is muted, quiet is
+      faint. It rests loud, because full contrast is the correct resting state for reading.
+      Quiet sits below the reading contrast floor on purpose, so never use it for a full line
+      of text. */
   emphasis?: Emphasis;
-  /** §7, §15 — a semantic family, never a colour name: the meaning is the API and the theme
-      resolves the pigment. Re-scopes the emphasis ladder onto the family's ink trio.
-      Unset means tone-less: the text reads whatever context its surface sets. */
+  /** A meaning, never a colour name. The theme resolves the colour. Setting a tone moves the
+      three emphasis levels onto that family's own inks. Unset, the text reads whatever ink
+      colour its surface set. */
   tone?: Tone;
-  /** Render into the flow element the document needs — a `<p>`, a `<label>` (§5). */
+  /** Render into the element the document needs, such as a `<p>` or a `<label>`. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

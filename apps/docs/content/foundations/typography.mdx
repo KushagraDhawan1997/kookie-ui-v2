@@ -1,28 +1,28 @@
 One ramp of nine steps sets every word this system draws: body copy, headings, control labels,
-field values and code. A step is an index, not a font size. It joins three designed values at
-one position. The weight ladder stops at semibold, so you rank with size and with ink.
+field values and code. A step is an index, not a font size. It sets three values at once. The
+heaviest weight is semibold, so you rank text with size and with colour.
 
 ## One ramp for Text and Heading
 
-`Text` and `Heading` are one type system that reaches two family slots. A step joins three
-paired tokens at one index: `--font-size-3`, `--line-height-3` and `--letter-spacing-3`. The
-three move together. The system has no global line-height ratio, because one ratio is wrong at
+`Text` and `Heading` share one type system across two font slots. A step sets three tokens at
+one index: `--font-size-3`, `--line-height-3` and `--letter-spacing-3`. The three move
+together. The system has no global line-height ratio, because one ratio is wrong at
 both ends of a range that runs from 12px to 56px.
 
 Size means the same thing on both components. `<Text size="6">` and `<Heading size="6">` are
 the same step, and only the family slot and the default weight differ. A control label reads
 the same ramp, so a `Button` label and a `Text` beside it cannot drift apart.
 
-## Size prices the type, and render names the document
+## Size sets the step, render sets the element
 
-The visual step and the document outline level are two independent axes, and each has its own
-prop.
+How large the text looks and where it sits in the document outline are two separate
+questions. Each has its own prop.
 
 ```tsx
-// The page title: an h1 in the outline, priced at the top of the house ladder
+// The page title: an h1 in the outline, at the top of the house ladder
 <Heading size="8" render={<h1 />}>Billing</Heading>
 
-// A card title: an h3 in the outline, priced two steps down
+// A card title: an h3 in the outline, two steps down
 <Heading size="6" render={<h3 />}>Payment method</Heading>
 ```
 
@@ -33,7 +33,7 @@ owns the flow.
 The system has no `level` prop, and no `as` prop that does both jobs. One prop for both would
 force a choice between a correct outline for a screen reader and a correct picture for an eye.
 
-## Three weights, and semibold is the ceiling
+## Semibold is the heaviest weight
 
 The set is `--font-weight-regular`, `--font-weight-medium` and `--font-weight-semibold`. The
 `weight` prop takes those names, and it takes no numbers.
@@ -64,29 +64,29 @@ Rank with size, and shade with ink:
 `Theme` sets `--font-heading`, `--font-body` and `--font-mono`. A component reads a slot, never
 a font stack. The `Theme` props are the only place anyone writes a stack.
 
-`Heading` takes the heading slot. `Text`, `Blockquote` and `Link` take the body slot. `Code` takes the
-mono slot at a small designed discount, because a mono face runs wider with a taller x-height
-and reads one step large at the same font size. `Kbd` is the exception: a keycap takes the
+`Heading` takes the heading slot. `Text`, `Blockquote` and `Link` take the body slot. `Code`
+takes the mono slot at a small discount, because a mono face runs wider with a taller
+x-height and reads one step large at the same font size. `Kbd` is the exception: a keycap takes the
 **body** slot, because a mono cell draws ⌘ compact to fit its fixed advance, and every platform
 sets a shortcut in the interface sans face.
 
-## Emphasis resolves to ink, and text rests loud
+## Emphasis picks an ink colour
 
-Emphasis is one axis with three resolutions. A control resolves it as a fill. A surface
-resolves it as dressing. Type resolves it as a foreground role. Loud reads `--color-text`,
-medium reads `--color-text-muted`, and quiet reads `--color-text-faint`. A chosen `tone` moves
-the same three rungs onto that family's ink trio.
+`emphasis` means three different things, and what it means depends on what carries it. On a
+button it picks a fill. On a card it picks the dressing. On text it picks an ink colour: loud
+is `--color-text`, medium is `--color-text-muted`, quiet is `--color-text-faint`. Set a `tone`
+and those same three levels move onto that colour family's own inks.
 
 Text rests loud, which inverts the control default on purpose. Full contrast is the correct
 resting state for reading, because a screen ranks its actions and not its paragraphs. A
-paragraph that arrives at medium by default states that reading is optional.
+paragraph that arrives at medium by default tells the reader that reading is optional.
 
-Quiet sits below the body contrast floor on purpose. It is the rung for an option the reader
-cannot take. Do not use it for a full line of text. Nothing stops you.
+Quiet sits below the body contrast floor on purpose. Use it for something the reader cannot
+act on, such as a disabled option. Do not use it for a full line of text. Nothing stops you.
 
-## Two bands re-price the ramp
+## Two bands change the ramp
 
-The two bands answer two unrelated questions, and the system keeps them apart.
+The two bands answer two unrelated questions, so the system keeps them apart.
 
 - **`handheld` raises the reading steps.** It keys on `(pointer: coarse)` and raises steps 1
   through 4. Body moves from 16 to 18. The reason is viewing distance: a held screen is close
@@ -106,13 +106,12 @@ that you once measured for a step.
 
 ## The composition ladder
 
-The ladder below is the house style, and the house style is a judgment. Every distance in this
-system answers to an axis. Type has no axis, so a written rule is the only thing between the
-system and nine opinions on each screen.
+The ladder below is the house style. It is a judgment, not a measurement. Every distance in
+this system answers to an axis. Type has no axis, so a written rule is the only thing between
+the system and nine opinions on each screen.
 
-**Five steps, and they are the only five.** Page **8**. Section **7**. Card or block title
-**6**. Body **3**. Label and meta **2**. A card title over body is 24 against 16, which is a
-real step down. Steps 4, 5 and 9 cover cases these five do not, such as a hero or a display
+**Use these five steps.** Page **8**. Section **7**. Card or block title **6**. Body **3**.
+Label and meta **2**. A card title over body is 24 against 16, which is a real step down. Steps 4, 5 and 9 cover cases these five do not, such as a hero or a display
 number. Reach for one as a decision, never as a default.
 
 **Size ranks. Weight does not.** A 16px title over 14px body is 1.14 times the body size, which
@@ -146,5 +145,5 @@ Written out, the five steps look like this:
 ```
 
 The page title, the section, the card title, the body and the meta line take five different
-steps. The outline is correct at the same time, because `render` states the element and `size`
-states the step.
+steps. The outline is correct at the same time, because `render` picks the element and `size`
+picks the step.

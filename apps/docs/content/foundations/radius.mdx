@@ -15,21 +15,21 @@ Set the level one time, on the `Theme`:
 The levels are `none`, `small`, `medium`, `large` and `full`. `full` is the default. Pill
 controls and capsule rows are this system's resting appearance.
 
-Each level is a designed palette that the generator emits at build time. A level is not a
-multiplier over one scale.
+Each level is a set of hand-picked values that the generator emits at build time. A level is
+not a multiplier over one scale.
 
 A multiplier moves every step together, so you cannot correct one corner alone. `full` shows why
 this matters. CSS limits `border-radius` to half the smaller dimension. A very large number
-therefore gives a control a correct pill, and gives a dialog a lens shape. One factor cannot
-produce both results. A designed palette can. At `full`, the control band states the capsule and
-the surface band holds at the values of `large`.
+therefore gives a control a correct pill, and turns a dialog into a lozenge. One factor cannot
+produce both results. A set of hand-picked values can. At `full`, the control band uses a true
+capsule and the surface band holds at the values of `large`.
 
 The palette is geometric rather than even, because the eye reads radius non-linearly. The steps
 are close together at the small end and far apart at the large end, where 30 pixels and 32
 pixels on a card look the same. That curve is a judgment.
 
 One word rather than one prop per component: in a system where one card is rounder than the
-next, the corner states nothing. A corner reads as a property of the product only when nothing
+next, the corner tells you nothing. A corner reads as a property of the product only when nothing
 local can change it.
 
 ## Reference the family, never the number
@@ -70,9 +70,9 @@ into each other or leave a gap at every row.
 The system holds this relationship for each size and each level. You never calculate it, and
 there is no offset to pass.
 
-The same rule applies one band over. An overlay wears the corner of the card one size above it,
-so a dialog out-rounds the cards inside it. `Surface` reads that band, because a pane that holds
-panes must out-round its contents.
+The same rule applies one band over. An overlay takes the corner of the card one size above
+it, so a dialog has a larger corner than the cards inside it. `Surface` reads that same band,
+because anything holding panes needs a larger corner than the panes inside it.
 
 The arithmetic has no answer at zero, so `none` means none. It does not round a square panel by
 its own padding.
@@ -81,7 +81,7 @@ its own padding.
 
 `none` squares everything, including the pill. A switch with an exception is not a switch.
 
-Four shapes survive `none`. Each one survives because the shape states the role.
+Four shapes survive `none`. Each one survives because the shape carries the role.
 
 - A **radio** is a circle. A square radio reads as a checkbox.
 - The **slider grip** and the **switch thumb** are circles. A square handle reads as a bead that
@@ -125,5 +125,5 @@ The first card, its field and its button all take the `medium` palette, each fro
 The nested section squares every corner inside it, and the radio, the grips and the switch track
 keep their shapes.
 
-One line states a decision about a region, and the reader of that file can see it. A per-card
+One line makes a decision about a region, and the reader of that file can see it. A per-card
 prop produces nine decisions on one screen, and no corner at all.

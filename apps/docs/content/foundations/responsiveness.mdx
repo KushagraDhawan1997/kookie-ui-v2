@@ -5,12 +5,12 @@ A phone differs from a desktop in four ways. The targets are larger. The pointer
 Hover does not exist. The reachable part of the screen is the bottom. Three mechanisms answer
 three different questions, and reaching for the wrong one is the common mistake.
 
-## Reflow is a proxy, not the goal
+## Reflow is not the goal
 
-Consumer web has no forcing function, because a missed tap costs little. The word "responsive"
-therefore moved from "adapt to the human on this device" to "reflow without a scrollbar". The
-measurable proxy replaced the goal. A layout can satisfy that proxy and still give a thumb a
-24-pixel target under a hover-only menu.
+A missed tap on a website costs little, so nothing punishes the error. "Responsive" therefore
+moved from "adapt to the person holding this device" to "reflow without a scrollbar". The easy
+measurement replaced the goal. A layout can pass that test and still put a 24-pixel target
+under a thumb, inside a menu that only opens on hover.
 
 What changes between a desktop and a phone is the interaction model. A dialog becomes a sheet. A
 rail becomes a bottom bar. A hover-reveal becomes always visible. A target grows.
@@ -56,21 +56,22 @@ converged on a small set of named classes rather than per-prop breakpoints.
 
 ### The pointer axis: what is touching this
 
-`fine` and `coarse` are two complete geometries, as light and dark are two complete colour
-modes. The components, the size index and the rules are the same. The placed values differ.
+`fine` and `coarse` are two complete sets of measurements, in the same way that light and dark
+are two complete sets of colours. The components, the size index and the rules stay the same.
+Only the numbers differ.
 
 This is not a mobile mode, and the signal is never width. A touchscreen laptop used with a
 trackpad reports `fine`. A tablet with its keyboard detached reports `coarse`. Both answers are
 correct.
 
-There are two floors at two levels of obligation. 24 CSS pixels is locked, and WCAG 2.2 SC 2.5.8
-at level AA sets it. No designed cell in any pointer world at any density falls below it. 44 CSS
-pixels is the opt-out default. Default density, size 2 and a coarse pointer render 44, which is
+Two minimum sizes apply, and they are not equally strict. 24 CSS pixels is fixed, because WCAG
+2.2 SC 2.5.8 at level AA sets it. No size, density or pointer combination falls below it. 44
+CSS pixels is the default you can opt out of. Default density, size 2 and a coarse pointer render 44, which is
 SC 2.5.5 at level AAA and Apple's number. Going under 44 takes a deliberate act, so a smaller
 control is a design choice rather than a defect.
 
-Coarse re-prices control heights, inline padding, the icon box, the gap between icon and label,
-the control radius and reading type. Coarse does not re-price spacing. Gutters and gaps hold,
+Coarse changes control heights, side padding, the icon box, the gap between icon and label,
+the control radius and reading type. Coarse does not change spacing. Gutters and gaps hold,
 because a phone needs more content per inch, not less.
 
 ```tsx
@@ -100,15 +101,15 @@ all.
 ## Classes state room, never hardware
 
 A class names room. It never names hardware. People run apps in windowed mode, so a device name
-states something false: an app dragged to half a 5K display reports `regular`, and there is no
+is simply wrong: an app dragged to half a 5K display reports `regular`, and there is no
 tablet present. Ask the pointer axis about the device. Ask the window class about the room.
 
 ## Type answers two questions of its own
 
-Type has two bands, because two unrelated questions were asked at one time. The handheld band
-rides `(pointer: coarse)` and raises reading steps 1 to 4, because a held screen is close to the
-eye. The narrow band rides `(max-width: 48rem)` and lowers display steps 8 and 9, because a
-short line has no room for a display heading.
+Type has two bands, because two unrelated questions were being asked at once. The handheld
+band keys on `(pointer: coarse)` and raises reading steps 1 to 4, because a held screen is
+close to the eye. The narrow band keys on `(max-width: 48rem)` and lowers display steps 8 and
+9, because a short line has no room for a display heading.
 
 The two questions do not share an answer. Apple ships one Dynamic Type table for iPhone and
 iPad, and Body is 17pt on both, so the reading question does not separate a phone from a tablet.

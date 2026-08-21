@@ -11,28 +11,36 @@ import { Button } from "../button/button.tsx";
 import { Text } from "../text/text.tsx";
 
 export type NoticeProps = {
-  /** §10 — prices the BOX: the padding and the corner, off the ordinary surface size join,
-      and the dismiss button the component itself places. It does not price the words: a
-      notice holds the caller's text, and text states its own step (§15). Rests at 2 rather
-      than a Card's 3, because a notice is a strip across the top of something rather than an
-      object in its own right. */
+  /**
+   * Sets the box: the padding, the corner and the dismiss button the component places. It does
+   * not set the words, because a notice holds your text and text sets its own step. It rests at
+   * 2 rather than a card's 3, because a notice is a strip across the top of something rather
+   * than an object in its own right.
+   */
   size?: Size;
-  /** §10 — a placement fact (2026-08-17): content passes behind this strip, so the theme's
-      material may express. A notice pinned over a scrolling region is exactly the case; an
-      in-flow notice states nothing, resolves solid and pays nothing. Unset, it reads the
-      ambient `<Box backdrop>` region. */
+  /**
+   * Says content passes behind this strip, so the theme's material can show. A notice pinned
+   * over a scrolling region is exactly the case. A notice in ordinary flow says nothing here,
+   * resolves solid and costs nothing. Unset, it follows the surrounding `<Box backdrop>`
+   * region.
+   */
   backdrop?: boolean;
-  /** §7, §29 — the CATEGORY, never the volume. Rests neutral, and the specimen this component
-      was designed from is grey while being a warning: a notice is a condition stated plainly,
-      not an alarm. Reach for `warning`, `destructive`, `success` or `info` when the family
-      says something the sentence does not already say. */
+  /**
+   * The category, never the volume. It rests neutral, and a warning can be grey: a notice is a
+   * condition stated plainly, not an alarm. Reach for `warning`, `destructive`, `success` or
+   * `info` when the family says something the sentence does not already say.
+   */
   tone?: Tone;
-  /** The symbol, if the app has an icon set — the package ships none (§8), so the slot is
-      empty-safe and a notice with nothing in it simply has no symbol. It carries no meaning
-      of its own and is hidden from assistive technology: the words are the message. */
+  /**
+   * The symbol, if your app has an icon set. The package ships none, so the slot is safe when
+   * empty and a notice with nothing in it has no symbol. It carries no meaning of its own and is
+   * hidden from assistive technology, because the words are the message.
+   */
   icon?: React.ReactNode;
-  /** ONE action, and it is the one that RESOLVES the condition — "Get more usage", not "OK".
-      A `<Button/>` the call site brings, so the system never invents a label. */
+  /**
+   * One action, and it is the one that resolves the condition. "Get more usage", not "OK". Bring
+   * your own `<Button/>`, so the system never invents a label.
+   */
   action?: React.ReactNode;
   /**
    * Acknowledgement, which is a different verb from the action: pressing ✕ agrees to stop
@@ -47,7 +55,7 @@ export type NoticeProps = {
   /** The dismissal's accessible name. English by default because the package ships no
       translation layer; state your own and it is stated once, here. */
   dismissLabel?: string;
-  /** The message. A sentence, usually — a notice with several paragraphs is a Card. */
+  /** The message, usually one sentence. A notice with several paragraphs is a Card. */
   children: React.ReactNode;
   /** Dresses the strip. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;

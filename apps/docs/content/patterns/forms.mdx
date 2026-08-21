@@ -21,13 +21,13 @@ control, so you state the words and never the plumbing.
 ```
 
 The order is fixed: label, control, description, error. The label sits on the control it names,
-and everything about that control pools underneath it.
+and everything about that control sits underneath it.
 
 Write the association yourself only outside a `Field`. Point `htmlFor` at an `id`, or wrap the
 control in a `<label>`. Do not rely on proximity.
 
 A `placeholder` is not a label. It disappears when the person types. It renders in the muted ink
-role. A placeholder states real information. It does not state the name of the field.
+role. A placeholder shows real information. It is not the name of the field.
 
 A mark sits beside its label instead of containing it. The row sets the distance between them.
 `FieldItem` is that row. Use one for each option in a checkbox group or a radio group. A label
@@ -56,13 +56,13 @@ alone.
 
 ## Fields do not rank
 
-`TextField` and `TextArea` take no `emphasis` and no `tone`. The kind of thing decides this, and
-the absence is not an oversight. Loudness ranks one action against the actions beside it. Every
-field is equally there to be filled in, so a form where one field is louder than the next states
+`TextField` and `TextArea` take no `emphasis` and no `tone`. The family decides this, and the
+absence is not an oversight. Loudness ranks one action against the actions beside it. Every
+field is equally there to be filled in, so a form where one field is louder than the next says
 nothing.
 
-State importance in the label, in the order of the form, and in what you leave out. State a
-requirement with `required` on the control. Repeat it in the label in a long form. Only the
+Show importance in the label, in the order of the form, and in what you leave out. Mark a
+required field with `required` on the control. Repeat it in the label in a long form. Only the
 action row at the end ranks.
 
 ## One action commits the form
@@ -99,7 +99,7 @@ button to medium or quiet.
 </Card>
 ```
 
-Three gaps state the structure: 3 from a label to its field, 5 between the rows of the form, and
+Three gaps carry the structure: 3 from a label to its field, 5 between the rows of the form, and
 6 between the title, the form and the actions. Only the action row ranks.
 
 Put the actions at the end of the form. Align them to the end edge. A single action with nothing
@@ -117,7 +117,7 @@ Set the gap inside a group at least two steps below the gap around the group. A 
 gap is the same number reads as one undifferentiated column.
 
 Do not add a `Separator` or a `Card` to do work that the space already does. Enclosure and space
-both group, and using both states the grouping twice. Add a rule only where space cannot group.
+both group, and using both shows the grouping twice. Add a rule only where space cannot group.
 A long settings list is the case: the groups already sit at the section interval and something
 still has to divide them.
 
@@ -136,18 +136,17 @@ There is no `invalid` prop, because nothing chooses to look invalid. The system 
 ```
 
 A checked mark is a resting appearance. An invalid mark is a state. The state wins, so a checked
-`Checkbox` that is also invalid looks invalid. The stylesheet states this by specificity, not by
+`Checkbox` that is also invalid looks invalid. The stylesheet enforces this with specificity, not by
 which file loads last. The disabled state outranks both.
 
-The border and the ring are the system's half of an error. The message is yours. Colour alone is
-not sufficient signalling (WCAG 1.4.1), so a red field with no words beside it is a composition
-defect.
+The border and the ring are the system's half of an error. The message is yours. Colour alone is not
+enough (WCAG 1.4.1), so a red field with no words beside it is a composition defect.
 
 ## Use TextArea for a paragraph
 
 Use `TextArea` when the value is prose that the person reads back. A description, a note and an
-address are the cases. Its box carries the same inset on all four sides. `rows` states the
-starting height in the unit of the content.
+address are the cases. Its box carries the same inset on all four sides. `rows` sets the
+starting height in lines of text.
 
 There is no `cols`. Width belongs to the layout that owns the row. The `cols` attribute counts
 characters, it predates CSS, and it collides with CSS.
@@ -173,5 +172,5 @@ can already read.
 Set helper text at size 2 in the muted ink role, the same step as the label. A helper line two
 steps under the controls beside it reads as a mistake.
 
-Do not use size 1 on a composed screen. The muted ink role and the faint ink role state "this
+Do not use size 1 on a composed screen. The muted ink role and the faint ink role say "this
 matters less" at a readable size.

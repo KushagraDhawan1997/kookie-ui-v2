@@ -11,26 +11,22 @@ export type CodeProps = Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * §15 — a step on the shared ramp. **Optional with no default**, which is the one thing
-   * this component does differently from Text: an inline atom has no size of its own. Unset,
-   * it takes the font-size, line height and letter spacing of the line it sits in, so
-   * `<Text size="2">the <Code>value</Code></Text>` matches by construction rather than by the
-   * call site remembering to repeat the index. Set it only when the chip stands alone.
+   * A step on the shared ramp. It is optional with no default, which is the one thing this
+   * component does differently from `Text`: a word inside a sentence has no size of its own.
+   * Unset, it takes the font size, line height and letter spacing of the line it sits in, so
+   * `<Text size="2">the <Code>value</Code></Text>` matches without the call site repeating the
+   * index. Set it only when the chip stands alone.
    */
   size?: TypeSize;
-  /** §15 — token names, never numbers, topping out at semibold (`bold` is refused
-      system-wide). Unset with no default, for `size`'s reason: a literal quoted inside a
-      sentence keeps that sentence's face, and the mono family is already what sets it apart.
-      Set it when the chip stands alone. */
+  /** Token names, never numbers, and semibold is the heaviest. Unset with no default, for
+      the same reason `size` is: a literal quoted inside a sentence keeps that sentence's
+      weight, and the mono font is already what sets it apart. */
   weight?: Weight;
-  /** §9, §15 — resolved for type as foreground roles, the same three the surrounding copy
-      reads. Unset rests loud: code is a literal, and a literal that has faded is a legibility
-      loss with nothing gained. */
+  /** Picks an ink colour, the same three the surrounding copy uses. It rests loud, because a
+      faded literal is harder to read and gains nothing. */
   emphasis?: Emphasis;
-  /** §7, §15 — re-scopes both the ink trio AND the chip's own fill onto the family, because
-      an atom that carries a fill has a second thing to tint. Defaults to `neutral`, stamped
-      rather than omitted (ENGINEERING §2.1: an identity a component fixes is still stamped —
-      and here it must be, since the tone indirection is declared per family, never at :root). */
+  /** Moves both the ink and the chip's own fill onto that family, because a word with a fill
+      behind it has two things to tint. Defaults to `neutral`. */
   tone?: Tone;
   /** Render into the element the document needs. */
   render?: RenderElement;

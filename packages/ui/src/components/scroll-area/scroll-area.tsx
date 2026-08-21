@@ -4,10 +4,12 @@ import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import * as React from "react";
 
 export type ScrollAreaProps = {
-  /** The content that scrolls. It lands inside the viewport, never beside the bars — the
-      viewport, the scrollbars and the corner are assembly rather than API (§10), so there is
-      nothing else to place. The scroll region needs a bounded height to be a scroll region:
-      state it here through `style`, or let a Shell pane or a menu's popup bound it. */
+  /**
+   * The content that scrolls. It lands inside the viewport, never beside the bars, because the
+   * viewport, the scrollbars and the corner are assembly rather than API. A scroll region needs a
+   * bounded height to be a scroll region: state one here through `style`, or let a Shell pane or a
+   * menu's panel bound it.
+   */
   children?: React.ReactNode;
   /** Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;
@@ -15,13 +17,11 @@ export type ScrollAreaProps = {
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
   /**
-   * Whether the viewport is a keyboard tab stop (default true — a standalone scroll region
-   * must be reachable to scroll by keyboard, per Base UI). A HOST WIDGET that already owns
-   * keyboard scrolling passes false: ARIA drops `role="presentation"` from any focusable
-   * element, so a focusable viewport inside a `role="menu"` popup exposed as a nameless
-   * `generic` between the menu and its items — "menu owns menuitem" broken for every menu,
-   * and a stray tab stop inside a roving-focus widget (audit 2026-08-18). The menu's roving
-   * highlight scrolls the viewport by itself, so nothing is lost there.
+   * Whether the viewport is a keyboard tab stop. It defaults to true, because a standalone scroll
+   * region has to be reachable in order to scroll by keyboard. Pass false from a component that
+   * already owns keyboard scrolling, such as Menu: ARIA drops `role="presentation"` from any
+   * focusable element, so a focusable viewport inside a menu would appear as a nameless node
+   * between the menu and its items, and would add a stray tab stop.
    */
   focusable?: boolean;
 };

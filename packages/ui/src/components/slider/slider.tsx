@@ -23,20 +23,20 @@ export type SliderProps = Omit<
   // the knob would make the track's endpoints a per-call-site opinion.
   "children" | "render" | "className" | "orientation" | "thumbAlignment"
 > & {
-  /** §4 — the control HEIGHT ladder, taken on the root, because the root is the control: the
-      whole strip is pressable, so a slider is exactly as tall a target as the Button beside
-      it and §16's floors arrive with no mechanism of its own. The same index then prices the
-      parts through the families they belong to — the thumb off the mark ladder (one line of
-      the label's type), the rail off its own designed track ladder — so a handle and the
-      checkbox above it in one form read as the same size of thing. */
+  /**
+   * The control height ladder, taken on the root, because the root is the control: the whole
+   * strip is pressable, so a slider is exactly as tall a target as the Button beside it. The
+   * same index then sizes the parts through the families they belong to, with the thumb on the
+   * mark ladder. Defaults to 2.
+   */
   size?: Size;
   /** Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;
   /**
-   * Names the value for AT, applied to the thumb's hidden range input. Inside a
-   * `Field.Root` the field's label wires itself instead. A RANGE slider names both thumbs
-   * with the same string plus Base UI's per-thumb value text; a block that needs "Minimum"
-   * and "Maximum" is a composition (Field + two labelled sliders), not a prop here.
+   * Names the value for assistive technology. It lands on the thumb's hidden range input. Inside a
+   * `Field` the field's label wires itself instead. A range slider names both thumbs with the same
+   * string, plus Base UI's per-thumb value text. Something that needs "Minimum" and "Maximum" is a
+   * composition of a Field and two labelled sliders, not a prop here.
    */
   "aria-label"?: string;
   /** The root div — what `className` and `style` dress. The VALUE is `onValueChange`'s. */

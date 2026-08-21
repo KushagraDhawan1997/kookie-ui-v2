@@ -20,16 +20,15 @@ export type TabsListProps = Omit<
   "className"
 > & {
   /**
-   * §4, §26 — the control height ladder, priced on the LIST and not on the tabs.
+   * The control height ladder, set on the list and not on the tabs.
    *
-   * SegmentedControl's decision one component over, and the thing a reader gets wrong exactly
-   * once: the bar is what carries the index, and each tab derives its box from that channel
-   * and stamps no index of its own. So a mixed-size bar is not expressible, which is right — a
-   * bar of tabs at two sizes is not a thing anyone means, and asking every tab to repeat the
-   * number is an invitation to disagree.
+   * It is SegmentedControl's decision one component over, and the thing a reader gets wrong exactly
+   * once: the bar carries the index, and each tab derives its box from that bar and states no index
+   * of its own. A mixed-size bar is therefore not expressible, which is right, and asking every tab
+   * to repeat the number is an invitation to disagree.
    *
-   * It sits here rather than on `Tabs` because the list is the part that HAS a box; the root
-   * owns no layout at all.
+   * It sits here rather than on `Tabs` because the list is the part that has a box. The root owns
+   * no layout at all.
    */
   size?: Size;
   /** Dresses the bar. Outer spacing is the caller's Box, never this (the non-negotiable). */
