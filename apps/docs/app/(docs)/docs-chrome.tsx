@@ -63,7 +63,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
     <Box style={{ blockSize: "100dvh" }}>
       <Shell size="2">
         <ShellHeader>
-          <Flex align="center" justify="space-between" gap="4" px="4" style={{ blockSize: "100%" }}>
+          <Flex align="center" justify="space-between" gap="4">
             <Flex align="center" gap="3">
               <ShellTrigger
                 target="sidebar"
@@ -101,14 +101,18 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
           <DocsNav sections={sections} components={components} />
         </ShellSidebar>
 
-        <ShellContent>
+        {/* Size 3 where the nav is 2: a pane's index prices its own safe area, and a reading
+            column wants more of one than a list of links does. This used to be a `p="6"` on a
+            Box inside the scroller, which is the same distance said by hand — and said in the
+            one place the pane's own padding could not reach it. */}
+        <ShellContent size="3">
           <ShellScroll className="kd-scroll">
             {/* The page states its own measure, deliberately. A chapter is a reading column
                 with a table of contents beside it; a component page is a reading column with
                 wide tables under it; the home page is neither. One max-width here would have
                 to be wrong for two of the three, and the version of this file that had one
                 left a third of the window empty on every page. */}
-            <Box p="6">{children}</Box>
+            {children}
           </ShellScroll>
         </ShellContent>
       </Shell>

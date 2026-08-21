@@ -545,21 +545,21 @@
    `data-size` (recipes.test.ts walks for it — the Dialog's own refusal, one family over;
    the alert-popup arms above are the precedent for a component-classed arm in this file).
 
-   Two facts. The pane stands the padding HOOK down beside its own `padding: 0` ("a pane's
-   content owns its own inset" — shell.css): `--kui-sf-p` is a hook other layers READ — the
-   scroll-in-a-pane bleed reads exactly it — and a pane that zeroes its padding while
-   leaving the hook at the join's value hands every reader a 16px lie (measured: a
-   ShellScroll at x = -16, 319px wide inside a 288px pane). (0,3,0) out-ranks the size
-   join's (0,2,0) outright — a bare `.kui-shell-pane` at (0,1,0) simply lost, measured.
+   The padding stand-down that used to sit here is GONE (2026-08-21): every pane pads now,
+   off the ordinary surface ladder above, which is the whole of "a pane is a surface". The
+   stand-down existed because the pane claimed `padding: 0` while leaving the hook at the
+   join's value — a 16px lie to every reader, and the scroll-in-a-pane bleed is a reader
+   (measured: a ShellScroll at x = -16, 319px wide inside a 288px pane). With the pane
+   actually padding, the bleed is simply correct and there is nothing to stand down.
 
-   And the RAIL's square derives from the index the pane was given: `--control-height-N` is
-   the same token the control size join hands every control, read by a surface that stamps
-   the index (§27, "the rail's extent is its item's"). The size-2 rest lives in shell.css,
-   where no axis is named; these arms out-rank it at (0,2,0) over (0,1,0). */
-.kui-surface.kui-shell-pane[data-size] {
-  --kui-sf-p: 0;
-}
+   What remains is the two EXTENTS the index prices — one per pane whose box is a control
+   rather than a statement about content. `--control-height-N` is the same token the control
+   size join hands every control, read here by a surface that stamps the index. The size-2
+   rests live in shell.css, where no axis may be named; these arms out-rank them at (0,2,0)
+   over (0,1,0).
 
+   The RAIL's square (§27, "the rail's extent is its item's") — its width is that square, and
+   the pane's padding is the air either side. */
 .kui-shell-rail[data-size="1"] {
   --kui-shell-rail-square: var(--control-height-1);
 }
@@ -570,6 +570,20 @@
 
 .kui-shell-rail[data-size="4"] {
   --kui-shell-rail-square: var(--control-height-4);
+}
+
+/* And the HEADER's row, the same fact turned 90°: a header's height is one control row plus
+   the pane's padding, so a header at an index is as tall as the rail at that index is wide. */
+.kui-shell-header[data-size="1"] {
+  --kui-shell-header-row: var(--control-height-1);
+}
+
+.kui-shell-header[data-size="3"] {
+  --kui-shell-header-row: var(--control-height-3);
+}
+
+.kui-shell-header[data-size="4"] {
+  --kui-shell-header-row: var(--control-height-4);
 }
 
 /* Concentric arithmetic is undefined at zero: at `none` the control corner is already 0,

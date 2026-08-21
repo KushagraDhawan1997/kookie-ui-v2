@@ -54,7 +54,6 @@ import {
   glassTransmitRows,
   glassInk,
   floatingDark,
-  shellNavInset,
   shellWidth,
   shellGap,
   floatingChrome,
@@ -1247,7 +1246,6 @@ function dialogFamily(): string[] {
 function shellFamily(): string[] {
   return [
     decl("shell-gap", `var(--layout-space-${shellGap})`),
-    decl("shell-nav-inset", `var(--layout-space-${shellNavInset})`),
   ];
 }
 

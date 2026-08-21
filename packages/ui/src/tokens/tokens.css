@@ -328,7 +328,6 @@
   --shell-inspector-w: calc(320px * var(--scale));
   --shell-bottom-h: calc(200px * var(--scale));
   --shell-gap: var(--layout-space-3);
-  --shell-nav-inset: var(--layout-space-2);
 
   /* colour, generated (§7) — light mode */
   /* neutral */
@@ -3956,7 +3955,6 @@
   --floating-p: var(--layout-space-2);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
-  --shell-nav-inset: var(--layout-space-2);
 }
 
 [data-density="default"] {
@@ -4007,7 +4005,6 @@
   --floating-p: var(--layout-space-2);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
-  --shell-nav-inset: var(--layout-space-2);
 }
 
 [data-density="comfortable"] {
@@ -4058,7 +4055,6 @@
   --floating-p: var(--layout-space-2);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
-  --shell-nav-inset: var(--layout-space-2);
 }
 
 [data-radius="none"] {

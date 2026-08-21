@@ -1776,6 +1776,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "ShellPresentation",
         "optional": true,
         "doc": "§27 — how this pane occupies the window while it is open. `ShellPresentation` says what the three values mean; what belongs here is when to reach for one. `auto` answers a question about the ROOM, and it answers it in CSS through §18's window class, so first paint is right with no script and no hydration to mismatch. Stating a value instead answers a question about the PRODUCT, and it does more than pin a posture: `overlay` also makes the pane rest CLOSED at every width, because an overlay is summoned rather than lived in, where `auto` lets a nav column rest open on a roomy window. So an explicit value is for a pane whose behaviour is a decision (a drawer that must never be ambient; an inspector that must never cover the work), and `auto` for every pane whose behaviour is a consequence of how much window there is."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The index this pane is priced at — its padding, and anything it holds. Defaults to the app's."
       }
     ]
   },
@@ -1787,6 +1793,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "boolean",
         "optional": true,
         "doc": "§27 — is this pane part of the app frame? `flush` (the default) tiles it against its neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what happens next is DERIVED rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only if the content is itself flush; otherwise it grounds — its own surface resting on the app's ground, the card relationship at pane scale. One boolean per pane reaches all four postures, and the derivation cannot be told the lie a three-value axis could (a floating sidebar beside a grounded content card)."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The index this pane is priced at — its padding, and anything it holds. Defaults to the app's."
       }
     ]
   },
@@ -1798,6 +1810,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "boolean",
         "optional": true,
         "doc": "§27 — is this pane part of the app frame? `flush` (the default) tiles it against its neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what happens next is DERIVED rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only if the content is itself flush; otherwise it grounds — its own surface resting on the app's ground, the card relationship at pane scale. One boolean per pane reaches all four postures, and the derivation cannot be told the lie a three-value axis could (a floating sidebar beside a grounded content card)."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The index this header is priced at — its padding, its ROW's height, and anything it holds. Defaults to the app's, like every pane."
       }
     ]
   },

@@ -164,7 +164,9 @@ describe("the shell tokens are emitted from config (§27)", () => {
     const consumed = new Set(css.match(/--shell-[a-z0-9-]+/g) ?? []);
     const emitted = new Set(tokens.match(/--shell-[a-z0-9-]+(?=:)/g) ?? []);
     expect([...consumed].sort()).toEqual([...emitted].sort());
-    expect(consumed.size).toBeGreaterThanOrEqual(5);
+    // The vacuity guard: an empty set satisfies the equality above. Was 5 until
+    // `--shell-nav-inset` was deleted 2026-08-21 — the pane's own padding is that air now.
+    expect(consumed.size).toBeGreaterThanOrEqual(4);
   });
 
   it("the deleted root axis leaves NO trace — posture is a pane's own fact (§27, 2026-08-20)", () => {

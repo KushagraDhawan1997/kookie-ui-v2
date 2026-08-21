@@ -1338,14 +1338,14 @@ export const shellWidth = { sidebar: 288, inspector: 320, bottom: 200 } as const
  * extent derives in the stylesheet from `--control-height-N`, and 64 stops being a number
  * anybody inherited.
  *
- * The air is `shellNavInset`: the distance from a pane's edge to a nav row's or a rail
- * square's PAINTED box. One layout-space pick, the `shellGap` genus — this is a distance
- * BETWEEN things, so it belongs to the layer every distance goes through and answers
- * density with the rest of the app. The paint is what it insets; the hit area is not (§16's
- * expander, the mark family's own mechanism), so the whole column still takes the press.
- * v0.
+ * THE AIR IS THE PANE'S OWN PADDING (2026-08-21). `shellNavInset` used to state it: 4px,
+ * drawn by each nav row and rail square as a MARGIN, because the pane it sat in had no
+ * padding to give it. Every pane pads now — Card's own ladder, priced by the index the pane
+ * was given — so the row sits inside that padding and the second number is gone. The paint
+ * is what the padding insets; the hit area is not (§16's expander, the mark family's own
+ * mechanism), so the whole column still takes the press — the expander simply reaches out
+ * by the pane's padding instead of by a number of its own.
  */
-export const shellNavInset = 2;
 
 /**
  * §27 — the floating shell's gap, ONE pick into layout space (the dialogInset sentence at

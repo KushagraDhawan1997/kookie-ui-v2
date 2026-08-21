@@ -1333,7 +1333,7 @@ export function BuilderApp() {
           that counts lives in the component. */}
       {/* ── Top bar: identity, the document, the modes, the one loud action ── */}
       <ShellHeader>
-        <Flex align="center" justify="space-between" px="4" py="2" gapX="4">
+        <Flex align="center" justify="space-between" gapX="4">
           <Flex align="center" gap="3" style={{ minWidth: 0 }}>
             {/* The two pane toggles sit where every app frame puts them: beside the identity,
                 driving panes BY NAME through the registry rather than through lifted state. */}

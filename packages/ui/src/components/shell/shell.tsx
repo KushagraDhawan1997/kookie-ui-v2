@@ -179,6 +179,20 @@ type PaneDressProps = {
 
 const ShellSizeContext = React.createContext<Size>("2");
 
+/**
+ * The index this pane is priced at: its own if it stated one, otherwise the app's.
+ *
+ * EVERY pane resolves it, not just the ones with navigation in them (2026-08-21). A pane's
+ * size prices its PADDING now — the safe area every pane owes its content — as well as
+ * whatever rows it holds, which is the relationship a Card has had all along. So the header,
+ * the content pane and the bottom pane each need the index too, and four implementations
+ * resolving it four times is how one of them ends up not resolving it at all.
+ */
+function usePaneSize(stated: Size | undefined): Size {
+  const inherited = React.use(ShellSizeContext);
+  return stated ?? inherited;
+}
+
 /* ── Root ───────────────────────────────────────────────────────────────────────────────── */
 
 export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
@@ -419,38 +433,76 @@ export function Shell({ size = "2", className, style, children, ref, ...props }:
 /* ── The static panes: Header and Content ───────────────────────────────────────────────── */
 
 export type ShellHeaderProps = Omit<React.ComponentPropsWithoutRef<"header">, "color"> &
-  PaneDressProps;
+  PaneDressProps & {
+    /** The index this header is priced at — its padding, its ROW's height, and anything it
+        holds. Defaults to the app's, like every pane. */
+    size?: Size;
+  };
 
 /** Full-width by definition — the criterion, not an option: if it isn't wide, it's a header
-    inside ShellContent. Renders a real `<header>` landmark. */
-export function ShellHeader({ flush = true, className, children, ...props }: ShellHeaderProps) {
+    inside ShellContent. Renders a real `<header>` landmark.
+
+    A HEADER STATES ITS HEIGHT (2026-08-21). Every pane pads now, and a header's box is one
+    control row inside that padding — so a header priced at an index is exactly as tall as the
+    rail at that index is wide, and the app frame's corner is square. Before this a header was
+    as tall as whatever the app happened to drop in it: apps/docs held size-1 buttons and the
+    whole frame came out 28px, with the controls against the top edge. */
+export function ShellHeader({
+  flush = true,
+  size: statedSize,
+  className,
+  children,
+  ...props
+}: ShellHeaderProps) {
+  // Destructured out of the spread under another name as well as resolved: `size` is not an
+  // attribute of `<header>`, so leaving it in `props` writes invalid HTML.
+  const size = usePaneSize(statedSize);
   const { material, stamps, ref } = usePaneDress(flush);
   return (
     <header
       {...props}
       {...stamps}
       ref={ref}
+      data-size={size}
       className={cx("kui-surface kui-shell-pane kui-shell-header", className)}
     >
-      <GlassScope material={material}>{children}</GlassScope>
+      <GlassScope material={material}>
+        <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
+      </GlassScope>
     </header>
   );
 }
 
 export type ShellContentProps = Omit<React.ComponentPropsWithoutRef<"main">, "color"> &
-  PaneDressProps;
+  PaneDressProps & {
+    /** The index this pane is priced at — its padding, and anything it holds. Defaults to
+        the app's. */
+    size?: Size;
+  };
 
-/** The work area — renders `<main>`, scrolls itself, takes whatever room the panes leave. */
-export function ShellContent({ flush = true, className, children, ...props }: ShellContentProps) {
+/** The work area — renders `<main>`, scrolls itself, takes whatever room the panes leave.
+    It pads like every other pane; a picture or a canvas that wants the full box says
+    `m="bleed"`, and a `ShellScroll` inside it reaches the edges on its own (§3, §10). */
+export function ShellContent({
+  flush = true,
+  size: statedSize,
+  className,
+  children,
+  ...props
+}: ShellContentProps) {
+  const size = usePaneSize(statedSize);
   const { material, stamps, ref } = usePaneDress(flush);
   return (
     <main
       {...props}
       {...stamps}
       ref={ref}
+      data-size={size}
       className={cx("kui-surface kui-shell-pane kui-shell-content", className)}
     >
-      <GlassScope material={material}>{children}</GlassScope>
+      <GlassScope material={material}>
+        <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
+      </GlassScope>
     </main>
   );
 }
@@ -650,7 +702,7 @@ function SidePane({
   // a pane re-provides whatever it resolved to and its rows read the same name (below).
   // Destructured out of `rest` under another name as well as resolved: `size` is not an
   // attribute of `<nav>` or `<aside>`, so leaving it in the spread writes invalid HTML.
-  const size = statedSize ?? React.use(ShellSizeContext);
+  const size = usePaneSize(statedSize);
   const pane = usePane(name, { open, defaultOpen, onOpenChange, presentation: presentation ?? "auto", id });
   // The lens joins the ref chain rather than replacing it: the caller's ref and the registry's
   // both still land (the `render` escape's 2026-08-03 lesson — eight hand-rolled merges is how
@@ -712,6 +764,9 @@ export type ShellBottomProps = Omit<React.ComponentPropsWithoutRef<"aside">, "co
   PaneDressProps & {
     /** §27 — the bottom pane's block extent, the width prop's sentence turned 90°. */
     height?: number;
+    /** The index this pane is priced at — its padding, and anything it holds. Defaults to
+        the app's. */
+    size?: Size;
     ref?: React.Ref<HTMLElement>;
   };
 
@@ -724,6 +779,7 @@ export function ShellBottom(props: ShellBottomProps) {
     onOpenChange,
     presentation,
     height,
+    size: statedSize,
     flush = true,
     id,
     className,
@@ -732,6 +788,9 @@ export function ShellBottom(props: ShellBottomProps) {
     ref,
     ...rest
   } = props;
+  // Out of the spread under another name as well as resolved — `size` is not an attribute
+  // of `<aside>`.
+  const size = usePaneSize(statedSize);
   const pane = usePane("bottom", {
     open,
     defaultOpen,
@@ -747,6 +806,7 @@ export function ShellBottom(props: ShellBottomProps) {
       ref={paneRef}
       className={cx("kui-surface kui-shell-pane kui-shell-bottom", className)}
       {...stamps}
+      data-size={size}
       data-state={pane.state}
       data-presentation={pane.presentation}
       tabIndex={-1}
@@ -756,7 +816,9 @@ export function ShellBottom(props: ShellBottomProps) {
           : ({ "--kui-shell-h": `${height}px`, ...style } as VarStyle)
       }
     >
-      <GlassScope material={material}>{children}</GlassScope>
+      <GlassScope material={material}>
+        <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
+      </GlassScope>
     </aside>
   );
 }

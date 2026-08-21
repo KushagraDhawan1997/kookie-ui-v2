@@ -1242,7 +1242,7 @@ function ShellSection() {
         <Box height="22rem">
           <Shell>
             <ShellHeader>
-              <Flex align="center" justify="between" px="3" py="2">
+              <Flex align="center" justify="between">
                 <Flex align="center" gap="3">
                   <ShellTrigger
                     target="sidebar"
@@ -1324,7 +1324,7 @@ function ShellSection() {
         <Box height="22rem">
           <Shell>
             <ShellHeader>
-              <Flex align="center" gap="3" px="3" py="2">
+              <Flex align="center" gap="3">
                 <Text size="2" weight="medium">
                   Kookie Studio
                 </Text>

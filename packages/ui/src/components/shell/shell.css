@@ -58,26 +58,30 @@
 }
 
 /* ── The panes ─────────────────────────────────────────────────────────────────────────────
-   Surface members with no size index: the surface join's padding is stood down — a pane's
-   content owns its own inset — and the corner is stated explicitly as the default card's
-   (the size-3 surface band step) rather than left to the `.kui-surface` fallback, so a
-   shell composed inside another surface cannot inherit that ancestor's corner. */
-.kui-shell-pane {
-  padding: 0;
-  /* AND THE HOOK WITH IT (merge with main, 2026-08-20). A pane has said `padding: 0` since
-     the day it shipped — "a pane's content owns its own inset" — but it left `--kui-sf-p`
-     declared at the surface join's value, which is a hook other layers READ. Main's new
-     scroll-in-a-pane rule reads exactly that hook to bleed a scroller out to the pane's
-     edges, so a ShellScroll rendered at x = -16 and 319px wide inside a 288px pane: it hung
-     16px past both edges. Neither branch had the defect alone. Standing the hook down beside
-     the padding is what makes the two agree — the bleed then resolves to nothing, which is
-     the right answer for a pane that has no padding to bleed past.
+   A PANE IS AN ORDINARY SURFACE, AND IT PADS (Kushagra, 2026-08-21: "all shell panes must
+   have padding all around… consider it as a safe area"). Every pane said `padding: 0` from
+   the day it shipped, with "a pane's content owns its own inset" written beside it — and the
+   result was a frame with no air anywhere: measured in apps/docs, a header 28px tall with its
+   buttons against the top edge, and nav rows 4px from the pane wall.
 
-     The stand-down itself lives in the SHELL PANE JOIN (system/surfaces.css), not here: it
-     must carry the surface class and the size attribute to out-rank the join's (0,2,0) —
-     a bare `.kui-shell-pane` at (0,1,0) simply lost, measured: 16px survived the first
-     spelling — and a component sheet may not name `data-size` (recipes.test.ts walks for
-     it; the Dialog's own refusal, 2026-08-10). The join is where per-index facts go. */
+   The rule was FORCED once and generalised past its case. A highlighted nav row must span its
+   column and a scroller must reach the pane's edges, so air the ROW cannot escape would break
+   both. But neither needs the pane to have no padding: a scroller that is a direct child of
+   any surface already bleeds out to that surface's edge and re-pads its own viewport (§10,
+   the mechanism Card ships), and anything else that wants the whole box says `m="bleed"` (§3,
+   the picture-in-a-card mechanism). Both halves were solved elsewhere before this pane needed
+   them; nothing here is new machinery.
+
+   So the padding declaration goes and the surface size join is simply allowed to reach the
+   pane — which is why every pane now stamps `data-size`, including the three that never did.
+   The defect that once forced the hook to zero (a ShellScroll rendered at x = -16 and 319px
+   wide inside a 288px pane, hanging 16px past both edges) disappears with it: the bleed was
+   never wrong, the pane's claim to have no padding was.
+
+   The corner stays STATED at the default card's step rather than answering the index — a
+   shell composed inside another surface must not inherit that ancestor's corner, and whether
+   a pane's corner should ride its size is a separate question nobody has asked yet. */
+.kui-shell-pane {
   border-radius: var(--radius-surface-3);
   min-inline-size: 0;
   min-block-size: 0;
@@ -87,8 +91,40 @@
   outline: none;
 }
 
+/* A HEADER STATES ITS HEIGHT (§27, 2026-08-21). Every pane pads now, and a header's box is
+   one control ROW inside that padding — so a header priced at an index is exactly as tall as
+   the rail at that index is wide, and the app frame's corner is square by construction. What
+   it replaces: a header was as tall as whatever the app happened to put in it, so apps/docs
+   held size-1 buttons and the whole frame came out 28px with the controls on the top edge,
+   and three consumers in this repo re-derived the frame's height by hand in four spellings.
+
+   CONTENT-box, the rail's own reason on the other axis: under `border-box` a `min-block-size`
+   of 32 is satisfied by 23px of content plus its padding and seam, so the stated row never
+   binds and the header goes straight back to measuring its tallest control — the defect
+   wearing a token. As the CONTENT the row is 32 whatever is in it, and the padding and the
+   seam sit outside.
+
+   GRID and not FLEX for the centring. A header's usual child is one full-width row, and a
+   flex container makes that child shrink-wrap — every existing consumer's header would have
+   collapsed to its content. A grid's single implicit column is `auto` and stretches, so the
+   child keeps the width it has; `align-content` centres the row in the stated height instead
+   of letting it rest on the top edge.
+
+   A FLOOR, not a height: something taller than the row grows the header rather than being
+   clipped by it. The per-index arms live in the shell pane join (system/surfaces.css),
+   because a component sheet may not name `data-size`; this is the size-2 rest. */
+@property --kui-shell-header-row {
+  syntax: "*";
+  inherits: false;
+}
+
 .kui-shell-header {
   grid-area: header;
+  --kui-shell-header-row: var(--control-height-2);
+  box-sizing: content-box;
+  min-block-size: var(--kui-shell-header-row);
+  display: grid;
+  align-content: center;
   /* A header does not scroll — its box is its row. `visible` on the block axis keeps the
      focus ring of a control at its edge (the pane default clips it, which is why this arm
      exists), but the INLINE axis is bounded: left fully visible, a header whose content
@@ -124,8 +160,11 @@
      have moved again the moment the rail stopped being flush and grew four borders instead
      of one. Stating the extent as the CONTENT — the square plus its air — is what makes the
      inset the same number in every posture, and the borders do what borders do. */
+  /* CONTENT-box, and the half pixel is still why (see the head note above) — but the air is
+     now the pane's own padding rather than a number of the rail's, so the extent IS the
+     square and the padding does what padding does. */
   box-sizing: content-box;
-  inline-size: calc(var(--kui-shell-rail-square) + 2 * var(--shell-nav-inset));
+  inline-size: var(--kui-shell-rail-square);
 }
 
 .kui-shell-sidebar {
@@ -566,22 +605,19 @@
      alternative, a row simply narrower than its column, leaves a strip that looks pressable
      and is not — the paint-versus-target disagreement the checkbox audit already paid for. */
   inline-size: auto;
-  margin-inline: var(--shell-nav-inset);
   position: relative;
 }
 
-/* The heading is inset with them so its words start where their labels do — the reserved
-   gutter's whole point, and it would read as a hanging indent otherwise. */
-.kui-shell-nav-label {
-  margin-inline: var(--shell-nav-inset);
-}
-
+/* The press area reaches back out to the pane's wall. It reads `--kui-sf-p` — the surface
+   padding HOOK, which inherits on purpose (it is how `m="bleed"` finds the nearest surface,
+   §3) — so the expander and the air it undoes are one number by construction rather than two
+   that have to be kept equal. */
 .kui-shell-nav-item::after,
 .kui-shell-rail-item::after {
   content: "";
   position: absolute;
   inset-block: 0;
-  inset-inline: calc(-1 * var(--shell-nav-inset));
+  inset-inline: calc(-1 * var(--kui-sf-p));
 }
 
 /* ── The rail's item (§27) ─────────────────────────────────────────────────────────────────
@@ -600,7 +636,6 @@
   /* The square IS the box, so the family's inline padding has nothing to price here. */
   padding-inline: 0;
   justify-content: center;
-  margin-inline: var(--shell-nav-inset);
   position: relative;
 }
 
@@ -611,11 +646,10 @@
   display: flex;
   flex-direction: column;
   /* NOT `align-items: center`. It looks harmless and it is a second mechanism doing the
-     margin's job: with the rail's content box being the square plus twice the air, centring
-     lands the square at exactly the same offset the inset produces, so the two are
-     indistinguishable until one of them changes. A sabotage that deleted the margin
-     survived because of it. One mechanism, and it is the one the target expander is
-     measured from. */
+     PADDING's job: the rail's content box is exactly the square, so a centred item lands at
+     the same offset the pane's padding already put it at, and the two are indistinguishable
+     until one of them changes. A sabotage that deleted the old margin survived because of
+     it. One mechanism, and it is the one the target expander is measured from. */
 }
 
 /* HOVER, which the family stands down and this member restores. The stand-down exists for a

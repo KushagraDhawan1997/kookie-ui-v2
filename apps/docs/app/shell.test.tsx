@@ -53,10 +53,17 @@ describe("a page-shaped route gets the page chrome — including the one Next re
   // The header, the inset and the landmark, asserted as the three things the 404 lost rather
   // than as "it renders SiteChrome" — a law naming the component would pass on a SiteChrome
   // that had been emptied.
+  //
+  // THE INSET MOVED (2026-08-21). It used to be a `<Box p="6">` inside the scroller, and this
+  // law matched the custom property that Box writes. Every shell pane pads itself now, so the
+  // page's air is the CONTENT PANE's — and the docs state `size="3"` on it deliberately,
+  // because a reading column wants more of a safe area than a list of links does. That
+  // statement is the thing a route can still lose, so it is what this clause reads; that the
+  // padding then really lands is the package's own law, measured in a mounted browser.
   const wearsChrome = (out: string) => ({
     header: out.includes("<header"),
     main: out.includes("<main"),
-    inset: /class="[^"]*kui-box[^"]*"[^>]*style="[^"]*--kui-p/.test(out) || out.includes("--kui-p"),
+    inset: /<main[^>]*data-size="3"/.test(out),
   });
 
   it("the (docs) group wears it", () => {

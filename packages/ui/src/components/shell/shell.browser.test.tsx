@@ -370,6 +370,165 @@ describe("a pane that holds a scroller still hides (§27)", () => {
  * ADDED 2026-08-21, both from the builder's port — one gap it reported and one behaviour it
  * was leaning on with nothing to say it was allowed to.
  */
+/**
+ * ── A PANE IS A SURFACE, AND IT PADS (§27, §10, 2026-08-21) ────────────────────────────────
+ * Kushagra: "all shell panes must have padding all around… consider it as a safe area". Every
+ * pane said `padding: 0` from the day it shipped and the frame had no air anywhere.
+ */
+describe("a pane pads like any other surface (§27)", () => {
+  const PANES = [
+    ".kui-shell-header",
+    ".kui-shell-rail",
+    ".kui-shell-sidebar",
+    ".kui-shell-content",
+    ".kui-shell-inspector",
+    ".kui-shell-bottom",
+  ] as const;
+
+  const app = (size: Size) =>
+    mounted(
+      <Shell size={size} style={{ height: 600, width: 1200 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellRail aria-label="Sections">
+          <ShellRailItem aria-label="Files" />
+        </ShellRail>
+        <ShellSidebar aria-label="Primary">s</ShellSidebar>
+        <ShellContent>c</ShellContent>
+        <ShellInspector defaultOpen>i</ShellInspector>
+        <ShellBottom defaultOpen>b</ShellBottom>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+
+  // Falsified: with `padding: 0` restored on `.kui-shell-pane`, every pane measures 0 and
+  // the first assertion fails six times over; with the join's old `--kui-sf-p: 0` stand-down
+  // put back, the hook and the paint disagree and the second fails.
+  it("EVERY pane pads on all four sides, off the surface ladder", () => {
+    const shell = app("2");
+    for (const sel of PANES) {
+      const pane = within(shell, sel);
+      const want = tokenOn(pane, "--surface-p-2");
+      expect(parseFloat(want), `${sel}: no ladder value`).toBeGreaterThan(0);
+      for (const side of ["top", "right", "bottom", "left"] as const) {
+        expect(computed(pane, `padding-${side}`), `${sel} ${side}`).toBe(want);
+      }
+      // And the HOOK agrees with the paint, which is what every reader of it depends on —
+      // the bleed, the scroller, the nav expander. A pane that pads while claiming not to is
+      // the 2026-08-20 defect in the other direction.
+      expect(tokenOn(pane, "--kui-sf-p"), `${sel}: the hook contradicts the paint`).toBe(want);
+    }
+  });
+
+  // Falsified: with the `data-size` stamp removed from the header, the content pane or the
+  // bottom pane, that pane holds one value across every index and the set collapses.
+  it("and the padding answers the INDEX, on every pane", () => {
+    for (const sel of PANES) {
+      const seen = new Set<string>();
+      for (const size of ["1", "2", "3", "4"] as const) {
+        const shell = app(size);
+        const pane = within(shell, sel);
+        expect(pane.dataset.size, `${sel} at ${size}: the index never reached the pane`).toBe(size);
+        expect(computed(pane, "padding-top"), `${sel} at ${size}`).toBe(
+          tokenOn(pane, `--surface-p-${size}`),
+        );
+        seen.add(computed(pane, "padding-top"));
+        shell.remove();
+      }
+      expect(seen.size, `${sel}: the padding is the same at every index`).toBe(4);
+    }
+  });
+});
+
+/**
+ * ── A HEADER STATES ITS HEIGHT (§27, 2026-08-21) ───────────────────────────────────────────
+ * Before this it was as tall as whatever the app put in it: apps/docs held size-1 buttons and
+ * the whole app frame came out 28px, controls flush against the top edge.
+ */
+describe("a header's box is a control row inside the pane's padding (§27)", () => {
+  // THE FIXTURE IS THE LAW. A size-2 button in a size-2 header cannot tell a stated height
+  // from a derived one, because the two agree — so the header is priced at 2 and given a
+  // size-1 button, which is the case the defect was measured on.
+  //
+  // Falsified three ways: delete `min-block-size` and the header measures the button; put
+  // `box-sizing` back to border-box and the stated row stops binding, so it measures the
+  // button again; delete `align-content` and the button rests on the top edge.
+  it("a shorter control centres in the row rather than defining it", () => {
+    const shell = mounted(
+      <Shell size="2" style={{ height: 400 }}>
+        <ShellHeader>
+          <Button size="1" data-testid="short">
+            file
+          </Button>
+        </ShellHeader>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const header = within(shell, ".kui-shell-header");
+    const button = within(shell, '[data-testid="short"]');
+    const pad = parseFloat(tokenOn(header, "--kui-sf-p"));
+    const row = parseFloat(tokenOn(header, "--control-height-2"));
+
+    // Without this the fixture proves nothing: the two boxes have to disagree.
+    expect(button.getBoundingClientRect().height).toBeLessThan(row);
+
+    // The row is the CONTENT box; the padding and the seam sit outside it.
+    expect(header.clientHeight, "the header is not its index's row").toBeCloseTo(row + 2 * pad, 0);
+
+    // And the short control is centred in it, not resting on the top edge.
+    const box = header.getBoundingClientRect();
+    const mark = button.getBoundingClientRect();
+    const above = mark.top - (box.top + header.clientTop);
+    const below = box.top + header.clientTop + header.clientHeight - mark.bottom;
+    expect(above, "the control rests on the top edge").toBeCloseTo(below, 0);
+    expect(above).toBeGreaterThan(pad);
+  });
+
+  // Falsified: swap `min-block-size` for `block-size` and the header stays at its row while
+  // clipping the taller control — a cap where the design says floor.
+  it("the row is a FLOOR: something taller grows the header", () => {
+    const shell = mounted(
+      <Shell size="1" style={{ height: 400 }}>
+        <ShellHeader>
+          <Button size="4" data-testid="tall">
+            file
+          </Button>
+        </ShellHeader>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const header = within(shell, ".kui-shell-header");
+    const tall = within(shell, '[data-testid="tall"]').getBoundingClientRect().height;
+    const pad = parseFloat(tokenOn(header, "--kui-sf-p"));
+    expect(tall).toBeGreaterThan(parseFloat(tokenOn(header, "--control-height-1")));
+    expect(header.clientHeight).toBeCloseTo(tall + 2 * pad, 0);
+  });
+
+  // The construction the two derivations buy: at one index a header is as tall as the rail
+  // is wide, so the app frame's corner is square. Falsified by re-pointing either extent at
+  // a neighbouring index.
+  it("a header is as TALL as the rail at that index is WIDE", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const shell = mounted(
+        <Shell size={size} style={{ height: 600, width: 1200 }}>
+          <ShellHeader>h</ShellHeader>
+          <ShellRail aria-label="Sections">
+            <ShellRailItem aria-label="Files" />
+          </ShellRail>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: {}, select: ".kui-shell" },
+      );
+      expect(
+        within(shell, ".kui-shell-header").clientHeight,
+        `size ${size}: the frame's corner is not square`,
+      ).toBeCloseTo(within(shell, ".kui-shell-rail").clientWidth, 0);
+      shell.remove();
+    }
+  });
+});
+
 describe("the app states its size once, and control may be handed back (§27)", () => {
   // Falsified: with the root's provider removed, the sidebar's row measures the size-2 cell
   // against a root that said `1`.
@@ -1299,14 +1458,17 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
   const rows = (root: HTMLElement) =>
     [...root.querySelectorAll<HTMLElement>(".kui-shell-nav-item")];
 
-  it("a pane's padding HOOK stands down with its padding, so a scroller bleeds to nothing", () => {
-    // The merge with main, 2026-08-20, and neither branch had it alone. A pane has said
-    // `padding: 0` since the day it shipped, but left `--kui-sf-p` declared at the surface
-    // size join's value — and main's new scroll-in-a-pane rule reads exactly that hook to
-    // bleed a scroller out to the pane's edges. Measured before the fix: a ShellScroll at
-    // x = -16, 319px wide inside a 288px pane, hanging past both edges. Read on BOTH a pane
-    // that stamps a size and one that does not, because the first spelling of the fix lost to
-    // the join's own specificity on exactly the panes that carry an index.
+  it("a scroller reaches the pane's WALL and re-pads its own inside (§10)", () => {
+    // INVERTED 2026-08-21, and the inversion is the point. This law used to assert that the
+    // padding hook stood DOWN to zero, so a scroller bled to nothing — the right answer while
+    // a pane claimed to have no padding, and a defect the moment it had some. Every pane pads
+    // now, so the guarantee is the one Card has always given: the scroller's own box reaches
+    // the pane's wall, which is what puts the scrollbar on the edge instead of floating it in
+    // the padding, and its VIEWPORT pads back inside so the content still sits in the safe
+    // area. Both halves, because a bleed with no re-pad is content against the wall.
+    //
+    // Read on a pane holding a sibling and one holding the scroller alone: the shared rule
+    // makes a pane a column two different ways, and only one of them was ever exercised here.
     const shell = mounted(
       <Shell style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">
@@ -1326,15 +1488,30 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     for (const sel of [".kui-shell-sidebar", ".kui-shell-content"]) {
       const pane = within(shell, sel);
       const scroller = pane.querySelector<HTMLElement>(".kui-scroll-area")!;
-      expect(tokenOn(pane, "--kui-sf-p"), `${sel}: the hook contradicts the padding`).toBe("0px");
+      const viewport = pane.querySelector<HTMLElement>(".kui-scroll-viewport")!;
+      const pad = parseFloat(tokenOn(pane, "--kui-sf-p"));
+      // The fixture is only a fixture if the pane HAS padding — this law says nothing
+      // otherwise, which is exactly the state it was written to replace.
+      expect(pad, `${sel}: the pane has no padding to bleed past`).toBeGreaterThan(0);
+
       const p = pane.getBoundingClientRect();
       const b = scroller.getBoundingClientRect();
-      expect(b.left, `${sel}: the scroller hangs past the start edge`).toBeGreaterThanOrEqual(
-        p.left - 0.5,
-      );
-      expect(b.right, `${sel}: the scroller hangs past the end edge`).toBeLessThanOrEqual(
-        p.right + 0.5,
-      );
+      // The PADDING box, read off the browser rather than rebuilt from the seam token: a
+      // flush pane draws one border, on its inner edge only, so which sides carry one is a
+      // fact about the pane's neighbours and not something a law should be restating.
+      const wallStart = p.left + pane.clientLeft;
+      const wallEnd = wallStart + pane.clientWidth;
+      expect(b.left - wallStart, `${sel}: the scroller stopped inside the padding`).toBeCloseTo(0, 0);
+      expect(wallEnd - b.right, `${sel}: the scroller stopped inside the padding`).toBeCloseTo(0, 0);
+      // And never PAST it: bleeding further is the 2026-08-20 defect by the other road.
+      expect(b.left, `${sel}: the scroller hangs past the start edge`).toBeGreaterThanOrEqual(p.left - 0.5);
+      expect(b.right, `${sel}: the scroller hangs past the end edge`).toBeLessThanOrEqual(p.right + 0.5);
+
+      // The other half: the content is back inside the safe area.
+      expect(
+        parseFloat(computed(viewport, "padding-left")),
+        `${sel}: the scroller bled and never re-padded`,
+      ).toBeCloseTo(pad, 0);
     }
   });
 
@@ -1435,10 +1612,16 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
       </Shell>,
       { theme: {}, select: ".kui-shell" },
     );
-    const pane = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    const pane = sidebar.getBoundingClientRect();
     const footer = within(shell, "[data-testid='footer']").getBoundingClientRect();
+    // The pane's own safe area sits between them — the footer pins to the padding's inner
+    // edge, not to the pane's wall (2026-08-21: panes pad). The padding box is read off the
+    // browser, because which sides of a flush pane carry a seam is its neighbours' business.
+    const pad = parseFloat(tokenOn(sidebar, "--kui-sf-p"));
+    const wallBottom = pane.top + sidebar.clientTop + sidebar.clientHeight;
     expect(footer.bottom, "the footer floated up under the list instead of pinning").toBeCloseTo(
-      pane.bottom,
+      wallBottom - pad,
       0,
     );
   });
@@ -1492,13 +1675,16 @@ describe("the rail: a column of squares whose width is not the app's to state (�
       const shell = rail(size);
       const pane = within(shell, ".kui-shell-rail");
       const square = parseFloat(tokenOn(pane, `--control-height-${size}`));
-      const inset = parseFloat(tokenOn(pane, "--shell-nav-inset"));
+      // The air is the pane's own padding since 2026-08-21 — the rail states the square and
+      // nothing else, and `shellNavInset` is deleted rather than renamed.
+      const pad = parseFloat(tokenOn(pane, "--kui-sf-p"));
       expect(square).toBeGreaterThan(0);
-      expect(inset).toBeGreaterThan(0);
-      // The CONTENT box: the extent is stated as the square plus its air, and the pane's own
-      // seam hairline sits outside that rather than eating into it.
+      expect(pad).toBeGreaterThan(0);
+      // The CONTENT box: the extent is stated as the square, the padding is the air either
+      // side of it, and the pane's own seam hairline sits outside both rather than eating in.
+      // `clientWidth` is the padding box — content plus padding, border excluded.
       expect(pane.clientWidth, `size ${size}: the rail is not its item's box`).toBeCloseTo(
-        square + 2 * inset,
+        square + 2 * pad,
         0,
       );
       seen.add(Math.round(pane.clientWidth));
@@ -1529,7 +1715,10 @@ describe("the rail: a column of squares whose width is not the app's to state (�
     const paneBox = pane.getBoundingClientRect();
     const item = within(shell, ".kui-shell-rail-item");
     const box = item.getBoundingClientRect();
-    const inset = parseFloat(tokenOn(pane, "--shell-nav-inset"));
+    // The inset is the pane's PADDING now, and the expander reads the same hook — so the
+    // two are one number by construction rather than two kept equal by hand.
+    const inset = parseFloat(tokenOn(pane, "--kui-sf-p")) + pane.clientLeft;
+    expect(inset).toBeGreaterThan(0);
     expect(box.left - paneBox.left, "the square is painted edge to edge").toBeCloseTo(inset, 0);
     const hit = document.elementFromPoint(paneBox.left + 1, box.top + box.height / 2);
     expect(item.contains(hit), "the gutter beside the square is dead").toBe(true);
