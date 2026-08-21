@@ -8,6 +8,21 @@
     "url": "git+https://github.com/KushagraDhawan1997/kookie-ui-v2.git",
     "directory": "packages/ui"
   },
+  "homepage": "https://github.com/KushagraDhawan1997/kookie-ui-v2#readme",
+  "bugs": {
+    "url": "https://github.com/KushagraDhawan1997/kookie-ui-v2/issues"
+  },
+  "keywords": [
+    "react",
+    "design-system",
+    "components",
+    "ui",
+    "base-ui",
+    "css-variables",
+    "design-tokens",
+    "oklch",
+    "accessibility"
+  ],
   "type": "module",
   "sideEffects": [
     "*.css"

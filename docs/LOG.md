@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 The README stated a build order that had been wrong for seventeen days
+
+**What.** The root README said the §14 build order was "complete through step 6" and that "repetition has begun with TextField". That was true on 4 August. Twenty-five more components, the documentation site and the builder shipped after it. It did not name `THESIS.md`, which is first in the read order. It is rewritten, and `CONTRIBUTING.md` is new.
+
+**Why a README goes stale where the other documents do not.** Doc-code drift is a bug here and the rule catches it, because every other document is read while working: `DECISIONS.md` is cited by every task, `LOG.md` is written to on every settled choice, `CLAUDE.md` is loaded on every session. Nobody re-reads a README. It is the one file whose readers are all strangers, which is exactly why nothing in the repo noticed.
+
+**So the two counts it states are now checked** (`app/(docs)/readme.test.ts`): "21 guideline chapters" against `CHAPTERS.length`, "the reference for 31 components" against the registry, and every route it names in backticks against a real `page.tsx`, with route groups resolved. Falsified in all four arms, including the arm where the sentence stops stating a number at all, which is how a regex law usually dies.
+
+**Rejected: state no number.** "Some chapters" tells a reader nothing about whether this is a scaffold or a document, and the whole point of the number is that it is large. The fix for a fact with two homes is a check between them, not the deletion of the useful one.
+
+**The route arm reads the routes OUT of the README** and proves each exists, rather than comparing them against a list written in the test. A list would be a third home for the same fact, and it would agree with the README on the day a route was deleted from the app. The first spelling did exactly that, under a comment claiming it checked the app directory. It did not.
+
+**`CONTRIBUTING.md` points, it does not repeat.** `ENGINEERING.md` holds the conventions. What the new file adds is the three things a first-time contributor cannot find: that Chromium must be installed or the browser project silently runs nothing, that the package builds before the docs app, and the four rules about laws (read the computed value, falsify before trusting, build a fixture where the general and special cases differ).
+
+**Also**: `homepage`, `bugs` and `keywords` on the package manifest, and `description`, `license` and `repository` on the root one. `publint` and `are-the-types-wrong` still pass against the packed artifact. Both READMEs' JSX was compiled before shipping, on the chapter rule from earlier today.
+
 ## 2026-08-21 A driver gesture resolving is not the browser having settled
 
 **What.** Eight laws read a state in the statement immediately after `userEvent.click/hover/tab`. They wait for that state now. One of them was red on main (`the click must have opened it: expected null not to be null`); the other seven are the same shape found by scanning for it rather than by waiting for CI to name them one per run.
