@@ -25,6 +25,7 @@ import CardExample from "./card";
 import CheckboxExample from "./checkbox";
 import CodeExample from "./code";
 import DialogExample from "./dialog";
+import FieldExample from "./field";
 import FlexExample from "./flex";
 import GridExample from "./grid";
 import HeadingExample from "./heading";
@@ -69,6 +70,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "scroll-area": ScrollAreaExample,
   "segmented-control": SegmentedControlExample,
   "select": SelectExample,
+  "field": FieldExample,
   "separator": SeparatorExample,
   "shell": ShellExample,
   "slider": SliderExample,

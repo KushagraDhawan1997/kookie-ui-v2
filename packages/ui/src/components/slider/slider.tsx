@@ -4,6 +4,7 @@ import { Slider as BaseSlider } from "@base-ui/react/slider";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
+import { useControlSize } from "../../system/control-size.ts";
 
 export type SliderProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseSlider.Root>,
@@ -65,12 +66,14 @@ export type SliderProps = Omit<
  * inline size. Constrain it with the Box that owns the row, never with a prop here.
  */
 export function Slider({
-  size = "2",
+  size: sizeProp,
   className,
   "aria-label": ariaLabel,
   ref,
   ...props
 }: SliderProps) {
+  // §28 — a Field states the whole unit's index; an explicit prop here always wins.
+  const size = useControlSize(sizeProp);
   const values = props.value ?? props.defaultValue;
   const thumbs = Array.isArray(values) ? values.length : 1;
   return (

@@ -7,6 +7,7 @@ import * as React from "react";
 import { useLensRef } from "../../system/refraction.tsx";
 import type { Size } from "../../system/axes.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { useControlSize } from "../../system/control-size.ts";
 
 export type SegmentedControlProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseRadioGroup>,
@@ -77,13 +78,15 @@ export type SegmentedItemProps = Omit<
  * with N hosts rather than one.
  */
 export function SegmentedControl({
-  size = "2",
+  size: sizeProp,
   className,
   backdrop,
   ref,
   children,
   ...props
 }: SegmentedControlProps) {
+  // §28 — a Field states the whole unit's index; an explicit prop here always wins.
+  const size = useControlSize(sizeProp);
   // §10 — the TRACK is the pane, and the only pane here. It expresses the theme's material
   // where a backdrop exists and resolves solid everywhere else (selectivity, 2026-08-17), and
   // it scopes its subtree, so every segment inside a glass track resolves `on-glass`: the

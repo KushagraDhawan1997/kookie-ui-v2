@@ -8,6 +8,30 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 Field, and the one mechanism that needed bounding
+
+**What.** `Field`, `FieldLabel`, `FieldDescription`, `FieldError` (§28), for **+28 bytes gzipped** — the additivity curve's strongest point. Eight control components now read a size the field supplies.
+
+**Why it was next.** The package shipped eight input controls and not one of them could be labelled by the system: a caller wrote a raw `<label for>` or reached past us into Base UI. Meanwhile nine files already read `Field.Root` state — `recipes.css`'s disabled arm exists BECAUSE `Field.Root` computes disabled at the control, and the invalid remap reads its `data-invalid`. We had been consuming the primitive everywhere and owning no API for it, which is §1's stance failing in the one place it is load-bearing.
+
+**The mechanism worth the entry is the size supply, and what it cost was the bounding, not the code.** `<Field size="2">` sizing the label, the description, the error AND the control is what a person means when they type it; the alternative leaves a size-4 input under a size-2 label with no way to state the pairing once. But silent inheritance is this repo's most-repeated defect — the `--kui-h` collision, the veil inheriting into nested panes twice, and both `@property inherits: false` guards exist because of it — so the mechanism ships with three bounds and a law for each. **One provider**: Theme does not supply it, `Box` does not, no surface does, so the reach is one wrapper deep and visible in the markup that put it there. **An explicit prop always wins.** And **`null` is the context default rather than `"2"`**, because a defaulted context cannot be told apart from a Field that chose 2, which is what makes an inheritance bug invisible instead of merely wrong. The fallback was written down as API-compatible before it was built; it was not needed.
+
+**Deliberately narrow readers.** Button, Card, Dialog and the type family do not read it. A Field holds the control its label names; a button beside that control is a sibling in the form's layout and takes the form's index. Widening the set is a decision with a call site behind it.
+
+**The label's step is an identity, not a table.** The control size join is itself the identity map (`--kui-ct-font: var(--font-size-N)`), so a field at size 3 sets its label in the step its value is set in and nothing is designed twice. Its law reads the label's computed size against a mounted CONTROL rather than against a number.
+
+**Rejected:** exporting `FieldControl` (Base UI's generic `<input>`; every Kookie control already IS a Base UI input reading Field context by itself, so it would be a second spelling of the control already standing there — `Progress.Track`'s own call); `orientation` (a horizontal field is a designed grid, not a direction flip — the label aligns to the control's first line and the error must sit under the CONTROL, which is Slider's argument verbatim); two gaps to separate the label group from the control (this system groups with size and the ink roles, and the description is already muted text under a medium label — a second gap says it twice); and an error that replaces the description.
+
+**Two of my own laws were wrong before they were right, and both are the shapes the audits keep naming.** The no-leak law mounted its subject under `dark` + `compact` and compared it against a twin under the default theme — measuring compact-versus-default, not supplied-versus-unsupplied. **A law's two sides must differ in the ONE thing the law is about**, which is the degenerate-fixture lesson arriving in a law I wrote the same hour I re-read it. And the destructive-ink vacuity guard compared the error's colour against `var(--color-text)` resolved inside the error, which can never fail: a stamped tone re-scopes the tone-less role names onto the family's ink trio (§15), so `--color-text` there IS the destructive ink and the guard compared a value with itself.
+
+**Eight sabotage passes, each caught:** the supply removed, the context outranking an explicit prop, the control no longer spanning, the column reversed, the description at full contrast, the label rendered as a bare `<label>` with Base UI's association gone, the label pinned at step 2, and the error losing its tone.
+
+**And an environment fact that has now bitten twice.** `@base-ui/react/field` had to join `optimizeDeps.include`: an entry discovered mid-run is optimized in a second pass and holds a different React than the page, so every hook in it reads off `null`. The config's own comment names `@base-ui/react/input` doing this the first time TextField mounted. Field reproduced it verbatim, which is a comment doing its job.
+
+**Doc-code drift fixed in the same commit:** TextField's own JSDoc said label, description and error were Base UI's parts and the labelled layout was a block. True until today.
+
+---
+
 ## 2026-08-21 The message family, reconciled before any of it was built — Notice lives, Toast is refused, Callout was never a component
 
 **What.** The whole "the app tells you something" family was carved before a line of it was written: `Notice` shipped as the one condition-message component, `Toast` refused outright, `Aside` deferred into the type family, and the error message assigned to `Field` (§28, §29). `Callout` and `Banner` die as names. §11's three status rows become one plus a refusal.

@@ -26,6 +26,7 @@ import { mergeRefs } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
+import { useControlSize } from "../../system/control-size.ts";
 
 /** Gap between the trigger's edge and the panel — the menu's designed constant, restated
     because the second member self-keys (§23). */
@@ -98,7 +99,9 @@ export type SelectProps = {
  */
 
 /** Renders no DOM — state and wiring only (Base UI Root, the size context, direction). */
-export function Select({ size = "2", onValueChange, children, ...props }: SelectProps) {
+export function Select({ size: sizeProp, onValueChange, children, ...props }: SelectProps) {
+  // §28 — a Field states the whole unit's index; an explicit prop here always wins.
+  const size = useControlSize(sizeProp);
   const dir = useAmbientDirection();
   return (
     <SelectSizeContext.Provider value={size}>

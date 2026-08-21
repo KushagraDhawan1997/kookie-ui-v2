@@ -658,6 +658,56 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "FieldDescription": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "FieldError": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "FieldLabel": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "Field": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the column. Outer spacing is the caller's Box, never this (the non-negotiable)."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "§28 — the control family's index, priced once for the whole unit: the label, the description, the error AND the control inside it. The type steps are the IDENTITY of the control's own — a field at size 2 sets its label at the step its value is set in, because the control size join is itself the identity map (`--kui-ct-font: var(--font-size-N)`). So nothing is designed twice and a law reads the label's computed size against a mounted control's rather than against a number. It reaches the control by context and an explicit prop on the control wins — see `system/control-size.ts` for the three bounds on that mechanism and why it needs them."
+      }
+    ]
+  },
   "Flex": {
     "element": null,
     "props": [

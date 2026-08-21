@@ -322,6 +322,44 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "field",
+    name: "Field",
+    family: "Control",
+    spec: "§28",
+    blurb:
+      "The unit that makes one input make sense. A control on its own is a box: it does not carry its own name, it cannot say what it is for, and it cannot say what went wrong. Field supplies a label, a description and an error, and wires all three to the control so a screen reader reads them as one thing. It passes the anatomy criterion by the widest margin in the library — three non-visual forcers stack (label association by id, aria-describedby, the announced error), so no part of the arrangement is a visual preference. What it draws is a column and a gap; the parts are Text at roles the type system already designed. Behavior is Base UI's Field end to end.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "prices the WHOLE unit — the label, the description, the error and the control inside it. It reaches the control by context and an explicit prop on the control always wins, so a field is stated once and a control is never re-sized behind a number somebody typed. The label's step is the control's own by derivation, because the control size join is itself the identity map" },
+    ],
+    refusals: [
+      {
+        name: "FieldControl",
+        why: "Base UI's is a generic <input> for callers who have no other input. Every Kookie control already IS a Base UI input and reads Field's context by itself — the id, the label target, the description target and data-invalid all arrive without being passed — so a control dropped inside a Field wires itself. Re-exporting one would be a second spelling of the control already standing there. Progress.Track and the Tabs indicator were left unexported for the same reason: structure, not API.",
+      },
+      {
+        name: "orientation",
+        why: "A horizontal field is not a direction flip. The label has to align to the control's first line and the error has to sit under the CONTROL rather than under the label, which makes it a designed grid with its own rules — Slider's own argument for refusing a vertical axis. It ships as its own designed set the day something forces it, and render on the root is open in the meantime.",
+      },
+      {
+        name: "a choice about where the error goes",
+        why: "The description sits above the control and the error below it, always: instruction before the act, diagnosis after, which is the rule the whole message family is built on. GOV.UK puts both above, on the argument that at high zoom the focused input is on screen and anything under it may not be; that was weighed and overruled on consistency, and the cost is recorded in §28 rather than buried. A prop here would make the order a per-call-site opinion, which is what a system exists to prevent.",
+      },
+      {
+        name: "an error that replaces the description",
+        why: "Both show. The description says what to enter and the error says what went wrong, and removing the instruction at the exact moment somebody failed to follow it is the wrong trade.",
+      },
+      {
+        name: "Form",
+        why: "Deferred, not refused. Base UI's Form distributes a server error map to fields by name and moves focus to the first invalid one — non-visual behaviour, the same forcer that licenses this anatomy. It is purely additive and changes nothing here, so it ships when something real has server errors to distribute.",
+      },
+    ],
+    parts: [
+      { part: "FieldLabel", blurb: "The field's name — a real <label> associated by id, so clicking it lands the caret. Medium weight and the plain foreground role: a label leads the group it names, and this system carries that with weight and ink rather than with a louder size" },
+      { part: "FieldDescription", blurb: "What to enter, before you enter it. The muted role, wired into aria-describedby wherever it sits, so its position above the control is a reading decision rather than a wiring one" },
+      { part: "FieldError", blurb: "What went wrong, after it went wrong. The destructive family's ink, rendered only while the field is invalid and carrying the live region — which is the non-visual forcer that makes it a part rather than a Text a caller writes. Base UI's match keys one message to one ValidityState reason; with no children it prints the browser's own" },
+    ],
+  },
+  {
     slug: "flex",
     name: "Flex",
     family: "Layout",

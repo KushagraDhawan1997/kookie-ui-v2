@@ -4,6 +4,7 @@ import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
+import { useControlSize } from "../../system/control-size.ts";
 
 export type CheckboxProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseCheckbox.Root>,
@@ -83,7 +84,9 @@ export type CheckboxProps = Omit<
  * input carries it, so a parent checkbox over a partially-selected group submits and announces
  * correctly. The glyph swap is CSS reading `data-indeterminate` — no JS at interaction time.
  */
-export function Checkbox({ size = "2", className, ref, ...props }: CheckboxProps) {
+export function Checkbox({ size: sizeProp, className, ref, ...props }: CheckboxProps) {
+  // §28 — a Field states the whole unit's index; an explicit prop here always wins.
+  const size = useControlSize(sizeProp);
   return (
     <BaseCheckbox.Root
       // The honest ref type (audit 2026-08-05, D12): Base UI's root renders a <span> with the
