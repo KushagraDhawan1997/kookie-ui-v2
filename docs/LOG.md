@@ -30,6 +30,8 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 **Rejected:** a shell-private padding ladder (a second ladder is a second thing to keep agreeing, and Card's rung was the instruction); solving the size 3–4 rail before anyone has looked at one; and making `ShellScroll` mandatory so panes stop scrolling themselves — Kushagra's call was rule, not enforcement, because an app that does not wrap would silently lose the bottom of its content.
 
+**And `m="bleed"` was claimed in four places and tested in none** — the stylesheet, DECISIONS §27, the component reference and the state notes all say a child can reach the pane's wall, which is the half of this decision that made it safe to take, and nothing measured it. It works (measured before the law was written), and the law is owed regardless: that is the claimed-versus-actual shape this repo has paid for repeatedly. Its fixture is the interesting part — a bleeding child ALONE proves nothing, because with the pane's padding gone `bleed` resolves to zero and the child reaches the wall for the wrong reason, passing with the mechanism deleted. So a plain sibling is measured beside it and the law is the difference between the two.
+
 **Eight sabotages, each caught by the law that should catch it:** the pane's `padding: 0` restored; the join's old `--kui-sf-p: 0` restored; the header's `data-size` stamp removed; `min-block-size` deleted; `border-box`; `align-content` deleted; `min-block-size` swapped for `block-size`; and the nav expander reading a literal instead of the hook.
 
 ---

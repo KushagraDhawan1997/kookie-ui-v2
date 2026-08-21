@@ -440,6 +440,87 @@ describe("a pane pads like any other surface (§27)", () => {
 });
 
 /**
+ * ── AND A CHILD MAY REACH THE PANE'S WALL (§3, §27, 2026-08-21) ────────────────────────────
+ * The other half of the padding decision, and the half that made it safe to take. `m="bleed"`
+ * is the picture-in-a-card mechanism (§3): it resolves to the negative of `--kui-sf-p`, the
+ * surface padding hook, which inherits deliberately so the NEAREST surface wins. A shell pane
+ * is a surface and declares that hook, so a canvas in the content pane or a tree row in the
+ * sidebar reaches the edge without the pane having to give up its safe area for everyone.
+ *
+ * It was claimed in four places — the stylesheet, DECISIONS §27, the component reference and
+ * the state notes — and tested in none, which is the claimed-versus-actual shape this repo
+ * has paid for repeatedly. Measured before writing this: it works, and the law is owed anyway.
+ */
+describe("a child may bleed to a pane's wall (§3, §27)", () => {
+  // THE FIXTURE IS THE LAW. A bleeding child alone proves nothing: with the pane's padding
+  // gone, `bleed` resolves to zero and the child reaches the wall for the wrong reason —
+  // passing with the mechanism deleted. So a PLAIN sibling is measured beside it, and the
+  // law is the difference between them.
+  //
+  // Falsified: with the pane's padding restored to 0, the two children measure identically
+  // and the "one is inset" arm fails; with the bleed margin re-pointed at a literal, the
+  // bleeding child stops short of the wall.
+  it("the bleeding child reaches it and its plain sibling does not", () => {
+    const shell = mounted(
+      <Shell size="2" style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary">
+          <Box data-testid="plain" style={{ height: 20 }} />
+          <Box m="bleed" data-testid="bled" style={{ height: 20 }} />
+        </ShellSidebar>
+        <ShellContent>
+          <Box data-testid="c-plain" style={{ height: 20 }} />
+          <Box m="bleed" data-testid="c-bled" style={{ height: 20 }} />
+        </ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    for (const [sel, a, b] of [
+      [".kui-shell-sidebar", "plain", "bled"],
+      [".kui-shell-content", "c-plain", "c-bled"],
+    ] as const) {
+      const pane = within(shell, sel);
+      const pad = parseFloat(tokenOn(pane, "--kui-sf-p"));
+      expect(pad, `${sel}: no padding, so this fixture cannot tell the two apart`).toBeGreaterThan(0);
+
+      // The padding box, read off the browser: which sides of a flush pane carry a seam is a
+      // fact about its neighbours, not something a law should restate.
+      const wall = pane.getBoundingClientRect().left + pane.clientLeft;
+      const plain = within(shell, `[data-testid="${a}"]`).getBoundingClientRect();
+      const bled = within(shell, `[data-testid="${b}"]`).getBoundingClientRect();
+
+      expect(plain.left - wall, `${sel}: a plain child is not inside the safe area`).toBeCloseTo(pad, 0);
+      expect(bled.left - wall, `${sel}: the bleeding child stopped inside the padding`).toBeCloseTo(0, 0);
+      expect(bled.width, `${sel}: the bleeding child is no wider than a plain one`).toBeCloseTo(
+        pane.clientWidth,
+        0,
+      );
+    }
+  });
+
+  // The pane's own index is what it bleeds past, not some ancestor's — the hook inherits, so
+  // a pane that failed to declare its own would silently hand its children the value of
+  // whatever surface the shell was composed inside. Falsified: delete the content pane's
+  // `data-size` stamp and it bleeds by the size-2 rest at every index.
+  it("it bleeds by the PANE's padding, at whatever index the pane was given", () => {
+    for (const size of ["1", "3", "4"] as const) {
+      const shell = mounted(
+        <Shell size="2" style={{ height: 400, width: 900 }}>
+          <ShellContent size={size}>
+            <Box m="bleed" data-testid="bled" style={{ height: 20 }} />
+          </ShellContent>
+        </Shell>,
+        { theme: {}, select: ".kui-shell" },
+      );
+      const pane = within(shell, ".kui-shell-content");
+      expect(computed(within(shell, '[data-testid="bled"]'), "margin-left"), size).toBe(
+        `-${tokenOn(pane, `--surface-p-${size}`)}`,
+      );
+      shell.remove();
+    }
+  });
+});
+
+/**
  * ── A HEADER STATES ITS HEIGHT (§27, 2026-08-21) ───────────────────────────────────────────
  * Before this it was as tall as whatever the app put in it: apps/docs held size-1 buttons and
  * the whole app frame came out 28px, controls flush against the top edge.
