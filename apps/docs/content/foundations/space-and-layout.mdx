@@ -13,8 +13,8 @@ dense the app is set, and what the group states. The button reads none of the th
 itself. A component that ships its own margin answers a question it cannot ask, so every
 composition after it starts by cancelling that margin.
 
-The escape is a layout wrapper. A reviewer sees a wrapper in the diff. A reviewer does not see
-a margin buried on a control.
+The escape is a layout wrapper. A reviewer sees a wrapper in the diff, and does not see a
+margin buried on a control.
 
 ```tsx
 // Does not compile. A control has no margin prop.
@@ -83,8 +83,8 @@ their own designed sets. Routing them through the layer as well would compress t
 --layout-space-4: var(--space-3);   /* [data-density="compact"] */
 ```
 
-The same prop also takes a raw length, so you never reach a wall. `gap="13px"` passes straight
-through, and a reviewer sees that you used one.
+The same prop also takes a raw length. `gap="13px"` passes straight through, and a reviewer
+sees that you used one.
 
 ## Density re-picks steps and scales nothing
 
@@ -128,12 +128,11 @@ wide, and a development build warns you when it does.
 </Box>
 ```
 
-A window size class answers a different question, and that separation is why both mechanisms
-exist. A tier asks how much room this component has. `useWindowClass()` returns `narrow`,
-`regular` or `wide`, and it asks which interface this app should show: a bottom bar, a rail or
-a sidebar. You decide that once, at the top, against the window. The class picks a shell, and a
-shell is a different set of components, so the answer is a hook and not a token. No token moves
-with the class.
+A window size class answers a different question, which is why both mechanisms exist. A tier
+asks how much room this component has. `useWindowClass()` returns `narrow`, `regular` or
+`wide`, and it asks which interface this app should show: a bottom bar, a rail or a sidebar.
+You decide that once, at the top, against the window. The class picks a shell, and a shell is a
+different set of components, so the answer is a hook and not a token. No token moves with it.
 
 ## Reach a pane's edge with bleed
 
@@ -161,4 +160,4 @@ the word reaches CSS as written and CSS rejects it where you can see it.
 
 Every peer system ships a component part for this: a card section, a media slot, a cover. This
 system refuses that anatomy. The system owns an anatomy only where something non-visual forces
-it, and a picture forces nothing.
+one, and a picture forces nothing.

@@ -1,16 +1,18 @@
-There is no elevation axis. No component takes a shadow, no call site chooses one, and `depth`
-is a Theme identity with two values — an app-level statement about whether this world has light
-in it. What casts and what does not is then a fact about each family, decided once.
+There is no elevation axis. No component takes a shadow, and no call site chooses one.
 
-## Elevation is deleted
+`depth` is a `Theme` axis with two values. It states whether this application has a light
+source. Each family then decides whether it casts a shadow, and the system decides that once.
 
-The spec once carried a four-level shadow ladder: flat, raised, floating, overlay. It died on
-first contact with the eye, and the post-mortem found something worse than an ugly ladder —
-**nothing had ever chosen elevation at a call site.** A Card is never floating, a Menu is never
-flat, a Dialog is always an overlay. A prop nobody varies is a component fact wearing an axis's
-clothes.
+## The elevation axis is deleted
 
-One word replaces it:
+The specification once held a four-level shadow ladder: flat, raised, floating and overlay. The
+team removed it after the first visual review.
+
+The review found a larger fault than an incorrect ladder. **No call site had ever chosen an
+elevation.** A Card is never floating. A Menu is never flat. A Dialog is always an overlay. A
+prop that nobody varies is a component fact in the shape of an axis.
+
+One word replaces the ladder:
 
 ```tsx
 <Theme depth="elevated">
@@ -18,94 +20,102 @@ One word replaces it:
 </Theme>
 ```
 
-`elevated` is the default, and it says the world has a light source: surfaces sit up, the focal
-control catches light, grips lift. `flat` says it does not, and separation goes back to line and
-fill.
+`elevated` is the default. It states that the world has a light source. Surfaces sit above the
+page, the focal control catches light, and grips lift.
 
-`--shadow-1` through `--shadow-5` are public tokens, but they are a **resource, not an axis**.
-Components reach them only through the world's chrome roles, and a law walks every shipped
-stylesheet asserting that no rule names a shadow row directly. For a block you own, the escape
-is deliberately visible in review rather than blessed as a prop:
+`flat` states that the world has no light source. Line and fill then state every separation.
+
+`--shadow-1` to `--shadow-5` are public tokens. They are a resource, not an axis. Components
+reach them only through the world's chrome roles. A test walks every shipped stylesheet and
+asserts that no rule names a shadow row directly.
+
+For a block you own, use the visible escape:
 
 ```tsx
 <Box style={{ boxShadow: "var(--shadow-3)" }}>Custom pane</Box>
 ```
 
-Box carried a typed `shadow` prop for one day and it died as a taxonomy leak: Box is layout,
-shadow is paint.
+`Box` carried a typed `shadow` prop for one day. The team removed it, because `Box` is layout
+and a shadow is paint.
 
-## The palette is ordered by reach, not by rank
+## The palette is ordered by reach
 
-Five rows on the system's one index shape. Row 1 is the inset well; the rest are drops, each the
-same anatomy at a different height — a contact line under the edge, which is what makes a shadow
-read sharp, plus halos pulled in under the element by negative spread, so depth falls below
-rather than haloing sideways.
+The palette has five rows. Row 1 is an inset well. The other four are drops.
 
-The ordering is by **reach**, and that is the part worth carrying away: a smaller caster owes a
-smaller shadow, or it reads swollen. A card is a bigger box than a menu, so the surface role
-sits on a longer-reach row than the floating one. That reverses an earlier call — that a
-floating pane must out-cast everything under it — and the reversal is the honest reading: a
-panel's authority comes from covering what is beneath it, not from out-shadowing a card three
-times its size. Size against reach is an observation; the rows themselves are taste, judged by
-eye, and named as taste.
+Each drop uses the same anatomy at a different height: a contact line under the edge, which
+makes the shadow read as sharp, and halos pulled in under the element by negative spread, so the
+depth falls below the element instead of spreading sideways.
 
-## What casts, and what does not
+**A smaller element casts a smaller shadow.** A shadow that is too large makes the element read
+as swollen. A card is a larger box than a menu, so the surface role uses a row with a longer
+reach than the floating role.
 
-Casting: `Card` and the panes that wear its identity, the **loud** rung of a button, the grips
-and the key cap. That is the whole list, and each entry had to be argued into it.
+This reverses an earlier decision. That decision said a floating pane must cast a larger shadow
+than everything under it. A panel states its authority by covering what is beneath it, not by
+casting a larger shadow than a card three times its size.
 
-Not casting: `Surface`, fields and text areas, the medium and quiet rungs, marks, progress bars,
-separators and tab bars.
+The relationship between size and reach is an observation. The row values are a judgment.
 
-Depth separates the **focal** and the **floating**; everything else sits in or on the plane.
-Three refusals are worth stating outright, because each looks arbitrary until you have the
-sentence.
+## What casts a shadow
 
-- **A ground throws nothing.** A `Surface` is what objects sit on, not an object — a hole in a
-  plane casts no shadow. A Card inside it lifts; the bed it lifts off does not.
-- **A field is a well.** It is content of a plane, not a plane above one — carved in rather than
-  raised off. A recessed thing cannot cast a drop shadow, and no platform shades an input. This
-  question was reopened four times and closed in the same place every time.
-- **A medium fill is a wash on the plane.** Measured beside a loud button in the playground, the
-  two floated identically and rank stopped reading. Loud casts and catches light; medium does
-  neither.
+These cast: `Card` and the panes that use its identity, the **loud** rung of a button, the
+grips, and the key cap.
 
-A checked mark catches light and never casts, for the same reason: a mark is a well that fills,
-not a raised key.
+These do not cast: `Surface`, fields, text areas, the medium and quiet rungs, marks, progress
+bars, separators and tab bars.
+
+Depth separates the focal element and the floating element. Everything else sits in the plane or
+on it.
+
+Three of those refusals need a reason.
+
+- **A ground casts nothing.** A `Surface` is what objects sit on. It is not an object. A Card
+  inside it lifts. The bed it lifts off does not.
+- **A field is a well.** A field is content in a plane, not a plane above one. A recessed
+  element cannot cast a drop shadow, and no platform shades an input. The team reopened this
+  question four times and closed it the same way each time.
+- **A medium fill sits on the plane.** The team measured a medium button beside a loud button.
+  Both appeared to float, and the rank stopped reading. Loud casts a shadow and catches light.
+  Medium does neither.
+
+A checked mark catches light and never casts a shadow. A mark is a well that fills, not a raised
+key.
 
 ## A floating layer states its coverage
 
-A popup covers what is under it, and it owes the reader a boundary that says so.
+A popup covers the content under it. It must show the reader a boundary.
 
-In `elevated`, the floating chrome says it. In `flat`, nothing casts — menus and dialogs
-included — and a pane states its coverage in flat's own vocabulary, the hairline. Flat kept a
-half-faded cast under popups for a while because it had no other way to bound a covering pane;
-the day the hairline came back, that cast became a second voice saying one thing and was
-retired.
+In `elevated`, the floating chrome shows that boundary. In `flat`, nothing casts a shadow,
+including menus and dialogs. A pane then states its coverage with a hairline.
 
-A Dialog casts nothing of its own in either world, and that is not an oversight: **the scrim is
-the separation.** The whole viewport going dark states the coverage more completely than any
-shadow could, so what survives on the panel is the world's ordinary surface chrome — the same
-shadow a Card wears.
+`flat` kept a faded shadow under popups for a period, because it had no other way to bound a
+covering pane. The hairline replaced it, and the team retired the shadow. Two cues stating one
+fact is one cue too many.
 
-## The grips' exception
+A `Dialog` casts no shadow of its own in either world. **The scrim states the separation.** The
+whole viewport goes dark, which states the coverage more completely than a shadow. The panel
+keeps the world's ordinary surface chrome, which is the same shadow a Card wears.
 
-The slider grip, the switch thumb, the chosen segment of a segmented control and `Kbd` all cast
-in **both** worlds, `flat` included.
+## The grips cast in both worlds
 
-This is role semantics, the same shape as the radius exceptions and held to the same standard. A
-grip that does not sit above its rail stops reading as a grip, and a grip's position is the
-value — losing the reading loses the control. Every platform ships the handle shadowed in every
-context. `Kbd` is the mirror case: a key is pressed *into* its surface, so its depth is relief
-rather than lift.
+The slider grip, the switch thumb, the chosen segment of a segmented control and `Kbd` cast a
+shadow in both worlds, including `flat`.
 
-"Always" is about the world, never about state. A disabled grip stands its cast down and dims
-instead of vanishing, because greying a grip erases the reading rather than standing it down.
+The shape states the role here, as it does for the radius exceptions. A grip that does not sit
+above its rail stops reading as a grip. A grip's position is the value, so losing that reading
+loses the control. Every platform ships the handle with a shadow in every context.
+
+`Kbd` is the opposite case. A key presses into its surface, so its depth is relief rather than
+lift.
+
+"Always" describes the world, not the state. A disabled grip drops its shadow and dims. It does
+not disappear, because a grey grip removes the reading instead of quieting it.
 
 ## What you cannot do
 
-There is no shadow prop, no elevation prop and no `raised` boolean on any component. If a region
-inside an elevated app genuinely wants no light, that is a nested Theme:
+No component takes a shadow prop, an elevation prop or a `raised` boolean.
+
+When a region inside an elevated application needs no light, nest a `Theme`:
 
 ```tsx
 <Theme depth="flat" render={<section />}>
@@ -113,6 +123,6 @@ inside an elevated app genuinely wants no light, that is a nested Theme:
 </Theme>
 ```
 
-The refusal has a shape worth naming. This system will give you an app-level identity and a
-visible escape; it will not give you a per-element knob for something a reader perceives as a
-property of the world rather than of the thing in front of them.
+The system gives you an app-level identity and a visible escape. It does not give you a
+per-element control, because a reader perceives light as a property of the world rather than of
+one element.
