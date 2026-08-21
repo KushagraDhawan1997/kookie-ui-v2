@@ -116,21 +116,50 @@ keyed by hue alone fails it. All three fail worst for the people who cannot see 
 
 Write what to do next in an error. A colour could never carry that instruction.
 
-## What has not shipped
+## Use a Notice for a condition that stays true
 
-The specification names one tone-forward surface: `Notice`. It does not exist yet. `Toast` is
-refused and will never ship, and `Callout` and `Banner` are dead names for the same component
-(§29). Compose one of these three answers instead.
+`Notice` is the component for a condition that is true right now. The person did not cause it,
+and it lasts while the condition lasts. It takes layout space and never floats, so it cannot
+cover the content it is telling you about. It rests neutral, because the tone is the category
+and not the volume.
 
-- **An inline outcome.** Put the result where the action was. Use a `Text` in the matching tone
-  beside or under the control. Move the tense of the verb with it. A button that said "Publish"
-  is followed by the word "Published", not by "Success".
-- **A message with a heading.** Compose a `Card` that holds a `Heading` and a `Text`. Put the
-  tone on the words. Do not tint the card. The surface family takes no tone, and reaching for
-  `style` to fake one writes a fixed colour into an app that then cannot re-theme.
-- **A transient confirmation.** There is no toast, and there will not be one. A `Card` at a
-  fixed position is not a substitute: it gets neither the live region that makes an announcement
-  nor the dismissal behaviour people expect. The rule is that an action which deserves attention
-  gets that attention before it runs. Use an `AlertDialog` when the moment needs a decision. For
-  everything else, state the outcome where the action was. A condition that stays true is a
-  `Notice`, when it ships.
+```tsx
+<Notice
+  tone="warning"
+  action={<Button size="2">Add a card</Button>}
+  onDismiss={() => setSeen(true)}
+>
+  Your trial ends in three days.
+</Notice>
+```
+
+`action` holds one control that resolves the condition. `onDismiss` adds a dismissal that
+only acknowledges it. Those are two different verbs. `onDismiss` is a callback with no internal
+state, because a component cannot remember a dismissal across a reload. Your app has to.
+
+## There is no toast
+
+`Toast` is refused, and it will not ship. An action that deserves attention gets that attention
+before it runs. An action that does not deserve attention does not need a report afterwards.
+
+The two cases people build a toast for both go somewhere else. Undo belongs in an undo stack, on
+a control the person can find later. A copy confirmation belongs on the button that copied.
+
+Do not build a substitute. A `Card` at a fixed position gets neither the live region that makes
+the announcement nor the dismissal behaviour people expect from a toast.
+
+`Callout` and `Banner` are dead names for `Notice`. Banner names a position, and no component in
+this system owns its own position.
+
+## Where to put an outcome
+
+Put the result where the action was.
+
+- **Inline.** Use a `Text` in the matching tone beside or under the control. Move the tense of
+  the verb with it. A button that said "Publish" is followed by the word "Published", not by
+  "Success".
+- **With a heading.** Compose a `Card` that holds a `Heading` and a `Text`. Put the tone on the
+  words. Do not tint the card. The surface family takes no tone, and using `style` to fake one
+  writes a fixed colour into an app that then cannot change theme.
+- **A decision.** Use an `AlertDialog` when the moment needs an answer before anything else
+  happens.
