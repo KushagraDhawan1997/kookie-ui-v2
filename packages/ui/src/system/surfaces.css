@@ -636,9 +636,20 @@
    `<Card render={<button/>}>` (or an anchor) IS the pattern — the surface notices the element
    semantics and gains the control state machine, per §10's rule: reuse it, never invent a
    surface one. Rest is pixel-identical to a plain Card; a card is a card until you point at
-   it. HTML enforces the one-action rule for free: a button cannot nest a button. */
+   it. HTML enforces the one-action rule for free: a button cannot nest a button.
 
-.kui-surface:where(button, a) {
+   A LABEL HOLDING A CONTROL joins them (2026-08-22), and it is the same sentence rather than a
+   third case: a label's whole job is to activate the control it holds, so pressing one IS
+   pressing that control — which is what makes `<Card render={<label/>}>` around a Radio the
+   selectable card (see the chosen dress below). It is scoped to a label that HOLDS a control,
+   never to every label: a card labelling something outside itself is not a thing you press.
+
+   `:where()` contributes ZERO specificity whatever is inside it, so this list can grow without
+   moving the recipe off (0,1,0) — which is what the reduced-motion stand-down, the disabled arm
+   and the ring hook all weigh themselves against. Widening it was safe for that reason and for
+   no other. */
+
+.kui-surface:where(button, a, label:has(.kui-control)) {
   cursor: var(--cursor-button);
   -webkit-user-select: none;
   user-select: none;
@@ -683,7 +694,7 @@
    fallback chain lets material re-derive the interactive steps from the same designed
    sources, so a glass card does not flash opaque under the pointer. */
 @media (hover: hover) {
-  .kui-surface:where(button, a):hover {
+  .kui-surface:where(button, a, label:has(.kui-control)):hover {
     background-color: var(--kui-sf-fill-hover, var(--color-surface-hover));
     /* Warming faster than cooling, the control layer's judged asymmetry: arriving is something
        the user did, leaving is something they stopped doing. */
@@ -696,7 +707,7 @@
 }
 
 /* Press is unguarded and instant: on touch it is the only feedback there is. */
-.kui-surface:where(button, a):active {
+.kui-surface:where(button, a, label:has(.kui-control)):active {
   background-color: var(--kui-sf-fill-active, var(--color-surface-active));
   --kui-sf-paint: 0s;
   /* Down hard and fast; the release takes the base clock back because this is restated on the
@@ -717,13 +728,143 @@
    the 4px floor that rules a field's ring out. Declared as a HOOK for the same reason the
    control's is: the reduced-motion stand-down then shares this selector and cannot be
    separated from it by specificity. */
-.kui-surface:where(button, a) {
+.kui-surface:where(button, a, label:has(.kui-control)) {
   --kui-sf-ring: kui-ring-land var(--motion-ring) var(--motion-spring-stiff);
 }
-.kui-surface:where(button, a):focus-visible {
+.kui-surface:where(button, a, label:has(.kui-control)):focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
   animation: var(--kui-sf-ring);
+}
+
+/* ── A dead interactive surface (§10, 2026-08-22, Kushagra) ───────────────────────────────────
+   Measured before it was written: a `<Card render={<button disabled/>}>` computed BYTE-IDENTICAL
+   to a live one — same seal, same ink, and `cursor: pointer`, so a dead card still promised a
+   press. Every control in the library has had a disabled appearance since the shared remap
+   shipped; the interactive surface was left out for the same reason it was left out of the
+   motion system until 2026-08-17 — the remap is written against `.kui-control`, and a card is
+   not one.
+
+   Most of it arrives from that remap, which now names this selector too (recipes.css): the
+   cursor, the ink trio and the tone roles. What CANNOT arrive from it is what the mark family
+   found at audit D6 — the resting fill is NOT a tone role, it is the seal — so the two facts a
+   surface owns are stated here, and the parallel is exact: `.kui-mark[data-disabled]` says the
+   same two sentences one family over.
+
+   Four changes, which is what a disabled Button shows: the fill recedes to the dead step, the
+   ink dims, the cursor stops promising, and the cast goes. The cast is the one that is really a
+   §5 statement rather than a dimming: elevation says a thing sits above the plane and can be
+   picked up, and a dead card cannot be. `0 0 0 0 transparent` and never `none` — a shadow list
+   may not hold `none`, the lesson the material rim cost a rewrite to learn.
+
+   The MOTION stands down on the same selector, which is not optional: a dead card that still
+   rose to the pointer and sank under a press would be contradicting its own appearance in the
+   one channel a person tests it with. */
+.kui-surface:where(button, a, label:has(.kui-control)):is(
+    :disabled,
+    [aria-disabled="true"],
+    [data-disabled]
+  ) {
+  --kui-sf-fill-src: var(--disabled-fill);
+  --kui-sf-cast: 0 0 0 0 transparent;
+  --kui-sf-pool: 0 0 0 0 transparent;
+  /* The INK, and it is a third thing the control remap cannot reach — measured after the fill
+     already worked, which is why it is here rather than assumed. A control's label reads the
+     tone vocabulary the remap rewrites; a card's content reads the tone-less FOREGROUND roles
+     (§11), and the two never resolve through each other. So a dead card had a receded fill and
+     full-strength words on it, which is worse than either alone. All three rungs together —
+     dimming only the loud one would invert the ladder and make a description darker than the
+     title above it. */
+  --color-text: var(--disabled-ink);
+  --color-text-muted: var(--disabled-ink);
+  --color-text-faint: var(--disabled-ink);
+  /* The MOTION stands down here and needs no arms of its own. This rule is (0,2,0), the hover
+     and press rules are (0,2,0), and it sits AFTER them, so it wins the tie on source order —
+     recipes.css's own hover-stand-down mechanism. Moving this block above them would silently
+     give a dead card its rise back, which is why the ordering is stated rather than left to be
+     rediscovered. */
+  translate: 0 0;
+  scale: 1;
+}
+
+/* The PAINT is a different question and needs its own arms, which cost an hour to learn twice
+   (2026-08-22, Kushagra: "why does a disabled card respond to hover?").
+
+   The rule above re-points `--kui-sf-fill-src`, and the base surface rule reads it — but the
+   hover and press rules set `background-color` DIRECTLY, and a direct declaration beats a
+   custom-property indirection no matter what the property resolves to. So a dead card kept its
+   receded fill at rest and lit up the moment a pointer touched it: measured 0.035-alpha grey at
+   rest, and the hover colour under the pointer.
+
+   These two blocks were written in the first cut, then DELETED as unreachable because a
+   sabotage pass showed the suite still green without them. That pass was reading the motion
+   law, which asserts travel and scale — the axis that was already right. The paint had no law
+   at all, so nothing could see the deletion. It is the degenerate-fixture lesson in its
+   sharpest form: the sabotage did not survive because the code was redundant, it survived
+   because the LAW was one channel short. Both channels are read now.
+
+   `:hover` and `:active` still MATCH a disabled element — the browser fires neither event, but
+   a selector is not an event, and an anchor with aria-disabled is not disabled to CSS at all.
+
+   THE PRESS ARM IS FOR TOUCH, and it cannot be reached by a mounted law — which is stated
+   rather than papered over. With a mouse a press always co-occurs with a hover, so the hover
+   stand-down above (later in source, same weight) already covers it, and deleting the press arm
+   changes nothing a pointer can produce: measured, byte-identical, on a real held press against
+   an `aria-disabled` anchor that matched both `:active` and `:hover`. On touch there IS no
+   hover rule — `@media (hover: hover)` does not match, which is the whole reason the recipe's
+   own press rule is unguarded — and this arm is then the only thing between a dead card and the
+   press colour. Chromium does not emulate the `hover` feature (tried, and the helper was
+   deleted rather than left to lie), so what holds this is a NODE law asserting the declaration,
+   and the honest claim there is that the stand-down is stated, not that it computes. */
+@media (hover: hover) {
+  .kui-surface:where(button, a, label:has(.kui-control)):is(
+      :disabled,
+      [aria-disabled="true"],
+      [data-disabled]
+    ):hover {
+    background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
+  }
+}
+.kui-surface:where(button, a, label:has(.kui-control)):is(
+    :disabled,
+    [aria-disabled="true"],
+    [data-disabled]
+  ):active {
+  background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
+}
+/* ── A CHOSEN surface (§10, §11, 2026-08-22, Kushagra: "find me patterns for Card's this one
+   is chosen") ─────────────────────────────────────────────────────────────────────────────
+   Apple has two patterns and neither of them is a coloured card. For a picture — a wallpaper,
+   an appearance thumbnail, a watch face — Apple draws an accent RING around the whole item.
+   For a text option in a list, Apple draws a CHECKMARK at the end of the row. Material 3 adds
+   a tonal fill; that is the one this system cannot take, because a card has no tone (§11) and
+   a filled card would be claiming a rank it has not earned.
+
+   NO NEW API, and that is the decision rather than an economy. This system already answered
+   "pick one of several": it is a radio group (the segmented control, 2026-08-18 — "never an
+   aria attribute bolted onto a Button"). So the selectable card is a card that IS the label of
+   a real radio: `<RadioGroup><Card render={<label/>}><Radio value=…/>…</Card></RadioGroup>`.
+   The semantics, the keyboard, the form value and the announcement are all the primitive's,
+   the whole card is pressable because that is what a label does, and the visible mark is the
+   Radio the composition placed — so Apple's checkmark is the consumer's to position and the
+   EDGE is the system's. Card refuses anatomy (§10); this keeps that refusal intact.
+
+   Rejected: a `selected` prop on Card (it would be a second way to say what the radio already
+   says, and nothing would keep the two in agreement); `render={<Radio/>}` (in this package
+   `render` means "keep my dress, change my element", so a Radio that shed the mark family on
+   sight would contradict every other use of it); and a hand-rolled `role="radio" aria-checked`
+   on a button, which is the exact shape the segmented control refused.
+
+   It reads `[data-checked]` and `[data-selected]` — the shared selected vocabulary (§23) — so a
+   card holding a CHECKED CHECKBOX lights the same way, which is the multi-select board this
+   pattern's other half needs. Scoped to a surface that holds a control, so a card containing a
+   checked thing three levels down in unrelated content does not light up.
+
+   The edge only, at v0. A tint was not built: the eye pass decides whether one hairline is
+   enough at card scale, and adding pigment first would make that judgement impossible to
+   reverse cleanly. */
+.kui-surface:where(label:has(.kui-control)):has(.kui-control:is([data-checked], [data-selected])) {
+  --kui-border-color: var(--selected-edge);
 }
 
 /* ── The elevated world (§5, §10): an app identity, never a per-card knob ─────────────────────
@@ -1813,14 +1954,14 @@
   .kui-surface.kui-overlay.kui-dialog-popup,
   .kui-dialog-popup .kui-dialog-body,
   /* The interactive surface's two clocks (2026-08-17), spelled at the recipe's own weight for
-     the reason stated just above — the recipe is `.kui-surface:where(button, a)`, and `:where`
+     the reason stated just above — the recipe is `.kui-surface:where(button, a, label:has(.kui-control))`, and `:where`
      contributes nothing, so this ties on specificity and wins on source order. */
-  .kui-surface:where(button, a) {
+  .kui-surface:where(button, a, label:has(.kui-control)) {
     transition: none;
   }
   /* And its ring hook, the `--kui-ct-ring` doctrine one layer up: the stand-down is declared on
      the same selector as the recipe, so specificity can never separate them. */
-  .kui-surface:where(button, a) {
+  .kui-surface:where(button, a, label:has(.kui-control)) {
     --kui-sf-ring: none;
   }
   /* The POSES are not stood down here, and that is the decision rather than an omission

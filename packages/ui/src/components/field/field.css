@@ -6,25 +6,69 @@
  * no size index and no family. What is left is the one thing a wrapper owes its children —
  * the direction they stack in and the distance between them.
  *
- * The distance is ONE value and not four. A label and its description are one group and the
- * error belongs to the control, so the obvious move is two distances that separate the groups
- * — and this system carries grouping with SIZE and the ink roles rather than with space (§15).
- * The description is already a step of muted text under a medium label; adding a second gap
- * says the same thing twice. v0 for the eye pass, like every other distance in the library.
+ * The column's distance is ONE value and not three. The label, the description and the error
+ * are separated by the same gap, because this system carries grouping with SIZE and the ink
+ * roles rather than with space (§15) — the description is already a step of muted text and the
+ * error already carries a family's ink, so a second distance would say what they already say.
+ *
+ * An ITEM is the one place a second distance is right, and the reason is rhythm rather than
+ * grouping: an item's insides have to read as tighter than the gaps between items, or a list
+ * of options is one undifferentiated stack (§15). Both values are v0 for the eye pass, like
+ * every other distance in the library.
  */
 .kui-field-group {
   display: flex;
   flex-direction: column;
-  /* Not `stretch`: a control decides its own inline extent, and a label that filled the row
-     would make a hit target out of the empty space beside the words (§16 — a target is the
-     thing, not the room around it). */
-  align-items: flex-start;
+  /* Everything spans, and the LABEL is the one exception. The first spelling had it the other
+     way round — `flex-start` with the control opting back in — which held only while a field
+     contained exactly one control: a group primitive between the field and its marks is
+     neither a `.kui-control` nor a part we can name, so it shrink-wrapped and every option's
+     explanation wrapped early. Stating the exception is the general rule; enumerating the
+     things that span is a list that a caller can always add to. */
+  align-items: stretch;
   row-gap: var(--layout-space-3);
 }
 
-/* The control is the one part that spans, because a field's width is the control's width and
-   the label sits above whatever that turns out to be. Named by the control family's own class
-   rather than by a part name: whatever a caller puts here is a control or it is not a field. */
-.kui-field-group > .kui-control {
-  align-self: stretch;
+/* Why the label is excepted: a label that filled the row would make a hit target out of the
+   empty space beside the words, and §16's whole sentence about targets is that a target is the
+   thing rather than the room around it. Selected by tag because Base UI's Label renders a
+   `<label>` and warns in development if it is made to render anything else. */
+.kui-field-group > label {
+  align-self: start;
+}
+
+/**
+ * An item (§28) — a mark, its name and its explanation, as a two-column grid.
+ *
+ * The mark holds the first column and the first row. Everything else stacks in the second
+ * column, which is what puts the explanation under the WORDS rather than under the mark. The
+ * mark needs no alignment rule: `--mark-N` IS `--line-height-N` (§4), so a mark is exactly one
+ * line of its label tall and lands on the label's first line by construction.
+ */
+.kui-field-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--layout-space-3);
+  /* One step tighter than the field's own rhythm, because a nested group steps down (§15). A
+     list of options whose insides breathe as widely as the gaps between them reads as one
+     undifferentiated stack. */
+  row-gap: var(--layout-space-2);
+  align-items: start;
+}
+
+.kui-field-item > * {
+  grid-column: 2;
+}
+
+/* The mark, wherever it is written. Placed rather than flowed, because the explanation has to
+   land in the second column and auto-placement cannot be told which child is the mark. */
+.kui-field-item > .kui-control {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* The label excepted a second time, for the reason it is excepted above: the second column is
+   `1fr`, so a label left to fill it would take the whole row as a click target. */
+.kui-field-item > label {
+  justify-self: start;
 }

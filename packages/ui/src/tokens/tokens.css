@@ -906,6 +906,8 @@
   --disabled-fill: var(--neutral-a2);
   --disabled-fill-solid: var(--neutral-2);
   --disabled-border: var(--neutral-a3);
+  --disabled-ink: var(--neutral-8);
+  --selected-edge: var(--accent-solid);
   /* transmission (§10, 2026-08-07) — what a PANE casts is the app's shadow passed
      through glass: the surface row faded per thickness, DERIVED from the palette so
      there is exactly one source of shadow truth. Consumed only where the elevated
@@ -1533,6 +1535,8 @@
   --disabled-fill: var(--neutral-a2);
   --disabled-fill-solid: var(--neutral-2);
   --disabled-border: var(--neutral-a3);
+  --disabled-ink: var(--neutral-8);
+  --selected-edge: var(--accent-solid);
   /* transmission (§10, 2026-08-07) — what a PANE casts is the app's shadow passed
      through glass: the surface row faded per thickness, DERIVED from the palette so
      there is exactly one source of shadow truth. Consumed only where the elevated
@@ -2163,6 +2167,8 @@
   --disabled-fill: var(--neutral-a3);
   --disabled-fill-solid: var(--neutral-3);
   --disabled-border: var(--neutral-a3);
+  --disabled-ink: var(--neutral-8);
+  --selected-edge: var(--accent-solid);
   /* transmission (§10, 2026-08-07) — what a PANE casts is the app's shadow passed
      through glass: the surface row faded per thickness, DERIVED from the palette so
      there is exactly one source of shadow truth. Consumed only where the elevated

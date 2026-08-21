@@ -34,6 +34,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 Field: the description moves under the control, and an item finally owns the checkbox row
+
+**What.** Two changes to Field, one day old (Kushagra). The order becomes **label, control, description, error** — the description crosses the control. And **`FieldItem` ships**, so an option inside a checkbox group or a radio group carries its own name and its own line of explanation.
+
+**Why the order moved, and it is not taste.** The shipped order came from reading §29's rule one level down — *instruction before the act, diagnosis after* — and that reading is retracted. §29's rule orders things a person meets **at different moments**: a question asked before an act, a report made after one. A field is met **all at once**. It is one unit taken in at a glance, not a sequence walked through, so the only thing vertical position settles inside it is *proximity* — what sits beside what. The pairing that has to survive a form of ten fields is the label on its control, and a description between them puts a control two steps from its own name. §29 is untouched at the level it was written for; what is retracted is the analogy that carried it inside a single unit.
+
+**Rejected: the error directly under the control, description last.** It puts the more urgent message closest to the thing it is about. It loses because an arriving error then displaces the description — a line moving under the reader's eyes at the moment they are being told something. Description-then-error is stable, and it reads as rule-then-violation.
+
+**The cost grew and it is written down rather than buried.** GOV.UK puts the hint above the input, on a perception argument: at high zoom the focused input fills the view and anything under it may not be there. That cost used to fall on the error alone and now falls on the description too. Two things bound it — `aria-describedby` means a screen reader announces the description with the control from any position, so the cost is specifically a sighted low-vision one; and Material, MUI, Polaris, Atlassian, Ant and Chakra all put supporting text below, so it is where a person's habits already are. If a measurement bites, it moves.
+
+**Why an item exists.** A `Field` names ONE control. A radio group is several controls under one name and each needs a name of its own. Base UI's `Field.Item` opens a fresh naming scope: measured, a label inside one points at the mark beside it, and descriptions CHAIN — an option ends up described by the field's description and then by its own. What it closes is a hole the mark family has carried since Checkbox: Checkbox and Radio refuse to draw their own label (§11 — a mark sits beside its label, so the row owns the space between them), which was right and left nobody holding the row. Every named checkbox in this repo was a hand-written `id` + `htmlFor` pair at the call site — the exact wiring Field exists to remove. The refusal stands; the row has an owner.
+
+**One thing it breaks, measured and left open with the reason.** With every control inside items, the field's own label renders `<label for>` pointing at nothing: Base UI mints a control id up front and only re-points it when a control registers, and items capture those registrations in their own scope. The cost was checked rather than assumed — the group is still named correctly (`aria-labelledby` on the `radiogroup`), so nothing is announced wrong; what remains is an HTML validity error and a group label that does nothing when clicked, which no platform makes clickable. It is unfixed because the outer label renders *above* the items and cannot read a context they set: the only automatic mechanism is a state lift that swaps the element after mount, which is a hydration mismatch on every server-rendered page, and a prop would make a structural fact a per-call-site opinion. Worth recording that the shape it replaces is not better — **without** items the group's label points at the first radio, so clicking the group's name selects an option, which is actively wrong rather than merely inert.
+
+**The field's column flipped to `align-items: stretch`, and the new rule is the better general one.** The old spelling was `flex-start` with `.kui-control` opting back in, which held only while a field held exactly one control: a group primitive between the field and its marks is neither a `.kui-control` nor a part we can name, so it shrink-wrapped and every explanation wrapped early. Everything spans now and the LABEL is the exception, in both the field's column and the item's second column, for §16's reason. Stating the exception is a rule; enumerating the things that span is a list a caller can always add to.
+
+**Two of my own laws could not fail, both caught by their own sabotage pass, and both were the same mistake in different clothes.** "An item spans the field" mounted its field inside a `Flex` — so under the broken spelling the FIELD shrink-wrapped too and both sides of the comparison collapsed together, passing on exactly the code it was written against. It uses a plain block of a stated width now, with a vacuity guard that the field really is 420px wide. And "a name inside an item is not a click target across the whole row" compared the label against the ITEM, which the mark's own column already makes it narrower than whether it stretches or not; it compares against the description — the thing that does fill the column — instead. That is the degenerate-fixture rule (2026-08-20) twice in one component: not a law asserting the wrong thing, a law whose INPUT cannot tell a correct implementation from a broken one.
+
+**And the builder's grammar law caught a preset before a person could.** `FieldItem`'s first preset placed a `Radio`, which `requiresAncestor: "RadioGroup"` refuses — so a person dropping an item on the canvas would have built an export that throws. A checkbox row is the honest standalone item anyway.
+
+---
+
 ## 2026-08-21 Notice, measured rather than re-read — three wrong things, and the same fixture mistake twice
 
 **What.** Asked what drives a Notice's visuals, I probed a mounted one instead of re-reading my own source, and it answered three questions I had never asked. All three fixed the same day on Kushagra's calls: the shadow goes, the material arrives, the words scale with the box. The corner stays ("radius is fine").
@@ -294,6 +316,52 @@ The move also made the registry pure data, so `registry.test.ts` imports the val
 **Two of my decisions were wrong first.** The site organised itself as `/components/<name>`, which is names-first: THESIS §2's stated inversion, applied to the system's own documentation by the author quoting it. And the chapter measure sat in the chrome, which is right for a chapter and wrong for the two other page shapes, so a third of the window stayed empty on every page.
 
 **The first draft's language was wrong, and Kushagra rejected it** (*"like bro what is it"*). It used metaphor, filler and the passive voice. Every chapter was rewritten to ASD-STE100 Simplified Technical English: active voice, short sentences, literal vocabulary, no metaphor. `content/AUTHORING.md` now states those rules, so later chapters follow them.
+
+## 2026-08-22 A sabotage that survives is evidence about the LAW, not only about the code
+
+Kushagra, hours after the disabled card shipped: *"Why does a disabled card respond to hover?"* It did, and I had deleted the thing that stopped it.
+
+**The defect.** The disabled arm re-points `--kui-sf-fill-src` and the base surface rule reads it — but the hover and press rules set `background-color` DIRECTLY, and a direct declaration beats a custom-property indirection whatever it resolves to. So a dead card sat at its receded fill and lit up the moment a pointer touched it.
+
+**The stand-down for that existed and I removed it the same day**, because a sabotage pass stayed green without it and I read that as proof it was unreachable. The pass was green because the only law watching read TRAVEL and SCALE — the axis that was already right. The paint had no law at all, so nothing could see the deletion. **A sabotage that survives is evidence about the law as often as about the code, and the first question has to be which.** That is the degenerate-fixture rule (2026-08-20) in the one form it had not yet taken here: not a fixture that cannot distinguish, but a law reading a different channel from the one the change touched.
+
+**Then the same shape one layer down.** The repaired law read a hover and a held press, and its sabotage pass showed the PRESS arm was still unreachable. This time the arm really is unreachable — with a mouse, but only with a mouse. A press always co-occurs with a hover, so the hover stand-down (later in source, equal weight) covers it; measured byte-identical with the press arm present and deleted, against an `aria-disabled` anchor that matched both `:active` and `:hover`. On TOUCH there is no hover rule at all — which is exactly what the recipe's own comment says about why its press rule is unguarded — and the arm is then the only thing between a dead card and the press colour. So it stays, and what holds it is a node law claiming only that the declaration is stated. Stated rather than papered over.
+
+**`holdPress` joins the harness**, and it corrects a sentence button.browser.test.tsx has carried since 2026-08-18: `:active` *can* be forced from script — not by the driver, which fires down and up together, but by CDP dispatching a raw `mousePressed` with no release. The pointer is moved first, because a press on an element the browser does not consider hovered reads a state no user can produce, and the release is always given back, because a pointer left down leaks into the next law exactly as a parked hover does.
+
+**And `asksForTouch` was written, measured, and deleted in the same hour.** Chromium does not emulate the `hover` media feature — `Emulation.setEmulatedMedia` accepts it and `(hover: hover)` still matches — so the helper would have been a mechanism that lies about what it proves. Recorded here so the next person does not spend the hour.
+
+**One more law had pinned a spelling.** "Hover is guarded by `(hover: hover)`" found the FIRST such block, cut it out, and asserted no `:hover` survived — which quietly assumed the file would only ever hold one. It held one until the dead surface needed a second, and then a correct rule failed a law about a guarantee it had not broken. It walks every guard now and checks every hover rule against all of them.
+
+Three sabotage passes, all caught. +18 bytes.
+
+---
+
+## 2026-08-22 A card can be chosen, and a card can be dead
+
+Two states an interactive card had never had. Kushagra asked for both, and asked the right question first: *"Find me patterns for Card's 'this one is chosen'. How will Apple do it? Just a simple lit up edge?"*
+
+**What Apple does, since the answer shaped the design.** Apple has two patterns and neither of them is a coloured card. For a picture — a wallpaper, an appearance thumbnail, a watch face — Apple draws an accent RING around the whole item. For a text option in a list, Apple draws a CHECKMARK at the end of the row. Material 3 adds a tonal fill, and that is the one this system cannot take: a card has no tone (§11), and a filled card claims a rank it has not earned.
+
+**The mechanism is no mechanism, and that is the finding.** This system had already answered "pick one of several" on 2026-08-18, when the segmented control turned out to be a radio group — *"never an aria attribute bolted onto a Button"*. So a selectable card is a card that IS the label of a real radio. The semantics, the keyboard, the form value and the announcement all belong to the primitive; the whole card is pressable because that is what a label does; the visible mark is the Radio the composition placed. Apple's checkmark ends up being the call site's to position and the EDGE is the system's — which is Card's refusal of anatomy (§10) holding, rather than being worked around.
+
+**Rejected, each with its own reason.** A `selected` prop on Card: a second way to say what the radio already says, with nothing to keep them in agreement. `render={<Radio/>}`: in this package `render` means "keep my dress, change my element", so a Radio that shed the mark family on sight would contradict every other use of it. And `role="radio" aria-checked` hand-rolled onto a button, which is the exact shape §26 refused by name.
+
+**The dead card was measured before anything was written, and it was worse than expected.** A `<Card render={<button disabled/>}>` computed byte-identical to a live one — the same seal, the same ink, and `cursor: pointer`, so it still promised a press. The cause is the one that keeps producing this: the shared remap is written against `.kui-control` and a card is not one. That is the same reason the motion system skipped it until 2026-08-17.
+
+Most of the repair is the shared remap naming the surface selector — one fact, one home. Two things it cannot reach, and the parallel with the mark family is exact: **the resting fill is not a tone role, it is the seal** (audit D6, the identical finding for an unchecked checkbox), and neither is the tone-less foreground vocabulary a card's words read. Four changes ship, which is what a disabled Button shows: the fill recedes, the words dim, the cursor stops promising, the cast goes. **The cast is a §5 statement rather than a dimming** — elevation says a thing sits above the plane and can be picked up, and a dead card cannot be.
+
+**A sabotage pass proved two of my own blocks unreachable.** I wrote separate `:hover` and `:active` stand-downs; deleting them changed nothing, because the base arm ties with those rules at (0,2,0) and sits after them in the file. They are gone and the source ordering is stated instead — a mechanism with no consumer is the entropy this repo keeps paying for.
+
+**Two roles were minted, and the law that forced it is a good one.** A rung in the surface layer may not name a tone family — so `--neutral-8` and `--accent-solid` were both illegal there, which is exactly how the omission became visible. `--disabled-ink` now holds the dead text colour that recipes.css had written by hand five times and surfaces.css could not write at all; both read it. `--selected-edge` holds the chosen signal, and it is deliberately NOT `--focus-ring` even though the two resolve to the same pigment today: being chosen and being focused are different statements and must stay separately correctable.
+
+**Two existing laws had pinned spellings rather than guarantees, and a correct change failed them.** One asserted the interactive recipe was the literal string `:where(button, a)`; it reads the members now, so a new one is free and a `data-` key still is not. The other asserted `--tone-label: var(--neutral-8)` character for character; it reads the role now, and gained the clause that makes "one home" true rather than tidy — nothing in that file writes the step by hand any more.
+
+**Also corrected: the document claimed the system had no quiet inner region, and it has had one since 2026-08-20.** `Surface` shipped hours after that gap was raised and its own sentence names the case. The builder's export block is the working example. Measured in both modes — one step quieter than the card in each. What stays open is only the narrower question that paragraph also asked: whether a ground takes tone.
+
+Seven sabotage passes, all caught, after one was caught surviving. Judged on screen at 900px. The edge is v0 and a tint was deliberately not built: the eye pass decides whether one hairline is enough at card scale. +65 bytes.
+
+---
 
 ## 2026-08-21 The sheet's ring was cut, and it had borrowed the wrong motion
 

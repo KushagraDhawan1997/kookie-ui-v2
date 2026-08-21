@@ -271,13 +271,32 @@ export const CATALOG: Record<string, CatalogEntry> = {
     family: "Control",
     blurb: "The unit that makes one input make sense: a label, a description, the control and an error, wired so they are read as one thing. The index prices all four.",
     props: { size: size(), disabled: bool },
-    children: { only: ["FieldLabel", "FieldDescription", "FieldError", "TextField", "TextArea", "Checkbox", "Switch", "Select", "SegmentedControl", "Slider", "RadioGroup"] },
+    children: { only: ["FieldLabel", "FieldItem", "FieldDescription", "FieldError", "TextField", "TextArea", "Checkbox", "Switch", "Select", "SegmentedControl", "Slider", "RadioGroup"] },
     make: () =>
       node("Field", {}, {
         children: [
           node("FieldLabel", {}, { text: "Email" }),
-          node("FieldDescription", {}, { text: "We use this for receipts." }),
           node("TextField", { placeholder: "mira@kookie.dev", "aria-label": "Email" }),
+          node("FieldDescription", {}, { text: "We use this for receipts." }),
+        ],
+      }),
+  },
+  FieldItem: {
+    family: "Control",
+    blurb: "One option in a group: a mark, its own name, its own line. The label inside names the mark beside it, not the group.",
+    props: { disabled: bool },
+    children: { only: ["FieldLabel", "FieldDescription", "Checkbox", "Radio", "Switch"] },
+    requiresAncestor: "Field",
+    partOf: "Field",
+    make: () =>
+      /* A checkbox and not a radio: an item dropped on its own has no RadioGroup around it,
+         and the grammar refuses a Radio without one — which is the law catching this preset
+         before a person could have built an export that throws. */
+      node("FieldItem", {}, {
+        children: [
+          node("Checkbox", {}),
+          node("FieldLabel", {}, { text: "Send a copy to me" }),
+          node("FieldDescription", {}, { text: "One message, to the address above." }),
         ],
       }),
   },
@@ -292,7 +311,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   },
   FieldDescription: {
     family: "Control",
-    blurb: "What to enter, before you enter it. Sits above the control: instruction before the act.",
+    blurb: "What to enter. Sits under the control, above the error — everything about a control pools below it.",
     props: {},
     children: "text",
     requiresAncestor: "Field",
@@ -301,7 +320,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   },
   FieldError: {
     family: "Control",
-    blurb: "What went wrong, after it went wrong. Below the control, and only while the field is invalid.",
+    blurb: "What went wrong, after it went wrong. Last in the field, so it arrives without moving anything already on screen, and only while the field is invalid.",
     props: {},
     children: "text",
     requiresAncestor: "Field",
@@ -355,6 +374,8 @@ export const CATALOG: Record<string, CatalogEntry> = {
           }),
         ),
       }),
+    /* The hand-written pairing above is what a group looks like OUTSIDE a Field. Inside one,
+       FieldItem does the wiring and the layout, which is the shape the docs teach. */
   },
   Radio: {
     family: "Control",

@@ -1129,9 +1129,11 @@ describe("glass keeps its matter on every rung, and a press still travels (§10,
     // The press rule's chain consulted --kui-ct-cast-glass first, which resolves on every
     // glass control, so the active variant behind it was unreachable there: a pressed loud
     // glass button computed its resting cast byte-identical while the solid one beside it
-    // tightened (audit 2026-08-18, measured under a held real pointer). `:active` cannot be
-    // forced from script, so this reads the two chain values where the stylesheet keeps
-    // them — resolved on THIS element — and the node law pins the press rule's consumption.
+    // tightened (audit 2026-08-18, measured under a held real pointer). `:active` was not
+    // reachable from script when this was written — it is since 2026-08-22, see
+    // test/browser.tsx's holdPress — but this law would not use it either way: the chain
+    // values it needs are registered `inherits: false`, so it reads them where the stylesheet
+    // keeps them, resolved on THIS element, and the node law pins the press rule's consumption.
     const host = render(
       <Theme depth="elevated" material="regular">
         <Box backdrop>

@@ -8,16 +8,18 @@ import { describe, expect, it } from "vitest";
 
 import { APPEARANCES, colorOn, computed, mounted, within } from "../../test/browser.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
+import { Box } from "../box/box.tsx";
 import { Flex } from "../flex/flex.tsx";
 import { TextField } from "../text-field/text-field.tsx";
-import { Field, FieldDescription, FieldError, FieldLabel } from "./field.tsx";
+import { Radio, RadioGroup } from "../radio/radio.tsx";
+import { Field, FieldDescription, FieldError, FieldItem, FieldLabel } from "./field.tsx";
 
 /** The whole unit, in the order §28 argues for. */
 const unit = (
   <Field>
     <FieldLabel>Email</FieldLabel>
-    <FieldDescription>We use this for receipts.</FieldDescription>
     <TextField type="email" required />
+    <FieldDescription>We use this for receipts.</FieldDescription>
     <FieldError>Enter an email address.</FieldError>
   </Field>
 );
@@ -67,30 +69,53 @@ describe("the wiring is the whole licence for the anatomy (§28, §10)", () => {
   });
 });
 
-describe("description above, error below — instruction before the act, diagnosis after (§28, §29)", () => {
-  it("the description sits ABOVE the control and the label above that, measured", () => {
+describe("label on its control, and everything about it underneath (§28)", () => {
+  it("the label sits directly ON the control and the description BELOW it, measured", () => {
     const root = mounted(unit, { theme: {} });
     const label = within(root, "label").getBoundingClientRect();
-    const description = within(root, "p").getBoundingClientRect();
     const control = within(root, ".kui-field").getBoundingClientRect();
+    const description = within(root, "p").getBoundingClientRect();
     // Geometry, not document order: `order` or `column-reverse` would keep the DOM right and
     // put the words in the wrong place, which is the thing the decision is about.
-    expect(label.bottom).toBeLessThanOrEqual(description.top);
-    expect(description.bottom).toBeLessThanOrEqual(control.top);
+    expect(label.bottom).toBeLessThanOrEqual(control.top);
+    expect(control.bottom).toBeLessThanOrEqual(description.top);
   });
 
-  it("the error sits BELOW the control once the field is invalid", () => {
-    const root = mounted(
+  it("the error comes last, so it arrives without moving anything already on screen", () => {
+    const before = mounted(
       <Field>
-        <FieldLabel>Email</FieldLabel>
-        <TextField aria-invalid />
-        <FieldError match={true}>Enter an email address.</FieldError>
+        <FieldLabel>Account number</FieldLabel>
+        <TextField />
+        <FieldDescription>Eight digits, no spaces.</FieldDescription>
+        <FieldError match={true}>That is four digits short.</FieldError>
       </Field>,
       { theme: {} },
     );
-    const control = within(root, ".kui-field").getBoundingClientRect();
-    const error = within(root, "[data-tone='destructive']").getBoundingClientRect();
-    expect(error.top).toBeGreaterThanOrEqual(control.bottom);
+    // The SAME field, invalid. The error is rendered by state, so this is the two frames a
+    // person actually sees — not two arrangements somebody wrote out by hand.
+    const after = mounted(
+      <Field>
+        <FieldLabel>Account number</FieldLabel>
+        <TextField aria-invalid />
+        <FieldDescription>Eight digits, no spaces.</FieldDescription>
+        <FieldError match={true}>That is four digits short.</FieldError>
+      </Field>,
+      { theme: {} },
+    );
+    const error = within(after, "[data-tone='destructive']").getBoundingClientRect();
+    const control = within(after, ".kui-field").getBoundingClientRect();
+    const description = within(after, "p").getBoundingClientRect();
+    expect(description.bottom).toBeLessThanOrEqual(error.top);
+    expect(control.bottom).toBeLessThanOrEqual(description.top);
+    // The claim the order exists FOR: nothing above the error moved when it appeared. Read as
+    // offsets from each field's own root, because the two are mounted at different places.
+    const offset = (root: HTMLElement, el: Element) =>
+      el.getBoundingClientRect().top - root.getBoundingClientRect().top;
+    expect(offset(after, within(after, ".kui-field"))).toBeCloseTo(
+      offset(before, within(before, ".kui-field")),
+      1,
+    );
+    expect(offset(after, within(after, "p"))).toBeCloseTo(offset(before, within(before, "p")), 1);
   });
 });
 
@@ -219,5 +244,204 @@ describe("the column is the whole stylesheet (§28)", () => {
     const root = mounted(unit, { theme: {} });
     expect(computed(root, "margin-top")).toBe("0px");
     expect(computed(root, "margin-bottom")).toBe("0px");
+  });
+});
+
+/**
+ * A radio group written the way §28 says to write one: the field names the group, and each
+ * option carries its own name and its own line of explanation inside an item.
+ *
+ * TWO options, and every claim below is made about the SECOND — because one option cannot tell
+ * a correctly scoped label from an implementation where every label points at the first
+ * control in the field, which is exactly what happens without items.
+ */
+const group = (
+  <Field>
+    <FieldLabel>Delivery speed</FieldLabel>
+    <RadioGroup defaultValue="standard">
+      <FieldItem>
+        <Radio value="standard" />
+        <FieldLabel>Standard</FieldLabel>
+        <FieldDescription>Three to five business days.</FieldDescription>
+      </FieldItem>
+      <FieldItem>
+        <Radio value="express" />
+        <FieldLabel>Express</FieldLabel>
+        <FieldDescription>Next business day before noon.</FieldDescription>
+      </FieldItem>
+    </RadioGroup>
+  </Field>
+);
+
+/** The item holding a given option's mark. */
+const itemOf = (root: HTMLElement, name: string) =>
+  [...root.querySelectorAll<HTMLElement>(".kui-field-item")].find(
+    (el) => el.querySelector("label")?.textContent === name,
+  )!;
+
+describe("an item names ONE option, and the scope is the whole point (§28)", () => {
+  it("an option's label points at its OWN mark, not at the first one in the field", () => {
+    const root = mounted(group, { theme: {} });
+    const express = itemOf(root, "Express");
+    const label = express.querySelector("label")!;
+    const input = express.querySelector("input")!;
+    expect(label.getAttribute("for")).toBeTruthy();
+    expect(label.getAttribute("for")).toBe(input.id);
+    // The failure this is written against: without the item's own naming scope every label in
+    // the field resolves to the first control, so read the sibling too and require a DIFFERENCE.
+    const standardInput = itemOf(root, "Standard").querySelector("input")!;
+    expect(label.getAttribute("for")).not.toBe(standardInput.id);
+  });
+
+  it("clicking the second option's name selects the second option", () => {
+    const root = mounted(group, { theme: {} });
+    itemOf(root, "Express").querySelector("label")!.click();
+    const checked = (name: string) =>
+      itemOf(root, name).querySelector("[role='radio']")!.getAttribute("aria-checked");
+    expect(checked("Express")).toBe("true");
+    // Both halves, because "everything points at the first radio" also leaves Standard checked
+    // and would satisfy a law that only asked about the one it clicked.
+    expect(checked("Standard")).toBe("false");
+  });
+
+  it("an option is described by the field's description AND its own, in that order", () => {
+    const root = mounted(
+      <Field>
+        <FieldLabel>Delivery speed</FieldLabel>
+        <FieldDescription>Charged at checkout.</FieldDescription>
+        <RadioGroup defaultValue="standard">
+          <FieldItem>
+            <Radio value="standard" />
+            <FieldLabel>Standard</FieldLabel>
+            <FieldDescription>Three to five business days.</FieldDescription>
+          </FieldItem>
+        </RadioGroup>
+      </Field>,
+      { theme: {} },
+    );
+    const mark = root.querySelector("[role='radio']")!;
+    const ids = mark.getAttribute("aria-describedby")?.split(/\s+/) ?? [];
+    const idOf = (text: string) =>
+      [...root.querySelectorAll("p")].find((el) => el.textContent === text)!.id;
+    // Chaining is the claim: an option inherits what the field said and adds what it says.
+    expect(ids).toContain(idOf("Charged at checkout."));
+    expect(ids).toContain(idOf("Three to five business days."));
+    expect(ids.indexOf(idOf("Charged at checkout."))).toBeLessThan(
+      ids.indexOf(idOf("Three to five business days.")),
+    );
+  });
+
+  it("`disabled` on one option stands that option down and leaves its sibling alone", () => {
+    const root = mounted(
+      <Field>
+        <RadioGroup defaultValue="standard">
+          <FieldItem>
+            <Radio value="standard" />
+            <FieldLabel>Standard</FieldLabel>
+          </FieldItem>
+          <FieldItem disabled>
+            <Radio value="express" />
+            <FieldLabel>Express</FieldLabel>
+          </FieldItem>
+        </RadioGroup>
+      </Field>,
+      { theme: {} },
+    );
+    expect(itemOf(root, "Express").querySelector("input")!.disabled).toBe(true);
+    expect(itemOf(root, "Standard").querySelector("input")!.disabled).toBe(false);
+  });
+
+  it("`disabled` on the Field reaches every option — a dead field is dead throughout", () => {
+    const root = mounted(
+      <Field disabled>
+        <RadioGroup defaultValue="standard">
+          <FieldItem>
+            <Radio value="standard" />
+            <FieldLabel>Standard</FieldLabel>
+          </FieldItem>
+          <FieldItem>
+            <Radio value="express" />
+            <FieldLabel>Express</FieldLabel>
+          </FieldItem>
+        </RadioGroup>
+      </Field>,
+      { theme: {} },
+    );
+    for (const name of ["Standard", "Express"]) {
+      expect(itemOf(root, name).querySelector("input")!.disabled).toBe(true);
+    }
+  });
+});
+
+describe("the item's grid: the explanation belongs to the WORDS (§28)", () => {
+  it("the mark is beside its name, and the explanation is under the name rather than the mark", () => {
+    const root = mounted(group, { theme: {} });
+    const item = itemOf(root, "Express");
+    const mark = item.querySelector(".kui-control")!.getBoundingClientRect();
+    const label = item.querySelector("label")!.getBoundingClientRect();
+    const description = item.querySelector("p")!.getBoundingClientRect();
+    expect(mark.right).toBeLessThanOrEqual(label.left);
+    expect(label.bottom).toBeLessThanOrEqual(description.top);
+    // The load-bearing half. A one-column stack, or the explanation auto-placed into the mark's
+    // column, both satisfy "below the label" — only the left edges tell them apart.
+    expect(description.left).toBeCloseTo(label.left, 1);
+    expect(description.left).toBeGreaterThan(mark.right);
+  });
+
+  it("a mark lands on the first line of its name, because a mark IS a line box (§4)", () => {
+    const root = mounted(group, { theme: {} });
+    const item = itemOf(root, "Express");
+    const mark = item.querySelector(".kui-control")!.getBoundingClientRect();
+    const label = item.querySelector("label")!.getBoundingClientRect();
+    expect(mark.top).toBeCloseTo(label.top, 1);
+    expect(mark.height).toBeCloseTo(label.height, 1);
+  });
+
+  it("an item spans the field, so a long explanation wraps at the field's width", () => {
+    // A plain block of a KNOWN width, never a Flex: as a flex ITEM the field shrink-wraps too,
+    // so both sides of the comparison collapse together and the law passes on the broken
+    // spelling. That fixture was written first and its sabotage pass caught it.
+    const root = mounted(
+      <Box style={{ inlineSize: "420px" }}>
+        <Field>
+          <FieldLabel>Delivery speed</FieldLabel>
+          <RadioGroup defaultValue="standard">
+            <FieldItem>
+              <Radio value="standard" />
+              <FieldLabel>Standard</FieldLabel>
+              <FieldDescription>Three to five days.</FieldDescription>
+            </FieldItem>
+          </RadioGroup>
+        </Field>
+      </Box>,
+      { theme: {} },
+    );
+    const field = within(root, ".kui-field-group").getBoundingClientRect();
+    // Vacuity guard: the claim only means something while the field is wider than the words.
+    expect(field.width).toBeCloseTo(420, 0);
+    const item = within(root, ".kui-field-item").getBoundingClientRect();
+    // The pre-fix failure: `align-items: flex-start` on the column reached the control by class
+    // and reached NOTHING through a group primitive, so the item shrink-wrapped its own words.
+    expect(item.width).toBeCloseTo(field.width, 1);
+  });
+
+  it("an item's own rows are tighter than the gaps between items — a nested group steps down", () => {
+    const root = mounted(group, { theme: {} });
+    const inner = Number.parseFloat(computed(within(root, ".kui-field-item"), "row-gap"));
+    const outer = Number.parseFloat(computed(within(root, ".kui-field-group"), "row-gap"));
+    expect(inner).toBeGreaterThan(0);
+    expect(inner).toBeLessThan(outer);
+  });
+
+  it("a name inside an item is not a click target across the whole column", () => {
+    const root = mounted(group, { theme: {} });
+    const item = itemOf(root, "Express");
+    const label = item.querySelector("label")!.getBoundingClientRect();
+    const description = item.querySelector("p")!.getBoundingClientRect();
+    // Against the DESCRIPTION, which does fill the column, and never against the item: the
+    // mark's own column makes the label narrower than the item whether it stretches or not,
+    // so that comparison passes with the rule deleted. Its sabotage pass caught it.
+    expect(label.right).toBeLessThan(description.right);
+    expect(description.width).toBeGreaterThan(label.width);
   });
 });

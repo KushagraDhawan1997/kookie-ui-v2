@@ -214,6 +214,10 @@ export const ENTRIES: Entry[] = [
     ],
     refusals: [
       {
+        name: "a `selected` prop, and an `interactive` one",
+        why: "Both are said by the ELEMENT instead. `<Card render={<button/>}>` is the pressable card and `<Card render={<label/>}>` around a Radio is the chosen one — so the semantics, the keyboard, the form value and the announcement are the primitive's, and the system only supplies the edge. A `selected` prop would be a second way to say what the radio already says, with nothing to keep the two in agreement; the segmented control refused the same shape in 2026-08-18. A disabled card is a disabled button, and it shows what one shows: the fill recedes, the words dim, the cursor stops promising, and the cast goes.",
+      },
+      {
         name: "a card inside a card",
         why: "A Card is an object with its own plane: opaque, bordered, and lifted in an elevated world. Two of them stacked is an object standing on an object, which states a relationship the system does not have. For a quiet region inside one card, use a Surface. For several objects on one ground, put the cards in a Surface. A development build warns, the builder's grammar cannot express it, and the composition reviewer raises it.",
       },
@@ -350,7 +354,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a choice about where the error goes",
-        why: "The description sits above the control and the error below it, always: instruction before the act, diagnosis after, which is the rule the whole message family is built on. GOV.UK puts both above, on the argument that at high zoom the focused input is on screen and anything under it may not be; that was weighed and overruled on consistency, and the cost is recorded in §28 rather than buried. A prop here would make the order a per-call-site opinion, which is what a system exists to prevent.",
+        why: "Label, control, description, error, always. The label sits on the control it names and everything about that control pools underneath it, so the pairing that has to survive a form of ten fields is the one the eye gets for free. The first spelling put the description above, reading the message family's before-and-after rule one level down; that reading was retracted, because position inside a single unit is proximity rather than sequence — a field is met all at once. The cost is GOV.UK's and it is recorded in §28 rather than buried: at high zoom the focused control fills the view and anything under it may not be there. A prop here would make the order a per-call-site opinion, which is what a system exists to prevent.",
       },
       {
         name: "an error that replaces the description",
@@ -362,8 +366,9 @@ export const ENTRIES: Entry[] = [
       },
     ],
     parts: [
+      { part: "FieldItem", blurb: "One option inside a checkbox group or a radio group — a mark, its own name and its own line of explanation. It opens a fresh naming scope, so a label written inside it names the mark beside it rather than the group, and a description written inside it is ADDED to the ones the field already supplies. This is what closes the labelling hole the mark family shipped with: Checkbox and Radio refuse to draw their own label, which was right and left nobody holding the row, so until now a named checkbox meant a hand-written id and htmlFor at the call site. Two columns — the mark, then the name and the explanation stacked beside it, so the explanation aligns with the words rather than with the mark" },
       { part: "FieldLabel", blurb: "The field's name — a real <label> associated by id, so clicking it lands the caret. Medium weight and the plain foreground role: a label leads the group it names, and this system carries that with weight and ink rather than with a louder size" },
-      { part: "FieldDescription", blurb: "What to enter, before you enter it. The muted role, wired into aria-describedby wherever it sits, so its position above the control is a reading decision rather than a wiring one" },
+      { part: "FieldDescription", blurb: "What to enter. The muted role, wired into aria-describedby wherever it sits — so a screen reader announces it with the control from any position, and where it sits is a reading decision rather than a wiring one. It sits under the control, above the error" },
       { part: "FieldError", blurb: "What went wrong, after it went wrong. The destructive family's ink, rendered only while the field is invalid and carrying the live region — which is the non-visual forcer that makes it a part rather than a Text a caller writes. Base UI's match keys one message to one ValidityState reason; with no children it prints the browser's own" },
     ],
   },

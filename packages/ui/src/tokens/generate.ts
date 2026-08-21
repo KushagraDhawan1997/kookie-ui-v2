@@ -1095,6 +1095,18 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("disabled-fill", `var(--neutral-a${disabledSteps[mode].fill})`),
     decl("disabled-fill-solid", `var(--neutral-${disabledSteps[mode].fill})`),
     decl("disabled-border", `var(--neutral-a${disabledSteps[mode].border})`),
+    // The dead INK (2026-08-22). recipes.css had written this step by hand in five places, and
+    // surfaces.css could not write it at all — a rung there may not name a tone family, which
+    // is the law that made the omission visible when the interactive surface needed a dead
+    // colour for its words. One home now, and both layers read it.
+    decl("disabled-ink", `var(--neutral-${disabledSteps[mode].ink})`),
+    // The CHOSEN signal (2026-08-22, §11): the edge a card wears when it is the one picked.
+    // A role rather than `--accent-solid` at the call site, for the same reason `--focus-ring`
+    // is one — a signal is a thing the system can re-price in one place, and a surface rung may
+    // not name a family. It is deliberately NOT --focus-ring: being chosen and being focused
+    // are two different statements that must stay separately correctable, even while they
+    // resolve to the same pigment today.
+    decl("selected-edge", `var(--accent-solid)`),
     `  /* transmission (§10, 2026-08-07) — what a PANE casts is the app's shadow passed`,
     `     through glass: the surface row faded per thickness, DERIVED from the palette so`,
     `     there is exactly one source of shadow truth. Consumed only where the elevated`,
