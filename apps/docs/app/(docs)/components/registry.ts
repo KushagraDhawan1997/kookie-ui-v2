@@ -167,7 +167,7 @@ export const ENTRIES: Entry[] = [
       { name: "margin", why: "A component never sets outer spacing. The distance belongs to the container. The escape is <Box m>." },
       {
         name: "variant",
-        why: "It fuses loudness with meaning, so it cannot express a quiet destructive action. tone and emphasis are separate props for exactly that reason.",
+        why: "It fuses loudness with meaning, so it cannot express a quiet destructive action. `tone` and `emphasis` are separate props for exactly that reason.",
       },
       {
         name: "a shadow prop",
@@ -660,7 +660,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§11",
     blurb:
-      "Base UI's group, wrapped with no CSS at all. It exists for the keyboard and the form value, not for a look. render is open, so the group can be a Stack.",
+      "Base UI's group, wrapped with no CSS at all. It exists for the keyboard and the form value, not for a look. `render` is open, so the group can be a Stack.",
     axes: [{ name: "value / defaultValue", values: "string", note: "the group owns the selection" }],
     refusals: [{ name: "any visual prop", why: "The group is wiring. What it looks like is whatever layout you render it as." }],
   },
@@ -736,7 +736,7 @@ export const ENTRIES: Entry[] = [
       { part: "ShellRailList", blurb: "A run of rail squares. A rail usually has two: the regions at the top, and the account and settings squares pinned at the bottom. The second run holds plain actions that are never current" },
       { part: "ShellScroll", blurb: "The one region of a pane that scrolls. Mark it and everything else in the pane pins by being an ordinary child: the pane becomes a column, this takes the leftover room, and the pane stops scrolling itself. It is a ScrollArea, so the custom scrollbars arrive with it. It is a pane fact rather than a sidebar one, because the inspector and the bottom pane have the same shape of a pinned header over a scrolling body" },
       { part: "ShellNavGroup", blurb: "A cluster of nav rows under a heading. It carries role=group and points aria-labelledby at its own label, so the heading is announced as well as seen" },
-      { part: "ShellNavItem", blurb: "One row of navigation. It stands level with a Button, which a menu row does not, because a menu row lives in a panel opened for a second while this sits beside real buttons all day. current both announces with aria-current and paints, and it paints in a different colour from hover: grey means your pointer is here, accent means this is where you are" },
+      { part: "ShellNavItem", blurb: "One row of navigation. It stands level with a Button, which a menu row does not, because a menu row lives in a panel opened for a second while this sits beside real buttons all day. `current` both announces with `aria-current` and paints, and it paints in a different colour from hover: grey means your pointer is here, accent means this is where you are" },
       { part: "ShellInspector", blurb: "The right-hand detail column: an <aside> that rests closed until it is asked for. Pass defaultOpen for one that starts open" },
       { part: "ShellBottom", blurb: "The bottom pane for a terminal or a log: an <aside> spanning the full width below the columns, resting closed" },
       { part: "ShellTrigger", blurb: "The one thing that crosses the frame: a button that drives a pane by name. It stamps aria-expanded and aria-controls, and composes over a Kookie Button with render" },
