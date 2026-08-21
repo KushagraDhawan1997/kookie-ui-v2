@@ -5,10 +5,15 @@ A component says which axes it has. A component never says how a state looks.
 The reason is arithmetic. Components times loudness levels times states is far too many
 combinations to keep consistent by hand.
 
-**`Link` is the one interactive thing that is not a control**, so it is the one exception. A
-control is a box with a height, a padding and a target. A link is a run of words inside a
-sentence, and it must stay selectable and wrap across lines. It therefore takes the ring and a
-hover of its own, and none of the box. The rest of this chapter is about controls.
+Two things that are not controls still answer a pointer, and each takes a different part of
+this chapter.
+
+**A `Link` is a run of words**, not a box. It must stay selectable and wrap across lines, so it
+takes the ring and a hover of its own, and none of the geometry.
+
+**A `Card` rendered as a button or a label is a control-sized thing**, so it takes the whole
+machine: the same fill steps, the same ring, the same two clocks. Only the press distances are
+its own. See "An interactive card runs the same machine" below.
 
 ## Hover and press are steps on one scale
 
@@ -87,6 +92,50 @@ The system does not use opacity for this. Opacity stacks on a tinted surface and
 generated contrast guarantee, with no warning. A remap keeps the control legible and clearly
 off.
 
+## An interactive card runs the same machine
+
+A `Card` rendered as a button or a link is pressable, and it takes the control state machine
+whole. The fill steps on hover and press, the ring lands the same way, and the motion runs on
+the same two clocks. Only the distances are the card's own: a card sinks 1px and scales to
+0.995 where a button scales to 0.975, because scale is relative and a button's factor on a
+400px card moves each edge five pixels and reads as the page bending.
+
+**A disabled card shows what a disabled button shows.** The fill recedes to the dead step, the
+words dim, the cursor stops promising, and the shadow goes. The shadow is not a dimming: a
+shadow says a thing can be picked up, and a dead card cannot be. The motion stops on the same
+element.
+
+## A chosen card is the label of a radio
+
+There is no `selected` prop. Picking one of several is a radio group, so a card that can be
+chosen is a card that **is** the label of a real radio.
+
+```tsx
+<RadioGroup defaultValue="pro" aria-label="Plan">
+  <Grid columns="repeat(3, minmax(0, 1fr))" gap="5">
+    <Card size="3" render={<label />}>
+      <Stack gap="3">
+        <Flex justify="space-between" align="center">
+          <Text size="3" weight="medium">Pro</Text>
+          <Radio value="pro" />
+        </Flex>
+        <Text size="5">$20</Text>
+      </Stack>
+    </Card>
+    {/* the other cards, each with its own Radio */}
+  </Grid>
+</RadioGroup>
+```
+
+The whole card is pressable, because that is what a label does. The keyboard, the form value
+and the announcement are the radio's. The system supplies one thing: the edge of the chosen
+card changes colour. A `selected` prop would be a second way to say what the radio already
+says, and nothing would keep the two in agreement.
+
+The same rule reads a checked `Checkbox`, so a board where several cards can be chosen lights
+the same way. Put the mark where the composition wants it. Being chosen and being focused use
+two different colours, so a card can show both at once.
+
 ## The system reads validity
 
 There is no `invalid` prop, because nothing decides to look invalid. The system reads
@@ -116,7 +165,7 @@ The state arrives from your validation, not from a prop. The border and the ring
 is disabled, and it stops answering hover and press at the same time.
 
 The value the user typed is content, and it stays legible. The box carries the state in its
-border and its ring. WCAG 1.4.1 states that colour alone is not sufficient signalling. The
+border and its ring. WCAG 1.4.1 says colour alone is not enough. The
 border is the system's half of the signal. The message is your half. A field that renders no
 error text is a composition defect, not a token defect.
 

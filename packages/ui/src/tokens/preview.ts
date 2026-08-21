@@ -890,7 +890,7 @@ const ROLE_NOTES: Record<(typeof ROLES)[number], [string, string]> = {
   ink: ["step 12 (neutral) or step 11 (chroma)", "loud type — the rung's per-family text"],
   "ink-muted": ["step 11, or the ink faded to 74%", "medium type on a chosen tone"],
   "ink-faint": ["step 10, or the ink faded to 52%", "quiet type — timestamps, placeholders"],
-  a3: ["step 3 as alpha over the page", "the tone-forward surface fill (Callout)"],
+  a3: ["step 3 as alpha over the page", "the tone-forward surface fill (Notice)"],
 };
 
 const ROLE_MAP: Array<[string, string, string]> = [

@@ -18,7 +18,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The committing choice, in words — the VERB. \"OK\" makes the user re-read the title to remember what they are agreeing to; \"Delete\" answers the question where it is pressed."
+        "doc": "The committing choice, in words, and it should be the verb. \"OK\" makes the reader go back to the title to remember what they are agreeing to. \"Delete\" answers the question where it is pressed."
       },
       {
         "name": "className",
@@ -30,13 +30,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the committing action down — for a confirmation that is not satisfied yet (a typed-name gate, a pending check). Cancel stays live, so this is never a trap."
+        "doc": "Turns the committing action off, for a confirmation that is not satisfied yet, such as a typed-name gate or a pending check. Cancel stays live, so this is never a trap."
       },
       {
         "name": "onClick",
         "type": "React.MouseEventHandler<HTMLButtonElement>",
         "optional": true,
-        "doc": "Where the work starts. The alert closes on the same press, because its job ends when a choice is made — an action that must await a result and report back belongs to a Dialog whose `open` the caller controls."
+        "doc": "Where the work starts. The alert closes on the same press, because its job ends when a choice is made. An action that has to wait for a result and report back belongs in a Dialog whose `open` you control."
       },
       {
         "name": "style",
@@ -48,7 +48,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "The one meaning an action may carry beyond proceeding — `destructive` for the deletes this component mostly exists for. Neutral (the accent identity) otherwise."
+        "doc": "The one meaning an action may carry beyond going ahead. Use `destructive` for the deletes this component mostly exists for. Neutral otherwise."
       }
     ]
   },
@@ -59,7 +59,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The retreat, in words. \"Cancel\" always reads; naming what staying means often reads better (\"Keep editing\"), and the pair is judged together — two named sides is what makes the alert a choice rather than a warning with a dismiss button."
+        "doc": "The way out, in words. \"Cancel\" always reads, and naming what staying means often reads better, such as \"Keep editing\". Judge the two buttons together: two named sides is what makes the alert a choice rather than a warning with a dismiss button."
       },
       {
         "name": "className",
@@ -71,13 +71,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the safe way out down. Rarely right: it leaves Escape as the only retreat from a panel that refuses outside presses (§25)."
+        "doc": "Turns off the safe way out. It is rarely right, because it leaves Escape as the only retreat from a panel that refuses outside presses."
       },
       {
         "name": "onClick",
         "type": "React.MouseEventHandler<HTMLButtonElement>",
         "optional": true,
-        "doc": "Runs on the press, before the alert closes. Cancel ALWAYS closes, so this is for the tidying — never for deciding whether to."
+        "doc": "Runs on the press, before the alert closes. Cancel always closes, so use this for tidying up, never for deciding whether to close."
       },
       {
         "name": "style",
@@ -94,7 +94,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The alert's parts, in reading order: `AlertDialogTitle`, `AlertDialogDescription`, then `AlertDialogCancel` and `AlertDialogAction`. A LIST of parts, never a Flex — Content owns the layout (§25), which is what lets the entry animate the content and what makes Cancel-first mean reading order, start side and initial focus at once. Anything beyond those four makes the thing a Dialog."
+        "doc": "The alert's parts, in reading order: `AlertDialogTitle`, `AlertDialogDescription`, then `AlertDialogCancel` and `AlertDialogAction`. Write a list of parts, never a Flex, because Content owns the layout. That is what lets the entry animate the content, and what makes Cancel-first mean reading order, start side and initial focus at once. Anything beyond those four makes the thing a Dialog."
       },
       {
         "name": "className",
@@ -117,7 +117,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "What proceeding COSTS — the consequence the title could not fit, said once. It is announced together with the title, so it adds (what is lost, whether it comes back) rather than restating the question in longer words."
+        "doc": "What going ahead costs: the consequence the title could not fit, said once. It is announced together with the title, so it should add something, such as what is lost and whether it comes back, rather than restate the question in longer words."
       },
       {
         "name": "className",
@@ -140,7 +140,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The trigger and the content. AlertDialog renders no DOM of its own — state and wiring only — so this is `<AlertDialogTrigger>` and `<AlertDialogContent>`."
+        "doc": "The trigger and the content. AlertDialog renders no DOM of its own, only state and wiring, so this is an `<AlertDialogTrigger>` and an `<AlertDialogContent>`."
       },
       {
         "name": "defaultOpen",
@@ -152,19 +152,19 @@ export const API: Record<string, ApiEntry> = {
         "name": "onOpenChange",
         "type": "(open: boolean, details: OverlayOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Fires on every open and close. It carries no dismissal details, and that is the role rather than an omission: an alert refuses outside presses (§25), so the only ways out are the two buttons and Escape, and Escape IS the Cancel action by another route."
+        "doc": "Fires on every open and close. It carries no dismissal details, and that follows from the role rather than being an omission: an alert refuses outside presses, so the only ways out are the two buttons and Escape, and Escape is the Cancel action by another route."
       },
       {
         "name": "open",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled open state, paired with `onOpenChange` — Dialog's pattern, which the whole library shares."
+        "doc": "Controlled open state, paired with `onOpenChange`, in the pattern the whole library shares."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4, §25 — prices the whole alert: box, corner, padding, title and description steps, and the two buttons. It can reach the type where Dialog's cannot, because the content here is the system's own."
+        "doc": "Sets the whole alert: the box, the corner, the padding, the title and description type steps, and the two buttons. It may reach the type where Dialog's size cannot, because the content here is the system's own."
       }
     ]
   },
@@ -175,7 +175,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The question, phrased as one. It is the alert's accessible name as well as its heading, so it should say what is about to happen and to what — \"Delete three files?\" — where a title naming the widget leaves the buttons underneath meaningless."
+        "doc": "The question, phrased as one. It is the alert's accessible name as well as its heading, so it should say what is about to happen and to what. \"Delete three files?\" works. A title naming the widget leaves the buttons underneath meaningless."
       },
       {
         "name": "className",
@@ -198,7 +198,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The button's words, and they name what is about to be RISKED rather than the alert: \"Delete…\" opens the confirmation, and the ellipsis is the platform's own promise that a question is coming. They land on the `render` target, so a Kookie Button plus children is one button."
+        "doc": "The button's words. Name what is about to be risked rather than the alert itself: \"Delete…\" opens the confirmation, and the ellipsis is the platform's own promise that a question is coming. They land on the `render` target, so a Kookie Button plus children is one button."
       },
       {
         "name": "className",
@@ -210,13 +210,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the trigger down — the alert cannot be raised from here."
+        "doc": "Turns the trigger off, so the alert cannot be raised from here."
       },
       {
         "name": "nativeButton",
         "type": "boolean",
         "optional": true,
-        "doc": "Whether the rendered element really is a `<button>` — inferred from `render` (§5)."
+        "doc": "Whether the rendered element really is a `<button>`. It is inferred from `render`."
       },
       {
         "name": "render",
@@ -245,19 +245,19 @@ export const API: Record<string, ApiEntry> = {
         "name": "emphasis",
         "type": "Emphasis",
         "optional": true,
-        "doc": "§9, §15 — the foreground roles. Rests loud, as all type does: a pulled quote is reading-length copy, and quiet is below body-copy contrast by design."
+        "doc": "Picks an ink colour. It rests loud, as all type does, because a quote is something somebody reads and quiet sits below the reading contrast floor."
       },
       {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Render into the element the document needs — a `<figure>`'s child, an `<aside>`."
+        "doc": "Render into the element the document needs, such as a child of a `<figure>`."
       },
       {
         "name": "size",
         "type": "TypeSize",
         "optional": true,
-        "doc": "§15 — a step on the shared ramp. Anchors at 3 like Text, and unlike Code: a quote is a BLOCK, so it states its own step rather than taking the line it sits in."
+        "doc": "A step on the shared ramp. It defaults to 3 like `Text`, and unlike `Code`, because a quote is a block and sets its own step rather than taking the line it sits in."
       },
       {
         "name": "style",
@@ -269,13 +269,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "§7, §15 — re-scopes the ink trio onto the family. It does NOT tint the rule; see the stylesheet for why the rule stays tone-less."
+        "doc": "Moves the ink onto that family. It does not tint the rule: a destructive quote is red words beside a neutral rule."
       },
       {
         "name": "weight",
         "type": "Weight",
         "optional": true,
-        "doc": "§15 — token names, never numbers; the shared three-rung set, topping out at semibold because `bold` is refused system-wide. Rests regular like Text, because a quote is copy: the rule and the indent are what set it apart, and a heavier face would make it a heading in quotation marks."
+        "doc": "Token names, never numbers, and semibold is the heaviest. It rests at regular, like `Text`, because a quote is copy. The rule and the indent set it apart, and a heavier weight would make it a heading in quotation marks."
       }
     ]
   },
@@ -286,19 +286,19 @@ export const API: Record<string, ApiEntry> = {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
-        "doc": "§10 — marks a REGION where content passes behind the components inside it (2026-08-17): a toolbar floating over a canvas, a panel over a hero image. Every material-expressing component within (buttons, fields, cards, selects) resolves the theme's material here instead of solid — placement is a fact about the place, stated once, not a prop sprinkled per control. `backdrop={false}` re-marks a sub-region as calm. Layout is untouched: the mark is a React context, not a style."
+        "doc": "Marks a region where content passes behind the components inside it, such as a toolbar over a canvas or a panel over a hero image. Every glass-capable component within it (buttons, fields, cards, selects) then resolves the theme's material instead of solid. Say it once for the region rather than on every control. `backdrop={false}` marks a sub-region as plain again. Layout is untouched: this is a React context, not a style."
       },
       {
         "name": "container",
         "type": "boolean",
         "optional": true,
-        "doc": "Make this Box measurable: responsive values (`{ initial, sm, md, lg }`) on anything inside resolve against THIS Box's width instead of the nearest measurable ancestor (the Theme root, absent a nearer one). The trade, imposed by CSS itself: a measurable box can never size itself around its contents — its width must come from outside. Put `container` on things layout already sizes (a sidebar with a width, a main column that grows, a grid cell), or state `width` / `flexGrow` / `flexBasis` yourself. A container Box left to shrink-wrap (e.g. as a plain flex-row item) renders ZERO pixels wide; dev builds warn when that happens (§2)."
+        "doc": "Make this Box measurable. Responsive values such as `{ initial, sm, md, lg }` on anything inside it then resolve against this Box's width instead of against the nearest measurable ancestor, which is the Theme root when there is nothing nearer. CSS imposes a trade here: a measurable box can never size itself around its contents, so its width has to come from outside. Put `container` on things the layout already sizes, such as a sidebar with a width, a main column that grows, or a grid cell. Or state `width`, `flexGrow` or `flexBasis` yourself. A container Box left to shrink-wrap, for example as a plain flex-row item, renders zero pixels wide, and a development build warns you when that happens."
       },
       {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Render into an element you already have, instead of adding a wrapper (§5)."
+        "doc": "Render into an element you already have, instead of adding a wrapper."
       }
     ]
   },
@@ -309,13 +309,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
-        "doc": "§10 — a placement fact (2026-08-17): content passes behind this button, so the theme's material may express. Unset, reads the ambient `<Box backdrop>` region. Cannot choose a material — only state that there is something to bend."
+        "doc": "Says that content passes behind this button, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region. It cannot pick a material. It only says there is something behind this to bend."
       },
       {
         "name": "bordered",
         "type": "boolean",
         "optional": true,
-        "doc": "§10 — containment, orthogonal to loudness: `quiet + bordered` is the old outline."
+        "doc": "Adds a hairline. It is separate from loudness: quiet with a border is the old outline button, and it reads half a step above quiet."
       },
       {
         "name": "className",
@@ -327,43 +327,43 @@ export const API: Record<string, ApiEntry> = {
         "name": "emphasis",
         "type": "Emphasis",
         "optional": true,
-        "doc": "§9 — loudness, and the only ranking axis in the system: there is no `variant`, and the deletion is load-bearing — one axis cannot mean colour and prominence at once. Resolved for a CONTROL as fills (surfaces take the same ladder as dressing, type as foreground roles): loud is the tone's solid, medium its soft wash, quiet bare. So the rung ranks this button against the ones beside it, and a row of actions is read in the order the fills state. Rests `medium` (§11): a screen earns one loud button by asking."
+        "doc": "How loud this action is against the actions beside it. It is the only ranking axis in the system, and there is no `variant`: one prop cannot mean colour and prominence at once. On a button it picks a fill. Loud is the tone's solid colour, medium is a soft wash, and quiet has no fill at all. Read a row of actions in the order the fills state. Defaults to `medium`, so a screen earns its one loud button by asking for it."
       },
       {
         "name": "focusableWhenDisabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Keep focus when the button becomes disabled mid-interaction."
+        "doc": "Keep focus on the button when it becomes disabled part-way through an interaction."
       },
       {
         "name": "leading",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "Leading slot. Swapped for the Spinner while loading, so nothing shifts (§8). Named `leading`/`trailing` rather than `icon`/`iconEnd` (renamed 2026-08-04): ENGINEERING §3 forbids two spellings for one axis, and TextField had already shipped the better pair. It is better on the merits too — the names are RTL-correct where `End` is not, and a trailing slot frequently holds a button rather than an icon, which `iconEnd` misdescribes."
+        "doc": "The slot before the label, usually an icon. While `loading` is true the Spinner takes this slot, in the same box, so nothing shifts."
       },
       {
         "name": "loading",
         "type": "boolean",
         "optional": true,
-        "doc": "Blocks interaction and shows a Spinner, without ever hiding the label (§8)."
+        "doc": "Blocks the press and shows a Spinner. The label never goes away."
       },
       {
         "name": "nativeButton",
         "type": "boolean",
         "optional": true,
-        "doc": "Whether the rendered element really is a `<button>`. Inferred from `render` and almost never worth passing: it exists because Base UI branches its whole a11y contract on it, and getting it wrong is silent. See the note on the `render` escape below."
+        "doc": "Whether the rendered element really is a `<button>`. It is inferred from `render`, and you almost never need to pass it. It exists because Base UI decides its whole accessibility contract from this value, and getting it wrong fails silently."
       },
       {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Render into an element you already have — a link, a `<summary>` (§5). The dress and the behaviour stay this component's; only the tag changes. Base UI branches its whole a11y contract on whether the result is a real `<button>`, which is inferred from what is passed here — see `nativeButton` for the case that cannot be inspected."
+        "doc": "Render into an element you already have, such as a link or a `<summary>`. The appearance and the behaviour stay this component's, and only the tag changes. Base UI decides its accessibility contract from what the result is, which is inferred from what you pass here. See `nativeButton` for the case that cannot be inspected."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — an index into the control family, never a measurement. One number joins five independent scales at once — the height ladder, the inline padding, the corner, the icon box and the label's type step — so every control at the same index stands level with every other, and re-pricing a step is one config line rather than a sweep of call sites. `2` is the baseline. Density and the pointer world re-price what the index resolves to; they never change what it means."
+        "doc": "An index into the control family, never a measurement. One number sets five things at once: the height, the side padding, the corner, the icon box and the label's type step. Every control at the same index stands level with every other, and re-pricing a step is one config line rather than a sweep of call sites. Density and the pointer setting change what the index resolves to. They never change what it means. Defaults to `2`."
       },
       {
         "name": "style",
@@ -375,13 +375,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "§7 — the semantic family, and a MEANING rather than a colour: `destructive` says what the press does and the theme decides the pigment, which is what lets a palette move without a single call site being edited. Rests `neutral` (§11), so nothing is accent by accident — an accent button is always something somebody asked for."
+        "doc": "What the action means, not what colour it is. `destructive` says what the press does, and the theme decides the colour, which is what lets a palette move without a call site being edited. Defaults to `neutral`, so nothing is accent by accident."
       },
       {
         "name": "trailing",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "Trailing slot — a chevron, a count, a control. Never replaced by the Spinner."
+        "doc": "The slot after the label: a chevron, a count, or a whole control. The Spinner never replaces it."
       }
     ]
   },
@@ -392,7 +392,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
-        "doc": "§10 — a PLACEMENT fact, not a material choice (selectivity, 2026-08-17; renamed from `overContent` the same day — the name now says what glass actually needs): does this card have a backdrop — a hero image, a canvas, a scrolling feed passing behind it? An in-flow card sits on the page's own calm ground, where glass blurs nothing and still pays a full backdrop readback, so by default it renders the solid look at every theme material (the §10 convergence guarantees the two are identical there). Unset, it reads the ambient `<Box backdrop>` region; floating panes (menus, dialogs) are over content by construction and never need it. The material itself is still the theme's — this prop cannot choose one."
+        "doc": "Says whether something passes behind this card: a hero image, a canvas, a scrolling feed. A card in ordinary flow sits on the page, where glass blurs nothing and still costs a full backdrop read on every paint, so by default it renders solid whatever the theme's material is. Unset, it follows the surrounding `<Box backdrop>` region. A menu or a dialog always covers content, so neither needs this. The material itself is still the theme's: this prop cannot pick one."
       },
       {
         "name": "className",
@@ -404,13 +404,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Render into an element you already have — an `<article>`, a link (§5)."
+        "doc": "Render into an element you already have, and let that element decide what the card does. An `<article>` stays inert. A button or a link presses, and takes the control state machine whole, disabled included. A `<label>` wrapped around a `Radio` or a `Checkbox` makes the whole card the target of that control, and the chosen card takes the selected edge. There is no `selected` prop and no `interactive` prop, because the element already says which of these it is."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — pads from the surface family; a surface has no height to own."
+        "doc": "Sets the padding and the corner. A card has no height of its own to set."
       },
       {
         "name": "style",
@@ -433,7 +433,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — an index into the MARK ladder, which is the one ladder every control that IS its own mark shares. It leaves the height ladder (that is the geometry of a box that CONTAINS a label; this one sits beside one) and keeps the index, so a checkbox, a radio and a switch at the same step read as the same size of thing rather than as three ladders that drift. The rungs ARE the line box — `--mark-N` resolves to `--line-height-N` — so the square is exactly one line of the label beside it: it aligns by construction, never disturbs the text rhythm, and grows on a phone because §17's handheld band raises the type and the mark rides it, with nothing designed twice. What the index still buys from the control family is the TARGET (§16): the invisible hit area is a control of this size capped at the touch floor, so a checkbox is exactly as large a thing to aim at as the Button beside it. Density never touches a mark — it is content, and a mark that grew while its label held would stop matching its line."
+        "doc": "An index into the mark ladder, which every control that is its own mark shares. It leaves the height ladder, because that is the geometry of a box that contains a label and this one sits beside one. It keeps the index, so a checkbox, a radio and a switch at the same number read as the same size of thing. The ladder is the line box, so the mark is exactly one line of the label beside it and lines up with no offset. Defaults to 2."
       }
     ]
   },
@@ -450,7 +450,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "emphasis",
         "type": "Emphasis",
         "optional": true,
-        "doc": "§9, §15 — resolved for type as foreground roles, the same three the surrounding copy reads. Unset rests loud: code is a literal, and a literal that has faded is a legibility loss with nothing gained."
+        "doc": "Picks an ink colour, the same three the surrounding copy uses. It rests loud, because a faded literal is harder to read and gains nothing."
       },
       {
         "name": "render",
@@ -462,7 +462,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "TypeSize",
         "optional": true,
-        "doc": "§15 — a step on the shared ramp. **Optional with no default**, which is the one thing this component does differently from Text: an inline atom has no size of its own. Unset, it takes the font-size, line height and letter spacing of the line it sits in, so `<Text size=\"2\">the <Code>value</Code></Text>` matches by construction rather than by the call site remembering to repeat the index. Set it only when the chip stands alone."
+        "doc": "A step on the shared ramp. It is optional with no default, which is the one thing this component does differently from `Text`: a word inside a sentence has no size of its own. Unset, it takes the font size, line height and letter spacing of the line it sits in, so `<Text size=\"2\">the <Code>value</Code></Text>` matches without the call site repeating the index. Set it only when the chip stands alone."
       },
       {
         "name": "style",
@@ -474,13 +474,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "§7, §15 — re-scopes both the ink trio AND the chip's own fill onto the family, because an atom that carries a fill has a second thing to tint. Defaults to `neutral`, stamped rather than omitted (ENGINEERING §2.1: an identity a component fixes is still stamped — and here it must be, since the tone indirection is declared per family, never at :root)."
+        "doc": "Moves both the ink and the chip's own fill onto that family, because a word with a fill behind it has two things to tint. Defaults to `neutral`."
       },
       {
         "name": "weight",
         "type": "Weight",
         "optional": true,
-        "doc": "§15 — token names, never numbers, topping out at semibold (`bold` is refused system-wide). Unset with no default, for `size`'s reason: a literal quoted inside a sentence keeps that sentence's face, and the mono family is already what sets it apart. Set it when the chip stands alone."
+        "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, for the same reason `size` is: a literal quoted inside a sentence keeps that sentence's weight, and the mono font is already what sets it apart."
       }
     ]
   },
@@ -491,7 +491,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The button's words. They land on the `render` target when there is one, so `<DialogClose render={<Button/>}>Cancel</DialogClose>` is a single button carrying a single label — not a Button nested inside a second one."
+        "doc": "The button's words. They land on the `render` target when there is one, so `<DialogClose render={<Button/>}>Cancel</DialogClose>` is a single button carrying a single label, not a Button nested inside a second one."
       },
       {
         "name": "className",
@@ -503,7 +503,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "nativeButton",
         "type": "boolean",
         "optional": true,
-        "doc": "Whether the rendered element really is a `<button>` — inferred from `render` (§5)."
+        "doc": "Whether the rendered element really is a `<button>`. It is inferred from `render`."
       },
       {
         "name": "render",
@@ -526,7 +526,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The panel's whole content, and it belongs to the CONSUMER — which is the line between this component and AlertDialog, whose content is the system's (§25). Nothing here is arranged for you, so write the layout the screen needs. Two parts are worth reaching for: a `DialogTitle`, without which the panel has no accessible name at all, and a `DialogClose`, because a trapped screen-reader user needs a reachable way out."
+        "doc": "The panel's whole content, and it belongs to you. That is the line between this component and AlertDialog, whose content belongs to the system. Nothing here is arranged for you, so write the layout the screen needs. Two parts are worth reaching for: a `DialogTitle`, without which the panel has no accessible name at all, and a `DialogClose`, because a screen reader user inside a trapped panel needs a reachable way out."
       },
       {
         "name": "className",
@@ -549,7 +549,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The supporting line: what the panel is asking for, said once. It is announced together with the title, so a description that restates it is heard twice — and a panel with nothing to add is a panel with no description, not one with a padded sentence."
+        "doc": "The supporting line: what the panel is asking for, said once. It is announced together with the title, so a description that restates the title is heard twice. A panel with nothing to add has no description, rather than a padded sentence."
       },
       {
         "name": "className",
@@ -572,7 +572,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The trigger and the content. Dialog renders no DOM of its own — it is state and wiring — so this is `<DialogTrigger>` and `<DialogContent>`, in either order."
+        "doc": "The trigger and the content. Dialog renders no DOM of its own, only state and wiring, so this is a `<DialogTrigger>` and a `<DialogContent>`, in either order."
       },
       {
         "name": "defaultOpen",
@@ -584,19 +584,19 @@ export const API: Record<string, ApiEntry> = {
         "name": "onOpenChange",
         "type": "(open: boolean, details: OverlayOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Fires on every open and close, controlled or not. The second argument is what makes a guard writable: `reason` names what did it (an outside press, Escape, a close button, the trigger), `event` is the native event behind it, and `cancel()` refuses that one dismissal — so \"you have unsaved changes\" is a real answer rather than a race."
+        "doc": "Fires on every open and close, controlled or not. The second argument is what makes a guard writable: `reason` names what did it, such as an outside press or Escape, `event` is the native event behind it, and `cancel()` refuses that one dismissal. That makes \"you have unsaved changes\" a real answer rather than a race."
       },
       {
         "name": "open",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled open state. Pass it with `onOpenChange` — this trio is the library's ONE controlled-state pattern, and every floating component and every Shell pane repeats it unchanged."
+        "doc": "Controlled open state. Pass it with `onOpenChange`. These three props are the library's one controlled-state pattern, and every floating component and every Shell pane repeats it unchanged."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4, §24 — prices the popup's max width, its padding and its corner."
+        "doc": "Sets the panel's maximum width, its padding and its corner. It never sets the type inside."
       }
     ]
   },
@@ -607,7 +607,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The panel's name, in words. It is the visible heading AND the string a screen reader announces the dialog by, which is one obligation rather than two: name the task (\"Rename project\"), never the widget (\"Dialog\")."
+        "doc": "The panel's name, in words. It is the visible heading and the string a screen reader announces the dialog by, which is one obligation rather than two. Name the task, such as \"Rename project\", never the widget."
       },
       {
         "name": "className",
@@ -630,7 +630,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The button's words. They land on the `render` target when there is one, so `<DialogClose render={<Button/>}>Cancel</DialogClose>` is a single button carrying a single label — not a Button nested inside a second one."
+        "doc": "The button's words. They land on the `render` target when there is one, so `<DialogClose render={<Button/>}>Cancel</DialogClose>` is a single button carrying a single label, not a Button nested inside a second one."
       },
       {
         "name": "className",
@@ -642,7 +642,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "nativeButton",
         "type": "boolean",
         "optional": true,
-        "doc": "Whether the rendered element really is a `<button>` — inferred from `render` (§5)."
+        "doc": "Whether the rendered element really is a `<button>`. It is inferred from `render`."
       },
       {
         "name": "render",
@@ -715,7 +715,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§28 — the control family's index, priced once for the whole unit: the label, the description, the error AND the control inside it. The type steps are the IDENTITY of the control's own — a field at size 2 sets its label at the step its value is set in, because the control size join is itself the identity map (`--kui-ct-font: var(--font-size-N)`). So nothing is designed twice and a law reads the label's computed size against a mounted control's rather than against a number. It reaches the control by context and an explicit prop on the control wins — see `system/control-size.ts` for the three bounds on that mechanism and why it needs them."
+        "doc": "The control index, set once for the whole unit: the label, the description, the error and the control inside it. It reaches the control through React context, and an explicit `size` on the control always wins, so a control is never re-sized behind a number somebody typed."
       }
     ]
   },
@@ -754,19 +754,19 @@ export const API: Record<string, ApiEntry> = {
         "name": "emphasis",
         "type": "Emphasis",
         "optional": true,
-        "doc": "§9, §15 — the type ladder: a muted eyebrow or section label without leaving the axis."
+        "doc": "Picks an ink colour, the same three `Text` uses. Use it for a muted section label."
       },
       {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Name the real outline level — `render={<h1/>}`, `<h3/>` — without moving the ramp (§5)."
+        "doc": "Name the real outline level, such as `render={<h1/>}`, without moving the type step."
       },
       {
         "name": "size",
         "type": "TypeSize",
         "optional": true,
-        "doc": "§15 — a step on the SAME ramp Text reads; one type system, not two, so the index means the same thing on both. It prices the TYPE and nothing else — the document's outline level is `render`'s job — which is what lets a sidebar's `h2` sit at 4 while the hero's sits at 8. Anchors at 6, §15's card-title step."
+        "doc": "A step on the same ramp `Text` reads. One type system, not two, so the index means the same thing on both. It sets the type and nothing else: the document outline level is `render`'s job, which is what lets a sidebar's `h2` sit at 4 while the hero's sits at 8. Defaults to 6, the card-title step."
       },
       {
         "name": "style",
@@ -778,13 +778,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "§7, §15 — a semantic family for the ink, never a colour name (see Text)."
+        "doc": "A meaning for the ink, never a colour name. The theme resolves the colour."
       },
       {
         "name": "weight",
         "type": "Weight",
         "optional": true,
-        "doc": "§15 — token names, never numbers. Rests semibold, which is also the top of the ladder — `bold` is refused system-wide — so a heading takes its weight from the step it stands on and the ink role it wears, never from a heavier face."
+        "doc": "Token names, never numbers. It rests at semibold, which is also the heaviest weight in the system, because `bold` is refused. A heading gets its weight from the step it stands on and the ink colour it wears, never from a heavier face."
       }
     ]
   },
@@ -801,7 +801,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "emphasis",
         "type": "Emphasis",
         "optional": true,
-        "doc": "§9, §15 — the foreground roles, as for all type."
+        "doc": "Picks an ink colour, as it does on all type. It changes the letters, not the cap."
       },
       {
         "name": "render",
@@ -813,7 +813,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "TypeSize",
         "optional": true,
-        "doc": "§15 — a step on the shared ramp. Optional with no default, for Code's reason: a key cap quoted inside a sentence takes that sentence's step."
+        "doc": "A step on the shared ramp. Optional with no default, for the same reason `Code` is: a key cap inside a sentence takes that sentence's step."
       },
       {
         "name": "style",
@@ -825,13 +825,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "§7, §15 — re-scopes the ink trio, the fill and the edge onto the family. Defaults to `neutral`, stamped rather than omitted (the tone indirection has no :root default)."
+        "doc": "Moves the ink and the fill onto that family. The edge is a grey relief line and does not follow the tone. Defaults to `neutral`."
       },
       {
         "name": "weight",
         "type": "Weight",
         "optional": true,
-        "doc": "§15 — token names, never numbers, topping out at semibold (`bold` is refused system-wide). Unset with no default, as `size` is: a cap quoted inside a sentence takes that sentence's face. The box, the edge and the cast are what say \"key\" — the weight was never carrying it."
+        "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, as `size` is. The box, the edge and the shadow are what say \"key\". The weight never was."
       }
     ]
   },
@@ -848,13 +848,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Render into the element the document needs — a framework's own link component, or an `<a>` carrying `target` and `rel`. Link states the type treatment; the element and where it goes are the caller's."
+        "doc": "Render into the element you need, such as your framework's own link component or an `<a>` carrying `target` and `rel`. `Link` supplies the type treatment. The element and where it goes are yours."
       },
       {
         "name": "size",
         "type": "TypeSize",
         "optional": true,
-        "doc": "§15 — a step on the shared ramp. **Optional with no default**, Code's rule verbatim: an inline atom has no size of its own. Unset, a link takes the font-size, line height and letter spacing of the sentence it sits in, so a link inside `<Text size=\"2\">` matches by construction rather than by the call site repeating the index. Set it only when the link stands alone."
+        "doc": "A step on the shared ramp. Optional with no default, which is `Code`'s rule: a word inside a sentence has no size of its own. Unset, a link takes the font size, line height and letter spacing of the sentence it sits in, so a link inside `<Text size=\"2\">` matches without the call site repeating the index. Set it only when the link stands alone."
       },
       {
         "name": "style",
@@ -866,13 +866,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "§7, §11, §15 — a semantic family, never a colour name. Re-scopes the ink onto that family's ladder, so a destructive link is red words with a red underline. Defaults to `accent`, and this is one of §11's four named exceptions to \"tone is neutral for everything\": a link is the one run of text whose job is to be found in a paragraph. The exception is about the FAMILY, not about loudness — nothing here defaults to the loud rung, so §11's one-focal-action guarantee is untouched."
+        "doc": "A meaning, never a colour name. It moves the ink onto that family, so a destructive link is red words with a red underline. It defaults to `accent`, which is one of four places in the system where a component does not rest neutral. A link is the one run of text whose job is to be found inside a paragraph. The exception is about which family it picks, not about loudness, so the rule that a screen has one focal action is untouched."
       },
       {
         "name": "weight",
         "type": "Weight",
         "optional": true,
-        "doc": "§15 — token names, never numbers, topping out at semibold. Unset with no default, for `size`'s reason: a link inside a sentence keeps that sentence's face, and the colour and the underline are already what set it apart."
+        "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, for the same reason `size` is: a link inside a sentence keeps that sentence's weight, and the colour and the underline already set it apart."
       }
     ]
   },
@@ -883,13 +883,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "checked",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled ticked state, paired with `onCheckedChange`. Ticked is the accent on the INDICATOR and nothing else — §21 makes rows peers, so a chosen row is marked rather than made louder, which is also what keeps a menu of ten filters from looking like a ranking."
+        "doc": "Controlled ticked state, paired with `onCheckedChange`. Ticked shows as the accent colour on the indicator and nothing else, because rows are peers: a chosen row is marked rather than made louder, which is what keeps a menu of ten filters from looking like a ranking."
       },
       {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The row's words — the thing being toggled, phrased so the ticked state reads as true."
+        "doc": "The row's words: the thing being toggled, phrased so the ticked state reads as true."
       },
       {
         "name": "className",
@@ -901,7 +901,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "closeOnClick",
         "type": "boolean",
         "optional": true,
-        "doc": "Checkable rows stay open by default — toggling several filters is one visit."
+        "doc": "Close the menu when this row is chosen. Off by default for a checkable row, because toggling several filters is one visit."
       },
       {
         "name": "defaultChecked",
@@ -913,7 +913,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the row down — the toggle cannot move. Its current state still shows, which is the point: \"on, and you may not change it\" is information."
+        "doc": "Turns the row off, so the toggle cannot move. Its current state still shows, which is the point: \"on, and you may not change it\" is information."
       },
       {
         "name": "label",
@@ -937,7 +937,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "trailing",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The tail of the row — a shortcut hint or a count. The head is spoken for: the tick's gutter is this row's leading slot and stays mounted in both states, so a list of filters keeps its labels aligned whatever is ticked."
+        "doc": "The tail of the row: a shortcut hint or a count. The head is the tick's reserved gutter."
       }
     ]
   },
@@ -954,7 +954,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The panel's rows — `MenuItem`, `MenuCheckboxItem`, `MenuRadioGroup`, `MenuGroup`, `MenuLabel`, `MenuSub`. A divider is the ordinary `<Separator>`: a menu-specific part would rename a component that already exists (§22's refusal), and menu.css supplies only the rhythm around it. Everything here mounts inside the portal, where the panel's bare `<Theme>` re-applies the axes of the spot it landed in rather than the ones it was written under (§20)."
+        "doc": "The panel's rows: `MenuItem`, `MenuCheckboxItem`, `MenuRadioGroup`, `MenuGroup`, `MenuLabel` and `MenuSub`. A divider is the ordinary `<Separator>`, because a menu-specific part would rename a component that already exists. Everything here mounts inside the portal, where the panel re-applies the theme axes of the place it landed rather than the ones it was written under."
       },
       {
         "name": "className",
@@ -989,7 +989,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The rows the group holds, and at most one `MenuLabel` naming them. Placing the label INSIDE is what earns the association: Base UI points the group's `aria-labelledby` at it, so the name is announced rather than merely printed above the rows."
+        "doc": "The rows the group holds, and at most one `MenuLabel` naming them. Putting the label inside the group is what earns the association: Base UI points the group's `aria-labelledby` at it, so the name is announced rather than only printed above the rows."
       },
       {
         "name": "className",
@@ -1012,7 +1012,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The row's words — the verb. Plain text keeps typeahead working; anything richer owes a `label`."
+        "doc": "The row's words, which are the verb. Plain text keeps typeahead working. Anything richer needs a `label`."
       },
       {
         "name": "className",
@@ -1024,13 +1024,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "closeOnClick",
         "type": "boolean",
         "optional": true,
-        "doc": "Close the menu when this item is chosen. On by default — a menu is a verb list."
+        "doc": "Close the menu when this item is chosen. On by default, because a menu is a list of verbs."
       },
       {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the row down — it cannot be chosen. It stays in the list on purpose: a greyed row still says the action exists and where it lives, where removing it says nothing."
+        "doc": "Turns the row off, so it cannot be chosen. It stays in the list on purpose: a greyed row still says the action exists and where it lives, and removing it says nothing."
       },
       {
         "name": "label",
@@ -1042,13 +1042,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "leading",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "Artwork at the head of the row, usually an icon. It is the same slot a checkable row's indicator occupies, so an icon here and a tick one row down sit in one column — which is also why there is no `inset` prop: a checkable row keeps its indicator mounted whether or not it is ticked, so the gutter holds by geometry rather than by a flag (§22)."
+        "doc": "Artwork at the head of the row, usually an icon. It is the same slot a checkable row's tick occupies, so an icon here and a tick one row down sit in one column. That is also why there is no `inset` prop: a checkable row keeps its indicator mounted whether or not it is ticked, so the gutter holds by geometry rather than by a flag."
       },
       {
         "name": "onClick",
         "type": "React.MouseEventHandler<HTMLElement>",
         "optional": true,
-        "doc": "What choosing the row does. The menu closes around it (`closeOnClick`), so this is where work STARTS — anything that has to report back needs a surface that outlives the panel."
+        "doc": "What choosing the row does. The menu closes around it, so this is where work starts. Anything that has to report back needs a surface that outlives the panel."
       },
       {
         "name": "style",
@@ -1060,13 +1060,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "\"destructive\"",
         "optional": true,
-        "doc": "§21 — the one meaning a row may carry. Not a palette: the union stays this narrow on purpose, and a wider vocabulary is a future decision, never a default."
+        "doc": "The one meaning a row may carry. It is not a palette: the list stays this narrow on purpose, and widening it is a decision rather than a default."
       },
       {
         "name": "trailing",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The tail of the row: a `<Kbd>` shortcut hint, a count, a state glyph. Not a second action — a row is one target, and a control inside it would be a second one."
+        "doc": "The tail of the row: a `<Kbd>` shortcut hint, a count, a state glyph. Not a second action. A row is one target, and a control inside it would be a second one."
       }
     ]
   },
@@ -1077,7 +1077,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The heading's words — what the rows beneath have in common. Nothing here is pressable; a label that names an action is a `MenuItem` that was written in the wrong part."
+        "doc": "The heading's words: what the rows beneath it have in common. Nothing here is pressable. A label that names an action is a `MenuItem` written in the wrong part."
       },
       {
         "name": "className",
@@ -1100,7 +1100,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The trigger and the content. Menu renders no DOM of its own — state and wiring only — so this is `<MenuTrigger>` and `<MenuContent>`."
+        "doc": "The trigger and the content. Menu renders no DOM of its own, only state and wiring, so this is a `<MenuTrigger>` and a `<MenuContent>`."
       },
       {
         "name": "defaultOpen",
@@ -1112,19 +1112,19 @@ export const API: Record<string, ApiEntry> = {
         "name": "onOpenChange",
         "type": "(open: boolean) => void",
         "optional": true,
-        "doc": "Fires on every open and close, controlled or not — including the dismissals the menu handles itself (Escape, an outside press, choosing a row)."
+        "doc": "Fires on every open and close, controlled or not, including the dismissals the menu handles itself: Escape, an outside press, and choosing a row."
       },
       {
         "name": "open",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled open state, paired with `onOpenChange` — Dialog's pattern, which the whole library shares. A menu rarely needs it: opening is the trigger's job."
+        "doc": "Controlled open state, paired with `onOpenChange`, in the pattern the whole library shares. A menu rarely needs it, because opening is the trigger's job."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — the same index the trigger wears; rows, glyphs and type all price from it."
+        "doc": "The same index the trigger wears. The rows, the glyphs and the type all take it."
       }
     ]
   },
@@ -1135,7 +1135,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The `MenuRadioItem` rows, and at most one `MenuLabel` naming the question. A radio group IS a group, so the label is wired to it exactly as `MenuGroup`'s is."
+        "doc": "The `MenuRadioItem` rows, and at most one `MenuLabel` naming the question. A radio group is a group, so the label is wired to it exactly as `MenuGroup`'s is."
       },
       {
         "name": "className",
@@ -1153,7 +1153,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands every row in the group down at once — one statement rather than the same prop repeated per row, so a group that is momentarily unavailable cannot be half-disabled."
+        "doc": "Turns every row in the group off at once. One statement rather than the same prop repeated per row, so a group that is momentarily unavailable cannot be half-disabled."
       },
       {
         "name": "onValueChange",
@@ -1171,7 +1171,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "value",
         "type": "string",
         "optional": true,
-        "doc": "Controlled chosen value, paired with `onValueChange`. The GROUP holds the choice and the rows only report it, which is why exclusivity needs no bookkeeping at the call site."
+        "doc": "Controlled chosen value, paired with `onValueChange`. The group holds the choice and the rows only report it, which is why exclusivity needs no bookkeeping at the call site."
       }
     ]
   },
@@ -1182,7 +1182,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The row's words — the option itself, not a sentence about it."
+        "doc": "The row's words: the option itself, not a sentence about it."
       },
       {
         "name": "className",
@@ -1194,13 +1194,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "closeOnClick",
         "type": "boolean",
         "optional": true,
-        "doc": "Close the menu when this row is chosen. OFF by default, like the checkbox row's — a checkable row reports state, and staying open is what lets you watch the dot land where you put it. Turn it on where choosing IS the whole visit."
+        "doc": "Close the menu when this row is chosen. Off by default, like the checkable row's, because staying open is what lets you watch the dot land where you put it. Turn it on where choosing is the whole visit."
       },
       {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the row down — it cannot be chosen. It still shows whether it currently IS the choice, which is the case this matters for: the answer you are stuck with."
+        "doc": "Turns the row off, so it cannot be chosen. It still shows whether it currently is the choice, which is the case this matters for: the answer you are stuck with."
       },
       {
         "name": "label",
@@ -1218,13 +1218,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "trailing",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The tail of the row — a shortcut hint or a count. The head is the dot's reserved gutter, mounted whether or not this is the chosen row."
+        "doc": "The tail of the row: a shortcut hint or a count. The head is the dot's reserved gutter, mounted whether or not this is the chosen row."
       },
       {
         "name": "value",
         "type": "string",
         "optional": false,
-        "doc": "What this row answers with. The group compares it against its own value to decide which row is marked, so it must be unique inside the group — two rows sharing a value are one choice drawn twice."
+        "doc": "What this row answers with. The group compares it against its own value to decide which row is marked, so it has to be unique inside the group. Two rows sharing a value are one choice drawn twice."
       }
     ]
   },
@@ -1235,7 +1235,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The child panel's rows, written exactly as a top-level panel's are — a further `MenuSub` included, which nests without a depth limit. What differs is not the content but the geometry, and that is the system's (§22): the panel takes its width from what is in it rather than from the panel it came out of."
+        "doc": "The child panel's rows, written exactly as a top-level panel's are, including a further `MenuSub`, which nests with no depth limit. What differs is the geometry, and that belongs to the system: the panel takes its width from what is in it rather than from the panel it came out of."
       },
       {
         "name": "className",
@@ -1258,7 +1258,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The `MenuSubTrigger` row and the `MenuSubContent` panel it opens. MenuSub renders no DOM of its own — state and wiring only, exactly like the root."
+        "doc": "The `MenuSubTrigger` row and the `MenuSubContent` panel it opens. MenuSub renders no DOM of its own, only state and wiring, exactly like the root."
       },
       {
         "name": "defaultOpen",
@@ -1276,7 +1276,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "open",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled open state of THIS submenu, paired with `onOpenChange` — Dialog's pattern, which the whole library shares. It is independent of the menu the row sits in: a submenu opens and closes on its own row, and closing it leaves the parent panel standing. Rarely needed — opening is the sub-trigger's job."
+        "doc": "Controlled open state of this submenu, paired with `onOpenChange`. It is independent of the menu the row sits in: a submenu opens and closes on its own row, and closing it leaves the parent panel standing. Rarely needed, because opening is the sub-trigger's job."
       }
     ]
   },
@@ -1287,7 +1287,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The row's words — the name of the group of actions inside, not an action itself. Choosing this row opens a panel; it never does anything."
+        "doc": "The row's words: the name of the group of actions inside, not an action itself. Choosing this row opens a panel. It never does anything else."
       },
       {
         "name": "className",
@@ -1299,7 +1299,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the row down — the child menu cannot be opened."
+        "doc": "Turns the row off, so the child menu cannot be opened."
       },
       {
         "name": "label",
@@ -1311,7 +1311,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "leading",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "Artwork at the head of the row, in the same reserved gutter every other row uses. Only the head: the tail is the system's here, because the chevron saying a child menu exists is not a call-site decision."
+        "doc": "Artwork at the head of the row, in the same reserved gutter every other row uses. Only the head: the tail belongs to the system here, because the chevron that says a child menu exists is not a call-site decision."
       },
       {
         "name": "style",
@@ -1328,7 +1328,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The trigger's own label, and it stays the caller's: a menu never writes back into the button that opened it. (Reporting the chosen value on the trigger is Select's job, §23.) It lands on the `render` target, so `render={<Button/>}` plus children is one button."
+        "doc": "The trigger's own label, and it stays yours: a menu never writes back into the button that opened it. Reporting a chosen value on the trigger is Select's job. It lands on the `render` target, so `render={<Button/>}` plus children is one button."
       },
       {
         "name": "className",
@@ -1340,13 +1340,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the trigger down — the menu cannot be opened. It reaches whichever a11y contract `nativeButton` resolved to, which is why that inference exists: on an anchor, `disabled` is an inert attribute and the announcement has to come from `aria-disabled` instead."
+        "doc": "Turns the trigger off, so the menu cannot be opened. It reaches whichever accessibility contract `nativeButton` resolved to, which is why that inference exists: on an anchor, `disabled` is an inert attribute and the announcement has to come from `aria-disabled`."
       },
       {
         "name": "nativeButton",
         "type": "boolean",
         "optional": true,
-        "doc": "Whether the rendered element really is a `<button>`. Inferred from `render` exactly as Button infers it, and almost never passed — the escape is for a custom component whose own root is a button, where inspection cannot see through it (§5)."
+        "doc": "Whether the rendered element really is a `<button>`. It is inferred from `render` exactly as Button infers it, and you almost never pass it. The escape is for a custom component whose own root is a button, which inspection cannot see through."
       },
       {
         "name": "render",
@@ -1369,7 +1369,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "action",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "ONE action, and it is the one that RESOLVES the condition — \"Get more usage\", not \"OK\". A `<Button/>` the call site brings, so the system never invents a label."
+        "doc": "One action, and it is the one that resolves the condition. \"Get more usage\", not \"OK\". Bring your own `<Button/>`, so the system never invents a label."
       },
       {
         "name": "backdrop",
@@ -1381,7 +1381,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": false,
-        "doc": "The message. A sentence, usually — a notice with several paragraphs is a Card."
+        "doc": "The message, usually one sentence. A notice with several paragraphs is a Card."
       },
       {
         "name": "className",
@@ -1399,7 +1399,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "icon",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The symbol, if the app has an icon set — the package ships none (§8), so the slot is empty-safe and a notice with nothing in it simply has no symbol. It carries no meaning of its own and is hidden from assistive technology: the words are the message."
+        "doc": "The symbol, if your app has an icon set. The package ships none, so the slot is safe when empty and a notice with nothing in it has no symbol. It carries no meaning of its own and is hidden from assistive technology, because the words are the message."
       },
       {
         "name": "onDismiss",
@@ -1411,7 +1411,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§10 — prices the BOX: the padding and the corner, off the ordinary surface size join, and the dismiss button the component itself places. It does not price the words: a notice holds the caller's text, and text states its own step (§15). Rests at 2 rather than a Card's 3, because a notice is a strip across the top of something rather than an object in its own right."
+        "doc": "Sets the box: the padding, the corner and the dismiss button the component places. It does not set the words, because a notice holds your text and text sets its own step. It rests at 2 rather than a card's 3, because a notice is a strip across the top of something rather than an object in its own right."
       },
       {
         "name": "style",
@@ -1423,7 +1423,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "§7, §29 — the CATEGORY, never the volume. Rests neutral, and the specimen this component was designed from is grey while being a warning: a notice is a condition stated plainly, not an alarm. Reach for `warning`, `destructive`, `success` or `info` when the family says something the sentence does not already say."
+        "doc": "The category, never the volume. It rests neutral, and a warning can be grey: a notice is a condition stated plainly, not an alarm. Reach for `warning`, `destructive`, `success` or `info` when the family says something the sentence does not already say."
       }
     ]
   },
@@ -1461,7 +1461,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — the MARK ladder, the checkbox's index verbatim: `mark(n)` is one line of the label beside it, and the diameter is that square's, so a radio and the checkbox above it in a form are the same size of thing by construction rather than by two ladders agreeing. The painted box leaves the control height ladder; the TARGET does not — it stays a control of this size capped at the touch floor (§16). Density never touches it: a mark is content, and it grows only where the type it matches grows (§17)."
+        "doc": "The mark ladder, and the same index a checkbox uses. The mark is one line of the label beside it, and the circle's diameter is that square's, so a radio and the checkbox above it in a form are the same size of thing. The painted box leaves the control height ladder. The target does not: it stays the size of a control at that index. Defaults to 2."
       }
     ]
   },
@@ -1472,7 +1472,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The content that scrolls. It lands inside the viewport, never beside the bars — the viewport, the scrollbars and the corner are assembly rather than API (§10), so there is nothing else to place. The scroll region needs a bounded height to be a scroll region: state it here through `style`, or let a Shell pane or a menu's popup bound it."
+        "doc": "The content that scrolls. It lands inside the viewport, never beside the bars, because the viewport, the scrollbars and the corner are assembly rather than API. A scroll region needs a bounded height to be a scroll region: state one here through `style`, or let a Shell pane or a menu's panel bound it."
       },
       {
         "name": "className",
@@ -1484,7 +1484,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "focusable",
         "type": "boolean",
         "optional": true,
-        "doc": "Whether the viewport is a keyboard tab stop (default true — a standalone scroll region must be reachable to scroll by keyboard, per Base UI). A HOST WIDGET that already owns keyboard scrolling passes false: ARIA drops `role=\"presentation\"` from any focusable element, so a focusable viewport inside a `role=\"menu\"` popup exposed as a nameless `generic` between the menu and its items — \"menu owns menuitem\" broken for every menu, and a stray tab stop inside a roving-focus widget (audit 2026-08-18). The menu's roving highlight scrolls the viewport by itself, so nothing is lost there."
+        "doc": "Whether the viewport is a keyboard tab stop. It defaults to true, because a standalone scroll region has to be reachable in order to scroll by keyboard. Pass false from a component that already owns keyboard scrolling, such as Menu: ARIA drops `role=\"presentation\"` from any focusable element, so a focusable viewport inside a menu would appear as a nameless node between the menu and its items, and would add a stray tab stop."
       },
       {
         "name": "style",
@@ -1501,7 +1501,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
-        "doc": "§10 — states that content passes BEHIND this control, so it expresses the theme's material instead of resolving solid. The ambient `<Box backdrop>` region answers this for a whole toolbar; this is the one-off escape, and it is Button's own prop verbatim."
+        "doc": "Says content passes behind this control, so it shows the theme's material instead of resolving solid. A `<Box backdrop>` region answers this for a whole toolbar. This is the one-off escape, and it is Button's own prop."
       },
       {
         "name": "className",
@@ -1513,7 +1513,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4, §26 — the control HEIGHT ladder, priced on the TRACK: the track is the control, so a segmented control stands level with a Button of the same size in the toolbar beside it. Each segment derives its own box from that channel — the track minus a designed inset, the switch's sentence one control over — and stamps no index of its own, which is §4's hosted-control rule with N hosts rather than one and is why the two boxes cannot disagree. It sits on the root, never per segment: a bar of mixed sizes is not a thing anyone means."
+        "doc": "The control height ladder, set on the track, because the track is the control: a segmented control stands level with a Button of the same size in the toolbar beside it. Each segment derives its own box from that channel, which is the track minus a fixed inset, and states no index of its own, so the two boxes cannot disagree. It sits on the root, never on a segment: a bar of mixed sizes is not a thing anyone means."
       }
     ]
   },
@@ -1535,7 +1535,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The option rows — `SelectItem`, divided by `SelectGroup` and named by `SelectLabel`. They are mounted only while the panel is open, which is exactly the case the root's `items` map exists for: a closed select has no row to read a label off. A `<Separator>` is refused here where a menu takes one (§23) — inside a listbox it is markup an accessibility check reports, and a group is the divider the role already has."
+        "doc": "The option rows: `SelectItem`, divided by `SelectGroup` and named by `SelectLabel`. They are mounted only while the panel is open, which is exactly the case the root's `items` map exists for. A `<Separator>` is refused here where a menu takes one: inside a listbox it is markup an accessibility check reports, and a group is the divider the role already has."
       },
       {
         "name": "className",
@@ -1558,7 +1558,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The `SelectItem` rows this group holds, and at most one `SelectLabel` naming them. Placing the label INSIDE is what earns the association: Base UI points the group's `aria-labelledby` at it, so the name is announced with each option rather than only seen above them."
+        "doc": "The `SelectItem` rows this group holds, and at most one `SelectLabel` naming them. Putting the label inside the group is what earns the association: Base UI points the group's `aria-labelledby` at it, so the name is announced with each option rather than only seen above them."
       },
       {
         "name": "className",
@@ -1581,7 +1581,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "What the option READS as. This is the ItemText, so it is also what the closed trigger paints once the panel has been opened — before that, the root's `items` map is the only thing that can resolve a value to these words."
+        "doc": "What the option reads as, and what the closed trigger paints once the panel has been opened. Before that, the root's `items` map is the only thing that can turn a value into these words."
       },
       {
         "name": "className",
@@ -1593,7 +1593,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the option down — it cannot be chosen. It stays in the list and stays announced: a choice that is unavailable right now is information, where an absent row says nothing about why the thing you were looking for is not there."
+        "doc": "Turns the option off, so it cannot be chosen. It stays in the list and stays announced, because a choice that is unavailable right now is information, where a missing row says nothing about why the thing you were looking for is not there."
       },
       {
         "name": "style",
@@ -1605,7 +1605,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "value",
         "type": "string",
         "optional": false,
-        "doc": "The value this option names — what the form submits and the trigger displays."
+        "doc": "The value this option names: what the form submits and what the trigger displays."
       }
     ]
   },
@@ -1616,7 +1616,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The heading's words — the name of the group below it, never an option. Nothing here is choosable, and a label that reads like a choice is the one way this part misleads."
+        "doc": "The heading's words: the name of the group below it, never an option. Nothing here is choosable, and a label that reads like a choice is the one way this part misleads."
       },
       {
         "name": "className",
@@ -1639,7 +1639,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The trigger and the content. Select renders no DOM of its own — state and wiring only — so this is `<SelectTrigger>` and `<SelectContent>`."
+        "doc": "The trigger and the content. Select renders no DOM of its own, only state and wiring, so this is a `<SelectTrigger>` and a `<SelectContent>`."
       },
       {
         "name": "defaultOpen",
@@ -1657,13 +1657,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "disabled",
         "type": "boolean",
         "optional": true,
-        "doc": "Stands the whole control down: the panel cannot open and the hidden input stops submitting. It is also the platform-shaped answer for a value that must not change, since `readOnly` is refused: HTML never defined it for `<select>`, so a disabled trigger beside a hidden input carrying the value is how that case is spelled."
+        "doc": "Turns the whole control off: the panel cannot open and the hidden input stops submitting. It is also how you express a value that must not change, since `readOnly` is refused: HTML never defined it for a `<select>`, so a disabled trigger beside a hidden input carrying the value is how that case is written."
       },
       {
         "name": "items",
         "type": "Record<string, React.ReactNode>",
         "optional": true,
-        "doc": "value → label, for the CLOSED trigger. Base UI resolves an option's label from its mounted ItemText, and a closed panel has none mounted — without this map a select whose panel never opened displays the raw value string. Optional because an always-open or placeholder-resting select never needs it; pass it whenever a defaultValue can paint before the panel first opens."
+        "doc": "A map from value to label, for the closed trigger. Base UI reads an option's label from its mounted row, and a closed panel has none mounted, so without this map a select whose panel never opened displays the raw value string. It is optional, because a select that rests on a placeholder never needs it. Pass it whenever a `defaultValue` can paint before the panel first opens."
       },
       {
         "name": "name",
@@ -1675,19 +1675,19 @@ export const API: Record<string, ApiEntry> = {
         "name": "onOpenChange",
         "type": "(open: boolean) => void",
         "optional": true,
-        "doc": "Fires when the panel opens or closes. Not when the value changes — that is `onValueChange`, and conflating the two is how a select ends up committing on hover."
+        "doc": "Fires when the panel opens or closes. It does not fire when the value changes: that is `onValueChange`, and conflating the two is how a select ends up committing on hover."
       },
       {
         "name": "onValueChange",
         "type": "(value: string) => void",
         "optional": true,
-        "doc": "Fires when the chosen value changes — a selection, never an open or a close."
+        "doc": "Fires when the chosen value changes. It never fires on an open or a close."
       },
       {
         "name": "open",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled open state of the PANEL, paired with `onOpenChange` — Dialog's pattern, which the whole library shares. Orthogonal to `value`: opening chooses nothing."
+        "doc": "Controlled open state of the panel, paired with `onOpenChange`. It is independent of `value`, because opening chooses nothing."
       },
       {
         "name": "required",
@@ -1699,13 +1699,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — the same index the trigger wears; rows, glyphs and type all price from it."
+        "doc": "The same index the trigger wears. The rows, the glyphs and the type all take it."
       },
       {
         "name": "value",
         "type": "string",
         "optional": true,
-        "doc": "Controlled value, paired with `onValueChange`. The closed trigger paints the matching option's LABEL, not this string — see `items` for the case where no option is mounted yet to resolve one."
+        "doc": "Controlled value, paired with `onValueChange`. The closed trigger paints the matching option's label rather than this string. See `items` for the case where no option is mounted yet to resolve one."
       }
     ]
   },
@@ -1716,7 +1716,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
-        "doc": "§10 — a placement fact (2026-08-17): content passes behind this trigger, so the theme's material may express. Unset, reads the ambient `<Box backdrop>` region."
+        "doc": "Says content passes behind this trigger, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region."
       },
       {
         "name": "className",
@@ -1728,7 +1728,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "placeholder",
         "type": "string",
         "optional": true,
-        "doc": "Shown, in the faint role, while no value is chosen — an empty select INVITES (§15)."
+        "doc": "Shown in the muted ink while no value is chosen. An empty select should invite a choice."
       },
       {
         "name": "style",
@@ -1756,43 +1756,37 @@ export const API: Record<string, ApiEntry> = {
         "name": "defaultOpen",
         "type": "boolean",
         "optional": true,
-        "doc": "Initial state when uncontrolled. Omit BOTH and the pane is `auto`: the stylesheet resolves its resting state per window class, and the first user toggle makes it explicit."
+        "doc": "The starting state when the pane is uncontrolled. Omit both this and `open` and the pane is auto: the stylesheet decides its resting state from the window size, and the first toggle makes the choice explicit."
       },
       {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "§27 — is this pane part of the app frame? `flush` (the default) tiles it against its neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what happens next is DERIVED rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only if the content is itself flush; otherwise it grounds — its own surface resting on the app's ground, the card relationship at pane scale. One boolean per pane reaches all four postures, and the derivation cannot be told the lie a three-value axis could (a floating sidebar beside a grounded content card)."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
       },
       {
         "name": "height",
         "type": "number",
         "optional": true,
-        "doc": "§27 — the bottom pane's block extent, the width prop's sentence turned 90°."
+        "doc": "The bottom pane's height in CSS pixels. It is the `width` prop's sentence turned ninety degrees."
       },
       {
         "name": "onOpenChange",
         "type": "(open: boolean) => void",
         "optional": true,
-        "doc": "Fired on user-driven changes only (trigger, Escape, scrim) — never at mount, never on a window-class crossing: auto's responsive resolution is CSS's, and CSS calls nobody."
+        "doc": "Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at mount, and never when the window crosses a size boundary, because auto is resolved in CSS and CSS calls nobody."
       },
       {
         "name": "open",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled open state — Dialog's pattern exactly. PASSING IT CONDITIONALLY IS SUPPORTED, and stating that is the point of this paragraph (the builder's port was relying on it while nothing said it was allowed, 2026-08-21). `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on and hands control straight back when it goes: the uncontrolled state is kept untouched throughout rather than being overwritten by the controlled value, so the pane returns to exactly the state the user last left it in. React warns about this shape for form inputs because a value has nowhere to go; a pane's does. A law holds the round trip."
+        "doc": "Controlled open state, in the same pattern Dialog uses. Passing it conditionally is supported. `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on, and hands control straight back when it goes. The uncontrolled state is kept untouched throughout rather than overwritten, so the pane returns to exactly the state the user last left it in."
       },
       {
         "name": "presentation",
         "type": "ShellPresentation",
         "optional": true,
-        "doc": "§27 — how this pane occupies the window while it is open. `ShellPresentation` says what the three values mean; what belongs here is when to reach for one. `auto` answers a question about the ROOM, and it answers it in CSS through §18's window class, so first paint is right with no script and no hydration to mismatch. Stating a value instead answers a question about the PRODUCT, and it does more than pin a posture: `overlay` also makes the pane rest CLOSED at every width, because an overlay is summoned rather than lived in, where `auto` lets a nav column rest open on a roomy window. So an explicit value is for a pane whose behaviour is a decision (a drawer that must never be ambient; an inspector that must never cover the work), and `auto` for every pane whose behaviour is a consequence of how much window there is."
-      },
-      {
-        "name": "size",
-        "type": "Size",
-        "optional": true,
-        "doc": "The index this pane is priced at — its padding, and anything it holds. Defaults to the app's."
+        "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
       }
     ]
   },
@@ -1803,13 +1797,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "§27 — is this pane part of the app frame? `flush` (the default) tiles it against its neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what happens next is DERIVED rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only if the content is itself flush; otherwise it grounds — its own surface resting on the app's ground, the card relationship at pane scale. One boolean per pane reaches all four postures, and the derivation cannot be told the lie a three-value axis could (a floating sidebar beside a grounded content card)."
-      },
-      {
-        "name": "size",
-        "type": "Size",
-        "optional": true,
-        "doc": "The index this pane is priced at — its padding, and anything it holds. Defaults to the app's."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
       }
     ]
   },
@@ -1820,13 +1808,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "§27 — is this pane part of the app frame? `flush` (the default) tiles it against its neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what happens next is DERIVED rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only if the content is itself flush; otherwise it grounds — its own surface resting on the app's ground, the card relationship at pane scale. One boolean per pane reaches all four postures, and the derivation cannot be told the lie a three-value axis could (a floating sidebar beside a grounded content card)."
-      },
-      {
-        "name": "size",
-        "type": "Size",
-        "optional": true,
-        "doc": "The index this header is priced at — its padding, its ROW's height, and anything it holds. Defaults to the app's, like every pane."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
       }
     ]
   },
@@ -1837,43 +1819,43 @@ export const API: Record<string, ApiEntry> = {
         "name": "defaultOpen",
         "type": "boolean",
         "optional": true,
-        "doc": "Initial state when uncontrolled. Omit BOTH and the pane is `auto`: the stylesheet resolves its resting state per window class, and the first user toggle makes it explicit."
+        "doc": "The starting state when the pane is uncontrolled. Omit both this and `open` and the pane is auto: the stylesheet decides its resting state from the window size, and the first toggle makes the choice explicit."
       },
       {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "§27 — is this pane part of the app frame? `flush` (the default) tiles it against its neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what happens next is DERIVED rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only if the content is itself flush; otherwise it grounds — its own surface resting on the app's ground, the card relationship at pane scale. One boolean per pane reaches all four postures, and the derivation cannot be told the lie a three-value axis could (a floating sidebar beside a grounded content card)."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
       },
       {
         "name": "onOpenChange",
         "type": "(open: boolean) => void",
         "optional": true,
-        "doc": "Fired on user-driven changes only (trigger, Escape, scrim) — never at mount, never on a window-class crossing: auto's responsive resolution is CSS's, and CSS calls nobody."
+        "doc": "Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at mount, and never when the window crosses a size boundary, because auto is resolved in CSS and CSS calls nobody."
       },
       {
         "name": "open",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled open state — Dialog's pattern exactly. PASSING IT CONDITIONALLY IS SUPPORTED, and stating that is the point of this paragraph (the builder's port was relying on it while nothing said it was allowed, 2026-08-21). `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on and hands control straight back when it goes: the uncontrolled state is kept untouched throughout rather than being overwritten by the controlled value, so the pane returns to exactly the state the user last left it in. React warns about this shape for form inputs because a value has nowhere to go; a pane's does. A law holds the round trip."
+        "doc": "Controlled open state, in the same pattern Dialog uses. Passing it conditionally is supported. `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on, and hands control straight back when it goes. The uncontrolled state is kept untouched throughout rather than overwritten, so the pane returns to exactly the state the user last left it in."
       },
       {
         "name": "presentation",
         "type": "ShellPresentation",
         "optional": true,
-        "doc": "§27 — how this pane occupies the window while it is open. `ShellPresentation` says what the three values mean; what belongs here is when to reach for one. `auto` answers a question about the ROOM, and it answers it in CSS through §18's window class, so first paint is right with no script and no hydration to mismatch. Stating a value instead answers a question about the PRODUCT, and it does more than pin a posture: `overlay` also makes the pane rest CLOSED at every width, because an overlay is summoned rather than lived in, where `auto` lets a nav column rest open on a roomy window. So an explicit value is for a pane whose behaviour is a decision (a drawer that must never be ambient; an inspector that must never cover the work), and `auto` for every pane whose behaviour is a consequence of how much window there is."
+        "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "The control index the pane's own navigation is priced at — its rows, and (when the rail's items land) its squares. Not the pane's WIDTH: a pane's extent is a statement about the app's content and has no ladder, which is why `width` is a raw number and this is an index."
+        "doc": "The control index this pane's own navigation is drawn at: its rows and its squares. It is not the pane's width. A pane's extent is a statement about your content and has no ladder, which is why `width` is a raw number and this is an index."
       },
       {
         "name": "width",
         "type": "number",
         "optional": true,
-        "doc": "§27 — the system's first sanctioned raw length: a pane's width is the app's content speaking, and no ladder exists that could price it. In CSS pixels. It overrides the designed default by writing the one custom property the stylesheet reads (`--kui-shell-w`) — which is deliberately the whole future resize architecture: a later drag writes where this writes."
+        "doc": "The pane's width in CSS pixels, and the one place this system sanctions a raw length: a pane's width is your content speaking, and no ladder could size it. It overrides the default by writing the custom property the stylesheet reads, which is also where a future drag-resize will write."
       }
     ]
   },
@@ -1895,13 +1877,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "current",
         "type": "boolean",
         "optional": true,
-        "doc": "This is the page you are on. Announced (`aria-current=\"page\"`) as well as painted — \"you are here\" is information, and a colour alone tells nobody who cannot see it."
+        "doc": "This is the page you are on. It is announced with `aria-current=\"page\"` as well as painted, because \"you are here\" is information and a colour alone tells nobody who cannot see it."
       },
       {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Be an anchor instead: a nav item usually navigates, and a link is a link (§13)."
+        "doc": "Be an anchor instead. A nav item usually navigates, and a link is a link."
       }
     ]
   },
@@ -1912,7 +1894,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "The control index this app's navigation is priced at — inherited by every pane, and overridable per pane. An editor is size 1 throughout and was having to say so on each pane separately (found by the builder's port, 2026-08-21); the per-pane default of `\"2\"` was a default with no home, which is the one thing a system with a size axis should not ship. Not the app's TYPE size and not any pane's WIDTH — a pane's extent is a statement about content and has no ladder, which is why `width` is a raw number and this is an index."
+        "doc": "The control index this app's navigation is drawn at. Every pane inherits it, and any pane can overrule it. It is not the app's type size, and it is not any pane's width: a pane's extent is a statement about your content and has no ladder, which is why `width` is a raw number and this is an index."
       }
     ]
   },
@@ -1923,7 +1905,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "aria-label",
         "type": "string",
         "optional": false,
-        "doc": "REQUIRED, because the item is icon-only: an icon with no name is a button nobody can read (Button's `iconOnly` takes the same line). If the rail ever grows labels, they go UNDER the icon and stay a switch on the pane — one word under one icon and not the next is how a column of icons stops lining up."
+        "doc": "Required, because the item is icon-only, and an icon with no name is a button nobody can read. If the rail ever grows labels they go under the icon and stay a setting on the pane: one word under one icon and not the next is how a column of icons stops lining up."
       },
       {
         "name": "current",
@@ -1935,7 +1917,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Be an anchor instead — a rail is primary navigation, and a link is a link."
+        "doc": "Be an anchor instead. A rail is primary navigation, and a link is a link."
       }
     ]
   },
@@ -1950,37 +1932,37 @@ export const API: Record<string, ApiEntry> = {
         "name": "defaultOpen",
         "type": "boolean",
         "optional": true,
-        "doc": "Initial state when uncontrolled. Omit BOTH and the pane is `auto`: the stylesheet resolves its resting state per window class, and the first user toggle makes it explicit."
+        "doc": "The starting state when the pane is uncontrolled. Omit both this and `open` and the pane is auto: the stylesheet decides its resting state from the window size, and the first toggle makes the choice explicit."
       },
       {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "§27 — is this pane part of the app frame? `flush` (the default) tiles it against its neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what happens next is DERIVED rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only if the content is itself flush; otherwise it grounds — its own surface resting on the app's ground, the card relationship at pane scale. One boolean per pane reaches all four postures, and the derivation cannot be told the lie a three-value axis could (a floating sidebar beside a grounded content card)."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
       },
       {
         "name": "onOpenChange",
         "type": "(open: boolean) => void",
         "optional": true,
-        "doc": "Fired on user-driven changes only (trigger, Escape, scrim) — never at mount, never on a window-class crossing: auto's responsive resolution is CSS's, and CSS calls nobody."
+        "doc": "Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at mount, and never when the window crosses a size boundary, because auto is resolved in CSS and CSS calls nobody."
       },
       {
         "name": "open",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled open state — Dialog's pattern exactly. PASSING IT CONDITIONALLY IS SUPPORTED, and stating that is the point of this paragraph (the builder's port was relying on it while nothing said it was allowed, 2026-08-21). `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on and hands control straight back when it goes: the uncontrolled state is kept untouched throughout rather than being overwritten by the controlled value, so the pane returns to exactly the state the user last left it in. React warns about this shape for form inputs because a value has nowhere to go; a pane's does. A law holds the round trip."
+        "doc": "Controlled open state, in the same pattern Dialog uses. Passing it conditionally is supported. `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on, and hands control straight back when it goes. The uncontrolled state is kept untouched throughout rather than overwritten, so the pane returns to exactly the state the user last left it in."
       },
       {
         "name": "presentation",
         "type": "ShellPresentation",
         "optional": true,
-        "doc": "§27 — how this pane occupies the window while it is open. `ShellPresentation` says what the three values mean; what belongs here is when to reach for one. `auto` answers a question about the ROOM, and it answers it in CSS through §18's window class, so first paint is right with no script and no hydration to mismatch. Stating a value instead answers a question about the PRODUCT, and it does more than pin a posture: `overlay` also makes the pane rest CLOSED at every width, because an overlay is summoned rather than lived in, where `auto` lets a nav column rest open on a roomy window. So an explicit value is for a pane whose behaviour is a decision (a drawer that must never be ambient; an inspector that must never cover the work), and `auto` for every pane whose behaviour is a consequence of how much window there is."
+        "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "The control index the pane's own navigation is priced at — its rows, and (when the rail's items land) its squares. Not the pane's WIDTH: a pane's extent is a statement about the app's content and has no ladder, which is why `width` is a raw number and this is an index."
+        "doc": "The control index this pane's own navigation is drawn at: its rows and its squares. It is not the pane's width. A pane's extent is a statement about your content and has no ladder, which is why `width` is a raw number and this is an index."
       }
     ]
   },
@@ -1995,43 +1977,43 @@ export const API: Record<string, ApiEntry> = {
         "name": "defaultOpen",
         "type": "boolean",
         "optional": true,
-        "doc": "Initial state when uncontrolled. Omit BOTH and the pane is `auto`: the stylesheet resolves its resting state per window class, and the first user toggle makes it explicit."
+        "doc": "The starting state when the pane is uncontrolled. Omit both this and `open` and the pane is auto: the stylesheet decides its resting state from the window size, and the first toggle makes the choice explicit."
       },
       {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "§27 — is this pane part of the app frame? `flush` (the default) tiles it against its neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what happens next is DERIVED rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only if the content is itself flush; otherwise it grounds — its own surface resting on the app's ground, the card relationship at pane scale. One boolean per pane reaches all four postures, and the derivation cannot be told the lie a three-value axis could (a floating sidebar beside a grounded content card)."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
       },
       {
         "name": "onOpenChange",
         "type": "(open: boolean) => void",
         "optional": true,
-        "doc": "Fired on user-driven changes only (trigger, Escape, scrim) — never at mount, never on a window-class crossing: auto's responsive resolution is CSS's, and CSS calls nobody."
+        "doc": "Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at mount, and never when the window crosses a size boundary, because auto is resolved in CSS and CSS calls nobody."
       },
       {
         "name": "open",
         "type": "boolean",
         "optional": true,
-        "doc": "Controlled open state — Dialog's pattern exactly. PASSING IT CONDITIONALLY IS SUPPORTED, and stating that is the point of this paragraph (the builder's port was relying on it while nothing said it was allowed, 2026-08-21). `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on and hands control straight back when it goes: the uncontrolled state is kept untouched throughout rather than being overwritten by the controlled value, so the pane returns to exactly the state the user last left it in. React warns about this shape for form inputs because a value has nowhere to go; a pane's does. A law holds the round trip."
+        "doc": "Controlled open state, in the same pattern Dialog uses. Passing it conditionally is supported. `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on, and hands control straight back when it goes. The uncontrolled state is kept untouched throughout rather than overwritten, so the pane returns to exactly the state the user last left it in."
       },
       {
         "name": "presentation",
         "type": "ShellPresentation",
         "optional": true,
-        "doc": "§27 — how this pane occupies the window while it is open. `ShellPresentation` says what the three values mean; what belongs here is when to reach for one. `auto` answers a question about the ROOM, and it answers it in CSS through §18's window class, so first paint is right with no script and no hydration to mismatch. Stating a value instead answers a question about the PRODUCT, and it does more than pin a posture: `overlay` also makes the pane rest CLOSED at every width, because an overlay is summoned rather than lived in, where `auto` lets a nav column rest open on a roomy window. So an explicit value is for a pane whose behaviour is a decision (a drawer that must never be ambient; an inspector that must never cover the work), and `auto` for every pane whose behaviour is a consequence of how much window there is."
+        "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "The control index the pane's own navigation is priced at — its rows, and (when the rail's items land) its squares. Not the pane's WIDTH: a pane's extent is a statement about the app's content and has no ladder, which is why `width` is a raw number and this is an index."
+        "doc": "The control index this pane's own navigation is drawn at: its rows and its squares. It is not the pane's width. A pane's extent is a statement about your content and has no ladder, which is why `width` is a raw number and this is an index."
       },
       {
         "name": "width",
         "type": "number",
         "optional": true,
-        "doc": "§27 — the system's first sanctioned raw length: a pane's width is the app's content speaking, and no ladder exists that could price it. In CSS pixels. It overrides the designed default by writing the one custom property the stylesheet reads (`--kui-shell-w`) — which is deliberately the whole future resize architecture: a later drag writes where this writes."
+        "doc": "The pane's width in CSS pixels, and the one place this system sanctions a raw length: a pane's width is your content speaking, and no ladder could size it. It overrides the default by writing the custom property the stylesheet reads, which is also where a future drag-resize will write."
       }
     ]
   },
@@ -2042,7 +2024,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "action",
         "type": "\"toggle\" | \"open\" | \"close\"",
         "optional": true,
-        "doc": "What the press does to `target`. `toggle` is the disclosure button every shell has, and the default because it is the one a button that only drives a pane should be. The one-way values are for a press that ALREADY means something else and must not undo itself. A rail square that re-points the sidebar has to SHOW the sidebar, so it is `open`: as a toggle, pressing a second region would close the panel it had just filled, and picking a region the sidebar is not showing would do nothing visible at all. A dismiss button inside an overlaying pane is `close` for the mirror reason. Stating the direction is what keeps those presses from becoming controls that appear to do nothing."
+        "doc": "What the press does to `target`. `toggle` is the disclosure button every shell has, and it is the default. The one-way values are for a press that already means something else and must not undo itself. A rail square that re-points the sidebar has to show the sidebar, so it is `open`: as a toggle, pressing a second region would close the panel it had just filled, and picking a region the sidebar is not showing would do nothing visible at all. A dismiss button inside an overlaying pane is `close` for the mirror reason."
       },
       {
         "name": "render",
@@ -2065,7 +2047,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "aria-label",
         "type": "string",
         "optional": true,
-        "doc": "Names the value for AT, applied to the thumb's hidden range input. Inside a `Field.Root` the field's label wires itself instead. A RANGE slider names both thumbs with the same string plus Base UI's per-thumb value text; a block that needs \"Minimum\" and \"Maximum\" is a composition (Field + two labelled sliders), not a prop here."
+        "doc": "Names the value for assistive technology. It lands on the thumb's hidden range input. Inside a `Field` the field's label wires itself instead. A range slider names both thumbs with the same string, plus Base UI's per-thumb value text. Something that needs \"Minimum\" and \"Maximum\" is a composition of a Field and two labelled sliders, not a prop here."
       },
       {
         "name": "className",
@@ -2077,7 +2059,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — the control HEIGHT ladder, taken on the root, because the root is the control: the whole strip is pressable, so a slider is exactly as tall a target as the Button beside it and §16's floors arrive with no mechanism of its own. The same index then prices the parts through the families they belong to — the thumb off the mark ladder (one line of the label's type), the rail off its own designed track ladder — so a handle and the checkbox above it in one form read as the same size of thing."
+        "doc": "The control height ladder, taken on the root, because the root is the control: the whole strip is pressable, so a slider is exactly as tall a target as the Button beside it. The same index then sizes the parts through the families they belong to, with the thumb on the mark ladder. Defaults to 2."
       }
     ]
   },
@@ -2102,13 +2084,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Render into an element you already have — a `<section>`, an `<aside>`, a layout (§5)."
+        "doc": "Render into an element you already have, such as a `<section>`, an `<aside>` or a layout primitive."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4, §6 — padding and corner from the CONTAINER band, one step up from a card's."
+        "doc": "Sets the padding and the corner, one step larger than a card at the same index, because a container needs a larger corner than the things inside it."
       },
       {
         "name": "style",
@@ -2131,7 +2113,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — the MARK ladder, SHIFTED: the track is `mark(n + 1)`, the one-index step every peer system arrives at by hand, so a switch reads one weight class above the checkbox at the same index while the two still belong to one family. The shift lives in the shared size join, so this component states no geometry of its own; the width rides the same index through the family's designed ladder, and the thumb derives from the channel rather than restating it. The TARGET is still a control of this size capped at the touch floor (§16). Density never touches it — a mark grows only where its label does (§17), and at coarse size 4 the band prices two type steps alike, so the shift is inert there and a switch stands exactly level with its checkbox."
+        "doc": "The mark ladder, one step up. The track is the checkbox's mark at the next index, which is the relationship every peer system arrives at by hand, so a switch reads one weight class above the checkbox at the same number while both stay in one family. The width follows the same index. Defaults to 2."
       }
     ]
   },
@@ -2148,7 +2130,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4, §26 — the control height ladder, priced on the LIST and not on the tabs. SegmentedControl's decision one component over, and the thing a reader gets wrong exactly once: the bar is what carries the index, and each tab derives its box from that channel and stamps no index of its own. So a mixed-size bar is not expressible, which is right — a bar of tabs at two sizes is not a thing anyone means, and asking every tab to repeat the number is an invitation to disagree. It sits here rather than on `Tabs` because the list is the part that HAS a box; the root owns no layout at all."
+        "doc": "The control height ladder, set on the list and not on the tabs. It is SegmentedControl's decision one component over, and the thing a reader gets wrong exactly once: the bar carries the index, and each tab derives its box from that bar and states no index of its own. A mixed-size bar is therefore not expressible, which is right, and asking every tab to repeat the number is an invitation to disagree. It sits here rather than on `Tabs` because the list is the part that has a box. The root owns no layout at all."
       }
     ]
   },
@@ -2185,13 +2167,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
-        "doc": "§10 — a placement fact (2026-08-17): content passes behind this control, so the theme's material may express. Unset, reads the ambient `<Box backdrop>` region."
+        "doc": "Says content passes behind this control, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — the control family's index, minus the one join a growing box cannot take. Padding, corner, type and border all price from it; HEIGHT does not, because the content decides that (`rows`) — this is §4's \"non-fixed-height components: padding is the dimension\". The block padding is derived so that a one-row textarea is geometrically the TextField at the same index, and the control height survives as a floor rather than a ceiling."
+        "doc": "The control index, minus the one part a growing box cannot take. The padding, the corner, the type and the border all come from it. The height does not, because the content decides that through `rows`. The block padding is derived so a one-row textarea is the same box as a TextField at the same index, and the control height survives as a minimum rather than a maximum."
       }
     ]
   },
@@ -2202,43 +2184,43 @@ export const API: Record<string, ApiEntry> = {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
-        "doc": "§10 — a placement fact (2026-08-17): content passes behind this control, so the theme's material may express. Unset, reads the ambient `<Box backdrop>` region."
+        "doc": "Says content passes behind this control, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region."
       },
       {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": "Applied to the WRAPPER — the element that is the control."
+        "doc": "Applied to the wrapper, which is the element that is the control."
       },
       {
         "name": "leading",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "Passive by convention — an icon, a unit, a currency mark. Clicking it lands the caret."
+        "doc": "Passive by convention: an icon, a unit, a currency mark. Clicking it lands the caret."
       },
       {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "§4 — the control family's index, Button's ladder exactly: height, inline padding, corner, the value's type step and the slot geometry all price from one number, so a field and the button that submits it stand level. It replaces the platform's own `size` attribute rather than joining it — that one is a character-count width hack predating CSS, and it would collide. The WRAPPER wears it, because the wrapper is the control."
+        "doc": "The control index, the same ladder Button uses: the height, the side padding, the corner, the value's type step and the slot geometry all come from one number, so a field and the button that submits it stand level. It replaces the platform's own `size` attribute rather than joining it, because that one counts characters, predates CSS, and would collide. The wrapper wears it, because the wrapper is the control."
       },
       {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": "Applied to the WRAPPER, so `width` sizes the field rather than the text inside it."
+        "doc": "Applied to the wrapper, so a `width` sizes the field rather than the text inside it."
       },
       {
         "name": "trailing",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "May be interactive: a clear button, a reveal toggle. A real button brings its own semantics, and the wrapper stands out of its way (§10's element-brings-interactivity)."
+        "doc": "May be interactive: a clear button, a reveal toggle. A real button brings its own semantics, and the wrapper stands out of its way."
       },
       {
         "name": "type",
         "type": "TextFieldType",
         "optional": true,
-        "doc": "Narrowed from the platform's open list — see TextFieldType."
+        "doc": "Narrowed from the platform's open list. See TextFieldType."
       }
     ]
   },
@@ -2255,19 +2237,19 @@ export const API: Record<string, ApiEntry> = {
         "name": "emphasis",
         "type": "Emphasis",
         "optional": true,
-        "doc": "§9, §15 — the one loudness axis, resolved for type as foreground roles: loud reads --color-text, medium the muted role, quiet the faint one. Rests loud — full contrast is the accessible resting state for reading, the inversion of the control default. Quiet is below body-copy contrast by design; never a reading-length line."
+        "doc": "On text, this picks an ink colour: loud is `--color-text`, medium is muted, quiet is faint. It rests loud, because full contrast is the correct resting state for reading. Quiet sits below the reading contrast floor on purpose, so never use it for a full line of text."
       },
       {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Render into the flow element the document needs — a `<p>`, a `<label>` (§5)."
+        "doc": "Render into the element the document needs, such as a `<p>` or a `<label>`."
       },
       {
         "name": "size",
         "type": "TypeSize",
         "optional": true,
-        "doc": "§15 — a step on the type ramp, and the ramp is three designed scales joined at one index: font-size, line height and letter spacing move together, so a step can never change the size without the leading that makes it readable. Nine steps rather than the control family's four — reading has the wider dynamic range (§4 shares the numeral, not the scale). Anchors at 3, the body step §15's composition ladder is built around."
+        "doc": "A step on the type ramp. One index sets three things together: font size, line height and letter spacing, so a step can never change the size without the leading that makes it readable. There are nine steps here, against the four a control has, because reading covers a wider range. Defaults to 3, the body step."
       },
       {
         "name": "style",
@@ -2279,13 +2261,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "§7, §15 — a semantic family, never a colour name: the meaning is the API and the theme resolves the pigment. Re-scopes the emphasis ladder onto the family's ink trio. Unset means tone-less: the text reads whatever context its surface sets."
+        "doc": "A meaning, never a colour name. The theme resolves the colour. Setting a tone moves the three emphasis levels onto that family's own inks. Unset, the text reads whatever ink colour its surface set."
       },
       {
         "name": "weight",
         "type": "Weight",
         "optional": true,
-        "doc": "§15 — the face, named rather than numbered: a token is the system's to re-point and a `600` is not. Three rungs, and the ladder tops out at semibold because `bold` is refused system-wide — a 700 face is a fifth way to say \"important\" competing with three the system already designs. Rests regular: body copy is what everything else is heavier than."
+        "doc": "The weight, named rather than numbered, because a token is the system's to re-point and a `600` is not. There are three, and semibold is the heaviest: `bold` is refused across the system, since a 700 face is another way to say \"important\" competing with the size ramp and the ink colours. Defaults to regular."
       }
     ]
   },
@@ -2296,13 +2278,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "appearance",
         "type": "Appearance",
         "optional": true,
-        "doc": "§5, §7 — which palette this scope resolves against. `inherit` is the third value and it is not a no-op: it emits no attribute at all, so the nearest ancestor keeps applying — which is exactly what the dark-SSR design needs. A pre-paint inline script owns `data-appearance` on `<html>`, the root Theme inherits it, and there is one source of truth with no flash and nothing for hydration to mismatch. Set it to pin a section against the document: a light panel inside a dark app is `appearance=\"light\"` here."
+        "doc": "Which palette this scope resolves against. `inherit` is a real third value, not a no-op: it writes no attribute at all, so the nearest ancestor keeps applying. That is what makes server rendering work in dark mode. A small script in the document head owns the attribute on `<html>`, the root Theme inherits it, and there is one source of truth with no flash and nothing for hydration to mismatch. Set it to pin a section against the document: a light panel inside a dark app is `appearance=\"light\"` here."
       },
       {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The subtree the scope covers. The Theme renders a real element to carry its attributes, because the tokens are scoped by attribute selectors and an attribute needs a node."
+        "doc": "What the scope covers. The Theme renders a real element to carry its attributes, because the tokens are scoped by attribute selectors and an attribute needs a node."
       },
       {
         "name": "className",
@@ -2314,43 +2296,43 @@ export const API: Record<string, ApiEntry> = {
         "name": "contrast",
         "type": "Contrast",
         "optional": true,
-        "doc": "§7 — the CONFORMANCE surface, not a design knob. At rest a border or a fill is dress, judged by eye and held to no floor; `high` is where the floors bind, re-solving the tone bands, the control and field edges and the track to their conformance tiers, and leaning on the glass rather than unmaking it (§10). Left UNSET the Theme stamps no attribute, which is what lets `@media (prefers-contrast: more)` reach the scope; asking for `normal` is an explicit opt-out of that platform signal."
+        "doc": "An accessibility setting, not a design knob. At rest a border or a fill is decoration, judged by eye and held to no floor. `high` is where the contrast floors bind: it re-solves the tone bands, the control and field edges and the track, and it leans on the glass rather than unmaking it. Left unset the Theme writes no attribute, which is what lets `@media (prefers-contrast: more)` reach the scope. Asking for `normal` is an explicit opt-out of that platform signal."
       },
       {
         "name": "density",
         "type": "Density",
         "optional": true,
-        "doc": "§3, §12 — how tightly the app breathes. It re-picks the layout-space steps every distance reads and re-declares the control family's designed heights and paddings; it deliberately reaches NEITHER type, the icon box, nor a mark, which are content and would otherwise answer the same question twice. An app identity chosen once — a denser toolbar is a nested Theme on an element that already exists, never a prop per control."
+        "doc": "How much room the app gives its controls. It re-picks the layout-space steps every distance reads, and it restates each control height and padding directly. It reaches neither type, the icon box, nor a mark, because those are content and would otherwise answer the same question twice. Choose it once for the app. A denser toolbar is a nested Theme on an element you already have, never a prop on each control."
       },
       {
         "name": "depth",
         "type": "Depth",
         "optional": true,
-        "doc": "§5, §10 — does light exist in this app: whether surfaces sit up off the page and raised controls catch it. Elevation is an app identity and never a per-card knob — no call site chooses a shadow — so this is the one sanctioned consumer of the shadow palette, and `flat` spells the no-op layers rather than deleting the rules."
+        "doc": "Whether light exists in this app: whether surfaces sit up off the page and raised controls catch it. Depth is an app identity and never a per-card choice, so no call site picks a shadow. This is the one thing that reads the shadow palette. `flat` writes no-op layers rather than deleting the rules."
       },
       {
         "name": "material",
         "type": "Material",
         "optional": true,
-        "doc": "§10 — OF WHAT MATERIAL IS THIS APP BUILT (2026-08-16, Kushagra; moved here from nine component props). One value for the whole scope: a table and a chair made of the same oak are the same oak, so a dialog and a menu under one theme are the same glass, and there is no per-family rung to walk and no ceiling to hit at `thick`. What makes a dialog read heavier than a menu is therefore NOT its material — it is coverage and the scrim. The same glass over 900px of application obscures far more than the same glass over a 170px menu, and a dialog additionally pushes the page back behind a scrim it already owns. Nothing needed a second thickness to say that. `solid` is the default and is a material, not the absence of one: it is the rung where light stops passing through. That is also why this is not a boolean — `glass` would still owe a thickness beside it, which is two props for one fact. The value reaches components through CONTEXT and each component stamps its own `data-material`; the Theme writes no material attribute of its own. The selectors stay element-keyed, which is what the `@property inherits: false` guards in recipes.css were built for — a descendant-keyed rule would make every control inside a glass pane paint its container's veil, the defect those guards already fixed four times."
+        "doc": "What the app is made of. One value covers the whole scope, so a dialog and a menu under one theme are the same glass. There is no per-component thickness and no ceiling to hit at `thick`. What makes a dialog read heavier than a menu is not its material. It is coverage and the scrim. The same glass over 900 pixels of application hides far more than the same glass over a 170-pixel menu, and a dialog also pushes the page back behind a scrim it already owns. `solid` is the default, and it is a material rather than the absence of one: it is the level where light stops passing through. That is also why this is not a boolean. A `glass` flag would still need a thickness beside it, which is two props for one fact. Where the glass shows is decided by placement. Mark a region with `<Box backdrop>`, or pass `backdrop` on a single component. An unmarked control in ordinary flow renders solid and costs nothing."
       },
       {
         "name": "pointer",
         "type": "Pointer",
         "optional": true,
-        "doc": "§16, §17 — which pointer world this scope is priced for. `auto` follows `@media (pointer: coarse)`. Pinning forces the WHOLE world, not just the touch targets: the coarse geometry, the wider control cells, the mark ladder and §17's handheld type band all move together, which is both what a phone actually needs and how those cells get judged on a desktop. There is no `device` prop — coarse means handheld."
+        "doc": "What is touching the screen. `auto` follows `@media (pointer: coarse)`. Pinning it forces the whole coarse world, not only the touch targets: the wider control cells, the mark ladder and the handheld type band all move together. That is what a phone needs, and it is also how those cells get judged on a desktop. There is no `device` prop, because coarse means handheld."
       },
       {
         "name": "radius",
         "type": "RadiusLevel",
         "optional": true,
-        "doc": "§6 — the corner identity, one app-wide choice. Each level is a designed palette rather than a factor, re-declared per family, so `none` squares every corner that is DRESS while the four that are role semantics hold their shape (a radio, the two grips, and the channel a round grip nests in). `full` STATES the capsule per cell — half the control's own height — rather than asking CSS to clamp a huge number against the rendered box."
+        "doc": "The corner, chosen once for the app. Each level is a set of hand-picked values rather than a multiplier, restated per family, so `none` squares every corner that is decoration while the four that carry a role hold their shape: a radio, the slider grip, the switch thumb, and the track a round thumb nests in. `full` states the capsule for each cell, which is half the control's own height, rather than asking CSS to clamp a huge number against the rendered box."
       },
       {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
-        "doc": "Put the theme on an element you already have, rather than adding a wrapper (§5). Never `<body>` or `<html>`: portals land at `document.body`, and a theme ON the body contains its own portals — the stacking frame inverts silently and an app z-index covers every popup (§20). A dev-build warning fires if you do."
+        "doc": "Put the theme on an element you already have, rather than adding a wrapper. Never on `<body>` or `<html>`. Portals land at `document.body`, so a theme on the body contains its own portals: the stacking order inverts silently and an app z-index covers every popup. A development build warns you if you do."
       },
       {
         "name": "style",

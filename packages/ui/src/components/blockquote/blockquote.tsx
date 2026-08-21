@@ -44,7 +44,7 @@ export type BlockquoteProps = Omit<
  * separator's sits: under both solved tiers, carrying no identity of its own. It is also the
  * only spelling that is safe — `var(--tone-border, …)` would inherit an ancestor's family
  * through the cascade, which is the action-at-a-distance trap this repo has paid for twice.
- * A quote whose BAR must carry meaning is a Callout, a tone-forward surface on §11's list.
+ * A quote whose bar carries meaning is a `Notice`, not a quote.
  *
  * No `cite` handling and no attribution slot: the footer under a quote is a sibling `<Text>`,
  * and `cite` is an ordinary attribute that passes straight through. Anatomy is system-owned

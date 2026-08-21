@@ -24,7 +24,14 @@ export type CardProps = Omit<
    * theme's: this prop cannot pick one.
    */
   backdrop?: boolean;
-  /** Render into an element you already have, such as an `<article>`, a button or a link. */
+  /**
+   * Render into an element you already have, and let that element decide what the card does.
+   * An `<article>` stays inert. A button or a link presses, and takes the control state
+   * machine whole, disabled included. A `<label>` wrapped around a `Radio` or a `Checkbox`
+   * makes the whole card the target of that control, and the chosen card takes the selected
+   * edge. There is no `selected` prop and no `interactive` prop, because the element already
+   * says which of these it is.
+   */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;
@@ -32,18 +39,24 @@ export type CardProps = Omit<
 };
 
 /**
- * A shell (§10, §11, LOG 2026-08-04). One treatment, no variants: the opaque seal
- * (`--color-surface`), the border, the surface radius, the padding rhythm — Card is the place
- * the surface laws are enforced, with zero opinion about what goes inside.
+ * An object with its own plane. One treatment and no variants: the opaque fill, the surface
+ * radius and the padding. Card is where the surface rules are enforced, and it has no opinion
+ * about what goes inside it.
  *
- * What it deliberately is not: it has no emphasis or tone (loudness ranks actions, and a
- * container is not an action — status surfaces like Callout carry tone because there it means
- * something), and no anatomy slots (anatomy is system-owned only where something non-visual
- * forces it — Dialog's a11y wiring, Callout's status semantics. A titled card is one layout
- * among many, and layouts are blocks, not components).
+ * It carries no emphasis and no tone. Loudness ranks actions and a container is not an action;
+ * a Notice carries tone because there the tone is the category of the message.
  *
- * The identity attributes below are constants, not props: the shell still resolves through
- * the shared surface layer like every surface, it just never lets a call site choose.
+ * It has no anatomy slots. The system owns an anatomy only where something non-visual forces
+ * one, such as a dialog's accessibility wiring or a notice's status role. A titled card is one
+ * layout among many, and a layout is something you compose.
+ *
+ * What it DOES is decided by the element `render` gives it, never by a prop. As a button or a
+ * link it presses, and it takes the control state machine whole, disabled included. As the
+ * label of a radio or a checkbox it can be chosen, and the system supplies the edge while the
+ * primitive supplies the keyboard, the form value and the announcement.
+ *
+ * The identity attributes below are constants rather than props: the card resolves through the
+ * shared surface layer like every surface, and it never lets a call site choose.
  */
 export function Card({
   size = "3",

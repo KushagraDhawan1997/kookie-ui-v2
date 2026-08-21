@@ -48,6 +48,10 @@ The `Surface` is the bed. The two cards are the objects on it, and each one lift
 A `Card` is an object. A `Surface` is what objects sit on. Neither one is a quieter version of
 the other. If you are nesting a card in a card to get a quiet region, use a `Surface`.
 
+A card is the one surface that can become a control. Render it as a button and it presses.
+Render it as the label of a radio and it can be chosen. It takes no prop for either, because
+the element already says which one it is.
+
 ## Controls
 
 A control is a thing the user operates. Every control shares one state machine, one size

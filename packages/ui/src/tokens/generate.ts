@@ -821,7 +821,7 @@ export const ROLES = [
   "ink",
   "ink-muted",
   "ink-faint",
-  // The tone-forward surface fill (§10): alpha, visible because it carries chroma — Callout's
+  // The tone-forward surface fill (§10): alpha, visible because it carries chroma — Notice's
   // dressing. The default surface never uses alpha; it seals (--color-surface below).
   "a3",
 ] as const;

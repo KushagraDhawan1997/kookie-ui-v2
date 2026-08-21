@@ -210,7 +210,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§9, §10",
     blurb:
-      "An object with its own plane: one opaque fill, one corner, one padding, and no other treatment. Its size sets the padding and the corner, never a height. Render it as a button or a link and it becomes interactive, with the same state colours and the same motion every control has. Only the press distances are its own, because a large box moving as far as a button reads as the page bending.",
+      "An object with its own plane: one opaque fill, one corner, one padding, and no other treatment. Its size sets the padding and the corner, never a height. The element decides what it does: render it as a button or a link and it presses, with the same state colours and the same motion every control has; render it as the label of a radio and it can be chosen. Only the press distances are its own, because a large box moving as far as a button reads as the page bending.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "padding and corner, not height" },
       { name: "backdrop", values: "boolean", note: "says content passes behind this card, so the theme's material can show. Unset, it follows the surrounding <Box backdrop> region. It can never pick a thickness" },
