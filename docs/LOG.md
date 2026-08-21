@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 The shape is forbidden by a law now, because fixing it one law at a time did not work
+
+**What.** `src/test/settling.test.ts` fails any browser law that reads what a gesture causes in the statement after the gesture. Three fresh instances on main are repaired with it, and the one honest exception carries `// SETTLED-BY-DESIGN: <why>`.
+
+**Why a rule and not three more repairs.** This defect has now produced five CI failures over two days, and the previous round SWEPT all eight instances that existed. It came back anyway — the overlay work merged the same week added three more (`the dev warning did not fire`, and two `the close was refused` reads), written by someone who had not read the repair. A lesson that lives only in the fixed lines is a lesson that stops at the file it was learned in, and the proof is in this repo already: `dialog.browser.test.tsx`'s `warnings()` helper had been rewritten to WAIT for the warning, while its twin in `alert-dialog.browser.test.tsx` fifty lines away still slept a flat 60ms — and that sleep is the one CI caught.
+
+**The rule is mechanical, so it is cheap to obey and impossible to forget**: a `userEvent` gesture, then an `expect` reading `getAttribute` / `querySelector` / `matches` / `activeElement` / `isConnected` / `textContent` / `.length`. It runs in the node project in milliseconds, on any machine, and names the file and line. The repair is always the same shape — wait for the state, then assert it — and nothing is lost, because a state that never arrives expires the deadline into the same assertion with the same value in the message.
+
+**The one exception is a claim about a NON-event** ("this press did NOT close it"). There is nothing to wait for and waiting could only delay a correct answer — a slow machine makes such a law pass more easily rather than less — so those are marked, with a reason the law holds to a real sentence.
+
+**Falsified in three directions**: put the swept `data-popup-open` read back and it names the line; hollow the exemption to "flaky" and the reason clause fails; break the walk and the negative control fails. The three repaired laws were each falsified against their real defect too — refuse every close and both refusal laws fail at the deadline; silence the warning and the dev-warning law reports the honest zero.
+
+---
+
 ## 2026-08-21 Notice, and the sabotage that survived
 
 **What.** `Notice` (§29), the message family's one condition component, for **+81 bytes gzipped**. `--kui-sf-icon` joined the surface size join with it.
