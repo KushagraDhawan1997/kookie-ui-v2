@@ -291,6 +291,26 @@ The move also made the registry pure data, so `registry.test.ts` imports the val
 
 **The first draft's language was wrong, and Kushagra rejected it** (*"like bro what is it"*). It used metaphor, filler and the passive voice. Every chapter was rewritten to ASD-STE100 Simplified Technical English: active voice, short sentences, literal vocabulary, no metaphor. `content/AUTHORING.md` now states those rules, so later chapters follow them.
 
+## 2026-08-22 A sabotage that survives is evidence about the LAW, not only about the code
+
+Kushagra, hours after the disabled card shipped: *"Why does a disabled card respond to hover?"* It did, and I had deleted the thing that stopped it.
+
+**The defect.** The disabled arm re-points `--kui-sf-fill-src` and the base surface rule reads it — but the hover and press rules set `background-color` DIRECTLY, and a direct declaration beats a custom-property indirection whatever it resolves to. So a dead card sat at its receded fill and lit up the moment a pointer touched it.
+
+**The stand-down for that existed and I removed it the same day**, because a sabotage pass stayed green without it and I read that as proof it was unreachable. The pass was green because the only law watching read TRAVEL and SCALE — the axis that was already right. The paint had no law at all, so nothing could see the deletion. **A sabotage that survives is evidence about the law as often as about the code, and the first question has to be which.** That is the degenerate-fixture rule (2026-08-20) in the one form it had not yet taken here: not a fixture that cannot distinguish, but a law reading a different channel from the one the change touched.
+
+**Then the same shape one layer down.** The repaired law read a hover and a held press, and its sabotage pass showed the PRESS arm was still unreachable. This time the arm really is unreachable — with a mouse, but only with a mouse. A press always co-occurs with a hover, so the hover stand-down (later in source, equal weight) covers it; measured byte-identical with the press arm present and deleted, against an `aria-disabled` anchor that matched both `:active` and `:hover`. On TOUCH there is no hover rule at all — which is exactly what the recipe's own comment says about why its press rule is unguarded — and the arm is then the only thing between a dead card and the press colour. So it stays, and what holds it is a node law claiming only that the declaration is stated. Stated rather than papered over.
+
+**`holdPress` joins the harness**, and it corrects a sentence button.browser.test.tsx has carried since 2026-08-18: `:active` *can* be forced from script — not by the driver, which fires down and up together, but by CDP dispatching a raw `mousePressed` with no release. The pointer is moved first, because a press on an element the browser does not consider hovered reads a state no user can produce, and the release is always given back, because a pointer left down leaks into the next law exactly as a parked hover does.
+
+**And `asksForTouch` was written, measured, and deleted in the same hour.** Chromium does not emulate the `hover` media feature — `Emulation.setEmulatedMedia` accepts it and `(hover: hover)` still matches — so the helper would have been a mechanism that lies about what it proves. Recorded here so the next person does not spend the hour.
+
+**One more law had pinned a spelling.** "Hover is guarded by `(hover: hover)`" found the FIRST such block, cut it out, and asserted no `:hover` survived — which quietly assumed the file would only ever hold one. It held one until the dead surface needed a second, and then a correct rule failed a law about a guarantee it had not broken. It walks every guard now and checks every hover rule against all of them.
+
+Three sabotage passes, all caught. +18 bytes.
+
+---
+
 ## 2026-08-22 A card can be chosen, and a card can be dead
 
 Two states an interactive card had never had. Kushagra asked for both, and asked the right question first: *"Find me patterns for Card's 'this one is chosen'. How will Apple do it? Just a simple lit up edge?"*

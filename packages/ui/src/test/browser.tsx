@@ -362,6 +362,34 @@ export function catchDissolve(
 }
 
 /**
+ * HOLD A PRESS on an element, and give back the release (2026-08-22).
+ *
+ * `userEvent.click` fires down and up together, so `:active` is over before any statement can
+ * read it — which is why a law about a pressed appearance had, until now, to read the chain
+ * values where the stylesheet keeps them instead of the state itself. button.browser.test.tsx
+ * still says "`:active` cannot be forced from script"; that was true of the driver and is not
+ * true of CDP, which dispatches a raw `mousePressed` with no release. Measured: `:active`
+ * matches and the pressed fill computes.
+ *
+ * The pointer is MOVED first. A press with no preceding move lands on an element the browser
+ * does not consider hovered, and on the surface layer hover and press are two different
+ * declarations — so the reading would be of a state no user can produce.
+ *
+ * Always release. A pointer left down leaks into the next law exactly as a parked hover does
+ * (the 2026-08-10 lesson), and the guard for that one cost three radio laws.
+ */
+export async function holdPress(el: Element): Promise<() => Promise<void>> {
+  const { cdp } = await import("vitest/browser");
+  const r = el.getBoundingClientRect();
+  const at = { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+  await cdp().send("Input.dispatchMouseEvent", { type: "mouseMoved", ...at, button: "none", buttons: 0 });
+  await cdp().send("Input.dispatchMouseEvent", { type: "mousePressed", ...at, button: "left", buttons: 1, clickCount: 1 });
+  return async () => {
+    await cdp().send("Input.dispatchMouseEvent", { type: "mouseReleased", ...at, button: "left", buttons: 0, clickCount: 1 });
+  };
+}
+
+/**
  * Let this test's subject move. Order-free on purpose — it sets a flag the harness honours on
  * every render for the rest of the test, rather than a switch a later `render` would flip back:
  * the first spelling was position-dependent, and calling it one line too early silently gave

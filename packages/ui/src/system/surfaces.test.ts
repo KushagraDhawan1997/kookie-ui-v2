@@ -204,12 +204,52 @@ describe("card-as-button: the element brings the interactivity (§10)", () => {
     expect(surfaces).not.toMatch(/\[data-(interactive|pressable|clickable)/);
   });
 
+  it("a dead interactive surface stands its paint down on BOTH hover and press", () => {
+    // The hover half is measured in card.browser.test.tsx under a real pointer. This is the
+    // press half, and it is a node law on purpose: with a mouse a press always co-occurs with a
+    // hover, so the hover arm covers it and the press arm computes identically whether it is
+    // there or not (measured). Its reachable case is TOUCH — no hover rule exists there, and
+    // `@media (hover: hover)` is not emulable in Chromium — so what can honestly be asserted is
+    // that the declaration is stated, on both arms, naming the resting fill.
+    const dead = "[data-disabled]";
+    for (const state of [":hover", ":active"]) {
+      const rule = new RegExp(
+        `\\[data-disabled\\][^{]*\\)?${state}\\s*\\{[^}]*background-color:\\s*var\\(--kui-sf-fill,`,
+      );
+      expect(surfaces, `the dead surface's ${state} paint is not stood down`).toMatch(rule);
+    }
+    expect(surfaces, "and the arm must exist to be about anything").toContain(dead);
+  });
+
   it("hover is guarded by (hover: hover); press is not, and reads the surface steps", () => {
-    const guardStart = surfaces.indexOf("@media (hover: hover)");
-    expect(guardStart).toBeGreaterThan(-1);
-    const guardEnd = surfaces.indexOf("\n}", surfaces.indexOf("}", guardStart));
-    const outside = surfaces.slice(0, guardStart) + surfaces.slice(guardEnd + 2);
-    expect(outside).not.toContain(":hover");
+    // EVERY hover rule, not the first block's (rewritten 2026-08-22). The original found the
+    // first `@media (hover: hover)`, cut it out, and asserted no `:hover` survived — which
+    // silently assumed the file would only ever hold ONE such block. It held one until the dead
+    // surface's paint stand-down needed a second, and then a correct rule failed a law about a
+    // guarantee it had not broken. What the layer actually promises is that no hover rule sits
+    // outside a hover guard, which is a claim about each of them.
+    const guards: Array<[number, number]> = [];
+    for (let at = surfaces.indexOf("@media (hover: hover)"); at !== -1; ) {
+      const open = surfaces.indexOf("{", at);
+      let depth = 0;
+      let i = open;
+      for (; i < surfaces.length; i++) {
+        if (surfaces[i] === "{") depth += 1;
+        else if (surfaces[i] === "}") {
+          depth -= 1;
+          if (depth === 0) break;
+        }
+      }
+      guards.push([at, i]);
+      at = surfaces.indexOf("@media (hover: hover)", i);
+    }
+    expect(guards.length, "there must be at least one hover guard").toBeGreaterThan(0);
+    const guarded = (at: number) => guards.some(([from, to]) => at > from && at < to);
+    for (let at = surfaces.indexOf(":hover"); at !== -1; at = surfaces.indexOf(":hover", at + 1)) {
+      expect(guarded(at), `a :hover rule at index ${at} sits outside every hover guard`).toBe(true);
+    }
+    // …and press is deliberately NOT guarded: on touch it is the only feedback there is.
+    const outside = surfaces.slice(0, guards[0]![0]) + surfaces.slice(guards[0]![1] + 1);
     expect(outside).toContain(":active");
     // The interactive steps read the surface roles directly since the look axis died (§19).
     expect(surfaces).toContain("--color-surface-hover");

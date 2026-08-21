@@ -764,15 +764,59 @@
   --color-text: var(--disabled-ink);
   --color-text-muted: var(--disabled-ink);
   --color-text-faint: var(--disabled-ink);
-  /* The MOTION, and it needs no `:hover`/`:active` arms of its own — which was worth finding
-     out rather than assuming. The first cut wrote three blocks; the sabotage pass showed the
-     two extra ones were unreachable. This arm is (0,2,0), the hover and press rules are
-     (0,2,0), and this sits AFTER them in the file, so it wins the tie on source order — the
-     hover stand-down's own mechanism in recipes.css, and the reason the ordering is stated
-     here rather than left to be rediscovered. Moving this block above them would silently
-     give a dead card its hover rise back. */
+  /* The MOTION stands down here and needs no arms of its own. This rule is (0,2,0), the hover
+     and press rules are (0,2,0), and it sits AFTER them, so it wins the tie on source order —
+     recipes.css's own hover-stand-down mechanism. Moving this block above them would silently
+     give a dead card its rise back, which is why the ordering is stated rather than left to be
+     rediscovered. */
   translate: 0 0;
   scale: 1;
+}
+
+/* The PAINT is a different question and needs its own arms, which cost an hour to learn twice
+   (2026-08-22, Kushagra: "why does a disabled card respond to hover?").
+
+   The rule above re-points `--kui-sf-fill-src`, and the base surface rule reads it — but the
+   hover and press rules set `background-color` DIRECTLY, and a direct declaration beats a
+   custom-property indirection no matter what the property resolves to. So a dead card kept its
+   receded fill at rest and lit up the moment a pointer touched it: measured 0.035-alpha grey at
+   rest, and the hover colour under the pointer.
+
+   These two blocks were written in the first cut, then DELETED as unreachable because a
+   sabotage pass showed the suite still green without them. That pass was reading the motion
+   law, which asserts travel and scale — the axis that was already right. The paint had no law
+   at all, so nothing could see the deletion. It is the degenerate-fixture lesson in its
+   sharpest form: the sabotage did not survive because the code was redundant, it survived
+   because the LAW was one channel short. Both channels are read now.
+
+   `:hover` and `:active` still MATCH a disabled element — the browser fires neither event, but
+   a selector is not an event, and an anchor with aria-disabled is not disabled to CSS at all.
+
+   THE PRESS ARM IS FOR TOUCH, and it cannot be reached by a mounted law — which is stated
+   rather than papered over. With a mouse a press always co-occurs with a hover, so the hover
+   stand-down above (later in source, same weight) already covers it, and deleting the press arm
+   changes nothing a pointer can produce: measured, byte-identical, on a real held press against
+   an `aria-disabled` anchor that matched both `:active` and `:hover`. On touch there IS no
+   hover rule — `@media (hover: hover)` does not match, which is the whole reason the recipe's
+   own press rule is unguarded — and this arm is then the only thing between a dead card and the
+   press colour. Chromium does not emulate the `hover` feature (tried, and the helper was
+   deleted rather than left to lie), so what holds this is a NODE law asserting the declaration,
+   and the honest claim there is that the stand-down is stated, not that it computes. */
+@media (hover: hover) {
+  .kui-surface:where(button, a, label:has(.kui-control)):is(
+      :disabled,
+      [aria-disabled="true"],
+      [data-disabled]
+    ):hover {
+    background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
+  }
+}
+.kui-surface:where(button, a, label:has(.kui-control)):is(
+    :disabled,
+    [aria-disabled="true"],
+    [data-disabled]
+  ):active {
+  background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
 }
 /* ── A CHOSEN surface (§10, §11, 2026-08-22, Kushagra: "find me patterns for Card's this one
    is chosen") ─────────────────────────────────────────────────────────────────────────────

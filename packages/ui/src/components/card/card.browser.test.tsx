@@ -9,7 +9,7 @@ import { cdp } from "vitest/browser";
 import { material } from "../../tokens/config.ts";
 import { Theme } from "../../theme/theme.tsx";
 import {
-  GLASS_MATERIALS, APPEARANCES, colorOn, computed, inMotion, mounted, numberOn, render, tokenOn as lengthOn, within, until } from "../../test/browser.tsx";
+  GLASS_MATERIALS, APPEARANCES, colorOn, computed, holdPress, inMotion, mounted, numberOn, render, tokenOn as lengthOn, within, until } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Spinner } from "../spinner/spinner.tsx";
@@ -1953,6 +1953,54 @@ describe("a card you cannot press", () => {
     expect(computed(dead, "translate"), "it states no travel").toBe(rest.translate);
     expect(computed(dead, "scale"), "and no scale").toBe(rest.scale);
     await userEvent.unhover(dead);
+  });
+
+  it("does not LIGHT UP under the pointer either — the channel the first law missed", async () => {
+    // Kushagra, 2026-08-22: "why does a disabled card respond to hover?" It did. The disabled
+    // arm re-points `--kui-sf-fill-src` and the base surface rule reads it, but the hover and
+    // press rules set `background-color` DIRECTLY — and a direct declaration beats a
+    // custom-property indirection whatever it resolves to. So a dead card sat at its receded
+    // fill and lit the moment a pointer touched it.
+    //
+    // The stand-down for this existed, was DELETED as unreachable when a sabotage pass stayed
+    // green without it, and the pass was green because the only law watching read TRAVEL and
+    // SCALE — the axis that was already right. A sabotage that survives is evidence about the
+    // law as often as about the code.
+    inMotion();
+    const { userEvent } = await import("vitest/browser");
+    const { dead, live } = pair();
+    const restDead = computed(dead, "background-color");
+    const restLive = computed(live, "background-color");
+
+    await userEvent.hover(dead);
+    // The LIVE card is the clock: waiting for it to light is what proves the pointer arrived,
+    // so a dead card measured as unchanged is a real absence rather than an early read.
+    await userEvent.hover(live);
+    await until(() => computed(live, "background-color") !== restLive);
+    expect(computed(live, "background-color"), "a live card lights — or this proves nothing")
+      .not.toBe(restLive);
+
+    await userEvent.hover(dead);
+    await until(() => computed(live, "background-color") === restLive);
+    expect(computed(dead, "background-color"), "and a dead one does not").toBe(restDead);
+    await userEvent.unhover(dead);
+
+    // AND UNDER A HELD PRESS, which the first version of this law did not read at all — its
+    // sabotage pass survived the press stand-down's deletion and said so. With a mouse the two
+    // are not separable: a press always co-occurs with a hover, so what this proves is that the
+    // pair together leave a dead card alone. The press arm's own reachable case is TOUCH, where
+    // there is no hover rule, and no mounted law can reach it (see surfaces.css); a node law
+    // holds that half and claims only that the declaration is stated.
+    const releaseLive = await holdPress(live);
+    await until(() => computed(live, "background-color") !== restLive);
+    expect(computed(live, "background-color"), "a live card takes the press colour").not.toBe(restLive);
+    await releaseLive();
+    await until(() => computed(live, "background-color") === restLive);
+
+    const releaseDead = await holdPress(dead);
+    await until(() => computed(dead, "background-color") !== restDead, 300);
+    expect(computed(dead, "background-color"), "and a dead one does not").toBe(restDead);
+    await releaseDead();
   });
 
   it("a card that is not interactive at all is untouched by any of it", () => {
