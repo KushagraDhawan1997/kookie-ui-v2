@@ -124,6 +124,28 @@ The move also made the registry pure data, so `registry.test.ts` imports the val
 
 **The first draft's language was wrong, and Kushagra rejected it** (*"like bro what is it"*). It used metaphor, filler and the passive voice. Every chapter was rewritten to ASD-STE100 Simplified Technical English: active voice, short sentences, literal vocabulary, no metaphor. `content/AUTHORING.md` now states those rules, so later chapters follow them.
 
+## 2026-08-21 A small dialog gets a smaller title, and the alert had every hole the dialog had
+
+Two things, and the second was Kushagra's question rather than a finding: "all the things we discuss for dialog, are on their own applied to alert dialog, also, right?"
+
+**The title.** §24 had carried this open since the day Dialog shipped, with the alert's half already closed YES. Kushagra closed the other half: a small dialog should have a smaller title than a large one. What made it worth an entry rather than a line of tuning is that §24's stated rule — *no surface sizes the type inside it* — reads like it forbids exactly this. It does not, and the distinction is ownership: a dialog's title and description are not content the call site wrote, they are parts the system owns because the a11y wiring forces them into existence. Everything the call site wrote is still untouched, which is the whole of what the rule protects. §25 had already made this argument to let an alert price all of its own content; this is the same argument applied to the two parts a dialog owns.
+
+The description moves with the title, unasked, because a title that shrinks while its supporting line does not stops reading as a pair.
+
+**The steps have one home, and that was the more consequential half.** The alert had `TITLE_STEP`/`BODY_STEP` locally; the obvious move was to copy them into Dialog. Two copies of one type map is exactly the drift this repo keeps finding, and the JS rule is render.ts's — CSS lets a second member self-key, a mechanism with laws behind it promotes on its second consumer. So they went to `system/floating.tsx`, and the law that matters is not "Dialog now has a map" but "there is only ONE map", which a law reading both mounted components can say and a law reading either alone cannot. **Size 3 is the anchor**: it holds what both components already shipped, so the change moved every index except the one anybody had judged by eye.
+
+**And the answer to the question was no — the alert did NOT get any of it for free.** Measured rather than assumed: `role="alertdialog"` with `aria-labelledby` null and `aria-label` null, and `aria-label`, `id` and `data-testid` all dropped by a Content part that declared the same four props Dialog's did. The two components were built the same week by the same author, which is precisely when a defect gets copied rather than inherited — and it is why "does the twin have this too" is a question worth measuring every time rather than reasoning about.
+
+All four repairs are the family's now. Three promotions with them: the open-change adapter, the name warning, and the composition steps. The name warning takes the component's name as a parameter — a shared hook that always said "Dialog" would send an alert's author to the wrong file, which is the promotion's own risk and has its own law and its own sabotage.
+
+**One reason union for both members, and that is Base UI's call rather than ours.** `AlertDialogRootChangeEventReason` IS `DialogRoot.ChangeEventReason`, character for character. An alert never emits `outside-press` because it refuses that dismissal — an absence at runtime, not in the type. A narrower union here would assert something the primitive does not say.
+
+**Found on the way, and not ours:** the docs' generated API tables listed every overlay part as rendering no element at all. They were right when they were generated and the widening made them stale, which is what the drift law is for.
+
+Seven sabotage passes, all caught.
+
+---
+
 ## 2026-08-21 The dialog took four props and threw the rest away
 
 Four findings from the Dialog audit, and they turned out to be one mistake with four faces.

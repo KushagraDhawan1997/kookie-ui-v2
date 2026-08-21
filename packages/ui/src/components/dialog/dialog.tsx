@@ -31,8 +31,13 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import {
   FloatingDirectionContext,
+  OVERLAY_BODY_STEP,
+  OVERLAY_TITLE_STEP,
   PortalScope,
+  overlayOpenChange,
   useAmbientDirection,
+  useNameWarning,
+  type OverlayOpenChangeDetails,
 } from "../../system/floating.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
@@ -52,41 +57,10 @@ const DialogSizeContext = React.createContext<Size>("3");
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
-/**
- * Why a dialog is opening or closing (2026-08-21).
- *
- * The strings are Base UI's own and are kept rather than translated: they are already plain,
- * and a mapping table would be a second home for a fact with one consumer plus a silent way
- * to drift. What is NOT taken from Base UI is the type — this union is declared here, so the
- * API is the package's, and three mounted laws provoke a real Escape, a real outside press
- * and a real close button and read the string back, which is what catches a rename upstream.
- */
-export type DialogOpenChangeReason =
-  | "trigger-press"
-  | "outside-press"
-  | "escape-key"
-  | "close-press"
-  | "focus-out"
-  | "imperative-action"
-  | "none";
-
-/**
- * The second argument to `onOpenChange`, and the reason it exists: without it a dialog can be
- * told that it closed and never why, so the most ordinary guard a form dialog owes — "you have
- * unsaved changes" — could not be written at all (measured 2026-08-21, the audit).
- *
- * `cancel()` stops the dismissal. Deliberately narrower than Base UI's own details object: it
- * publishes the three members that mean something at this layer and leaves the rest, so the
- * package's surface is the package's rather than whatever the primitive happens to carry.
- */
-export type DialogOpenChangeDetails = {
-  /** Why it is changing — an outside press, Escape, a close button, the trigger. */
-  reason: DialogOpenChangeReason;
-  /** The native event behind it. */
-  event: Event;
-  /** Refuse the change. A dialog that must ask before closing calls this and asks. */
-  cancel: () => void;
-};
+/* The reason and the refusal are the overlay family's, shared with AlertDialog on the second
+   consumer (system/floating.tsx, 2026-08-21). Base UI declares ONE union for both roots, so
+   this package does too. */
+export type { OverlayOpenChangeReason, OverlayOpenChangeDetails } from "../../system/floating.tsx";
 
 export type DialogProps = {
   /** §4, §24 — prices the popup's max width, its padding and its corner. */
@@ -102,7 +76,7 @@ export type DialogProps = {
       guard writable: `reason` names what did it (an outside press, Escape, a close button,
       the trigger), `event` is the native event behind it, and `cancel()` refuses that one
       dismissal — so "you have unsaved changes" is a real answer rather than a race. */
-  onOpenChange?: (open: boolean, details: DialogOpenChangeDetails) => void;
+  onOpenChange?: (open: boolean, details: OverlayOpenChangeDetails) => void;
   /** The trigger and the content. Dialog renders no DOM of its own — it is state and wiring —
       so this is `<DialogTrigger>` and `<DialogContent>`, in either order. */
   children?: React.ReactNode;
@@ -129,16 +103,7 @@ export function Dialog({ size = "3", open, defaultOpen, onOpenChange, children }
           <BaseDialog.Root
             {...(open !== undefined ? { open } : {})}
             {...(defaultOpen !== undefined ? { defaultOpen } : {})}
-            {...(onOpenChange !== undefined
-              ? {
-                  onOpenChange: (next: boolean, details: { reason: string; event: Event; cancel: () => void }) =>
-                    onOpenChange(next, {
-                      reason: details.reason as DialogOpenChangeReason,
-                      event: details.event,
-                      cancel: details.cancel,
-                    }),
-                }
-              : {})}
+            {...(onOpenChange !== undefined ? { onOpenChange: overlayOpenChange(onOpenChange) } : {})}
           >
             {children}
           </BaseDialog.Root>
@@ -232,45 +197,6 @@ export function DialogClose({ render, nativeButton, ref, ...props }: DialogClose
       {...(ref !== undefined ? { ref } : {})}
     />
   );
-}
-
-/**
- * The dev flag, resolved once and defensively — Box's own spelling and its own scar: an
- * ABSENT `process` means dev, not production, and written the other way round the warning
- * dies in every browser that has no such global (audit 2026-08-08).
- */
-const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
-
-/**
- * A dialog with no name is announced as "dialog" and nothing else (measured 2026-08-21:
- * `role="dialog"`, `aria-labelledby` null, `aria-label` null, no warning anywhere). Base UI
- * wires the name when a `DialogTitle` mounts, and until this change there was no second route
- * — `aria-label` type-checked and was dropped, so the obvious repair silently did nothing.
- *
- * Both halves ship together: the prop reaches the element now, and a dev build says so when
- * neither is there. Not a thrown error, because a name is an accessibility obligation rather
- * than a structural one and a half-built dialog in a scratch file should still render.
- *
- * It reads the DOM rather than the props on purpose. The name can arrive by either route and
- * one of them is Base UI's, so the only place both answers are visible is the element itself.
- */
-function useNameWarning(): (node: HTMLDivElement | null) => void {
-  const seen = React.useRef(false);
-  return React.useCallback((node: HTMLDivElement | null) => {
-    if (!DEV || !node || seen.current) return;
-    // After paint: Base UI stamps `aria-labelledby` when the Title child registers, which has
-    // not happened while the popup's own ref is being attached.
-    requestAnimationFrame(() => {
-      if (seen.current || !node.isConnected) return;
-      if (node.getAttribute("aria-labelledby") || node.getAttribute("aria-label")) return;
-      seen.current = true;
-      console.warn(
-        "[kookie-ui] A <Dialog> has no accessible name: a screen reader announces it as " +
-          "\"dialog\" and nothing else. Add a <DialogTitle>, or pass aria-label to " +
-          "<DialogContent> when the panel genuinely has no visible title.",
-      );
-    });
-  }, []);
 }
 
 /* ── Content: the fold (§24) ───────────────────────────────────────────────────────────── */
@@ -374,7 +300,7 @@ function DialogPopup({
   const material = useMaterial({ backdrop: true });
   // §10 — the lens on the pane itself (see Card).
   const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
-  const nameRef = useNameWarning();
+  const nameRef = useNameWarning("Dialog");
   // A pane clips (§3, 2026-08-21): content wider than the panel is not reachable at all.
   const clipRef = useClipWarning("<Dialog>");
   return (
@@ -429,15 +355,23 @@ export type DialogTitleProps = Omit<
  * card title, so the dialog and the confirm card in the playground are the same typography by
  * construction rather than by two people picking the same number.
  *
- * `size` is deliberately not exposed. The dialog's own index prices its BOX, not the type
- * inside it — no surface in this system sizes its children's type — and a title that could be
- * set per call site is the free index §15's brief exists to prevent. Whether a size-1 dialog
- * should carry a smaller title than a size-4 one is recorded open; it is one line if the eye
- * says yes.
+ * `size` is not exposed HERE, and that has not changed: a title the call site could set is the
+ * free index §15's brief exists to prevent. What changed 2026-08-21 (Kushagra, closing §24's
+ * open question — "a small dialog should have a smaller title than a large one") is that the
+ * DIALOG's index now reaches it. The rule "no surface sizes the type inside it" is intact,
+ * because this type is not inside it in the sense that rule means: the title and the
+ * description are parts the system owns — they exist because the a11y wiring forces them —
+ * and everything the call site wrote is untouched. Ownership is the same argument §25 used to
+ * let an alert price all of its own content.
+ *
+ * The steps are the overlay family's, shared with AlertDialog so the two cannot drift
+ * (system/floating.tsx). Size 3 is the anchor and keeps what this component shipped with, so
+ * the change moved every index except the one anybody had judged.
  */
 export function DialogTitle({ children, ...props }: DialogTitleProps) {
+  const size = React.use(DialogSizeContext);
   return (
-    <BaseDialog.Title render={<Heading size="6" />} {...props}>
+    <BaseDialog.Title render={<Heading size={OVERLAY_TITLE_STEP[size]} />} {...props}>
       {children}
     </BaseDialog.Title>
   );
@@ -458,13 +392,19 @@ export type DialogDescriptionProps = Omit<
 
 /**
  * The panel's accessible description (`aria-describedby`), and the same argument as the
- * title: forced by the a11y wiring, dressed by the type layer. Body copy at the composition
- * brief's step, in the MUTED ink — a description supports the title, which is exactly what
- * `emphasis="medium"` says (§15's solved ladder, where medium sits on the body floor).
+ * title in both halves: forced by the a11y wiring, dressed by the type layer, and priced by
+ * the dialog's own index since 2026-08-21 — a smaller dialog says its supporting line smaller
+ * too, or the pair stops reading as a pair. Body copy in the MUTED ink, because a description
+ * supports the title, which is exactly what `emphasis="medium"` says (§15's solved ladder,
+ * where medium sits on the body floor).
  */
 export function DialogDescription({ children, ...props }: DialogDescriptionProps) {
+  const size = React.use(DialogSizeContext);
   return (
-    <BaseDialog.Description render={<Text emphasis="medium" render={<p />} />} {...props}>
+    <BaseDialog.Description
+      render={<Text size={OVERLAY_BODY_STEP[size]} emphasis="medium" render={<p />} />}
+      {...props}
+    >
       {children}
     </BaseDialog.Description>
   );
