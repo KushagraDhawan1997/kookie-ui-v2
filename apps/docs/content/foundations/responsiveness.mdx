@@ -57,7 +57,7 @@ converged on a small set of named classes rather than per-prop breakpoints.
 ### The pointer axis: what is touching this
 
 `fine` and `coarse` are two complete geometries, as light and dark are two complete colour
-modes. The components, the size index and the laws are the same. The placed values differ.
+modes. The components, the size index and the rules are the same. The placed values differ.
 
 This is not a mobile mode, and the signal is never width. A touchscreen laptop used with a
 trackpad reports `fine`. A tablet with its keyboard detached reports `coarse`. Both answers are
@@ -94,15 +94,14 @@ width, add an inspector" is a room question, and container tiers already answer 
 pane.
 
 No token moves with the window class. No axis moves spacing. Type answers width through its own
-band. Geometry belongs to the pointer axis. A law asserts that the generated CSS never mentions
-a window class.
+band. Geometry belongs to the pointer axis. The generated CSS never mentions a window class at
+all.
 
 ## Classes state room, never hardware
 
-`phone`, `tablet` and `desktop` were rejected. People run apps in windowed mode, so a device
-name states something false. An app dragged to half a 5K display would report "tablet" with no
-tablet present. Every platform that started from device names moved to window-measured classes.
-The pointer axis already answers the device question, and a window class states room only.
+A class names room. It never names hardware. People run apps in windowed mode, so a device name
+states something false: an app dragged to half a 5K display reports `regular`, and there is no
+tablet present. Ask the pointer axis about the device. Ask the window class about the room.
 
 ## Type answers two questions of its own
 
@@ -111,9 +110,9 @@ rides `(pointer: coarse)` and raises reading steps 1 to 4, because a held screen
 eye. The narrow band rides `(max-width: 48rem)` and lowers display steps 8 and 9, because a
 short line has no room for a display heading.
 
-One combined band got the middle of the range wrong in both directions. Apple ships one Dynamic
-Type table for iPhone and iPad, and Body is 17pt on both. A tablet in landscape therefore lost a
-rise it should have had, and a narrow desktop window kept headings it had no room for.
+The two questions do not share an answer. Apple ships one Dynamic Type table for iPhone and
+iPad, and Body is 17pt on both, so the reading question does not separate a phone from a tablet.
+Line length does separate a narrow window from a wide one, on any device.
 
 Each band emits only the steps it moves. Both bands can therefore apply on a phone without
 conflict. The narrow band's threshold is the narrow window boundary, derived from the one
@@ -134,7 +133,25 @@ reason.
 ```tsx
 import { useWindowClass, windowClassQueries } from "@kookie-ui/react";
 
-// Before paint, for CSS: windowClassQueries.narrow is "(max-width: 48rem)".
-// After mount, for components:
-const windowClass = useWindowClass(); // null, then "narrow" | "regular" | "wide"
+// windowClassQueries.narrow is "(max-width: 48rem)". Use it in CSS for first paint.
+
+function Chrome({ children }: { children: React.ReactNode }) {
+  const windowClass = useWindowClass(); // null, then "narrow" | "regular" | "wide"
+
+  return (
+    <Shell>
+      <ShellHeader>
+        <ShellTrigger target="sidebar" render={<Button emphasis="quiet" />}>Menu</ShellTrigger>
+      </ShellHeader>
+      <ShellSidebar>{/* both navigations ship in the HTML */}</ShellSidebar>
+      <ShellContent>
+        <ShellScroll>{children}</ShellScroll>
+      </ShellContent>
+    </Shell>
+  );
+}
 ```
+
+`Shell` resolves an untouched pane in CSS at the narrow boundary, so the frame is correct before
+the hook returns anything. Read `windowClass` for a decision that CSS cannot make, such as which
+component to mount.

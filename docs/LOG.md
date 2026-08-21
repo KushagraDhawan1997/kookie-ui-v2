@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 A chapter states the rule, not how the rule was reached
+
+Kushagra, reading the shipped chapters: *"why do I need stuff like 'the elevation ladder is deleted' why is that part of docs? Nothing is shipped or out in public yet."*
+
+He is right, and the fault is systematic rather than local. The chapters were written by re-voicing `DECISIONS.md` and `LOG.md`, and both of those documents are the record of a reversal. Re-voicing carried the reversal across. The result told a reader who has never seen this system that a thing they never used was removed. About 1,300 words of the 17,000 were that, concentrated in `depth.mdx`, `radius.mdx` and `materials.mdx`.
+
+**The rule is now written into `content/AUTHORING.md`, in four parts.** Cut development history: nothing has shipped, so no reader has an earlier version to be told about. Cut defect archaeology: "wrong in 21 of 24 cells, by up to 9 pixels" proves that somebody measured, and changes nothing a reader types. Cut arguments against a design nobody proposed: a section titled "why there is no per-family ladder" answers an objection only this repo has. Cut internal names: "the team", "a reviewer", "the audit", "a law".
+
+**Keep a reason only when it changes what the reader types.** "Set `depth` once, at the root. There is no per-card shadow prop" stops a reader looking for the prop. "The ladder was removed after the first visual review" does not. That test is the whole rule, and it is what separates this from cutting reasons altogether, which was the rejected option: a guideline document with no reasons is a props table with paragraphs.
+
+**Rejected: move the history into a collapsible aside.** It keeps the words on the page while pretending they cost nothing. They still cost the reader a decision about whether to open it, and `LOG.md` already holds every one of them.
+
+**The second half was that the code fences taught nothing.** 26 of 70 fences were four lines or shorter, and eight were nothing but one `<Theme>` prop. A reader cannot learn composition from a fence that assigns one value. Each chapter now carries at least one fence that builds something a reader recognises: an editor toolbar over a canvas, a failed-invoice card, a create-project form, an import panel with all three feedback answers, a shell with real navigation rows. `AUTHORING.md` states 8 to 15 lines for that fence and keeps short fences for a single contrast, such as wrong code beside correct code.
+
+**Every fence was compiled before it shipped**, by pasting all of them into one temporary `.tsx` in the app and running `tsc`. That caught one real thing: `SegmentedControl` inherits Base UI's RadioGroup value type, so a controlled consumer receives `unknown` and has to cast. The chapter shows the cast rather than code that does not compile. Recorded as an open item.
+
+**Nothing checks a fence's props today.** `AUTHORING.md` requires that every prop, token and component name in a fence exists; the chapter laws check the tokens and that each fence tokenizes, and nothing checks the rest. The temporary compile above is the shape of the missing law, and it is not automatable by extraction alone, because a fence is often a fragment, a wrong/right pair with duplicate identifiers, or a reference to a symbol the chapter never defines. Recorded, not built.
+
 ## 2026-08-21 The docs became a guideline document, and the writing audited the system
 
 Kushagra: *"What I want to create is very close to HIG by Apple. Thats what Kookie is, its not just a UI library."*

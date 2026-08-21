@@ -7,12 +7,8 @@ about announcing the answer rather than painting it.
 `Shell` arranges things it does not own, so it is a pattern. A component contains things it owns.
 A child that reaches up to configure its parent is a pattern written in the wrong shape.
 
-The previous version of this frame had that shape. Panes declared intent and the root stored their state.
-The frame therefore needed child scanning, an exclusivity rule, and a cascade that explained
-which pane closed which.
-
-Here every pane owns its own `open`, exactly as `Dialog` does. Only `ShellTrigger` crosses the
-frame, and it finds a pane by name.
+Every pane owns its own `open`, exactly as `Dialog` does. Nothing scans the children, and no pane
+closes another one. Only `ShellTrigger` crosses the frame, and it finds a pane by name.
 
 ```tsx
 <Shell size="2">
@@ -112,10 +108,30 @@ announcement carries the meaning through a screen reader, a high-contrast settin
 monochrome display.
 
 ```tsx
-<ShellNavGroup label="Workspace">
-  <ShellNavItem current render={<a href="/inbox" />}>Inbox</ShellNavItem>
-  <ShellNavItem render={<a href="/drafts" />}>Drafts</ShellNavItem>
-</ShellNavGroup>
+<Shell size="2">
+  <ShellHeader>
+    <Flex align="center" gap="3" px="3" py="2">
+      <ShellTrigger target="sidebar" render={<Button size="1" emphasis="quiet" />}>
+        Menu
+      </ShellTrigger>
+      <Text size="2" weight="medium">Kookie Studio</Text>
+    </Flex>
+  </ShellHeader>
+
+  <ShellSidebar aria-label="Pages">
+    <ShellScroll>
+      <ShellNavGroup label="Workspace">
+        <ShellNavItem current render={<a href="/inbox" />}>Inbox</ShellNavItem>
+        <ShellNavItem render={<a href="/drafts" />}>Drafts</ShellNavItem>
+        <ShellNavItem render={<a href="/archive" />}>Archive</ShellNavItem>
+      </ShellNavGroup>
+    </ShellScroll>
+  </ShellSidebar>
+
+  <ShellContent>
+    <ShellScroll>{children}</ShellScroll>
+  </ShellContent>
+</Shell>
 ```
 
 The paint is a tone and a rung, not a louder step on one ramp. Grey states that the pointer is

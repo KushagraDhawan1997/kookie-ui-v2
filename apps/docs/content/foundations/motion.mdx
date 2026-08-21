@@ -54,11 +54,31 @@ box never travels and never scales, because the eye rests inside a field.
 No family states a duration. The shared layer owns the clock, and the family owns the distance.
 Two controls at the same size therefore move alike.
 
+This is the whole motion API. Every control below already moves correctly, and no line states a
+duration, a distance or an easing.
+
 ```tsx
-// This is the whole motion API. Both of these already move correctly.
-<Button emphasis="loud">Deploy</Button>
-<Card render={<button type="button" />}>Choose this plan</Card>
+<Card size="3">
+  <Stack gap="4">
+    <Heading size="6">Deploy to production</Heading>
+
+    <Flex render={<label />} align="center" gap="3">
+      <Switch size="2" />
+      <Text size="3">Run the migration first</Text>
+    </Flex>
+
+    <Slider defaultValue={[25]} aria-label="Rollout percentage" />
+
+    <Flex gap="3" justify="flex-end">
+      <Button emphasis="quiet" bordered>Cancel</Button>
+      <Button emphasis="loud">Deploy</Button>
+    </Flex>
+  </Stack>
+</Card>
 ```
+
+The buttons sink. The switch grip springs across its channel. The slider grip follows the
+pointer. Each family states its own distance, and the shared layer states the clock.
 
 There is no duration prop, no easing prop and no prop named `animate`. A component cannot write
 a duration either. Every channel of every transition must resolve to a motion token, so a
@@ -67,12 +87,11 @@ hand-typed `150ms` fails CI.
 ## A movement crosses its target one time
 
 Both shipped curves cross their target one time at most. A second crossing is a ring, and a
-ringing control looks mechanical. Three earlier versions of the Switch failed for this reason.
+ringing control looks mechanical.
 
-To make a movement more visible, increase the distance. Do not reduce the damping. Falsification
-produced this rule. Short-travel controls looked inert, and loosening their curves made the
-result look like a spring effect and nothing else. The looser curve stays in the motion lab as
-the rejected comparison, and the generator does not emit it.
+To make a movement more visible, increase the distance. Do not reduce the damping. A looser
+curve on a short travel reads as a spring effect and nothing else. Damping is fixed. Distance is
+the variable a family owns.
 
 ## The ring's travel has a floor
 
@@ -99,12 +118,8 @@ operating system for stillness must get all of it.
 
 Structure carries the suppression. A hook selects which arrival a control gets, and reduced
 motion stands down the hook rather than the rules that read it. A recipe and its suppression
-therefore share one selector, and specificity cannot separate them.
-
-The first version used `:not()`. `:not()` takes the specificity of its most specific argument,
-and it does not add the arguments together. The focus ring kept landing for six days for the
-people who had asked for stillness. The stylesheet that declares a clock now stands that clock
-down itself, on the declaring selector.
+therefore share one selector, and specificity cannot separate them. The stylesheet that declares
+a clock stands that clock down itself, on the declaring selector.
 
 ## No JavaScript runs at interaction time
 

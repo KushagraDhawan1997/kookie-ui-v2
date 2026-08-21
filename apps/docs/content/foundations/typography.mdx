@@ -82,7 +82,7 @@ resting state for reading, because a screen ranks its actions and not its paragr
 paragraph that arrives at medium by default states that reading is optional.
 
 Quiet sits below the body contrast floor on purpose. It is the rung for an option the reader
-cannot take. Do not use it for a full line of text, and no test checks this rule.
+cannot take. Do not use it for a full line of text. Nothing stops you.
 
 ## Two bands re-price the ramp
 
@@ -96,9 +96,9 @@ The two bands answer two unrelated questions, and the system keeps them apart.
   9. A page title moves from 56 to 40. The reason is line length: a 56px title on a 375px
   screen fits about seven characters on a line. A squeezed desktop window has the same problem.
 
-The two were one band for a day. That band lost the rise a tablet in landscape should have
-had, and it kept the 56px headings in a narrow desktop window. Each band now emits only the
-steps it moves, so both can apply on a phone without conflict.
+Each band emits only the steps it moves, so the two never conflict on a phone, where both
+apply. A tablet in landscape raises its reading steps and keeps its 56px display steps. A
+squeezed desktop window cuts the display steps and leaves the reading steps alone.
 
 You opt into nothing. `--font-size-N` stays the one spelling, and a component never learns that
 a band exists. A size index names a role on the ramp, so do not build a layout on a pixel value
@@ -124,3 +124,27 @@ that stays small never receives that negative tracking.
 a dense table's own chrome. It is not for a label or a caption. The muted and faint ink roles
 state that a thing matters less, at 14 or 16. A screen that reaches for 12px to make room has a
 spacing problem, not a type problem.
+
+Written out, the five steps look like this:
+
+```tsx
+<Stack gap="6">
+  <Heading size="8" render={<h1 />}>Billing</Heading>
+
+  <Stack gap="5">
+    <Heading size="7" render={<h2 />}>Payment method</Heading>
+
+    <Card size="3">
+      <Stack gap="3">
+        <Heading size="6" render={<h3 />}>Visa ending 4021</Heading>
+        <Text size="3" render={<p />}>Renews on 3 September for 24 dollars.</Text>
+        <Text size="2" emphasis="medium">Updated 3 August</Text>
+      </Stack>
+    </Card>
+  </Stack>
+</Stack>
+```
+
+The page title, the section, the card title, the body and the meta line take five different
+steps. The outline is correct at the same time, because `render` states the element and `size`
+states the step.
