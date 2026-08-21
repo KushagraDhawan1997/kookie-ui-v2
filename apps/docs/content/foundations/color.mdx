@@ -79,20 +79,29 @@ Type resolves `emphasis` as three foreground roles. Loud reads `--color-text`. M
 rungs onto that family's ink trio.
 
 ```tsx
-<Stack gap="2">
-  <Text>Your plan renews on 3 September.</Text>
-  <Text emphasis="medium">Last charged 3 August</Text>
-  <Text emphasis="quiet">Not available on this plan</Text>
-</Stack>
+<Card size="3">
+  <Stack gap="3">
+    <Flex gap="2" align="center" justify="space-between">
+      <Heading size="6">Invoice 4021</Heading>
+      <Text size="2" tone="destructive" weight="medium">Payment failed</Text>
+    </Flex>
+    <Text size="3">Your card was declined on 3 August.</Text>
+    <Text size="3" emphasis="medium">We retry once more on 10 August.</Text>
+    <Text size="2" emphasis="quiet">Refunds are not available on this plan.</Text>
+    <Flex gap="3">
+      <Button emphasis="loud" tone="destructive">Update card</Button>
+      <Button emphasis="quiet" bordered>Contact support</Button>
+    </Flex>
+  </Stack>
+</Card>
 ```
 
-The generator solves each rung against a contrast target. It solves one value for each family
-in each appearance.
+The heading and the first line rest loud. The retry date is real information that the screen
+does not emphasise, so it takes medium. The refund line is stood down, so it takes quiet. One
+tone reaches both the label and the button, because every family emits the same roles.
 
-An earlier version picked the rungs by eye, and the two halves of the system picked them
-differently. Neutral took steps 12, 11 and 10, and every chroma family faded its one text
-colour by a fixed percentage. Nothing knew what contrast a rung reached. Measured, the light
-ladder ran 103, 78 and 65.
+The generator solves each rung against a contrast target. It solves one value for each family
+in each appearance, so every family reaches the same contrast on the same rung.
 
 - **The generator does not solve loud.** Loud stays the family's own designed text colour.
   This is a judgment: the system uses this ink more than any other, so a target number must
@@ -104,8 +113,8 @@ ladder ran 103, 78 and 65.
   something the system stands down, such as an option the reader cannot take. The system
   states this exception in writing.
 
-Do not use the quiet rung for a full line of text. No test checks this rule. Text that matters
-less stays loud at a smaller step, or moves to medium.
+Do not use the quiet rung for a full line of text. Nothing stops you. Text that matters less
+stays loud at a smaller step, or moves to medium.
 
 ## The high contrast setting
 
@@ -118,10 +127,10 @@ operating system for more contrast receives it.
 ```
 
 A resting border and a resting fill are dress. The system judges them by eye and holds them to
-no contrast floor in standard mode. Under `contrast="high"` the APCA floors bind, and the laws
-anchor the solved edge targets there. This split is a judgment. Text, the focus ring and the
-invalid edge stay floor-checked in standard mode, because those three are signals. A signal
-that works only under an opt-in setting is not a signal.
+no contrast floor in standard mode. Under `contrast="high"` the APCA floors bind, and every
+solved edge targets one. This split is a judgment. Text, the focus ring and the invalid edge
+meet their floors in standard mode, because those three are signals. A signal that works only
+under an opt-in setting is not a signal.
 
 The setting gives each colour as much contrast as that colour permits. It is not a fixed
 increase. A bright hue's border band already sits at the limit the hue holds, and more

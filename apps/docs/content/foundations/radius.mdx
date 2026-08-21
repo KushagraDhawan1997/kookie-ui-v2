@@ -32,9 +32,9 @@ One word rather than one prop per component: in a system where one card is round
 next, the corner states nothing. A corner reads as a property of the product only when nothing
 local can change it.
 
-## Bands, because a fraction belongs to one box
+## Reference the family, never the number
 
-There are five families and five bands. Reference the family. Never reference the number.
+There are five families and five bands.
 
 ```css
 --radius-control-2   /* a size-2 button, field or select trigger */
@@ -44,28 +44,19 @@ There are five families and five bands. Reference the family. Never reference th
 --radius-mark-2      /* a size-2 checkbox */
 ```
 
-A `Button` reads `--radius-control-2`. It never reads `--radius-2`. The numbers match today, and
-they stop matching when someone renumbers a scale.
+Write `--radius-control-2` in a block you own. Do not write `--radius-2`. The numbers agree
+today. They stop agreeing when a scale is renumbered, and the wrong-family value is a shape
+error rather than a build error.
 
 The bands use different indexes. Control radius belongs to the density set, because a control
 with more room reads square at a fixed corner. Surface radius and overlay radius follow the size
 index alone, because density reaches a card through its padding.
 
-**A corner holds a near-constant fraction of the box it is drawn on.** This system broke that
-rule twice, in the same way each time. A family rode a ladder that belongs to a box the
-component does not have.
-
-- The checkbox shipped on `--radius-control-N`. Those radii are designed against the control
-  height ladder, and a mark is not on that ladder. The corner ran from a quarter of the mark at
-  size 1 to nearly two fifths at size 4. At comfortable size 4 it was a circle, and a checkbox
-  must never be a circle.
-- The menu row took the control band's capsule at `full`. A row's box is its text line plus one
-  designed inset, not the height ladder. The panel then wrapped its rows at corners the browser
-  cannot paint. The value was wrong in 21 of 24 cells, by up to 9 pixels.
-
-A reviewer found both by eye. A test then read the corner that the browser resolves, rather than
-the number the stylesheet declares. The mark family and the row family each own a band for this
-reason.
+**A corner holds a near-constant fraction of the box it is drawn on.** That is why a mark and a
+row have bands of their own. A mark is not on the control height ladder, and a row's box is its
+text line plus one designed inset. A family that reads another family's band gets a corner
+computed against a box it does not have. The result is a circle where a square belongs, or a
+corner the browser refuses to paint.
 
 ## Curves nest
 
@@ -90,8 +81,7 @@ its own padding.
 
 `none` squares everything, including the pill. A switch with an exception is not a switch.
 
-Four shapes survive `none`. Each one survives because the shape states the role, not because
-somebody preferred it.
+Four shapes survive `none`. Each one survives because the shape states the role.
 
 - A **radio** is a circle. A square radio reads as a checkbox.
 - The **slider grip** and the **switch thumb** are circles. A square handle reads as a bead that
@@ -103,20 +93,37 @@ The system applies the same rule in the other direction. Under `full`, the check
 corner of `large`, because a circular checkbox reads as a radio. A corner stops getting rounder.
 It never reverses.
 
-Argue every exception. The slider's rail was once a silent fifth exception. It escaped `none`
-through arithmetic rather than through an argument, and the team fixed it. Treat a fifth
-exception as a defect until someone writes the paragraph.
+There are four exceptions and there is no fifth. A shape that escapes `none` without a written
+reason is a defect.
 
-## What you cannot do
+## Change the corner for a region, not for a component
 
-No component takes a `radius` prop, and none will. When a region needs a different corner, nest
-a `Theme` on an element you already have:
+No component takes a `radius` prop. When one region needs a different corner, nest a `Theme` on
+an element the layout already has:
 
 ```tsx
-<Theme radius="small" render={<section />}>
-  <Card>Settings</Card>
+<Theme radius="medium">
+  <Stack gap="5">
+    <Card size="3">
+      <Stack gap="3">
+        <Heading size="6">Billing</Heading>
+        <TextField size="2" placeholder="Card number" />
+        <Button emphasis="loud">Save card</Button>
+      </Stack>
+    </Card>
+
+    <Theme radius="none" render={<section />}>
+      <Card size="3">
+        <Text size="3" emphasis="medium">Legacy invoices</Text>
+      </Card>
+    </Theme>
+  </Stack>
 </Theme>
 ```
 
-That code states a decision about a region, and a reviewer can see it. A per-card prop produces
-nine decisions on one screen, and no corner at all.
+The first card, its field and its button all take the `medium` palette, each from its own band.
+The nested section squares every corner inside it, and the radio, the grips and the switch track
+keep their shapes.
+
+One line states a decision about a region, and the reader of that file can see it. A per-card
+prop produces nine decisions on one screen, and no corner at all.

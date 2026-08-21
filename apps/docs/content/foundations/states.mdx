@@ -46,9 +46,8 @@ The ring answers one question: where is focus. That question is the same everywh
 is accent whatever the control's tone is. A destructive Button rings accent.
 
 WCAG 2.4.7 and 2.4.13 set the floor: at least two pixels, an offset, and 3:1 against the
-surfaces beside it. The laws assert that floor with APCA in both appearances. Dark needed its
-own step to hold it. The first version measured Lc 22 against the page, which a reader cannot
-see.
+surfaces beside it. The ring clears that floor in both appearances. Each appearance uses its own
+step to clear it, because one step against the light page is invisible against the dark one.
 
 The invalid state is the one exception. It rings `--invalid-edge`. A tone is a choice, and a
 state is not.
@@ -59,9 +58,9 @@ A user does not press a field. A user enters it. The box must show that state ho
 arrived. Every native text input behaves this way. A field therefore shows the ring whenever the
 caret is in it, not only after a Tab.
 
-The ring lands on the input that holds focus, never on the wrapper around it. A field with a
-Button in its trailing slot once lit two rings, one inside the other, and claimed a focus it did
-not have. A control hosted in a slot rings itself, like any other control.
+The ring lands on the input that holds focus, never on the wrapper around it. A control in a
+leading or trailing slot rings itself, like any other control. So a field with a `Button` in its
+trailing slot shows one ring, on whichever of the two holds focus.
 
 ## A state outranks a decoration
 
@@ -69,8 +68,8 @@ A tick on a Checkbox is a decoration. Invalid and disabled are states. A state o
 decoration, and the stylesheet states this by specificity rather than by source order.
 
 The checked rule sits inside `:where()`, so it carries the weight of its class alone and loses
-to the state remaps. An earlier version used `:is()`. That rule tied with the invalid remap and
-won on file order, so a checked invalid Checkbox looked correct.
+to the state remaps. A checked Checkbox that is also invalid draws the invalid border, not the
+resting one.
 
 Disabled outranks invalid. The order is deterministic.
 
@@ -80,9 +79,9 @@ Disabled remaps roles. It never applies opacity. The foreground, the fills and t
 to the dead palette. Hover and press stop firing. The cursor becomes `--cursor-disabled`, which
 is the arrow. It is never `not-allowed`, which no native platform uses.
 
-Opacity was refused. Opacity stacks on a tinted surface and voids every generated contrast
-guarantee, with no warning. A remap keeps the control legible and clearly off, and a law can
-test both halves.
+The system does not use opacity for this. Opacity stacks on a tinted surface and voids every
+generated contrast guarantee, with no warning. A remap keeps the control legible and clearly
+off.
 
 ## The system reads validity
 
@@ -90,9 +89,27 @@ There is no `invalid` prop, because nothing decides to look invalid. The system 
 `aria-invalid`. It also reads Base UI's `data-invalid` where a field sits inside a `Field.Root`.
 
 ```tsx
-// The state arrives from your validation, not from a prop.
-<TextField type="email" aria-invalid={emailError ? true : undefined} />
+<Stack gap="4">
+  <Flex render={<label />} direction="column" gap="2">
+    <Text size="2" weight="medium">Work email</Text>
+    <TextField
+      type="email"
+      value={email}
+      onChange={(event) => setEmail(event.target.value)}
+      aria-invalid={emailError ? true : undefined}
+      aria-describedby={emailError ? "email-error" : undefined}
+    />
+    {emailError ? (
+      <Text id="email-error" size="2" tone="destructive">{emailError}</Text>
+    ) : null}
+  </Flex>
+  <Button emphasis="loud" disabled={!email}>Send invite</Button>
+</Stack>
 ```
+
+The state arrives from your validation, not from a prop. The border and the ring answer
+`aria-invalid`. The message is a sibling that you write. The `Button` remaps its roles while it
+is disabled, and it stops answering hover and press at the same time.
 
 The value the user typed is content, and it stays legible. The box carries the state in its
 border and its ring. WCAG 1.4.1 states that colour alone is not sufficient signalling. The

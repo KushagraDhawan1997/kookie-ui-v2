@@ -24,14 +24,26 @@ A **surface** is an object with its own plane. `Card` is the example. It is opaq
 behind it stops at its edge. In an elevated theme it casts a shadow.
 
 ```tsx
-// A ground that holds two objects. Do not nest a Card in a Card for this.
 <Surface size="3">
   <Stack gap="3">
-    <Card size="2">…</Card>
-    <Card size="2">…</Card>
+    <Card size="2">
+      <Stack gap="2">
+        <Heading size="6">api-gateway</Heading>
+        <Text size="2" emphasis="medium">Deployed 4 minutes ago</Text>
+      </Stack>
+    </Card>
+    <Card size="2">
+      <Stack gap="2">
+        <Heading size="6">worker-queue</Heading>
+        <Text size="2" emphasis="medium">Deployed 2 hours ago</Text>
+      </Stack>
+    </Card>
   </Stack>
 </Surface>
 ```
+
+The `Surface` is the bed. The two cards are the objects on it, and each one lifts. Do not nest a
+`Card` in a `Card` to get this result.
 
 A `Card` is an object. A `Surface` is what objects sit on. Neither one is a quieter version of
 the other. When you nest a card in a card to make a quiet region, use a `Surface`.

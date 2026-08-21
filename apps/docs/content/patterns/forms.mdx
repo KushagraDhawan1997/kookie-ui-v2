@@ -49,11 +49,34 @@ Use one loud button on each screen. Give it to the action the form is for. Set e
 button to medium or quiet.
 
 ```tsx
-<Flex justify="flex-end" gap="3">
-  <Button>Cancel</Button>
-  <Button emphasis="loud">Create project</Button>
-</Flex>
+<Card size="3">
+  <Stack gap="6">
+    <Stack gap="2">
+      <Heading size="6">New project</Heading>
+      <Text size="3" emphasis="medium">Anyone in the workspace can open it.</Text>
+    </Stack>
+
+    <Stack gap="5">
+      <Stack gap="3">
+        <Text size="2" weight="medium" render={<label htmlFor="name" />}>Project name</Text>
+        <TextField id="name" required />
+      </Stack>
+      <Flex align="center" gap="2">
+        <Checkbox id="private" />
+        <Text render={<label htmlFor="private" />}>Keep it private for now</Text>
+      </Flex>
+    </Stack>
+
+    <Flex justify="flex-end" gap="3">
+      <Button>Cancel</Button>
+      <Button emphasis="loud">Create project</Button>
+    </Flex>
+  </Stack>
+</Card>
 ```
+
+Three gaps state the structure: 3 from a label to its field, 5 between the rows of the form, and
+6 between the title, the form and the actions. Only the action row ranks.
 
 Put the actions at the end of the form. Align them to the end edge. A single action with nothing
 beside it may take the full width instead. That is a balance decision, and it is a judgment.

@@ -38,13 +38,20 @@ Every component forwards `className` and `style`. Your `style` merges last, so y
 always wins.
 
 ```tsx
-// Place a control with the layout that owns the relationship.
-<Box m="4">
-  <Button>Save</Button>
-</Box>
+// The reading column has no token, so state it with style. Everything inside it does.
+<Box style={{ maxInlineSize: "42rem" }}>
+  <Card size="3">
+    <Stack gap="4">
+      <Heading size="6">Workspace name</Heading>
+      <TextField id="workspace" defaultValue="Kookie Studio" />
 
-// Use style when the system has no answer.
-<Card style={{ maxInlineSize: "42rem" }}>…</Card>
+      {/* One control, placed by the layout that owns the relationship. */}
+      <Box mt="2">
+        <Button emphasis="loud">Rename</Button>
+      </Box>
+    </Stack>
+  </Card>
+</Box>
 ```
 
 An escape is visible in a diff. One escape is normal. A file full of escapes means the system
@@ -64,9 +71,8 @@ nothing that anyone decided.
 One rule governs how the suite writes these tests. **A test reads the value the browser
 computes, from a mounted component, in both appearances.**
 
-An audit produced this rule. Every broken axis it found was an axis where no test read a
-computed value. The tests read attribute strings, token names and objects in memory. Each one
-stopped one step short of the value that could be wrong. In each case, that value was wrong.
+A test that reads an attribute string, a token name or an object in memory stops one step short
+of the value that can be wrong. It passes while the rendered result is incorrect.
 
 ## The reviewer checks the composition
 
@@ -91,8 +97,9 @@ anthropometry. Contrast comes from measured models. Grouping comes from document
 behaviour.
 
 Above those limits, the exact radius, the saturation of a material, the accent colour and the
-rhythm of one screen are judgments. The documentation states them as judgments. The team tunes
-them by eye. No test asserts them.
+rhythm of one screen are judgments. The documentation states them as judgments, and every one of
+them is a value in the colour configuration rather than a number in a component. No test asserts
+them.
 
 State the boundary clearly. A system that claimed its judgments were measurements would make a
 claim that nobody can check.
@@ -106,7 +113,5 @@ it states, and a test resolves every one of those references against the real do
 chapter about a decision that the specification does not contain fails before you read it.
 
 A script generates the props table on each component page from the package types. A test
-regenerates the table and compares it. The table cannot describe a prop that no longer exists.
-
-This mechanism exists because the fault happened. A page documented a prop that had never
-existed. The type checker caught it, because that page was TypeScript.
+regenerates the table and compares it. The table cannot describe a prop that no longer exists,
+and it cannot omit one that does.
