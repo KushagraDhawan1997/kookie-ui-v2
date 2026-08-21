@@ -13,6 +13,7 @@ export { Kbd, type KbdProps } from "./components/kbd/kbd.tsx";
 export { Link, type LinkProps } from "./components/link/link.tsx";
 export { Menu, MenuTrigger, MenuContent, MenuItem, MenuGroup, MenuLabel, MenuCheckboxItem, MenuRadioGroup, MenuRadioItem, MenuSub, MenuSubTrigger, MenuSubContent, type MenuProps, type MenuTriggerProps, type MenuContentProps, type MenuItemProps, type MenuGroupProps, type MenuLabelProps, type MenuCheckboxItemProps, type MenuRadioGroupProps, type MenuRadioItemProps, type MenuSubProps, type MenuSubTriggerProps, type MenuSubContentProps } from "./components/menu/menu.tsx";
 export { Select, SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectLabel, type SelectProps, type SelectTriggerProps, type SelectContentProps, type SelectItemProps, type SelectGroupProps, type SelectLabelProps } from "./components/select/select.tsx";
+export { Notice, type NoticeProps } from "./components/notice/notice.tsx";
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
