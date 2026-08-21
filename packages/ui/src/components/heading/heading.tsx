@@ -10,20 +10,20 @@ export type HeadingProps = Omit<
   React.ComponentPropsWithoutRef<"h2">,
   "color" | "style" | "className"
 > & {
-  /** §15 — a step on the SAME ramp Text reads; one type system, not two, so the index means
-      the same thing on both. It prices the TYPE and nothing else — the document's outline
-      level is `render`'s job — which is what lets a sidebar's `h2` sit at 4 while the hero's
-      sits at 8. Anchors at 6, §15's card-title step. */
+  /** A step on the same ramp `Text` reads. One type system, not two, so the index means the
+      same thing on both. It sets the type and nothing else: the document outline level is
+      `render`'s job, which is what lets a sidebar's `h2` sit at 4 while the hero's sits at 8.
+      Defaults to 6, the card-title step. */
   size?: TypeSize;
-  /** §15 — token names, never numbers. Rests semibold, which is also the top of the ladder —
-      `bold` is refused system-wide — so a heading takes its weight from the step it stands on
-      and the ink role it wears, never from a heavier face. */
+  /** Token names, never numbers. It rests at semibold, which is also the heaviest weight in
+      the system, because `bold` is refused. A heading gets its weight from the step it stands
+      on and the ink colour it wears, never from a heavier face. */
   weight?: Weight;
-  /** §9, §15 — the type ladder: a muted eyebrow or section label without leaving the axis. */
+  /** Picks an ink colour, the same three `Text` uses. Use it for a muted section label. */
   emphasis?: Emphasis;
-  /** §7, §15 — a semantic family for the ink, never a colour name (see Text). */
+  /** A meaning for the ink, never a colour name. The theme resolves the colour. */
   tone?: Tone;
-  /** Name the real outline level — `render={<h1/>}`, `<h3/>` — without moving the ramp (§5). */
+  /** Name the real outline level, such as `render={<h1/>}`, without moving the type step. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

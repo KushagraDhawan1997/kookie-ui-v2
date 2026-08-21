@@ -13,21 +13,18 @@ export type CardProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
-  /** §4 — pads from the surface family; a surface has no height to own. */
+  /** Sets the padding and the corner. A card has no height of its own to set. */
   size?: Size;
   /**
-   * §10 — a PLACEMENT fact, not a material choice (selectivity, 2026-08-17; renamed from
-   * `overContent` the same day — the name now says what glass actually needs): does this
-   * card have a backdrop — a hero image, a canvas, a scrolling feed passing behind it? An
-   * in-flow card sits on the page's own calm ground, where glass blurs nothing and still
-   * pays a full backdrop readback, so by default it renders the solid look at every theme
-   * material (the §10 convergence guarantees the two are identical there). Unset, it reads
-   * the ambient `<Box backdrop>` region; floating panes (menus, dialogs) are over content
-   * by construction and never need it. The material itself is still the theme's — this
-   * prop cannot choose one.
+   * Says whether something passes behind this card: a hero image, a canvas, a scrolling
+   * feed. A card in ordinary flow sits on the page, where glass blurs nothing and still costs
+   * a full backdrop read on every paint, so by default it renders solid whatever the theme's
+   * material is. Unset, it follows the surrounding `<Box backdrop>` region. A menu or a
+   * dialog always covers content, so neither needs this. The material itself is still the
+   * theme's: this prop cannot pick one.
    */
   backdrop?: boolean;
-  /** Render into an element you already have — an `<article>`, a link (§5). */
+  /** Render into an element you already have, such as an `<article>`, a button or a link. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

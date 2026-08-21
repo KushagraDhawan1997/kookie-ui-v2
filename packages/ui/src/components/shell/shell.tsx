@@ -151,13 +151,13 @@ function usePaneDress(flush: boolean, forwarded?: React.Ref<HTMLElement>) {
 /** Every pane's posture prop. */
 type PaneDressProps = {
   /**
-   * §27 — is this pane part of the app frame? `flush` (the default) tiles it against its
-   * neighbours, each seam one hairline. `flush={false}` pulls it off the frame, and what
-   * happens next is DERIVED rather than chosen: a pane floats if the content is underneath
-   * it, and the content is underneath it only if the content is itself flush; otherwise it
-   * grounds — its own surface resting on the app's ground, the card relationship at pane
-   * scale. One boolean per pane reaches all four postures, and the derivation cannot be told
-   * the lie a three-value axis could (a floating sidebar beside a grounded content card).
+   * Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours
+   * with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next
+   * is derived rather than chosen: a pane floats if the content is underneath it, and the content
+   * is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its
+   * own surface resting on the app's ground. One boolean reaches all four arrangements, and it
+   * cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded
+   * content card.
    */
   flush?: boolean;
 };
@@ -197,13 +197,10 @@ function usePaneSize(stated: Size | undefined): Size {
 
 export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /**
-   * The control index this app's navigation is priced at — inherited by every pane, and
-   * overridable per pane. An editor is size 1 throughout and was having to say so on each
-   * pane separately (found by the builder's port, 2026-08-21); the per-pane default of `"2"`
-   * was a default with no home, which is the one thing a system with a size axis should not
-   * ship. Not the app's TYPE size and not any pane's WIDTH — a pane's extent is a statement
-   * about content and has no ladder, which is why `width` is a raw number and this is an
-   * index.
+   * The control index this app's navigation is drawn at. Every pane inherits it, and any pane can
+   * overrule it. It is not the app's type size, and it is not any pane's width: a pane's extent
+   * is a statement about your content and has no ladder, which is why `width` is a raw number and
+   * this is an index.
    */
   size?: Size;
   ref?: React.Ref<HTMLDivElement>;
@@ -513,36 +510,38 @@ type PaneState = "auto" | "open" | "closed";
 
 type TogglePaneOwnProps = {
   /**
-   * Controlled open state — Dialog's pattern exactly.
+   * Controlled open state, in the same pattern Dialog uses.
    *
-   * PASSING IT CONDITIONALLY IS SUPPORTED, and stating that is the point of this paragraph
-   * (the builder's port was relying on it while nothing said it was allowed, 2026-08-21).
-   * `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on and
-   * hands control straight back when it goes: the uncontrolled state is kept untouched
-   * throughout rather than being overwritten by the controlled value, so the pane returns to
-   * exactly the state the user last left it in. React warns about this shape for form inputs
-   * because a value has nowhere to go; a pane's does. A law holds the round trip.
+   * Passing it conditionally is supported. `{...(preview ? { open: false } : {})}` pins the pane
+   * closed while the flag is on, and hands control straight back when it goes. The uncontrolled
+   * state is kept untouched throughout rather than overwritten, so the pane returns to exactly
+   * the state the user last left it in.
    */
   open?: boolean;
-  /** Initial state when uncontrolled. Omit BOTH and the pane is `auto`: the stylesheet
-      resolves its resting state per window class, and the first user toggle makes it
-      explicit. */
+  /**
+   * The starting state when the pane is uncontrolled. Omit both this and `open` and the pane is
+   * auto: the stylesheet decides its resting state from the window size, and the first toggle
+   * makes the choice explicit.
+   */
   defaultOpen?: boolean;
-  /** Fired on user-driven changes only (trigger, Escape, scrim) — never at mount, never on
-      a window-class crossing: auto's responsive resolution is CSS's, and CSS calls nobody. */
+  /**
+   * Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at
+   * mount, and never when the window crosses a size boundary, because auto is resolved in CSS and
+   * CSS calls nobody.
+   */
   onOpenChange?: (open: boolean) => void;
   /**
-   * §27 — how this pane occupies the window while it is open. `ShellPresentation` says what
-   * the three values mean; what belongs here is when to reach for one.
+   * How this pane occupies the window while it is open.
    *
-   * `auto` answers a question about the ROOM, and it answers it in CSS through §18's window
-   * class, so first paint is right with no script and no hydration to mismatch. Stating a
-   * value instead answers a question about the PRODUCT, and it does more than pin a posture:
-   * `overlay` also makes the pane rest CLOSED at every width, because an overlay is summoned
-   * rather than lived in, where `auto` lets a nav column rest open on a roomy window. So an
-   * explicit value is for a pane whose behaviour is a decision (a drawer that must never be
-   * ambient; an inspector that must never cover the work), and `auto` for every pane whose
-   * behaviour is a consequence of how much window there is.
+   * `auto` answers a question about the room, and it answers it in CSS from the window size, so
+   * first paint is right with no script and nothing for hydration to mismatch.
+   *
+   * Stating a value instead answers a question about the product, and it does more than pin the
+   * arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is
+   * something you summon rather than live in, where `auto` lets a nav column rest open on a roomy
+   * window. So state a value for a pane whose behaviour is a decision, such as a drawer that must
+   * never be ambient. Leave it auto for a pane whose behaviour follows from how much window there
+   * is.
    */
   presentation?: ShellPresentation;
 };
@@ -651,18 +650,16 @@ type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
   TogglePaneOwnProps &
   PaneDressProps & {
     /**
-     * §27 — the system's first sanctioned raw length: a pane's width is the app's content
-     * speaking, and no ladder exists that could price it. In CSS pixels. It overrides the
-     * designed default by writing the one custom property the stylesheet reads
-     * (`--kui-shell-w`) — which is deliberately the whole future resize architecture: a
-     * later drag writes where this writes.
+     * The pane's width in CSS pixels, and the one place this system sanctions a raw length: a
+     * pane's width is your content speaking, and no ladder could size it. It overrides the default
+     * by writing the custom property the stylesheet reads, which is also where a future drag-resize
+     * will write.
      */
     width?: number;
     /**
-     * The control index the pane's own navigation is priced at — its rows, and (when the
-     * rail's items land) its squares. Not the pane's WIDTH: a pane's extent is a statement
-     * about the app's content and has no ladder, which is why `width` is a raw number and
-     * this is an index.
+     * The control index this pane's own navigation is drawn at: its rows and its squares. It is not
+     * the pane's width. A pane's extent is a statement about your content and has no ladder, which
+     * is why `width` is a raw number and this is an index.
      */
     size?: Size;
     ref?: React.Ref<HTMLElement>;
@@ -762,7 +759,10 @@ export function ShellInspector(props: ShellInspectorProps) {
 export type ShellBottomProps = Omit<React.ComponentPropsWithoutRef<"aside">, "color"> &
   TogglePaneOwnProps &
   PaneDressProps & {
-    /** §27 — the bottom pane's block extent, the width prop's sentence turned 90°. */
+    /**
+     * The bottom pane's height in CSS pixels. It is the `width` prop's sentence turned ninety
+     * degrees.
+     */
     height?: number;
     /** The index this pane is priced at — its padding, and anything it holds. Defaults to
         the app's. */
@@ -866,13 +866,12 @@ export function ShellScroll({ className, ...props }: ShellScrollProps) {
 export type ShellRailItemProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /** The region you are in. Announced as well as painted, exactly as a nav row's is. */
   current?: boolean;
-  /** Be an anchor instead — a rail is primary navigation, and a link is a link. */
+  /** Be an anchor instead. A rail is primary navigation, and a link is a link. */
   render?: RenderElement;
   /**
-   * REQUIRED, because the item is icon-only: an icon with no name is a button nobody can
-   * read (Button's `iconOnly` takes the same line). If the rail ever grows labels, they go
-   * UNDER the icon and stay a switch on the pane — one word under one icon and not the next
-   * is how a column of icons stops lining up.
+   * Required, because the item is icon-only, and an icon with no name is a button nobody can read.
+   * If the rail ever grows labels they go under the icon and stay a setting on the pane: one word
+   * under one icon and not the next is how a column of icons stops lining up.
    */
   "aria-label": string;
   ref?: React.Ref<HTMLElement>;
@@ -965,11 +964,11 @@ export function ShellNavGroup({ label, id, className, children, ...props }: Shel
 
 export type ShellNavItemProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /**
-   * This is the page you are on. Announced (`aria-current="page"`) as well as painted —
-   * "you are here" is information, and a colour alone tells nobody who cannot see it.
+   * This is the page you are on. It is announced with `aria-current="page"` as well as painted,
+   * because "you are here" is information and a colour alone tells nobody who cannot see it.
    */
   current?: boolean;
-  /** Be an anchor instead: a nav item usually navigates, and a link is a link (§13). */
+  /** Be an anchor instead. A nav item usually navigates, and a link is a link. */
   render?: RenderElement;
   ref?: React.Ref<HTMLElement>;
 };
@@ -1025,15 +1024,14 @@ export type ShellTriggerProps = Omit<React.ComponentPropsWithoutRef<"button">, "
   /** Which pane this button drives. */
   target: ShellPaneTarget;
   /**
-   * What the press does to `target`. `toggle` is the disclosure button every shell has, and
-   * the default because it is the one a button that only drives a pane should be.
+   * What the press does to `target`. `toggle` is the disclosure button every shell has, and it is
+   * the default.
    *
-   * The one-way values are for a press that ALREADY means something else and must not undo
-   * itself. A rail square that re-points the sidebar has to SHOW the sidebar, so it is
-   * `open`: as a toggle, pressing a second region would close the panel it had just filled,
-   * and picking a region the sidebar is not showing would do nothing visible at all. A
-   * dismiss button inside an overlaying pane is `close` for the mirror reason. Stating the
-   * direction is what keeps those presses from becoming controls that appear to do nothing.
+   * The one-way values are for a press that already means something else and must not undo itself.
+   * A rail square that re-points the sidebar has to show the sidebar, so it is `open`: as a toggle,
+   * pressing a second region would close the panel it had just filled, and picking a region the
+   * sidebar is not showing would do nothing visible at all. A dismiss button inside an overlaying
+   * pane is `close` for the mirror reason.
    */
   action?: "toggle" | "open" | "close";
   /** Usually a Kookie Button: `<ShellTrigger target="sidebar" render={<Button iconOnly …/>}>`. */

@@ -10,18 +10,16 @@ export type KbdProps = Omit<
   React.ComponentPropsWithoutRef<"kbd">,
   "color" | "style" | "className"
 > & {
-  /** §15 — a step on the shared ramp. Optional with no default, for Code's reason: a key cap
-      quoted inside a sentence takes that sentence's step. */
+  /** A step on the shared ramp. Optional with no default, for the same reason `Code` is: a
+      key cap inside a sentence takes that sentence's step. */
   size?: TypeSize;
-  /** §15 — token names, never numbers, topping out at semibold (`bold` is refused
-      system-wide). Unset with no default, as `size` is: a cap quoted inside a sentence takes
-      that sentence's face. The box, the edge and the cast are what say "key" — the weight was
-      never carrying it. */
+  /** Token names, never numbers, and semibold is the heaviest. Unset with no default, as
+      `size` is. The box, the edge and the shadow are what say "key". The weight never was. */
   weight?: Weight;
-  /** §9, §15 — the foreground roles, as for all type. */
+  /** Picks an ink colour, as it does on all type. It changes the letters, not the cap. */
   emphasis?: Emphasis;
-  /** §7, §15 — re-scopes the ink trio, the fill and the edge onto the family. Defaults to
-      `neutral`, stamped rather than omitted (the tone indirection has no :root default). */
+  /** Moves the ink and the fill onto that family. The edge is a grey relief line and does not
+      follow the tone. Defaults to `neutral`. */
   tone?: Tone;
   /** Render into the element the document needs. */
   render?: RenderElement;

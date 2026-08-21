@@ -33,25 +33,31 @@ export type TextFieldProps = Omit<
   // API promised something the DOM cannot do. The slots are the way in (§4).
   "color" | "style" | "className" | "size" | "children" | "type"
 > & {
-  /** §4 — the control family's index, Button's ladder exactly: height, inline padding,
-      corner, the value's type step and the slot geometry all price from one number, so a
-      field and the button that submits it stand level. It replaces the platform's own `size`
-      attribute rather than joining it — that one is a character-count width hack predating
-      CSS, and it would collide. The WRAPPER wears it, because the wrapper is the control. */
+  /**
+   * The control index, the same ladder Button uses: the height, the side padding, the corner, the
+   * value's type step and the slot geometry all come from one number, so a field and the button
+   * that submits it stand level. It replaces the platform's own `size` attribute rather than
+   * joining it, because that one counts characters, predates CSS, and would collide. The wrapper
+   * wears it, because the wrapper is the control.
+   */
   size?: Size;
-  /** §10 — a placement fact (2026-08-17): content passes behind this control, so the
-   *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */
+  /**
+   * Says content passes behind this control, so the theme's material can show. Unset, it follows
+   * the surrounding `<Box backdrop>` region.
+   */
   backdrop?: boolean;
-  /** Narrowed from the platform's open list — see {@link TextFieldType}. */
+  /** Narrowed from the platform's open list. See {@link TextFieldType}. */
   type?: TextFieldType;
-  /** Passive by convention — an icon, a unit, a currency mark. Clicking it lands the caret. */
+  /** Passive by convention: an icon, a unit, a currency mark. Clicking it lands the caret. */
   leading?: React.ReactNode;
-  /** May be interactive: a clear button, a reveal toggle. A real button brings its own
-      semantics, and the wrapper stands out of its way (§10's element-brings-interactivity). */
+  /**
+   * May be interactive: a clear button, a reveal toggle. A real button brings its own semantics,
+   * and the wrapper stands out of its way.
+   */
   trailing?: React.ReactNode;
-  /** Applied to the WRAPPER — the element that is the control. */
+  /** Applied to the wrapper, which is the element that is the control. */
   className?: string;
-  /** Applied to the WRAPPER, so `width` sizes the field rather than the text inside it. */
+  /** Applied to the wrapper, so a `width` sizes the field rather than the text inside it. */
   style?: React.CSSProperties;
   /** Reaches the INPUT, not the wrapper — `.focus()`, `.select()`, the value. */
   ref?: React.Ref<HTMLInputElement>;

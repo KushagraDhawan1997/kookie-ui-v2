@@ -20,14 +20,18 @@ export type TextAreaProps = Omit<
   // which is exactly what a multi-line control's initial height should be.
   "color" | "children" | "cols"
 > & {
-  /** §4 — the control family's index, minus the one join a growing box cannot take. Padding,
-      corner, type and border all price from it; HEIGHT does not, because the content decides
-      that (`rows`) — this is §4's "non-fixed-height components: padding is the dimension".
-      The block padding is derived so that a one-row textarea is geometrically the TextField
-      at the same index, and the control height survives as a floor rather than a ceiling. */
+  /**
+   * The control index, minus the one part a growing box cannot take. The padding, the corner, the
+   * type and the border all come from it. The height does not, because the content decides that
+   * through `rows`. The block padding is derived so a one-row textarea is the same box as a
+   * TextField at the same index, and the control height survives as a minimum rather than a
+   * maximum.
+   */
   size?: Size;
-  /** §10 — a placement fact (2026-08-17): content passes behind this control, so the
-   *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */
+  /**
+   * Says content passes behind this control, so the theme's material can show. Unset, it follows
+   * the surrounding `<Box backdrop>` region.
+   */
   backdrop?: boolean;
   ref?: React.Ref<HTMLTextAreaElement>;
 };

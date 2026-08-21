@@ -40,45 +40,55 @@ const SelectSizeContext = React.createContext<Size>("2");
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
 export type SelectProps = {
-  /** §4 — the same index the trigger wears; rows, glyphs and type all price from it. */
+  /** The same index the trigger wears. The rows, the glyphs and the type all take it. */
   size?: Size;
   /**
-   * value → label, for the CLOSED trigger. Base UI resolves an option's label from its
-   * mounted ItemText, and a closed panel has none mounted — without this map a select
-   * whose panel never opened displays the raw value string. Optional because an
-   * always-open or placeholder-resting select never needs it; pass it whenever a
-   * defaultValue can paint before the panel first opens.
+   * A map from value to label, for the closed trigger. Base UI reads an option's label from its
+   * mounted row, and a closed panel has none mounted, so without this map a select whose panel
+   * never opened displays the raw value string. It is optional, because a select that rests on a
+   * placeholder never needs it. Pass it whenever a `defaultValue` can paint before the panel first
+   * opens.
    */
   items?: Record<string, React.ReactNode>;
-  /** Controlled value, paired with `onValueChange`. The closed trigger paints the matching
-      option's LABEL, not this string — see `items` for the case where no option is mounted
-      yet to resolve one. */
+  /**
+   * Controlled value, paired with `onValueChange`. The closed trigger paints the matching option's
+   * label rather than this string. See `items` for the case where no option is mounted yet to
+   * resolve one.
+   */
   value?: string;
   /** Uncontrolled starting value. Mutually exclusive with `value`, and the case `items`
       exists for: it can paint before the panel has ever opened. */
   defaultValue?: string;
-  /** Fires when the chosen value changes — a selection, never an open or a close. */
+  /** Fires when the chosen value changes. It never fires on an open or a close. */
   onValueChange?: (value: string) => void;
   /** Identifies the field when a form is submitted (Base UI renders the hidden input). */
   name?: string;
   /** Marks the field required for form validation, exactly as on a native `<select>`; it
       lands on the hidden input, so the platform does the enforcing. */
   required?: boolean;
-  /** Stands the whole control down: the panel cannot open and the hidden input stops
-      submitting. It is also the platform-shaped answer for a value that must not change,
-      since `readOnly` is refused: HTML never defined it for `<select>`, so a disabled trigger
-      beside a hidden input carrying the value is how that case is spelled. */
+  /**
+   * Turns the whole control off: the panel cannot open and the hidden input stops submitting. It
+   * is also how you express a value that must not change, since `readOnly` is refused: HTML never
+   * defined it for a `<select>`, so a disabled trigger beside a hidden input carrying the value is
+   * how that case is written.
+   */
   disabled?: boolean;
-  /** Controlled open state of the PANEL, paired with `onOpenChange` — Dialog's pattern, which
-      the whole library shares. Orthogonal to `value`: opening chooses nothing. */
+  /**
+   * Controlled open state of the panel, paired with `onOpenChange`. It is independent of `value`,
+   * because opening chooses nothing.
+   */
   open?: boolean;
   /** Uncontrolled starting state for the panel. Mutually exclusive with `open`. */
   defaultOpen?: boolean;
-  /** Fires when the panel opens or closes. Not when the value changes — that is
-      `onValueChange`, and conflating the two is how a select ends up committing on hover. */
+  /**
+   * Fires when the panel opens or closes. It does not fire when the value changes: that is
+   * `onValueChange`, and conflating the two is how a select ends up committing on hover.
+   */
   onOpenChange?: (open: boolean) => void;
-  /** The trigger and the content. Select renders no DOM of its own — state and wiring only —
-      so this is `<SelectTrigger>` and `<SelectContent>`. */
+  /**
+   * The trigger and the content. Select renders no DOM of its own, only state and wiring, so this
+   * is a `<SelectTrigger>` and a `<SelectContent>`.
+   */
   children?: React.ReactNode;
 };
 
@@ -136,10 +146,12 @@ export type SelectTriggerProps = Omit<
   // button and nothing else; `color`/`className`/`style` because those are the system's.
   "color" | "className" | "style" | "children" | "type"
 > & {
-  /** Shown, in the faint role, while no value is chosen — an empty select INVITES (§15). */
+  /** Shown in the muted ink while no value is chosen. An empty select should invite a choice. */
   placeholder?: string;
-  /** §10 — a placement fact (2026-08-17): content passes behind this trigger, so the
-   *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */
+  /**
+   * Says content passes behind this trigger, so the theme's material can show. Unset, it follows
+   * the surrounding `<Box backdrop>` region.
+   */
   backdrop?: boolean;
   /** Your classes, appended rather than replacing the component's own. They land on the trigger,
       which is a field-shaped control. */
@@ -209,11 +221,12 @@ export function SelectTrigger({
 /* ── Content: the fold (§22's sentence, §23's member) ─────────────────────────────────── */
 
 export type SelectContentProps = {
-  /** The option rows — `SelectItem`, divided by `SelectGroup` and named by `SelectLabel`.
-      They are mounted only while the panel is open, which is exactly the case the root's
-      `items` map exists for: a closed select has no row to read a label off. A `<Separator>`
-      is refused here where a menu takes one (§23) — inside a listbox it is markup an
-      accessibility check reports, and a group is the divider the role already has. */
+  /**
+   * The option rows: `SelectItem`, divided by `SelectGroup` and named by `SelectLabel`. They are
+   * mounted only while the panel is open, which is exactly the case the root's `items` map exists
+   * for. A `<Separator>` is refused here where a menu takes one: inside a listbox it is markup an
+   * accessibility check reports, and a group is the divider the role already has.
+   */
   children?: React.ReactNode;
   /** Your classes, appended rather than replacing the component's own. They land on the popup,
       not on the positioner around it, so a width or a max-height you set is the panel's. */
@@ -331,15 +344,18 @@ function rowProps(size: Size, part: string, className?: string) {
 }
 
 export type SelectItemProps = {
-  /** The value this option names — what the form submits and the trigger displays. */
+  /** The value this option names: what the form submits and what the trigger displays. */
   value: string;
-  /** Stands the option down — it cannot be chosen. It stays in the list and stays announced:
-      a choice that is unavailable right now is information, where an absent row says nothing
-      about why the thing you were looking for is not there. */
+  /**
+   * Turns the option off, so it cannot be chosen. It stays in the list and stays announced,
+   * because a choice that is unavailable right now is information, where a missing row says
+   * nothing about why the thing you were looking for is not there.
+   */
   disabled?: boolean;
-  /** What the option READS as. This is the ItemText, so it is also what the closed trigger
-      paints once the panel has been opened — before that, the root's `items` map is the only
-      thing that can resolve a value to these words. */
+  /**
+   * What the option reads as, and what the closed trigger paints once the panel has been opened.
+   * Before that, the root's `items` map is the only thing that can turn a value into these words.
+   */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -381,10 +397,12 @@ export function SelectItem({ children, className, ...props }: SelectItemProps) {
 const SelectInGroupContext = React.createContext(false);
 
 export type SelectGroupProps = {
-  /** The `SelectItem` rows this group holds, and at most one `SelectLabel` naming them.
-      Placing the label INSIDE is what earns the association: Base UI points the group's
-      `aria-labelledby` at it, so the name is announced with each option rather than only
-      seen above them. */
+  /**
+   * The `SelectItem` rows this group holds, and at most one `SelectLabel` naming them. Putting the
+   * label inside the group is what earns the association: Base UI points the group's
+   * `aria-labelledby` at it, so the name is announced with each option rather than only seen above
+   * them.
+   */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -401,8 +419,10 @@ export function SelectGroup(props: SelectGroupProps) {
 }
 
 export type SelectLabelProps = {
-  /** The heading's words — the name of the group below it, never an option. Nothing here is
-      choosable, and a label that reads like a choice is the one way this part misleads. */
+  /**
+   * The heading's words: the name of the group below it, never an option. Nothing here is
+   * choosable, and a label that reads like a choice is the one way this part misleads.
+   */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;

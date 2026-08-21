@@ -105,18 +105,24 @@ const MenuSizeContext = React.createContext<Size>("2");
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
 export type MenuProps = {
-  /** §4 — the same index the trigger wears; rows, glyphs and type all price from it. */
+  /** The same index the trigger wears. The rows, the glyphs and the type all take it. */
   size?: Size;
-  /** Controlled open state, paired with `onOpenChange` — Dialog's pattern, which the whole
-      library shares. A menu rarely needs it: opening is the trigger's job. */
+  /**
+   * Controlled open state, paired with `onOpenChange`, in the pattern the whole library shares. A
+   * menu rarely needs it, because opening is the trigger's job.
+   */
   open?: boolean;
   /** Uncontrolled starting state. Mutually exclusive with `open`. */
   defaultOpen?: boolean;
-  /** Fires on every open and close, controlled or not — including the dismissals the menu
-      handles itself (Escape, an outside press, choosing a row). */
+  /**
+   * Fires on every open and close, controlled or not, including the dismissals the menu handles
+   * itself: Escape, an outside press, and choosing a row.
+   */
   onOpenChange?: (open: boolean) => void;
-  /** The trigger and the content. Menu renders no DOM of its own — state and wiring only — so
-      this is `<MenuTrigger>` and `<MenuContent>`. */
+  /**
+   * The trigger and the content. Menu renders no DOM of its own, only state and wiring, so this
+   * is a `<MenuTrigger>` and a `<MenuContent>`.
+   */
   children?: React.ReactNode;
 };
 
@@ -168,18 +174,22 @@ export type MenuTriggerProps = {
   /** Usually a Kookie Button: `<MenuTrigger render={<Button/>}>Open</MenuTrigger>`. */
   render?: RenderElement;
   /**
-   * Whether the rendered element really is a `<button>`. Inferred from `render` exactly as
-   * Button infers it, and almost never passed — the escape is for a custom component whose
-   * own root is a button, where inspection cannot see through it (§5).
+   * Whether the rendered element really is a `<button>`. It is inferred from `render` exactly as
+   * Button infers it, and you almost never pass it. The escape is for a custom component whose own
+   * root is a button, which inspection cannot see through.
    */
   nativeButton?: boolean;
-  /** Stands the trigger down — the menu cannot be opened. It reaches whichever a11y contract
-      `nativeButton` resolved to, which is why that inference exists: on an anchor, `disabled`
-      is an inert attribute and the announcement has to come from `aria-disabled` instead. */
+  /**
+   * Turns the trigger off, so the menu cannot be opened. It reaches whichever accessibility
+   * contract `nativeButton` resolved to, which is why that inference exists: on an anchor,
+   * `disabled` is an inert attribute and the announcement has to come from `aria-disabled`.
+   */
   disabled?: boolean;
-  /** The trigger's own label, and it stays the caller's: a menu never writes back into the
-      button that opened it. (Reporting the chosen value on the trigger is Select's job, §23.)
-      It lands on the `render` target, so `render={<Button/>}` plus children is one button. */
+  /**
+   * The trigger's own label, and it stays yours: a menu never writes back into the button that
+   * opened it. Reporting a chosen value on the trigger is Select's job. It lands on the `render`
+   * target, so `render={<Button/>}` plus children is one button.
+   */
   children?: React.ReactNode;
   /** Your classes, appended rather than replacing the component's own. They land on the trigger,
       and with `render` on the element you rendered into. */
@@ -229,12 +239,13 @@ export type MenuContentProps = {
   align?: "start" | "center" | "end";
   /** Distance from the trigger, px. Designed default; override sparingly. */
   sideOffset?: number;
-  /** The panel's rows — `MenuItem`, `MenuCheckboxItem`, `MenuRadioGroup`, `MenuGroup`,
-      `MenuLabel`, `MenuSub`. A divider is the ordinary `<Separator>`: a menu-specific part
-      would rename a component that already exists (§22's refusal), and menu.css supplies only
-      the rhythm around it. Everything here mounts inside the portal, where the panel's
-      bare `<Theme>` re-applies the axes of the spot it landed in rather than the ones it was
-      written under (§20). */
+  /**
+   * The panel's rows: `MenuItem`, `MenuCheckboxItem`, `MenuRadioGroup`, `MenuGroup`, `MenuLabel`
+   * and `MenuSub`. A divider is the ordinary `<Separator>`, because a menu-specific part would
+   * rename a component that already exists. Everything here mounts inside the portal, where the
+   * panel re-applies the theme axes of the place it landed rather than the ones it was written
+   * under.
+   */
   children?: React.ReactNode;
   /** Your classes, appended rather than replacing the component's own. They land on the popup,
       not on the positioner around it, so a width or a max-height you set is the panel's. */
@@ -380,29 +391,41 @@ function rowProps(size: Size, tone: "destructive" | undefined, part: string, cla
 }
 
 export type MenuItemProps = {
-  /** §21 — the one meaning a row may carry. Not a palette: the union stays this narrow
-      on purpose, and a wider vocabulary is a future decision, never a default. */
+  /**
+   * The one meaning a row may carry. It is not a palette: the list stays this narrow on purpose,
+   * and widening it is a decision rather than a default.
+   */
   tone?: "destructive";
-  /** Stands the row down — it cannot be chosen. It stays in the list on purpose: a greyed row
-      still says the action exists and where it lives, where removing it says nothing. */
+  /**
+   * Turns the row off, so it cannot be chosen. It stays in the list on purpose: a greyed row still
+   * says the action exists and where it lives, and removing it says nothing.
+   */
   disabled?: boolean;
-  /** Close the menu when this item is chosen. On by default — a menu is a verb list. */
+  /** Close the menu when this item is chosen. On by default, because a menu is a list of verbs. */
   closeOnClick?: boolean;
   /** Typeahead text when children aren't plain text. */
   label?: string;
-  /** What choosing the row does. The menu closes around it (`closeOnClick`), so this is where
-      work STARTS — anything that has to report back needs a surface that outlives the panel. */
+  /**
+   * What choosing the row does. The menu closes around it, so this is where work starts. Anything
+   * that has to report back needs a surface that outlives the panel.
+   */
   onClick?: React.MouseEventHandler<HTMLElement>;
-  /** Artwork at the head of the row, usually an icon. It is the same slot a checkable row's
-      indicator occupies, so an icon here and a tick one row down sit in one column — which is
-      also why there is no `inset` prop: a checkable row keeps its indicator mounted whether or
-      not it is ticked, so the gutter holds by geometry rather than by a flag (§22). */
+  /**
+   * Artwork at the head of the row, usually an icon. It is the same slot a checkable row's tick
+   * occupies, so an icon here and a tick one row down sit in one column. That is also why there is
+   * no `inset` prop: a checkable row keeps its indicator mounted whether or not it is ticked, so
+   * the gutter holds by geometry rather than by a flag.
+   */
   leading?: React.ReactNode;
-  /** The tail of the row: a `<Kbd>` shortcut hint, a count, a state glyph. Not a second
-      action — a row is one target, and a control inside it would be a second one. */
+  /**
+   * The tail of the row: a `<Kbd>` shortcut hint, a count, a state glyph. Not a second action. A
+   * row is one target, and a control inside it would be a second one.
+   */
   trailing?: React.ReactNode;
-  /** The row's words — the verb. Plain text keeps typeahead working; anything richer owes a
-      `label`. */
+  /**
+   * The row's words, which are the verb. Plain text keeps typeahead working. Anything richer
+   * needs a `label`.
+   */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -441,9 +464,11 @@ export function MenuItem({ tone, leading, trailing, children, className, ...prop
 const MenuInGroupContext = React.createContext(false);
 
 export type MenuGroupProps = {
-  /** The rows the group holds, and at most one `MenuLabel` naming them. Placing the label
-      INSIDE is what earns the association: Base UI points the group's `aria-labelledby` at it,
-      so the name is announced rather than merely printed above the rows. */
+  /**
+   * The rows the group holds, and at most one `MenuLabel` naming them. Putting the label inside
+   * the group is what earns the association: Base UI points the group's `aria-labelledby` at it,
+   * so the name is announced rather than only printed above the rows.
+   */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -460,8 +485,10 @@ export function MenuGroup(props: MenuGroupProps) {
 }
 
 export type MenuLabelProps = {
-  /** The heading's words — what the rows beneath have in common. Nothing here is pressable;
-      a label that names an action is a `MenuItem` that was written in the wrong part. */
+  /**
+   * The heading's words: what the rows beneath it have in common. Nothing here is pressable. A
+   * label that names an action is a `MenuItem` written in the wrong part.
+   */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -507,26 +534,31 @@ function dotGlyph() {
 }
 
 export type MenuCheckboxItemProps = {
-  /** Controlled ticked state, paired with `onCheckedChange`. Ticked is the accent on the
-      INDICATOR and nothing else — §21 makes rows peers, so a chosen row is marked rather than
-      made louder, which is also what keeps a menu of ten filters from looking like a ranking. */
+  /**
+   * Controlled ticked state, paired with `onCheckedChange`. Ticked shows as the accent colour on
+   * the indicator and nothing else, because rows are peers: a chosen row is marked rather than
+   * made louder, which is what keeps a menu of ten filters from looking like a ranking.
+   */
   checked?: boolean;
   /** Uncontrolled starting state. Mutually exclusive with `checked`. */
   defaultChecked?: boolean;
   /** Fires with the row's new state on every toggle, controlled or not. */
   onCheckedChange?: (checked: boolean) => void;
-  /** Stands the row down — the toggle cannot move. Its current state still shows, which is
-      the point: "on, and you may not change it" is information. */
+  /**
+   * Turns the row off, so the toggle cannot move. Its current state still shows, which is the
+   * point: "on, and you may not change it" is information.
+   */
   disabled?: boolean;
-  /** Checkable rows stay open by default — toggling several filters is one visit. */
+  /**
+   * Close the menu when this row is chosen. Off by default for a checkable row, because toggling
+   * several filters is one visit.
+   */
   closeOnClick?: boolean;
   /** Typeahead text when children aren't plain text. */
   label?: string;
-  /** The tail of the row — a shortcut hint or a count. The head is spoken for: the tick's
-      gutter is this row's leading slot and stays mounted in both states, so a list of
-      filters keeps its labels aligned whatever is ticked. */
+  /** The tail of the row: a shortcut hint or a count. The head is the tick's reserved gutter. */
   trailing?: React.ReactNode;
-  /** The row's words — the thing being toggled, phrased so the ticked state reads as true. */
+  /** The row's words: the thing being toggled, phrased so the ticked state reads as true. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -549,19 +581,25 @@ export function MenuCheckboxItem({ trailing, children, className, ...props }: Me
 }
 
 export type MenuRadioGroupProps = {
-  /** Controlled chosen value, paired with `onValueChange`. The GROUP holds the choice and the
-      rows only report it, which is why exclusivity needs no bookkeeping at the call site. */
+  /**
+   * Controlled chosen value, paired with `onValueChange`. The group holds the choice and the rows
+   * only report it, which is why exclusivity needs no bookkeeping at the call site.
+   */
   value?: string;
   /** Uncontrolled starting choice. Mutually exclusive with `value`. */
   defaultValue?: string;
   /** Fires with the newly chosen value. There is no un-choosing: a radio group answers a
       question, and the answer for "none of these" is a row of its own. */
   onValueChange?: (value: string) => void;
-  /** Stands every row in the group down at once — one statement rather than the same prop
-      repeated per row, so a group that is momentarily unavailable cannot be half-disabled. */
+  /**
+   * Turns every row in the group off at once. One statement rather than the same prop repeated
+   * per row, so a group that is momentarily unavailable cannot be half-disabled.
+   */
   disabled?: boolean;
-  /** The `MenuRadioItem` rows, and at most one `MenuLabel` naming the question. A radio group
-      IS a group, so the label is wired to it exactly as `MenuGroup`'s is. */
+  /**
+   * The `MenuRadioItem` rows, and at most one `MenuLabel` naming the question. A radio group is a
+   * group, so the label is wired to it exactly as `MenuGroup`'s is.
+   */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -579,23 +617,31 @@ export function MenuRadioGroup(props: MenuRadioGroupProps) {
 }
 
 export type MenuRadioItemProps = {
-  /** What this row answers with. The group compares it against its own value to decide which
-      row is marked, so it must be unique inside the group — two rows sharing a value are one
-      choice drawn twice. */
+  /**
+   * What this row answers with. The group compares it against its own value to decide which row is
+   * marked, so it has to be unique inside the group. Two rows sharing a value are one choice drawn
+   * twice.
+   */
   value: string;
-  /** Stands the row down — it cannot be chosen. It still shows whether it currently IS the
-      choice, which is the case this matters for: the answer you are stuck with. */
+  /**
+   * Turns the row off, so it cannot be chosen. It still shows whether it currently is the choice,
+   * which is the case this matters for: the answer you are stuck with.
+   */
   disabled?: boolean;
-  /** Close the menu when this row is chosen. OFF by default, like the checkbox row's — a
-      checkable row reports state, and staying open is what lets you watch the dot land where
-      you put it. Turn it on where choosing IS the whole visit. */
+  /**
+   * Close the menu when this row is chosen. Off by default, like the checkable row's, because
+   * staying open is what lets you watch the dot land where you put it. Turn it on where choosing
+   * is the whole visit.
+   */
   closeOnClick?: boolean;
   /** Typeahead text when children aren't plain text. */
   label?: string;
-  /** The tail of the row — a shortcut hint or a count. The head is the dot's reserved
-      gutter, mounted whether or not this is the chosen row. */
+  /**
+   * The tail of the row: a shortcut hint or a count. The head is the dot's reserved gutter,
+   * mounted whether or not this is the chosen row.
+   */
   trailing?: React.ReactNode;
-  /** The row's words — the option itself, not a sentence about it. */
+  /** The row's words: the option itself, not a sentence about it. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -625,18 +671,21 @@ const MenuSubTriggerContext = React.createContext<React.RefObject<HTMLElement | 
 );
 
 export type MenuSubProps = {
-  /** Controlled open state of THIS submenu, paired with `onOpenChange` — Dialog's pattern,
-      which the whole library shares. It is independent of the menu the row sits in: a
-      submenu opens and closes on its own row, and closing it leaves the parent panel
-      standing. Rarely needed — opening is the sub-trigger's job. */
+  /**
+   * Controlled open state of this submenu, paired with `onOpenChange`. It is independent of the
+   * menu the row sits in: a submenu opens and closes on its own row, and closing it leaves the
+   * parent panel standing. Rarely needed, because opening is the sub-trigger's job.
+   */
   open?: boolean;
   /** Uncontrolled starting state. Mutually exclusive with `open`. */
   defaultOpen?: boolean;
   /** Fires on every open and close of this submenu, including the ones it handles itself
       (the pointer leaving its row, Escape, choosing a row inside it). */
   onOpenChange?: (open: boolean) => void;
-  /** The `MenuSubTrigger` row and the `MenuSubContent` panel it opens. MenuSub renders no DOM
-      of its own — state and wiring only, exactly like the root. */
+  /**
+   * The `MenuSubTrigger` row and the `MenuSubContent` panel it opens. MenuSub renders no DOM of
+   * its own, only state and wiring, exactly like the root.
+   */
   children?: React.ReactNode;
 };
 
@@ -668,16 +717,20 @@ export function MenuSub({ open, defaultOpen, onOpenChange, children }: MenuSubPr
 }
 
 export type MenuSubTriggerProps = {
-  /** Stands the row down — the child menu cannot be opened. */
+  /** Turns the row off, so the child menu cannot be opened. */
   disabled?: boolean;
   /** Typeahead text when children aren't plain text. */
   label?: string;
-  /** Artwork at the head of the row, in the same reserved gutter every other row uses. Only
-      the head: the tail is the system's here, because the chevron saying a child menu exists
-      is not a call-site decision. */
+  /**
+   * Artwork at the head of the row, in the same reserved gutter every other row uses. Only the
+   * head: the tail belongs to the system here, because the chevron that says a child menu exists
+   * is not a call-site decision.
+   */
   leading?: React.ReactNode;
-  /** The row's words — the name of the group of actions inside, not an action itself.
-      Choosing this row opens a panel; it never does anything. */
+  /**
+   * The row's words: the name of the group of actions inside, not an action itself. Choosing this
+   * row opens a panel. It never does anything else.
+   */
   children?: React.ReactNode;
   /** Your classes, appended rather than replacing the component's own. They land on the row that
       opens the submenu. */
@@ -731,10 +784,12 @@ export function MenuSubTrigger({
 }
 
 export type MenuSubContentProps = {
-  /** The child panel's rows, written exactly as a top-level panel's are — a further `MenuSub`
-      included, which nests without a depth limit. What differs is not the content but the
-      geometry, and that is the system's (§22): the panel takes its width from what is in it
-      rather than from the panel it came out of. */
+  /**
+   * The child panel's rows, written exactly as a top-level panel's are, including a further
+   * `MenuSub`, which nests with no depth limit. What differs is the geometry, and that belongs to
+   * the system: the panel takes its width from what is in it rather than from the panel it came
+   * out of.
+   */
   children?: React.ReactNode;
   /** Your classes, appended rather than replacing the component's own. They land on the popup,
       not on the positioner around it. */
