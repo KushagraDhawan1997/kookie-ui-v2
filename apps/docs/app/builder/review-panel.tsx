@@ -82,7 +82,6 @@ function Row({
   onSelect: (id: string) => void;
   onFix: (f: Finding) => void;
 }) {
-  const [open, setOpen] = React.useState(false);
   return (
     <Stack gap="2">
       <Flex gap="2" align="flex-start" justify="space-between">
@@ -102,17 +101,27 @@ function Row({
           </Button>
         ) : null}
       </Flex>
-      <Box pl="3">
-        <Button emphasis="quiet" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-          {finding.title}
-        </Button>
-        {open ? (
-          <Box pt="1" pr="3">
-            <Text size="1" emphasis="quiet">
-              {finding.why}
-            </Text>
-          </Box>
-        ) : null}
+      {/* The rule's sentence and its argument are PROSE, so they are text (2026-08-22, the
+          inspector's refusals one file over, same day and the same category error). The title
+          was the trigger of a disclosure, which made a Button's label a sentence — and
+          `.kui-control` sets `white-space: nowrap` because a control's label is one line, a
+          rule about what a control IS. Measured: "The palette's own words are still in it" has
+          a min-content of 271px, and with the scroller's content box at `min-width: fit-content`
+          that one unshrinkable child took the whole panel 24px sideways, which is why the Fix
+          buttons were sliced off the right edge.
+
+          The disclosure went with it, for the reason it went in the inspector: it was buying
+          compactness in a panel that scrolls vertically anyway, and it is the only thing that
+          wanted the sentence to be a control. */}
+      <Box pl="3" pr="3">
+        <Stack gap="1">
+          <Text size="2" emphasis="medium">
+            {finding.title}
+          </Text>
+          <Text size="1" emphasis="quiet">
+            {finding.why}
+          </Text>
+        </Stack>
       </Box>
       <Separator />
     </Stack>
