@@ -1,11 +1,13 @@
 import { Code } from "@kookie-ui/react";
 
 /**
- * Render backticked spans in reference prose as real `<Code>`.
+ * Render backticked spans in system prose as real `<Code>`.
  *
- * The registry and the generated props table are plain data, so the page renders their strings
- * directly. Writing a prop name in prose is unavoidable there, and every author reaches for a
- * backtick, which used to reach the reader as a literal backtick.
+ * The component registry, the generated props table and the reviewer's rules are all plain
+ * data, and four surfaces render their strings directly: a component page, the composition
+ * chapter, the builder's inspector and its review panel. Writing a prop name in prose is
+ * unavoidable in all four, and every author reaches for a backtick, which used to reach the
+ * reader as a literal backtick.
  *
  * Deliberately not markdown. The only mark these strings ever carry is a code span, and pulling
  * in a parser to find one would make a component page render text through a second engine.

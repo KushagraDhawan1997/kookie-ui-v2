@@ -35,6 +35,7 @@ import {
 } from "@kookie-ui/react";
 
 import { PlusIcon, XIcon } from "../icons";
+import { InlineCode } from "../inline-code";
 import { ENTRIES } from "../(docs)/components/registry";
 
 /** The reference page for a component, when the docs have one — the inspector's header links
@@ -659,10 +660,10 @@ function Refusal({ name, why }: { name: string; why: string }) {
   return (
     <Stack gap="1">
       <Text size="2" weight="medium">
-        {name}
+        <InlineCode text={name} />
       </Text>
       <Text size="1" emphasis="quiet">
-        {why}
+        <InlineCode text={why} />
       </Text>
     </Stack>
   );

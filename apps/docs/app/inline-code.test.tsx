@@ -19,8 +19,9 @@ import { describe, expect, it } from "vitest";
 import { Theme } from "@kookie-ui/react";
 
 import { InlineCode } from "./inline-code";
-import { API } from "./api.generated";
-import { ENTRIES } from "./registry";
+import { API } from "./(docs)/components/api.generated";
+import { ENTRIES } from "./(docs)/components/registry";
+import { RULES } from "./builder/review";
 
 const render = (text: string) =>
   renderToStaticMarkup(React.createElement(Theme, null, React.createElement(InlineCode, { text })));
@@ -78,22 +79,48 @@ describe("code spans in reference prose", () => {
     expect(written.filter((text) => text.includes("`")).length).toBeGreaterThan(0);
   });
 
-  // The call site is where this rots. A new prose field rendered bare type-checks, reads fine
-  // in review, and ships literal backticks — which is exactly how the defect arrived.
-  it("every prose field on the component page renders through InlineCode", () => {
-    const source = readFileSync(join(__dirname, "[slug]", "page.tsx"), "utf8");
-    const fields = ["entry.blurb", "axis.note", "part.blurb", "refusal.why", "propDescription(prop)"];
-    // Strip the wrappers first. `text={entry.blurb}` contains `{entry.blurb}`, so a naive scan
-    // for a bare render matches the correct code — the first spelling of this law failed on
-    // the very file it was written to bless.
-    const bare = source.replaceAll(/<InlineCode text=\{[^}]*\}[^/]*\/>/g, "");
-    for (const field of fields) {
-      expect(source, `${field} is rendered without InlineCode`).toContain(
-        `<InlineCode text={${field}} />`,
-      );
-      expect(bare, `${field} is also rendered bare somewhere`).not.toMatch(
-        new RegExp(`\\{\\s*${field.replace(/[.()]/g, "\\$&")}\\s*\\}`),
-      );
+  // The call site is where this rots. A new prose field rendered bare type-checks, reads fine in
+  // review, and ships literal backticks. That is how the defect arrived, and how it arrived a
+  // second time: main made a refusal and a review finding into prose in the builder, and the
+  // two new surfaces rendered the same strings bare.
+  it("every surface that renders system prose renders it through InlineCode", () => {
+    // `within` narrows the bare-render scan to one renderer. The inspector needs it and the
+    // need is the point: its Refusal takes props called `name` and `why`, and `{name}` appears
+    // ten times elsewhere in that file for a property row's own label. A file-wide scan called
+    // all ten a defect, which is a law failing on correct code.
+    const surfaces: { file: string; fields: string[]; within?: string }[] = [
+      {
+        file: "(docs)/components/[slug]/page.tsx",
+        fields: ["entry.blurb", "axis.note", "part.blurb", "refusal.why", "propDescription(prop)"],
+      },
+      { file: "(docs)/review-rules.tsx", fields: ["rule.title", "rule.why"] },
+      { file: "builder/inspector.tsx", fields: ["name", "why"], within: "function Refusal(" },
+      { file: "builder/review-panel.tsx", fields: ["finding.title", "finding.why"] },
+    ];
+    for (const { file, fields, within } of surfaces) {
+      const whole = readFileSync(join(__dirname, file), "utf8");
+      const from = within ? whole.indexOf(within) : 0;
+      expect(from, `${file}: ${within} is gone`).toBeGreaterThanOrEqual(0);
+      const source = within ? whole.slice(from, whole.indexOf("\n}", from) + 2) : whole;
+      // Strip the wrappers first. `text={entry.blurb}` contains `{entry.blurb}`, so a naive scan
+      // for a bare render matches the correct code — the first spelling of this law failed on
+      // the very file it was written to bless.
+      const bare = source.replaceAll(/<InlineCode text=\{[^}]*\}[^/]*\/>/g, "");
+      for (const field of fields) {
+        expect(source, `${file}: ${field} is rendered without InlineCode`).toContain(
+          `<InlineCode text={${field}} />`,
+        );
+        expect(bare, `${file}: ${field} is also rendered bare somewhere`).not.toMatch(
+          new RegExp(`\\{\\s*${field.replace(/[.()]/g, "\\$&")}\\s*\\}`),
+        );
+      }
     }
+  });
+
+  // Both bodies the builder renders really do carry spans, so the surfaces above are not being
+  // guarded against a case that never occurs there.
+  it("the reviewer's own sentences carry spans too", () => {
+    const withSpans = RULES.filter((rule) => rule.why.includes("`") || rule.title.includes("`"));
+    expect(withSpans.length).toBeGreaterThan(0);
   });
 });

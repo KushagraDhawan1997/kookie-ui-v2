@@ -1,5 +1,6 @@
 import { Code, Stack, Text } from "@kookie-ui/react";
 
+import { InlineCode } from "../inline-code";
 import { RULES } from "../builder/review";
 
 /**
@@ -25,13 +26,13 @@ export function ReviewRules() {
       {RULES.map((rule) => (
         <Stack key={rule.id} gap="2">
           <Text size="3" weight="medium">
-            {rule.title}
+            <InlineCode text={rule.title} />
           </Text>
           <Text size="2" emphasis="quiet">
             <Code size="2">{rule.id}</Code> · {rule.severity}
           </Text>
           <Text size="2" emphasis="medium" render={<p />}>
-            {rule.why}
+            <InlineCode text={rule.why} />
           </Text>
         </Stack>
       ))}

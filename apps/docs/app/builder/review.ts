@@ -219,7 +219,7 @@ export const RULES: Rule[] = [
     title: "One focal action per screen",
     severity: "warning",
     why:
-      "Boldness is spent exactly once. Two loud actions on one screen means neither is the point — the second one is medium, and the composition still says which is which (§15, figure/ground). A dialog or a menu is its own screen; two tab panels are never on screen together.",
+      "Boldness is spent exactly once. Two loud actions on one screen means neither is the point. Make the second one medium and the composition still says which is which. A dialog or a menu is its own screen, and two tab panels are never on screen together.",
     run: ({ all }) => {
       // `at` is the DOCUMENT-ORDER index, captured here. Sorting by `all.indexOf(copy)`
       // looked equivalent and was dead: these are spread COPIES, so indexOf answered -1 for
@@ -267,7 +267,7 @@ export const RULES: Rule[] = [
     title: "size 1 is retired from composed surfaces",
     severity: "warning",
     why:
-      "12px is for genuinely marginal text. “Matters less” is what the muted and faint ink roles say at a readable size — shrinking it says it twice and costs legibility (§15, hierarchy).",
+      "12px is for genuinely marginal text. The muted and faint ink roles already say \"this matters less\" at a readable size, so shrinking the text as well says it twice and costs legibility.",
     run: ({ all }) =>
       all
         .filter(({ node }) => TYPE_TYPES.has(node.type) && str(node.props.size) === "1")
@@ -289,7 +289,7 @@ export const RULES: Rule[] = [
     title: "Every control states its name",
     severity: "error",
     why:
-      "A control the eye reads from its glyph is a control a screen reader cannot read at all. The mark family refuses children on purpose — the label is a sibling — so the accessible name has to be stated (WCAG 4.1.2).",
+      "A control the eye reads from its glyph is a control a screen reader cannot read at all. A mark refuses children on purpose, because its label is a sibling, so the accessible name has to be stated (WCAG 4.1.2).",
     run: ({ all }) => {
       const needsName = (n: BuilderNode): boolean => {
         if (str(n.props["aria-label"])?.trim()) return false;
@@ -316,7 +316,7 @@ export const RULES: Rule[] = [
     title: "An empty container draws nothing",
     severity: "warning",
     why:
-      "A layout with nothing in it still takes its padding and its place in the rhythm — it reads as a mistake to the eye and as noise to the export. Fill it or cut it (§15, emphasis by subtraction).",
+      "A layout with nothing in it still takes its padding and its place in the rhythm. It reads as a mistake to the eye and as noise in the exported code. Fill it or cut it.",
     run: ({ all }) =>
       all
         // An empty document is a legitimate state, and the canvas cannot be cut.
@@ -333,7 +333,7 @@ export const RULES: Rule[] = [
     title: "A compound with no parts is a broken control",
     severity: "error",
     why:
-      "An empty layout is untidy; an empty compound is broken. A choice control with no choices, a tab that leads nowhere, a dialog with no content — each renders as a control the eye can see and nobody can use.",
+      "An empty layout is untidy. An empty compound is broken. A choice control with no choices, a tab that leads nowhere and a dialog with no content each render as a control the eye can see and nobody can use.",
     run: ({ all }) =>
       all
         .filter(
@@ -354,7 +354,7 @@ export const RULES: Rule[] = [
     title: "A layout around one thing is not a layout",
     severity: "warning",
     why:
-      "Gap needs two things to sit between, so a layout holding one child whose only word is `gap` states a rhythm nothing rides. A layout that also ALIGNS, JUSTIFIES or PADS is doing real work with one child — right-aligning a lone Save button is a composition, not an accident — and is left alone.",
+      "A gap needs two things to sit between, so a layout holding one child and saying nothing but `gap` sets a distance nothing uses. A layout that also aligns, justifies or pads is doing real work with one child, such as right-aligning a lone Save button, and is left alone.",
     run: ({ all }) =>
       all
         // A canvas holding one root is the most ordinary document there is, and "unwrap it"
@@ -378,7 +378,7 @@ export const RULES: Rule[] = [
     title: "Distance is relationship",
     severity: "warning",
     why:
-      "Things that belong together sit closer than things that do not, and the WITHIN-group distance must be at least two steps under the BETWEEN-group one or the eye reads one undifferentiated column (§15, proximity). Only distances on the same axis compete — a row's internal gap and the column rhythm around it are not measured against each other by any eye — and only a group against the rhythm it sits in: a section at gap 6 holding groups at gap 5 is two BETWEEN distances, which is the house interval, not a fault.",
+      "Things that belong together sit closer than things that do not. The gap inside a group has to be at least two steps under the gap around it, or the eye reads one undifferentiated column. Only distances on the same axis compete, because no eye measures a row's internal gap against the column rhythm around it. And only a group counts against the rhythm it sits in: a section at gap 6 holding groups at gap 5 is two distances between groups, which is the house interval rather than a fault.",
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -430,7 +430,7 @@ export const RULES: Rule[] = [
     title: "Space around a heading is asymmetric",
     severity: "warning",
     why:
-      "A heading belongs to what FOLLOWS it: generous above, tight below, roughly 3-4× one against the other. The common failure is one uniform gap, which leaves the heading floating between two blocks and belonging to neither (§15, proximity).",
+      "A heading belongs to what follows it: generous above, tight below, roughly three to four times one against the other. The common failure is one uniform gap, which leaves the heading floating between two blocks and belonging to neither.",
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -468,7 +468,7 @@ export const RULES: Rule[] = [
     title: "Same role, same treatment",
     severity: "warning",
     why:
-      "Controls sitting in one row are one role, so they take one size: two spellings of one role is entropy the reader pays for (§15, similarity). The reference is what MOST of the row says — matching the majority to whichever control happens to be first is how a fix makes a row worse.",
+      "Controls sitting in one row do one job, so they take one size. Two sizes for one job is a difference the reader has to work out. The reference is what most of the row says: matching the majority to whichever control happens to be first is how a fix makes a row worse.",
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -504,7 +504,7 @@ export const RULES: Rule[] = [
     title: "A control matches the surface it sits on",
     severity: "warning",
     why:
-      "A size-3 dialog holds size-3 fields and buttons. A control two rungs under its container reads as a mistake rather than as modesty (§15, proportion).",
+      "A size-3 dialog holds size-3 fields and buttons. A control two steps under its container reads as a mistake rather than as modesty.",
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node, parents } of all) {
@@ -532,7 +532,7 @@ export const RULES: Rule[] = [
     title: "Tone is vocabulary, not decoration",
     severity: "warning",
     why:
-      "The ten families are colour-as-data — destructive, success, warning mean something. Four or more of them on one surface is a palette being enjoyed rather than a meaning being said (§7, §15 harmony). Three is a legend: a status set, a three-series key.",
+      "The ten families are colour as data, and `destructive`, `success` and `warning` each mean something. Four or more of them on one surface is a palette being enjoyed rather than a meaning being said. Three reads as a legend: a status set, or a three-series key.",
     run: ({ all }) => {
       const bySurface = new Map<string, { tones: Set<string>; node: BuilderNode }>();
       for (const { node, parents } of all) {
@@ -557,7 +557,7 @@ export const RULES: Rule[] = [
     title: "A heading outranks its body",
     severity: "warning",
     why:
-      "Page 8, section 7, card title 6, body 3, label and meta 2. A heading at or below body size is a label wearing a heading's element (§15, hierarchy).",
+      "Page 8, section 7, card title 6, body 3, label and meta 2. A heading at or below body size is a label wearing a heading's element.",
     run: ({ all }) =>
       all
         .filter(({ node }) => node.type === "Heading" && Number(str(node.props.size) ?? "6") <= 3)
@@ -574,7 +574,7 @@ export const RULES: Rule[] = [
     title: "No eyebrows",
     severity: "warning",
     why:
-      "A title carries its own subject; a small label above it is two elements doing one element's job (§15, information design). The rule was written into the brief the day it was tried and reversed on sight.",
+      "A title carries its own subject. A small label above it is two elements doing one element's job.",
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -618,7 +618,7 @@ export const RULES: Rule[] = [
     title: "The palette's own words are still in it",
     severity: "warning",
     why:
-      "Every element states its one-word job, and the words are the author's. A node still carrying the text the palette gave it is a node nobody has written yet — which is what an unfinished export looks like to whoever reads it.",
+      "The words are yours. A node still carrying the text the palette gave it is a node nobody has written yet, and that is what an unfinished export looks like to whoever reads it.",
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -639,7 +639,7 @@ export const RULES: Rule[] = [
     title: "A measured Box needs something to measure",
     severity: "error",
     why:
-      "Containment makes a Box's contents stop contributing to its own width (§2), so a `container` Box that is a row-flex item with nothing sizing it renders 0px wide and draws nothing at all. This is the recorded defect that made containment opt-in in the first place.",
+      "Containment makes a Box's contents stop contributing to its own width, so a `container` Box that is a row-flex item with nothing sizing it renders zero pixels wide and draws nothing at all. This is the defect that made containment opt-in.",
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node, parents } of all) {
@@ -664,7 +664,7 @@ export const RULES: Rule[] = [
     title: "A card does not go inside a card",
     severity: "error",
     why:
-      "A Card is an object with its own plane: opaque, bordered, and lifted in an elevated world. Two of them stacked is an object standing on an object, which states a relationship the system does not have. For a quiet region inside one card, use a Surface. For several objects on one ground, put the cards in a Surface instead of a card. The grammar prevents this at the drop; a document pasted or edited elsewhere can still arrive holding one.",
+      "A Card is an object with its own plane: opaque and lifted in an elevated theme. Two of them stacked is an object standing on an object, which describes a relationship this system does not have. For a quiet region inside one card, use a `Surface`. For several objects on one ground, put the cards in a `Surface`. The grammar prevents this when you drop a node, but a document pasted or edited elsewhere can still arrive holding one.",
     run: ({ all }) =>
       all
         .filter(({ node, parents }) => node.type === "Card" && parents.some((p) => p.type === "Card"))
@@ -683,7 +683,7 @@ export const RULES: Rule[] = [
     title: "A part needs its compound",
     severity: "error",
     why:
-      "The parts of a compound carry wiring, not just looks — a title that is nobody's accessible name, a row outside the list it belongs to. The grammar prevents this at the drop; a document edited elsewhere can still arrive holding one.",
+      "The parts of a compound carry wiring as well as appearance: a title that is nobody's accessible name, or a row outside the list it belongs to. The grammar prevents this when you drop a node, but a document edited elsewhere can still arrive holding one.",
     run: ({ all }) =>
       all
         .filter(({ node, parents }) => {

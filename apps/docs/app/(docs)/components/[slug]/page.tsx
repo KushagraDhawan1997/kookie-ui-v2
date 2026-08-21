@@ -26,7 +26,7 @@ import {
 } from "@kookie-ui/react";
 
 import { Example } from "../../example";
-import { InlineCode } from "../inline-code";
+import { InlineCode } from "../../../inline-code";
 import { API } from "../api.generated";
 import { propDescription } from "../prop-description";
 import { BY_SLUG, ENTRIES } from "../registry";
