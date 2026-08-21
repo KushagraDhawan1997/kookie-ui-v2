@@ -1,10 +1,14 @@
-Every interactive thing in this system runs one state machine: rest, hover, press, focus,
-disabled, and the validity states. The shared control layer defines it one time, and no
-component changes it. A component states which axes it has. A component never states how a
-state looks.
+Every control in this system runs one state machine: rest, hover, press, focus, disabled, and
+the validity states. The shared control layer defines it one time, and no component changes it.
+A component states which axes it has. A component never states how a state looks.
 
 The reason is arithmetic. Components multiplied by rungs multiplied by states makes too many
 cells for per-component work to keep consistent.
+
+**`Link` is the one interactive thing that is not a control**, so it is the one exception. A
+control is a box with a height, a padding and a target. A link is a run of words inside a
+sentence, and it must stay selectable and wrap across lines. It therefore takes the ring and a
+hover of its own, and none of the box. The rest of this chapter is about controls.
 
 ## Hover and press are steps on one scale
 

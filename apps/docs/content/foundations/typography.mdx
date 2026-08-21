@@ -64,7 +64,7 @@ Rank with size, and shade with ink:
 `Theme` sets `--font-heading`, `--font-body` and `--font-mono`. A component reads a slot, never
 a font stack. The `Theme` props are the only place anyone writes a stack.
 
-`Heading` takes the heading slot. `Text` and `Blockquote` take the body slot. `Code` takes the
+`Heading` takes the heading slot. `Text`, `Blockquote` and `Link` take the body slot. `Code` takes the
 mono slot at a small designed discount, because a mono face runs wider with a taller x-height
 and reads one step large at the same font size. `Kbd` is the exception: a keycap takes the
 **body** slot, because a mono cell draws ⌘ compact to fit its fixed advance, and every platform

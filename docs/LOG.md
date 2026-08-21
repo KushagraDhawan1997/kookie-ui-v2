@@ -26,6 +26,8 @@ Comparing the docs site against Apple's HIG, Kushagra asked what is missing and 
 
 +90 bytes gzipped. The docs app's two hand-drawn treatments are deleted and both call sites render the component, which is the proof the gap is closed rather than moved.
 
+**Three chapters had to be amended, and one of them had stopped being true.** `states.mdx` opened with *"Every interactive thing in this system runs one state machine"*, which a link falsifies: it answers a pointer and is not a control, so it takes the ring and a hover of its own and none of the box. The ontology's Type list named five components where there are six, and typography's body-slot list named two of three. The taxonomy chapter also gains the pair that actually confuses people — **Link or Button**, settled by what happens on press: a new address, or a change to the thing you are looking at.
+
 ## 2026-08-21 The README stated a build order that had been wrong for seventeen days
 
 **What.** The root README said the §14 build order was "complete through step 6" and that "repetition has begun with TextField". That was true on 4 August. Twenty-five more components, the documentation site and the builder shipped after it. It did not name `THESIS.md`, which is first in the read order. It is rewritten, and `CONTRIBUTING.md` is new.
