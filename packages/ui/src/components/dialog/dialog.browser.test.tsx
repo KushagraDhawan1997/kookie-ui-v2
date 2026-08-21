@@ -24,7 +24,7 @@ import {
   DialogDescription,
   DialogClose,
   DialogTrigger,
-  type DialogOpenChangeDetails,
+  type OverlayOpenChangeDetails,
 } from "./dialog.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Button } from "../button/button.tsx";
@@ -835,7 +835,7 @@ describe("what the call site can say to a dialog", () => {
       <Theme>
         <Dialog
           defaultOpen
-          onOpenChange={(open: boolean, details: DialogOpenChangeDetails) => {
+          onOpenChange={(open: boolean, details: OverlayOpenChangeDetails) => {
             seen.push(`${open}:${details.reason}`);
             if (details.reason === "escape-key") details.cancel();
           }}

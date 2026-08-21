@@ -12,7 +12,7 @@ export type ApiEntry = { element: string | null; props: ApiProp[] };
 
 export const API: Record<string, ApiEntry> = {
   "AlertDialogAction": {
-    "element": null,
+    "element": "button",
     "props": [
       {
         "name": "children",
@@ -53,7 +53,7 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "AlertDialogCancel": {
-    "element": null,
+    "element": "button",
     "props": [
       {
         "name": "children",
@@ -88,7 +88,7 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "AlertDialogContent": {
-    "element": null,
+    "element": "div",
     "props": [
       {
         "name": "children",
@@ -111,7 +111,7 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "AlertDialogDescription": {
-    "element": null,
+    "element": "p",
     "props": [
       {
         "name": "children",
@@ -150,7 +150,7 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "(open: boolean) => void",
+        "type": "(open: boolean, details: OverlayOpenChangeDetails) => void",
         "optional": true,
         "doc": "Fires on every open and close. It carries no dismissal details, and that is the role rather than an omission: an alert refuses outside presses (§25), so the only ways out are the two buttons and Escape, and Escape IS the Cancel action by another route."
       },
@@ -169,7 +169,7 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "AlertDialogTitle": {
-    "element": null,
+    "element": "h2",
     "props": [
       {
         "name": "children",
@@ -192,7 +192,7 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "AlertDialogTrigger": {
-    "element": null,
+    "element": "button",
     "props": [
       {
         "name": "children",
@@ -582,7 +582,7 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "(open: boolean, details: DialogOpenChangeDetails) => void",
+        "type": "(open: boolean, details: OverlayOpenChangeDetails) => void",
         "optional": true,
         "doc": "Fires on every open and close, controlled or not. The second argument is what makes a guard writable: `reason` names what did it (an outside press, Escape, a close button, the trigger), `event` is the native event behind it, and `cancel()` refuses that one dismissal — so \"you have unsaved changes\" is a real answer rather than a race."
       },

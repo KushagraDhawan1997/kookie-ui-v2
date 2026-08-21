@@ -310,7 +310,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a size on the title",
-        why: "No surface in this system sizes the type inside it. The parts state §15's composition steps — the card-title step for the title, body copy in the muted ink for the description — so a dialog and a confirm card are the same typography by construction. Whether a size-1 dialog deserves a smaller title is open.",
+        why: "The title and description are priced by the DIALOG's index (2026-08-21) and cannot be set per call site — a free index is what §15's brief exists to prevent. The index may reach them because they are parts the system owns, forced into existence by the a11y wiring; everything the call site wrote is untouched, which is what \"no surface sizes the type inside it\" actually protects. The steps are shared with AlertDialog, so the two are the same typography at the same index, and size 3 is still the confirm card.",
       },
     ],
     parts: [
