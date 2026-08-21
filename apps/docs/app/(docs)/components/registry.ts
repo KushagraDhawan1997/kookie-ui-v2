@@ -96,7 +96,7 @@ export const ENTRIES: Entry[] = [
     refusals: [
       {
         name: "a tinted rule",
-        why: "A chosen tone moves the words, not the bar. §7's edge order puts a quote's rule where a separator's sits — under both solved tiers, carrying no identity. A quote whose bar must carry meaning is a Callout.",
+        why: "A chosen tone moves the words, not the bar. §7's edge order puts a quote's rule where a separator's sits — under both solved tiers, carrying no identity. A quote whose bar must carry meaning is an Aside if an author wrote it, or a Notice if it is a live condition (§29).",
       },
       {
         name: "an attribution slot",
@@ -227,7 +227,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "header / footer slots",
-        why: "Anatomy is system-owned only where something non-visual forces it — Dialog's focus wiring, Callout's status role. A card's regions are a layout, and layouts are blocks.",
+        why: "Anatomy is system-owned only where something non-visual forces it — Dialog's focus wiring, Notice's status role. A card's regions are a layout, and layouts are blocks.",
       },
     ],
   },

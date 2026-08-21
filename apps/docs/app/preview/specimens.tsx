@@ -299,7 +299,7 @@ function BlockquoteSection() {
         ))}
       </Stack>
       {/* Tone re-scopes the INK and leaves the rule alone (§11's rule for the type family).
-          A quote whose bar carries meaning is a Callout, which is a tone-forward surface. */}
+          A quote whose bar carries meaning is an Aside or a Notice, never a quote (§29). */}
       <SpecTable
         wide
         cols={["Tone reaches the words, never the rule"]}
