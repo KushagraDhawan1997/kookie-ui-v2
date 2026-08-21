@@ -1234,13 +1234,44 @@ describe("flush and floating: one fact, two postures (§27)", () => {
     ).toBeLessThanOrEqual(f.height + 0.5);
   });
 
+  // The corner is read as an AGREEMENT with a real Card at the same index, not against a
+  // token: the squircle multiplier sits between `--radius-surface-N` and the painted corner,
+  // which is the instrument bug this repo has already paid for once (38.712px against 40).
+  // Walked at every index because the pane's corner answers the index since 2026-08-21 —
+  // it was pinned to the size-3 step, so the name of this law was true and its value was one.
+  //
+  // Falsified: restore `border-radius: var(--radius-surface-3)` on `.kui-shell-pane` and
+  // three of the four cells disagree with their Card; delete the pane's `data-size` and the
+  // set of corners collapses to one.
   it("a non-flush pane is a card: the full edge and the surface corner come back", () => {
-    const shell = mountShell({ flush: false });
-    const sidebar = within(shell, ".kui-shell-sidebar");
-    const hairline = tokenOn(shell, "--border-width");
-    expect(computed(sidebar, "border-inline-start-width")).toBe(hairline);
-    expect(computed(sidebar, "border-inline-end-width")).toBe(hairline);
-    expect(computed(sidebar, "border-radius")).toBe(tokenOn(shell, "--radius-surface-3"));
+    const seen = new Set<string>();
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const shell = mounted(
+        <Shell size={size} style={{ height: 400, width: 900 }}>
+          <ShellSidebar aria-label="Primary" flush={false}>
+            s
+          </ShellSidebar>
+          <ShellContent flush={false}>
+            <Card size={size} data-testid="peer">
+              c
+            </Card>
+          </ShellContent>
+        </Shell>,
+        { theme: {}, select: ".kui-shell" },
+      );
+      const sidebar = within(shell, ".kui-shell-sidebar");
+      const hairline = tokenOn(shell, "--border-width");
+      expect(computed(sidebar, "border-inline-start-width"), size).toBe(hairline);
+      expect(computed(sidebar, "border-inline-end-width"), size).toBe(hairline);
+      expect(
+        computed(sidebar, "border-radius"),
+        `size ${size}: a pane off the frame does not wear its own index's corner`,
+      ).toBe(computed(within(shell, '[data-testid="peer"]'), "border-radius"));
+      seen.add(computed(sidebar, "border-radius"));
+      shell.remove();
+    }
+    // And it really MOVES: a pinned corner agrees with a Card at exactly one index.
+    expect(seen.size, "the pane wears one corner at every index").toBe(4);
   });
 
   it("the gap answers density through the layer — it IS the layout-space pick, in every scope", () => {

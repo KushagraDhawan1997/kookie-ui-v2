@@ -78,11 +78,17 @@
    wide inside a 288px pane, hanging 16px past both edges) disappears with it: the bleed was
    never wrong, the pane's claim to have no padding was.
 
-   The corner stays STATED at the default card's step rather than answering the index — a
-   shell composed inside another surface must not inherit that ancestor's corner, and whether
-   a pane's corner should ride its size is a separate question nobody has asked yet. */
+   THE CORNER ANSWERS THE INDEX WITH EVERYTHING ELSE. It was pinned to the default card's
+   step (`--radius-surface-3`) with a stated reason — a shell composed inside another surface
+   must not inherit that ancestor's corner, and `--kui-sf-radius` inherits — and that reason
+   is spent: the pane declares the hook itself now, through the size join, so an ancestor's
+   value is shadowed rather than merely out-shouted. What is left is a pane taking an index
+   that prices its padding, its rows, its rail's width and its header's height, and then not
+   its own shape. So the declaration goes and `.kui-surface`'s own rule prices it — including
+   the squircle multiplier, which is the term a restatement would drop (measured once at
+   38.712px against 40, and the reason the drawer's restatement below is read as an AGREEMENT
+   with a pulled-off pane rather than against a number). */
 .kui-shell-pane {
-  border-radius: var(--radius-surface-3);
   min-inline-size: 0;
   min-block-size: 0;
   overflow: auto;
@@ -455,7 +461,13 @@
   --kui-sf-cast: initial;
   --kui-sf-pool: initial;
   border-color: var(--surface-edge, var(--tone-border));
-  border-radius: var(--radius-surface-3);
+  /* The shared layer's own expression, multiplier included — a corner has to be restored as
+     a PROPERTY here (the flush rule zeroed the property, and `initial` on a property is 0),
+     and the hook cannot be re-pointed instead because a `.kui-shell-pane[data-flush]` arm and
+     the size join's `.kui-surface[data-size]` arm are both (0,2,0) and would be settled by
+     which file loaded first. Its agreement with a pane the app pulled off the frame is what
+     the law reads, so a drift in either direction fails rather than one of them being right. */
+  border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
   border-width: var(--border-width);
 }
 
@@ -705,7 +717,8 @@
     --kui-sf-cast: initial;
     --kui-sf-pool: initial;
     border-color: var(--surface-edge, var(--tone-border));
-    border-radius: var(--radius-surface-3);
+    /* The shared layer's expression, as in the explicit arm above and for its reasons. */
+    border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
     border-width: var(--border-width);
   }
 
