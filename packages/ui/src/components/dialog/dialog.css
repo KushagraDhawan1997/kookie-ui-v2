@@ -106,3 +106,84 @@
 /* The corner and the width both come from the OVERLAY size join in the shared layer
    (surfaces.css) — see the note on the panel above. Nothing size-indexed lives in this file,
    which is the same discipline the floating panes keep. */
+
+
+/* ── The narrow window: a dialog presents as a SHEET (§18, §24 — 2026-08-21) ───────────────
+   Kushagra: the Shell already wrote this rule and it is the system's, not the Shell's —
+   PRESENTATION IS DRESS, NOT A COMPONENT. One element, always mounted, and the window decides
+   how it sits. A shell pane had the hard version of it (in the layout at one width, floating
+   at another, which nothing can be at once); a dialog is floating either way, so this is only
+   a change of position and shape and nothing is swapped, remounted or lost. That matters more
+   here than it does there: a pane that remounts loses a scroll position, a dialog that
+   remounts loses a half-filled form.
+
+   The boundary is the system's one definition (config's `narrowMedia`, from
+   `windowClass.narrowMax`) — the same 48rem the narrow type band and the Shell's own media
+   block use. A law derives the literal from config and fails on any respelling, exactly as
+   shell.css's does.
+
+   No prop, and that is the designed-default rule §24 already applied to `modal`: the window
+   class answers "which interface should this app show", so a call site choosing to stay
+   centred on a phone is choosing against the answer the system just gave. It widens the day a
+   real screen forces it, the way every axis in this system widens.
+
+   AlertDialog does NOT do this, and the exclusion is deliberate rather than pending: every
+   platform keeps an alert centred, because it is a question that stops you rather than a
+   surface you work on. Its narrower fixed width is already the phone-shaped answer.
+
+   Three things this arm must state, each forced rather than chosen:
+
+   - The GUTTER goes. A sheet is the window's width, so the viewport's inset would fight it.
+   - The CAP. Pinned to the bottom with no maximum, a tall panel runs off the top of the
+     screen with no way back — so it stops one touch target short, which is the Shell's own
+     rule (`calc(100% - var(--touch-target-min))`) and its own reason: a strip of scrim must
+     stay tappable or there is no route out. That cap is also what makes the sheet a sheet
+     rather than a full-screen page.
+   - The BODY scrolls, because the cap obliges it. A pane clips (§3), so a capped panel whose
+     content overflows would DELETE the overflow — the defect closed 2026-08-21, walked into
+     again by a rule written one day later. The panel becomes a column and the body takes the
+     remainder. A ScrollArea inside it still works and still pins whatever sits above it,
+     which is the composition for a sheet with a fixed header.
+
+   The corner is the overlay band's at the top and nothing at the bottom: the bottom edge is
+   the screen's, and a curve there would draw a gap that is not real. */
+@media (max-width: 48rem) {
+  .kui-dialog-viewport {
+    padding: var(--radius-0);
+  }
+
+  .kui-dialog-popup {
+    /* Pinned to the bottom: the top margin takes all the free space, the bottom takes none.
+       `margin: auto` is what centres it at every other width, and only the block axis moves —
+       the inline axis has no room left to distribute. */
+    margin-block-start: auto;
+    margin-block-end: var(--radius-0);
+    max-inline-size: none;
+    max-block-size: calc(100% - var(--touch-target-min));
+    /* The knob has to be restated, not dropped. The surface layer's own corner is
+       `calc(--kui-sf-radius * --kui-corner-k)` — the squircle multiplier lives in the
+       arithmetic, not in the token — so a bare `var(--kui-sf-radius)` here quietly draws a
+       DIFFERENT corner from every card in the app (measured: 48px against the 77.4px a
+       size-3 overlay actually paints). Same expression, twice, with the bottom pair zeroed. */
+    border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1))
+      calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1)) var(--radius-0)
+      var(--radius-0);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kui-dialog-body {
+    /* The cap's other half. `auto` and not `clip`: this is the one box in the panel that is
+       ALLOWED to be a scroll container, because it is the only one whose overflow the reader
+       must be able to reach. */
+    flex: 1;
+    min-block-size: 0;
+    overflow-y: auto;
+    /* A phone's home indicator sits over the bottom of the screen, and a sheet pinned there
+       would put its last control under it. The env() value is 0 everywhere it does not apply,
+       so the max() resolves to the pane's own padding on every other device. First use of an
+       environment value in the package, and it is here because without it the component is
+       wrong on exactly the device it exists for. */
+    padding-block-end: max(var(--radius-0), env(safe-area-inset-bottom));
+  }
+}

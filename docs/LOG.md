@@ -220,6 +220,32 @@ The move also made the registry pure data, so `registry.test.ts` imports the val
 
 **The first draft's language was wrong, and Kushagra rejected it** (*"like bro what is it"*). It used metaphor, filler and the passive voice. Every chapter was rewritten to ASD-STE100 Simplified Technical English: active voice, short sentences, literal vocabulary, no metaphor. `content/AUTHORING.md` now states those rules, so later chapters follow them.
 
+## 2026-08-21 A dialog is a sheet on a phone, and the rule was already written
+
+Kushagra, after I had split this into two problems: *"the drawer that Shell built is exactly what we need — there a panel not floating, floats on narrow devices. We're using the same definition for dialog, no?"*
+
+He was right and I had missed it. I had described the Shell case (in the layout at one width, floating at another) and the dialog case (floating at both, only the position changes) as different, and treated the difference as if it were about the mechanism. It is not: it is about which CSS treatments are involved. The mechanism is the same one Shell already proved, and Shell has the HARDER version of it. §27 states the rule — *presentation is dress, not a component* — and it had been written as a Shell fact when it is a system one.
+
+**So the dialog is the easy case, and the stake is higher.** A shell pane that remounts on a resize loses a scroll position; a dialog that remounts loses a half-filled form. One element, one media query, nothing swapped.
+
+**The boundary was already decided, which is most of why this was small.** `narrowMax: "48rem"` in config, one home, already consumed by the narrow type band and by shell.css. Two node laws: one derives the literal, and one asserts dialog.css and shell.css resolve at the same width — the second is not a restatement, it is the claim a reader actually has (a dialog becomes a sheet at the width a shell pane starts overlaying), and it can only fail if one of them stops deriving.
+
+**Three things the narrow arm had to state, and none of them were choices.** The gutter goes, because a sheet is the window's width. The panel caps at `calc(100% - var(--touch-target-min))` — the Shell's own expression, borrowed with its own reason: pinned to the bottom with no cap it runs off the top of the screen with no route back, and a strip of scrim has to stay tappable. And the body scrolls, because the cap obliges it: a pane clips, so a capped panel whose content overflows deletes it — **the defect closed that same morning, walked straight back into by a rule written four hours later.** Writing the law is what caught it.
+
+**The corner caught me too, and it is the kind of bug this repo keeps naming.** I wrote `border-radius: var(--kui-sf-radius) …` and the surface layer's actual corner is `calc(--kui-sf-radius * --kui-corner-k)` — the squircle multiplier lives in the ARITHMETIC, not in the token. Measured: 48px on the sheet against the 77.4px the same panel paints one pixel wider. A token that looks like the answer and is one multiplication short of it. The law reads both windows and asserts they agree, which is the only shape that catches it.
+
+**AlertDialog is excluded deliberately.** Every platform keeps an alert centred — it is a question that stops you, not a surface you work on — and its narrower fixed width is already the phone-shaped answer. It ships as a negative control, because without one "a dialog becomes a sheet" would pass equally well written as "every overlay becomes a sheet".
+
+**Rejected: Base UI's Drawer.** It exists, it is stable (since their 1.3), and it is good — swipe to dismiss with velocity, snap points, an edge strip to swipe open, the page-shrinks-behind-it effect, virtual keyboard handling. Using it here would mean rendering a different component below the boundary, which is exactly what §27 refused and for the reason that matters most in a dialog: the form. What we give up by refusing is the DRAG, and that is the same trade Shell deferred — a gesture is JS on every pointer move, against §2's no-JS-at-interaction-time, which this system has spent three named exceptions on already. A Drawer stays a separate component for whenever we want that (Kushagra: "Drawer will be separate component").
+
+**Also rejected: a `presentation` prop.** §24's designed-default argument, the one that refused `modal`: the window class answers "which interface should this app show", so a call site asking to stay centred on a phone is choosing against the answer the system just gave.
+
+**A first for the package: `env(safe-area-inset-bottom)`.** A sheet pinned to a phone's bottom edge puts its last control under the home indicator otherwise. It resolves to nothing on every device where it does not apply, and it is asserted as a declaration rather than as a computed value, because nothing in the harness can produce a real safe-area inset — stated rather than claimed.
+
+Six sabotage passes, all caught. Judged on a real 390 × 844 viewport, screenshotted. Two things left for the eye: the corner (77px on a 390px sheet, judged at 560px on a desktop and never at this width) and the entry (still depth-not-distance, argued at modal mass and centred placement — a sheet that appears without rising may want its own answer). +57 bytes.
+
+---
+
 ## 2026-08-21 A small dialog gets a smaller title, and the alert had every hole the dialog had
 
 Two things, and the second was Kushagra's question rather than a finding: "all the things we discuss for dialog, are on their own applied to alert dialog, also, right?"
