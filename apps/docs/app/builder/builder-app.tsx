@@ -1612,12 +1612,7 @@ export function BuilderApp() {
           child — which is what pins the jump bar without the bar saying so. The grey
           workbench moved onto the SCROLLER with the scroll: the pane's own seal is chrome,
           the region the canvas floats in is the work. */}
-      {/* NOT FLUSH (2026-08-21). The other panes stay part of the frame, so by the shell's
-          own derivation this one GROUNDS rather than floats: its surface lifts off the frame
-          and rests on the app's ground with the gap all round it — the card relationship at
-          pane scale, which is what the work area is. It reads as the thing being worked on
-          rather than a fifth panel of the tool. */}
-      <ShellContent flush={false}>
+      <ShellContent>
         <Breadcrumb
           roots={doc.roots}
           selection={preview ? [] : state.selection}

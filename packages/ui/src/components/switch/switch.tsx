@@ -4,6 +4,7 @@ import { Switch as BaseSwitch } from "@base-ui/react/switch";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
+import { useControlSize } from "../../system/control-size.ts";
 
 export type SwitchProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseSwitch.Root>,
@@ -70,7 +71,9 @@ export type SwitchProps = Omit<
  * a checkbox waits for submit — which is a product semantics choice for the call site, never
  * a pointer response (§4's own note on why coarse never swaps one for the other).
  */
-export function Switch({ size = "2", className, ref, ...props }: SwitchProps) {
+export function Switch({ size: sizeProp, className, ref, ...props }: SwitchProps) {
+  // §28 — a Field states the whole unit's index; an explicit prop here always wins.
+  const size = useControlSize(sizeProp);
   return (
     <BaseSwitch.Root
       ref={ref}

@@ -433,7 +433,7 @@ export const cardPreview: ComponentPreview = {
     nesting: { body: <Nesting /> },
     tones: {
       absent:
-        "Refused (§11): tone and emphasis rank actions, and a container ranks nothing — a card has no tone to sweep. A status surface that colors a container is Callout's job.",
+        "Refused (§11): tone and emphasis rank actions, and a container ranks nothing — a card has no tone to sweep. A status surface that colors a container is Notice's job (§29).",
     },
     inUse: { body: <InUse /> },
   },

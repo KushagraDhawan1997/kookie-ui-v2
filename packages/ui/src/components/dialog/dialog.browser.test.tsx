@@ -14,8 +14,8 @@
  * the follow-up commit — which is a sequencing fact, not a design one.
  */
 import * as React from "react";
-import { describe, expect, it, vi } from "vitest";
-import { userEvent } from "vitest/browser";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { userEvent, page } from "vitest/browser";
 
 import {
   Dialog,
@@ -30,6 +30,14 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Box } from "../box/box.tsx";
+import { VIEWPORT } from "../../test/viewport.ts";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "../alert-dialog/alert-dialog.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
@@ -901,5 +909,137 @@ describe("what the call site can say to a dialog", () => {
       ),
     );
     expect(prose, "a long word wraps, so there is nothing to warn about").toBe(0);
+  });
+});
+
+
+/* ── A dialog presents as a SHEET on a narrow window (§18, §24 — 2026-08-21) ───────────── */
+
+describe("on a narrow window a dialog is a sheet", () => {
+  // The viewport is resized for real. A media query IS the mechanism here, and a law that
+  // stubs the mechanism it is testing proves nothing (the type bands' own rule, §17).
+  const PHONE = { width: 390, height: 844 };
+
+  afterEach(async () => {
+    await page.viewport(VIEWPORT.width, VIEWPORT.height);
+  });
+
+  const rows = Array.from({ length: 30 }, (_, i) => (
+    <Box key={i} height="2rem">Row {i + 1}</Box>
+  ));
+
+  function openOn(children: React.ReactNode) {
+    render(
+      <Theme>
+        <Dialog defaultOpen size="3">
+          <DialogContent>{children}</DialogContent>
+        </Dialog>
+      </Theme>,
+    );
+    settleAll();
+    const ps = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+    const p = ps[ps.length - 1];
+    if (!p) throw new Error("the panel never mounted");
+    return p;
+  }
+
+  it("takes the window's width and sits on its bottom edge", async () => {
+    await page.viewport(PHONE.width, PHONE.height);
+    const p = openOn(
+      <>
+        <DialogTitle>Rename</DialogTitle>
+        <DialogDescription>Short.</DialogDescription>
+      </>,
+    );
+    const r = p.getBoundingClientRect();
+    expect(r.left, "no gutter — a sheet is the window's width").toBeCloseTo(0, 0);
+    expect(r.width).toBeCloseTo(PHONE.width, 0);
+    expect(window.innerHeight - r.bottom, "and it rests on the bottom edge").toBeCloseTo(0, 0);
+    // A SHORT sheet is only as tall as its content — pinned, not stretched. Mounted with long
+    // content below, because a law that only ever measures the capped case cannot tell a
+    // pinned sheet from a full-height one.
+    expect(r.height, "a short sheet stays short").toBeLessThan(PHONE.height / 2);
+  });
+
+  it("rounds its top corners only, and by the same arithmetic a card rounds by", async () => {
+    // The bug this caught while it was being written: the surface layer's corner is
+    // `calc(--kui-sf-radius * --kui-corner-k)` — the squircle multiplier lives in the
+    // ARITHMETIC, not in the token — so a bare `var(--kui-sf-radius)` drew 48px where the
+    // same panel one pixel wider paints 77.4. The law reads BOTH windows for that reason.
+    await page.viewport(PHONE.width, PHONE.height);
+    const sheet = openOn(<DialogTitle>Rename</DialogTitle>);
+    const top = computed(sheet, "border-top-left-radius");
+    expect(computed(sheet, "border-bottom-left-radius"), "the bottom edge is the screen's")
+      .toBe("0px");
+    expect(parseFloat(top), "the top is rounded").toBeGreaterThan(0);
+
+    await page.viewport(VIEWPORT.width, VIEWPORT.height);
+    const centred = openOn(<DialogTitle>Rename</DialogTitle>);
+    expect(top, "and it is the corner this panel paints at any width").toBe(
+      computed(centred, "border-top-left-radius"),
+    );
+  });
+
+  it("stops one touch target short of the top, and scrolls rather than clipping", async () => {
+    // Two claims that are really one: a sheet with no cap runs off the top of the screen with
+    // no route back, and a capped pane whose content overflows DELETES it, because a pane
+    // clips (§3, closed 2026-08-21 and walked into again by a rule written a day later).
+    await page.viewport(PHONE.width, PHONE.height);
+    const p = openOn(
+      <>
+        <DialogTitle>Pick</DialogTitle>
+        {rows}
+      </>,
+    );
+    const r = p.getBoundingClientRect();
+    const reach = parseFloat(tokenOn(p, "--touch-target-min"));
+    expect(reach, "the cap must be a real length").toBeGreaterThan(0);
+    expect(r.top, "a strip of scrim stays tappable").toBeCloseTo(reach, 0);
+    const body = p.querySelector<HTMLElement>(".kui-dialog-body");
+    if (!body) throw new Error("the body never mounted");
+    expect(body.scrollHeight, "the content must overflow, or this proves nothing")
+      .toBeGreaterThan(body.clientHeight);
+    expect(computed(body, "overflow-y"), "…and the reader can reach it").toBe("auto");
+  });
+
+  it("an ALERT on the same window stays centred — the exclusion is the design", async () => {
+    // Every platform keeps an alert centred: it is a question that stops you, not a surface
+    // you work on, and its fixed narrower width is already the phone-shaped answer. The
+    // negative control, and without it "a dialog becomes a sheet" would pass just as well
+    // written as "every overlay becomes a sheet".
+    await page.viewport(PHONE.width, PHONE.height);
+    render(
+      <Theme>
+        <AlertDialog defaultOpen>
+          <AlertDialogContent>
+            <AlertDialogTitle>Delete it?</AlertDialogTitle>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>Delete</AlertDialogAction>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Theme>,
+    );
+    settleAll();
+    const ps = document.querySelectorAll<HTMLElement>(".kui-alert-popup");
+    const alert = ps[ps.length - 1];
+    if (!alert) throw new Error("the alert never mounted");
+    const r = alert.getBoundingClientRect();
+    expect(r.left, "it keeps its gutter").toBeGreaterThan(0);
+    expect(window.innerHeight - r.bottom, "and it floats rather than resting on the edge")
+      .toBeCloseTo(r.top, 0);
+    expect(parseFloat(computed(alert, "border-bottom-left-radius")), "corners all round")
+      .toBeGreaterThan(0);
+  });
+
+  it("a window one pixel wider is the centred panel, unchanged", async () => {
+    // The boundary lands DOWNWARD (§18), and the whole point of a media query is that the
+    // other side of it is untouched. A law about a switch that never reads the off position
+    // is half a law.
+    await page.viewport(769, 844);
+    const p = openOn(<DialogTitle>Rename</DialogTitle>);
+    const r = p.getBoundingClientRect();
+    expect(r.left, "the gutter is back").toBeGreaterThan(0);
+    expect(window.innerHeight - r.bottom, "and it is centred, not pinned").toBeCloseTo(r.top, 0);
+    expect(parseFloat(computed(p, "border-bottom-left-radius"))).toBeGreaterThan(0);
   });
 });

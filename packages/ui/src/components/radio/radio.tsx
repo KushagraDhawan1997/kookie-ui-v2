@@ -5,6 +5,7 @@ import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
+import { useControlSize } from "../../system/control-size.ts";
 
 export type RadioProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseRadio.Root>,
@@ -77,7 +78,9 @@ export function RadioGroup(props: RadioGroupProps) {
  * family its one tone as an identity, not an axis). Selection state is the group's: a radio
  * checks when the group's value matches its `value`.
  */
-export function Radio({ size = "2", className, ref, ...props }: RadioProps) {
+export function Radio({ size: sizeProp, className, ref, ...props }: RadioProps) {
+  // §28 — a Field states the whole unit's index; an explicit prop here always wins.
+  const size = useControlSize(sizeProp);
   return (
     <BaseRadio.Root
       ref={ref}

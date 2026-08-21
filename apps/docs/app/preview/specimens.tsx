@@ -36,6 +36,10 @@ import {
   Card,
   Checkbox,
   Code,
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
   Flex,
   Grid,
   Heading,
@@ -300,7 +304,7 @@ function BlockquoteSection() {
         ))}
       </Stack>
       {/* Tone re-scopes the INK and leaves the rule alone (§11's rule for the type family).
-          A quote whose bar carries meaning is a Callout, which is a tone-forward surface. */}
+          A quote whose bar carries meaning is an Aside or a Notice, never a quote (§29). */}
       <SpecTable
         wide
         cols={["Tone reaches the words, never the rule"]}
@@ -1061,6 +1065,79 @@ function SurfaceSection() {
           </Surface>
         ))}
       </Flex>
+    </Stack>
+  );
+}
+
+function FieldSection() {
+  return (
+    <Stack gap="6">
+      {/* The unit doing its real job: two fields on one card, one of them failing. The
+          description sits above the control and the error below it — instruction before the
+          act, diagnosis after (§28, §29). */}
+      <Box maxWidth="26rem">
+        <Card size="3">
+          <Stack gap="5">
+            <Stack gap="2">
+              <Heading size="6">Add a recipient</Heading>
+              <Text size="3" emphasis="medium">
+                We send one confirmation and nothing else.
+              </Text>
+            </Stack>
+            <Stack gap="4">
+              <Field>
+                <FieldLabel>Email</FieldLabel>
+                <FieldDescription>We use this for receipts.</FieldDescription>
+                <TextField type="email" placeholder="mira@kookie.dev" />
+              </Field>
+              {/* `aria-invalid` is the standalone spelling of what a submit would set, so the
+                  error renders here without a form round trip. */}
+              <Field>
+                <FieldLabel>Account number</FieldLabel>
+                <FieldDescription>Eight digits, no spaces.</FieldDescription>
+                <TextField defaultValue="4471" aria-invalid />
+                <FieldError match={true}>That is four digits short.</FieldError>
+              </Field>
+              <Field>
+                <FieldLabel>Send a copy to me</FieldLabel>
+                <Checkbox />
+              </Field>
+            </Stack>
+            <Flex justify="end">
+              <Button emphasis="loud" tone="accent">Add recipient</Button>
+            </Flex>
+          </Stack>
+        </Card>
+      </Box>
+
+      {/* One index prices the whole unit — the label, the description AND the control inside
+          it. The label's step is the control's own, by derivation rather than by a table. */}
+      <Stack gap="4">
+        <Text size="2" emphasis="medium">One index, the whole unit</Text>
+        <Flex gap="5" wrap="wrap" align="start">
+          {(["1", "2", "3", "4"] as const).map((size) => (
+            <Box key={size} width="14rem">
+              <Field size={size}>
+                <FieldLabel>Workspace</FieldLabel>
+                <FieldDescription>Lowercase, no spaces.</FieldDescription>
+                <TextField defaultValue="kookie" />
+              </Field>
+            </Box>
+          ))}
+        </Flex>
+      </Stack>
+
+      {/* And an explicit index on the control still wins, which is what keeps the supply from
+          being action at a distance. */}
+      <Stack gap="4">
+        <Text size="2" emphasis="medium">A control that states its own index keeps it</Text>
+        <Box width="14rem">
+          <Field size="4">
+            <FieldLabel>Workspace</FieldLabel>
+            <TextField size="1" defaultValue="kookie" />
+          </Field>
+        </Box>
+      </Stack>
     </Stack>
   );
 }
@@ -2072,6 +2149,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
   { id: "alert-dialog", name: "Alert dialog", body: <AlertDialogSection /> },
+  { id: "field", name: "Field", body: <FieldSection /> },
   ported("dialog"),
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "link", name: "Link", body: <LinkSection /> },
