@@ -330,6 +330,34 @@
   background-image: none;
   --kui-sf-cast: 0 0 0 0 transparent;
   --kui-sf-pool: 0 0 0 0 transparent;
+  /* SO THE SEAM HAS TO BE A RULE (2026-08-21, Kushagra: "what is not so trivial is separation
+     between shell panes when they are flush… we have used hairline for exactly this and I
+     don't see why we can't use it here also").
+
+     The per-side widths below have always been right — each pane draws only its INNER edge,
+     so two neighbours can never double one — and the pigment is what went missing when the
+     pane stopped being a plane. `--surface-edge` rests at a live `transparent` in the
+     elevated world on purpose: there a pane's boundary IS its cast. Take the cast away and
+     that promise has nothing behind it, so the seam measured 1px of nothing in the default
+     world and only appeared under `depth="flat"`.
+
+     `--color-border` is the answer the system already gives for a rule between regions — it
+     is what a Separator draws and what a tab bar's hairline draws, both law-pinned to resolve
+     one colour, and §7's edge order puts a frame seam exactly where a separator sits. Not
+     `--tone-border`: that is the pane-boundary role, and a flush pane has no boundary of its
+     own to state. In `flat` the two resolve identically, so nothing moves there; in
+     `elevated` the seam simply appears, which is the whole repair.
+
+     THE PROPERTY, NOT THE PAINTED HOOK. A component sheet may not so much as mention the
+     painted name (recipes.test.ts, the checkbox's own audit defect (a)): a component
+     re-points a ROLE and only the shared layer paints. The role was tried first and it
+     leaks — the surface edge role is not registered `inherits: false`, so setting it here
+     hands every card inside the pane a visible edge in the elevated world, the
+     `--kui-sf-light` trap one declaration up. The property reaches this box and no other,
+     and the spirit of that law is satisfied rather than dodged because this line carries no
+     STATE: a seam between two frame regions is a rule, like a Separator's, and a pane has no
+     invalid or disabled arm for a remap to have to reach. */
+  border-color: var(--color-border);
   border-radius: var(--radius-0);
   border-width: 0;
 }
@@ -387,6 +415,7 @@
   background-image: var(--kui-sf-light);
   --kui-sf-cast: initial;
   --kui-sf-pool: initial;
+  border-color: var(--surface-edge, var(--tone-border));
   border-radius: var(--radius-surface-3);
   border-width: var(--border-width);
 }
@@ -641,6 +670,7 @@
     background-image: var(--kui-sf-light);
     --kui-sf-cast: initial;
     --kui-sf-pool: initial;
+    border-color: var(--surface-edge, var(--tone-border));
     border-radius: var(--radius-surface-3);
     border-width: var(--border-width);
   }
