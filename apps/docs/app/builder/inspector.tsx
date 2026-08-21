@@ -623,7 +623,7 @@ export function Inspector({
       ) : null}
 
       {refusals?.length ? (
-        <Stack gap="2">
+        <Stack gap="4">
           <Separator />
           <Text size="2" weight="medium">
             Not here, on purpose
@@ -637,27 +637,33 @@ export function Inspector({
   );
 }
 
-/** A refusal reads as its NAME; the argument opens when someone wants it. Three paragraphs
-    of prose sitting between the props and the actions is the panel arguing with itself. */
+/**
+ * A refusal is a SENTENCE, so it is text (2026-08-22, Kushagra: a title that long in a button
+ * is "a big no no", and he is right — the system said so first).
+ *
+ * It was a disclosure whose trigger was a Button carrying the whole refusal as its label. The
+ * strings are the component reference's own, written to be read as prose — Card's longest is
+ * "a `selected` prop, and an `interactive` one" — and `.kui-control` sets `white-space: nowrap`
+ * on purpose: a control's label is one line, which is a rule about what a control IS. So the
+ * label could not wrap, its min-content measured 334px against the inspector's 303px viewport,
+ * and because the scroller's content box is `min-width: fit-content` that single unshrinkable
+ * child pushed the WHOLE panel sideways. The horizontal scrollbar was the visible end of a
+ * sentence being asked to be a button label; the geometry was downstream of the category error.
+ *
+ * Now it renders exactly as the same data renders on its own reference page — name, then
+ * argument, both `Text`, both free to wrap — so one entry reads one way wherever it appears.
+ * The disclosure went with it: it was buying compactness in a panel that scrolls vertically
+ * anyway, and it is what forced the sentence into a control in the first place.
+ */
 function Refusal({ name, why }: { name: string; why: string }) {
-  const [open, setOpen] = React.useState(false);
   return (
     <Stack gap="1">
-      <Button
-        emphasis="quiet"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        style={{ justifyContent: "flex-start" }}
-      >
-        {`no ${name}`}
-      </Button>
-      {open ? (
-        <Box pl="3" pr="2">
-          <Text size="1" emphasis="quiet">
-            {why}
-          </Text>
-        </Box>
-      ) : null}
+      <Text size="2" weight="medium">
+        {name}
+      </Text>
+      <Text size="1" emphasis="quiet">
+        {why}
+      </Text>
     </Stack>
   );
 }
