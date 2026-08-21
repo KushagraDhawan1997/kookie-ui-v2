@@ -76,7 +76,7 @@ export const ENTRIES: Entry[] = [
         { part: "AlertDialogContent", blurb: "The whole fold: portals, re-applies the theme (§20), paints the scrim, centres the panel — and owns the layout, a two-column grid the parts drop into" },
         { part: "AlertDialogTitle", blurb: "The accessible name, a real heading priced by the alert's own index — the question, phrased as one" },
         { part: "AlertDialogDescription", blurb: "What proceeding means, in the muted ink — the consequence said quietly, wired as the panel's accessible description" },
-        { part: "AlertDialogCancel", blurb: "The safe way out: a quiet bordered Button the component sizes, first in reading order, first to take focus" },
+        { part: "AlertDialogCancel", blurb: "The safe way out: a medium Button the component sizes, first in reading order, first to take focus" },
         { part: "AlertDialogAction", blurb: "The committing choice: a loud Button carrying the caller's handler and optional tone; it closes, because the alert's job ends when a choice is made" },
     ],
   },

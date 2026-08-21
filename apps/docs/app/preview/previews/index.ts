@@ -7,7 +7,16 @@
  * specimens.tsx, and the structure law only governs what has ported.
  */
 import type { ComponentPreview } from "./types";
+import { alertDialogPreview } from "./alert-dialog";
 import { cardPreview } from "./card";
 import { dialogPreview } from "./dialog";
+import { menuPreview } from "./menu";
+import { selectPreview } from "./select";
 
-export const COMPONENT_PREVIEWS: readonly ComponentPreview[] = [cardPreview, dialogPreview];
+export const COMPONENT_PREVIEWS: readonly ComponentPreview[] = [
+  alertDialogPreview,
+  cardPreview,
+  dialogPreview,
+  menuPreview,
+  selectPreview,
+];

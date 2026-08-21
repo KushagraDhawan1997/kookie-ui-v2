@@ -23,13 +23,6 @@
  */
 import * as React from "react";
 import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogCancel,
-  AlertDialogAction,
   Blockquote,
   Box,
   Button,
@@ -50,14 +43,6 @@ import {
   MenuTrigger,
   MenuContent,
   MenuItem,
-  MenuGroup,
-  MenuLabel,
-  MenuCheckboxItem,
-  MenuRadioGroup,
-  MenuRadioItem,
-  MenuSub,
-  MenuSubTrigger,
-  MenuSubContent,
   Notice,
   Progress,
   Radio,
@@ -97,8 +82,6 @@ import {
   SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectGroup,
-  SelectLabel,
 } from "@kookie-ui/react";
 
 import { PlusIcon, SearchIcon, XIcon } from "../icons";
@@ -508,37 +491,6 @@ function CodeSection() {
   );
 }
 
-function AlertDialogSection() {
-  /** One canonical question at every size, so the judgment is about the box, the type steps
-      and the 50/50 row — all of which the index prices, because the alert owns its content
-      (§25). The words are an app's words, per the playground's own rule. */
-  const body = (
-    <>
-      <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
-      <AlertDialogDescription>
-        Every project, member and API key goes with it. This cannot be undone.
-      </AlertDialogDescription>
-      <AlertDialogCancel>Keep it</AlertDialogCancel>
-      <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
-    </>
-  );
-  return (
-    <Stack gap="6">
-      <SpecTable
-        cols={["Trigger + alert"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            <AlertDialog key="a" size={size}>
-              <AlertDialogTrigger render={<Button size={size} emphasis="medium">Delete…</Button>} />
-              <AlertDialogContent>{body}</AlertDialogContent>
-            </AlertDialog>,
-          ],
-        }))}
-      />
-    </Stack>
-  );
-}
 
 
 
@@ -832,254 +784,7 @@ function LinkSection() {
   );
 }
 
-function MenuSection() {
-  /** One canonical content set, reused at every size so the judgment is about the cells,
-      not the words: a file menu with groups, checkables, a submenu and a destructive tail. */
-  const content = (
-    <>
-      <MenuGroup>
-        <MenuLabel>File</MenuLabel>
-        <MenuItem trailing={<Kbd size="1">⌘D</Kbd>}>Duplicate</MenuItem>
-        <MenuItem>Rename</MenuItem>
-        <MenuItem disabled>Move to…</MenuItem>
-      </MenuGroup>
-      <Separator />
-      <MenuCheckboxItem defaultChecked>Show hidden files</MenuCheckboxItem>
-      <MenuCheckboxItem>Compact list</MenuCheckboxItem>
-      <Separator />
-      <MenuRadioGroup defaultValue="name">
-        <MenuLabel>Sort by</MenuLabel>
-        <MenuRadioItem value="name">Name</MenuRadioItem>
-        <MenuRadioItem value="date">Date modified</MenuRadioItem>
-      </MenuRadioGroup>
-      <Separator />
-      <MenuSub>
-        <MenuSubTrigger>Export as</MenuSubTrigger>
-        <MenuSubContent>
-          <MenuItem>PNG</MenuItem>
-          <MenuItem>SVG</MenuItem>
-          <MenuItem>PDF</MenuItem>
-        </MenuSubContent>
-      </MenuSub>
-      <MenuItem tone="destructive">Delete…</MenuItem>
-    </>
-  );
 
-  return (
-    <Stack gap="6">
-      {/* Size row: the menu answers the index its trigger wears — open each and judge the
-          rows against the button beside it (§22: a size-4 button never opens a size-2
-          dropdown). Click to open; menus are judged live, not pinned. */}
-      <SpecTable
-        cols={["Trigger + menu"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            <Menu key="m" size={size}>
-              <MenuTrigger render={<Button size={size} emphasis="medium">Actions</Button>} />
-              <MenuContent>{content}</MenuContent>
-            </Menu>,
-          ],
-        }))}
-      />
-      {/* Glass: the popup floats over content by definition, which is the case the material
-          was built for — and a glass menu still casts the floating chrome in a flat world. */}
-      <Demo label="Materials — over the hostile backdrop">
-        <HostileBed>
-          <Menu>
-            <MenuTrigger render={<Button emphasis="medium">Solid</Button>} />
-            <MenuContent>{content}</MenuContent>
-          </Menu>
-          <Theme material="thin">
-            <Menu>
-              <MenuTrigger render={<Button emphasis="medium">Thin glass</Button>} />
-              <MenuContent>{content}</MenuContent>
-            </Menu>
-          </Theme>
-          <Theme material="thick">
-            <Menu>
-              <MenuTrigger render={<Button emphasis="medium">Thick glass</Button>} />
-              <MenuContent>{content}</MenuContent>
-            </Menu>
-          </Theme>
-        </HostileBed>
-      </Demo>
-      {/* The §6 judging surface: the panel's CONCENTRIC corner (rows' corner + padding) beside
-          the card's surface-3 — open the menu over the card and read the radii as one system. */}
-      <Demo label="Composed — a document header, menu beside its card">
-        <Box maxWidth="26rem">
-          <Card size="3">
-            <Flex justify="space-between" align="center" gap="4">
-              <Stack gap="1">
-                <Text size="2" weight="medium">Q3 planning.md</Text>
-                <Text size="2" emphasis="medium">Edited 2 hours ago</Text>
-              </Stack>
-              <Menu>
-                <MenuTrigger render={<Button emphasis="quiet" iconOnly aria-label="Actions"><PlusIcon /></Button>} />
-                <MenuContent>{content}</MenuContent>
-              </Menu>
-            </Flex>
-          </Card>
-        </Box>
-      </Demo>
-    </Stack>
-  );
-}
-
-function SelectSection() {
-  /** One canonical option set at every size: two groups and a disabled row — the menu
-      section's discipline, so the judgment is about the cells.
-
-      No Separator between the groups (audit 2026-08-09). It was here, and it was the shape
-      that proved the composition is illegal: the panel IS the listbox, a listbox may hold
-      only options and groups, and an accessibility scan reported exactly that — from
-      library markup a consumer cannot fix from outside. The GROUP is the divider a listbox
-      has, and it divides in the accessibility tree too. */
-  const content = (
-    <>
-      <SelectGroup>
-        <SelectLabel>Fruit</SelectLabel>
-        <SelectItem value="apple">Apple</SelectItem>
-        <SelectItem value="banana">Banana</SelectItem>
-        <SelectItem value="cherry" disabled>
-          Cherry (out of season)
-        </SelectItem>
-      </SelectGroup>
-      <SelectGroup>
-        <SelectLabel>Vegetables</SelectLabel>
-        <SelectItem value="carrot">Carrot</SelectItem>
-        <SelectItem value="leek">Leek</SelectItem>
-      </SelectGroup>
-    </>
-  );
-  const items = {
-    apple: "Apple",
-    banana: "Banana",
-    cherry: "Cherry (out of season)",
-    carrot: "Carrot",
-    leek: "Leek",
-  };
-
-  return (
-    <Stack gap="6">
-      {/* Size row, each beside the TextField it must read as one family with (§23: the
-          trigger wears the field identity — same seal, edge, height, corner). */}
-      <SpecTable
-        cols={["Select", "TextField beside it"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            <Select key="s" size={size} defaultValue="banana" items={items}>
-              <SelectTrigger placeholder="Pick one" />
-              <SelectContent>{content}</SelectContent>
-            </Select>,
-            <TextField key="t" size={size} placeholder="Type here" />,
-          ],
-        }))}
-      />
-      {/* Empty vs chosen: the placeholder INVITES in the muted role; a value is content. */}
-      <Demo label="Placeholder, value, disabled">
-        <Flex gap="4" align="center">
-          <Select items={items}>
-            <SelectTrigger placeholder="Pick a fruit" />
-            <SelectContent>{content}</SelectContent>
-          </Select>
-          <Select defaultValue="apple" items={items}>
-            <SelectTrigger placeholder="Pick a fruit" />
-            <SelectContent>{content}</SelectContent>
-          </Select>
-          <Select defaultValue="apple" items={items} disabled>
-            <SelectTrigger placeholder="Pick a fruit" />
-            <SelectContent>{content}</SelectContent>
-          </Select>
-        </Flex>
-      </Demo>
-      {/* Glass panel over the hostile backdrop — the floating chrome must survive it. The
-          TRIGGER's own material is here too (2026-08-09): it is the case the axis exists
-          for, and until the prop shipped this bed showed an opaque white dropdown beside a
-          translucent TextField, which is the defect rather than the specimen. */}
-      <Demo label="Materials — over the hostile backdrop">
-        <HostileBed>
-          <Select items={items}>
-            <SelectTrigger placeholder="Solid" />
-            <SelectContent>{content}</SelectContent>
-          </Select>
-          <Theme material="thin">
-            <Select items={items}>
-              <SelectTrigger placeholder="Thin glass" />
-              <SelectContent>{content}</SelectContent>
-            </Select>
-          </Theme>
-          {/* One world, and the trigger, the panel and the field beside it all answer it —
-              which is the whole argument for the axis living on the Theme. */}
-          <Theme material="regular">
-            <Select items={items}>
-              <SelectTrigger placeholder="Glass trigger" />
-              <SelectContent>{content}</SelectContent>
-            </Select>
-          </Theme>
-          <Theme material="regular">
-            <TextField placeholder="…and the field beside it" />
-          </Theme>
-        </HostileBed>
-      </Demo>
-      {/* The two width facts, judged together (audit 2026-08-09): a trigger grows to fit its
-          chosen value unless something bounds it, and an unbreakable option wraps inside the
-          panel instead of pushing out of it. */}
-      <Demo label="Width — a long value, bounded and unbounded">
-        <Stack gap="3">
-          <Flex gap="4" align="center">
-            <Select
-              defaultValue="long"
-              items={{ long: "someone.with.a.long.name@example-company.com" }}
-            >
-              <SelectTrigger placeholder="Unbounded" />
-              <SelectContent>
-                <SelectItem value="long">someone.with.a.long.name@example-company.com</SelectItem>
-              </SelectContent>
-            </Select>
-          </Flex>
-          <Box maxWidth="14rem">
-            <Select
-              defaultValue="long"
-              items={{ long: "someone.with.a.long.name@example-company.com" }}
-            >
-              <SelectTrigger placeholder="Bounded — ellipsizes" />
-              <SelectContent>
-                <SelectItem value="long">someone.with.a.long.name@example-company.com</SelectItem>
-                <SelectItem value="short">Short</SelectItem>
-              </SelectContent>
-            </Select>
-          </Box>
-        </Stack>
-      </Demo>
-      {/* Composed: the form row the field identity exists for — one family, two controls. */}
-      <Demo label="Composed — a form row">
-        <Box maxWidth="26rem">
-          <Card size="3">
-            <Stack gap="5">
-              <Stack gap="3">
-                <Text size="2" weight="medium">Name</Text>
-                <TextField placeholder="Project name" />
-              </Stack>
-              <Stack gap="3">
-                <Text size="2" weight="medium">Visibility</Text>
-                <Select defaultValue="private" items={{ private: "Private", team: "Team", public: "Public" }}>
-                  <SelectTrigger placeholder="Choose" />
-                  <SelectContent>
-                    <SelectItem value="private">Private</SelectItem>
-                    <SelectItem value="team">Team</SelectItem>
-                    <SelectItem value="public">Public</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Stack>
-            </Stack>
-          </Card>
-        </Box>
-      </Demo>
-    </Stack>
-  );
-}
 
 function SurfaceSection() {
   return (
@@ -2239,14 +1944,14 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   ported("card"),
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
-  { id: "alert-dialog", name: "Alert dialog", body: <AlertDialogSection /> },
+  ported("alert-dialog"),
   { id: "field", name: "Field", body: <FieldSection /> },
   ported("dialog"),
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "link", name: "Link", body: <LinkSection /> },
-  { id: "menu", name: "Menu", body: <MenuSection /> },
+  ported("menu"),
   { id: "notice", name: "Notice", body: <NoticeSection /> },
-  { id: "select", name: "Select", body: <SelectSection /> },
+  ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
   { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
