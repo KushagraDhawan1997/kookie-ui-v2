@@ -460,6 +460,49 @@ describe("resize walks a designed index — it cannot state a length", () => {
   });
 });
 
+describe("every catalog entry survives the round trip it was added for", () => {
+  /**
+   * The gap the other walks leave (2026-08-21). Coverage proves an export is IN the catalog;
+   * the grammar proves it can be PLACED; resize proves its rungs survive. Nothing proved the
+   * plainest thing: that the node an entry's own `make()` produces serializes to code naming
+   * the component, and renders to markup. An entry can satisfy every existing law and still
+   * be a palette square that throws or exports nothing, which is precisely the state a new
+   * entry is in before anyone opens the builder.
+   *
+   * Found while verifying Link by hand, which is the signal that the check belonged here
+   * rather than in one component's session.
+   */
+  const placeable = Object.entries(CATALOG).filter(
+    ([, entry]) => !entry.partOf && !entry.requiresAncestor,
+  );
+
+  it("found entries to walk", () => {
+    // Vacuity: every assertion below loops this list, so a filter that excluded everything
+    // would turn the whole block green.
+    expect(placeable.length).toBeGreaterThan(15);
+  });
+
+  it("the default node exports code that names its own component", () => {
+    for (const [type, entry] of placeable) {
+      const doc: BuilderDoc = { theme: defaultDocTheme(), roots: [entry.make()] };
+      const code = serializeDocument(doc);
+      expect(code, `${type} exported nothing that names it`).toContain(`<${type}`);
+      expect(code, `${type} is missing from the import line`).toMatch(
+        new RegExp(`import \\{[^}]*\\b${type}\\b[^}]*\\} from "@kookie-ui/react"`),
+      );
+    }
+  });
+
+  it("the default node renders, and renders something", () => {
+    for (const [type, entry] of placeable) {
+      const html = renderToStaticMarkup(
+        React.createElement(Theme, null, renderNode(entry.make(), {} as never)),
+      );
+      expect(html.length, `${type} rendered nothing`).toBeGreaterThan(20);
+    }
+  });
+});
+
 describe("gap bands walk the space scale", () => {
   it("a layout offers gap steps; everything else offers none", () => {
     for (const [type, entry] of Object.entries(CATALOG)) {

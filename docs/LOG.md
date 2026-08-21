@@ -8,6 +8,21 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 A catalog entry could satisfy every builder law and still be a square that does nothing
+
+Asked to confirm Link was in the preview and the builder, I drove it through the real functions rather than re-reading my own edits. It is in both, and the export is right — a plain one and a configured one:
+
+```tsx
+<Link href="#">Read the argument</Link>
+<Link size="2" tone="destructive" href="/danger">Delete account</Link>
+```
+
+**What the check surfaced is a gap in the laws, not in the entry.** Coverage proves an export is IN the catalog. The grammar proves it can be PLACED. Resize proves its rungs survive the exporter. Nothing proved the plainest thing: that the node an entry's own `make()` produces serializes to code naming the component, and renders to markup at all. An entry can pass every existing law and still be a palette square that throws on click or exports nothing — which is exactly the state a new entry is in before anyone opens the builder, and the state mine was in until I checked by hand.
+
+So the ad-hoc check became a walk over every placeable entry, with a vacuity guard because each assertion loops the same filtered list. Falsified in both arms: renaming one entry's node type fails four laws including the two new ones, and a filter that excludes everything fails the guard rather than turning the block green.
+
+The general lesson is the one this repo keeps relearning from the other side: a law that proves a component is REGISTERED is not a law that it WORKS, and the registration laws are the ones that feel like enough.
+
 ## 2026-08-21 An exemption that was right rendered a blank cell, which was not
 
 Every props table on the site had two rows with an empty description: `className` and `style`, on all 38 components. Kushagra saw them and asked for them filled.
