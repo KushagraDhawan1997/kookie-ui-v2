@@ -5,9 +5,11 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, colorOn, computed, mounted, tokenOn, within } from "../../test/browser.tsx";
+import { APPEARANCES, DEPTHS, colorOn, computed, mounted, tokenOn, within } from "../../test/browser.tsx";
+import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../dialog/dialog.tsx";
 import { Stack } from "../stack/stack.tsx";
 import { Text } from "../text/text.tsx";
 import { Notice } from "./notice.tsx";
@@ -170,5 +172,94 @@ describe("the box is the surface layer's, not the component's (§10)", () => {
     const el = mounted(<Notice>Approaching weekly usage limit</Notice>, { theme: {} });
     expect(computed(el, "margin-top")).toBe("0px");
     expect(computed(el, "margin-bottom")).toBe("0px");
+  });
+});
+
+describe("a notice does not cast, and it does answer the material (§5, §10)", () => {
+  it("it throws no shadow, in either world — a marker on a plane, not a plane", () => {
+    for (const depth of DEPTHS) {
+      const notice = mounted(<Notice>Approaching weekly usage limit</Notice>, { theme: { depth } });
+      // Read the PAINT, not the token: the world's chrome arrives by inheritance and the pane's
+      // own name is consulted first, so a law reading either one alone can miss the other hop.
+      expect(computed(notice, "box-shadow")).not.toContain("rgba(0, 0, 0, 0.1)");
+    }
+    // The negative control, and it is the whole finding: a Card at the same index in the same
+    // world DOES cast. Without this, deleting the surface chrome entirely would pass above.
+    const card = mounted(<Card>Body</Card>, { theme: { depth: "elevated" } });
+    expect(computed(card, "box-shadow")).toContain("rgba(0, 0, 0, 0.1)");
+  });
+
+  it("a glass theme reaches it once it says content passes behind", () => {
+    const solid = mounted(<Notice>x</Notice>, { theme: { material: "regular" } });
+    // In flow with nothing behind it, a notice resolves solid and pays nothing (selectivity).
+    expect(solid.getAttribute("data-material")).toBeNull();
+    expect(computed(solid, "backdrop-filter")).toBe("none");
+
+    const glass = mounted(<Notice backdrop>x</Notice>, { theme: { material: "regular" } });
+    expect(glass.getAttribute("data-material")).toBe("regular");
+    expect(computed(glass, "backdrop-filter")).toContain("blur");
+  });
+
+  it("a glass strip scopes its subtree — the action does not paint a second veil", () => {
+    // The notice sits in a REGION that says content passes behind it, which is what makes this
+    // law able to fail: the action reads that ambient region by itself, so without the strip's
+    // own scope it resolves the theme's glass and paints a second veil over the first. The
+    // first fixture had no region — the action resolved solid either way and deleting the
+    // scope changed nothing, which is a law about a case the mechanism was not built for.
+    const el = mounted(
+      <Box backdrop>
+        <Notice backdrop action={<Button>Retry</Button>}>
+          x
+        </Notice>
+      </Box>,
+      { theme: { material: "regular" }, select: ".kui-notice" },
+    );
+    const action = within(el, "button");
+    expect(computed(el, "backdrop-filter")).toContain("blur");
+    expect(computed(action, "backdrop-filter")).toBe("none");
+  });
+});
+
+describe("the message is the system's type, so the index reaches it (§15, §29)", () => {
+  it("the words grow with the box", () => {
+    const small = mounted(<Notice size="1">x</Notice>, { theme: {} });
+    const large = mounted(<Notice size="4">x</Notice>, { theme: {} });
+    const step = (el: HTMLElement) => computed(within(el, ".kui-notice-body"), "font-size");
+    expect(parseFloat(step(large))).toBeGreaterThan(parseFloat(step(small)));
+  });
+
+  it("it is the ALERT's step at the same index — the two may not drift", () => {
+    const notice = mounted(<Notice size="3">x</Notice>, { theme: {} });
+    mounted(
+      <Dialog size="3" defaultOpen>
+        <DialogContent>
+          <DialogTitle>Title</DialogTitle>
+          <DialogDescription>Body</DialogDescription>
+        </DialogContent>
+      </Dialog>,
+      { theme: {} },
+    );
+    // Found by its words, not by a panel class: the panel is portalled and its class list is
+    // the surface layer's, so a selector guess here would be a law about a spelling.
+    const description = [...document.querySelectorAll<HTMLElement>("p")].find(
+      (el) => el.textContent === "Body",
+    ) ?? null;
+    expect(description).not.toBeNull();
+    expect(computed(within(notice, ".kui-notice-body"), "font-size")).toBe(
+      computed(description!, "font-size"),
+    );
+  });
+
+  it("a caller who states a step on their own Text still wins", () => {
+    const el = mounted(
+      <Notice size="4">
+        <Text size="1">Small on purpose</Text>
+      </Notice>,
+      { theme: {} },
+    );
+    const own = within(el, ".kui-text[data-size='1']");
+    expect(parseFloat(computed(own, "font-size"))).toBeLessThan(
+      parseFloat(computed(within(el, ".kui-notice-body"), "font-size")),
+    );
   });
 });

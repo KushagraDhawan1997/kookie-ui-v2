@@ -571,10 +571,7 @@ function NoticeSection() {
             action={<Button size="2">Get more usage</Button>}
             onDismiss={() => {}}
           >
-            <Flex gap="3" align="baseline" wrap="wrap">
-              <Text size="2">Approaching weekly usage limit</Text>
-              <Text size="2" emphasis="medium">Resets at 1:30 PM</Text>
-            </Flex>
+            Approaching weekly usage limit — resets at 1:30 PM
           </Notice>
           <Card size="3">
             <Stack gap="3">

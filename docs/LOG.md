@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 Notice, measured rather than re-read — three wrong things, and the same fixture mistake twice
+
+**What.** Asked what drives a Notice's visuals, I probed a mounted one instead of re-reading my own source, and it answered three questions I had never asked. All three fixed the same day on Kushagra's calls: the shadow goes, the material arrives, the words scale with the box. The corner stays ("radius is fine").
+
+**It cast a Card's shadow, byte for byte** — measured `0 1px 2px` plus `0 24px 64px -12px`, identical in an elevated theme. §5's plane criterion has already answered this twice: elevation dresses boxes that establish a plane of THEIR OWN, which is why the field family left the elevated world twice and why the ground component stands its cast down with a note reading "a hole in a plane throws no shadow". A notice is a marker ON a plane. It shipped casting for the dullest reason available — it wears `.kui-surface` and nobody asked the question. **The pool survives on purpose**: on glass the pool is the seat-line the material HAS, and the cast is the lift the app SAYS, which is §10's own split between what a material is and what depth means.
+
+**The material never reached it.** A notice under a glass theme computed `backdrop-filter: none` and stamped nothing, while a `<Card backdrop>` in the same theme drew the lens. The default was correct — selectivity means an in-flow strip with nothing passing behind it resolves solid and pays nothing — but there was no way to say otherwise, so a notice pinned over a scrolling region could never express what the app is built of, while every other pane-shaped component can. Card's wiring verbatim now, GlassScope included.
+
+**The words did not scale, and the inconsistency was mine rather than the rule's.** Measured: 54px of strip at size 1 and 114px at size 4, with 16px text at both — while the dismiss button the COMPONENT places went 28px to 48px. Half the contents scaled and half did not, which is not a rule, it is an oversight wearing one. The rule I was applying is real (a surface never sizes the type inside it) and it already carries the exception: type the SYSTEM OWNS. Kushagra's framing settles which side this falls on — *"Notice is like alert too, the anatomy stays the same, so text scaling with it is the right thing"*. A notice is one sentence in a closed arrangement, not a composition somebody built.
+
+**So the step map promoted on its third consumer.** `OVERLAY_TITLE_STEP`/`OVERLAY_BODY_STEP` sat in `system/floating.tsx` while both consumers were floating panels. A notice floats over nothing, so importing a step from the floating layer would have misnamed where the rule comes from — and `OVERLAY_` stopped being true the moment a third consumer was not one. They are `OWNED_TITLE_STEP`/`OWNED_BODY_STEP` in `system/type-steps.ts` now: the rule is ownership, so the names say ownership. Sharing them is also the anti-drift claim, and it is law-read — a notice's message and a dialog's description at the same index resolve one font-size.
+
+**The corner was measured and deliberately left.** At the default radius level it runs 38.7px at size 1 against a 54px strip and 77.4px at size 4 against 114px, so it exceeds half the height everywhere and the browser clamps it into a lozenge. That is the surface band doing exactly what it is designed to do — a card is tall enough never to show it. Whether a short wide strip deserves its own band is a taste question about a shared band, and it is not this component's to answer alone.
+
+**And the finding that matters more than any of them: the SAME fixture mistake, twice, in one component, on one day.** The first was the long-word law, whose hyphenated string browsers break on their own (recorded in yesterday's entry). The second is worse, because I wrote it after writing that sentence: "a glass strip scopes its subtree" mounted a notice with an action button and asserted the button paints no veil — and that passes with the scope DELETED, because a button with no `backdrop` of its own and no region around it resolves solid either way. The fixture never created the condition the mechanism exists to handle. Inside a `<Box backdrop>` region the same sabotage paints `url(#kui-lens-2) blur(2px) saturate(…)` on the button.
+
+**The rule this earns, stated so it becomes routine rather than remembered:** before trusting a law, ask what its fixture would look like if the mechanism under test were absent. If the answer is "the same", the fixture is the defect, not the assertion. That is the degenerate-fixture lesson from 2026-08-20 restated as a QUESTION rather than a principle, because the principle did not stop its own author twice in two days.
+
+**One law caught me on the way and was right to**: the axis-list walk failed on `["elevated", "flat"] as const` in the new notice laws — fourteen private copies of a depth list were deleted for exactly this reason on 2026-08-16, and the walk finds the literal wherever it hides.
+
+---
+
 ## 2026-08-21 Notice, and the sabotage that survived
 
 **What.** `Notice` (§29), the message family's one condition component, for **+81 bytes gzipped**. `--kui-sf-icon` joined the surface size join with it.

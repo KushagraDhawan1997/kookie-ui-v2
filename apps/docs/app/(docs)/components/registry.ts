@@ -572,7 +572,8 @@ export const ENTRIES: Entry[] = [
     blurb:
       "A condition that is true right now, stated on the region it is about. The person did not cause it, so it is not a receipt; it exists while the condition holds, so it is not transient. It takes layout space and never floats, because a strip that hovered would cover the content somebody is being told about. It carries at most one action that RESOLVES the condition and a dismissal that only ACKNOWLEDGES it — two different verbs — and the memory of a dismissal belongs to the app, because a component cannot outlive the page it promised to remember. It announces politely. The whole message family was carved before any of it was built (§29): four industry names overlap on one appearance, and two questions place every member — what is the message about, and what made it appear.",
     axes: [
-      { name: "size", values: "1 | 2 | 3 | 4", note: "prices the BOX — padding, corner and the symbol's grid — off the ordinary surface size join, so a notice and a card at one index share a padding and a corner. It does not price the words: a notice holds the caller's text and text states its own step. Rests at 2 rather than a card's 3, because a notice is a strip across the top of something rather than an object in its own right" },
+      { name: "size", values: "1 | 2 | 3 | 4", note: "prices the whole strip — padding, corner, the symbol's grid, the dismiss button AND the message. A surface normally never sizes the type inside it; the exception is type the system OWNS, and a notice is an alert that does not interrupt — one sentence in a closed arrangement, not a composition you built. It uses the alert's own step map so the two cannot drift, and a caller who states a step on their own Text still wins. Rests at 2 rather than a card's 3, because a notice is a strip across the top of something rather than an object in its own right" },
+      { name: "backdrop", values: "boolean", note: "a placement fact, not a material choice: it says content passes behind this strip, so the theme's material may express. Pin a notice over a scrolling region and it can be glass; leave it in flow and it resolves solid and pays nothing. A glass strip scopes its subtree, so its action button never paints a second veil" },
       { name: "tone", values: "the ten families", note: "the CATEGORY, never the volume. It rests neutral, and the specimen this was designed from is grey while being a warning. The tone-forward rung tints the fill AND re-scopes the foreground context, so the words follow the box without the call site colouring anything" },
     ],
     refusals: [
@@ -595,6 +596,10 @@ export const ENTRIES: Entry[] = [
       {
         name: "remembering its own dismissal",
         why: "onDismiss is a callback and there is no internal state. A notice that dismissed itself would forget on reload, and a ✕ the app cannot honour is a ✕ that lied. Passing nothing renders no dismissal at all, which is right for a condition nobody may wave away.",
+      },
+      {
+        name: "a shadow",
+        why: "A notice does not cast, in either world. Elevation dresses boxes that establish a plane of their own — it is why input fields do not cast and why a ground turns its shadow off with a note reading 'a hole in a plane throws no shadow'. A notice is a marker ON a plane: a strip inside a card, or across a page. On glass it keeps its pool, because that is the seat-line the material has rather than the lift the app says.",
       },
       {
         name: "an icon set",

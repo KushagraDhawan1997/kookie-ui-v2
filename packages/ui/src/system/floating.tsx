@@ -991,21 +991,10 @@ export function useNameWarning(what: string): (node: HTMLDivElement | null) => v
   );
 }
 
-/**
- * The house composition steps for a panel's OWN title and description (§15, §25).
- *
- * A surface never sizes the type inside it — except where the system owns that type, which is
- * exactly these two parts: they exist because the a11y wiring forces them, so they are the
- * system's content and the index may reach them. Everything else inside a dialog is the call
- * site's and is untouched.
- *
- * Shared because the two members must not drift: an alert and a dialog at the same index are
- * the same typography, which is what makes §15's confirm card and a size-3 dialog one thing.
- * Size 3 is the anchor and holds the values both components shipped with (title 6, body 3),
- * so adopting these moved every index EXCEPT the one anybody had judged.
- */
-export const OVERLAY_TITLE_STEP = { "1": "4", "2": "5", "3": "6", "4": "7" } as const;
-export const OVERLAY_BODY_STEP = { "1": "2", "2": "2", "3": "3", "4": "3" } as const;
+/* The panel type steps MOVED to `system/type-steps.ts` on their third consumer (2026-08-21).
+   Notice owns its message the way an alert owns its description, and a notice floats over
+   nothing — so a step imported from the floating layer would misname where the rule comes
+   from. The rule is OWNERSHIP, and the names say so now. */
 
 /**
  * The unanchored panel's body (§24) — the same runner without an anchor to fly from.

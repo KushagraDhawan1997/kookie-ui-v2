@@ -1361,6 +1361,12 @@ export const API: Record<string, ApiEntry> = {
         "doc": "ONE action, and it is the one that RESOLVES the condition — \"Get more usage\", not \"OK\". A `<Button/>` the call site brings, so the system never invents a label."
       },
       {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "§10 — a placement fact (2026-08-17): content passes behind this strip, so the theme's material may express. A notice pinned over a scrolling region is exactly the case; an in-flow notice states nothing, resolves solid and pays nothing. Unset, it reads the ambient `<Box backdrop>` region."
+      },
+      {
         "name": "children",
         "type": "React.ReactNode",
         "optional": false,

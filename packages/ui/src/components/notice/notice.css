@@ -10,6 +10,18 @@
  * that hovered would cover the content somebody is being told about.
  */
 .kui-notice {
+  /* A NOTICE DOES NOT CAST (§5, §10, Kushagra 2026-08-21). The plane criterion: elevation
+     dresses boxes that establish a plane of their own, which is why fields left the elevated
+     world twice and why a ground stands its cast down with "a hole in a plane throws no
+     shadow". A notice is a marker ON a plane — a strip inside a card or across a page — and
+     it shipped casting a Card's shadow byte-for-byte because it wears `.kui-surface` and
+     nobody asked the question. Stated on the pane's own non-inheriting name, which the
+     surface layer consults before the world's; `0 0 0 0 transparent` and never `none`,
+     because `none` is illegal inside a shadow list.
+
+     The POOL deliberately survives: on glass it is the seat-line the material HAS, not lift
+     the app SAYS — §10's own split between what a material is and what depth means. */
+  --kui-sf-cast: 0 0 0 0 transparent;
   display: flex;
   align-items: center;
   /* v0, for the eye pass. Wide enough that the resolving action does not read as part of the

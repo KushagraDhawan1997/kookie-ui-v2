@@ -33,14 +33,13 @@ import { mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.t
 import {
   FloatingDirectionContext,
   OverlayBody,
-  OVERLAY_BODY_STEP,
-  OVERLAY_TITLE_STEP,
   overlayOpenChange,
   useNameWarning,
   type OverlayOpenChangeDetails,
   PortalScope,
   useAmbientDirection,
 } from "../../system/floating.tsx";
+import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { Button } from "../button/button.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
@@ -275,7 +274,7 @@ export type AlertDialogTitleProps = Omit<
 export function AlertDialogTitle({ children, ...props }: AlertDialogTitleProps) {
   const size = React.use(AlertSizeContext);
   return (
-    <BaseAlertDialog.Title render={<Heading size={OVERLAY_TITLE_STEP[size]} />} {...props}>
+    <BaseAlertDialog.Title render={<Heading size={OWNED_TITLE_STEP[size]} />} {...props}>
       {children}
     </BaseAlertDialog.Title>
   );
@@ -298,7 +297,7 @@ export type AlertDialogDescriptionProps = Omit<
 export function AlertDialogDescription({ children, ...props }: AlertDialogDescriptionProps) {
   const size = React.use(AlertSizeContext);
   return (
-    <BaseAlertDialog.Description render={<Text size={OVERLAY_BODY_STEP[size]} emphasis="medium" render={<p />} />} {...props}>
+    <BaseAlertDialog.Description render={<Text size={OWNED_BODY_STEP[size]} emphasis="medium" render={<p />} />} {...props}>
       {children}
     </BaseAlertDialog.Description>
   );

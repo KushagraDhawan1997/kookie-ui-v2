@@ -31,14 +31,13 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import {
   FloatingDirectionContext,
-  OVERLAY_BODY_STEP,
-  OVERLAY_TITLE_STEP,
   PortalScope,
   overlayOpenChange,
   useAmbientDirection,
   useNameWarning,
   type OverlayOpenChangeDetails,
 } from "../../system/floating.tsx";
+import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import type { Size } from "../../system/axes.ts";
@@ -371,7 +370,7 @@ export type DialogTitleProps = Omit<
 export function DialogTitle({ children, ...props }: DialogTitleProps) {
   const size = React.use(DialogSizeContext);
   return (
-    <BaseDialog.Title render={<Heading size={OVERLAY_TITLE_STEP[size]} />} {...props}>
+    <BaseDialog.Title render={<Heading size={OWNED_TITLE_STEP[size]} />} {...props}>
       {children}
     </BaseDialog.Title>
   );
@@ -402,7 +401,7 @@ export function DialogDescription({ children, ...props }: DialogDescriptionProps
   const size = React.use(DialogSizeContext);
   return (
     <BaseDialog.Description
-      render={<Text size={OVERLAY_BODY_STEP[size]} emphasis="medium" render={<p />} />}
+      render={<Text size={OWNED_BODY_STEP[size]} emphasis="medium" render={<p />} />}
       {...props}
     >
       {children}
