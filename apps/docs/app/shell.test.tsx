@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import RootLayout from "./layout";
-import SiteLayout from "./(site)/layout";
+import DocsLayout from "./(docs)/layout";
 import NotFound from "./not-found";
 import { appearanceScript } from "./appearance-script";
 
@@ -59,8 +59,8 @@ describe("a page-shaped route gets the page chrome — including the one Next re
     inset: /class="[^"]*kui-box[^"]*"[^>]*style="[^"]*--kui-p/.test(out) || out.includes("--kui-p"),
   });
 
-  it("the (site) group wears it", () => {
-    const chrome = wearsChrome(html(SiteLayout({ children: "page" })));
+  it("the (docs) group wears it", () => {
+    const chrome = wearsChrome(html(DocsLayout({ children: "page" })));
     expect(chrome).toEqual({ header: true, main: true, inset: true });
   });
 
@@ -72,7 +72,7 @@ describe("a page-shaped route gets the page chrome — including the one Next re
     expect(chrome).toEqual({ header: true, main: true, inset: true });
   });
 
-  it("every page.tsx outside (site) is a deliberate bare-viewport route", () => {
+  it("every page.tsx outside (docs) is a deliberate bare-viewport route", () => {
     // The structural half, because the two laws above can only check the routes they import.
     // A new page added outside the group silently opts out of the chrome, which is a decision
     // (/preview owns its viewport on purpose) — so it is allowed, and it has to be listed.

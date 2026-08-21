@@ -1,0 +1,61 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { Card, Stack } from "@kookie-ui/react";
+
+import { CodeBlock } from "./code-block";
+import { EXAMPLES } from "../../examples";
+
+/**
+ * A live specimen and its source, from ONE file.
+ *
+ * The component is imported and rendered; the same file is read off disk and shown. There is
+ * no second copy of the code and therefore nothing to keep in step — the oldest failure this
+ * repo has, arriving in the one place a docs site is guaranteed to meet it.
+ *
+ * A NOTE ON WHAT THIS IS NOT: the builder's export path produces JSX from a document, held by
+ * a round-trip law, and it was the tempting mechanism here. It cannot be the only one. A
+ * builder document has no handlers, no controlled state and no imports of its own, so a docs
+ * system built on it could never show a form that submits — and refusing to show people how
+ * to handle a submit is not a refusal this system has any argument for. Files are the base
+ * mechanism; the builder is the upgrade where the grammar happens to fit.
+ */
+
+/** Scoped to a subfolder deliberately: Turbopack traces the WHOLE project into the server
+    bundle when it cannot statically bound a filesystem read (the same constraint `toc.ts`
+    documents). */
+const EXAMPLE_ROOT = path.join(process.cwd(), "examples");
+
+export const readExampleSource = (name: string): string =>
+  readFileSync(path.join(EXAMPLE_ROOT, `${name}.tsx`), "utf8");
+
+export type ExampleProps = {
+  /** The example's file name, which is also the component's slug — one convention rather than
+      a mapping field, so there is no third place for the pairing to go wrong. */
+  name: string;
+  /** Hide the source. For a page that has already shown it and wants the specimen again. */
+  quiet?: boolean;
+};
+
+export function Example({ name, quiet }: ExampleProps) {
+  const Component = EXAMPLES[name];
+  if (!Component) {
+    // Loud rather than empty. A silently missing specimen is the failure mode a coverage law
+    // exists to prevent, and this is its backstop for the moment between writing a page and
+    // writing the file.
+    throw new Error(`No example named "${name}". Add examples/${name}.tsx and register it.`);
+  }
+  return (
+    <Stack gap="3">
+      {/* The specimen sits on a CARD — paper above the page, which is where most components
+          actually live. A Surface would be the other reading (a ground holding objects) and
+          is wrong here for one reason: the code block below is already a well, and two wells
+          stacked read as one region rather than as a thing and its source. */}
+      <Card size="4">
+        <Component />
+      </Card>
+      {quiet ? null : (
+        <CodeBlock code={readExampleSource(name)} lang="tsx" title={`examples/${name}.tsx`} />
+      )}
+    </Stack>
+  );
+}

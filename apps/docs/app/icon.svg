@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="KookieUI">
+  <!--
+    The site's mark. Next serves this as the favicon by filename convention.
+
+    THE ONE RAW COLOUR IN THIS APP, and it has to be: a favicon is painted by browser chrome,
+    outside every Theme, so it can resolve no custom property. #0094fc is `--accent-solid`'s
+    generated value in light — copied deliberately rather than picked, so re-judging the accent
+    means changing this line too. Everything inside the page reads the token.
+
+    The corner is 8 of 32 — a quarter, which is the surface band's own proportion at the sizes
+    a favicon is actually rendered at.
+  -->
+  <rect width="32" height="32" rx="8" fill="#0094fc" />
+  <path
+    d="M11 8v16M11 16.5L20 8M14 14.5L21 24"
+    stroke="#ffffff"
+    stroke-width="2.6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>

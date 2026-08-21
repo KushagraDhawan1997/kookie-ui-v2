@@ -1,0 +1,166 @@
+`size` is an index into a designed set, not a length. The same numeral names a different
+question on each family. A Button's size 3 is a box. A Text's size 3 is a step on the reading
+ramp.
+
+## An index, not a measurement
+
+`size="2"` means the second step. It does not mean 32 pixels. 32 pixels is what that step
+resolves to today, at the default density, with a fine pointer. You re-pick the value in one
+layer, not at a call site.
+
+The union is closed. A control takes `"1" | "2" | "3" | "4"`. The type ramp takes `"1"`
+through `"9"`. There is no `size="2.5"` and no raw length. A scale with an escape stops being
+a scale. This is a judgment.
+
+One `Size` type serves three ladders. Button and the fields read the control height index.
+Card and Surface read the padding and corner index. Checkbox reads the mark index. The three
+ladders share a numeral, not a scale. Pick each family against its own question.
+
+## One index joins a designed set
+
+Set `size` once. The component reads a set of values the system designed together:
+
+- the height, from `--control-height-N`
+- the inline padding, from `--control-px-N`
+- the corner, from `--radius-control-N`
+- the icon box, from `--icon-size-N`
+- the icon-to-label gap, from `--control-gap-N`
+- the type step of the label
+
+No value in that set is an anchor times a factor. Each density level places its own four
+heights, and each pointer world places four more. Correction has to stay local. Under a
+multiplier you cannot say "size 2 is 33 pixels", because a factor moves all four heights
+together.
+
+```css
+/* default density, fine pointer: one cell of one set */
+--control-height-2: calc(32px * var(--scale));
+--control-px-2: calc(10px * var(--scale));
+--icon-size-2: calc(16px * var(--scale));
+
+/* [data-pointer="coarse"] places its own values. It does not scale these. */
+--control-height-2: calc(44px * var(--scale));
+--control-px-2: calc(13px * var(--scale));
+--icon-size-2: calc(20px * var(--scale));
+```
+
+A fixed-height control states `min-height`, never `height`. Text at 200% and a label that
+wraps then grow the box instead of overflowing it. WCAG 2.2 Success Criterion 1.4.4 requires
+that resize, which is a measured limit.
+
+## The mark family keeps the index
+
+A checkbox, a radio, a switch track and a slider thumb sit beside a label. They do not
+contain one. The height ladder is the geometry of a container, so these four leave it. They
+keep the size index and read one shared ladder, `--mark-1` through `--mark-5`. A switch track
+reads one step up. Four ladders would drift apart, and a checkbox beside a switch must read
+as the same size of thing. This is a judgment.
+
+The mark ladder is the line box. `--mark-N` resolves to `--line-height-N`, so a mark occupies
+exactly one line of the label beside it. It aligns with no offset, and it grows on a phone,
+because the handheld type band raises the type it follows.
+
+### Marks in a stack need 12 pixels
+
+A mark's target is larger than its paint. The extent is
+`min(--control-height-N, --touch-target-min)`, the box a Button of the same index already
+occupies.
+
+Put at least 12 real pixels between stacked marks. Below 12 pixels
+the later mark's target covers the earlier mark's paint and wins the hit test. A click on one
+checkbox then toggles the next. `gap="4"` resolves to 12 pixels at the default density.
+`gap="5"` holds 12 or more at every density, because compact re-picks step 4 down to 8 pixels.
+
+```tsx
+<Stack gap="5">
+  <Flex render={<label />} align="center" gap="3">
+    <Checkbox size="2" />
+    <Text size="3">Notify me when it ships</Text>
+  </Flex>
+  <Flex render={<label />} align="center" gap="3">
+    <Checkbox size="2" />
+    <Text size="3">Send the weekly digest</Text>
+  </Flex>
+</Stack>
+```
+
+## The pointer axis
+
+The system renders two complete geometries, `fine` and `coarse`, the way it renders two
+colour appearances. The two worlds share the components, the size index and the laws, and
+differ only in the placed values. The signal is what touches the screen, never the width of the
+window.
+
+Under `coarse` seven families re-declare as designed sets. They are control heights, inline
+padding, the icon box, the icon-to-label gap, the control corner, the mark ladder and
+reading type.
+The space palette and the layout layer above it do not move. A phone needs more content per
+inch, not less.
+
+### 24 pixels is the floor and 44 is the default
+
+WCAG 2.2 Success Criterion 2.5.8, Target Size (Minimum), sets 24 by 24 CSS pixels at Level
+AA. No designed cell in either geometry, at any density, falls below it. The smallest control
+is a fine pointer at compact density at size 1, and it measures exactly 24. This is a
+measured limit.
+
+44 pixels is the default, not the floor. Success Criterion 2.5.5, Target Size (Enhanced),
+sets 44 at Level AAA, and Apple uses the same number. A fingerpad measures near 10
+millimetres, and Fitts's law makes target width one half of what movement time depends on.
+The default density at size 2 under a coarse pointer renders exactly 44. Two deliberate acts
+take a control below it: size 1, or a denser theme.
+
+Pin the axis on the Theme. The values are `fine`, `coarse` and `auto`. `auto` follows the
+media query. Pinning `coarse` forces the whole coarse world, so the geometry and the handheld
+type move together. There is no `device` prop. `coarse` means handheld.
+
+```tsx
+<Theme pointer="coarse">
+  <Button size="2">Continue</Button>
+</Theme>
+```
+
+## A hosted control derives its size
+
+A control inside another control does not read a size from the call site. The container
+computes it from one designed inset that drives all four sides. A call site
+cannot infer the mapping. Adjacent heights are four to eight pixels apart, so no index seats
+a hosted control with visible air.
+
+The hosted control's hit area matches the container's box. It does not grow to 44. A
+44-pixel target inside a 36-pixel field out-targets the thing that holds it, and SC 2.5.8
+counts that against you. This inverts the mark family's rule. A hosted target
+shrinks to its container. A mark's target grows to the container it does not have.
+
+```tsx
+<TextField
+  size="3"
+  type="password"
+  trailing={<Button emphasis="quiet">Show</Button>}
+/>
+```
+
+## A ladder can refuse
+
+Ask the existing ladder whether it fits before you give a component a `size`. It can refuse. The
+refusal is then the design.
+
+Progress has no size axis. The nearest ladder is the slider's track. The system designs that
+track as about one quarter of the fine mark, so it holds a constant fraction of the thumb it
+serves. A bar has no thumb. A bar on that ladder would size against a box it does not have. Progress takes Separator's shape instead: one designed thickness, the extent of its
+container, and no index. Adding `size` later is additive. Removing it is a breaking change.
+
+Code refuses from the other side. Its `size` is optional with no default. Unset, Code
+takes the type of the line it sits in. An inline atom has no size of its own.
+
+```tsx
+{/* A bar has no size. */}
+<Box width="240px">
+  <Progress value={62} aria-label="Uploading" />
+</Box>
+
+{/* Code takes the line it sits in. */}
+<Text size="2">
+  Run <Code>pnpm build</Code> before publishing.
+</Text>
+```

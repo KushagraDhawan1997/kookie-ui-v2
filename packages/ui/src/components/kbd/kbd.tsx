@@ -13,6 +13,10 @@ export type KbdProps = Omit<
   /** §15 — a step on the shared ramp. Optional with no default, for Code's reason: a key cap
       quoted inside a sentence takes that sentence's step. */
   size?: TypeSize;
+  /** §15 — token names, never numbers, topping out at semibold (`bold` is refused
+      system-wide). Unset with no default, as `size` is: a cap quoted inside a sentence takes
+      that sentence's face. The box, the edge and the cast are what say "key" — the weight was
+      never carrying it. */
   weight?: Weight;
   /** §9, §15 — the foreground roles, as for all type. */
   emphasis?: Emphasis;

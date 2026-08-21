@@ -1,0 +1,130 @@
+A form is a set of labelled values and one action that commits them. This system refuses three
+decisions inside that set. Fields do not rank, marks carry no label, and validity is not a prop.
+You write the words, the order and the grouping.
+
+## The label is a sibling
+
+A label is prose. `Text` renders prose, and `Text` already resolves every ink role, step and
+weight that prose needs. No control in this package takes a `label` prop. A `label` prop would
+put a second type system inside a checkbox.
+
+```tsx
+<Stack gap="3">
+  <Text size="2" weight="medium" render={<label htmlFor="email" />}>
+    Work email
+  </Text>
+  <TextField id="email" type="email" />
+</Stack>
+```
+
+State the association in the markup. Point `htmlFor` at an `id`, or wrap the control in a
+`<label>`. Do not rely on proximity.
+
+A `placeholder` is not a label. It disappears when the person types. It renders in the muted ink
+role. A placeholder states real information. It does not state the name of the field.
+
+A mark sits beside its label instead of containing it. The row sets the distance between them.
+
+```tsx
+<Flex align="center" gap="2">
+  <Checkbox id="digest" />
+  <Text render={<label htmlFor="digest" />}>Send me the weekly digest</Text>
+</Flex>
+```
+
+## Fields do not rank
+
+`TextField` and `TextArea` take no `emphasis` and no `tone`. The kind of thing decides this, and
+the absence is not an oversight. Loudness ranks one action against the actions beside it. Every
+field is equally there to be filled in, so a form where one field is louder than the next states
+nothing.
+
+State importance in the label, in the order of the form, and in what you leave out. State a
+requirement with `required` on the control. Repeat it in the label in a long form. Only the
+action row at the end ranks.
+
+## One action commits the form
+
+Use one loud button on each screen. Give it to the action the form is for. Set every other
+button to medium or quiet.
+
+```tsx
+<Flex justify="flex-end" gap="3">
+  <Button>Cancel</Button>
+  <Button emphasis="loud">Create project</Button>
+</Flex>
+```
+
+Put the actions at the end of the form. Align them to the end edge. A single action with nothing
+beside it may take the full width instead. That is a balance decision, and it is a judgment.
+
+Write what the button does. Write "Create project", not "Submit". Keep the same name through the
+whole flow.
+
+## Group with space
+
+Put related rows closer together than unrelated rows. The house intervals are gap 3 from a label
+to its field, gap 5 between groups, and gap 6 between sections.
+
+Set the gap inside a group at least two steps below the gap around the group. A form where every
+gap is the same number reads as one undifferentiated column.
+
+Do not add a `Separator` or a `Card` to do work that the space already does. Enclosure and space
+both group, and using both states the grouping twice. Add a rule only where space cannot group.
+A long settings list is the case: the groups already sit at the section interval and something
+still has to divide them.
+
+## Validity is a state
+
+There is no `invalid` prop, because nothing chooses to look invalid. The system reads
+`aria-invalid`. It also reads Base UI's `data-invalid` when the control sits inside a
+`Field.Root`.
+
+```tsx
+<TextField
+  id="email"
+  type="email"
+  aria-invalid={emailError ? true : undefined}
+/>
+```
+
+A checked mark is a resting appearance. An invalid mark is a state. The state wins, so a checked
+`Checkbox` that is also invalid looks invalid. The stylesheet states this by specificity, not by
+which file loads last. The disabled state outranks both.
+
+The border and the ring are the system's half of an error. The message is yours. Colour alone is
+not sufficient signalling (WCAG 1.4.1), so a red field with no words beside it is a composition
+defect.
+
+## Use TextArea for a paragraph
+
+Use `TextArea` when the value is prose that the person reads back. A description, a note and an
+address are the cases. Its box carries the same inset on all four sides. `rows` states the
+starting height in the unit of the content.
+
+There is no `cols`. Width belongs to the layout that owns the row. The `cols` attribute counts
+characters, it predates CSS, and it collides with CSS.
+
+A composer is not a large `TextArea`. A box that needs a toolbar, attachments, a send button and
+a growth rule is its own component. Nobody has designed that anatomy. Building it out of a
+`TextArea` adds parts to a field.
+
+## Helper text must change a decision
+
+Write helper text that carries what the label cannot. A consequence, a scope, a constraint and
+the reason a control is disabled are the cases. Delete a line that repeats the control the reader
+can already read.
+
+```tsx
+// Filler. The label above already said this.
+<Text size="2" emphasis="medium">Enter your work email address.</Text>
+
+// Decision-relevant. A scope the label cannot carry.
+<Text size="2" emphasis="medium">Receipts and billing notices go here.</Text>
+```
+
+Set helper text at size 2 in the muted ink role, the same step as the label. A helper line two
+steps under the controls beside it reads as a mistake.
+
+Do not use size 1 on a composed screen. The muted ink role and the faint ink role state "this
+matters less" at a readable size.

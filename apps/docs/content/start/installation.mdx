@@ -1,0 +1,157 @@
+KookieUI needs three things: the package, one stylesheet, and a `Theme` at the root of your
+tree. There is no configuration file and no plugin. The generator produces every value ahead
+of time and ships it as CSS custom properties.
+
+## The package is not on npm yet
+
+`@kookie-ui/react` is pre-release. You cannot install it from npm today. Build the workspace
+instead:
+
+```bash
+git clone https://github.com/KushagraDhawan1997/kookie-ui-v2
+cd kookie-ui-v2
+pnpm install
+pnpm run build
+```
+
+Then depend on it from an app in the same workspace. This site does the same:
+
+```json
+{
+  "dependencies": {
+    "@kookie-ui/react": "workspace:*"
+  }
+}
+```
+
+After the package publishes, the command becomes `pnpm add @kookie-ui/react`. Everything else
+on this page stays the same. The peer dependencies are React 19 and React DOM 19.
+
+## Import the stylesheet one time
+
+```tsx
+import "@kookie-ui/react/styles.css";
+```
+
+Import it once, at the root of your app. This file holds the complete system: the generated
+token layer, the shared control rules, and every component's rules. There is no per-component
+import.
+
+The stylesheet does not change with the set of components you import. A component you add
+tomorrow needs no new CSS. CI measures the gzipped size of this file on every commit and fails
+the build if it grows.
+
+## Wrap the app in a Theme
+
+```tsx
+import "@kookie-ui/react/styles.css";
+import { Theme } from "@kookie-ui/react";
+
+export default function App({ children }: { children: React.ReactNode }) {
+  return <Theme>{children}</Theme>;
+}
+```
+
+`Theme` sets the scope that every token resolves against. It writes seven app-level values
+onto one element: appearance, radius, density, depth, material, contrast and pointer.
+Everything inside reads those values through CSS inheritance. See
+[Theming](/start/theming) for what each value controls.
+
+## Paint the page
+
+The library does not paint a page background. A `Theme` that painted one would repaint the
+page at every nested appearance scope. Paint it in your own CSS:
+
+```css
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+```
+
+Use `--color-ground` instead of `--color-page` when the page holds cards. A ground is the
+surface that objects sit on.
+
+## Set dark mode before the first paint
+
+The server cannot resolve the appearance. The visitor's stored choice and the operating system
+preference are both client facts. A server that guesses produces one of two faults: a flash of
+the wrong theme, or a hydration mismatch.
+
+Run a script in `<head>` that writes the answer onto `<html>` before the first paint. Set the
+root `Theme` to `appearance="inherit"`, so it writes no appearance of its own. One element
+holds the mode.
+
+```html
+<script>
+  (function () {
+    var e = document.documentElement;
+    var read = function (k) {
+      try { return localStorage.getItem(k); } catch (err) { return null; }
+    };
+    var a = read("kui-appearance");
+    var dark = a === "light" ? false
+      : a === "dark" ? true
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    e.setAttribute("data-appearance", dark ? "dark" : "light");
+    var c = read("kui-contrast");
+    if (c === "high" || c === "normal") e.setAttribute("data-contrast", c);
+  })();
+</script>
+```
+
+```tsx
+<html lang="en" suppressHydrationWarning>
+  <head>{/* the script above */}</head>
+  <body>
+    <Theme appearance="inherit">{children}</Theme>
+  </body>
+</html>
+```
+
+Two details in that script are necessary. Both come from defects.
+
+**Guard the read, not the whole function.** Some browsers throw an error when a script reads
+`localStorage`. Safari does this when the user blocks all cookies. One `try` around the whole
+function also skips the two `setAttribute` calls, so a visitor with a dark operating system
+gets the light values. `matchMedia` needs no permission and always answers. Read with a guard,
+then write without one.
+
+**Write both attributes onto the same element.** The generated high-contrast rules require
+`data-appearance` and `data-contrast` on one element. `Theme` does this. When the script takes
+over the appearance, it must also take over the contrast.
+
+## Set the fonts
+
+The type layer reads three font family tokens. It ships no font files. Point the tokens at the
+fonts you serve:
+
+```css
+:root {
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-heading: var(--font-body);
+  --font-mono: "Berkeley Mono", ui-monospace, monospace;
+}
+```
+
+If you set nothing, the tokens fall back to the platform font stacks.
+
+## Test the result
+
+```tsx
+import { Button, Card, Stack, Text } from "@kookie-ui/react";
+
+export function Smoke() {
+  return (
+    <Card size="3">
+      <Stack gap="3">
+        <Text>This card has a corner, a fill and a border when the stylesheet loads.</Text>
+        <Button tone="accent" emphasis="loud">The only loud control on this screen</Button>
+      </Stack>
+    </Card>
+  );
+}
+```

@@ -479,6 +479,19 @@ type TogglePaneOwnProps = {
   /** Fired on user-driven changes only (trigger, Escape, scrim) — never at mount, never on
       a window-class crossing: auto's responsive resolution is CSS's, and CSS calls nobody. */
   onOpenChange?: (open: boolean) => void;
+  /**
+   * §27 — how this pane occupies the window while it is open. `ShellPresentation` says what
+   * the three values mean; what belongs here is when to reach for one.
+   *
+   * `auto` answers a question about the ROOM, and it answers it in CSS through §18's window
+   * class, so first paint is right with no script and no hydration to mismatch. Stating a
+   * value instead answers a question about the PRODUCT, and it does more than pin a posture:
+   * `overlay` also makes the pane rest CLOSED at every width, because an overlay is summoned
+   * rather than lived in, where `auto` lets a nav column rest open on a roomy window. So an
+   * explicit value is for a pane whose behaviour is a decision (a drawer that must never be
+   * ambient; an inspector that must never cover the work), and `auto` for every pane whose
+   * behaviour is a consequence of how much window there is.
+   */
   presentation?: ShellPresentation;
 };
 
@@ -949,6 +962,17 @@ export function ShellNavItem({
 export type ShellTriggerProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /** Which pane this button drives. */
   target: ShellPaneTarget;
+  /**
+   * What the press does to `target`. `toggle` is the disclosure button every shell has, and
+   * the default because it is the one a button that only drives a pane should be.
+   *
+   * The one-way values are for a press that ALREADY means something else and must not undo
+   * itself. A rail square that re-points the sidebar has to SHOW the sidebar, so it is
+   * `open`: as a toggle, pressing a second region would close the panel it had just filled,
+   * and picking a region the sidebar is not showing would do nothing visible at all. A
+   * dismiss button inside an overlaying pane is `close` for the mirror reason. Stating the
+   * direction is what keeps those presses from becoming controls that appear to do nothing.
+   */
   action?: "toggle" | "open" | "close";
   /** Usually a Kookie Button: `<ShellTrigger target="sidebar" render={<Button iconOnly …/>}>`. */
   render?: RenderElement;

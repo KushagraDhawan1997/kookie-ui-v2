@@ -1,0 +1,151 @@
+Colour states meaning. You name a tone, and the theme resolves that name into a value. It
+resolves against the current appearance, the current contrast setting, and the surface below.
+
+One generator produces every value from two numbers for each family. You write no hex value.
+You memorise no palette.
+
+## Name the tone, not the colour
+
+Name a tone at the call site.
+
+```tsx
+// Do not do this.
+<Text style={{ color: "#E5484D" }}>Payment failed</Text>
+
+// Do this.
+<Text tone="destructive">Payment failed</Text>
+```
+
+A hex value never changes. It does not follow the appearance into dark mode. It does not
+answer `contrast="high"`. It does not survive a rebrand. Under a translucent material it has
+no relationship to the fill it mixes into. A tone answers all four cases, because the tone
+states the intent and the theme produces the value.
+
+The package has no `color` prop and no `variant` prop. The escape is `style`, and a `style`
+attribute is easy to see in a review. If you write `style` more than rarely, a family is
+missing. Add the family in the configuration.
+
+## The ten families
+
+The generator builds every family on the same lightness ladder. Step 9 of red and step 9 of
+blue read as the same step.
+
+| tone | what it is for |
+|---|---|
+| `neutral` | Ink, hairlines, wells, and the resting state of anything with no family of its own. Most of an interface. |
+| `accent` | The brand. Any nested `Theme` rebinds it. Use it once on each screen at full strength. |
+| `blue` `green` `orange` `amber` | Colour as data: a chart series, a project label, a category badge. The colour is the information. |
+| `destructive` | The action that removes something, and the error state. |
+| `success` `warning` `info` | Status. The thing worked, needs attention, or gives context. |
+
+Use a semantic name when the thing has a meaning. Use a categorical name when the thing has
+only a category.
+
+### A semantic family is not an alias
+
+`success` and `green` render the same value today. They are still two generated families. A
+name states a meaning, and each meaning must stay correctable on its own. `success` can move
+toward teal without moving a colour-as-data name with it. `accent` and `blue` share one
+recipe for the same reason. A consumer who rebrands to green moves `accent` and leaves `blue`
+where it is.
+
+Do not write `tone="green"` when you mean success. The screen looks correct today. It becomes
+wrong the first time anyone re-judges either name.
+
+## Components read roles, not steps
+
+The twelve-step scale is public, and you may read a step from it. The components never do.
+Every component reads the role layer instead, and the role layer is what makes a tone swap
+cost nothing.
+
+```css
+--accent-soft / -soft-hover / -soft-active      /* tints */
+--accent-solid / -solid-hover / -solid-active   /* fills */
+--accent-border
+--accent-text                                   /* links and prose on a tint */
+--accent-label                                  /* UI labels */
+--accent-contrast                               /* the APCA-chosen text on a solid fill */
+--accent-ink / -ink-muted / -ink-faint          /* the ink ladder, below */
+--accent-a1 … --accent-a12                      /* alpha, composites over the surface seal */
+```
+
+Every family emits the same set. `--destructive-solid`, `--success-ink` and `--warning-border`
+all exist, so one role name works across all ten families.
+
+## The ink ladder
+
+Type resolves `emphasis` as three foreground roles. Loud reads `--color-text`. Medium reads
+`--color-text-muted`. Quiet reads `--color-text-faint`. A chosen tone moves the same three
+rungs onto that family's ink trio.
+
+```tsx
+<Stack gap="2">
+  <Text>Your plan renews on 3 September.</Text>
+  <Text emphasis="medium">Last charged 3 August</Text>
+  <Text emphasis="quiet">Not available on this plan</Text>
+</Stack>
+```
+
+The generator solves each rung against a contrast target. It solves one value for each family
+in each appearance.
+
+An earlier version picked the rungs by eye, and the two halves of the system picked them
+differently. Neutral took steps 12, 11 and 10, and every chroma family faded its one text
+colour by a fixed percentage. Nothing knew what contrast a rung reached. Measured, the light
+ladder ran 103, 78 and 65.
+
+- **The generator does not solve loud.** Loud stays the family's own designed text colour.
+  This is a judgment: the system uses this ink more than any other, so a target number must
+  not control it.
+- **Medium sits on the body floor.** The target is APCA Lc 60, which is a measured limit. Use
+  medium for real information the screen does not emphasise: a placeholder, a timestamp, a
+  group label.
+- **Quiet sits at APCA Lc 30.** This value is below the reading floor. Quiet is the rung for
+  something the system stands down, such as an option the reader cannot take. The system
+  states this exception in writing.
+
+Do not use the quiet rung for a full line of text. No test checks this rule. Text that matters
+less stays loud at a smaller step, or moves to medium.
+
+## The high contrast setting
+
+`contrast="high"` is a Theme-level accessibility preference. No component takes a
+`highContrast` prop. The setting also answers the platform signal, so a reader who asks the
+operating system for more contrast receives it.
+
+```tsx
+<Theme contrast="high">{children}</Theme>
+```
+
+A resting border and a resting fill are dress. The system judges them by eye and holds them to
+no contrast floor in standard mode. Under `contrast="high"` the APCA floors bind, and the laws
+anchor the solved edge targets there. This split is a judgment. Text, the focus ring and the
+invalid edge stay floor-checked in standard mode, because those three are signals. A signal
+that works only under an opt-in setting is not a signal.
+
+The setting gives each colour as much contrast as that colour permits. It is not a fixed
+increase. A bright hue's border band already sits at the limit the hue holds, and more
+contrast turns yellow to olive. A bright hue takes its gain in the text band instead. A band
+that does not move is the correct result for that band.
+
+## The three grounds
+
+Three named beds sit under everything, from the bottom up.
+
+```css
+--color-page      /* the app's background. No component reads it. */
+--color-ground    /* a bounded region that holds objects */
+--color-surface   /* the seal: an object's own opaque fill */
+```
+
+The library paints no page background. A `Theme` that painted one would repaint the page at
+every nested appearance scope. Paint the page yourself, and read `--color-page` for the value.
+
+`--color-ground` is the region an object sits on, such as a sidebar bed or a region that holds
+cards. `--color-surface` is the object itself, and it is opaque. The material axis is the only
+mechanism that makes a surface translucent.
+
+Expect one result in dark mode. A ground that sits directly on the page resolves to the page's
+own value, so only its hairline bounds it. The dark ramp builds up from white. A ground
+defined as a relative step would resolve lighter than the seal, and the cards inside it would
+then be darker than the region that holds them.

@@ -13,8 +13,31 @@ type ButtonBase = Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {
+  /**
+   * §4 — an index into the control family, never a measurement. One number joins five
+   * independent scales at once — the height ladder, the inline padding, the corner, the icon
+   * box and the label's type step — so every control at the same index stands level with
+   * every other, and re-pricing a step is one config line rather than a sweep of call sites.
+   * `2` is the baseline. Density and the pointer world re-price what the index resolves to;
+   * they never change what it means.
+   */
   size?: Size;
+  /**
+   * §7 — the semantic family, and a MEANING rather than a colour: `destructive` says what
+   * the press does and the theme decides the pigment, which is what lets a palette move
+   * without a single call site being edited. Rests `neutral` (§11), so nothing is accent by
+   * accident — an accent button is always something somebody asked for.
+   */
   tone?: Tone;
+  /**
+   * §9 — loudness, and the only ranking axis in the system: there is no `variant`, and the
+   * deletion is load-bearing — one axis cannot mean colour and prominence at once.
+   *
+   * Resolved for a CONTROL as fills (surfaces take the same ladder as dressing, type as
+   * foreground roles): loud is the tone's solid, medium its soft wash, quiet bare. So the
+   * rung ranks this button against the ones beside it, and a row of actions is read in the
+   * order the fills state. Rests `medium` (§11): a screen earns one loud button by asking.
+   */
   emphasis?: Emphasis;
   /** §10 — containment, orthogonal to loudness: `quiet + bordered` is the old outline. */
   bordered?: boolean;
@@ -43,6 +66,10 @@ type ButtonBase = Omit<
    *  material may express. Unset, reads the ambient `<Box backdrop>` region. Cannot choose
    *  a material — only state that there is something to bend. */
   backdrop?: boolean;
+  /** Render into an element you already have — a link, a `<summary>` (§5). The dress and the
+      behaviour stay this component's; only the tag changes. Base UI branches its whole a11y
+      contract on whether the result is a real `<button>`, which is inferred from what is
+      passed here — see `nativeButton` for the case that cannot be inspected. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

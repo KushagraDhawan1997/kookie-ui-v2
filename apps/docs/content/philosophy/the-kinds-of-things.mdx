@@ -1,0 +1,118 @@
+Most design systems list components. This system lists kinds of things. A component is one
+kind, packaged for reuse.
+
+The kind decides what you can set on a thing. You can tell a surface what material it is made
+of. You cannot tell a mark, because a mark has no material. You can rank a button against the
+button beside it. You cannot rank a row in a list, because every row in a list is equal.
+
+When a component does not have the prop you expect, check its kind first. The kind is usually
+the reason.
+
+## Grounds, surfaces and objects
+
+There are three levels. Most people confuse the last two.
+
+The **page** is the lowest level. The library paints no page background, because a `Theme`
+that painted one would repaint the page at every nested appearance scope. Use
+`--color-page` to paint it yourself.
+
+A **ground** is a region that holds other things. `Surface` is a ground. It has no fill of its
+own beyond a small step, and it casts no shadow, because it sits in the page rather than above
+it.
+
+A **surface** is an object with its own plane. `Card` is the example. It is opaque, so content
+behind it stops at its edge. In an elevated theme it casts a shadow.
+
+```tsx
+// A ground that holds two objects. Do not nest a Card in a Card for this.
+<Surface size="3">
+  <Stack gap="3">
+    <Card size="2">…</Card>
+    <Card size="2">…</Card>
+  </Stack>
+</Surface>
+```
+
+A `Card` is an object. A `Surface` is what objects sit on. Neither one is a quieter version of
+the other. When you nest a card in a card to make a quiet region, use a `Surface`.
+
+## Controls
+
+A control is a thing the user operates. Every control shares one state machine, one size
+ladder and one loudness axis. There are four kinds, and they differ in what the box contains.
+
+**Buttons** run an action. They rank. `emphasis` sets how loud this action is against the
+actions beside it. `tone` sets what the action means. Use one loud control on each screen.
+
+**Fields** hold a value the user types. They do not rank, so `TextField` and `TextArea` take
+no `emphasis` and no `tone`. A form where one field is louder than the next states nothing. A
+field is also a recess in the plane, not a plane above it, so no field casts a shadow.
+
+**Marks** are controls that are their own mark: `Checkbox`, `Radio`, the `Switch` track and
+the `Slider` thumb. A mark leaves the height ladder but keeps the size index, because a mark
+sits beside a label instead of containing one. Its ladder is the line box, so a mark is exactly
+as tall as one line of the text next to it.
+
+**Instruments** show or set a value along a length: `Slider` and `Progress`. An instrument has
+no resting surface and no border, so it takes no material and no dress.
+
+## A mark sits beside its label
+
+The mark and the label are two things in a row. The row sets the distance between them.
+
+```tsx
+<Flex align="center" gap="2">
+  <Checkbox id="terms" />
+  <Text render={<label htmlFor="terms" />}>Email me about releases</Text>
+</Flex>
+```
+
+No mark takes a `label` prop. A label is text, and `Text` already resolves every size, weight
+and ink role that text needs. A `label` prop would add a second, smaller type system inside a
+checkbox.
+
+## Rows
+
+A row is one interactive line in a list. A menu item is a row. A navigation item is a row.
+
+A row looks like a small button and is a different kind, for one reason: **rows are equal**.
+No option in a list is louder than the options beside it, so the row family takes no
+`emphasis` and sets its own quiet value.
+
+The current row is not a louder row. It uses a different colour, so the current row can still
+change under the pointer.
+
+A row also leaves the height ladder. A row's height is its text line plus a fixed inset, not a
+control height.
+
+## Type, layout and the frame
+
+**Type** components read the ink colour that their surface sets. `Text`, `Heading`,
+`Blockquote`, `Code` and `Kbd` have no fill of their own. On type, `emphasis` selects an ink
+role instead of a fill.
+
+**Layout** components paint nothing. `Box` is the engine. `Flex`, `Stack` and `Grid` are `Box`
+with a fixed `display` and a narrower prop list. They resolve tokens and tiers.
+
+**The frame** is `Shell`. `Shell` is a pattern, not a component. A pattern arranges things it
+does not own. A component contains things it owns. When a child reaches up to configure its
+parent, you are looking at a pattern in the wrong shape.
+
+## Two components that look the same
+
+Several pairs render almost the same and are different kinds. Do not compare their appearance.
+Ask whether you can have one without the other.
+
+- **Tabs or a segmented control.** A tab bar changes what is below it. A segmented control sets
+  a value in place. You can change a view without setting a value. You can set a value without
+  changing a view. They are two operations, so the segmented control is a radio group and the
+  tab bar is not.
+- **Dialog or alert dialog.** A dialog holds work you asked for. An alert stops you and asks
+  one question. The alert has fixed content, and the system lays that content out.
+- **Menu or select.** A menu picks an action. A select picks a value and submits it with a
+  form.
+- **Card or Surface.** An object, or the ground it sits on.
+
+When two things look the same, ask what each one does when the other is absent. If the answers
+differ, the things differ. One component with two variants would then teach every reader that
+the difference is cosmetic.

@@ -83,12 +83,45 @@ export type ThemeProps = {
       built for — a descendant-keyed rule would make every control inside a glass pane paint
       its container's veil, the defect those guards already fixed four times. */
   material?: Material;
+  /** §5, §7 — which palette this scope resolves against. `inherit` is the third value and it
+      is not a no-op: it emits no attribute at all, so the nearest ancestor keeps applying —
+      which is exactly what the dark-SSR design needs. A pre-paint inline script owns
+      `data-appearance` on `<html>`, the root Theme inherits it, and there is one source of
+      truth with no flash and nothing for hydration to mismatch. Set it to pin a section
+      against the document: a light panel inside a dark app is `appearance="light"` here. */
   appearance?: Appearance;
+  /** §3, §12 — how tightly the app breathes. It re-picks the layout-space steps every
+      distance reads and re-declares the control family's designed heights and paddings; it
+      deliberately reaches NEITHER type, the icon box, nor a mark, which are content and would
+      otherwise answer the same question twice. An app identity chosen once — a denser toolbar
+      is a nested Theme on an element that already exists, never a prop per control. */
   density?: Density;
+  /** §6 — the corner identity, one app-wide choice. Each level is a designed palette rather
+      than a factor, re-declared per family, so `none` squares every corner that is DRESS
+      while the four that are role semantics hold their shape (a radio, the two grips, and the
+      channel a round grip nests in). `full` STATES the capsule per cell — half the control's
+      own height — rather than asking CSS to clamp a huge number against the rendered box. */
   radius?: RadiusLevel;
+  /** §7 — the CONFORMANCE surface, not a design knob. At rest a border or a fill is dress,
+      judged by eye and held to no floor; `high` is where the floors bind, re-solving the tone
+      bands, the control and field edges and the track to their conformance tiers, and leaning
+      on the glass rather than unmaking it (§10). Left UNSET the Theme stamps no attribute,
+      which is what lets `@media (prefers-contrast: more)` reach the scope; asking for
+      `normal` is an explicit opt-out of that platform signal. */
   contrast?: Contrast;
+  /** §16, §17 — which pointer world this scope is priced for. `auto` follows
+      `@media (pointer: coarse)`. Pinning forces the WHOLE world, not just the touch targets:
+      the coarse geometry, the wider control cells, the mark ladder and §17's handheld type
+      band all move together, which is both what a phone actually needs and how those cells
+      get judged on a desktop. There is no `device` prop — coarse means handheld. */
   pointer?: Pointer;
+  /** §5, §10 — does light exist in this app: whether surfaces sit up off the page and raised
+      controls catch it. Elevation is an app identity and never a per-card knob — no call site
+      chooses a shadow — so this is the one sanctioned consumer of the shadow palette, and
+      `flat` spells the no-op layers rather than deleting the rules. */
   depth?: Depth;
+  /** The subtree the scope covers. The Theme renders a real element to carry its attributes,
+      because the tokens are scoped by attribute selectors and an attribute needs a node. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;

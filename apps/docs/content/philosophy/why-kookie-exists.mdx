@@ -1,0 +1,91 @@
+KookieUI optimizes for correctness, not for adoption. These two goals separate often, because
+the market cannot measure correctness.
+
+Two things judge this system: the human-factors literature, and whether products built on it
+work better. Stars do not judge it.
+
+## Patterns, not components
+
+A **pattern** is a functional structure that repeats. It has a context, a problem and a
+solution. You find a pattern in the world. You do not invent it.
+
+A **component** is a pattern packaged for reuse. A **name** is a label for a component.
+
+Work in this order: find the pattern, then package it, then name it. Most teams work in the
+opposite order. They start with a name and an appearance, and they decide the function last.
+That order causes the faults below.
+
+## Function decides the taxonomy, not appearance
+
+Split components by what they do. Do not split them by how they look.
+
+Take the example this system uses most. Filtering one view by different data is one operation.
+Switching between two views is a different operation. Both render as a horizontal row of
+segments. They are still two operations.
+
+Do not merge them into one component with two variants. The merge is not ugly. It is wrong.
+When you put two things in one category, readers treat them as the same thing. Your structure
+teaches, whether you intend it or not.
+
+The library author must know the difference. This document exists to state the differences and
+to teach them.
+
+## Design has measured limits
+
+Some design questions have measured answers.
+
+- Fitts's law (1954) predicts how long a pointer movement takes, from the distance and the
+  target width.
+- Touch anthropometry measures a fingerpad at about 10mm. Every platform sets a 44-point
+  minimum from this measurement.
+- The Gestalt principles (1923) document how the visual system groups objects.
+- WCAG and APCA measure contrast.
+
+Above these limits, the work is judgment: the exact radius, the saturation of a material, the
+specific accent colour.
+
+Know which kind of answer you have. Cite the measurement and do not move it. Own the judgment
+and call it a judgment. Presenting a judgment as a measurement is a fault. Presenting two
+different things as the same thing is the same fault, inverted.
+
+## Consistency costs less than inconsistency
+
+Consistency is cheaper. Shipping the same button twice costs less than deciding its weight a
+second time.
+
+An inconsistent system does not save time. It repeats decisions without memory. It decides
+each case locally, and it does not know what the earlier cases decided. Local answers do not
+combine into a good whole.
+
+You pay this cost later, when you build the twentieth screen.
+
+## Why the field works this way
+
+The cause is incentives, not skill.
+
+- **Tools with no centre won.** A copy-paste component collection has no centre, by
+  construction. Utility CSS moves decisions to the call site, by design. Both traded
+  consistency for adoption speed. Both were right about what the market rewards.
+- **Teams applied component thinking to patterns.** A sidebar is a pattern. It coordinates
+  things outside itself. It is not a large component, which contains things inside itself. You
+  can see the error when a child reaches up to configure its parent.
+- **The market selects the wrong signal.** Systematic designers work on private systems inside
+  companies. The public market rewards work that demonstrates well on its own. It cannot see
+  consistency, because consistency appears only when you assemble many screens.
+- **Teams stopped reading the human-factors literature.** Consumer web has no strong penalty
+  for error. A missed tap costs little. So "responsive" changed meaning. It once meant "adapt
+  to the human on this device". It now means "reflow without a horizontal scrollbar". The
+  measurable substitute replaced the goal.
+- **AI increased the rate.** A model generates each component alone. Each one looks correct.
+  The set is inconsistent, and nothing reports the fault.
+
+## What this costs you
+
+A system that optimizes for correctness is harder to adopt than one that optimizes for
+adoption.
+
+There is no `variant` prop to reach for when a design does not fit. There are refusals, and
+each refusal states a reason. There are fewer escape routes, and this document names the ones
+that exist.
+
+You get one result for that cost: the twentieth screen costs what the second screen cost.

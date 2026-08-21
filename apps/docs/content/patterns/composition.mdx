@@ -1,0 +1,138 @@
+Primitives make a screen consistent. They do not make a screen good. Every distance answers to
+an axis, every colour answers to a tone, and every size answers to an index. You can still put
+nine components on one screen at nine different steps.
+
+The house style is the set of rules for composing with the system, not for using one
+component. The [builder](/builder) runs most of them as live checks.
+
+## One focal action per screen
+
+Use one loud control on each screen. Set `tone="accent"` and `emphasis="loud"` on that control.
+Set every other control to medium or quiet.
+
+Two loud controls cancel each other. The reader cannot tell which action is primary. This is a
+judgment, and it follows the figure and ground principle.
+
+```tsx
+// Wrong. Two loud controls compete.
+<Flex gap="3">
+  <Button tone="accent" emphasis="loud">Save</Button>
+  <Button tone="accent" emphasis="loud">Publish</Button>
+</Flex>
+
+// Right. The reader still finds the second control.
+<Flex gap="3">
+  <Button emphasis="medium">Save draft</Button>
+  <Button tone="accent" emphasis="loud">Publish</Button>
+</Flex>
+```
+
+No component defaults to loud and accent. You type a second focal point on purpose.
+
+The unit is the screen, not the nearest container. A dialog is its own screen. It covers the
+page, so its loud control does not compete with the page below. Two tab panels never compete,
+because the reader sees one panel at a time.
+
+## Space states the grouping
+
+Put related items closer together than unrelated items. Proximity is a Gestalt principle. It
+groups more reliably than a border, a fill or a rule. Set the space first. You then need none of
+the other three.
+
+Set the gap inside a group at least two steps below the gap around the group. One gap value
+repeated down a screen states no structure.
+
+```tsx
+<Stack gap="6">
+  <Stack gap="2">
+    <Heading size="6">Notifications</Heading>
+    <Text emphasis="medium">Choose what reaches you, and how.</Text>
+  </Stack>
+  <Stack gap="2">
+    <Heading size="6">Billing</Heading>
+    <Text emphasis="medium">Cards, invoices and the plan you are on.</Text>
+  </Stack>
+</Stack>
+```
+
+Two levels of rhythm between groups can sit one step apart. A section at gap 6 holds groups at
+gap 5. Both numbers separate groups, so they do not compete. The two-step rule compares the
+inside of a group against the space around it.
+
+## The type ladder
+
+Type answers to no axis. `size` is a free index, so a written rule is the only limit on it. Use
+five steps and one floor.
+
+- **Size 8** for the page title.
+- **Size 7** for a section title.
+- **Size 6** for a card title or a dialog title.
+- **Size 3** for body text.
+- **Size 2** for a label and for metadata.
+
+Do not use size 1 on a composed screen. Size 1 is for marginal text. Use the muted ink role or
+the faint ink role at size 2 or size 3 when something matters less.
+
+Move at least two steps to state a rank. A title at size 4 above body text at size 3 reads as an
+accident.
+
+## Tone is a vocabulary
+
+A tone states a meaning. Do not pick a tone because a screen looks grey.
+
+```tsx
+// Wrong. Green because green is pleasant.
+<Text tone="green">Storage used</Text>
+
+// Right. A status word in the family that means it.
+<Text tone="success">Backup completed</Text>
+```
+
+`success`, `warning`, `info` and `destructive` state meanings. `blue`, `green`, `orange` and
+`amber` are colour as data. Use them for a chart series, a project label or a category, where the
+colour is the information.
+
+Use three tones or fewer on one surface. Four tones or more read as a palette rather than as a
+meaning. Three tones read as a legend.
+
+Colour is never the whole message. Write the words as well.
+
+## Same role, same size
+
+Give every control that does the same job on one surface the same size. A row that holds a size 3
+button beside a size 2 button reads as two kinds of control. The reader then has to work out why
+the two differ.
+
+Match a control to the surface it sits on. A size 3 dialog holds size 3 fields and size 3
+buttons. A control two steps under its container reads as a mistake.
+
+## Write the real words
+
+Write the real content into a composition. Write content of the same shape and length when the
+real content does not exist yet. Placeholder text hides a heading that wraps to three lines on a
+phone. It hides a name longer than its column. It hides a button label that changes the rhythm of
+a row.
+
+Apply the same rule to helper text. Keep a helper line that changes what the reader does next.
+Delete a helper line that repeats the label.
+
+## Run the reviewer
+
+Run the reviewer on a real screen before you ship it. Every rule on this page is a live check in
+the builder. Each finding cites the sentence it comes from, and each finding carries a fix.
+
+A law holds the shipped templates to zero findings. A rule that nobody can satisfy fails that law
+on the day someone writes it.
+
+The reviewer does not tell you whether a screen is good. It tells you whether a screen breaks a
+rule this system already settled.
+
+## The full set of rules
+
+The list below reads out of the reviewer. A rule added to the linter appears on this page the
+same day. The sentence you read here is the sentence the finding prints.
+
+<ReviewRules />
+
+> The prose above this section can drift. This list cannot. The argument and the check read out
+> of one place.

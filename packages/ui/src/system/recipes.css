@@ -1189,11 +1189,16 @@
   --tone-ink: var(--neutral-8);
   --tone-ink-muted: var(--neutral-8);
   --tone-ink-faint: var(--neutral-8);
-  /* State outranks dress (§19): under look="filled" a field's resting border is transparent,
-     which would swallow the remap above. `initial` stands the role down, so the family
-     rule's fallback resolves the re-pointed --tone-border at this element; under outlined
-     this is a no-op. Marks need no arm — their border IS --tone-border, and this rule
-     already wins that battle at (0,2,0). */
+  /* State outranks dress (§19). The RULE is unchanged and still load-bearing; the sentence
+     explaining it is rewritten (2026-08-20), because it named `look="filled"` — an axis
+     deleted whole on 2026-08-19/20 — and described a transparent resting border the dress
+     roles have not had since the fill-first flip. What is actually true: a field's painted
+     border resolves through the chain --kui-ct-glass-edge -> --dress-field-edge ->
+     --tone-border, so the dress edge SHADOWS the tone border it falls back to. Standing the
+     dress roles down with `initial` is what lets the remap above — which rewrites the ROLE
+     and expects the paint to follow — reach the element at all. Marks need no arm of their
+     own beyond this: their border IS --tone-border, and this rule already wins that battle
+     at (0,2,0). */
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;
@@ -1256,9 +1261,10 @@
 .kui-control:has(> :is([data-invalid], [aria-invalid="true"])) {
   --tone-border: var(--invalid-edge);
   --focus-ring: var(--invalid-edge);
-  /* State outranks dress (§19) — same sentence as the disabled arm above: filled's
-     transparent resting border must not swallow the error edge, and neither must the
-     material's glass edge (2026-08-07). */
+  /* State outranks dress (§19) — same sentence as the disabled arm above, and rewritten with
+     it (2026-08-20): the dress edge shadows the --tone-border this rule just re-pointed, so
+     it must be stood down or the error edge never paints. Neither must the material's glass
+     edge, which sits ahead of both in the chain (2026-08-07). */
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;

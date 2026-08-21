@@ -14,6 +14,13 @@ export type SegmentedControlProps = Omit<
   // control, and a segmented control is a selection control wearing a different box.
   "readOnly" | "className"
 > & {
+  /** §4, §26 — the control HEIGHT ladder, priced on the TRACK: the track is the control, so a
+      segmented control stands level with a Button of the same size in the toolbar beside it.
+      Each segment derives its own box from that channel — the track minus a designed inset,
+      the switch's sentence one control over — and stamps no index of its own, which is §4's
+      hosted-control rule with N hosts rather than one and is why the two boxes cannot
+      disagree. It sits on the root, never per segment: a bar of mixed sizes is not a thing
+      anyone means. */
   size?: Size;
   /** Dresses the track. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;

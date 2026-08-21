@@ -18,6 +18,10 @@ export type CodeProps = Omit<
    * call site remembering to repeat the index. Set it only when the chip stands alone.
    */
   size?: TypeSize;
+  /** §15 — token names, never numbers, topping out at semibold (`bold` is refused
+      system-wide). Unset with no default, for `size`'s reason: a literal quoted inside a
+      sentence keeps that sentence's face, and the mono family is already what sets it apart.
+      Set it when the chip stands alone. */
   weight?: Weight;
   /** §9, §15 — resolved for type as foreground roles, the same three the surrounding copy
       reads. Unset rests loud: code is a literal, and a literal that has faded is a legibility

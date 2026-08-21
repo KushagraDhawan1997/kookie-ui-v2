@@ -35,7 +35,7 @@ import {
 } from "@kookie-ui/react";
 
 import { PlusIcon, XIcon } from "../icons";
-import { ENTRIES } from "../(site)/components/registry";
+import { ENTRIES } from "../(docs)/components/registry";
 
 /** The reference page for a component, when the docs have one — the inspector's header links
     to it, which is the shortest path from "what is this knob" to the system's own argument. */

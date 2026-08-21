@@ -11,75 +11,6 @@
  * A law (`registry.test.ts`) walks the package's exports against this file, so a component
  * cannot ship undocumented — the same shape as the playground law, for the same reason.
  */
-import * as React from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-  Blockquote,
-  Box,
-  Button,
-  Card,
-  Checkbox,
-  Code,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-  Flex,
-  Grid,
-  Heading,
-  Kbd,
-  Menu,
-  MenuCheckboxItem,
-  MenuContent,
-  MenuGroup,
-  MenuItem,
-  MenuLabel,
-  MenuRadioGroup,
-  MenuRadioItem,
-  MenuSub,
-  MenuSubContent,
-  MenuSubTrigger,
-  MenuTrigger,
-  Progress,
-  Radio,
-  RadioGroup,
-  ScrollArea,
-  SegmentedControl,
-  SegmentedItem,
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  Separator,
-  Shell,
-  ShellHeader,
-  ShellSidebar,
-  ShellContent,
-  ShellTrigger,
-  Slider,
-  Spinner,
-  Surface,
-  Stack,
-  Switch,
-  Tabs,
-  TabsList,
-  TabsTab,
-  Text,
-  TextArea,
-  TextField,
-  Theme,
-} from "@kookie-ui/react";
-
 export type Entry = {
   /** URL segment. */
   slug: string;
@@ -98,8 +29,12 @@ export type Entry = {
   /** Parts of a compound component (§22): exports explained here rather than on stub pages
       of their own. The coverage law accepts either home, and holds part blurbs to a floor. */
   parts?: { part: string; blurb: string }[];
-  /** A live specimen. */
-  example: React.ReactNode;
+  /**
+   * A live specimen lives in `examples/<slug>.tsx` — one real file, rendered here and shown
+   * as source (2026-08-21). It is NOT a field: the file name IS the slug, so there is no
+   * mapping to keep in step, and a law walks both directions. It moved out of this registry
+   * because a specimen written inline is a specimen nobody can copy, and `tsc` never saw it.
+   */
 };
 
 export const ENTRIES: Entry[] = [
@@ -144,19 +79,6 @@ export const ENTRIES: Entry[] = [
         { part: "AlertDialogCancel", blurb: "The safe way out: a quiet bordered Button the component sizes, first in reading order, first to take focus" },
         { part: "AlertDialogAction", blurb: "The committing choice: a loud Button carrying the caller's handler and optional tone; it closes, because the alert's job ends when a choice is made" },
     ],
-    example: (
-      <AlertDialog size="2">
-        <AlertDialogTrigger render={<Button tone="destructive" emphasis="medium">Delete workspace…</Button>} />
-        <AlertDialogContent>
-          <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Every project, member and API key goes with it. This cannot be undone.
-          </AlertDialogDescription>
-          <AlertDialogCancel>Keep it</AlertDialogCancel>
-          <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
-        </AlertDialogContent>
-      </AlertDialog>
-    ),
   },
   {
     slug: "blockquote",
@@ -181,14 +103,6 @@ export const ENTRIES: Entry[] = [
         why: "The footer under a quote is a sibling <Text>. Anatomy is system-owned only where something non-visual forces it, and nothing here does.",
       },
     ],
-    example: (
-      <Stack gap="3">
-        <Blockquote size="3">
-          Taste is the last layer. If the infrastructure is right, taste can be added later.
-        </Blockquote>
-        <Text size="1" emphasis="medium">— the standing rule</Text>
-      </Stack>
-    ),
   },
   {
     slug: "box",
@@ -230,11 +144,6 @@ export const ENTRIES: Entry[] = [
         why: "It shipped that way and was the recorded zero-width defect: a measurable box can never size itself around its contents (the no-loop rule container queries are built on), so every Box in a flex row collapsed to nothing. A plain Box hugs like a div; `container` opts in, and belongs on things layout already sizes — a sidebar with a width, a growing column, a grid cell. A container Box left to shrink-wrap renders 0px wide, and dev builds warn when it happens.",
       },
     ],
-    example: (
-      <Box p="5" style={{ background: "var(--color-track)", borderRadius: "var(--radius-surface-2)" }}>
-        <Text size="2">A Box with token padding.</Text>
-      </Box>
-    ),
   },
   {
     slug: "button",
@@ -262,14 +171,6 @@ export const ENTRIES: Entry[] = [
         why: "Elevation is deleted. Depth is an app identity, set once by Theme depth, never chosen per call site.",
       },
     ],
-    example: (
-      <Flex gap="3" wrap="wrap" align="center">
-        <Button tone="accent" emphasis="loud">Save</Button>
-        <Button emphasis="medium">Cancel</Button>
-        <Button emphasis="quiet" bordered>More</Button>
-        <Button tone="destructive" emphasis="quiet">Delete</Button>
-      </Flex>
-    ),
   },
   {
     slug: "surface",
@@ -299,14 +200,6 @@ export const ENTRIES: Entry[] = [
         why: "Card's refusals, unchanged: a container ranks nothing, and a hole in a plane throws no shadow.",
       },
     ],
-    example: (
-      <Surface size="3">
-        <Stack gap="3">
-          <Card size="2"><Text size="2">A card on a ground</Text></Card>
-          <Card size="2"><Text size="2">And another</Text></Card>
-        </Stack>
-      </Surface>
-    ),
   },
   {
     slug: "card",
@@ -337,14 +230,6 @@ export const ENTRIES: Entry[] = [
         why: "Anatomy is system-owned only where something non-visual forces it — Dialog's focus wiring, Callout's status role. A card's regions are a layout, and layouts are blocks.",
       },
     ],
-    example: (
-      <Card size="3">
-        <Stack gap="2">
-          <Text size="3" weight="medium">A card is a shell</Text>
-          <Text size="2" emphasis="medium">Everything inside it is composition.</Text>
-        </Stack>
-      </Card>
-    ),
   },
   {
     slug: "checkbox",
@@ -368,18 +253,6 @@ export const ENTRIES: Entry[] = [
         why: "The platform does not define it for checkboxes, and every library that accepts it draws it identically to a live control. A state with no appearance is worse than no state.",
       },
     ],
-    example: (
-      <Stack gap="3">
-        <Flex gap="3" align="center">
-          <Checkbox defaultChecked id="c1" />
-          <Text size="2" render={<label htmlFor="c1" />}>Ship it</Text>
-        </Flex>
-        <Flex gap="3" align="center">
-          <Checkbox id="c2" />
-          <Text size="2" render={<label htmlFor="c2" />}>Hold for review</Text>
-        </Flex>
-      </Stack>
-    ),
   },
   {
     slug: "code",
@@ -403,16 +276,6 @@ export const ENTRIES: Entry[] = [
         why: "A code block owns overflow, wrapping and a scroll container. It is a different component, not a mode of this one.",
       },
     ],
-    example: (
-      <Stack gap="3">
-        <Text size="3">
-          Run <Code>pnpm run ci</Code> before claiming a task done.
-        </Text>
-        <Text size="1">
-          The flag is <Code>--experimental-strip-types</Code>.
-        </Text>
-      </Stack>
-    ),
   },
   {
     slug: "dialog",
@@ -457,23 +320,6 @@ export const ENTRIES: Entry[] = [
         { part: "DialogDescription", blurb: "The supporting line, wired by aria-describedby — body copy in the muted ink, which is what 'said quietly' means since the ladder was solved" },
         { part: "DialogClose", blurb: "A dismissing button the call site places: there is no corner glyph, so the one action zone stays where the composition put it" },
     ],
-    example: (
-      <Dialog size="2">
-        <DialogTrigger render={<Button emphasis="medium">Rename project</Button>} />
-        <DialogContent>
-          <Stack gap="6">
-            <Stack gap="2">
-              <DialogTitle>Rename project</DialogTitle>
-              <DialogDescription>Everyone with access will see the new name.</DialogDescription>
-            </Stack>
-            <Flex gap="3" justify="flex-end">
-              <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-              <DialogClose render={<Button emphasis="loud">Save</Button>} />
-            </Flex>
-          </Stack>
-        </DialogContent>
-      </Dialog>
-    ),
   },
   {
     slug: "flex",
@@ -487,13 +333,6 @@ export const ENTRIES: Entry[] = [
       { name: "gap", values: "layout space steps", note: "the distance between things, always through the density-aware layer" },
     ],
     refusals: [{ name: "margin on children", why: "Distance between siblings is the container's gap, so it is stated once and cannot drift." }],
-    example: (
-      <Flex gap="4" align="center">
-        <Button size="2">One</Button>
-        <Button size="2">Two</Button>
-        <Button size="2">Three</Button>
-      </Flex>
-    ),
   },
   {
     slug: "grid",
@@ -503,16 +342,13 @@ export const ENTRIES: Entry[] = [
     blurb: "Box with display: grid preset and the grid props narrowed. Same mechanism as Flex, same zero additional CSS.",
     axes: [
       { name: "columns / rows", values: "track lists", note: "raw track strings ride the same pipe as tokens" },
-      { name: "gap / gapX / gapY", values: "layout space steps", note: "" },
+      {
+        name: "gap / gapX / gapY",
+        values: "layout space steps",
+        note: "the density-aware layer, not the raw palette. A comfortable theme widens the grid and a compact theme narrows it, and no call site changes. The two axes are separate because a grid is the one layout where row spacing and column spacing answer different questions",
+      },
     ],
     refusals: [{ name: "auto-placement helpers", why: "A prop earns existence only if it adds token resolution, tiers or constraint. Everything else is style." }],
-    example: (
-      <Grid columns="repeat(3, minmax(0, 1fr))" gap="3">
-        <Button size="1">A</Button>
-        <Button size="1">B</Button>
-        <Button size="1">C</Button>
-      </Grid>
-    ),
   },
   {
     slug: "heading",
@@ -524,8 +360,8 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "size", values: "1–9", note: "defaults to 6 — the level a section actually reaches for" },
       { name: "weight", values: "regular | medium | semibold", note: "defaults to semibold — 700 is refused (§15)" },
-      { name: "emphasis", values: "loud | medium | quiet", note: "the foreground roles" },
-      { name: "tone", values: "any family", note: "re-scopes the ink trio" },
+      { name: "emphasis", values: "loud | medium | quiet", note: "the foreground roles, not fills. Use it for a muted section label. It rests loud, because a heading must stay readable" },
+      { name: "tone", values: "any family", note: "moves the three ink roles onto that family. It changes the ink only, because a heading has no fill" },
     ],
     refusals: [
       {
@@ -533,12 +369,6 @@ export const ENTRIES: Entry[] = [
         why: "An h1 is a document fact, not a visual one. render={<h1/>} says it where a reader can see the two decisions are separate.",
       },
     ],
-    example: (
-      <Stack gap="2">
-        <Heading size="7" render={<h3 />}>A section</Heading>
-        <Heading size="4" render={<h4 />}>A subsection</Heading>
-      </Stack>
-    ),
   },
   {
     slug: "kbd",
@@ -548,8 +378,8 @@ export const ENTRIES: Entry[] = [
     blurb:
       "A key cap: Code's fill and tone facts in the BODY family and a centered, floored cap box — a key names a key, it does not quote code, and the sans draws ⌘ full-size where a mono cell draws it compact. The hairline is the tone-aware border rather than one of the solved edge tiers — those were solved for controls whose identity rests on the edge, and a cap has a fill to carry it.",
     axes: [
-      { name: "size", values: "1–9, optional", note: "unset inherits the line, like Code" },
-      { name: "emphasis", values: "loud | medium | quiet", note: "the ink's axis" },
+      { name: "size", values: "1–9, optional", note: "when unset, it takes the size of the line it sits in, like Code. A cap with a fixed size would raise a size-1 caption to 16px" },
+      { name: "emphasis", values: "loud | medium | quiet", note: "the type resolution. It changes the ink role, not the cap fill. A quiet chord shows quieter letters on the same key" },
       { name: "tone", values: "any family", note: "moves the ink and the fill; the edge is the cap's own achromatic relief line since 2026-08-17, tone-blind so it reads the same on any bed" },
     ],
     refusals: [
@@ -558,11 +388,6 @@ export const ENTRIES: Entry[] = [
         why: "The cap carries RELIEF always — flat world included — a top-face catch and a whisper of drop (`--kbd-relief`, its own cap-scale value since 2026-08-17: the lit button chrome it used to read made a bare cap read as a small floating button), because a key cap is a picture of a raised physical object; a glass pane stands even that down (relief in the pane, not a sticker on it). What stays refused is the cast moving with Theme depth.",
       },
     ],
-    example: (
-      <Text size="3">
-        Press <Kbd>⌘K</Kbd> to search, <Kbd>Esc</Kbd> to dismiss.
-      </Text>
-    ),
   },
   {
     slug: "menu",
@@ -615,33 +440,6 @@ export const ENTRIES: Entry[] = [
         { part: "MenuSubTrigger", blurb: "The row that opens a child menu; stays lit while it is open, chevron is its own statement" },
         { part: "MenuSubContent", blurb: "The child panel: opens outward, first row aligned with its trigger — geometry is the system's" },
     ],
-    example: (
-      <Menu>
-        <MenuTrigger render={<Button emphasis="medium">Actions</Button>} />
-        <MenuContent>
-          <MenuGroup>
-            <MenuLabel>File</MenuLabel>
-            <MenuItem trailing={<Kbd>⌘D</Kbd>}>Duplicate</MenuItem>
-            <MenuItem>Rename</MenuItem>
-          </MenuGroup>
-          <Separator />
-          <MenuCheckboxItem defaultChecked>Show hidden</MenuCheckboxItem>
-          <MenuRadioGroup defaultValue="name">
-            <MenuRadioItem value="name">Sort by name</MenuRadioItem>
-            <MenuRadioItem value="date">Sort by date</MenuRadioItem>
-          </MenuRadioGroup>
-          <Separator />
-          <MenuSub>
-            <MenuSubTrigger>Export as</MenuSubTrigger>
-            <MenuSubContent>
-              <MenuItem>PNG</MenuItem>
-              <MenuItem>SVG</MenuItem>
-            </MenuSubContent>
-          </MenuSub>
-          <MenuItem tone="destructive">Delete…</MenuItem>
-        </MenuContent>
-      </Menu>
-    ),
   },
   {
     slug: "select",
@@ -692,23 +490,6 @@ export const ENTRIES: Entry[] = [
         { part: "SelectGroup", blurb: "Groups option rows so a label can name them; wires the group's accessible name automatically" },
         { part: "SelectLabel", blurb: "A heading for option rows: the row skeleton gives it the same inset every row has, with the control-ness stood down — legal in a group and on its own. It sits OUT-dented from the option text below it by the width of the tick's reserved gutter, which is macOS's own posture and deliberate" },
     ],
-    example: (
-      <Select defaultValue="banana" items={{ apple: "Apple", banana: "Banana", carrot: "Carrot", leek: "Leek" }}>
-        <SelectTrigger placeholder="Pick one" />
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>Fruit</SelectLabel>
-            <SelectItem value="apple">Apple</SelectItem>
-            <SelectItem value="banana">Banana</SelectItem>
-          </SelectGroup>
-          <SelectGroup>
-            <SelectLabel>Vegetables</SelectLabel>
-            <SelectItem value="carrot">Carrot</SelectItem>
-            <SelectItem value="leek">Leek</SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    ),
   },
   {
     slug: "progress",
@@ -719,7 +500,7 @@ export const ENTRIES: Entry[] = [
       "A rail with no grip: a neutral well and an accent level. It sits outside the look axis for the instrument rule — the axis dresses things whose resting state is a surface, and a bar has none — and it grows no hit area, because nothing hits it.",
     axes: [
       { name: "value", values: "number | null", note: "null is indeterminate, and sweeps" },
-      { name: "min / max", values: "number", note: "defaults 0 and 100" },
+      { name: "min / max", values: "number", note: "0 and 100 by default. The bar reports a fraction, so any pair of numbers works. The component shows no number. Put a formatted value in a sibling Text" },
     ],
     refusals: [
       {
@@ -731,13 +512,6 @@ export const ENTRIES: Entry[] = [
         why: "Left closed rather than decided: a failed upload in destructive is real vocabulary, but adding an axis the day the component ships is assignment, not derivation.",
       },
     ],
-    example: (
-      <Stack gap="4">
-        <Progress value={35} aria-label="Thirty-five percent" />
-        <Progress value={85} aria-label="Eighty-five percent" />
-        <Progress value={null} aria-label="Loading" />
-      </Stack>
-    ),
   },
   {
     slug: "radio",
@@ -751,18 +525,6 @@ export const ENTRIES: Entry[] = [
       { name: "tone and emphasis", why: "Inherited from Checkbox: neutral off, accent on is an identity." },
       { name: "readOnly", why: "Inherited from Checkbox — the platform does not define it." },
     ],
-    example: (
-      <RadioGroup defaultValue="b">
-        <Stack gap="3">
-          {["a", "b", "c"].map((v) => (
-            <Flex key={v} gap="3" align="center">
-              <Radio value={v} id={`r-${v}`} />
-              <Text size="2" render={<label htmlFor={`r-${v}`} />}>Option {v.toUpperCase()}</Text>
-            </Flex>
-          ))}
-        </Stack>
-      </RadioGroup>
-    ),
   },
   {
     slug: "radio-group",
@@ -773,20 +535,6 @@ export const ENTRIES: Entry[] = [
       "Base UI's roving-focus group wrapped with zero CSS. It exists for the keyboard and the form value, not for a look — render is open so the group can BE a Stack.",
     axes: [{ name: "value / defaultValue", values: "string", note: "the group owns the selection" }],
     refusals: [{ name: "any visual prop", why: "The group is wiring. What it looks like is the layout you render it as." }],
-    example: (
-      <RadioGroup defaultValue="y">
-        <Flex gap="4">
-          <Flex gap="2" align="center">
-            <Radio value="y" id="g-y" />
-            <Text size="2" render={<label htmlFor="g-y" />}>Yes</Text>
-          </Flex>
-          <Flex gap="2" align="center">
-            <Radio value="n" id="g-n" />
-            <Text size="2" render={<label htmlFor="g-n" />}>No</Text>
-          </Flex>
-        </Flex>
-      </RadioGroup>
-    ),
   },
   {
     slug: "scroll-area",
@@ -803,17 +551,6 @@ export const ENTRIES: Entry[] = [
       { name: "render", why: "The anatomy is Base UI's contract — the parts are assembly the caller cannot reach." },
       { name: "orientation", why: "Both bars are declared and Base UI mounts only the ones the content actually needs, on the frame after it measures — orientation is a fact the content decides, not a prop." },
     ],
-    example: (
-      <Card size="3">
-        <ScrollArea style={{ height: "160px" }}>
-          <Stack gap="4">
-            {Array.from({ length: 12 }, (_, i) => (
-              <Text key={i} size="2" emphasis="medium">Row {i + 1} of a list taller than its box.</Text>
-            ))}
-          </Stack>
-        </ScrollArea>
-      </Card>
-    ),
   },
   {
     slug: "separator",
@@ -828,15 +565,6 @@ export const ENTRIES: Entry[] = [
       { name: "a length prop", why: "The container decides extent, the same sentence that refuses margin everywhere." },
       { name: "decorative", why: "A rule that must hide from assistive tech is not a Separator; it is a styled Box." },
     ],
-    example: (
-      <Card size="3">
-        <Stack gap="4">
-          <Text size="2" weight="medium">Above</Text>
-          <Separator />
-          <Text size="2" emphasis="medium">Below</Text>
-        </Stack>
-      </Card>
-    ),
   },
   {
     slug: "shell",
@@ -875,35 +603,6 @@ export const ENTRIES: Entry[] = [
         { part: "ShellBottom", blurb: "The bottom pane for terminals and logs — an <aside> spanning the full width below the columns, resting closed" },
         { part: "ShellTrigger", blurb: "The one crossing: a button that drives a pane by name through the registry — stamps aria-expanded and aria-controls, composes over a Kookie Button via render" },
     ],
-    example: (
-      <Box height="14rem">
-        <Shell>
-          <ShellHeader>
-            <Flex align="center" gap="3" px="3" py="2">
-              <ShellTrigger
-                target="sidebar"
-                render={<Button size="1" emphasis="quiet" aria-label="Toggle navigation" />}
-              >
-                Nav
-              </ShellTrigger>
-              <Text size="2" weight="medium">Kookie Studio</Text>
-            </Flex>
-          </ShellHeader>
-          <ShellSidebar aria-label="Primary">
-            <Stack gap="1" p="3">
-              <Text size="2" weight="medium">Projects</Text>
-              <Text size="2" emphasis="medium">Deploys</Text>
-              <Text size="2" emphasis="medium">Settings</Text>
-            </Stack>
-          </ShellSidebar>
-          <ShellContent>
-            <Stack gap="2" p="4">
-              <Text size="2" emphasis="medium">The content pane scrolls itself; the shell never does.</Text>
-            </Stack>
-          </ShellContent>
-        </Shell>
-      </Box>
-    ),
   },
   {
     slug: "slider",
@@ -923,12 +622,6 @@ export const ENTRIES: Entry[] = [
         why: "Vertical needs its own designed geometry set — thumb travel, track pricing, the cells. It ships the day something forces it, not as a prop that renders undesigned geometry today.",
       },
     ],
-    example: (
-      <Stack gap="5">
-        <Slider defaultValue={40} aria-label="Value" />
-        <Slider defaultValue={[20, 65]} aria-label="Range" />
-      </Stack>
-    ),
   },
   {
     slug: "spinner",
@@ -945,13 +638,6 @@ export const ENTRIES: Entry[] = [
       },
       { name: "a colour prop", why: "It draws in currentColor, which is correct in every context with no token at all." },
     ],
-    example: (
-      <Flex gap="4" align="center">
-        <Spinner />
-        <Button loading>Saving</Button>
-        <Button emphasis="quiet" loading>Refreshing</Button>
-      </Flex>
-    ),
   },
   {
     slug: "stack",
@@ -961,12 +647,6 @@ export const ENTRIES: Entry[] = [
     blurb: "Box with a column flex preset. The most common layout in any app, named so it stops being re-derived.",
     axes: [{ name: "gap / align / justify", values: "the flex vocabulary", note: "gap through the layout-space layer" }],
     refusals: [{ name: "dividers", why: "A rule between rows is a Separator you place, not a prop that guesses where you wanted one." }],
-    example: (
-      <Stack gap="3">
-        <Button size="2">First</Button>
-        <Button size="2">Second</Button>
-      </Stack>
-    ),
   },
   {
     slug: "segmented-control",
@@ -1000,12 +680,6 @@ export const ENTRIES: Entry[] = [
     parts: [
         { part: "SegmentedItem", blurb: "One segment — a control hosted in the channel, holding its own label and reporting its own checked state" },
     ],
-    example: (
-      <SegmentedControl defaultValue="grid" aria-label="View">
-        <SegmentedItem value="list">List</SegmentedItem>
-        <SegmentedItem value="grid">Grid</SegmentedItem>
-      </SegmentedControl>
-    ),
   },
   {
     slug: "switch",
@@ -1023,18 +697,6 @@ export const ENTRIES: Entry[] = [
         why: "The same answer Checkbox gives — a read-only switch is a disabled one with a different name.",
       },
     ],
-    example: (
-      <Stack gap="3">
-        <Flex gap="3" align="center">
-          <Switch defaultChecked id="s1" />
-          <Text size="2" render={<label htmlFor="s1" />}>Notifications</Text>
-        </Flex>
-        <Flex gap="3" align="center">
-          <Switch id="s2" />
-          <Text size="2" render={<label htmlFor="s2" />}>Beta features</Text>
-        </Flex>
-      </Stack>
-    ),
   },
   {
     slug: "tabs",
@@ -1066,14 +728,6 @@ export const ENTRIES: Entry[] = [
         { part: "TabsTab", blurb: "One tab: a control on the height ladder wearing the quiet rung, marked active by ink rather than by a fill" },
         { part: "TabsPanel", blurb: "What the tab reveals. Paints nothing — a region that draws its own box is a Card" },
     ],
-    example: (
-      <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTab value="overview">Overview</TabsTab>
-          <TabsTab value="activity">Activity</TabsTab>
-        </TabsList>
-      </Tabs>
-    ),
   },
   {
     slug: "text",
@@ -1093,13 +747,6 @@ export const ENTRIES: Entry[] = [
       { name: "margin", why: "Type owns no outer spacing; the margin is zeroed whatever element render names." },
       { name: "bold (700)", why: "Semibold tops the ladder and every heading rests there. Hierarchy is size and the ink roles, both already designed; a fourth weight is a fifth way to say the same thing. The token is gone too, so nothing can reach it by hand." },
     ],
-    example: (
-      <Stack gap="2">
-        <Text size="3">Loud rests at full contrast.</Text>
-        <Text size="3" emphasis="medium">Medium is the muted role.</Text>
-        <Text size="3" emphasis="quiet">Quiet is below body-copy contrast by design.</Text>
-      </Stack>
-    ),
   },
   {
     slug: "text-area",
@@ -1116,9 +763,11 @@ export const ENTRIES: Entry[] = [
     refusals: [
       { name: "emphasis and tone", why: "A form where one field is louder than the next is incoherent — TextField's argument." },
       { name: "resize", why: "It renames raw CSS. Vertical-only is the shipped behaviour; style is the escape." },
-      { name: "cols", why: "Width is the container's." },
+      {
+        name: "cols",
+        why: "The container sets the width. A textarea sized in characters uses a unit that the type ramp does not use, so an 80-column box is a different width at every size step and every density. Set the width in the layout that owns the relationship, where the distance is a token.",
+      },
     ],
-    example: <TextArea rows={3} defaultValue="A textarea is a paragraph." aria-label="Notes" />,
   },
   {
     slug: "text-field",
@@ -1128,7 +777,7 @@ export const ENTRIES: Entry[] = [
     blurb:
       "The visible control is a WRAPPER around the input, and that is what makes its slots legitimate anatomy: a field that can hold an icon inside its border cannot keep that border on the input, and the wrapper then owes caret-on-click, slot-aware layout, and a trailing control that keeps its own press. ref goes to the input; className dresses the wrapper.",
     axes: [
-      { name: "size", values: "1 | 2 | 3 | 4", note: "" },
+      { name: "size", values: "1 | 2 | 3 | 4", note: "the control family index. It sets the height, the inline padding, the corner, the slot inset and the label type step together. A control inside a slot derives its own box from that inset, so you never choose a second index" },
       { name: "leading / trailing", values: "ReactNode", note: "an icon, or a hosted control that keeps its own press" },
       { name: "backdrop", values: "boolean", note: "placement, not material (§10, 2026-08-17): content passes behind this, so the theme's glass may express; unset it reads the ambient <Box backdrop> region" },
     ],
@@ -1139,12 +788,6 @@ export const ENTRIES: Entry[] = [
         why: "Everywhere else render swaps the one element that IS the component. Here there are two and neither can move — the wrapper holds a border the input cannot, and the input must stay an input or the platform wiring goes with it.",
       },
     ],
-    example: (
-      <Stack gap="3" style={{ maxWidth: "22rem" }}>
-        <TextField placeholder="Search" aria-label="Search" />
-        <TextField placeholder="Invalid" aria-label="Invalid" aria-invalid="true" />
-      </Stack>
-    ),
   },
   {
     slug: "theme",
@@ -1180,22 +823,6 @@ export const ENTRIES: Entry[] = [
         why: "Deleted whole (controlLook 2026-08-19, surfaceLook 2026-08-20). controlLook's two values had converged — fields and marks wear the dress unconditionally. surfaceLook's second value was never judged or used: the lab's borderless pane is the one surface identity, so the prop was a lever every call site could reach and none had needed. A tinted surface identity can return as a Theme value the day a real app wants one.",
       },
     ],
-    example: (
-      <Flex gap="4" wrap="wrap" align="center">
-        <Theme radius="full">
-          <Button tone="accent" emphasis="loud">radius full</Button>
-        </Theme>
-        <Theme radius="none">
-          <Button tone="accent" emphasis="loud">radius none</Button>
-        </Theme>
-        <Theme density="compact">
-          <Button emphasis="medium">compact</Button>
-        </Theme>
-        <Theme density="comfortable">
-          <Button emphasis="medium">comfortable</Button>
-        </Theme>
-      </Flex>
-    ),
   },
 ];
 

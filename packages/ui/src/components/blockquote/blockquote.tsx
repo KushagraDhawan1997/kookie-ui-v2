@@ -13,6 +13,10 @@ export type BlockquoteProps = Omit<
   /** §15 — a step on the shared ramp. Anchors at 3 like Text, and unlike Code: a quote is a
       BLOCK, so it states its own step rather than taking the line it sits in. */
   size?: TypeSize;
+  /** §15 — token names, never numbers; the shared three-rung set, topping out at semibold
+      because `bold` is refused system-wide. Rests regular like Text, because a quote is copy:
+      the rule and the indent are what set it apart, and a heavier face would make it a
+      heading in quotation marks. */
   weight?: Weight;
   /** §9, §15 — the foreground roles. Rests loud, as all type does: a pulled quote is
       reading-length copy, and quiet is below body-copy contrast by design. */

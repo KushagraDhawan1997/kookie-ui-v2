@@ -1,0 +1,126 @@
+Navigation answers two questions. Where can I go, and where am I now. `Shell` answers the first
+with a frame of named regions. A few small decisions answer the second, and most of them are
+about announcing the answer rather than painting it.
+
+## The frame is a pattern
+
+`Shell` arranges things it does not own, so it is a pattern. A component contains things it owns.
+A child that reaches up to configure its parent is a pattern written in the wrong shape.
+
+The previous version of this frame had that shape. Panes declared intent and the root stored their state.
+The frame therefore needed child scanning, an exclusivity rule, and a cascade that explained
+which pane closed which.
+
+Here every pane owns its own `open`, exactly as `Dialog` does. Only `ShellTrigger` crosses the
+frame, and it finds a pane by name.
+
+```tsx
+<Shell size="2">
+  <ShellHeader>…</ShellHeader>
+  <ShellRail aria-label="Sections">…</ShellRail>
+  <ShellSidebar aria-label="Pages">…</ShellSidebar>
+  <ShellContent>…</ShellContent>
+  <ShellInspector>…</ShellInspector>
+</Shell>
+```
+
+## The panes
+
+The header is full-width by definition. A header that is not full-width is a header inside the
+content. This is a criterion, not a layout option. The frame has one geometry.
+
+Compose the posture where a sidebar runs the full height under a header that covers the content
+only. Write no `ShellHeader`, and write a header inside `ShellContent`.
+
+The rail and the sidebar are two independent columns. The rail is the narrow icon column that
+picks a high-level region. The sidebar is the wide column that shows what the rail picked. They
+coexist, and neither one collapses into the other. A sidebar holds many items and a rail holds a
+few, so this frame does not collapse a sidebar down to a rail. One column of navigation is a
+sidebar. Icons alone are a rail. Both together is the shape VS Code and Slack use.
+
+`ShellContent` renders `<main>` and is the one required pane. `ShellInspector` is the right-hand
+detail column. `ShellBottom` is the terminal drawer or the log drawer. Both rest closed, because
+the person asks for detail.
+
+`ShellScroll` marks the one region of a pane that scrolls. Everything else in that column pins by
+being an ordinary sized child of the pane. A pinned header and a pinned footer in a sidebar are
+siblings, not parts.
+
+## An untouched pane rests on auto
+
+A pane that nobody has touched rests on `auto`. CSS resolves what `auto` means, per window size
+class. First paint is therefore correct on the server and on the client with no script. Hydration
+cannot mismatch, because both renders produce the same attribute. The first toggle makes the
+choice explicit, and an explicit choice outranks any boundary.
+
+Nothing in the frame measures anything at mount. `useWindowClass()` answers `null` on the server
+and through first paint rather than guessing. Use the hook for decisions after mount. The
+stylesheet holds the resting shape of the app.
+
+## Three window size classes
+
+A window size class picks the shape of the navigation. Decide it once at the top, against the
+window. Do not decide it per container, and do not decide it per component.
+
+`narrow` shows one thing at a time and opens the navigation over it. `regular` and `wide` keep
+the navigation columns in flow. The extra room at `wide` is what a second column such as an
+inspector costs.
+
+There are three classes because there are three shapes. This is a judgment. A fourth class
+would name a question about room inside a pane, and container tiers already answer that
+question.
+
+## Choose between tabs and a segmented control
+
+Both render as a row of choices, and they are two kinds of thing. Ask what each one does when the
+other is absent. You can switch views without setting a value. You can set a value without
+switching a view. **Use `Tabs` when the thing underneath changes.**
+
+The difference is in the markup, not only in the paint. A segmented control is a real radio
+group. It announces `role="radiogroup"`, its arrow keys select as they move, and its value
+submits with a form. Picking one of several is what a radio group does. A tab bar announces a tab
+list and owns panels.
+
+```tsx
+<SegmentedControl defaultValue="grid" aria-label="Layout">
+  <SegmentedItem value="grid">Grid</SegmentedItem>
+  <SegmentedItem value="list">List</SegmentedItem>
+</SegmentedControl>
+```
+
+Multi-select formatting is neither of them. Italic and underline both on at once is a set of
+toggle buttons, which is a third component. A radio group holds one answer, so it cannot state
+that set.
+
+## Choose between a menu and a select
+
+Apply the same test one family over. A `Menu` is a list of actions. Choosing one runs the action
+and closes the panel. A `Select` is a list of values. Choosing one fills a control that submits
+with a form. A select renders a hidden input and announces itself as a combobox that opens a list
+of options. A styled menu cannot state that accessibility contract.
+
+Two consequences follow. A select places its panel so that the chosen row lands on the value it
+replaces. The panel can therefore hang above and below the trigger. A select that nobody has
+opened needs `items` to turn a value into a label. The labels live on options that have not
+mounted yet.
+
+## Announce the current place
+
+Set `current` on a navigation row or a rail square. It paints the row and it sets
+`aria-current="page"`. Both halves matter. Colour alone tells nobody who cannot see it. The
+announcement carries the meaning through a screen reader, a high-contrast setting and a
+monochrome display.
+
+```tsx
+<ShellNavGroup label="Workspace">
+  <ShellNavItem current render={<a href="/inbox" />}>Inbox</ShellNavItem>
+  <ShellNavItem render={<a href="/drafts" />}>Drafts</ShellNavItem>
+</ShellNavGroup>
+```
+
+The paint is a tone and a rung, not a louder step on one ramp. Grey states that the pointer is
+over the row. Accent states that this is the place you are in. The two use different colours, so
+a current row still changes under the pointer.
+
+The row family ranks nothing, because every item in a list of places is a peer. Being current is
+a state the component states. It is not an emphasis a call site picks.

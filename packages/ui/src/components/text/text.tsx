@@ -28,7 +28,17 @@ export type TextProps = Omit<
   React.ComponentPropsWithoutRef<"span">,
   "color" | "style" | "className"
 > & {
+  /** §15 — a step on the type ramp, and the ramp is three designed scales joined at one
+      index: font-size, line height and letter spacing move together, so a step can never
+      change the size without the leading that makes it readable. Nine steps rather than the
+      control family's four — reading has the wider dynamic range (§4 shares the numeral, not
+      the scale). Anchors at 3, the body step §15's composition ladder is built around. */
   size?: TypeSize;
+  /** §15 — the face, named rather than numbered: a token is the system's to re-point and a
+      `600` is not. Three rungs, and the ladder tops out at semibold because `bold` is refused
+      system-wide — a 700 face is a fifth way to say "important" competing with three the
+      system already designs. Rests regular: body copy is what everything else is heavier
+      than. */
   weight?: Weight;
   /** §9, §15 — the one loudness axis, resolved for type as foreground roles: loud reads
       --color-text, medium the muted role, quiet the faint one. Rests loud — full contrast

@@ -1,0 +1,113 @@
+This chapter builds one settings panel: a title, two groups of controls, and two actions. The
+code sets no colour, no length and no breakpoint.
+
+## Choose the containers first
+
+A container sets the distance between its children. Decide which container owns which
+relationship. Do this before you choose the components.
+
+```tsx
+import { Card, Heading, Stack, Text } from "@kookie-ui/react";
+
+export function Settings() {
+  return (
+    <Card size="4">
+      <Stack gap="6">
+        <Stack gap="2">
+          <Heading size="6">Notifications</Heading>
+          <Text emphasis="medium">Choose what reaches you, and how.</Text>
+        </Stack>
+        {/* the groups go here */}
+      </Stack>
+    </Card>
+  );
+}
+```
+
+The two `Stack` components use different gaps. The outer gap of 6 separates the sections. The
+inner gap of 2 joins a heading to the sentence below it.
+
+Put related items closer together than unrelated items. This is proximity. It is a measured
+grouping effect, not a preference. A screen that uses one gap value everywhere states no
+structure.
+
+The code sets no margin. A component does not set outer spacing, so the container states every
+distance.
+
+## Put a mark beside its label
+
+```tsx
+import { Checkbox, Flex, Stack, Switch, Text } from "@kookie-ui/react";
+
+function Group() {
+  return (
+    <Stack gap="4">
+      <Flex align="center" gap="3">
+        <Switch id="email" defaultChecked />
+        <Text render={<label htmlFor="email" />}>Email me about releases</Text>
+      </Flex>
+      <Flex align="center" gap="3">
+        <Checkbox id="digest" />
+        <Text render={<label htmlFor="digest" />}>Weekly digest instead of every release</Text>
+      </Flex>
+    </Stack>
+  );
+}
+```
+
+No mark takes a `label` prop. A label is text. `Text` resolves every size, weight and ink role
+that text needs. A `label` prop would add a second type system inside a checkbox.
+
+`render={<label htmlFor>}` changes the element without changing the component. The type keeps
+its size and its ink. The DOM gets a real `<label>`, so the browser toggles the control when
+the user clicks the text.
+
+## Rank the two actions
+
+```tsx
+import { Button, Flex } from "@kookie-ui/react";
+
+function Actions() {
+  return (
+    <Flex gap="3" justify="flex-end">
+      <Button emphasis="quiet" bordered>Cancel</Button>
+      <Button tone="accent" emphasis="loud">Save changes</Button>
+    </Flex>
+  );
+}
+```
+
+`emphasis` sets loudness. `tone` sets meaning. They are separate axes. A system that combines
+them produces values such as `secondary-outline-destructive`. That value answers three
+questions at once, and you cannot change one answer alone.
+
+No component defaults to loud and accent. A second loud control on this screen requires a
+deliberate edit. This is how the system guarantees one loud control per screen.
+
+## What the code did not state
+
+The screen is about thirty lines. It states none of the following.
+
+- **No colour.** Every value comes from a tone and a role. The theme resolves the pigment. The
+  result follows the appearance into dark mode, answers `contrast="high"`, and survives a
+  change of accent.
+- **No pixel sizes.** `size` is an index. One number sets the height, the padding, the corner,
+  the icon box and the label step together.
+- **No breakpoints.** Targets grow on a touch screen. Reading steps rise on a handheld screen.
+  The layout answers its container, not the window. You write none of these rules.
+- **No focus, hover or press styles.** CSS resolves every state. No JavaScript runs at
+  interaction time.
+- **No accessibility wiring beyond `htmlFor`.** The primitives supply the roles, the keyboard
+  behaviour and the state announcements.
+
+## Next
+
+Read [The kinds of things](/philosophy/the-kinds-of-things). It states which component to use
+for which job. In this system, that question is rarely about appearance.
+
+Then read [Colour](/foundations/color) and
+[Space and layout](/foundations/space-and-layout). You use those two decisions most often.
+
+The [builder](/builder) is a live editor over the same components. Every distance is a token
+index. Every axis is a closed list. It exports the React code that a developer would write. It
+also runs the composition rules, so it reports a screen with two loud controls.

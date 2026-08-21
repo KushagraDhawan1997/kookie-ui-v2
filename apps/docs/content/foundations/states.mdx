@@ -1,0 +1,143 @@
+Every interactive thing in this system runs one state machine: rest, hover, press, focus,
+disabled, and the validity states. The shared control layer defines it one time, and no
+component changes it. A component states which axes it has. A component never states how a
+state looks.
+
+The reason is arithmetic. Components multiplied by rungs multiplied by states makes too many
+cells for per-component work to keep consistent.
+
+## Hover and press are steps on one scale
+
+Hover moves the fill one step up the scale. Press moves it two steps. No rung invents its own
+amount of feedback.
+
+Medium rests on the third alpha step. It hovers to the fourth step and presses to the fifth.
+Dark starts one step higher. Loud rests on the solid value, hovers one step above it, and
+presses the generated active value. Quiet rests on no fill, which is not a step, so quiet enters
+the scale at hover: transparent, then the third step, then the fourth.
+
+The absolute colours differ for each rung. The amount of feedback is identical everywhere. State
+is arithmetic on one scale rather than a second palette. Two controls at the same rung match
+because they read the same tokens.
+
+One step looks like the same change on every hue, because the lightness ladder under it is
+perceptually even. On a plain sRGB palette, one step would look larger on blue than on yellow.
+Interaction consistency would then break per colour, with no warning.
+
+## A label must clear contrast in every state
+
+A label must clear its APCA target against every background in its rung. The resting background
+is not enough. Press is where a label that passed at rest fails. APCA is the measured limit.
+
+## Hover applies only where a pointer hovers
+
+Every hover rule sits inside `@media (hover: hover)`. A touch device synthesises hover on tap
+and holds it until the next tap. Without that guard, a pressed control keeps its hover fill
+after the finger leaves. Press carries no guard, because press is the only feedback a touch
+device gives.
+
+## Focus is one ring
+
+One ring serves the whole system. It is an `outline` at `--focus-ring-width`, painted in
+`--focus-ring` and held off the box by `--focus-ring-offset`. An outline follows the corner
+natively, a pill included, and it cannot change layout. A shadow does neither.
+
+The ring answers one question: where is focus. That question is the same everywhere, so the ring
+is accent whatever the control's tone is. A destructive Button rings accent.
+
+WCAG 2.4.7 and 2.4.13 set the floor: at least two pixels, an offset, and 3:1 against the
+surfaces beside it. The laws assert that floor with APCA in both appearances. Dark needed its
+own step to hold it. The first version measured Lc 22 against the page, which a reader cannot
+see.
+
+The invalid state is the one exception. It rings `--invalid-edge`. A tone is a choice, and a
+state is not.
+
+## A field rings while the caret is in it
+
+A user does not press a field. A user enters it. The box must show that state however the user
+arrived. Every native text input behaves this way. A field therefore shows the ring whenever the
+caret is in it, not only after a Tab.
+
+The ring lands on the input that holds focus, never on the wrapper around it. A field with a
+Button in its trailing slot once lit two rings, one inside the other, and claimed a focus it did
+not have. A control hosted in a slot rings itself, like any other control.
+
+## A state outranks a decoration
+
+A tick on a Checkbox is a decoration. Invalid and disabled are states. A state outranks a
+decoration, and the stylesheet states this by specificity rather than by source order.
+
+The checked rule sits inside `:where()`, so it carries the weight of its class alone and loses
+to the state remaps. An earlier version used `:is()`. That rule tied with the invalid remap and
+won on file order, so a checked invalid Checkbox looked correct.
+
+Disabled outranks invalid. The order is deterministic.
+
+## Disabled remaps colour roles
+
+Disabled remaps roles. It never applies opacity. The foreground, the fills and the borders move
+to the dead palette. Hover and press stop firing. The cursor becomes `--cursor-disabled`, which
+is the arrow. It is never `not-allowed`, which no native platform uses.
+
+Opacity was refused. Opacity stacks on a tinted surface and voids every generated contrast
+guarantee, with no warning. A remap keeps the control legible and clearly off, and a law can
+test both halves.
+
+## The system reads validity
+
+There is no `invalid` prop, because nothing decides to look invalid. The system reads
+`aria-invalid`. It also reads Base UI's `data-invalid` where a field sits inside a `Field.Root`.
+
+```tsx
+// The state arrives from your validation, not from a prop.
+<TextField type="email" aria-invalid={emailError ? true : undefined} />
+```
+
+The value the user typed is content, and it stays legible. The box carries the state in its
+border and its ring. WCAG 1.4.1 states that colour alone is not sufficient signalling. The
+border is the system's half of the signal. The message is your half. A field that renders no
+error text is a composition defect, not a token defect.
+
+## The element records the decision
+
+States are stylesheet rules that read data attributes, so the element records what was decided.
+You can read the design off the element in the inspector. A lint rule reads the same thing.
+
+```html
+<button type="button" class="kui-control kui-button"
+        data-size="2" data-tone="destructive" data-emphasis="quiet">Delete</button>
+```
+
+Nothing in that element is a resolved colour, and no class encodes one. Meaning and loudness sit
+on the element. The theme answers them with a pigment.
+
+## Tone states meaning, emphasis states loudness
+
+Two independent questions take two independent props, and there is no `variant`. `tone` states
+what the action means. `emphasis` ranks the action against its siblings: loud, medium, quiet.
+`bordered` crosses all three rungs.
+
+A single appearance prop fuses the two questions. Systems that ship one end up with names like
+`secondary-outline-destructive`. Every combination needs a new name, the names stop composing,
+and the prop stops describing the button's job.
+
+A `primary | secondary | danger` prop is less expressive than tone by emphasis. It cannot state
+a quiet destructive action. A delete link is one of the most ordinary things an interface has to
+express.
+
+```tsx
+// One question at a time, and the low-emphasis destructive action is expressible.
+<Button emphasis="loud">Save changes</Button>
+<Button tone="destructive" emphasis="quiet">Delete</Button>
+```
+
+On a control, `bordered` is part of the ladder. Quiet is the first step. Quiet with a border is
+the second step. Medium is louder still. Read those as loudness steps, not as decoration. Loud
+with a border is legal and does nothing, because a hairline against a solid fill does no
+containment work.
+
+Call the axis emphasis. Do not call it "primary" or "secondary". Those words return the fused
+question. Separating the questions lets the system know which action is primary, so tooling can
+find two loud actions in one scope. An appearance API never learns the button's job, so it
+cannot.
