@@ -1668,6 +1668,13 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(parseFloat(y ?? "0"), "the twin must rise, or hover is broken here").toBeLessThan(0);
 
     await userEvent.click(trigger!);
+    // OPEN is a STATE, not the statement after the click (2026-08-21, CI on main: "the click
+    // must have opened it: expected null not to be null"). `data-popup-open` is React state
+    // that Base UI commits in a render, and a driver gesture resolving is not that render
+    // having happened — reading it here asserts the open is SYNCHRONOUS, which is a claim
+    // about the machine. A trigger that genuinely never opens still expires the deadline into
+    // the same assertion, with the same null in the message.
+    await until(() => trigger!.getAttribute("data-popup-open") !== null, 3000);
     expect(trigger!.getAttribute("data-popup-open"), "the click must have opened it").not.toBeNull();
     // The pointer is PUT there rather than assumed to have stayed (2026-08-20, CI: "the pointer
     // rests on the trigger it pressed: expected false to be true"). Where the driver leaves the
@@ -1685,6 +1692,11 @@ describe("the panel unfurls out of a seed (§22)", () => {
       return hit !== null && (hit === trigger || trigger!.contains(hit));
     }, 3000);
     await userEvent.hover(trigger!);
+    // A STATE, not the statement after the gesture (2026-08-21, the sweep after CI's
+    // "the click must have opened it"): a driver gesture resolving is not the browser
+    // having settled what the gesture causes. If it never settles, the deadline expires
+    // into the same assertion, with the same value in the message.
+    await until(() => trigger!.matches(":hover"), 2000);
     expect(trigger!.matches(":hover"), "the pointer must be on the trigger for the held read").toBe(true);
     // HELD DOWN, not locked at rest (revised the same hour): the press put it down, the open
     // panel keeps it there — the click latches. One value whether the pointer stays or goes,
