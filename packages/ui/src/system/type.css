@@ -59,7 +59,8 @@
    body copy set apart, so it joins the body slot rather than growing a third one — the slot
    list lives here because a family slot is the layer's mechanism, not a component's. */
 .kui-text,
-.kui-blockquote {
+.kui-blockquote,
+.kui-link {
   font-family: var(--font-body);
 }
 .kui-heading {

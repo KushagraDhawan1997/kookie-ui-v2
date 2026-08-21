@@ -1,0 +1,83 @@
+/* A link (§11's typography row, §15): the type family's one interactive member.
+ *
+ * The ramp, the weights, the body slot, the zeroed margin and the tone indirection are all
+ * the shared layer's (`type.css`). What is here is the two things that make a link a link —
+ * the underline, and the states — plus the ring, which a non-control has to draw for itself.
+ *
+ * NOT a `.kui-control`, so none of the skeleton reaches it and none of it should: an inline
+ * run of text has to stay selectable, has to wrap, and sits on the line box its paragraph
+ * set. It also grows no target: WCAG 2.2 SC 2.5.8 exempts a target "in a sentence or its
+ * associated text", because the line box is not this component's to enlarge (§16's expansion
+ * exists for a mark that has no container; a link's container is the paragraph). */
+
+.kui-link {
+  /* The ink, through the tone indirection rather than a family name — the same role every
+     other member of this family reads, so a `destructive` link is red words with a red
+     underline and nothing here mentions a colour. No emphasis rung: the ladder's two lower
+     rungs sit at and below the reading floor, and a link that has faded is the one element
+     whose job it was to be found. */
+  color: var(--tone-ink);
+  cursor: pointer;
+
+  /* WCAG 1.4.1: colour alone is not sufficient signalling, and a link inside a paragraph is
+     the canonical case the criterion is written about. So the underline is unconditional
+     rather than a hover reveal — a reader who cannot separate the hue from the surrounding
+     copy must be able to find the link WITHOUT moving a pointer, which a hover-only rule
+     cannot serve at all on a touch screen.
+
+     The decoration rests on the quiet hairline and steps to the ink under the pointer. That
+     is the same pairing Blockquote's rule and Separator's line use (§7's edge order): the
+     resting line carries no identity, so it reads as texture rather than as a second colour
+     competing with the words. */
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--border-width);
+  text-decoration-color: var(--color-border);
+  /* Relative to the link's own type, for the reason blockquote.css and code.css both state:
+     the distance between a rule and the glyphs it sits under is a property of the glyphs. A
+     designed constant would crowd a descender at size 9 and float at size 1. v0. */
+  text-underline-offset: 0.2em;
+
+  /* The PAINT clock (§8): a colour change eases and is short. Nothing here moves, so the
+     geometry clock has nothing to drive — a link has no box to sink and no scale to take,
+     which is the field's own answer for the same reason (the eye rests inside the words). */
+  transition: text-decoration-color var(--motion-duration) var(--motion-easing);
+}
+
+@media (hover: hover) {
+  /* Guarded like every hover rule in the system (§8): a touch device synthesises hover on tap
+     and holds it until the next tap, so an unguarded rule leaves a tapped link lit. */
+  .kui-link:hover {
+    text-decoration-color: currentcolor;
+  }
+}
+
+/* One ring, and it is the system's — the tokens rather than a second spelling, which the
+   directory-walked ring law requires of every focus rule in the package. Drawn here because
+   a link is not a `.kui-control` and so never meets `recipes.css`'s rule.
+
+   NO `kui-ring-land` arrival. §8 bounds ring travel below at about four pixels: Chrome
+   resolves `outline-offset` to whole CSS pixels, so a short travel renders as three values
+   and reads as a stutter rather than a movement. An inline ring sits close to its glyphs by
+   necessity, so the travel that would make the animation legible is exactly the travel this
+   element does not have. Instant is the measured answer, not the cheap one. */
+.kui-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  /* An inline box is drawn as fragments, one per line. Without this a wrapped link rings each
+     fragment separately with square ends mid-word; `clone` at least keeps each fragment whole
+     and correctly cornered. */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* The stand-down, on the DECLARING selector (§8, the 2026-08-10 rule). The shared block in
+   recipes.css covers `.kui-control` and `.kui-mark`, and a link is neither — so a clock
+   declared here is a clock nothing else can stop, which is the exact shape that left the
+   focus ring landing for six days for readers who had asked their system for stillness.
+   Same selector, later in the file: the tie goes to source order, so the stand-down wins by
+   construction rather than by arithmetic anyone has to redo. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-link {
+    transition: none;
+  }
+}

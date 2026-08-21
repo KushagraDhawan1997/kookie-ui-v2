@@ -35,6 +35,7 @@ import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import codeCss from "../components/code/code.css?raw";
 import dialogCss from "../components/dialog/dialog.css?raw";
 import kbdCss from "../components/kbd/kbd.css?raw";
+import linkCss from "../components/link/link.css?raw";
 import menuCss from "../components/menu/menu.css?raw";
 import selectCss from "../components/select/select.css?raw";
 import progressCss from "../components/progress/progress.css?raw";
@@ -75,6 +76,7 @@ export function installStyles(): void {
     codeCss,
     dialogCss,
     kbdCss,
+    linkCss,
     menuCss,
   selectCss,
     progressCss,

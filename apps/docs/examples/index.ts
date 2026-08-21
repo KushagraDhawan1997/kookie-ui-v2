@@ -29,6 +29,7 @@ import FlexExample from "./flex";
 import GridExample from "./grid";
 import HeadingExample from "./heading";
 import KbdExample from "./kbd";
+import LinkExample from "./link";
 import MenuExample from "./menu";
 import ProgressExample from "./progress";
 import RadioGroupExample from "./radio-group";
@@ -62,6 +63,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "grid": GridExample,
   "heading": HeadingExample,
   "kbd": KbdExample,
+  "link": LinkExample,
   "menu": MenuExample,
   "progress": ProgressExample,
   "radio-group": RadioGroupExample,
