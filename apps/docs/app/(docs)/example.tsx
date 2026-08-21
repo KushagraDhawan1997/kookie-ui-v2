@@ -36,6 +36,18 @@ export type ExampleProps = {
   quiet?: boolean;
 };
 
+/**
+ * Does this example render its own pane at the root?
+ *
+ * Read off the source rather than declared beside it, because a flag would be a second home
+ * for a fact the file already states, and the two would part company the first time an example
+ * was rewritten. The answer is checked against the RENDERED markup by a law, which is what
+ * makes reading source acceptable here: a regex can only be wrong by finding nothing, and
+ * finding nothing means wrapping, which is the fault this exists to prevent.
+ */
+export const rootsOwnPane = (source: string): boolean =>
+  /return\s*\(\s*<(Card|Surface)\b/.test(source);
+
 export function Example({ name, quiet }: ExampleProps) {
   const Component = EXAMPLES[name];
   if (!Component) {
@@ -44,17 +56,25 @@ export function Example({ name, quiet }: ExampleProps) {
     // writing the file.
     throw new Error(`No example named "${name}". Add examples/${name}.tsx and register it.`);
   }
+  const specimen = <Component />;
+  const source = readExampleSource(name);
   return (
     <Stack gap="3">
       {/* The specimen sits on a CARD — paper above the page, which is where most components
           actually live. A Surface would be the other reading (a ground holding objects) and
           is wrong here for one reason: the code block below is already a well, and two wells
-          stacked read as one region rather than as a thing and its source. */}
-      <Card size="4">
-        <Component />
-      </Card>
+          stacked read as one region rather than as a thing and its source.
+
+          UNLESS THE EXAMPLE BRINGS ITS OWN PANE (2026-08-21). Four examples root a Card and
+          one roots a Surface, because the component they document IS the pane — and the frame
+          wrapped them anyway, which is how this site shipped card-inside-card on four
+          component pages for weeks. Nothing static could see it: the frame is one file, the
+          example is another, and the nesting only exists in the rendered tree. Derived from
+          the source the component already reads rather than a flag beside it, so there is no
+          second place for the answer to go stale. */}
+      {rootsOwnPane(source) ? specimen : <Card size="4">{specimen}</Card>}
       {quiet ? null : (
-        <CodeBlock code={readExampleSource(name)} lang="tsx" title={`examples/${name}.tsx`} />
+        <CodeBlock code={source} lang="tsx" title={`examples/${name}.tsx`} />
       )}
     </Stack>
   );

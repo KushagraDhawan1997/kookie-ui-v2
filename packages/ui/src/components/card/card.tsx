@@ -6,6 +6,7 @@ import { composeRender, mergeRefs, type RenderElement } from "../../system/rende
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { useClipWarning } from "../../system/clip.tsx";
+import { CardScope, useInsideCard, useNestedCardWarning } from "../../system/nesting.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 export type CardProps = Omit<
@@ -72,6 +73,10 @@ export function Card({
   // A pane clips, so content wider than it is is not reachable at all (§3, 2026-08-21).
   // Dev-only, stripped in production.
   const clipRef = useClipWarning("<Card>");
+  // A card does not go inside a card (2026-08-21). The nesting crosses a component boundary,
+  // so nothing static can see it; the rendered tree is the only place the question can be
+  // asked. Dev-only warning, and the builder and the reviewer refuse it outright.
+  useNestedCardWarning(useInsideCard());
   const merged = {
     ref: mergeRefs(lensRef, clipRef),
     "data-size": size,
@@ -102,5 +107,9 @@ export function Card({
     <div {...(merged as React.ComponentPropsWithRef<"div">)}>{children}</div>
   );
 
-  return <GlassScope material={material}>{content}</GlassScope>;
+  return (
+    <GlassScope material={material}>
+      <CardScope>{content}</CardScope>
+    </GlassScope>
+  );
 }

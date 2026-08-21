@@ -27,6 +27,17 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 **The rule this earns, stated so it becomes routine rather than remembered:** before trusting a law, ask what its fixture would look like if the mechanism under test were absent. If the answer is "the same", the fixture is the defect, not the assertion. That is the degenerate-fixture lesson from 2026-08-20 restated as a QUESTION rather than a principle, because the principle did not stop its own author twice in two days.
 
 **One law caught me on the way and was right to**: the axis-list walk failed on `["elevated", "flat"] as const` in the new notice laws — fourteen private copies of a depth list were deleted for exactly this reason on 2026-08-16, and the walk finds the literal wherever it hides.
+## 2026-08-21 The shape is forbidden by a law now, because fixing it one law at a time did not work
+
+**What.** `src/test/settling.test.ts` fails any browser law that reads what a gesture causes in the statement after the gesture. Three fresh instances on main are repaired with it, and the one honest exception carries `// SETTLED-BY-DESIGN: <why>`.
+
+**Why a rule and not three more repairs.** This defect has now produced five CI failures over two days, and the previous round SWEPT all eight instances that existed. It came back anyway — the overlay work merged the same week added three more (`the dev warning did not fire`, and two `the close was refused` reads), written by someone who had not read the repair. A lesson that lives only in the fixed lines is a lesson that stops at the file it was learned in, and the proof is in this repo already: `dialog.browser.test.tsx`'s `warnings()` helper had been rewritten to WAIT for the warning, while its twin in `alert-dialog.browser.test.tsx` fifty lines away still slept a flat 60ms — and that sleep is the one CI caught.
+
+**The rule is mechanical, so it is cheap to obey and impossible to forget**: a `userEvent` gesture, then an `expect` reading `getAttribute` / `querySelector` / `matches` / `activeElement` / `isConnected` / `textContent` / `.length`. It runs in the node project in milliseconds, on any machine, and names the file and line. The repair is always the same shape — wait for the state, then assert it — and nothing is lost, because a state that never arrives expires the deadline into the same assertion with the same value in the message.
+
+**The one exception is a claim about a NON-event** ("this press did NOT close it"). There is nothing to wait for and waiting could only delay a correct answer — a slow machine makes such a law pass more easily rather than less — so those are marked, with a reason the law holds to a real sentence.
+
+**Falsified in three directions**: put the swept `data-popup-open` read back and it names the line; hollow the exemption to "flaky" and the reason clause fails; break the walk and the negative control fails. The three repaired laws were each falsified against their real defect too — refuse every close and both refusal laws fail at the deadline; silence the warning and the dev-warning law reports the honest zero.
 
 ---
 
@@ -111,6 +122,22 @@ The refusal is in character (this system has already refused `variant`, elevatio
 **Still open:** the Button done state the toast refusal owes; whether a Notice that MOUNTS on a condition change announces at all (a live region generally has to exist before its content changes, so `role="status"` on a freshly-mounted element may be silent — to be measured, not assumed); and Aside, which is deferred but deliberately, because our own docs site wanting one is exactly the incentive that put a Callout in every other design system.
 
 ---
+## 2026-08-21 A card inside a card, on our own component pages, invisible to every static check
+
+Kushagra, on the component reference: *"Card inside card isnt correct, how did this happen, the package must do everything to ensure it doesnt."*
+
+**How it happened is the whole finding: the nesting CROSSES A COMPONENT BOUNDARY.** The specimen frame in `example.tsx` renders a `<Card size="4">` and then renders whatever the example module exports; four examples export a card. Neither file contains a nested card. A static sweep of the repo finds nothing. Only the rendered tree holds the fault, so only the rendered tree can be asked — which is why it shipped, and why the guard has to be a runtime one.
+
+**Surface-inside-Card is NOT the same mistake, and the playground already ships it** with a comment calling it "a BED inside a card, the same statement at the other scale". So the rule is narrow: a card does not go inside a card. A ground inside an object is a quiet region; objects on a ground is a Surface holding cards; both stay legal and both are law-asserted silent.
+
+**Four layers, because a warning alone is not "everything the package can do".** The package warns in a dev build (`system/nesting.tsx` — context mark, no DOM, the `useClipWarning` precedent one file over). The builder's grammar refuses the drop outright, read against the whole ancestor chain so a card three layouts deep is refused too. The composition reviewer raises `nested-card` with an unwrap fix. And the docs' own frame now derives whether to wrap from the source it already reads, with a law holding the two implementations to one answer.
+
+**A `<Theme>` resets the mark**, which is what keeps portals correct: a menu or dialog opened from inside a card renders its own bare Theme, so a card in the panel is an ordinary card. The floating panels never set the mark themselves — they wear the card IDENTITY through the surface layer, not the `Card` component — so this costs them nothing. Law-asserted in both directions, including that the reset is not a blanket exemption: two cards inside the panel still warn.
+
+**Rejected: throwing.** A refusal that fires at runtime in production, for a design mistake rather than a crash, would have to be right about every case on the first try. The package spends its refusals in the type system where they cost nothing; here the honest arrangement is warn where a human is looking, refuse where a tool can refuse, check where a document can be read. **Rejected: auto-degrading the inner card to a Surface** — that is a judgment about what the region means, and a fix may not make it on the author's behalf. The reviewer's fix unwraps instead, which is right whatever the contents are.
+
+**The frame law is the one that would have caught this.** It renders every example the way the page does and counts panes opening inside panes; sabotaged to the pre-fix behaviour it fails with `card renders a card inside a card`, which is the screenshot. Measured after: zero nested cards on seven component pages and the whole playground, and zero warnings, so nothing else in the repo was doing it.
+
 ## 2026-08-21 A catalog entry could satisfy every builder law and still be a square that does nothing
 
 Asked to confirm Link was in the preview and the builder, I drove it through the real functions rather than re-reading my own edits. It is in both, and the export is right — a plain one and a configured one:
@@ -241,6 +268,26 @@ The move also made the registry pure data, so `registry.test.ts` imports the val
 **Two of my decisions were wrong first.** The site organised itself as `/components/<name>`, which is names-first: THESIS §2's stated inversion, applied to the system's own documentation by the author quoting it. And the chapter measure sat in the chrome, which is right for a chapter and wrong for the two other page shapes, so a third of the window stayed empty on every page.
 
 **The first draft's language was wrong, and Kushagra rejected it** (*"like bro what is it"*). It used metaphor, filler and the passive voice. Every chapter was rewritten to ASD-STE100 Simplified Technical English: active voice, short sentences, literal vocabulary, no metaphor. `content/AUTHORING.md` now states those rules, so later chapters follow them.
+
+## 2026-08-21 The sheet's ring was cut, and it had borrowed the wrong motion
+
+Both found by Kushagra by eye, an hour after the sheet shipped.
+
+**The ring.** `overflow-y: auto` beside a `visible` inline axis resolves that axis to `auto` too — CSS promotes it, and nobody writes that down. So the body became a scroll container on BOTH axes, and a scroll container clips at its own padding box. The padding was on the POPUP, so the body's box ended exactly where the field's did: measured 0px of clearance, and every focus ring inside a sheet sliced at both edges. The repair is the menu's own (2026-08-17, when its scrolling moved to a viewport) and the general rule the card work stated the day before — **a clipping box must pad at least the ring's reach** — reaching its second consumer. The padding moves onto the body in the bleed spelling, so a ScrollArea still reaches the edges by the same arithmetic and nothing is stated twice.
+
+**The motion.** Kushagra: *"it still has same motion as dialog when it opens in sheet. We will design a separate motion system for sheet, so what it has right now is wrong."* §24's entry is depth-not-distance and every word of that argument is about a CENTRED panel at modal mass — a 3% scale on a box already resting on the bottom edge is the wrong gesture, not a small one. Stood down until the sheet's own is designed, which is Menu's precedent: shipped instant, moved the next day. A motion that is wrong is worse than none, and an absence is honest about being unfinished in a way a borrowed recipe is not.
+
+**Three instrument findings, and each one is the same lesson from a different side.**
+
+**The fixture could not tell the cases apart.** My first motion law read `transition-property` on a `defaultOpen` dialog and got "none" at BOTH widths — because Base UI writes `transition: none !important` INLINE on a dialog that opens on mount. So the law would have passed with the stand-down deleted. It opens from the keyboard now, which is a real open. This is the degenerate-fixture rule (2026-08-20) for the tenth time and the second in two days.
+
+**Two sabotages survived the first law, and they were right to.** With the clock stood down, `data-starting-style` is gone before any read lands, so deleting the POSE stand-downs left the suite green — and the pose is not decoration: with no transition the browser still paints one frame at the starting values. The second law SETS the attribute rather than waiting for it, which is not a workaround: the claim is about what the starting pose resolves to, a question about the cascade rather than about time, and a law that raced the frame would be the shape `watchesFrames` exists to keep out.
+
+**And the law's first spelling failed on correct code.** It asserted `scale` was the string `"none"` while the CSS said `scale: 1` — the same picture, two strings. Fixed in the CSS rather than the law, because `none` is what is meant and it is also the resting value, which is what lets the law compare the starting pose against the resting one instead of against a literal.
+
+Four sabotage passes, all caught, after two of them were caught surviving. Judged on a real 390 x 844 viewport with a focused field, screenshotted. +34 bytes.
+
+---
 
 ## 2026-08-21 A dialog is a sheet on a phone, and the rule was already written
 
