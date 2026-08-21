@@ -22,6 +22,7 @@ import {
   render,
   sweep,
   tokenOn,
+  until,
 } from "../test/browser.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Checkbox } from "../components/checkbox/checkbox.tsx";
@@ -289,6 +290,11 @@ describe("hover reaches every family, including the two with no fill to step (§
         const restFill = computed(el, "background-color");
         const restEdge = computed(el, "border-color");
         await userEvent.hover(el);
+    // A STATE, not the statement after the gesture (2026-08-21, the sweep after CI's
+    // "the click must have opened it"): a driver gesture resolving is not the browser
+    // having settled what the gesture causes. If it never settles, the deadline expires
+    // into the same assertion, with the same value in the message.
+        await until(() => el.matches(":hover"), 2000);
         expect(el.matches(":hover"), `${name}: the harness must really be hovering`).toBe(true);
         expect(
           computed(el, "background-color"),
@@ -338,6 +344,11 @@ describe("a field does not move (§8)", () => {
     expect(computed(wrapper, "scale")).toBe("none");
 
     await userEvent.hover(wrapper);
+    // A STATE, not the statement after the gesture (2026-08-21, the sweep after CI's
+    // "the click must have opened it"): a driver gesture resolving is not the browser
+    // having settled what the gesture causes. If it never settles, the deadline expires
+    // into the same assertion, with the same value in the message.
+    await until(() => wrapper.matches(":hover"), 2000);
     expect(wrapper.matches(":hover"), "the harness must really be hovering").toBe(true);
     expect(computed(wrapper, "translate"), "a field has nowhere to go — §8").toBe("none");
     expect(computed(wrapper, "scale")).toBe("none");

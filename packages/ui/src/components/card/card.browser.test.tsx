@@ -1256,6 +1256,11 @@ describe("an interactive surface moves like a control, at its own scale (§8, §
     // false, so a law written that way would assert nothing and report the ring missing.
     const { userEvent } = await import("vitest/browser");
     await userEvent.tab();
+    // A STATE, not the statement after the gesture (2026-08-21, the sweep after CI's
+    // "the click must have opened it"): a driver gesture resolving is not the browser
+    // having settled what the gesture causes. If it never settles, the deadline expires
+    // into the same assertion, with the same value in the message.
+    await until(() => document.activeElement === pressable, 2000);
     expect(document.activeElement, "the card must be the first tab stop").toBe(pressable);
     expect(pressable.matches(":focus-visible"), "the ring must be live to read it").toBe(true);
     expect(computed(pressable, "animation-name"), "and it runs").toBe("kui-ring-land");

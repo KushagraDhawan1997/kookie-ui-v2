@@ -17,6 +17,7 @@ import {
   ownColor,
   probeIn,
   render,
+  until,
 } from "../../test/browser.tsx";
 import { Theme } from "../../theme/theme.tsx";
 import { Box } from "../box/box.tsx";
@@ -1064,6 +1065,11 @@ describe("the press travels, and its colour does not wait (§8)", () => {
     // harness can genuinely produce, and every other law here reads a declaration. The
     // sabotage that removed the rise walked past all of them.
     await userEvent.hover(el);
+    // A STATE, not the statement after the gesture (2026-08-21, the sweep after CI's
+    // "the click must have opened it"): a driver gesture resolving is not the browser
+    // having settled what the gesture causes. If it never settles, the deadline expires
+    // into the same assertion, with the same value in the message.
+    await until(() => el.matches(":hover"), 2000);
     expect(el.matches(":hover"), "the harness must really be hovering").toBe(true);
     const [, y] = computed(el, "translate").split(" ");
     expect(parseFloat(y ?? "0"), "it must rise toward the pointer, not sink").toBeLessThan(0);

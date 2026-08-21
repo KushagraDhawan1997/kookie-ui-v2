@@ -8,6 +8,19 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 A driver gesture resolving is not the browser having settled
+
+**What.** Eight laws read a state in the statement immediately after `userEvent.click/hover/tab`. They wait for that state now. One of them was red on main (`the click must have opened it: expected null not to be null`); the other seven are the same shape found by scanning for it rather than by waiting for CI to name them one per run.
+
+**Why it is a defect even where it has never failed.** `data-popup-open` is React state Base UI commits in a render; the popup count is a mount; `:hover` is the browser's answer to a pointer that may still be covered. A driver gesture RESOLVING is not any of those having happened — asserting on the next line asserts that the effect is SYNCHRONOUS, which is a claim about the machine. The dialog law said so in its own comment ("the open is React state, and a synchronous DOM click leaves the assertion running before the commit") and then asserted immediately anyway, which is the whole genus in one law.
+
+**Found by scanning, not by attrition.** Every red run this week produced exactly one member of this class, each fix revealing the next. The scan is mechanical — a gesture followed by an `expect` reading `getAttribute`/`querySelector`/`matches`/`activeElement`/`isConnected` — and it found all eight in one pass. Converting costs one line each and loses nothing: a state that never arrives expires the deadline into the same assertion, with the same value in the message.
+
+**One candidate was deliberately NOT converted.** The alert's "an outside press did not close it" asserts a NON-event, and waiting for a non-event is backwards — a slow machine makes that law pass more easily, never less, so the wait would only delay a correct answer. Its strength comes from its negative control (the same press closes an ordinary Dialog), not from timing.
+
+**Falsified**: a menu pinned closed fails the repaired law at the deadline with the honest null.
+
+---
 ## 2026-08-21 The docs became a guideline document, and the writing audited the system
 
 Kushagra: *"What I want to create is very close to HIG by Apple. Thats what Kookie is, its not just a UI library."*

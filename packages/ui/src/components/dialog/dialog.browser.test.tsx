@@ -46,6 +46,7 @@ import {
   tokenOn,
   SIZES,
   APPEARANCES,
+  until,
 } from "../../test/browser.tsx";
 import type { Size } from "../../system/axes.ts";
 
@@ -462,6 +463,11 @@ describe("title and description", () => {
     // A real press, not `.click()`: the open is React state, and a synchronous DOM click leaves
     // the assertion running before the commit that would mount the panel.
     await userEvent.click(trigger);
+    // A STATE, not the statement after the gesture (2026-08-21, the sweep after CI's
+    // "the click must have opened it"): a driver gesture resolving is not the browser
+    // having settled what the gesture causes. If it never settles, the deadline expires
+    // into the same assertion, with the same value in the message.
+    await until(() => document.querySelectorAll(".kui-dialog-popup").length === 1, 3000);
     expect(document.querySelectorAll(".kui-dialog-popup").length).toBe(1);
   });
 });

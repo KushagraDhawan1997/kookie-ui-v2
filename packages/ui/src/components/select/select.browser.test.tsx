@@ -1213,6 +1213,11 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     const { userEvent } = await import("vitest/browser");
     expect(computed(trigger, "translate"), "at rest it sits on the page").toBe("0px");
     await userEvent.hover(trigger);
+    // A STATE, not the statement after the gesture (2026-08-21, the sweep after CI's
+    // "the click must have opened it"): a driver gesture resolving is not the browser
+    // having settled what the gesture causes. If it never settles, the deadline expires
+    // into the same assertion, with the same value in the message.
+    await until(() => trigger.matches(":hover"), 2000);
     expect(trigger.matches(":hover"), "the harness must really be hovering").toBe(true);
     const [, y] = computed(trigger, "translate").split(" ");
     expect(parseFloat(y ?? "0"), "it must rise toward the pointer").toBeLessThan(0);
