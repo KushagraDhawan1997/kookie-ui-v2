@@ -8,28 +8,50 @@ A label is prose. `Text` renders prose, and `Text` already resolves every ink ro
 weight that prose needs. No control in this package takes a `label` prop. A `label` prop would
 put a second type system inside a checkbox.
 
+Because the label is a sibling, something has to hold the two together. `Field` is that
+something. It supplies the name, the description and the error, and it wires all three to the
+control, so you state the words and never the plumbing.
+
 ```tsx
-<Stack gap="3">
-  <Text size="2" weight="medium" render={<label htmlFor="email" />}>
-    Work email
-  </Text>
-  <TextField id="email" type="email" />
-</Stack>
+<Field>
+  <FieldLabel>Work email</FieldLabel>
+  <TextField type="email" />
+  <FieldDescription>We use this for receipts.</FieldDescription>
+</Field>
 ```
 
-State the association in the markup. Point `htmlFor` at an `id`, or wrap the control in a
-`<label>`. Do not rely on proximity.
+The order is fixed: label, control, description, error. The label sits on the control it names,
+and everything about that control pools underneath it.
+
+Write the association yourself only outside a `Field`. Point `htmlFor` at an `id`, or wrap the
+control in a `<label>`. Do not rely on proximity.
 
 A `placeholder` is not a label. It disappears when the person types. It renders in the muted ink
 role. A placeholder states real information. It does not state the name of the field.
 
 A mark sits beside its label instead of containing it. The row sets the distance between them.
+`FieldItem` is that row. Use one for each option in a checkbox group or a radio group. A label
+inside an item names the mark beside it, and a description inside an item explains that option
+alone.
 
 ```tsx
-<Flex align="center" gap="2">
-  <Checkbox id="digest" />
-  <Text render={<label htmlFor="digest" />}>Send me the weekly digest</Text>
-</Flex>
+<Field>
+  <FieldLabel>Delivery speed</FieldLabel>
+  <RadioGroup defaultValue="standard">
+    <Stack gap="4">
+      <FieldItem>
+        <Radio value="standard" />
+        <FieldLabel>Standard</FieldLabel>
+        <FieldDescription>Three to five business days.</FieldDescription>
+      </FieldItem>
+      <FieldItem>
+        <Radio value="express" />
+        <FieldLabel>Express</FieldLabel>
+        <FieldDescription>Next business day before noon.</FieldDescription>
+      </FieldItem>
+    </Stack>
+  </RadioGroup>
+</Field>
 ```
 
 ## Fields do not rank
@@ -57,14 +79,16 @@ button to medium or quiet.
     </Stack>
 
     <Stack gap="5">
-      <Stack gap="3">
-        <Text size="2" weight="medium" render={<label htmlFor="name" />}>Project name</Text>
-        <TextField id="name" required />
-      </Stack>
-      <Flex align="center" gap="2">
-        <Checkbox id="private" />
-        <Text render={<label htmlFor="private" />}>Keep it private for now</Text>
-      </Flex>
+      <Field>
+        <FieldLabel>Project name</FieldLabel>
+        <TextField required />
+      </Field>
+      <Field>
+        <FieldItem>
+          <Checkbox />
+          <FieldLabel>Keep it private for now</FieldLabel>
+        </FieldItem>
+      </Field>
     </Stack>
 
     <Flex justify="flex-end" gap="3">
@@ -100,8 +124,8 @@ still has to divide them.
 ## Validity is a state
 
 There is no `invalid` prop, because nothing chooses to look invalid. The system reads
-`aria-invalid`. It also reads Base UI's `data-invalid` when the control sits inside a
-`Field.Root`.
+`aria-invalid`. It also reads Base UI's `data-invalid`, which a control gets for free inside a
+`Field`.
 
 ```tsx
 <TextField

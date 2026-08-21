@@ -39,6 +39,7 @@ import {
   Field,
   FieldDescription,
   FieldError,
+  FieldItem,
   FieldLabel,
   Flex,
   Grid,
@@ -1135,9 +1136,10 @@ function SurfaceSection() {
 function FieldSection() {
   return (
     <Stack gap="6">
-      {/* The unit doing its real job: two fields on one card, one of them failing. The
-          description sits above the control and the error below it — instruction before the
-          act, diagnosis after (§28, §29). */}
+      {/* The unit doing its real job: three fields on one card, one of them failing. The label
+          sits on the control it names and everything about that control pools underneath it
+          (§28) — and the last field is the group case, where each option carries its own name
+          and its own line. */}
       <Box maxWidth="26rem">
         <Card size="3">
           <Stack gap="5">
@@ -1147,23 +1149,49 @@ function FieldSection() {
                 We send one confirmation and nothing else.
               </Text>
             </Stack>
-            <Stack gap="4">
+            {/* Gap 5 between fields against the field's own 3 inside: the house interval, and
+                the composition rule is that a group's insides sit at least two steps under the
+                gap around it. It read as one flat column at 4 — visible the moment a field
+                started ending in muted text rather than in a box. */}
+            <Stack gap="5">
               <Field>
                 <FieldLabel>Email</FieldLabel>
-                <FieldDescription>We use this for receipts.</FieldDescription>
                 <TextField type="email" placeholder="mira@kookie.dev" />
+                <FieldDescription>We use this for receipts.</FieldDescription>
+              </Field>
+              <Field>
+                <FieldItem>
+                  <Checkbox />
+                  <FieldLabel>Send a copy to me</FieldLabel>
+                </FieldItem>
               </Field>
               {/* `aria-invalid` is the standalone spelling of what a submit would set, so the
                   error renders here without a form round trip. */}
               <Field>
                 <FieldLabel>Account number</FieldLabel>
-                <FieldDescription>Eight digits, no spaces.</FieldDescription>
                 <TextField defaultValue="4471" aria-invalid />
+                <FieldDescription>Eight digits, no spaces.</FieldDescription>
                 <FieldError match={true}>That is four digits short.</FieldError>
               </Field>
+              {/* An item is what a mark's label has always needed: the mark family refuses to
+                  draw its own label, so before this every named checkbox was a hand-written
+                  `id` + `htmlFor` pair at the call site. */}
               <Field>
-                <FieldLabel>Send a copy to me</FieldLabel>
-                <Checkbox />
+                <FieldLabel>Delivery speed</FieldLabel>
+                <RadioGroup defaultValue="standard">
+                  <Stack gap="4">
+                    <FieldItem>
+                      <Radio value="standard" />
+                      <FieldLabel>Standard</FieldLabel>
+                      <FieldDescription>Three to five business days.</FieldDescription>
+                    </FieldItem>
+                    <FieldItem>
+                      <Radio value="express" />
+                      <FieldLabel>Express</FieldLabel>
+                      <FieldDescription>Next business day before noon.</FieldDescription>
+                    </FieldItem>
+                  </Stack>
+                </RadioGroup>
               </Field>
             </Stack>
             <Flex justify="end">
@@ -1182,8 +1210,8 @@ function FieldSection() {
             <Box key={size} width="14rem">
               <Field size={size}>
                 <FieldLabel>Workspace</FieldLabel>
-                <FieldDescription>Lowercase, no spaces.</FieldDescription>
                 <TextField defaultValue="kookie" />
+                <FieldDescription>Lowercase, no spaces.</FieldDescription>
               </Field>
             </Box>
           ))}

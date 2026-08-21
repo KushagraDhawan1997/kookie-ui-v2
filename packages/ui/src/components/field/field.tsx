@@ -28,6 +28,11 @@ export type FieldProps = Omit<
   className?: string;
 };
 
+export type FieldItemProps = Omit<
+  React.ComponentPropsWithoutRef<typeof BaseField.Item>,
+  "className" | "render"
+> & { className?: string };
+
 export type FieldLabelProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseField.Label>,
   "className" | "render"
@@ -68,12 +73,21 @@ const FieldTypeContext = React.createContext<Size>("2");
  * itself, so a re-export would be a second spelling of the control already standing there.
  * Same call as `Progress.Track` and the Tabs indicator: structure, not API.
  *
- * **Order is label, description, control, error** — the description above and the error below,
- * because §29's own rule read one level down: instruction before the act, diagnosis after. A
- * description tells you what to enter and is needed before you type; an error tells you what
- * went wrong and is only true afterwards. Both show, and the error never replaces the
- * description: removing the instruction at the exact moment somebody failed to follow it is
- * the wrong trade. §28 records the cost that order carries and whose call it was.
+ * **Order is label, control, description, error.** The label sits directly on the control it
+ * names, and everything that is *about* that control pools underneath it.
+ *
+ * The first spelling put the description above, on §29's rule read one level down —
+ * instruction before the act, diagnosis after. That reading was retracted 2026-08-21
+ * (Kushagra): position inside a single unit is PROXIMITY, not sequence. §29's rule orders
+ * things a person meets at different moments — a question asked before an act, a report made
+ * after one. A field is met all at once, so the only thing vertical position settles here is
+ * what sits beside what, and the pairing that has to survive a form of ten fields is the label
+ * on its control.
+ *
+ * The description comes before the error because an error can then arrive without moving
+ * anything already on screen. Both show, and the error never replaces the description:
+ * removing the instruction at the exact moment somebody failed to follow it is the wrong
+ * trade. §28 records the cost this order carries, which grew with the change.
  *
  * **Stacked, always.** `orientation` is refused on Slider's precedent (§11): a horizontal field
  * is not a direction flip — the label aligns to the control's first line and the error must sit
@@ -97,6 +111,52 @@ export function Field({ size = "2", className, children, ...props }: FieldProps)
         </BaseField.Root>
       </FieldTypeContext.Provider>
     </ControlSizeContext.Provider>
+  );
+}
+
+/**
+ * One option inside a group (§28) — a mark, its own name, and its own line of explanation.
+ *
+ * A `Field` names ONE control. A checkbox group or a radio group is several controls under one
+ * name, and each of them needs a name of its own; "Express" needs to say "next business day"
+ * without the group's label having anywhere to put it. `FieldItem` is the scope that makes
+ * that work: Base UI opens a fresh naming context inside it, so a `FieldLabel` written here
+ * names the mark standing beside it rather than the group, and a `FieldDescription` written
+ * here is ADDED to the ones the field already supplies — an option ends up described by the
+ * field's description and by its own, in that order, which is the reading a person would give
+ * them anyway.
+ *
+ * **This closes the labelling hole the mark family shipped with.** Checkbox and Radio have
+ * always refused to draw their own label (§11 — a mark sits BESIDE its label, so the row owns
+ * the space between them and the mark cannot own the row). That was the right refusal and it
+ * left nobody holding the row: until now, every checkbox with a name meant a hand-written
+ * `id` + `htmlFor` pair at the call site, which is the exact wiring Field exists to remove.
+ *
+ * **The layout is a two-column grid and that is the whole design.** The mark takes the first
+ * column; the name and the explanation stack in the second, so the explanation aligns with the
+ * words it belongs to and not with the mark. The mark needs no vertical alignment rule because
+ * `--mark-N` IS `--line-height-N` (§4): a mark is exactly one line of its label tall, so it
+ * lands on the label's first line by construction.
+ *
+ * The column gap is `--layout-space-3` — the distance every hand-rolled checkbox row in this
+ * repo already used — and the rows inside an item are one step tighter than the field's own
+ * rhythm, because a nested group steps down (§15). Both are v0 for the eye pass.
+ *
+ * **Order inside an item is mark, name, explanation.** The field's own order (label, control,
+ * description) does not apply, because here the control is beside the words rather than under
+ * them; what carries across is that the explanation follows the thing it explains.
+ *
+ * `disabled` is Base UI's and stands this option down on its own — the `disabled` on `Field`
+ * takes precedence, so a dead field cannot be revived one option at a time.
+ */
+export function FieldItem({ className, children, ...props }: FieldItemProps) {
+  return (
+    <BaseField.Item
+      {...props}
+      className={className ? `kui-field-item ${className}` : "kui-field-item"}
+    >
+      {children}
+    </BaseField.Item>
   );
 }
 
@@ -126,9 +186,10 @@ export function FieldLabel({ className, children, ...props }: FieldLabelProps) {
  * What to enter, before you enter it (§28). The muted role, which is what `emphasis="medium"`
  * resolves to for type (§15) — real information said quietly, at `apcaFloors.body` exactly.
  *
- * It sits ABOVE the control on purpose. Base UI wires it into `aria-describedby` wherever it
- * is placed, so the position is a reading decision rather than a wiring one, and the reading
- * decision is §29's: instruction before the act.
+ * It sits BELOW the control, above the error. Base UI wires it into `aria-describedby`
+ * wherever it is placed, so where it sits is a reading decision and never a wiring one — a
+ * screen reader announces it with the control from any position. What position decides is
+ * proximity for the eye, and it keeps the label on the control it names (§28).
  */
 export function FieldDescription({ className, children, ...props }: FieldDescriptionProps) {
   const size = React.useContext(FieldTypeContext);

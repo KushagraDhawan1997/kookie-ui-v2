@@ -6,7 +6,7 @@ export { Button, type ButtonProps } from "./components/button/button.tsx";
 export { Card, type CardProps } from "./components/card/card.tsx";
 export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx";
 export { Code, type CodeProps } from "./components/code/code.tsx";
-export { Field, FieldLabel, FieldDescription, FieldError, type FieldProps, type FieldLabelProps, type FieldDescriptionProps, type FieldErrorProps } from "./components/field/field.tsx";
+export { Field, FieldItem, FieldLabel, FieldDescription, FieldError, type FieldProps, type FieldItemProps, type FieldLabelProps, type FieldDescriptionProps, type FieldErrorProps } from "./components/field/field.tsx";
 export { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose, type DialogProps, type DialogTriggerProps, type DialogContentProps, type DialogTitleProps, type DialogDescriptionProps, type DialogCloseProps } from "./components/dialog/dialog.tsx";
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
 export { Kbd, type KbdProps } from "./components/kbd/kbd.tsx";

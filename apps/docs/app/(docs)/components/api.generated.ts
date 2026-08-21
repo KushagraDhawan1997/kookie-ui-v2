@@ -680,6 +680,17 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "FieldItem": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
   "FieldLabel": {
     "element": null,
     "props": [
