@@ -11,6 +11,7 @@ export type ScrollAreaProps = {
   children?: React.ReactNode;
   /** Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable). */
   className?: string;
+  /** Inline styles, merged last. They land on the root, not on the viewport that scrolls. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
   /**

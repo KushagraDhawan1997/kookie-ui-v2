@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 An exemption that was right rendered a blank cell, which was not
+
+Every props table on the site had two rows with an empty description: `className` and `style`, on all 38 components. Kushagra saw them and asked for them filled.
+
+**The obvious fix would have been wrong, and the code said so.** The coverage law skips those two names on purpose, with the reason written beside the `continue`: they mean the same thing everywhere, they are explained once in each page's "Everywhere" section, and 58 JSDoc copies of one sentence would be 58 things to keep in step. That reasoning holds. I wrote all 72 anyway on the first pass, and reverted it.
+
+**What was actually broken is the RENDERING.** The exemption produced a blank cell, so a reader scanning the table learned nothing and had nothing pointing them at the section that would have told them. The universal sentence now has one home — `prop-description.ts`, which the page renders through — and no component repeats it.
+
+**A component still writes a JSDoc where the escape lands somewhere a reader would guess wrong**, which is a different fact from the universal one and therefore has its own home: eleven props types, all compound (a popup rather than its positioner, a panel rather than its scrim and its viewport, a scroll root rather than the viewport that scrolls). Each claim was checked against the source before it was written; `dialog.tsx` had said the same thing in a comment since it shipped. The note is APPENDED to the universal sentence rather than replacing it, because a reader of `MenuContent` needs both facts and the specific one is the less basic.
+
+**Two laws, both falsified.** No table renders an empty description cell — read through the renderer rather than off the generated data, which is what makes it a law about what a reader sees. And a per-component note is appended, never a substitute, which catches the cheap version of this fix: a renderer returning the JSDoc when there is one and the shared sentence when there is not.
+
+**Two instrument failures in one session, the same shape both times.** A sabotage string that did not match the source (a semicolon for a comma, then a sentence that the JSDoc wrapper had split across lines) reported a law as surviving when the law had never been tested. And restoring a sabotaged file with `git checkout --` discarded the uncommitted work in it, which is how the third sabotage finally proved itself: the law failed with `expected '' not to be ''`, for real, on damage I had done by accident.
+
 ## 2026-08-21 Link ships, and the docs had already grown two of them
 
 Comparing the docs site against Apple's HIG, Kushagra asked what is missing and named the shape of the answer himself: *"You can name things like 'we dont have a link component'."* Measured, the app had grown two link treatments and they disagreed. A prose link computed `data-tone="accent"` and a blue; the prev/next footer link, wearing the same `.kd-link` class and no `Text` wrapper, computed `0.1202 0.1226 0.1255` — pixel-identical to body copy. One class, two colours, in one app, because nothing owned the fact.

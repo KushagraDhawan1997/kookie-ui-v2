@@ -100,13 +100,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the panel, not on the scrim and not on the scrollable viewport between them."
       },
       {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the panel, not on the scrim and not on the scrollable viewport between them."
       }
     ]
   },
@@ -204,7 +204,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the trigger, and with `render` on the element you rendered into."
       },
       {
         "name": "disabled",
@@ -228,7 +228,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the trigger, and with `render` on the element you rendered into."
       }
     ]
   },
@@ -532,13 +532,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the panel, not on the scrim and not on the scrollable viewport between them."
       },
       {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the panel, not on the scrim and not on the scrollable viewport between them."
       }
     ]
   },
@@ -899,7 +899,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the popup, not on the positioner around it, so a width or a max-height you set is the panel's."
       },
       {
         "name": "side",
@@ -917,7 +917,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the popup, not on the positioner around it, so a width or a max-height you set is the panel's."
       }
     ]
   },
@@ -1180,13 +1180,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the popup, not on the positioner around it."
       },
       {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the popup, not on the positioner around it."
       }
     ]
   },
@@ -1232,7 +1232,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the row that opens the submenu."
       },
       {
         "name": "disabled",
@@ -1256,7 +1256,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the row that opens the submenu."
       }
     ]
   },
@@ -1273,7 +1273,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the trigger, and with `render` on the element you rendered into."
       },
       {
         "name": "disabled",
@@ -1297,7 +1297,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the trigger, and with `render` on the element you rendered into."
       }
     ]
   },
@@ -1364,7 +1364,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the root, not on the viewport that scrolls."
       }
     ]
   },
@@ -1415,13 +1415,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the popup, not on the positioner around it, so a width or a max-height you set is the panel's."
       },
       {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the popup, not on the positioner around it, so a width or a max-height you set is the panel's."
       }
     ]
   },
@@ -1596,7 +1596,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "className",
         "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the trigger, which is a field-shaped control."
       },
       {
         "name": "placeholder",
@@ -1608,7 +1608,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,
-        "doc": ""
+        "doc": "Inline styles, merged last. They land on the trigger, which is a field-shaped control."
       }
     ]
   },

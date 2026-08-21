@@ -128,7 +128,11 @@ export type AlertDialogTriggerProps = {
       question is coming. They land on the `render` target, so a Kookie Button plus children
       is one button. */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the trigger,
+      and with `render` on the element you rendered into. */
   className?: string;
+  /** Inline styles, merged last. They land on the trigger, and with `render` on the element you
+      rendered into. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
 };
@@ -158,7 +162,11 @@ export type AlertDialogContentProps = {
       Cancel-first mean reading order, start side and initial focus at once. Anything beyond
       those four makes the thing a Dialog. */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the panel,
+      not on the scrim and not on the scrollable viewport between them. */
   className?: string;
+  /** Inline styles, merged last. They land on the panel, not on the scrim and not on the
+      scrollable viewport between them. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };

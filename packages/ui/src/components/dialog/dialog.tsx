@@ -297,7 +297,11 @@ export type DialogContentProps = Omit<
       for: a `DialogTitle`, without which the panel has no accessible name at all, and a
       `DialogClose`, because a trapped screen-reader user needs a reachable way out. */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the panel,
+      not on the scrim and not on the scrollable viewport between them. */
   className?: string;
+  /** Inline styles, merged last. They land on the panel, not on the scrim and not on the
+      scrollable viewport between them. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };

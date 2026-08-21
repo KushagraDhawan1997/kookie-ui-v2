@@ -23,6 +23,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { API } from "./api.generated";
+import { propDescription } from "./prop-description";
 import { ENTRIES } from "./registry";
 import { generatedText, resolvedPropNames } from "../../../scripts/generate-api";
 
@@ -93,6 +94,43 @@ describe("the generated table and the written reference agree", () => {
       for (const part of entry.parts ?? []) check(part.part);
     }
     expect(undocumented).toEqual([]);
+  });
+
+  it("no props table renders an empty description cell", () => {
+    /**
+     * The half the coverage law above deliberately does not cover, and the half a reader
+     * actually meets. That law exempts `className` and `style` because their meaning is one
+     * fact and 58 JSDoc copies of it would be 58 things to keep in step. Correct — but the
+     * exemption rendered a BLANK CELL for six of every table's rows, so a reader scanning the
+     * props learned nothing and had nothing pointing them at the section that would have told
+     * them. Found by eye on a table that had shipped that way from the start.
+     *
+     * This reads what the PAGE will render rather than what the generator emitted, which is
+     * the difference that makes it a law about the reader's experience instead of about the
+     * data behind it. A prop whose doc is empty and whose name the renderer does not answer
+     * fails here.
+     */
+    const blank: string[] = [];
+    for (const [component, entry] of Object.entries(API)) {
+      for (const prop of entry.props) {
+        if (propDescription(prop).trim().length < 10) blank.push(`${component}.${prop.name}`);
+      }
+    }
+    expect(blank).toEqual([]);
+  });
+
+  it("a per-component note is APPENDED to the universal sentence, never a replacement", () => {
+    // The failure this catches is the cheap fix: a renderer that returns the JSDoc when there
+    // is one and the shared sentence when there is not. A reader of MenuContent would then be
+    // told where the class lands and never told what it does, which is the more basic fact.
+    const menu = API.MenuContent!.props.find((prop) => prop.name === "className")!;
+    expect(menu.doc, "the fixture needs a component that carries its own note").not.toBe("");
+    const rendered = propDescription(menu);
+    expect(rendered).toContain("appended to the ones this component resolves");
+    expect(rendered).toContain("not on the positioner");
+
+    // ...and the universal sentence is not doubled when the note restates its opening.
+    expect(rendered.match(/Your classes/g)?.length).toBe(1);
   });
 
   it("no registry axis describes a prop the types do not have", () => {

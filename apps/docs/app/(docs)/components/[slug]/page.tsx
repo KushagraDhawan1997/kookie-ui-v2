@@ -26,7 +26,8 @@ import {
 } from "@kookie-ui/react";
 
 import { Example } from "../../example";
-import { API } from "../api.generated";
+import { API, type ApiProp } from "../api.generated";
+import { propDescription } from "../prop-description";
 import { BY_SLUG, ENTRIES } from "../registry";
 
 export function generateStaticParams() {
@@ -210,7 +211,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                         {prop.type}
                       </Code>
                     </td>
-                    <td>{prop.doc}</td>
+                    <td>{propDescription(prop)}</td>
                   </tr>
                 ))}
               </tbody>
