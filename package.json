@@ -1,6 +1,12 @@
 {
   "name": "kookie-ui-v2",
   "private": true,
+  "description": "KookieUI v2 workspace. The @kookie-ui/react package, the documentation site and the governance documents.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KushagraDhawan1997/kookie-ui-v2.git"
+  },
   "type": "module",
   "packageManager": "pnpm@10.28.2",
   "engines": {
