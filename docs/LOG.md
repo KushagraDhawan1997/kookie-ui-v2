@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 Link ships, and the docs had already grown two of them
+
+Comparing the docs site against Apple's HIG, Kushagra asked what is missing and named the shape of the answer himself: *"You can name things like 'we dont have a link component'."* Measured, the app had grown two link treatments and they disagreed. A prose link computed `data-tone="accent"` and a blue; the prev/next footer link, wearing the same `.kd-link` class and no `Text` wrapper, computed `0.1202 0.1226 0.1255` — pixel-identical to body copy. One class, two colours, in one app, because nothing owned the fact.
+
+**It is type, not a control, and the absence is the design.** The skeleton is a BOX: a height ladder that is also a target, an inline padding, a corner, a cursor and `user-select: none`. An inline link has none of those and must not grow them — text in a sentence has to stay selectable, wrap across lines, and sit on the line box its paragraph set. Progress's argument, one family over. It therefore draws its own ring, because `recipes.css` never sees it.
+
+**`size` and `weight` are optional with no default**, Code's rule verbatim: unset, a link takes the line it sits in, so a link inside a size-2 caption matches by construction rather than by the call site repeating an index. A law mounts one inside `<Text size="2">` and reads both against the host, with the vacuity guard that the host is genuinely not the default step.
+
+**Three refusals, each with a citation.** `emphasis` — the ink ladder's lower rungs sit at (Lc 60) and below (Lc 30) the reading floor, so the rung that stands a link's colour down works against the only thing the component is for; a link that matters less is a smaller link. `:visited` — browsers restrict what it may paint and make `getComputedStyle` report the unvisited value, to stop a page reading a reader's history, so no law here can read it, and this repo does not ship a rule no law can read. **§11's row named that state before the constraint was checked**, and the row is amended. A target of its own — SC 2.5.8 states an inline exception for a target in a sentence, and §16's expansion exists for a mark with no container, where a link's container is the paragraph.
+
+**The underline is unconditional.** WCAG 1.4.1: colour alone is not sufficient signalling, and a link inside a paragraph is the case the criterion is written about. A hover reveal serves no touch screen at all. What moves under the pointer is the decoration's COLOUR — resting on `--color-border` and stepping to the ink — which is §7's edge order one component over, and it is the treatment the docs app had already judged by eye. Ported, not invented.
+
+**Three laws caught real defects before it shipped.** The ramp law read Times New Roman: `.kui-link` was not in `type.css`'s body-slot list, so a link fell out of the family entirely. The two-clocks law read `text-decoration-color` as geometry, because it is a colour that had never been in the `PAINT` set — widened, with the reason, since it is `border-color`'s category one property over. And the reduced-motion law required link.css to carry its own stand-down: the shared block covers `.kui-control` and `.kui-mark`, a link is neither, and a clock nothing can stop is the exact shape that left the focus ring landing for six days for readers who had asked for stillness.
+
+**Six sabotages, and one of them was my own instrument.** "It opts into the control skeleton" appeared to survive; the sabotage had a semicolon where the source has a comma, so it never applied. Re-run against the real string, the law fails. An instrument is not evidence until it has been calibrated against a known answer.
+
++90 bytes gzipped. The docs app's two hand-drawn treatments are deleted and both call sites render the component, which is the proof the gap is closed rather than moved.
+
+**Three chapters had to be amended, and one of them had stopped being true.** `states.mdx` opened with *"Every interactive thing in this system runs one state machine"*, which a link falsifies: it answers a pointer and is not a control, so it takes the ring and a hover of its own and none of the box. The ontology's Type list named five components where there are six, and typography's body-slot list named two of three. The taxonomy chapter also gains the pair that actually confuses people — **Link or Button**, settled by what happens on press: a new address, or a change to the thing you are looking at.
+
 ## 2026-08-21 The README stated a build order that had been wrong for seventeen days
 
 **What.** The root README said the §14 build order was "complete through step 6" and that "repetition has begun with TextField". That was true on 4 August. Twenty-five more components, the documentation site and the builder shipped after it. It did not name `THESIS.md`, which is first in the read order. It is rewritten, and `CONTRIBUTING.md` is new.

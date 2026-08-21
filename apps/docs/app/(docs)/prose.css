@@ -38,18 +38,6 @@
    Tone comes from `<Text tone="accent">`, so this owns only the underline. Offset and
    thickness are stated because the UA's default underline sits on the baseline and cuts every
    descender in the line. */
-.kd-link {
-  color: inherit;
-  text-decoration-line: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
-  text-decoration-color: var(--color-border);
-}
-
-.kd-link:hover {
-  text-decoration-color: currentcolor;
-}
-
 /* ── Tables ────────────────────────────────────────────────────────────────────────────────
    A data table, which the system has never specified. The horizontal scroller is the app's
    own: a table is the one block in prose whose content can genuinely exceed the measure, and

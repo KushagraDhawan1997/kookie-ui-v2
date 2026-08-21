@@ -9,6 +9,7 @@ export { Code, type CodeProps } from "./components/code/code.tsx";
 export { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose, type DialogProps, type DialogTriggerProps, type DialogContentProps, type DialogTitleProps, type DialogDescriptionProps, type DialogCloseProps } from "./components/dialog/dialog.tsx";
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
 export { Kbd, type KbdProps } from "./components/kbd/kbd.tsx";
+export { Link, type LinkProps } from "./components/link/link.tsx";
 export { Menu, MenuTrigger, MenuContent, MenuItem, MenuGroup, MenuLabel, MenuCheckboxItem, MenuRadioGroup, MenuRadioItem, MenuSub, MenuSubTrigger, MenuSubContent, type MenuProps, type MenuTriggerProps, type MenuContentProps, type MenuItemProps, type MenuGroupProps, type MenuLabelProps, type MenuCheckboxItemProps, type MenuRadioGroupProps, type MenuRadioItemProps, type MenuSubProps, type MenuSubTriggerProps, type MenuSubContentProps } from "./components/menu/menu.tsx";
 export { Select, SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectLabel, type SelectProps, type SelectTriggerProps, type SelectContentProps, type SelectItemProps, type SelectGroupProps, type SelectLabelProps } from "./components/select/select.tsx";
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";

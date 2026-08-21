@@ -15,14 +15,14 @@
  * paragraph gap. Differentiated rhythm is the composition brief's own rule (§15) — a flat
  * one is a finding the reviewer would raise against any screen we shipped.
  *
- * THREE ELEMENTS HAVE NO COMPONENT TO RESOLVE TO — lists, inline links and tables — and they
- * are handled here in the only honest way: the semantic element, kept for what it announces,
- * with its type coming from `<Text render>` and its remaining details from `prose.css` in
- * tokens. §11 plans `Link` and a table row and has shipped neither; nothing in the system has
- * ever named a list. Writing the docs is what turned that from an absence nobody had noticed
- * into three recorded gaps (LOG 2026-08-21), which is the pattern this repo keeps having:
+ * TWO ELEMENTS HAVE NO COMPONENT TO RESOLVE TO — lists and tables — and they are handled here
+ * in the only honest way: the semantic element, kept for what it announces, with its type
+ * coming from `<Text render>` and its remaining details from `prose.css` in tokens. §11 plans
+ * a table row and has shipped neither it nor a static table; nothing in the system has ever
+ * named a list. Writing the docs is what turned that from an absence nobody had noticed into
+ * three recorded gaps (LOG 2026-08-21), which is the pattern this repo keeps having:
  * /preview forced the composition rules, the builder forced `componentAxes`, and the canon
- * forces the prose primitives.
+ * forced the prose primitives — the third of which, `Link`, shipped as a result.
  */
 import * as React from "react";
 import type { MDXComponents } from "mdx/types";
@@ -32,6 +32,7 @@ import {
   Box,
   Code,
   Heading,
+  Link,
   Separator,
   Stack,
   Text,
@@ -140,18 +141,17 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       const target = href ?? "";
       const external = /^https?:/.test(target);
       return (
-        <Text
-          tone="accent"
+        <Link
           render={
             external ? (
-              <a href={target} rel="noreferrer noopener" target="_blank" className="kd-link" />
+              <a href={target} rel="noreferrer noopener" target="_blank" />
             ) : (
-              <NextLink href={target} className="kd-link" />
+              <NextLink href={target} />
             )
           }
         >
           {children}
-        </Text>
+        </Link>
       );
     },
 

@@ -10,7 +10,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Box, Flex, Heading, Separator, Stack, Text } from "@kookie-ui/react";
+import {
+  Box,
+  Flex,
+  Heading,
+  Link as KookieLink,
+  Separator,
+  Stack,
+  Text,
+} from "@kookie-ui/react";
 
 import { ProseFlow } from "../../../mdx-components";
 import { BY_SLUG, CHAPTERS, neighbours, SECTIONS } from "../chapters";
@@ -115,9 +123,9 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
               <Text size="2" emphasis="quiet">
                 Previous
               </Text>
-              <Text size="3" render={<Link href={`/${prev.slug}`} className="kd-link" />}>
+              <KookieLink size="3" render={<Link href={`/${prev.slug}`} />}>
                 {prev.title}
-              </Text>
+              </KookieLink>
             </Stack>
           ) : (
             <span />
@@ -127,9 +135,9 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
               <Text size="2" emphasis="quiet">
                 Next
               </Text>
-              <Text size="3" render={<Link href={`/${next.slug}`} className="kd-link" />}>
+              <KookieLink size="3" render={<Link href={`/${next.slug}`} />}>
                 {next.title}
-              </Text>
+              </KookieLink>
             </Stack>
           ) : null}
         </Flex>

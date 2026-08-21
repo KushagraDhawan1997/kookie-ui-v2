@@ -426,6 +426,16 @@ export const CATALOG: Record<string, CatalogEntry> = {
     children: "text",
     make: () => node("Code", {}, { text: "pnpm run ci" }),
   },
+  Link: {
+    family: "Type",
+    blurb: "A link. Unset size takes the line it sits in; tone rests on accent.",
+    // NOT `typeProps`: the type family's shared set carries `emphasis`, and Link refuses it
+    // (the ink ladder's lower rungs sit at and below the reading floor, and a link that has
+    // faded is the one element whose job it was to be found).
+    props: { size: typeSize, weight, tone, href: text },
+    children: "text",
+    make: () => node("Link", { href: "#" }, { text: "Read the argument" }),
+  },
   Kbd: {
     family: "Type",
     blurb: "A key cap. Unset size takes the line, like Code.",
