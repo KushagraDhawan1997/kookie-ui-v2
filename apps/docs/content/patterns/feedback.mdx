@@ -11,8 +11,8 @@ common failure is the wrong answer, not an ugly one.
 | Outcome | The work finished | Words where the action was, in the tone that names the result |
 | Error | The work failed, or the input was wrong | The invalid state of the control, plus a sentence |
 
-Outcome is the one row with no component yet. The last section of this chapter states what to
-compose instead.
+Outcome is the one row with no component yet. The last section of this chapter says what to
+build instead.
 
 ## Busy keeps the label
 
@@ -34,12 +34,12 @@ nor a size of its own.
 
 ## Progress when you know the fraction
 
-`Progress` is a well and a fill. A number reports the fraction. `value={null}` sweeps as an
-indeterminate bar. The type requires the prop, so you state "I do not know how far along this is"
-rather than reaching it by forgetting.
+`Progress` is a track with a fill in it. A number reports the fraction. `value={null}` sweeps as an
+indeterminate bar. The type requires the prop, so you have to say "I do not know how far
+along this is" instead of arriving there by forgetting one.
 
-`Progress` has no `size`, and the absence is a decision. The ladder it could have used prices a
-track as a fraction of the thumb of a slider, and a bar has no thumb. Its extent comes from the
+`Progress` has no `size`, and the absence is a decision. The ladder it could have used sizes a
+track as a fraction of a slider's thumb, and a bar has no thumb. Its extent comes from the
 container, so the `Box` that owns the row decides how wide the bar is.
 
 The three answers compose into one panel. The button says the work started, the bar says how far
@@ -77,14 +77,14 @@ An indeterminate sweep says only that something is happening.
 
 Everything else in this system stops moving under `prefers-reduced-motion`. A spinner and an
 indeterminate bar are the exception. Their movement is not a response to a state change. Their
-movement is the message. Stopping them would remove the only thing they state, so they slow down
-instead.
+movement is the message. Stopping them would remove the only thing they tell you, so they slow
+down instead.
 
 Carry that distinction into anything you compose. A skeleton shimmer, a pulsing dot and a
-sweeping bar all state a message by moving. A hover fill, a panel opening and a ring landing
+sweeping bar all carry their message by moving. A hover fill, a panel opening and a ring landing
 respond to a state change, so they stop.
 
-## Status tone is a vocabulary
+## Use a status tone for its meaning
 
 Four names carry meaning: `success`, `warning`, `info` and `destructive`. Four more are colour as
 data: `blue`, `green`, `orange` and `amber`. Use the second set for a chart series, a project
@@ -107,12 +107,12 @@ meaning. Three tones read as a legend, such as a status set or a three-series ke
 
 ## Colour is never the whole message
 
-Colour alone is not sufficient signalling (WCAG 1.4.1). Every status this system paints is half a
+Colour alone is not enough (WCAG 1.4.1). Every status this system paints is half a
 message by design. The border, the ring and the ink are the half the system paints. You write the
 sentence.
 
 A red field with nothing beside it fails this rule. A green dot with no label fails it. A chart
-keyed by hue alone fails it. All three fail hardest for the people the tone was loudest for.
+keyed by hue alone fails it. All three fail worst for the people who cannot see the colour.
 
 Write what to do next in an error. A colour could never carry that instruction.
 

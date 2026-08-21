@@ -19,10 +19,10 @@ export default function Home() {
           A design system that means what it says
         </Heading>
         <Text size="4" emphasis="medium" render={<p />}>
-          KookieUI is a taxonomy first and a component library second. Each component names a
-          kind of thing: a ground, a surface, a control, a mark. What a component refuses is as
-          designed as what it does. These pages state the rules. The system enforces most of
-          them, so you do not have to remember them.
+          KookieUI sorts components by what they do, not by how they look. A ground, a
+          surface, a control and a mark each take different props. What a component refuses is
+          as designed as what it does. These pages state the rules, and the types enforce most
+          of them, so you do not have to remember them.
         </Text>
         <Flex gap="3" wrap="wrap">
           <Button
@@ -46,15 +46,15 @@ export default function Home() {
 
       <Stack gap="4">
         <Heading size="6" render={<h2 />}>
-          Three claims, and where to read about each
+          Three claims
         </Heading>
         <Stack gap="4">
           {[
             {
               title: "Meaning, not appearance",
               body: "You choose what a thing means. You set a tone, a loudness and a size index. The theme resolves the colour, the length and the corner. There is no colour prop and no variant prop. Meaning and loudness are separate questions, and one prop that answers both produces values such as secondary-outline-destructive.",
-              href: "/philosophy/the-kinds-of-things",
-              label: "The kinds of things",
+              href: "/philosophy/component-families",
+              label: "The component families",
             },
             {
               title: "Refusals with reasons",
@@ -64,7 +64,7 @@ export default function Home() {
             },
             {
               title: "Guidelines that hold",
-              body: "You cannot express most of the rules on this site incorrectly, because they are types rather than advice. A test checks the rest, including these pages: each chapter cites the specification, and a test resolves every citation. The pages mark each judgment as a judgment.",
+              body: "Most of the rules on this site are types, not advice, so you cannot write them wrong. Tests check the rest, including these pages: every chapter cites the specification, and a test resolves each citation. Where a value is a judgment rather than a measurement, the page says so.",
               href: "/philosophy/why-these-rules-hold",
               label: "Why these rules hold",
             },

@@ -1,9 +1,9 @@
 Every control in this system runs one state machine: rest, hover, press, focus, disabled, and
 the validity states. The shared control layer defines it one time, and no component changes it.
-A component states which axes it has. A component never states how a state looks.
+A component says which axes it has. A component never says how a state looks.
 
-The reason is arithmetic. Components multiplied by rungs multiplied by states makes too many
-cells for per-component work to keep consistent.
+The reason is arithmetic. Components times loudness levels times states is far too many
+combinations to keep consistent by hand.
 
 **`Link` is the one interactive thing that is not a control**, so it is the one exception. A
 control is a box with a height, a padding and a target. A link is a run of words inside a
@@ -12,17 +12,17 @@ hover of its own, and none of the box. The rest of this chapter is about control
 
 ## Hover and press are steps on one scale
 
-Hover moves the fill one step up the scale. Press moves it two steps. No rung invents its own
-amount of feedback.
+Hover moves the fill one step up the scale. Press moves it two steps. No loudness level
+invents its own amount of feedback.
 
 Medium rests on the third alpha step. It hovers to the fourth step and presses to the fifth.
 Dark starts one step higher. Loud rests on the solid value, hovers one step above it, and
 presses the generated active value. Quiet rests on no fill, which is not a step, so quiet enters
 the scale at hover: transparent, then the third step, then the fourth.
 
-The absolute colours differ for each rung. The amount of feedback is identical everywhere. State
-is arithmetic on one scale rather than a second palette. Two controls at the same rung match
-because they read the same tokens.
+The colours differ at each loudness level. The amount of feedback is the same everywhere. A
+state is arithmetic on one scale, not a second palette. Two controls at the same loudness level
+match because they read the same tokens.
 
 One step looks like the same change on every hue, because the lightness ladder under it is
 perceptually even. On a plain sRGB palette, one step would look larger on blue than on yellow.
@@ -30,8 +30,8 @@ Interaction consistency would then break per colour, with no warning.
 
 ## A label must clear contrast in every state
 
-A label must clear its APCA target against every background in its rung. The resting background
-is not enough. Press is where a label that passed at rest fails. APCA is the measured limit.
+A label must clear its APCA target against every background that loudness level uses. The
+resting background is not enough. Press is where a label that passed at rest fails. APCA is the measured limit.
 
 ## Hover applies only where a pointer hovers
 
@@ -47,7 +47,7 @@ One ring serves the whole system. It is an `outline` at `--focus-ring-width`, pa
 natively, a pill included, and it cannot change layout. A shadow does neither.
 
 The ring answers one question: where is focus. That question is the same everywhere, so the ring
-is accent whatever the control's tone is. A destructive Button rings accent.
+is accent whatever the control's tone is. A destructive Button gets the accent ring.
 
 WCAG 2.4.7 and 2.4.13 set the floor: at least two pixels, an offset, and 3:1 against the
 surfaces beside it. The ring clears that floor in both appearances. Each appearance uses its own
@@ -63,13 +63,13 @@ arrived. Every native text input behaves this way. A field therefore shows the r
 caret is in it, not only after a Tab.
 
 The ring lands on the input that holds focus, never on the wrapper around it. A control in a
-leading or trailing slot rings itself, like any other control. So a field with a `Button` in its
+leading or trailing slot shows its own ring, like any other control. So a field with a `Button` in its
 trailing slot shows one ring, on whichever of the two holds focus.
 
 ## A state outranks a decoration
 
 A tick on a Checkbox is a decoration. Invalid and disabled are states. A state outranks a
-decoration, and the stylesheet states this by specificity rather than by source order.
+decoration, and the stylesheet enforces this with specificity rather than source order.
 
 The checked rule sits inside `:where()`, so it carries the weight of its class alone and loses
 to the state remaps. A checked Checkbox that is also invalid draws the invalid border, not the
@@ -80,7 +80,7 @@ Disabled outranks invalid. The order is deterministic.
 ## Disabled remaps colour roles
 
 Disabled remaps roles. It never applies opacity. The foreground, the fills and the borders move
-to the dead palette. Hover and press stop firing. The cursor becomes `--cursor-disabled`, which
+to the disabled palette. Hover and press stop firing. The cursor becomes `--cursor-disabled`, which
 is the arrow. It is never `not-allowed`, which no native platform uses.
 
 The system does not use opacity for this. Opacity stacks on a tinted surface and voids every
@@ -131,19 +131,19 @@ You can read the design off the element in the inspector. A lint rule reads the 
 ```
 
 Nothing in that element is a resolved colour, and no class encodes one. Meaning and loudness sit
-on the element. The theme answers them with a pigment.
+on the element. The theme answers with a colour.
 
-## Tone states meaning, emphasis states loudness
+## Tone is meaning, emphasis is loudness
 
-Two independent questions take two independent props, and there is no `variant`. `tone` states
+Two independent questions take two independent props, and there is no `variant`. `tone` says
 what the action means. `emphasis` ranks the action against its siblings: loud, medium, quiet.
-`bordered` crosses all three rungs.
+`bordered` works at all three loudness levels.
 
 A single appearance prop fuses the two questions. Systems that ship one end up with names like
 `secondary-outline-destructive`. Every combination needs a new name, the names stop composing,
 and the prop stops describing the button's job.
 
-A `primary | secondary | danger` prop is less expressive than tone by emphasis. It cannot state
+A `primary | secondary | danger` prop is less expressive than tone by emphasis. It cannot express
 a quiet destructive action. A delete link is one of the most ordinary things an interface has to
 express.
 
@@ -155,8 +155,8 @@ express.
 
 On a control, `bordered` is part of the ladder. Quiet is the first step. Quiet with a border is
 the second step. Medium is louder still. Read those as loudness steps, not as decoration. Loud
-with a border is legal and does nothing, because a hairline against a solid fill does no
-containment work.
+with a border is legal and does nothing, because a hairline against a solid fill contains
+nothing.
 
 Call the axis emphasis. Do not call it "primary" or "secondary". Those words return the fused
 question. Separating the questions lets the system know which action is primary, so tooling can

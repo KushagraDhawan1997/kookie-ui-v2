@@ -16,9 +16,9 @@ One `Size` type serves three ladders. Button and the fields read the control hei
 Card and Surface read the padding and corner index. Checkbox reads the mark index. The three
 ladders share a numeral, not a scale. Pick each family against its own question.
 
-## One index joins a designed set
+## One index sets a whole group of values
 
-Set `size` once. The component reads a set of values the system designed together:
+Set `size` once. The component reads a group of values that were designed together:
 
 - the height, from `--control-height-N`
 - the inline padding, from `--control-px-N`
@@ -27,8 +27,8 @@ Set `size` once. The component reads a set of values the system designed togethe
 - the icon-to-label gap, from `--control-gap-N`
 - the type step of the label
 
-No value in that set is an anchor times a factor. Each density level places its own four
-heights, and each pointer world places four more. Correction has to stay local. Under a
+No value in that group is a base number times a factor. Each density level sets its own four
+heights, and each pointer setting sets four more. A correction has to stay local. Under a
 multiplier you cannot say "size 2 is 33 pixels", because a factor moves all four heights
 together.
 
@@ -44,7 +44,7 @@ together.
 --icon-size-2: calc(20px * var(--scale));
 ```
 
-A fixed-height control states `min-height`, never `height`. Text at 200% and a label that
+A fixed-height control sets `min-height`, never `height`. Text at 200% and a label that
 wraps then grow the box instead of overflowing it. WCAG 2.2 Success Criterion 1.4.4 requires
 that resize, which is a measured limit.
 
@@ -86,14 +86,13 @@ checkbox then toggles the next. `gap="4"` resolves to 12 pixels at the default d
 
 ## The pointer axis
 
-The system renders two complete geometries, `fine` and `coarse`, the way it renders two
-colour appearances. The two worlds share the components, the size index and the rules, and
-differ only in the placed values. The signal is what touches the screen, never the width of the
+`fine` and `coarse` are two complete sets of measurements, in the same way that light and dark
+are two complete sets of colours. Both share the components, the size index and the rules, and
+differ only in the numbers. The signal is what touches the screen, never the width of the
 window.
 
-Under `coarse` seven families re-declare as designed sets. They are control heights, inline
-padding, the icon box, the icon-to-label gap, the control corner, the mark ladder and
-reading type.
+Under `coarse`, seven groups of values are restated: control heights, side padding, the icon
+box, the icon-to-label gap, the control corner, the mark ladder and reading type.
 The space palette and the layout layer above it do not move. A phone needs more content per
 inch, not less.
 
@@ -123,14 +122,14 @@ type move together. There is no `device` prop. `coarse` means handheld.
 ## A hosted control derives its size
 
 A control inside another control does not read a size from the call site. The container
-computes it from one designed inset that drives all four sides. A call site
-cannot infer the mapping. Adjacent heights are four to eight pixels apart, so no index seats
-a hosted control with visible air.
+computes it from one inset that drives all four sides. A call site could not work the mapping
+out. Neighbouring heights are four to eight pixels apart, so no index leaves a hosted control
+with even air around it.
 
 The hosted control's hit area matches the container's box. It does not grow to 44. A
-44-pixel target inside a 36-pixel field out-targets the thing that holds it, and SC 2.5.8
-counts that against you. This inverts the mark family's rule. A hosted target
-shrinks to its container. A mark's target grows to the container it does not have.
+44-pixel target inside a 36-pixel field is a larger target than the thing holding it, and SC
+2.5.8 counts that against you. This is the mark family's rule turned around. A hosted target
+shrinks to its container. A mark's target grows to the container it never had.
 
 ```tsx
 <TextField
@@ -140,18 +139,18 @@ shrinks to its container. A mark's target grows to the container it does not hav
 />
 ```
 
-## A ladder can refuse
+## Ask whether a ladder fits before you add size
 
-Ask the existing ladder whether it fits before you give a component a `size`. It can refuse. The
-refusal is then the design.
+Before you give a component a `size`, check whether an existing ladder suits it. Sometimes none
+does, and then the component ships without a size.
 
 Progress has no size axis. The nearest ladder is the slider's track. The system designs that
 track as about one quarter of the fine mark, so it holds a constant fraction of the thumb it
-serves. A bar has no thumb. A bar on that ladder would size against a box it does not have. Progress takes Separator's shape instead: one designed thickness, the extent of its
-container, and no index. Adding `size` later is additive. Removing it is a breaking change.
+serves. A bar has no thumb. A bar on that ladder would size itself against a box it does not have. `Progress` takes
+`Separator`'s shape instead: one stated thickness, the width of its container, and no index. Adding `size` later is additive. Removing it is a breaking change.
 
-Code refuses from the other side. Its `size` is optional with no default. Unset, Code
-takes the type of the line it sits in. An inline atom has no size of its own.
+Code refuses from the other side. Its `size` is optional with no default. Left unset, `Code`
+takes the type of the line it sits in. A word inside a sentence has no size of its own.
 
 ```tsx
 {/* A bar has no size. */}

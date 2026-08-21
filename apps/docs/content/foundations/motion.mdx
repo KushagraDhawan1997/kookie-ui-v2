@@ -40,7 +40,7 @@ underneath it. This rule is a floor. Any motion added later keeps the press imme
 Hover is asymmetric. It arrives in 80 milliseconds and leaves in 220 milliseconds. This is a
 judgment. Arriving is an act of the user, and leaving is the end of one.
 
-## Each family states its distance
+## Each family sets its own distance
 
 A Button sinks under a press. It moves down, and it also becomes smaller. A downward move alone
 looks like a slide. A size change alone looks like the Button retreating. The Button does both.
@@ -51,10 +51,10 @@ Button's factor would move each edge by several pixels. The user reads that as t
 A mark squashes instead. A Checkbox has no depth to sink into. A field does not move at all. Its
 box never travels and never scales, because the eye rests inside a field.
 
-No family states a duration. The shared layer owns the clock, and the family owns the distance.
+No family sets a duration. The shared layer owns the clock, and the family owns the distance.
 Two controls at the same size therefore move alike.
 
-This is the whole motion API. Every control below already moves correctly, and no line states a
+This is the whole motion API. Every control below already moves correctly, and no line sets a
 duration, a distance or an easing.
 
 ```tsx
@@ -78,7 +78,7 @@ duration, a distance or an easing.
 ```
 
 The buttons sink. The switch grip springs across its channel. The slider grip follows the
-pointer. Each family states its own distance, and the shared layer states the clock.
+pointer. Each family sets its own distance, and the shared layer sets the clock.
 
 There is no duration prop, no easing prop and no prop named `animate`. A component cannot write
 a duration either. Every channel of every transition must resolve to a motion token, so a
@@ -86,14 +86,14 @@ hand-typed `150ms` fails CI.
 
 ## A movement crosses its target one time
 
-Both shipped curves cross their target one time at most. A second crossing is a ring, and a
-ringing control looks mechanical.
+Both curves cross their target one time at most. A second crossing is a wobble, and a wobbling
+control looks mechanical.
 
 To make a movement more visible, increase the distance. Do not reduce the damping. A looser
 curve on a short travel reads as a spring effect and nothing else. Damping is fixed. Distance is
 the variable a family owns.
 
-## The ring's travel has a floor
+## A focus ring cannot animate over a short distance
 
 The focus ring cannot travel less than about four pixels. Chrome resolves `outline-offset` to
 whole pixels, so a ring with two pixels of room animates in three frames. Three frames look like
@@ -116,10 +116,9 @@ animation.
 A suppression that leaves one channel moving is worse than no suppression. A person who asks the
 operating system for stillness must get all of it.
 
-Structure carries the suppression. A hook selects which arrival a control gets, and reduced
-motion stands down the hook rather than the rules that read it. A recipe and its suppression
-therefore share one selector, and specificity cannot separate them. The stylesheet that declares
-a clock stands that clock down itself, on the declaring selector.
+The stylesheet that starts a movement is also the one that stops it, on the same selector. A
+new animation therefore cannot arrive without its own switch-off, and no CSS specificity fight
+can leave one channel running.
 
 ## No JavaScript runs at interaction time
 

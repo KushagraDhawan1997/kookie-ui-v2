@@ -36,14 +36,14 @@ bands, so a control, a Card and a menu row stay in proportion at every level.
 the platform signal, so a visitor who asked the operating system for more contrast gets it with
 no prop set.
 
-**`pointer`** states what is touching the screen. `auto` follows the platform. Pinning it forces
+**`pointer`** is what is touching the screen. `auto` follows the platform. Pinning it forces
 the whole coarse world: geometry, targets and the handheld type band together. Pin it to judge a
 phone's sizing on a desktop.
 
-**`depth`** states whether light exists in this app. Surfaces either sit above the page and cast
+**`depth`** says whether light exists in this app. Surfaces either sit above the page and cast
 a shadow, or everything sits in one plane. This is an app-level statement, never a per-Card prop.
 
-**`material`** states what the app is made of. One value covers the whole scope, because every
+**`material`** is what the app is made of. One value covers the whole scope, because every
 pane in one app is made of the same thing.
 
 ## A nested theme re-scopes
@@ -113,7 +113,7 @@ pointer, elevated depth and solid material. Two of those need a reason.
 `depth` defaults to `elevated`, because most apps have light in them. A flat world is the
 deliberate exception rather than the neutral starting point. This is a judgment.
 
-`material` defaults to `solid`. Solid is a material. It is the rung where light stops passing
+`material` defaults to `solid`. Solid is a material. It is the level where light stops passing
 through, not the absence of a material. Glass takes two steps, and both are required. The theme
 must be made of glass, and something must sit behind the pane for the pane to bend it. A control
 in ordinary flow resolves `solid` and costs nothing.

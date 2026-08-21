@@ -1,6 +1,6 @@
 There is no elevation axis. No component takes a shadow, and no call site chooses one.
 
-`depth` is a `Theme` axis with two values. It states whether this application has a light
+`depth` is a `Theme` axis with two values. It says whether this application has a light
 source. Each family then decides whether it casts a shadow, and the system decides that once.
 
 ## Set depth once, at the root
@@ -14,25 +14,24 @@ source. Each family then decides whether it casts a shadow, and the system decid
 `elevated` is the default. The world has a light source. Surfaces sit above the page, the focal
 control catches light, and grips lift.
 
-`flat` states that the world has no light source. Line and fill then state every separation.
+`flat` means the world has no light source. Line and fill then show every separation.
 
-A reader reads light as a property of the room, not of one object. Two cards on one screen, one
+People read light as a property of the room, not of one object. Two cards on one screen, one
 raised and one not, describe two rooms. So the axis sits on the `Theme`, and no component takes
 a `shadow` prop, an `elevation` prop or a `raised` boolean.
 
 ## What casts a shadow
 
-These cast: `Card` and the panes that use its identity, the **loud** rung of a button, the
-grips, and `Kbd`.
+These cast: `Card` and the panes that look like it, a **loud** button, the grips, and `Kbd`.
 
-These do not cast: `Surface`, fields, text areas, the medium and quiet rungs, marks, progress
+These do not cast: `Surface`, fields, text areas, medium and quiet buttons, marks, progress
 bars, separators and tab bars.
 
 Depth separates the focal element and the floating element. Everything else sits in the plane or
 on it. Three of those refusals change what you write.
 
 - **A ground casts nothing.** A `Surface` is what objects sit on. It is not an object. Put a
-  `Card` inside a `Surface` when you need the object to lift. The bed does not lift with it.
+  `Card` inside a `Surface` when you need the object to lift. The ground under it stays put.
 - **A field is a well.** A field is content in a plane, not a plane above one. To raise a form,
   put the form in a `Card`. The fields stay recessed inside it.
 - **A medium fill sits on the plane.** Rank two buttons with `emphasis`, not with depth. A loud
@@ -65,7 +64,7 @@ Nest a `Theme` when one region of an elevated application needs no light.
 </Theme>
 ```
 
-The first `Card` lifts and its loud button catches light. The second `Card` states its edge with
+The first `Card` lifts and its loud button catches light. The second `Card` shows its edge with
 a hairline. Nothing inside the nested `Theme` casts a shadow, including a menu that opens from
 it.
 
@@ -92,16 +91,16 @@ not ship, use the visible escape:
 
 `Box` takes no `shadow` prop. `Box` is layout, and a shadow is paint.
 
-## A floating layer states its coverage
+## A popup must show its edge
 
-A popup covers the content under it. It must show the reader a boundary.
+A popup covers the content under it, so the reader has to be able to see where it ends.
 
-In `elevated`, the floating chrome shows that boundary. In `flat`, nothing casts a shadow,
-including menus and dialogs, and a pane states its coverage with a hairline instead. Two cues
+In `elevated`, the shadow shows that edge. In `flat`, nothing casts a shadow, including menus
+and dialogs, so a popup draws a hairline instead. Two cues
 for one fact is one cue too many.
 
 A `Dialog` casts no shadow of its own in either world. **The scrim is the separation.** The whole
-viewport goes dark, which states the coverage more completely than a shadow does. The panel
+viewport goes dark, which shows the coverage more completely than a shadow does. The panel
 keeps the world's ordinary surface chrome, which is the shadow a `Card` wears.
 
 ## The grips cast in both worlds
@@ -109,9 +108,9 @@ keeps the world's ordinary surface chrome, which is the shadow a `Card` wears.
 The slider grip, the switch thumb, the chosen segment of a segmented control and `Kbd` cast a
 shadow in every world, including `flat`.
 
-The shape states the role here, as it does for the radius exceptions. A grip that does not sit
-above its rail stops reading as a grip. A grip's position is the value, so losing that reading
-loses the control. Every platform ships the handle with a shadow in every context.
+The shape carries the role here, as it does for the radius exceptions. A grip that does not sit
+above its rail stops reading as a grip. A grip's position is the value it sets, so if it stops
+reading as a grip the control stops working. Every platform ships the handle with a shadow in every context.
 
 `Kbd` is the opposite case. A key presses into its surface, so its depth is relief and not lift.
 

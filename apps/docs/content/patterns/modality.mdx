@@ -53,29 +53,29 @@ button, in that order. The component lays them out.
 </AlertDialog>
 ```
 
-`size` on an alert prices everything: the box, the corner, the padding, both type steps and both
+`size` on an alert sets everything: the box, the corner, the padding, both type steps and both
 buttons. The system owns all of that content, so the system may size it. `size` on a `Dialog`
 stops at the box. A dialog holds content the system did not write, and no surface in this system
 sizes type it does not own.
 
-Write cancel first. That order is the focus mechanism. Cancel reads first and it sits at the
+Write cancel first. That order is how focus is decided. Cancel reads first and it sits at the
 start. It flips for a right-to-left language at no cost. It takes initial focus as the first
 tabbable element. Document order chooses the safest action.
 
 ## The scrim is the separation
 
-The dialog panel casts no shadow of its own. Every floating layer states what it covers, and a
-dialog states it with the whole viewport going dark. A shadow under the panel would state the
+The dialog panel casts no shadow of its own. Every floating layer has to show what it covers,
+and a dialog does that by darkening the whole viewport. A shadow under the panel would say the
 same thing twice.
 
 The panel keeps the ordinary surface chrome, the same chrome a `Card` takes. It is lifted in an
 elevated theme and flat in a flat one.
 
-The scrim is also what lets the panel move almost not at all when it opens. The scrim already
-stated the change.
+The scrim is also why the panel barely moves when it opens. The scrim has already announced
+the change.
 
 Under `contrast="high"`, and for a person who asks the operating system for reduced transparency,
-the scrim gives one answer: more pigment and no defocus.
+the scrim gives one answer: more colour and no blur.
 
 ## Focus and dismissal
 
@@ -105,14 +105,14 @@ few words as will hold them.
 Put the tone on the action button, never on the panel. The alert stays neutral, and the
 destructive act is the one red thing inside it.
 
-An alert holds exactly one action button, so the loud rung is legal here as a default. The
+An alert holds exactly one action button, so a loud button is correct here as a default. The
 anatomy holds the one-focal-action rule. Nobody has to remember it.
 
-## Every covering layer states its coverage
+## Every covering layer must show what it covers
 
-Overlap is information, so anything that covers has to state its own boundary. A menu casts the
-floating chrome in an elevated theme. A menu draws its hairline in a flat theme, because a flat
-theme states a boundary with a line. A dialog states it with the scrim.
+Covering something is information, so anything that covers has to show its own edge. In an
+elevated theme a menu casts a shadow. In a flat theme it draws a hairline instead, because a
+flat theme draws every boundary with a line. A dialog draws it with the scrim.
 
 None of this is a call-site decision. No component in this system takes a shadow. Knowing that
 the rule exists is what stops a reader reaching for one.

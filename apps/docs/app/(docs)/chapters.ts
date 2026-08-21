@@ -21,7 +21,7 @@ import Installation from "../../content/start/installation.mdx";
 import Theming from "../../content/start/theming.mdx";
 import YourFirstScreen from "../../content/start/your-first-screen.mdx";
 import WhyKookieExists from "../../content/philosophy/why-kookie-exists.mdx";
-import TheKindsOfThings from "../../content/philosophy/the-kinds-of-things.mdx";
+import ComponentFamilies from "../../content/philosophy/component-families.mdx";
 import WhyTheseRulesHold from "../../content/philosophy/why-these-rules-hold.mdx";
 import Composition from "../../content/patterns/composition.mdx";
 import Forms from "../../content/patterns/forms.mdx";
@@ -57,7 +57,7 @@ export const SECTIONS: readonly Section[] = [
   {
     id: "philosophy",
     title: "Philosophy",
-    blurb: "What this system optimizes for, and the kinds of things it says exist.",
+    blurb: "What this system optimizes for, and how it sorts components into families.",
   },
   {
     id: "foundations",
@@ -145,14 +145,14 @@ export const CHAPTERS: readonly Chapter[] = [
     Content: WhyKookieExists,
   },
   {
-    slug: "philosophy/the-kinds-of-things",
-    title: "The kinds of things",
+    slug: "philosophy/component-families",
+    title: "The component families",
     section: "philosophy",
     blurb:
-      "Grounds, surfaces, controls, marks, rows and instruments. The kind decides what you can set on a component.",
+      "Grounds, surfaces, controls, marks, rows and instruments. The family decides which props a component takes.",
     spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
-    source: "philosophy/the-kinds-of-things.mdx",
-    Content: TheKindsOfThings,
+    source: "philosophy/component-families.mdx",
+    Content: ComponentFamilies,
   },
   {
     slug: "philosophy/why-these-rules-hold",
