@@ -214,6 +214,10 @@ export const ENTRIES: Entry[] = [
     ],
     refusals: [
       {
+        name: "a card inside a card",
+        why: "A Card is an object with its own plane: opaque, bordered, and lifted in an elevated world. Two of them stacked is an object standing on an object, which states a relationship the system does not have. For a quiet region inside one card, use a Surface. For several objects on one ground, put the cards in a Surface. A development build warns, the builder's grammar cannot express it, and the composition reviewer raises it.",
+      },
+      {
         name: "a material prop",
         why: "Material moved to the Theme on 2026-08-16: it answers what the APP is built of, which is one value for a whole scope rather than a per-card choice. There is no rung to walk and no ceiling at `thick`, and what makes one pane read heavier than another is coverage and its scrim, not a second thickness. A subtree that must differ says so with a nested Theme; and since 2026-08-17 EXPRESSION is placement-gated — a component renders the theme's glass only where a backdrop exists (`<Box backdrop>` marks the region; Card, Button, TextField, TextArea and SelectTrigger take the same prop as a one-off; popups pass it by construction), so `thin` no longer makes every in-flow control pay a filter. Nesting itself is handled — a pane inside a glass pane resolves `on-glass` (the veil's alpha, no second blur), and a pane on a solid pane resolves solid.",
       },

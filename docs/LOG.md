@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 A card inside a card, on our own component pages, invisible to every static check
+
+Kushagra, on the component reference: *"Card inside card isnt correct, how did this happen, the package must do everything to ensure it doesnt."*
+
+**How it happened is the whole finding: the nesting CROSSES A COMPONENT BOUNDARY.** The specimen frame in `example.tsx` renders a `<Card size="4">` and then renders whatever the example module exports; four examples export a card. Neither file contains a nested card. A static sweep of the repo finds nothing. Only the rendered tree holds the fault, so only the rendered tree can be asked — which is why it shipped, and why the guard has to be a runtime one.
+
+**Surface-inside-Card is NOT the same mistake, and the playground already ships it** with a comment calling it "a BED inside a card, the same statement at the other scale". So the rule is narrow: a card does not go inside a card. A ground inside an object is a quiet region; objects on a ground is a Surface holding cards; both stay legal and both are law-asserted silent.
+
+**Four layers, because a warning alone is not "everything the package can do".** The package warns in a dev build (`system/nesting.tsx` — context mark, no DOM, the `useClipWarning` precedent one file over). The builder's grammar refuses the drop outright, read against the whole ancestor chain so a card three layouts deep is refused too. The composition reviewer raises `nested-card` with an unwrap fix. And the docs' own frame now derives whether to wrap from the source it already reads, with a law holding the two implementations to one answer.
+
+**A `<Theme>` resets the mark**, which is what keeps portals correct: a menu or dialog opened from inside a card renders its own bare Theme, so a card in the panel is an ordinary card. The floating panels never set the mark themselves — they wear the card IDENTITY through the surface layer, not the `Card` component — so this costs them nothing. Law-asserted in both directions, including that the reset is not a blanket exemption: two cards inside the panel still warn.
+
+**Rejected: throwing.** A refusal that fires at runtime in production, for a design mistake rather than a crash, would have to be right about every case on the first try. The package spends its refusals in the type system where they cost nothing; here the honest arrangement is warn where a human is looking, refuse where a tool can refuse, check where a document can be read. **Rejected: auto-degrading the inner card to a Surface** — that is a judgment about what the region means, and a fix may not make it on the author's behalf. The reviewer's fix unwraps instead, which is right whatever the contents are.
+
+**The frame law is the one that would have caught this.** It renders every example the way the page does and counts panes opening inside panes; sabotaged to the pre-fix behaviour it fails with `card renders a card inside a card`, which is the screenshot. Measured after: zero nested cards on seven component pages and the whole playground, and zero warnings, so nothing else in the repo was doing it.
+
 ## 2026-08-21 A catalog entry could satisfy every builder law and still be a square that does nothing
 
 Asked to confirm Link was in the preview and the builder, I drove it through the real functions rather than re-reading my own edits. It is in both, and the export is right — a plain one and a configured one:

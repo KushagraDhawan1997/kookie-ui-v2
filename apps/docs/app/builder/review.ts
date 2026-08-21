@@ -660,6 +660,25 @@ export const RULES: Rule[] = [
     },
   },
   {
+    id: "nested-card",
+    title: "A card does not go inside a card",
+    severity: "error",
+    why:
+      "A Card is an object with its own plane: opaque, bordered, and lifted in an elevated world. Two of them stacked is an object standing on an object, which states a relationship the system does not have. For a quiet region inside one card, use a Surface. For several objects on one ground, put the cards in a Surface instead of a card. The grammar prevents this at the drop; a document pasted or edited elsewhere can still arrive holding one.",
+    run: ({ all }) =>
+      all
+        .filter(({ node, parents }) => node.type === "Card" && parents.some((p) => p.type === "Card"))
+        .map(({ node }) => ({
+          nodeId: node.id,
+          message: "This card sits inside another card.",
+          // Unwrap rather than retype: the contents belong on the plane that already exists,
+          // and lifting them out is the one repair that is right whatever they are. Turning
+          // the inner card into a Surface is the OTHER answer and it is a judgment about what
+          // the region means, which a fix may not make on the author's behalf.
+          fix: { title: "Unwrap it", apply: (roots) => unwrapNode(roots, node.id) },
+        })),
+  },
+  {
     id: "orphan-part",
     title: "A part needs its compound",
     severity: "error",

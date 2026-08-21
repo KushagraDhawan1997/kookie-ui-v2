@@ -3,7 +3,7 @@
  * no anatomy. There is no card.css to test; what is asserted is that the shell's fixed
  * identity resolves through the shared surface layer and that the API refuses opinions.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cdp } from "vitest/browser";
 
 import { material } from "../../tokens/config.ts";
@@ -17,6 +17,8 @@ import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { Stack } from "../stack/stack.tsx";
 import { Flex } from "../flex/flex.tsx";
 import { Grid } from "../grid/grid.tsx";
+import { Surface } from "../surface/surface.tsx";
+import { Text } from "../text/text.tsx";
 import type * as React from "react";
 import { Card } from "./card.tsx";
 
@@ -1754,5 +1756,122 @@ describe("a scroll region inside a pane (§3, §10, 2026-08-20)", () => {
     const i = insets(card);
     expect(i.left, "a nested scroller answers to its own container").toBeCloseTo(pad, 1);
     expect(i.top).toBeCloseTo(pad, 1);
+  });
+});
+
+describe("a card does not go inside a card, and the package says so (2026-08-21)", () => {
+  /**
+   * The nesting this guards against CROSSES A COMPONENT BOUNDARY, which is why nothing static
+   * caught it and why the guard is a runtime one. The docs site's own component reference
+   * shipped it for weeks: the specimen frame renders a `<Card>`, then renders whatever the
+   * example module exports, and four examples export a card. Neither file contains a nested
+   * card. Only the tree does.
+   *
+   * These laws drive `console.warn` because that IS the mechanism — there is nothing computed
+   * to read, deliberately: a nested card renders identically to a correct one, which is the
+   * whole reason the fault is invisible without being told.
+   */
+  const warnings: string[] = [];
+  let restore: (() => void) | null = null;
+
+  beforeEach(() => {
+    warnings.length = 0;
+    const original = console.warn;
+    console.warn = (...args: unknown[]) => {
+      warnings.push(args.map(String).join(" "));
+    };
+    restore = () => {
+      console.warn = original;
+    };
+  });
+  afterEach(() => {
+    restore?.();
+  });
+
+  const nested = () => warnings.filter((w) => w.includes("inside another <Card>"));
+
+  it("a lone card says nothing — the guard is not just always on", () => {
+    mounted(<Card>alone</Card>, { theme: {} });
+    expect(nested()).toEqual([]);
+  });
+
+  it("a card inside a card warns, once", () => {
+    mounted(
+      <Card>
+        <Card>inner</Card>
+      </Card>,
+      { theme: {} },
+    );
+    expect(nested().length).toBe(1);
+    expect(nested()[0]).toContain("<Surface>");
+  });
+
+  it("depth does not matter — the mark travels through whatever is between them", () => {
+    // The realistic shape: a layout, some text, and a card several levels down. A guard that
+    // only saw a direct child would miss every composition anyone actually writes.
+    mounted(
+      <Card>
+        <Stack gap="3">
+          <Text>a heading</Text>
+          <Box>
+            <Card>buried</Card>
+          </Box>
+        </Stack>
+      </Card>,
+      { theme: {} },
+    );
+    expect(nested().length).toBe(1);
+  });
+
+  it("a SURFACE inside a card is silent — that is the composition the system means", () => {
+    // Shipped and judged in the playground: the bed under a deploy hook. If this ever warns,
+    // the guard has widened past the fault it was written for.
+    mounted(
+      <Card>
+        <Surface size="1">a quiet region</Surface>
+      </Card>,
+      { theme: {} },
+    );
+    expect(nested()).toEqual([]);
+  });
+
+  it("cards inside a SURFACE are silent — objects on a ground", () => {
+    mounted(
+      <Surface>
+        <Card>one</Card>
+        <Card>two</Card>
+      </Surface>,
+      { theme: {} },
+    );
+    expect(nested()).toEqual([]);
+  });
+
+  it("a Theme resets the plane, so a card inside a portalled panel is an ordinary card", () => {
+    // The mechanism that keeps menus and dialogs correct: each renders its own bare Theme
+    // inside the portal, so a Card opened FROM a card is not nested. Driven here through a
+    // plain nested Theme, which is the same context reset without the portal's machinery.
+    mounted(
+      <Card>
+        <Theme>
+          <Card>on a new plane</Card>
+        </Theme>
+      </Card>,
+      { theme: {} },
+    );
+    expect(nested()).toEqual([]);
+  });
+
+  it("and the reset is not a blanket exemption — two cards inside the panel still warn", () => {
+    mounted(
+      <Card>
+        <Theme>
+          <Card>
+            <Card>still wrong</Card>
+          </Card>
+        </Theme>
+      </Card>,
+      { theme: {} },
+    );
+    expect(nested().length).toBe(1);
   });
 });

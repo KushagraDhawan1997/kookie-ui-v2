@@ -884,6 +884,19 @@ export const canContain = (
   if (!child) return false;
   if (child.requiresAncestor && !chainTypes.includes(child.requiresAncestor)) return false;
 
+  // A card does not go inside a card (2026-08-21). A Card is an object with its own plane, so
+  // two stacked states a relationship the system does not have — and unlike most of what this
+  // grammar refuses, the mistake is easy to make and invisible once made, because a nested
+  // card renders as a perfectly ordinary card.
+  //
+  // Read against the whole ANCESTOR CHAIN rather than the immediate parent, which is the same
+  // reach the package's runtime guard has: a card three layouts deep inside a card is the
+  // shape people actually write. The two answers must agree, so a law drives both.
+  //
+  // A DIALOG's chain holds no Card, so a card inside a panel stays placeable — matching the
+  // package, where a portal's own Theme resets the plane.
+  if (childType === "Card" && (parentType === "Card" || chainTypes.includes("Card"))) return false;
+
   if (parentType === null) return !child.partOf || Boolean(child.requiresAncestor);
   const parent = CATALOG[parentType];
   if (!parent) return false;

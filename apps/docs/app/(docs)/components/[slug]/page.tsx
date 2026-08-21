@@ -26,7 +26,7 @@ import {
 } from "@kookie-ui/react";
 
 import { Example } from "../../example";
-import { API, type ApiProp } from "../api.generated";
+import { API } from "../api.generated";
 import { propDescription } from "../prop-description";
 import { BY_SLUG, ENTRIES } from "../registry";
 

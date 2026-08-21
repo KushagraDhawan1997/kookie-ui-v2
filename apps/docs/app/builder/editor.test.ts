@@ -1871,6 +1871,11 @@ describe("review reads the house style off the document", () => {
           children: [node("Box", { container: true }, { children: [node("Text", {}, { text: "a" })] }), node("Text", {}, { text: "b" })],
         }),
       ],
+      "nested-card": [
+        node("Card", { size: "3" }, {
+          children: [node("Card", { size: "2" }, { children: [node("Text", {}, { text: "inner" })] })],
+        }),
+      ],
       "orphan-part": [node("SegmentedItem", { value: "x" }, { text: "Stray" })],
     };
 
@@ -1885,7 +1890,10 @@ describe("review reads the house style off the document", () => {
       // exemption, and it is the rule's whole subject: its `why` says the grammar prevents
       // this at the drop and a document edited elsewhere can still arrive holding one, so a
       // trigger the grammar ACCEPTS would mean the rule was checking the wrong thing.
-      if (rule.id === "orphan-part") continue;
+      // `nested-card` joins it for the same reason and says so in its own `why`: the grammar
+      // refuses card-in-card at the drop, so a trigger the grammar ACCEPTS would mean the
+      // rule was checking something the editor can still produce, which it cannot.
+      if (rule.id === "orphan-part" || rule.id === "nested-card") continue;
       const legal = (list: BuilderNode[], parentType: string | null, chain: string[]): boolean =>
         list.every(
           (n) =>

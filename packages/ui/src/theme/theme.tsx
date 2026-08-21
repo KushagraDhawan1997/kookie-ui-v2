@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../system/render.ts";
+import { CardScopeReset } from "../system/nesting.tsx";
 import { MATERIALS, type Material } from "../system/axes.ts";
 
 /**
@@ -429,7 +430,13 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
   return (
     <ThemeContext.Provider value={ctx}>
       <PaneContext.Provider value={null}>
-        {render ? composeRender(render, merged, children) : <div {...merged}>{children}</div>}
+        {/* A Theme is a fresh plane (2026-08-21). The card mark is cleared for the same
+            reason the pane mark is: a portalled panel renders its own bare Theme, so a Card
+            inside a menu or a dialog opened FROM a card is an ordinary card rather than a
+            nested one. Context only, so this adds no DOM. */}
+        <CardScopeReset>
+          {render ? composeRender(render, merged, children) : <div {...merged}>{children}</div>}
+        </CardScopeReset>
       </PaneContext.Provider>
     </ThemeContext.Provider>
   );
