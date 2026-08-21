@@ -36,6 +36,7 @@ import codeCss from "../components/code/code.css?raw";
 import dialogCss from "../components/dialog/dialog.css?raw";
 import fieldCss from "../components/field/field.css?raw";
 import kbdCss from "../components/kbd/kbd.css?raw";
+import linkCss from "../components/link/link.css?raw";
 import menuCss from "../components/menu/menu.css?raw";
 import selectCss from "../components/select/select.css?raw";
 import progressCss from "../components/progress/progress.css?raw";
@@ -77,6 +78,7 @@ export function installStyles(): void {
     dialogCss,
     fieldCss,
     kbdCss,
+    linkCss,
     menuCss,
   selectCss,
     progressCss,

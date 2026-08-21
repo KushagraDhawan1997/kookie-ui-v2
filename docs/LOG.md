@@ -69,6 +69,55 @@ The refusal is in character (this system has already refused `variant`, elevatio
 **Still open:** the Button done state the toast refusal owes; whether a Notice that MOUNTS on a condition change announces at all (a live region generally has to exist before its content changes, so `role="status"` on a freshly-mounted element may be silent — to be measured, not assumed); and Aside, which is deferred but deliberately, because our own docs site wanting one is exactly the incentive that put a Callout in every other design system.
 
 ---
+## 2026-08-21 An exemption that was right rendered a blank cell, which was not
+
+Every props table on the site had two rows with an empty description: `className` and `style`, on all 38 components. Kushagra saw them and asked for them filled.
+
+**The obvious fix would have been wrong, and the code said so.** The coverage law skips those two names on purpose, with the reason written beside the `continue`: they mean the same thing everywhere, they are explained once in each page's "Everywhere" section, and 58 JSDoc copies of one sentence would be 58 things to keep in step. That reasoning holds. I wrote all 72 anyway on the first pass, and reverted it.
+
+**What was actually broken is the RENDERING.** The exemption produced a blank cell, so a reader scanning the table learned nothing and had nothing pointing them at the section that would have told them. The universal sentence now has one home — `prop-description.ts`, which the page renders through — and no component repeats it.
+
+**A component still writes a JSDoc where the escape lands somewhere a reader would guess wrong**, which is a different fact from the universal one and therefore has its own home: eleven props types, all compound (a popup rather than its positioner, a panel rather than its scrim and its viewport, a scroll root rather than the viewport that scrolls). Each claim was checked against the source before it was written; `dialog.tsx` had said the same thing in a comment since it shipped. The note is APPENDED to the universal sentence rather than replacing it, because a reader of `MenuContent` needs both facts and the specific one is the less basic.
+
+**Two laws, both falsified.** No table renders an empty description cell — read through the renderer rather than off the generated data, which is what makes it a law about what a reader sees. And a per-component note is appended, never a substitute, which catches the cheap version of this fix: a renderer returning the JSDoc when there is one and the shared sentence when there is not.
+
+**Two instrument failures in one session, the same shape both times.** A sabotage string that did not match the source (a semicolon for a comma, then a sentence that the JSDoc wrapper had split across lines) reported a law as surviving when the law had never been tested. And restoring a sabotaged file with `git checkout --` discarded the uncommitted work in it, which is how the third sabotage finally proved itself: the law failed with `expected '' not to be ''`, for real, on damage I had done by accident.
+
+## 2026-08-21 Link ships, and the docs had already grown two of them
+
+Comparing the docs site against Apple's HIG, Kushagra asked what is missing and named the shape of the answer himself: *"You can name things like 'we dont have a link component'."* Measured, the app had grown two link treatments and they disagreed. A prose link computed `data-tone="accent"` and a blue; the prev/next footer link, wearing the same `.kd-link` class and no `Text` wrapper, computed `0.1202 0.1226 0.1255` — pixel-identical to body copy. One class, two colours, in one app, because nothing owned the fact.
+
+**It is type, not a control, and the absence is the design.** The skeleton is a BOX: a height ladder that is also a target, an inline padding, a corner, a cursor and `user-select: none`. An inline link has none of those and must not grow them — text in a sentence has to stay selectable, wrap across lines, and sit on the line box its paragraph set. Progress's argument, one family over. It therefore draws its own ring, because `recipes.css` never sees it.
+
+**`size` and `weight` are optional with no default**, Code's rule verbatim: unset, a link takes the line it sits in, so a link inside a size-2 caption matches by construction rather than by the call site repeating an index. A law mounts one inside `<Text size="2">` and reads both against the host, with the vacuity guard that the host is genuinely not the default step.
+
+**Three refusals, each with a citation.** `emphasis` — the ink ladder's lower rungs sit at (Lc 60) and below (Lc 30) the reading floor, so the rung that stands a link's colour down works against the only thing the component is for; a link that matters less is a smaller link. `:visited` — browsers restrict what it may paint and make `getComputedStyle` report the unvisited value, to stop a page reading a reader's history, so no law here can read it, and this repo does not ship a rule no law can read. **§11's row named that state before the constraint was checked**, and the row is amended. A target of its own — SC 2.5.8 states an inline exception for a target in a sentence, and §16's expansion exists for a mark with no container, where a link's container is the paragraph.
+
+**The underline is unconditional.** WCAG 1.4.1: colour alone is not sufficient signalling, and a link inside a paragraph is the case the criterion is written about. A hover reveal serves no touch screen at all. What moves under the pointer is the decoration's COLOUR — resting on `--color-border` and stepping to the ink — which is §7's edge order one component over, and it is the treatment the docs app had already judged by eye. Ported, not invented.
+
+**Three laws caught real defects before it shipped.** The ramp law read Times New Roman: `.kui-link` was not in `type.css`'s body-slot list, so a link fell out of the family entirely. The two-clocks law read `text-decoration-color` as geometry, because it is a colour that had never been in the `PAINT` set — widened, with the reason, since it is `border-color`'s category one property over. And the reduced-motion law required link.css to carry its own stand-down: the shared block covers `.kui-control` and `.kui-mark`, a link is neither, and a clock nothing can stop is the exact shape that left the focus ring landing for six days for readers who had asked for stillness.
+
+**Six sabotages, and one of them was my own instrument.** "It opts into the control skeleton" appeared to survive; the sabotage had a semicolon where the source has a comma, so it never applied. Re-run against the real string, the law fails. An instrument is not evidence until it has been calibrated against a known answer.
+
++90 bytes gzipped. The docs app's two hand-drawn treatments are deleted and both call sites render the component, which is the proof the gap is closed rather than moved.
+
+**Three chapters had to be amended, and one of them had stopped being true.** `states.mdx` opened with *"Every interactive thing in this system runs one state machine"*, which a link falsifies: it answers a pointer and is not a control, so it takes the ring and a hover of its own and none of the box. The ontology's Type list named five components where there are six, and typography's body-slot list named two of three. The taxonomy chapter also gains the pair that actually confuses people — **Link or Button**, settled by what happens on press: a new address, or a change to the thing you are looking at.
+
+## 2026-08-21 The README stated a build order that had been wrong for seventeen days
+
+**What.** The root README said the §14 build order was "complete through step 6" and that "repetition has begun with TextField". That was true on 4 August. Twenty-five more components, the documentation site and the builder shipped after it. It did not name `THESIS.md`, which is first in the read order. It is rewritten, and `CONTRIBUTING.md` is new.
+
+**Why a README goes stale where the other documents do not.** Doc-code drift is a bug here and the rule catches it, because every other document is read while working: `DECISIONS.md` is cited by every task, `LOG.md` is written to on every settled choice, `CLAUDE.md` is loaded on every session. Nobody re-reads a README. It is the one file whose readers are all strangers, which is exactly why nothing in the repo noticed.
+
+**So the two counts it states are now checked** (`app/(docs)/readme.test.ts`): "21 guideline chapters" against `CHAPTERS.length`, "the reference for 31 components" against the registry, and every route it names in backticks against a real `page.tsx`, with route groups resolved. Falsified in all four arms, including the arm where the sentence stops stating a number at all, which is how a regex law usually dies.
+
+**Rejected: state no number.** "Some chapters" tells a reader nothing about whether this is a scaffold or a document, and the whole point of the number is that it is large. The fix for a fact with two homes is a check between them, not the deletion of the useful one.
+
+**The route arm reads the routes OUT of the README** and proves each exists, rather than comparing them against a list written in the test. A list would be a third home for the same fact, and it would agree with the README on the day a route was deleted from the app. The first spelling did exactly that, under a comment claiming it checked the app directory. It did not.
+
+**`CONTRIBUTING.md` points, it does not repeat.** `ENGINEERING.md` holds the conventions. What the new file adds is the three things a first-time contributor cannot find: that Chromium must be installed or the browser project silently runs nothing, that the package builds before the docs app, and the four rules about laws (read the computed value, falsify before trusting, build a fixture where the general and special cases differ).
+
+**Also**: `homepage`, `bugs` and `keywords` on the package manifest, and `description`, `license` and `repository` on the root one. `publint` and `are-the-types-wrong` still pass against the packed artifact. Both READMEs' JSX was compiled before shipping, on the chapter rule from earlier today.
 
 ## 2026-08-21 A driver gesture resolving is not the browser having settled
 
@@ -82,7 +131,24 @@ The refusal is in character (this system has already refused `variant`, elevatio
 
 **Falsified**: a menu pinned closed fails the repaired law at the deadline with the honest null.
 
----
+## 2026-08-21 A chapter states the rule, not how the rule was reached
+
+Kushagra, reading the shipped chapters: *"why do I need stuff like 'the elevation ladder is deleted' why is that part of docs? Nothing is shipped or out in public yet."*
+
+He is right, and the fault is systematic rather than local. The chapters were written by re-voicing `DECISIONS.md` and `LOG.md`, and both of those documents are the record of a reversal. Re-voicing carried the reversal across. The result told a reader who has never seen this system that a thing they never used was removed. About 1,300 words of the 17,000 were that, concentrated in `depth.mdx`, `radius.mdx` and `materials.mdx`.
+
+**The rule is now written into `content/AUTHORING.md`, in four parts.** Cut development history: nothing has shipped, so no reader has an earlier version to be told about. Cut defect archaeology: "wrong in 21 of 24 cells, by up to 9 pixels" proves that somebody measured, and changes nothing a reader types. Cut arguments against a design nobody proposed: a section titled "why there is no per-family ladder" answers an objection only this repo has. Cut internal names: "the team", "a reviewer", "the audit", "a law".
+
+**Keep a reason only when it changes what the reader types.** "Set `depth` once, at the root. There is no per-card shadow prop" stops a reader looking for the prop. "The ladder was removed after the first visual review" does not. That test is the whole rule, and it is what separates this from cutting reasons altogether, which was the rejected option: a guideline document with no reasons is a props table with paragraphs.
+
+**Rejected: move the history into a collapsible aside.** It keeps the words on the page while pretending they cost nothing. They still cost the reader a decision about whether to open it, and `LOG.md` already holds every one of them.
+
+**The second half was that the code fences taught nothing.** 26 of 70 fences were four lines or shorter, and eight were nothing but one `<Theme>` prop. A reader cannot learn composition from a fence that assigns one value. Each chapter now carries at least one fence that builds something a reader recognises: an editor toolbar over a canvas, a failed-invoice card, a create-project form, an import panel with all three feedback answers, a shell with real navigation rows. `AUTHORING.md` states 8 to 15 lines for that fence and keeps short fences for a single contrast, such as wrong code beside correct code.
+
+**Every fence was compiled before it shipped**, by pasting all of them into one temporary `.tsx` in the app and running `tsc`. That caught one real thing: `SegmentedControl` inherits Base UI's RadioGroup value type, so a controlled consumer receives `unknown` and has to cast. The chapter shows the cast rather than code that does not compile. Recorded as an open item.
+
+**Nothing checks a fence's props today.** `AUTHORING.md` requires that every prop, token and component name in a fence exists; the chapter laws check the tokens and that each fence tokenizes, and nothing checks the rest. The temporary compile above is the shape of the missing law, and it is not automatable by extraction alone, because a fence is often a fragment, a wrong/right pair with duplicate identifiers, or a reference to a symbol the chapter never defines. Recorded, not built.
+
 ## 2026-08-21 The docs became a guideline document, and the writing audited the system
 
 Kushagra: *"What I want to create is very close to HIG by Apple. Thats what Kookie is, its not just a UI library."*
@@ -118,6 +184,28 @@ The move also made the registry pure data, so `registry.test.ts` imports the val
 **Two of my decisions were wrong first.** The site organised itself as `/components/<name>`, which is names-first: THESIS §2's stated inversion, applied to the system's own documentation by the author quoting it. And the chapter measure sat in the chrome, which is right for a chapter and wrong for the two other page shapes, so a third of the window stayed empty on every page.
 
 **The first draft's language was wrong, and Kushagra rejected it** (*"like bro what is it"*). It used metaphor, filler and the passive voice. Every chapter was rewritten to ASD-STE100 Simplified Technical English: active voice, short sentences, literal vocabulary, no metaphor. `content/AUTHORING.md` now states those rules, so later chapters follow them.
+
+## 2026-08-21 A small dialog gets a smaller title, and the alert had every hole the dialog had
+
+Two things, and the second was Kushagra's question rather than a finding: "all the things we discuss for dialog, are on their own applied to alert dialog, also, right?"
+
+**The title.** §24 had carried this open since the day Dialog shipped, with the alert's half already closed YES. Kushagra closed the other half: a small dialog should have a smaller title than a large one. What made it worth an entry rather than a line of tuning is that §24's stated rule — *no surface sizes the type inside it* — reads like it forbids exactly this. It does not, and the distinction is ownership: a dialog's title and description are not content the call site wrote, they are parts the system owns because the a11y wiring forces them into existence. Everything the call site wrote is still untouched, which is the whole of what the rule protects. §25 had already made this argument to let an alert price all of its own content; this is the same argument applied to the two parts a dialog owns.
+
+The description moves with the title, unasked, because a title that shrinks while its supporting line does not stops reading as a pair.
+
+**The steps have one home, and that was the more consequential half.** The alert had `TITLE_STEP`/`BODY_STEP` locally; the obvious move was to copy them into Dialog. Two copies of one type map is exactly the drift this repo keeps finding, and the JS rule is render.ts's — CSS lets a second member self-key, a mechanism with laws behind it promotes on its second consumer. So they went to `system/floating.tsx`, and the law that matters is not "Dialog now has a map" but "there is only ONE map", which a law reading both mounted components can say and a law reading either alone cannot. **Size 3 is the anchor**: it holds what both components already shipped, so the change moved every index except the one anybody had judged by eye.
+
+**And the answer to the question was no — the alert did NOT get any of it for free.** Measured rather than assumed: `role="alertdialog"` with `aria-labelledby` null and `aria-label` null, and `aria-label`, `id` and `data-testid` all dropped by a Content part that declared the same four props Dialog's did. The two components were built the same week by the same author, which is precisely when a defect gets copied rather than inherited — and it is why "does the twin have this too" is a question worth measuring every time rather than reasoning about.
+
+All four repairs are the family's now. Three promotions with them: the open-change adapter, the name warning, and the composition steps. The name warning takes the component's name as a parameter — a shared hook that always said "Dialog" would send an alert's author to the wrong file, which is the promotion's own risk and has its own law and its own sabotage.
+
+**One reason union for both members, and that is Base UI's call rather than ours.** `AlertDialogRootChangeEventReason` IS `DialogRoot.ChangeEventReason`, character for character. An alert never emits `outside-press` because it refuses that dismissal — an absence at runtime, not in the type. A narrower union here would assert something the primitive does not say.
+
+**Found on the way, and not ours:** the docs' generated API tables listed every overlay part as rendering no element at all. They were right when they were generated and the widening made them stale, which is what the drift law is for.
+
+Seven sabotage passes, all caught.
+
+---
 
 ## 2026-08-21 The dialog took four props and threw the rest away
 

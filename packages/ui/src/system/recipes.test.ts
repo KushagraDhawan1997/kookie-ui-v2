@@ -1004,7 +1004,10 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // cast fades up as the panel lifts, and light on a spring would wobble.
     // `filter` joined 2026-08-14 with the molten pass: blur is FOCUS, a property of the
     // viewer's read, not of the box — a signal, so it eases like the rest of the paint.
-    const PAINT = new Set(["background-color", "border-color", "color", "opacity", "fill", "stroke", "box-shadow", "filter"]);
+    // `text-decoration-color` joined 2026-08-21 with Link, and it is the same category as
+    // `border-color` one property over: a colour, on a line the component already draws.
+    // It was absent only because nothing in the package had ever moved an underline.
+    const PAINT = new Set(["background-color", "border-color", "color", "opacity", "fill", "stroke", "box-shadow", "filter", "text-decoration-color"]);
     for (const file of allStylesheets()) {
       for (const declaration of [...sheet(file).matchAll(/[^-\w]transition\s*:([^;]+);/g)]) {
         const body = declaration[1]!;

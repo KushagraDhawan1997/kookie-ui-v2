@@ -11,7 +11,7 @@
  */
 import * as React from "react";
 import { flushSync } from "react-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 
 import {
@@ -23,7 +23,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "./alert-dialog.tsx";
-import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "../dialog/dialog.tsx";
 import { Button } from "../button/button.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
@@ -40,6 +40,8 @@ import {
   SIZES,
 } from "../../test/browser.tsx";
 import type { Size } from "../../system/axes.ts";
+import type { OverlayOpenChangeDetails } from "../../system/floating.tsx";
+import { Text } from "../text/text.tsx";
 
 const HOSTILE: ThemeProps = {
   appearance: "dark",
@@ -630,5 +632,233 @@ describe("the panel materializes (§25)", () => {
     // The panel is simply there, which is the point of the setting.
     expect(computed(popup, "opacity")).toBe("1");
     expect(computed(body, "filter")).toBe("none");
+  });
+});
+
+
+/* ── What the call site can say to an alert (2026-08-21) ──────────────────────────────── */
+
+describe("what the call site can say to an alert", () => {
+  const lastPopup = () => {
+    const ps = document.querySelectorAll<HTMLElement>(".kui-alert-popup");
+    const p = ps[ps.length - 1];
+    if (!p) throw new Error("the panel never mounted — every law below would assert nothing");
+    return p;
+  };
+
+  async function warnings(needle: string, run: () => void): Promise<number> {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      run();
+      settleAll();
+      await new Promise((r) => setTimeout(r, 60));
+      return spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes(needle)).length;
+    } finally {
+      spy.mockRestore();
+    }
+  }
+
+  it("ordinary props reach the panel — and the system's identity still wins", () => {
+    // Every hole Dialog was measured to have on 2026-08-21, this component had too: four
+    // declared props and everything else dropped in silence. The two were built the same week
+    // by the same author, which is exactly when a defect gets copied rather than inherited.
+    render(
+      <Theme>
+        <AlertDialog defaultOpen>
+          <AlertDialogContent aria-label="Confirm" id="confirm-panel" data-testid="panel" data-size="1">
+            <AlertDialogDescription>No title here.</AlertDialogDescription>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>Delete</AlertDialogAction>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Theme>,
+    );
+    settleAll();
+    const p = lastPopup();
+    expect(p.getAttribute("aria-label")).toBe("Confirm");
+    expect(p.id).toBe("confirm-panel");
+    expect(p.getAttribute("data-testid")).toBe("panel");
+    expect(p.getAttribute("data-size"), "the index stays the system's").toBe("2");
+  });
+
+  it("an alert with no name says so in dev — and names itself in the warning", async () => {
+    // `role="alertdialog"` with nothing to announce, measured. The warning names the COMPONENT
+    // it fired on, because a shared hook that always said "Dialog" would send an alert's author
+    // to the wrong file — the promotion's own risk, and the reason the name is a parameter.
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(
+      <Theme>
+        <AlertDialog defaultOpen>
+          <AlertDialogContent>
+            <AlertDialogDescription>No title.</AlertDialogDescription>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>Delete</AlertDialogAction>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Theme>,
+    );
+    settleAll();
+    await new Promise((r) => setTimeout(r, 60));
+    const said = spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("accessible name"));
+    spy.mockRestore();
+    expect(said.length).toBe(1);
+    expect(said[0], "it must name AlertDialog, not Dialog").toContain("<AlertDialog>");
+    expect(said[0], "and quote the role it actually has").toContain("alertdialog");
+
+    const titled = await warnings("accessible name", () =>
+      render(
+        <Theme>
+          <AlertDialog defaultOpen>
+            <AlertDialogContent>
+              <AlertDialogTitle>Delete it?</AlertDialogTitle>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction>Delete</AlertDialogAction>
+            </AlertDialogContent>
+          </AlertDialog>
+        </Theme>,
+      ),
+    );
+    expect(titled, "a title names it — silence").toBe(0);
+  });
+
+  it("says WHY it is closing, and an alert may refuse", async () => {
+    // The alert refuses outside-press dismissal by design, so its reachable reasons are fewer
+    // than a dialog's — but the two share ONE union because Base UI declares one
+    // (`AlertDialogRootChangeEventReason` IS `DialogRoot.ChangeEventReason`). The absence is at
+    // runtime, not in the type, and a law that asserted a shorter union would be asserting
+    // something Base UI does not say.
+    const seen: string[] = [];
+    render(
+      <Theme>
+        <AlertDialog
+          defaultOpen
+          onOpenChange={(open: boolean, details: OverlayOpenChangeDetails) => {
+            seen.push(`${open}:${details.reason}`);
+            if (details.reason === "escape-key") details.cancel();
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogTitle>Delete it?</AlertDialogTitle>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>Delete</AlertDialogAction>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Theme>,
+    );
+    settleAll();
+
+    await userEvent.keyboard("{Escape}");
+    expect(seen[0], "Escape is reported as Escape").toBe("false:escape-key");
+    expect(
+      document.querySelectorAll(".kui-alert-popup").length,
+      "…and cancel() refused it",
+    ).toBeGreaterThan(0);
+
+    const cancel = lastPopup().querySelector<HTMLElement>("button");
+    if (!cancel) throw new Error("the cancel button never mounted");
+    await userEvent.click(cancel);
+    expect(seen[1], "a Cancel press is a close press").toBe("false:close-press");
+    expect(document.querySelectorAll(".kui-alert-popup").length, "and it was not refused").toBe(0);
+  });
+});
+
+/* ── One ladder, two members (§15, §24, §25 — 2026-08-21) ─────────────────────────────── */
+
+describe("an alert and a dialog at the same index are the same typography", () => {
+  it("the title and the description agree at every size", () => {
+    // Kushagra, closing §24's open question: "a small dialog should have a smaller title than
+    // a large one". The steps promoted to one home the same hour, so the claim to hold is not
+    // "Dialog now has a map" — it is that there is only ONE map, which is what a law reading
+    // both mounted components can say and a law reading either one alone cannot.
+    for (const size of SIZES) {
+      const { popup } = openAlert({}, { size });
+      const alertTitle = document.getElementById(popup.getAttribute("aria-labelledby")!);
+      const alertDesc = document.getElementById(popup.getAttribute("aria-describedby")!);
+      if (!alertTitle || !alertDesc) throw new Error("the alert's parts never wired");
+
+      render(
+        <Theme>
+          <Dialog defaultOpen size={size}>
+            <DialogContent>
+              <DialogTitle>Delete workspace</DialogTitle>
+              <DialogDescription>This cannot be undone.</DialogDescription>
+            </DialogContent>
+          </Dialog>
+        </Theme>,
+      );
+      settleAll();
+      const popups = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+      const dialog = popups[popups.length - 1];
+      if (!dialog) throw new Error("the dialog never mounted");
+      const dialogTitle = document.getElementById(dialog.getAttribute("aria-labelledby")!);
+      const dialogDesc = document.getElementById(dialog.getAttribute("aria-describedby")!);
+      if (!dialogTitle || !dialogDesc) throw new Error("the dialog's parts never wired");
+
+      expect(computed(dialogTitle, "font-size"), `size ${size}: one title ladder`).toBe(
+        computed(alertTitle, "font-size"),
+      );
+      expect(computed(dialogDesc, "font-size"), `size ${size}: one description ladder`).toBe(
+        computed(alertDesc, "font-size"),
+      );
+    }
+  });
+
+  it("a small dialog really does carry a smaller title — and a smaller line under it", () => {
+    // The vacuity guard, and it is not optional: everything above would pass with a map frozen
+    // at one value, because two frozen components still agree. The ENDS must differ.
+    const titleAt = (size: Size) => {
+      render(
+        <Theme>
+          <Dialog defaultOpen size={size}>
+            <DialogContent>
+              <DialogTitle>Delete workspace</DialogTitle>
+              <DialogDescription>This cannot be undone.</DialogDescription>
+            </DialogContent>
+          </Dialog>
+        </Theme>,
+      );
+      settleAll();
+      const popups = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+      const p = popups[popups.length - 1]!;
+      return {
+        title: document.getElementById(p.getAttribute("aria-labelledby")!)!,
+        desc: document.getElementById(p.getAttribute("aria-describedby")!)!,
+      };
+    };
+    const small = titleAt("1");
+    const large = titleAt("4");
+    expect(parseFloat(computed(large.title, "font-size"))).toBeGreaterThan(
+      parseFloat(computed(small.title, "font-size")),
+    );
+    expect(parseFloat(computed(large.desc, "font-size"))).toBeGreaterThan(
+      parseFloat(computed(small.desc, "font-size")),
+    );
+  });
+
+  it("and size 3 is still the confirm card — the anchor nothing was allowed to move", () => {
+    // The change moved every index EXCEPT the one that had been judged, and this is what says
+    // so. Asserted against a mounted Heading and Text at §15's composition steps, never
+    // against a number.
+    render(
+      <Theme>
+        <Dialog defaultOpen size="3">
+          <DialogContent>
+            <DialogTitle>Delete workspace</DialogTitle>
+            <DialogDescription>This cannot be undone.</DialogDescription>
+          </DialogContent>
+        </Dialog>
+        <Heading size="6" data-testid="card-title">x</Heading>
+        <Text size="3" data-testid="card-body">y</Text>
+      </Theme>,
+    );
+    settleAll();
+    const popups = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+    const p = popups[popups.length - 1]!;
+    const title = document.getElementById(p.getAttribute("aria-labelledby")!)!;
+    const desc = document.getElementById(p.getAttribute("aria-describedby")!)!;
+    const cardTitle = document.querySelector<HTMLElement>("[data-testid='card-title']")!;
+    const cardBody = document.querySelector<HTMLElement>("[data-testid='card-body']")!;
+    expect(computed(title, "font-size")).toBe(computed(cardTitle, "font-size"));
+    expect(computed(desc, "font-size")).toBe(computed(cardBody, "font-size"));
   });
 });

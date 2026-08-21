@@ -181,7 +181,11 @@ export type MenuTriggerProps = {
       button that opened it. (Reporting the chosen value on the trigger is Select's job, §23.)
       It lands on the `render` target, so `render={<Button/>}` plus children is one button. */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the trigger,
+      and with `render` on the element you rendered into. */
   className?: string;
+  /** Inline styles, merged last. They land on the trigger, and with `render` on the element you
+      rendered into. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
 };
@@ -232,7 +236,11 @@ export type MenuContentProps = {
       bare `<Theme>` re-applies the axes of the spot it landed in rather than the ones it was
       written under (§20). */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the popup,
+      not on the positioner around it, so a width or a max-height you set is the panel's. */
   className?: string;
+  /** Inline styles, merged last. They land on the popup, not on the positioner around it, so a
+      width or a max-height you set is the panel's. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -671,7 +679,10 @@ export type MenuSubTriggerProps = {
   /** The row's words — the name of the group of actions inside, not an action itself.
       Choosing this row opens a panel; it never does anything. */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the row that
+      opens the submenu. */
   className?: string;
+  /** Inline styles, merged last. They land on the row that opens the submenu. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -725,7 +736,10 @@ export type MenuSubContentProps = {
       geometry, and that is the system's (§22): the panel takes its width from what is in it
       rather than from the panel it came out of. */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the popup,
+      not on the positioner around it. */
   className?: string;
+  /** Inline styles, merged last. They land on the popup, not on the positioner around it. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };

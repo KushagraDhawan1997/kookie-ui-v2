@@ -894,6 +894,119 @@ export function SelectBody({ children }: { children: React.ReactNode }) {
   );
 }
 
+/* ── The overlay family's shared surface (§24, §25 — promoted 2026-08-21) ───────────────
+   Three mechanisms Dialog grew and AlertDialog needed the same hour. The JS rule is the one
+   render.ts set: a mechanism with laws behind it promotes on its SECOND consumer, where CSS
+   would let the second member self-key. All three are here because both members are overlay
+   panels and neither is the other's parent. */
+
+/**
+ * Why an overlay is opening or closing.
+ *
+ * The strings are Base UI's own and are kept rather than translated: they are already plain,
+ * and a mapping table would be a second home for one fact plus a way to drift. What is NOT
+ * taken from Base UI is the type — this union is declared here, so the package's surface is
+ * the package's, and the laws provoke a real Escape, a real outside press and a real close
+ * press and read the string back, which is what catches a rename upstream.
+ *
+ * ONE union for both members, because Base UI declares one: `AlertDialogRootChangeEventReason`
+ * is `DialogRoot.ChangeEventReason`, character for character. An alert simply never emits
+ * `outside-press`, since it refuses that dismissal — an absence at runtime, not in the type.
+ */
+export type OverlayOpenChangeReason =
+  | "trigger-press"
+  | "outside-press"
+  | "escape-key"
+  | "close-press"
+  | "focus-out"
+  | "imperative-action"
+  | "none";
+
+/**
+ * The second argument to an overlay's `onOpenChange`, and the reason it exists: without it a
+ * panel can be told that it closed and never why, so the most ordinary guard a form dialog
+ * owes — "you have unsaved changes" — could not be written at all (measured 2026-08-21).
+ *
+ * `cancel()` refuses the change. Deliberately narrower than Base UI's own details object: it
+ * publishes the three members that mean something at this layer and leaves the rest.
+ */
+export type OverlayOpenChangeDetails = {
+  /** Why it is changing — an outside press, Escape, a close button, the trigger. */
+  reason: OverlayOpenChangeReason;
+  /** The native event behind it. */
+  event: Event;
+  /** Refuse the change. A panel that must ask before closing calls this and asks. */
+  cancel: () => void;
+};
+
+/** Base UI's details, narrowed to what this package publishes. Structural, not a copy: the
+    fields are read straight off the object Base UI passes, never rebuilt from a table. */
+export function overlayOpenChange(
+  handler: (open: boolean, details: OverlayOpenChangeDetails) => void,
+): (open: boolean, details: { reason: string; event: Event; cancel: () => void }) => void {
+  return (open, details) =>
+    handler(open, {
+      reason: details.reason as OverlayOpenChangeReason,
+      event: details.event,
+      cancel: details.cancel,
+    });
+}
+
+/** Box's own spelling and its own scar: an ABSENT `process` means dev (audit 2026-08-08). */
+const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
+
+/**
+ * A panel with no name is announced as its role and nothing else (measured 2026-08-21:
+ * `role="dialog"` with `aria-labelledby` null and `aria-label` null, and `role="alertdialog"`
+ * the same). Base UI wires the name when a Title mounts, and until that day there was no
+ * second route — `aria-label` type-checked on the content part and was dropped, so the obvious
+ * repair silently did nothing and BOTH routes were dead at once, which is most of why nobody
+ * had noticed one of them was missing.
+ *
+ * A warning and not a thrown error: a name is an accessibility obligation rather than a
+ * structural one, and a half-built panel in a scratch file should still render.
+ *
+ * It reads the DOM rather than the props, on purpose. The name can arrive by either route and
+ * one of them is Base UI's, so the element is the only place both answers are visible.
+ */
+export function useNameWarning(what: string): (node: HTMLDivElement | null) => void {
+  const seen = React.useRef(false);
+  return React.useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!DEV || !node || seen.current) return;
+      // After paint: Base UI stamps `aria-labelledby` when the Title child registers, which
+      // has not happened while the popup's own ref is being attached.
+      requestAnimationFrame(() => {
+        if (seen.current || !node.isConnected) return;
+        if (node.getAttribute("aria-labelledby") || node.getAttribute("aria-label")) return;
+        seen.current = true;
+        console.warn(
+          `[kookie-ui] A <${what}> has no accessible name: a screen reader announces it as ` +
+            `"${node.getAttribute("role") ?? "dialog"}" and nothing else. Add a <${what}Title>, ` +
+            `or pass aria-label to <${what}Content> when the panel genuinely has no visible title.`,
+        );
+      });
+    },
+    [what],
+  );
+}
+
+/**
+ * The house composition steps for a panel's OWN title and description (§15, §25).
+ *
+ * A surface never sizes the type inside it — except where the system owns that type, which is
+ * exactly these two parts: they exist because the a11y wiring forces them, so they are the
+ * system's content and the index may reach them. Everything else inside a dialog is the call
+ * site's and is untouched.
+ *
+ * Shared because the two members must not drift: an alert and a dialog at the same index are
+ * the same typography, which is what makes §15's confirm card and a size-3 dialog one thing.
+ * Size 3 is the anchor and holds the values both components shipped with (title 6, body 3),
+ * so adopting these moved every index EXCEPT the one anybody had judged.
+ */
+export const OVERLAY_TITLE_STEP = { "1": "4", "2": "5", "3": "6", "4": "7" } as const;
+export const OVERLAY_BODY_STEP = { "1": "2", "2": "2", "3": "3", "4": "3" } as const;
+
 /**
  * The unanchored panel's body (§24) — the same runner without an anchor to fly from.
  *

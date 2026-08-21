@@ -23,6 +23,34 @@ These pages follow ASD-STE100. Apply these rules to every sentence.
 - **Do not use more than three nouns together.** Break up long noun groups.
 - **Give each paragraph one topic.** Use a maximum of six sentences.
 
+## What belongs in a chapter, and what does not
+
+A chapter tells a reader what a thing is, when to use it, what it refuses, and how to write
+the code. It is not a record of how the system reached its current shape.
+
+**Cut all four of these.**
+
+- **Development history.** Do not write "the specification once held a four-level ladder", "the
+  team removed it", or "the first design gave each family an offset". Nothing has shipped, so
+  no reader has seen an earlier version. `docs/LOG.md` holds this history.
+- **Defect archaeology.** Do not quote audit findings. "Wrong in 21 of 24 cells, by up to 9
+  pixels" shows that the team measured. It does not help a reader build a screen.
+- **Arguments against a design nobody proposed.** A section titled "Why there is no per-family
+  ladder" answers an objection that only the team has. State the rule instead.
+- **Internal names.** Do not write "the team", "a reviewer", "the audit" or "the law". Write
+  what the system does.
+
+**Keep a reason only when it changes what the reader types.**
+
+- Keep: "Set `depth` once, at the root. There is no per-card shadow prop." The reader stops
+  looking for the prop.
+- Cut: "The team removed the ladder after the first visual review." The reader does nothing
+  differently.
+
+**Show the code doing real work.** A fence that assigns one prop teaches nothing. At least one
+fence in each chapter must build something a reader recognises: a form row, a toolbar, a card
+with a title and an action. Aim for 8 to 15 lines in that fence.
+
 ## What these pages are
 
 These pages are a guideline document. They are not an API reference. The reference is
@@ -67,7 +95,10 @@ Do not present a judgment as a measured limit.
   `mdx`. The build fails on any other label.
 - Every prop, token and component name in a fence must exist. Check
   `packages/ui/src/index.ts` and `packages/ui/src/tokens/tokens.css`.
-- Show 3 to 12 lines. Show the shape, not a complete screen.
+- Write at least one fence in each chapter that builds something real. Aim for 8 to 15
+  lines in it. A fence that sets one prop teaches nothing.
+- Keep a second fence short when it shows one contrast, such as the wrong code beside the
+  correct code.
 - Show the wrong code and the correct code together where this helps.
 - Do not write a colour value, a pixel value, a `variant` prop or a margin prop.
 
@@ -84,7 +115,7 @@ Do not present a judgment as a measured limit.
 1. The rule.
 2. The reason, marked as a measured limit or a judgment.
 3. What the system refuses, and what to use instead.
-4. One code fence.
+4. At least one code fence that builds something real.
 5. A `spec` entry in `chapters.ts` that names the DECISIONS sections.
 
 ## Rules that no chapter can contradict

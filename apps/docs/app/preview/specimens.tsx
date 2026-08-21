@@ -44,6 +44,7 @@ import {
   Grid,
   Heading,
   Kbd,
+  Link,
   Menu,
   MenuTrigger,
   MenuContent,
@@ -680,6 +681,86 @@ function RadioSection() {
                 ))}
               </Stack>
             </RadioGroup>
+          </Card>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
+function LinkSection() {
+  return (
+    <Stack gap="6">
+      {/* The whole component, in the composition it exists for: a link inside a sentence,
+          taking that sentence's step because `size` is unset. The eye judges two v0 values
+          here — the 0.2em underline offset, and whether the resting hairline reads as
+          texture rather than as a second colour competing with the words. */}
+      <Demo label="In prose — the link states no size and takes the line it sits in">
+        <Box maxWidth="34rem">
+          <Stack gap="3">
+            {(["2", "3", "4"] as const).map((size) => (
+              <Text key={size} size={size} render={<p />}>
+                Every distance answers to an axis, and{" "}
+                <Link href="#space">the space chapter</Link> states which one. A link that
+                stated its own step would break that sentence at one size in three.
+              </Text>
+            ))}
+          </Stack>
+        </Box>
+      </Demo>
+
+      {/* Tone reaches the words AND the underline, which is the half-fix that ships if only
+          the ink is checked. Accent is the resting identity — §11's named exception. */}
+      <SpecTable
+        wide
+        cols={["A link is findable in the line it sits in"]}
+        rows={(["accent", "destructive", "success", "neutral"] as const).map((tone) => ({
+          label: tone,
+          cells: [
+            <Text key="1" size="3">
+              Read the notice, then{" "}
+              <Link tone={tone} href="#x">
+                confirm the change
+              </Link>{" "}
+              to continue.
+            </Text>,
+          ],
+        }))}
+      />
+
+      {/* Standing alone it states a step, like any other atom that is not inside a sentence. */}
+      <Demo label="Standing alone — every step on the ramp">
+        <Flex gap="5" align="baseline" wrap="wrap">
+          {(["2", "3", "5", "7"] as const).map((size) => (
+            <Link key={size} size={size} href="#x">
+              Read more
+            </Link>
+          ))}
+        </Flex>
+      </Demo>
+
+      {/* What it refuses, beside what to reach for instead: a run of accent text that RUNS
+          something is a Button, and a link that matters less is a smaller link. */}
+      <Demo label="Refused: emphasis. A link that matters less is a SMALLER link.">
+        <Flex gap="4" align="center" wrap="wrap">
+          <Link size="2" href="#x">Terms of service</Link>
+          <Link size="2" href="#x">Privacy</Link>
+          <Separator orientation="vertical" />
+          <Button size="1" emphasis="quiet">An action that looks like text is a Button</Button>
+        </Flex>
+      </Demo>
+
+      <Demo label="Composed — a footer note, and a link that wraps across the measure">
+        <Box maxWidth="22rem">
+          <Card size="3">
+            <Stack gap="2">
+              <Text size="2" weight="medium">Storage</Text>
+              <Text size="2" emphasis="medium" render={<p />}>
+                You are using 42 of 100 gigabytes. See{" "}
+                <Link href="#plans">the plans available on this workspace</Link> before the
+                renewal on 3 September.
+              </Text>
+            </Stack>
           </Card>
         </Box>
       </Demo>
@@ -2071,6 +2152,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "field", name: "Field", body: <FieldSection /> },
   ported("dialog"),
   { id: "heading", name: "Heading", body: <HeadingSection /> },
+  { id: "link", name: "Link", body: <LinkSection /> },
   { id: "menu", name: "Menu", body: <MenuSection /> },
   { id: "select", name: "Select", body: <SelectSection /> },
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },

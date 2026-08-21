@@ -13,8 +13,8 @@ dense the app is set, and what the group states. The button reads none of the th
 itself. A component that ships its own margin answers a question it cannot ask, so every
 composition after it starts by cancelling that margin.
 
-The escape is a layout wrapper. A reviewer sees a wrapper in the diff, and does not see a
-margin buried on a control.
+The escape is a layout wrapper. A wrapper is visible in the file. A margin buried on a control
+is not.
 
 ```tsx
 // Does not compile. A control has no margin prop.
@@ -83,8 +83,8 @@ their own designed sets. Routing them through the layer as well would compress t
 --layout-space-4: var(--space-3);   /* [data-density="compact"] */
 ```
 
-The same prop also takes a raw length. `gap="13px"` passes straight through, and a reviewer
-sees that you used one.
+The same prop also takes a raw length. `gap="13px"` passes straight through, and the raw value
+stays visible in the file.
 
 ## Density re-picks steps and scales nothing
 

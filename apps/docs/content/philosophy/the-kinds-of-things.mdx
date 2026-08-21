@@ -24,14 +24,26 @@ A **surface** is an object with its own plane. `Card` is the example. It is opaq
 behind it stops at its edge. In an elevated theme it casts a shadow.
 
 ```tsx
-// A ground that holds two objects. Do not nest a Card in a Card for this.
 <Surface size="3">
   <Stack gap="3">
-    <Card size="2">…</Card>
-    <Card size="2">…</Card>
+    <Card size="2">
+      <Stack gap="2">
+        <Heading size="6">api-gateway</Heading>
+        <Text size="2" emphasis="medium">Deployed 4 minutes ago</Text>
+      </Stack>
+    </Card>
+    <Card size="2">
+      <Stack gap="2">
+        <Heading size="6">worker-queue</Heading>
+        <Text size="2" emphasis="medium">Deployed 2 hours ago</Text>
+      </Stack>
+    </Card>
   </Stack>
 </Surface>
 ```
+
+The `Surface` is the bed. The two cards are the objects on it, and each one lifts. Do not nest a
+`Card` in a `Card` to get this result.
 
 A `Card` is an object. A `Surface` is what objects sit on. Neither one is a quieter version of
 the other. When you nest a card in a card to make a quiet region, use a `Surface`.
@@ -91,6 +103,11 @@ control height.
 `Blockquote`, `Code` and `Kbd` have no fill of their own. On type, `emphasis` selects an ink
 role instead of a fill.
 
+`Link` is the one type component that answers a pointer, and it is still type rather than a
+control. A control is a box: it has a height, a padding, a corner and a target. A link is a run
+of words inside a sentence. It has to stay selectable, it has to wrap across lines, and it sits
+on the line box the paragraph set. So it takes the states and none of the box.
+
 **Layout** components paint nothing. `Box` is the engine. `Flex`, `Stack` and `Grid` are `Box`
 with a fixed `display` and a narrower prop list. They resolve tokens and tiers.
 
@@ -111,6 +128,10 @@ Ask whether you can have one without the other.
   one question. The alert has fixed content, and the system lays that content out.
 - **Menu or select.** A menu picks an action. A select picks a value and submits it with a
   form.
+- **Link or Button.** A link goes somewhere. A button does something. Ask what happens on
+  press: a new address, or a change to the thing you are looking at. A row of accent words that
+  submits a form is a `Button` at `emphasis="quiet"`, and a `Link` that runs a handler removes
+  the one promise a link makes.
 - **Card or Surface.** An object, or the ground it sits on.
 
 When two things look the same, ask what each one does when the other is absent. If the answers

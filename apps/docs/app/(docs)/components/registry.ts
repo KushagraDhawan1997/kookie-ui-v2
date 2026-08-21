@@ -310,7 +310,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a size on the title",
-        why: "No surface in this system sizes the type inside it. The parts state §15's composition steps — the card-title step for the title, body copy in the muted ink for the description — so a dialog and a confirm card are the same typography by construction. Whether a size-1 dialog deserves a smaller title is open.",
+        why: "The title and description are priced by the DIALOG's index (2026-08-21) and cannot be set per call site — a free index is what §15's brief exists to prevent. The index may reach them because they are parts the system owns, forced into existence by the a11y wiring; everything the call site wrote is untouched, which is what \"no surface sizes the type inside it\" actually protects. The steps are shared with AlertDialog, so the two are the same typography at the same index, and size 3 is still the confirm card.",
       },
     ],
     parts: [
@@ -424,6 +424,37 @@ export const ENTRIES: Entry[] = [
       {
         name: "a world-switched shadow",
         why: "The cap carries RELIEF always — flat world included — a top-face catch and a whisper of drop (`--kbd-relief`, its own cap-scale value since 2026-08-17: the lit button chrome it used to read made a bare cap read as a small floating button), because a key cap is a picture of a raised physical object; a glass pane stands even that down (relief in the pane, not a sticker on it). What stays refused is the cast moving with Theme depth.",
+      },
+    ],
+  },
+  {
+    slug: "link",
+    name: "Link",
+    family: "Type",
+    spec: "§11, §15",
+    blurb:
+      "The type family's one interactive member. Everything about how it reads comes from the shared type layer; what it adds is the underline and the states. It is not a control, so it stays selectable, wraps across lines, and sits on the line box its paragraph set.",
+    axes: [
+      { name: "size", values: "1–9", note: "optional with NO default — unset, it takes the line it sits in" },
+      { name: "weight", values: "regular | medium | semibold", note: "optional; a link in a sentence keeps that sentence's face" },
+      { name: "tone", values: "any family", note: "defaults to accent — §11's named exception; moves the words and the underline together" },
+    ],
+    refusals: [
+      {
+        name: "emphasis",
+        why: "Type's emphasis ladder resolves as the ink roles, and the two lower rungs are defined against the reading floor (muted at APCA Lc 60, faint at 30 and deliberately below it). A link is the one run of text whose job is to be found, so a rung that stands its colour down works against the only thing the component is for. A link that should matter less is a smaller link, which size states.",
+      },
+      {
+        name: "a :visited style",
+        why: "Browsers restrict what :visited may paint and make getComputedStyle report the unvisited value, to stop pages reading a reader's history. A rule no test in this repo can read is a rule this repo does not ship. §11's row named the state before that constraint was checked, and the row is amended.",
+      },
+      {
+        name: "a hover-only underline",
+        why: "WCAG 1.4.1: colour alone is not sufficient signalling, and a link inside a paragraph is the case that criterion is written about. A hover reveal serves no touch screen at all, and no reader who cannot separate the hue from the copy around it. The underline is unconditional; what moves under the pointer is its colour.",
+      },
+      {
+        name: "a target of its own",
+        why: "WCAG 2.2 SC 2.5.8 states an inline exception: a target in a sentence or its associated text is exempt. §16's expansion exists for a mark that has no container, and a link's container is the paragraph, which may not grow.",
       },
     ],
   },

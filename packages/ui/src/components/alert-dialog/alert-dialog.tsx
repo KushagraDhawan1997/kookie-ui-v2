@@ -33,6 +33,11 @@ import { mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.t
 import {
   FloatingDirectionContext,
   OverlayBody,
+  OVERLAY_BODY_STEP,
+  OVERLAY_TITLE_STEP,
+  overlayOpenChange,
+  useNameWarning,
+  type OverlayOpenChangeDetails,
   PortalScope,
   useAmbientDirection,
 } from "../../system/floating.tsx";
@@ -41,8 +46,8 @@ import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import type { Size, Tone } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
+import { useClipWarning } from "../../system/clip.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
-import type { TypeSize } from "../text/text.tsx";
 
 /* ── The closed content is what lets size price the type (§15, §25) ─────────────────────────
       Dialog's size stops at the box because its content is the consumer's; an alert's title
@@ -52,8 +57,9 @@ import type { TypeSize } from "../text/text.tsx";
       match sentence (§22's "a size-4 trigger must not open a size-2 dropdown") applied to
       the alert's own actions. v0 for the eye pass. */
 
-const TITLE_STEP: Record<Size, TypeSize> = { "1": "4", "2": "5", "3": "6", "4": "7" };
-const BODY_STEP: Record<Size, TypeSize> = { "1": "2", "2": "2", "3": "3", "4": "3" };
+/* The steps moved to system/floating.tsx on their second consumer (2026-08-21): Dialog's own
+   title takes the same ladder now, and two copies of one type map is the drift this repo keeps
+   finding. An alert and a dialog at the same index must be the same typography. */
 
 const AlertSizeContext = React.createContext<Size>("2");
 
@@ -72,7 +78,7 @@ export type AlertDialogProps = {
   /** Fires on every open and close. It carries no dismissal details, and that is the role
       rather than an omission: an alert refuses outside presses (§25), so the only ways out
       are the two buttons and Escape, and Escape IS the Cancel action by another route. */
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange?: (open: boolean, details: OverlayOpenChangeDetails) => void;
   /** The trigger and the content. AlertDialog renders no DOM of its own — state and wiring
       only — so this is `<AlertDialogTrigger>` and `<AlertDialogContent>`. */
   children?: React.ReactNode;
@@ -94,7 +100,7 @@ export function AlertDialog({ size = "2", open, defaultOpen, onOpenChange, child
           <BaseAlertDialog.Root
             {...(open !== undefined ? { open } : {})}
             {...(defaultOpen !== undefined ? { defaultOpen } : {})}
-            {...(onOpenChange !== undefined ? { onOpenChange } : {})}
+            {...(onOpenChange !== undefined ? { onOpenChange: overlayOpenChange(onOpenChange) } : {})}
           >
             {children}
           </BaseAlertDialog.Root>
@@ -116,7 +122,10 @@ function rootsInButton(el: RenderElement, depth = 0): boolean {
   return true;
 }
 
-export type AlertDialogTriggerProps = {
+export type AlertDialogTriggerProps = Omit<
+  React.ComponentPropsWithoutRef<"button">,
+  "color" | "style" | "className"
+> & {
   /** Usually a Kookie Button: `<AlertDialogTrigger render={<Button/>}>Delete…</AlertDialogTrigger>`. */
   render?: RenderElement;
   /** Whether the rendered element really is a `<button>` — inferred from `render` (§5). */
@@ -128,7 +137,11 @@ export type AlertDialogTriggerProps = {
       question is coming. They land on the `render` target, so a Kookie Button plus children
       is one button. */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the trigger,
+      and with `render` on the element you rendered into. */
   className?: string;
+  /** Inline styles, merged last. They land on the trigger, and with `render` on the element you
+      rendered into. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
 };
@@ -151,14 +164,21 @@ export function AlertDialogTrigger({ render, nativeButton, ref, ...props }: Aler
 
 /* ── Content: the fold, and the layout the component owns (§25) ───────────────────────── */
 
-export type AlertDialogContentProps = {
+export type AlertDialogContentProps = Omit<
+  React.ComponentPropsWithoutRef<"div">,
+  "color" | "style" | "className"
+> & {
   /** The alert's parts, in reading order: `AlertDialogTitle`, `AlertDialogDescription`, then
       `AlertDialogCancel` and `AlertDialogAction`. A LIST of parts, never a Flex — Content owns
       the layout (§25), which is what lets the entry animate the content and what makes
       Cancel-first mean reading order, start side and initial focus at once. Anything beyond
       those four makes the thing a Dialog. */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the panel,
+      not on the scrim and not on the scrollable viewport between them. */
   className?: string;
+  /** Inline styles, merged last. They land on the panel, not on the scrim and not on the
+      scrollable viewport between them. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -172,13 +192,13 @@ export type AlertDialogContentProps = {
  * Base UI focuses the first tabbable element — it is what initial focus lands on, which is
  * the APG's "least destructive action" answered by document order rather than machinery.
  */
-export function AlertDialogContent({ children, className, style, ref }: AlertDialogContentProps) {
+export function AlertDialogContent({ children, className, style, ref, ...rest }: AlertDialogContentProps) {
   return (
     <BaseAlertDialog.Portal>
       <PortalScope>
         <BaseAlertDialog.Backdrop className="kui-alert-backdrop" />
         <BaseAlertDialog.Viewport className="kui-alert-viewport">
-          <AlertPopup className={className} style={style} ref={ref}>
+          <AlertPopup className={className} style={style} ref={ref} rest={rest}>
             {children}
           </AlertPopup>
         </BaseAlertDialog.Viewport>
@@ -196,11 +216,13 @@ function AlertPopup({
   className,
   style,
   ref,
+  rest,
 }: {
   children?: React.ReactNode | undefined;
   className?: string | undefined;
   style?: React.CSSProperties | undefined;
   ref?: React.Ref<HTMLDivElement> | undefined;
+  rest: Record<string, unknown>;
 }) {
   const size = React.use(AlertSizeContext);
   // A floating pane is over content BY CONSTRUCTION (2026-08-17, the backdrop selectivity):
@@ -208,9 +230,15 @@ function AlertPopup({
   const material = useMaterial({ backdrop: true });
   // §10 — the lens on the pane itself (see Card).
   const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
+  const nameRef = useNameWarning("AlertDialog");
+  // A pane clips (§3, 2026-08-21): content wider than the panel is not reachable at all.
+  const clipRef = useClipWarning("<AlertDialog>");
   const identity = "kui-surface kui-overlay kui-alert-popup";
   return (
     <BaseAlertDialog.Popup
+      // The call site's props go on FIRST, so the identity below cannot be taken from it —
+      // Dialog's own spelling, and the reason `data-size="1"` from a caller loses.
+      {...rest}
       data-size={size}
       data-tone="neutral"
       data-emphasis="quiet"
@@ -218,7 +246,7 @@ function AlertPopup({
       {...(material !== "solid" ? { "data-material": material } : {})}
       className={className ? `${identity} ${className}` : identity}
       {...(style !== undefined ? { style } : {})}
-      ref={lensRef}
+      ref={mergeRefs(lensRef, nameRef, clipRef)}
     >
       <OverlayBody>
         <GlassScope material={material}>{children}</GlassScope>
@@ -229,7 +257,10 @@ function AlertPopup({
 
 /* ── Title and Description: the same forcing as Dialog's, plus the index (§10, §15) ────── */
 
-export type AlertDialogTitleProps = {
+export type AlertDialogTitleProps = Omit<
+  React.ComponentPropsWithoutRef<"h2">,
+  "color" | "style" | "className"
+> & {
   /** The question, phrased as one. It is the alert's accessible name as well as its heading,
       so it should say what is about to happen and to what — "Delete three files?" — where a
       title naming the widget leaves the buttons underneath meaningless. */
@@ -244,13 +275,16 @@ export type AlertDialogTitleProps = {
 export function AlertDialogTitle({ children, ...props }: AlertDialogTitleProps) {
   const size = React.use(AlertSizeContext);
   return (
-    <BaseAlertDialog.Title render={<Heading size={TITLE_STEP[size]} />} {...props}>
+    <BaseAlertDialog.Title render={<Heading size={OVERLAY_TITLE_STEP[size]} />} {...props}>
       {children}
     </BaseAlertDialog.Title>
   );
 }
 
-export type AlertDialogDescriptionProps = {
+export type AlertDialogDescriptionProps = Omit<
+  React.ComponentPropsWithoutRef<"p">,
+  "color" | "style" | "className"
+> & {
   /** What proceeding COSTS — the consequence the title could not fit, said once. It is
       announced together with the title, so it adds (what is lost, whether it comes back)
       rather than restating the question in longer words. */
@@ -264,7 +298,7 @@ export type AlertDialogDescriptionProps = {
 export function AlertDialogDescription({ children, ...props }: AlertDialogDescriptionProps) {
   const size = React.use(AlertSizeContext);
   return (
-    <BaseAlertDialog.Description render={<Text size={BODY_STEP[size]} emphasis="medium" render={<p />} />} {...props}>
+    <BaseAlertDialog.Description render={<Text size={OVERLAY_BODY_STEP[size]} emphasis="medium" render={<p />} />} {...props}>
       {children}
     </BaseAlertDialog.Description>
   );
@@ -272,7 +306,10 @@ export function AlertDialogDescription({ children, ...props }: AlertDialogDescri
 
 /* ── The two actions: real Buttons the component prices and places (§11, §25) ──────────── */
 
-export type AlertDialogCancelProps = {
+export type AlertDialogCancelProps = Omit<
+  React.ComponentPropsWithoutRef<"button">,
+  "color" | "style" | "className"
+> & {
   /** The retreat, in words. "Cancel" always reads; naming what staying means often reads
       better ("Keep editing"), and the pair is judged together — two named sides is what makes
       the alert a choice rather than a warning with a dismiss button. */
@@ -316,7 +353,10 @@ export function AlertDialogCancel({ children, ...props }: AlertDialogCancelProps
   );
 }
 
-export type AlertDialogActionProps = {
+export type AlertDialogActionProps = Omit<
+  React.ComponentPropsWithoutRef<"button">,
+  "color" | "style" | "className"
+> & {
   /** The one meaning an action may carry beyond proceeding — `destructive` for the deletes
       this component mostly exists for. Neutral (the accent identity) otherwise. */
   tone?: Tone;

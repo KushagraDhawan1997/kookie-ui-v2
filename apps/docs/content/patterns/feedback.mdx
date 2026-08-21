@@ -42,12 +42,32 @@ rather than reaching it by forgetting.
 track as a fraction of the thumb of a slider, and a bar has no thumb. Its extent comes from the
 container, so the `Box` that owns the row decides how wide the bar is.
 
+The three answers compose into one panel. The button says the work started, the bar says how far
+it has got, and the words say how it ended.
+
 ```tsx
-<Stack gap="2">
-  <Progress value={uploaded} aria-label="Uploading files" />
-  <Text size="2" emphasis="medium">14 of 24 files</Text>
-</Stack>
+<Card size="3">
+  <Stack gap="4">
+    <Heading size="6">Import files</Heading>
+
+    {done ? (
+      <Text size="3" tone="success">Imported 24 files.</Text>
+    ) : (
+      <Stack gap="2">
+        <Progress value={uploading ? uploaded : null} aria-label="Importing files" />
+        <Text size="2" emphasis="medium">{uploaded} of 24 files</Text>
+      </Stack>
+    )}
+
+    <Flex justify="flex-end">
+      <Button emphasis="loud" loading={uploading} onClick={start}>Import</Button>
+    </Flex>
+  </Stack>
+</Card>
 ```
+
+The outcome replaces the bar in the place the bar was. It does not arrive somewhere else on the
+screen.
 
 Name every bar. A bar with no accessible name and no heading wired to it reports a number that
 nobody can read. Use the determinate form wherever the fraction exists. This is a judgment.

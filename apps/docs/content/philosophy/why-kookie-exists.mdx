@@ -27,6 +27,35 @@ Do not merge them into one component with two variants. The merge is not ugly. I
 When you put two things in one category, readers treat them as the same thing. Your structure
 teaches, whether you intend it or not.
 
+So the system ships two components, and the code states which operation you mean:
+
+```tsx
+// Switching between two views. The panels below change.
+<Tabs defaultValue="usage">
+  <TabsList>
+    <TabsTab value="usage">Usage</TabsTab>
+    <TabsTab value="invoices">Invoices</TabsTab>
+  </TabsList>
+  <TabsPanel value="usage">{usage}</TabsPanel>
+  <TabsPanel value="invoices">{invoices}</TabsPanel>
+</Tabs>
+
+// Setting a value in place. The chart below stays where it is.
+<SegmentedControl
+  value={range}
+  onValueChange={(value) => setRange(String(value))}
+  aria-label="Date range"
+>
+  <SegmentedItem value="7d">7 days</SegmentedItem>
+  <SegmentedItem value="30d">30 days</SegmentedItem>
+  <SegmentedItem value="90d">90 days</SegmentedItem>
+</SegmentedControl>
+```
+
+`Tabs` announces a tab list, and each panel gets a name. `SegmentedControl` announces a radio
+group, so a screen reader states "3 of 3 selected" and the arrow keys change the value. Neither
+behaviour is available from the other component.
+
 The library author must know the difference. This document exists to state the differences and
 to teach them.
 

@@ -141,7 +141,10 @@ export type SelectTriggerProps = Omit<
   /** §10 — a placement fact (2026-08-17): content passes behind this trigger, so the
    *  theme's material may express. Unset, reads the ambient `<Box backdrop>` region. */
   backdrop?: boolean;
+  /** Your classes, appended rather than replacing the component's own. They land on the trigger,
+      which is a field-shaped control. */
   className?: string;
+  /** Inline styles, merged last. They land on the trigger, which is a field-shaped control. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
 };
@@ -212,7 +215,11 @@ export type SelectContentProps = {
       is refused here where a menu takes one (§23) — inside a listbox it is markup an
       accessibility check reports, and a group is the divider the role already has. */
   children?: React.ReactNode;
+  /** Your classes, appended rather than replacing the component's own. They land on the popup,
+      not on the positioner around it, so a width or a max-height you set is the panel's. */
   className?: string;
+  /** Inline styles, merged last. They land on the popup, not on the positioner around it, so a
+      width or a max-height you set is the panel's. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };
