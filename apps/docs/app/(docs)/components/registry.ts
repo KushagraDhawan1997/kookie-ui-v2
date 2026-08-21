@@ -214,6 +214,10 @@ export const ENTRIES: Entry[] = [
     ],
     refusals: [
       {
+        name: "a `selected` prop, and an `interactive` one",
+        why: "Both are said by the ELEMENT instead. `<Card render={<button/>}>` is the pressable card and `<Card render={<label/>}>` around a Radio is the chosen one — so the semantics, the keyboard, the form value and the announcement are the primitive's, and the system only supplies the edge. A `selected` prop would be a second way to say what the radio already says, with nothing to keep the two in agreement; the segmented control refused the same shape in 2026-08-18. A disabled card is a disabled button, and it shows what one shows: the fill recedes, the words dim, the cursor stops promising, and the cast goes.",
+      },
+      {
         name: "a card inside a card",
         why: "A Card is an object with its own plane: opaque, bordered, and lifted in an elevated world. Two of them stacked is an object standing on an object, which states a relationship the system does not have. For a quiet region inside one card, use a Surface. For several objects on one ground, put the cards in a Surface. A development build warns, the builder's grammar cannot express it, and the composition reviewer raises it.",
       },

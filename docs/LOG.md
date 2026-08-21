@@ -291,6 +291,32 @@ The move also made the registry pure data, so `registry.test.ts` imports the val
 
 **The first draft's language was wrong, and Kushagra rejected it** (*"like bro what is it"*). It used metaphor, filler and the passive voice. Every chapter was rewritten to ASD-STE100 Simplified Technical English: active voice, short sentences, literal vocabulary, no metaphor. `content/AUTHORING.md` now states those rules, so later chapters follow them.
 
+## 2026-08-22 A card can be chosen, and a card can be dead
+
+Two states an interactive card had never had. Kushagra asked for both, and asked the right question first: *"Find me patterns for Card's 'this one is chosen'. How will Apple do it? Just a simple lit up edge?"*
+
+**What Apple does, since the answer shaped the design.** Apple has two patterns and neither of them is a coloured card. For a picture — a wallpaper, an appearance thumbnail, a watch face — Apple draws an accent RING around the whole item. For a text option in a list, Apple draws a CHECKMARK at the end of the row. Material 3 adds a tonal fill, and that is the one this system cannot take: a card has no tone (§11), and a filled card claims a rank it has not earned.
+
+**The mechanism is no mechanism, and that is the finding.** This system had already answered "pick one of several" on 2026-08-18, when the segmented control turned out to be a radio group — *"never an aria attribute bolted onto a Button"*. So a selectable card is a card that IS the label of a real radio. The semantics, the keyboard, the form value and the announcement all belong to the primitive; the whole card is pressable because that is what a label does; the visible mark is the Radio the composition placed. Apple's checkmark ends up being the call site's to position and the EDGE is the system's — which is Card's refusal of anatomy (§10) holding, rather than being worked around.
+
+**Rejected, each with its own reason.** A `selected` prop on Card: a second way to say what the radio already says, with nothing to keep them in agreement. `render={<Radio/>}`: in this package `render` means "keep my dress, change my element", so a Radio that shed the mark family on sight would contradict every other use of it. And `role="radio" aria-checked` hand-rolled onto a button, which is the exact shape §26 refused by name.
+
+**The dead card was measured before anything was written, and it was worse than expected.** A `<Card render={<button disabled/>}>` computed byte-identical to a live one — the same seal, the same ink, and `cursor: pointer`, so it still promised a press. The cause is the one that keeps producing this: the shared remap is written against `.kui-control` and a card is not one. That is the same reason the motion system skipped it until 2026-08-17.
+
+Most of the repair is the shared remap naming the surface selector — one fact, one home. Two things it cannot reach, and the parallel with the mark family is exact: **the resting fill is not a tone role, it is the seal** (audit D6, the identical finding for an unchecked checkbox), and neither is the tone-less foreground vocabulary a card's words read. Four changes ship, which is what a disabled Button shows: the fill recedes, the words dim, the cursor stops promising, the cast goes. **The cast is a §5 statement rather than a dimming** — elevation says a thing sits above the plane and can be picked up, and a dead card cannot be.
+
+**A sabotage pass proved two of my own blocks unreachable.** I wrote separate `:hover` and `:active` stand-downs; deleting them changed nothing, because the base arm ties with those rules at (0,2,0) and sits after them in the file. They are gone and the source ordering is stated instead — a mechanism with no consumer is the entropy this repo keeps paying for.
+
+**Two roles were minted, and the law that forced it is a good one.** A rung in the surface layer may not name a tone family — so `--neutral-8` and `--accent-solid` were both illegal there, which is exactly how the omission became visible. `--disabled-ink` now holds the dead text colour that recipes.css had written by hand five times and surfaces.css could not write at all; both read it. `--selected-edge` holds the chosen signal, and it is deliberately NOT `--focus-ring` even though the two resolve to the same pigment today: being chosen and being focused are different statements and must stay separately correctable.
+
+**Two existing laws had pinned spellings rather than guarantees, and a correct change failed them.** One asserted the interactive recipe was the literal string `:where(button, a)`; it reads the members now, so a new one is free and a `data-` key still is not. The other asserted `--tone-label: var(--neutral-8)` character for character; it reads the role now, and gained the clause that makes "one home" true rather than tidy — nothing in that file writes the step by hand any more.
+
+**Also corrected: the document claimed the system had no quiet inner region, and it has had one since 2026-08-20.** `Surface` shipped hours after that gap was raised and its own sentence names the case. The builder's export block is the working example. Measured in both modes — one step quieter than the card in each. What stays open is only the narrower question that paragraph also asked: whether a ground takes tone.
+
+Seven sabotage passes, all caught, after one was caught surviving. Judged on screen at 900px. The edge is v0 and a tint was deliberately not built: the eye pass decides whether one hairline is enough at card scale. +65 bytes.
+
+---
+
 ## 2026-08-21 The sheet's ring was cut, and it had borrowed the wrong motion
 
 Both found by Kushagra by eye, an hour after the sheet shipped.

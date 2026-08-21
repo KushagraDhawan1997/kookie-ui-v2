@@ -19,6 +19,8 @@ import { Flex } from "../flex/flex.tsx";
 import { Grid } from "../grid/grid.tsx";
 import { Surface } from "../surface/surface.tsx";
 import { Text } from "../text/text.tsx";
+import { Radio, RadioGroup } from "../radio/radio.tsx";
+import { Checkbox } from "../checkbox/checkbox.tsx";
 import type * as React from "react";
 import { Card } from "./card.tsx";
 
@@ -1873,5 +1875,185 @@ describe("a card does not go inside a card, and the package says so (2026-08-21)
       { theme: {} },
     );
     expect(nested().length).toBe(1);
+  });
+});
+
+
+/* ── A dead interactive surface, and a chosen one (§10, §11 — 2026-08-22) ──────────────── */
+
+describe("a card you cannot press", () => {
+  const paint = (el: HTMLElement) => ({
+    fill: computed(el, "background-color"),
+    ink: computed(el, "color"),
+    cursor: computed(el, "cursor"),
+    cast: computed(el, "box-shadow"),
+  });
+
+  const pair = () => {
+    const root = mounted(
+      <Box>
+        <Card size="3" data-testid="dead" render={<button disabled />}>
+          <Text data-testid="dead-text">Cannot</Text>
+        </Card>
+        <Card size="3" data-testid="live" render={<button />}>
+          <Text data-testid="live-text">Can</Text>
+        </Card>
+      </Box>,
+      { theme: { depth: "elevated" }, select: ".kui-box" },
+    );
+    return {
+      dead: within(root, "[data-testid='dead']"),
+      live: within(root, "[data-testid='live']"),
+      deadText: within(root, "[data-testid='dead-text']"),
+      liveText: within(root, "[data-testid='live-text']"),
+    };
+  };
+
+  it("differs from a live one in ALL FOUR channels — it shipped identical in every one", () => {
+    // Measured 2026-08-22 before anything was written: a `<Card render={<button disabled/>}>`
+    // computed byte-identical to a live one, `cursor: pointer` included, so a dead card still
+    // promised a press. Every control has had a disabled appearance since the shared remap;
+    // this one was missed for the same reason it was missed by the motion system until
+    // 2026-08-17 — the remap is written against `.kui-control` and a card is not one.
+    const { dead, live, deadText, liveText } = pair();
+    expect(paint(dead).fill, "the fill recedes to the dead step").not.toBe(paint(live).fill);
+    expect(computed(deadText, "color"), "and the words on it dim").not.toBe(
+      computed(liveText, "color"),
+    );
+    expect(paint(dead).cursor, "the hand stops promising a response").not.toBe("pointer");
+    expect(paint(live).cursor, "…where a live one still does").toBe("pointer");
+    // The cast is a §5 statement rather than a dimming: elevation says a thing sits above the
+    // plane and can be picked up, and a dead card cannot be. Read in the ELEVATED world, or
+    // there would be no shadow to lose.
+    expect(paint(live).cast, "a live card in an elevated app casts").not.toBe("none");
+    expect(paint(dead).cast, "…and a dead one does not").not.toBe(paint(live).cast);
+  });
+
+  it("does not rise to the pointer, and does not sink under a press", async () => {
+    // A dead card that still moved would contradict its own appearance in the one channel a
+    // person tests it with. Both arms, because `:hover` and `:active` still MATCH a disabled
+    // element — the browser fires neither event, but the selector is not the event.
+    inMotion();
+    const { userEvent } = await import("vitest/browser");
+    const { dead, live } = pair();
+    // Read against the card's OWN resting values, never against a literal: `translate: 0 0`
+    // computes to the string "0px" and `scale: 1` to "1", and a law that asserts "none" fails
+    // on correct code — which the sheet's motion law had already cost an hour to learn.
+    const rest = {
+      top: dead.getBoundingClientRect().top,
+      translate: computed(dead, "translate"),
+      scale: computed(dead, "scale"),
+    };
+    await userEvent.hover(dead);
+    // Wait for the hover to have LANDED somewhere, rather than reading in the statement after
+    // the gesture (settling.test.ts): the live card is the thing that does move, so its rise is
+    // the signal that the pointer has actually arrived.
+    await until(() => computed(live, "translate") !== rest.translate);
+    expect(dead.getBoundingClientRect().top, "a dead card does not rise").toBeCloseTo(rest.top, 1);
+    expect(computed(dead, "translate"), "it states no travel").toBe(rest.translate);
+    expect(computed(dead, "scale"), "and no scale").toBe(rest.scale);
+    await userEvent.unhover(dead);
+  });
+
+  it("a card that is not interactive at all is untouched by any of it", () => {
+    // The scope. `:disabled` cannot match a div, so this is really about the arm not leaking
+    // through the `:is()` list — and a law that only mounted interactive cards could not see it.
+    const plain = mounted(<Card size="3">plain</Card>, { theme: {}, select: ".kui-card" });
+    expect(computed(plain, "cursor"), "a plain card promises nothing and is dimmed by nothing")
+      .toBe("auto");
+  });
+});
+
+describe("a card that is chosen", () => {
+  // The composition, and it is the whole design: no new API. This system already answered
+  // "pick one of several" — it is a radio group (the segmented control, 2026-08-18) — so a
+  // selectable card is a card that IS the label of a real radio. The semantics, the keyboard
+  // and the form value are the primitive's; the EDGE is the system's.
+  const board = (checked: string) =>
+    mounted(
+      <RadioGroup defaultValue={checked} aria-label="Plan">
+        <Box>
+          {["starter", "pro"].map((v) => (
+            <Card key={v} size="3" data-testid={v} render={<label />}>
+              <Radio value={v} />
+              <Text>{v}</Text>
+            </Card>
+          ))}
+        </Box>
+      </RadioGroup>,
+      { theme: {}, select: ".kui-box" },
+    );
+
+  it("lights its edge in the accent, and its neighbour does not", () => {
+    const root = board("pro");
+    const chosen = within(root, "[data-testid='pro']");
+    const other = within(root, "[data-testid='starter']");
+    const accent = colorOn(root, "var(--accent-solid)");
+    expect(computed(chosen, "border-top-color"), "the chosen card wears the accent edge").toBe(accent);
+    expect(computed(other, "border-top-color"), "its neighbour does not").not.toBe(accent);
+    // The pair is what the law is about, so the OTHER direction is checked too: move the
+    // choice and the edge moves with it. Without this, a rule that lit every card would pass.
+    const moved = board("starter");
+    expect(computed(within(moved, "[data-testid='starter']"), "border-top-color")).toBe(accent);
+    expect(computed(within(moved, "[data-testid='pro']"), "border-top-color")).not.toBe(accent);
+  });
+
+  it("a CHECKED CHECKBOX lights it the same way — the shared selected vocabulary", () => {
+    // The multi-select half. `[data-checked]` and `[data-selected]` are §23's shared spelling,
+    // so a board of checkboxes needs no second rule — and a law that only mounted radios would
+    // be a law about radios wearing the general case's name.
+    const root = mounted(
+      <Box>
+        <Card size="3" data-testid="on" render={<label />}>
+          <Checkbox defaultChecked />
+          <Text>on</Text>
+        </Card>
+        <Card size="3" data-testid="off" render={<label />}>
+          <Checkbox />
+          <Text>off</Text>
+        </Card>
+      </Box>,
+      { theme: {}, select: ".kui-box" },
+    );
+    const accent = colorOn(root, "var(--accent-solid)");
+    expect(computed(within(root, "[data-testid='on']"), "border-top-color")).toBe(accent);
+    expect(computed(within(root, "[data-testid='off']"), "border-top-color")).not.toBe(accent);
+  });
+
+  it("a card that merely CONTAINS something checked is not chosen", () => {
+    // The scope, and it is the reason the selector asks about a label. A card holding a
+    // settings list with a ticked checkbox in it is not "the chosen card" — nothing was picked.
+    const root = mounted(
+      <Box>
+        <Card size="3" data-testid="plain">
+          <Checkbox defaultChecked />
+          <Text>a setting inside an ordinary card</Text>
+        </Card>
+      </Box>,
+      { theme: {}, select: ".kui-box" },
+    );
+    const accent = colorOn(root, "var(--accent-solid)");
+    expect(computed(within(root, "[data-testid='plain']"), "border-top-color")).not.toBe(accent);
+  });
+
+  it("and it is pressable, because a label's whole job is to activate what it holds", () => {
+    // The recipe widened to `label:has(.kui-control)` for this, and the scope is the clause
+    // that keeps it honest: a card labelling something OUTSIDE itself is not a thing you press.
+    const root = mounted(
+      <Box>
+        <Card size="3" data-testid="holder" render={<label />}>
+          <Checkbox />
+          <Text>holds a control</Text>
+        </Card>
+        <Card size="3" data-testid="bare" render={<label htmlFor="somewhere-else" />}>
+          <Text>labels something elsewhere</Text>
+        </Card>
+      </Box>,
+      { theme: {}, select: ".kui-box" },
+    );
+    expect(computed(within(root, "[data-testid='holder']"), "cursor")).toBe("pointer");
+    // Not `auto`: a bare `<label>` computes the UA's own `default`, which is the point — it is
+    // whatever the element already was, and nothing this rule did.
+    expect(computed(within(root, "[data-testid='bare']"), "cursor")).not.toBe("pointer");
   });
 });

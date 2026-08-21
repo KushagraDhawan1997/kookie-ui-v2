@@ -1556,8 +1556,8 @@ export const disabledDim = 70;
  * dark, making the one disabled control the strongest boundary on the row.
  */
 export const disabledSteps = {
-  light: { fill: 2, border: 3 },
-  dark: { fill: 3, border: 3 },
+  light: { fill: 2, border: 3, ink: 8 },
+  dark: { fill: 3, border: 3, ink: 8 },
 } as const;
 
 export const gripCast = {

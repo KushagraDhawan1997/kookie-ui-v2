@@ -1157,7 +1157,14 @@
    attribute, and the native attribute is the one source of truth. */
 .kui-control[data-disabled]:not([data-loading]),
 .kui-control:disabled:not([data-loading]),
-.kui-control:has(> :is(:disabled, [data-disabled])):not([data-loading]) {
+.kui-control:has(> :is(:disabled, [data-disabled])):not([data-loading]),
+/* An interactive SURFACE takes the same remap (2026-08-22): §10 says a card that is a button
+   reuses the control state machine rather than inventing a surface one, and what "disabled"
+   means has to be one fact. Measured before it was added — a dead card computed byte-identical
+   to a live one, cursor included. What this cannot reach is the seal and the cast, because
+   neither is a tone role; those two are stated in surfaces.css, exactly as the mark family
+   states its own for the same reason (audit D6). */
+.kui-surface:where(button, a, label:has(.kui-control)):is(:disabled, [aria-disabled="true"], [data-disabled]) {
   /* The hand promises a response; a disabled control makes no such promise. Back to the
      arrow — never `not-allowed`, which no native platform uses. */
   cursor: var(--cursor-disabled);
@@ -1180,15 +1187,15 @@
   --tone-solid-hover: var(--disabled-fill);
   --tone-solid-active: var(--disabled-fill);
   --tone-border: var(--disabled-border);
-  --tone-label: var(--neutral-8);
-  --tone-contrast: var(--neutral-8);
+  --tone-label: var(--disabled-ink);
+  --tone-contrast: var(--disabled-ink);
   /* The INK trio stands down with them (added 2026-08-09, when the row family moved onto it):
      a remap that covers one of two ink vocabularies dims whichever controls happen to use
      that one — the slider-handle shape the 2026-08-07 audit caught. Rows read --tone-ink, and
      any Text inside a dead control should dim with it. */
-  --tone-ink: var(--neutral-8);
-  --tone-ink-muted: var(--neutral-8);
-  --tone-ink-faint: var(--neutral-8);
+  --tone-ink: var(--disabled-ink);
+  --tone-ink-muted: var(--disabled-ink);
+  --tone-ink-faint: var(--disabled-ink);
   /* State outranks dress (§19). The RULE is unchanged and still load-bearing; the sentence
      explaining it is rewritten (2026-08-20), because it named `look="filled"` — an axis
      deleted whole on 2026-08-19/20 — and described a transparent resting border the dress

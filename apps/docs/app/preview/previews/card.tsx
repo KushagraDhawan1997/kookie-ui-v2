@@ -9,7 +9,7 @@
  * pressable × material × size on both calm and hostile ground.
  */
 import * as React from "react";
-import { Box, Button, Card, Flex, Grid, Heading, ScrollArea, Separator, Stack, Text, TextField, Theme, themeAxes } from "@kookie-ui/react";
+import { Box, Button, Card, Checkbox, Flex, Grid, Heading, Radio, RadioGroup, ScrollArea, Separator, Stack, Text, TextField, Theme, themeAxes } from "@kookie-ui/react";
 
 import { BEDS, BedSurface, bed } from "../beds";
 import { Demo, SIZES, cap } from "../pieces";
@@ -143,6 +143,76 @@ function States() {
         {SIZES.map((size) => (
           <Card key={size} size={size} render={<a href="#card" />} style={{ textDecoration: "none" }}>
             <Blurb title={`Link ${size}`} body="No underline; the ring lands." />
+          </Card>
+        ))}
+      </Grid>
+    </Demo>
+
+    {/* DEAD (2026-08-22). Four things move together and the pair is the only way to judge any
+        of them: the fill recedes to the dead step, the words dim, the cursor stops promising,
+        and the cast goes. That last one is a §5 statement rather than a dimming — elevation
+        says a thing can be picked up, and this one cannot. Hover both: only the live one
+        rises. */}
+    <Demo label="Live beside dead — press the first, then try the second">
+      <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5">
+        <Card size="3" render={<button type="button" />} style={{ textAlign: "left" }}>
+          <Blurb title="Live" body="Rises to the pointer, sinks under a press." />
+        </Card>
+        <Card size="3" render={<button type="button" disabled />} style={{ textAlign: "left" }}>
+          <Blurb title="Disabled" body="Receded, dimmed, and it does not move." />
+        </Card>
+      </Grid>
+    </Demo>
+
+    {/* CHOSEN (2026-08-22). No prop: the card is the LABEL of a real radio, so arrow keys move
+        the choice, the form submits a value, and a screen reader announces a radio group. The
+        edge is the system's; where the mark sits is this composition's. Use the keyboard — the
+        ring and the chosen edge must stay two different statements. */}
+    <Demo label="One of several — arrow-key through it, and watch the edge move">
+      <RadioGroup defaultValue="pro" aria-label="Plan">
+        <Grid columns="repeat(3, minmax(0, 1fr))" gapX="5" gapY="5">
+          {(
+            [
+              ["starter", "Starter", "$0", "Three projects."],
+              ["pro", "Pro", "$20", "Unlimited projects."],
+              ["scale", "Scale", "$99", "SSO and audit log."],
+            ] as const
+          ).map(([value, label, price, body]) => (
+            <Card key={value} size="3" render={<label />}>
+              <Stack gap="3">
+                <Flex justify="space-between" align="center">
+                  <Text size="3" weight="medium">{label}</Text>
+                  <Radio value={value} />
+                </Flex>
+                <Text size="5">{price}</Text>
+                <Text size="2" emphasis="medium">{body}</Text>
+              </Stack>
+            </Card>
+          ))}
+        </Grid>
+      </RadioGroup>
+    </Demo>
+
+    {/* The same edge with no second rule: `[data-checked]` is the shared vocabulary, so a board
+        of checkboxes is a board of chosen cards. Several may be lit at once, which is the whole
+        difference from the radio board above. */}
+    <Demo label="Several at once — the same edge, from a checkbox">
+      <Grid columns="repeat(3, minmax(0, 1fr))" gapX="5" gapY="5">
+        {(
+          [
+            ["Analytics", "Page views and funnels.", true],
+            ["Alerts", "Email when a check fails.", false],
+            ["Backups", "Nightly, kept for 30 days.", true],
+          ] as const
+        ).map(([label, body, on]) => (
+          <Card key={label} size="3" render={<label />}>
+            <Stack gap="3">
+              <Flex justify="space-between" align="center">
+                <Text size="3" weight="medium">{label}</Text>
+                <Checkbox defaultChecked={on} />
+              </Flex>
+              <Text size="2" emphasis="medium">{body}</Text>
+            </Stack>
           </Card>
         ))}
       </Grid>

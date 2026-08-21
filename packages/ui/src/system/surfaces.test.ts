@@ -188,8 +188,20 @@ describe("material resolves through tokens only (§10)", () => {
 
 describe("card-as-button: the element brings the interactivity (§10)", () => {
   it("the interactive block keys on element semantics, never on a prop", () => {
-    expect(surfaces).toContain(":where(button, a)");
+    // The list grew on 2026-08-22 (a label that HOLDS a control joined the button and the
+    // anchor), and the first spelling of this law pinned `:where(button, a)` character for
+    // character — so a correct widening failed it. What the law is actually about is that
+    // interactivity is read off the ELEMENT and never off a prop, which is a claim about what
+    // may NOT appear. It now reads the members, so a new one is free and a `data-` key is not.
+    const list = /\.kui-surface:where\(([^)]*(?:\([^)]*\)[^)]*)*)\)/.exec(surfaces);
+    expect(list, "the interactive recipe must exist to be about anything").not.toBeNull();
+    for (const member of ["button", "a"]) {
+      expect(list![1], `the interactive recipe dropped ${member}`).toContain(member);
+    }
     expect(surfaces).not.toContain("data-interactive");
+    // The real prohibition, stated positively: no rule in this layer turns interactivity on
+    // with an attribute the call site writes.
+    expect(surfaces).not.toMatch(/\[data-(interactive|pressable|clickable)/);
   });
 
   it("hover is guarded by (hover: hover); press is not, and reads the surface steps", () => {

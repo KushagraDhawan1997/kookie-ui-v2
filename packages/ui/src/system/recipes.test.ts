@@ -482,8 +482,16 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     // owes it the same stand-down it always gave --tone-label.
     const arm = block(recipes, ".kui-control[data-disabled]:not([data-loading]),");
     for (const role of ["--tone-label", "--tone-ink"]) {
-      expect(arm, `the disabled arm leaves ${role} live`).toContain(`${role}: var(--neutral-8)`);
+      // The dead ink is a ROLE since 2026-08-22, not a step written by hand: this file wrote
+      // `--neutral-8` five times and surfaces.css could not write it at all, because a rung
+      // there may not name a tone family. The law reads the role rather than the step for the
+      // same reason the code does — a re-priced dead ink must not need five edits and a law.
+      expect(arm, `the disabled arm leaves ${role} live`).toContain(`${role}: var(--disabled-ink)`);
     }
+    // And nothing here writes the step by hand any more, which is what makes "one home" true
+    // rather than merely tidy. Comments are stripped, so the paragraph explaining the history
+    // does not satisfy its own law.
+    expect(recipes, "the dead ink has one home").not.toContain("--neutral-8)");
   });
 
   it("the row stand-down sits AFTER the shared hover rule — it wins on order, not weight", () => {
