@@ -293,6 +293,10 @@ export const ENTRIES: Entry[] = [
         why: "Layout, not anatomy — Card's own cut. A title, a description and an action row are a Stack the call site writes, and blessing one arrangement deprecates every other. Title and Description ARE parts here, because something non-visual forces them: they carry the panel's accessible name and description.",
       },
       {
+        name: "a presentation prop, and a drag",
+        why: "Below the narrow window boundary (config's one 48rem, shared with the shell and the type band) a dialog presents as a SHEET — full width, on the bottom edge, top corners only, capped so a strip of scrim stays tappable and the body scrolls. It is the same element throughout, so a half-filled form survives the crossing, and there is no prop: the window class answers which interface an app should show. What a sheet does NOT do is drag — swipe to dismiss, pull to a half height — because a gesture is JavaScript on every pointer move. That is what a separate Drawer is for. An AlertDialog stays centred at every width.",
+      },
+      {
         name: "a height, and a way to keep a long panel inside the window",
         why: "The extent is the call site's, the same class of value as a card's: state a height (or a max-height) on DialogContent and a ScrollArea inside it becomes the thing that scrolls, with the title and the action row staying put. State nothing and the panel grows and the dialog's own viewport scrolls it, so a long form is still reachable. Whether a panel holding a scroller should cap itself at the window without being asked is recorded open.",
       },

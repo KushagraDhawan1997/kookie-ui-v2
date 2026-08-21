@@ -225,6 +225,31 @@ function States() {
           </Dialog>
         </Flex>
       </Demo>
+      {/* THE SHEET (2026-08-21). Nothing to press here that is not pressable anywhere else —
+          what this demo is for is the WINDOW. Drag it under 768px and the panel stops being
+          centred and becomes a sheet on the bottom edge: full width, top corners only, a strip
+          of scrim left tappable above it. Same element throughout, so whatever is typed into it
+          survives the crossing. An AlertDialog beside it deliberately does not do this. */}
+      <Demo label="Drag the window narrow — the panel becomes a sheet, and the alert does not">
+        <Flex gap="3" align="center" wrap="wrap">
+          <Dialog>
+            <DialogTrigger render={<Button emphasis="medium">Rename project</Button>} />
+            <DialogContent>
+              <Stack gap="6">
+                <Stack gap="2">
+                  <DialogTitle>Rename project</DialogTitle>
+                  <DialogDescription>Everyone with access will see the new name.</DialogDescription>
+                </Stack>
+                <TextField placeholder="Project name" aria-label="Project name" />
+                <Flex gap="3" justify="flex-end">
+                  <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
+                  <DialogClose render={<Button tone="accent" emphasis="loud">Save</Button>} />
+                </Flex>
+              </Stack>
+            </DialogContent>
+          </Dialog>
+        </Flex>
+      </Demo>
       {/* The OTHER answer to a long dialog, and the pair is the point: above, the panel grows
           and the viewport scrolls it, so the title leaves the screen with everything else;
           here the panel states a height and the LIST scrolls inside it, so the title and the
