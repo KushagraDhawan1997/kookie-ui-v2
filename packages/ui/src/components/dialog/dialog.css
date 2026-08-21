@@ -172,18 +172,69 @@
     flex-direction: column;
   }
 
-  .kui-dialog-body {
+  /* The panel's padding MOVES INTO the body, and that is not tidiness — it is the ring
+     (Kushagra, by eye: "focus is being cut"). `overflow-y: auto` promotes the other axis:
+     CSS resolves a `visible` inline axis beside a scrolling block one to `auto`, so the body
+     became a scroll container on BOTH axes, and a scroll container clips at its own padding
+     box. With the padding on the POPUP the body's box ended exactly where the field's did —
+     measured 0px of clearance — so every focus ring inside a sheet was cut off at both edges.
+
+     This is the menu's own repair (2026-08-17, when the scrolling moved to its viewport) and
+     the general rule the card work stated a day ago: A CLIPPING BOX MUST PAD AT LEAST THE
+     RING'S REACH. The bleed spelling is the shared layer's — negative margin out to the
+     panel's edges, the padding restated inside — so a ScrollArea in a sheet still reaches the
+     edges by the same arithmetic it uses anywhere else, and nothing is stated twice.
+
+     The block-start padding now scrolls with the content, which is what a sheet should do:
+     the title leaves under the top edge rather than sitting in a frozen band. */
+  .kui-dialog-popup .kui-dialog-body {
     /* The cap's other half. `auto` and not `clip`: this is the one box in the panel that is
        ALLOWED to be a scroll container, because it is the only one whose overflow the reader
        must be able to reach. */
     flex: 1;
     min-block-size: 0;
     overflow-y: auto;
+    margin: calc(-1 * var(--kui-sf-p));
+    padding: var(--kui-sf-p);
     /* A phone's home indicator sits over the bottom of the screen, and a sheet pinned there
        would put its last control under it. The env() value is 0 everywhere it does not apply,
        so the max() resolves to the pane's own padding on every other device. First use of an
        environment value in the package, and it is here because without it the component is
        wrong on exactly the device it exists for. */
-    padding-block-end: max(var(--radius-0), env(safe-area-inset-bottom));
+    padding-block-end: max(var(--kui-sf-p), env(safe-area-inset-bottom));
+  }
+
+  /* ── NO MOTION, on purpose (Kushagra, 2026-08-21: "we will design a separate motion system
+     for sheet, so what it has right now is wrong") ───────────────────────────────────────
+     §24's entry is DEPTH, NOT DISTANCE, and every word of that argument is about a centred
+     panel at modal mass: the scrim pushing the app back is the arrival, so the panel need only
+     step forward in z. A sheet does not arrive that way — it comes from the bottom edge, and a
+     3% scale on a box already resting on that edge reads as the wrong gesture rather than as a
+     small one. Standing it down until the sheet's own motion is designed is Menu's precedent
+     (shipped instant, moved the next day): a motion that is wrong is worse than none, and an
+     absence is honest about being unfinished in a way a borrowed recipe is not.
+
+     The SCRIM keeps its fade, and that is not an exception — the backdrop's recipe is about
+     the app going back, not about how the panel arrives, and it is right either way.
+
+     Selectors match the shared layer's weight exactly ((0,4,0) and (0,2,0)): a media query
+     adds no specificity, so a lighter stand-down here would simply lose to surfaces.css. */
+  .kui-surface.kui-overlay.kui-dialog-popup {
+    transition: none;
+  }
+  .kui-surface.kui-overlay.kui-dialog-popup[data-starting-style],
+  .kui-surface.kui-overlay.kui-dialog-popup[data-ending-style] {
+    opacity: 1;
+    /* `none` and not `1` — the same picture, and only one of them says what is meant. It is
+       also the resting value, which is what lets the law compare the starting pose against the
+       resting one instead of against a literal (the law's first spelling asserted the string
+       and failed on correct code). */
+    scale: none;
+  }
+  .kui-dialog-popup .kui-dialog-body {
+    transition: none;
+  }
+  .kui-dialog-popup[data-starting-style] .kui-dialog-body {
+    filter: none;
   }
 }

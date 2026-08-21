@@ -250,6 +250,26 @@ The move also made the registry pure data, so `registry.test.ts` imports the val
 
 **The first draft's language was wrong, and Kushagra rejected it** (*"like bro what is it"*). It used metaphor, filler and the passive voice. Every chapter was rewritten to ASD-STE100 Simplified Technical English: active voice, short sentences, literal vocabulary, no metaphor. `content/AUTHORING.md` now states those rules, so later chapters follow them.
 
+## 2026-08-21 The sheet's ring was cut, and it had borrowed the wrong motion
+
+Both found by Kushagra by eye, an hour after the sheet shipped.
+
+**The ring.** `overflow-y: auto` beside a `visible` inline axis resolves that axis to `auto` too — CSS promotes it, and nobody writes that down. So the body became a scroll container on BOTH axes, and a scroll container clips at its own padding box. The padding was on the POPUP, so the body's box ended exactly where the field's did: measured 0px of clearance, and every focus ring inside a sheet sliced at both edges. The repair is the menu's own (2026-08-17, when its scrolling moved to a viewport) and the general rule the card work stated the day before — **a clipping box must pad at least the ring's reach** — reaching its second consumer. The padding moves onto the body in the bleed spelling, so a ScrollArea still reaches the edges by the same arithmetic and nothing is stated twice.
+
+**The motion.** Kushagra: *"it still has same motion as dialog when it opens in sheet. We will design a separate motion system for sheet, so what it has right now is wrong."* §24's entry is depth-not-distance and every word of that argument is about a CENTRED panel at modal mass — a 3% scale on a box already resting on the bottom edge is the wrong gesture, not a small one. Stood down until the sheet's own is designed, which is Menu's precedent: shipped instant, moved the next day. A motion that is wrong is worse than none, and an absence is honest about being unfinished in a way a borrowed recipe is not.
+
+**Three instrument findings, and each one is the same lesson from a different side.**
+
+**The fixture could not tell the cases apart.** My first motion law read `transition-property` on a `defaultOpen` dialog and got "none" at BOTH widths — because Base UI writes `transition: none !important` INLINE on a dialog that opens on mount. So the law would have passed with the stand-down deleted. It opens from the keyboard now, which is a real open. This is the degenerate-fixture rule (2026-08-20) for the tenth time and the second in two days.
+
+**Two sabotages survived the first law, and they were right to.** With the clock stood down, `data-starting-style` is gone before any read lands, so deleting the POSE stand-downs left the suite green — and the pose is not decoration: with no transition the browser still paints one frame at the starting values. The second law SETS the attribute rather than waiting for it, which is not a workaround: the claim is about what the starting pose resolves to, a question about the cascade rather than about time, and a law that raced the frame would be the shape `watchesFrames` exists to keep out.
+
+**And the law's first spelling failed on correct code.** It asserted `scale` was the string `"none"` while the CSS said `scale: 1` — the same picture, two strings. Fixed in the CSS rather than the law, because `none` is what is meant and it is also the resting value, which is what lets the law compare the starting pose against the resting one instead of against a literal.
+
+Four sabotage passes, all caught, after two of them were caught surviving. Judged on a real 390 x 844 viewport with a focused field, screenshotted. +34 bytes.
+
+---
+
 ## 2026-08-21 A dialog is a sheet on a phone, and the rule was already written
 
 Kushagra, after I had split this into two problems: *"the drawer that Shell built is exactly what we need — there a panel not floating, floats on narrow devices. We're using the same definition for dialog, no?"*

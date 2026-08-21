@@ -30,6 +30,7 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Box } from "../box/box.tsx";
+import { TextField } from "../text-field/text-field.tsx";
 import { VIEWPORT } from "../../test/viewport.ts";
 import {
   AlertDialog,
@@ -1035,6 +1036,165 @@ describe("on a narrow window a dialog is a sheet", () => {
       .toBeCloseTo(r.top, 0);
     expect(parseFloat(computed(alert, "border-bottom-left-radius")), "corners all round")
       .toBeGreaterThan(0);
+  });
+
+  it("a focused control's ring is not cut off — the scroll container pads it", async () => {
+    // Kushagra, by eye on the sign-in sheet: "focus is being cut". The cause is a CSS
+    // promotion nobody writes down: `overflow-y: auto` beside a `visible` inline axis resolves
+    // that axis to `auto` too, so the body became a scroll container on BOTH axes — and a
+    // scroll container clips at its own padding box. With the padding on the POPUP, the body's
+    // box ended exactly where the field's did (measured 0px of clearance) and every ring
+    // inside a sheet was sliced at both edges.
+    //
+    // The general rule is a day old and stated for panes: a clipping box must pad at least the
+    // ring's reach. This is its second consumer.
+    await page.viewport(PHONE.width, PHONE.height);
+    render(
+      <Theme>
+        <Dialog defaultOpen size="3">
+          <DialogContent>
+            <DialogTitle>Sign in</DialogTitle>
+            <TextField placeholder="you@company.com" aria-label="Email" />
+          </DialogContent>
+        </Dialog>
+      </Theme>,
+    );
+    settleAll();
+    const ps = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+    const p = ps[ps.length - 1];
+    if (!p) throw new Error("the panel never mounted");
+    const body = p.querySelector<HTMLElement>(".kui-dialog-body");
+    const field = p.querySelector<HTMLElement>(".kui-field");
+    const input = p.querySelector<HTMLInputElement>("input");
+    if (!body || !field || !input) throw new Error("the field never mounted");
+    input.focus();
+    settleAll();
+
+    // The ring's real reach, read off the browser rather than rebuilt from tokens.
+    const reach =
+      parseFloat(computed(field, "outline-width")) + parseFloat(computed(field, "outline-offset"));
+    expect(reach, "the field must actually draw a ring, or this proves nothing")
+      .toBeGreaterThan(0);
+    const br = body.getBoundingClientRect();
+    const fr = field.getBoundingClientRect();
+    expect(fr.left - br.left, "room on the left for the ring to be painted in")
+      .toBeGreaterThanOrEqual(reach);
+    expect(br.right - fr.right, "…and on the right").toBeGreaterThanOrEqual(reach);
+    // And the content is still inset from the PANEL by the pane's own padding: the fix moves
+    // where the padding lives, it does not delete it.
+    const pr = p.getBoundingClientRect();
+    const pad = parseFloat(computed(body, "padding-left"));
+    expect(pad, "the padding moved onto the body").toBeGreaterThan(0);
+    expect(fr.left - pr.left, "so nothing moved on screen").toBeCloseTo(
+      pad + parseFloat(computed(p, "border-left-width")),
+      0,
+    );
+  });
+
+  it("carries NO motion — the dialog's entry is wrong for a sheet, and none is honest", async () => {
+    // Kushagra, 2026-08-21: "we will design a separate motion system for sheet, so what it has
+    // right now is wrong". §24's entry is depth-not-distance, and every word of that argument
+    // is about a CENTRED panel at modal mass — a 3% scale on a box already resting on the
+    // bottom edge reads as the wrong gesture rather than a small one. Menu's precedent:
+    // shipped instant, moved the next day.
+    //
+    // THE FIXTURE IS THE LAW. `defaultOpen` cannot answer this: Base UI writes
+    // `transition: none !important` INLINE on a dialog that opens on mount, so both windows
+    // read "no motion" and a sabotage of the stand-down survives. Measured, and it survived —
+    // this opens from the keyboard, which is a real open, and reads the starting frame.
+    inMotion();
+
+    const openByPress = async () => {
+      render(
+        <Theme>
+          <Dialog size="3">
+            <DialogTrigger render={<Button>Open</Button>} />
+            <DialogContent>
+              <DialogTitle>Rename</DialogTitle>
+            </DialogContent>
+          </Dialog>
+        </Theme>,
+      );
+      settleAll();
+      const buttons = document.querySelectorAll<HTMLElement>("button");
+      const trigger = buttons[buttons.length - 1];
+      if (!trigger) throw new Error("the trigger never mounted");
+      const before = document.querySelectorAll(".kui-dialog-popup").length;
+      trigger.focus();
+      await userEvent.keyboard("{Enter}");
+      // WAIT for the panel, never assume the gesture resolving means React has committed
+      // (settling.test.ts, 2026-08-21). A state that never arrives expires the deadline into
+      // the same failure, with the same message.
+      await until(() => document.querySelectorAll(".kui-dialog-popup").length > before);
+      const ps = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+      const p = ps[ps.length - 1];
+      if (!p) throw new Error("the panel never opened");
+      const b = p.querySelector<HTMLElement>(".kui-dialog-body");
+      if (!b) throw new Error("the body never mounted");
+      return { panel: p, body: b };
+    };
+
+    // WIDE first, and it is not a control for politeness: it is what makes the narrow reading
+    // mean anything. Both halves in one law, because the claim is a difference.
+    const wide = await openByPress();
+    expect(computed(wide.panel, "transition-property"), "a centred dialog still comes into focus")
+      .toBe("scale, opacity");
+    expect(computed(wide.panel, "scale"), "…from a step back in z").not.toBe("none");
+    expect(computed(wide.body, "transition-property"), "…with its content sharpening").toBe("filter");
+
+    await page.viewport(PHONE.width, PHONE.height);
+    const sheet = await openByPress();
+    expect(computed(sheet.panel, "transition-property"), "a sheet moves nothing").toBe("none");
+    expect(computed(sheet.body, "transition-property"), "…and its content has no clock either")
+      .toBe("none");
+  });
+
+  it("…and it does not flash the dialog's POSE for a frame either", async () => {
+    // The half the law above cannot see, and its sabotage pass is what said so: with the clock
+    // stood down, `data-starting-style` is gone by the time any read lands, so deleting the
+    // pose stand-downs left the suite green. The pose still matters — with no transition the
+    // browser paints one frame at the starting values before the attribute is removed, which
+    // is a 3%-smaller blurred panel popping into place.
+    //
+    // So the attribute is SET rather than waited for. That is not a workaround: the claim here
+    // is about what the starting pose resolves to, which is a question about the cascade and
+    // not about time — and a law that raced the frame would be the timing shape this repo has
+    // already removed five times (`watchesFrames`, 2026-08-20).
+    const poseOf = async (viewport: { width: number; height: number }) => {
+      await page.viewport(viewport.width, viewport.height);
+      render(
+        <Theme>
+          <Dialog defaultOpen size="3">
+            <DialogContent>
+              <DialogTitle>Rename</DialogTitle>
+            </DialogContent>
+          </Dialog>
+        </Theme>,
+      );
+      settleAll();
+      const ps = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
+      const p = ps[ps.length - 1];
+      if (!p) throw new Error("the panel never mounted");
+      const b = p.querySelector<HTMLElement>(".kui-dialog-body");
+      if (!b) throw new Error("the body never mounted");
+      // Read against the panel's OWN resting pose rather than against a literal. `scale: none`
+      // and `scale: 1` are the same picture and different strings, and the first spelling of
+      // this law asserted the string — it failed on correct code, which is the cheapest kind
+      // of instrument bug to find and the easiest to have shipped as a "fix".
+      const rest = { scale: computed(p, "scale"), blur: computed(b, "filter") };
+      p.setAttribute("data-starting-style", "");
+      const start = { scale: computed(p, "scale"), blur: computed(b, "filter") };
+      p.removeAttribute("data-starting-style");
+      return { rest, start };
+    };
+
+    const wide = await poseOf(VIEWPORT);
+    expect(wide.start.scale, "a centred dialog starts a step back in z").not.toBe(wide.rest.scale);
+    expect(wide.start.blur, "…with its content out of focus").not.toBe(wide.rest.blur);
+
+    const sheet = await poseOf(PHONE);
+    expect(sheet.start.scale, "a sheet starts exactly where it lands").toBe(sheet.rest.scale);
+    expect(sheet.start.blur, "…and its content is never blurred").toBe(sheet.rest.blur);
   });
 
   it("a window one pixel wider is the centred panel, unchanged", async () => {
