@@ -431,8 +431,10 @@ export function Shell({ size = "2", className, style, children, ref, ...props }:
 
 export type ShellHeaderProps = Omit<React.ComponentPropsWithoutRef<"header">, "color"> &
   PaneDressProps & {
-    /** The index this header is priced at — its padding, its ROW's height, and anything it
-        holds. Defaults to the app's, like every pane. */
+    /**
+     * The index this header is drawn at: its padding, the height of its row, and anything it holds.
+     * It defaults to the app's, like every pane.
+     */
     size?: Size;
   };
 
@@ -472,8 +474,9 @@ export function ShellHeader({
 
 export type ShellContentProps = Omit<React.ComponentPropsWithoutRef<"main">, "color"> &
   PaneDressProps & {
-    /** The index this pane is priced at — its padding, and anything it holds. Defaults to
-        the app's. */
+    /**
+     * The index this pane is drawn at: its padding, and anything it holds. It defaults to the app's.
+     */
     size?: Size;
   };
 
@@ -764,8 +767,9 @@ export type ShellBottomProps = Omit<React.ComponentPropsWithoutRef<"aside">, "co
      * degrees.
      */
     height?: number;
-    /** The index this pane is priced at — its padding, and anything it holds. Defaults to
-        the app's. */
+    /**
+     * The index this pane is drawn at: its padding, and anything it holds. It defaults to the app's.
+     */
     size?: Size;
     ref?: React.Ref<HTMLElement>;
   };

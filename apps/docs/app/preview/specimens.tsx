@@ -1002,27 +1002,23 @@ function ShellSection() {
                 above them — which is the whole of why a sidebar row leaves the menu row's
                 height behind. */}
             <ShellSidebar aria-label="Primary">
-              <Box p="2">
-                <Button size="2" emphasis="quiet">
-                  New project
-                </Button>
-              </Box>
+              <Button size="2" emphasis="quiet">
+                New project
+              </Button>
               <ShellScroll>
-                <Box px="2">
-                  <ShellNavGroup label="Workspace">
-                    <ShellNavItem>Projects</ShellNavItem>
-                    <ShellNavItem current>Deploys</ShellNavItem>
-                    <ShellNavItem>Members</ShellNavItem>
-                  </ShellNavGroup>
-                  <ShellNavGroup label="Account">
-                    <ShellNavItem>Settings</ShellNavItem>
-                    <ShellNavItem>Billing</ShellNavItem>
-                  </ShellNavGroup>
-                </Box>
+                <ShellNavGroup label="Workspace">
+                  <ShellNavItem>Projects</ShellNavItem>
+                  <ShellNavItem current>Deploys</ShellNavItem>
+                  <ShellNavItem>Members</ShellNavItem>
+                </ShellNavGroup>
+                <ShellNavGroup label="Account">
+                  <ShellNavItem>Settings</ShellNavItem>
+                  <ShellNavItem>Billing</ShellNavItem>
+                </ShellNavGroup>
               </ShellScroll>
             </ShellSidebar>
             <ShellContent>
-              <Stack gap="2" p="4">
+              <Stack gap="2">
                 <Heading size="6">Deploys</Heading>
                 <Text size="2" emphasis="medium">
                   Three environments, all green. The content pane scrolls itself; the shell
@@ -1031,7 +1027,7 @@ function ShellSection() {
               </Stack>
             </ShellContent>
             <ShellInspector>
-              <Stack gap="2" p="3">
+              <Stack gap="2">
                 <Text size="2" weight="medium">
                   Inspector
                 </Text>
@@ -1041,11 +1037,9 @@ function ShellSection() {
               </Stack>
             </ShellInspector>
             <ShellBottom>
-              <Stack p="3">
-                <Text size="2" emphasis="medium">
-                  Build finished in 41s.
-                </Text>
-              </Stack>
+              <Text size="2" emphasis="medium">
+                Build finished in 41s.
+              </Text>
             </ShellBottom>
           </Shell>
         </Box>
@@ -1096,7 +1090,7 @@ function ShellSection() {
         <Box height="22rem">
           <Shell>
             <ShellHeader>
-              <Flex align="center" gap="3" px="3" py="2">
+              <Flex align="center" gap="3">
                 <Text size="2" weight="medium">
                   Kookie Studio
                 </Text>
@@ -1128,7 +1122,7 @@ function ShellSection() {
               </Stack>
             </ShellSidebar>
             <ShellContent>
-              <Stack gap="2" p="4">
+              <Stack gap="2">
                 <Heading size="6">Canvas</Heading>
                 <Text size="2" emphasis="medium">
                   The work area runs the full width of the frame and the columns rest on top
@@ -1149,7 +1143,7 @@ function ShellSection() {
         <Box height="22rem">
           <Shell>
             <ShellHeader flush={false}>
-              <Flex align="center" gap="3" px="3" py="2">
+              <Flex align="center" gap="3">
                 <Text size="2" weight="medium">
                   Kookie Studio
                 </Text>

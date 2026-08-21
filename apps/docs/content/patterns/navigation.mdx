@@ -43,6 +43,33 @@ the person asks for detail.
 being an ordinary sized child of the pane. A pinned header and a pinned footer in a sidebar are
 siblings, not parts.
 
+## A pane pads its own content
+
+Every pane is a surface, and it pads like one. The inset comes from the pane's `size`, so a
+`size="3"` pane gives its content more room than a `size="1"` pane does. Do not write your own
+`p` or `px` on the first child of a pane. You would be adding a second inset to one that is
+already there.
+
+The header's height comes out of the same rule: one control row at the pane's index, inside the
+pane's padding. So at one index a header is exactly as tall as the rail is wide. It is a floor
+rather than a fixed height. Something taller grows it, and something shorter centres in it.
+
+Two things still reach the pane's edges, and both are automatic.
+
+- **A `ShellScroll` reaches the edges on its own.** It is a `ScrollArea`, and a scroll area that
+  is the direct child of a surface bleeds out to that surface's edge and re-pads its own
+  viewport. So a highlighted nav row still spans its column.
+- **Anything else says `m="bleed"`.** A picture across the top of the content pane, or a canvas
+  that wants the whole box, cancels the pane's padding with the same value any surface takes.
+
+```tsx
+<ShellContent>
+  <Box m="bleed">
+    <canvas />
+  </Box>
+</ShellContent>
+```
+
 ## An untouched pane rests on auto
 
 A pane that nobody has touched rests on `auto`. CSS resolves what `auto` means, per window size
@@ -111,7 +138,7 @@ monochrome display.
 ```tsx
 <Shell size="2">
   <ShellHeader>
-    <Flex align="center" gap="3" px="3" py="2">
+    <Flex align="center" gap="3">
       <ShellTrigger target="sidebar" render={<Button size="1" emphasis="quiet" />}>
         Menu
       </ShellTrigger>

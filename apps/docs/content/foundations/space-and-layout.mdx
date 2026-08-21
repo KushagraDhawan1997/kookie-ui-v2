@@ -143,7 +143,11 @@ margin prop it resolves to the negative of the enclosing surface's padding.
 `bleed` is a value, not a prop. Every per-side and per-tier spelling already exists on the
 margin rows, so `mt="bleed" mx="bleed"` bleeds the top and the sides at no new cost. The
 nearest surface wins, so a card inside a dialog bleeds to the card. Outside any surface it
-computes a real zero. It works on a margin only. Padding and `gap` reject a negative length, so
+computes a real zero.
+
+A `Shell` pane is a surface too, and it pads like one, so `bleed` is how a canvas or a picture
+reaches a pane's edges. A `ShellScroll` needs no help: a scroll area that is the direct child
+of a surface bleeds out on its own and re-pads its own viewport. It works on a margin only. Padding and `gap` reject a negative length, so
 the word reaches CSS as written and CSS rejects it where you can see it.
 
 ```tsx
