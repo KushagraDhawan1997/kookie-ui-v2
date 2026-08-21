@@ -317,21 +317,31 @@
 
 /* ── The size index: padding and corner — a surface has no height to own (§4, §6, §10) ───── */
 
+/* `--kui-sf-icon` sits in this join rather than in a component sheet for Dialog's own reason
+   (§24): a per-size spelling belongs to the shared layer, and the no-axis walk forbids
+   `data-size` in a component stylesheet outright. It publishes the SAME ladder the control
+   family's `--kui-ct-icon` reads (§4, 2026-08-10 — a glyph lands on the 16/20/24 drawing grid
+   and answers the pointer axis there), so a symbol on a surface and a symbol in a button at
+   one index are one box rather than two that drift. */
 .kui-surface[data-size="1"] {
   --kui-sf-p: var(--surface-p-1);
   --kui-sf-radius: var(--radius-surface-1);
+  --kui-sf-icon: var(--icon-size-1);
 }
 .kui-surface[data-size="2"] {
   --kui-sf-p: var(--surface-p-2);
   --kui-sf-radius: var(--radius-surface-2);
+  --kui-sf-icon: var(--icon-size-2);
 }
 .kui-surface[data-size="3"] {
   --kui-sf-p: var(--surface-p-3);
   --kui-sf-radius: var(--radius-surface-3);
+  --kui-sf-icon: var(--icon-size-3);
 }
 .kui-surface[data-size="4"] {
   --kui-sf-p: var(--surface-p-4);
   --kui-sf-radius: var(--radius-surface-4);
+  --kui-sf-icon: var(--icon-size-4);
 }
 
 /* ── The FLOATING pane's size join (§22, Kushagra 2026-08-09) ────────────────────────────────

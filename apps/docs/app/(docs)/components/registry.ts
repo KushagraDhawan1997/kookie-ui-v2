@@ -565,6 +565,44 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "notice",
+    name: "Notice",
+    family: "Surface",
+    spec: "§29",
+    blurb:
+      "A condition that is true right now, stated on the region it is about. The person did not cause it, so it is not a receipt; it exists while the condition holds, so it is not transient. It takes layout space and never floats, because a strip that hovered would cover the content somebody is being told about. It carries at most one action that RESOLVES the condition and a dismissal that only ACKNOWLEDGES it — two different verbs — and the memory of a dismissal belongs to the app, because a component cannot outlive the page it promised to remember. It announces politely. The whole message family was carved before any of it was built (§29): four industry names overlap on one appearance, and two questions place every member — what is the message about, and what made it appear.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "prices the BOX — padding, corner and the symbol's grid — off the ordinary surface size join, so a notice and a card at one index share a padding and a corner. It does not price the words: a notice holds the caller's text and text states its own step. Rests at 2 rather than a card's 3, because a notice is a strip across the top of something rather than an object in its own right" },
+      { name: "tone", values: "the ten families", note: "the CATEGORY, never the volume. It rests neutral, and the specimen this was designed from is grey while being a warning. The tone-forward rung tints the fill AND re-scopes the foreground context, so the words follow the box without the call site colouring anything" },
+    ],
+    refusals: [
+      {
+        name: "a position, and the name Banner",
+        why: "Placement is the caller's — in flow above the region it concerns, or handed to the Shell to pin at the top of the app. Atlassian needs Banner AND SectionMessage as two components because their distinction IS where each one sits; in this system a component never owns its outer position, so there is one component and the parent places it. Banner names a position, which is why the name is not used.",
+      },
+      {
+        name: "Toast, and any transient variant of this",
+        why: "Refused system-wide, not merely absent here. If an action deserves attention it gets that attention BEFORE it runs; if it does not, the app does not narrate it afterwards. A toast is important enough to say and too late to act on, which is a category that does not exist. Its two real cases collapse: undo belongs in an undo stack, and a copy confirmation belongs on the button that copied. A notice and a toast could not be one component with a prop between them anyway — one must take layout space and the other must not.",
+      },
+      {
+        name: "a title, a description, and any fixed anatomy",
+        why: "Nothing non-visual forces them. The role sits on the root, the symbol is decorative, and the two verbs are slots. A notice that needs a heading and several paragraphs is a Card, and an authored 'Note:' in prose is an Aside — a different thing again, because an author wrote it and it is content rather than state.",
+      },
+      {
+        name: "more than one action",
+        why: "One slot, and it holds the verb that resolves the condition. A strip with two competing actions is a form. A notice offering neither an action nor a dismissal is a Text in a box: write the sentence and delete the box.",
+      },
+      {
+        name: "remembering its own dismissal",
+        why: "onDismiss is a callback and there is no internal state. A notice that dismissed itself would forget on reload, and a ✕ the app cannot honour is a ✕ that lied. Passing nothing renders no dismissal at all, which is right for a condition nobody may wave away.",
+      },
+      {
+        name: "an icon set",
+        why: "The package ships none. The slot is empty-safe, takes whatever the app draws, and is hidden from assistive technology, because the words are the message. The ✕ is the system's own glyph, drawn on the same 16-grid as the tick and the carets.",
+      },
+    ],
+  },
+  {
     slug: "progress",
     name: "Progress",
     family: "Indicator",

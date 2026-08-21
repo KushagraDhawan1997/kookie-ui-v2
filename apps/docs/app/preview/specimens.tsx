@@ -57,6 +57,7 @@ import {
   MenuSub,
   MenuSubTrigger,
   MenuSubContent,
+  Notice,
   Progress,
   Radio,
   RadioGroup,
@@ -554,6 +555,71 @@ function HeadingSection() {
           </Heading>
         </Grid>
       ))}
+    </Stack>
+  );
+}
+
+function NoticeSection() {
+  return (
+    <Stack gap="6">
+      {/* The specimen the component was designed from: a condition that is true right now,
+          sitting on the thing it constrains, with one action that RESOLVES it and a dismissal
+          that only acknowledges. Grey, and it is a warning — tone is the category (§29). */}
+      <Box maxWidth="34rem">
+        <Stack gap="3">
+          <Notice
+            action={<Button size="2">Get more usage</Button>}
+            onDismiss={() => {}}
+          >
+            <Flex gap="3" align="baseline" wrap="wrap">
+              <Text size="2">Approaching weekly usage limit</Text>
+              <Text size="2" emphasis="medium">Resets at 1:30 PM</Text>
+            </Flex>
+          </Notice>
+          <Card size="3">
+            <Stack gap="3">
+              <Heading size="6">Compose</Heading>
+              <TextArea rows={3} placeholder="Write something…" />
+            </Stack>
+          </Card>
+        </Stack>
+      </Box>
+
+      {/* The four families a status actually speaks, and neutral first because that is where a
+          notice rests. Colour is for what colour means. */}
+      <Stack gap="4">
+        <Text size="2" emphasis="medium">Tone is the category, not the volume</Text>
+        <Box maxWidth="34rem">
+          <Stack gap="3">
+            <Notice>Two members have not signed in for 90 days.</Notice>
+            <Notice tone="info">Scheduled maintenance on Sunday, 02:00–04:00 UTC.</Notice>
+            <Notice tone="warning" action={<Button size="2">Renew</Button>}>
+              Your certificate expires in six days.
+            </Notice>
+            <Notice tone="destructive" action={<Button size="2">Retry</Button>}>
+              The last deploy failed and the previous build is still serving.
+            </Notice>
+            <Notice tone="success" onDismiss={() => {}}>
+              Storage is back to normal.
+            </Notice>
+          </Stack>
+        </Box>
+      </Stack>
+
+      {/* The box comes from the surface layer, so a notice and a card at one index share a
+          padding and a corner. */}
+      <Stack gap="4">
+        <Text size="2" emphasis="medium">One index, the surface layer's own box</Text>
+        <Box maxWidth="34rem">
+          <Stack gap="3">
+            {(["1", "2", "3", "4"] as const).map((size) => (
+              <Notice key={size} size={size} onDismiss={() => {}}>
+                Approaching weekly usage limit
+              </Notice>
+            ))}
+          </Stack>
+        </Box>
+      </Stack>
     </Stack>
   );
 }
@@ -2154,6 +2220,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "link", name: "Link", body: <LinkSection /> },
   { id: "menu", name: "Menu", body: <MenuSection /> },
+  { id: "notice", name: "Notice", body: <NoticeSection /> },
   { id: "select", name: "Select", body: <SelectSection /> },
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
   { id: "progress", name: "Progress", body: <ProgressSection /> },

@@ -1201,6 +1201,8 @@ This slice exercises every layer (tokens -> variants -> control -> surface) and 
 
 **Repetition, twelfth entry — Field, shipped 2026-08-21 (§28).** The cheapest component the curve has recorded: **+28 bytes gzipped**, for four exports and the wiring that licenses them. Nothing about how it reads is its own — the label, the description and the error are `Text` at roles §15 designed, so the stylesheet is a column and a gap. What is genuinely new is one mechanism and it is named as the risky half: `size` supplied to the control by CONTEXT (`system/control-size.ts`), bounded three ways because silent inheritance is this project's most-repeated defect — one provider, an explicit prop always wins, and `null` rather than `"2"` as the context default so "nobody asked" can be told from "a Field chose 2". Eight control components read it; Button, Card and the type family deliberately do not. The fallback if it had failed its laws was API-compatible, and it did not fail them.
 
+**Repetition, thirteenth entry — Notice, shipped 2026-08-21 (§29).** +81 bytes gzipped for the message family's one condition component. The root is a surface at the tone-forward rung, so the stylesheet is a flex row; what it is worth reading for is the ABSENCE it is law-tested on — no `position`, no `z-index`, no `float` — because taking layout space is what separates a notice from the toast that was refused beside it. It carries at most one resolving action and one acknowledging dismissal, rests neutral because tone is the category rather than the volume, and keeps the memory of a dismissal in the app, since a component cannot outlive the page it promised to remember. `--kui-sf-icon` joined the surface size join with it.
+
 ---
 
 ## 15. Typography
@@ -1838,6 +1840,16 @@ Six more repairs, each falsified against the pre-fix code: **the overlay caps it
 **One notice per anchor.** Two stacked notices means neither is read.
 
 **A notice with no action and no dismissal is a `Text`.** Do not ship a box to hold a sentence, and say so in the docs rather than hoping.
+
+**SHIPPED 2026-08-21 — repetition's thirteenth entry, +81 bytes gzipped.** The root is a `.kui-surface` at the tone-forward rung, so the fill, the corner, the padding, the edge and the foreground context all arrive from a layer that was already paid for; `notice.css` is the ROW and nothing else. It names no colour, no size index, no rung and no family — and it declares no `position` and no `z-index`, which is the design rather than an omission: a mounted law reads `static`, `auto`, `none`, because that absence is the whole difference between this component and the one that was refused.
+
+**The anatomy is three slots and no parts.** The symbol, the message, the action and the dismissal, with nothing non-visual forcing a title or a description — the role sits on the root and the two verbs are slots the caller fills. A notice that needs a heading and paragraphs is a Card.
+
+**The dismissal is system-drawn, and Dialog's refusal of a ✕ does not bind here (§24).** That refusal was priced on a panel with two other ways out — Escape and an outside press — where a corner glyph competes with the one action zone. A notice has neither: the ✕ IS the only route out, its position is the trailing edge by convention, and requiring every call site to compose an icon-only Button means every call site re-derives the accessible name. So `onDismiss` renders a real Button with a name, the glyph drawn on the system's own 16-grid at 1.5 stroke like the tick and the carets, and `dismissLabel` is the one place an app that does not speak English states its word.
+
+**`--kui-sf-icon` joins the surface size join** (§10, §12), published from the SAME ladder `--kui-ct-icon` reads, so a symbol on a surface and a symbol in a button at one index are one box rather than two that drift. It sits in the shared layer for Dialog's own reason: a per-size spelling belongs there, and the no-axis walk forbids `data-size` in a component stylesheet outright.
+
+**16 mounted laws, eight sabotage passes** — and **one sabotage SURVIVED on the first run, which is the finding worth keeping.** The law that the verbs are not pushed off the end by a long word used `cannot-reach-storage-eu-west-1-replica-seven.internal.example.test` as its fixture, and a browser breaks after every hyphen: the string wrapped on its own, so removing the flex floor changed nothing and the law proved nothing. With a genuinely unbreakable word the same sabotage overflows by 277px. That is the degenerate-fixture rule (2026-08-20) caught in a component built the day after it was written down: **a law over the general case needs an input where the general case and the special case give different answers.**
 
 ### Toast is REFUSED (2026-08-21, Kushagra)
 
