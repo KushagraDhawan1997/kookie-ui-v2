@@ -1,13 +1,12 @@
-A form is a set of labelled values and one action that commits them. Most of what this system
-contributes to that is a refusal — fields do not rank, marks carry no label, validity is not a
-prop — and each refusal removes a decision that had no right answer anyway. What is left for you
-is the words, the order and the grouping, which is the part no library can do.
+A form is a set of labelled values and one action that commits them. This system refuses three
+decisions inside that set. Fields do not rank, marks carry no label, and validity is not a prop.
+You write the words, the order and the grouping.
 
 ## The label is a sibling
 
-A label is prose. Prose is `Text`, and `Text` already knows every foreground role, step and
-weight that prose can need — so no control in this package has a `label` prop, and adding one
-would put a second, worse typography system inside a checkbox.
+A label is prose. `Text` renders prose, and `Text` already resolves every ink role, step and
+weight that prose needs. No control in this package takes a `label` prop. A `label` prop would
+put a second type system inside a checkbox.
 
 ```tsx
 <Stack gap="3">
@@ -18,13 +17,13 @@ would put a second, worse typography system inside a checkbox.
 </Stack>
 ```
 
-The association is markup, never proximity: `htmlFor` pointing at an `id`, or a `<label>`
-wrapping the control. A `placeholder` is not a label and cannot stand in for one — it leaves the
-moment somebody types, and it renders in the muted ink because it is real information said
-quietly rather than the field's name.
+State the association in the markup. Point `htmlFor` at an `id`, or wrap the control in a
+`<label>`. Do not rely on proximity.
 
-A mark is the same relationship turned on its side, because a mark sits *beside* its label
-rather than containing it, and the row owns the distance between them.
+A `placeholder` is not a label. It disappears when the person types. It renders in the muted ink
+role. A placeholder states real information. It does not state the name of the field.
+
+A mark sits beside its label instead of containing it. The row sets the distance between them.
 
 ```tsx
 <Flex align="center" gap="2">
@@ -35,19 +34,19 @@ rather than containing it, and the row owns the distance between them.
 
 ## Fields do not rank
 
-`TextField` and `TextArea` take no `emphasis` and no `tone`, and the absence is the kind
-speaking rather than an oversight. Loudness ranks an action against the actions beside it. **A
-form where one field is louder than the next names nothing** — every field is equally there to
-be filled in, and the one that matters most is a sentence you write, not a fill you pick.
+`TextField` and `TextArea` take no `emphasis` and no `tone`. The kind of thing decides this, and
+the absence is not an oversight. Loudness ranks one action against the actions beside it. Every
+field is equally there to be filled in, so a form where one field is louder than the next states
+nothing.
 
-So importance is carried by the label, by the order of the form, and by what you leave out.
-Requirement is `required` on the control and, in a long form, said again in the label. The only
-thing that ranks is the action row at the end.
+State importance in the label, in the order of the form, and in what you leave out. State a
+requirement with `required` on the control. Repeat it in the label in a long form. Only the
+action row at the end ranks.
 
 ## One action commits the form
 
-One loud button per screen, spent on the thing the form is for. Everything beside it is medium
-or quiet — a composition with two focal points has none.
+Use one loud button on each screen. Give it to the action the form is for. Set every other
+button to medium or quiet.
 
 ```tsx
 <Flex justify="flex-end" gap="3">
@@ -56,27 +55,30 @@ or quiet — a composition with two focal points has none.
 </Flex>
 ```
 
-Actions sit at the end of the form and align to its end edge. A lone primary with nothing to
-balance may take the full width instead — the sign-in stack — which is a balance decision, not a
-second rule. Buttons state what happens: "Create project", never "Submit", and the name stays
-the same all the way through the flow.
+Put the actions at the end of the form. Align them to the end edge. A single action with nothing
+beside it may take the full width instead. That is a balance decision, and it is a judgment.
 
-## Grouping is distance, not enclosure
+Write what the button does. Write "Create project", not "Submit". Keep the same name through the
+whole flow.
 
-Distance is relationship. The house intervals are gap 3 from a label to its field, 5 between
-groups and 6 between sections; the within-group distance must sit at least two steps under the
-between-group one, or the eye reads one undifferentiated column. A form where every gap is the
-same number is the failure this rule exists to catch.
+## Group with space
 
-Do not add a `Separator` or a `Card` to do work that distance is already doing. Enclosure and
-distance both group, and using both says it twice. A rule belongs only where distance cannot
-group — a channel break in a long settings list, where the groups are already at the section
-interval and something still has to divide them.
+Put related rows closer together than unrelated rows. The house intervals are gap 3 from a label
+to its field, gap 5 between groups, and gap 6 between sections.
 
-## Validity is state, and state outranks dress
+Set the gap inside a group at least two steps below the gap around the group. A form where every
+gap is the same number reads as one undifferentiated column.
+
+Do not add a `Separator` or a `Card` to do work that the space already does. Enclosure and space
+both group, and using both states the grouping twice. Add a rule only where space cannot group.
+A long settings list is the case: the groups already sit at the section interval and something
+still has to divide them.
+
+## Validity is a state
 
 There is no `invalid` prop, because nothing chooses to look invalid. The system reads
-`aria-invalid`, and Base UI's `data-invalid` when the control sits inside a `Field.Root`.
+`aria-invalid`. It also reads Base UI's `data-invalid` when the control sits inside a
+`Field.Root`.
 
 ```tsx
 <TextField
@@ -86,40 +88,43 @@ There is no `invalid` prop, because nothing chooses to look invalid. The system 
 />
 ```
 
-Being ticked is dress; being invalid is a state; **a state outranks dress**. So an invalid
-checked `Checkbox` looks invalid rather than looking entirely fine — and the stylesheet says so
-by specificity rather than by which file happened to load last, which is the version that
-shipped once and hid the state completely. Disabled outranks both: dead beats wrong.
+A checked mark is a resting appearance. An invalid mark is a state. The state wins, so a checked
+`Checkbox` that is also invalid looks invalid. The stylesheet states this by specificity, not by
+which file loads last. The disabled state outranks both.
 
 The border and the ring are the system's half of an error. The message is yours. Colour alone is
-not sufficient signalling (WCAG 1.4.1), so a field that goes red with no words beside it is a
-composition defect rather than a token one.
+not sufficient signalling (WCAG 1.4.1), so a red field with no words beside it is a composition
+defect.
 
-## A textarea is a paragraph
+## Use TextArea for a paragraph
 
-Reach for `TextArea` when the value is prose the person will read back — a description, a note,
-an address. Its box is a frame of even inset on all four sides, and `rows` states the starting
-height in the content's own unit. Width belongs to the layout that owns the row, so there is no
-`cols`: that attribute is a character-count hack that predates CSS and collides with it.
+Use `TextArea` when the value is prose that the person reads back. A description, a note and an
+address are the cases. Its box carries the same inset on all four sides. `rows` states the
+starting height in the unit of the content.
 
-A composer is not a large textarea. The moment the box wants a toolbar, attachments, a send
-button and a growth rule, it has become its own component with anatomy nobody has designed, and
-building it out of a `TextArea` is how a field quietly acquires parts.
+There is no `cols`. Width belongs to the layout that owns the row. The `cols` attribute counts
+characters, it predates CSS, and it collides with CSS.
 
-## Helper text earns its line or it is not there
+A composer is not a large `TextArea`. A box that needs a toolbar, attachments, a send button and
+a growth rule is its own component. Nobody has designed that anatomy. Building it out of a
+`TextArea` adds parts to a field.
 
-Helper text must carry what the label cannot: a consequence, a scope, a constraint, the reason a
-control is disabled. A definition of the control the reader can already read is filler — delete
-it and let the row collapse.
+## Helper text must change a decision
+
+Write helper text that carries what the label cannot. A consequence, a scope, a constraint and
+the reason a control is disabled are the cases. Delete a line that repeats the control the reader
+can already read.
 
 ```tsx
-// Filler — the label above it already said this
+// Filler. The label above already said this.
 <Text size="2" emphasis="medium">Enter your work email address.</Text>
 
-// Decision-relevant — a scope the label cannot carry
+// Decision-relevant. A scope the label cannot carry.
 <Text size="2" emphasis="medium">Receipts and billing notices go here.</Text>
 ```
 
-It rides the same ramp as the label — size 2, in the muted ink — because a helper line two rungs
-under the controls beside it reads as a mistake rather than as modesty. Size 1 is retired from
-composed surfaces: "matters less" is what the muted and faint ink roles say at a readable size.
+Set helper text at size 2 in the muted ink role, the same step as the label. A helper line two
+steps under the controls beside it reads as a mistake.
+
+Do not use size 1 on a composed screen. The muted ink role and the faint ink role state "this
+matters less" at a readable size.

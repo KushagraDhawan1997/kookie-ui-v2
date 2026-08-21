@@ -1,48 +1,51 @@
-Every distance in a KookieUI screen belongs to a container, never to the thing being spaced. Four
-primitives place things, one space scale prices them, and a density axis re-picks that scale for
-the whole app at once. This chapter is where distances come from and which of them are yours.
+Every distance on a KookieUI screen belongs to a container. It never belongs to the element
+inside the container. Four primitives place things, one space scale prices them, and one
+density axis re-picks that scale for the whole app.
 
-## Components own no outer spacing
+## A component sets no outer spacing
 
 The distance between two siblings is the container's `gap`. No control takes a margin prop, and
-none will.
+none ever will.
 
-Margin is a property of a relationship, not of an element. The right distance between a button and
-the field above it depends on what that neighbour is, how dense the app is set, and what the group
-is saying — none of which the button can see from inside itself. A component that ships its own
-margin has answered a question it was not in a position to ask, so every composition after it
-starts by cancelling it.
+A margin states a relationship. It is not a property of an element. The correct distance
+between a button and the field above it depends on three things: what the neighbour is, how
+dense the app is set, and what the group states. The button reads none of the three from inside
+itself. A component that ships its own margin answers a question it cannot ask, so every
+composition after it starts by cancelling that margin.
 
-The escape is a layout wrapper, and it is meant to be visible in review rather than buried on a
-control.
+The escape is a layout wrapper. A reviewer sees a wrapper in the diff. A reviewer does not see
+a margin buried on a control.
 
 ```tsx
-// Does not compile. Controls have no margin props.
+// Does not compile. A control has no margin prop.
 <Button mt="4">Save</Button>
 
-// The distance is the container's.
+// The distance belongs to the container.
 <Stack gap="4">
   <TextField placeholder="Project name" />
   <Button>Save</Button>
 </Stack>
 
-// A genuine one-off is a wrapper you can see.
+// A one-off distance is a wrapper you can see.
 <Box mt="6">
   <Button>Save</Button>
 </Box>
 ```
 
-## Box is the engine; Flex, Stack and Grid name the intent
+## Box is the engine, and Flex, Stack and Grid name the intent
 
-`Box` carries the curated prop set — tokenised spacing, pass-through sizing, structural keywords,
-flex and grid child props. `Flex`, `Grid` and `Stack` are typed sugar over it: they preset
-`display`, narrow the props to the layout model they name, and ship no CSS of their own.
+`Box` carries the curated prop set: tokenised spacing, pass-through sizing, structural
+keywords, and the flex and grid child props. `Flex`, `Grid` and `Stack` are typed sugar over
+`Box`. Each one presets `display`, narrows the props to the layout model it names, and ships no
+CSS of its own.
 
-The narrowing is the point. Raw CSS accepts every property on every element and ignores the wrong
-ones in silence; here, `columns` on a `Flex` is a type error. Use `Stack` for vertical flow, `Flex`
-when direction or alignment is the decision, `Grid` when the arrangement is two-dimensional, and
-`Box` when you need what the narrowed types forbid. Anything outside the prop table is one `style`
-away, and your `style` merges last — an escape that loses to the default is not an escape.
+The narrowing is the design. Raw CSS accepts every property on every element and ignores the
+wrong ones in silence. Here, `columns` on a `Flex` is a type error.
+
+Use `Stack` for vertical flow. Use `Flex` when direction or alignment is the decision. Use
+`Grid` when the arrangement is two-dimensional. Use `Box` when you need what the narrowed types
+refuse. Anything outside the prop table is one `style` away, and your `style` merges last. An
+escape that loses to the default is not an escape.
 
 ```tsx
 <Stack gap="4">
@@ -54,48 +57,49 @@ away, and your `style` merges last — an escape that loses to the default is no
 </Stack>
 ```
 
-## Two layers of space, and your props read the second
+## Two layers of space, and the props read the second
 
-`--space-1` through `--space-12` is the palette — the raw currency, near-linear at the bottom
-where 12, 16 and 24 are all distinct and constantly used, and geometric at the top where an
-eight-pixel difference has stopped being visible.
+`--space-1` through `--space-12` is the palette. It is near-linear at the bottom, where 12, 16
+and 24 are all distinct and constantly used. It is geometric at the top, where an eight-pixel
+difference has stopped being visible.
 
-`--layout-space-1` through `--layout-space-12` sits over it, and that layer is what every layout
-distance reads: `gap` on Flex, Stack and Grid, `p` and `m` on the primitives, and a surface's own
-padding. Write `gap="4"` and you get step 4 of *this* density's rhythm, not a frozen alias for
-12px. Without the layer the index would be a unit conversion and you may as well write the pixels.
+`--layout-space-1` through `--layout-space-12` sits over the palette. Every layout distance
+reads this second layer: `gap` on `Flex`, `Stack` and `Grid`, `p` and `m` on the primitives,
+and a surface's own padding. Write `gap="4"` and you get step 4 of the current density's
+rhythm. You do not get a fixed alias for 12px. Without the layer the index would be a unit
+conversion, and you could write the pixel value instead.
 
-The boundary: layout space carries every distance between elements, and from a container's edge to
-its content. The palette stays raw inside a control, because a button's inline padding and its
-icon-to-label gap already answer density through their own designed sets, and routing them through
-the layer as well would compress them twice.
+The boundary is exact. Layout space carries every distance between two elements, and every
+distance from a container's edge to its content. The palette stays raw inside a control,
+because a button's inline padding and its icon-to-label gap already answer density through
+their own designed sets. Routing them through the layer as well would compress them twice.
 
 ```css
-/* the palette — the currency, which density never touches */
+/* the palette: the currency, which density never touches */
 --space-4: calc(12px * var(--scale));
 
-/* the layer — what gap="4" and p="4" resolve through */
+/* the layer: what gap="4" and p="4" resolve through */
 --layout-space-4: var(--space-4);   /* default density */
 --layout-space-4: var(--space-3);   /* [data-density="compact"] */
 ```
 
-The same prop also takes a raw length, so you never hit a wall: `gap="13px"` passes straight
-through, and it is visible in review when you have used one.
+The same prop also takes a raw length, so you never reach a wall. `gap="13px"` passes straight
+through, and a reviewer sees that you used one.
 
-## Density re-picks steps; it scales nothing
+## Density re-picks steps and scales nothing
 
-`density` is a Theme axis with three levels — `compact`, `default`, `comfortable` — and it is an
+`density` is a Theme axis with three levels: `compact`, `default` and `comfortable`. It is an
 app-level choice, not a per-component knob.
 
-It selects a designed set. Each level re-declares the control family as placed values and re-picks
-twelve steps out of the untouched palette. Nothing is a product, so nothing resolves to 26.78px
-and every cell stays correctable alone; a multiplier can only move a whole level at once, which
-makes every taste correction global.
+Density selects a designed set. Each level re-declares the control family as placed values, and
+re-picks twelve steps out of the untouched palette. Nothing is a product, so nothing resolves
+to 26.78px and every cell stays correctable on its own. A multiplier could only move a whole
+level at once, which would make every taste correction global. This is a judgment.
 
-Two things it never touches. The palette itself, so a compact app cannot collapse its page
-gutters — the picks move the lower steps by one and hold the gutter band, 9 through 12, at
-identity. And type, which is the point of the axis: density buys breathing room at a fixed label
-size. If you wanted the text to move too, you wanted `size`.
+Density never touches two things. It never touches the palette, so a compact app cannot
+collapse its page gutters. The picks move the lower steps by one, and the gutter band 9 through
+12 holds at identity. It also never touches type, which is the reason the axis exists. Density
+buys room at a fixed label size. If you want the text to move as well, you want `size`.
 
 ```tsx
 <Theme density="compact">
@@ -103,16 +107,18 @@ size. If you wanted the text to move too, you wanted `size`.
 </Theme>
 ```
 
-## Responsive values are keyed to the container
+## Responsive values key to the container
 
-Any curated prop takes one value per tier as an object: `initial` is the base, and `sm`, `md` and
-`lg` layer over it.
+Any curated prop takes one value for each tier as an object. `initial` is the base, and `sm`,
+`md` and `lg` layer over it.
 
-Tiers measure the nearest measurable ancestor, not the window — which is why the same `Grid` is
-correct in a sidebar and in a main column. Containment is opt-in, because CSS imposes a trade: a
-measurable box can never size itself around its contents. Put `container` on something layout
-already sizes, or state `width`, `flexGrow` or `flexBasis` yourself; a `container` Box left to
-shrink-wrap renders zero pixels wide, and dev builds warn when it does.
+A tier measures the nearest measurable ancestor. It does not measure the window. The same
+`Grid` is therefore correct in a sidebar and in a main column.
+
+Containment is opt-in, because CSS imposes a trade: a measurable box can never size itself
+around its contents. Put `container` on something the layout already sizes, or state `width`,
+`flexGrow` or `flexBasis` yourself. A `container` Box left to shrink-wrap renders zero pixels
+wide, and a development build warns you when it does.
 
 ```tsx
 <Box container>
@@ -122,23 +128,24 @@ shrink-wrap renders zero pixels wide, and dev builds warn when it does.
 </Box>
 ```
 
-Window size classes answer a different question, and keeping them apart is why both exist. A tier
-asks *how much room does this component have*. `useWindowClass()` — `narrow`, `regular`, `wide` —
-asks *which interface should this app show*: bottom bar, rail, or sidebar. That is decided once, at
-the top, against the window. It picks a shell, and a shell is different components, so it is a hook
-rather than a token. No token moves with it.
+A window size class answers a different question, and that separation is why both mechanisms
+exist. A tier asks how much room this component has. `useWindowClass()` returns `narrow`,
+`regular` or `wide`, and it asks which interface this app should show: a bottom bar, a rail or
+a sidebar. You decide that once, at the top, against the window. The class picks a shell, and a
+shell is a different set of components, so the answer is a hook and not a token. No token moves
+with the class.
 
-## Reaching a pane's edge
+## Reach a pane's edge with bleed
 
-A surface owns its padding, so a picture running to the edge of a card has to subtract a distance
-the child cannot see. `bleed` is the one named value on the space scale: on any margin prop it
-resolves to the negative of the enclosing surface's padding.
+A surface owns its padding, so a picture that runs to the edge of a card must subtract a
+distance the child cannot read. `bleed` is the one named value on the space scale. On any
+margin prop it resolves to the negative of the enclosing surface's padding.
 
-A value, not a prop — every per-side and per-tier spelling already exists on the margin rows, so
-bleeding top and sides is `mt="bleed" mx="bleed"` at no new cost. The nearest surface wins, so a
-card inside a dialog bleeds to the card, and outside any surface it computes a real zero. Margins
-only: padding and `gap` reject a negative length, so the word passes through there as written and
-CSS rejects it where you can see it.
+`bleed` is a value, not a prop. Every per-side and per-tier spelling already exists on the
+margin rows, so `mt="bleed" mx="bleed"` bleeds the top and the sides at no new cost. The
+nearest surface wins, so a card inside a dialog bleeds to the card. Outside any surface it
+computes a real zero. It works on a margin only. Padding and `gap` reject a negative length, so
+the word reaches CSS as written and CSS rejects it where you can see it.
 
 ```tsx
 <Card size="3">
@@ -152,6 +159,6 @@ CSS rejects it where you can see it.
 </Card>
 ```
 
-Every peer ships a component part for this — a card section, a media slot, a cover. This system
-refuses that anatomy: anatomy is system-owned only where something non-visual forces it, and a
-picture forces nothing.
+Every peer system ships a component part for this: a card section, a media slot, a cover. This
+system refuses that anatomy. The system owns an anatomy only where something non-visual forces
+it, and a picture forces nothing.

@@ -1,33 +1,30 @@
-Most design systems are a list of components. This one is a list of **kinds of things**, and
-the components are what you get when a kind is encapsulated for reuse. That ordering is the
-whole design, and it is why the answer to "which component should I use" is almost never a
-matter of appearance.
+Most design systems list components. This system lists kinds of things. A component is one
+kind, packaged for reuse.
 
-A kind decides what a thing can be *asked*. A surface can be told what it is made of; a mark
-cannot, because a mark is not made of anything. A button can be ranked louder than its
-neighbour; a row in a list cannot, because a list of peers ranks nothing. When a prop is
-missing from a component, the first question is which kind it belongs to — the absence is
-usually the kind speaking.
+The kind decides what you can set on a thing. You can tell a surface what material it is made
+of. You cannot tell a mark, because a mark has no material. You can rank a button against the
+button beside it. You cannot rank a row in a list, because every row in a list is equal.
+
+When a component does not have the prop you expect, check its kind first. The kind is usually
+the reason.
 
 ## Grounds, surfaces and objects
 
-Three levels, from the bottom up, and the distinction between the last two is the one people
-most often collapse.
+There are three levels. Most people confuse the last two.
 
-The **page** is what everything sits on. The library paints no page background at all: a theme
-that painted one would repaint the page at every nested appearance scope. `--color-page` exists
-so that you paint it in the system's vocabulary rather than by reaching into a raw palette step.
+The **page** is the lowest level. The library paints no page background, because a `Theme`
+that painted one would repaint the page at every nested appearance scope. Use
+`--color-page` to paint it yourself.
 
-A **ground** is a bounded region that *holds* things. `Surface` is one. It has no seal of its
-own to speak of and casts nothing, because it is not above anything — it is the bed a set of
-objects lies on, the page pattern scoped to a region.
+A **ground** is a region that holds other things. `Surface` is a ground. It has no fill of its
+own beyond a small step, and it casts no shadow, because it sits in the page rather than above
+it.
 
-A **surface** in the strong sense is an object with its own plane. `Card` is the type specimen:
-it seals — an opaque fill, so whatever is behind it stops there — and in a world with light in
-it, it casts.
+A **surface** is an object with its own plane. `Card` is the example. It is opaque, so content
+behind it stops at its edge. In an elevated theme it casts a shadow.
 
 ```tsx
-// A ground holding objects. Not a card inside a card.
+// A ground that holds two objects. Do not nest a Card in a Card for this.
 <Surface size="3">
   <Stack gap="3">
     <Card size="2">…</Card>
@@ -36,34 +33,32 @@ it, it casts.
 </Surface>
 ```
 
-A Card is an object; a Surface is what an object sits on. They are not interchangeable and
-neither is a softer version of the other. When you find yourself nesting a card inside a card to
-make a quiet region, you wanted a ground.
+A `Card` is an object. A `Surface` is what objects sit on. Neither one is a quieter version of
+the other. When you nest a card in a card to make a quiet region, use a `Surface`.
 
 ## Controls
 
-A control is a thing you operate. They share one state machine, one size ladder, and one
-loudness axis — and they divide into four kinds that differ in what their box even *is*.
+A control is a thing the user operates. Every control shares one state machine, one size
+ladder and one loudness axis. There are four kinds, and they differ in what the box contains.
 
-**Buttons** act. They rank: `emphasis` says how loud this action is relative to the ones beside
-it, and `tone` says what it means. One loud action per surface.
+**Buttons** run an action. They rank. `emphasis` sets how loud this action is against the
+actions beside it. `tone` sets what the action means. Use one loud control on each screen.
 
-**Fields** hold a value you type. They do not rank — a form where one field is louder than the
-next names nothing — so `TextField` and `TextArea` refuse `emphasis` and `tone` entirely. A
-field is a well: something carved into the plane, not a plane above it, which is why no field
-casts a shadow in any platform including this one.
+**Fields** hold a value the user types. They do not rank, so `TextField` and `TextArea` take
+no `emphasis` and no `tone`. A form where one field is louder than the next states nothing. A
+field is also a recess in the plane, not a plane above it, so no field casts a shadow.
 
-**Marks** are controls that *are* their own mark: `Checkbox`, `Radio`, the `Switch` track, the
-`Slider` thumb. A mark leaves the height ladder while keeping the size index, because its box is
-not a box you put a label in — it sits *beside* a label. Its ladder is the line box, so a mark
-occupies exactly one line of the text next to it and grows with that text on a phone.
+**Marks** are controls that are their own mark: `Checkbox`, `Radio`, the `Switch` track and
+the `Slider` thumb. A mark leaves the height ladder but keeps the size index, because a mark
+sits beside a label instead of containing one. Its ladder is the line box, so a mark is exactly
+as tall as one line of the text next to it.
 
-**Instruments** show or set a value along an extent: `Slider`, `Progress`. An instrument has no
-resting surface with a boundary, so it never joins a dress axis and never takes a material.
+**Instruments** show or set a value along a length: `Slider` and `Progress`. An instrument has
+no resting surface and no border, so it takes no material and no dress.
 
-## Marks are the label's sibling, never its parent
+## A mark sits beside its label
 
-The mark and its label are two things in a row, and the row owns the distance between them.
+The mark and the label are two things in a row. The row sets the distance between them.
 
 ```tsx
 <Flex align="center" gap="2">
@@ -72,53 +67,52 @@ The mark and its label are two things in a row, and the row owns the distance be
 </Flex>
 ```
 
-There is no `label` prop on a mark, and that is deliberate: a label is prose, prose is `Text`,
-and `Text` already knows about every foreground role, tone and step that prose can need. A
-`label` prop would be a second, worse typography system living inside a checkbox.
+No mark takes a `label` prop. A label is text, and `Text` already resolves every size, weight
+and ink role that text needs. A `label` prop would add a second, smaller type system inside a
+checkbox.
 
 ## Rows
 
-A row is an interactive line in a list — a menu item, a nav item. It looks like a small button
-and it is a different kind, on one test: rows are **peers**. Nothing in a list of options is
-louder than its neighbours, so the row family refuses `emphasis` and stamps its own quiet
-identity. Being the current row is not a louder rung either; it is a different colour, so a
-current row still has somewhere to go under the pointer.
+A row is one interactive line in a list. A menu item is a row. A navigation item is a row.
 
-Rows also leave the height ladder, because a row's box is its text line plus a designed inset
-rather than a control's designed height.
+A row looks like a small button and is a different kind, for one reason: **rows are equal**.
+No option in a list is louder than the options beside it, so the row family takes no
+`emphasis` and sets its own quiet value.
 
-## Type, layout, and the frame
+The current row is not a louder row. It uses a different colour, so the current row can still
+change under the pointer.
 
-**Type** components read the foreground context their surface sets. `Text`, `Heading`,
-`Blockquote`, `Code` and `Kbd` take no fill of their own; `emphasis` on type resolves to
-foreground roles rather than to fills, which is the same axis answering a different family's
-question.
+A row also leaves the height ladder. A row's height is its text line plus a fixed inset, not a
+control height.
 
-**Layout** components have no appearance at all. `Box` is the engine; `Flex`, `Stack` and `Grid`
-are typed sugar over it. They resolve tokens and tiers, and they paint nothing.
+## Type, layout and the frame
 
-**The frame** is `Shell`, and it is the one thing here that is a *pattern* rather than a
-component. A pattern's essence is outward coordination — it arranges things it does not own —
-where a component's essence is inward containment. The tell of the category error is a child
-reaching up to configure its parent; when you see that, you are looking at a pattern that was
-forced into component shape.
+**Type** components read the ink colour that their surface sets. `Text`, `Heading`,
+`Blockquote`, `Code` and `Kbd` have no fill of their own. On type, `emphasis` selects an ink
+role instead of a fill.
 
-## Telling near-twins apart
+**Layout** components paint nothing. `Box` is the engine. `Flex`, `Stack` and `Grid` are `Box`
+with a fixed `display` and a narrower prop list. They resolve tokens and tiers.
 
-Several pairs in this system render almost identically and are different kinds. The test is
-never appearance. It is **functional dissociation**: can you have one without the other?
+**The frame** is `Shell`. `Shell` is a pattern, not a component. A pattern arranges things it
+does not own. A component contains things it owns. When a child reaches up to configure its
+parent, you are looking at a pattern in the wrong shape.
 
-- **Tabs or a segmented control.** A tab bar switches what is under it. A segmented control sets
-  a value in place. You can switch views without setting any value, and set a value without
-  anything switching, so they are two operations — which is why the segmented control is a
-  radio group under the hood and a tab bar is not.
-- **Dialog or alert dialog.** A dialog is summoned to host your work. An alert comes at you and
-  stops you with a question. The alert's content is closed and the system lays it out, which is
-  what licenses everything unusual about it.
-- **Menu or select.** A menu chooses an *action*. A select chooses a *value* and submits with a
+## Two components that look the same
+
+Several pairs render almost the same and are different kinds. Do not compare their appearance.
+Ask whether you can have one without the other.
+
+- **Tabs or a segmented control.** A tab bar changes what is below it. A segmented control sets
+  a value in place. You can change a view without setting a value. You can set a value without
+  changing a view. They are two operations, so the segmented control is a radio group and the
+  tab bar is not.
+- **Dialog or alert dialog.** A dialog holds work you asked for. An alert stops you and asks
+  one question. The alert has fixed content, and the system lays that content out.
+- **Menu or select.** A menu picks an action. A select picks a value and submits it with a
   form.
-- **Card or Surface.** An object, or the bed an object lies on.
+- **Card or Surface.** An object, or the ground it sits on.
 
-When two things look alike, ask what each one *does* when the other is absent. If the answer is
-different, they are different kinds, and collapsing them into one component with two variants is
-not a shortcut — it teaches everyone downstream that the distinction is cosmetic.
+When two things look the same, ask what each one does when the other is absent. If the answers
+differ, the things differ. One component with two variants would then teach every reader that
+the difference is cosmetic.

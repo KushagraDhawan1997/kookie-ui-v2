@@ -94,8 +94,8 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
             <Stack gap="2">
               <DialogTitle>Search</DialogTitle>
               <DialogDescription>
-                Chapters, sections and components. Refusals are indexed too — searching for a
-                prop the system does not have finds the page explaining why.
+                Search chapters, sections and components. The index also holds the refusals,
+                so a search for a prop the system does not have finds the page that explains it.
               </DialogDescription>
             </Stack>
 
@@ -123,8 +123,8 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
 
             {query.trim().length >= 2 && results.length === 0 ? (
               <Text size="2" emphasis="medium">
-                Nothing matches “{query}”. This index covers titles, section headings and
-                component blurbs — not the body of every paragraph.
+                Nothing matches “{query}”. The index covers titles, section headings and
+                component descriptions. It does not cover the text of every paragraph.
               </Text>
             ) : null}
 

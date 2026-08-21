@@ -1,19 +1,18 @@
-Navigation is two questions that keep getting collapsed into one: where can I go, and where am I
-now. `Shell` answers the first with a frame of named regions; a handful of small decisions
-answer the second, and most of them are about telling people rather than colouring things. This
-chapter is also where two pairs of near-twins get separated, because reaching for the wrong one
-of each is the actual mistake.
+Navigation answers two questions. Where can I go, and where am I now. `Shell` answers the first
+with a frame of named regions. A few small decisions answer the second, and most of them are
+about announcing the answer rather than painting it.
 
-## The frame is a pattern, not a component
+## The frame is a pattern
 
-`Shell` arranges things it does not own. That is what makes it a pattern — outward coordination
-— where a component's essence is inward containment, and the tell of the category error is a
-child reaching up to configure its parent. The previous version of this frame had exactly that
-shape: panes declared intent and the root stored their state, so it needed child scanning, an
-exclusivity rule and a cascade explaining who closed whom.
+`Shell` arranges things it does not own, so it is a pattern. A component contains things it owns.
+A child that reaches up to configure its parent is a pattern written in the wrong shape.
 
-Here every pane owns its own `open`, exactly as `Dialog` does, and the only thing that crosses
-the frame is `ShellTrigger`, which finds a pane by name.
+The previous version of this frame had that shape. Panes declared intent and the root stored their state.
+The frame therefore needed child scanning, an exclusivity rule, and a cascade that explained
+which pane closed which.
+
+Here every pane owns its own `open`, exactly as `Dialog` does. Only `ShellTrigger` crosses the
+frame, and it finds a pane by name.
 
 ```tsx
 <Shell size="2">
@@ -25,60 +24,62 @@ the frame is `ShellTrigger`, which finds a pane by name.
 </Shell>
 ```
 
-## The panes, and what each one is for
+## The panes
 
-**The header is full-width by definition.** If it is not wide it is not a shell header, it is a
-header inside the content. That is a criterion rather than a layout option: the frame has one
-geometry, and the posture where a sidebar runs full height with a header only over the content
-is expressed by composition — no `ShellHeader` at all, and a header written inside
-`ShellContent`.
+The header is full-width by definition. A header that is not full-width is a header inside the
+content. This is a criterion, not a layout option. The frame has one geometry.
 
-**The rail and the sidebar are two independent columns.** The rail is the narrow icon column
-that picks a high-level region; the sidebar is the wide column that shows what was picked. They
-coexist, and neither collapses into the other: a sidebar holds many items and a rail is meant to
-hold a few, so "collapse the sidebar down to a rail" is not a move this frame makes. One column
-of navigation is a sidebar. Icons only is a rail. Both is VS Code and Slack.
+Compose the posture where a sidebar runs the full height under a header that covers the content
+only. Write no `ShellHeader`, and write a header inside `ShellContent`.
 
-**Content** renders `<main>` and is the one required pane. **The inspector** is the right-hand
-detail column and **the bottom pane** is the terminal or log drawer; both rest closed, because
-detail is asked for.
+The rail and the sidebar are two independent columns. The rail is the narrow icon column that
+picks a high-level region. The sidebar is the wide column that shows what the rail picked. They
+coexist, and neither one collapses into the other. A sidebar holds many items and a rail holds a
+few, so this frame does not collapse a sidebar down to a rail. One column of navigation is a
+sidebar. Icons alone are a rail. Both together is the shape VS Code and Slack use.
 
-`ShellScroll` marks the one region of a pane that scrolls. Everything else in that column pins
-by being an ordinary sized child of it — a pinned header and a pinned footer in a sidebar are
-not parts, they are siblings.
+`ShellContent` renders `<main>` and is the one required pane. `ShellInspector` is the right-hand
+detail column. `ShellBottom` is the terminal drawer or the log drawer. Both rest closed, because
+the person asks for detail.
+
+`ShellScroll` marks the one region of a pane that scrolls. Everything else in that column pins by
+being an ordinary sized child of the pane. A pinned header and a pinned footer in a sidebar are
+siblings, not parts.
 
 ## An untouched pane rests on auto
 
-A pane nobody has touched is `auto`, and what `auto` means is resolved **in CSS**, per window
-size class. First paint is therefore right on the server and on the client with no script at
-all, and hydration cannot mismatch because both renders produce the same attribute. The first
-time someone toggles the pane, that choice becomes explicit and outranks any boundary.
+A pane that nobody has touched rests on `auto`. CSS resolves what `auto` means, per window size
+class. First paint is therefore correct on the server and on the client with no script. Hydration
+cannot mismatch, because both renders produce the same attribute. The first toggle makes the
+choice explicit, and an explicit choice outranks any boundary.
 
-This is why nothing in the frame measures anything at mount, and it is the reason
-`useWindowClass()` answers `null` on the server and through first paint rather than guessing.
-The hook is for decisions after mount; the resting shape of the app is the stylesheet's.
+Nothing in the frame measures anything at mount. `useWindowClass()` answers `null` on the server
+and through first paint rather than guessing. Use the hook for decisions after mount. The
+stylesheet holds the resting shape of the app.
 
-## Three shapes, so three classes
+## Three window size classes
 
-A window size class picks the navigation **shape**, decided once at the top against the window —
-never per container, never per component. `narrow` shows one thing at a time and summons the
-navigation over it; `regular` and `wide` keep the navigation columns in flow, and the extra room
-at `wide` is what a second column such as an inspector costs.
+A window size class picks the shape of the navigation. Decide it once at the top, against the
+window. Do not decide it per container, and do not decide it per component.
 
-There are three because there are three shapes. A fourth class would have to name a difference
-that is really a question about room inside a pane, and room is what container tiers already
-answer.
+`narrow` shows one thing at a time and opens the navigation over it. `regular` and `wide` keep
+the navigation columns in flow. The extra room at `wide` is what a second column such as an
+inspector costs.
 
-## Tabs switch a view; a segmented control sets a value
+There are three classes because there are three shapes. This is a judgment. A fourth class
+would name a question about room inside a pane, and container tiers already answer that
+question.
 
-Both render as a row of choices and they are different kinds of thing. Ask what each does when
-the other is absent: you can switch views without setting any value, and set a value without
-anything switching. **If the thing underneath changes, it is `Tabs`.**
+## Choose between tabs and a segmented control
 
-The difference is in the markup, not only the paint. A segmented control is a real radio group —
-`role="radiogroup"`, arrow keys that select as they move, a value that submits with a form —
-because picking one of several *is* what a radio group is. A tab bar announces a tab list and
-owns panels.
+Both render as a row of choices, and they are two kinds of thing. Ask what each one does when the
+other is absent. You can switch views without setting a value. You can set a value without
+switching a view. **Use `Tabs` when the thing underneath changes.**
+
+The difference is in the markup, not only in the paint. A segmented control is a real radio
+group. It announces `role="radiogroup"`, its arrow keys select as they move, and its value
+submits with a form. Picking one of several is what a radio group does. A tab bar announces a tab
+list and owns panels.
 
 ```tsx
 <SegmentedControl defaultValue="grid" aria-label="Layout">
@@ -87,28 +88,28 @@ owns panels.
 </SegmentedControl>
 ```
 
-Multi-select formatting — italic and underline on at once — is neither of them. That is a set of
-toggle buttons, which is a third component again, and squeezing it into a radio group is how a
-control starts lying about how many answers it has.
+Multi-select formatting is neither of them. Italic and underline both on at once is a set of
+toggle buttons, which is a third component. A radio group holds one answer, so it cannot state
+that set.
 
-## A menu chooses an action; a select chooses a value
+## Choose between a menu and a select
 
-The same test, one family over. A `Menu` is a list of verbs: choosing one does something and the
-panel closes. A `Select` is a list of values: choosing one fills a control that submits with a
-form, which is why it renders a hidden input and announces itself as a combobox opening a list
-of options — an accessibility contract a styled menu cannot fake.
+Apply the same test one family over. A `Menu` is a list of actions. Choosing one runs the action
+and closes the panel. A `Select` is a list of values. Choosing one fills a control that submits
+with a form. A select renders a hidden input and announces itself as a combobox that opens a list
+of options. A styled menu cannot state that accessibility contract.
 
-Two consequences of that are worth knowing before you meet them. A select's panel places itself
-so the chosen row lands on the value it is replacing, which is why it can hang above and below
-the trigger. And a select that has never been opened needs `items` to turn a value into a label,
-because the labels live on options that have not mounted yet.
+Two consequences follow. A select places its panel so that the chosen row lands on the value it
+replaces. The panel can therefore hang above and below the trigger. A select that nobody has
+opened needs `items` to turn a value into a label. The labels live on options that have not
+mounted yet.
 
-## "You are here" is announced, not only painted
+## Announce the current place
 
-`current` on a nav row or a rail square paints the row and sets `aria-current="page"`. Both
-halves are the point: a colour alone tells nobody who cannot see it, and the announcement is
-what carries the meaning through a screen reader, a high-contrast setting and a monochrome
-display.
+Set `current` on a navigation row or a rail square. It paints the row and it sets
+`aria-current="page"`. Both halves matter. Colour alone tells nobody who cannot see it. The
+announcement carries the meaning through a screen reader, a high-contrast setting and a
+monochrome display.
 
 ```tsx
 <ShellNavGroup label="Workspace">
@@ -117,8 +118,9 @@ display.
 </ShellNavGroup>
 ```
 
-The paint is a tone and a rung rather than a louder step on one ramp, and that is deliberate:
-grey means your pointer is here, accent means this is the place you are in. They are different
-currencies, so a hovered current row still has somewhere to go. A row family ranks nothing —
-every item in a list of places is a peer — so being current is a state the component states, not
-an emphasis a call site picks.
+The paint is a tone and a rung, not a louder step on one ramp. Grey states that the pointer is
+over the row. Accent states that this is the place you are in. The two use different colours, so
+a current row still changes under the pointer.
+
+The row family ranks nothing, because every item in a list of places is a peer. Being current is
+a state the component states. It is not an emphasis a call site picks.

@@ -1,60 +1,62 @@
-Colour here is a decision about meaning, never about pigment. You name what a thing *is* — a
-tone — and the theme resolves that name into a value for the current appearance, the current
-contrast setting, and the surface it lands on. Every value comes out of one generator from two
-numbers per family, so there is no hex to write and no palette to memorise.
+Colour states meaning. You name a tone, and the theme resolves that name into a value. It
+resolves against the current appearance, the current contrast setting, and the surface below.
 
-## Choose the meaning, and let the theme resolve the pigment
+One generator produces every value from two numbers for each family. You write no hex value.
+You memorise no palette.
 
-Name a tone at the call site. Never a colour.
+## Name the tone, not the colour
+
+Name a tone at the call site.
 
 ```tsx
-// The thing people reach for
+// Do not do this.
 <Text style={{ color: "#E5484D" }}>Payment failed</Text>
 
-// The composed answer
+// Do this.
 <Text tone="destructive">Payment failed</Text>
 ```
 
-A hex is frozen the moment it is typed. It does not follow the appearance into dark, does not
-answer `contrast="high"`, does not survive a rebrand, and under a translucent material it has
-no relationship to the fill it is mixed into. A tone survives all four, because the tone is the
-intent and the value is output.
+A hex value never changes. It does not follow the appearance into dark mode. It does not
+answer `contrast="high"`. It does not survive a rebrand. Under a translucent material it has
+no relationship to the fill it mixes into. A tone answers all four cases, because the tone
+states the intent and the theme produces the value.
 
-So there is no `color` prop anywhere in the package, and no `variant`. The escape is `style` —
-deliberately the loudest thing in a diff. Reaching for it more than rarely means a family is
-missing, and a missing family is a config line, not a call site.
+The package has no `color` prop and no `variant` prop. The escape is `style`, and a `style`
+attribute is easy to see in a review. If you write `style` more than rarely, a family is
+missing. Add the family in the configuration.
 
 ## The ten families
 
-Every family is generated on the same lightness ladder, which is the whole mechanism by which
-"red step 9" and "blue step 9" read as the same step.
+The generator builds every family on the same lightness ladder. Step 9 of red and step 9 of
+blue read as the same step.
 
 | tone | what it is for |
 |---|---|
 | `neutral` | Ink, hairlines, wells, and the resting state of anything with no family of its own. Most of an interface. |
-| `accent` | The brand. Rebindable by any nested `Theme`, and used once per screen at full strength. |
-| `blue` `green` `orange` `amber` | Colour as data — a chart series, a project label, a category badge. The colour *is* the information and a status word would be dishonest. |
+| `accent` | The brand. Any nested `Theme` rebinds it. Use it once on each screen at full strength. |
+| `blue` `green` `orange` `amber` | Colour as data: a chart series, a project label, a category badge. The colour is the information. |
 | `destructive` | The action that removes something, and the error state. |
-| `success` `warning` `info` | Status: the thing worked, needs attention, or is context. |
+| `success` `warning` `info` | Status. The thing worked, needs attention, or gives context. |
 
-Reach for a semantic name when there is a meaning, a categorical one when there is only a
-category.
+Use a semantic name when the thing has a meaning. Use a categorical name when the thing has
+only a category.
 
 ### A semantic family is not an alias
 
-`success` and `green` render identically today, and they are still two separate generated
-families. A name is a meaning, and a meaning must stay independently correctable: success can
-drift toward teal one day without dragging a colour-as-data name with it. `accent` and `blue`
-are the same recipe for the same reason — `accent` is rebindable and `blue` is fixed, so a
-consumer who rebrands to green needs one to move and the other to stay.
+`success` and `green` render the same value today. They are still two generated families. A
+name states a meaning, and each meaning must stay correctable on its own. `success` can move
+toward teal without moving a colour-as-data name with it. `accent` and `blue` share one
+recipe for the same reason. A consumer who rebrands to green moves `accent` and leaves `blue`
+where it is.
 
-Do not write `tone="green"` when you mean success. It looks right, and it is wrong the first
-time either name is re-judged.
+Do not write `tone="green"` when you mean success. The screen looks correct today. It becomes
+wrong the first time anyone re-judges either name.
 
-## Components name roles, not steps
+## Components read roles, not steps
 
-The twelve-step scale is public and you may sample it. Our components never do — they read the
-role layer, which is what makes a tone swap free.
+The twelve-step scale is public, and you may read a step from it. The components never do.
+Every component reads the role layer instead, and the role layer is what makes a tone swap
+cost nothing.
 
 ```css
 --accent-soft / -soft-hover / -soft-active      /* tints */
@@ -67,14 +69,14 @@ role layer, which is what makes a tone swap free.
 --accent-a1 … --accent-a12                      /* alpha, composites over the surface seal */
 ```
 
-Every family emits the same set — `--destructive-solid`, `--success-ink`, `--warning-border` —
-so a role name is portable across all ten.
+Every family emits the same set. `--destructive-solid`, `--success-ink` and `--warning-border`
+all exist, so one role name works across all ten families.
 
-## The ink ladder is solved, not picked
+## The ink ladder
 
-Type resolves `emphasis` as three foreground roles: loud reads `--color-text`, medium
-`--color-text-muted`, quiet `--color-text-faint`. A chosen tone re-scopes the same rungs onto
-that family's ink trio.
+Type resolves `emphasis` as three foreground roles. Loud reads `--color-text`. Medium reads
+`--color-text-muted`. Quiet reads `--color-text-faint`. A chosen tone moves the same three
+rungs onto that family's ink trio.
 
 ```tsx
 <Stack gap="2">
@@ -84,47 +86,51 @@ that family's ink trio.
 </Stack>
 ```
 
-The rungs are **contrast targets**, solved per family per mode, not steps picked by eye. They
-used to be picked, and the two halves of the system reached them differently — neutral took
-steps 12, 11 and 10 while every chroma family faded its one text colour by a fixed percentage —
-so nothing knew what contrast a rung landed on. Measured, the light ladder ran 103, 78 and 65,
-with the top rung twice as far from the middle as the middle sat from the bottom.
+The generator solves each rung against a contrast target. It solves one value for each family
+in each appearance.
 
-- **Loud is deliberately not solved.** It stays the family's own designed text colour — the
-  accessible resting state for reading, and the system's most-used ink should not be at the
-  mercy of a target number.
-- **Medium is the body floor exactly** (APCA Lc 60): real information said quietly, such as a
-  placeholder, a timestamp or a group label. It lands *on* the reading floor.
-- **Quiet is Lc 30, below the reading floor on purpose.** It is the exception rung, for
-  something deliberately stood down, and it is a written carve-out rather than an oversight.
+An earlier version picked the rungs by eye, and the two halves of the system picked them
+differently. Neutral took steps 12, 11 and 10, and every chroma family faded its one text
+colour by a fixed percentage. Nothing knew what contrast a rung reached. Measured, the light
+ladder ran 103, 78 and 65.
 
-So quiet never carries a reading-length line. No law can check that; it is yours to hold. Text
-that matters less stays loud at a smaller step, or becomes medium.
+- **The generator does not solve loud.** Loud stays the family's own designed text colour.
+  This is a judgment: the system uses this ink more than any other, so a target number must
+  not control it.
+- **Medium sits on the body floor.** The target is APCA Lc 60, which is a measured limit. Use
+  medium for real information the screen does not emphasise: a placeholder, a timestamp, a
+  group label.
+- **Quiet sits at APCA Lc 30.** This value is below the reading floor. Quiet is the rung for
+  something the system stands down, such as an option the reader cannot take. The system
+  states this exception in writing.
 
-## `contrast="high"` is the conformance surface
+Do not use the quiet rung for a full line of text. No test checks this rule. Text that matters
+less stays loud at a smaller step, or moves to medium.
 
-Contrast is a Theme-level accessibility preference and nothing else. There is no per-component
-`highContrast` prop, and it also answers the platform signal, so a user who asked their
-operating system for more contrast gets it without anyone setting a prop.
+## The high contrast setting
+
+`contrast="high"` is a Theme-level accessibility preference. No component takes a
+`highContrast` prop. The setting also answers the platform signal, so a reader who asks the
+operating system for more contrast receives it.
 
 ```tsx
 <Theme contrast="high">{children}</Theme>
 ```
 
-**The stated rule, with its reason.** Resting borders and fills are *dress*: judged by eye,
-held to no contrast floor in standard mode. Under `contrast="high"` the APCA floors bind, and
-the solved edge targets there are the ones anchored by law. Text, the focus ring and the
-invalid edge stay floor-checked in standard mode — those are signals, and a signal that only
-works under an opt-in setting is not a signal.
+A resting border and a resting fill are dress. The system judges them by eye and holds them to
+no contrast floor in standard mode. Under `contrast="high"` the APCA floors bind, and the laws
+anchor the solved edge targets there. This split is a judgment. Text, the focus ring and the
+invalid edge stay floor-checked in standard mode, because those three are signals. A signal
+that works only under an opt-in setting is not a signal.
 
-The setting promises "as much contrast as each colour permits," not a fixed increase. A bright
-hue's border band already sits at the edge of what it can hold, and pushing it turns yellow to
-olive, so bright hues take their gain in the text band instead. **A band that stays put is the
-setting working.**
+The setting gives each colour as much contrast as that colour permits. It is not a fixed
+increase. A bright hue's border band already sits at the limit the hue holds, and more
+contrast turns yellow to olive. A bright hue takes its gain in the text band instead. A band
+that does not move is the correct result for that band.
 
 ## The three grounds
 
-Three named beds, from the bottom up.
+Three named beds sit under everything, from the bottom up.
 
 ```css
 --color-page      /* the app's background. No component reads it. */
@@ -132,13 +138,14 @@ Three named beds, from the bottom up.
 --color-surface   /* the seal: an object's own opaque fill */
 ```
 
-The library paints no page background, because a Theme that painted one would repaint the page
-at every nested appearance scope. Painting it is your call, and `--color-page` exists so you
-make that call in the system's vocabulary rather than reaching into a raw palette step.
+The library paints no page background. A `Theme` that painted one would repaint the page at
+every nested appearance scope. Paint the page yourself, and read `--color-page` for the value.
 
-`--color-ground` is what an object sits *on* — a sidebar bed, a region holding cards.
-`--color-surface` is the object itself, and it is opaque: translucency is the material axis's
-job alone. One consequence to expect: in dark mode a ground sitting directly on the page
-resolves to the page's own value, so only its hairline bounds it. Dark's ramp is built up from
-white, so a ground defined as a relative step would land *lighter* than the seal, and the cards
-inside would come out darker than the thing holding them.
+`--color-ground` is the region an object sits on, such as a sidebar bed or a region that holds
+cards. `--color-surface` is the object itself, and it is opaque. The material axis is the only
+mechanism that makes a surface translucent.
+
+Expect one result in dark mode. A ground that sits directly on the page resolves to the page's
+own value, so only its hairline bounds it. The dark ramp builds up from white. A ground
+defined as a relative step would resolve lighter than the seal, and the cards inside it would
+then be darker than the region that holds them.

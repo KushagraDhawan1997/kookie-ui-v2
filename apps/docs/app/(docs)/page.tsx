@@ -19,10 +19,10 @@ export default function Home() {
           A design system that means what it says
         </Heading>
         <Text size="4" emphasis="medium" render={<p />}>
-          KookieUI is a taxonomy before it is a component library. Every component names a kind
-          of thing that exists — a ground, a surface, a control, a mark — and what it refuses is
-          as designed as what it does. These pages are that argument, and the system enforces
-          most of it rather than asking you to remember it.
+          KookieUI is a taxonomy first and a component library second. Each component names a
+          kind of thing: a ground, a surface, a control, a mark. What a component refuses is as
+          designed as what it does. These pages state the rules. The system enforces most of
+          them, so you do not have to remember them.
         </Text>
         <Flex gap="3" wrap="wrap">
           <Button
@@ -46,25 +46,25 @@ export default function Home() {
 
       <Stack gap="4">
         <Heading size="6" render={<h2 />}>
-          Three claims, and where each one is answered
+          Three claims, and where to read about each
         </Heading>
         <Stack gap="4">
           {[
             {
               title: "Meaning, not appearance",
-              body: "You choose what a thing is — a tone, a loudness, a size index — and the theme resolves the pigment, the length and the corner. There is no colour prop and no variant, because meaning and loudness are different questions and fusing them is how every system ends up with a value called secondary-outline-destructive.",
+              body: "You choose what a thing means. You set a tone, a loudness and a size index. The theme resolves the colour, the length and the corner. There is no colour prop and no variant prop. Meaning and loudness are separate questions, and one prop that answers both produces values such as secondary-outline-destructive.",
               href: "/philosophy/the-kinds-of-things",
               label: "The kinds of things",
             },
             {
               title: "Refusals with reasons",
-              body: "A component that will not take a margin, a shadow or a second focal point is making an argument. Every refusal in this system is written down with the reason and the alternative, because a missing prop and a refused one look identical until somebody says which it is.",
+              body: "A component refuses a margin, a shadow and a second loud control. Each refusal has a written reason and a stated alternative. Without that text, a missing prop and a refused prop look the same.",
               href: "/components",
               label: "Browse the components",
             },
             {
               title: "Guidelines that hold",
-              body: "Most of the rules on this site are unexpressible to violate — they are types, not advice. The rest are checked by something that fails a build, including these pages: every chapter cites the specification it publishes and a law resolves the citation. What is genuinely taste is labelled as taste.",
+              body: "You cannot express most of the rules on this site incorrectly, because they are types rather than advice. A test checks the rest, including these pages: each chapter cites the specification, and a test resolves every citation. The pages mark each judgment as a judgment.",
               href: "/philosophy/why-these-rules-hold",
               label: "Why these rules hold",
             },
@@ -137,25 +137,25 @@ export default function Home() {
             The workbench
           </Heading>
           <Text size="3" emphasis="medium" render={<p />}>
-            The instruments this system is judged with, kept public on purpose. A manifesto with
-            the proof hidden is just a manifesto.
+            The tools the team uses to judge this system. They are public, so you can check the
+            claims on these pages yourself.
           </Text>
         </Stack>
         <Stack gap="4">
           {[
             {
               title: "Builder",
-              body: "A constrained composition editor: the canvas is a live render of real components, every distance is a token index picked from a closed list, and the export is the React code a person would have written. It also runs the house style as live checks, so it will tell you a screen has two focal points before anyone else does.",
+              body: "A composition editor with limits. The canvas renders real components. Every distance is a token index from a closed list. The export is the React code a developer would write. It also runs the composition rules, so it reports a screen with two loud controls.",
               href: "/builder",
             },
             {
               title: "Preview",
-              body: "Every shipped component in dense specimen tables — rungs against families, sizes against states, the ten tones swept across every consumer — plus real screens composed from them. This is the surface the eye pass actually runs on.",
+              body: "Every shipped component in specimen tables: rungs against families, sizes against states, and the ten tone families across every component. It also holds complete screens built from them. The team reviews the visual result here.",
               href: "/preview",
             },
             {
               title: "Matrix",
-              body: "The axis grid: size against density in each pointer world, with radius, depth and contrast switchable in place. Preview answers whether a component looks right beside the others; this answers whether a single cell is right.",
+              body: "The axis grid: size against density in each pointer world. You can switch radius, depth and contrast in place. Preview shows a component next to others. This shows whether one cell is correct.",
               href: "/matrix",
             },
           ].map((tool) => (

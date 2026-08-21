@@ -106,7 +106,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
       {entry.axes.length ? (
         <Section
           title="Axes"
-          lead="What each axis resolves to on this component. The axis names are the system's; what they mean here is this component's."
+          lead="What each axis sets on this component. The system names the axes. This component decides what each one resolves to."
         >
           <Stack gap="5">
             {entry.axes.map((axis) => (
@@ -131,7 +131,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
       {entry.parts ? (
         <Section
           title="Parts"
-          lead="Anatomy the system owns. A component gets fixed parts only where something non-visual forces them — an accessible name to wire, a role to announce — never for arrangement alone."
+          lead="Parts that the system owns. A component gets fixed parts only when it must wire an accessible name or announce a role. It does not get parts for layout."
         >
           <Stack gap="4">
             {entry.parts.map((part) => (
@@ -150,7 +150,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
 
       <Section
         title="What it refuses, and why"
-        lead="Each of these is a decision, not an omission. Where the system says no, it says what to do instead."
+        lead="Each item below is a decision, not an omission. Each one states what to use instead."
       >
         <Stack gap="5">
           {entry.refusals.map((refusal) => (
@@ -171,8 +171,8 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
           title="Props"
           lead={
             api.element
-              ? `Generated from the types. It also takes every prop of a <${api.element}>, which the platform documents better than we would.`
-              : "Generated from the types."
+              ? `A script generates this table from the types. The component also takes every prop of a <${api.element}>.`
+              : "A script generates this table from the types."
           }
         >
           <Box className="kd-table-wrap">
@@ -222,16 +222,15 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
       <Section title="Everywhere">
         <Stack gap="3">
           <Text size="2" emphasis="medium" render={<p />}>
-            Rules this component inherits rather than states, because every component in the
-            system does:
+            This component inherits the rules below. Every component in the system does.
           </Text>
           <Text size="2" render={<ul className="kd-list" />}>
             {[
-              "It owns no outer spacing. Distance between siblings is the container's gap; the escape is a Box.",
-              "Its size is an index, never a measurement — the same numeral means different things on different ladders, and that is deliberate.",
-              "Its appearance is resolved output. You choose meaning and loudness; the theme resolves the pigment.",
-              "Its states are stylesheet work. No JavaScript runs on hover, press or focus.",
-              "className and style are forwarded, and consumer style merges last — escapes win, visibly.",
+              "It sets no outer spacing. The container sets the gap between siblings. Use a Box to add space.",
+              "Its size is an index, not a measurement. The same number means different things on different ladders.",
+              "You choose the meaning and the loudness. The theme resolves the colour.",
+              "CSS resolves every state. No JavaScript runs on hover, press or focus.",
+              "It forwards className and style. Your style merges last, so your value wins.",
             ].map((line) => (
               <li key={line}>{line}</li>
             ))}

@@ -345,7 +345,7 @@ export const ENTRIES: Entry[] = [
       {
         name: "gap / gapX / gapY",
         values: "layout space steps",
-        note: "the density-aware layer, never the raw palette — so a comfortable theme opens the grid and a compact one closes it without a single call site changing; the two axes split because a grid is the one layout where row and column rhythm are genuinely different questions",
+        note: "the density-aware layer, not the raw palette. A comfortable theme widens the grid and a compact theme narrows it, and no call site changes. The two axes are separate because a grid is the one layout where row spacing and column spacing answer different questions",
       },
     ],
     refusals: [{ name: "auto-placement helpers", why: "A prop earns existence only if it adds token resolution, tiers or constraint. Everything else is style." }],
@@ -360,8 +360,8 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "size", values: "1–9", note: "defaults to 6 — the level a section actually reaches for" },
       { name: "weight", values: "regular | medium | semibold", note: "defaults to semibold — 700 is refused (§15)" },
-      { name: "emphasis", values: "loud | medium | quiet", note: "the foreground roles, not fills — a muted section label or a stood-down eyebrow without leaving the axis; rests loud, because a heading is the last thing that should be hard to read" },
-      { name: "tone", values: "any family", note: "re-scopes the ink trio onto that family, and only the ink — a heading carries no fill to tint" },
+      { name: "emphasis", values: "loud | medium | quiet", note: "the foreground roles, not fills. Use it for a muted section label. It rests loud, because a heading must stay readable" },
+      { name: "tone", values: "any family", note: "moves the three ink roles onto that family. It changes the ink only, because a heading has no fill" },
     ],
     refusals: [
       {
@@ -378,8 +378,8 @@ export const ENTRIES: Entry[] = [
     blurb:
       "A key cap: Code's fill and tone facts in the BODY family and a centered, floored cap box — a key names a key, it does not quote code, and the sans draws ⌘ full-size where a mono cell draws it compact. The hairline is the tone-aware border rather than one of the solved edge tiers — those were solved for controls whose identity rests on the edge, and a cap has a fill to carry it.",
     axes: [
-      { name: "size", values: "1–9, optional", note: "unset inherits the line it sits in, like Code — a cap named in a size-1 caption would otherwise push that line to 16px and stop being a caption" },
-      { name: "emphasis", values: "loud | medium | quiet", note: "the type resolution: it moves the INK's role, never the cap's fill — a chord stood down is quieter lettering on the same key, not a fainter key" },
+      { name: "size", values: "1–9, optional", note: "when unset, it takes the size of the line it sits in, like Code. A cap with a fixed size would raise a size-1 caption to 16px" },
+      { name: "emphasis", values: "loud | medium | quiet", note: "the type resolution. It changes the ink role, not the cap fill. A quiet chord shows quieter letters on the same key" },
       { name: "tone", values: "any family", note: "moves the ink and the fill; the edge is the cap's own achromatic relief line since 2026-08-17, tone-blind so it reads the same on any bed" },
     ],
     refusals: [
@@ -500,7 +500,7 @@ export const ENTRIES: Entry[] = [
       "A rail with no grip: a neutral well and an accent level. It sits outside the look axis for the instrument rule — the axis dresses things whose resting state is a surface, and a bar has none — and it grows no hit area, because nothing hits it.",
     axes: [
       { name: "value", values: "number | null", note: "null is indeterminate, and sweeps" },
-      { name: "min / max", values: "number", note: "defaults 0 and 100 — the bar reports a fraction, so any pair works and the component never shows a number; formatting a percentage is a sibling Text, because a formatted value is prose" },
+      { name: "min / max", values: "number", note: "0 and 100 by default. The bar reports a fraction, so any pair of numbers works. The component shows no number. Put a formatted value in a sibling Text" },
     ],
     refusals: [
       {
@@ -765,7 +765,7 @@ export const ENTRIES: Entry[] = [
       { name: "resize", why: "It renames raw CSS. Vertical-only is the shipped behaviour; style is the escape." },
       {
         name: "cols",
-        why: "Width is the container's, and a textarea sized in CHARACTERS is sized in a unit the type ramp does not use — an 80-column box is a different width at every size step and every density. Put it in the layout that owns the relationship, where the distance is a token.",
+        why: "The container sets the width. A textarea sized in characters uses a unit that the type ramp does not use, so an 80-column box is a different width at every size step and every density. Set the width in the layout that owns the relationship, where the distance is a token.",
       },
     ],
   },
@@ -777,7 +777,7 @@ export const ENTRIES: Entry[] = [
     blurb:
       "The visible control is a WRAPPER around the input, and that is what makes its slots legitimate anatomy: a field that can hold an icon inside its border cannot keep that border on the input, and the wrapper then owes caret-on-click, slot-aware layout, and a trailing control that keeps its own press. ref goes to the input; className dresses the wrapper.",
     axes: [
-      { name: "size", values: "1 | 2 | 3 | 4", note: "the control family index — height, inline padding, corner, the slot inset and the label's type step move together; a hosted control in a slot derives its own box from that inset rather than the call site picking a second index" },
+      { name: "size", values: "1 | 2 | 3 | 4", note: "the control family index. It sets the height, the inline padding, the corner, the slot inset and the label type step together. A control inside a slot derives its own box from that inset, so you never choose a second index" },
       { name: "leading / trailing", values: "ReactNode", note: "an icon, or a hosted control that keeps its own press" },
       { name: "backdrop", values: "boolean", note: "placement, not material (§10, 2026-08-17): content passes behind this, so the theme's glass may express; unset it reads the ambient <Box backdrop> region" },
     ],

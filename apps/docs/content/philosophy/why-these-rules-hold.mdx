@@ -1,106 +1,112 @@
-Every design system ships guidelines. Almost all of them are advice: a document beside the
-code, describing what the code would do if everyone remembered. The gap between the two opens
-immediately and never closes, because nothing measures it.
+Most design systems ship guidelines as advice. The document sits beside the code and describes
+what the code would do if every developer remembered every rule. The two separate, and nothing
+measures the gap.
 
-The rules in these pages are not advice. Most of them are unexpressible to violate, and the
-rest are checked by something that fails a build. This chapter is about which is which — and
-about the parts that are genuinely taste, said plainly, because dressing a preference as a law
-is the same error as dressing a law as a preference.
+The rules on this site work differently. You cannot express most of them incorrectly. A test
+checks the rest. This chapter states which rule is which. It also states which parts are
+judgment, because presenting a judgment as a measured rule is a fault.
 
-## Refusals are types, not warnings
+## The types state the refusals
 
-What the system forbids is usually not available to write.
+You cannot write most forbidden code.
 
 ```tsx
-// Not "don't do this". There is no such prop.
+// This prop does not exist.
 <Button margin="4">Save</Button>
 ```
 
-`ButtonProps` has no margin, no `variant`, no `color`, and no shadow. A component owns no outer
-spacing, so the type does not offer any; loudness and meaning are separate axes, so there is no
-prop that conflates them. Every scale is a closed union — `size` is `"1" | "2" | "3" | "4"`,
-not a number — so a value between the rungs cannot be typed.
+`ButtonProps` has no `margin`, no `variant`, no `color` and no shadow prop. A component does
+not set outer spacing, so the type offers no margin. `tone` and `emphasis` are separate axes,
+so no prop combines them.
 
-This is stronger than a lint rule and much stronger than a paragraph. A lint rule can be
-disabled; a paragraph can be unread. A prop that does not exist produces a red squiggle in the
-editor before anyone has run anything.
+Every scale is a closed union. `size` is `"1" | "2" | "3" | "4"`. It is not a number. You
+cannot type a value between two steps.
 
-The corollary is that **an absence is information**. When a component does not take a prop you
-expected, that is usually a decision with a reason, and the reason is written down: every
-component's page has a section listing what it refuses and why. If you find an absence with no
-entry, that is a gap in the documentation rather than a permission.
+A type is stronger than a lint rule, and much stronger than a paragraph. You can disable a
+lint rule. You can skip a paragraph. A prop that does not exist produces an editor error
+before you run anything.
 
-## The escapes are real, and they are loud
+**A missing prop carries information.** When a component does not take a prop you expect, the
+system usually refuses it for a reason. Each component page lists its refusals and the reason
+for each one. If you find a refusal with no entry, the documentation has a gap.
 
-A refusal without an escape is policing. Every component forwards `className` and `style`, and
-consumer `style` merges last — so an escape always wins, and it wins *visibly*.
+## The escapes work, and they are visible
+
+A refusal with no escape is not a design. It is an obstruction.
+
+Every component forwards `className` and `style`. Your `style` merges last, so your value
+always wins.
 
 ```tsx
-// The sanctioned way to place something. Not a margin on the button.
+// Place a control with the layout that owns the relationship.
 <Box m="4">
   <Button>Save</Button>
 </Box>
 
-// The escape, when the system genuinely has no answer.
+// Use style when the system has no answer.
 <Card style={{ maxInlineSize: "42rem" }}>…</Card>
 ```
 
-That visibility is the point. An escape hatch is a signal: one is fine, a file full of them
-means the system is missing something, and what it is missing is usually a token or a family
-rather than a prop.
+An escape is visible in a diff. One escape is normal. A file full of escapes means the system
+lacks something. That missing thing is usually a token or a tone family, not a prop.
 
-## The laws
+## The tests state the invariants
 
-The system's claims about itself are executable. They are not snapshot tests — a snapshot
-asserts nothing anyone decided — but statements about invariants, and the suite is written so
-that a claim which stops being true fails a build.
+The test suite asserts invariants. It contains no snapshot tests, because a snapshot asserts
+nothing that anyone decided.
 
-- Every size-2 control resolves the identical height, padding and radius tokens.
-- Every recipe's hover is exactly one step up and its press exactly two.
-- Every generated solid fill passes its contrast target against its own computed label colour.
-- The gzipped CSS is measured on every commit and a regression is a hard failure.
-- Margin and position props do not exist on control types, asserted at the type level.
+- Every size-2 control resolves the same height, padding and radius tokens.
+- Every recipe moves one step on hover and two steps on press.
+- Every generated fill meets its contrast target against its own label colour.
+- CI measures the gzipped CSS on every commit and fails the build when it grows.
+- Margin and position props do not exist on control types. A type-level test asserts this.
 
-One rule governs how those laws are written, and it was learned the expensive way. **A law
-reads the browser's computed value, through a mounted component, in both appearances.** An
-audit once found that every broken axis in the system was one where no law read a computed
-value: the tests asserted attribute strings, token *names*, and in-memory objects — each one
-indirection short of the thing that could be wrong, and in each case that thing was wrong.
+One rule governs how the suite writes these tests. **A test reads the value the browser
+computes, from a mounted component, in both appearances.**
 
-## The reviewer
+An audit produced this rule. Every broken axis it found was an axis where no test read a
+computed value. The tests read attribute strings, token names and objects in memory. Each one
+stopped one step short of the value that could be wrong. In each case, that value was wrong.
 
-Some rules are about composition rather than about a component, and those cannot live in a
-type. One focal action per surface. Differentiated rhythm. Tone used as vocabulary rather than
-decoration. A heading ladder that descends.
+## The reviewer checks the composition
 
-Those are checked too, in the [builder](/builder): the house style runs as live rules over a
-document, each finding citing the system's own sentence and carrying a fix. The templates it
-ships are held to zero findings by a law, which is what keeps the rules honest — a rule nobody
-can satisfy gets found the moment it is written.
+Some rules describe a whole screen, not one component. A type cannot hold them.
 
-## What is not enforced
+- Use one loud control on each screen.
+- Use different gap values for different relationships.
+- Use a tone for its meaning.
+- Step each heading down from the heading above it.
 
-Taste. Deliberately, and it is most of what makes an interface good.
+The [builder](/builder) runs these rules over a live document. Each finding cites the rule and
+carries a fix. A test holds the shipped templates to zero findings. That test also checks the
+rules: a rule that nobody can satisfy fails on the day someone writes it.
 
-The system has objective floors and it is immovable about them: target sizes come from touch
-anthropometry, contrast from measured models, grouping from documented perceptual behaviour.
-Above the floors, the exact radius, the material's saturation, the specific accent, and the
-rhythm of a particular screen are judgment. They are stated as judgment, they are tuned by eye,
-and no law asserts them.
+## What the system does not check
 
-Being clear about the boundary is the discipline. Asserting false precision is the same error as
-asserting false sameness, inverted — and a system that claimed its taste was measured would be
-lying in the direction that is hardest to catch.
+The system does not check taste. This is deliberate, and taste decides most of the quality of
+an interface.
 
-## Drift is treated as a bug
+The system holds measured limits and does not move them. Target sizes come from touch
+anthropometry. Contrast comes from measured models. Grouping comes from documented perceptual
+behaviour.
 
-A last mechanism, and it is the one holding this site together. When code forces a decision to
-change, the document changes in the same commit. The pages you are reading are checked against
-the specification they publish: every chapter names the sections it re-voices and a law resolves
-every one of those references against the real document, so a chapter about a decision that was
-never specified fails before it reaches you.
+Above those limits, the exact radius, the saturation of a material, the accent colour and the
+rhythm of one screen are judgments. The documentation states them as judgments. The team tunes
+them by eye. No test asserts them.
 
-The generated half of the component reference is read out of the package's own types, and a law
-regenerates and compares — so it cannot describe a prop that no longer exists. That failure has
-happened here: a documented prop that had never existed shipped once and was caught only because
-the page happened to be type-checked. The mechanism exists because the mistake did.
+State the boundary clearly. A system that claimed its judgments were measurements would make a
+claim that nobody can check.
+
+## The documentation cannot drift
+
+When code forces a decision to change, the document changes in the same commit.
+
+These pages are checked against the specification they publish. Each chapter names the sections
+it states, and a test resolves every one of those references against the real document. A
+chapter about a decision that the specification does not contain fails before you read it.
+
+A script generates the props table on each component page from the package types. A test
+regenerates the table and compares it. The table cannot describe a prop that no longer exists.
+
+This mechanism exists because the fault happened. A page documented a prop that had never
+existed. The type checker caught it, because that page was TypeScript.
