@@ -197,11 +197,20 @@ function States() {
           </Dialog>
         </Flex>
       </Demo>
-      {/* INITIAL FOCUS is a state you can only see with a keyboard, and it is placed by
-          document order rather than by machinery (§25): Cancel is written first, so it reads
-          first, sits on the start side, and is what Base UI focuses. Open this one and press
-          nothing — the ring should be on the safe way out. Then Tab once. */}
-      <Demo label="Open it and touch nothing — focus must be on the safe side">
+      {/* INITIAL FOCUS is placed by document order rather than by machinery (§25): Cancel is
+          written first, so it reads first, sits on the start side, and is what Base UI focuses.
+
+          OPEN THIS ONE FROM THE KEYBOARD — Tab to the trigger and press Enter. Opening it with
+          a mouse shows NOTHING, and that is the system's rule rather than a fault: the ring is
+          keyboard-only (§8, the shared control rule), so a pointer user gets focus without a
+          ring. Measured 2026-08-22: focus lands on Cancel either way, and `outline-style`
+          computes `solid` after a keyboard open and `none` after a mouse one.
+
+          What that leaves visible is worth reading while it is open: the LOUD button is the
+          Action, and the button Enter would press is Cancel. They disagree on purpose — the
+          APG puts initial focus on the least destructive choice — and after a mouse open there
+          is nothing on screen that says so. Recorded as a question, not fixed. */}
+      <Demo label="Tab to this and press Enter — the ring lands on the safe side, and a mouse open shows none">
         <Flex gap="3" align="center" wrap="wrap">
           <AlertDialog>
             <AlertDialogTrigger render={<Button emphasis="medium">Where does focus land?</Button>} />
