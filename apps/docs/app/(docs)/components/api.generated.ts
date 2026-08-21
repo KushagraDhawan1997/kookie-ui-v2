@@ -1351,6 +1351,65 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "Notice": {
+    "element": null,
+    "props": [
+      {
+        "name": "action",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "ONE action, and it is the one that RESOLVES the condition — \"Get more usage\", not \"OK\". A `<Button/>` the call site brings, so the system never invents a label."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The message. A sentence, usually — a notice with several paragraphs is a Card."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the strip. Outer spacing is the caller's Box, never this (the non-negotiable)."
+      },
+      {
+        "name": "dismissLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The dismissal's accessible name. English by default because the package ships no translation layer; state your own and it is stated once, here."
+      },
+      {
+        "name": "icon",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The symbol, if the app has an icon set — the package ships none (§8), so the slot is empty-safe and a notice with nothing in it simply has no symbol. It carries no meaning of its own and is hidden from assistive technology: the words are the message."
+      },
+      {
+        "name": "onDismiss",
+        "type": "() => void",
+        "optional": true,
+        "doc": "Acknowledgement, which is a different verb from the action: pressing ✕ agrees to stop being told, and changes nothing about whether the condition holds. **The memory is the app's, and that is the whole reason this is a callback.** A notice that dismissed itself would forget on reload, and a ✕ the app cannot honour is a ✕ that lied. Passing nothing renders no dismissal at all, which is right for a condition nobody may wave away."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "§10 — prices the BOX: the padding and the corner, off the ordinary surface size join, and the dismiss button the component itself places. It does not price the words: a notice holds the caller's text, and text states its own step (§15). Rests at 2 rather than a Card's 3, because a notice is a strip across the top of something rather than an object in its own right."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "optional": true,
+        "doc": "§7, §29 — the CATEGORY, never the volume. Rests neutral, and the specimen this component was designed from is grey while being a warning: a notice is a condition stated plainly, not an alarm. Reach for `warning`, `destructive`, `success` or `info` when the family says something the sentence does not already say."
+      }
+    ]
+  },
   "Progress": {
     "element": null,
     "props": [

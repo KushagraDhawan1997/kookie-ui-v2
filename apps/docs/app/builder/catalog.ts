@@ -486,6 +486,13 @@ export const CATALOG: Record<string, CatalogEntry> = {
   },
 
   /* ── Indicators ─────────────────────────────────────────────────────────────────────── */
+  Notice: {
+    family: "Surface",
+    blurb: "A condition that is true right now, on the region it is about. Takes space, never floats; tone is the category, not the volume.",
+    props: { size: size(), tone },
+    children: "text",
+    make: () => node("Notice", { tone: "warning" }, { text: "Your certificate expires in six days." }),
+  },
   Progress: {
     family: "Indicator",
     blurb: "A rail with no grip. One designed thickness; extent is the container's.",

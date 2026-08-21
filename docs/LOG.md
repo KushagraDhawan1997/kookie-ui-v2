@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-21 Notice, and the sabotage that survived
+
+**What.** `Notice` (§29), the message family's one condition component, for **+81 bytes gzipped**. `--kui-sf-icon` joined the surface size join with it.
+
+**Almost none of it is new, which is the point.** The root is a `.kui-surface` at the tone-forward rung, so the fill, the corner, the padding, the edge and the foreground re-scoping all arrive from the surface layer — a destructive notice tints its box AND its words without the component knowing any family exists. What `notice.css` owns is a flex row.
+
+**What it is law-tested on is an ABSENCE.** No `position`, no `z-index`, no `float`, read as computed values. That is not hygiene: taking layout space is the whole structural difference between this component and the toast refused beside it (§29). A condition that is true NOW may not hover over the content it is telling you about. The displacement law measures the same claim from the other side — mount the strip and the body below it moves down by the strip's own height.
+
+**The dismissal is system-drawn, and I checked Dialog's refusal before contradicting it.** §24 refuses a system ✕ because a dialog has two other ways out (Escape, outside press) and a corner glyph competes with the one action zone. Neither holds here: the ✕ is the ONLY route out, its position is the trailing edge by convention, and making every call site compose an icon-only Button means every call site re-derives the accessible name. So `onDismiss` renders a real Button with a name, `dismissLabel` is the one place a non-English app states its word, and the glyph is drawn on the system's own 16-grid at 1.5 stroke like the tick and the carets.
+
+**`onDismiss` is a callback and there is no internal state**, which is the API stating a rule rather than trusting one: a notice that dismissed itself would forget on reload, and a ✕ the app cannot honour is a ✕ that lied.
+
+**The finding worth the entry: one sabotage SURVIVED.** Removing `min-inline-size: 0` from the body — the flex floor that stops one long word pushing the verbs off the end — left all 16 laws green. The fixture was `cannot-reach-storage-eu-west-1-replica-seven.internal.example.test`, and a browser breaks after every hyphen, so the string wrapped on its own and the law was measuring a case where the floor is a no-op. With a genuinely unbreakable word the same sabotage overflows by 277px (597.8 against a 321px strip). **This is the degenerate-fixture rule from 2026-08-20 caught in a component built the day after it was written down** — not a law asserting the wrong thing, a law whose INPUT could not tell a correct implementation from a broken one. Eight sabotage passes now, all caught.
+
+**Rejected:** parts (`NoticeTitle`, `NoticeDescription` — nothing non-visual forces them; the role sits on the root, the symbol is decorative and the verbs are slots, so a notice that needs a heading and paragraphs is a Card); more than one action (a strip with two competing actions is a form); a `variant`/`transient` prop that would make this and a toast one component (one must take layout space and the other must not — structural, not cosmetic); and the name `Banner`, which names a position this system's components never own.
+
+**One first for the docs app:** `examples/notice.tsx` is the first example file that needs `"use client"`, because a dismissible notice passes a handler and an example is rendered from a Server Component. The directive shows in the published source, which is honest — that is what the component costs.
+
+---
+
 ## 2026-08-21 Field, and the one mechanism that needed bounding
 
 **What.** `Field`, `FieldLabel`, `FieldDescription`, `FieldError` (§28), for **+28 bytes gzipped** — the additivity curve's strongest point. Eight control components now read a size the field supplies.

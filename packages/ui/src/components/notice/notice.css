@@ -1,0 +1,53 @@
+/**
+ * Notice (§29) — the strip, and the strip is all of it.
+ *
+ * The fill, the corner, the padding, the edge and the foreground context are the SURFACE
+ * layer's: the root wears `.kui-surface` at the tone-forward rung, so this file names no
+ * colour, no size index, no rung and no family. What is left is the row.
+ *
+ * It takes layout space and never floats — no `position`, no `z-index`, nothing that could
+ * lift it off the flow. That absence is the design: the condition is true now, and a strip
+ * that hovered would cover the content somebody is being told about.
+ */
+.kui-notice {
+  display: flex;
+  align-items: center;
+  /* v0, for the eye pass. Wide enough that the resolving action does not read as part of the
+     sentence, tight enough that the row still reads as one thing. */
+  gap: var(--layout-space-4);
+}
+
+/* The body takes the slack, which is what pushes the two verbs to the trailing edge without
+   anybody writing a `justify`. `min-inline-size: 0` because a flex item's floor is its content
+   and one unbreakable word would otherwise push the actions off the end — the row family's own
+   scar (audit 2026-08-09, where a single long address gave a menu 90px of sideways scroll). */
+.kui-notice-body {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* Both verbs keep their own width. `flex: none` here is the block-axis-free version of the
+   mistake Progress made and paid for (2026-08-08): these must not GROW into the slack the body
+   is claiming, and they must not shrink below their labels either. */
+.kui-notice-icon,
+.kui-notice-action,
+.kui-notice-dismiss {
+  flex: none;
+}
+
+/* The symbol takes the label cluster's own box (§4, §12), so it lands on the drawing grid the
+   rest of the system's glyphs land on and grows with the pointer world exactly as they do.
+   The colour is inherited: the tone-forward rung already re-scoped the foreground context, so a
+   destructive notice tints its symbol without this file knowing any family exists. */
+.kui-notice-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--kui-sf-icon);
+  block-size: var(--kui-sf-icon);
+}
+
+.kui-notice-icon > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
