@@ -1375,7 +1375,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
-        "doc": "§10 — a placement fact (2026-08-17): content passes behind this strip, so the theme's material may express. A notice pinned over a scrolling region is exactly the case; an in-flow notice states nothing, resolves solid and pays nothing. Unset, it reads the ambient `<Box backdrop>` region."
+        "doc": "Says content passes behind this strip, so the theme's material can show. A notice pinned over a scrolling region is exactly the case. A notice in ordinary flow says nothing here, resolves solid and costs nothing. Unset, it follows the surrounding `<Box backdrop>` region."
       },
       {
         "name": "children",

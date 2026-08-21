@@ -218,7 +218,7 @@ export const ENTRIES: Entry[] = [
     refusals: [
       {
         name: "a `selected` prop, and an `interactive` one",
-        why: "Both are said by the ELEMENT instead. `<Card render={<button/>}>` is the pressable card and `<Card render={<label/>}>` around a Radio is the chosen one — so the semantics, the keyboard, the form value and the announcement are the primitive's, and the system only supplies the edge. A `selected` prop would be a second way to say what the radio already says, with nothing to keep the two in agreement; the segmented control refused the same shape in 2026-08-18. A disabled card is a disabled button, and it shows what one shows: the fill recedes, the words dim, the cursor stops promising, and the cast goes.",
+        why: "The element says both instead. `<Card render={<button/>}>` is the pressable card, and `<Card render={<label/>}>` around a `Radio` is the chosen one, so the semantics, the keyboard, the form value and the announcement all belong to the primitive and the system supplies only the edge. A `selected` prop would be a second way to say what the radio already says, with nothing keeping the two in agreement. A disabled card is a disabled button and shows what one shows: the fill recedes, the words dim, the cursor stops promising, and the shadow goes.",
       },
       {
         name: "a card inside a card",
@@ -611,7 +611,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a shadow",
-        why: "A notice does not cast, in either world. Elevation dresses boxes that establish a plane of their own — it is why input fields do not cast and why a ground turns its shadow off with a note reading 'a hole in a plane throws no shadow'. A notice is a marker ON a plane: a strip inside a card, or across a page. On glass it keeps its pool, because that is the seat-line the material has rather than the lift the app says.",
+        why: "A notice never casts a shadow, in a flat theme or an elevated one. A shadow belongs to a box that is a plane of its own, which is why a field does not cast one and why a ground does not either. A notice is a marker on a plane: a strip inside a card, or across a page. On glass it keeps the pool the material gives every pane, which is not the same thing as the lift the app says.",
       },
       {
         name: "an icon set",
