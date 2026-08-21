@@ -140,6 +140,11 @@ describe("an alert is an alert, not a small dialog", () => {
     // of this law learned by timing out on it.
     const viewport = popup.parentElement!;
     await userEvent.click(viewport, { position: { x: 8, y: 8 } });
+    // SETTLED-BY-DESIGN: this claims a NON-event — that the press did NOT close the alert —
+    // so there is nothing to wait for, and waiting could only delay a correct answer. A slow
+    // machine makes this pass more easily rather than less, which is why the strength here
+    // comes from the negative control below (the same press closes an ordinary Dialog) rather
+    // than from timing.
     expect(popup.isConnected, "an outside press closed the alert").toBe(true);
     // The negative control, so this law cannot pass in a world where nothing dismisses
     // anything: the same press closes an ordinary Dialog.
@@ -646,13 +651,26 @@ describe("what the call site can say to an alert", () => {
     return p;
   };
 
-  async function warnings(needle: string, run: () => void): Promise<number> {
+  /**
+   * WAITS FOR THE WARNING, never a flat sleep (2026-08-21, CI on main: "expected +0 to be 1").
+   * A dev warning is emitted from an effect after the commit, and 60ms of wall clock on a
+   * stalled runner is not "the effect has run" — it is a bet. Dialog's twin of this helper was
+   * already written this way; this one had kept the sleep, which is how one file's lesson stops
+   * at the file it was learned in. `want` is what makes the wait a wait: a law expecting ZERO
+   * warnings has nothing to wait FOR, so it spends the full window and then reports honestly.
+   */
+  async function warnings(needle: string, want: number, run: () => void): Promise<number> {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const count = () =>
+      spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes(needle)).length;
     try {
       run();
       settleAll();
-      await new Promise((r) => setTimeout(r, 60));
-      return spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes(needle)).length;
+      for (let waited = 0; waited < 2000; waited += 16) {
+        if (want > 0 && count() >= want) break;
+        await new Promise((r) => setTimeout(r, 16));
+      }
+      return count();
     } finally {
       spy.mockRestore();
     }
@@ -685,7 +703,12 @@ describe("what the call site can say to an alert", () => {
     // `role="alertdialog"` with nothing to announce, measured. The warning names the COMPONENT
     // it fired on, because a shared hook that always said "Dialog" would send an alert's author
     // to the wrong file — the promotion's own risk, and the reason the name is a parameter.
+    // The TEXT is read as well as the count, so this one keeps its own spy rather than going
+    // through the helper — but it waits the same way the helper does, because the sleep it
+    // used to keep is exactly what CI caught ("expected +0 to be 1").
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const said = () =>
+      spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("accessible name"));
     render(
       <Theme>
         <AlertDialog defaultOpen>
@@ -698,14 +721,16 @@ describe("what the call site can say to an alert", () => {
       </Theme>,
     );
     settleAll();
-    await new Promise((r) => setTimeout(r, 60));
-    const said = spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("accessible name"));
+    await until(() => said().length >= 1, 2000);
+    const heard = said();
     spy.mockRestore();
-    expect(said.length).toBe(1);
-    expect(said[0], "it must name AlertDialog, not Dialog").toContain("<AlertDialog>");
-    expect(said[0], "and quote the role it actually has").toContain("alertdialog");
+    expect(heard.length).toBe(1);
+    expect(heard[0], "it must name AlertDialog, not Dialog").toContain("<AlertDialog>");
+    expect(heard[0], "and quote the role it actually has").toContain("alertdialog");
 
-    const titled = await warnings("accessible name", () =>
+    // `want: 0` — a law expecting silence has nothing to wait for, so it spends the full
+    // window and reports what it heard, which is the honest shape for a negative claim.
+    const titled = await warnings("accessible name", 0, () =>
       render(
         <Theme>
           <AlertDialog defaultOpen>
@@ -758,6 +783,12 @@ describe("what the call site can say to an alert", () => {
     if (!cancel) throw new Error("the cancel button never mounted");
     await userEvent.click(cancel);
     expect(seen[1], "a Cancel press is a close press").toBe("false:close-press");
+    // UNMOUNTED is a STATE, not the statement after the click (2026-08-21, CI on main). A
+    // popup that is not refused leaves on its exit's own clock — Base UI unmounts it when the
+    // animations' `finished` promises settle — so reading the count here asserts the close is
+    // INSTANTANEOUS, which is a claim about the machine. A close that is genuinely refused
+    // never reaches zero and expires the deadline into the same assertion.
+    await until(() => document.querySelectorAll(".kui-alert-popup").length === 0, 3000);
     expect(document.querySelectorAll(".kui-alert-popup").length, "and it was not refused").toBe(0);
   });
 });

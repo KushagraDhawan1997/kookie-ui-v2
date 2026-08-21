@@ -860,6 +860,12 @@ describe("what the call site can say to a dialog", () => {
     if (!close) throw new Error("the close button never mounted");
     await userEvent.click(close);
     expect(seen[1], "a close button is a different reason").toBe("false:close-press");
+    // UNMOUNTED is a STATE, not the statement after the click (2026-08-21, CI on main). A
+    // popup that is not refused leaves on its exit's own clock — Base UI unmounts it when the
+    // animations' `finished` promises settle — so reading the count here asserts the close is
+    // INSTANTANEOUS, which is a claim about the machine. A close that is genuinely refused
+    // never reaches zero and expires the deadline into the same assertion.
+    await until(() => document.querySelectorAll(".kui-dialog-popup").length === 0, 3000);
     expect(
       document.querySelectorAll(".kui-dialog-popup").length,
       "…and that one was not refused",
