@@ -8,6 +8,30 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 The glass bent by one amount at every thickness, and its bezel was a line
+
+**What.** Three changes to `system/refraction.tsx`, which only make sense together: the bezel's surface exponent drops from 4 to 2, the single `lens` constant becomes a ladder keyed by thickness, and a bezel clamped by a small box now takes its glass depth down with it. Asked for "more refraction, more chromatic split, more bending of light".
+
+**Why it came up, and why the first answer was wrong.** The obvious reading is "turn the physics up" — raise `ior`, raise `thickness`, spend `boost`. Measuring first said otherwise. The applied bend was 12.84px against a clamp of 18, so nothing was saturated at card scale and strength was not the binding constraint. What the profile actually did was land the entire lens in the first pixel of the lip: peak 0.6px in from an 18px bezel, 13% of that peak by the midpoint, 2% by three quarters. Eighteen pixels of declared glass rendering a hard 2px line with a dead tail — an edge treatment, not a thickness. At exponent 2 the same physics holds 38% at the midpoint and 17% at three quarters, for the same clamp and the same per-pixel cost. The profile, not the parameters, was the answer to the question asked.
+
+**The ladder is the structural half.** The lens was one constant for all three rungs: thin, regular and thick differed in blur, saturation and veil alpha, and bent identically. Thickness is the one axis where glass most obviously owes a difference and it was the one axis refraction could not see. `bezel` and `ior` are the judged shape per rung; `thickness` is solved against the shipped `bendAt` until each rung hits its target (7.4 / 13.2 / 23.1px), so the numbers are derived rather than typed. Regular lands within 3% of the old constant on purpose — the default rung keeps the lens that was approved and gains only the band, which makes this additive for every pane already on screen.
+
+**`boost` was left at 1 deliberately.** It exists as the sanctioned override of the physics and spending it here would have bought the same look while making the model a decoration. It stays the knob for the eye pass.
+
+**The clamp fix is not a bonus; without it the ladder is invisible where most glass controls are.** The bezel is bounded by half the box's short side, and the surface slope is depth divided by that bezel — so a lip squeezed from 18px to 10px on a 24px control kept its full depth and steepened by the ratio it lost. Measured on the shipped constant, a 24px box asked for 15.4px of bend against a 10px clamp: it saturated. Two rungs pinned to the same clamp are one rung, so at 24px regular and thick both measured 10.0px before the fix and 7.2 / 8.9px after. Scaling the depth with the lip holds the judged slope at every size, which is the argument the generation cap already makes one scale down.
+
+**A latent defect the measurement surfaced.** That saturation was already shipping: every glass control at or under ~28px was drawing the maximum bend its box allowed rather than the lens it asked for, at every thickness, since the lens ported on 2026-08-16.
+
+**The hook takes the material now.** Every consumer used to hand it a boolean it assembled itself — `material !== "solid" && material !== "on-glass"` — which is a rung question with the rung thrown away, restated at twelve call sites. `shell` shipped one arm short of its siblings for as long as that was each caller's job. The ladder answers it once.
+
+**The laws read the real code, not a copy of it.** The Snell solve and the clamp are extracted as `bendAt` and `fitLens`, which the map is built from and the laws call — a law that recomputes the intended value from the same inputs the shipped formula uses agrees with it by construction, which is the shape that let nine defects through the 2026-08-03 audit. Nine node laws pin the ladder's shape and the profile's band; one mounted law reads the displacement scale off three real filters minted for three real panes on one box, because a lens that bends the wrong amount still bends and every existing law asserted only that a glass pane HAS one. All ten were falsified: the old exponent fails the band laws, the single constant fails the ladder laws in both projects (`expected 10.478 to be less than 10.478` — the defect stated exactly), and unscaled depth fails the control-scale pair.
+
+**Rejected.** Raising `ior` or `thickness` alone — measured, it saturates the clamp at exponent 4 before it reads as more glass, and it makes small panes worse first. Walking the blur back up — it undoes the judged near-clear ladder, which is the thing refraction exists to make legible. A per-component lens override — material is a Theme property since 2026-08-16 and the lens is what a material IS, so a per-component knob re-opens a question already closed. A specular caustic derived from the map's unused blue channel — genuinely cheap and worth doing, but a magnitude-derived highlight is direction-blind and would light all four sides equally, against the fixed 165° light model the conic ring commits to; it needs modulating by the normal against the light vector first, and that is its own change with its own eye pass. Pointer-tracked highlights stay refused for the third time: JS at interaction time, and a second light model.
+
+**Unresolved and stated.** The ladder is Chromium-only like the lens it belongs to, so this widens the gap with Safari and Firefox, which still get blur and saturation alone. Every number is v0 for the eye pass — `/preview`'s Materials section grows a row putting all three rungs over one pattern bed, which is the bed beds.tsx keeps for exactly this (a bend is invisible over a smooth gradient).
+
+---
+
 ## 2026-08-23 A guarantee held only by a law CI does not run
 
 **What.** No code change. The width floor's layout-box guarantee moves from a CI-excluded law into one that runs, and the menu law whose title promised it is renamed to what it actually proves.

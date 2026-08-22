@@ -77,9 +77,11 @@ export function Card({
   // §10 — the lens. A glass pane's bezel bends its own backdrop, and the map is built for
   // THIS box, so it needs the mounted element. Additive by construction: on a browser that
   // cannot render it, or a solid surface, nothing is set and the CSS chain is untouched.
-  // `on-glass` excluded like every sibling consumer: an on-glass pane declares no
-  // backdrop-filter at all, so a map built for it could never be substituted into anything.
-  const lensRef = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", ref);
+  // The hook takes the MATERIAL and picks the rung (2026-08-23): thin, regular and thick are
+  // three different pieces of glass and bend by three different amounts, and the two spellings
+  // that bend by nothing — `solid`, the seal, and `on-glass`, which declares no backdrop-filter
+  // for a map to be prepended to — are answered in the ladder rather than at twelve call sites.
+  const lensRef = useLensRef<HTMLElement>(material, ref);
   // A pane clips, so content wider than it is is not reachable at all (§3, 2026-08-21).
   // Dev-only, stripped in production.
   const clipRef = useClipWarning("<Card>");

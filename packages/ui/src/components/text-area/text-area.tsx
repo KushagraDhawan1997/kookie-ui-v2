@@ -75,7 +75,7 @@ export function TextArea({
   // §10 — the app's material, or on-glass inside a glass ancestor (2026-08-16).
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // §10 — the lens (see Card); on-glass never filters, so it never bends.
-  const lensRef = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", ref as React.Ref<HTMLElement>);
+  const lensRef = useLensRef<HTMLElement>(material, ref as React.Ref<HTMLElement>);
   return (
     <BaseInput
       ref={lensRef}

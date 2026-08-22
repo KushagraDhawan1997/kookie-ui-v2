@@ -339,7 +339,7 @@ function MenuPopup({
   // it covers the app, so it always has something to bend and always expresses the theme.
   const material = useMaterial({ backdrop: true });
   // §10 — the lens on the pane itself (see Card).
-  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
+  const lensRef = useLensRef<HTMLDivElement>(material, ref);
   return (
     <BaseMenu.Popup
       {...popupProps(React.use(MenuSizeContext), material, anchored, className)}

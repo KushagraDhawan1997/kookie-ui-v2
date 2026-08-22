@@ -114,7 +114,7 @@ export function TextField({
   // Button in a glass field is on spent backdrop and renders with alpha, not opaque.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // §10 — the lens on the WRAPPER; on-glass never filters, so it never bends (see Card).
-  const lensRef = useLensRef<HTMLSpanElement>(material !== "solid" && material !== "on-glass", undefined);
+  const lensRef = useLensRef<HTMLSpanElement>(material, undefined);
 
   // The field's OWN input, held so the caret redirect below cannot land somewhere else. The
   // forwarded ref still reaches the same node — neither wins (§3).

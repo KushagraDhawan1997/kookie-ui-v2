@@ -183,7 +183,7 @@ export function SelectTrigger({
   const { measure } = React.use(FloatingDirectionContext);
   // §10 — the lens. The trigger IS a member of the field family, so it owes the same glass
   // its TextField sibling wears, lens included; on-glass never filters, never bends.
-  const lensRef = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", undefined);
+  const lensRef = useLensRef<HTMLElement>(material, undefined);
   const cls = "kui-control kui-field kui-select-trigger";
   return (
     <BaseSelect.Trigger
@@ -293,7 +293,7 @@ function SelectPopup({
   // it covers the app, so it always has something to bend and always expresses the theme.
   const material = useMaterial({ backdrop: true });
   // §10 — the lens on the pane itself (see Card).
-  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
+  const lensRef = useLensRef<HTMLDivElement>(material, ref);
   return (
     <BaseSelect.Popup
       {...popupProps(React.use(SelectSizeContext), material, className)}

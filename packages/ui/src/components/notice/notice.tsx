@@ -129,10 +129,7 @@ export function Notice({
   // 2026-08-17). Card's wiring verbatim, because a notice is a pane like any other once
   // something scrolls behind it.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
-  const lensRef = useLensRef<HTMLElement>(
-    material !== "solid" && material !== "on-glass",
-    ref as React.Ref<HTMLElement>,
-  );
+  const lensRef = useLensRef<HTMLElement>(material, ref as React.Ref<HTMLElement>);
   const strip = (
     <div
       {...props}

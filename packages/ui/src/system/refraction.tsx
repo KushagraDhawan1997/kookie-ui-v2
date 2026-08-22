@@ -9,8 +9,9 @@
  *
  * THE MODEL (method from kube.io's "Liquid Glass in the Browser", credited; the mathematics
  * re-implemented here, not their code). The bezel is a curved glass surface. Each pixel's
- * bend follows Snell's law across it — air 1.0 into glass ~1.5 — taken on the surface's own
- * slope, with direction the outward normal of a rounded-rect signed distance field. Red
+ * bend follows Snell's law across it — air 1.0 into glass, 1.45 to 1.62 by rung — taken on
+ * the surface's own slope, with direction the outward normal of a rounded-rect signed
+ * distance field. Red
  * encodes the X bend, green the Y, 128 is straight through. The body of the pane stays true;
  * only the bezel lenses, hard at the lip and fading smoothly inward. R, G and B are displaced
  * at slightly different strengths and screened back together, so the edge splits light the
@@ -36,6 +37,9 @@
  */
 import * as React from "react";
 
+import type { Material } from "./axes.ts";
+import { ON_GLASS, type SurfaceMaterial } from "../theme/theme.tsx";
+
 /** Signed distance to a rounded-rect border: negative inside, positive outside. */
 function sdRoundedRect(x: number, y: number, w: number, h: number, r: number): number {
   const qx = Math.abs(x - w / 2) - (w / 2 - r);
@@ -49,13 +53,35 @@ function sdRoundedRect(x: number, y: number, w: number, h: number, r: number): n
  * The bezel's surface profile: height H(t) and slope H'(t), t running 0 at the lip to 1
  * interior. `squircle` is the lab's judged default — the profile that reads as a moulded
  * edge rather than a bead of water.
+ *
+ * THE EXPONENT WAS 4 AND THE BEND WAS A SPIKE (2026-08-23, measured). At P = 4 the profile
+ * rises so fast that the whole lens lands in the first pixel of an eighteen-pixel lip: the
+ * bend peaked 0.6px in from the edge and was down to 13% of that peak by the bezel's
+ * midpoint and 2% by three quarters. So this file declared 18px of glass and rendered a hard
+ * 2px line with a long dead tail — an EDGE TREATMENT, which is what "not glassy enough"
+ * turned out to mean. At P = 2 the same physics holds 38% of the peak at the midpoint and
+ * 17% at three quarters, and a pane reads as having a thickness rather than a lip. Nothing
+ * was traded to buy it: same clamp, same cost, one exponent.
+ *
+ * H'(t) CARRIES ITS CONSTANT NOW. The slope is the analytic derivative of the height,
+ * P*Q*u^(P-1) * (1-u^P)^(Q-1), and P*Q is exactly 1 at the old P = 4 / Q = 0.25 — which is
+ * why the shipped spelling could drop the factor and still be right. It is 0.5 at P = 2, so
+ * generalising the exponent without it would have quietly halved every slope and left
+ * `thickness` no longer meaning a length. The rungs below are solved against this form.
  */
+const PROFILE_P = 2;
+const PROFILE_Q = 0.25;
+
 function surface(t: number): { height: number; slope: number } {
   const u = 1 - t;
-  const u4 = u * u * u * u;
+  const uP = Math.pow(u, PROFILE_P);
   return {
-    height: Math.pow(Math.max(1 - u4, 0), 0.25),
-    slope: (u * u * u) / Math.pow(Math.max(1 - u4, 0.04), 0.75),
+    height: Math.pow(Math.max(1 - uP, 0), PROFILE_Q),
+    // The 0.04 floor is the shipped guard kept: at the lip the denominator goes to zero and
+    // the slope with it would be an infinity the map cannot encode.
+    slope:
+      (PROFILE_P * PROFILE_Q * Math.pow(u, PROFILE_P - 1)) /
+      Math.pow(Math.max(1 - uP, 0.04), 1 - PROFILE_Q),
   };
 }
 
@@ -66,7 +92,7 @@ export type LensParams = {
   bezel: number;
   /** px of glass the light crosses — the depth that sets how far it can shift. */
   thickness: number;
-  /** air 1.0 → glass ~1.5. */
+  /** air 1.0 → glass; the rungs run 1.45 to 1.62, deeper glass bending harder. */
   ior: number;
   /** % scale spread between the R and B channels: the chromatic split at the lip. */
   fringe: number;
@@ -74,15 +100,93 @@ export type LensParams = {
   boost: number;
 };
 
+/** The rungs that bend. `solid` is not a member — it is the seal, the absence of a
+    material — and neither is `on-glass`, which declares no backdrop-filter to prepend to. */
+export type LensThickness = Exclude<Material, "solid">;
+
 /**
- * The lab's judged lens, and the one place these live. Extracted 2026-08-16 from the
- * approved lab state, the same way the material ladder was: read off what was on screen.
+ * The lens LADDER, and the one place these live. Extracted 2026-08-16 from the approved lab
+ * state, the same way the material ladder was; made a ladder 2026-08-23.
+ *
+ * It was ONE constant until then, which meant thin, regular and thick differed in blur, in
+ * saturation and in veil alpha and bent their backdrop IDENTICALLY — the one axis where
+ * glass most obviously owes a difference was the one axis the lens could not see. Each rung
+ * is its own piece of glass now: a wider lip, more depth behind it, and a harder split at
+ * the edge as the ladder climbs. The ladder stays monotone in every lever it owns, which is
+ * the same rule the material recipes are held to and the same reason: thickness has to read
+ * as ONE dimension.
+ *
+ * The numbers are SOLVED, not typed. `bezel` and `ior` are the judged shape; `thickness` is
+ * then binary-searched until the rung lands on its target bend — 7.4 / 13.2 / 23.1px — the
+ * mechanism `--accent-label` and the solved edges already use. Regular is deliberately the
+ * old constant's strength to within 3%, so the DEFAULT rung keeps exactly the lens that was
+ * approved and gains only the band; thin steps down from it and thick steps up.
+ *
+ * `boost` is the sanctioned override of the physics and stays 1 on every rung: this is
+ * bought with the model rather than with a multiplier past it, which leaves the multiplier
+ * where it was designed to be — the knob for the eye pass. v0, judged in the playground.
  */
-export const lens: LensParams = { bezel: 18, thickness: 26, ior: 1.5, fringe: 8, boost: 1 };
+export const lens: Record<LensThickness, LensParams> = {
+  thin: { bezel: 12, thickness: 19, ior: 1.45, fringe: 6, boost: 1 },
+  regular: { bezel: 18, thickness: 31, ior: 1.5, fringe: 10, boost: 1 },
+  thick: { bezel: 26, thickness: 47, ior: 1.62, fringe: 16, boost: 1 },
+};
+
+/**
+ * The rung a material bends at, or null for the two that never do. Asking the ladder is what
+ * keeps those two spellings out of TWELVE call sites: every consumer used to hand this hook a
+ * boolean it had assembled itself, and `shell` shipped one arm short of the others for
+ * exactly as long as that was each caller's job.
+ */
+function rung(material: SurfaceMaterial): LensParams | null {
+  return material === "solid" || material === ON_GLASS ? null : lens[material];
+}
 
 /** Maps are generated at most this wide/tall and stretched to the box. The bend is a
     low-frequency field, so this is invisible and it is what bounds the cost of a big pane. */
 const MAP_CAP = 320;
+
+/**
+ * The lip a box has ROOM for, and the depth that goes with it — or null for a box with no
+ * room at all.
+ *
+ * A CLAMPED LIP TAKES ITS DEPTH WITH IT (2026-08-23, measured). The bezel is bounded by the
+ * box (half the short side is all the room a lip has) and `bendAt` divides the glass depth BY
+ * that bezel, so a lip squeezed from 18px to 10px on a 24px control used to keep its full
+ * depth and steepen the surface by exactly the ratio it lost. Measured on the shipped
+ * constant: a 24px box asked for 15.4px of bend against a 10px clamp, so the lens saturated
+ * and drew the maximum the box allowed rather than the lens it was asked for.
+ *
+ * That is survivable for one constant and fatal for a LADDER — two rungs both pinned to the
+ * clamp are one lens — which is why it lands in the same change: at 24px, regular and thick
+ * measured an identical 10.0px before and 7.2 / 8.9px after. Scaling the depth with the lip
+ * holds the judged SLOPE at every box size, so a small pane bends less in pixels and the same
+ * in proportion. It is the same lens, which is the argument `measure()` already makes one
+ * scale down.
+ */
+export function fitLens(p: LensParams, shortSide: number): { bezel: number; thickness: number } | null {
+  const bezel = Math.min(p.bezel, Math.floor(shortSide / 2) - 2);
+  if (bezel <= 0) return null;
+  return { bezel, thickness: p.thickness * (bezel / p.bezel) };
+}
+
+/**
+ * The lateral shift in px at depth `t` through the bezel — Snell's law taken on the surface's
+ * own slope, air into glass and back out over the depth below that point.
+ *
+ * Exported because the laws read THIS, not a copy of it. Re-deriving the intended value from
+ * the same inputs the shipped formula uses is the shape that let nine defects through the
+ * 2026-08-03 audit: such a law agrees with the code by construction and cannot fail.
+ */
+export function bendAt(t: number, bezel: number, thickness: number, ior: number): number {
+  const { height, slope } = surface(t);
+  // Geometric slope: the profile is `thickness` tall over `bezel` wide.
+  const geo = (slope * thickness) / bezel;
+  const theta1 = Math.atan(Math.abs(geo));
+  const theta2 = Math.asin(Math.min(Math.sin(theta1) / ior, 1));
+  // Lateral shift: the deviation over the glass depth below this point of the surface.
+  return Math.sign(geo) * thickness * height * Math.tan(theta1 - theta2);
+}
 
 /**
  * Build the displacement map for one box. Returns the data URL and the maximum bend in px,
@@ -95,8 +199,9 @@ function physicalMap(w: number, h: number, r: number, p: LensParams): { url: str
   const ctx = canvas.getContext("2d");
   if (!ctx) return { url: "", max: 0 };
   const img = ctx.createImageData(w, h);
-  const bezel = Math.min(p.bezel, Math.floor(Math.min(w, h) / 2) - 2);
-  if (bezel <= 0) return { url: "", max: 0 };
+  const fit = fitLens(p, Math.min(w, h));
+  if (!fit) return { url: "", max: 0 };
+  const { bezel, thickness } = fit;
 
   const mags = new Float32Array(w * h);
   const nxs = new Float32Array(w * h);
@@ -108,14 +213,7 @@ function physicalMap(w: number, h: number, r: number, p: LensParams): { url: str
       const i = y * w + x;
       const inside = -sdRoundedRect(x + 0.5, y + 0.5, w, h, r); // > 0 inside
       if (inside < 0 || inside > bezel) continue;
-      const t = inside / bezel;
-      const { height, slope } = surface(t);
-      // Geometric slope: the profile is `thickness` tall over `bezel` wide.
-      const geo = (slope * p.thickness) / bezel;
-      const theta1 = Math.atan(Math.abs(geo));
-      const theta2 = Math.asin(Math.min(Math.sin(theta1) / p.ior, 1));
-      // Lateral shift: the deviation over the glass depth below this point of the surface.
-      const mag = Math.sign(geo) * p.thickness * height * Math.tan(theta1 - theta2);
+      const mag = bendAt(inside / bezel, bezel, thickness, p.ior);
       const gx = sdRoundedRect(x + 1.5, y + 0.5, w, h, r) - sdRoundedRect(x - 0.5, y + 0.5, w, h, r);
       const gy = sdRoundedRect(x + 0.5, y + 1.5, w, h, r) - sdRoundedRect(x + 0.5, y - 0.5, w, h, r);
       const gl = Math.hypot(gx, gy) || 1;
@@ -311,7 +409,7 @@ export function lensSupported(): boolean {
  * The radius is read off the element rather than passed: it is a token, it varies with the
  * radius axis and the size index, and the map must match the corner the box actually has.
  */
-export function useLens(active: boolean): (node: HTMLElement | null) => void {
+export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) => void {
   const state = React.useRef<{
     node: HTMLElement | null;
     id: string | null;
@@ -345,7 +443,9 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
 
       detach();
       s.node = node;
-      if (!node || !active || !lensSupported()) return;
+      // The rung, resolved once: which piece of glass this is, or nothing at all.
+      const params = rung(material);
+      if (!node || !params || !lensSupported()) return;
 
       /**
        * The box the map is built for. Normally the element's own, and during a FLIGHT the box
@@ -401,9 +501,9 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
          * or under the cap `scale` is 1 and these are the judged numbers untouched.
          */
         const fitted: LensParams = {
-          ...lens,
-          bezel: lens.bezel * scale,
-          thickness: lens.thickness * scale,
+          ...params,
+          bezel: params.bezel * scale,
+          thickness: params.thickness * scale,
         };
         const next = acquire(w, h, r, fitted, scale);
         if (!next) return;
@@ -486,7 +586,7 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
       });
       s.flight.observe(node, { attributes: true, attributeFilter: ["data-unfurling"] });
     },
-    [active],
+    [material],
   );
 }
 
@@ -496,10 +596,10 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
  * `render` escape overwrote a target's ref, audit 2026-08-03).
  */
 export function useLensRef<T extends HTMLElement>(
-  active: boolean,
+  material: SurfaceMaterial,
   forwarded: React.Ref<T> | undefined,
 ): (node: T | null) => void {
-  const attach = useLens(active);
+  const attach = useLens(material);
   return React.useCallback(
     (node: T | null) => {
       attach(node);

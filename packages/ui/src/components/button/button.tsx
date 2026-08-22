@@ -150,7 +150,7 @@ export function Button({
   // states placement (backdrop, 2026-08-17): on calm ground it resolves solid and pays nothing.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // §10 — the lens, prepended to the control layer's own material chain (see Card).
-  const lensRef = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", ref);
+  const lensRef = useLensRef<HTMLElement>(material, ref);
   const leading = loading ? <Spinner /> : leadingSlot;
 
   // Slots wear the system's adornment wrapper (`data-slot`, ENGINEERING §3) since 2026-08-05.

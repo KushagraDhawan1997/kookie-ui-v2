@@ -236,7 +236,7 @@ function AlertPopup({
   // it covers the app, so it always has something to bend and always expresses the theme.
   const material = useMaterial({ backdrop: true });
   // §10 — the lens on the pane itself (see Card).
-  const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
+  const lensRef = useLensRef<HTMLDivElement>(material, ref);
   const nameRef = useNameWarning("AlertDialog");
   /* NO CLIP WARNING (2026-08-22 audit). `system/clip.tsx` states as a fact that it is "called
      by the panes that hold content the CALL SITE wrote — Card, Surface, Dialog. Menu, Select

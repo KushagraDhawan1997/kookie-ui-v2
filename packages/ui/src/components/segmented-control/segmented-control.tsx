@@ -93,10 +93,7 @@ export function SegmentedControl({
   // veil's alpha, no second backdrop-filter, no second lens. One glass per stack, structurally
   // — nobody types anything, and a segmented control cannot be built wrong here.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
-  const lensRef = useLensRef<HTMLDivElement>(
-    material !== "solid" && material !== "on-glass",
-    ref,
-  );
+  const lensRef = useLensRef<HTMLDivElement>(material, ref);
   return (
     <BaseRadioGroup
       ref={lensRef}

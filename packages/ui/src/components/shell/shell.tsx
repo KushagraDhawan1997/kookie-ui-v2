@@ -141,10 +141,11 @@ function usePaneDress(flush: boolean, forwarded?: React.Ref<HTMLElement>) {
   // `blur() saturate() brightness()` chain while every other glass-capable surface in the
   // package prepends `url(#kui-lens-N)`. §10's own porting note says the near-clear ladder is
   // not self-sufficient — blur HIDES a backdrop and the lens RE-STATES it — so a shell pane
-  // was the one glass in the library defended by blur alone. Same call as Card's, `on-glass`
-  // excluded for the same reason: an on-glass pane declares no backdrop-filter at all, so a
-  // map built for it could never be substituted into anything.
-  const ref = useLensRef<HTMLElement>(material !== "solid" && material !== "on-glass", forwarded);
+  // was the one glass in the library defended by blur alone. Same call as Card's — and since
+  // 2026-08-23 that call is the material itself, so the rung and the two spellings that bend
+  // by nothing are the ladder's question rather than each caller's. This file is why: it
+  // shipped one arm short of its siblings for as long as assembling that was the caller's job.
+  const ref = useLensRef<HTMLElement>(material, forwarded);
   return { material, stamps, ref };
 }
 

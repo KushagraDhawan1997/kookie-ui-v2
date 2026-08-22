@@ -85,7 +85,7 @@ import {
 } from "@kookie-ui/react";
 
 import { PlusIcon, SearchIcon, XIcon } from "../icons";
-import { BedSurface, PHOTO_BED } from "./beds";
+import { BedSurface, PHOTO_BED, bed } from "./beds";
 import { ComponentPreviewBody } from "./component-preview";
 import { Demo, SIZES, SpecTable, cap } from "./pieces";
 import { COMPONENT_PREVIEWS } from "./previews";
@@ -1720,6 +1720,45 @@ function MaterialScene() {
   );
 }
 
+/**
+ * The THICKNESS LADDER, over one bed (§10, 2026-08-23).
+ *
+ * Until then the lens was a single constant: thin, regular and thick differed in blur, in
+ * saturation and in veil alpha, and bent their backdrop by exactly the same amount — so the
+ * one axis where glass most obviously owes a difference was the one axis refraction could not
+ * see. Each rung now has its own lip, its own depth behind it and its own split at the edge.
+ *
+ * ONE bed under all three, because the comparison is only honest if the same detail runs
+ * behind each pane — and the PATTERN bed specifically: flat shapes at high frequency are
+ * where a bend is visible at all, which is the reason beds.tsx gives for having it.
+ */
+function ThicknessLadder() {
+  const RUNGS = [
+    { m: "thin", title: "Thin", line: "Structure ghosts through. Chrome that should not compete with what it sits on." },
+    { m: "regular", title: "Regular", line: "The default rung, and the one the approved lens was judged at." },
+    { m: "thick", title: "Thick", line: "The widest lip and the hardest split, for a pane that covers content." },
+  ] as const;
+  return (
+    <BedSurface bed={bed("pattern")} minHeight="280px">
+      <Flex gap="5" align="center" justify="center" wrap="wrap">
+        {RUNGS.map((rung) => (
+          // Each pane states its own rung; the section's own Theme governs everything else.
+          // The Card states `backdrop` rather than relying on the bed's region, so the
+          // specimen says what it means even if it is ever moved off a marked place.
+          <Theme key={rung.m} material={rung.m}>
+            <Card size="3" backdrop style={{ width: "216px" }}>
+              <Stack gap="3">
+                <Text size="3" weight="medium">{rung.title}</Text>
+                <Text size="2" emphasis="medium">{rung.line}</Text>
+              </Stack>
+            </Card>
+          </Theme>
+        ))}
+      </Flex>
+    </BedSurface>
+  );
+}
+
 function MaterialsSection() {
   const [expressed, setExpressed] = React.useState(true);
   return (
@@ -1751,6 +1790,9 @@ function MaterialsSection() {
             </HostileBed>
           </Demo>
         </Grid>
+        <Demo label="One bed, three rungs — thickness reaches the bend, not just the blur">
+          <ThicknessLadder />
+        </Demo>
       </Stack>
     </Theme>
   );

@@ -1077,6 +1077,41 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
     ).toBeCloseTo(strength(small), 1);
   });
 
+  it("each thickness is its own piece of glass (§10, 2026-08-23)", () => {
+    /**
+     * The lens was ONE constant until 2026-08-23: thin, regular and thick differed in blur, in
+     * saturation and in veil alpha, and bent their backdrop by exactly the same amount — the
+     * one axis where glass most obviously owes a difference was the one axis the lens could
+     * not see. `refraction.test.ts` pins the ladder's SHAPE; this is the half only a mount can
+     * make, because a lens that bends the wrong amount still bends and every other law in this
+     * file asserts only that a glass pane HAS one.
+     */
+    // ONE box for all three. A map is built for the box it is attached to, so a difference in
+    // size would answer this law by itself — and under the cap, so no generation scale sits
+    // between these numbers and the judged ones.
+    const box = { width: "300px", height: "200px" } as const;
+    const pane = (m: (typeof GLASS_MATERIALS)[number]) =>
+      document.querySelector(lens(mounted(<Card backdrop style={box} />, { theme: { material: m } }))!)!;
+    // From the axis's one home, in its own order — the thicknesses are never spelled here.
+    const [thin, regular, thick] = GLASS_MATERIALS.map(pane) as [Element, Element, Element];
+    // The G channel is the underived base — R and B are that same scale plus and minus the
+    // fringe, so this is the bend itself rather than the bend plus a split.
+    const bend = (f: Element) => parseFloat(f.querySelector('[result="dG"]')!.getAttribute("scale")!);
+
+    expect(bend(thin), "thin bends as hard as regular: the ladder does not reach the filter").toBeLessThan(bend(regular));
+    expect(bend(regular), "regular bends as hard as thick: the ladder does not reach the filter").toBeLessThan(bend(thick));
+
+    // And the SPLIT widens as it climbs: deep glass splits light, which is the sentence
+    // `ringSpectral` already writes for thick's edge one mechanism over.
+    const split = (f: Element) =>
+      parseFloat(f.querySelector('[result="dR"]')!.getAttribute("scale")!) -
+      parseFloat(f.querySelector('[result="dB"]')!.getAttribute("scale")!);
+    // The premise first: a ladder of zeroes would order nothing against nothing and pass.
+    expect(split(thin), "thin does not split light at all").toBeGreaterThan(0);
+    expect(split(thin)).toBeLessThan(split(regular));
+    expect(split(regular)).toBeLessThan(split(thick));
+  });
+
   it("an unmounted glass pane leaves no filter behind (§10, 2026-08-22)", async () => {
     /**
      * `useLens` runs `measure()` directly and then hands the same node to a ResizeObserver,
