@@ -1953,7 +1953,6 @@ describe("the panel unfurls out of a seed (§22)", () => {
      * wrong. Select keeps the mechanism half (the floor survives release); the OUTCOME is here.
      */
     inMotion();
-    const { userEvent } = await import("vitest/browser");
     const host = mount(
       <Theme>
         <div style={{ padding: 100 }}>
@@ -2066,7 +2065,6 @@ describe("the panel unfurls out of a seed (§22)", () => {
      * starved one, which is what keeps this law off the frame-watching list.
      */
     inMotion();
-    const { userEvent } = await import("vitest/browser");
     const host = mount(
       <Theme material="thin">
         <Box backdrop style={{ padding: 100 }}>

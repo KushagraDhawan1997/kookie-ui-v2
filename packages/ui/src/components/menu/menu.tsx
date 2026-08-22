@@ -40,8 +40,6 @@ import { ScrollArea } from "../scroll-area/scroll-area.tsx";
     the morph-in-place. LOG carries it.) */
 const SIDE_OFFSET = 4;
 
-/** The seed's lean crosses the trigger-to-panel gap; the entry reads it as a var (§22). */
-const gapVar = (px: number) => ({ "--kui-floating-gap": `${px}px` }) as React.CSSProperties;
 /**
  * A submenu's seam with its parent panel (§22, measured rather than designed since
  * 2026-08-09).
@@ -304,7 +302,7 @@ export function MenuContent({
     <BaseMenu.Portal>
       <PortalScope>
         <BaseMenu.Positioner side={side} align={align} sideOffset={sideOffset}>
-          <MenuPopup anchored side={sideOffset} className={className} style={style} ref={ref}>
+          <MenuPopup anchored className={className} style={style} ref={ref}>
             {children}
           </MenuPopup>
         </BaseMenu.Positioner>
@@ -326,14 +324,12 @@ export function MenuContent({
  */
 function MenuPopup({
   anchored,
-  side,
   children,
   className,
   style,
   ref,
 }: {
   anchored: boolean;
-  side: number;
   children?: React.ReactNode | undefined;
   className?: string | undefined;
   style?: React.CSSProperties | undefined;
@@ -347,9 +343,7 @@ function MenuPopup({
   return (
     <BaseMenu.Popup
       {...popupProps(React.use(MenuSizeContext), material, anchored, className)}
-      /* The gap the entry publishes is the positioner's own number — stamped, not
-         re-derived, so the two cannot disagree (§22). */
-      style={{ ...gapVar(side), ...style }}
+      style={style}
       ref={lensRef}
     >
       {/* The list scrolls, the PANEL never does (2026-08-17, ScrollArea): the popup keeps
@@ -812,7 +806,7 @@ export function MenuSubContent({ children, className, style, ref }: MenuSubConte
         <BaseMenu.Positioner sideOffset={seam} alignOffset={() => -seam()}>
           {/* A submenu's seam is measured at open, not knowable at render — its lean crosses
               a full row width, so the seam-sized remainder is invisible and 0 is honest. */}
-          <MenuPopup anchored={false} side={0} className={className} style={style} ref={ref}>
+          <MenuPopup anchored={false} className={className} style={style} ref={ref}>
             {children}
           </MenuPopup>
         </BaseMenu.Positioner>

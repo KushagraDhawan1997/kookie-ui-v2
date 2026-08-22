@@ -1062,8 +1062,14 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // Names only the runtime writes, read without a fallback on purpose (each is set before
     // the rule that reads it can match). Additions here need the same sentence.
     // --kui-anchor-w: the entry's synchronous width floor, written in begin() before the
-    //   floor chains consult it. --kui-floating-gap: the side offset, stamped inline by
-    //   MenuContent/SelectContent on the popup itself before any seed rule can match.
+    //   floor chains consult it.
+    // (--kui-floating-gap left this list 2026-08-22: it was written by MenuContent and
+    //   SelectContent and read by NOTHING — four references in the whole tree, two writers and
+    //   this allowlist, whose own sentence vouched for a read that did not exist. Both source
+    //   comments said "the entry reads it as a var"; the lean became a measured translate on
+    //   2026-08-15 and the var was never taken out. An allowlist entry is a promise that a name
+    //   is read somewhere the law cannot see, so an entry for a name nobody reads is the one
+    //   thing it must never contain.)
     // --scroll-area-thumb-height/-width: Base UI's OWN published measurements, written onto
     //   the thumb it renders (2026-08-17). They are the one case here the library does not
     //   write itself, and they take no fallback on purpose: there is no honest default extent
@@ -1071,7 +1077,6 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     //   measurement lands, which is worse than the rule not matching at all.
     const runtime = new Set([
       "--kui-anchor-w",
-      "--kui-floating-gap",
       "--scroll-area-thumb-height",
       "--scroll-area-thumb-width",
     ]);

@@ -1093,36 +1093,36 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
   // never marked. Failed on CI at 112 against 115.45: the flight had not landed on the frame
   // the loop read. floating-ui converges in wall time, so the clocks cannot be seized and no
   // bound is the fix (KUI_STALL reproduces none of it — the cause is bursty scheduling).
-  it("the panel's floor is the trigger's LAYOUT width, so it does not step at release (§22)", async () => {
+  it("the panel's floor OUTLIVES the flight, so nothing hands it back (§22)", async () => {
     /**
-     * 2026-08-17, Kushagra: *"it jumps a bit in width at the end"* — and again 2026-08-22, by a
-     * road two corrections had both looked past.
-     *
      * The floor is `max(--floating-min-w, --anchor-width)`; `--anchor-width` does not exist
      * until Base UI has placed the panel, so the entry publishes `--kui-anchor-w` and the floor
-     * consults that first. The two used to hand over at release, and they disagreed — not by
-     * arithmetic but by TIME. An open trigger holds its press, the press is a spring, and at
-     * the instant the entry measures there is no press yet: measured on a 400px trigger, the
-     * entry publishes 400 while floating-ui walks `--anchor-width` 400 → 388 → 390 over the
-     * following ~350ms, so the release handed the floor to a number still in motion and the box
-     * snapped 400 → 390 about 300ms after it had visibly stopped.
+     * consults that first. The two used to hand over at release and they disagreed — not by
+     * arithmetic but by TIME. An open trigger holds its press, the press is a spring, and
+     * floating-ui keeps re-measuring the anchor the whole way down: measured on a 400px button,
+     * `--anchor-width` walking 400 -> 388 -> 390 over ~350ms while the panel sat at 400, then a
+     * 10px snap one frame after the release, ~300ms after the box had visibly stopped.
      *
-     * The floor is the trigger's layout box now and outlives the flight, so there is no
-     * handover to get wrong. This law reads the SEAM — the last flying frame against the first
-     * settled one — because that is where the step was, and it reads it by EDGE (an observer on
-     * the flight stamp) rather than by polling, which is why it no longer watches frames.
+     * THE MECHANISM IS READ HERE, THE OUTCOME IN menu.browser.test.tsx, and the split is forced
+     * by the fixtures: a select's trigger is field-shaped and a field's box does not travel
+     * (§8, 2026-08-10), so this file's anchor never scales and there is no step for it to catch
+     * — a law that watched for one here would be reading frames to assert something the fixture
+     * cannot produce. What this file can say is that the floor is still on the panel after it
+     * lands, which is a settled-state reading and needs no frame at all.
+     *
+     * Its predecessor was degenerate twice over: it opened `openItemAligned()`, whose 57px
+     * trigger is discarded by `max(--floating-min-w, anchor)` so the assertion compared 112.000
+     * with 112.000, and item-aligned is the one placement where floating-ui FREEZES the anchor
+     * measurement, so the two floors agreed by construction. Delete the mechanism entirely and
+     * it still passed. It was also excluded from CI for watching frames; this one does not.
      */
     inMotion();
     const { userEvent } = await import("vitest/browser");
     const host = mount(
       <Theme>
         <div style={{ height: "40vh" }} />
-        {/* WIDE, and that is the fixture's whole job. The old spelling opened the shared
-            item-aligned select, whose trigger is 57px — narrower than `--floating-min-w`, so
-            `max(floor, anchor)` discarded both numbers under test and the assertion compared
-            112.000 with 112.000. It also opened the ONE placement where floating-ui freezes the
-            anchor measurement, so the two floors agreed by construction. Delete the mechanism
-            entirely and that law still passed, twice over. */}
+        {/* WIDE, and that is the fixture's whole job: narrower than `--floating-min-w` and
+            `max(floor, anchor)` discards both numbers under test. */}
         <Select defaultValue="a" items={{ a: "Alpha", b: "Beta" }}>
           <SelectTrigger style={{ width: 400 }} />
           <SelectContent>
@@ -1135,52 +1135,33 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
     const triggerWidth = trigger.getBoundingClientRect().width;
 
-    // Armed BEFORE the gesture and anchored on the EDGE the step lived at: the frame the flight
-    // stamp leaves. Driving real input takes several frames, so a law that looks afterwards can
-    // find the entry already over — and one that polls for the seam is racing a window.
-    const seam = new Promise<{ flying: number; settled: number }>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        observer.disconnect();
-        reject(new Error("the entry never ran, so there was no seam to read"));
-      }, 3000);
-      let flying = 0;
-      const observer = new MutationObserver(() => {
-        const popup = document.querySelector<HTMLElement>(".kui-select-popup");
-        if (!popup) return;
-        if (popup.hasAttribute("data-unfurling")) {
-          flying = popup.getBoundingClientRect().width;
-          return;
-        }
-        if (!flying) return;
-        clearTimeout(timer);
-        observer.disconnect();
-        // The settled width is read one frame PAST the edge, not on it. `min-width` is not a
-        // transitioned channel, so the handover lands as a style change in the same frame the
-        // stamp leaves and the box has not been laid out with it yet — read on the edge itself,
-        // a real 400 → 390 step measured as no step at all. Edge-plus-one is still an anchor,
-        // not a race: it is one frame from a signal, never a poll into a window.
-        requestAnimationFrame(() =>
-          requestAnimationFrame(() => resolve({ flying, settled: popup.getBoundingClientRect().width })),
-        );
-      });
-      observer.observe(document.body, {
-        subtree: true,
-        attributes: true,
-        attributeFilter: ["data-unfurling"],
-      });
-    });
-
+    // THIS LAW'S OWN PANEL, identified by not having existed before the click — and in this
+    // file that is not fussiness. A select keeps its panel MOUNTED for the life of the
+    // component, so every law that has already run has left one in the document; both
+    // `querySelector` and "the one with data-open" answer somebody else's, whose entry ran
+    // under different conditions and may carry no floor at all. Passing alone and failing
+    // inside the file is the signature, and it fired twice here.
+    const before = new Set(document.querySelectorAll(".kui-select-popup"));
     await userEvent.click(trigger);
-    const { flying, settled } = await seam;
+    const mine = () =>
+      [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].find((el) => !before.has(el)) ??
+      null;
+    await until(() => !!mine());
+    const popup = mine()!;
+    // THE FLIGHT IS WAITED FOR, THEN ITS END — never just "not flying". An item-aligned select
+    // is placed by its own contents, so its entry waits for the box to hold still before it
+    // poses: for several frames after mount the panel has no flight stamp because the flight
+    // has not STARTED, and a law that reads "not unfurling" as "landed" reads the floor before
+    // anything wrote it. Measured as `--kui-anchor-w: NaN` — inside the file, where the
+    // placement resolves item-aligned, and never alone, where it did not.
+    expect(
+      await until(() => popup.hasAttribute("data-unfurling")),
+      "the entry never ran, so there is no floor to outlive it",
+    ).toBe(true);
+    await until(() => !popup.hasAttribute("data-unfurling"));
 
-    // THE CALIBRATION FIRST, because the assertion below is vacuous without it: a panel whose
-    // floor is discarded by `--floating-min-w` steps by nothing no matter what the entry
-    // publishes, which is exactly how the old spelling passed.
-    const popup = document.querySelector<HTMLElement>(".kui-select-popup")!;
-    // Resolved THROUGH A BOX, never parsed off the custom property: `--floating-min-w` is
-    // `calc(112px * var(--scale))`, so reading it as a property answers the unresolved string
-    // and `parseFloat` answers NaN — the runner's own scar, one file over, where a guard that
-    // did exactly this was dead from the day it was written.
+    // THE CALIBRATION: without a trigger wider than the family floor, `max()` discards the
+    // anchor term and every assertion below holds whatever the entry published.
     const ruler = document.createElement("div");
     ruler.style.inlineSize = "var(--floating-min-w)";
     popup.append(ruler);
@@ -1191,28 +1172,13 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
       triggerWidth,
       "the trigger must be wider than --floating-min-w, or the anchor floor is not in play",
     ).toBeGreaterThan(floor);
-    expect(flying, "the flight was not held at the trigger's width").toBeGreaterThan(floor);
 
-    // One pixel, not half: the defect is a ~2.5% step and sub-pixel layout noise between two
-    // frames is not it. `toBeCloseTo(…, 0)` is a 0.5 bound and failed intermittently on a 0.5
-    // difference — a tolerance tuned so finely that it reported the machine, not the mechanism.
-    expect(
-      Math.abs(settled - flying),
-      `the panel stepped ${flying} → ${settled} at release`,
-    ).toBeLessThan(1);
-    // THE STEP ITSELF IS MEASURED ON A MENU, not here, and the reason is worth stating: a
-    // select's trigger is field-shaped and a field's box does not travel (§8, measured
-    // 2026-08-10), so this fixture's anchor never scales and the handover this law is about
-    // has nothing to disagree over. What this file can prove is that the floor SURVIVES —
-    // the mechanism — and menu.browser.test.tsx drives the outcome against a trigger that
-    // really does press. Two halves, in the two places each one is reachable.
-    //
-    // The floor survives the flight, which is what makes the seam impossible rather than
-    // merely absent on this run.
     expect(
       parseFloat(popup.style.getPropertyValue("--kui-anchor-w")),
       "the floor was stripped at release and handed back to a travelling --anchor-width",
     ).toBeCloseTo(triggerWidth, 0);
+    // And the panel really is standing on it, rather than merely carrying it.
+    expect(popup.getBoundingClientRect().width).toBeGreaterThanOrEqual(triggerWidth - 1);
   });
 
   it("the flight BORROWS Base UI's inline height and gives it back (§23)", async () => {

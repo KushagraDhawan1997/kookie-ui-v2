@@ -140,12 +140,48 @@ export function PortalScope({ children }: { children: React.ReactNode }) {
   // direction the trigger measured, and stating it is what keeps a portalled panel from
   // silently taking the document's direction instead of its author's (§20).
   const { direction } = React.use(FloatingDirectionContext);
+  const rooted = useThemeRooted();
+  warnUnframed(rooted);
   const scope = (
     <div className="kui-portal" dir={direction}>
       {children}
     </div>
   );
-  return useThemeRooted() ? <Theme render={scope} /> : scope;
+  return rooted ? <Theme render={scope} /> : scope;
+}
+
+/** Said once per document, not once per open: an app either has a root Theme or it does not. */
+let unframedSaid = false;
+
+/**
+ * THE STACKING FRAME NEEDS A ROOT `<Theme>`, and on the un-rooted path there is not one
+ * (§20, measured 2026-08-22).
+ *
+ * `isolation: isolate` is declared on `.kui-theme:not(.kui-theme *)`, and it is what keeps an
+ * app's z-indexes inside the app: with the frame in place a portalled panel is a later sibling
+ * of it and paints above by DOM order, with no number ladder anywhere. The axes-on-`<html>`
+ * path is supported and law-tested, and it renders no `.kui-theme` at all — so nothing
+ * isolates, and any ordinary `position: sticky; z-index: 50` header competes with the portal
+ * directly and wins, because the portal is `z-index: auto`. Measured: a fixed z-50 cover paints
+ * OVER an open menu with no root Theme and UNDER it with one.
+ *
+ * This is a warning rather than a fix, and the restraint is the decision. Every repair that
+ * works from inside the portal is a z-index big enough to out-rank the app's — the ladder §20
+ * rejected on the record (MUI, Mantine and shadcn all ship one), and it would lose to the next
+ * app that picks a bigger number. The frame is the mechanism; what was missing is that nothing
+ * said so when it was absent. `warnOnFramedAncestor` cannot cover this, being Theme's own ref
+ * callback and therefore silent exactly when there is no Theme.
+ */
+function warnUnframed(rooted: boolean): void {
+  if (!DEV || rooted || unframedSaid || typeof document === "undefined") return;
+  if (document.querySelector(".kui-theme")) return;
+  unframedSaid = true;
+  console.warn(
+    "[kookie-ui] A floating panel opened with no <Theme> in the tree. The axes still reach it " +
+      "from <html>, but the stacking frame does not exist: `isolation: isolate` is declared on " +
+      "the outermost <Theme>, and without it any positioned element with a z-index will paint " +
+      "over menus, selects and dialogs. Render a <Theme> at the root of the app.",
+  );
 }
 
 /* ── Motion: the emergence recipe's one mechanism (§8, §22 — 2026-08-09) ─────────────────

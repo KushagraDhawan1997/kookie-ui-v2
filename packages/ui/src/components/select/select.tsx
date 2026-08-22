@@ -32,9 +32,6 @@ import { useControlSize } from "../../system/control-size.ts";
     because the second member self-keys (§23). */
 const SIDE_OFFSET = 4;
 
-/** The seed's lean crosses the trigger-to-panel gap; the entry reads it as a var (§22). */
-const GAP_VAR = { "--kui-floating-gap": `${SIDE_OFFSET}px` } as React.CSSProperties;
-
 const SelectSizeContext = React.createContext<Size>("2");
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
@@ -300,7 +297,7 @@ function SelectPopup({
   return (
     <BaseSelect.Popup
       {...popupProps(React.use(SelectSizeContext), material, className)}
-      style={{ ...GAP_VAR, ...style }}
+      style={style}
       ref={lensRef}
     >
       {/* DELIBERATELY no ScrollArea here while Menu has one (2026-08-17, Kushagra: "skip it

@@ -45,7 +45,6 @@ import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import type { Size, Tone } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { useClipWarning } from "../../system/clip.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 
 /* ── The closed content is what lets size price the type (§15, §25) ─────────────────────────
@@ -239,8 +238,13 @@ function AlertPopup({
   // §10 — the lens on the pane itself (see Card).
   const lensRef = useLensRef<HTMLDivElement>(material !== "solid", ref);
   const nameRef = useNameWarning("AlertDialog");
-  // A pane clips (§3, 2026-08-21): content wider than the panel is not reachable at all.
-  const clipRef = useClipWarning("<AlertDialog>");
+  /* NO CLIP WARNING (2026-08-22 audit). `system/clip.tsx` states as a fact that it is "called
+     by the panes that hold content the CALL SITE wrote — Card, Surface, Dialog. Menu, Select
+     and AlertDialog own what is inside them, so there is nobody to warn", and this file called
+     it anyway. Worse than redundant: the effect runs at mount, which is when the popup is held
+     at its 64px seed, so a plain "Delete file?" alert warned that its content was "208px wider
+     than it is… not reachable" while its settled `scrollWidth === clientWidth`. A dev warning
+     that fires on every ordinary open is a dev warning nobody reads on the day it is true. */
   const identity = "kui-surface kui-overlay kui-alert-popup";
   return (
     <BaseAlertDialog.Popup
@@ -254,7 +258,7 @@ function AlertPopup({
       {...(material !== "solid" ? { "data-material": material } : {})}
       className={className ? `${identity} ${className}` : identity}
       {...(style !== undefined ? { style } : {})}
-      ref={mergeRefs(lensRef, nameRef, clipRef)}
+      ref={mergeRefs(lensRef, nameRef)}
     >
       <OverlayBody>
         <GlassScope material={material}>{children}</GlassScope>

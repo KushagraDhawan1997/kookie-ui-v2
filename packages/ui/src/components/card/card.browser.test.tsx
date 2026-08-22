@@ -3,7 +3,6 @@
  * no anatomy. There is no card.css to test; what is asserted is that the shell's fixed
  * identity resolves through the shared surface layer and that the API refuses opinions.
  */
-import * as React from "react";
 import { flushSync } from "react-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cdp } from "vitest/browser";
@@ -23,7 +22,7 @@ import { Surface } from "../surface/surface.tsx";
 import { Text } from "../text/text.tsx";
 import { Radio, RadioGroup } from "../radio/radio.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
-import type * as React from "react";
+import * as React from "react";
 import { Card } from "./card.tsx";
 
 /** Every token this file resolves is a colour, and the harness's tokenOn reads lengths — so

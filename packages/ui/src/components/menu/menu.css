@@ -73,8 +73,23 @@
    the declaration valid where no positioner exists (the agreement law's in-flow twin). */
 .kui-menu-popup.kui-menu-anchored {
   /* The entry's own anchor measurement first — same sentence as the select floor: the flight
-     measures its target through this floor before floating-ui has written --anchor-width. */
-  min-width: max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w))));
+     measures its target through this floor before floating-ui has written --anchor-width.
+
+     AND CAPPED BY THE ROOM (2026-08-22 audit). In CSS a minimum beats a maximum, so this floor
+     beside the `max-width: var(--available-width)` two rules up meant the bound the popup's own
+     comment calls "the hard stop" could never apply. select.css carries the repair for exactly
+     this defect, with its own measurement written above it, and the 2026-08-09 audit landed it
+     in one sibling only. Measured here with `<MenuContent side="right">` on a 900px trigger:
+     painted 951px starting at x=967 in a 1280 window — 638px off screen, with a horizontal page
+     scrollbar and the items unreachable. The inner max() keeps the designed floor from being
+     squeezed away when the reported room is absurdly small.
+
+     The sentence now exists in two files, which is where it should promote to the shared layer:
+     the third floating member that wants a width floor is the one to move it. */
+  min-width: min(
+    max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w)))),
+    max(var(--floating-min-w), var(--available-width, 100vw))
+  );
 }
 
 /* A separator inside a menu is the ordinary Separator (the part is refused — it would rename
