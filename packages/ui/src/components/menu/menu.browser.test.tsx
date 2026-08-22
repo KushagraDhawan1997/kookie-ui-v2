@@ -2389,6 +2389,69 @@ describe("the panel unfurls out of a seed (§22)", () => {
     ).toBeLessThanOrEqual(room + 1);
   });
 
+  it("a glass panel wears its lens for the WHOLE flight, built from where it is going (§10, §22)", async () => {
+    /**
+     * 2026-08-23, Kushagra: *"material behind menu jumps after it settles — the refraction
+     * takes place after animation finishes, with a jump"*.
+     *
+     * The lens builds a displacement map from a box and a corner, and a flying panel has
+     * neither: its rect is a frame out of date the moment a map is generated from it, and its
+     * corner is mid-transition between the seed's and its own. The 2026-08-22 audit's repair
+     * for the cost of trying anyway — 27 filters minted during one glass menu open — was to
+     * build nothing until the flight ended. That is what a person sees as the jump: measured
+     * across a real open, 70 of 90 frames carried no `--kui-lens` at all and the value changed
+     * on the landing frame, so the backdrop behind the panel snapped into refraction after the
+     * panel had visibly finished arriving.
+     *
+     * Both are fixed by the same fact rather than by trading one for the other: the runner
+     * publishes the box the flight is heading to, so the map can be built once, for the geometry
+     * the panel will land wearing, and worn the whole way. The seam then costs a cache hit.
+     *
+     * Read while the panel is FLYING, which is the whole claim — a law that read the settled
+     * panel would pass on the defect, since the settled panel always had its lens.
+     */
+    const { popup } = await openUnsettled(
+      { material: "regular" },
+      <Box backdrop>
+        <MenuItem>Alpha</MenuItem>
+        <MenuItem>Beta</MenuItem>
+      </Box>,
+    );
+    await departed(popup);
+
+    // CALIBRATION, both halves. Without the first this law is about a panel that is not
+    // flying; without the second it is about a panel with no glass, where an absent lens is
+    // correct and the assertion below would be measuring the material axis instead.
+    expect(popup.hasAttribute("data-unfurling"), "the panel is not flying — nothing under test").toBe(true);
+    expect(
+      computed(popup, "backdrop-filter"),
+      "this panel must be GLASS, or having no lens is the right answer",
+    ).toMatch(/blur\([\d.]+px\)/);
+
+    const reference = popup.style.getPropertyValue("--kui-lens");
+    expect(reference, "a flying glass panel has no lens — the refraction arrives after it lands").not.toBe("");
+    const filter = document.querySelector(reference.match(/#([\w-]+)/)?.[1] ? `#${reference.match(/#([\w-]+)/)![1]}` : "#none");
+    expect(filter, "the lens reference resolves to no filter").toBeTruthy();
+
+    // …AND IT IS THE PANEL'S OWN BOX, not the silhouette it is flying out of. This is the half
+    // that makes the seam a cache hit rather than a second filter: a map built from the seed
+    // would be replaced on landing, which is the jump wearing a different spelling.
+    const seed = parseFloat(popup.style.getPropertyValue("--kui-seed-h"));
+    const target = parseFloat(popup.style.getPropertyValue("--kui-fly-h"));
+    expect(seed, "the fixture's seed and target must DIFFER, or this cannot tell them apart").toBeLessThan(target - 20);
+    const image = filter!.querySelector("feImage")!;
+    const href = image.getAttribute("href") ?? "";
+    // The map's own pixel height, read out of the PNG it was encoded into: the one place the
+    // box it was generated for survives once the filter is size-independent.
+    const decoded = await new Promise<number>((resolve) => {
+      const probe = new Image();
+      probe.onload = () => resolve(probe.naturalHeight);
+      probe.onerror = () => resolve(-1);
+      probe.src = href;
+    });
+    expect(decoded, `the map is ${decoded}px tall for a panel landing at ${target}px`).toBeCloseTo(target, -1);
+  });
+
   it("nothing the seed moves is missing from the transition list (§8)", async () => {
     // The teleport rule as a law rather than a comment. A property the seed changes but the
     // transition never names does not animate — it SNAPS, which is exactly the defect that

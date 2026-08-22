@@ -1005,6 +1005,78 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
     expect(solid.style.getPropertyValue("--kui-lens"), "a solid pane built a map it cannot use").toBe("");
   });
 
+  it("the map covers the whole pane, at any size (§10, 2026-08-23)", async () => {
+    /**
+     * 2026-08-23, the floating-motion audit, measured three ways and refuted by none of them.
+     *
+     * `useLens` generates the map at a capped resolution — the bend is a low-frequency field,
+     * so this is what bounds a full-page pane to a small pane's cost — and three comments in
+     * refraction.tsx said the result is "stretched to the box". It never was. The `feImage`
+     * carried the map's own GENERATED size as its primitive subregion, in px, and a subregion
+     * PLACES an image at that size; it does not scale it to the filtered element. So a 600x420
+     * glass card minted a 320x224 map and drew it in the top-left corner.
+     *
+     * And the rest of the pane was not merely un-bent, which is why this reached the eye:
+     * outside the subregion `in2` is transparent black, `feDisplacementMap` reads 0 on both
+     * channels, and 0 means a uniform `scale * (0 - 0.5)` shift — so the backdrop stepped by
+     * ~3.1px along a seam running down the middle of the box, and the pane's real right and
+     * bottom edges carried no bend at all. §10's whole legibility argument for the near-clear
+     * ladder was absent from most of any large pane.
+     *
+     * Read off the emitted filter rather than through a mount, because what was wrong is what
+     * the generator WROTE — the repo's own rule for that register. The strength assertion below
+     * is the half a structural read cannot make.
+     */
+    const big = mounted(<Card backdrop style={{ width: "600px", height: "420px" }} />, {
+      theme: { material: "regular" },
+    });
+    // CALIBRATION: over the cap, or the stretch under test never happens and every assertion
+    // below holds trivially — a pane at or under 320px generates its map 1:1.
+    expect(
+      Math.max(big.getBoundingClientRect().width, big.getBoundingClientRect().height),
+      "this pane must exceed the map cap, or nothing is being stretched",
+    ).toBeGreaterThan(320);
+
+    const id = lens(big);
+    const filter = document.querySelector(id!)!;
+    expect(filter, "the lens id resolves to no filter").toBeTruthy();
+
+    // The region IS the border box. `filterUnits` defaults to `objectBoundingBox`, so these
+    // four are the element's own box — and the primitive inherits the region, which is what
+    // makes a map fit at every size instead of at one.
+    expect([
+      filter.getAttribute("x"),
+      filter.getAttribute("y"),
+      filter.getAttribute("width"),
+      filter.getAttribute("height"),
+    ]).toEqual(["0", "0", "100%", "100%"]);
+    const image = filter.querySelector("feImage")!;
+    expect(
+      [image.getAttribute("width"), image.getAttribute("height")],
+      "a pixel size on the map is the defect: a subregion places an image, it does not scale it",
+    ).toEqual([null, null]);
+
+    /**
+     * …AND THE PHYSICS CROSSED THE CAP WITH IT.
+     *
+     * Stretching alone ships a second defect. The bezel and the glass depth are LENGTHS drawn
+     * in the map's own pixels, so a map generated at half size and stretched renders a lip
+     * twice as wide — the lens would stop being the same lens at different sizes, which is the
+     * one thing the judged values exist to prevent. The bend magnitude is the readable proxy:
+     * it is derived from those same lengths, so it is the number that moves if either the
+     * generation or the conversion is dropped.
+     */
+    const strength = (el: HTMLElement) =>
+      parseFloat(document.querySelector(lens(el)!)!.querySelector("feDisplacementMap")!.getAttribute("scale")!);
+    const small = mounted(<Card backdrop style={{ width: "300px", height: "210px" }} />, {
+      theme: { material: "regular" },
+    });
+    expect(
+      strength(big),
+      `a capped pane bends ${strength(big)}px where an uncapped one of the same shape bends ${strength(small)}px`,
+    ).toBeCloseTo(strength(small), 1);
+  });
+
   it("an unmounted glass pane leaves no filter behind (§10, 2026-08-22)", async () => {
     /**
      * `useLens` runs `measure()` directly and then hands the same node to a ResizeObserver,

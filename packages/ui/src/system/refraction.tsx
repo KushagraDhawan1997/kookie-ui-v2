@@ -175,8 +175,8 @@ const el = (name: string, attrs: Record<string, string | number>): SVGElement =>
  * both — so a filter is never edited in place. A changed box mints a new id and the old one
  * is released.
  */
-function acquire(w: number, h: number, r: number, p: LensParams): string | null {
-  const key = `${w}x${h}r${r}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}`;
+function acquire(w: number, h: number, r: number, p: LensParams, fit: number): string | null {
+  const key = `${w}x${h}r${r}z${fit}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}`;
   const hit = filters.get(key);
   if (hit) {
     hit.users += 1;
@@ -186,10 +186,44 @@ function acquire(w: number, h: number, r: number, p: LensParams): string | null 
   if (!url || max <= 0) return null;
 
   const id = `kui-lens-${(seq += 1)}`;
-  const base = max * p.boost;
+  // `max` comes back in MAP pixels and the displacement runs in user space, so a map
+  // generated at a third of the box would bend a third as far. `fit` is the generation scale,
+  // and this is where it is paid back. At or under the cap `fit` is 1 and this is the old
+  // arithmetic exactly.
+  const base = (max / fit) * p.boost;
   const spread = p.fringe / 100;
-  const filter = el("filter", { id, colorInterpolationFilters: "sRGB" });
-  filter.appendChild(el("feImage", { href: url, x: 0, y: 0, width: w, height: h, preserveAspectRatio: "none", result: "map" }));
+  /**
+   * THE MAP IS STRETCHED TO THE BOX, and until 2026-08-23 it was not (found by the
+   * floating-motion audit, measured three ways).
+   *
+   * `measure()` generates at a capped resolution, and this file said in three places that the
+   * result is "stretched to the box". It never was: the `feImage` carried the map's own
+   * generated size as its subregion, in px, and a filter primitive subregion PLACES an image at
+   * that size — it does not scale it to the filtered element. So a 600x420 glass card minted a
+   * 320x224 map and drew it in the top-left corner. Outside the subregion `in2` is transparent
+   * black, which `feDisplacementMap` reads as 0 on both channels and applies as a uniform
+   * half-scale shift — so the rest of the pane was not un-bent, it was flatly displaced, with a
+   * measured ~3.1px seam down the middle of the box where the map ended, and the pane\'s real
+   * right and bottom edges carrying no bend at all.
+   *
+   * The region is the border box now and the image fills it. `filterUnits` already defaults to
+   * `objectBoundingBox`, so `0 0 100% 100%` states the element\'s own box; the primitive then
+   * inherits the region, and no size is written in px anywhere — which is what makes this right
+   * at every size rather than at one.
+   *
+   * `primitiveUnits` is deliberately NOT changed. It stays `userSpaceOnUse` so
+   * `feDisplacementMap`\'s `scale` keeps meaning pixels: the strength is derived from the
+   * physics and has to stay in the unit the physics is in.
+   */
+  const filter = el("filter", {
+    id,
+    colorInterpolationFilters: "sRGB",
+    x: 0,
+    y: 0,
+    width: "100%",
+    height: "100%",
+  });
+  filter.appendChild(el("feImage", { href: url, preserveAspectRatio: "none", result: "map" }));
   filter.appendChild(el("feGaussianBlur", { in: "map", stdDeviation: 3, result: "soft" }));
   // Three displacements at slightly different scales, one per channel, screened back
   // together: the edge splits light. Scales stay within ~8% so the body stays registered.
@@ -283,11 +317,14 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
     id: string | null;
     ro: ResizeObserver | null;
     flight: MutationObserver | null;
+    /** The target box a flight has already been measured for — see `measureUnlessFlying`. */
+    flightKey: string | null;
   }>({
     node: null,
     id: null,
     ro: null,
     flight: null,
+    flightKey: null,
   });
 
   return React.useCallback(
@@ -300,6 +337,7 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
         s.ro = null;
         s.flight?.disconnect();
         s.flight = null;
+        s.flightKey = null;
         if (s.id) release(s.id);
         if (s.id && s.node) s.node.style.removeProperty("--kui-lens");
         s.id = null;
@@ -309,17 +347,65 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
       s.node = node;
       if (!node || !active || !lensSupported()) return;
 
-      const measure = () => {
+      /**
+       * The box the map is built for. Normally the element's own, and during a FLIGHT the box
+       * the flight is heading to — which the runner publishes for exactly this reader
+       * (`--kui-fly-w/-h/-r`, system/floating).
+       *
+       * A flying pane's own rect is the wrong box in two ways at once: it is a frame out of
+       * date the moment the map is generated from it, and there are sixty of them. Its corner
+       * is worse — mid-transition between the seed's and the panel's own — which is why the
+       * runner reads that one un-posed and hands it over rather than leaving it to be guessed
+       * from a moving element.
+       */
+      const target = (): { w: number; h: number; r: number } | null => {
         const rect = node.getBoundingClientRect();
-        if (rect.width < 8 || rect.height < 8) return;
-        // The map is generated at a capped resolution and stretched — the bend is a
-        // low-frequency field, so this bounds a full-page pane to a small pane's cost.
+        const cs = getComputedStyle(node);
+        const flight = node.closest("[data-unfurling]");
+        // Only when the flying element IS this pane. A lens attached to something INSIDE a
+        // flying panel has its own geometry and none of these numbers describe it.
+        if (flight === node) {
+          const w = parseFloat(node.style.getPropertyValue("--kui-fly-w"));
+          const h = parseFloat(node.style.getPropertyValue("--kui-fly-h"));
+          const r = parseFloat(node.style.getPropertyValue("--kui-fly-r"));
+          if (Number.isFinite(w) && Number.isFinite(h) && w >= 8 && h >= 8) {
+            return { w, h, r: Number.isFinite(r) ? r : 0 };
+          }
+          // Published nothing readable — a reduced-motion open bails before writing these, and
+          // a pane can carry the stamp for a frame before they land. Waiting is right: the old
+          // behaviour, one frame later.
+          return null;
+        }
+        if (rect.width < 8 || rect.height < 8) return null;
+        return { w: rect.width, h: rect.height, r: parseFloat(cs.borderTopLeftRadius) || 0 };
+      };
+
+      const measure = () => {
+        const box = target();
+        if (!box) return;
+        const rect = { width: box.w, height: box.h };
+        // The map is generated at a capped resolution and stretched to the box — the bend is a
+        // low-frequency field, so this bounds a full-page pane to a small pane's cost. The
+        // stretch is the filter's job (see `acquire`); what is this function's job is that the
+        // PHYSICS crosses the same scale, so a capped map still renders the judged lens.
         const scale = Math.min(1, MAP_CAP / Math.max(rect.width, rect.height));
         const w = Math.max(8, Math.round(rect.width * scale));
         const h = Math.max(8, Math.round(rect.height * scale));
-        const cssRadius = parseFloat(getComputedStyle(node).borderTopLeftRadius) || 0;
-        const r = Math.min(Math.round(cssRadius * scale), Math.floor(Math.min(w, h) / 2));
-        const next = acquire(w, h, r, lens);
+        const r = Math.min(Math.round(box.r * scale), Math.floor(Math.min(w, h) / 2));
+        /**
+         * The bezel and the glass depth are LENGTHS, so they are drawn in the map's own pixels
+         * and then stretched with it. Left unscaled, an 18px lip on a 320-wide map stretched
+         * over a 600px pane renders at 33.75px, and wider again on a bigger one — the lens
+         * would stop being the same lens at different sizes, which is precisely what the
+         * judged values fix. Scaling them here means the lip is 18 CSS px on every pane, and at
+         * or under the cap `scale` is 1 and these are the judged numbers untouched.
+         */
+        const fitted: LensParams = {
+          ...lens,
+          bezel: lens.bezel * scale,
+          thickness: lens.thickness * scale,
+        };
+        const next = acquire(w, h, r, fitted, scale);
         if (!next) return;
         // UNCONDITIONALLY, never `s.id !== next` (2026-08-22 audit). `measure()` runs once
         // directly below and the ResizeObserver then delivers its own initial record for the
@@ -356,16 +442,47 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
        * the one measurement certain in the case where the settled box happens to match.
        */
       const flying = () => !!node.closest("[data-unfurling]");
+      /**
+       * A pane that is flying is measured ONCE, from where it is going (see `target`), and the
+       * frames in between are skipped — which is the 2026-08-22 deferral kept, with the wait
+       * removed. That audit found 27 filters minted during one glass menu open, and its repair
+       * was to build nothing until the flight ended; the cost of that was a panel arriving with
+       * no refraction and gaining it in a single frame.
+       *
+       * Both are avoided by the same fact: while the flight runs, the target box does not
+       * change, so the cache key does not either. The guard below is what makes that a promise
+       * rather than a hope — `acquire` would return the same id on every frame anyway, but
+       * reaching it costs a `getComputedStyle` and a map lookup sixty times over, and this file
+       * is under the "no JS at interaction time" rule with the flight measurement as its one
+       * named exception.
+       */
       const measureUnlessFlying = () => {
-        if (flying()) return;
+        if (!flying()) {
+          s.flightKey = null;
+          return void measure();
+        }
+        const box = target();
+        if (!box) return;
+        const key = `${box.w}x${box.h}r${box.r}`;
+        if (key === s.flightKey) return;
+        s.flightKey = key;
         measure();
       };
 
       measureUnlessFlying();
       s.ro = new ResizeObserver(measureUnlessFlying);
       s.ro.observe(node);
+      // The seam is still watched, and it is still a signal rather than a guess — but what it
+      // now does is confirm: the settled box is the box the flight published, so this
+      // measurement takes `acquire`'s cache-hit branch and the filter on the element does not
+      // change. It stays because the equality is not guaranteed by construction — a panel whose
+      // content changes size mid-flight would land somewhere else, and that case must not be
+      // left wearing a map for a box it no longer has.
       s.flight = new MutationObserver(() => {
-        if (!flying()) measure();
+        if (!flying()) {
+          s.flightKey = null;
+          measure();
+        }
       });
       s.flight.observe(node, { attributes: true, attributeFilter: ["data-unfurling"] });
     },

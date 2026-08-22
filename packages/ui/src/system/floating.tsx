@@ -309,6 +309,7 @@ const OVERLAY_PLAN: FlightPlan = {
 const FLIGHT_VARS = [
   "--kui-fly-w",
   "--kui-fly-h",
+  "--kui-fly-r",
   "--kui-fly-bw",
   "--kui-anchor-w",
   "--kui-seed-w",
@@ -680,6 +681,24 @@ function useFlight(plan: FlightPlan) {
 
           popup.style.setProperty("--kui-fly-w", `${natural.width}px`);
           popup.style.setProperty("--kui-fly-h", `${natural.height}px`);
+          /**
+           * The panel's RESTING corner, published for one reader: the lens (system/refraction).
+           *
+           * It is read here and nowhere else because here is the only moment it exists. A
+           * flying panel's `border-radius` is mid-transition between the seed's corner and its
+           * own, so anything downstream that asks the element gets an answer that is true for
+           * one frame; this line is on the un-posed box, three statements before the pose goes
+           * on, in the same window `natural` is measured in and for the same reason.
+           *
+           * Why the lens wants it: it builds its displacement map from a box AND a corner, and
+           * with no way to know either during a flight it simply waited for the flight to end —
+           * so a glass panel arrived with no refraction and then gained it in one frame, which
+           * a person sees as the backdrop behind it snapping (2026-08-23, Kushagra: "material
+           * behind menu jumps after it settles"). Given the settled geometry it can build the
+           * map the panel will land wearing and wear it the whole way, and the seam becomes a
+           * cache hit rather than a new filter.
+           */
+          popup.style.setProperty("--kui-fly-r", getComputedStyle(popup).borderTopLeftRadius);
           // The body's own width, so its text cannot re-break while the box is still moving —
           // a line that re-breaks mid-flight is two animations fighting. Read off the DOM
           // rather than re-derived from the padding token: the panel's padding is
