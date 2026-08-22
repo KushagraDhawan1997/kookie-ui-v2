@@ -480,11 +480,31 @@ function useFlight(plan: FlightPlan) {
          * fully in view, so nothing a user does outside that window is fought.
          *
          * This is one half of the reveal (2026-08-17). The other is the flying box refusing to
-         * be a scroll container at all — `overflow: clip`, in surfaces.css — and the two are
-         * load-bearing together: the browser reveals a focused row by scrolling the nearest
-         * scrollable ancestor and then continuing outward, so closing either door alone just
-         * moves the symptom to the other. Both are law-read at once, per frame, in
-         * select.browser.test.tsx, which is the only member whose open focuses anything.
+         * be a scroll container at all — `overflow: clip`, in surfaces.css — and the two were
+         * written as load-bearing together: the browser reveals a focused row by scrolling the
+         * nearest scrollable ancestor and then continuing outward, so closing either door alone
+         * just moves the symptom to the other.
+         *
+         * MEASURED INERT, AND NOT LAW-READ (2026-08-23, the floating-motion audit). This
+         * paragraph used to end "both are law-read at once, per frame, in
+         * select.browser.test.tsx", and the law's own docstring said the same. Only ONE half is:
+         * the law's `spread` assertion catches the clip, and its page half never fires. Deleting
+         * this whole block changes nothing the suite can see, and instrumenting the law's exact
+         * fixture shows why — `parked.protect` is true, so the listener IS armed, and the
+         * browser then dispatches ZERO scroll events. The audit reports the same across seven
+         * harness fixtures (selected index 0/15/29 × trigger at 5%/50%/92% of the viewport,
+         * click and keyboard) and six opens in the running app.
+         *
+         * The reason it cannot fire is in its own guard: it arms only when the trigger was
+         * FULLY IN VIEW, and in exactly that case the element Base UI focuses — the popup,
+         * posed onto that trigger — is in view too, so a reveal has nothing to scroll.
+         *
+         * It is kept rather than deleted, and that is a decision waiting on a judgment rather
+         * than an argument: the symptom it was written for was real and reported (2026-08-17,
+         * *"opening some dropdown menus shift or move the page"*), the cost of keeping it is
+         * one listener for four frames, and no law can be written for a mechanism that never
+         * fires — a passing law here would be the vacuity this repo keeps finding. If it goes,
+         * `parked` and its `protect` flag go with it.
          */
         if (parked.protect) {
           const hold = () => window.scrollTo(parked.x, parked.y);

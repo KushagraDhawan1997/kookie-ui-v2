@@ -8,6 +8,34 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 A right-to-left menu opened on the far edge and flew backwards onto its trigger
+
+**What.** In an RTL document, a menu with `side="left"` or `side="right"` seeded on the edge furthest from its trigger and grew back toward the button that opened it. Fixed with direction arms for the two physical side names, in the pin, in the body's twin of the pin, and in the transform-origin table.
+
+**Why it came up.** The 2026-08-23 floating-motion audit, and it is the same shape as three findings that came before it: a rule written correctly for the case its author had in mind, applied to a case they did not.
+
+**The mistake, stated once.** Every pin rule names the trigger-adjacent edge with a LOGICAL property, which is right, and selects on a MIX of logical and physical side names, which is not. `inline-start` and `inline-end` are direction-relative by definition, so `[data-side="inline-start"]` paired with `inset-inline-end` holds in both directions by construction — that is why the 2026-08-22 repair to this block came out correct. `left` and `right` are not: `[data-side="left"]` means "the panel is physically left of its trigger, so pin the panel's physical RIGHT edge", and under RTL `inset-inline-end` resolves to physical LEFT. Measured on a trigger at x=1041: the positioner lands correctly at 896–1037 and the seed painted at 896–952, 85px away on a 141px panel. `MenuContentProps.side` is physical-only, so every explicitly sided menu in an RTL app took this path.
+
+**The origin block had the mirror of it, and no arms at all.** `transform-origin` has no logical keywords, so that table is stated in physical ones — fine for `left`/`right`, whose meaning does not move, and wrong for the logical values, whose meaning IS the direction. Base UI maps a rendered physical `right` to `inline-start` under RTL, so both invert while the keyword does not. Measured on a settled RTL submenu at 60% of its exit: the shared seam opens by 2.79px on a 164.8px panel while the far edge stays put — the opposite of the stated invariant that a pane settles back into the corner it grew out of, and it is every RTL submenu rather than only flipped ones, because the un-flipped case takes the base default and is wrong the same way.
+
+**The law, and its own sabotage catching it first.** The new law walks both directions and both physical sides, and its first spelling compared the seed's two edges against the TRIGGER — which passed with the fix removed, because a box sitting entirely to the left of a trigger always has its right edge nearer, whichever edge it is pinned to. The metric could not tell a correct pin from an inverted one: the degenerate-fixture rule inside the measurement rather than inside the mount. It reads the seed against the POSITIONER now — which edge the seed shares with the box it grows into — and fails on exactly the two RTL cells at 85px while the two LTR cells stay green. Both directions are walked deliberately: a law that mounted only LTR is why this shipped, and one that mounted only RTL could be satisfied by breaking LTR.
+
+---
+
+## 2026-08-23 The page-hold in the select entry has never fired
+
+**What.** No code change. Two comments claiming law coverage that does not exist are corrected, and the measurement is recorded beside the mechanism.
+
+**Why it came up.** The floating-motion audit's verifier could not refute the finding and made it stronger by measuring it.
+
+**What is true.** The runner parks `window.scrollX/Y` and re-parks it inside the scroll event for the entry's first four frames — one half of the 2026-08-17 reveal fix, the other being the flying box refusing to be a scroll container. Both `floating.tsx` and the law's own docstring said the two are "law-read at once, per frame". Only one is. The law's `spread` assertion catches the clip and is falsifiable; its page half is satisfied by a page that was never pushed. Instrumented in that law's exact fixture, `parked.protect` is true and the listener is armed, and the browser then dispatches ZERO scroll events — so deleting the entire block leaves the suite green. The audit reports the same across seven harness fixtures and six opens in the running app.
+
+**Why it cannot fire, which is the part worth keeping.** The guard arms only when the trigger was fully in view — and in exactly that case the element Base UI focuses, the popup posed onto that trigger, is in view too, so a reveal has nothing to scroll.
+
+**Why it is kept anyway, for now.** The symptom it was written for was real and reported. Removing a safety net for a defect a person actually saw is a judgment rather than an argument, the cost of keeping it is one listener for four frames, and no law can be written for a mechanism that never fires — a passing law here would be exactly the vacuity this repo keeps finding. Recorded so the deletion can be made deliberately rather than discovered.
+
+---
+
 ## 2026-08-23 The lens was drawn in the corner of the pane, and it arrived after the panel did
 
 **What.** Two defects in the refraction lens, with one repair between them. The displacement map was never stretched to the pane — it was placed at its generated size in the top-left corner — and a glass panel had no lens at all while it was flying, gaining one in a single frame when it landed.

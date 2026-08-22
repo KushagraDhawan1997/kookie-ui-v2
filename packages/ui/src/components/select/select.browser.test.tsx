@@ -1513,10 +1513,18 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
      * instead, which reads as the whole document jumping and STAYS, because the panel travels
      * on and the page keeps what it gained.
      *
-     * Both halves are held, in different layers, and this law reads both at once because
-     * fixing either one alone is what produced the other symptom: `overflow: clip` on the
-     * flying box (surfaces.css) so there is no offset to take, and the parked page in the
-     * runner (system/floating.tsx) so the step up finds nothing to move.
+     * Both halves are held, in different layers: `overflow: clip` on the flying box
+     * (surfaces.css) so there is no offset to take, and the parked page in the runner
+     * (system/floating.tsx) so the step up finds nothing to move.
+     *
+     * THIS LAW READS ONE OF THEM (2026-08-23, the floating-motion audit). It used to claim
+     * both. The `spread` assertion below catches the clip and is falsifiable; the `drift`
+     * assertion is satisfied by a page that was never pushed, and instrumenting this exact
+     * fixture shows the runner's hold listener arming and then receiving zero scroll events —
+     * so deleting the runner's whole block leaves this law green. The claim is corrected here
+     * rather than the assertion removed, because a page that DOES move is still a failure worth
+     * catching; what is not true is that this fixture can prove the mechanism defending against
+     * it works. The runner's own comment carries the measurement.
      *
      * The case is calibrated: THIRTY rows with a middle one selected, on a page long enough to
      * scroll, with the trigger mid-viewport. Measured before the fix on the eight-row shape —

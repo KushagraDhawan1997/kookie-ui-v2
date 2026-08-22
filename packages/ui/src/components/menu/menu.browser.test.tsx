@@ -2452,6 +2452,96 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(decoded, `the map is ${decoded}px tall for a panel landing at ${target}px`).toBeCloseTo(target, -1);
   });
 
+  for (const dir of ["ltr", "rtl"] as const) {
+    for (const side of ["left", "right"] as const) {
+      it(`a ${side}-side menu in an ${dir} document seeds on the edge NEAREST its trigger (§22)`, async () => {
+        /**
+         * 2026-08-23, the floating-motion audit.
+         *
+         * Every pin rule states the trigger-adjacent edge with a LOGICAL property, which is
+         * right, and selects on a MIX of logical and physical side names, which is not.
+         * `inline-start`/`inline-end` are direction-relative by definition, so pairing them
+         * with `inset-inline-*` holds in both directions by construction. `left`/`right` are
+         * not: `[data-side="left"]` means "physically left of the trigger, so pin the panel's
+         * physical RIGHT edge", and under RTL `inset-inline-end` resolves to physical LEFT.
+         *
+         * Measured before the fix, RTL with `side="left"`: the positioner lands correctly at
+         * 896-1037 and the seed painted at 896-952 — 85px from a trigger at 1041, growing back
+         * toward the button that opened it. `side="right"` was the mirror. That is the unfurl
+         * running backwards, which the 2026-08-22 audit removed for `inline-start` and left
+         * live here, and `MenuContentProps.side` is physical-only so every explicitly sided
+         * menu in an RTL app took this path.
+         *
+         * Written as a walk over both directions BECAUSE the LTR cells passed throughout: a law
+         * that mounted only LTR is the reason this shipped, and a law that mounted only RTL
+         * could be satisfied by breaking LTR.
+         */
+        mount(
+          <Theme>
+            <div dir={dir} style={{ padding: "200px" }}>
+              <Menu defaultOpen>
+                <MenuTrigger render={<Button>T</Button>} />
+                <MenuContent side={side}>
+                  <MenuItem>Alpha item here</MenuItem>
+                  <MenuItem>Beta item here</MenuItem>
+                </MenuContent>
+              </Menu>
+            </div>
+          </Theme>,
+        );
+        inMotion();
+        // Two frames, not one microtask: `data-side` is floating-ui's and resolves from a
+        // promise, and a seed read before the placement lands is a box at the document origin —
+        // which this law's own first run reported as a 238px gap and would have read as the
+        // defect it is looking for.
+        await flushFlight();
+        for (let i = 0; i < 2; i++) await new Promise((r) => requestAnimationFrame(() => r(null)));
+        const popups = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
+        const popup = popups[popups.length - 1]!;
+        expect(
+          popup.parentElement!.getAttribute("data-side"),
+          "the placement never resolved — every measurement below is of an unplaced box",
+        ).toBe(side);
+        const seed = popup.getBoundingClientRect();
+        const room = popup.parentElement!.getBoundingClientRect();
+
+        // CALIBRATION: the seed must be NARROWER than the room it sits in, or both edges are
+        // the same edge and the law cannot tell a correct pin from an inverted one.
+        expect(
+          seed.width,
+          "the seed must be narrower than the positioner, or there is no near and far edge",
+        ).toBeLessThan(room.width - 20);
+
+        /**
+         * The seed shares the panel's TRIGGER-ADJACENT EDGE, and it must be read against the
+         * positioner rather than against the trigger.
+         *
+         * The first spelling of this law compared the seed's two edges to the trigger and
+         * passed with the fix removed — a box sitting entirely to the left of a trigger always
+         * has its right edge nearer, whichever edge it is pinned to, so the metric could not
+         * tell a correct pin from an inverted one. The degenerate-fixture rule in the
+         * measurement rather than in the mount, caught by this law's own sabotage pass.
+         *
+         * What actually moves is which edge the seed shares with the box it grows into: pinned
+         * correctly the near edges coincide and the panel unfurls away from the trigger;
+         * inverted, the seed sits a panel-width away and grows back onto the button that opened
+         * it (measured before the fix: 85px, on a 141px panel).
+         */
+        const nearIsRight = side === "left";
+        const held = nearIsRight
+          ? Math.abs(room.right - seed.right)
+          : Math.abs(room.left - seed.left);
+        const loose = nearIsRight
+          ? Math.abs(room.left - seed.left)
+          : Math.abs(room.right - seed.right);
+        expect(
+          held,
+          `the seed is ${Math.round(held)}px off the edge it should share with its panel (and ${Math.round(loose)}px off the far one) — it is pinned to the wrong edge and unfurls backwards onto its trigger`,
+        ).toBeLessThan(1);
+      });
+    }
+  }
+
   it("nothing the seed moves is missing from the transition list (§8)", async () => {
     // The teleport rule as a law rather than a comment. A property the seed changes but the
     // transition never names does not animate — it SNAPS, which is exactly the defect that

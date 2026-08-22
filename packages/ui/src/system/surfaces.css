@@ -1431,6 +1431,30 @@
 [dir="rtl"] .kui-surface.kui-floating[data-side="top"][data-align="end"] {
   --kui-origin-x: left;
 }
+/* …and the SIDE placements, which had no direction arms at all (2026-08-23, the
+   floating-motion audit).
+
+   `transform-origin` has no logical keywords, so this whole table is stated in physical ones —
+   which is fine for `left`/`right`, whose meaning does not move, and wrong for `inline-start`
+   and `inline-end`, whose meaning is the direction. Base UI's `getLogicalSide` maps a rendered
+   physical `right` to `inline-start` under RTL and physical `left` to `inline-end`, so both
+   logical values invert while the origin keyword does not.
+
+   Measured on a settled RTL submenu, exit caught at 60% of its dissolve: the panel is pinned
+   at the seam it shares with its parent and pivots on the edge furthest from it, so the shared
+   seam OPENS by 2.79px on a 164.8px panel while the far edge stays put — the opposite of the
+   stated invariant that a pane settles back into the corner it grew out of. It is not only the
+   flipped case: an ordinary RTL submenu resolves `inline-end`, takes the base default `left`,
+   and is wrong the same way, so this is every RTL submenu rather than only ones near an edge.
+
+   Small — 2% of the panel, seam-adjacent, during a fade — and stated as a rule because the pin
+   one block down already states it and these two must agree. */
+[dir="rtl"] .kui-surface.kui-floating[data-side="inline-start"] {
+  --kui-origin-x: left;
+}
+[dir="rtl"] .kui-surface.kui-floating[data-side="inline-end"] {
+  --kui-origin-x: right;
+}
 
 /* The seed is a SIZE and nothing else — no offset, and that absence is the mechanism.
    The positioner already holds one edge of the panel (the top under a menu, the start edge
@@ -1694,6 +1718,31 @@
   inset-inline-start: auto;
   inset-inline-end: 0;
 }
+/* PHYSICAL side names need a direction arm; LOGICAL ones do not (2026-08-23, the
+   floating-motion audit).
+
+   Every rule above states the trigger-adjacent edge with a LOGICAL property, which is right,
+   and selects on a mix of logical and physical side names, which is not. `inline-start` and
+   `inline-end` are direction-relative by definition, so `[data-side="inline-start"]` paired
+   with `inset-inline-end` holds in both directions by construction. `left` and `right` are
+   not: `[data-side="left"]` means "the panel is physically left of its trigger, so pin its
+   physical RIGHT edge", and under RTL `inset-inline-end` resolves to physical LEFT — the
+   opposite one.
+
+   Measured on a menu at x=1041 in an RTL document with `side="left"`: the positioner lands
+   correctly at 896–1037 and the seed paints at 896–952, pinned 85px from the trigger and
+   growing back toward the button that opened it. `side="right"` is the mirror. That is the
+   unfurl running backwards — the same defect the 2026-08-22 audit removed for `inline-start`
+   and left live here, because `MenuContentProps.side` is physical-only and every explicitly
+   sided menu in an RTL app takes this path. The LTR cell measures correctly in both. */
+[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="left"] {
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+}
+[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="right"] {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
 .kui-surface.kui-floating[data-unfurling][data-side="top"],
 .kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="end"],
 .kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="end"],
@@ -1771,6 +1820,16 @@
 .kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="end"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"] .kui-floating-body {
+  inset-inline-start: auto;
+  inset-inline-end: var(--kui-floating-p);
+}
+/* The body's own direction arms — the physical/logical mix above, restated for the element
+   inside the box, exactly as the pin itself is. */
+[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body {
+  inset-inline-start: var(--kui-floating-p);
+  inset-inline-end: auto;
+}
+[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="right"] .kui-floating-body {
   inset-inline-start: auto;
   inset-inline-end: var(--kui-floating-p);
 }
