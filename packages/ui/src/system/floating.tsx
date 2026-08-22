@@ -471,6 +471,34 @@ function useFlight(plan: FlightPlan) {
           const borrowed = popup.style.height;
           if (borrowed) popup.style.removeProperty("height");
 
+          /**
+           * The OVERFLOW is borrowed too, and the scroll offset with it (2026-08-22 audit).
+           *
+           * surfaces.css declares `overflow: clip` on the flying box and states as a finished
+           * measurement that it is what stops a select's contents sliding. It is not, on a
+           * select: Base UI spreads `LIST_FUNCTIONAL_STYLES` — `position: relative`,
+           * `max-height: 100%`, `overflow: hidden auto` — as the popup's React `style` prop
+           * whenever the item-aligned placement is active and no `Select.List` is rendered,
+           * which is this package's shipped shape. An inline declaration beats every rule in
+           * every stylesheet, so the flight's clip computed `hidden auto` and the box was a
+           * scroll container for the whole entry — measured `hidden auto` / `relative` on a
+           * select against `clip` / `absolute` on a menu, same rules, one negative control.
+           *
+           * The consequence is the one the clip exists to prevent: Base UI scrolls the chosen
+           * row onto the trigger, and while the box is deliberately far smaller than the list
+           * the browser clamps that offset down frame by frame — measured `scrollTop` 165
+           * through the flight and 0 once settled, the contents visibly sliding under a growing
+           * frame and the chosen row landing 43px off the trigger it exists to sit on.
+           *
+           * The repair is the cascade's own currency rather than a fight inside it: an
+           * `!important` in the family's sheet would win and leave the library's intent
+           * unstated (refused when the same question came up for the borrowed height, §23), so
+           * the runner writes `clip` INLINE for the length of the flight and hands back exactly
+           * what it found — snapshot-and-restore, on the third property that needs it.
+           */
+          const borrowedOverflow = popup.style.overflow;
+          const heldScroll = popup.scrollTop;
+
           // The pose comes off for the read, and the WHOLE of it. Overriding just the two
           // sizes was the first cut and it measured a panel narrower than the one that would
           // settle, because `min-inline-size: 0` is part of the seed too. Our own vars come
@@ -505,6 +533,11 @@ function useFlight(plan: FlightPlan) {
           popup.removeAttribute("data-seed");
           popup.removeAttribute("data-unfurling");
           if (popup.getBoundingClientRect().width <= pose) {
+            // The borrow is given back on THIS path too (2026-08-22 audit). It was taken
+            // above and only ever restored in `release()`, which this return never reaches —
+            // so a panel that bailed here lost Base UI's inline height for the whole open,
+            // the same defect as the positioner's one screen down, on the arm nobody walks.
+            if (borrowed) popup.style.height = borrowed;
             for (const el of pinned) el.style.removeProperty("transition");
             return;
           }
@@ -568,6 +601,25 @@ function useFlight(plan: FlightPlan) {
            * and the body's pin with it. Identified by the attribute rather than by position in
            * the tree: a law would rather fail than a silent `if` quietly do nothing.
            */
+          /**
+           * SNAPSHOT AND RESTORE, never enumerate (2026-08-22 audit). The first spelling put
+           * the pin on and `removeProperty`'d both names at release, on this block's own
+           * premise that the positioner "shrink-wraps the popup" — true of a menu's, false of
+           * an item-aligned select's, whose height is BASE UI'S: `SelectPopup` writes
+           * `positionerElement.style.height` and then `height: 100%` on the popup, and its own
+           * `clearStyles` runs only on close. So the release deleted the constraint the panel
+           * is sized BY, and `100%` resolved against an auto-height parent: measured, a 30-row
+           * select settled 910px tall inside an 800px window with `clientHeight ===
+           * scrollHeight` — not scrollable, a third of the list unreachable, and the chosen row
+           * 163px from the trigger it exists to sit on. Reduce Motion was correct throughout,
+           * because the runner bails before any of this, which is the tell.
+           *
+           * The flight does not own this element's style. It borrows two properties and hands
+           * back exactly what it found — `borrowed` above is that shape for the popup's own
+           * height, twelve lines up, and it was never generalised to the element beside it.
+           */
+          const heldWidth = positioner?.style.width ?? "";
+          const heldHeight = positioner?.style.height ?? "";
           if (positioner?.hasAttribute("data-side")) {
             positioner.style.width = `${natural.width}px`;
             positioner.style.height = `${natural.height}px`;
@@ -579,6 +631,10 @@ function useFlight(plan: FlightPlan) {
           // FLIGHT_VARS). Put it back with the pose: the window this closes is the whole
           // reason it exists, and leaving it open here only moves the page a frame later.
           roughlyOnTrigger(trigger);
+          // The flying box is not a scroll container, whatever the element's own inline style
+          // says (see the borrow above). Written with the pose, so no frame is ever painted
+          // with an offset in it.
+          popup.style.overflow = "clip";
           void popup.offsetWidth; // land the pose as the baseline while the pin still holds
           for (const el of pinned) el.style.removeProperty("transition");
 
@@ -601,12 +657,19 @@ function useFlight(plan: FlightPlan) {
             if (!popup.hasAttribute("data-unfurling")) return;
             for (const name of FLIGHT_VARS) popup.style.removeProperty(name);
             if (borrowed) popup.style.height = borrowed;
+            // Overflow first, THEN the offset: a box that is still `clip` has nowhere to put a
+            // scroll position, so restoring in the other order silently writes zero.
+            if (borrowedOverflow) popup.style.overflow = borrowedOverflow;
+            else popup.style.removeProperty("overflow");
+            if (heldScroll) popup.scrollTop = heldScroll;
             popup.removeAttribute("data-aimed");
             popup.removeAttribute("data-seed");
             popup.removeAttribute("data-unfurling");
             if (positioner?.hasAttribute("data-side")) {
-              positioner.style.removeProperty("width");
-              positioner.style.removeProperty("height");
+              // Put back what was found, which is `""` where the runner was the only writer
+              // and Base UI's own length where it was not (see the snapshot above).
+              positioner.style.width = heldWidth;
+              positioner.style.height = heldHeight;
             }
             popup.removeEventListener("transitioncancel", onCancel);
           };

@@ -937,9 +937,21 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
    * ordinary below-the-trigger geometry otherwise (a keyboard open, a `defaultOpen` no pointer
    * ever touched), and it drops the overlap rather than run off the top of the viewport.
    */
-  async function openItemAligned() {
+  /**
+   * The list is LONG ENOUGH TO OVERFLOW, and that is the load-bearing half of this fixture
+   * (2026-08-22 audit). Eight rows fit the available height, and a select whose list fits is
+   * the one shape where the whole item-aligned mechanism is a no-op: Base UI writes no
+   * constraining positioner height, the panel's own `scrollTop` is 0 on every frame, and a
+   * 57px trigger is discarded by `max(--floating-min-w, anchor)`. Three separate laws below
+   * were asking their question of an input that answers the same whether the mechanism works
+   * or not — the degenerate-fixture defect, reached from one line of test data. Thirty rows is
+   * past all three thresholds, and each law states its own calibration rather than trusting
+   * this comment.
+   */
+  const LONG_OPTIONS = Array.from({ length: 30 }, (_, i) => `o${i}`);
+
+  async function openItemAligned(OPTIONS: string[] = LONG_OPTIONS, chosen = "o15") {
     inMotion();
-    const OPTIONS = ["a", "b", "c", "d", "e", "f", "g", "h"];
     const host = mount(
       <Theme>
         {/* Half a viewport of room ABOVE the trigger, stated in `vh` and NOT reached by
@@ -951,7 +963,7 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
             fallback placement and a message about the wrong thing. It passed locally and
             failed on the runner, which is the shape this repo keeps re-learning. */}
         <div style={{ height: "50vh" }} />
-        <Select defaultValue="e" items={Object.fromEntries(OPTIONS.map((v) => [v, v.toUpperCase()]))}>
+        <Select defaultValue={chosen} items={Object.fromEntries(OPTIONS.map((v) => [v, v.toUpperCase()]))}>
           <SelectTrigger />
           <SelectContent>
             {OPTIONS.map((v) => (
@@ -1150,6 +1162,36 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     }
     expect(seen, "the entry never ran, so nothing was borrowed").toBe("flying");
     expect(popup.style.height, "the borrowed height was never given back").toBe("100%");
+
+    /**
+     * AND THE POSITIONER'S, which is the other half of the same mechanism (2026-08-22 audit).
+     *
+     * `height: 100%` above is a fraction OF something, and the something is an inline height
+     * Base UI writes on the positioner. The runner pins that element for the flight too — and
+     * used to `removeProperty` both names at release, on the premise that the positioner
+     * "shrink-wraps the popup", which is true of a menu's and false here. So the panel kept
+     * its `100%` and lost what it was 100% OF: measured, 910px inside an 800px window,
+     * `clientHeight === scrollHeight` so the list could not be scrolled to, and the chosen row
+     * 163px from its trigger. This law read one property of a two-property mechanism, and the
+     * one it did not read was the one that was wrong.
+     *
+     * Read as the OUTCOME as well as the property, because a restored string still permits a
+     * panel that does not fit: the box is inside the window and the list is reachable.
+     */
+    const positioner = popup.parentElement!;
+    expect(
+      positioner.style.height,
+      "the positioner's own height was not given back — the panel is 100% of nothing",
+    ).not.toBe("");
+    const box = popup.getBoundingClientRect();
+    expect(box.bottom, "the settled panel hangs off the bottom of the window").toBeLessThanOrEqual(
+      window.innerHeight,
+    );
+    expect(box.top, "the settled panel hangs off the top of the window").toBeGreaterThanOrEqual(0);
+    expect(
+      popup.scrollHeight,
+      "the fixture's list must OVERFLOW, or a lost constraint changes nothing",
+    ).toBeGreaterThan(popup.clientHeight);
   });
 
   // WATCHES FRAMES: `--kui-anchor-w` exists only while the flight does, so the read has to
@@ -1414,16 +1456,19 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
      * flying box (surfaces.css) so there is no offset to take, and the parked page in the
      * runner (system/floating.tsx) so the step up finds nothing to move.
      *
-     * The case is calibrated: eight rows with the FIFTH selected, on a page long enough to
-     * scroll, with the trigger mid-viewport. Measured before the fix on exactly this shape —
-     * page 65px, panel scrollTop 57.
+     * The case is calibrated: THIRTY rows with a middle one selected, on a page long enough to
+     * scroll, with the trigger mid-viewport. Measured before the fix on the eight-row shape —
+     * page 65px, panel scrollTop 57 — and widened 2026-08-22, because eight rows fit the
+     * available height and a list that fits never scrolls itself at all: the contents half of
+     * this law was asking its question of a panel with no offset to lose. The law asserts the
+     * overflow below rather than trusting this paragraph.
      */
-    const OPTIONS = ["a", "b", "c", "d", "e", "f", "g", "h"];
+    const OPTIONS = Array.from({ length: 30 }, (_, i) => `o${i}`);
     inMotion();
     const container = mount(
       <Theme>
         <div style={{ height: "3000px" }} />
-        <Select defaultValue="e" items={Object.fromEntries(OPTIONS.map((v) => [v, v.toUpperCase()]))}>
+        <Select defaultValue="o15" items={Object.fromEntries(OPTIONS.map((v) => [v, v.toUpperCase()]))}>
           <SelectTrigger />
           <SelectContent>
             {OPTIONS.map((v) => (
@@ -1462,10 +1507,20 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     const drift: number[] = [];
     const inner: number[] = [];
     let sampling = true;
+    let landed: HTMLElement | null = null;
     const tick = () => {
       const popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();
       drift.push(Math.abs(window.scrollY - parked));
-      if (popup) inner.push(Math.abs(popup.scrollTop));
+      // ONLY WHILE THE FLIGHT IS RUNNING (2026-08-22 audit). The first spelling read every
+      // frame, which made the claim "this panel's offset is zero, always" — and that is false
+      // of a CORRECT item-aligned select: the placement's whole mechanism is a scroll offset
+      // that puts the chosen row on the trigger, so a settled panel with a scrolling list is
+      // SUPPOSED to carry one. The law codified the defect as a requirement and passed only
+      // because eight rows never scrolled. What the entry owes is that the offset is not
+      // taken and clamped away WHILE the box is deliberately smaller than its list; what the
+      // release owes is that the placement's offset is there at the end. Both are read.
+      if (popup?.hasAttribute("data-unfurling")) inner.push(Math.abs(popup.scrollTop));
+      if (popup && !popup.hasAttribute("data-unfurling") && inner.length) landed = popup;
       if (sampling) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -1475,11 +1530,26 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     await new Promise((r) => setTimeout(r, 900));
     sampling = false;
 
-    expect(inner.length, "the panel never opened — the law measured nothing").toBeGreaterThan(5);
+    expect(inner.length, "the entry never ran — the law measured nothing").toBeGreaterThan(5);
     expect(Math.max(...drift), `the page moved ${Math.max(...drift)}px`).toBeLessThanOrEqual(1);
     expect(
       Math.max(...inner),
-      `the panel scrolled its own contents to ${Math.max(...inner)}px`,
+      `the panel scrolled its own contents to ${Math.max(...inner)}px mid-flight`,
     ).toBeLessThanOrEqual(1);
+
+    // THE CALIBRATION, and it is what makes the assertion above mean anything: a list that
+    // fits its box has no offset to lose, so a zero read there is the fixture agreeing with
+    // itself rather than the mechanism working (the eight-row fixture this law shipped with).
+    const settledPanel = landed ?? document.querySelector<HTMLElement>(".kui-select-popup")!;
+    expect(
+      settledPanel.scrollHeight,
+      "the fixture's list must OVERFLOW, or the offset under test cannot exist",
+    ).toBeGreaterThan(settledPanel.clientHeight);
+    // And the offset the placement wrote is on the panel once it has landed — the property the
+    // flight borrows the box's overflow to protect.
+    expect(
+      settledPanel.scrollTop,
+      "the placement's own offset did not survive the entry",
+    ).toBeGreaterThan(1);
   });
 });

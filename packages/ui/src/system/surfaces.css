@@ -1533,7 +1533,18 @@
      one floating member that scrolls itself, so select.css declares `overflow-y: auto` on this
      same element and beats the base rule on source order. For the flight the box must not be a
      scroll container at all — that is the entire finding above — so the flight says so where it
-     can win. Deleting this line was tried and put the jump straight back. */
+     can win. Deleting this line was tried and put the jump straight back.
+
+     AND IT DOES NOT REACH A SELECT (2026-08-22 audit). The paragraph above is a menu's truth
+     stated as the family's: Base UI spreads `LIST_FUNCTIONAL_STYLES` — `position: relative`,
+     `max-height: 100%`, `overflow: hidden auto` — as the popup's React `style` prop on the
+     item-aligned path this package ships, and an inline declaration beats every rule here.
+     Measured, same rules, one negative control: a menu's flying box computes `clip` and
+     `absolute`, a select's computes `hidden auto` and `relative`, and the "measured 0 in every
+     frame" above was taken on an eight-row list with no offset to lose. The select's half is
+     won in the runner now, which writes `clip` inline for the flight and hands back what it
+     found (system/floating.tsx). This line still governs every anchored panel that has no
+     inline style of its own, which is why it stays. */
   overflow: clip;
   /* And the width FLOOR is stood down for the whole flight, not just the seed frame —
      which is the bug that made every menu look wrong (Kushagra, playground: *"it starts at a
