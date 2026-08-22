@@ -636,6 +636,45 @@ describe("the panel comes into focus, not into view (§24)", () => {
     expect(["none", "1"]).toContain(computed(popup, "scale"));
     expect(computed(body, "filter"), "and its content is legible").toBe("none");
   });
+
+  it("suppression does not MOVE the panel — at either stamp (§8, §24)", async () => {
+    /**
+     * The guard used to declare `margin: 0` (2026-08-22 audit), and it stood down nothing: the
+     * only auto margins in the poses are `margin-inline: auto` on the BODY elements, which the
+     * guard's popup selectors never reach. What it did reach is the `margin: auto` that CENTRES
+     * this panel inside Base UI's scrollable viewport — one specificity step against four — and
+     * losing a cross-axis auto margin releases the stretch with it. Measured: a dialog open at
+     * `360,351 560x98` became `24,24 560x752` at full opacity the frame the ending stamp landed,
+     * and the exit's own clock (which the guard also failed to reach, one attribute heavier) held
+     * it there for ~130ms. The setting that exists to remove motion produced the largest
+     * movement in the family.
+     *
+     * The law that stood here read `opacity`, `scale` and the body's `filter`. The guard writes
+     * five properties; three were read, and the two that were not are the two that were wrong.
+     * So this one reads the BOX, which is the only thing "nothing moves" can mean, at BOTH
+     * stamps — the entry's and the exit's — because the defect was on the arm nobody looked at.
+     */
+    await asksForStillness();
+    const popup = await openByClick();
+    const centred = popup.getBoundingClientRect();
+    // The premise: this panel is genuinely centred, so an un-centring has somewhere to move TO.
+    // Against a panel already at the viewport's edge the assertion below would hold either way.
+    expect(centred.left, "the fixture's panel must be centred to catch an un-centring").toBeGreaterThan(40);
+    expect(centred.height, "and short enough that a stretch would show").toBeLessThan(window.innerHeight / 2);
+
+    for (const stamp of ["data-starting-style", "data-ending-style"] as const) {
+      popup.setAttribute(stamp, "");
+      const box = popup.getBoundingClientRect();
+      expect(box.left, `${stamp} moved the panel sideways`).toBeCloseTo(centred.left, 0);
+      expect(box.top, `${stamp} moved the panel down the page`).toBeCloseTo(centred.top, 0);
+      expect(box.height, `${stamp} stretched the panel`).toBeCloseTo(centred.height, 0);
+      expect(
+        computed(popup, "transition-duration").split(",").every((d) => parseFloat(d) === 0),
+        `${stamp} kept a clock, so whatever it moved stays on screen`,
+      ).toBe(true);
+      popup.removeAttribute(stamp);
+    }
+  });
 });
 
 /* ── A scroll region inside the panel (§3, §10, 2026-08-21) ───────────────────────────── */

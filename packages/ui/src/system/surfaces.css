@@ -1967,7 +1967,18 @@
   /* The interactive surface's two clocks (2026-08-17), spelled at the recipe's own weight for
      the reason stated just above — the recipe is `.kui-surface:where(button, a, label:has(.kui-control))`, and `:where`
      contributes nothing, so this ties on specificity and wins on source order. */
-  .kui-surface:where(button, a, label:has(.kui-control)) {
+  .kui-surface:where(button, a, label:has(.kui-control)),
+  /* AND THE EXITS, which the list above cannot reach (2026-08-22 audit): every exit recipe
+     re-declares `transition` on its own `[data-ending-style]` selector, one attribute heavier
+     than the bare class here, so the guard lost on specificity and the full seven-channel clock
+     list survived under reduced motion — measured `block-size 0.46s, translate 0.46s,
+     inline-size 0.68s, border-radius 0.56s, box-shadow 0.26s, opacity 0.14s, scale 0.16s`. That
+     surviving clock is what held the mis-placed slab of the fixed above on screen for ~130ms
+     rather than one frame; the two halves compounded and both are closed here. Spelled out
+     rather than folded into `:is()`, which borrows its most specific argument's weight. */
+  .kui-surface.kui-floating[data-ending-style],
+  .kui-surface.kui-alert-popup[data-ending-style],
+  .kui-surface.kui-overlay.kui-dialog-popup[data-ending-style] {
     transition: none;
   }
   /* And its ring hook, the `--kui-ct-ring` doctrine one layer up: the stand-down is declared on
@@ -1985,11 +1996,21 @@
      stand-down) and `min-inline-size` (a posed panel lost its width floor and measured 77px
      against its own 112). What the guard owes is that nothing MOVES and nothing is measured;
      both are asserted by mounted law, in the menu and alert suites. */
+  /* NO `margin: 0` HERE, and its removal is the fix rather than a tidy-up (2026-08-22 audit).
+     It stood down nothing: the only auto margins in the poses are `margin-inline: auto` on the
+     BODY elements (`.kui-floating-body`, `.kui-overlay-body`), which none of these popup
+     selectors reach. What it DID reach is the `margin: auto` that CENTRES a dialog and an alert
+     inside Base UI's scrollable viewport (dialog.css, alert-dialog.css) — one specificity step
+     against four, so the guard won outright, and losing a cross-axis auto margin releases the
+     stretch with it. Measured, 1280x800 with the setting on: a dialog open at `360,351 560x98`
+     became `24,24 560x752` at full opacity on the frame the ending stamp landed, and sat there
+     for eight frames before vanishing. The setting that exists to remove motion was producing
+     the largest movement in the family, and on a phone-width window it took the sheet arm with
+     it, flashing at the top of the screen instead of rising from the bottom. */
   .kui-surface.kui-floating[data-ending-style],
   .kui-surface.kui-alert-popup[data-ending-style],
   .kui-surface.kui-overlay.kui-dialog-popup[data-starting-style],
   .kui-surface.kui-overlay.kui-dialog-popup[data-ending-style] {
-    margin: 0;
     translate: 0 0;
     scale: 1;
     opacity: 1;
