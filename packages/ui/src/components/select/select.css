@@ -154,11 +154,12 @@
   /* The anchor term consults the ENTRY's own measurement first (§22, 2026-08-10): the flight
      needs this floor inside its measured target, and floating-ui has not written
      --anchor-width yet on a first open — the panel flew to its content width and re-expanded
-     at release. --kui-anchor-w is the trigger's width AS HELD (2026-08-10, the compression
-     jump: an open trigger holds the press, floating-ui measures anchors with their
-     transforms, and a flight floored on the resting rect compressed 10px the frame it
-     released), present only during a flight; a settled panel falls through to floating-ui's
-     own — which agrees by input, not by timing. */
+     at release. --kui-anchor-w is the trigger's LAYOUT box, and it OUTLIVES the flight
+     (corrected 2026-08-22): a settled panel used to fall through to floating-ui's own, which
+     is still travelling with the held press — measured, --anchor-width walking 400 -> 388 ->
+     390 over ~350ms while the panel sat at 400, then a 10px snap one frame after the release.
+     The two terms are one number now, taken once, for the panel's whole life; the runner's
+     block above `useFlight` carries the measurement and the reasoning. */
   min-width: min(
     max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w)))),
     max(var(--floating-min-w), var(--available-width, 100vw))

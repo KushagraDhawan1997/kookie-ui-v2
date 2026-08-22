@@ -32,12 +32,6 @@ const RECORDED: Record<string, string> = {
     "the last AIMED SEED frame — a pose that holds about two frames and is hunted by polling.",
   "a dismissal taken back MID-FLIGHT lands on the flight it interrupted (§22, 2026-08-20)":
     "a panel dismissed WHILE AIRBORNE — the premise is a window, not a state.",
-  "the panel's floor is the trigger's RESTING width, so it does not step at release (§22)":
-    "the RELEASE frame — `--kui-anchor-w` exists only while the flight does, and the width " +
-    "is read at the seam where the entry hands the box back. Failed on CI at 112 against " +
-    "115.45, the flight not having landed on the frame the loop read; floating-ui converges " +
-    "in wall time, so the clocks cannot be seized and no bound is the fix. Recorded 2026-08-21 " +
-    "as the same kind as the sibling below, which reads the same transient.",
   "the FIRST open flies to the settled width — the floor is inside the target (§22)":
     "`--kui-anchor-w`, which exists only while the flight does — the runner strips it at release.",
   "the entry moves neither the page nor the panel's own contents (§8, §22)":

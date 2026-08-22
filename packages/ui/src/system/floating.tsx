@@ -167,21 +167,34 @@ export function PortalScope({ children }: { children: React.ReactNode }) {
 
 
 /**
- * The anchor's UNTRANSFORMED width — its layout box, with any press it is holding divided out
- * (§22, §23, 2026-08-10, corrected by measurement 2026-08-17).
+ * THE WIDTH FLOOR IS THE TRIGGER'S LAYOUT BOX, AND IT OUTLIVES THE FLIGHT (§22, §23).
  *
- * The panel's floor is `max(--floating-min-w, --anchor-width)`, and `--anchor-width` does not
- * exist until Base UI has placed the panel — so the entry publishes the number itself and the
- * two must agree, or the panel steps at release. They must agree by INPUT, not by timing.
+ * The floor is `max(--floating-min-w, --anchor-width)`, and `--anchor-width` does not exist
+ * until Base UI has placed the panel — so the entry publishes the number itself as
+ * `--kui-anchor-w`, which the floor consults first (menu.css, select.css). The two must agree,
+ * or the panel steps the moment one hands over to the other. They disagreed for two reasons at
+ * once, and fixing either alone leaves the step (measured 2026-08-22).
  *
- * The correction runs the OTHER WAY from the way this function first ran it. It was written to
- * predict the trigger's scaled box on the premise that Base UI measures anchors with their
- * transforms, which is what the held press relies on to still the panel. Base UI 1.6 does the
- * opposite and says so in its own code: it reads `getScale(trigger)` and normalises the rect by
- * it before positioning. Measured on an open select — trigger rect 83px at `scale: 0.975`,
- * `--anchor-width: 85px` — so the entry's own 83 was two pixels short of the floor the settled
- * panel falls to, and a wide trigger's panel visibly widened the moment the entry released
- * (Kushagra: *"it jumps a bit in width at the end"*).
+ * FIRST, WHEN. An open trigger holds its press (§8) and the press is a SPRING, so the scale at
+ * the instant the entry measures depends on how the panel was opened: a real pointer press has
+ * not started travelling yet (measured `scale: 1`, rect 400 on a 400px button) while a
+ * `defaultOpen` panel is already holding it (measured `scale: 0.975`, rect 351 on a 360px
+ * trigger). The raw rect is therefore a different quantity per input path, which is why this
+ * function divides: what it publishes is the trigger's LAYOUT box in both, and that is the
+ * fixed thing "never narrower than the trigger you pressed" was always about. This is the
+ * 2026-08-10 spelling, restored — the 2026-08-17 reversal called it "predicting the scaled box"
+ * on the premise that Base UI "reads `getScale(trigger)` and normalises the rect by it", which
+ * is false: `getScale` appears in `internals/useAnchorPositioning.js` zero times, and
+ * floating-ui's own `getBoundingClientRect(element, true, …)` divides by the OFFSET PARENT's
+ * scale, never the reference's.
+ *
+ * SECOND, HOW LONG. floating-ui keeps re-measuring the anchor while the press travels —
+ * measured, `--anchor-width` walking 400 → 388 → 390 over ~350ms — so a floor that is handed
+ * back at release is handed to a number still in motion. The panel painted 400 for the whole
+ * flight and snapped to 390 one frame after the release, roughly 300ms after it had visibly
+ * stopped, which reads as a spontaneous glitch rather than as the tail of an entry (Kushagra:
+ * *"it jumps a bit in width at the end"*, twice). So `--kui-anchor-w` is the one flight var the
+ * release KEEPS. The pose-time strip still takes it, so a reopen re-measures.
  *
  * Divided rather than read off `offsetWidth`, which rounds to an integer: a third of a pixel is
  * the difference between a row's label fitting and wrapping, in one cell of twenty-four. An
@@ -562,6 +575,8 @@ function useFlight(plan: FlightPlan) {
           if (trigger) {
             const box = trigger.getBoundingClientRect();
             const corner = getComputedStyle(trigger).borderTopLeftRadius;
+            // The trigger's LAYOUT box, kept for the panel's life — both halves argued in the
+            // block above the runner.
             popup.style.setProperty("--kui-anchor-w", `${restingAnchorWidth(trigger, box.width)}px`);
             // And the seed IS this box (§22's morph, 2026-08-15): its width, its height and
             // its corner, so the panel's first frame is the trigger's own silhouette sitting
@@ -655,7 +670,14 @@ function useFlight(plan: FlightPlan) {
             // stripping the flight attribute directly, and a timeout that fired afterwards
             // would remove style the running law had just written.
             if (!popup.hasAttribute("data-unfurling")) return;
-            for (const name of FLIGHT_VARS) popup.style.removeProperty(name);
+            // EVERY flight var but the floor. `--kui-anchor-w` is not a pose, it is the
+            // trigger's layout width, and the settled panel's floor is the same sentence as the
+            // flying one's — stripping it handed the floor to `--anchor-width`, which is still
+            // travelling with the press, and the box stepped (see the block above the runner).
+            // The pose-time strip above still takes it, so a reopen re-measures.
+            for (const name of FLIGHT_VARS) {
+              if (name !== "--kui-anchor-w") popup.style.removeProperty(name);
+            }
             if (borrowed) popup.style.height = borrowed;
             // Overflow first, THEN the offset: a box that is still `clip` has nowhere to put a
             // scroll position, so restoring in the other order silently writes zero.
