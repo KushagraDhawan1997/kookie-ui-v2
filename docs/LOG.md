@@ -8,6 +8,40 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 The panel measures itself before the browser has told it how much room it has
+
+**What.** For any anchored panel whose content is taller (or wider) than the space it has, the entry was aimed at a box the panel can never occupy. Measured on a 40-item menu in an 800px window: `--kui-fly-h: 800px` for a panel that settles at 393.4. The runner now corrects the target at departure, clamped to the room the positioner publishes.
+
+**Why it came up.** Kushagra, after the 2026-08-22 select repairs: *"the jumping problem exists in dropdown menu too"*. Independently, the 2026-08-23 floating-motion audit raised it from two lenses at once.
+
+**The mechanism.** `poseAndFly` measures the panel's natural box in a microtask. That is the correct moment for React's layout — the file argues it at length and the argument is right — and the wrong one for floating-ui's, whose `computePosition` resolves from a promise. Until it does, Base UI's *seeded* `--available-width/-height` still read `100vw`/`100vh`, so the natural box is measured through a cap that is still the whole viewport. The file had already conceded this twice, once for `aim()` and once for `placedByContent`; the natural-box read was the third measurement depending on the placement and the only one still taken in the microtask.
+
+**What it costs is the CLOCK, which is why three audits walked past it.** Nothing is out of place: the box grows toward 800 and `max-height: var(--available-height)` clamps what gets painted, so the panel lands where it should. But it reaches its real ceiling at ~56ms of a 460ms `fall` and then stands still, while `inline-size` on the 680ms `spread` travels for another third of a second. The box drops open in three frames and then unfurls sideways — precisely the order §22 reversed on 2026-08-09 for being unreadable — and the elastic spring's overshoot never happens at all, because the channel is over before the curve gets to it. After the fix the same panel climbs across ~270ms and visibly overshoots to 394 before settling.
+
+**Where the correction lives, and it is not a preference.** In `depart()`, before the pose comes off. By then the positioner already carries `data-side` and a real room — one frame is enough, measured. And departure is the last moment a correction is free: the next line arms `transitioncancel` as the dismissal signal, so any later write to a flight var cancels the running `block-size` transition and is read as a dismissal. That is not theory — re-fitting every frame for twenty frames released the flight at frame five and snapped the panel open, which is worse than the defect it was fixing.
+
+**Rejected: letting CSS do the clamping.** `block-size: min(var(--kui-fly-h), var(--available-height))` is the elegant version — no JS, tracks the room live, no residue — and it was built and measured before it was thrown away. It stalls the entry. The room is not still (see below), so the target moves every frame, and a CSS transition whose end value changes restarts from the current value with the full duration: measured, the panel was 144px of its 393 when the flight ended and was still crawling afterwards.
+
+**Rejected: making the menu wait for the placement, the way Select does.** `placedByContent` gives the correct measurement by construction and the verifying agent measured it doing exactly that. It also delays the silhouette by several frames on every menu open — paying a select's settle wait on every panel — to fix a channel that is only wrong when the panel is capped.
+
+**The residue, stated rather than hidden.** The room is not still: it follows the *trigger's* own press-release spring, measured climbing 391 → 393.65 → 393.4. A target taken at departure is therefore ~2.4px under where the panel finally rests, and it takes that last 2.4px when the flight releases — 0.6% of the panel, on a box that has been still for 400ms. The alternatives are the two rejected above. If it ever needs closing, the fix is the sentence `restingAnchorWidth` already states one axis over: ask the trigger for its resting box, not its pressed one.
+
+**The law that let it through, and the one that replaces it.** "The box it grows into is measured, and it is the panel's own" opens a two-row menu, which is never capped — so its natural box and a viewport-sized box are the same number and the fixture cannot tell a correct measurement from a broken one. The degenerate-fixture rule (2026-08-20), in a law written three months before it. Its replacement mounts forty rows and asserts the target against the published room, with two calibration lines: the room must differ from the viewport, and the panel must sit at its cap. Falsified against the pre-fix code, and its own sabotage pass caught two sabotages that had silently failed to apply because their indentation was one level off — a sabotage that does not apply reads exactly like a sabotage that survived.
+
+---
+
+## 2026-08-23 The panel's content was stretching on the control layer's clock
+
+**What.** `.kui-floating-body`'s `scale` channel — the content stretching as the box grows — ran on `--motion-rise`. It is on `--floating-corner` now, the family's own scale clock.
+
+**Why it came up.** Kushagra, judging a shortened entry on the motion bench: *"it works, but it doesnt work proportionally to how content animates"*.
+
+**Why it was invisible for nine days.** `--motion-rise` is 550ms and config describes it as "everything a control's geometry does that is NOT a press — the hover rise, the settle back down". Against a 680ms `spread` the box still finished last, which is the order §22 designed, so at the shipped numbers nothing read as wrong. It is a borrow, not a decision: every other channel on that element is on a `--floating-*` clock, so the family's clocks could be retuned and this one would not move. Cut them by a quarter and the box lands at 510ms while the content is still stretching at 550 — the content finishes last and the entry reads inside-out.
+
+**What this says about the bench.** The motion bench found it, and it found it the way a bench should: by making a proportional change and letting a thing that is not proportional stand out. A knob for `--motion-rise` was added there for a day so the cut could be judged honestly, marked in the file as a defect rather than a knob and deleted the moment the clock moved.
+
+---
+
 ## 2026-08-22 The flight borrows a style, it does not enumerate one — and three other things the suite could not see
 
 **What.** Ten findings from the floating-family audit, fixed. The four that reach a person: a long Select's panel lost the height it is sized by and settled 910px tall inside an 800px window, unscrollable, with the chosen row 163px off its trigger; the flight's `overflow: clip` never applied to a Select at all, so the placement's scroll offset was taken and clamped away frame by frame; a wide trigger's panel snapped ~2.5% narrower one frame after it had visibly stopped; and with Reduce Motion on, closing a Dialog teleported it to the corner of the window at full viewport height for about a sixth of a second. Then: Escape deleted a Menu's exit while every pointer dismissal dissolved, a controlled Menu lost its entry after the first Escape, a dismissed alert kept the whole page unclickable while invisible, a mirrored submenu grew backwards into the menu it came out of, and the refraction lens rebuilt its displacement map 27 times during one glass menu open.

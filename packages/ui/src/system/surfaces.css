@@ -1577,13 +1577,28 @@
 .kui-floating-body {
   inline-size: var(--kui-fly-bw, auto);
   transform-origin: top left;
-  /* --motion-rise, NOT --floating-rise: the latter never existed, and the dangling var
-     invalidated this whole declaration — the body SNAPPED to full size on frame one from
-     the day it shipped (found 2026-08-14, Kushagra, in the lab: "the container moves
-     nicely, but the text doesn't move or stretch with it"). The dangling-var law in
-     recipes.test.ts is that finding's other half. */
+  /* The content's stretch rides the FAMILY's own scale clock (`--floating-corner`, the one
+     the box's own `scale` channel uses), not the control layer's `--motion-rise`.
+
+     It was `--motion-rise` from 2026-08-14 until 2026-08-23, and that is a borrow rather than
+     a decision: config describes `rise` as "everything a control's geometry does that is NOT a
+     press — the hover rise, the settle back down". Every other channel on this element is on a
+     `--floating-*` clock, so the family's clocks could be retuned and this one would not move.
+
+     Invisible at the shipped numbers and loud the moment they change, which is how it was
+     found (2026-08-23, Kushagra, judging a shortened entry: *"it doesnt work proportionally to
+     how content animates"*). At 550 against a 680 `spread` the box still finished last, which
+     is the order §22 designed; cut the family's clocks by a quarter and the box lands at 510
+     while the content is still stretching at 550, so the content finishes last and the entry
+     reads inside-out.
+
+     The older note this replaces is still worth keeping: the name must be one that EXISTS.
+     `--floating-rise` never did, and a dangling var invalidates the whole declaration — the
+     body snapped to full size on frame one from the day it shipped (the lab, 2026-08-14: "the
+     container moves nicely, but the text doesn't move or stretch with it"). The dangling-var
+     law in recipes.test.ts is that finding's other half. */
   transition:
-    scale var(--motion-rise) var(--motion-spring-elastic),
+    scale var(--floating-corner) var(--motion-spring-elastic),
     /* the content ARRIVES, echoing the box's own travel — the family's shared sentence
        (2026-08-16): a small rise as it prints, on the family spring */
     translate var(--floating-fall) var(--motion-spring-elastic) var(--floating-reveal-delay),

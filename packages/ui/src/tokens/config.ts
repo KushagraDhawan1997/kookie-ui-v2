@@ -695,11 +695,18 @@ export const springs = {
       return. Named for its manner rather than its consumer: a dialog is simply the first
       thing heavy enough to need it. */
   poised: { zeta: 0.8, omega: 8.75, steps: 36 },
-  /** The alert's materialization (2026-08-15/16, tuned twice by eye: lively's 10.7% was
-      too polite for a box arriving with a whole card's momentum, ζ0.5's ~16% carried a
-      ~2.7% second excursion — visible, and the reversal restored damping's sacredness).
-      ζ0.62: ~8.4% overshoot, second excursion ~0.7% — genuinely one crossing. */
-  elastic: { zeta: 0.62, omega: 10.835, steps: 36 },
+  /** The floating and alert entries — menu, select, alert dialog (2026-08-15/16, tuned twice
+      by eye: lively's 10.7% was too polite for a box arriving with a whole card's momentum,
+      ζ0.5's ~16% carried a ~2.7% second excursion — visible, and the reversal restored
+      damping's sacredness).
+
+      ζ0.715 since 2026-08-23 (Kushagra, on the motion bench: "bounce also at 0.75x", judged
+      alongside the 0.75x clocks below): ~4.0% overshoot, second excursion ~0.16% — still one
+      crossing, and the direction of travel is the same one the eye pass has taken twice, away
+      from bounce and toward weight. ζ0.62's ~8.4% is what this was, and the number to go back
+      to if a quicker entry ever reads as flat. `omega` is unmoved: damping is the CHARACTER,
+      and re-tuning frequency here would have re-timed every consumer of this curve at once. */
+  elastic: { zeta: 0.715, omega: 10.835, steps: 36 },
 } as const;
 
 /**
@@ -841,14 +848,14 @@ export const floatingMotion = {
    * width made every menu unfurl sideways and then drop. A menu falls out of its trigger and
    * then opens; the vertical arrives first.
    */
-  fall: 460,
+  fall: 345,
   /** The horizontal channel — width, and the lateral travel — and it TRAILS, which is what
       makes the direction of travel legible. */
-  spread: 680,
+  spread: 510,
   /** The corner and the settle-scale, between the two. */
-  corner: 560,
+  corner: 420,
   /** The panel's own fade-in, and its rows'. Paint is signal: it does not ride a spring. */
-  reveal: 260,
+  reveal: 195,
   /** 60 since 2026-08-16 (Kushagra: "I prefer whatever is on lab" — the lab's menus have
       carried these five clocks since 2026-08-14 and were judged there ever since, while the
       package was never brought level with them). This REVERSES the 280 below, which is kept
@@ -859,11 +866,11 @@ export const floatingMotion = {
       and show up "as the circle takes the shape" — at 80ms the rows printed onto a box that
       was still mostly circle, which is what made the entry read as a rectangle dropdown
       fading in). 280 starts the print as the fall (320) is landing; v0, judged live. */
-  revealDelay: 60,
+  revealDelay: 45,
   /** Exit: the dissolve itself. */
-  dissolve: 140,
+  dissolve: 105,
   /** Exit: the hair of scale the pane settles back through while dissolving. */
-  settle: 160,
+  settle: 120,
 } as const;
 
 /**
@@ -936,13 +943,13 @@ export const overlayMotion = {
       the two share is the spring and the grammar, and the perceived pace is what lands
       equal. */
   /** The box's becoming — the corner and the container's sharpening ride this. */
-  materialize: 700,
+  materialize: 525,
   /** The axes are OUT OF PHASE, the floating family's own grammar (2026-08-15, Kushagra:
       one clock over asymmetric distances made the width read as a slide while the height
       sprang — measured, 504px against 53px of travel). The vertical leads, the width
       trails; two clocks is what makes both read as the same spring. */
-  fall: 560,
-  spread: 800,
+  fall: 420,
+  spread: 600,
   /** ZERO since 2026-08-16 (Kushagra: the hold left "a weird random square on the screen
       for a brief instant" — the seed must start growing AS it fades in, one event). The
       circle-ness now survives the growth by shape instead of by time: the pose corner is
@@ -955,18 +962,18 @@ export const overlayMotion = {
       120 with a 120 hold still lingered. */
   grow: 0,
   /** Paint: the panel's own fade, and the scrim's. */
-  reveal: 200,
+  reveal: 150,
   /** The content prints as the box lands — held molten until here. */
-  revealDelay: 160,
+  revealDelay: 120,
   /** The content's own channels (sharpen + echo) run at THIS pace — the menu content's
       own, not the box's: the box clocks are speed-matched to a big journey (above), but
       content travels ~8px in both families, so equal TIME is what makes the two prints
       read as one sentence (2026-08-16). */
-  print: 380,
+  print: 285,
   /** Exit: the dissolve, and the hair of settle it carries (the floating exit's grammar,
       restated in the family's own numbers). */
-  dissolve: 140,
-  settle: 160,
+  dissolve: 105,
+  settle: 120,
 } as const;
 
 /**

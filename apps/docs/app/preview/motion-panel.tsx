@@ -23,17 +23,28 @@
  * finding numbers, and the numbers land in `packages/ui/src/tokens/config.ts` where they
  * have always lived. Delete this file the day the values are judged and nothing else moves.
  *
- * ONE THING TO KNOW BEFORE PASTING (2026-08-22). Shortening the floating clocks is not yet a
- * pure config change: it re-exposes the select's item-aligned jump by a different road. The
- * entry scales the CONTENT down while the box grows, and a scaled element contributes its
- * scaled size to the scrollable overflow — so `scrollHeight` climbs across the flight while
- * `clientHeight` climbs faster. Shorten the box clocks and the two CROSS for a few frames in
- * the middle, the maximum scroll offset is momentarily zero, and the browser clamps the
- * placement away. Measured at roughly a 30% cut: `scrollHeight` 460 → 920 against
- * `clientHeight` 30 → 778, crossing at frames 11–13, and the select law fails on it.
+ * HOW SHORT THE CLOCKS MAY GO (2026-08-23, re-measured). This paragraph used to say that
+ * shortening the floating clocks was not a pure config change, because it re-exposed the
+ * select's item-aligned jump: the entry scales the CONTENT down while the box grows, the two
+ * sizes cross for a few frames in the middle, the maximum scroll offset is momentarily zero,
+ * and the browser clamps the placement away. That is no longer reachable — the placement
+ * stopped being a scroll position for the length of the flight (it is carried as a negative
+ * margin on the body, which nothing can clamp), so the crossing has nothing to take.
  *
- * So: tune freely here, and the numbers are real. They land in config once that crossing is
- * dealt with — the offset has to stop being a scroll position for the length of the flight.
+ * Re-measured in a real browser on `/preview/select`, three fixtures (a 48-row list, a short
+ * list opening near the window's top edge, a trigger against an edge) at window heights 420
+ * and 620, sampling the chosen row's distance from its trigger per frame:
+ *
+ *   1.00x   offset spread 0, lands 2px off, no movement after landing
+ *   0.70x   offset spread 0, lands 3px off, no movement after landing
+ *   0.55x   offset spread 0, lands 5px off, 1-2px of creep after landing
+ *   0.40x   offset spread 0, lands 4px off, 3-7px of creep after landing
+ *
+ * So a cut of about a THIRD is free, and the numbers here are real config values. Below
+ * roughly 0.6x the panel starts finishing its growth after the entry says it has landed, and
+ * the chosen row crawls the last few pixels — small, but it is the reported defect returning
+ * in miniature. If a shorter clock is what the eye wants, that is a real bug to fix, not a
+ * bound to widen.
  */
 import * as React from "react";
 import { Button, Card, Flex, Heading, Separator, Stack, Text } from "@kookie-ui/react";
@@ -74,6 +85,99 @@ const OVERLAY: Knob[] = [
 ];
 
 const ALL = [...FLOATING, ...OVERLAY];
+
+/**
+ * THE SPRINGS, and the reason they are handled differently from everything above.
+ *
+ * A clock is a number in the document and the panel can simply write a different number. A
+ * spring is not: what ships is a `linear()` curve, thirty-odd samples of a damped step
+ * response that the generator computed from two numbers in `config.springs` — `zeta`, the
+ * damping ratio, and `omega`, the frequency. Those two numbers are nowhere in the document,
+ * so a slider over them would need its own copy of them, which is the second home this whole
+ * panel exists to avoid.
+ *
+ * It does not need one. The curve carries them. A damped step response overshoots by exactly
+ * `exp(-pi * zeta / sqrt(1 - zeta^2))` and peaks at `pi / (omega * sqrt(1 - zeta^2))`, so
+ * reading the curve's highest sample and where it sits inverts back to the pair that made it.
+ * Checked against the shipped values: elastic recovers 0.620 / 10.78 against a config of
+ * 0.62 / 10.835, poised 0.800 / 8.77 against 0.8 / 8.75. The residual is the peak falling
+ * between two samples, and it is smaller than any value anyone would judge by eye.
+ *
+ * So the baseline still comes off the document, the readout is a real `zeta` that pastes into
+ * `config.springs`, and dragging back to 1.0 restores exactly what the package ships.
+ */
+const SPRINGS = [
+  { prop: "--motion-spring-elastic", key: "elastic", note: "menu, select, alert — the entry" },
+  { prop: "--motion-spring-poised", key: "poised", note: "dialog — the heavy entry" },
+  { prop: "--motion-spring-lively", key: "lively", note: "controls recovering" },
+];
+
+type Spring = { zeta: number; omega: number; steps: number };
+
+/**
+ * Invert a shipped `linear()` back into the spring that made it. Returns null for a curve with
+ * no overshoot inside its own window — `stiff` is one, by design — because there is then no
+ * peak to solve from, and equally nothing anyone would call elasticity to remove.
+ */
+function readSpring(curve: string): Spring | null {
+  const open = curve.indexOf("(");
+  if (open < 0) return null;
+  const body = curve.slice(open + 1, curve.lastIndexOf(")"));
+  const points = body.split(",").map((chunk) => Number(chunk.trim().split(/\s+/)[0]));
+  if (points.length < 6) return null;
+  const steps = points.length - 1;
+
+  let peakAt = 0;
+  for (let i = 1; i < points.length; i++) if (points[i]! > points[peakAt]!) peakAt = i;
+  if (peakAt === 0 || peakAt === points.length - 1) return null;
+
+  // The peak sits BETWEEN two samples, so it is refined by fitting a parabola through the
+  // three around it — without this the recovered omega is out by a few percent, which is
+  // enough to make "reset" not quite restore what shipped.
+  const [a, b, c] = [points[peakAt - 1]!, points[peakAt]!, points[peakAt + 1]!];
+  const curvature = a - 2 * b + c;
+  const offset = curvature !== 0 ? (0.5 * (a - c)) / curvature : 0;
+  const peak = b - 0.25 * (a - c) * offset;
+  if (peak <= 1) return null;
+
+  const ln = Math.log(peak - 1);
+  const zeta = -ln / Math.sqrt(Math.PI * Math.PI + ln * ln);
+  const omega = Math.PI / (((peakAt + offset) / steps) * Math.sqrt(1 - zeta * zeta));
+  return { zeta, omega, steps };
+}
+
+/**
+ * …and back to a curve. This is `springCurve` in `tokens/generate.ts`, deliberately re-stated
+ * rather than imported: that file is a build-time generator reaching into config, and a dev
+ * panel importing it would drag the whole token pipeline into the client bundle. The one
+ * addition is the critically damped case, which the generator never needs because no shipped
+ * spring sits there — at zeta = 1 the damped frequency is zero and the general form divides by
+ * it, so the limit is stated instead. That case IS the "no elasticity" end of the slider.
+ */
+function writeSpring({ zeta, omega, steps }: Spring): string {
+  const trim = (n: number, places: number) => String(Number(n.toFixed(places)));
+  const critical = zeta >= 0.999;
+  const damped = critical ? 0 : omega * Math.sqrt(1 - zeta * zeta);
+  const points = ["0"];
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    const x = critical
+      ? 1 - Math.exp(-omega * t) * (1 + omega * t)
+      : 1 -
+        Math.exp(-zeta * omega * t) *
+          (Math.cos(damped * t) + ((zeta * omega) / damped) * Math.sin(damped * t));
+    points.push(`${trim(x, 3)} ${trim(t * 100, 2)}%`);
+  }
+  points.push("1 100%");
+  return `linear(${points.join(", ")})`;
+}
+
+/** What a damping ratio actually overshoots by, so the panel can show the bounce as the
+    percentage a person sees rather than as the physics constant behind it. */
+function overshoot(zeta: number): number {
+  if (zeta >= 0.999) return 0;
+  return Math.exp((-Math.PI * zeta) / Math.sqrt(1 - zeta * zeta)) * 100;
+}
 
 /**
  * A token's number, in the unit the CONFIG states it in — milliseconds for a clock, pixels
@@ -159,6 +263,12 @@ export function MotionPanel() {
   const [base, setBase] = React.useState<Record<string, string> | null>(null);
   const [clock, setClock] = React.useState(1);
   const [travel, setTravel] = React.useState(1);
+  /** The springs, recovered from the document once, beside the clocks they share a panel with. */
+  const [baseSprings, setBaseSprings] = React.useState<Record<string, Spring | null>>({});
+  /** 1.0 is what ships; 0 is critically damped, which is the spring with its bounce taken out
+      rather than the spring replaced by an ease. Per-spring overrides sit under "Tune each". */
+  const [bounce, setBounce] = React.useState(1);
+  const [eachZeta, setEachZeta] = React.useState<Record<string, number>>({});
   /** Per-token overrides, in the token's own unit. Absent means "whatever the multipliers
       say", which is what keeps the two layers from fighting. */
   const [each, setEach] = React.useState<Record<string, number>>({});
@@ -168,6 +278,9 @@ export function MotionPanel() {
     const read: Record<string, string> = {};
     for (const k of ALL) read[k.prop] = cs.getPropertyValue(k.prop).trim();
     setBase(read);
+    const sp: Record<string, Spring | null> = {};
+    for (const k of SPRINGS) sp[k.prop] = readSpring(cs.getPropertyValue(k.prop).trim());
+    setBaseSprings(sp);
   }, []);
 
   /** Every write lands on <html>, because the panels being judged are portalled out of the
@@ -185,6 +298,35 @@ export function MotionPanel() {
     };
   }, [base, clock, travel, each]);
 
+  /** A damping ratio between what ships and critically damped. At bounce = 1 this IS the
+      shipped number, so the reset below restores the curve byte for byte. */
+  const zetaOf = (prop: string): number | null => {
+    const b = baseSprings[prop];
+    if (!b) return null;
+    return eachZeta[prop] ?? b.zeta + (1 - b.zeta) * (1 - bounce);
+  };
+
+  React.useEffect(() => {
+    const root = document.documentElement;
+    let wrote = false;
+    // AT REST, WRITE NOTHING. The recovered omega carries about half a percent of rounding
+    // against the config that produced it, so re-emitting the curve at bounce = 1 would leave
+    // the document holding a near-copy of what it already had — close enough to look right and
+    // wrong enough to make "reset" a lie. Untouched is exact.
+    if (bounce === 1 && !Object.keys(eachZeta).length) return;
+    for (const k of SPRINGS) {
+      const b = baseSprings[k.prop];
+      const z = zetaOf(k.prop);
+      if (!b || z === null) continue;
+      wrote = true;
+      root.style.setProperty(k.prop, writeSpring({ ...b, zeta: z }));
+    }
+    if (!wrote) return;
+    return () => {
+      for (const k of SPRINGS) root.style.removeProperty(k.prop);
+    };
+  }, [baseSprings, bounce, eachZeta]);
+
   const current = (k: Knob) =>
     each[k.prop] ??
     Math.round(readNumber(base?.[k.prop] ?? "0", !!k.scaled) * (k.scaled ? travel : clock));
@@ -192,7 +334,9 @@ export function MotionPanel() {
   const reset = () => {
     setClock(1);
     setTravel(1);
+    setBounce(1);
     setEach({});
+    setEachZeta({});
   };
 
   /** What to paste into config.ts. Grouped exactly as the config groups it, because a readout
@@ -202,6 +346,12 @@ export function MotionPanel() {
     const loose = (k: Knob) => `export const ${k.key} = ${current(k)};`;
     const clocksOf = (set: Knob[]) => set.filter((k) => !k.scaled).map(line).join("\n");
     const sizesOf = (set: Knob[]) => set.filter((k) => k.scaled).map(loose).join("\n");
+    const springLines = SPRINGS.map((k) => {
+      const b = baseSprings[k.prop];
+      const z = zetaOf(k.prop);
+      if (!b || z === null) return null;
+      return `  ${k.key}: { zeta: ${Number(z.toFixed(3))}, omega: ${Number(b.omega.toFixed(3))}, steps: ${b.steps} },`;
+    }).filter(Boolean);
     return [
       "// floatingMotion (§22)",
       clocksOf(FLOATING),
@@ -210,6 +360,10 @@ export function MotionPanel() {
       "// overlayMotion (§24)",
       clocksOf(OVERLAY),
       sizesOf(OVERLAY),
+      "",
+      "// springs (§8) — omega is recovered from the shipped curve, so it carries a",
+      "// rounding of about half a percent against the config it came from.",
+      ...springLines,
     ].join("\n");
   };
 
@@ -237,9 +391,9 @@ export function MotionPanel() {
           a select or an alert while dragging.
         </Text>
         <Text size="1" emphasis="medium">
-          Shorter floating clocks currently re-expose the select&rsquo;s jump on a long list —
-          the box outgrows its own scaled content mid-flight and the placement is clamped away.
-          Judge here freely; the numbers land in config once that is fixed.
+          Floating clocks are safe to about 0.7&times;. Below roughly 0.6&times; a select&rsquo;s
+          chosen row crawls the last few pixels after the entry has landed &mdash; judge here
+          freely, but a number under that is a bug to fix rather than a value to ship.
         </Text>
 
         <Slider
@@ -266,6 +420,29 @@ export function MotionPanel() {
             setEach({});
           }}
         />
+
+        <Slider
+          label="bounce"
+          value={bounce}
+          min={0}
+          max={1}
+          step={0.05}
+          suffix="\u00d7"
+          onChange={(n) => {
+            setBounce(n);
+            setEachZeta({});
+          }}
+        />
+        <Text size="1" emphasis="quiet">
+          {(() => {
+            const z = zetaOf("--motion-spring-elastic");
+            if (z === null) return "springs not read yet";
+            const o = overshoot(z);
+            return o < 0.05
+              ? `entry spring \u03b6 ${z.toFixed(2)} \u2014 no overshoot, it arrives and stops`
+              : `entry spring \u03b6 ${z.toFixed(2)} \u2014 overshoots ${o.toFixed(1)}%`;
+          })()}
+        </Text>
 
         <Flex gap="2" align="center" wrap="wrap">
           <Button size="1" emphasis="quiet" bordered onClick={() => setShowAll((s) => !s)}>
@@ -318,6 +495,30 @@ export function MotionPanel() {
                 onChange={(n) => setEach((e) => ({ ...e, [k.prop]: n }))}
               />
             ))}
+            <Separator />
+            <Text size="1" emphasis="quiet">
+              springs — damping ratio. 1.0 is critically damped: no overshoot at all.
+            </Text>
+            {SPRINGS.map((k) => {
+              const z = zetaOf(k.prop);
+              if (z === null) return null;
+              return (
+                <React.Fragment key={k.prop}>
+                  <Slider
+                    label={`${k.key} \u03b6`}
+                    value={z}
+                    min={0.4}
+                    max={1}
+                    step={0.01}
+                    suffix=""
+                    onChange={(n) => setEachZeta((e) => ({ ...e, [k.prop]: n }))}
+                  />
+                  <Text size="1" emphasis="quiet">
+                    {k.note} — overshoots {overshoot(z).toFixed(1)}%
+                  </Text>
+                </React.Fragment>
+              );
+            })}
           </Stack>
         ) : null}
       </Stack>

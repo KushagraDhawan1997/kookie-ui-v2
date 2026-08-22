@@ -737,6 +737,60 @@ function useFlight(plan: FlightPlan) {
           for (const el of pinned) el.style.removeProperty("transition");
 
           /**
+           * THE TARGET IS CORRECTED AT DEPARTURE, because the room does not exist yet when the
+           * box is measured (2026-08-23 audit; Kushagra had reported the symptom twice, on a
+           * select and then on a menu).
+           *
+           * `natural` above is read in the microtask, which is the right moment for React's
+           * layout and the wrong one for floating-ui's: `computePosition` resolves from a
+           * promise, and until it does, Base UI's seeded `--available-width/-height` still say
+           * `100vw`/`100vh`. So a panel with more content than room measures its natural box
+           * through a cap that is still the whole viewport — measured, a 40-item menu wrote
+           * `--kui-fly-h: 800px` for a panel that settles at 393.4.
+           *
+           * Nothing looks wrong at the START of that flight, which is how it survived three
+           * audits: the box grows toward 800 and `max-height: var(--available-height)` simply
+           * clamps what gets painted. What it costs is the CLOCK. The panel hits its real
+           * ceiling at ~56ms of a 460ms `fall` and then stands still, while `inline-size` on
+           * the 680ms `spread` travels for another third of a second — so the box drops open in
+           * three frames and then unfurls sideways, which is the exact order §22 reversed on
+           * 2026-08-09 for being unreadable, and there is no spring curve left to see.
+           *
+           * Clamped, never re-aimed: this can only make the target SMALLER, so a panel with
+           * room to spare is untouched and it cannot become a second placement mechanism
+           * arguing with floating-ui's.
+           *
+           * WHY IT LIVES HERE, and it is not a preference. By departure the positioner already
+           * carries `data-side` and a real room — one frame is enough, measured. And departure
+           * is the last moment a correction is FREE: the line below arms `transitioncancel` as
+           * the dismissal signal, so any later write to a flight var cancels the running
+           * `block-size` transition and is read as a dismissal. Tried it — re-fitting every
+           * frame for twenty frames released the flight at frame five and snapped the panel
+           * open, which is worse than the defect. The pose still pins `transition: none` at
+           * this point, so this write starts nothing that could be cancelled.
+           *
+           * THE RESIDUE, stated rather than hidden: the room is not still. It follows the
+           * TRIGGER's own press-release spring — measured 391 climbing to a 393.65 overshoot
+           * and settling at 393.4 — so a target taken at departure is ~2.4px under where the
+           * panel finally rests, and it takes that last 2.4px when the flight releases. That is
+           * 0.6% of the panel, on a box that has been still for 400ms, and the alternative is
+           * the loop above that destroys the flight. If it ever needs closing, the fix is the
+           * same sentence `restingAnchorWidth` states one axis over: ask the trigger for its
+           * resting box, not its pressed one.
+           */
+          const fitToRoom = () => {
+            if (!positioner) return;
+            const room = getComputedStyle(positioner);
+            const fit = (name: string, axis: string, measured: number) => {
+              const available = parseFloat(room.getPropertyValue(axis));
+              if (!Number.isFinite(available) || available <= 0 || available >= measured) return;
+              popup.style.setProperty(name, `${available}px`);
+            };
+            fit("--kui-fly-h", "--available-height", natural.height);
+            fit("--kui-fly-w", "--available-width", natural.width);
+          };
+
+          /**
            * Released on arrival BY THE CLOCK, never by a channel's `transitionend`
            * (2026-08-10): the morph's seed is the trigger's width and a select's trigger is
            * routinely exactly as wide as its panel — equal start and end means no transition,
@@ -913,6 +967,8 @@ function useFlight(plan: FlightPlan) {
           if (trigger) queueMicrotask(aim);
 
           const depart = () => {
+            // Before the pose comes off and before the listener below is armed — see fitToRoom.
+            fitToRoom();
             popup.removeAttribute("data-seed");
             // The dismissal listener arms HERE, the frame the flight departs, and never at
             // begin (2026-08-16): a flight born while an exit is still dying cancels that

@@ -182,37 +182,37 @@
   --thumb-lean: calc(6px * var(--scale));
   --motion-spring-lively: linear(0, 0.04 2.78%, 0.141 5.56%, 0.278 8.33%, 0.429 11.11%, 0.579 13.89%, 0.717 16.67%, 0.835 19.44%, 0.931 22.22%, 1.004 25%, 1.056 27.78%, 1.087 30.56%, 1.103 33.33%, 1.107 36.11%, 1.101 38.89%, 1.089 41.67%, 1.074 44.44%, 1.058 47.22%, 1.042 50%, 1.028 52.78%, 1.016 55.56%, 1.006 58.33%, 0.998 61.11%, 0.993 63.89%, 0.99 66.67%, 0.989 69.44%, 0.989 72.22%, 0.989 75%, 0.991 77.78%, 0.992 80.56%, 0.994 83.33%, 0.996 86.11%, 0.997 88.89%, 0.999 91.67%, 1 94.44%, 1 97.22%, 1 100%);
   --motion-spring-stiff: linear(0, 0.017 4.17%, 0.062 8.33%, 0.124 12.5%, 0.197 16.67%, 0.276 20.83%, 0.356 25%, 0.434 29.17%, 0.509 33.33%, 0.578 37.5%, 0.642 41.67%, 0.699 45.83%, 0.749 50%, 0.794 54.17%, 0.833 58.33%, 0.866 62.5%, 0.894 66.67%, 0.918 70.83%, 0.937 75%, 0.953 79.17%, 0.966 83.33%, 0.977 87.5%, 0.985 91.67%, 0.991 95.83%, 1 100%);
-  --motion-spring-elastic: linear(0, 0.04 2.78%, 0.139 5.56%, 0.272 8.33%, 0.419 11.11%, 0.563 13.89%, 0.695 16.67%, 0.809 19.44%, 0.902 22.22%, 0.973 25%, 1.024 27.78%, 1.057 30.56%, 1.076 33.33%, 1.083 36.11%, 1.082 38.89%, 1.075 41.67%, 1.064 44.44%, 1.052 47.22%, 1.04 50%, 1.029 52.78%, 1.019 55.56%, 1.01 58.33%, 1.004 61.11%, 0.999 63.89%, 0.996 66.67%, 0.994 69.44%, 0.993 72.22%, 0.993 75%, 0.994 77.78%, 0.994 80.56%, 0.995 83.33%, 0.996 86.11%, 0.997 88.89%, 0.998 91.67%, 0.999 94.44%, 1 97.22%, 1 100%);
+  --motion-spring-elastic: linear(0, 0.039 2.78%, 0.135 5.56%, 0.26 8.33%, 0.396 11.11%, 0.528 13.89%, 0.649 16.67%, 0.753 19.44%, 0.838 22.22%, 0.906 25%, 0.957 27.78%, 0.993 30.56%, 1.017 33.33%, 1.031 36.11%, 1.038 38.89%, 1.04 41.67%, 1.038 44.44%, 1.034 47.22%, 1.029 50%, 1.024 52.78%, 1.019 55.56%, 1.014 58.33%, 1.01 61.11%, 1.006 63.89%, 1.004 66.67%, 1.002 69.44%, 1 72.22%, 0.999 75%, 0.999 77.78%, 0.998 80.56%, 0.998 83.33%, 0.998 86.11%, 0.999 88.89%, 0.999 91.67%, 0.999 94.44%, 0.999 97.22%, 1 100%);
   --motion-spring-poised: linear(0, 0.026 2.78%, 0.091 5.56%, 0.179 8.33%, 0.279 11.11%, 0.382 13.89%, 0.482 16.67%, 0.575 19.44%, 0.658 22.22%, 0.732 25%, 0.794 27.78%, 0.847 30.56%, 0.89 33.33%, 0.925 36.11%, 0.952 38.89%, 0.972 41.67%, 0.988 44.44%, 0.999 47.22%, 1.006 50%, 1.011 52.78%, 1.014 55.56%, 1.015 58.33%, 1.015 61.11%, 1.014 63.89%, 1.013 66.67%, 1.012 69.44%, 1.01 72.22%, 1.009 75%, 1.007 77.78%, 1.006 80.56%, 1.005 83.33%, 1.004 86.11%, 1.003 88.89%, 1.002 91.67%, 1.001 94.44%, 1.001 97.22%, 1 100%);
 
   /* the floating family's own motion (§22) — the emergence recipe's channels. Time, so
      no --scale: a panel does not unfurl slower because the interface is zoomed. */
   --floating-seed: calc(56px * var(--scale));
   --floating-echo: calc(8px * var(--scale));
-  --floating-fall: 460ms;
-  --floating-spread: 680ms;
-  --floating-corner: 560ms;
-  --floating-reveal: 260ms;
-  --floating-reveal-delay: 60ms;
-  --floating-dissolve: 140ms;
-  --floating-settle: 160ms;
+  --floating-fall: 345ms;
+  --floating-spread: 510ms;
+  --floating-corner: 420ms;
+  --floating-reveal: 195ms;
+  --floating-reveal-delay: 45ms;
+  --floating-dissolve: 105ms;
+  --floating-settle: 120ms;
   --overlay-seed: calc(64px * var(--scale));
   --overlay-lift: calc(32px * var(--scale));
   --overlay-hold: 0ms;
   --overlay-grow: 0ms;
   --overlay-echo: calc(8px * var(--scale));
-  --overlay-materialize: 700ms;
-  --overlay-fall: 560ms;
-  --overlay-spread: 800ms;
-  --overlay-reveal: 200ms;
-  --overlay-reveal-delay: 160ms;
-  --overlay-print: 380ms;
+  --overlay-materialize: 525ms;
+  --overlay-fall: 420ms;
+  --overlay-spread: 600ms;
+  --overlay-reveal: 150ms;
+  --overlay-reveal-delay: 120ms;
+  --overlay-print: 285ms;
   --dialog-settle: 600ms;
   --dialog-reveal: 300ms;
   --dialog-depth: 0.97;
   --dialog-blur: 6px;
-  --overlay-dissolve: 140ms;
-  --overlay-settle: 160ms;
+  --overlay-dissolve: 105ms;
+  --overlay-settle: 120ms;
 
   /* §8 — pointer feedback; `button` is the contested one, so it is overridable */
   --cursor-button: pointer;

@@ -2329,6 +2329,66 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(measured).toBeCloseTo(popup.getBoundingClientRect().width, 2);
   });
 
+  it("…and when the panel is capped by the window, the box it grows into is the CAPPED box (§22)", async () => {
+    /**
+     * 2026-08-23, the floating-motion audit, and Kushagra had reported the symptom twice —
+     * once on a select and then *"the jumping problem exists in dropdown menu too"*.
+     *
+     * The runner measures the panel's natural box in a microtask. That is the right moment for
+     * React's layout and the wrong one for floating-ui's, whose `computePosition` resolves from
+     * a promise — so until it does, Base UI's SEEDED `--available-width/-height` still read
+     * `100vw`/`100vh`. A panel with more content than room therefore measured itself through a
+     * cap that was still the whole viewport: `--kui-fly-h: 800px` for a panel that settles at
+     * ~393.
+     *
+     * Nothing looks wrong at the start of that flight, which is why the law above passed
+     * through three audits: its panel is two rows and is never capped, so its fixture cannot
+     * tell a correct measurement from a viewport-sized one — the degenerate-fixture rule. And
+     * the cost is not position but the CLOCK: the box reaches its real ceiling at ~56ms of a
+     * 460ms `fall` and then stands still while `inline-size` travels for another third of a
+     * second, so it drops open and then unfurls sideways with no spring curve left to see.
+     *
+     * Read at DEPARTURE rather than at the pose, because that is where the correction lives —
+     * it is the last moment before `transitioncancel` is armed as the dismissal signal, after
+     * which any write to a flight var releases the flight.
+     */
+    const many = Array.from({ length: 40 }, (_, i) => <MenuItem key={i}>{`Row ${i}`}</MenuItem>);
+    const { popup } = await openUnsettled({}, <>{many}</>);
+    await departed(popup);
+
+    const positioner = popup.parentElement!;
+    const room = parseFloat(getComputedStyle(positioner).getPropertyValue("--available-height"));
+    const flyH = parseFloat(popup.style.getPropertyValue("--kui-fly-h"));
+
+    // Landed by hand, the way every motion law here lands one, because the calibration below
+    // has to read the panel's CONTENT — and a flying box is clipped with its body lifted out
+    // of flow, so a content measurement taken in the air answers the pose, not the panel.
+    popup.removeAttribute("data-unfurling");
+    popup.style.removeProperty("--kui-fly-h");
+    popup.style.removeProperty("--kui-fly-w");
+    popup.style.removeProperty("overflow");
+
+    // THE CALIBRATION, and without it this law is the one above with more rows: a panel that
+    // FITS its window is never capped, so its natural box and its viewport-sized box are the
+    // same number and the assertion below holds whichever one was measured. What makes this
+    // cell able to fail is that the content genuinely does not fit — proven by the scroller,
+    // not by the row count, so a change to the row height cannot quietly make it vacuous.
+    expect(room, "the room must be readable, or the cap under test cannot exist").toBeGreaterThan(0);
+    expect(
+      room,
+      "the room must differ from the viewport, or a viewport-sized measurement and a correct one are the same number",
+    ).toBeLessThan(window.innerHeight);
+    expect(
+      popup.getBoundingClientRect().height,
+      "this cell's panel must SIT AT its cap, or its content fits and there is nothing to clamp",
+    ).toBeGreaterThanOrEqual(room - 1);
+
+    expect(
+      flyH,
+      `the flight aims at ${flyH}px for a panel with ${room}px of room — the box finishes early and the entry loses its curve`,
+    ).toBeLessThanOrEqual(room + 1);
+  });
+
   it("nothing the seed moves is missing from the transition list (§8)", async () => {
     // The teleport rule as a law rather than a comment. A property the seed changes but the
     // transition never names does not animate — it SNAPS, which is exactly the defect that
