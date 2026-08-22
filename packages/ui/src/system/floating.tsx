@@ -331,8 +331,20 @@ function useFlight(plan: FlightPlan) {
         // — every keyboard Enter/Space, and every programmatic .click() — so the keyboard
         // lost the entry flight wholesale (audit 2026-08-18). An open is an open; the
         // keyboard gets the same physics, and stillness belongs to reduced-motion alone.
+        //
+        // `dismiss` is EXEMPT TOO (2026-08-22, and the two exemptions must stay in step with
+        // the stylesheet's — this is the pair the §20 agreement clause is about). Menu's store
+        // sets it on CLOSE, for a keyboard Escape or an imperative close, and only ever
+        // recomputes it inside its own `setOpen`. So a CONTROLLED `<Menu open>` reopened from
+        // app state never clears it: the stamp from the previous Escape is still on the popup
+        // at the next mount, and both halves of the old guard read it as instant — the runner
+        // returned before posing and the stylesheet zeroed every clock. Measured: state-open
+        // fresh flew at w=67, state-open after one Escape did not fly at all and sat at 112,
+        // and a real trigger press flew again. A command palette driven from a store lost its
+        // animation after the first Escape and looked like it had randomly stopped working.
+        // A stamp that means "this CLOSE was not a reveal" says nothing about an open.
         const instant = popup.getAttribute("data-instant");
-        if (instant !== null && instant !== "click") return;
+        if (instant !== null && instant !== "click" && instant !== "dismiss") return;
 
         // The previous flight retires only once THIS one is certain (2026-08-16 audit):
         // retiring above the bails meant a begin that could not fly still killed a live

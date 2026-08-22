@@ -1765,15 +1765,28 @@
 }
 
 /* Base UI asks for instant when the change is not a reveal — reopening into an already-open
-   group, a dismissal the pointer already committed to. `click` is EXEMPT (2026-08-19):
-   Base UI 1.7 began stamping instantType "click" for any trigger press with
-   nativeEvent.detail === 0, which is every keyboard Enter/Space — so a keyboard user lost
-   the entry flight entirely, a decision this system never made (audit 2026-08-18). An open
-   is an open: the same physics for every input; reduced motion is the stand-down for
-   stillness, not the keyboard. */
-.kui-surface.kui-floating[data-instant]:not([data-instant="click"]),
-.kui-surface.kui-floating[data-instant]:not([data-instant="click"]) .kui-floating-body,
-.kui-surface.kui-floating[data-instant]:not([data-instant="click"]) :where(.kui-row, .kui-separator) {
+   group, a sibling opening under the pointer, a focus that moved the panel rather than
+   revealing it. TWO values are exempt, and both exemptions are the same sentence.
+
+   `click` (2026-08-19): Base UI 1.7 stamps instantType "click" for any trigger press with
+   nativeEvent.detail === 0, which is every keyboard Enter/Space — so a keyboard user lost the
+   entry flight entirely, a decision this system never made (audit 2026-08-18).
+
+   `dismiss` (2026-08-22, measured): Menu's own store sets it when `reason === escapeKey || reason
+   == null` (`menu/root/MenuRoot.js`), so it means A KEYBOARD DISMISSAL, or an imperative one —
+   and this rule then deleted the exit outright. Measured on one menu: Escape went opacity 1 to
+   0 in a single frame and was gone in 29ms, while the same menu dismissed by an outside press
+   or by choosing a row dissolved over ~220ms, and Select, Dialog and AlertDialog all dissolved
+   on Escape. The comment that stood here described `dismiss` as "a dismissal the pointer
+   already committed to" — that is POPOVER's store, not Menu's, and it had the two backwards:
+   the pointer's dismissal is the one that keeps its dissolve, the keyboard's was the one
+   erased.
+
+   So: an open is an open and a close is a close, with the same physics for every input.
+   Reduced motion is the stand-down for stillness, and it is the only one. */
+.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]),
+.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]) .kui-floating-body,
+.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]) :where(.kui-row, .kui-separator) {
   transition: none;
 }
 

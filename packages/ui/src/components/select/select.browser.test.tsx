@@ -1193,7 +1193,13 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     ).toBeGreaterThan(floor);
     expect(flying, "the flight was not held at the trigger's width").toBeGreaterThan(floor);
 
-    expect(settled, `the panel stepped ${flying} → ${settled} at release`).toBeCloseTo(flying, 0);
+    // One pixel, not half: the defect is a ~2.5% step and sub-pixel layout noise between two
+    // frames is not it. `toBeCloseTo(…, 0)` is a 0.5 bound and failed intermittently on a 0.5
+    // difference — a tolerance tuned so finely that it reported the machine, not the mechanism.
+    expect(
+      Math.abs(settled - flying),
+      `the panel stepped ${flying} → ${settled} at release`,
+    ).toBeLessThan(1);
     // THE STEP ITSELF IS MEASURED ON A MENU, not here, and the reason is worth stating: a
     // select's trigger is field-shaped and a field's box does not travel (§8, measured
     // 2026-08-10), so this fixture's anchor never scales and the handover this law is about

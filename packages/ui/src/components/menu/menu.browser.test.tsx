@@ -1758,6 +1758,181 @@ describe("the panel unfurls out of a seed (§22)", () => {
   // WATCHES FRAMES: it hunts for the last AIMED SEED frame — a pose that holds about two
   // frames — by polling, so a stalled runner misses the window and reports a submenu that
   // never posed. Local only (test/browser.tsx carries the criterion).
+  it("a KEYBOARD dismissal dissolves, exactly like a pointer's (§8, §22)", async () => {
+    /**
+     * Measured 2026-08-22: pressing Escape removed a menu in ONE FRAME — opacity 1 to 0, gone
+     * in 29ms — while the same menu dismissed by an outside press or by choosing a row
+     * dissolved over ~220ms. Select, Dialog and AlertDialog all dissolved on Escape; only this
+     * family had the arm.
+     *
+     * Menu's own store sets `instantType` to `dismiss` when `reason === escapeKey || reason ==
+     * null`, so the value means a KEYBOARD dismissal or an imperative one — and the flight
+     * rule read every value but `click` as "do not animate", at (0,4,0) against the exit
+     * recipe's (0,3,0). The comment above that rule described `dismiss` as "a dismissal the
+     * pointer already committed to", which is Popover's store rather than Menu's, and had the
+     * two exactly backwards: the pointer's dismissal keeps its dissolve, the keyboard's was the
+     * one erased. It is the precise inverse of the 2026-08-19 `click` exemption, which was
+     * applied to opens and never checked for closes.
+     *
+     * Read as the AGREEMENT between the two routes rather than against a literal clock, so a
+     * retuned exit cannot make this law lie; the pointer route is the control.
+     */
+    inMotion();
+    const { userEvent } = await import("vitest/browser");
+
+    const clocksOnDismissal = async (dismiss: (t: HTMLElement) => Promise<void>) => {
+      const host = mount(
+        <Theme>
+          <div style={{ padding: 120 }}>
+            <Menu>
+              <MenuTrigger render={<Button>Open</Button>} />
+              <MenuContent>
+                <MenuItem>Alpha</MenuItem>
+                <MenuItem>Beta</MenuItem>
+              </MenuContent>
+            </Menu>
+          </div>
+        </Theme>,
+      );
+      const trigger = host.querySelector<HTMLElement>(".kui-button")!;
+      await press(trigger);
+      await flushFlight();
+      // The OPEN one, never "the first" or "the last" (this file's own instrument scar, twice):
+      // a previous law's panel can still be mid-dissolve, and document order says nothing about
+      // which panel is this law's.
+      const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find((el) =>
+        el.hasAttribute("data-open"),
+      )!;
+      expect(popup, "this law's own panel never opened").toBeTruthy();
+      // LANDED FIRST, and this is not tidiness: the pose carries its own `transition: none`
+      // (surfaces.css, the seed block), so a panel dismissed while it is still flying reports
+      // no exit clock for a reason that has nothing to do with the rule under test. Passing
+      // alone and failing in the file was the signature — the entry had landed by the time the
+      // gesture arrived on a quiet machine and had not on a busy one.
+      await until(() => !popup.hasAttribute("data-unfurling"));
+      expect(popup.hasAttribute("data-seed"), "the panel is still posed, so its clocks are the pose's").toBe(false);
+      // Armed BEFORE the gesture and anchored on the stamp: an exit is ~220ms of wall clock and
+      // a law that looks afterwards finds an unmounted node.
+      const onExit = new Promise<{ clocks: number[]; why: string }>((resolve, reject) => {
+        const timer = setTimeout(() => {
+          observer.disconnect();
+          reject(new Error("the panel never took an ending stamp"));
+        }, 2000);
+        const observer = new MutationObserver(() => {
+          if (!popup.hasAttribute("data-ending-style")) return;
+          clearTimeout(timer);
+          observer.disconnect();
+          const cs = getComputedStyle(popup);
+          resolve({
+            clocks: cs.transitionDuration.split(",").map((d) => parseFloat(d)),
+            why: `channels=${cs.transitionProperty}`,
+          });
+        });
+        observer.observe(popup, { attributes: true, attributeFilter: ["data-ending-style"] });
+      });
+      await dismiss(trigger);
+      const exit = await onExit;
+      return { ...exit, instant: popup.getAttribute("data-instant") };
+    };
+
+    const keyboard = await clocksOnDismissal(async () => {
+      await userEvent.keyboard("{Escape}");
+    });
+    const pointer = await clocksOnDismissal(async () => {
+      await userEvent.click(document.body);
+    });
+
+    // THE PREMISE: the keyboard route really does take the stamp this rule keys on. Without it
+    // the law passes on a build where Base UI stopped stamping at all, which is agreement by
+    // absence rather than by physics.
+    expect(keyboard.instant, "Escape no longer carries the stamp this law is about").toBe("dismiss");
+    expect(pointer.instant, "an outside press must NOT be stamped, or there is no control").toBeNull();
+
+    const longest = (clocks: number[]) => Math.max(...clocks);
+    expect(longest(pointer.clocks), "the control has no exit clock to compare against").toBeGreaterThan(0);
+    expect(
+      longest(keyboard.clocks),
+      `Escape dissolves over ${longest(keyboard.clocks)}s against the pointer's ${longest(pointer.clocks)}s\n  keyboard: ${keyboard.why}\n  pointer:  ${pointer.why}`,
+    ).toBeCloseTo(longest(pointer.clocks), 3);
+  });
+
+  it("a CONTROLLED menu still flies on the open after an Escape (§22)", async () => {
+    /**
+     * Base UI recomputes `instantType` only inside its own `setOpen`. A controlled `<Menu open>`
+     * driven from app state never calls it, so the `dismiss` written by the previous Escape was
+     * still in the store — and still stamped on the popup — at the next mount. Both halves of
+     * the old exemption read it as instant: the runner returned before posing, and the
+     * stylesheet zeroed every clock. Measured before the fix: state-open fresh flew at w=67,
+     * state-open after one Escape did not fly and sat at 112, and a real trigger press flew
+     * again. A command palette or a row-actions menu driven from a store lost its animation
+     * after the first Escape and looked like it had randomly stopped working.
+     *
+     * A stamp that means "this CLOSE was not a reveal" says nothing about an open, which is
+     * why the fix is one exemption rather than a clearing pass — and why this law drives the
+     * SECOND open, not the first.
+     */
+    inMotion();
+    const { userEvent } = await import("vitest/browser");
+    let setOpen!: (v: boolean) => void;
+    function Controlled() {
+      const [open, set] = React.useState(false);
+      setOpen = set;
+      return (
+        <Theme>
+          <div style={{ padding: 120 }}>
+            <Menu open={open} onOpenChange={set}>
+              <MenuTrigger render={<Button>Open</Button>} />
+              <MenuContent>
+                <MenuItem>Alpha</MenuItem>
+                <MenuItem>Beta</MenuItem>
+              </MenuContent>
+            </Menu>
+          </div>
+        </Theme>
+      );
+    }
+    mount(<Controlled />);
+
+    // Armed before each open: the pose is stamped in the commit and lasts about two frames, so
+    // anything that finds the popup first is already looking after the fact.
+    const flew = () =>
+      new Promise<boolean>((resolve) => {
+        const timer = setTimeout(() => {
+          observer.disconnect();
+          resolve(false);
+        }, 1500);
+        const observer = new MutationObserver(() => {
+          const posed = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find((el) =>
+            el.hasAttribute("data-seed"),
+          );
+          if (!posed) return;
+          clearTimeout(timer);
+          observer.disconnect();
+          resolve(true);
+        });
+        observer.observe(document.body, {
+          subtree: true,
+          attributes: true,
+          attributeFilter: ["data-seed"],
+        });
+      });
+
+    const first = flew();
+    flushSync(() => setOpen(true));
+    // THE CALIBRATION: the first state-driven open must fly, or this law is measuring a menu
+    // that never animates from state at all and the second read below proves nothing.
+    expect(await first, "a controlled menu did not fly on its FIRST open").toBe(true);
+
+    await userEvent.keyboard("{Escape}");
+    await until(() => document.querySelectorAll(".kui-menu-popup").length === 0);
+
+    const second = flew();
+    flushSync(() => setOpen(true));
+    expect(await second, "the stale dismiss stamp ate the entry on the open after an Escape").toBe(
+      true,
+    );
+  });
+
   it("the panel's floor is the trigger's LAYOUT width, so it does not step at release (§22)", async () => {
     /**
      * 2026-08-17 and again 2026-08-22, Kushagra: *"it jumps a bit in width at the end."*
@@ -1808,7 +1983,10 @@ describe("the panel unfurls out of a seed (§22)", () => {
       }, 3000);
       let flying = 0;
       const observer = new MutationObserver(() => {
-        const popup = document.querySelector<HTMLElement>(".kui-menu-popup");
+        // The OPEN one — see the note in the keyboard-dismissal law above.
+        const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find((el) =>
+          el.hasAttribute("data-open"),
+        );
         if (!popup) return;
         if (popup.hasAttribute("data-unfurling")) {
           flying = popup.getBoundingClientRect().width;
@@ -1838,7 +2016,9 @@ describe("the panel unfurls out of a seed (§22)", () => {
 
     // THE CALIBRATIONS, first: without them the assertion is satisfied by a panel whose floor
     // never mattered, and by a trigger that never pressed.
-    const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
+    const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find((el) =>
+      el.hasAttribute("data-open"),
+    )!;
     // Resolved THROUGH A BOX, never parsed off the property: `--floating-min-w` is
     // `calc(112px * var(--scale))`, so reading it as a custom property answers the unresolved
     // string and `parseFloat` answers NaN — the runner's own scar, where a guard that did
@@ -1858,7 +2038,14 @@ describe("the panel unfurls out of a seed (§22)", () => {
       "the trigger must be HOLDING its press, or there is no disagreement to catch",
     ).toBeLessThan(1);
 
-    expect(settled, `the panel stepped ${flying} → ${settled} at release`).toBeCloseTo(flying, 0);
+    // One pixel, not half: the defect is a ~2.5% step (10px on this trigger) and sub-pixel
+    // layout noise between two frames is not it. `toBeCloseTo(…, 0)` is a 0.5 bound and failed
+    // on a 0.5 difference in a full-file run — a tolerance tuned so finely that it reported the
+    // machine rather than the mechanism.
+    expect(
+      Math.abs(settled - flying),
+      `the panel stepped ${flying} → ${settled} at release`,
+    ).toBeLessThan(1);
   });
 
   watchesFrames("a panel that lands BESIDE its trigger grows out of the SEAM, not out of the row (§22)", async () => {
