@@ -1581,7 +1581,7 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
       // because eight rows never scrolled. What the entry owes is that the offset is not
       // taken and clamped away WHILE the box is deliberately smaller than its list; what the
       // release owes is that the placement's offset is there at the end. Both are read.
-      if (popup?.hasAttribute("data-unfurling")) inner.push(Math.abs(popup.scrollTop));
+      if (popup?.hasAttribute("data-unfurling")) inner.push(popup.scrollTop);
       if (popup && !popup.hasAttribute("data-unfurling") && inner.length) landed = popup;
       if (sampling) requestAnimationFrame(tick);
     };
@@ -1594,13 +1594,34 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
 
     expect(inner.length, "the entry never ran — the law measured nothing").toBeGreaterThan(5);
     expect(Math.max(...drift), `the page moved ${Math.max(...drift)}px`).toBeLessThanOrEqual(1);
+
+    /**
+     * THE PANEL'S OWN OFFSET MUST NOT MOVE — which is not the same claim as "must be zero",
+     * and the difference is the whole of 2026-08-22 (Kushagra, on a 48-row list: it "jumps
+     * the selected item to correct position after opening").
+     *
+     * This assertion read `max(inner) <= 1` until then, which pinned the SPELLING of the fix
+     * that happened to be in the file rather than the guarantee the paragraph above argues
+     * for. Zero satisfied it, and zero is exactly what the defect looks like: the flight
+     * abolished the offset, ran ~740ms with the list at the top, and the placement arrived in
+     * one step on release — measured `scrollTop` 301 at the seed, 0 for every flying frame,
+     * 301 again after, with the chosen row 374px from the trigger it exists to sit on and
+     * snapping home. A law asserting zero cannot tell that from a working entry.
+     *
+     * What the entry owes is that the offset does not CHANGE while the box is deliberately
+     * smaller than its list. That catches both failures with one sentence: the browser's
+     * reveal taking an offset and the box clamping it away frame by frame (the 2026-08-17
+     * finding, 165 → 0), and the offset being held at the wrong value and corrected at the
+     * end (the finding above). Zero is still allowed — it is simply no longer sufficient.
+     */
+    const spread = Math.max(...inner) - Math.min(...inner);
     expect(
-      Math.max(...inner),
-      `the panel scrolled its own contents to ${Math.max(...inner)}px mid-flight`,
+      spread,
+      `the panel's contents slid ${spread}px during the entry (${Math.min(...inner)} → ${Math.max(...inner)})`,
     ).toBeLessThanOrEqual(1);
 
-    // THE CALIBRATION, and it is what makes the assertion above mean anything: a list that
-    // fits its box has no offset to lose, so a zero read there is the fixture agreeing with
+    // THE CALIBRATION, and it is what makes the assertions here mean anything: a list that
+    // fits its box has no offset to lose, so a still panel there is the fixture agreeing with
     // itself rather than the mechanism working (the eight-row fixture this law shipped with).
     const settledPanel = landed ?? document.querySelector<HTMLElement>(".kui-select-popup")!;
     expect(
@@ -1613,5 +1634,14 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
       settledPanel.scrollTop,
       "the placement's own offset did not survive the entry",
     ).toBeGreaterThan(1);
+
+    // …AND IT IS THE OFFSET THE PANEL FLEW WITH. Constancy alone permits the defect held
+    // perfectly still: 0 for every flying frame and the placement applied on release is a
+    // spread of zero and a jump the user sees. The flight's value and the settled value are
+    // the same number, or the entry landed somewhere it was not going.
+    expect(
+      Math.abs(inner[inner.length - 1]! - settledPanel.scrollTop),
+      `the entry flew at ${inner[inner.length - 1]} and landed at ${settledPanel.scrollTop} — the placement arrived in one step`,
+    ).toBeLessThanOrEqual(1);
   });
 });

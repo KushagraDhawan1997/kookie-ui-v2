@@ -1542,9 +1542,19 @@
      Measured, same rules, one negative control: a menu's flying box computes `clip` and
      `absolute`, a select's computes `hidden auto` and `relative`, and the "measured 0 in every
      frame" above was taken on an eight-row list with no offset to lose. The select's half is
-     won in the runner now, which writes `clip` inline for the flight and hands back what it
-     found (system/floating.tsx). This line still governs every anchored panel that has no
-     inline style of its own, which is why it stays. */
+     won in the runner now (system/floating.tsx). This line still governs every anchored panel
+     that has no inline style of its own, which is why it stays.
+
+     AND THE RUNNER'S HALF IS NO LONGER A CLIP (2026-08-22, Kushagra on a 48-row list: it
+     "jumps the selected item to correct position after opening"). Abolishing the offset ends
+     the sliding and buys a worse thing on a panel where the offset IS the placement: an
+     item-aligned select puts the chosen row on the trigger BECAUSE of that offset, so a flight
+     with no offset runs the whole entry showing the top of the list and the placement arrives
+     in one step at the end — measured 301 at the seed, 0 for ~740ms, 301 again on release, the
+     chosen row 374px adrift and snapping home. The runner now writes the offset WITH the pose
+     on a box that scrolls, and clips only a box that does not. What the entry owes was never
+     "no offset", it is "the offset does not change" — which is what the law reads, per flying
+     frame, and what both failures violate. */
   overflow: clip;
   /* And the width FLOOR is stood down for the whole flight, not just the seed frame —
      which is the bug that made every menu look wrong (Kushagra, playground: *"it starts at a

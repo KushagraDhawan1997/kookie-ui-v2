@@ -4348,3 +4348,44 @@ REVIEW.md's three blockers are resolved in the spec, and the largest one reverse
 The other two blockers: the fixed L ladder now bends for the solid band only, as a bounded continuous function of hue, because saturated yellow does not exist at L .62 and an arbitrary user hue means a brand yellow will eventually arrive; and `variant` becomes public underneath `emphasis`, because four rungs cannot address five recipes and `outline` was otherwise unreachable through the semantic API.
 
 Rejected: pregenerated token-by-breakpoint utility classes (v1's mass, and no way to express an arbitrary value); build-time scanning of consumer source in the manner of Tailwind's JIT or Panda (requires a compiler in every consumer's build, breaks on runtime-computed props like `gap={isCompact ? "2" : "4"}`, and contradicts §2's no-build-step position); a fifth emphasis rung or deleting `outline` to make the ladder cover the recipes (distorts the semantic layer to protect an abstraction); viewport breakpoints as the primary tier vocabulary; Braid-style `className` lockdown (kills legitimate escapes such as consumer grid placement and animation libraries; a shipped lint rule polices defection instead).
+
+## 2026-08-22 — an item-aligned panel's scroll offset IS its placement, so the flight keeps it
+
+Kushagra, on the playground's 48-row select: it "jumps the selected item to correct position
+after opening". Measured per frame: `scrollTop` 301 at the seed with the chosen row exactly on
+the trigger, **0 for every one of ~740ms of unfurl**, and 301 again on release — the row 374px
+adrift for the whole entry and snapping home at the end.
+
+The cause is one day old and was a fix for the opposite symptom. The 2026-08-22 audit found the
+flying box was still a scroll container on a select (Base UI spreads `LIST_FUNCTIONAL_STYLES`
+as the popup's React `style`, which beats every stylesheet), so the browser's reveal took an
+offset and the growing box clamped it away frame by frame — contents sliding. The repair wrote
+`overflow: clip` inline for the flight, which ends the sliding by making the box unable to hold
+an offset at all.
+
+That is the whole truth for a menu, whose panel does not scroll — its viewport does. It is not
+for a select, the one member whose own box scrolls, because there the offset is not incidental:
+an item-aligned panel puts the chosen row on the trigger BECAUSE of it. Abolishing it does not
+neutralise the placement, it defers it.
+
+**The runner now writes the offset with the pose on a box that scrolls, and clips only a box
+that does not.** `scrolls` is measured on the settled panel for the same reason `heldScroll` is.
+Measured after: the offset holds at 301 for all 89 flying frames, the chosen row's worst
+departure from the trigger falls 374px → 73px, and that residue is one step at the seed frame
+decaying smoothly (biggest single-frame move once anything is visible: 16px).
+
+**A listener pinning the offset was built here and deleted, and its own sabotage pass is what
+caught it.** It was the page hold's shape — re-assert on every `scroll` event for the length of
+the flight — and removing it changed no measurement. Counted directly: one scroll event across a
+whole entry, and it is the release's own write, after the flight. Writing the offset with the
+pose leaves the reveal nothing to do, because the row is already where the browser would put it.
+A guard that cannot be made to fail is the entropy this repo keeps paying for.
+
+**The law that let this through asserted the offset was ZERO, which is the previous fix's
+spelling rather than any guarantee.** Its own paragraph reasons toward the right sentence — the
+offset must not be "taken and clamped away while the box is deliberately smaller than its list"
+— and then codifies it as `max(inner) <= 1`, which the defect satisfies perfectly. It reads two
+things now: the offset does not CHANGE across the flying frames, and the value it flew with is
+the value it landed on. The first catches the sliding, the second catches the jump; constancy
+alone permits a panel held perfectly still at the wrong offset, which is exactly what shipped.
+Falsified against the pre-fix code and against a deliberately halved offset.
