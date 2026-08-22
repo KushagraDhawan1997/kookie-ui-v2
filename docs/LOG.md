@@ -8,6 +8,36 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 The flying body pivoted on one edge and was pinned to another
+
+**What.** `.kui-floating-body`'s `transform-origin` now reads the panel's own `--kui-origin-x/-y` table instead of restating a partial one. Its three bespoke rules are deleted, and the CSS is 37 bytes smaller for it.
+
+**Why it came up.** The floating-motion audit, as the widest of three findings about the same block.
+
+**What was wrong.** The body is held against the edge the box is not growing from, and its squish has to collapse toward that same edge — an origin that disagrees with the pin shrinks the content away from its anchor and slides it back on as the box grows. That was known: the `[data-side="top"]` arm was written for exactly this in 2026-08-17, with 5px measured. It was answered one cell at a time. The body's origin was `top left` plus one blanket `[dir="rtl"]` arm and one `[data-side="top"]` pair, while its PIN is a full case analysis over side × align — so `align` never reached the origin at all.
+
+**It was live in LTR, not only in RTL.** An ordinary `align="end"` menu — the "…" button near a right edge, which is most of them — pins the body `inset-inline-end` and pivoted it on the LEFT: the gap from the panel's right edge ran 15.10 → 4.19 → 5.00 across the flight, ~2.6px of it at opacity ≥ 0.29. The RTL blanket arm had the mirror, forcing `top right` on an RTL `align="end"` panel pinned physically left.
+
+**The repair is a deletion, and it is available because of an absence.** `--kui-origin-x/-y` are not `@property`-registered, so they inherit — and the popup's table already answers exactly this question, which edge the box is held against, for every cell. Checked cell by cell before the swap: the panel's origin and the body's pin agree in all of them. Two homes for one fact became one.
+
+**The law is what keeps them one.** It reads the PIN and the ORIGIN off a single mounted body across dir × align and requires them to name the same edge, so neither table can be extended without the other. Falsified twice — restoring the old bespoke origin, and dropping `align` from the x half — each failing four of six cells.
+
+---
+
+## 2026-08-23 Two mechanisms that could be deleted with the suite green now have laws
+
+**What.** The aim gate and the dismissed-panel hit test, both raised by the floating-motion audit as having no law at all, both written as computed reads on a mounted panel rather than as frame races.
+
+**The aim gate.** `[data-seed]:not([data-aimed]) { opacity: 0 }` keeps a posed panel unpainted until floating-ui has placed the positioner; the recorded cost of its absence is one frame of the silhouette at x=2275, and on a Select — whose entry waits for the placement to settle — up to twelve frames of the fully grown panel before it collapses to its trigger and unfurls back out. Flipping it to `opacity: 1` or deleting it left the whole package green, because the three places that mention `data-aimed` all use it to SELECT a frame to measure and therefore read a panel that is already aimed.
+
+**The hit test.** `pointer-events: none` on `[data-ending-style]` shipped with five selectors and one law, and that law was the alert's. A menu dismissed mid-entry keeps the entry's restated channels running, so Base UI's unmount waits for all of them — measured, invisible by ~140ms and still in the document at 682ms, and with the arm removed, ~510ms of a 110x98 invisible box under the trigger swallowing the click that would reopen it.
+
+**Both laws are about a CELL, which is the part worth recording.** The obvious spelling of the hit-test law — open, let it land, Escape, read — passes on the defect: `[data-unfurling]` is what forces `auto`, and it is off by the time a settled dismissal is read. So the law stamps both attributes, which is the state a mid-flight dismissal produces and the only one where the two rules disagree. The aim gate's law reads both states of the same panel for the same reason: `opacity: 0` on every seed frame would satisfy a one-sided law, and that is a panel that never appears at all.
+
+**Neither races a clock,** so neither is excluded from CI. The stamps are the library's, and a law is allowed to write them.
+
+---
+
 ## 2026-08-23 A right-to-left menu opened on the far edge and flew backwards onto its trigger
 
 **What.** In an RTL document, a menu with `side="left"` or `side="right"` seeded on the edge furthest from its trigger and grew back toward the button that opened it. Fixed with direction arms for the two physical side names, in the pin, in the body's twin of the pin, and in the transform-origin table.

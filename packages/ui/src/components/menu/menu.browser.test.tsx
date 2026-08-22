@@ -2542,6 +2542,147 @@ describe("the panel unfurls out of a seed (§22)", () => {
     }
   }
 
+  for (const dir of ["ltr", "rtl"] as const) {
+    for (const align of ["start", "end", "center"] as const) {
+      it(`the flying body pivots on the edge it is PINNED to — ${dir}, align ${align} (§22)`, async () => {
+        /**
+         * 2026-08-23, the floating-motion audit.
+         *
+         * The body is held against the edge the box is not growing from, and its squish has to
+         * collapse toward that same edge: an origin that disagrees with the pin shrinks the
+         * content away from its anchor and slides it back on as the box grows. That was already
+         * known — the `[data-side="top"]` arm was written for it in 2026-08-17, with 5px
+         * measured — and it was answered one cell at a time. The body's origin was `top left`
+         * plus one blanket `[dir="rtl"]` arm and one `[data-side="top"]` pair, so `align` never
+         * reached it at all.
+         *
+         * Measured on an ordinary LTR `align="end"` menu — the "…" button near a right edge,
+         * which is most of them — the body is pinned `inset-inline-end` and pivoted on its LEFT
+         * edge: the gap from the panel's right edge ran 15.10 → 4.19 → 5.00 across the flight,
+         * ~2.6px of it at opacity ≥ 0.29. The RTL blanket arm had the mirror of it, forcing
+         * `top right` on an RTL `align="end"` panel pinned physically left.
+         *
+         * The repair is a deletion: the panel's own `--kui-origin-x/-y` table answers this
+         * question for every cell and the properties are unregistered, so the body inherits it.
+         * This law is what says the two tables agree — it reads the PIN and the ORIGIN off one
+         * mounted body and requires them to name the same edge, so neither can be extended
+         * without the other.
+         */
+        mount(
+          <Theme>
+            <div dir={dir} style={{ padding: "150px" }}>
+              <Menu defaultOpen>
+                <MenuTrigger render={<Button>T</Button>} />
+                <MenuContent align={align}>
+                  <MenuItem>Alpha here</MenuItem>
+                  <MenuItem>Beta here</MenuItem>
+                </MenuContent>
+              </Menu>
+            </div>
+          </Theme>,
+        );
+        inMotion();
+        for (let i = 0; i < 3; i++) await new Promise((r) => requestAnimationFrame(() => r(null)));
+        const popups = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
+        const popup = popups[popups.length - 1]!;
+        const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
+        expect(popup.hasAttribute("data-unfurling"), "the body is not flying — the pin is not on").toBe(true);
+
+        const cs = getComputedStyle(body);
+        const start = parseFloat(cs.insetInlineStart);
+        const end = parseFloat(cs.insetInlineEnd);
+        const originX = parseFloat(cs.transformOrigin);
+        const width = body.getBoundingClientRect().width;
+
+        // WHICH EDGE THE PIN NAMES, read rather than assumed: the loose side resolves to a large
+        // negative number (the slack in a box wider than the body), the held side to the panel's
+        // own padding. `center` holds both and lets the margins split the difference.
+        const held = Math.abs(start - end) < 1 ? "center" : start < end ? "end" : "start";
+        // CALIBRATION: a body as wide as its panel is pinned on both sides at once and this law
+        // is about nothing.
+        if (held !== "center") {
+          expect(
+            Math.abs(start - end),
+            "the body must be NARROWER than its panel, or both edges are the same edge",
+          ).toBeGreaterThan(20);
+        }
+
+        // …and which edge the ORIGIN names, in the physical terms transform-origin is stated in.
+        const pivot = originX < 1 ? "left" : originX > width - 1 ? "right" : "middle";
+        const rtl = dir === "rtl";
+        const wanted =
+          held === "center" ? "middle" : held === "start" ? (rtl ? "right" : "left") : rtl ? "left" : "right";
+        expect(
+          pivot,
+          `the body is pinned at its inline-${held} edge and pivots on its ${pivot} one — the content slides sideways onto the edge it is held against`,
+        ).toBe(wanted);
+      });
+    }
+  }
+
+  it("an unaimed seed paints nothing (§22)", async () => {
+    /**
+     * 2026-08-23, the floating-motion audit: the aim gate had no law at all.
+     *
+     * `[data-seed]:not([data-aimed])` is what keeps a posed panel invisible until floating-ui
+     * has placed the positioner. The recorded measurement for its absence is one frame at
+     * x=2275 — a silhouette painted wherever the last layout left it — and on a Select, whose
+     * entry waits for the placement to settle, it is up to twelve frames of the fully grown
+     * panel before it collapses to its trigger's silhouette and unfurls back out.
+     *
+     * The three places that mention `data-aimed` all use it to SELECT a frame to measure, so by
+     * construction they read a panel that is already aimed and whose opacity is 1 either way.
+     * Flipping the rule to `opacity: 1` or deleting it outright left the whole package green.
+     *
+     * Read as a computed value off a real panel in both states rather than by racing the aim:
+     * what the gate IS is a rule, and the two stamps are ours to write.
+     */
+    const { popup } = await openUnsettled();
+    still(popup);
+    popup.setAttribute("data-seed", "");
+    popup.removeAttribute("data-aimed");
+    expect(
+      computed(popup, "opacity"),
+      "a seed that has not been placed is painted — it appears wherever the last layout left it",
+    ).toBe("0");
+    // CALIBRATION, and it is the whole law: without it, `opacity: 0` on every seed frame passes
+    // just as well, and that is a panel that never appears at all.
+    popup.setAttribute("data-aimed", "");
+    expect(computed(popup, "opacity"), "an AIMED seed must paint, or nothing ever opens").not.toBe("0");
+  });
+
+  it("a panel dismissed mid-entry stops answering the pointer (§22)", async () => {
+    /**
+     * 2026-08-23, the floating-motion audit: `pointer-events: none` on `[data-ending-style]`
+     * had one law for one of its five selectors, and the one it had was the alert's.
+     *
+     * A menu dismissed mid-entry keeps the entry's restated channels running, so Base UI's
+     * unmount gate waits for all of them: measured on an Escape 20ms in, the popup is invisible
+     * by ~140ms and still in the document at 682ms. Without this rule that invisible box goes on
+     * answering the hit test — measured with the arm removed, ~510ms of a 110x98 box sitting
+     * directly under the trigger and swallowing the click that would reopen it.
+     *
+     * THE CELL IS THE MID-ENTRY ONE, and the difference matters: dismiss a SETTLED menu with
+     * the arm deleted and the panel already computes `none`, because `[data-unfurling]` is what
+     * forces `auto` and it is off by then. A law written the obvious way — open, land, Escape,
+     * read — passes on the defect. So both stamps are on here, which is exactly the state a
+     * mid-flight dismissal produces and the only one where the rules disagree.
+     */
+    const { popup } = await openUnsettled();
+    still(popup);
+    // The premise, stated at the read: this is a panel that is BOTH still flying and leaving.
+    popup.setAttribute("data-unfurling", "");
+    expect(
+      computed(popup, "pointer-events"),
+      "a flying panel must take the pointer, or the calibration below is measuring nothing",
+    ).toBe("auto");
+    popup.setAttribute("data-ending-style", "");
+    expect(
+      computed(popup, "pointer-events"),
+      "a panel dismissed mid-entry still answers the hit test while it is invisible",
+    ).toBe("none");
+  });
+
   it("nothing the seed moves is missing from the transition list (§8)", async () => {
     // The teleport rule as a law rather than a comment. A property the seed changes but the
     // transition never names does not animate — it SNAPS, which is exactly the defect that

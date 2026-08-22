@@ -1600,7 +1600,20 @@
    finished page; squished, it reads as one body — judged twice, both directions (LOG). */
 .kui-floating-body {
   inline-size: var(--kui-fly-bw, auto);
-  transform-origin: top left;
+  /* THE SAME ORIGIN THE PANEL USES, inherited rather than restated (2026-08-23, the
+     floating-motion audit). `--kui-origin-x/-y` are not registered, so they inherit from the
+     popup, and the popup's table already answers exactly this question — which edge the box is
+     held against — for every (side, align, dir) cell. Checked cell by cell before the swap: the
+     panel's origin and the body's pin agree in all of them.
+
+     What was here was `top left` plus one blanket `[dir="rtl"]` arm and one `[data-side="top"]`
+     pair, so `align` never reached the body's origin at all. Measured on an ordinary LTR
+     `align="end"` menu — the "…" button near a right edge, which is most of them — the body is
+     pinned `inset-inline-end` and pivoted on its LEFT edge, so the gap from the panel's right
+     edge ran 15.10 → 4.19 → 5.00 across the flight, ~2.6px of it at opacity ≥ 0.29: the printed
+     content sliding sideways onto the edge it is pinned to. The RTL blanket arm had the mirror,
+     forcing `top right` for an RTL `align="end"` panel pinned on the left. */
+  transform-origin: var(--kui-origin-x, left) var(--kui-origin-y, top);
   /* The content's stretch rides the FAMILY's own scale clock (`--floating-corner`, the one
      the box's own `scale` channel uses), not the control layer's `--motion-rise`.
 
@@ -1632,9 +1645,6 @@
        subject instead of per-row holds — fewer rules, one clock, one claim. */
     opacity var(--floating-reveal) ease-out var(--floating-reveal-delay),
     filter var(--floating-corner) ease-out var(--floating-reveal-delay);
-}
-[dir="rtl"] .kui-floating-body {
-  transform-origin: top right;
 }
 .kui-surface.kui-floating[data-unfurling][data-seed] .kui-floating-body {
   opacity: 0;
@@ -1855,16 +1865,10 @@
 .kui-surface.kui-floating[data-unfurling][data-side="top"] .kui-floating-body {
   inset-block-start: auto;
   inset-block-end: var(--kui-floating-p);
-  /* And the squish collapses toward the edge it is PINNED to (2026-08-17). The origin is
-     `top left` for every other placement because that is where the body hangs from; a panel
-     opening upward hangs its body from the bottom, and an origin that disagrees with the pin
-     shrinks the content away from its anchor — measured, the body's top edge sat 5px above
-     the panel's own and was clipped there for the squished frames. The same sentence as the
-     pin above: the body is held against the edge the box is not growing from. */
-  transform-origin: bottom left;
-}
-[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="top"] .kui-floating-body {
-  transform-origin: bottom right;
+  /* The origin that went with this pin (2026-08-17: "the squish collapses toward the edge it
+     is PINNED to" — measured, the body's top edge sat 5px above the panel's own and was clipped
+     there for the squished frames) is no longer stated here. The panel's own `--kui-origin-y`
+     already says `bottom` for `[data-side="top"]`, and the body now reads that table whole. */
 }
 .kui-surface.kui-floating[data-unfurling][data-seed] .kui-floating-body {
   scale: 0.95 0.5;
