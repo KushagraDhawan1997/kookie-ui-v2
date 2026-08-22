@@ -1569,6 +1569,7 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     const drift: number[] = [];
     const inner: number[] = [];
     const rowOffsets: number[] = [];
+    const settledRows: number[] = [];
     let sampling = true;
     let landed: HTMLElement | null = null;
     const tick = () => {
@@ -1592,7 +1593,11 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
         const row = popup.querySelector<HTMLElement>("[data-selected]");
         if (row) rowOffsets.push(row.getBoundingClientRect().top - trigger.getBoundingClientRect().top);
       }
-      if (popup && !popup.hasAttribute("data-unfurling") && inner.length) landed = popup;
+      if (popup && !popup.hasAttribute("data-unfurling") && inner.length) {
+        landed = popup;
+        const row = popup.querySelector<HTMLElement>("[data-selected]");
+        if (row) settledRows.push(row.getBoundingClientRect().top - trigger.getBoundingClientRect().top);
+      }
       if (sampling) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -1671,6 +1676,33 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
       "the placement's own offset did not survive the entry",
     ).toBeGreaterThan(1);
 
+    /**
+     * AND NOTHING MOVES AFTER THE ENTRY SAYS IT HAS LANDED (2026-08-22, Kushagra: after it
+     * "settles, it scrolls down a bit internally, ever so slightly").
+     *
+     * The jump and the creep are the same defect at two scales, and fixing the first left the
+     * second. An item-aligned select's positioner height is Base UI's, re-solved whenever the
+     * popup's size changes — and during the flight the popup's size is a lie by construction,
+     * so it re-solved against the lie: 349px before takeoff, 353px by release. The panel then
+     * finished growing into the newer parent AFTER the entry was over, and on a scrolling list
+     * a box growing is the list's own room shrinking, so the maximum offset fell 21 → 17 and
+     * dragged the placement down with it, a pixel at a time.
+     *
+     * Read as the row, like everything else here, and read for STILLNESS rather than for a
+     * value: whatever the panel settles at, it must already be there on the first frame after
+     * the flight. A law that only checked the final resting place would pass on a panel that
+     * spends 100ms crawling into it, which is exactly what was reported.
+     */
+    expect(
+      settledRows.length,
+      "no frames were sampled after the entry landed — the law measured nothing",
+    ).toBeGreaterThan(3);
+    const creep = Math.max(...settledRows) - Math.min(...settledRows);
+    expect(
+      creep,
+      `the panel kept moving ${creep.toFixed(1)}px after the entry finished (${settledRows[0]!.toFixed(1)} → ${settledRows[settledRows.length - 1]!.toFixed(1)})`,
+    ).toBeLessThanOrEqual(1);
+
     // The offset the panel flew with is deliberately NOT compared to the settled one any more.
     // That assertion was written when the placement was carried as a scroll position for the
     // whole flight; it is now carried as layout while the box is in the air, so the flying
@@ -1696,11 +1728,21 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
    * "failed" with, which is the tell). The real condition is a short VIEWPORT, and this suite
    * pins a wide, tall one on purpose.
    *
-   * So it was verified in a real browser instead, at window heights of 420, 500, 620 and 900,
-   * on /preview/select: before, the row drifted 21 → 3 across the flight and snapped back 61px
-   * on landing; after, the worst landing error is 4px and the constrained case behaves like the
-   * unconstrained one. Written down here because a measurement nobody can re-run is a rumour —
-   * the day this suite can set a viewport height, that is the fixture to build.
+   * The SAME GAP covers the creep (2026-08-22, second report): a box still growing after the
+   * entry ends steals the offset a pixel at a time, and it only grows where the positioner was
+   * re-solved against the shrunken flying box — the constrained case again. Both sabotages for
+   * it survive this file, which is stated here rather than left for someone to discover.
+   *
+   * `Emulation.setDeviceMetricsOverride` over CDP was tried as a way to shrink the window for
+   * one law and does not take in this harness, so the door is genuinely shut for now.
+   *
+   * So both were verified in a real browser instead, on /preview/select at window heights of
+   * 420, 500, 620 and 900. The jump: the row drifted 21 → 3 across the flight and snapped back
+   * 61px on landing; after, the worst landing error is 4px. The creep: `scrollTop` walked
+   * 61 → 57 over ~95ms after the entry finished while the box grew 307 → 311; after, both are a
+   * single value at every height and the row settles at 0. Written down because a measurement
+   * nobody can re-run is a rumour — the day this suite can set a viewport height, this is the
+   * fixture to build, and these are the numbers it should reproduce.
    */
 
 

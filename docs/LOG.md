@@ -4442,3 +4442,44 @@ row out of reach of its trigger, so Base UI stops aligning and the law measures 
 never item-aligned (settled 225px off, the same number it "failed" with, which is the tell). The
 fix is verified in a real browser at four window heights instead, and both the numbers and the
 missing fixture are recorded beside the law.
+
+## 2026-08-22 — the parent is put back before the panel is
+
+Kushagra, after the jump was fixed: once the entry "settles, it scrolls down a bit internally,
+ever so slightly". The jump and the creep turn out to be one defect at two scales, and closing
+the first left the second untouched.
+
+An item-aligned select's positioner height is BASE UI'S — written before the panel opens, and
+re-solved whenever the popup's size changes. During the flight the popup's size is a lie by
+construction, so it re-solves against the lie: measured on a panel the window is squeezing,
+349px before takeoff and 353px by the time the flight released. The entry aimed at the height it
+had measured, landed there, and then the restored `height: 100%` resolved against the *newer*
+parent and grew the last 4px on its own, after the entry had declared itself finished. On a
+scrolling list a box growing is the list's own room shrinking, so the maximum offset fell 21 →
+17 and dragged the placement down with it, one pixel per pixel, over ~95ms.
+
+**Two attempts before the right one, and both are worth keeping.** Writing the parent's height
+back at POSE time is a no-op: setting an inline style to the value it already holds prevents
+nobody from writing a different one later, so it must land after the writer has finished.
+Putting it back at release but AFTER the panel's own height is a frame too late: the popup's
+restored height is `100%` *of the positioner*, so restoring the panel first points it at
+whatever the parent currently holds and the transition still declared on height carries it
+there. Parent first, then panel — the same "order is load-bearing" lesson as the margin, twice
+in one day, and both times the reading that felt natural was the wrong one.
+
+Only the HEIGHT, and only where Base UI already wrote one: the width is the anchor floor's
+business and the entry publishes that separately, and a positioner with no height of its own is
+one this code does not understand and must not start managing.
+
+Measured after, at four window heights on /preview/select: `scrollTop` and the chosen row's
+offset are each a SINGLE value from the first frame after landing, at every height, where before
+they walked 61 → 57 and 0 → 4.
+
+**And the laws still cannot fail on it, which is stated in the file rather than left to be
+discovered.** Both sabotages — restore the panel before its parent, and stop restoring the
+parent at all — pass this suite, because the creep needs a panel the window is squeezing and the
+browser project pins a tall viewport on purpose (`src/test/viewport.ts`, and for a good reason:
+a short one puts every law inside the narrow type band). `Emulation.setDeviceMetricsOverride`
+over CDP was tried as a way to shrink the window for one law and does not take in this harness.
+So the verification is a real browser at 420/500/620/900, and the numbers it should reproduce
+are written beside the law for the day the suite can set a height.

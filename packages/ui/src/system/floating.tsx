@@ -761,6 +761,47 @@ function useFlight(plan: FlightPlan) {
             for (const name of FLIGHT_VARS) {
               if (name !== "--kui-anchor-w") popup.style.removeProperty(name);
             }
+            /**
+             * THE PARENT IS PUT BACK BEFORE THE PANEL IS, and the order is the creep's cause
+             * (2026-08-22). The popup's restored height is `100%` — of the positioner — so
+             * restoring the panel first points it at whatever the parent currently holds, and
+             * the transition that is still declared on height carries it there. Correcting the
+             * parent afterwards is a frame too late: the panel is already travelling.
+             */
+            if (positioner?.hasAttribute("data-side")) {
+              // Put back what was found, which is `""` where the runner was the only writer
+              // and Base UI's own length where it was not (see the snapshot above).
+              positioner.style.width = heldWidth;
+              positioner.style.height = heldHeight;
+            } else if (positioner && heldHeight) {
+              /**
+               * …AND THE HEIGHT IS PUT BACK EVEN WHERE BASE UI OWNS IT (2026-08-22, Kushagra:
+               * after the entry "settles, it scrolls down a bit internally, ever so slightly").
+               *
+               * An item-aligned select's positioner height is Base UI's — written before the
+               * panel opens, and re-solved whenever the popup's size changes. During the flight
+               * the popup's size is a lie by construction, so it re-solves against the lie:
+               * measured on a panel the window is squeezing, 349px before takeoff and 353px by
+               * the time the flight released. The entry aimed at the height it had measured,
+               * landed there, and then `height: 100%` resolved against the newer parent and
+               * grew the last 4px on its own, after the entry had said it was finished.
+               *
+               * Those 4px are not cosmetic on a scrolling panel, because a box growing is the
+               * list's own room shrinking: the maximum offset fell 21 → 17 and took the
+               * placement with it, one pixel per pixel. That is the creep.
+               *
+               * Restoring rather than pinning, and the difference is what the first attempt got
+               * wrong: writing the value back at POSE time is a no-op, because setting an inline
+               * style to what it already holds prevents nobody from writing a different one
+               * later. The correction has to land after the writer has finished, which is here.
+               *
+               * Only the HEIGHT, and only where Base UI already wrote one: the width is the
+               * anchor floor's business and the entry publishes that separately, and a
+               * positioner with no height of its own is one this does not understand and must
+               * not start managing.
+               */
+              positioner.style.height = heldHeight;
+            }
             if (borrowed) popup.style.height = borrowed;
             // Overflow first, THEN the offset: a box that is still `clip` has nowhere to put a
             // scroll position, so restoring in the other order silently writes zero.
@@ -778,12 +819,6 @@ function useFlight(plan: FlightPlan) {
             popup.removeAttribute("data-aimed");
             popup.removeAttribute("data-seed");
             popup.removeAttribute("data-unfurling");
-            if (positioner?.hasAttribute("data-side")) {
-              // Put back what was found, which is `""` where the runner was the only writer
-              // and Base UI's own length where it was not (see the snapshot above).
-              positioner.style.width = heldWidth;
-              positioner.style.height = heldHeight;
-            }
             popup.removeEventListener("transitioncancel", onCancel);
           };
 
