@@ -12,6 +12,44 @@ in `system/motion.browser.test.tsx`, on a box running Chromium 1194 aliased into
 Playwright 1.62 expects — `cdn.playwright.dev` is blocked here, so the pinned build could
 not be fetched. Treat that one as environmental until it is seen on real CI.
 
+## Status: the findings below are FIXED (2026-08-22)
+
+Every ranked finding in this report has been repaired, each with a law that fails against the
+pre-fix code. The commits are on `claude/component-motion-audit-ad7baq`; `docs/LOG.md` carries
+the decision record and `docs/DECISIONS.md` §22/§23 and the lens section were amended where the
+spec had gone false.
+
+| | what it was | measured after |
+|---|---|---|
+| C1 | a 30-row Select settled 188×910 in an 800px window, `clientHeight === scrollHeight`, chosen row 163px off its trigger | 188×749, scrollable, row **2px** from its trigger |
+| C2 | a 400px trigger's panel painted 400 through the flight and snapped to 390 at release | 400 through the flight and 400 at release |
+| C3 | the flying box computed `hidden auto` on a Select, `scrollTop` 165 → 0 across the entry | the runner writes `clip` inline for the flight and hands the offset back |
+| C4 | Reduce Motion moved a closing dialog `360,351 560×98` → `24,24 560×752` for ~130ms | stays centred, transitions 0s, gone in one frame |
+| M5 | 27 displacement maps per glass menu open, one leaked filter per pane | 2 maps, zero orphans |
+| M6 | Escape removed a menu in one frame; every pointer dismissal dissolved over ~220ms | both routes carry the same clocks |
+| M7 | a dismissed alert's scrim answered the hit test over an ordinary page corner | the page's own control answers it |
+| M8 | a mirrored submenu's seed sat 112px clear of the seam and grew towards it | its trailing edge lands **on** the seam |
+| M9a | a controlled Menu lost its entry after the first Escape | it flies on every state-driven open |
+| M9b | `<MenuContent side="right">` on a 900px trigger painted 951px at x=967 in a 1280 window | capped by the room, select's spelling promoted |
+
+Two repairs were **built, measured as no-ops and reverted** rather than left in looking
+plausible: shortening the overlay exit's restated geometry to the exit's own clock (no value
+changes on those channels at the exit, so an unretargeted transition keeps its duration), and
+any z-index for the un-rooted portal's missing stacking frame — that one is real (a fixed
+`z-index: 50` cover paints over an open menu with no root `<Theme>` and under it with one) but
+every repair from inside the portal is the ladder §20 rejected on the record, so it gets a dev
+warning naming the remedy and nothing else.
+
+One finding is **withdrawn**: M7's menu half ("a dismissed menu still runs the command") did not
+reproduce with the browser's own hit test — the hit landed outside the popup and the node
+unmounted 21ms after going invisible. The alert half is confirmed and fixed.
+
+Full CI is green apart from the pre-existing `outline-offset` subpixel law in
+`system/motion.browser.test.tsx`, which fails with the identical value (5.96875 against 6) that
+it did at baseline before any change, on this box's Chromium 1194.
+
+---
+
 ## What was re-measured by hand before being written down
 
 The audit's own claims were re-run independently, in a mounted browser, before this
