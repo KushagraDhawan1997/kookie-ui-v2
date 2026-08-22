@@ -1919,6 +1919,39 @@
     scale var(--overlay-settle) var(--motion-spring-stiff);
 }
 
+/* A LEAVING PANEL TAKES NO CLICKS (2026-08-22 audit).
+
+   A dismissal mid-entry leaves the ENTRY's transitions running — the exit restates those
+   channels with unchanged values, so nothing retargets and they run to their own length, up to
+   `--overlay-spread`'s 800ms. Base UI unmounts a closing popup when
+   `Promise.all(getAnimations().map((a) => a.finished))` settles and `getAnimations()` counts
+   them, so the mechanism added to stop a mid-flight snap is also the unmount gate: measured, an
+   alert dismissed 120ms into its entry was invisible at ~158ms and still in the document at
+   686ms. For that whole window its scrim covered the viewport and answered the hit test —
+   `elementFromPoint(30, 20)`, an ordinary page corner, returned `DIV.kui-alert-backdrop`, so a
+   click on the page underneath did nothing. "I closed the alert and the app was frozen for half
+   a second."
+
+   The lifetime is not what is repaired here, and the reason is a measurement: shortening the
+   restated channels to the exit's own clock changes nothing, because no VALUE changes on them
+   at the exit and an unretargeted transition keeps its original duration. It was built,
+   measured as a no-op, and reverted rather than left in as a plausible-looking fix — the
+   restatement's recorded reasoning (a mid-flight becoming CONTINUES while it dissolves) is
+   still exactly right.
+
+   What is repaired is the harm. A panel at opacity 0 is still hit-tested, and there was no
+   stand-down anywhere in the package: the only two `pointer-events` rules in this file are
+   keyed on the flight attribute and are long gone by the time an exit begins. Once the box is
+   leaving it is not a target, whatever its clocks are doing. Measured after: the same page
+   corner answers the trigger button. */
+.kui-surface.kui-floating[data-ending-style],
+.kui-surface.kui-alert-popup[data-ending-style],
+.kui-surface.kui-overlay.kui-dialog-popup[data-ending-style],
+.kui-alert-backdrop[data-ending-style],
+.kui-dialog-backdrop[data-ending-style] {
+  pointer-events: none;
+}
+
 /* ── The DIALOG's entry (§24, 2026-08-16): DEPTH, NOT DISTANCE ────────────────────────────
    The alert's materialization is one family class up, and this is deliberately not it. That
    entry travels, overshoots and rises from a point — an ARRIVAL, an interruption announcing

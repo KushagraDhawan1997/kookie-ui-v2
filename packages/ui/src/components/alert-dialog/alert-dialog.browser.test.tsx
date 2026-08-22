@@ -643,6 +643,85 @@ describe("the panel materializes (§25)", () => {
 
 /* ── What the call site can say to an alert (2026-08-21) ──────────────────────────────── */
 
+describe("a leaving alert is not a target (§25, 2026-08-22)", () => {
+  it("the page underneath answers the hit test while the panel dissolves", async () => {
+    /**
+     * A dismissal mid-entry leaves the ENTRY's transitions running: the exit restates those
+     * channels with unchanged values, so nothing retargets and each runs to its own length —
+     * up to `--overlay-spread`'s 800ms. Base UI unmounts a closing popup when every animation's
+     * `finished` promise settles and `getAnimations()` counts those keep-alives, so the
+     * mechanism added to stop a mid-flight snap is also the unmount gate. Measured: invisible
+     * at ~158ms, still in the document at 686ms, and for that whole window the scrim covered
+     * the viewport and answered the hit test — `elementFromPoint` over an ordinary page corner
+     * returned `DIV.kui-alert-backdrop`, so a real click did nothing. "I closed the alert and
+     * the app was frozen for half a second." An alert refuses outside-press, so there was not
+     * even a dismissal to show for it.
+     *
+     * The lifetime is deliberately NOT what this law is about — shortening the restated
+     * channels to the exit's clock was built and measured as a no-op, because no value changes
+     * on them at the exit. What a leaving panel owes is that it stops being a target, and that
+     * is what is read here: the browser's own hit test, at a point over a page control, while
+     * the panel is provably still mounted.
+     */
+    inMotion();
+    const host = render(
+      <Theme>
+        <div>
+          <button
+            id="page"
+            /* BOTTOM-left, deliberately: a fixed control at the top-left sits under the
+               trigger, which is positioned and later in the DOM, so the hit test answered the
+               trigger and the law read a defect that was not there. The point has to belong to
+               the page and to nothing else. */
+            style={{ position: "fixed", left: 4, bottom: 4, width: 80, height: 40 }}
+          >
+            page
+          </button>
+          <AlertDialog>
+            <AlertDialogTrigger render={<Button>Delete</Button>} />
+            <AlertDialogContent>
+              <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+              <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+              <AlertDialogCancel>Keep it</AlertDialogCancel>
+              <AlertDialogAction>Delete</AlertDialogAction>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </Theme>,
+    );
+    const page = host.querySelector<HTMLElement>("#page")!;
+    const spot = page.getBoundingClientRect();
+    const at = { x: Math.round(spot.left + spot.width / 2), y: Math.round(spot.top + spot.height / 2) };
+
+    await userEvent.click(host.querySelector<HTMLElement>(".kui-button")!);
+    await until(() => !!document.querySelector(".kui-alert-popup"));
+    // THE PREMISE, and it is what makes the reading below mean anything: while the alert is
+    // OPEN this point belongs to the scrim. A law whose "before" and "after" agree is measuring
+    // a page nothing ever covered.
+    const covering = document.elementFromPoint(at.x, at.y) as HTMLElement | null;
+    expect(
+      covering !== null && covering !== page && !page.contains(covering),
+      `while OPEN this point must belong to the alert, or the fixture cannot show the defect — it belongs to ${covering?.className || covering?.id || covering?.tagName}`,
+    ).toBe(true);
+
+    // Dismissed MID-ENTRY, which is the case that produces the long tail.
+    await userEvent.keyboard("{Escape}");
+    const popup = document.querySelector<HTMLElement>(".kui-alert-popup")!;
+    const scrim = document.querySelector<HTMLElement>(".kui-alert-backdrop")!;
+    const gone = await until(() => parseFloat(getComputedStyle(scrim).opacity) === 0);
+    expect(gone, "the scrim never finished fading, so there is no window to read").toBe(true);
+
+    // Still mounted — otherwise the assertion below is satisfied by the node having left, which
+    // is a different claim and the one that was already true.
+    expect(popup.isConnected, "the panel unmounted before the window this law is about").toBe(true);
+    const hit = document.elementFromPoint(at.x, at.y) as HTMLElement | null;
+    expect(
+      hit === page || page.contains(hit),
+      `an invisible leaving alert still owns the page: the hit landed on ${hit?.className || hit?.id || hit?.tagName}`,
+    ).toBe(true);
+  });
+});
+
 describe("what the call site can say to an alert", () => {
   const lastPopup = () => {
     const ps = document.querySelectorAll<HTMLElement>(".kui-alert-popup");
