@@ -560,47 +560,39 @@ function useFlight(plan: FlightPlan) {
           const borrowedOverflow = popup.style.overflow;
           const heldScroll = popup.scrollTop;
           /**
-           * …and where the offset IS the placement, it is PINNED rather than abolished
-           * (2026-08-22, Kushagra from the playground: a long list "jumps the selected item to
-           * correct position after opening").
+           * …and where the offset IS the placement, it is carried as LAYOUT for the length of
+           * the flight (2026-08-22, Kushagra: a select near the top of the window still "jumps
+           * the selected item to correct position after opening").
            *
            * The clip above ends the sliding by making the box unable to hold an offset at all,
            * and for a menu that is the whole truth — its panel does not scroll, its viewport
            * does. A select is the one member whose own box scrolls, and there the offset is not
            * incidental: an item-aligned panel puts the chosen row ON the trigger, and the row
-           * is only there BECAUSE of that offset. Abolishing it means the entry runs with the
-           * list at the top and the placement arrives in one step at the end — measured on a
-           * 48-row list, `scrollTop` 301 at the seed, 0 for every frame of a ~740ms unfurl, and
-           * 301 again on release, the chosen row 374px adrift the whole way and snapping home.
+           * is only there BECAUSE of that offset. Abolishing it runs the entry with the list at
+           * the top and delivers the placement in one step at the end — measured on a 48-row
+           * list, 301 at the seed, 0 for every frame of the unfurl, 301 again on release.
            *
-           * The obvious objection is that this is `hidden` + hold, which surfaces.css records
-           * as tried and rejected — "the page is still but the contents slide". What was held
-           * there was the PAGE. Nothing has ever held the PANEL's own offset, and the slide is
-           * exactly that offset being written by someone else: the browser revealing the
-           * focused row against a box that is deliberately too small, and Base UI re-solving
-           * the alignment against the same wrong box. Pinning it to the value read HERE — off
-           * the settled panel, before the pose comes off — removes both writers by
-           * construction, and it is the page hold's own mechanism on the second scroller
-           * rather than a new one.
+           * Writing it back with the pose was the first repair and it is not enough, for a
+           * reason that is arithmetic rather than a competing writer. The entry poses the
+           * CONTENT as well as the box, and a scaled element contributes its SCALED size to the
+           * scrollable overflow — so mid-flight `scrollHeight` is smaller than the settled
+           * list's while `clientHeight` races toward full. Where the two converge the maximum
+           * offset collapses toward zero and the browser clamps the placement away; it is not
+           * allowed to hold a position that no longer exists. Measured on a panel constrained
+           * by the window's top edge: settled 21, then 15, 9, 3 across the flight, and 21 again
+           * on release — the jump, at the shipped clocks. No listener can win there (asserting
+           * an offset into a box whose maximum is 0 lands on 0, every time), and a LONG list
+           * hides it completely, because a box that never catches its content never clamps.
+           * That is why the 48-row case read as fixed while this one did not, and it is the
+           * degenerate-fixture rule turned on a repair rather than on a law.
            *
-           * `scrolls` is measured on the settled box for the same reason `heldScroll` is — a
-           * panel that does not scroll has no placement to keep, so it takes the clip and pays
-           * nothing, and every member but this one is in that arm.
-           *
-           * A LISTENER PINNING THE OFFSET WAS BUILT HERE AND DELETED, which is worth stating so
-           * it is not rebuilt. It was the page hold's shape — re-assert on every `scroll` event
-           * for the length of the flight — and it fired ZERO times: measured on the 48-row
-           * playground select and again in the harness, one scroll event across a whole entry
-           * and it is the release's own write, after the flight. The reveal that motivated the
-           * clip in the first place has nothing left to do once the offset is written with the
-           * pose, because the row is already where the browser would put it. Its own sabotage
-           * pass is what exposed it — removing the listener changed no measurement — and a
-           * guard that cannot be made to fail is the entropy this repo keeps paying for. What
-           * catches the failure it was meant to prevent is the law, which reads the offset per
-           * flying frame and requires it to hold still; a case that moves it will fail there
-           * and can bring the pin back with a fixture that proves it.
+           * So the box keeps the clip that makes it unscrollable, and the offset is said in a
+           * currency the flight cannot invalidate: a negative block margin on the body. Layout
+           * is not clamped by anything and cannot be taken back. It says exactly what the
+           * scroll offset said — the chosen row sits on the trigger — and hands over to the
+           * real offset on landing, in that order, so no frame is painted holding neither.
            */
-          const scrolls = popup.scrollHeight > popup.clientHeight;
+          const flyingBody = popup.querySelector<HTMLElement>(".kui-floating-body");
 
           // The pose comes off for the read, and the WHOLE of it. Overriding just the two
           // sizes was the first cut and it measured a panel narrower than the one that would
@@ -739,8 +731,8 @@ function useFlight(plan: FlightPlan) {
           // The flying box either cannot hold an offset, or holds exactly the one the placement
           // needs — never anything in between (see the borrow above). Written with the pose, so
           // no frame is ever painted with the wrong one in it.
-          if (scrolls) popup.scrollTop = heldScroll;
-          else popup.style.overflow = "clip";
+          popup.style.overflow = "clip";
+          if (heldScroll && flyingBody) flyingBody.style.marginBlockStart = `${-heldScroll}px`;
           void popup.offsetWidth; // land the pose as the baseline while the pin still holds
           for (const el of pinned) el.style.removeProperty("transition");
 
@@ -774,9 +766,14 @@ function useFlight(plan: FlightPlan) {
             // scroll position, so restoring in the other order silently writes zero.
             if (borrowedOverflow) popup.style.overflow = borrowedOverflow;
             else popup.style.removeProperty("overflow");
-            // A no-op on the scrolling path since 2026-08-22 — the offset is written with the
-            // pose now and never leaves — and the only restore on the clip path, where the box
-            // spent the flight unable to hold one. Kept for the second half, not the first.
+            // The layout stand-in comes off FIRST, and the order is load-bearing the other way
+            // round from how it reads. Both writes are in one synchronous block, so no frame is
+            // painted between them and there is no gap to guard — but a negative margin
+            // SHORTENS the scrollable content by its own size, so setting the offset while it
+            // is still applied asks for a position the box cannot hold and the browser clamps
+            // it. Measured with the order reversed: the flight held the row perfectly and it
+            // jumped 61px on the frame it landed — the original defect moved to the end.
+            if (flyingBody) flyingBody.style.removeProperty("margin-block-start");
             if (heldScroll) popup.scrollTop = heldScroll;
             popup.removeAttribute("data-aimed");
             popup.removeAttribute("data-seed");

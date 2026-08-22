@@ -4389,3 +4389,56 @@ things now: the offset does not CHANGE across the flying frames, and the value i
 the value it landed on. The first catches the sliding, the second catches the jump; constancy
 alone permits a panel held perfectly still at the wrong offset, which is exactly what shipped.
 Falsified against the pre-fix code and against a deliberately halved offset.
+
+## 2026-08-22 — the placement is carried as LAYOUT while the panel is in the air
+
+Kushagra, on a select near the top of the window: it still "jumps the selected item to correct
+position after opening". The morning's repair — write the scroll offset with the pose — was
+real and incomplete, and the reason it looked complete is the same shape the audits keep
+naming.
+
+**The clamp.** The entry poses the CONTENT as well as the box, and a scaled element contributes
+its SCALED size to the scrollable overflow. So mid-flight the popup's `scrollHeight` is smaller
+than the settled list's while its `clientHeight` races toward full. Where the two converge the
+maximum scroll offset collapses toward zero and the browser clamps the placement away — it is
+not allowed to hold a position that no longer exists. Measured on a panel constrained by the
+window's top edge: settled 21, then 15, 9, 3 across the flight, 21 again on release. That
+restoration is the jump.
+
+**Why the first repair read as complete.** A LONG list never triggers it: a box that never
+catches its content never clamps. The 48-row playground case — the one the morning's fix was
+measured on — is exactly that. This is the degenerate-fixture rule turned on a repair rather
+than on a law: the case it was verified against could not distinguish a working fix from a
+half one.
+
+**A listener cannot win.** Re-asserting the offset inside a `scroll` event was built, and it
+fails by arithmetic rather than by racing: writing 65 into a box whose maximum is 0 lands on 0,
+every time, three times in a row. (It was also built, deleted as dead, and rebuilt within an
+hour earlier the same day — its sabotage survived because the clocks that shipped that morning
+never produced the clamp.)
+
+**The repair** is to say the placement in a currency the flight cannot invalidate: the box keeps
+the clip that makes it unscrollable, and the offset becomes a negative block margin on
+`.kui-floating-body` for the length of the flight. Layout is not clamped and cannot be taken
+back. Order on release is load-bearing the opposite way from how it reads — the margin comes off
+FIRST, then the offset — because a negative margin shortens the scrollable content by its own
+size, so setting the offset while it is still applied asks for a position the box cannot hold.
+Measured with the order reversed: the flight held the row perfectly and it jumped 61px on the
+landing frame, the original defect moved to the end.
+
+**The law now reads the ROW.** Three spellings in one day each satisfied a law written beside
+them, because each law read the mechanism — an offset, a clip, a margin. What an item-aligned
+select promises is one thing a person can see: the chosen row sits on the value it replaces. So
+the assertion is the row's distance from its trigger on the entry's LAST FLYING frame, which is
+the same number whichever way the offset is carried, and every one of the three failures shows
+up in it (374px, 21px, 61px). The bound is 6px, chosen to sit in the gap between the panel's own
+sub-pixel settling (2.4px) and the smallest real defect (21px), rather than at the edge of what
+passes today.
+
+**And what this suite cannot reach is written into the file.** The clamp needs a list only a
+little taller than its room — a short VIEWPORT — and the suite pins a tall one. A fixture using
+an explicit `maxHeight` was written and thrown away: it squeezes the panel but puts the chosen
+row out of reach of its trigger, so Base UI stops aligning and the law measures a panel that was
+never item-aligned (settled 225px off, the same number it "failed" with, which is the tell). The
+fix is verified in a real browser at four window heights instead, and both the numbers and the
+missing fixture are recorded beside the law.

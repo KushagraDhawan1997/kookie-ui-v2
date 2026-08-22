@@ -1568,6 +1568,7 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     // panel — its offset returns to 0 on its own.
     const drift: number[] = [];
     const inner: number[] = [];
+    const rowOffsets: number[] = [];
     let sampling = true;
     let landed: HTMLElement | null = null;
     const tick = () => {
@@ -1581,7 +1582,16 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
       // because eight rows never scrolled. What the entry owes is that the offset is not
       // taken and clamped away WHILE the box is deliberately smaller than its list; what the
       // release owes is that the placement's offset is there at the end. Both are read.
-      if (popup?.hasAttribute("data-unfurling")) inner.push(popup.scrollTop);
+      if (popup?.hasAttribute("data-unfurling")) {
+        inner.push(popup.scrollTop);
+        // WHERE THE CHOSEN ROW IS, which is the only thing a person can see. Every spelling of
+        // this mechanism so far has been read through its own implementation — an offset, a
+        // clip, a margin — and each time the law went green on the arrangement it was written
+        // beside. The row's distance from the trigger is what the placement PROMISES, and it
+        // is the same number whichever way the offset is carried.
+        const row = popup.querySelector<HTMLElement>("[data-selected]");
+        if (row) rowOffsets.push(row.getBoundingClientRect().top - trigger.getBoundingClientRect().top);
+      }
       if (popup && !popup.hasAttribute("data-unfurling") && inner.length) landed = popup;
       if (sampling) requestAnimationFrame(tick);
     };
@@ -1596,29 +1606,55 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     expect(Math.max(...drift), `the page moved ${Math.max(...drift)}px`).toBeLessThanOrEqual(1);
 
     /**
-     * THE PANEL'S OWN OFFSET MUST NOT MOVE — which is not the same claim as "must be zero",
-     * and the difference is the whole of 2026-08-22 (Kushagra, on a 48-row list: it "jumps
-     * the selected item to correct position after opening").
+     * THE PANEL'S OWN OFFSET MUST NOT MOVE while the box is deliberately smaller than its list
+     * — which is not the same claim as "must be zero", and the difference is 2026-08-22.
      *
-     * This assertion read `max(inner) <= 1` until then, which pinned the SPELLING of the fix
-     * that happened to be in the file rather than the guarantee the paragraph above argues
-     * for. Zero satisfied it, and zero is exactly what the defect looks like: the flight
-     * abolished the offset, ran ~740ms with the list at the top, and the placement arrived in
-     * one step on release — measured `scrollTop` 301 at the seed, 0 for every flying frame,
-     * 301 again after, with the chosen row 374px from the trigger it exists to sit on and
-     * snapping home. A law asserting zero cannot tell that from a working entry.
-     *
-     * What the entry owes is that the offset does not CHANGE while the box is deliberately
-     * smaller than its list. That catches both failures with one sentence: the browser's
-     * reveal taking an offset and the box clamping it away frame by frame (the 2026-08-17
-     * finding, 165 → 0), and the offset being held at the wrong value and corrected at the
-     * end (the finding above). Zero is still allowed — it is simply no longer sufficient.
+     * This read `max(inner) <= 1` until then, which pinned the SPELLING of whichever fix was in
+     * the file rather than any guarantee. Zero satisfied it, and zero is what one of the two
+     * defects looks like. What the entry owes is that the offset does not CHANGE mid-flight:
+     * that catches the browser's reveal taking one and the box clamping it away frame by frame
+     * (2026-08-17, 165 → 0), and it catches the clamp that a growing box inflicts on a placement
+     * written with the pose (2026-08-22, 21 → 15 → 9 → 3 on a panel constrained by the window's
+     * top edge). Zero is still allowed; it is simply no longer sufficient.
      */
     const spread = Math.max(...inner) - Math.min(...inner);
     expect(
       spread,
       `the panel's contents slid ${spread}px during the entry (${Math.min(...inner)} → ${Math.max(...inner)})`,
     ).toBeLessThanOrEqual(1);
+
+    /**
+     * …AND THE PLACEMENT IS DELIVERED BY THE FLIGHT, NOT AFTER IT.
+     *
+     * This is the assertion that survives a change of mechanism, and it exists because three
+     * spellings in one day each satisfied a law written beside them. An item-aligned select
+     * promises one thing a person can see: the chosen row sits on the value it replaces. So the
+     * law reads the ROW, not the offset — its distance from the trigger on the last frame the
+     * entry is running. Every failure so far shows up here as the same number:
+     *
+     *   abolish the offset for the flight  → last flying frame ~374px off (the 48-row list)
+     *   clamp it away as the box grows     → ~21px off, snapping home on release
+     *   carry it as a margin, released in
+     *     the wrong order                  → 0px in flight and 61px off ON the landing frame
+     *
+     * Read on the last FLYING frame rather than after landing on purpose: a jump is precisely a
+     * disagreement between those two, and asserting the settled state alone is what let every
+     * one of the three through.
+     */
+    expect(
+      rowOffsets.length,
+      "the chosen row was never sampled — the law measured nothing",
+    ).toBeGreaterThan(5);
+    const landing = Math.abs(rowOffsets[rowOffsets.length - 1]!);
+    expect(
+      landing,
+      `the chosen row was ${Math.round(landing)}px from its trigger on the entry's last frame — the placement arrives after the flight, which is the jump`,
+      // SIX, and the number is chosen to sit in the gap rather than at the edge of what passes
+      // today. The panel is still settling by a fraction on its last flying frame (measured
+      // 2.4px), and the smallest real defect this has ever caught is 21px — so anything from
+      // about 5 to 15 separates them. A bound set at what currently passes would fail on the
+      // next harmless sub-pixel change and teach whoever hits it to widen the bound.
+    ).toBeLessThanOrEqual(6);
 
     // THE CALIBRATION, and it is what makes the assertions here mean anything: a list that
     // fits its box has no offset to lose, so a still panel there is the fixture agreeing with
@@ -1635,13 +1671,37 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
       "the placement's own offset did not survive the entry",
     ).toBeGreaterThan(1);
 
-    // …AND IT IS THE OFFSET THE PANEL FLEW WITH. Constancy alone permits the defect held
-    // perfectly still: 0 for every flying frame and the placement applied on release is a
-    // spread of zero and a jump the user sees. The flight's value and the settled value are
-    // the same number, or the entry landed somewhere it was not going.
-    expect(
-      Math.abs(inner[inner.length - 1]! - settledPanel.scrollTop),
-      `the entry flew at ${inner[inner.length - 1]} and landed at ${settledPanel.scrollTop} — the placement arrived in one step`,
-    ).toBeLessThanOrEqual(1);
+    // The offset the panel flew with is deliberately NOT compared to the settled one any more.
+    // That assertion was written when the placement was carried as a scroll position for the
+    // whole flight; it is now carried as layout while the box is in the air, so the flying
+    // offset is legitimately zero and the settled one is not. What that comparison was really
+    // asking — did the placement arrive during the flight or after it — is asked directly of
+    // the ROW above, in the one unit that survives the mechanism changing under it.
   });
+
+  /**
+   * WHAT THIS FILE CANNOT REACH, stated so the next person does not conclude it is covered.
+   *
+   * The law above runs a 30-row list, and a box that never catches its own content never
+   * clamps anything. The failure Kushagra reported on 2026-08-22 needs the MIDDLE case: a list
+   * only a little taller than the room it has, which is what a trigger near the top of the
+   * window produces. There the entry's scaled content is briefly SHORTER than the growing box,
+   * the maximum scroll offset collapses to zero, and whatever the placement was carrying is
+   * clamped away and handed back on landing.
+   *
+   * Two separate repairs passed this file while that was still on screen, and a fixture for it
+   * was written and thrown away: an explicit `maxHeight` squeezes the panel but also puts the
+   * chosen row out of reach of its trigger, so Base UI stops aligning at all and the law
+   * measures a panel that was never item-aligned (settled 225px off — the same number it
+   * "failed" with, which is the tell). The real condition is a short VIEWPORT, and this suite
+   * pins a wide, tall one on purpose.
+   *
+   * So it was verified in a real browser instead, at window heights of 420, 500, 620 and 900,
+   * on /preview/select: before, the row drifted 21 → 3 across the flight and snapped back 61px
+   * on landing; after, the worst landing error is 4px and the constrained case behaves like the
+   * unconstrained one. Written down here because a measurement nobody can re-run is a rumour —
+   * the day this suite can set a viewport height, that is the fixture to build.
+   */
+
+
 });
