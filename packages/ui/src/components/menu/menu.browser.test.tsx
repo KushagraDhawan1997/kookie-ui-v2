@@ -2048,6 +2048,100 @@ describe("the panel unfurls out of a seed (§22)", () => {
     ).toBeLessThan(1);
   });
 
+  it("a MIRRORED submenu grows out of the seam too (§22, 2026-08-22)", async () => {
+    /**
+     * The 2026-08-17 BESIDE change made a side-opening panel start on the edge it shares with
+     * the panel it came out of. It fixed the un-mirrored placement and left the mirrored one
+     * live, because the flight's pin block did not contain `[data-side="inline-start"]` at all
+     * — Base UI's `getLogicalSide` returns the logical pair whenever the side is logical and a
+     * submenu defaults to `inline-end`, so a menu in the RIGHT half of the window flips to
+     * `inline-start`, a spelling only the transform-origin block carried. The same block also
+     * read `[data-align="end"]` bare, which is the inline axis on a bottom or top panel and the
+     * BLOCK axis on a side one, so it moved an axis the alignment says nothing about.
+     *
+     * Measured on this fixture before the fix: seed `l=917 r=973` against a parent whose left
+     * edge — the seam — is at 1029. The panel started 112px clear of the seam and grew
+     * TOWARDS it, which is the unfurl running backwards. After: seed `l=973 r=1029`, its right
+     * edge exactly on the seam, growing away from it.
+     *
+     * The existing law two below cannot see this: its fixture mounts `<Menu defaultOpen>` with
+     * no wrapper, so the trigger sits at the host's top-left and the submenu can resolve ONLY
+     * `inline-end` + `start` — the one cell that was already right — and its geometric claim is
+     * measured against the ROW rather than the seam, which evaluates true in the broken cells
+     * as well. This one pins the trigger to the right of the window so the placement has to
+     * mirror, and asserts against the seam.
+     */
+    inMotion();
+    const { userEvent } = await import("vitest/browser");
+    const host = mount(
+      <Theme>
+        {/* Pinned RIGHT, which is the whole fixture: a submenu only mirrors when there is no
+            room for it on the trailing side. */}
+        <div style={{ position: "fixed", right: 20, top: 40 }}>
+          <Menu>
+            <MenuTrigger render={<Button>Actions</Button>} />
+            <MenuContent>
+              <MenuItem>A fairly long first item label</MenuItem>
+              <MenuSub>
+                <MenuSubTrigger>More options over here</MenuSubTrigger>
+                <MenuSubContent>
+                  <MenuItem>Sub A</MenuItem>
+                  <MenuItem>Sub B</MenuItem>
+                </MenuSubContent>
+              </MenuSub>
+            </MenuContent>
+          </Menu>
+        </div>
+      </Theme>,
+    );
+
+    await press(host.querySelector<HTMLElement>(".kui-button")!);
+    await until(() => !!document.querySelector(".kui-menu-popup"));
+    const parent = document.querySelector<HTMLElement>(".kui-menu-popup")!;
+    await until(() => !parent.hasAttribute("data-unfurling"));
+    const seam = parent.getBoundingClientRect();
+
+    // Armed BEFORE the hover and anchored on the AIMED SEED — the pose lasts about two frames,
+    // so it is observed rather than hunted.
+    let seed: DOMRect | null = null;
+    const observer = new MutationObserver(() => {
+      const posed = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find(
+        (el) => el !== parent && el.hasAttribute("data-seed") && el.hasAttribute("data-aimed"),
+      );
+      if (posed) seed = posed.getBoundingClientRect();
+    });
+    observer.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-seed", "data-aimed", "style"],
+    });
+
+    const rows = [...parent.querySelectorAll<HTMLElement>(".kui-row")];
+    const subTrigger = rows.find((r) => r.textContent?.includes("More options"))!;
+    await userEvent.hover(subTrigger);
+    await until(() => document.querySelectorAll(".kui-menu-popup").length > 1);
+    const sub = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find((el) => el !== parent)!;
+    await until(() => !sub.hasAttribute("data-unfurling"));
+    observer.disconnect();
+
+    // THE PREMISE: the placement really did mirror. Without this the law passes on the
+    // un-mirrored cell, which was never broken — the exact way the existing law reads as
+    // coverage it does not have.
+    expect(
+      sub.parentElement?.getAttribute("data-side"),
+      "the fixture did not mirror, so this law is measuring the cell that already worked",
+    ).toBe("inline-start");
+    expect(seed, "the submenu's pose was never observed").not.toBeNull();
+
+    // The seam is the parent's own leading edge, because the child lands on THAT side of it.
+    const posed = seed as unknown as DOMRect;
+    expect(
+      posed.right,
+      `the seed starts ${Math.round(seam.left - posed.right)}px clear of the seam and grows towards it`,
+    ).toBeCloseTo(seam.left, 0);
+    expect(sub.getBoundingClientRect().right, "and it lands on the seam").toBeCloseTo(seam.left, 0);
+  });
+
   watchesFrames("a panel that lands BESIDE its trigger grows out of the SEAM, not out of the row (§22)", async () => {
     /**
      * The silhouette's one exception, and it is decided by the placement rather than by the

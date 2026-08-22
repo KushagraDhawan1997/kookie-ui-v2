@@ -1646,14 +1646,45 @@
   inset-block-start: 0;
   inset-inline-start: 0;
 }
-.kui-surface.kui-floating[data-unfurling][data-align="end"],
-.kui-surface.kui-floating[data-unfurling][data-side="left"] {
+/* WHICH EDGE THE BOX IS HELD BY, and the case analysis is the transform-origin block's, 230
+   lines above, restated (2026-08-22 audit). The two had drifted, inside one file, on a
+   mechanism where they have to agree: the origin says which corner the panel grows OUT OF and
+   this says which edge it is pinned BY, so a disagreement grows a panel away from the corner
+   it is supposed to emerge from.
+
+   Two faults, both here. `[data-side="inline-start"]` was absent — Base UI's `getLogicalSide`
+   returns the logical pair whenever the side is logical, and a submenu defaults to `inline-end`,
+   so a FLIPPED submenu (a menu in the right half of the window) is `inline-start`, a spelling
+   this block did not contain while the origin block did. And `[data-align="end"]` fired bare:
+   on a bottom or top panel `align` is the INLINE axis and the rule is right, but on a side
+   placement it is the BLOCK axis, so the rule moved an axis the alignment says nothing about
+   and left the one it governs unpinned. Measured on a flipped submenu: seed `l=719 r=775`
+   growing to `l=719 r=878` with the seam at 878 — the panel growing sideways back INTO the
+   menu it came out of, which is the "unfurl running backwards" the 2026-08-17 BESIDE change
+   removed for the un-mirrored placement and left live for this one. */
+.kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="end"],
+.kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="end"],
+.kui-surface.kui-floating[data-unfurling][data-side="left"],
+.kui-surface.kui-floating[data-unfurling][data-side="inline-start"] {
   inset-inline-start: auto;
   inset-inline-end: 0;
 }
-.kui-surface.kui-floating[data-unfurling][data-side="top"] {
+.kui-surface.kui-floating[data-unfurling][data-side="top"],
+.kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="end"],
+.kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="end"],
+.kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="end"],
+.kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="end"] {
   inset-block-start: auto;
   inset-block-end: 0;
+}
+/* A side placement centred on its row is held by its own middle, the same sentence the body's
+   `[data-align="center"]` arm already made for the inline axis on a bottom or top panel. */
+.kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="center"],
+.kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="center"],
+.kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="center"],
+.kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="center"] {
+  inset-block: 0;
+  margin-block: auto;
 }
 /* Inset by the panel's OWN padding, never by zero (fixed 2026-08-10, Kushagra: *"the inside of
    the menu jumps after animation finishes"* — and it was in my own probe output an hour
@@ -1707,14 +1738,35 @@
   inset-block-start: var(--kui-floating-p);
   inset-inline-start: var(--kui-floating-p);
 }
-.kui-surface.kui-floating[data-unfurling][data-align="end"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body {
+/* The body is held against the same edge as its box — the case analysis above, restated for
+   the element inside it (2026-08-22 audit). It carried the same two faults and for the same
+   reason: `inline-start` missing, and `align` read on the inline axis for placements where it
+   is the block one. */
+.kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="end"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="end"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="inline-start"] .kui-floating-body {
   inset-inline-start: auto;
   inset-inline-end: var(--kui-floating-p);
 }
-.kui-surface.kui-floating[data-unfurling][data-align="center"] .kui-floating-body {
+.kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="center"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="center"] .kui-floating-body {
   inset-inline: var(--kui-floating-p);
   margin-inline: auto;
+}
+.kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="end"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="end"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="end"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="end"] .kui-floating-body {
+  inset-block-start: auto;
+  inset-block-end: var(--kui-floating-p);
+}
+.kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="center"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="center"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="center"] .kui-floating-body,
+.kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="center"] .kui-floating-body {
+  inset-block: var(--kui-floating-p);
+  margin-block: auto;
 }
 .kui-surface.kui-floating[data-unfurling][data-side="top"] .kui-floating-body {
   inset-block-start: auto;
