@@ -3,6 +3,8 @@
  * no anatomy. There is no card.css to test; what is asserted is that the shell's fixed
  * identity resolves through the shared surface layer and that the API refuses opinions.
  */
+import * as React from "react";
+import { flushSync } from "react-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cdp } from "vitest/browser";
 
@@ -1002,6 +1004,52 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
     const solid = mounted(<Card>S</Card>, { theme: { material: "solid" } });
     expect(lens(solid)).toBeUndefined();
     expect(solid.style.getPropertyValue("--kui-lens"), "a solid pane built a map it cannot use").toBe("");
+  });
+
+  it("an unmounted glass pane leaves no filter behind (§10, 2026-08-22)", async () => {
+    /**
+     * `useLens` runs `measure()` directly and then hands the same node to a ResizeObserver,
+     * which delivers its own initial record for the same box — so `acquire` takes the cache-hit
+     * branch and puts the entry's refcount at 2, while the release was guarded on the id having
+     * CHANGED and therefore skipped exactly when it had not. One reference was never given
+     * back, so the filter outlived every pane that ever used that box size. Measured through a
+     * real React unmount: one orphaned `<filter>` per cycle, and it does not come back.
+     *
+     * Read as the DOCUMENT's own filter count across a full mount/unmount cycle, not as the
+     * hook's bookkeeping: the refcount is the mechanism, and the orphan is the thing that is
+     * wrong. Run twice, because a leak that is bounded by distinct box sizes shows itself by
+     * not growing on the second cycle — which is why "one" looked survivable for so long.
+     */
+    let show!: (v: boolean) => void;
+    function App() {
+      const [on, set] = React.useState(true);
+      show = set;
+      return (
+        <Theme material="thin">
+          <Box backdrop>{on ? <Card backdrop>hello</Card> : null}</Box>
+        </Theme>
+      );
+    }
+    const count = () => document.querySelectorAll("filter").length;
+    const before = count();
+    render(<App />);
+    // A settled delay, not `until(count > before)`: the leak needs the ResizeObserver's OWN
+    // initial record to arrive and take a second reference on the entry the direct measurement
+    // just created, and a poll that stops the moment the first filter appears returns before
+    // that second acquire has happened.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    // THE PREMISE: a filter was really minted, or "nothing left behind" is trivially true.
+    expect(count(), "no lens was built, so this fixture cannot show a leak").toBeGreaterThan(before);
+
+    flushSync(() => show(false));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(count(), "an unmounted glass pane left its filter in the document").toBe(before);
+
+    flushSync(() => show(true));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    flushSync(() => show(false));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(count(), "a second cycle left one behind").toBe(before);
   });
 
   it("a nested pane gets its OWN map, never its container's", () => {

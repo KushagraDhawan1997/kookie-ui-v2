@@ -278,10 +278,16 @@ export function lensSupported(): boolean {
  * radius axis and the size index, and the map must match the corner the box actually has.
  */
 export function useLens(active: boolean): (node: HTMLElement | null) => void {
-  const state = React.useRef<{ node: HTMLElement | null; id: string | null; ro: ResizeObserver | null }>({
+  const state = React.useRef<{
+    node: HTMLElement | null;
+    id: string | null;
+    ro: ResizeObserver | null;
+    flight: MutationObserver | null;
+  }>({
     node: null,
     id: null,
     ro: null,
+    flight: null,
   });
 
   return React.useCallback(
@@ -292,6 +298,8 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
       const detach = () => {
         s.ro?.disconnect();
         s.ro = null;
+        s.flight?.disconnect();
+        s.flight = null;
         if (s.id) release(s.id);
         if (s.id && s.node) s.node.style.removeProperty("--kui-lens");
         s.id = null;
@@ -313,14 +321,53 @@ export function useLens(active: boolean): (node: HTMLElement | null) => void {
         const r = Math.min(Math.round(cssRadius * scale), Math.floor(Math.min(w, h) / 2));
         const next = acquire(w, h, r, lens);
         if (!next) return;
-        if (s.id && s.id !== next) release(s.id);
+        // UNCONDITIONALLY, never `s.id !== next` (2026-08-22 audit). `measure()` runs once
+        // directly below and the ResizeObserver then delivers its own initial record for the
+        // same box, so `acquire` takes the cache-hit branch and puts `users` at 2 — and the
+        // old guard skipped the release precisely because the id had not changed, so the
+        // second reference was never given back. Measured: mounting and unmounting one glass
+        // `<Card>` left one orphaned `<filter>` in the document, bounded by distinct box sizes
+        // rather than by mounts. Releasing here is safe in the equal case by construction:
+        // `acquire` has already incremented, so this decrements the count it just added.
+        if (s.id) release(s.id);
         s.id = next;
         node.style.setProperty("--kui-lens", `url(#${next})`);
       };
 
-      measure();
-      s.ro = new ResizeObserver(measure);
+      /**
+       * NOT WHILE THE PANE IS FLYING (2026-08-22 audit) — the one gesture that resizes a pane
+       * continuously.
+       *
+       * `refraction.tsx`'s own opening paragraph says this is built "on mount and resize, never
+       * on hover, press, focus or scroll — the seam the floating layer already uses". That
+       * sentence is true about hover and press and silent about the entry, and the entry
+       * animates `inline-size` and `block-size` on the very element the lens is attached to. So
+       * every frame was a distinct cache key, and every miss ran a per-pixel Snell solve over
+       * up to 320x320, a `toDataURL` PNG encode of ~100k pixels, an eleven-node `<filter>`
+       * grafted in, the previous one torn down and a fresh `--kui-lens` written — synchronously
+       * inside the frame, after layout and before paint. Measured on one glass menu open: 27
+       * distinct filters installed on a single panel. It also cannot look right while it does
+       * it, because each map is generated for frame N's box and applied on frame N+1's, so the
+       * bezel never matches the pane it is bending.
+       *
+       * A flight ends by taking its stamp off, which is a signal rather than a guess — so the
+       * measurement is not skipped, it is DEFERRED to the seam. The `--kui-fly-*` strip at
+       * release usually changes the box and would fire the ResizeObserver anyway; this makes
+       * the one measurement certain in the case where the settled box happens to match.
+       */
+      const flying = () => !!node.closest("[data-unfurling]");
+      const measureUnlessFlying = () => {
+        if (flying()) return;
+        measure();
+      };
+
+      measureUnlessFlying();
+      s.ro = new ResizeObserver(measureUnlessFlying);
       s.ro.observe(node);
+      s.flight = new MutationObserver(() => {
+        if (!flying()) measure();
+      });
+      s.flight.observe(node, { attributes: true, attributeFilter: ["data-unfurling"] });
     },
     [active],
   );

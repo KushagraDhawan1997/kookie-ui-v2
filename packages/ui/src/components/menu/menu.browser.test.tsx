@@ -2048,6 +2048,67 @@ describe("the panel unfurls out of a seed (§22)", () => {
     ).toBeLessThan(1);
   });
 
+  it("a GLASS panel builds its lens once, not once a frame (§8, §10, 2026-08-22)", async () => {
+    /**
+     * `system/refraction.tsx` opens by stating that the lens is built "on mount and resize,
+     * never on hover, press, focus or scroll — the seam the floating layer already uses". That
+     * sentence is true about hover and press, and silent about the one gesture that resizes a
+     * pane continuously: the entry animates `inline-size` and `block-size` on the exact element
+     * the lens is attached to. So every frame was a distinct cache key, and every miss ran a
+     * per-pixel Snell solve over up to 320x320, a `toDataURL` PNG encode of ~100k pixels, an
+     * eleven-node `<filter>` grafted in and the previous one torn down — synchronously, after
+     * layout and before paint. Measured on one glass menu open: 27 distinct filters installed
+     * on a single panel; two after the fix. It could not look right while doing it either, since
+     * each map is generated for frame N's box and applied on frame N+1's.
+     *
+     * Counted as DISTINCT INSTALLED VALUES rather than as elapsed time or dropped frames: the
+     * cost is one generation per value, and a count is the same number on a fast machine and a
+     * starved one, which is what keeps this law off the frame-watching list.
+     */
+    inMotion();
+    const { userEvent } = await import("vitest/browser");
+    const host = mount(
+      <Theme material="thin">
+        <Box backdrop style={{ padding: 100 }}>
+          <Menu>
+            <MenuTrigger render={<Button>Open</Button>} />
+            <MenuContent>
+              <MenuItem>Duplicate this thing</MenuItem>
+              <MenuItem>Rename it</MenuItem>
+              <MenuItem>Move somewhere else</MenuItem>
+            </MenuContent>
+          </Menu>
+        </Box>
+      </Theme>,
+    );
+
+    await press(host.querySelector<HTMLElement>(".kui-button")!);
+    await until(() => !!document.querySelector(".kui-menu-popup"));
+    const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
+    const seen = new Set<string>();
+    let sampling = true;
+    const tick = () => {
+      const value = popup.style.getPropertyValue("--kui-lens");
+      if (value) seen.add(value);
+      if (sampling) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    await until(() => !popup.hasAttribute("data-unfurling"));
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    sampling = false;
+
+    // THE PREMISE: this panel really is lensed. Without it the law passes on any build where
+    // glass stopped reaching a popup at all, which is agreement by absence.
+    expect(popup.getAttribute("data-material"), "the panel is not glass, so it has no lens").toBe("thin");
+    expect(seen.size, "no lens was ever installed — this fixture cannot show the defect").toBeGreaterThan(0);
+    // A settled panel is allowed to differ from its seed; a panel that rebuilds per frame is
+    // not. The bound is generous on purpose — what it forbids is the per-frame class.
+    expect(
+      seen.size,
+      `the lens was rebuilt ${seen.size} times during one entry: ${[...seen].join(" ")}`,
+    ).toBeLessThanOrEqual(4);
+  });
+
   it("a MIRRORED submenu grows out of the seam too (§22, 2026-08-22)", async () => {
     /**
      * The 2026-08-17 BESIDE change made a side-opening panel start on the edge it shares with
