@@ -997,6 +997,74 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     return { popup: popup!, trigger };
   }
 
+  it("the width floor is the trigger's LAYOUT box, not the box it is holding a press in (§22)", async () => {
+    /**
+     * 2026-08-23, the floating-motion audit: this guarantee was held by ONE law, and that law
+     * is `watchesFrames` — skipped on CI. Sabotaging `restingAnchorWidth` to return the raw
+     * rect left the entire package green on a CI run.
+     *
+     * `restingAnchorWidth` divides the trigger's rect by its computed scale so the published
+     * floor is the LAYOUT box whichever way the panel was opened. An open trigger holds its
+     * press and the press is a spring, so which box a measurement lands on depends on the
+     * gesture: a pointer press has not started travelling when the entry measures, while a
+     * panel opened from STATE is already holding it. Remove the division and a state-opened
+     * select settles ~2.5% narrower than the same panel opened by click — 10px on a 400px
+     * trigger — and permanently, because `--kui-anchor-w` outlives the flight by design.
+     *
+     * HERE AND NOT IN MENU'S FILE, which is where it was tried first and where it cannot work:
+     * a menu is posed on the mount frame, before the open-press spring has moved anything, so
+     * the rect and the layout box are the same number and the division is a no-op. The
+     * measurement was added to menu's release-step law, passed under sabotage, and moved. Only
+     * `placedByContent` waits long enough for the two to disagree.
+     *
+     * And it needs no frames: the floor survives the flight, so a settled panel still carries
+     * the number the entry published.
+     */
+    inMotion();
+    const host = mount(
+      <Theme>
+        <div style={{ height: "50vh" }} />
+        {/* WIDE on purpose: the anchor floor is only in play above `--floating-min-w`. */}
+        <div style={{ width: "400px" }}>
+          <Select defaultOpen defaultValue="o1" items={{ o1: "One", o2: "Two" }}>
+            <SelectTrigger style={{ width: "100%" }} />
+            <SelectContent>
+              <SelectItem value="o1">One</SelectItem>
+              <SelectItem value="o2">Two</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div style={{ height: "50vh" }} />
+      </Theme>,
+    );
+    const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
+    let popup: HTMLElement | undefined;
+    await until(() => {
+      popup = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop();
+      return !!popup && !popup.hidden && !!popup.style.getPropertyValue("--kui-anchor-w");
+    }, 3000);
+
+    /**
+     * THE CALIBRATION, and it is the whole law: the trigger must be HOLDING its press at the
+     * moment the entry measured, or the rect and the layout box are the same number and a
+     * missing division is invisible. `defaultOpen` is what produces that state — the same
+     * fixture opened by click measures at scale 1 and passes either way.
+     */
+    const scale = parseFloat(getComputedStyle(trigger).scale) || 1;
+    expect(scale, "the trigger is not holding a press — there is no disagreement to catch").toBeLessThan(1);
+    const rect = trigger.getBoundingClientRect().width;
+    expect(
+      Math.abs(trigger.offsetWidth - rect),
+      "the pressed rect and the layout box must DIFFER, or this law is about nothing",
+    ).toBeGreaterThan(2);
+
+    const published = parseFloat(popup!.style.getPropertyValue("--kui-anchor-w"));
+    expect(
+      published,
+      `the floor was published as ${published}px — the trigger's PRESSED rect (${rect}px) rather than its layout box (${trigger.offsetWidth}px), so a panel opened from state settles that much narrower and stays there`,
+    ).toBeCloseTo(trigger.offsetWidth, 0);
+  });
+
   it("the first frame is the trigger's SILHOUETTE, and the panel is measured for the flight", async () => {
     // The silhouette, on the family's second member with zero CSS of its own (2026-08-15,
     // Kushagra: the panel must start "exactly the shape of the trigger, and exactly where

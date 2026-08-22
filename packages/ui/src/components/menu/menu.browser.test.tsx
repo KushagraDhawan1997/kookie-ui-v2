@@ -1933,7 +1933,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
     );
   });
 
-  it("the panel's floor is the trigger's LAYOUT width, so it does not step at release (§22)", async () => {
+  it("the panel's floor does not step at release (§22)", async () => {
     /**
      * 2026-08-17 and again 2026-08-22, Kushagra: *"it jumps a bit in width at the end."*
      *
@@ -1951,6 +1951,14 @@ describe("the panel unfurls out of a seed (§22)", () => {
      * select's trigger is field-shaped and a field's box does not travel (§8, 2026-08-10), so
      * its anchor never scales and the same law there measures a handover with nothing to get
      * wrong. Select keeps the mechanism half (the floor survives release); the OUTCOME is here.
+     *
+     * WHAT THIS LAW DOES NOT PROVE, renamed to match on 2026-08-23: that the published floor is
+     * the trigger's LAYOUT width. Its old title said so and none of its assertions did, and the
+     * measurement cannot be added here — a menu is posed on the mount frame, before the
+     * open-press spring has moved anything, so the rect and the layout box are the same number
+     * and a missing scale division is invisible. It was added here first, passed under
+     * sabotage, and lives in select's file now, on a `defaultOpen` panel — the one path that
+     * waits long enough for the two to disagree.
      */
     inMotion();
     const host = mount(
@@ -2036,6 +2044,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
       parseFloat(getComputedStyle(trigger).scale) || 1,
       "the trigger must be HOLDING its press, or there is no disagreement to catch",
     ).toBeLessThan(1);
+
 
     // One pixel, not half: the defect is a ~2.5% step (10px on this trigger) and sub-pixel
     // layout noise between two frames is not it. `toBeCloseTo(…, 0)` is a 0.5 bound and failed

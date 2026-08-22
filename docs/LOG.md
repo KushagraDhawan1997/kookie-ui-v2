@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 A guarantee held only by a law CI does not run
+
+**What.** No code change. The width floor's layout-box guarantee moves from a CI-excluded law into one that runs, and the menu law whose title promised it is renamed to what it actually proves.
+
+**Why it came up.** The floating-motion audit, whose verifier sabotaged `restingAnchorWidth` and ran the real suites: with the scale division removed, `CI=1` over the whole browser project reported zero real laws failing.
+
+**What the guarantee is.** An open trigger holds its press, and the press is a spring, so which box a measurement lands on depends on how the panel was opened — a pointer press has not started travelling when the entry measures, while a panel opened from STATE is already holding it. `restingAnchorWidth` divides the rect by the computed scale so the published floor is the layout box either way. Without it a state-opened select settles ~2.5% narrower than the same panel opened by click — measured 390 against 400 — and permanently, because `--kui-anchor-w` outlives the flight by design.
+
+**Two laws were wrong about themselves.** The one that caught it was `watchesFrames`, so it is skipped where it matters. And the law carrying the claim in its TITLE — menu's "the panel's floor is the trigger's LAYOUT width" — never compared the panel to the trigger at all; its assertion is that settled equals flying, and that now holds for any published value, because the fix that made the floor survive release also made both sides of the comparison read the same number. A law that once proved a value ended up proving only that it is stable.
+
+**The repair, and the thing it re-taught.** The measurement was added to menu's law first and PASSED UNDER SABOTAGE — a menu is posed on the mount frame, before the press spring has moved anything, so the rect and the layout box are the same number there and a missing division is invisible. It lives in select's file now, on a `defaultOpen` panel, with a calibration that the two boxes actually differ. It needs no frames: the floor survives the flight, so a settled panel still carries what the entry published. Renaming menu's law is the other half — a title is a claim, and this one had been making a promise its fixture cannot keep.
+
+---
+
 ## 2026-08-23 The flying body pivoted on one edge and was pinned to another
 
 **What.** `.kui-floating-body`'s `transform-origin` now reads the panel's own `--kui-origin-x/-y` table instead of restating a partial one. Its three bespoke rules are deleted, and the CSS is 37 bytes smaller for it.
