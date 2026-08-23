@@ -439,6 +439,53 @@ export const iconSize = {
 } as const satisfies Record<"fine" | "coarse", readonly number[]>;
 
 /**
+ * §4, §8 — the STROKE a glyph is drawn at (2026-08-23, Kushagra: the icons "are too thin, we
+ * need to find a way to match icons appropriate to what it needs. It needs to work with
+ * regular typeface. Usually 1.75 stroke width works").
+ *
+ * **The report was "too thin"; the defect was that ONE number meant TWO weights.** Every glyph
+ * in the repo said `strokeWidth="1.5"` — the seven the package draws itself, and the three in
+ * the docs app — and they did not render alike, because a stroke is stated in VIEWBOX units
+ * and the two sets are drawn on different grids:
+ *
+ *   package glyph   16 viewBox, 16px box -> scale 1.000 -> 1.50px painted
+ *   Hugeicon        24 viewBox, 16px box -> scale 0.667 -> 1.00px painted
+ *
+ * So a select's chevron has been painting 50% heavier than the Hugeicon in the button beside
+ * it since the day the docs installed an icon set, and the thin half is what Kushagra is
+ * looking at. Raising the shared literal to 1.75 would have widened that gap, not closed it:
+ * the package's own glyphs would have gone to 1.75px against the Hugeicons' 1.17px.
+ *
+ * What is constant is the PAINTED stroke, so that is what this states. `iconStroke` is the
+ * number for the ecosystem's grid — 24, which Lucide, Hugeicons, Heroicons, Phosphor and
+ * Feather all draw on — and `glyphStroke` converts it to the 16 the package's own glyphs use.
+ * Both land on the same painted weight in the same box, which is the guarantee.
+ *
+ * **`iconStroke` is public, and that is the point.** §8 ships no icon set, so the glyphs beside
+ * ours belong to whatever set the app installed, and a chevron that does not match them is the
+ * one mismatch a consumer cannot fix from the outside. The system states the weight it draws
+ * at; the app passes it to its own set.
+ *
+ * Why 1.75: it is v1 KookieUI's own settled number, in every documented example, and the
+ * ecosystem brackets it (Heroicons and Hugeicons ship 1.5, Lucide and Feather 2). A nominal
+ * stroke is not apparent weight — a font stem is rasterized with stem darkening and an SVG
+ * stroke is not — so this is an eye value, not an arithmetic one, and no arithmetic is offered
+ * for it.
+ *
+ * Neither rides the size index. A stroke lives inside the viewBox, so it already scales with
+ * `iconSize` above: one number, four painted weights.
+ */
+export const iconGrid = 24;
+export const iconStroke = 1.75;
+
+/**
+ * The same painted weight, restated for the 16-unit viewBox the package's own glyphs use. A
+ * derivation rather than a second judged number: if the two were both hand-set they would
+ * drift, which is the defect this pair exists to end.
+ */
+export const glyphStroke = (iconStroke * 16) / iconGrid;
+
+/**
  * §4, §12 — the icon-label gap, pulled by the size index. Like the icon box above, it is
  * part of the LABEL CLUSTER and deliberately not in the density sets (decided 2026-08-04,
  * Kushagra): density grows the box and holds the content — type, icon, and the gap binding

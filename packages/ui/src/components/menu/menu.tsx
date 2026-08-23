@@ -30,6 +30,7 @@ import type { Size, SlotName } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
+import { glyphStroke } from "../../tokens/config.ts";
 
 /* ── Designed constants (§22 — the switchInset precedent: Base UI takes numbers, so
       these cannot ride CSS tokens; one home, judged in the playground) ─────────────────── */
@@ -511,7 +512,7 @@ function checkGlyph() {
       <path
         d="M4 8.5 6.75 11.25 12 5.75"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth={glyphStroke}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -767,7 +768,7 @@ export function MenuSubTrigger({
           <path
             d="M6 4.5 L8.7 7.2 Q9.5 8 8.7 8.8 L6 11.5"
             stroke="currentColor"
-            strokeWidth="1.5"
+            strokeWidth={glyphStroke}
             strokeLinecap="round"
             strokeLinejoin="round"
           />

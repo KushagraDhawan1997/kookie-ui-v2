@@ -5,6 +5,7 @@ import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { useControlSize } from "../../system/control-size.ts";
+import { glyphStroke } from "../../tokens/config.ts";
 
 export type CheckboxProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseCheckbox.Root>,
@@ -121,7 +122,7 @@ export function Checkbox({ size: sizeProp, className, ref, ...props }: CheckboxP
              1, a dash array of 1 spans the whole glyph whatever the viewBox or the size. */
           pathLength={1}
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth={glyphStroke}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -130,7 +131,7 @@ export function Checkbox({ size: sizeProp, className, ref, ...props }: CheckboxP
           d="M4.25 8h7.5"
           pathLength={1}
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth={glyphStroke}
           strokeLinecap="round"
         />
       </BaseCheckbox.Indicator>

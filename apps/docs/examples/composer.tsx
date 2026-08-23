@@ -16,13 +16,15 @@ import {
   ComposerRow,
   ComposerSend,
   Flex,
+  iconStroke,
   type ComposerStatus,
 } from "@kookie-ui/react";
 
-// The package ships no icon set, so the glyphs are yours. These are Hugeicons at stroke 1.5,
-// with no size: the control sizes the slot's svg for you.
+// The package ships no icon set, so the glyphs are yours. `iconStroke` is the weight the
+// system draws its own chevrons at, so your set matches them. No size: the control sizes the
+// slot's svg for you.
 const icon = (glyph: typeof ArrowUp02Icon) => (
-  <HugeiconsIcon icon={glyph} strokeWidth={1.5} aria-hidden />
+  <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />
 );
 
 export default function Example() {

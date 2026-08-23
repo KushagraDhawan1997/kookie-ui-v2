@@ -24,6 +24,7 @@
  */
 import * as React from "react";
 import { Box, Flex, ShellNavGroup, ShellNavItem, Text } from "@kookie-ui/react";
+import { iconGrid, iconStroke } from "@kookie-ui/react";
 
 /** The one glyph this block draws. Not from the icon set: it must ROTATE with disclosure
     state, and the shared wrapper deliberately sets no size and takes no transform, so a
@@ -48,7 +49,7 @@ function Caret({ open }: { open: boolean }) {
       <path
         d="M4.5 2.5L8 6l-3.5 3.5"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth={(iconStroke * 12) / iconGrid}
         strokeLinecap="round"
         strokeLinejoin="round"
       />

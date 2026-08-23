@@ -22,6 +22,7 @@
  * declaration, but relying on that is a mechanism nobody wrote down.
  */
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { iconStroke } from "@kookie-ui/react";
 import {
   Alert02Icon,
   ArrowTurnBackwardIcon,
@@ -57,14 +58,17 @@ import {
  * One shape for every glyph below: decorative by default (the control that owns it carries the
  * accessible name), stroke 1.5, and no size — the slot's box is the system's.
  *
- * 1.5 is stated once here rather than per call site (Kushagra, 2026-08-10). It is not
- * absolute: `absoluteStrokeWidth` would rescale the stroke against the `size` prop, and this
- * file never passes one — the box comes from CSS, so there is nothing for it to scale against
- * and the flag would silently do nothing.
+ * The stroke is the PACKAGE's (2026-08-23). It was 1.5 stated here, which is the same literal
+ * the package's own chevrons carry — and they did not match, because those are drawn on a 16
+ * viewBox and Hugeicons on a 24, so one number painted 1.5px there and 1.0px here. `iconStroke`
+ * is the number for the 24 grid, and the package converts it for its own. It is not absolute:
+ * `absoluteStrokeWidth` would rescale the stroke against the `size` prop, and this file never
+ * passes one — the box comes from CSS, so there is nothing for it to scale against and the
+ * flag would silently do nothing.
  */
 const glyph = (icon: IconSvgElement) =>
   function Glyph() {
-    return <HugeiconsIcon icon={icon} strokeWidth={1.5} aria-hidden />;
+    return <HugeiconsIcon icon={icon} strokeWidth={iconStroke} aria-hidden />;
   };
 
 export const SearchIcon = glyph(Search01Icon);

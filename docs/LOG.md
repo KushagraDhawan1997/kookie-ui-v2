@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 One stroke literal was two weights, because it was written on two grids
+
+**What.** `iconStroke` (1.75, public) and `iconGrid` (24) join config; `glyphStroke` derives the same painted weight for the 16-unit viewBox the package's own glyphs use. Ten hand-written `strokeWidth="1.5"` literals — seven in the package, three in the docs app — now read one of the two.
+
+**Why it came up.** Kushagra, looking at the composer: the icons *"are too thin... It needs to work with regular typeface. Usually 1.75 stroke width works, what is it being used here?"*
+
+**The report was "too thin" and the defect was that one number meant two weights.** A stroke is stated in viewBox units, so the painted weight is `stroke x box / viewBox`. The package draws its seven glyphs on a 16 viewBox; every icon set the docs could install draws on 24. Both said `1.5`. In a 16px icon box that is 1.50px against 1.00px — so a select's chevron has been painting 50% heavier than the Hugeicon in the button beside it since the day the docs installed a set, and the thin half is what he was looking at. **Raising the shared literal to 1.75 would have widened the gap, not closed it**: the package's own glyphs would have gone to 1.75px against the icons' 1.17px. That is the first answer I had written and it was wrong for the same reason the defect existed — reading the number instead of the pixels.
+
+**What is constant is the painted stroke, so that is what is stated.** `iconStroke` is the number for the ecosystem's grid, which every plausible set agrees on (Lucide, Hugeicons, Heroicons, Phosphor and Feather all draw on 24); `glyphStroke` is a derivation, never a second judged number, because two hand-set numbers are exactly how this drifted. It is **public**, and that is the point: §8 ships no icon set, so a chevron that does not match the app's glyphs is the one mismatch a consumer cannot fix from the outside. The system states the weight it draws at and the app passes it to its own set.
+
+**Why 1.75 and not something measured.** It is v1 KookieUI's own settled number, in every documented example, and the ecosystem brackets it (Heroicons and Hugeicons ship 1.5, Lucide and Feather 2). No arithmetic was offered for it and none should be: a nominal stroke is not apparent weight, because a font stem is rasterized with stem darkening and an SVG stroke is not, so matching text by calculation gives the wrong answer. This is an eye value like every other v0 number.
+
+**Rejected: one number for both grids.** It is what shipped, and it is the defect. Also rejected: leaving the package's glyphs alone and moving only the docs — the mismatch is symmetric and fixing one side of it is choosing which half stays wrong.
+
+**The law reads pixels, and its fixture is the load-bearing half.** Comparing two package glyphs cannot fail, because they move together; the mounted law measures a real package glyph against a 24-grid glyph carrying the public `iconStroke`, in the same box, at every index — the composition a consumer actually builds. Sabotaged by restoring the shipped literal, it reproduces the defect exactly: `expected 1.5 to be close to 1.1666...`. A source law walks every `.tsx` the package ships and fails on any hand-written stroke, because the next chevron is the one the browser law does not mount.
+
+**The doc-code drift was real and dated.** DECISIONS §4 carried a worked painted-weight table computed at 1.5 on a 24 grid, and one sentence above it — "the stroke needed no answer of its own, it lives inside the glyph's viewBox and scales with the box" — is what licensed the whole thing. That is true of the LADDER and was read as true of the VALUE. Both amended.
+
+---
+
 ## 2026-08-23 The eye pass never happened, because it had been happening all along
 
 **What.** `v0` is deleted as a label. It was carried at ~60 sites across `config.ts`, `color-config.ts`,
@@ -63,7 +83,6 @@ describe the system as it is now, were swept.
 2026-08-16 when the lens shipped and the scrim was re-priced to 8 on 2026-08-17, and the prose was never
 brought along. Doc–code drift of exactly the kind this sweep exists to remove, corrected in the same
 change.
-
 ---
 
 ## 2026-08-23 The glass bent by one amount at every thickness, and its bezel was a line
