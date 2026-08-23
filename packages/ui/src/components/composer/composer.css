@@ -55,12 +55,11 @@
   padding: 0;
   margin: 0;
   outline: none;
-  /* The type is the pane's, at the reading step a message is written at. */
+  /* The ink is the pane's. The STEP is not stated here: the element wears `kui-type` and the
+     shared ramp sets the size, the line and the tracking from the one step map (§15, §29), so
+     the index reaches the text without this file holding a second copy of the mapping. */
   color: var(--color-text);
   font-family: var(--font-body);
-  font-size: var(--font-size-3);
-  line-height: var(--line-height-3);
-  letter-spacing: var(--letter-spacing-3);
   /* Growth, and this one declaration is the whole mechanism. v1 spends `getComputedStyle`,
      `scrollHeight`, a `requestAnimationFrame` and a `ResizeObserver` per keystroke on it,
      against the no-JS-at-interaction-time rule. Baseline 2026-06-16. */
@@ -68,8 +67,11 @@
   /* The ceiling, and the fallback in one. Where `field-sizing` is understood this caps the
      growth; where it is not, `rows` sets the opening height and this makes the box scroll
      instead of running down the page. Either way the same two numbers bound it. */
-  min-block-size: calc(var(--line-height-3) * 1);
-  max-block-size: calc(var(--line-height-3) * 8);
+  /* One line, and eight — stated in the CONTENT's own unit, so the box is the same number of
+     lines at every index instead of a length pinned to one step. `1lh` is the element's own
+     resolved line box; Kbd uses it one family over for the same reason. */
+  min-block-size: 1lh;
+  max-block-size: 8lh;
   /* No `overflow-y` here, and the absence was MEASURED rather than assumed (2026-08-23): the
      HTML rendering spec already gives a <textarea> `overflow: auto`, so a declaration would
      restate the default — one fact, two homes. The sabotage pass is what found it: deleting

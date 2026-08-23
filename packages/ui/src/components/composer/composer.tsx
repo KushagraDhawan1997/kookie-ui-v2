@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { ControlSizeContext } from "../../system/control-size.ts";
+import { OWNED_BODY_STEP } from "../../system/type-steps.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { mergeRefs } from "../../system/render.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
@@ -17,9 +17,13 @@ export type ComposerProps = Omit<
   "color" | "onSubmit"
 > & {
   /**
-   * The index. It sets the pane's padding, its corner and the type inside it, and it reaches
-   * the controls that read the control-size context (§28) — the input, and any field a caller
-   * puts in the row. It deliberately does NOT reach Button, which keeps its own rest at 2.
+   * The index. It prices what the composer OWNS — the pane's padding, its corner, and the step
+   * its own text is set at — and stops there.
+   *
+   * It does NOT reach the row. A Button, a Select or a field you put under the text keeps its
+   * own index, and that is Dialog's answer rather than an omission (§24 prices the box alone;
+   * §25 prices everything because an alert owns its content). A composer owns its pane and its
+   * text; whatever you compose into the row is yours, so it is priced where it is written.
    */
   size?: Size;
   /**
@@ -99,7 +103,7 @@ export function Composer({
 
   return (
     <GlassScope material={material}>
-      <ControlSizeContext.Provider value={size}>
+      <ComposerTypeContext.Provider value={size}>
         <ComposerFilesContext.Provider value={onFiles ?? null}>
           <form
             ref={mergeRefs(lensRef) as React.Ref<HTMLFormElement>}
@@ -121,10 +125,18 @@ export function Composer({
             {children}
           </form>
         </ComposerFilesContext.Provider>
-      </ControlSizeContext.Provider>
+      </ComposerTypeContext.Provider>
     </GlassScope>
   );
 }
+
+/**
+ * The pane's index, for the ONE element inside it the composer owns. Deliberately not
+ * `ControlSizeContext`: that one reaches every field-shaped control in the subtree, which would
+ * resize a Select somebody put in the row while the Button beside it kept its own index — three
+ * behaviours in one component, and nobody chose the third. This is private and has one reader.
+ */
+const ComposerTypeContext = React.createContext<Size>("2");
 
 /** Carries `onFiles` to the input, which is where a paste can be read. */
 const ComposerFilesContext = React.createContext<((files: File[]) => void) | null>(null);
@@ -150,6 +162,11 @@ export type ComposerInputProps = Omit<
  * Baseline on 2026-06-16 and did not exist when v1 was written. Where it is missing, `rows`
  * and the stylesheet's `max-block-size` are the fallback and the box simply scrolls.
  *
+ * Its STEP is the composer's, through the shared owned-type map — a composer at one index, a
+ * notice at that index and an alert at that index are one typography, and they cannot drift
+ * because the map has one home. That the system chooses the step is the ownership rule (§15,
+ * §29): a person types the words, they do not pick the size they are set at.
+ *
  * Enter sends and Shift+Enter breaks the line, which is what the element being a form buys.
  * A composition is never interrupted: `isComposing` guards it, because sending mid-composition
  * is silent data loss for anyone typing Japanese, Chinese or Korean.
@@ -163,6 +180,7 @@ export function ComposerInput({
   ...props
 }: ComposerInputProps) {
   const onFiles = React.useContext(ComposerFilesContext);
+  const step = OWNED_BODY_STEP[React.useContext(ComposerTypeContext)];
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     onKeyDown?.(event);
@@ -195,7 +213,14 @@ export function ComposerInput({
     <textarea
       ref={ref}
       rows={rows}
-      className={className ? `kui-composer-input ${className}` : "kui-composer-input"}
+      // `kui-type` is the shared ramp, so the step map stays in one place and this file states
+      // no font size of its own.
+      className={
+        className
+          ? `kui-type kui-composer-input ${className}`
+          : "kui-type kui-composer-input"
+      }
+      data-size={step}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
       {...props}

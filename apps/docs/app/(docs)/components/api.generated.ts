@@ -513,7 +513,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "The index. It sets the pane's padding, its corner and the type inside it, and it reaches the controls that read the control-size context (§28) — the input, and any field a caller puts in the row. It deliberately does NOT reach Button, which keeps its own rest at 2."
+        "doc": "The index. It prices what the composer OWNS — the pane's padding, its corner, and the step its own text is set at — and stops there. It does NOT reach the row. A Button, a Select or a field you put under the text keeps its own index, and that is Dialog's answer rather than an omission (§24 prices the box alone; §25 prices everything because an alert owns its content). A composer owns its pane and its text; whatever you compose into the row is yours, so it is priced where it is written."
       }
     ]
   },

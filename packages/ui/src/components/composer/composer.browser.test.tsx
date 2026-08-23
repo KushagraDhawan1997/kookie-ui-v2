@@ -12,6 +12,7 @@ import { computed, mounted, within } from "../../test/browser.tsx";
 import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
+import { TextField } from "../text-field/text-field.tsx";
 import { Composer, ComposerInput, ComposerRow, ComposerSend } from "./composer.tsx";
 
 describe("it is a form, and a surface (§30)", () => {
@@ -42,6 +43,58 @@ describe("it is a form, and a surface (§30)", () => {
     // The claim is the BAND, not a literal: a pinned number agrees with a Card at exactly one
     // index and would pass for the wrong reason (the shell's own 2026-08-21 lesson).
     expect(computed(composer, "border-radius")).toBe(computed(card, "border-radius"));
+  });
+});
+
+describe("the index prices what the composer OWNS, and stops (§30)", () => {
+  /**
+   * Both halves shipped WRONG on 2026-08-23 and neither had a law, which is why both are here.
+   * The pane's padding moved with the index, a TextField dropped in the row moved with it, a
+   * Button did not, and the composer's own text did not — four elements, three behaviours,
+   * and nobody chose the third. The rule is ownership (§24 against §25): a composer owns its
+   * pane and its text, and whatever you compose into the row is yours.
+   */
+  const at = (size: "1" | "4") =>
+    mounted(
+      <Composer size={size}>
+        <ComposerInput aria-label="Message" />
+        <ComposerRow>
+          <Button>Model</Button>
+          <TextField aria-label="Search" />
+        </ComposerRow>
+      </Composer>,
+      { theme: {} },
+    );
+
+  it("its own text moves with the index", () => {
+    // The step map is shared with the alert and the notice, so this also pins that a composer
+    // and a notice at one index are one typography.
+    const small = within(at("1"), ".kui-composer-input");
+    const large = within(at("4"), ".kui-composer-input");
+    expect(parseFloat(computed(large, "font-size"))).toBeGreaterThan(
+      parseFloat(computed(small, "font-size")),
+    );
+  });
+
+  it("the box is the same number of LINES at every index, not the same height", () => {
+    // The ceiling is stated in `lh`, so it tracks whatever step the index resolved. A length
+    // pinned to one step would make a size-4 composer shallower in lines than a size-1 one.
+    for (const size of ["1", "4"] as const) {
+      const input = within(at(size), ".kui-composer-input");
+      const line = parseFloat(computed(input, "line-height"));
+      expect(parseFloat(computed(input, "max-block-size")) / line).toBeCloseTo(8, 1);
+    }
+  });
+
+  it("nothing you put in the row moves with it — a Button and a field alike", () => {
+    // The consistency is the claim. A field that tracked the composer while the Button beside
+    // it did not is the defect this replaces, so BOTH are read: one of them silently opting
+    // into the pane's index is what the law is for.
+    for (const selector of ["button", ".kui-field"]) {
+      const small = within(at("1"), selector);
+      const large = within(at("4"), selector);
+      expect(small.getAttribute("data-size")).toBe(large.getAttribute("data-size"));
+    }
   });
 });
 

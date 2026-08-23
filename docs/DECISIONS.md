@@ -2003,6 +2003,14 @@ Five, and each is a shape this repo has already been bitten by.
 
 **A docs law caught what neither file could see.** The specimen frame wraps an example in a Card unless the example brings its own pane, and it decides by two independent implementations that must agree — one reads the source, the other renders the module. A composer IS a `.kui-surface`, so the rendered half saw a pane and the source half did not, and the frame would have put a pane inside a pane. Neither file contains the nesting; only the rendered tree does, which is exactly the argument that law was written on.
 
+**The index was wrong on the day it shipped, in two directions at once, and Kushagra found it by asking why a size-3 composer left its buttons at 2.** Measured: at size 1 against size 3, the pane's padding moved (12 → 24), a `TextField` dropped in the row moved (1 → 3), a `Button` beside it did not, and **the composer's own text did not** (16px at both, because `composer.css` had hardcoded step 3). Four elements, three behaviours, and the third was chosen by nobody: the `ControlSizeContext` provider reached the row's field-shaped controls as a side effect of being the mechanism Field uses.
+
+**The rule that resolves it already existed, twice.** Dialog prices the box alone because it does not own its content (§24); AlertDialog prices everything because it does (§25). **Ownership is the difference**, and a composer owns its pane and its text and nothing in its row. So the provider is gone — a Button and a Select under the text now behave identically, which is the consistency rather than a second refusal — and the text takes `OWNED_BODY_STEP`, the map an alert and a notice already share, so a composer at one index is their typography rather than a third opinion.
+
+Two spellings carry it, and both are the shared layer's rather than this file's. The input wears `kui-type` and stamps the step, so the ramp comes from `system/type.css` and the map keeps one home in TypeScript instead of gaining a copy in CSS. And the box is bounded in `lh` — one line and eight — so it is the same number of LINES at every index, where the pinned length it replaced made a size-4 composer shallower in lines than a size-1 one.
+
+**Why the original defect had no law: none of the fifteen read anything at two indexes.** Three do now, and the sabotage pass re-commits each fault — the fixed step, the pinned ceiling, and the row opting back in — and the right law fails each time. −22 bytes gzipped, because the fix DELETES three declarations.
+
 ### What it does not do
 
 The conversation, the scroller, message parts, branches, reasoning, tool calls, sources, transport and persistence. A model picker is a `Select`. Suggestions are `Button`s. The scroller is a separate decision recorded in `docs/handovers/2026-08-23-chatbar-family.md`: the hard part of a conversation is scroll, and shadcn's is 6,274 lines against 139 of styling.
