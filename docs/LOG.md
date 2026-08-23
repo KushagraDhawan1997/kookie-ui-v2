@@ -8,6 +8,64 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 The eye pass never happened, because it had been happening all along
+
+**What.** `v0` is deleted as a label. It was carried at ~60 sites across `config.ts`, `color-config.ts`,
+five stylesheets, four component files and the docs app, and in CLAUDE.md as an accumulating list of
+values awaiting a taste pass at the end. The fact underneath it — these are designed taste numbers, one
+config line each — now has one home in `config.ts`'s header. The two values that genuinely have never
+been in front of a judgment are named where they live instead of in a list.
+
+**Why.** Asked whether the floating family was complete, I said most motion values were "still v0".
+Kushagra: *"Why do we call them v0? Tehy're done no?"* — then, when I answered that the label meant
+unapproved rather than unfinished: *"Dude how else have I been giving feedback. Ive judged everything we
+have so far."* He is right, and the evidence is this repo's own record. The dated entries in CLAUDE.md
+are almost entirely him looking at a rendered thing and rejecting it: the icon box that "doesn't seem to
+scale" on coarse, the glass that "looks cheap and incorrect… it's not taste", the size-3 composer whose
+buttons stayed at 2, the submenu that "travels a lot", the segmented label painted in its own fill, the
+lens at twice the bend. That IS the eye pass. It ran continuously in `/preview` beside each component,
+which is exactly what the "a component ships with its playground section" rule was built to force.
+
+**The label was self-refuting in three places.** `floatingMotion` read *"judged 2026-08-09 in the motion
+lab, on the real Menu; v0 for the eye pass"* — judged and awaiting judgment in one sentence. The mono
+optical correction and the key cap's factor each read *"(2026-08-08, Kushagra; v0 for the eye pass)"*:
+his name, the date he decided it, and a claim that nobody had. A label that survives its own
+counter-evidence at three sites is not tracking anything.
+
+**The 2026-08-04 framing is what was actually wrong, and it is worth stating why it was reasonable.**
+"Taste is the LAST layer — if the infrastructure is right, taste can be added later" was a scheduling
+promise about RISK: it bought permission to ship a designed number rather than stall on it, and every
+one of those numbers really is a config line, which is the half that held. What did not hold is the
+sequencing. There was never a day when structure was "done" and judgment began; the playground made
+every value visible the week it shipped, so judgment arrived component by component and the list at the
+end of CLAUDE.md just accumulated things that had already been decided. Keeping it made the docs claim
+less confidence than the system had earned.
+
+**What is genuinely unjudged, and it is two things.** The narrow window boundary (48rem) — inherited
+from the type band it derives from, while its wide sibling was judged by eye on 2026-08-05; a shell
+exists now, so it is judgeable and simply has not been. And a chroma family's loud ink in dark, which
+measures ~66 against medium's 60, so a coloured ladder's top two rungs read as one (DECISIONS §7 has
+carried this open since 2026-08-10; the fix is a per-family loud, the one exception that solve removed).
+Both are stated at their own definitions rather than in a central list, on the rule that a list of
+open items rots and a comment beside the value cannot.
+
+**Rejected.** Replacing every site with "judged in the playground" — forty copies of one sentence is the
+near-duplication this project deletes on sight, and the fact belongs in one header. Renaming `v0` to
+something truer (`taste`, `tuned`, `judged`) — a per-site label only earns its keep if some sites lack
+it and that distinction is checkable; here every number in `config.ts` is taste by construction, so the
+label would be noise at 100% density. Leaving the historical records alone was NOT a rejection but a
+rule: `LOG.md`, `REVIEW.md` and `docs/handovers/` say what was true when written, and a `v0` in a dated
+entry is accurate history — only `DECISIONS.md`, `CLAUDE.md` and the source comments, which claim to
+describe the system as it is now, were swept.
+
+**Found on the way.** The scrim's own doc comment still read *"The blur is 4px and deliberately below
+§10's 12px defense floor"*, three lines above the values stating `blur(8px)` — the floor was retired
+2026-08-16 when the lens shipped and the scrim was re-priced to 8 on 2026-08-17, and the prose was never
+brought along. Doc–code drift of exactly the kind this sweep exists to remove, corrected in the same
+change.
+
+---
+
 ## 2026-08-23 The glass bent by one amount at every thickness, and its bezel was a line
 
 **What.** Three changes to `system/refraction.tsx`, which only make sense together: the bezel's surface exponent drops from 4 to 2, the single `lens` constant becomes a ladder keyed by thickness, and a bezel clamped by a small box now takes its glass depth down with it. Asked for "more refraction, more chromatic split, more bending of light".

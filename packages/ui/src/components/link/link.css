@@ -34,7 +34,7 @@
   text-decoration-color: var(--color-border);
   /* Relative to the link's own type, for the reason blockquote.css and code.css both state:
      the distance between a rule and the glyphs it sits under is a property of the glyphs. A
-     designed constant would crowd a descender at size 9 and float at size 1. v0. */
+     designed constant would crowd a descender at size 9 and float at size 1. */
   text-underline-offset: 0.2em;
 
   /* The PAINT clock (§8): a colour change eases and is short. Nothing here moves, so the

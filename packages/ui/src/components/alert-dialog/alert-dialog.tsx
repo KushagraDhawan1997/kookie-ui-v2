@@ -53,7 +53,7 @@ import { GlassScope, useMaterial } from "../../theme/theme.tsx";
       composition ladder: size 3 is the confirm card exactly (title 6, body 3), and the
       ladder holds its shape below and above it. Buttons take the index itself — the size-
       match sentence (§22's "a size-4 trigger must not open a size-2 dropdown") applied to
-      the alert's own actions. v0 for the eye pass. */
+      the alert's own actions. */
 
 /* The steps moved to system/floating.tsx on their second consumer (2026-08-21): Dialog's own
    title takes the same ladder now, and two copies of one type map is the drift this repo keeps

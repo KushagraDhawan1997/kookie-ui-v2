@@ -31,7 +31,7 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 
-/* ── Designed constants (§22, v0 — the switchInset precedent: Base UI takes numbers, so
+/* ── Designed constants (§22 — the switchInset precedent: Base UI takes numbers, so
       these cannot ride CSS tokens; one home, judged in the playground) ─────────────────── */
 
 /** Gap between the trigger's edge and the popup. (A COVERING default — the panel pulled

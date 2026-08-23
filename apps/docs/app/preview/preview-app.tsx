@@ -228,7 +228,7 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
         </Stack>
       </Card>
       {/* The motion bench sits BESIDE the axis card, not inside it: the axes above are the
-          system's public vocabulary and this is a workbench for numbers that are still v0.
+          system's public vocabulary and this is the workbench those numbers are judged on.
           It writes to <html> rather than to the canvas Theme, because the panels it exists to
           judge are portalled out of the canvas (see motion-panel.tsx). */}
       <Box style={{ marginBlockStart: "var(--layout-space-4)" }}>

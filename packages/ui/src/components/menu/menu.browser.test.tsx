@@ -3605,7 +3605,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(parseFloat(computed(body, "opacity")), "the content is not held back").toBe(0);
     expect(computed(body, "filter"), "the content is not molten").toContain("blur");
     // The echo: a step BELOW where it will land, so the print reads as an arrival. Asserted as
-    // a downward offset rather than against the token's number — the distance is v0 and the
+    // a downward offset rather than against the token's number — the distance is taste and the
     // claim is the direction.
     const [, y] = computed(body, "translate").split(" ");
     expect(parseFloat(y ?? "0"), "the content does not rise into place").toBeGreaterThan(0);

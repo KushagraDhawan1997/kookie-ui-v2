@@ -235,7 +235,7 @@ export type Mode = keyof typeof lightness;
  * mode-invariant, because conformance does not dim with the lights.
  */
 export const controlEdgeLc = {
-  /** The mark family: high is the tier above fine detail; normal is the v0 taste value. */
+  /** The mark family: high is the tier above fine detail; normal is the taste value. */
   mark: { normal: { light: 46, dark: 30 }, high: 60 },
   /** The field family: a field is a LARGE element (Kushagra, 2026-08-07 — "Text Field +
       Area being much larger than checkbox, they appear very dark"), so its resting value
@@ -256,7 +256,7 @@ export const controlEdgeLc = {
  * Deliberately NOT held to the mark edge's non-text floor IN STANDARD MODE: a well is a region
  * the accent fill moves through, not a hairline identity — the slider's state is carried by the
  * fill (accent solid, APCA-passing) and the thumb (mark edge), and every platform ships the
- * remainder subtle (iOS systemFill, Radix gray-a3). Step 4 in both modes, v0 for the eye pass.
+ * remainder subtle (iOS systemFill, Radix gray-a3). Step 4 in both modes.
  * That is the standing rule's first clause: a resting fill is DRESS, held to no floor
  * (Kushagra, 2026-08-07 — "taste over APCA rules in standard").
  */
@@ -280,7 +280,7 @@ export const trackWellStep = { light: 4, dark: 4 } as const;
  * neighbours — the accent fill it hosts and the near-white grip that crosses it — are already
  * held to their own floors. What it owes is separation from the page, which a band step gives
  * directly: 6 sits inside `contrastHighBands.border`, so it is itself re-priced under high
- * contrast and the well moves twice. v0 for the eye pass, like its standard-mode sibling.
+ * contrast and the well moves twice.
  */
 export const trackWellStepHigh = { light: 6, dark: 6 } as const;
 

@@ -309,7 +309,7 @@
      eye: "just a little more radius, only in squircle"). A squircle spends its curvature
      along the edge, and on a small pane hugging tight rows the spread reads tighter still —
      the arc branch is judged right, so the bump lives HERE and dies with the block: engines
-     without corner-shape never see it. v0, eye pass pending. */
+     without corner-shape never see it. */
   .kui-surface.kui-floating {
     --kui-corner-k: 1.75;
   }
@@ -860,7 +860,7 @@
    pattern's other half needs. Scoped to a surface that holds a control, so a card containing a
    checked thing three levels down in unrelated content does not light up.
 
-   The edge only, at v0. A tint was not built: the eye pass decides whether one hairline is
+   The edge only. A tint was not built, and that is still open: whether one hairline is
    enough at card scale, and adding pigment first would make that judgement impossible to
    reverse cleanly. */
 .kui-surface:where(label:has(.kui-control)):has(.kui-control:is([data-checked], [data-selected])) {
@@ -985,7 +985,7 @@
      layers transparent, fill 1.026:1 against the page (audit 2026-08-18). No light means the
      line is back: `initial` stands the role down so the consumption fallback
      (var(--tone-border)) resolves at the element, where the tone lives — the HC pass's own
-     mechanism. Elevated is untouched. v0, eye pass. */
+     mechanism. Elevated is untouched. */
   --surface-edge: initial;
 }
 
@@ -1530,7 +1530,7 @@
    panel LANDS on its trigger; a submenu lands beside the panel its row sits in. So a
    side-opening panel keeps the row's height and corner, drops the width photograph to the
    family's designed seed, and starts at x=0 — the positioner is already holding its start
-   edge at the final place, so it simply grows out of the seam. v0. */
+   edge at the final place, so it simply grows out of the seam. */
 
 /* While the box is deliberately smaller than what it holds, it clips — the base `.kui-surface`
    rule carries that now (2026-08-20, the corner is a shape), so this block only states the

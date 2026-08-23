@@ -29,7 +29,7 @@ const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
 /**
  * Per-size type steps for composed card content — AlertDialog's own mapping (title 4/5/6/7,
  * body 2/2/3/3), reused rather than invented: it is the one place the system already ties
- * an innards ladder to a surface size index. v0 for Card, judged by eye.
+ * an innards ladder to a surface size index. Judged by eye.
  */
 const TITLE_STEP = { "1": "4", "2": "5", "3": "6", "4": "7" } as const;
 const BODY_STEP = { "1": "2", "2": "2", "3": "3", "4": "3" } as const;

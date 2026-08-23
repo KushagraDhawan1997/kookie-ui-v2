@@ -4,7 +4,7 @@
  * The judging surface the open-questions list keeps deferring to: every shipped control at
  * every (size × density) cell, with the page-wide axes — radius level, pointer world, surface
  * identity, contrast — switchable in place. Taste is the last layer, and this is where the
- * v0 numbers get judged by eye (CLAUDE.md "Then:", DECISIONS §12/§16 open lists).
+ * the system's taste values get judged by eye (CLAUDE.md "Then:", DECISIONS §12/§16).
  *
  * Density, radius, pointer and surfaces land on a nested <Theme> per section — post-mount
  * interactive state, so no SSR concern. Appearance and contrast live on <html> (see

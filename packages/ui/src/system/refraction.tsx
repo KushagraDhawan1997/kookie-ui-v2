@@ -139,7 +139,7 @@ export type LensThickness = Exclude<Material, "solid">;
  *
  * `fringe` is a straight 3x of the judged split. Its own note where the channels are built
  * used to say the three scales stay within ~8% "so the body stays registered"; at 30 they do
- * not, and the split at the lip is the thing that was asked for. v0, judged in the playground.
+ * not, and the split at the lip is the thing that was asked for. Judged in the playground.
  */
 export const lens: Record<LensThickness, LensParams> = {
   thin: { bezel: 12, thickness: 19, ior: 1.45, fringe: 18, boost: 2 },

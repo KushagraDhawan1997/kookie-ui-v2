@@ -24,7 +24,7 @@
   --kui-sf-cast: 0 0 0 0 transparent;
   display: flex;
   align-items: center;
-  /* v0, for the eye pass. Wide enough that the resolving action does not read as part of the
+  /* Wide enough that the resolving action does not read as part of the
      sentence, tight enough that the row still reads as one thing. */
   gap: var(--layout-space-4);
 }

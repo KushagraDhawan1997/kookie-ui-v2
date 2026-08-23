@@ -17,7 +17,7 @@
   border-inline-start: var(--border-width) solid var(--color-border);
   /* Relative to the quote's own type, for the reason code.css states at length: the distance
      between a rule and the words it sets apart is a property of the words, and a designed
-     constant would be an indent at size 1 and a hairline gap at size 9. v0 — the ratio is the
+     constant would be an indent at size 1 and a hairline gap at size 9 — the ratio is the
      decision, the number is for the eye pass. */
   padding-inline-start: 1em;
 }
