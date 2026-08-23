@@ -128,10 +128,39 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
     <Box
       className="pv-panel"
       style={{
-        insetInlineEnd: "24px",
-        insetBlockStart: "24px",
-        width: "340px",
-        maxHeight: "calc(100dvh - 48px)",
+        /**
+         * PADDED OUTWARD, so the cards inside keep the size and the position they had
+         * (2026-08-23, Kushagra: the panel "needs some padding all around or at least no
+         * clipping bc shadow isnt visible").
+         *
+         * This box scrolls, and a scroll container clips at its PADDING box — so with no
+         * padding the cards were flush against every edge and the world's own surface cast was
+         * cut off on all four sides. The panel is a stack of Cards in an elevated world; a card
+         * with no visible lift reads as a flat rectangle, which is the one thing this panel is
+         * supposed to demonstrate.
+         *
+         * The padding is added and then subtracted from the insets and back onto the box, so the
+         * CARD is still 340px wide with its right edge 24px from the window — the lane's own
+         * reservation is measured from those and does not move.
+         *
+         * THE NUMBERS ARE THE CAST'S OWN REACH, not a guess. `--surface-chrome` is `--shadow-4`
+         * — `0 1px 2px` plus `0 24px 64px -12px` — so the second layer reaches `64/2 - 12` =
+         * 20px to each side, `24 + 64/2 - 12` = 44px below, and nothing above (the offset
+         * exceeds the blur's own half). Hence three different values: a uniform padding either
+         * wastes 20px above the panel or clips the bottom of every card in it.
+         */
+        boxSizing: "border-box",
+        insetInlineEnd: "4px",
+        insetBlockStart: "16px",
+        width: "380px",
+        // The panel's own bottom edge, 4px off the window like its sides — the padding below
+        // the last card is INSIDE this, so a scrolled panel still shows that card's lift
+        // instead of ending on its border. Measured: the first spelling added the padding to
+        // the height instead and overflowed the window by 20px at 600px tall.
+        maxHeight: "calc(100dvh - 20px)",
+        paddingInline: "20px",
+        paddingBlockStart: "8px",
+        paddingBlockEnd: "44px",
         overflowY: "auto",
         zIndex: 10,
       }}
