@@ -372,7 +372,7 @@
   --neutral-text: var(--neutral-11);
   --neutral-label: #454648;
   --neutral-contrast: #ffffff;
-  --neutral-glyph: #8f9397;
+  --neutral-glyph: #1f1f20;
   --neutral-ink: var(--neutral-12);
   --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
   --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
@@ -1011,7 +1011,7 @@
   --neutral-text: var(--neutral-11);
   --neutral-label: #454648;
   --neutral-contrast: #ffffff;
-  --neutral-glyph: #8f9397;
+  --neutral-glyph: #1f1f20;
   --neutral-ink: var(--neutral-12);
   --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
   --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
@@ -1650,7 +1650,7 @@
   --neutral-text: var(--neutral-11);
   --neutral-label: #d1d2d3;
   --neutral-contrast: #000000;
-  --neutral-glyph: #93979a;
+  --neutral-glyph: #ebebeb;
   --neutral-ink: var(--neutral-12);
   --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 74%, transparent);
   --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 48%, transparent);
@@ -2281,7 +2281,7 @@
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.2697 0.2751 0.282);
     --neutral-contrast: #ffffff;
-    --neutral-glyph: color(display-p3 0.5162 0.527 0.5407);
+    --neutral-glyph: color(display-p3 0.1202 0.1226 0.1255);
     --neutral-ink: var(--neutral-12);
     --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
     --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
@@ -2590,7 +2590,7 @@
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.2697 0.2751 0.282);
     --neutral-contrast: #ffffff;
-    --neutral-glyph: color(display-p3 0.5162 0.527 0.5407);
+    --neutral-glyph: color(display-p3 0.1202 0.1226 0.1255);
     --neutral-ink: var(--neutral-12);
     --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
     --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
@@ -2899,7 +2899,7 @@
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.8195 0.8231 0.8275);
     --neutral-contrast: #000000;
-    --neutral-glyph: color(display-p3 0.5784 0.5897 0.6041);
+    --neutral-glyph: color(display-p3 0.9204 0.9217 0.9232);
     --neutral-ink: var(--neutral-12);
     --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 74%, transparent);
     --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 48%, transparent);

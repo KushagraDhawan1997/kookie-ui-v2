@@ -19,14 +19,14 @@ import * as React from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
-import { filled, mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import { mergeRefs, slot, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import {
   FloatingBody,
   FloatingDirectionContext,
   PortalScope,
   useAmbientDirection,
 } from "../../system/floating.tsx";
-import type { Size, SlotName } from "../../system/axes.ts";
+import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
@@ -366,12 +366,6 @@ function MenuPopup({
 /* ── Rows (§21): every item is `kui-control kui-row` riding the existing control cells,
       quiet by STAMP (emphasis is refused — a menu is a list of peers), neutral unless the
       one meaning with its own ink is asked for. ────────────────────────────────────────── */
-
-/** Wraps slot content exactly as Button does — the icon box and pill geometry key on the
-    wrapper, and `filled()` keeps `{cond && icon}` from renting a gap. */
-function slot(content: React.ReactNode, which: SlotName): React.ReactNode {
-  return filled(content) ? <span data-slot={which}>{content}</span> : null;
-}
 
 function rowProps(size: Size, tone: "destructive" | undefined, part: string, className?: string) {
   return {

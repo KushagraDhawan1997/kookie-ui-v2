@@ -18,6 +18,7 @@ import {
   APPEARANCES,
   POINTERS,
   SIZES,
+  colorOn,
   computed,
   mounted,
   settle,
@@ -335,5 +336,90 @@ describe("the row's anatomy and its element (§21, ENGINEERING §3)", () => {
       computed(live, "color"),
     );
     expect(computed(dead, "cursor")).not.toBe("pointer");
+  });
+});
+
+
+/**
+ * A ROW'S ICON READS ITS FAMILY (§7, §21, 2026-08-23).
+ *
+ * One declaration in the shared layer, and the whole claim is that no component needs an
+ * exception: each member gets the right answer out of the tone it already stamps. So the law
+ * is written as a COMPARISON across three families rather than as three assertions about
+ * three colours — asserting "the accent row's icon is accent" alone would pass on a rule that
+ * painted every icon accent, which is exactly the rule this is not.
+ */
+describe("the leading icon speaks the row's family (§7, §21)", () => {
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: neutral reads the ink, a chosen family reads its glyph`, () => {
+      const root = mounted(
+        <div>
+          <Row data-t="plain" leading={<span>▲</span>}>Rename</Row>
+          <Row data-t="destructive" tone="destructive" leading={<span>▲</span>}>Delete</Row>
+          <Row data-t="current" current leading={<span>▲</span>}>Overview</Row>
+        </div>,
+        { theme: { appearance } },
+      );
+      const icon = (t: string) =>
+        computed(within(root, `[data-t="${t}"] [data-slot="leading"]`), "color");
+
+      // A GREY MOVES BY NOTHING, and this is the half that makes the rule safe to state
+      // generally. A low-chroma family's glyph IS its ink by construction (there is no chroma
+      // to maximise, so the solve would otherwise return the palest legible grey — measured
+      // #8f9397 before that remap), which is why a menu row's icon is untouched by this.
+      expect(icon("plain"), "a neutral row's icon left the ink").toBe(
+        computed(within(root, '[data-t="plain"]'), "color"),
+      );
+
+      // A CHROMA FAMILY MOVES, and to the glyph rather than to the ink beside it. An icon owes
+      // the non-text floor and prose owes the reading floor, so the ink over-pays and
+      // under-saturates: the difference is a brick red against an actual red.
+      const el = within(root, '[data-t="destructive"]');
+      expect(icon("destructive")).toBe(colorOn(el, "var(--destructive-glyph)"));
+      expect(icon("destructive"), "the icon settled for the label's ink").not.toBe(
+        computed(el, "color"),
+      );
+
+      // And the three genuinely differ, so a rule that painted ONE colour cannot pass.
+      expect(new Set([icon("plain"), icon("destructive"), icon("current")]).size).toBe(3);
+    });
+  }
+
+  it("a TRAILING adornment is punctuation and keeps the label's ink", () => {
+    // Leading identifies the row; trailing is a count or a chevron. Asserted because the rule
+    // is one selector away from covering both, and the difference would never be noticed on a
+    // neutral row — where the two values coincide.
+    const root = mounted(
+      <Row tone="destructive" leading={<span>▲</span>} trailing={<span>▶</span>}>
+        Delete
+      </Row>,
+      { theme: {} },
+    );
+    const lead = within(root, '[data-slot="leading"]');
+    const trail = within(root, '[data-slot="trailing"]');
+    expect(computed(trail, "color"), "the trailing slot took the family too").toBe(
+      computed(root, "color"),
+    );
+    expect(computed(lead, "color")).not.toBe(computed(trail, "color"));
+  });
+
+  it("a DEAD row's icon dims with its words", () => {
+    // The defect this rule introduced and the shared remap absorbed: the icon reads a tone
+    // ROLE, so `--tone-glyph` had to join the disabled stand-down beside the ink trio. Before
+    // that a dead row painted the live family at full chroma under a dimmed label. Third time
+    // this shape has appeared (the ink trio 2026-08-09, the slider handle 2026-08-07).
+    const root = mounted(
+      <div>
+        <Row data-t="live" tone="destructive" leading={<span>▲</span>}>Delete</Row>
+        <Row data-t="dead" tone="destructive" disabled leading={<span>▲</span>}>Delete</Row>
+      </div>,
+      { theme: {} },
+    );
+    const icon = (t: string) =>
+      computed(within(root, `[data-t="${t}"] [data-slot="leading"]`), "color");
+    expect(icon("dead"), "a dead row's icon is still the live family").not.toBe(icon("live"));
+    expect(icon("dead"), "the icon did not land on the dimmed ink").toBe(
+      colorOn(within(root, '[data-t="dead"]'), "var(--disabled-ink)"),
+    );
   });
 });

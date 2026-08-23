@@ -2146,10 +2146,22 @@ export const API: Record<string, ApiEntry> = {
         "doc": "This is the page you are on. It is announced with `aria-current=\"page\"` as well as painted, because \"you are here\" is information and a colour alone tells nobody who cannot see it."
       },
       {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The row's icon, and it renders in the ACCENT (2026-08-23, Kushagra: *\"row and sidebar row render their icons in accent color always\"*). Apple states the same rule in as many words — *\"By default, sidebar icons use your app's accent color... people expect all sidebar icons to appear in that color\"* — and it is the one place a system's colour reads as identity rather than as emphasis, because a sidebar icon IS the item: permanent, learned, and the only thing left when the pane collapses to a rail. Always, not only when current. What says \"you are here\" is the LABEL and `aria-current`."
+      },
+      {
         "name": "render",
         "type": "RenderElement",
         "optional": true,
         "doc": "Be an anchor instead. A nav item usually navigates, and a link is a link."
+      },
+      {
+        "name": "trailing",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "After the label, pushed to the far edge: a count, a chevron, a status dot."
       }
     ]
   },

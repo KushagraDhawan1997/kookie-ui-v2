@@ -2,8 +2,8 @@
 
 import * as React from "react";
 
-import type { Size, SlotName, Tone } from "../../system/axes.ts";
-import { composeRender, filled, type RenderElement } from "../../system/render.ts";
+import type { Size, Tone } from "../../system/axes.ts";
+import { composeRender, slot, type RenderElement } from "../../system/render.ts";
 
 export type RowProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /**
@@ -53,13 +53,6 @@ export type RowProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> &
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLElement>;
 };
-
-/** The family's slot wrapper (ENGINEERING §3), exactly as Button and MenuItem write it: the
-    icon box and the trailing edge's clearance both key on it, and `filled()` keeps
-    `{cond && icon}` from renting a gap it never fills. */
-function slot(content: React.ReactNode, which: SlotName): React.ReactNode {
-  return filled(content) ? <span data-slot={which}>{content}</span> : null;
-}
 
 /**
  * One row in a list (§21) — the row family's standalone member.

@@ -8,6 +8,30 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 A row's icon speaks its family, and a sidebar row gained one to speak with
+
+**What.** One declaration in the shared layer — `.kui-row > [data-slot="leading"] { color: var(--tone-glyph) }` — and `ShellNavItem` gained `leading`/`trailing` plus an unconditional `data-tone="accent"`, with its label stood back down in `shell.css` unless the row is current. `slot()` promoted to `system/render.ts` on its fourth consumer. +13 bytes gzipped.
+
+**Why one rule and not a per-component answer.** Kushagra: *"row and sidebar row render their icons in accent color always"*, and Apple states it for sidebars in as many words — *"By default, sidebar icons use your app's accent color… people expect all sidebar icons to appear in that color."* The temptation was a rule scoped to nav rows, since that is the case named. The general rule is better and costs nothing extra, because each member already stamps the family the answer should come from: a nav row stamps accent, a menu row stamps neutral, a destructive row stamps destructive. No component needs an exception, which is why the law is written as a comparison across three families rather than as three assertions about three colours — "the accent row's icon is accent" passes on a rule that paints every icon accent, which is exactly the rule this is not.
+
+**The ask turned out to be an API addition, not a colour decision.** `ShellNavItem` and `ShellRailItem` took raw children and had no slot to tint at all — measured before proposing anything. The props are `Row`'s and `Button`'s verbatim; the icon box, gap and trailing clearance arrive from `.kui-control`/`.kui-row`, so the component gained two lines and no geometry.
+
+**The unconditional accent stamp was unsafe until the same day.** `data-tone="accent"` on every nav row would have painted a column of pale blue fills; `undilutedTones` (this morning) is what makes a stamped row resolve neutral at every washed rung, so only the glyph and the ink arrive in colour. That dependency runs the other way from how it was built — the purity rule was decided for its own reasons and turned out to be the precondition for this one.
+
+**A grey moves by nothing, and that is what makes the general rule safe.** The glyph solve maximises chroma at the minimum legible contrast, which is right for a colour and degenerates for a grey into "the palest legible grey" — `--neutral-glyph` shipped at `#8f9397` against an ink of `#1f1f20`, and the first plain row to read the role would have rendered a washed-out icon. **Found by asking what the rule would do before writing it**, not by a law. The fix is `--accent-solid`'s own remap one role over: at low chroma the glyph IS the ink, keyed on chroma rather than on the name "neutral", exactly as §7 requires. A menu row's icon is therefore byte-identical before and after.
+
+**The defect the change introduced, and where it belonged.** A DEAD row's icon went on painting the live family at full chroma while every word beside it dimmed — the icon rule set a colour unconditionally, and the tick's disabled stand-down works by its own rule NOT matching. Two shipped laws caught it within the hour. The repair is `--tone-glyph` joining the disabled remap beside the ink trio, **not** a `:not([data-disabled])` guard on the icon rule: the guard fixes today's one consumer and leaves the next to rediscover it, while a role in the tone vocabulary belongs in the rule that stands the vocabulary down. Third appearance of this shape (the ink trio 2026-08-09, the slider handle 2026-08-07).
+
+**Leading only.** The leading slot IDENTIFIES a row — permanent, learned, the only thing left when a sidebar collapses to a rail. A trailing chevron or count is punctuation and keeps the label's ink. Law-asserted on a DESTRUCTIVE row, because on a neutral one the two values coincide and the law would test nothing.
+
+**`ShellRailItem` deliberately does not follow**, and it falls out of the class rather than needing an exception: it is not a `.kui-row` and has no slot, so its icon keeps carrying current — right for a control whose icon is its only channel, since it has no label to say it instead.
+
+**The promotion.** `slot()` was three byte-identical private copies (Button, MenuItem, Row), each under a comment saying "exactly as Button and MenuItem write it" — a duplication that had already noticed itself. §21's rule is that the third promotes, so this was one past due, and a fourth copy for `ShellNavItem` was the obvious wrong move. It lives in `system/render.ts` beside `filled()`, written with `createElement` because that file is `.ts` and renaming it to buy one span would churn every import in the package.
+
+**Laws.** Five mounted: the icon speaks its family across three families at once (with the three-distinct-values guard), a trailing adornment does not, a dead row's icon dims, every nav icon is accent whether or not the row is current, and the nav label stands down. Six sabotage passes — delete the rule, point it at the ink, widen it to every slot, drop the glyph from the disabled remap, restore the conditional accent stamp, delete the label stand-down — each caught by the right law.
+
+---
+
 ## 2026-08-23 The glyph — a fill cannot be an icon, and neither can ink
 
 **What.** `--{tone}-glyph`, a solved role per family per mode: the hue at its maximum chroma, placed at the lightness where a small mark clears `apcaFloors.nonText` against the harder of the page and the seal. Two consumers moved to it the same day — the row family's checked tick (menu and select) and the tab rule — and both moves were conformance repairs. +380 bytes gzipped (31,738 → 32,118) for ten families in two modes.

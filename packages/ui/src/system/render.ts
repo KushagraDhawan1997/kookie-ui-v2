@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import type { SlotName } from "./axes.ts";
+
 /**
  * The element type accepted by every `render` prop (§5).
  *
@@ -118,4 +120,24 @@ export function composeRender(
  */
 export function filled(node: React.ReactNode): boolean {
   return node !== undefined && node !== null && node !== false && node !== true && node !== "";
+}
+
+/**
+ * The slotted-control family's wrapper (ENGINEERING §3, promoted 2026-08-23).
+ *
+ * One `<span data-slot>` around an adornment, guarded by `filled()` so `{cond && icon}` never
+ * rents a gap it will not fill. Every rule that prices a slot keys on the attribute — the icon
+ * box, the label-cluster gap, the trailing edge's clearance, the pill's per-side padding, the
+ * hosted-control geometry — so the wrapper is the contract rather than a convenience.
+ *
+ * PROMOTED ON ITS FOURTH CONSUMER, one past due. Button, MenuItem and Row each carried a
+ * byte-identical private copy under a comment saying "exactly as Button and MenuItem write
+ * it", which is a duplication that had already noticed itself; §21's own rule is that the
+ * second member self-keys and the third promotes. `ShellNavItem` gaining slots is what
+ * finally made a fourth copy the obvious wrong move.
+ */
+export function slot(content: React.ReactNode, which: SlotName): React.ReactNode {
+  // `createElement` rather than JSX because this file is `.ts`: renaming it to `.tsx` to buy
+  // one span would churn every import in the package for no behavioural gain.
+  return filled(content) ? React.createElement("span", { "data-slot": which }, content) : null;
 }

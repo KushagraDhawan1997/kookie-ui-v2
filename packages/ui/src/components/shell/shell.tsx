@@ -35,7 +35,7 @@
  */
 import * as React from "react";
 
-import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
+import { composeRender, mergeRefs, slot, type RenderElement } from "../../system/render.ts";
 import { useWindowClass } from "../../system/window.ts";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
@@ -973,6 +973,19 @@ export type ShellNavItemProps = Omit<React.ComponentPropsWithoutRef<"button">, "
    * because "you are here" is information and a colour alone tells nobody who cannot see it.
    */
   current?: boolean;
+  /**
+   * The row's icon, and it renders in the ACCENT (2026-08-23, Kushagra: *"row and sidebar row
+   * render their icons in accent color always"*). Apple states the same rule in as many words
+   * — *"By default, sidebar icons use your app's accent color... people expect all sidebar
+   * icons to appear in that color"* — and it is the one place a system's colour reads as
+   * identity rather than as emphasis, because a sidebar icon IS the item: permanent, learned,
+   * and the only thing left when the pane collapses to a rail.
+   *
+   * Always, not only when current. What says "you are here" is the LABEL and `aria-current`.
+   */
+  leading?: React.ReactNode;
+  /** After the label, pushed to the far edge: a count, a chevron, a status dot. */
+  trailing?: React.ReactNode;
   /** Be an anchor instead. A nav item usually navigates, and a link is a link. */
   render?: RenderElement;
   ref?: React.Ref<HTMLElement>;
@@ -990,6 +1003,8 @@ export type ShellNavItemProps = Omit<React.ComponentPropsWithoutRef<"button">, "
  */
 export function ShellNavItem({
   current,
+  leading,
+  trailing,
   render,
   className,
   children,
@@ -1000,17 +1015,23 @@ export function ShellNavItem({
   const merged = {
     ...props,
     "data-size": size,
-    // TWO STAMPS AND NO CSS. Being the page you are on is a fixed identity, not an axis
-    // (§21 refuses emphasis on rows because a list of peers ranks nothing — a component
-    // stamping its own rung is Card's precedent, not a call site choosing). The pair is what
-    // makes current and hover DIFFERENT CURRENCIES rather than a fourth step on one ramp:
-    // quiet rests transparent and hovers to soft, medium rests at soft and hovers to
-    // soft-hover, so a plain row hovers grey, a current row rests accent and still has
-    // somewhere to go under the pointer. Naming a colour here instead would have frozen it —
-    // the first spelling painted the hover step directly and hovering the current row
-    // computed byte-identical to its own rest, which its law caught.
+    // ACCENT IS STAMPED ALWAYS (2026-08-23), which was unsafe until the day it was written.
+    // The family is what the ICON reads, and a sidebar icon is accent whether or not you are
+    // standing on it — so the stamp cannot be conditional on `current` any more.
+    //
+    // What made it safe is `undilutedTones`: accent's washed roles resolve NEUTRAL, so a
+    // stamped row's fill is grey at every rung and only the roles that survive dilution — the
+    // glyph and the ink — arrive in colour. Before that change this stamp would have painted
+    // every nav row a pale blue. The LABEL is stood back down in shell.css unless the row is
+    // current, because a column of blue words is not a sidebar.
+    //
+    // Emphasis stays the pair it was: quiet rests transparent and hovers to soft, medium rests
+    // at soft and hovers to soft-hover, so the current row still has somewhere to go under the
+    // pointer. It is a stamp and not an axis (§21 refuses emphasis on rows — a list of peers
+    // ranks nothing; a component stamping its own rung is Card's precedent).
+    "data-tone": "accent",
     ...(current
-      ? { "aria-current": "page" as const, "data-tone": "accent", "data-emphasis": "medium" }
+      ? { "aria-current": "page" as const, "data-emphasis": "medium" }
       : { "data-emphasis": "quiet" }),
     // The pointer is this row's only cursor — a sidebar has no roving highlight — so it opts
     // into the family's hover rule (§21, promoted 2026-08-23 with Row). This stamp replaces
@@ -1019,12 +1040,19 @@ export function ShellNavItem({
     className: cx("kui-control kui-row kui-shell-nav-item", className),
     ref,
   };
+  const content = (
+    <>
+      {slot(leading, "leading")}
+      {children}
+      {slot(trailing, "trailing")}
+    </>
+  );
   // `type="button"` only on the button this file renders — a render target keeps its own
   // element semantics (the Button-as-anchor lesson, 2026-08-03).
-  if (render) return composeRender(render, merged as never, children);
+  if (render) return composeRender(render, merged as never, content);
   return (
     <button {...(merged as React.ComponentPropsWithoutRef<"button">)} type="button">
-      {children}
+      {content}
     </button>
   );
 }

@@ -1725,6 +1725,60 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     ).not.toBe(currentRest);
   });
 
+  it("every nav icon is the accent, whether or not you are standing on it", () => {
+    /**
+     * Kushagra, 2026-08-23: *"row and sidebar row render their icons in accent color always"* —
+     * and Apple states the same rule for sidebars in as many words: *"By default, sidebar icons
+     * use your app's accent color… people expect all sidebar icons to appear in that color."*
+     *
+     * ALWAYS is the load-bearing word and it is why the law reads the NON-current row first.
+     * The row stamps `data-tone="accent"` unconditionally now, which was an unsafe thing to do
+     * until the same day's `undilutedTones` change made a stamped row's fill resolve neutral at
+     * every rung. Reading only the current row's icon would pass on the old conditional stamp.
+     */
+    // Its own mount rather than the shared `nav()` fixture: the fixture's rows carry no icon,
+    // and adding one there would perturb twenty geometry laws to serve this one.
+    const shell = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary">
+          <ShellNavGroup label="Workspace">
+            <ShellNavItem current leading={<span>▲</span>}>Inbox</ShellNavItem>
+            <ShellNavItem leading={<span>▲</span>}>Drafts</ShellNavItem>
+          </ShellNavGroup>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const [currentRow, plain] = [...shell.querySelectorAll<HTMLElement>(".kui-shell-nav-item")];
+    if (!currentRow || !plain) throw new Error("nav rows missing — the law would assert nothing");
+    const icon = (row: HTMLElement) =>
+      computed(within(row, '[data-slot="leading"]'), "color");
+    expect(icon(plain), "a row you are not on has a grey icon").toBe(
+      colorOn(plain, "var(--accent-glyph)"),
+    );
+    expect(icon(currentRow), "the two rows' icons disagree").toBe(icon(plain));
+    // And the icon is NOT the label — the row is stamped accent, so a law that read the label
+    // and called it the icon would pass on the current row and quietly fail on every other.
+    expect(icon(plain), "the icon is just inheriting the row's colour").not.toBe(
+      computed(plain, "color"),
+    );
+  });
+
+  it("the LABEL stands back down, so a sidebar is not a column of blue words", () => {
+    // The other half of stamping accent always. `.kui-row` points a label at `--tone-ink`, so
+    // without shell.css's stand-down every nav row's text would be accent — which is both ugly
+    // and a lie, since it would stop saying which row is current. The current row takes the
+    // family back, and that IS what says "you are here" now that the fill is grey at every rung.
+    const shell = nav({ rows: 2 });
+    const [currentRow, plain] = [rows(shell)[0]!, rows(shell)[1]!];
+    expect(computed(plain, "color"), "an ordinary nav label went accent").toBe(
+      colorOn(plain, "var(--color-text)"),
+    );
+    expect(computed(currentRow, "color")).toBe(colorOn(currentRow, "var(--accent-ink)"));
+    expect(computed(currentRow, "color")).not.toBe(computed(plain, "color"));
+  });
+
   it("being current is ANNOUNCED, and the heading is CONNECTED to its items", () => {
     // Both are the non-visual halves that force these parts to exist at all (§10's
     // criterion): a colour tells nobody who cannot see it, and a heading rendered as a

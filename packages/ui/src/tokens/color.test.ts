@@ -1108,6 +1108,31 @@ describe("the glyph clears the floor a small mark owes, at the family's own chro
     });
   }
 
+  it("a GREY takes its ink, because the solve is answering the wrong question there", () => {
+    // `solveGlyph` maximises chroma at the minimum legible contrast. For a colour that is the
+    // point — the most saturated blue a person can still see. For a grey there is no chroma
+    // to maximise, so the same solve returns the PALEST legible grey: `--neutral-glyph` was
+    // emitted at #8f9397 against an ink of #1f1f20 before this remap, and the first plain row
+    // to read the role would have rendered a washed-out icon.
+    //
+    // Keyed on CHROMA, not on the name "neutral" (§7's requirement, and `--accent-solid`'s own
+    // remap one role over), so a consumer's desaturated brand gets the same correction.
+    for (const tone of TONES) {
+      const t = resolveTone(tones[tone]);
+      if (t.vividness >= lowChromaThreshold) continue;
+      for (const mode of MODES) {
+        const { glyph, steps } = buildScale(tone, mode);
+        expect(glyph, `${tone}/${mode}: a grey's glyph is not its ink`).toBe(steps[11]!);
+      }
+    }
+    // The remap is REACHED — a threshold nothing falls under is a branch that never runs, and
+    // this law would pass on a tone set with no greys in it at all.
+    expect(
+      TONES.filter((t) => resolveTone(tones[t]).vividness < lowChromaThreshold),
+      "no shipped family is low-chroma, so the remap above tested nothing",
+    ).not.toHaveLength(0);
+  });
+
   it("the SOLID is what fails — the measurement the role was minted for", () => {
     /**
      * THE INPUT MATTERS AS MUCH AS THE OUTPUT (2026-08-20). Every assertion above is a floor,

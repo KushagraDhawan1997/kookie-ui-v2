@@ -620,6 +620,24 @@
   position: relative;
 }
 
+/* THE LABEL STANDS BACK DOWN (2026-08-23). The row stamps `data-tone="accent"` always, so
+   that its ICON can be the accent — but `.kui-row` points the label at `--tone-ink`, and a
+   column of blue words is not a sidebar. The tone-less foreground role is what an ordinary
+   nav label reads; the CURRENT one takes the family back, which is the whole of what says
+   "you are here" now that the fill is grey at every rung (`undilutedTones`, same day).
+
+   Both arms are needed and the specificity is deliberate: `.kui-shell-nav-item` ties with
+   `.kui-row` at (0,1,0) and wins on file order (shell.css loads after recipes.css), while the
+   `[aria-current]` arm is (0,2,0) and beats its own sibling. Keyed on the ANNOUNCED attribute
+   rather than on a private stamp, so the painted state and the announced one cannot disagree. */
+.kui-shell-nav-item {
+  --kui-ct-label-color: var(--color-text);
+}
+
+.kui-shell-nav-item[aria-current] {
+  --kui-ct-label-color: var(--tone-ink);
+}
+
 /* The press area reaches back out to the pane's wall. It reads `--kui-sf-p` — the surface
    padding HOOK, which inherits on purpose (it is how `m="bleed"` finds the nearest surface,
    §3) — so the expander and the air it undoes are one number by construction rather than two

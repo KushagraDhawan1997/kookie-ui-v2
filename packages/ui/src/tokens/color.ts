@@ -551,7 +551,18 @@ export function buildScaleFor(
     // Behind the same `stepsOnly` guard the alpha ramp is behind, and for the same reason:
     // the solve reads the neutral page and the seal, both of which are built by this very
     // function, so computing it on the steps-only pass is the cycle that guard exists to cut.
-    glyph: stepsOnly ? "" : solveGlyph(hue, vividness, mode, gamut),
+    //
+    // AND AT LOW CHROMA THE SOLVE IS ANSWERING THE WRONG QUESTION, so a grey takes its INK
+    // instead — `--accent-solid`'s own remap four lines up, keyed on chroma rather than on
+    // the name "neutral", exactly as §7 requires. `solveGlyph` maximises chroma at the
+    // minimum legible contrast, which is right for a colour (the most saturated blue a person
+    // can still see) and degenerates for a grey, where there is no chroma to maximise: it
+    // returns the PALEST legible grey. Measured, `--neutral-glyph` shipped at #8f9397 against
+    // an ink of #1f1f20 — so the moment a plain row's icon read this role it would have gone
+    // washed out, which is the defect the icon work found before it could ship. §7's sentence
+    // for the solid covers this case verbatim: prominence comes from chroma or from
+    // lightness, and at zero chroma lightness does all the work.
+    glyph: stepsOnly ? "" : isLowChroma ? steps[11]! : solveGlyph(hue, vividness, mode, gamut),
     isLowChroma,
   };
 }

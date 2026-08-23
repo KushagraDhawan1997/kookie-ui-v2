@@ -3,10 +3,10 @@
 import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
-import type { Emphasis, Size, SlotName, Tone } from "../../system/axes.ts";
+import type { Emphasis, Size, Tone } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
-import { filled, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import { slot, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import { Spinner } from "../spinner/spinner.tsx";
 
 type ButtonBase = Omit<
@@ -158,8 +158,6 @@ export function Button({
   // component: the pill-padding rule keys "this edge starts with a slot" on it (§4, §6), and a
   // control hosted in a trailing slot gets §4's slot-inset geometry through the same selector —
   // which TextField had and Button, without the wrapper, silently did not.
-  const slot = (content: React.ReactNode, which: SlotName) =>
-    filled(content) ? <span data-slot={which}>{content}</span> : null;
 
   return (
     <BaseButton

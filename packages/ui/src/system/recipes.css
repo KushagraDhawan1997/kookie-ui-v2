@@ -858,6 +858,28 @@
   --kui-ct-label-color: var(--tone-ink);
 }
 
+/* A ROW'S ICON READS ITS FAMILY (§7, §21, 2026-08-23 — Kushagra: "row and sidebar row render
+   their icons in accent color always"; Apple states the same rule for sidebars in as many
+   words). One declaration, no per-component exception, and each member gets the right answer
+   from the tone it already stamps: a nav row stamps accent so its icon is the accent, a menu
+   row stamps neutral so its icon is the ink, a destructive row's icon goes red with its words.
+
+   LEADING ONLY. The leading slot is what IDENTIFIES a row — permanent, learned, and the only
+   thing left when a sidebar collapses to a rail. A trailing chevron or count is punctuation
+   and keeps the label's ink.
+
+   --tone-GLYPH rather than --tone-ink, because an icon is a mark and owes the non-text floor
+   while prose owes the reading floor: meeting the higher bar is paid for in saturation, so a
+   destructive icon in the ink is a brick red where the glyph is an actual red. For a GREY the
+   two are the same value by construction (a low-chroma family's glyph IS its ink — there is no
+   chroma to maximise), which is why this rule moves a neutral row's icon by exactly nothing.
+
+   Placed BEFORE the checked-indicator rule below: both are (0,2,0), so the tick wins on source
+   order and a checked row's mark still speaks selection rather than family. */
+.kui-row > [data-slot="leading"] {
+  color: var(--tone-glyph);
+}
+
 /* Selected speaks accent, written once for every member of the row family (§21) — and the
    INDICATOR is what speaks it (reversed 2026-08-09, Kushagra's eye; it shipped as the whole
    row's label ink for a day). --accent-label is a TEXT ink: it lives between ladder steps
@@ -1241,6 +1263,18 @@
   --tone-ink: var(--disabled-ink);
   --tone-ink-muted: var(--disabled-ink);
   --tone-ink-faint: var(--disabled-ink);
+  /* The GLYPH follows them (2026-08-23), and its omission was caught the same hour it became
+     reachable: the row family's leading icon started reading --tone-glyph, and a DEAD row's
+     icon went on painting the live family at full chroma while every word beside it dimmed.
+     That is the same defect the sentence above records for the ink trio and the 2026-08-07
+     audit records for the slider handle — a remap that covers one of several vocabularies
+     dims whichever controls happen to use the covered one. Third appearance, same shape.
+
+     Standing it down HERE rather than guarding the icon rule with :not([data-disabled]) is
+     the deliberate half: the guard would fix the one consumer that exists today and leave the
+     next one to rediscover this, while a role that is part of the tone vocabulary belongs in
+     the remap that stands the vocabulary down. */
+  --tone-glyph: var(--disabled-ink);
   /* State outranks dress (§19). The RULE is unchanged and still load-bearing; the sentence
      explaining it is rewritten (2026-08-20), because it named `look="filled"` — an axis
      deleted whole on 2026-08-19/20 — and described a transparent resting border the dress

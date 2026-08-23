@@ -96,7 +96,16 @@ import {
   SelectItem,
 } from "@kookie-ui/react";
 
-import { PlusIcon, SearchIcon, XIcon } from "../icons";
+import {
+  ChartIcon,
+  FolderIcon,
+  HomeIcon,
+  LockIcon,
+  PlusIcon,
+  SearchIcon,
+  SettingsIcon,
+  XIcon,
+} from "../icons";
 import { BedSurface, PHOTO_BED, bed } from "./beds";
 import { ComponentPreviewBody } from "./component-preview";
 import { Demo, SIZES, SpecTable, cap } from "./pieces";
@@ -1205,14 +1214,20 @@ function ShellSection() {
                 New project
               </Button>
               <ShellScroll>
+                {/* Every icon is the ACCENT, current or not (2026-08-23) — Apple's sidebar
+                    rule, and the one place colour reads as identity rather than emphasis. The
+                    row you are on says so with its LABEL, because the fill is grey at every
+                    rung now that accent refuses to be diluted. */}
                 <ShellNavGroup label="Workspace">
-                  <ShellNavItem>Projects</ShellNavItem>
-                  <ShellNavItem current>Deploys</ShellNavItem>
-                  <ShellNavItem>Members</ShellNavItem>
+                  <ShellNavItem leading={<FolderIcon />}>Projects</ShellNavItem>
+                  <ShellNavItem current leading={<ChartIcon />}>
+                    Deploys
+                  </ShellNavItem>
+                  <ShellNavItem leading={<HomeIcon />}>Members</ShellNavItem>
                 </ShellNavGroup>
                 <ShellNavGroup label="Account">
-                  <ShellNavItem>Settings</ShellNavItem>
-                  <ShellNavItem>Billing</ShellNavItem>
+                  <ShellNavItem leading={<SettingsIcon />}>Settings</ShellNavItem>
+                  <ShellNavItem leading={<LockIcon />}>Billing</ShellNavItem>
                 </ShellNavGroup>
               </ShellScroll>
             </ShellSidebar>
