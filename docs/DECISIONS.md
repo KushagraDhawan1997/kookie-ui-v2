@@ -1937,6 +1937,71 @@ The message family's only part in it is a Notice on the surface where the result
 
 ---
 
+---
+
+## 30. Composer (spec'd 2026-08-23)
+
+**The box a person types a message into.** One text area that grows, a row of controls under it, an optional strip of attachments above it, and one button that sends. It is the input half of a conversation. It is not the conversation.
+
+**It is a conversation component, not an AI component.** shadcn names support inboxes, team threads and group chats in the same sentence as AI chat, and they are the same shape. v1's Chatbar named AI chat as its purpose in the docs, and that framing is part of why it grew an expand/collapse mode and a `sendMode` prop that nothing else has.
+
+**Why it is a surface and not a control.** The deciding question is what it holds. A TextField holds shrunken controls in its slots — there is a whole rule for squashing them to fit and for capping their hit area at the container (§4). A composer holds full-size Buttons at their own index. That is a box containing controls, which is what a Card is.
+
+Three things follow and all of them are already built. Its inset is surface padding, which it has to be, because the attachment strip wants to reach the pane edges and `m="bleed"` only reads `--kui-sf-p` (§3, 2026-08-20). Its corner comes from the surface band, which is right because a composer is not on the height ladder — it grows, the way a TextArea does — and the control band holds a fraction of a height the component does not have, which is the checkbox-corner mistake (§6). And the squircle arrives with the surface band.
+
+**The strongest objection, answered.** The field family already carries every state a composer needs — the ring, disabled, read-only — so making the composer a surface looks like re-deriving the field's state machine one layer up, which is this project's most-repeated fault. It is not a duplicate, for two reasons. A composer has no `invalid` state: a composer is not validated, the app refuses the send. And its ring is not the field's ring — a field's ring is keyed to its own input holding focus, and a composer's has to be keyed to its text area while ignoring the buttons standing inside it, which is the same narrowing rather than a second one. What is left is a ring and a dead state, which is two arms, not a machine.
+
+### What the surface layer owes it
+
+**The disabled arm shipped 2026-08-22 and applies unchanged.** The four changes a dead card shows — the fill recedes, the ink dims across all three rungs, the cursor stops promising, the cast goes — are exactly what a dead composer shows. Its selector widens by one entry.
+
+**The ring does not, and the composer states it itself.** Every interactive-surface rule sits on one selector, `:where(button, a, label:has(.kui-control))`, and that selector means *pressable*: it carries the pointer cursor, the 1px rise toward the pointer and the press sink along with the ring. A composer must have none of those. You type in a composer, you do not press it.
+
+That selector is doing two jobs — *this surface is pressable* and *this surface can hold focus* — and a composer is the first thing to want the second without the first. **It does not get split yet.** The house rule is that the second member self-keys and the third promotes (LOG 2026-08-05, TextArea). So `composer.css` writes its own ring, and the split happens when a second focusable, unpressable surface appears.
+
+**The ring keys on the text area, not on the composer.** `:focus-within` narrowed to the input, so pressing the send button inside the composer does not light the whole box. This is TextField's own 2026-08-05 repair, where a hosted control lit two rings and the field claimed a focus it did not have. It is `:focus-within` and not `:focus-visible` because a composer's focus is a mode: the caret is in it whether you clicked or tabbed, which is the field family's sentence.
+
+### Anatomy: three exports
+
+`Composer`, `ComposerInput`, `ComposerSend`. Everything else is a component that already exists.
+
+**`Composer` is a `<form>`.** Both reference implementations are, and v1 is a `div` with `onSubmit` stripped out of its props. The element is what gives Enter-to-submit, `requestSubmit()` and reset, and it is why both references send on Enter by default while v1 needs a `submitOnEnter` prop that defaults to off.
+
+**`ComposerInput` is a bare `<textarea>`, not our TextArea.** TextArea brings its own fill, its own edge and its own ring, and the composer is already all three — you would see two boxes. It exists as a part rather than as a raw element for one non-visual reason: the ring keys on it, so the system has to know which element it is.
+
+It grows with `field-sizing: content`, which reached Baseline on 2026-06-16. Safari is the gap, so `rows` plus a `max-height` is the fallback and both paths get a law. **This is the repair for v1's worst structural fault**: v1 measures with `getComputedStyle`, `scrollHeight`, `requestAnimationFrame` and a `ResizeObserver` on every keystroke, against a rule that says no JS at interaction time. The mechanism did not exist when v1 was written.
+
+**`ComposerSend` is one button with four meanings**, driven by a `status` prop: `ready` sends, `submitted` shows a spinner, `streaming` stops, `error` retries. Each state carries its own accessible name.
+
+This replaces `sendMode` entirely. v1's prop decides whether the button is *visible*; it never decides what the button *means*, so **a person cannot stop a running generation** — the largest gap in the v1 component and one the audit missed. It also fixes v1's split contract, where the Enter key refuses to send an empty message and the button, invisible but still in the tab order, sends one.
+
+**`ComposerRow` is refused.** A row of buttons is a `Flex`. Nothing non-visual forces it, which is §10's rule, and the audit found five of v1's eleven parts were layout wearing a part's name.
+
+**The attachment tile is refused *here* and shipped separately.** A file about to be sent and a file already sent are the same tile, so it cannot belong to the composer. It ships as `Attachment`, and it takes its state as a prop — `idle | uploading | processing | error | done` — set by the caller and drawn in CSS. **The system draws the state; the app owns the file.** This is the answer to the audit's open question 2, and it is what v1 gets wrong: v1 holds `File` objects and mints object URLs, then revokes them one commit after handing them to `onSubmit`, so the preview of the message you just sent is already broken.
+
+**Compact is refused for now, and the refusal is the additive direction.** assistant-ui ships a compact composer and the axis is real, so this is a deferral rather than a judgement. But compact only means something when there is something to collapse — their condition is "no attachments, no quote, no queue, no dictation, no newline" — and this component ships none of those. A composer whose control row is always present has nothing to compact into. It ships when something wants it, and when it does it follows their mechanism and not v1's: driven by **content**, never by focus, latching until the text is empty, with no blur handler, emitting one `data-compact` attribute and unmounting nothing. v1 drives the same axis from focus and branches the React tree, which is what produces the bar that can get stuck shut, both slot vocabularies, and the focus that lands on `<body>` when a slot unmounts.
+
+### Glass
+
+**It takes `backdrop`, wired exactly as Card's is.** A composer sitting over a scrolling conversation is the case selective material exists for: something passes behind it (§10, 2026-08-17). It becomes the glass pane and scopes its subtree, so the send button and the attachment tiles inside it resolve solid without any call site saying so. One glass per stack, structurally.
+
+The lens applies. A composer does not fly, so it is built on mount and resize like any other pane.
+
+### What must be falsified before it is trusted
+
+Five, and each is a shape this repo has already been bitten by.
+
+1. **The ring's target.** A law that focuses a Button inside the composer and reads the composer's outline. The fixture must contain a real hosted button, or the law cannot fail — the Notice lesson, twice in one component.
+2. **Both growth paths.** The computed height with `field-sizing` and with the `rows` fallback, at the same content. A law that only runs the supported path tests the case that works.
+3. **The glass scope.** A law whose fixture holds a button that *would* be glass without the scope. A button with no `backdrop` and no region resolves solid either way, and that exact fixture passed with the scope deleted when Notice shipped.
+4. **Enter and IME.** Both references guard `isComposing`; a law drives a composition event, because sending a message mid-composition is silent data loss for anyone typing Japanese, Chinese or Korean.
+5. **The clip against the grown box.** `.kui-surface` clips since 2026-08-20. The text area scrolls itself at max height, inside a clipped pane. A law reads the scroll position, because this is the shape that made a select slide its own contents.
+
+### What it does not do
+
+The conversation, the scroller, message parts, branches, reasoning, tool calls, sources, transport and persistence. A model picker is a `Select`. Suggestions are `Button`s. The scroller is a separate decision recorded in `docs/handovers/2026-08-23-chatbar-family.md`: the hard part of a conversation is scroll, and shadcn's is 6,274 lines against 139 of styling.
+
+
 ## Open questions / deferred
 
 **A dialog could not scroll its body, and one composition silently lost content — RAISED 2026-08-20, CLOSED 2026-08-21.** Two separate faults wore one symptom. The first was never the dialog's: `max-block-size: 100%` on a scroll viewport cannot resolve against an indefinite parent, so any pane sized with `max-height` handed the viewport its CONTENT's height (a 160px pane holding a 496px viewport, 336px gone) — fixed 2026-08-20 by making the scroller itself a flex column. The second was the dialog's own, and it was worse than logged: `height` did not work either, because `.kui-dialog-body` stands between the pane and the caller's children and every rule in the surface layer's scroll block asks about a direct child. Closed by the two clauses in §3 above — the body is a column when it holds a scroller, and the member rules reach through it. The same measurement found the fault in Card that made this more than a dialog bug: a plain pane with neighbours had no column at all, which is the clause beside it. Six laws, six sabotage passes.
