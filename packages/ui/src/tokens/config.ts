@@ -6,6 +6,16 @@
  * Step counts differ per family on purpose: each is set by that family's dynamic
  * range and perception, never copied across families (§6, "three count ceilings").
  *
+ * EVERY NUMBER HERE IS A JUDGED TASTE VALUE (2026-08-23, Kushagra: *"Ive judged everything
+ * we have so far"*). The values were designed, then looked at in apps/docs `/preview` and
+ * `/matrix` and changed where the eye said so — which is what almost every dated entry in
+ * CLAUDE.md records. Individual sites used to carry "v0, for the eye pass", written when the
+ * eye pass was expected as one discrete event at the end; it never happened that way, it ran
+ * continuously beside each component, and forty copies of the same stale claim is the
+ * near-duplication this project deletes on sight. Stated once, here: these are taste, they
+ * are one config line each, and they move whenever the eye says they should. Where something
+ * genuinely has NOT been in front of a judgment, the site says so in its own words.
+ *
  * The boundary with color-config.ts, declared (2026-08-06): color-config.ts holds what the
  * OKLCH GENERATOR consumes — hues, ladders, deltas, floors, per-mode step picks. This file
  * holds everything else, INCLUDING literal colour strings that bypass the generator (the
@@ -36,7 +46,7 @@ export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
  * The 10 step in the control band exists because controls live in 4-12, where the bare
  * 8 -> 12 jump was 1.5x with nothing between: every correction overshot, which is what turned
  * size 4 into a capsule. The surface band anchors size 3 at each level's old flat value
- * (small 8, medium 16, large 24) so the default card never moved; the rest are v0 by eye.
+ * (small 8, medium 16, large 24) so the default card never moved; the rest are by eye.
  */
 export const radiusLevels = {
   none: { steps: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], full: 0 },
@@ -90,7 +100,7 @@ export const radiusSurface = [6, 7, 8, 9] as const;
  * a card that covers, so at any index it wears the corner of the card one size up, and the
  * top of the band (10) stays where `--radius-overlay` stood — so the value a dialog used to
  * wear is now what its largest size wears. Density never touches it, the surface band's own
- * rule. v0 for the eye pass.
+ * rule.
  */
 export const radiusOverlay = [7, 8, 9, 10] as const;
 
@@ -126,7 +136,7 @@ export const radiusOverlay = [7, 8, 9, 10] as const;
  * no wider than size 3. Radius solved this by widening its own palette inside the control
  * band; space cannot be widened without renumbering every layout pick, so control padding
  * joins `height` as a designed raw number. All six sets now sit in 0.24-0.38 of their box,
- * law-tested, with size 4 down 33% from what shipped. v0 for the eye pass.
+ * law-tested, with size 4 down 33% from what shipped.
  */
 export const density = {
   compact: {
@@ -206,7 +216,7 @@ export type DensitySet = {
    * notch under the buttons at every size, the shadcn/macOS relationship); coarse default
    * lands 36/40/44/48 — size 2 sits 4 under its button's 44, the stated cost of tighter
    * rows on touch, still far above the locked 24 floor. There is NO invented row floor:
-   * size 2 anchors near the target the same way the height ladder's own size 2 does. v0.
+   * size 2 anchors near the target the same way the height ladder's own size 2 does.
    */
   readonly rowInset: readonly [number, number, number, number];
 };
@@ -215,7 +225,7 @@ export type DensitySet = {
  * §16 — the coarse geometry. Fine and coarse are two complete designed renderings of the
  * control family, the way light and dark are two renderings of colour: same index, same laws,
  * different placed values. The signal is what touches the screen (`pointer: coarse`), never
- * width. All values v0 until judged in the preview matrix.
+ * width.
  *
  * Size 2 anchors at the touch floor; size 1 stays deliberately under it, and NOTHING widens
  * it back: §16 dropped the `max(--touch-target-min, height)` reserve considered here, because
@@ -374,7 +384,9 @@ export const handheldMedia = "(pointer: coarse)";
 export const windowClass = {
   /** The narrow/regular boundary. THE shared number: the narrow type band's media derives
    *  from it below, so "display type shrinks" and "the app goes to one column" cannot
-   *  drift apart. v0 keeps the 48rem the band already had. */
+   *  drift apart. It keeps the 48rem the band already had, and it is the ONE number in
+   *  this file nobody has sat at and judged: its sibling below was judged by eye on
+   *  2026-08-05 and this one was inherited. A shell exists now, so it is judgeable. */
   narrowMax: "48rem",
   /** The regular/wide boundary. 75rem (judged 2026-08-05, Kushagra — 64rem was too small):
    *  `wide` promises a sidebar, a real sidebar is ~260px, and at 1024 the content behind it
@@ -419,12 +431,59 @@ export const narrowMedia = `(max-width: ${windowClass.narrowMax})`;
  *
  * The coarse ladder stays ON the ecosystem grid (20/24) rather than continuing it — 28 is not
  * a grid the icon sets draw for, and sizes 3 and 4 both landing on 24 mirrors the fine world's
- * own doubled entry at the bottom. v0, for the eye pass.
+ * own doubled entry at the bottom.
  */
 export const iconSize = {
   fine: [16, 16, 20, 24],
   coarse: [20, 20, 24, 24],
 } as const satisfies Record<"fine" | "coarse", readonly number[]>;
+
+/**
+ * §4, §8 — the STROKE a glyph is drawn at (2026-08-23, Kushagra: the icons "are too thin, we
+ * need to find a way to match icons appropriate to what it needs. It needs to work with
+ * regular typeface. Usually 1.75 stroke width works").
+ *
+ * **The report was "too thin"; the defect was that ONE number meant TWO weights.** Every glyph
+ * in the repo said `strokeWidth="1.5"` — the seven the package draws itself, and the three in
+ * the docs app — and they did not render alike, because a stroke is stated in VIEWBOX units
+ * and the two sets are drawn on different grids:
+ *
+ *   package glyph   16 viewBox, 16px box -> scale 1.000 -> 1.50px painted
+ *   Hugeicon        24 viewBox, 16px box -> scale 0.667 -> 1.00px painted
+ *
+ * So a select's chevron has been painting 50% heavier than the Hugeicon in the button beside
+ * it since the day the docs installed an icon set, and the thin half is what Kushagra is
+ * looking at. Raising the shared literal to 1.75 would have widened that gap, not closed it:
+ * the package's own glyphs would have gone to 1.75px against the Hugeicons' 1.17px.
+ *
+ * What is constant is the PAINTED stroke, so that is what this states. `iconStroke` is the
+ * number for the ecosystem's grid — 24, which Lucide, Hugeicons, Heroicons, Phosphor and
+ * Feather all draw on — and `glyphStroke` converts it to the 16 the package's own glyphs use.
+ * Both land on the same painted weight in the same box, which is the guarantee.
+ *
+ * **`iconStroke` is public, and that is the point.** §8 ships no icon set, so the glyphs beside
+ * ours belong to whatever set the app installed, and a chevron that does not match them is the
+ * one mismatch a consumer cannot fix from the outside. The system states the weight it draws
+ * at; the app passes it to its own set.
+ *
+ * Why 1.75: it is v1 KookieUI's own settled number, in every documented example, and the
+ * ecosystem brackets it (Heroicons and Hugeicons ship 1.5, Lucide and Feather 2). A nominal
+ * stroke is not apparent weight — a font stem is rasterized with stem darkening and an SVG
+ * stroke is not — so this is an eye value, not an arithmetic one, and no arithmetic is offered
+ * for it.
+ *
+ * Neither rides the size index. A stroke lives inside the viewBox, so it already scales with
+ * `iconSize` above: one number, four painted weights.
+ */
+export const iconGrid = 24;
+export const iconStroke = 1.75;
+
+/**
+ * The same painted weight, restated for the 16-unit viewBox the package's own glyphs use. A
+ * derivation rather than a second judged number: if the two were both hand-set they would
+ * drift, which is the defect this pair exists to end.
+ */
+export const glyphStroke = (iconStroke * 16) / iconGrid;
 
 /**
  * §4, §12 — the icon-label gap, pulled by the size index. Like the icon box above, it is
@@ -527,7 +586,7 @@ export const markRadius = [1, 1, 2, 2] as const;
  * one dimension a track has. Density- and pointer-invariant like the mark it serves: the
  * coarse world's extra target comes from the CONTROL's height (the slider root is a control
  * of its size and the whole box is pressable), not from a fatter line — iOS holds its track
- * at 4pt against a 28pt thumb for the same reason. v0, judged in the preview.
+ * at 4pt against a 28pt thumb for the same reason. Judged in the preview.
  */
 export const sliderTrack = [4, 5, 6, 7] as const;
 
@@ -549,7 +608,7 @@ export const sliderTrack = [4, 5, 6, 7] as const;
  *
  * 6 rather than the default rail's 5: a rail carries a grip, which lends it presence a bar has
  * to find in its own weight. It sits inside the rail ladder's designed range (4-7) rather than
- * outside it, so a bar and a rail still read as the same kind of line. v0, judged in the
+ * outside it, so a bar and a rail still read as the same kind of line. Judged in the
  * playground — iOS holds 4pt, Material 4dp, Radix's middle size 6px.
  */
 export const progressTrack = 6;
@@ -569,7 +628,7 @@ export const progressTrack = 6;
  * designed values, never a ratio in the chain). Raw px like the slider TRACK ladder — the
  * fourth family with no palette rung at its scale, not the fifth: the count was written
  * against a tree that still had `sliderThumbW`, which the same commit deleted when the grip
- * went back to the family's square (audit 2026-08-08). v0, judged in the preview.
+ * went back to the family's square (audit 2026-08-08). Judged in the preview.
  */
 export const switchW = [34, 40, 44, 48] as const;
 
@@ -579,7 +638,7 @@ export const switchW = [34, 40, 44, 48] as const;
  * = track − 2 × inset, all sizes, both worlds. Deriving the inset from the mark ladder was
  * tried on paper and refused: thumb = mark(n) reads as an identity but the coarse band's
  * 4/5 collapse drives the inset to ZERO at size 4 — a thumb flush with its track — so the
- * inset is the designed constant and the diameter is what derives. v0.
+ * inset is the designed constant and the diameter is what derives.
  */
 export const switchInset = 2;
 
@@ -600,7 +659,7 @@ export const switchInset = 2;
  * rule fits — but `slotInset` is designed for a control hosted in a control that has a BORDER
  * between them, and it lands the segment at 24 in a 32 track where iOS holds 28. The track
  * here is an edgeless well (the switch's own argument, §19), so the inset is all the
- * separation there is and it prices tighter. v0.
+ * separation there is and it prices tighter.
  */
 export const segmentInset = 2;
 
@@ -616,9 +675,32 @@ export const segmentInset = 2;
  *
  * 2 rather than `--border-width`'s 1, because the rule is a SIGNAL and the hairline under it
  * is dress — a 1px accent line sitting on a 1px neutral line reads as a colour change in the
- * same object rather than a mark on top of it. v0, judged in the playground.
+ * same object rather than a mark on top of it. Judged in the playground.
  */
 export const tabRule = 2;
+
+/**
+ * §26 — how far a tab stands OFF the rule it sits on (2026-08-23, Kushagra: the tabs "have the
+ * same height as controls, and so they touch the tab lines, when there should be that offset,
+ * making the tab hover area smaller, so 28px instead of 32").
+ *
+ * A tab shipped riding the full control height, so its box ended exactly on the hairline: a
+ * hovered tab's fill ran into the line, and the bar read as one welded object rather than as
+ * labels standing on a rule. The bar keeps the ladder — a tab bar must still stand level with
+ * the controls in the row it sits in — and the TAB is what shrinks, symmetrically, so the
+ * label stays centred and the gap exists at the top as well (a tab that only cleared the line
+ * below would sit visibly high in its own bar).
+ *
+ * The precedent Kushagra named is the segment, which is 28 in a 32 track by exactly this
+ * subtraction, and it is the same number: 2. Deliberately NOT `segmentInset` reused, and this
+ * is the one place that distinction is worth writing down — `segmentInset` is the wall of an
+ * edgeless WELL around a grip, priced tighter than `slotInset` for that reason (see its own
+ * entry), while this is clearance between a label's box and a line it must not touch. Two
+ * facts that agree on a number today and have no reason to move together; the promotion rule
+ * ("the second member self-keys, the third promotes") is about one fact reaching a third
+ * consumer, not about three unrelated 2s.
+ */
+export const tabInset = 2;
 
 /**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and
@@ -711,7 +793,7 @@ export const springs = {
 
 /**
  * §22 — the floating family's own motion: the durations the emergence recipe is made of
- * (judged 2026-08-09 in the motion lab, on the real Menu; v0 for the eye pass).
+ * (judged 2026-08-09 in the motion lab, on the real Menu).
  *
  * A panel does not appear, it BECOMES (LOG, principle 11): it starts as a small seed — a
  * circle the size of the trigger it came out of, because at a menu's inception the shape it
@@ -728,8 +810,7 @@ export const springs = {
  * retracing the path spends 300ms narrating a fact nobody needs.
  */
 /**
- * §8 — the control layer's own motion (judged 2026-08-09 in the motion lab; v0 for the eye
- * pass). Every number here is a clock except the last three, which are distances a press
+ * §8 — the control layer's own motion (judged 2026-08-09 in the motion lab). Every number here is a clock except the last three, which are distances a press
  * moves through.
  *
  * **The press keeps its 2026-08-03 finding, and the two clocks are what let it.** An eased
@@ -765,6 +846,26 @@ export const controlMotion = {
   mark: 380,
   /** The switch thumb crossing its channel. The benchmark movement (LOG, principle 2). */
   travel: 420,
+  /**
+   * §26 — the TRAVELING HIGHLIGHT's two clocks: one object gliding between siblings, drawn by
+   * its two inline edges (2026-08-23, Kushagra, judged in the "Clip vs Physics" bench).
+   *
+   * The switch's own trick applied between homes rather than inside one channel. A thumb that
+   * slides with both edges on one clock is a photograph being moved; give the edge FACING the
+   * destination the shorter clock and the object stretches toward where it is going, then
+   * gathers itself as the trailing edge catches up. Both edges ride `calm` — the character is
+   * one spring, the asymmetry is entirely in the two durations, which is the only shape that
+   * keeps damping sacred (§8): a leading edge on a livelier curve would ring against a trailing
+   * edge that does not.
+   *
+   * Which edge leads is a direction, and direction is the one fact CSS cannot see — it knows
+   * the new value and not the old one — so the component stamps it. `travel` is deliberately
+   * NOT reused: 420 is a ~20px channel crossing, and a highlight moving a whole segment's width
+   * is a different distance answering a different question. The ratio (0.667) is the judged
+   * half; the pair straddles the benchmark rather than replacing it.
+   */
+  travelLead: 320,
+  travelTrail: 480,
   /** The focus ring landing from outside, and how far outside it starts. Keyboard only by
       construction: `:focus-visible` is the selector, and on anything but a text input it
       means the keyboard. The eye must FIND focus after a Tab; it does not after a click. */
@@ -796,7 +897,7 @@ export const controlMotion = {
    * The hover rise stays `hoverTravel` — one pixel means the same thing on both, since it is an
    * absolute distance and not a ratio.
    *
-   * Both v0, for the eye pass.
+   * Both designed.
    */
   surfacePressTravel: 1,
   surfacePressScale: 0.995,
@@ -812,14 +913,14 @@ export const controlMotion = {
    * seventh of the thumb and simply could not be seen. The demo that earned this stretched
    * about 38% of the grip's own width, which is what makes the switch read as a physical thing
    * being pushed rather than a state being reported — six is that fraction at the small end of
-   * the ladder and a quarter at the top. v0: a designed set per size is the next move if the
+   * the ladder and a quarter at the top. A designed set per size is the next move if the
    * eye wants it even across the range.
    */
   thumbLean: 6,
 } as const;
 
 /**
- * §22 — the FALLBACK seed: the dot an ANCHORLESS panel unfurls out of (v0).
+ * §22 — the FALLBACK seed: the dot an ANCHORLESS panel unfurls out of.
  *
  * Since 2026-08-15 the seed is the trigger's own measured silhouette (Kushagra: "make the
  * circle shape of trigger exactly, and make it start from where the trigger is, thats all"),
@@ -832,7 +933,7 @@ export const floatingSeed = 56;
 
 /** The content's small arrival, echoing the box's own travel (2026-08-16, the family
     unification: the dialog's content rises as it prints and the menu's just appeared —
-    "nice, but not of the same family"). v0. */
+    "nice, but not of the same family"). */
 export const floatingEcho = 8;
 
 export const floatingMotion = {
@@ -865,7 +966,7 @@ export const floatingMotion = {
       content must be "blurred out, empty" while the circle is still becoming the container,
       and show up "as the circle takes the shape" — at 80ms the rows printed onto a box that
       was still mostly circle, which is what made the entry read as a rectangle dropdown
-      fading in). 280 starts the print as the fall (320) is landing; v0, judged live. */
+      fading in). 280 starts the print as the fall (320) is landing; judged live. */
   revealDelay: 45,
   /** Exit: the dissolve itself. */
   dissolve: 105,
@@ -881,11 +982,11 @@ export const floatingMotion = {
  * becomes (geometry on the spring), presence is paint (a panel with no source fades in
  * honestly, on the fast clock), the content is one molten unit printing as the box lands,
  * and the exit dissolves because leaving is never the entry reversed. Its own clock names,
- * not borrows of the floating ones: the families share a grammar, not a token home. v0.
+ * not borrows of the floating ones: the families share a grammar, not a token home.
  */
 /** The circle a dialog's surface forms from (2026-08-15, Kushagra: "the dialog container
     itself expanding from a circle in center") — the diameter of the clip the entry opens
-    from. Its own constant, not a borrow of floatingSeed: shared grammar, separate homes. v0. */
+    from. Its own constant, not a borrow of floatingSeed: shared grammar, separate homes. */
 export const overlaySeed = 64;
 
 /** The dialog's ORIGIN (2026-08-15, Kushagra: "we know the origin of dropdown menu is
@@ -894,13 +995,13 @@ export const overlaySeed = 64;
     unfurls — motion that answers "where did this come from" with "it surfaced". Since the
     second round: the GAP below the dialog's BOTTOM edge (the runner knows the measured
     height, so the origin clears the final card entirely — at 48 from center the circle sat
-    exactly on the bottom edge and the travel was invisible). v0. */
+    exactly on the bottom edge and the travel was invisible). */
 export const overlayLift = 32;
 
 /** The content's own small arrival, echoing the container's origin (2026-08-15, Kushagra:
     the body read as animating left-to-right off the growing box's edge; it should arrive
     top-down like the container did) — the body starts this far below its resting place and
-    rises as it prints. v0. */
+    rises as it prints. */
 export const overlayEcho = 8;
 
 /**
@@ -913,7 +1014,7 @@ export const overlayEcho = 8;
  * The large-mass principles these numbers are: mass lowers frequency (the clocks stretch),
  * mass forbids overshoot (the spring is near-critical), mass shortens travel (there is none
  * in x or y — the scrim pushing the app back IS the arrival, §10), and mass softens onset (a
- * spring from rest has no instant velocity). All v0 for the eye pass.
+ * spring from rest has no instant velocity).
  */
 export const dialogMotion = {
   /** The box's arrival in DEPTH, and the content's coming into focus — one clock, because the
@@ -1007,7 +1108,7 @@ export const cursor = {
  * a fill modifier, never a colour (LOG 2026-08-04). It named `--neutral-1` under the white-veil
  * model that shipped for hours and was retracted the same day; nothing mixes the page colour
  * now, and neither recipes.css nor surfaces.css mentions `--neutral-1` at all. Designed points, not a dial; blur radii provisional until measured on a mid-tier
- * device (§10). v0 values judged against the photo backdrop in the preview.
+ * device (§10). Judged against the photo backdrop in the preview.
  */
 export const material = {
   // The ladder is monotone in every lever — alpha, blur, saturation, brightness push — so
@@ -1032,7 +1133,7 @@ export const material = {
   // SEPARATION — which stays the APP's (depth="elevated"), never the pane's: a flat
   // world's glass has edge and glint, no lift (the weld was built and reversed 2026-08-05).
   // Edge and rim are white alphas per thickness, rising with it: thicker glass catches more
-  // light. All v0, judged in the preview.
+  // light. All judged in the preview.
   //
   // THE TWO SEAMS WHERE ELEVATION MEETS THE MATERIAL (§10, decided 2026-08-07 — the
   // four-worlds frame applied to glass; what makes blur read as substance is light
@@ -1058,7 +1159,7 @@ export const material = {
   // Now thin travels furthest (+38 / +24) and thick least (+21 / +10), the gaps compress to
   // 8 and 6, and thick stays glass at 86 / 90. The three rungs are still three — the
   // monotonicity law walks every column and would fail on a collapse — they are simply
-  // three defended things rather than three degrees of defence. v0, judged in the
+  // three defended things rather than three degrees of defence. Judged in the
   // playground.
   /* CONTROL-scale material (lab 2026-08-14, Kushagra: "control surfaces need their own
      parameters"; ported 2026-08-17). A 40px pane is not a 210px card: the card's blur turns
@@ -1145,7 +1246,7 @@ export const material = {
       looked like. It keeps the veil and drops the filter, so it reads as part of the pane it
       sits on rather than as a hole in it. One number for every thickness on purpose: it is a
       fact about the element's OWN translucency, and the pane under it has already decided how
-      much of the world gets through. v0. */
+      much of the world gets through. */
   onGlassAlpha: 62,
 } as const;
 
@@ -1162,7 +1263,7 @@ export const material = {
  * own picks: control innards already answer density through the designed sets (§12), and
  * routing them through this layer would compress a compact button twice.
  *
- * v0 shape: compact and comfortable shift steps 1-8 by one; the gutter band (9-12: 48/64/
+ * The shape: compact and comfortable shift steps 1-8 by one; the gutter band (9-12: 48/64/
  * 96/128) HOLDS at identity, so §12's original protection — compact must not collapse page
  * gutters — survives as a placed choice instead of a hard rule. Pointer never touches this
  * layer (§16: a phone needs more content per inch, not less). All picks await the eye.
@@ -1177,7 +1278,7 @@ export const layoutSpace = {
  * §10, §12 — surface padding as picks into LAYOUT SPACE (semantic reference, never a raw
  * px). Density reaches a card exclusively through the layout-space layer — this family
  * carries no per-level sets of its own (the 2026-08-04 morning mechanism, superseded the
- * same day when the layer arrived: one lever, not two). v0 at default: 12 / 16 / 24 / 32.
+ * same day when the layer arrived: one lever, not two). At default: 12 / 16 / 24 / 32.
  */
 export const surfacePadding = [4, 5, 6, 7] as const;
 
@@ -1188,7 +1289,7 @@ export const surfacePadding = [4, 5, 6, 7] as const;
  * was never the menu's — every floating panel breathes by it, and a select popup consuming
  * a menu-named token would be the two-homes drift wearing a component's name. One value
  * and not a size-indexed family: the panel's rows answer the size axis, its breathing room
- * does not (v0). Index 2 = 4px at default density.
+ * does not. Index 2 = 4px at default density.
  */
 export const floatingPadding = 2;
 
@@ -1198,12 +1299,12 @@ export const floatingPadding = 2;
  * trigger's own width via --anchor-width): a panel is never narrower than the thing that
  * opened it — the size-match argument applied to geometry — and never comically narrow
  * under an icon-only trigger. ≈ shadcn's 8rem. Renamed from menuMinWidth with the padding
- * above. v0.
+ * above.
  */
 export const floatingMinWidth = 112;
 
 /**
- * §30, §31 — the TOOLTIP's own inset, a pair of picks into layout space (v0, eye pass
+ * §31, §32 — the TOOLTIP's own inset, a pair of picks into layout space (v0, eye pass
  * pending).
  *
  * A pair rather than one number, and the argument is the row family's own (2026-08-16): a
@@ -1220,7 +1321,7 @@ export const floatingMinWidth = 112;
 export const tooltipPadding = { block: 2, inline: 4 } as const;
 
 /**
- * §31 — the tooltip's maximum width, raw px through --scale (the `floatingMinWidth`
+ * §32 — the tooltip's maximum width, raw px through --scale (the `floatingMinWidth`
  * precedent: no palette rung lives at this scale, and a width is not a rhythm).
  *
  * A tooltip that runs the width of the window is a paragraph, and a paragraph is not a
@@ -1243,12 +1344,13 @@ export const tooltipMaxWidth = 240;
  * help). Dark leans HARDER for exactly that reason: a 40% veil over a dark page moves almost
  * nothing.
  *
- * The blur is 4px and deliberately below §10's 12px defense floor — the scrim only needs the
- * app to stop reading as legible content behind the dialog, not to be frosted out, and a
- * heavy blur on a full-viewport backdrop is the most expensive thing this library could
- * paint. `prefers-reduced-transparency` and `contrast="high"` share one answer: drop the
- * blur, take `fillHigh` (the app goes further back by pigment rather than by defocus).
- * v0 for the eye pass.
+ * The blur is 8px, which OUT-FROSTS the whole material ladder on purpose (2026-08-17): the
+ * judged glass is near-clear at 2.4/4/5.6, because a lens re-states a backdrop where blur
+ * only hides it — and a scrim has no lens and no legibility to defend, it has an app to push
+ * back. §10's old 12px defense floor is cited nowhere here any more; it was retired the day
+ * the lens shipped (2026-08-16), so the ceiling against `thick` is what binds instead.
+ * `prefers-reduced-transparency` and `contrast="high"` share one answer: drop the blur, take
+ * `fillHigh` (the app goes further back by pigment rather than by defocus).
  */
 export const scrim = {
   // THE LAB'S SCRIM (2026-08-17, judged 2026-08-15 in lab2 and never ported): far less
@@ -1321,7 +1423,7 @@ export const floatingDark = { base: 88, alpha: { thin: 46, regular: 62, thick: 7
  * index's padding already gives it.
  *
  * The steps are the shapes real dialogs take: a confirm (1), a short form (2), the default
- * settings pane (3), a wide editor (4). v0 for the eye pass.
+ * settings pane (3), a wide editor (4).
  */
 export const overlayWidth = [360, 440, 560, 720] as const;
 
@@ -1332,7 +1434,7 @@ export const overlayWidth = [360, 440, 560, 720] as const;
  * width and the words wrap to it, which is also what makes the 50/50 action row hold its
  * shape. Strictly narrower than the dialog of the same index at every step (law-tested): an
  * alert interrupts with a question, it does not host work. The viewport's gutter still wins
- * on a narrow window. v0 for the eye pass.
+ * on a narrow window.
  */
 export const alertWidth = [280, 320, 360, 400] as const;
 
@@ -1354,7 +1456,7 @@ export const dialogInset = 6;
  * `--kui-shell-h`), which is deliberately the whole future resize architecture — a later
  * drag writes where the prop writes, and nothing about this shape is revisited when it
  * lands. Density- and pointer-invariant on purpose: a pane is a room, not a control, and
- * how much of the window a nav column takes is not a breathing-air question. v0, inherited
+ * how much of the window a nav column takes is not a breathing-air question. Inherited
  * from v1's judged values.
  */
 export const shellWidth = { sidebar: 288, inspector: 320, bottom: 200 } as const;
@@ -1391,7 +1493,7 @@ export const shellWidth = { sidebar: 288, inspector: 320, bottom: 200 } as const
  * so the spacing is even by construction — pane-to-pane and pane-to-edge — at every pane
  * combination, including the absent ones (v1 put whole margins on each pane and the
  * doubling between neighbours was a spacing nobody chose). Index 3 = 8px at default
- * density. v0.
+ * density.
  */
 export const shellGap = 3;
 
@@ -1468,7 +1570,7 @@ export const shadow = {
  * attempts failed: an inset ring painted inside the transparent border and read as two
  * lines; a raw-alpha border went soft and fell outside the contrast system). The top edge
  * stays lighter because the palette's shadows all fall downward. Dark adds the one thing a
- * drop shadow cannot express — the inset top rim-light a dark fill needs. v0, by eye.
+ * drop shadow cannot express — the inset top rim-light a dark fill needs. By eye.
  */
 export const surfaceChrome = {
   // Row 4, not 5 (2026-08-17, Kushagra, judged against the lab's calm bed): a SOLID card
@@ -1556,7 +1658,7 @@ export const controlLight = {
  * floating button. A key is pressed INTO the surface it sits on, so its base is the relief:
  * a top-face catch plus a whisper of drop, cap-scale, and an alpha edge instead of a solved
  * hairline. Alpha on purpose — the same values read on any bed, which is what let the pane
- * rule keep only its `none` cast override. v0, eye pass pending.
+ * rule keep only its `none` cast override.
  */
 /**
  * The GRIP's cast (2026-08-17, Kushagra: the slider thumb "still reads old") — the two
@@ -1565,7 +1667,7 @@ export const controlLight = {
  * 8px/20px blast plus an inset bottom shade, priced for a 32-44px box. Under a 16-28px
  * cap that blast is swollen ("a smaller caster owes a smaller shadow") and the inset
  * shade draws a line inside a white circle. Cap-scale contact + a short drop, per mode;
- * the kbdRelief's sentence one role over. v0, eye pass pending.
+ * the kbdRelief's sentence one role over.
  */
 /**
  * THE DEAD DIM (2026-08-17, Kushagra: "is it a rule we can use elsewhere? minimal entropy")
@@ -1605,7 +1707,7 @@ export const gripCast = {
  * arrangement). The thumb is a non-tone instrument role over unknown ground, so its fill is
  * the ALPHA ramp (the disabled-dim rule's sibling): it reads on the page, on a dark card's
  * pooled bottom, and on glass, with one number. Size and inset are raw designed px — a
- * scrollbar has no size index (Progress's sentence: no box of its own to ride). v0.
+ * scrollbar has no size index (Progress's sentence: no box of its own to ride).
  */
 export const scrollbar = {
   size: 7,
@@ -1716,7 +1818,7 @@ export const surfaceColor = {
  * **It is an absolute pair, not an alpha**, for the reason measured above — and the collapse
  * does not change that: a relative step still inverts the nesting in dark.
  *
- * v0 for the eye pass, like every colour here.
+ * Judged like every colour here.
  */
 export const groundColor = {
   light: "var(--neutral-2)",
@@ -1816,7 +1918,7 @@ export const dress = {
     /* Fields: edge softened one step with the fill-first flip; the fill went to 2 the same
        day and CAME BACK ("a bit too light") — what read heavy before was the fill plus the
        solved hairline plus the cast, and with those two gone the original well holds
-       (2026-08-17, Kushagra). v0, eye pass pending. */
+       (2026-08-17, Kushagra). */
     field: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 4 },
     mark: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 7 },
   },
@@ -1843,7 +1945,7 @@ export const fontFamily = {
 } as const;
 
 /**
- * §15 — the mono optical correction (2026-08-08, Kushagra; v0 for the eye pass). Mono faces
+ * §15 — the mono optical correction (2026-08-08, Kushagra). Mono faces
  * run wider with a taller x-height, so at the same font-size they read a step large beside
  * the body face (GitHub prose sets 85%, Radix Themes 0.9em). Applied to the mono atoms'
  * FONT-SIZE only, in both size arms (inherited and stated) — the line box stays the step's,
@@ -1854,7 +1956,7 @@ export const fontFamily = {
 export const monoScale = 0.925;
 
 /**
- * §15 — the key cap's own factor (2026-08-08, Kushagra; v0 for the eye pass). Kbd left the
+ * §15 — the key cap's own factor (2026-08-08, Kushagra). Kbd left the
  * mono slot the day after joining it: a mono cell draws symbols like ⌘ compact to fit its
  * fixed advance, which is why the command glyph read too small — and the platform sets
  * shortcuts in the UI sans (macOS menus), as does Radix (0.75–0.8em in a padded cap). So
@@ -1885,6 +1987,6 @@ export const badgeScale = 0.9;
  * the cap floor — so the corner is EM, one designed value per radius level (Radix reaches
  * the same place as `radius-factor * 0.35em`). The raw em text substitutes at USE, so each
  * atom's corner prices against its own font by construction; density never touches it.
- * `full` pills a one-line chip (~half the cap's face). v0 for the eye pass.
+ * `full` pills a one-line chip (~half the cap's face).
  */
 export const radiusAtom = { none: 0, small: 0.2, medium: 0.35, large: 0.45, full: 0.75 } as const;

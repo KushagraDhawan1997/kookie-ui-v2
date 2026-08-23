@@ -27,6 +27,16 @@
   display: flex;
   align-items: stretch;
   border-block-end: var(--border-width) solid var(--color-border);
+  /* THE TABS STAND OFF THE RULE (2026-08-23, Kushagra). The bar keeps the height ladder — it
+     has to, or a tab bar stops standing level with the controls in the row beside it — and the
+     TAB is what shrinks, by this padding on both block edges. Symmetric on purpose: clearing
+     only the line below would leave the label sitting visibly high in its own bar.
+
+     BLOCK ONLY, and that is load-bearing rather than tidy. `--active-tab-left` is measured from
+     the list's BORDER box (`tabRect.left − listRect.left`) while the rule resolves its insets
+     against the PADDING box, and the derived right edge below leans on those two being the same
+     box in the inline axis. Inline padding here would silently shift every rule by its width. */
+  padding-block: var(--tab-inset);
 }
 
 /* A tab reads CONTENT ink, standing DOWN at rest (§15, §21's own sentence one family over).
@@ -48,6 +58,13 @@
    block it silently loses. */
 .kui-tab {
   --kui-ct-label-color: var(--color-text-muted);
+  /* Shorter than the ladder by the bar's own inset (2026-08-23). The skeleton floors every
+     control at `--kui-ct-h`, which is right for a control standing on its own and wrong for one
+     standing on a line: at size 2 the tab measured 32 in a 32 bar, so a hovered tab's fill ran
+     straight into the hairline. `min-block-size` rather than `block-size`, keeping the
+     skeleton's own reason — a hard height clips a 200%-resized label (WCAG 1.4.4) — and the
+     bar's `align-items: stretch` is what actually sizes it, this being the floor underneath. */
+  min-block-size: calc(var(--kui-ct-h) - 2 * var(--tab-inset));
 }
 
 /* The one you are on. `data-active` is Base UI's spelling for the selected tab.
@@ -61,23 +78,14 @@
 }
 
 /* The rule — the bar under the active tab, and the only part of Tabs that moves when the
-   selection changes (§26; §8's motion pass owns whether that movement is animated — nothing
-   here transitions).
+   selection changes (§26, §8).
 
-   Drawn by `left` + `width`, which is what Base UI's own example does and what every other
-   library does. It shipped drawn by BOTH inline edges instead, on the argument that two edges
-   can travel at two speeds and it costs the same two declarations either way. The second half
-   of that was false (audit 2026-08-19, D4): Base UI computes `--active-tab-right` as
-   `scrollWidth − left − width`, in the list's SCROLL coordinate space, while CSS resolves an
-   absolutely positioned box's `right` against its containing block's PADDING box. The two
-   agree only while the bar fits. Measured, four ordinary tabs in a 200px column with a
-   353px scroll width: the rule rendered ZERO pixels wide, degrading a pixel per pixel of
-   overflow on the way there — the ordinary narrow-window path, invisible to the suite because
-   its viewport is pinned wide.
-
-   `left` and `--active-tab-width` are the pair Base UI computes in one space, so they cannot
-   disagree with each other. Two edges is a thing to reach for when a motion actually needs
-   them, and it will need a coordinate fix first (LOG 2026-08-19).
+   Drawn by BOTH inline edges since 2026-08-23, with the second one DERIVED rather than
+   consumed — the coordinate fix the 2026-08-19 revert said this would need first, arriving on
+   the day a motion finally needed two edges. The declaration below carries the derivation and
+   the reason; what matters here is that `left` and `--active-tab-width` are the pair Base UI
+   computes in ONE space, so they cannot disagree with each other, and `--active-tab-right` —
+   which is `scrollWidth − left − width`, in the list's SCROLL space — is never read.
 
    PHYSICAL left, not the logical inset this package otherwise prefers, because the
    measurement it consumes is physical: `--active-tab-left` is `tabRect.left − listRect.left`.
@@ -97,7 +105,23 @@
   position: absolute;
   bottom: calc(-1 * var(--border-width));
   left: var(--active-tab-left, 0);
-  inline-size: var(--active-tab-width, 0);
+  /* THE SECOND EDGE, DERIVED — not Base UI's (§26, §8, 2026-08-23).
+
+     The rule is drawn by both inline edges again, because the motion finally needs them: a
+     highlight that stretches toward its destination needs two edges travelling at two speeds,
+     and one edge plus a width cannot express that (a width has no direction, so both sides of
+     the box would arrive together at whatever clock the width was given).
+
+     What was wrong in the first spelling was never "two edges" — it was WHOSE right edge.
+     `--active-tab-right` is `scrollWidth − left − width`, in the list's SCROLL space, while CSS
+     resolves an absolutely positioned box's `right` against its containing block's PADDING box:
+     the two agree only while the bar fits, and an overflowing bar drew a zero-width rule (audit
+     2026-08-19, D4). This derives the same edge from the pair Base UI computes in ONE space —
+     `left` and `width`, which cannot disagree with each other — against the `100%` that IS the
+     containing block. The list declares no inline padding and no inline border, so its padding
+     box and the box `--active-tab-left` is measured from are the same box, which is the premise
+     this rests on and the reason a law measures an OVERFLOWING bar rather than a fitting one. */
+  right: calc(100% - var(--active-tab-left, 0) - var(--active-tab-width, 0));
   block-size: var(--tab-rule);
   border-radius: var(--tab-rule);
   /* --tone-GLYPH, not --tone-solid (2026-08-23). The rule is 2px of fine detail, so it owes
@@ -109,8 +133,49 @@
   background-color: var(--tone-glyph);
 }
 
+/* THE INK POURS ACROSS AND GATHERS (§8, §26, 2026-08-23, judged in "Clip vs Physics").
+
+   The edge facing the destination takes the shorter clock, so the rule stretches toward the tab
+   you picked and collects itself as the far edge catches up. Both edges ride `calm` — one
+   character, the asymmetry entirely in the durations (config.ts states why).
+
+   DIRECTION is the one fact a stylesheet cannot work out for itself — CSS knows the value a
+   property is animating TO and never the value it left, so "which of these two edges is in
+   front" has no selector — and Base UI already publishes it. `data-activation-direction` is on
+   the indicator, computed from the previously active tab, and its `none` is exactly the first
+   paint: no previous tab, so no direction, so no clock, so the rule appears where it belongs
+   instead of flying in from the bar's start. That value is why this component needs NO
+   JavaScript of its own for any of this, where its sibling one file over has to measure.
+
+   The physical `left`/`right` naming is Base UI's own and it is consistent with the properties:
+   the direction is measured in the same physical space the offsets are, so an RTL bar gets a
+   coherent pair rather than a logical name pointing at a physical measurement. */
+.kui-tab-rule[data-activation-direction="right"] {
+  transition:
+    right var(--motion-travel-lead) var(--motion-spring),
+    left var(--motion-travel-trail) var(--motion-spring);
+}
+
+.kui-tab-rule[data-activation-direction="left"] {
+  transition:
+    left var(--motion-travel-lead) var(--motion-spring),
+    right var(--motion-travel-trail) var(--motion-spring);
+}
+
 .kui-tab-rule[hidden] {
   display: none;
+}
+
+/* Stillness (§8). Spelled the same way as the arrivals above — same elements, same
+   specificity, later in the file — so the stand-down wins by source order rather than by
+   arithmetic anyone has to redo. The shared `.kui-control *` rule in recipes.css cannot reach
+   this one at all: a tab is a control, the rule under it is not inside one — it is a sibling
+   of the tabs, in a list that wears no control class. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-tab-rule[data-activation-direction="right"],
+  .kui-tab-rule[data-activation-direction="left"] {
+    transition: none;
+  }
 }
 
 /* The panel paints nothing (§26) — a region of the page is not a surface, and one that draws

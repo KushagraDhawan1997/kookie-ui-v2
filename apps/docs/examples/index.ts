@@ -33,6 +33,7 @@ import HeadingExample from "./heading";
 import KbdExample from "./kbd";
 import LinkExample from "./link";
 import MenuExample from "./menu";
+import ComposerExample from "./composer";
 import NoticeExample from "./notice";
 import PopoverExample from "./popover";
 import ProgressExample from "./progress";
@@ -72,6 +73,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "kbd": KbdExample,
   "link": LinkExample,
   "menu": MenuExample,
+  "composer": ComposerExample,
   "notice": NoticeExample,
   "popover": PopoverExample,
   "progress": ProgressExample,

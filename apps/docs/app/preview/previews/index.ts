@@ -9,6 +9,7 @@
 import type { ComponentPreview } from "./types";
 import { alertDialogPreview } from "./alert-dialog";
 import { cardPreview } from "./card";
+import { composerPreview } from "./composer";
 import { dialogPreview } from "./dialog";
 import { menuPreview } from "./menu";
 import { selectPreview } from "./select";
@@ -16,6 +17,7 @@ import { selectPreview } from "./select";
 export const COMPONENT_PREVIEWS: readonly ComponentPreview[] = [
   alertDialogPreview,
   cardPreview,
+  composerPreview,
   dialogPreview,
   menuPreview,
   selectPreview,

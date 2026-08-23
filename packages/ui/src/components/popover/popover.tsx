@@ -44,7 +44,7 @@ export type PopoverProps = {
 };
 
 /**
- * A popover (§30) — an anchored panel holding whatever you put in it, with the page still live
+ * A popover (§31) — an anchored panel holding whatever you put in it, with the page still live
  * behind it.
  *
  * It is the floating family's fourth member and the first whose CONTENT the system does not

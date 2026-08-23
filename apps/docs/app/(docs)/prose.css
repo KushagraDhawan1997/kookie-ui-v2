@@ -142,8 +142,8 @@
    argument for not shipping a stock highlight theme. Nothing here needs a dark variant,
    because every token on the right-hand side already has one.
 
-   The assignments themselves are v0 and belong to the eye pass, like every other pigment
-   decision in this system. What is NOT v0 is the shape: a token colour is a family's ink, and
+   The assignments themselves are taste, like every other pigment decision in this system,
+   and they are judged here. What is NOT taste is the shape: a token colour is a family's ink, and
    a family means what §7 says it means. Strings are green because a string is data; a keyword
    is the brand because the language's own vocabulary is the one constant in every sample;
    inserted/deleted/changed are the three status families, so a diff in the docs reads with the

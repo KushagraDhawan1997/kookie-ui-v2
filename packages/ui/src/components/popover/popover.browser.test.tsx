@@ -1,5 +1,5 @@
 /**
- * Popover's laws, mounted (§20, §22, §30).
+ * Popover's laws, mounted (§20, §22, §31).
  *
  * Two comparisons carry most of the file, and they are the two halves of what this component
  * IS: a popover is a CARD in everything about its box (corner, padding), and a FLOATING PANE in
@@ -76,7 +76,7 @@ function surfaceFacts(el: HTMLElement) {
   };
 }
 
-describe("the pane is a CARD that floats (§10, §30)", () => {
+describe("the pane is a CARD that floats (§10, §31)", () => {
   for (const size of SIZES) {
     it(`size ${size}: the corner and the padding are the card's, not the row-hugging panel's`, () => {
       // THE MEASUREMENT THIS COMPONENT'S FIRST HOUR TURNED ON. The concentric corner (§6, §22)
@@ -178,7 +178,7 @@ describe("the pane is a CARD that floats (§10, §30)", () => {
   });
 });
 
-describe("the page stays live — the line between this and a Dialog (§24, §30)", () => {
+describe("the page stays live — the line between this and a Dialog (§24, §31)", () => {
   it("it puts NOTHING between the reader and the page, where a dialog puts a scrim", () => {
     // THE STRUCTURAL DIFFERENCE, MEASURED — and the third measurement tried, which is the part
     // worth recording. Scroll lock was the obvious one and it is not observable here: Base UI
@@ -245,7 +245,7 @@ describe("the page stays live — the line between this and a Dialog (§24, §30
   });
 });
 
-describe("the parts exist because the wiring forces them (§10, §30)", () => {
+describe("the parts exist because the wiring forces them (§10, §31)", () => {
   it("the title NAMES the panel, and the description describes it", () => {
     // §10's anatomy criterion: the system owns an arrangement only where something non-visual
     // forces it. Here it is `aria-labelledby` and `aria-describedby` — a panel with no title has

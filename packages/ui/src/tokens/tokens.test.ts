@@ -826,7 +826,7 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
       // their composition — the ladder may collapse, it may not invert.
       expect(picks.every((p, i) => i === 0 || p >= picks[i - 1]!)).toBe(true);
     }
-    // The direction of each band is its reason for existing (values are v0): reading rises
+    // The direction of each band is its reason for existing (the values are taste): reading rises
     // toward the HIG's 17pt, display falls because a short line cannot hold 56px.
     expect(typeBands.handheld[2]!).toBeGreaterThan(3);
     expect(typeBands.narrow[8]!).toBeLessThan(9);
@@ -1135,7 +1135,7 @@ describe("the switch's width ladder rides the band, and nothing is designed twic
     // The track at size n is mark(n + 1) in the same world. Under 1.5 the thumb has almost
     // no travel and the control reads as a checkbox; past 2 it reads as a slider. The
     // designed cells sit at 1.67-1.71 (peers: iOS 1.65, Material 1.63, Radix 1.75) but the
-    // LAW pins the band, not the taste — the numbers are v0, judged in the preview.
+    // LAW pins the band, not the taste — the numbers are judged in the preview.
     const markIn = (scope: string, i: number) =>
       value(block(scope).match(new RegExp(`--mark-${i}:\\s*([^;]+);`))?.[1]);
     for (const world of ['[data-pointer="fine"]', '[data-pointer="coarse"]'] as const) {

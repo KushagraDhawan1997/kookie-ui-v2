@@ -537,6 +537,72 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ComposerInput": {
+    "element": "textarea",
+    "props": []
+  },
+  "Composer": {
+    "element": "form",
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says content passes behind the composer, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region. A composer over a scrolling conversation is the case selectivity exists for (§10)."
+      },
+      {
+        "name": "onFiles",
+        "type": "(files: File[]) => void",
+        "optional": true,
+        "doc": "Files dropped on the composer or pasted into its input, handed over raw. The system owns the two events that land on its own elements; the app owns the files and everything after (§30). There is no attach button here for the same reason."
+      },
+      {
+        "name": "onSubmit",
+        "type": "(event: React.FormEvent<HTMLFormElement>) => void",
+        "optional": true,
+        "doc": "Fired when the person sends. The event is already `preventDefault`ed."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The index. It prices what the composer OWNS — the pane's padding, its corner, and the step its own text is set at — and stops there. It does NOT reach the row. A Button, a Select or a field you put under the text keeps its own index, and that is Dialog's answer rather than an omission (§24 prices the box alone; §25 prices everything because an alert owns its content). A composer owns its pane and its text; whatever you compose into the row is yours, so it is priced where it is written."
+      }
+    ]
+  },
+  "ComposerRow": {
+    "element": "div",
+    "props": []
+  },
+  "ComposerSend": {
+    "element": null,
+    "props": [
+      {
+        "name": "icons",
+        "type": "Partial<Record<ComposerStatus, React.ReactNode>>",
+        "optional": true,
+        "doc": "The glyph in each state. The system ships no icon set (§8), so these are the app's."
+      },
+      {
+        "name": "labels",
+        "type": "Partial<Record<ComposerStatus, string>>",
+        "optional": true,
+        "doc": "The accessible name in each state, for an app that is not in English."
+      },
+      {
+        "name": "onStop",
+        "type": "() => void",
+        "optional": true,
+        "doc": "Called instead of submitting while `status` is `streaming`."
+      },
+      {
+        "name": "status",
+        "type": "ComposerStatus",
+        "optional": true,
+        "doc": "What the request is doing. Defaults to `ready`."
+      }
+    ]
+  },
   "DialogClose": {
     "element": "button",
     "props": [

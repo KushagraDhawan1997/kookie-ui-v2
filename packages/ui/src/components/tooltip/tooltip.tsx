@@ -56,7 +56,7 @@ export type TooltipProps = {
 };
 
 /**
- * A tooltip (§31) — the name of a control, shown to a pointer that rests on it.
+ * A tooltip (§32) — the name of a control, shown to a pointer that rests on it.
  *
  * **It may only restate what the control already announces**, and that is the rule the whole
  * component hangs on rather than a nicety. A tooltip has no keyboard route, no touch route and
@@ -157,7 +157,7 @@ export function TooltipContent({
             data-size="1"
             /**
              * HIDDEN FROM ASSISTIVE TECHNOLOGY, and this is the restatement rule enforced rather
-             * than merely written down (§31).
+             * than merely written down (§32).
              *
              * Base UI wires nothing here — measured, the trigger carries no `aria-describedby`
              * and the panel no `role="tooltip"` — so the choice was ours to make either way. A

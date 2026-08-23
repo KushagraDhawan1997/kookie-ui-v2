@@ -27,6 +27,7 @@ import type { Size, SlotName } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { useControlSize } from "../../system/control-size.ts";
+import { glyphStroke } from "../../tokens/config.ts";
 
 /** Gap between the trigger's edge and the panel — the menu's designed constant, restated
     because the second member self-keys (§23). */
@@ -205,7 +206,7 @@ export function SelectTrigger({
           <path
             d="M4.5 6 L7.2 8.7 Q8 9.5 8.8 8.7 L11.5 6"
             stroke="currentColor"
-            strokeWidth="1.5"
+            strokeWidth={glyphStroke}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -373,7 +374,7 @@ export function SelectItem({ children, className, ...props }: SelectItemProps) {
           <path
             d="M3.5 8.5 6.5 11.5 12.5 4.5"
             stroke="currentColor"
-            strokeWidth="1.5"
+            strokeWidth={glyphStroke}
             strokeLinecap="round"
             strokeLinejoin="round"
           />

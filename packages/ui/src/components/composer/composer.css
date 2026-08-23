@@ -1,0 +1,148 @@
+/* Composer (§30, 2026-08-23) — the input half of a conversation.
+
+   Almost everything a composer LOOKS like is the surface layer's: the seal, the corner and its
+   squircle, the padding, the clip, the edge and the cast all arrive from `.kui-surface`,
+   because a box that holds full-size controls is a Card (§10). What is written here is the
+   three things a Card has never had to answer — a column, a ring that watches one child, and a
+   text box with no dress of its own. */
+
+.kui-composer {
+  /* A column, and the gap IS the pane's own padding (2026-08-23, Kushagra: the text and the row
+     "need to have some gap, it doesnt"). It was `--layout-space-3` — half the inset at every
+     index — so the text sat twice as far from the wall as from the row, which reads as no gap
+     at all rather than as a small one. Judged against 8, 12 and 16 in the playground.
+
+     One number rather than two: the air inside a composer and the air at its edge are the same
+     air, so a second ladder would only be a thing to keep in step. `--kui-sf-p` is published
+     per index on this very element by the surface size join, so the gap answers the index by
+     construction and this file states no distance of its own. */
+  display: flex;
+  flex-direction: column;
+  gap: var(--kui-sf-p);
+  /* A surface hugs its content; a composer spans the room it is given, because it is the width
+     of the conversation it sits under. */
+  inline-size: 100%;
+  /* A flex item's floor is its content, and one unbreakable word in the text would otherwise
+     push the pane past its container — Notice's own line. */
+  min-inline-size: 0;
+}
+
+/* ── The ring (§30) ───────────────────────────────────────────────────────────────────────────
+   Every interactive-surface rule in surfaces.css sits on `:where(button, a, label:has(...))`,
+   and that selector means PRESSABLE: it carries the pointer cursor, the 1px rise toward the
+   pointer and the press sink along with the ring. A composer must have none of those. You type
+   in a composer, you do not press it.
+
+   So that selector is doing two jobs — *this surface is pressable* and *this surface can hold
+   focus* — and the composer is the first thing to want the second without the first. It is NOT
+   split here: the house rule is that the second member self-keys and the third promotes (LOG
+   2026-08-05, TextArea), so this file states its own ring and the split waits for a second
+   focusable, unpressable surface.
+
+   `:focus-within` and not `:focus-visible`, because a composer's focus is a MODE — the caret is
+   in it whether you clicked or tabbed, which is the field family's own sentence (§11).
+
+   Narrowed to the input with `:has()`, which is the load-bearing half. A composer holds real
+   buttons, and a plain `:focus-within` would light the whole pane when you press Send. That is
+   TextField's 2026-08-05 repair — a hosted control lit two rings and the field claimed a focus
+   it did not have — restated one layer up. */
+.kui-composer:has(> .kui-composer-input:focus, .kui-composer-input:focus) {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── The text ────────────────────────────────────────────────────────────────────────────────
+   A bare <textarea>. It wears no fill, no edge and no ring, because the pane around it is all
+   three — a TextArea here would draw a second box inside the first. */
+.kui-composer-input {
+  /* The pane owns the frame, so the control owns nothing. */
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  /* The ink is the pane's. The STEP is not stated here: the element wears `kui-type` and the
+     shared ramp sets the size, the line and the tracking from the one step map (§15, §29), so
+     the index reaches the text without this file holding a second copy of the mapping. */
+  color: var(--color-text);
+  font-family: var(--font-body);
+  /* Growth, and this one declaration is the whole mechanism. v1 spends `getComputedStyle`,
+     `scrollHeight`, a `requestAnimationFrame` and a `ResizeObserver` per keystroke on it,
+     against the no-JS-at-interaction-time rule. Baseline 2026-06-16. */
+  field-sizing: content;
+  /* The ceiling, and the fallback in one. Where `field-sizing` is understood this caps the
+     growth; where it is not, `rows` sets the opening height and this makes the box scroll
+     instead of running down the page. Either way the same two numbers bound it. */
+  /* One line, and eight — stated in the CONTENT's own unit, so the box is the same number of
+     lines at every index instead of a length pinned to one step. `1lh` is the element's own
+     resolved line box; Kbd uses it one family over for the same reason. */
+  min-block-size: 1lh;
+  max-block-size: 8lh;
+  /* No `overflow-y` here, and the absence was MEASURED rather than assumed (2026-08-23): the
+     HTML rendering spec already gives a <textarea> `overflow: auto`, so a declaration would
+     restate the default — one fact, two homes. The sabotage pass is what found it: deleting
+     the declaration changed nothing, so the law pinning it could not fail. What makes the
+     overflow reachable is the ceiling above, and the law reads THAT. */
+  /* This one is not a restatement — the UA default is `both`. A person dragging the pane's
+     corner would otherwise resize the textarea inside it: the frame is the pane's, and a
+     control within it may not restate its own geometry. TextArea's `resize` is a stylesheet
+     fact one family over for the same reason. */
+  resize: none;
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.kui-composer-input::placeholder {
+  /* The muted role, which is what a placeholder has meant since the ink ladder was solved
+     (2026-08-10) — faint is the exception rung, and a placeholder is not an exception. */
+  color: var(--color-text-muted);
+}
+
+/* ── A dead composer greys its words (2026-08-23, Kushagra) ──────────────────────────────────
+   Measured first, and the measurement is why this is here rather than in the shared layer.
+   A disabled TextArea greys its text (0.2697 -> 0.7625) and keeps its fill; a disabled
+   composer changed NOTHING (0.1202 both), so the words you typed stayed full black in a box
+   that had stopped taking keystrokes. Worse than a panel that does not dim, and invisible to
+   every one of the component's laws because none of them read a disabled input.
+
+   The cause is the 2026-08-22 Card finding one component over: the shared remap rewrites the
+   TONE roles, and this input reads the tone-LESS foreground roles (§11) — `--color-text` and
+   `--color-text-muted` — which no tone rewrite can reach. The input is deliberately not a
+   `.kui-control` (§30: a bare textarea, or the pane draws two boxes), so it opted out of the
+   family that carries the remap and lost this with it.
+
+   What it does NOT do is dim the pane, and that is TextArea's own answer rather than a gap:
+   a disabled TextArea's background is byte-identical to a live one. The library's rule for a
+   text box that is off is grey the words and leave the box, so a composer says it the same
+   way. A shared-layer change was proposed and refuted by that measurement — it would have
+   split `.kui-surface:where(button, a, label:has(.kui-control))` to dim a panel that the
+   system, asked properly, does not dim.
+
+   `:disabled` and not an attribute stamp: the input IS the native form element, so whichever
+   route turns it off — the prop, a `<fieldset disabled>` — it lands here as the platform
+   attribute (TextArea's own third-spelling argument, 2026-08-05). */
+.kui-composer-input:disabled {
+  color: var(--disabled-ink);
+}
+
+/* The placeholder stands down WITH it. A textarea shows one or the other, never both, so this
+   is not the ladder-inversion argument the Card fix makes for three rungs at once — it is that
+   an empty dead composer is still dead, and a live-weight placeholder is the one thing left on
+   the pane still claiming otherwise. Needs its own rule: `::placeholder` above is (0,1,1) and
+   would beat a bare inherit. */
+.kui-composer-input:disabled::placeholder {
+  color: var(--disabled-ink);
+}
+
+/* ── The row ─────────────────────────────────────────────────────────────────────────────────
+   The system states the alignment, the split and the gap; the caller states which controls
+   belong on which side, because that is what those controls MEAN. Notice's row is the
+   precedent — it owns the same three facts and leaves nobody writing a `justify`. */
+.kui-composer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--layout-space-3);
+  min-inline-size: 0;
+}

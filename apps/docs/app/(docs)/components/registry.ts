@@ -613,6 +613,55 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "composer",
+    name: "Composer",
+    family: "Surface",
+    spec: "§31",
+    parts: [
+      { part: "ComposerInput", blurb: "The text a person types. A plain textarea with no box of its own, because the composer around it is already the box — put our TextArea here and you would see two. It grows with its content in CSS and stops at a ceiling, and the composer's ring watches this element, so pressing a button inside the composer does not light the whole pane" },
+      { part: "ComposerRow", blurb: "The row of controls under the text. It states the alignment, the split and the spacing so no call site writes them, and stops there: which controls sit left and which sit right is what those controls mean, so group them yourself with a Flex or leave one flat list and let it space evenly" },
+      { part: "ComposerSend", blurb: "One button with four meanings, read off status: send, in flight, stop, retry. Streaming is the one that earns it, because a person watching a reply arrive needs a way to end it. Each state carries its own accessible name, and stopping is an action on the request rather than another submit" },
+    ],
+    blurb:
+      "The box a person types a message into. It is the input half of a conversation and not the conversation: a form holding a text area that grows, a row of controls under it, and one button that sends. It is a surface rather than a control because of what it holds — a text field holds shrunken controls in its slots, and a composer holds full-size buttons at their own size, which is a box containing controls. It works for an AI chat, a support inbox, a team thread or a comment field, because all four are the same shape.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sizes the whole thing as one unit: the pane's padding, its corner, the step its own text is set at, and every control you put in the row. A composer is one box, so a size-4 composer holding size-2 buttons was an index that did not mean much. Any control that states its own size keeps it — write `size` on it and the composer leaves it alone" },
+      { name: "backdrop", values: "boolean", note: "says a conversation scrolls behind the composer, so the theme's material can show. The pane becomes the glass and everything inside it resolves solid, so the send button never paints a second layer" },
+      { name: "status", values: "ready | submitted | streaming | error", note: "on ComposerSend. One button with four meanings: send, in flight, stop, retry. Streaming is the one that matters, because a person watching a reply arrive needs a way to end it" },
+      { name: "emphasis", values: "loud | medium | quiet", note: "on ComposerSend, which rests LOUD where every other button in the library rests medium. A composer has exactly one send, this component places it, and everything else in the row is yours — so the one thing the system puts there is the one thing allowed to be the focal point. Re-rank it if your row says otherwise" },
+    ],
+    refusals: [
+      {
+        name: "the conversation, and every part of it",
+        why: "A message, a bubble, a branch, a reasoning block and a tool call each encode a data model, and this system has none. The libraries that ship them are chat runtimes with a user interface attached. Compose a thread from ScrollArea, Card and Text, or bring a runtime.",
+      },
+      {
+        name: "the scroller",
+        why: "Staying pinned to the bottom, not jumping while a reply streams, and keeping your place when older messages load above are six thousand lines of behaviour in the one library that has done it properly. That is a package, not a component.",
+      },
+      {
+        name: "an attach button",
+        why: "The button follows whoever owns the files, and the app owns them. It is also a Button with an icon, and the system ships no icon set, so ours would be a Button with a hole in it. Files that land on our own elements are different: drop and paste both reach onFiles.",
+      },
+      {
+        name: "owning the files",
+        why: "No File objects, no preview URLs, no validation, no upload. An attachment tile takes its state as a prop you set and draws it. A composer that minted preview URLs would have to destroy them, and it would destroy the one it just handed you.",
+      },
+      {
+        name: "a row of slots",
+        why: "ComposerRow states the alignment, the split and the rhythm, and stops. Which controls sit left and which sit right is what those controls mean, and that is yours. The previous version shipped five parts for this and every one of them was a layout.",
+      },
+      {
+        name: "a compact or collapsed mode",
+        why: "Deferred rather than judged. Collapsing only means something when there is something to fold away, and this ships no attachment tray and no queue. When it lands it will follow what you have typed, never whether you clicked into it, because a bar that closes behind your back can strand itself shut.",
+      },
+      {
+        name: "submitOnEnter",
+        why: "Enter sends and Shift+Enter breaks the line, with no prop. That is what being a real form buys, and it is what every messaging surface a person has used already does. An Enter that closes a Japanese, Chinese or Korean composition never sends.",
+      },
+    ],
+  },
+  {
     slug: "notice",
     name: "Notice",
     family: "Surface",
@@ -659,7 +708,7 @@ export const ENTRIES: Entry[] = [
     slug: "popover",
     name: "Popover",
     family: "Surface",
-    spec: "§20, §22, §30",
+    spec: "§20, §22, §31",
     blurb:
       "An anchored panel holding whatever you put in it, with the page still live behind it. It is the floating family's first member whose content the system does not design: a menu holds rows and a select holds options, and a popover holds a form, a summary or a filter panel. The pane is a card in everything about its box and a floating pane in everything about its coverage. The part names follow shadcn/ui's popover (MIT), with credit. The behaviour is Base UI's Popover.",
     axes: [
@@ -981,7 +1030,7 @@ export const ENTRIES: Entry[] = [
     slug: "tooltip",
     name: "Tooltip",
     family: "Surface",
-    spec: "§11, §20, §31",
+    spec: "§11, §20, §32",
     blurb:
       "The name of a control, shown to a pointer that rests on it. It may only restate what the control already announces — a tooltip has no keyboard route, no touch route and no reading order, so anything that appears only here is lost to everybody else. It is inverted: the panel paints itself in the ink of the mode it is in and writes on itself in that mode's surface colour, so it is dark on a light page and light on a dark one, at the highest contrast the palette has. The part names follow shadcn/ui's tooltip (MIT), with credit. The behaviour is Base UI's Tooltip.",
     axes: [],

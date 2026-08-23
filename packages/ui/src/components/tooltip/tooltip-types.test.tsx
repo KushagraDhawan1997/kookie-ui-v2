@@ -16,7 +16,7 @@ const refusals = [
   // @ts-expect-error — children is a string; a chip in a tooltip is a Popover
   <TooltipContent><Kbd>⌘Z</Kbd></TooltipContent>,
 
-  // There is no size axis (§31): the only index a tooltip could ride is its trigger's, which it
+  // There is no size axis (§32): the only index a tooltip could ride is its trigger's, which it
   // cannot see and which would make one label two sizes.
   // @ts-expect-error — size is not an axis here
   <Tooltip size="2" />,

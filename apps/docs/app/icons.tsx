@@ -22,6 +22,7 @@
  * declaration, but relying on that is a mechanism nobody wrote down.
  */
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { iconStroke } from "@kookie-ui/react";
 import {
   Alert02Icon,
   ArrowTurnBackwardIcon,
@@ -32,19 +33,23 @@ import {
   Copy01Icon,
   Delete02Icon,
   EyeIcon,
+  FlashIcon,
   LayerIcon,
   ChartLineData01Icon,
   Folder01Icon,
   Home01Icon,
   Mail01Icon,
+  Mic01Icon,
   MoreHorizontalIcon,
   Notification02Icon,
   PlusSignIcon,
+  ReloadIcon,
   Search01Icon,
   Settings02Icon,
   SidebarLeftIcon,
   SidebarRightIcon,
   SquareLock02Icon,
+  StopIcon,
   Tick02Icon,
   UserMultiple02Icon,
 } from "@hugeicons/core-free-icons";
@@ -53,14 +58,17 @@ import {
  * One shape for every glyph below: decorative by default (the control that owns it carries the
  * accessible name), stroke 1.5, and no size — the slot's box is the system's.
  *
- * 1.5 is stated once here rather than per call site (Kushagra, 2026-08-10). It is not
- * absolute: `absoluteStrokeWidth` would rescale the stroke against the `size` prop, and this
- * file never passes one — the box comes from CSS, so there is nothing for it to scale against
- * and the flag would silently do nothing.
+ * The stroke is the PACKAGE's (2026-08-23). It was 1.5 stated here, which is the same literal
+ * the package's own chevrons carry — and they did not match, because those are drawn on a 16
+ * viewBox and Hugeicons on a 24, so one number painted 1.5px there and 1.0px here. `iconStroke`
+ * is the number for the 24 grid, and the package converts it for its own. It is not absolute:
+ * `absoluteStrokeWidth` would rescale the stroke against the `size` prop, and this file never
+ * passes one — the box comes from CSS, so there is nothing for it to scale against and the
+ * flag would silently do nothing.
  */
 const glyph = (icon: IconSvgElement) =>
   function Glyph() {
-    return <HugeiconsIcon icon={icon} strokeWidth={1.5} aria-hidden />;
+    return <HugeiconsIcon icon={icon} strokeWidth={iconStroke} aria-hidden />;
   };
 
 export const SearchIcon = glyph(Search01Icon);
@@ -89,4 +97,13 @@ export const PanelLeftIcon = glyph(SidebarLeftIcon);
 export const PanelRightIcon = glyph(SidebarRightIcon);
 export const CopyIcon = glyph(Copy01Icon);
 export const TrashIcon = glyph(Delete02Icon);
+/* The composer's four (2026-08-23). The send button is one control with four meanings, so the
+   three it can turn into are named for the meaning rather than the drawing: a filled square is
+   the universal stop, and a reload is a retry. `MicIcon` is dictation, which the composer does
+   not own — the app draws that button, which is exactly why these live here. */
+export const BoltIcon = glyph(FlashIcon);
+export const MicIcon = glyph(Mic01Icon);
+export const StopSquareIcon = glyph(StopIcon);
+export const RetryIcon = glyph(ReloadIcon);
+
 export const WarnIcon = glyph(Alert02Icon);

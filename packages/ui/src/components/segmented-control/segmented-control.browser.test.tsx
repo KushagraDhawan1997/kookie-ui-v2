@@ -19,10 +19,12 @@ import {
   SIZES,
   colorOn,
   computed,
+  inMotion,
   forEachCell,
   mounted,
   render,
   tokenOn,
+  until,
   within,
 } from "../../test/browser.tsx";
 import { Theme } from "../../theme/theme.tsx";
@@ -45,6 +47,12 @@ function control(props: Record<string, unknown> = {}, theme = {}) {
 const segments = (root: Element) => [...root.querySelectorAll<HTMLElement>(".kui-segment")];
 const chosen = (root: Element) => within(root, ".kui-segment[data-checked]");
 const other = (root: Element) => within(root, ".kui-segment:not([data-checked])");
+/* THE GRIP is its own element since 2026-08-23 — one thumb that travels, rather than a fill
+   switching from one segment's box to the next (§8, §26). Every guarantee below is the one it
+   always was; what moved is which element carries it, so the laws are re-keyed rather than
+   rewritten, and the ones about the chosen segment's INK still read the segment, because the
+   ink did not move. */
+const grip = (root: Element) => within(root, ".kui-segment-thumb");
 
 describe("the track is the control, and it stands level (§4, §26)", () => {
   it("its box is --control-height-N — a segmented control matches the Button beside it", () => {
@@ -114,17 +122,19 @@ describe("the track is the control, and it stands level (§4, §26)", () => {
 
 describe("the track is a WELL, and the segment is a grip (§11, §19, §26)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: the channel paints --color-track and the chosen segment --color-thumb`, () => {
+    it(`${appearance}: the channel paints --color-track and the grip --color-thumb`, () => {
       const root = control({}, { appearance });
       expect(computed(root, "background-color")).toBe(colorOn(root, "var(--color-track)"));
-      expect(computed(chosen(root), "background-color")).toBe(
-        colorOn(root, "var(--color-thumb)"),
-      );
+      expect(computed(grip(root), "background-color")).toBe(colorOn(root, "var(--color-thumb)"));
       // And the two are different, or the grip is invisible in its own channel — the
       // switch's 2026-08-08 disabled defect, guarded against at rest.
-      expect(computed(chosen(root), "background-color")).not.toBe(
+      expect(computed(grip(root), "background-color")).not.toBe(
         computed(root, "background-color"),
       );
+      // The chosen SEGMENT paints nothing of its own any more (2026-08-23): the grip is one
+      // travelling object, and a segment that also painted it would blink out from under the
+      // thumb the moment it left. This is the half a re-key can silently lose.
+      expect(computed(chosen(root), "background-color")).toBe("rgba(0, 0, 0, 0)");
     });
 
     it(`${appearance}: an unchosen segment paints nothing at all`, () => {
@@ -183,9 +193,9 @@ describe("the track is a WELL, and the segment is a grip (§11, §19, §26)", ()
 
   it("a grip does not fill either — the chosen segment holds one value across all three", () => {
     const root = control();
-    const rest = computed(chosen(root), "--kui-ct-fill-src");
-    expect(computed(chosen(root), "--kui-ct-fill-src-hover")).toBe(rest);
-    expect(computed(chosen(root), "--kui-ct-fill-src-active")).toBe(rest);
+    const rest = computed(grip(root), "--kui-ct-fill-src");
+    expect(computed(grip(root), "--kui-ct-fill-src-hover")).toBe(rest);
+    expect(computed(grip(root), "--kui-ct-fill-src-active")).toBe(rest);
   });
 
   // The "OUTSIDE the look axis" negative law the instruments carried left with the look axis
@@ -199,18 +209,19 @@ describe("the grip casts always, and stands down when dead (§5, §6, §26)", ()
       // does not sit above its rail stops reading as a grip. Asserted in the FLAT world too,
       // which is the half that says "always".
       const root = control({}, { depth });
-      expect(computed(chosen(root), "box-shadow")).not.toBe("none");
+      expect(computed(grip(root), "box-shadow")).not.toBe("none");
+      expect(computed(chosen(root), "box-shadow")).toBe("none");
       expect(computed(other(root), "box-shadow")).toBe("none");
     });
   }
 
   it("dead, the cast goes and the grip stays findable — the switch's 2026-08-08 correction", () => {
     const root = control({ disabled: true });
-    expect(computed(chosen(root), "box-shadow")).toBe("none");
+    expect(computed(grip(root), "box-shadow")).toBe("none");
     // It dims rather than melting into its own channel, which is the recorded failure one
     // control over: which segment is chosen must survive the state that says you cannot
     // change it.
-    expect(computed(chosen(root), "background-color")).not.toBe(
+    expect(computed(grip(root), "background-color")).not.toBe(
       computed(root, "background-color"),
     );
   });
@@ -392,5 +403,248 @@ describe("one glass per stack, structurally (§10, §26)", () => {
     );
     expect(blurred).toHaveLength(0);
     expect(computed(track, "backdrop-filter")).not.toBe("none");
+  });
+});
+
+/**
+ * §8, §26 — THE GRIP TRAVELS (2026-08-23, judged in the "Clip vs Physics" bench).
+ *
+ * One thumb gliding between segments, drawn by its two inline edges, with the edge facing the
+ * destination on the shorter clock so it stretches across and gathers itself. Unlike Tabs —
+ * which gets its direction and its measurement free from Base UI — everything here is measured
+ * by the component, so these laws read the measurement's OUTPUT rather than any declaration
+ * that describes it.
+ *
+ * The flight is SEIZED, never raced: pausing the running transitions and setting `currentTime`
+ * puts the box at a chosen point, which keeps these on CI (test/frames.test.ts records what the
+ * frame-watching exclusion costs and why it is not reached for here).
+ */
+describe("the grip travels between segments (§8, §26)", () => {
+  function seize(el: Element, at: number) {
+    const running = el.getAnimations();
+    for (const a of running) {
+      a.pause();
+      a.currentTime = at;
+    }
+    return running;
+  }
+
+  function three(props: Record<string, unknown> = {}) {
+    const root = mounted(
+      <SegmentedControl defaultValue="a" {...props}>
+        <SegmentedItem value="a">One</SegmentedItem>
+        <SegmentedItem value="b">Two</SegmentedItem>
+        <SegmentedItem value="c">Three much longer</SegmentedItem>
+      </SegmentedControl>,
+    );
+    return {
+      root,
+      thumb: within(root, ".kui-segment-thumb"),
+      segs: [...root.querySelectorAll(".kui-segment")] as HTMLElement[],
+    };
+  }
+
+  for (const size of SIZES) {
+    it(`size ${size}: the thumb sits exactly on the chosen segment`, () => {
+      /* The measurement's whole job, read as two boxes rather than as the two lengths it wrote
+         — a law that read `--kui-seg-left` back would be agreeing with the arithmetic that
+         produced it, which is the shape the 2026-08-03 audit exists to forbid.
+    
+         THE TRACK IS SQUEEZED, and that is the law rather than a detail of it. Left to size
+         itself, `flex: 1 1 0` gives every segment an identical share — measured 425.3 / 425.3 /
+         425.3 with labels of three different lengths — so a thumb that simply divided the track
+         into thirds would satisfy this at every index, and the fixture could not tell a
+         measurement from a division (the degenerate-fixture rule, 2026-08-20). Constrained
+         below its natural width the `min-width: auto` floor binds on the longest label and the
+         segments diverge: measured 62.0 / 62.0 / 72.0 in a 200px box, where an index would have
+         answered 65.3. That divergence is why this component measures at all, so it is the
+         input the law is built on. The squeeze is proportional because the natural width grows
+         with the size index; 0.55 is measured to bind at every one of them. */
+      const natural = three({ size }).root.getBoundingClientRect().width;
+      const { thumb, segs } = three({ size, style: { inlineSize: `${natural * 0.55}px` } });
+      const seat = segs[0]!.getBoundingClientRect();
+      const grip = thumb.getBoundingClientRect();
+      expect(grip.left).toBeCloseTo(seat.left, 1);
+      expect(grip.right).toBeCloseTo(seat.right, 1);
+      expect(grip.width).toBeCloseTo(seat.width, 1);
+      // CALIBRATION: the squeeze really did make them differ, or this is the equal-share
+      // fixture again under a longer name.
+      expect(
+        segs[2]!.getBoundingClientRect().width,
+        "the segments are equal — the fixture cannot tell a measurement from a division",
+      ).toBeGreaterThan(seat.width + 4);
+    });
+  }
+
+  for (const [dir, lead, trail, target] of [
+    ["forward", "right", "left", 2],
+    ["back", "left", "right", 0],
+  ] as const) {
+    it(`${dir}: the edge facing the destination takes the shorter clock`, async () => {
+      inMotion();
+      const { thumb, segs } = three(dir === "back" ? { defaultValue: "c" } : {});
+      const want = dir === "forward" ? "right" : "left";
+      await userEvent.click(segs[target]!);
+      // Waited for, never assumed: the stamp lands when the MutationObserver sees Base UI move
+      // `data-checked`, which a resolved gesture does not promise (test/settling.test.ts).
+      await until(() => thumb.getAttribute("data-activation-direction") === want);
+      const props = computed(thumb, "transition-property").split(", ");
+      const clocks = computed(thumb, "transition-duration").split(", ");
+      const at = (name: string) => clocks[props.indexOf(name)];
+      expect(at(lead), `${dir}: the leading edge is not on the short clock`).toBe("0.32s");
+      expect(at(trail), `${dir}: the trailing edge is not on the long clock`).toBe("0.48s");
+      expect(at(lead)).not.toBe(at(trail));
+    });
+  }
+
+  it("STRETCHES on the way — mid-flight it is wider than either end", async () => {
+    inMotion();
+    const { thumb, segs } = three();
+    const from = thumb.getBoundingClientRect().width;
+    await userEvent.click(segs[2]!);
+    const running = seize(thumb, 160);
+    expect(running.length, "nothing is animating — the flight never started").toBeGreaterThan(0);
+    const midFlight = thumb.getBoundingClientRect().width;
+    const to = segs[2]!.getBoundingClientRect().width;
+    expect(midFlight, "it did not stretch past where it came from").toBeGreaterThan(from + 8);
+    expect(midFlight, "it did not stretch past where it is going").toBeGreaterThan(to + 8);
+  });
+
+  it("is PLACED on first paint — no previous seat, so no flight", () => {
+    inMotion();
+    const { thumb } = three();
+    expect(thumb.getAttribute("data-activation-direction")).toBe("none");
+    // The clock, not the property list: nothing declares `transition-property` in this state,
+    // so it computes to its initial `all` — which reads like a transition and is not one.
+    expect(computed(thumb, "transition-duration")).toBe("0s");
+  });
+
+  it("a RESIZE re-places it without flying — the box moved, the choice did not", async () => {
+    // The guard whose absence was measured: `ResizeObserver` fires the moment you observe, and
+    // an unguarded callback rewrote the direction to `none` a frame after every selection —
+    // removing the transition and teleporting the thumb. This reads the other half of that
+    // guard: a REAL resize must still re-place, and must not fly while doing it.
+    inMotion();
+    const root = mounted(
+      <div style={{ inlineSize: "420px" }}>
+        <SegmentedControl defaultValue="b">
+          <SegmentedItem value="a">One</SegmentedItem>
+          <SegmentedItem value="b">Two</SegmentedItem>
+        </SegmentedControl>
+      </div>,
+    ) as HTMLElement;
+    const thumb = within(root, ".kui-segment-thumb");
+    const seat = () => within(root, ".kui-segment[data-checked]").getBoundingClientRect();
+    const before = thumb.getBoundingClientRect().width;
+    root.style.inlineSize = "260px";
+    await until(() => thumb.getBoundingClientRect().width !== before);
+    expect(thumb.getBoundingClientRect().width).toBeCloseTo(seat().width, 1);
+    expect(thumb.getBoundingClientRect().left).toBeCloseTo(seat().left, 1);
+    expect(
+      thumb.getAttribute("data-activation-direction"),
+      "a resize flew the grip — nobody changed the choice",
+    ).toBe("none");
+  });
+
+  it("the flight SURVIVES the observers watching the box", async () => {
+    /* THE LAW THE FIRST SABOTAGE PASS DEMANDED, and it is the one that catches the defect that
+       was actually measured. `ResizeObserver` fires the moment you observe, so an unguarded
+       callback re-places the thumb one frame after every selection change and writes `none` —
+       which removes the transition and teleports the grip (measured 56.9 → 68.4px in a single
+       frame, flat across six samples, with the recipe itself entirely correct).
+    
+       Every other law here reads the flight SYNCHRONOUSLY after the click, before that callback
+       can land, so all five passed against the broken build. This one waits two frames, which
+       is past where any observer callback lands and nowhere near the 480ms the flight lasts —
+       a state with a long life, not a transient being raced, which is why it stays on CI. */
+    inMotion();
+    const { thumb, segs } = three();
+    await userEvent.click(segs[2]!);
+    await until(() => thumb.getAttribute("data-activation-direction") === "right");
+    // …and it is STILL that two frames later, which is past where any observer callback lands
+    // and nowhere near the 480ms the flight lasts.
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    expect(
+      thumb.getAttribute("data-activation-direction"),
+      "something re-placed the grip mid-flight and took its clock away",
+    ).toBe("right");
+    expect(
+      thumb.getAnimations().length,
+      "the flight was cancelled before it could run",
+    ).toBeGreaterThan(0);
+  });
+
+  it("the chosen segment paints NOTHING under a pointer — the grip is the only paint", async () => {
+    /* Kushagra, 2026-08-23, watching a real click: the hover fill "is on top, so as I click on a
+       segment, and it animates, the hover continues to stay, which doesn't wobble btw, making
+       it look very weird." Exactly right — the segments paint above the thumb by design (that
+       is what puts the label over the grip), so a chosen segment that still answered hover left
+       a static wash sitting precisely where the grip was travelling to.
+    
+       The cause was a re-key that dropped half of what it moved. The chosen segment used to
+       hold all three fill sources at `--color-thumb`, which carried BOTH the grip's colour and
+       the rule that a grip does not fill; moving the colour to the thumb deleted the triple
+       rather than re-pointing it, and the segment fell back to the quiet rung's hover step.
+    
+       Read under a REAL pointer and after the click, which is the state the report is about —
+       the resting law two describes up cannot see this, and neither can one that reads the
+       declared sources on a segment nobody is pointing at. */
+    const root = control();
+    const other0 = other(root);
+    await userEvent.hover(other0);
+    await until(() => computed(other0, "background-color") !== "rgba(0, 0, 0, 0)");
+    // CALIBRATION: an UNCHOSEN segment does answer the pointer, so "paints nothing" below is a
+    // fact about being chosen and not about the harness failing to hover.
+    expect(computed(other0, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
+    await userEvent.click(other0);
+    await until(() => other0.hasAttribute("data-checked"));
+    expect(
+      computed(other0, "background-color"),
+      "the chosen segment is still painting its hover on top of the grip",
+    ).toBe("rgba(0, 0, 0, 0)");
+    // All three sources, the field's rule: declaring only rest falls back mid-interaction.
+    for (const src of ["--kui-ct-fill-src", "--kui-ct-fill-src-hover", "--kui-ct-fill-src-active"]) {
+      expect(computed(other0, src).trim(), `${src} is not stood down`).toBe("transparent");
+    }
+  });
+
+  it("the chosen LABEL is on top of the grip, not under it", () => {
+    /* Shipped white on white for one commit (Kushagra, 2026-08-23, from the playground: the
+       chosen segment's word was simply gone). The thumb renders first in the markup and the
+       comment beside it claimed document order would therefore paint it underneath — which is
+       not how painting works: within one stacking context CSS paints in-flow non-positioned
+       content in steps 4-7 and positioned descendants in step 8, so an absolutely positioned
+       thumb covers every static sibling no matter where it sits in the DOM.
+    
+       Read with `elementFromPoint` at the label's own centre rather than by comparing colours,
+       because the colours were never wrong: `--color-thumb-label` computed correctly the whole
+       time and a paint was sitting on top of it. The instrument has to be the one that can see
+       the defect that actually happened. */
+    for (const appearance of APPEARANCES) {
+      const root = control({}, { appearance });
+      const seg = chosen(root);
+      const thumb = within(root, ".kui-segment-thumb");
+      const box = seg.getBoundingClientRect();
+      const onTop = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      expect(
+        thumb.contains(onTop) || onTop === thumb,
+        `${appearance}: the grip is painted over its own label`,
+      ).toBe(false);
+      expect(seg.contains(onTop) || onTop === seg, `${appearance}: the label is not on top`).toBe(
+        true,
+      );
+    }
+  });
+
+  it("no value, no grip — it is hidden rather than parked somewhere stale", () => {
+    const root = mounted(
+      <SegmentedControl>
+        <SegmentedItem value="a">One</SegmentedItem>
+        <SegmentedItem value="b">Two</SegmentedItem>
+      </SegmentedControl>,
+    );
+    const thumb = within(root, ".kui-segment-thumb");
+    expect((thumb as HTMLElement).hidden).toBe(true);
+    expect(computed(thumb, "display")).toBe("none");
   });
 });

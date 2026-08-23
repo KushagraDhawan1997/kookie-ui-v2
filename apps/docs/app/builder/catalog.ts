@@ -1012,6 +1012,22 @@ export const EXCLUDED: { name: string; why: string }[] = [
     why: "Configuration for a REGION rather than a thing that goes in one: it states the delay every tooltip inside it waits and groups them so a row of buttons reads as one row. It belongs once near the root of an app, which is outside anything this canvas composes. Every Tooltip placed here works without it, on the library's own timing.",
   },
   {
+    name: "Composer",
+    why: "A composer is a form, and its whole point is the handler it submits to — onSubmit, onFiles, and a status the app drives while a reply streams. The builder exports JSX and cannot express a handler, so a placeable Composer would export a form that submits nowhere, holding a send button that says it is sending when nothing is. Its parts are excluded with it: an input, a row and a send button mean nothing outside the form that wires them.",
+  },
+  {
+    name: "ComposerInput",
+    why: "A part of the Composer, which the builder excludes. It is the one element the composer's focus ring watches and the one the form submits from, so outside a Composer it is a bare textarea with no box, no ring and nothing to send to.",
+  },
+  {
+    name: "ComposerRow",
+    why: "A part of the Composer, which the builder excludes. It states a composer's own rhythm — the alignment, the split and the spacing under the text — so on a canvas with no composer it is a Flex that has stopped saying why.",
+  },
+  {
+    name: "ComposerSend",
+    why: "A part of the Composer, which the builder excludes. Its four states are read off a status the app drives, and stopping a reply is an action on a request the builder cannot express, so a placed one would be a button permanently claiming to be ready.",
+  },
+  {
     name: "Shell",
     why: "The builder composes what goes INSIDE an app frame; the Shell is that frame. It claims the whole window, owns landmarks the canvas already provides, and its panes place themselves by grid area rather than by a drop — so a Shell on this canvas would be an app inside an app. Its parts are excluded for the same reason: none of them means anything outside the frame that arranges them.",
   },

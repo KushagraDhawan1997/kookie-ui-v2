@@ -14,6 +14,17 @@ export { Kbd, type KbdProps } from "./components/kbd/kbd.tsx";
 export { Link, type LinkProps } from "./components/link/link.tsx";
 export { Menu, MenuTrigger, MenuContent, MenuItem, MenuGroup, MenuLabel, MenuCheckboxItem, MenuRadioGroup, MenuRadioItem, MenuSub, MenuSubTrigger, MenuSubContent, type MenuProps, type MenuTriggerProps, type MenuContentProps, type MenuItemProps, type MenuGroupProps, type MenuLabelProps, type MenuCheckboxItemProps, type MenuRadioGroupProps, type MenuRadioItemProps, type MenuSubProps, type MenuSubTriggerProps, type MenuSubContentProps } from "./components/menu/menu.tsx";
 export { Select, SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectLabel, type SelectProps, type SelectTriggerProps, type SelectContentProps, type SelectItemProps, type SelectGroupProps, type SelectLabelProps } from "./components/select/select.tsx";
+export {
+  Composer,
+  ComposerInput,
+  ComposerRow,
+  ComposerSend,
+  type ComposerProps,
+  type ComposerInputProps,
+  type ComposerRowProps,
+  type ComposerSendProps,
+  type ComposerStatus,
+} from "./components/composer/composer.tsx";
 export { Notice, type NoticeProps } from "./components/notice/notice.tsx";
 export { Popover, PopoverTrigger, PopoverContent, PopoverTitle, PopoverDescription, PopoverClose, type PopoverProps, type PopoverTriggerProps, type PopoverContentProps, type PopoverTitleProps, type PopoverDescriptionProps, type PopoverCloseProps } from "./components/popover/popover.tsx";
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
@@ -79,5 +90,11 @@ export type { Responsive } from "./system/resolve.ts";
 // The tier TABLE beside its type (2026-08-19, the componentAxes sentence for §2's axis):
 // the builder's tier chips and its canvas width readout derive names and boundaries from
 // this one home, instead of restating 30/48/64rem where they would go stale.
+// The stroke every glyph is drawn at (2026-08-23). §8 ships no icon set, so the glyphs beside
+// ours belong to whatever set the app installed — and a chevron drawn lighter than the icon in
+// the button next to it is the one mismatch a consumer cannot fix from the outside. The system
+// states the weight it draws at; the app passes it to its own set. `iconGrid` names the
+// viewBox that number is for, so a set drawn on a different grid can convert.
+export { iconStroke, iconGrid } from "./tokens/config.ts";
 export { tiers, tierNames } from "./system/props.ts";
 export type { Tier } from "./system/props.ts";

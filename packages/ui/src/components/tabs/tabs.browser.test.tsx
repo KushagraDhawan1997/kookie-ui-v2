@@ -18,6 +18,7 @@ import {
   SIZES,
   colorOn,
   computed,
+  inMotion,
   mounted,
   render,
   tokenOn,
@@ -25,6 +26,8 @@ import {
   within,
 } from "../../test/browser.tsx";
 import { Theme } from "../../theme/theme.tsx";
+import { Button } from "../button/button.tsx";
+import { SegmentedControl, SegmentedItem } from "../segmented-control/segmented-control.tsx";
 import { Separator } from "../separator/separator.tsx";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "./tabs.tsx";
 
@@ -50,12 +53,23 @@ const ruleOf = (root: Element) => within(root, ".kui-tab-rule");
 
 describe("a tab is a control on the height ladder (§4, §26)", () => {
   for (const pointer of POINTERS) {
-    it(`${pointer}: every tab stands at --control-height-N`, () => {
+    it(`${pointer}: every tab stands at --control-height-N, LESS the bar's inset`, () => {
+      /* The ladder claim, re-keyed 2026-08-23 rather than dropped. It read `--control-height-N`
+         exactly, which was the shipped behaviour and the defect: a tab at the full cell height
+         ends on the hairline, so a hovered tab's fill ran into the line (Kushagra, from the
+         playground — "28px instead of 32"). What the ladder actually governs is the BAR, which
+         still stands level with the controls in its row; the tab is inset inside it.
+    
+         Kept per pointer world and per size, which is the half worth keeping: the inset is one
+         constant and the cells are not, so this is where a coarse cell forgetting the ladder
+         would still show. The bar's own half of the claim is asserted against a mounted Button
+         further down this file, where it belongs. */
       for (const size of SIZES) {
         const root = bar(size, { pointer });
-        const expected = px(tokenOn(root, `--control-height-${size}`));
+        const cell = px(tokenOn(root, `--control-height-${size}`));
+        const inset = px(tokenOn(root, "--tab-inset"));
         for (const tab of tabsOf(root)) {
-          expect(px(computed(tab, "min-height")), `${pointer}/${size}`).toBe(expected);
+          expect(px(computed(tab, "min-height")), `${pointer}/${size}`).toBe(cell - 2 * inset);
         }
       }
     });
@@ -337,5 +351,232 @@ describe("what Tabs deliberately is not (§10, §26)", () => {
     panel.focus();
     expect(computed(panel, "outline-width")).toBe(tokenOn(root, "--focus-ring-width"));
     expect(computed(panel, "outline-style")).toBe("solid");
+  });
+});
+
+/**
+ * §8, §26 — THE INK POURS ACROSS AND GATHERS (2026-08-23, judged in the "Clip vs Physics"
+ * bench). The rule is drawn by two edges again, and the edge facing the destination takes the
+ * shorter clock.
+ *
+ * The stretch is read by SEIZING the transitions rather than by racing them: `getAnimations()`
+ * hands back the running CSSTransitions, pausing them stops the clock the law would otherwise
+ * have to sample against, and setting `currentTime` puts the box at a chosen point in the
+ * flight. That keeps these on CI, where a law that polled for a mid-flight width could not run
+ * (test/frames.test.ts records why the exclusion exists and what it costs).
+ */
+describe("the rule travels as two edges at two speeds (§8, §26)", () => {
+  /** The rule's own running transitions, stopped and moved to a chosen point in the flight. */
+  function seize(rule: Element, at: number) {
+    const running = rule.getAnimations();
+    for (const a of running) {
+      a.pause();
+      a.currentTime = at;
+    }
+    return running;
+  }
+
+  function bar3(dir: "forward" | "back") {
+    const root = mounted(
+      <Tabs defaultValue={dir === "forward" ? "a" : "c"}>
+        <TabsList>
+          <TabsTab value="a">One</TabsTab>
+          <TabsTab value="b">Two</TabsTab>
+          <TabsTab value="c">Three long</TabsTab>
+        </TabsList>
+        <TabsPanel value="a">x</TabsPanel>
+        <TabsPanel value="b">x</TabsPanel>
+        <TabsPanel value="c">x</TabsPanel>
+      </Tabs>,
+    );
+    return {
+      rule: within(root, ".kui-tab-rule"),
+      tabs: [...root.querySelectorAll(".kui-tab")] as HTMLElement[],
+    };
+  }
+
+  it("spans the active tab EXACTLY on an OVERFLOWING bar — the 2026-08-19 defect, closed", () => {
+    // THE LAW THIS WHOLE SPELLING TURNS ON. The rule shipped drawn by two edges once before and
+    // was reverted because the second edge was Base UI's `--active-tab-right`, which is
+    // `scrollWidth − left − width` in the list's SCROLL space while CSS resolves `right` against
+    // the containing block's PADDING box: measured then, an overflowing bar drew a ZERO-width
+    // rule. The second edge is DERIVED now, from the pair Base UI computes in one space.
+    //
+    // The fixture is the whole law: on a bar that FITS, the two spaces coincide and a broken
+    // spelling passes. This one overflows by 60px, which is the input where right and wrong
+    // give different answers (the degenerate-fixture rule, 2026-08-20).
+    const root = mounted(
+      <div style={{ inlineSize: "200px" }}>
+        <Tabs defaultValue="a">
+          <TabsList>
+            <TabsTab value="a">Overview here</TabsTab>
+            <TabsTab value="b">Projects too</TabsTab>
+            <TabsTab value="c">Settings also</TabsTab>
+          </TabsList>
+          <TabsPanel value="a">x</TabsPanel>
+        </Tabs>
+      </div>,
+    );
+    const list = within(root, ".kui-tabs-list");
+    const rule = within(root, ".kui-tab-rule");
+    const tab = within(root, ".kui-tab[data-active]");
+    // CALIBRATION: the premise is that this bar really does overflow. Without it the law is
+    // the fitting-bar law under a longer name, and that one cannot fail.
+    expect(list.scrollWidth, "the fixture does not overflow").toBeGreaterThan(
+      list.clientWidth + 40,
+    );
+    const seat = tab.getBoundingClientRect();
+    const drawn = rule.getBoundingClientRect();
+    expect(drawn.width).toBeCloseTo(seat.width, 0);
+    expect(drawn.left).toBeCloseTo(seat.left, 0);
+  });
+
+  for (const [dir, lead, trail] of [
+    ["forward", "right", "left"],
+    ["back", "left", "right"],
+  ] as const) {
+    it(`${dir}: the edge facing the destination takes the shorter clock`, async () => {
+      inMotion();
+      const { rule, tabs } = bar3(dir);
+      const want = dir === "forward" ? "right" : "left";
+      await userEvent.click(tabs[dir === "forward" ? 2 : 0]!);
+      // Waited for, never assumed: a driver gesture resolving is not React having committed
+      // the render that moves this stamp (test/settling.test.ts enforces the rule).
+      await until(() => rule.getAttribute("data-activation-direction") === want);
+      const style = computed(rule, "transition-property").split(", ");
+      const clocks = computed(rule, "transition-duration").split(", ");
+      const at = (name: string) => clocks[style.indexOf(name)];
+      expect(at(lead), `${dir}: the leading edge is not on the short clock`).toBe("0.32s");
+      expect(at(trail), `${dir}: the trailing edge is not on the long clock`).toBe("0.48s");
+      // …and they are actually DIFFERENT, which is the whole claim: two edges on one clock is
+      // a photograph being slid, which is the motion this replaced.
+      expect(at(lead)).not.toBe(at(trail));
+    });
+  }
+
+  it("STRETCHES on the way — mid-flight it is wider than either end", async () => {
+    // The two clocks are declarations; this is what they produce. Seized at 160ms, where the
+    // leading edge is halfway through its 320 and the trailing has done a third of its 480, so
+    // the box must be longer than the tab it left AND longer than the one it is going to.
+    inMotion();
+    const { rule, tabs } = bar3("forward");
+    const from = rule.getBoundingClientRect().width;
+    await userEvent.click(tabs[2]!);
+    const running = seize(rule, 160);
+    expect(running.length, "nothing is animating — the flight never started").toBeGreaterThan(0);
+    const midFlight = rule.getBoundingClientRect().width;
+    const to = tabs[2]!.getBoundingClientRect().width;
+    expect(midFlight, "it did not stretch past where it came from").toBeGreaterThan(from + 8);
+    expect(midFlight, "it did not stretch past where it is going").toBeGreaterThan(to + 8);
+  });
+
+  it("is PLACED, not flown, before anything has been chosen a second time", () => {
+    // Base UI's `none` — no previous tab — is what makes the first paint land where it belongs
+    // instead of flying in from the bar's start, and it is why this component needs no JS of
+    // its own. A law rather than a comment because the whole mechanism rests on that value
+    // matching neither transition rule.
+    inMotion();
+    const { rule } = bar3("forward");
+    expect(rule.getAttribute("data-activation-direction")).toBe("none");
+    // Read as the CLOCK, not as the property list: nothing declares `transition-property` here,
+    // so it computes to its initial `all`, which reads like a transition and is not one. `0s`
+    // is the thing that means "placed".
+    expect(computed(rule, "transition-duration")).toBe("0s");
+  });
+});
+
+/**
+ * §26 — A TAB STANDS OFF ITS RULE (2026-08-23, Kushagra, from the playground: the tabs "have
+ * the same height as controls, and so they touch the tab lines… so 28px instead of 32").
+ */
+describe("a tab stands off the rule it sits on (§4, §26)", () => {
+  for (const size of SIZES) {
+    it(`size ${size}: the BAR keeps the ladder and the TAB is shorter by the inset`, () => {
+      // Two claims that have to hold together, which is why they are one law: a tab bar must
+      // still stand level with the controls in its row (the bar's job), and the tab inside it
+      // must not run into the hairline (the tab's job). Fixing either alone breaks the other —
+      // shrinking the bar drops it below the Button beside it, and leaving the tab at full
+      // height is the defect.
+      const root = mounted(
+        <div>
+          <Tabs defaultValue="a">
+            <TabsList size={size}>
+              <TabsTab value="a">Overview</TabsTab>
+              <TabsTab value="b">Projects</TabsTab>
+            </TabsList>
+            <TabsPanel value="a">first</TabsPanel>
+          </Tabs>
+          <Button size={size}>Button</Button>
+        </div>,
+      );
+      const list = within(root, ".kui-tabs-list");
+      const tab = within(root, ".kui-tab");
+      const button = within(root, "button.kui-control:not(.kui-tab)");
+      const inset = px(tokenOn(root, "--tab-inset"));
+      const border = px(tokenOn(root, "--border-width"));
+
+      // The bar stands level with a mounted Button, hairline included — asserted against the
+      // rendered control rather than against the token, which is the point of the rule.
+      expect(list.getBoundingClientRect().height).toBeCloseTo(
+        button.getBoundingClientRect().height + border,
+        0,
+      );
+      // And the tab is exactly two insets shorter than the box it stands in.
+      expect(tab.getBoundingClientRect().height).toBeCloseTo(
+        button.getBoundingClientRect().height - 2 * inset,
+        0,
+      );
+      // CALIBRATION: the inset is not zero, or both assertions above are the old behaviour
+      // wearing new arithmetic.
+      expect(inset, "the inset is zero — this law cannot fail").toBeGreaterThan(0);
+    });
+  }
+
+  it("its box clears the hairline, so a hovered tab never runs into the line", () => {
+    // The defect stated as geometry rather than as a number: the gap between the bottom of the
+    // tab's own box and the top of the rule under it. This is what a hover fill is bounded by.
+    const root = mounted(
+      <Tabs defaultValue="a">
+        <TabsList>
+          <TabsTab value="a">Overview</TabsTab>
+          <TabsTab value="b">Projects</TabsTab>
+        </TabsList>
+        <TabsPanel value="a">first</TabsPanel>
+      </Tabs>,
+    );
+    const list = within(root, ".kui-tabs-list");
+    const tab = within(root, ".kui-tab");
+    const gap =
+      list.getBoundingClientRect().bottom -
+      px(computed(list, "border-block-end-width")) -
+      tab.getBoundingClientRect().bottom;
+    expect(gap).toBeCloseTo(px(tokenOn(root, "--tab-inset")), 0);
+    expect(gap, "the tab's box ends on the hairline").toBeGreaterThan(0);
+  });
+
+  it("stands off by the same amount a SEGMENT does — the precedent it was asked for", () => {
+    // Kushagra named the segmented control as the precedent, so the law reads the two mounted
+    // boxes against each other rather than restating 2 in a third place. They agree by
+    // arithmetic today and could drift by config tomorrow; this is where that would surface.
+    for (const size of SIZES) {
+      const root = mounted(
+        <div>
+          <Tabs defaultValue="a">
+            <TabsList size={size}>
+              <TabsTab value="a">Overview</TabsTab>
+            </TabsList>
+            <TabsPanel value="a">first</TabsPanel>
+          </Tabs>
+          <SegmentedControl size={size} defaultValue="a">
+            <SegmentedItem value="a">List</SegmentedItem>
+            <SegmentedItem value="b">Grid</SegmentedItem>
+          </SegmentedControl>
+        </div>,
+      );
+      expect(
+        within(root, ".kui-tab").getBoundingClientRect().height,
+        `size ${size}: a tab and a segment do not stand at the same height`,
+      ).toBeCloseTo(within(root, ".kui-segment").getBoundingClientRect().height, 0);
+    }
   });
 });

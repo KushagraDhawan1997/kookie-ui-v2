@@ -57,6 +57,137 @@ export type SegmentedItemProps = Omit<
 };
 
 /**
+ * THE TRAVELING THUMB's measurement (§8, §26, 2026-08-23) — the "measuring hook" the component
+ * shipped without and named in advance.
+ *
+ * The absence of an indicator was the design for as long as no motion wanted one: Base UI's
+ * Tabs measures its active tab for you and `RadioGroup` does not, so a gliding thumb here meant
+ * writing a measurement whose only consumer would have been a motion nobody had designed — the
+ * curtain's lesson (deleted 2026-08-17). That premise is spent. Kushagra designed the motion in
+ * the "Clip vs Physics" bench and asked for it, so the measurement now has the consumer it was
+ * waiting for, and this is the door the file's own comment left open rather than a reversal.
+ *
+ * **It is JS, and it is the FOURTH bounded exception to §8's "no JS at interaction time"** —
+ * beside the flight's measurement, the lens, and Tabs' own re-measure. Bounded the same way:
+ * it runs when the SELECTION changes and when the box RESIZES, never on hover, press, focus or
+ * scroll, and it writes two lengths rather than driving a frame loop. The sibling gets this
+ * free because Base UI already does it; nothing about a radio group offers to.
+ *
+ * **Arithmetic over an index was the alternative and it is wrong, measured.** `flex: 1 1 0`
+ * gives every segment an identical share while the track sizes itself — three labels of three
+ * different lengths measured 425.3 / 425.3 / 425.3 — so `index × width / count` would look
+ * right in every ordinary specimen. Constrain the track below its natural width and the
+ * `min-width: auto` floor binds on the longest label: the same three measured 62.0 / 62.0 /
+ * 72.0 in a 200px box, where the arithmetic answers 65.3 and puts the grip ten pixels off its
+ * seat. A squeezed track is a toolbar on a narrow window, which is not an exotic case.
+ *
+ * The two lengths are read off `getBoundingClientRect` and corrected by `clientLeft`/
+ * `clientWidth` rather than taken from `offsetLeft`/`offsetWidth`, because an absolutely
+ * positioned child resolves its insets against the track's PADDING box and that is exactly what
+ * those two properties describe. `offsetLeft` agrees today only because the track's border is
+ * stood down to zero — reading it would be one silent dependency on a declaration made for an
+ * unrelated reason (audit 2026-08-19, D2, is that dependency going the other way).
+ *
+ * Direction wears Base UI's own vocabulary, `data-activation-direction`, so both traveling
+ * highlights in this package are keyed and read identically; `none` means "place it, do not
+ * fly it" and covers the first paint, a resize and a selection that did not move.
+ */
+function useTravelingThumb(track: React.RefObject<HTMLDivElement | null>) {
+  const previousLeft = React.useRef<number | null>(null);
+  React.useLayoutEffect(() => {
+    const el = track.current;
+    if (!el) return;
+    const thumb = el.querySelector<HTMLElement>(":scope > .kui-segment-thumb");
+    if (!thumb) return;
+
+    const place = (flying: boolean) => {
+      const chosen = el.querySelector<HTMLElement>(".kui-segment[data-checked]");
+      if (!chosen) {
+        // Nothing chosen: no thumb. Hidden rather than left at a stale position, and the
+        // remembered edge is cleared so the next choice PLACES instead of flying out of a box
+        // that has not been on screen.
+        thumb.hidden = true;
+        previousLeft.current = null;
+        return;
+      }
+      // Both edges measured in FRACTIONAL space, against the track's padding box, which is what
+      // an absolutely positioned child resolves its insets against. `clientWidth`/`clientLeft`
+      // describe the same box and were the first spelling — but they are integers, so the right
+      // edge inherited a rounding error the left edge did not and the thumb measured 0.5px
+      // narrower than its seat on the trailing side alone. Border widths off the computed style
+      // keep the whole chain fractional; they are zero today (the track stands its border down)
+      // and reading them costs nothing to be right if that ever changes.
+      const box = el.getBoundingClientRect();
+      const seat = chosen.getBoundingClientRect();
+      const edges = getComputedStyle(el);
+      const left = seat.left - (box.left + parseFloat(edges.borderLeftWidth));
+      const right = box.right - parseFloat(edges.borderRightWidth) - seat.right;
+      const from = previousLeft.current;
+      thumb.hidden = false;
+      thumb.dataset.activationDirection =
+        !flying || from === null || from === left
+          ? "none"
+          : left > from
+            ? "right"
+            : "left";
+      thumb.style.setProperty("--kui-seg-left", `${left}px`);
+      thumb.style.setProperty("--kui-seg-right", `${right}px`);
+      previousLeft.current = left;
+    };
+
+    place(false);
+
+    /* THE SELECTION IS WATCHED, NOT RE-RENDERED INTO (measured, 2026-08-23).
+     *
+     * The first spelling was a layout effect with no dependency array, on the reasoning that it
+     * then runs after every render and a selection change is a render. It is not one HERE: the
+     * value lives inside Base UI's `RadioGroup`, so an uncontrolled group re-renders its radios
+     * and never this component, and the effect fired exactly once in a component's life.
+     * Measured, the thumb held 56.9px across six frames while "Three" was genuinely checked.
+     *
+     * `data-checked` is the stamp Base UI moves, so that is what is watched — the same shape
+     * the floating layer uses for `data-open`, and the only one that is correct for controlled
+     * groups, uncontrolled groups and a value changed from outside alike. A MutationObserver's
+     * callback runs at the microtask checkpoint, before paint, so the placement lands on the
+     * same frame the stamp did and nothing flashes at the old seat. */
+    const selection = new MutationObserver(() => place(true));
+    selection.observe(el, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-checked"],
+    });
+
+    /* A resize re-places without flying: the box moved, the choice did not, and a thumb that
+       glided to a new width because a window was dragged would be reporting a change nobody
+       made.
+    
+       IT CARRIES NO GUARD, and that is a decision with a scar behind it. The first spelling of
+       this hook re-ran on every render, so it re-observed on every render, and `ResizeObserver`
+       fires the moment you observe — the free callback landed one frame after every selection
+       change and rewrote the direction to `none`, which removes the transition. Measured, the
+       thumb teleported: 56.9 → 68.4px in a single frame, flat across six samples, with the
+       whole recipe correct behind it. A width comparison was added to tell the free callback
+       from a real resize, and it worked.
+    
+       Then the effect stopped being keyed on renders at all (the MutationObserver above), which
+       fixed the same defect at its cause — and the guard became something no law could
+       distinguish from its absence. Three sabotage passes tried: deleting it changed nothing in
+       38 laws, and the one case that would have separated them (an observer firing without a
+       width change) could not be constructed, because a padding change does not move the
+       content box the observer watches. So it is gone rather than kept as a comfort. Every case
+       that remains is one where re-placing is simply correct: at mount it writes what is
+       already there, and on a real resize the seat genuinely moved. */
+    const size = new ResizeObserver(() => place(false));
+    size.observe(el);
+
+    return () => {
+      selection.disconnect();
+      size.disconnect();
+    };
+  }, [track]);
+}
+
+/**
  * A segmented control (§26) — one choice among a few, shown all at once.
  *
  * **It is a RADIO GROUP, and that is the load-bearing decision.** Base UI offers two
@@ -93,7 +224,19 @@ export function SegmentedControl({
   // veil's alpha, no second backdrop-filter, no second lens. One glass per stack, structurally
   // — nobody types anything, and a segmented control cannot be built wrong here.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
-  const lensRef = useLensRef<HTMLDivElement>(material, ref);
+  // Our own handle on the track, composed with the caller's rather than competing with it:
+  // `useLensRef` forwards exactly one ref, so the thumb's measurement has to ride through it.
+  const track = React.useRef<HTMLDivElement>(null);
+  const compose = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      track.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.RefObject<HTMLDivElement | null>).current = node;
+    },
+    [ref],
+  );
+  const lensRef = useLensRef<HTMLDivElement>(material, compose);
+  useTravelingThumb(track);
   return (
     <BaseRadioGroup
       ref={lensRef}
@@ -120,6 +263,19 @@ export function SegmentedControl({
       data-tone="neutral"
       {...props}
     >
+      {/* THE THUMB — one object gliding between homes (§26, §8). Rendered FIRST, but that is
+          NOT what puts it under the labels: an absolutely positioned box paints after every
+          static sibling whatever the document order says, and the first spelling of this
+          shipped a chosen label painted white on the white grip (measured with
+          `elementFromPoint`, 2026-08-23). What orders the two is `position: relative` on the
+          segment — see segmented-control.css. Rendering it first is still right, because with
+          both positioned the tie-break IS document order.
+
+          `hidden` until the first measurement, so a group with no value paints no thumb and a
+          server-rendered one does not flash at the track's start before the layout effect
+          runs. Not exported and not a part: it is structure, the same call TabsList makes
+          about its indicator. */}
+      <span className="kui-segment-thumb" aria-hidden="true" hidden />
       <GlassScope material={material}>{children}</GlassScope>
     </BaseRadioGroup>
   );

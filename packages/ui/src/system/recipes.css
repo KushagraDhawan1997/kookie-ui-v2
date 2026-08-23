@@ -628,7 +628,7 @@
    rung is also what every OS menu does with its highlighted row, so the conformance surface
    is where the platform's own answer belongs. The label follows the fill to --tone-contrast,
    because a fill that changes underneath ink that does not is the half-fix that ships.
-   Values are v0, judged in the playground under contrast="high". */
+   Judged in the playground under contrast="high". */
 [data-contrast="high"] .kui-row[data-highlighted]:not([data-disabled]),
 [data-contrast="high"] .kui-row[data-popup-open]:not([data-disabled]) {
   background-color: var(--tone-solid);

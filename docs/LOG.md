@@ -96,7 +96,7 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ## 2026-08-23 Tooltip, and an identity the defaults table had described for three weeks
 
-**What.** `Tooltip` ships (§31), which closes §20's enumeration — Menu, Select, Popover, Dialog and Tooltip were the five floating components the portal groundwork named, and all five now exist. +117 bytes gzipped.
+**What.** `Tooltip` ships (§32), which closes §20's enumeration — Menu, Select, Popover, Dialog and Tooltip were the five floating components the portal groundwork named, and all five now exist. +117 bytes gzipped.
 
 **The forcing case was in our own app**: 26 icon-only buttons in apps/docs whose only name is an `aria-label`, so a sighted pointer user gets nothing at all.
 
@@ -122,7 +122,7 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ## 2026-08-23 Popover, and the class that was carrying two different claims
 
-**What.** `Popover` ships (§30) — the floating family's fourth member — and `kui-floating` splits: the concentric corner and the squircle bump move onto a new `kui-floating-rows`, which Menu and Select wear and a popover does not. +14 bytes gzipped for the component and the split together.
+**What.** `Popover` ships (§31) — the floating family's fourth member — and `kui-floating` splits: the concentric corner and the squircle bump move onto a new `kui-floating-rows`, which Menu and Select wear and a popover does not. +14 bytes gzipped for the component and the split together.
 
 **Why it was worth building fourth.** Every floating member so far held content the system designed — a menu holds rows, a select holds options, an alert holds a fixed question — and a popover holds a form or a summary, whose shape only the call site knows. That is the case that separates two claims `kui-floating` had been making at once: WHERE a pane sits (it covers the app, so it casts, it expresses the material, it flies out of its trigger) and WHAT a pane holds (rows, so its corner is the rows' corner plus the panel's padding). Nothing had ever needed one without the other.
 
@@ -177,6 +177,334 @@ So the claim sits on the instance: `Row` stamps `data-hover-lit` when nobody els
 **Rejected.** A fill ladder (above). A `count` prop with an overflow rule — formatting a number is the app's job and where "99+" cuts off changes per surface. A position, which is what Apple's badge actually has and what §3 forbids a component owning; a count over a button is a `Box` doing what a `Box` does, and the playground shows it that way. An empty badge or a bare dot — colour carrying meaning alone is WCAG 1.4.1, the same argument that keeps a `Link` underlined. A capsule corner as a fixed identity: §6's four exceptions are role semantics (a square radio reads as a checkbox), and a square badge reads as a badge, so it rides the axis like the rest of its family. And `Tag`, which §11 had carried in one row with Badge since the defaults table was written: a tag is a badge you can remove, removal is focus and a key and an accessible name, and that is a control rather than a prop on an inert atom. It waits for a forcing case like everything else does.
 
 ---
+
+## 2026-08-23 A size index that moved the padding four times, the text once, and nothing else
+
+**What.** `Composer` supplies `ControlSizeContext`, `Button` reads it, and the composer's own text takes the plain type ladder instead of `OWNED_BODY_STEP`. An explicit `size` on any control still wins.
+
+**Why it came up, and why the preview page is the reason it was found.** Kushagra, looking at the Sizes section with all four indexes stacked: *"why is size index not increasing text and buttons and send button etc"*. Measured:
+
+```
+size 1: pad 12  text 14  button 32
+size 2: pad 16  text 14  button 32
+size 3: pad 24  text 16  button 32
+size 4: pad 32  text 16  button 32
+```
+
+The padding moves four times, the text moves ONCE, and no control moves at all. Three of the four steps did nothing but pad the box.
+
+**Both halves had a cause, and neither was an accident.** The text rode `OWNED_BODY_STEP`, which is `{1:2, 2:2, 3:3, 4:3}` — two values across four sizes, on purpose, because that map prices a message the SYSTEM writes to you (a dialog's description, an alert's question, a notice's line) and one sentence of explanation should not grow much. A composer holds a message YOU write, and it is a text input, so it takes the ladder every other text input takes: the identity map, 12/14/16/18. The map keeps its three real consumers and its single-home guarantee.
+
+The controls did not move because the composer deliberately did not supply `ControlSizeContext` — its own comment said so, and gave the reason: that context "would resize a Select somebody put in the row while the Button beside it kept its own index — three behaviours in one component, and nobody chose the third." That was true, and it was a fact about **Button**, not about the composer.
+
+**So the change is Button's.** `control-size.ts` excluded Button by name and argued that "a button beside that control is a sibling in the form's layout and takes the form's index, not the field's." That argument is right about a button OUTSIDE the field — and that is precisely the button React context cannot reach. What the exclusion actually reached was a button INSIDE a unit, where the rule inverts. The file already set the bar for widening the reader list ("a decision with a call site behind it, not a convenience"); the composer is that call site.
+
+**Checked before it was written rather than after:** a hosted button in a TextField's slot is unaffected either way, because `--kui-ct-hosted-height` is a registered length declared on the SLOT, so CSS sizes it from its container whatever index it carries. And the full suite confirms it — Field's own laws pass untouched, and exactly one law failed: the one written the same morning to hold the previous answer.
+
+**This is the second reversal of the same decision in one day, and the shape is worth keeping.** The first shipped three behaviours across four elements; the repair made them consistent by stopping the index at the row, on Dialog's ownership argument (§24 against §25). Both versions were green. Both were caught by a person reading the ladder AS a ladder, on a page built for exactly that, because **1 against 4 differs under every spelling that has been tried here** — a two-index law cannot tell 12/14/16/18 from 14/14/16/16, and no law read more than two. The text law now walks all four and asserts every step is its own; its sabotage fails printing `14/14/16/16`.
+
+**Rejected: leaving it and documenting it.** "A size-4 composer is a size-2 composer with more padding" is a defensible sentence and a useless axis.
+
+**Four laws, three sabotage passes.** The row follows at both extremes (both a Button and a field, because a law reading one cannot tell "the row follows" from "half of it does"); a pinned `size="2"` control keeps it at both extremes, which is the bound that makes a size context safe rather than an override; the text ladder has four distinct, increasing steps; and the context does not escape the composer's own subtree — that one holds by React's construction today, and exists to catch a future spelling where it does not.
+
+---
+
+## 2026-08-23 A disabled composer kept your words at full black, and the spec said it could not
+
+**What.** `composer.css` greys the input's value and its placeholder when the input is disabled. The pane is deliberately unchanged.
+
+**Why it came up.** Building the component's preview page, its States section had nothing to draw for `disabled`. I measured it, found a composer marked disabled computing byte-identical to a live one, and reported that the panel does not dim. Kushagra: *"we fixed this bug in card too, card can read disabled, why did we use text field rules?"*
+
+**He was right, and the question exposed that I had measured the wrong element.** I had compared PANES. Comparing the text instead: a disabled TextArea greys its words (0.2697 → 0.7625) and a disabled composer greyed nothing (0.1202 both). So the real defect is not a panel that stays bright — it is that text you typed stays at full contrast inside a box that has stopped taking keystrokes, which is `readOnly`'s own 2026-08-05 shape and strictly worse than the thing I had reported.
+
+**The cause is the 2026-08-22 Card finding word for word.** The shared remap rewrites the TONE roles; this input reads the tone-LESS foreground roles (§11), which no tone rewrite reaches. It is also the price of a decision two paragraphs earlier in §30: the input is a bare textarea and deliberately not a `.kui-control`, because our TextArea would draw a second box inside the pane — so it opted out of the family that carries the remap, and nobody noticed the grey-out left with it.
+
+**Rejected, and refuted by the measurement rather than by preference: splitting the pressable selector.** My first proposal was that `.kui-surface:where(button, a, label:has(.kui-control))` answers two questions at once — *can you press this* and *can this be dead* — and should be taken apart so any dead surface dims whatever element it is. The framing is real (§30 already records the composer as the first thing wanting focus without press). It is also the wrong repair, because it targets the pane, and **the pane is correct as it stands**: a disabled TextArea's background is byte-identical to a live one. The library's answer for a text box that is off is grey the words and leave the box. A system-wide change to dim something the system does not dim is entropy dressed as consistency.
+
+**So the fix is local and copies a shipped answer** rather than inventing one. Keyed on `:disabled` and not an attribute stamp: the input IS the native form element, so whichever route turns it off — the prop, a `<fieldset disabled>` — it lands as the platform attribute, which is TextArea's own third-spelling argument (2026-08-05).
+
+**The law's fixture is the load-bearing half.** "It dims" passes on any lighter colour, including one the composer invented; "it dims like itself" cannot fail. The reference is a mounted TextArea, so the law asserts the composer reaches the SAME dead ink the system already uses, with a vacuity guard that the reference control dims at all. Three sabotages, each caught by a different law: restoring the shipped defect, deleting the placeholder rule, and substituting a plausible-but-different grey.
+
+**And the spec was wrong in a way worth naming.** §30 read "The disabled arm shipped 2026-08-22 and applies unchanged… Its selector widens by one entry." The widening never happened, and the sentence was written from the arm's intent rather than from the elements it names — a claim about behaviour, made without mounting the behaviour, in the same document that records this exact mistake four times.
+
+---
+
+## 2026-08-23 One stroke literal was two weights, because it was written on two grids
+
+**What.** `iconStroke` (1.75, public) and `iconGrid` (24) join config; `glyphStroke` derives the same painted weight for the 16-unit viewBox the package's own glyphs use. Ten hand-written `strokeWidth="1.5"` literals — seven in the package, three in the docs app — now read one of the two.
+
+**Why it came up.** Kushagra, looking at the composer: the icons *"are too thin... It needs to work with regular typeface. Usually 1.75 stroke width works, what is it being used here?"*
+
+**The report was "too thin" and the defect was that one number meant two weights.** A stroke is stated in viewBox units, so the painted weight is `stroke x box / viewBox`. The package draws its seven glyphs on a 16 viewBox; every icon set the docs could install draws on 24. Both said `1.5`. In a 16px icon box that is 1.50px against 1.00px — so a select's chevron has been painting 50% heavier than the Hugeicon in the button beside it since the day the docs installed a set, and the thin half is what he was looking at. **Raising the shared literal to 1.75 would have widened the gap, not closed it**: the package's own glyphs would have gone to 1.75px against the icons' 1.17px. That is the first answer I had written and it was wrong for the same reason the defect existed — reading the number instead of the pixels.
+
+**What is constant is the painted stroke, so that is what is stated.** `iconStroke` is the number for the ecosystem's grid, which every plausible set agrees on (Lucide, Hugeicons, Heroicons, Phosphor and Feather all draw on 24); `glyphStroke` is a derivation, never a second judged number, because two hand-set numbers are exactly how this drifted. It is **public**, and that is the point: §8 ships no icon set, so a chevron that does not match the app's glyphs is the one mismatch a consumer cannot fix from the outside. The system states the weight it draws at and the app passes it to its own set.
+
+**Why 1.75 and not something measured.** It is v1 KookieUI's own settled number, in every documented example, and the ecosystem brackets it (Heroicons and Hugeicons ship 1.5, Lucide and Feather 2). No arithmetic was offered for it and none should be: a nominal stroke is not apparent weight, because a font stem is rasterized with stem darkening and an SVG stroke is not, so matching text by calculation gives the wrong answer. This is an eye value like every other v0 number.
+
+**Rejected: one number for both grids.** It is what shipped, and it is the defect. Also rejected: leaving the package's glyphs alone and moving only the docs — the mismatch is symmetric and fixing one side of it is choosing which half stays wrong.
+
+**The law reads pixels, and its fixture is the load-bearing half.** Comparing two package glyphs cannot fail, because they move together; the mounted law measures a real package glyph against a 24-grid glyph carrying the public `iconStroke`, in the same box, at every index — the composition a consumer actually builds. Sabotaged by restoring the shipped literal, it reproduces the defect exactly: `expected 1.5 to be close to 1.1666...`. A source law walks every `.tsx` the package ships and fails on any hand-written stroke, because the next chevron is the one the browser law does not mount.
+
+**The doc-code drift was real and dated.** DECISIONS §4 carried a worked painted-weight table computed at 1.5 on a 24 grid, and one sentence above it — "the stroke needed no answer of its own, it lives inside the glyph's viewBox and scales with the box" — is what licensed the whole thing. That is true of the LADDER and was read as true of the VALUE. Both amended.
+
+---
+
+## 2026-08-23 The composer's send button was not the loud one, and nobody had decided that
+
+**What.** `ComposerSend` defaults to `emphasis="loud"`. It shipped taking Button's `medium`.
+
+**Why.** Kushagra: *"why is send button not loud? Or is that something the caller can address?"* Both halves of the question have answers and they differ. The caller could always address it — `emphasis` spreads through — but the default was an omission rather than a decision, and a send button that ranks no higher than the model picker beside it names no primary action at all.
+
+**The argument was already written one component over.** §11 allows one focal point per surface, and the usual reason a component may not claim it is that it cannot know what else is on the surface. `AlertDialogAction` is the standing exception (§25) and its reasoning transfers verbatim: the rule is held by ANATOMY. A composer has exactly one send, the component places it, and every other control in the row belongs to the caller — so the one loud thing is the one the system owns.
+
+**It is a default, not an identity, and that is where it parts from the alert.** AlertDialog pins its two Buttons with no render escape because it owns that entire layout. A composer's row is the caller's, so the one control the system puts in it stays theirs to re-rank; a law mounts a stood-down send and asserts it moved.
+
+**The law's fixture is what makes it a law.** Reading the send button alone cannot tell a default of `loud` from a default of `medium`, so it is measured against both rungs as mounted Buttons, with a vacuity guard that the two rungs paint different fills at all. Sabotaged back to `medium`, it fails naming the fill it found.
+
+
+---
+
+## 2026-08-23 A re-key that moved a colour and left its rule behind
+
+**What.** The chosen segment kept answering hover, so clicking one left a static wash sitting
+exactly where the grip was travelling to. Kushagra, watching a real click: the hover fill "is on
+top, so as I click on a segment, and it animates, the hover continues to stay, which doesn't
+wobble btw, making it look very weird." Fixed by pinning all three of the chosen segment's fill
+sources to `transparent`.
+
+**Why it happened, which is the part worth keeping.** The chosen segment used to hold all three
+fill sources at `--color-thumb`, and that triple was carrying TWO facts at once: what colour the
+grip is, and the rule that a grip does not fill — *"hover and press must not step it, or the
+selected segment would brighten under a pointer that cannot change anything about it."* When the
+grip became a travelling element, the colour moved to the thumb and the triple was DELETED
+rather than re-pointed. The colour arrived at its new home; the rule did not go anywhere. The
+segment fell back to the quiet rung, which does have a hover step, and painted a 6.7% wash over
+the thumb — measured `color(srgb 0 0 0.0588235 / 0.067)` on a segment that had just been
+clicked and still had the pointer on it.
+
+**It was only visible because the other repair worked.** The segments paint ABOVE the thumb by
+design — that is what stops the grip covering its own label, fixed hours earlier the same day —
+so the leftover hover had somewhere to sit. Before that fix it would have been hidden under the
+grip and shipped silently.
+
+**The laws moved with the colour and not with the rule, which is the same mistake in the test
+file.** Five reads were re-keyed from the segment to the thumb, correctly, and the guarantee the
+segment still owed — that it paints nothing in any state — was left with no reader at all. The
+one law that came closest read the resting background, which was `rgba(0, 0, 0, 0)` throughout;
+it cannot see a hover step. The new law hovers a real pointer, clicks, and reads after the
+stamp, which is the state the report is about.
+
+**The general shape, stated because this repo keeps meeting it:** when a declaration is moved,
+ask what ELSE it was saying. A property pinned across three states is usually two claims — a
+value and an invariance — and moving the value is not moving the invariance. Both sabotage passes
+here are that sentence: deleting the pin restores the defect, and pinning rest alone restores it
+under the pointer, which is the field family's own 2026-08-05 trap arriving in a fifth place.
+
+## 2026-08-23 The grip painted over its own label, and a tab ended on the line it stands on
+
+**What.** Two defects in the travelling highlight shipped hours earlier, both found by Kushagra
+in the playground and both fixed by measuring rather than by re-reading the source. The chosen
+segment's label was invisible — white on the white grip — and Tabs rode the full control height,
+so a tab's box ended exactly on the hairline under it.
+
+**THE LABEL WAS UNDER THE GRIP, AND THE COMMENT SAID IT COULD NOT BE.** The thumb renders first
+in the markup, and the JSX beside it claimed that document order therefore paints it under the
+segments — *"which is the whole reason it needs no `z-index` and the segments need no `position`
+of their own."* That is not how painting works. Within one stacking context CSS paints in-flow
+non-positioned content in steps 4-7 and positioned descendants in step 8, so an absolutely
+positioned thumb covers every static sibling regardless of where it sits in the DOM. Measured
+with `elementFromPoint` at the chosen label's own centre: it returned the thumb.
+
+**The instrument mattered more than the fix.** Every existing colour law was green throughout,
+and correctly so — `--color-thumb-label` computed exactly right the whole time, on the right
+element, in both appearances. Nothing about the ink was wrong; a paint was sitting on top of it.
+A law comparing the label's colour to the grip's fill would have passed the entire time this was
+broken, which is why the new law reads the hit test instead. The repair is `position: relative`
+on the segment, which puts it in the same paint step where document order is the tie-break — no
+`z-index` minted, and no new stacking context for the hover and disabled rules to reason about.
+
+**A TAB SHOULD NOT END ON THE LINE IT STANDS ON.** Kushagra, naming his own precedent: the
+chosen segment is *"a little shorter than control, it is 28px on 32px control, same size as menu
+rows, so we have precedence. We need the same for tabs… presently tabs have same height as
+controls, and so they touch the tab lines."* Measured: at size 2 the tab was 32 in a 32 bar and
+its segment sibling was 28. So a hovered tab's fill ran into the hairline and the bar read as one
+welded object rather than as labels standing on a rule.
+
+**The bar keeps the ladder; the tab is what shrinks.** Both halves are the law, because fixing
+either alone breaks the other: shrink the bar and a tab bar stops standing level with the
+controls in its row, leave the tab at full height and the defect is the defect. Symmetric, so
+the label stays centred — clearing only the line below would leave it sitting visibly high in
+its own bar. Tabs now measure 24 / 28 / 36 / 44 against a Button's 28 / 32 / 40 / 48, which is
+exactly its segment sibling at every index, and the law reads the two mounted boxes against each
+other rather than restating 2 in a third place.
+
+**`tabInset` is its own entry and not `segmentInset` reused**, which is the one place that
+distinction is worth writing down. They are the same number today and they are not the same
+fact: `segmentInset` is the wall of an edgeless WELL around a grip, priced tighter than
+`slotInset` for that stated reason, and this is clearance between a label's box and a line it
+must not touch. The "second member self-keys, the third promotes" rule is about one fact
+reaching a third consumer, not about three unrelated 2s.
+
+**The padding is BLOCK-only and that is load-bearing.** `--active-tab-left` is measured from the
+list's BORDER box while the rule resolves its insets against the PADDING box, and the derived
+right edge (`calc(100% - left - width)`) leans on those being the same box in the inline axis.
+Inline padding here would silently shift every rule by its own width — the same class of
+coordinate mismatch the 2026-08-19 revert was about, one axis over.
+
+**An existing law asserted the defect and was re-keyed, not deleted.** *"Every tab stands at
+`--control-height-N`"* was the shipped behaviour stated as a guarantee. What the ladder actually
+governs is the BAR; the tab is inset inside it. Kept per pointer world and per size, which is
+the half worth keeping — the inset is one constant and the cells are not, so a coarse cell
+forgetting the ladder still shows there.
+
+## 2026-08-23 The traveling highlight: one object that stretches toward where it is going
+
+**What.** Tabs' rule and the segmented control's grip both travel now, drawn by their two inline
+edges, with the edge FACING the destination on a shorter clock than the one behind it — 320ms
+against 480, both on `calm`. So the highlight pours across to the thing you picked and gathers
+itself as the trailing edge catches up. Asked for by Kushagra against a bench he built and
+judged ("Clip vs Physics"), where the same recipe sits beside the 250ms both-edges-on-one-clock
+version it replaces.
+
+**Why two clocks and not a livelier spring.** The character is ONE spring and the asymmetry is
+entirely in the durations. Giving the leading edge a bouncier curve than the trailing one would
+put two different damping ratios on one object, which rings — and damping is the number §8
+never loosens for visibility. `controlMotion.travel` (420, the switch thumb crossing its
+channel) is deliberately not reused: a highlight moving a whole segment's width is a different
+distance answering a different question, so the new pair straddles the benchmark rather than
+replacing it.
+
+**Tabs gained NO JavaScript, which was not the expected answer.** Direction is the one fact a
+stylesheet cannot work out — CSS knows the value a property animates TO and never the value it
+left, so "which of these two edges is in front" has no selector — and the plan was to stamp it
+from a small effect. Base UI already publishes it: `data-activation-direction` on the indicator,
+computed from the previously active tab, with a `none` that is exactly the first paint. Reading
+the primitive's own attributes before writing a mechanism is the cheaper habit and it paid here.
+
+**The second edge is DERIVED, which is what closes the 2026-08-19 revert on its own terms.** The
+rule shipped drawn by two edges once before and was reverted because the second edge was Base
+UI's `--active-tab-right` — `scrollWidth − left − width`, in the list's SCROLL space, while CSS
+resolves `right` against the containing block's PADDING box. The two agree only while the bar
+fits, and an overflowing bar drew a zero-width rule. `calc(100% - left - width)` derives the
+same edge from the pair Base UI computes in ONE space, against the `100%` that IS the containing
+block. Measured on a bar overflowing by 61px: 91.69 against a 91.67 tab, where the old spelling
+drew 0. tabs.css had written down what a return would need; this is that.
+
+**The segmented control's thumb costs a measurement, and index arithmetic was refuted by
+measuring rather than by argument.** `flex: 1 1 0` gives every segment an equal share while the
+track sizes itself — three labels of three different lengths measured 425.3 / 425.3 / 425.3 — so
+`index × width / count` looks right in every ordinary specimen. Constrain the track and
+`min-width: auto` binds on the longest label: the same three measured 62.0 / 62.0 / 72.0 in a
+200px box, where the arithmetic answers 65.3 and puts the grip ten pixels off its seat. A
+squeezed track is a toolbar on a narrow window. This is the FOURTH bounded exception to §8's "no
+JS at interaction time", beside the flight's measurement, the lens and Tabs' own re-measure, and
+it is bounded the same way: selection and resize, never hover, press, focus or scroll.
+
+**The component predicted this and left the door open.** Its own comment read *"when the motion
+pass wants one object gliding between homes, the measuring hook arrives with it and this stays
+internal"* — the absence of an indicator was correct for exactly as long as the motion did not
+exist, which is the curtain's lesson (a mechanism whose only consumer is an undesigned motion).
+The premise is spent; this is the door rather than a reversal.
+
+**Three defects found by measuring, each invisible in the source.** The effect was keyed on
+renders, and an uncontrolled `RadioGroup` holds its value inside Base UI — so it fired once in a
+component's lifetime and the thumb held 56.9px while another segment was genuinely checked. It
+watches `data-checked` now. The two edges were measured with `clientWidth`/`clientLeft`, which
+are integers, so the trailing edge inherited a rounding error the leading edge did not and the
+grip sat 0.5px narrow on one side only; both are read off `getBoundingClientRect` now, corrected
+by fractional border widths. And the `ResizeObserver` fired the moment it was observed, which
+rewrote the direction to `none` a frame after every selection — removing the transition and
+teleporting the grip, with the whole recipe correct behind it.
+
+**A guard was written, worked, and was then deleted for being unfalsifiable.** The width
+comparison that told the observe-time callback from a real resize fixed the teleport. Then the
+effect stopped being keyed on renders at all, which fixed the same defect at its cause — and the
+guard became something no law could distinguish from its absence. Three sabotage passes tried:
+deleting it changed nothing across 38 laws, and the one input that would have separated them (an
+observer firing without a width change) could not be constructed, because a padding change does
+not move the content box a `ResizeObserver` watches. It is gone. Every remaining case is one
+where re-placing is simply correct.
+
+**The chosen segment gave up its fill.** Two boxes painting one grip means the old segment's
+fill blinking out as the thumb glides away from it, so the fill and the cast moved to the thumb
+and the segment keeps only its ink — which switches INSTANTLY while the box travels, §8's
+paint-is-signal / geometry-is-physics split rather than an oversight.
+
+**Rejected: exempting the keyboard**, which the bench does on the rule that keys are not travel.
+Its stated reason is that gliding across intermediate stops would be false motion, and an arrow
+key here moves exactly one position, so nothing is crossed that was not passed through.
+Exempting it costs a modality listener at interaction time to buy a distinction the argument
+does not make at this step size. Recorded so it can be reopened if a keyboard jump of more than
+one ever exists. **Also not built: the press LEAN and the grabbable segment** from the same
+bench. Both are interaction models rather than motion — the lean needs a pointerdown handler on
+every segment and the drag needs pointer capture, hit-testing and a snap — and neither was part
+of what "add the motion" asked for. They are cheap to add on top of the measurement that now
+exists.
+
+**Two laws of my own were wrong before they were right, both in shapes this repo has named.**
+The size law's fixture used a self-sizing track, where every segment is equal and a thumb that
+divided the track into thirds would pass — the degenerate-fixture rule, and its own calibration
+caught it. And five laws read the flight synchronously after the click, so all five passed
+against a build whose observer stomped the direction a frame later; the law that catches it
+waits two frames, which is past any observer callback and nowhere near the 480ms the flight
+lasts. `test/settling.test.ts` then caught three more of mine reading a gesture's effect in the
+statement after it.
+
+## 2026-08-23 The eye pass never happened, because it had been happening all along
+
+**What.** `v0` is deleted as a label. It was carried at ~60 sites across `config.ts`, `color-config.ts`,
+five stylesheets, four component files and the docs app, and in CLAUDE.md as an accumulating list of
+values awaiting a taste pass at the end. The fact underneath it — these are designed taste numbers, one
+config line each — now has one home in `config.ts`'s header. The two values that genuinely have never
+been in front of a judgment are named where they live instead of in a list.
+
+**Why.** Asked whether the floating family was complete, I said most motion values were "still v0".
+Kushagra: *"Why do we call them v0? Tehy're done no?"* — then, when I answered that the label meant
+unapproved rather than unfinished: *"Dude how else have I been giving feedback. Ive judged everything we
+have so far."* He is right, and the evidence is this repo's own record. The dated entries in CLAUDE.md
+are almost entirely him looking at a rendered thing and rejecting it: the icon box that "doesn't seem to
+scale" on coarse, the glass that "looks cheap and incorrect… it's not taste", the size-3 composer whose
+buttons stayed at 2, the submenu that "travels a lot", the segmented label painted in its own fill, the
+lens at twice the bend. That IS the eye pass. It ran continuously in `/preview` beside each component,
+which is exactly what the "a component ships with its playground section" rule was built to force.
+
+**The label was self-refuting in three places.** `floatingMotion` read *"judged 2026-08-09 in the motion
+lab, on the real Menu; v0 for the eye pass"* — judged and awaiting judgment in one sentence. The mono
+optical correction and the key cap's factor each read *"(2026-08-08, Kushagra; v0 for the eye pass)"*:
+his name, the date he decided it, and a claim that nobody had. A label that survives its own
+counter-evidence at three sites is not tracking anything.
+
+**The 2026-08-04 framing is what was actually wrong, and it is worth stating why it was reasonable.**
+"Taste is the LAST layer — if the infrastructure is right, taste can be added later" was a scheduling
+promise about RISK: it bought permission to ship a designed number rather than stall on it, and every
+one of those numbers really is a config line, which is the half that held. What did not hold is the
+sequencing. There was never a day when structure was "done" and judgment began; the playground made
+every value visible the week it shipped, so judgment arrived component by component and the list at the
+end of CLAUDE.md just accumulated things that had already been decided. Keeping it made the docs claim
+less confidence than the system had earned.
+
+**What is genuinely unjudged, and it is two things.** The narrow window boundary (48rem) — inherited
+from the type band it derives from, while its wide sibling was judged by eye on 2026-08-05; a shell
+exists now, so it is judgeable and simply has not been. And a chroma family's loud ink in dark, which
+measures ~66 against medium's 60, so a coloured ladder's top two rungs read as one (DECISIONS §7 has
+carried this open since 2026-08-10; the fix is a per-family loud, the one exception that solve removed).
+Both are stated at their own definitions rather than in a central list, on the rule that a list of
+open items rots and a comment beside the value cannot.
+
+**Rejected.** Replacing every site with "judged in the playground" — forty copies of one sentence is the
+near-duplication this project deletes on sight, and the fact belongs in one header. Renaming `v0` to
+something truer (`taste`, `tuned`, `judged`) — a per-site label only earns its keep if some sites lack
+it and that distinction is checkable; here every number in `config.ts` is taste by construction, so the
+label would be noise at 100% density. Leaving the historical records alone was NOT a rejection but a
+rule: `LOG.md`, `REVIEW.md` and `docs/handovers/` say what was true when written, and a `v0` in a dated
+entry is accurate history — only `DECISIONS.md`, `CLAUDE.md` and the source comments, which claim to
+describe the system as it is now, were swept.
+
+**Found on the way.** The scrim's own doc comment still read *"The blur is 4px and deliberately below
+§10's 12px defense floor"*, three lines above the values stating `blur(8px)` — the floor was retired
+2026-08-16 when the lens shipped and the scrim was re-priced to 8 on 2026-08-17, and the prose was never
+brought along. Doc–code drift of exactly the kind this sweep exists to remove, corrected in the same
+change.---
 
 ## 2026-08-23 The glass bent by one amount at every thickness, and its bezel was a line
 

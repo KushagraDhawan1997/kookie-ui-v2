@@ -5,6 +5,10 @@
  * ladder, the segments are the hosted-control rule with N hosts, the quiet rung supplies a
  * segment's resting bareness and its hover step, and the focus ring, cursor and disabled
  * remap are the control layer's. This file never mentions a size.
+ *
+ * Since 2026-08-23 it also owns the THUMB — one grip travelling between segments rather than a
+ * fill switching from one box to another (§8, §26). What that costs is stated where it is
+ * paid: a measurement in segmented-control.tsx, because a radio group offers none.
  */
 
 /* The TRACK is a well, not a dressed surface — the switch's own argument, verbatim (§11
@@ -27,6 +31,11 @@
   display: inline-flex;
   align-items: stretch;
   padding: var(--segment-inset);
+  /* The thumb's containing block (§26, 2026-08-23). Structural, not dress: the grip is
+     absolutely positioned and its insets are measured against THIS element's padding box, so
+     the box it is placed against and the box it resolves against have to be the same one —
+     the tab bar's own sentence, one component over. */
+  position: relative;
   /* The skeleton's border is stood DOWN, and it has to be (audit 2026-08-19, D2). `.kui-control`
      declares `border: var(--border-width) solid …` under `box-sizing: border-box`, and a
      TRANSPARENT border still occupies layout — so the track's content box was `h − 2·border −
@@ -93,6 +102,16 @@
    overrides it, which is the order that makes the sentence true. */
 .kui-segment {
   flex: 1 1 0;
+  /* POSITIONED so it paints ABOVE the thumb (2026-08-23, Kushagra: the chosen label was white
+     on white). The thumb ships first in the markup on the reasoning that document order would
+     put it underneath, and that reasoning is simply wrong: within one stacking context CSS
+     paints in-flow non-positioned content in steps 4-7 and positioned descendants in step 8,
+     so an absolutely positioned thumb covers every static sibling regardless of where it sits
+     in the DOM. Measured — `elementFromPoint` at the chosen label's own centre returned the
+     thumb. Making the segments positioned puts them in the same step, where document order is
+     the tie-break and they come after it, so no `z-index` is minted and nothing here opens a
+     stacking context that the disabled and hover rules would then have to reason about. */
+  position: relative;
   --kui-ct-label-color: var(--color-text-muted);
   min-height: calc(var(--kui-ct-h) - 2 * var(--segment-inset));
   /* The concentric corner (§6, §22's own rule one family over): the inner radius is the
@@ -108,32 +127,71 @@
   border-radius: calc(max(var(--kui-ct-radius), var(--segment-inset)) - var(--segment-inset));
 }
 
-/* The SELECTED segment is the grip (§11, §26) — and there is no separate indicator element to
-   move, which is the design, not a shortcut. Base UI's Tabs ships an indicator because it
-   measures the active tab for you; RadioGroup ships none, so a gliding thumb here means
-   writing the measurement ourselves, and a mechanism whose only consumer is a motion nobody
-   has designed is the entropy this repo keeps paying for (the curtain, deleted 2026-08-17).
+/* The SELECTED segment keeps its INK and nothing else (§11, §26). Its fill and its cast moved
+   to the thumb on 2026-08-23, when the grip became one object that travels: two boxes painting
+   one grip would mean the old segment's fill blinking out as the thumb glided away from it.
 
-   Its fill is `--color-thumb`, the value-control grip's role (§11, "dark shouldn't be dark"):
-   light keeps the seal, dark goes near-white, because a grip must be the most findable object
-   on its rail. The whole triple, and all three the same value: a grip does not fill, it moves
-   — so hover and press must not step it, or the selected segment would brighten under a
-   pointer that cannot change anything about it.
+   The ink pairs with the GRIP, not with the page (audit 2026-08-19, D1). `--color-text` was
+   measured painting the chosen label in its own fill in dark — `--color-thumb` is neutral-12
+   there and so is `--color-text`, identical by construction, 1.00:1, with `contrast="high"`
+   moving neither. `--color-thumb-label` is stated beside the fill it answers to, per mode, out
+   of values the generator had already solved.
 
-   The ink steps up with it: an unselected segment reads the muted foreground and the chosen
-   one reads full — the tab bar's own sentence, the others are places you could go. The
+   It steps up as the thumb arrives: an unselected segment reads the muted foreground and the
+   chosen one reads full — the tab bar's own sentence, the others are places you could go. The
    TONE-LESS pair, deliberately: the root stamps `accent` so the family resolves for anything
-   that needs it, and reading `--tone-ink` here would put accent-coloured text on the grip. */
+   that needs it, and reading `--tone-ink` here would put accent-coloured text on the grip.
+
+   The ink switches INSTANTLY while the box travels, and that is §8's split rather than an
+   oversight: paint is signal and geometry is physics, so the label you chose is full-strength
+   on the first frame and the grip catches up underneath it.
+
+   AND IT PAINTS NO FILL IN ANY STATE, which is a pin rather than an absence (2026-08-23,
+   Kushagra: clicking a segment left "the hover… on top" of the travelling grip, "which doesn't
+   wobble btw, making it look very weird"). The old spelling held all three sources at
+   `--color-thumb` and carried the rule with them — a grip does not fill, it moves, so hover and
+   press must not step it. Moving the fill to the thumb deleted the triple instead of
+   re-pointing it, and the chosen segment fell back to the QUIET rung, which does have a hover
+   step: measured, the segment under the pointer painted a 6.7% wash on top of the thumb gliding
+   underneath it, a static rectangle sitting exactly where the grip was heading.
+   
+   All three, for the field's own reason (§8): a rule that declared only rest would fall back to
+   the rung's values the moment a pointer arrived, which is the defect restated. The chosen
+   segment can never light up anyway — hovering the thing you already picked promises something
+   a click cannot deliver. */
 .kui-segment:where([data-checked]) {
+  --kui-ct-label-color: var(--color-thumb-label);
+  --kui-ct-fill-src: transparent;
+  --kui-ct-fill-src-hover: transparent;
+  --kui-ct-fill-src-active: transparent;
+}
+
+/* THE THUMB — one grip travelling between homes (§8, §11, §26, 2026-08-23, judged in the
+   "Clip vs Physics" bench).
+
+   Everything about how it LOOKS is the switch's thumb verbatim, self-keyed rather than
+   promoted: this is the family's second grip-in-a-channel and the second member self-keys (the
+   TextArea rule). Fill routed through the `-src` chain so the shared disabled remap's shape
+   stays the shared one, then painted directly, because this is not a `.kui-control` and the
+   skeleton's rule cannot reach it. No hover and no press step — a grip does not fill, it moves.
+
+   The corner is the segment's own concentric expression, restated rather than inherited: the
+   thumb is not a segment, so it cannot pick the value up from one, and the two must agree or a
+   grip sits in a differently-rounded seat.
+
+   Placed by the two lengths the measurement writes, with fallbacks that put it exactly where
+   the first segment sits — so a thumb that somehow paints before any measurement lands on a
+   real seat rather than filling the whole channel. */
+.kui-segment-thumb {
+  position: absolute;
+  inset-block: var(--segment-inset);
+  left: var(--kui-seg-left, var(--segment-inset));
+  right: var(--kui-seg-right, var(--segment-inset));
+  border-radius: calc(max(var(--kui-ct-radius), var(--segment-inset)) - var(--segment-inset));
   --kui-ct-fill-src: var(--color-thumb);
   --kui-ct-fill-src-hover: var(--color-thumb);
   --kui-ct-fill-src-active: var(--color-thumb);
-  /* The ink that pairs with the GRIP, not with the page (audit 2026-08-19, D1). `--color-text`
-     was measured painting the chosen label in its own fill in dark — `--color-thumb` is
-     neutral-12 there and so is `--color-text`, identical by construction, 1.00:1, with
-     `contrast="high"` moving neither. `--color-thumb-label` is stated beside the fill it
-     answers to, per mode, out of values the generator had already solved. */
-  --kui-ct-label-color: var(--color-thumb-label);
+  background-color: var(--kui-ct-fill-src);
   /* The grip casts ALWAYS — flat world included (§5, §6): the slider thumb's exception,
      inherited with the role rather than re-argued, and mechanically the same reading — the
      grip role's VALUE (`--grip-cast`), never the world switch, which is what "always" means.
@@ -141,6 +199,31 @@
      is recorded. */
   --kui-ct-cast: var(--grip-cast, none);
   box-shadow: var(--kui-ct-cast, none);
+}
+
+.kui-segment-thumb[hidden] {
+  display: none;
+}
+
+/* IT STRETCHES TOWARD WHERE IT IS GOING (§8, §26). The edge facing the destination takes the
+   shorter clock, so the grip pours across the channel and gathers itself as the far edge
+   catches up. Both edges ride `calm`: one character, the asymmetry entirely in the durations,
+   which is the only shape that keeps damping sacred (config.ts states why).
+
+   `data-activation-direction` is written by the measurement, in Base UI's own vocabulary, so
+   this file and tabs.css read identically. Its `none` — first paint, a resize, a re-selection
+   of the same segment — matches neither rule, so the thumb simply has no clock and is PLACED.
+   That is what puts every "should not fly" case in one place without a rule of its own. */
+.kui-segment-thumb[data-activation-direction="right"] {
+  transition:
+    right var(--motion-travel-lead) var(--motion-spring),
+    left var(--motion-travel-trail) var(--motion-spring);
+}
+
+.kui-segment-thumb[data-activation-direction="left"] {
+  transition:
+    left var(--motion-travel-lead) var(--motion-spring),
+    right var(--motion-travel-trail) var(--motion-spring);
 }
 
 /* Dead, the grip stops casting but does not melt (§8, the switch's 2026-08-08 correction one
@@ -175,12 +258,19 @@
 }
 
 .kui-segment:where([data-checked])[data-disabled] {
-  --kui-ct-cast: none;
   --kui-ct-label-color: color-mix(
     in srgb,
     var(--color-thumb-label) var(--disabled-dim),
     transparent
   );
+}
+
+/* The dead grip stops casting but does not melt — the switch's 2026-08-08 correction, which
+   the fill and the cast bring with them from the segment they used to live on. Keyed on the
+   TRACK's `data-disabled`, because the thumb is a sibling of the segments and Base UI stamps
+   the state on the group and on each radio, never on a span between them. */
+.kui-segmented[data-disabled] .kui-segment-thumb {
+  --kui-ct-cast: none;
   --kui-ct-fill-src: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
   --kui-ct-fill-src-hover: color-mix(in srgb, var(--color-thumb) var(--disabled-dim), transparent);
   --kui-ct-fill-src-active: color-mix(
@@ -188,4 +278,15 @@
     var(--color-thumb) var(--disabled-dim),
     transparent
   );
+}
+
+/* Stillness (§8). Spelled the same way as the arrivals above — same elements, same
+   specificity, later in the file — so the stand-down wins by source order rather than by
+   arithmetic anyone has to redo. The shared `.kui-control *` rule in recipes.css cannot do
+   this job: it is (0,1,0) against these (0,2,0), and this file loads after it. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-segment-thumb[data-activation-direction="right"],
+  .kui-segment-thumb[data-activation-direction="left"] {
+    transition: none;
+  }
 }

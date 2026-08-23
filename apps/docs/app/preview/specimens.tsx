@@ -396,7 +396,7 @@ function BadgeSection() {
 function BlockquoteSection() {
   return (
     <Stack gap="6">
-      {/* What the eye judges, both v0: the rule's thickness (--border-width, the system's one
+      {/* What the eye judges: the rule's thickness (--border-width, the system's one
           hairline) and the 1em indent's ratio to the type. */}
       <Stack gap="5">
         {(["2", "3", "5"] as const).map((size) => (
@@ -628,6 +628,7 @@ function HeadingSection() {
     </Stack>
   );
 }
+
 
 function NoticeSection() {
   return (
@@ -916,7 +917,7 @@ function LinkSection() {
   return (
     <Stack gap="6">
       {/* The whole component, in the composition it exists for: a link inside a sentence,
-          taking that sentence's step because `size` is unset. The eye judges two v0 values
+          taking that sentence's step because `size` is unset. The eye judges two values
           here — the 0.2em underline offset, and whether the resting hairline reads as
           texture rather than as a second colour competing with the words. */}
       <Demo label="In prose — the link states no size and takes the line it sits in">
@@ -2348,6 +2349,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "link", name: "Link", body: <LinkSection /> },
   ported("menu"),
+  ported("composer"),
   { id: "notice", name: "Notice", body: <NoticeSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },

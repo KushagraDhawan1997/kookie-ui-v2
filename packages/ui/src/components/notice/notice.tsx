@@ -9,6 +9,7 @@ import { OWNED_BODY_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { Button } from "../button/button.tsx";
 import { Text } from "../text/text.tsx";
+import { glyphStroke } from "../../tokens/config.ts";
 
 export type NoticeProps = {
   /**
@@ -71,7 +72,7 @@ function dismissGlyph() {
       <path
         d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth={glyphStroke}
         strokeLinecap="round"
       />
     </svg>

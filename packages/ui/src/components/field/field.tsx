@@ -133,7 +133,7 @@ export function Field({ size = "2", className, children, ...props }: FieldProps)
  *
  * The column gap is `--layout-space-3` — the distance every hand-rolled checkbox row in this
  * repo already used — and the rows inside an item are one step tighter than the field's own
- * rhythm, because a nested group steps down (§15). Both are v0 for the eye pass.
+ * rhythm, because a nested group steps down (§15).
  *
  * **Order inside an item is mark, name, explanation.** The field's own order (label, control,
  * description) does not apply, because here the control is beside the words rather than under

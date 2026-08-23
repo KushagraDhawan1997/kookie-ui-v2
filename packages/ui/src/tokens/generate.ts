@@ -84,6 +84,7 @@ import {
   segmentInset,
   switchInset,
   switchW,
+  tabInset,
   tabRule,
   surfaceChrome,
   surfaceColor,
@@ -252,6 +253,7 @@ export function generateTokens(): string {
     "     it. Emitted at :root alone; no axis re-prices it. */",
   );
   put("tab-rule", zoom(tabRule));
+  put("tab-inset", zoom(tabInset));
 
   lines.push(
     "",
@@ -276,6 +278,8 @@ export function generateTokens(): string {
   put("hover-travel", zoom(controlMotion.hoverTravel));
   put("motion-mark", `${controlMotion.mark}ms`);
   put("motion-travel", `${controlMotion.travel}ms`);
+  put("motion-travel-lead", `${controlMotion.travelLead}ms`);
+  put("motion-travel-trail", `${controlMotion.travelTrail}ms`);
   put("motion-ring", `${controlMotion.ring}ms`);
   put("focus-ring-land", zoom(controlMotion.ringLand));
   put("press-travel", zoom(controlMotion.pressTravel));

@@ -1,4 +1,4 @@
-/* Tooltip (§11, §31) — the one INVERTED identity in the defaults table, and the only row that
+/* Tooltip (§11, §32) — the one INVERTED identity in the defaults table, and the only row that
  * ever named an exception.
  *
  * Everything about where this pane sits is the floating family's: it portals, it anchors, it
@@ -6,7 +6,7 @@
  * tooltip's own — the inversion, and a box priced for one line of words.
  *
  * It deliberately does NOT wear `kui-floating-rows`: that class carries the concentric corner
- * and the squircle bump, both of which are arithmetic about the ROWS a pane hugs (§30), and a
+ * and the squircle bump, both of which are arithmetic about the ROWS a pane hugs (§31), and a
  * tooltip hugs one line of text. It takes the surface band's corner like a card does.
  *
  * AND IT HAS NO SIZE AXIS, which is Progress's decision arriving one family over. The ladder
@@ -35,7 +35,7 @@
      repo keeps paying for, so the guarantee is stated where it is actually made — in the
      component, by not asking for an edge — and the law reads the outcome against a bordered
      pane that does draw one. */
-  /* One line of words, priced on its own two axes (§31): block tighter than inline, the row
+  /* One line of words, priced on its own two axes (§32): block tighter than inline, the row
      family's own finding about what a one-line box is asking on each axis. Both are picks into
      layout space, so density reaches a tooltip through the layer with nothing designed twice. */
   padding-block: var(--tooltip-p-block);

@@ -1,5 +1,5 @@
 /**
- * Tooltip's laws, mounted (§11, §20, §31).
+ * Tooltip's laws, mounted (§11, §20, §32).
  *
  * The claim that matters is the INVERSION, and it is asserted as an IDENTITY rather than as a
  * threshold: the pane's fill is exactly the mode's ink and its words are exactly the mode's
@@ -40,7 +40,7 @@ function openTooltip(theme: ThemeProps, body?: string) {
   return { popup, body: body_ };
 }
 
-describe("it is INVERTED, and it mints nothing to be (§11, §31)", () => {
+describe("it is INVERTED, and it mints nothing to be (§11, §32)", () => {
   for (const appearance of APPEARANCES) {
     it(`${appearance}: the fill IS the mode's ink and the words ARE the mode's surface`, () => {
       // Stated as two identities rather than as "it is darker than the page". A threshold would
@@ -144,7 +144,7 @@ describe("it is INVERTED, and it mints nothing to be (§11, §31)", () => {
   });
 });
 
-describe("the box is one line of words (§31)", () => {
+describe("the box is one line of words (§32)", () => {
   it("block is tighter than inline — a one-line box asks two questions", () => {
     const { popup } = openTooltip({});
     const block = parseFloat(computed(popup, "padding-top"));
@@ -180,7 +180,7 @@ describe("the box is one line of words (§31)", () => {
     expect(popup.getBoundingClientRect().height).toBeGreaterThan(line * 1.5);
   });
 
-  it("it takes the CARD's corner, not the row-hugging panel's (§30)", () => {
+  it("it takes the CARD's corner, not the row-hugging panel's (§31)", () => {
     // A tooltip hugs one line of text, so the concentric arithmetic has nothing to add — the
     // same criterion Popover established, applied to the family's next member. The menu beside
     // it is the negative control, because "everything agrees" would otherwise pass.
@@ -228,7 +228,7 @@ describe("the box is one line of words (§31)", () => {
   });
 });
 
-describe("it names a control, and it takes nothing from it (§31)", () => {
+describe("it names a control, and it takes nothing from it (§32)", () => {
   it("it is HIDDEN from assistive technology — the restatement rule, enforced", () => {
     // MEASURED FIRST, then decided. Base UI wires nothing: the trigger carries no
     // `aria-describedby` and the panel no `role="tooltip"`, so the choice was ours either way.
