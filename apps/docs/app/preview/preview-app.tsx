@@ -32,6 +32,7 @@ import {
 
 import { setContrast, useAppearance, type ContrastChoice } from "../appearance";
 import { MotionPanel } from "./motion-panel";
+import { LensBench } from "./lens-bench";
 import { StandaloneLink } from "./component-preview";
 import { Showcase } from "./showcase";
 import { SECTIONS } from "./specimens";
@@ -202,7 +203,10 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
           It writes to <html> rather than to the canvas Theme, because the panels it exists to
           judge are portalled out of the canvas (see motion-panel.tsx). */}
       <Box style={{ marginBlockStart: "var(--layout-space-4)" }}>
-        <MotionPanel />
+        <Stack gap="3">
+          <MotionPanel />
+          <LensBench />
+        </Stack>
       </Box>
     </Box>
   );
