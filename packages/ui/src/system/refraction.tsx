@@ -122,14 +122,29 @@ export type LensThickness = Exclude<Material, "solid">;
  * old constant's strength to within 3%, so the DEFAULT rung keeps exactly the lens that was
  * approved and gains only the band; thin steps down from it and thick steps up.
  *
- * `boost` is the sanctioned override of the physics and stays 1 on every rung: this is
- * bought with the model rather than with a multiplier past it, which leaves the multiplier
- * where it was designed to be — the knob for the eye pass. v0, judged in the playground.
+ * `boost` is the sanctioned override of the physics, and 2026-08-23 is the eye pass it was
+ * reserved for (Kushagra, on the ported lens: *"I need it to be more glassy! more refracting
+ * light"*, then 2x bend and 3x fringe judged live on the preview's lens bench, then *"these
+ * work"*). It is 2 on every rung.
+ *
+ * IT HAD TO BE THE MULTIPLIER, and the earlier preference for buying strength with the model
+ * instead does not survive the arithmetic. `physicalMap` clamps its returned bend at the bezel
+ * — past that the displacement asks for pixels outside the element's own backdrop and washes
+ * out — so the reachable bend on any rung is its lip's own width. Twice the judged targets is
+ * 14.8 / 26.4 / 46.2px against bezels of 12 / 18 / 26: every rung is over its clamp, and no
+ * `thickness` reaches them. Re-solving would have meant widening the lip too, which changes a
+ * dimension nobody has judged and which the bench deliberately does not expose. `boost`
+ * multiplies the filter's own `scale`, after the clamp, which is exactly what the bench moved.
+ * The clamp's own law still holds, because it is stated on the physics.
+ *
+ * `fringe` is a straight 3x of the judged split. Its own note where the channels are built
+ * used to say the three scales stay within ~8% "so the body stays registered"; at 30 they do
+ * not, and the split at the lip is the thing that was asked for. v0, judged in the playground.
  */
 export const lens: Record<LensThickness, LensParams> = {
-  thin: { bezel: 12, thickness: 19, ior: 1.45, fringe: 6, boost: 1 },
-  regular: { bezel: 18, thickness: 31, ior: 1.5, fringe: 10, boost: 1 },
-  thick: { bezel: 26, thickness: 47, ior: 1.62, fringe: 16, boost: 1 },
+  thin: { bezel: 12, thickness: 19, ior: 1.45, fringe: 18, boost: 2 },
+  regular: { bezel: 18, thickness: 31, ior: 1.5, fringe: 30, boost: 2 },
+  thick: { bezel: 26, thickness: 47, ior: 1.62, fringe: 48, boost: 2 },
 };
 
 /**
@@ -323,8 +338,12 @@ function acquire(w: number, h: number, r: number, p: LensParams, fit: number): s
   });
   filter.appendChild(el("feImage", { href: url, preserveAspectRatio: "none", result: "map" }));
   filter.appendChild(el("feGaussianBlur", { in: "map", stdDeviation: 3, result: "soft" }));
-  // Three displacements at slightly different scales, one per channel, screened back
-  // together: the edge splits light. Scales stay within ~8% so the body stays registered.
+  // Three displacements at different scales, one per channel, screened back together: the edge
+  // splits light. The spread was ~8% when it was written, which kept the body registered as a
+  // side effect rather than as a rule; the judged ladder runs 18 / 30 / 48 (2026-08-23), so the
+  // outer channels sit up to half the bend either side of green. What keeps the body registered
+  // is the bezel profile, not this number: the bend is ~0 by the lip's inner edge (a law), so
+  // all three channels agree everywhere except the band where the split is the point.
   const keep = {
     R: "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0",
     G: "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0",

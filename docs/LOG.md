@@ -124,6 +124,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 The glass got twice the bend and three times the split, and it had to come from the multiplier
+
+**What.** The lens ladder's judged values move: bend 7.4 / 13.2 / 23.1 → 14.8 / 26.4 / 46.2px, and the edge's colour split 6 / 10 / 16 → 18 / 30 / 48. The strength is bought with `boost`, which is 2 on every rung and was 1 on every rung until now.
+
+**Why it came up.** Kushagra, on the ported lens: *"it brought in some more glassness but I need it to be more glassy! more refracting light"*. The numbers were found live on the preview's lens bench and confirmed — *"these work"* — before any of this was written down.
+
+**The reversal.** The ladder's own note said `boost` "stays 1 on every rung: this is bought with the model rather than with a multiplier past it, which leaves the multiplier where it was designed to be — the knob for the eye pass". This IS that eye pass, and the preference does not survive the arithmetic anyway: `physicalMap` clamps its returned bend at the bezel — past that the displacement asks for pixels outside the element's own backdrop and washes out instead of bending — so the reachable bend on any rung is its own lip's width. Twice the judged targets is 14.8 / 26.4 / 46.2 against bezels of 12 / 18 / 26. Every rung is over its clamp and no `thickness` reaches them. Re-solving would have meant widening the lip as well, which changes a dimension nobody has judged and which the bench deliberately does not expose. `boost` multiplies the filter's own `scale`, after the clamp, which is exactly the number the bench moved.
+
+**A law was owed the moment that changed, and it was missing.** Every existing lens law reads the PHYSICS — `bendAt`, which knows nothing about `boost` — and the monotonicity law loops `bezel`, `thickness`, `ior` and `fringe` and not it. Harmless while the multiplier was 1 everywhere; from today the ladder could be made non-monotone in the one number that reaches a screen with all nine laws green. The new law reads the applied bend and holds it to the same two claims, with a calibration that some rung actually boosts, so it cannot quietly become the physics law under a second name. Falsified by giving `thick` a boost that undoes its depth: it alone fails, the other nine stay green, which is the gap measured rather than argued.
+
+**One comment was left false by the change and is corrected rather than deleted.** Where the three channels are built, the note said their scales stay within ~8% "so the body stays registered". At 30 they do not. What actually keeps the body registered is the bezel profile — the bend is ~0 by the lip's inner edge, which is its own law — so all three channels agree everywhere except the band where the split is the point.
+
+---
+
 ## 2026-08-23 The room clamp is only the panel's cap where the panel sits on one side of its trigger
 
 **What.** The anchored entry's new `--available-height` clamp is skipped where Base UI sized the positioner itself. Without the skip, a 48-row select in a 900px window flew to 425px for a panel that settles at 880 and doubled in height the moment the flight released.

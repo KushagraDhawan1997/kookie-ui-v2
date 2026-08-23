@@ -75,6 +75,35 @@ describe("the lens ladder: three thicknesses bend by three amounts (§10)", () =
     expect(bends[2]! - bends[1]!).toBeGreaterThan(2);
   });
 
+  it("bends further at every step AFTER `boost`, which is what reaches the screen (§10)", () => {
+    /**
+     * 2026-08-23, the day `boost` stopped being 1.
+     *
+     * Every law above reads the PHYSICS — `bendAt`, which knows nothing about `boost` — and the
+     * monotonicity law one screen up loops `bezel`, `thickness`, `ior` and `fringe` and not it.
+     * That was harmless while the multiplier was 1 on every rung and it is not any more: the
+     * eye pass bought its strength with `boost`, because twice the judged bends is over every
+     * rung's own clamp and no `thickness` reaches them.
+     *
+     * So the ladder could be made non-monotone in the one number that reaches a screen, with
+     * all nine laws green. This reads the applied bend — the value that becomes the filter's
+     * `scale` — and holds it to the same two claims the physics is held to.
+     */
+    const applied = LADDER.map((r) => peak(lens[r], CARD) * lens[r].boost);
+    expect(applied[0]).toBeLessThan(applied[1]!);
+    expect(applied[1]).toBeLessThan(applied[2]!);
+    // …and each step is still worth seeing once the multiplier is in. A rung whose `boost`
+    // undoes the depth it was given is two rungs drawing one lens.
+    expect(applied[1]! - applied[0]!).toBeGreaterThan(2);
+    expect(applied[2]! - applied[1]!).toBeGreaterThan(2);
+    // CALIBRATION: the multiplier must actually be doing something, or this law is the physics
+    // law again under a second name.
+    expect(
+      LADDER.some((r) => lens[r].boost !== 1),
+      "no rung boosts — this law is the physics law with extra arithmetic",
+    ).toBe(true);
+  });
+
   it("no rung saturates its own clamp, so each one draws the lens it asked for", () => {
     // `physicalMap` clamps the applied scale at the bezel — past that the displacement asks
     // for pixels outside the element's own backdrop and washes out instead of bending. A rung
