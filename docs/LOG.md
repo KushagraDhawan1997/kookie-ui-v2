@@ -28,6 +28,21 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 The composer's send button was not the loud one, and nobody had decided that
+
+**What.** `ComposerSend` defaults to `emphasis="loud"`. It shipped taking Button's `medium`.
+
+**Why.** Kushagra: *"why is send button not loud? Or is that something the caller can address?"* Both halves of the question have answers and they differ. The caller could always address it — `emphasis` spreads through — but the default was an omission rather than a decision, and a send button that ranks no higher than the model picker beside it names no primary action at all.
+
+**The argument was already written one component over.** §11 allows one focal point per surface, and the usual reason a component may not claim it is that it cannot know what else is on the surface. `AlertDialogAction` is the standing exception (§25) and its reasoning transfers verbatim: the rule is held by ANATOMY. A composer has exactly one send, the component places it, and every other control in the row belongs to the caller — so the one loud thing is the one the system owns.
+
+**It is a default, not an identity, and that is where it parts from the alert.** AlertDialog pins its two Buttons with no render escape because it owns that entire layout. A composer's row is the caller's, so the one control the system puts in it stays theirs to re-rank; a law mounts a stood-down send and asserts it moved.
+
+**The law's fixture is what makes it a law.** Reading the send button alone cannot tell a default of `loud` from a default of `medium`, so it is measured against both rungs as mounted Buttons, with a vacuity guard that the two rungs paint different fills at all. Sabotaged back to `medium`, it fails naming the fill it found.
+
+
+---
+
 ## 2026-08-23 The eye pass never happened, because it had been happening all along
 
 **What.** `v0` is deleted as a label. It was carried at ~60 sites across `config.ts`, `color-config.ts`,
@@ -82,8 +97,7 @@ describe the system as it is now, were swept.
 §10's 12px defense floor"*, three lines above the values stating `blur(8px)` — the floor was retired
 2026-08-16 when the lens shipped and the scrim was re-priced to 8 on 2026-08-17, and the prose was never
 brought along. Doc–code drift of exactly the kind this sweep exists to remove, corrected in the same
-change.
----
+change.---
 
 ## 2026-08-23 The glass bent by one amount at every thickness, and its bezel was a line
 

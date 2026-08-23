@@ -6,6 +6,7 @@
  * mechanism and a missing one give DIFFERENT answers — the degenerate-fixture rule (LOG
  * 2026-08-20), which Notice broke twice in one day the week this was written.
  */
+import type { ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 
 import { computed, mounted, within } from "../../test/browser.tsx";
@@ -376,5 +377,66 @@ describe("files arrive by the two routes that land on our own elements (§30)", 
     input.dispatchEvent(event);
     expect(seen).toHaveLength(0);
     expect(event.defaultPrevented).toBe(false);
+  });
+});
+
+describe("the send button is the composer's one loud thing (§11, §30)", () => {
+  /** A send button as the component places it, plus two Buttons to rank it against. */
+  const fillOf = (ui: ReactElement) =>
+    computed(mounted(ui, { theme: {} }), "background-color");
+
+  const sendFill = () =>
+    computed(
+      within(
+        mounted(
+          <Composer>
+            <ComposerInput aria-label="Message" />
+            <ComposerRow>
+              <ComposerSend />
+            </ComposerRow>
+          </Composer>,
+          { theme: {} },
+        ),
+        ".kui-composer-send",
+      ),
+      "background-color",
+    );
+
+  it("it rests at the loud rung, not the default one", () => {
+    // The FIXTURE is the point (2026-08-21): comparing the send button against itself, or
+    // against another ComposerSend, cannot tell a default of `loud` from a default of
+    // `medium`. Both neighbours are mounted, so the law names which rung it landed on.
+    expect(sendFill(), "a send button that ranks no higher than the model picker beside it")
+      .toBe(fillOf(<Button emphasis="loud">Send</Button>));
+  });
+
+  it("and the two rungs it is ranked against are actually different", () => {
+    // Vacuity: if loud and medium painted the same fill, the law above would hold under any
+    // default at all. It is the one arrangement in which this cannot be checked by itself.
+    expect(fillOf(<Button emphasis="loud">Send</Button>)).not.toBe(
+      fillOf(<Button emphasis="medium">Send</Button>),
+    );
+  });
+
+  it("the caller can still stand it down", () => {
+    // A default, not an identity. AlertDialogAction pins its Buttons because the component
+    // owns that whole layout; a composer's row is the caller's, so the one control the system
+    // does place there stays theirs to re-rank.
+    const quiet = computed(
+      within(
+        mounted(
+          <Composer>
+            <ComposerInput aria-label="Message" />
+            <ComposerRow>
+              <ComposerSend emphasis="quiet" />
+            </ComposerRow>
+          </Composer>,
+          { theme: {} },
+        ),
+        ".kui-composer-send",
+      ),
+      "background-color",
+    );
+    expect(quiet).not.toBe(sendFill());
   });
 });

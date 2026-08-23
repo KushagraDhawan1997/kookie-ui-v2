@@ -592,6 +592,7 @@ export const ENTRIES: Entry[] = [
       { name: "size", values: "1 | 2 | 3 | 4", note: "prices what the composer owns and stops there: the pane's padding, its corner, and the step its own text is set at. It does not reach the row. A button, a select or a field you put under the text keeps its own size, the same way a dialog does not resize the buttons you put in it — you priced them where you wrote them" },
       { name: "backdrop", values: "boolean", note: "says a conversation scrolls behind the composer, so the theme's material can show. The pane becomes the glass and everything inside it resolves solid, so the send button never paints a second layer" },
       { name: "status", values: "ready | submitted | streaming | error", note: "on ComposerSend. One button with four meanings: send, in flight, stop, retry. Streaming is the one that matters, because a person watching a reply arrive needs a way to end it" },
+      { name: "emphasis", values: "loud | medium | quiet", note: "on ComposerSend, which rests LOUD where every other button in the library rests medium. A composer has exactly one send, this component places it, and everything else in the row is yours — so the one thing the system puts there is the one thing allowed to be the focal point. Re-rank it if your row says otherwise" },
     ],
     refusals: [
       {

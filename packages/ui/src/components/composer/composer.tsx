@@ -287,6 +287,16 @@ const DEFAULT_LABELS: Record<ComposerStatus, string> = {
  */
 export function ComposerSend({
   status = "ready",
+  // LOUD by default (2026-08-23, Kushagra: "why is send button not loud?"). It shipped taking
+  // Button's `medium`, which was an omission and not a decision — a send button that reads the
+  // same as the model picker beside it names no primary action at all.
+  //
+  // §11 allows exactly one focal point per surface, and the usual reason a component may not
+  // default loud is that it cannot know what else is on the surface. AlertDialogAction is the
+  // standing exception (§25) and its argument transfers verbatim: the rule is held by ANATOMY.
+  // A composer has exactly one send, the component places it, and every other control in the
+  // row belongs to the caller — so the one loud thing is the one the system owns.
+  emphasis = "loud",
   onStop,
   labels,
   icons,
@@ -313,6 +323,7 @@ export function ComposerSend({
       // `submitted` is the one state that is genuinely busy; Button's own spinner says so, and
       // it disables the control for the duration without the caller stating it twice.
       loading={status === "submitted"}
+      emphasis={emphasis}
       disabled={disabled}
       className={className ? `kui-composer-send ${className}` : "kui-composer-send"}
       data-status={status}

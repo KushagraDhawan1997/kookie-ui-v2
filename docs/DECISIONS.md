@@ -1975,6 +1975,8 @@ It grows with `field-sizing: content`, which reached Baseline on 2026-06-16. Saf
 
 **`ComposerSend` is one button with four meanings**, driven by a `status` prop: `ready` sends, `submitted` shows a spinner, `streaming` stops, `error` retries. Each state carries its own accessible name.
 
+**It rests LOUD (2026-08-23, Kushagra: *"why is send button not loud?"*).** It shipped taking Button's `medium`, which was an omission rather than a decision — a send button ranking no higher than the model picker beside it names no primary action at all. §11 allows one focal point per surface, and the usual reason a component may not claim it is that it cannot know what else is on the surface; `AlertDialogAction` is the standing exception (§25) and its argument transfers verbatim, because the rule is held by ANATOMY: a composer has exactly one send, the component places it, and every other control in the row belongs to the caller — so the one loud thing is the one the system owns. It is a DEFAULT and not an identity, unlike the alert's pinned pair: the row is the caller's, so the one control the system puts in it stays theirs to re-rank.
+
 This replaces `sendMode` entirely. v1's prop decides whether the button is *visible*; it never decides what the button *means*, so **a person cannot stop a running generation** — the largest gap in the v1 component and one the audit missed. It also fixes v1's split contract, where the Enter key refuses to send an empty message and the button, invisible but still in the tab order, sends one.
 
 **`ComposerRow` is refused.** A row of buttons is a `Flex`. Nothing non-visual forces it, which is §10's rule, and the audit found five of v1's eleven parts were layout wearing a part's name.
