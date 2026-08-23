@@ -872,9 +872,24 @@
    :not([data-disabled]) on the row is what stands it down, letting a dead tick fall back to
    the dimmed inherited ink. The SVG glyph takes it through currentColor. Base UI stamps
    data-checked on a menu indicator and data-selected on a select indicator — two spellings
-   of the family's one selected state, keyed here without a row-level hop. */
+   of the family's one selected state, keyed here without a row-level hop.
+
+   --accent-GLYPH SINCE 2026-08-23, and the sentence above claiming "the same value the mark
+   family's ON state wears" was measurably wrong on the dark page. The paragraph had the
+   principle right — a glyph owes only the non-text floor — and then read the wrong value
+   against it: --accent-solid is one designed pigment in BOTH appearances (#0094fc), which
+   measures |Lc| 43.4 against dark's page and 43.0 against its seal, under the floor of 45 it
+   was being justified by. The glyph role is that floor solved per mode at the family's full
+   chroma, so this is the same claim finally holding rather than a new one.
+
+   The mark family's ON state deliberately does NOT follow. A checked box is a FILLED AREA and
+   answers apcaFloors.nonTextLarge (30), which --accent-solid clears with room; a tick is fine
+   detail at 45. §7 already states that split in so many words ("a big element is identifiable
+   with less boundary contrast than a small one... which is why a field's border and a
+   checkbox's ring are held to different floors"). What "one selected colour" survives as is
+   one selected FAMILY, which is what the sentence was always reaching for. */
 .kui-row:where(:not([data-disabled])) > [data-slot]:where([data-checked], [data-selected]) {
-  color: var(--accent-solid);
+  color: var(--accent-glyph);
 }
 
 /* ── Containment, orthogonal to loudness (§10) ───────────────────────────────────────────── */

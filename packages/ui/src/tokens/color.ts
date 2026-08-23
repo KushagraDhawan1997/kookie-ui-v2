@@ -173,6 +173,8 @@ export type Scale = {
   solidActive: string;
   contrast: string;
   label: string;
+  /** The family's own colour, placed where a small MARK is visible on this mode's page. */
+  glyph: string;
   isLowChroma: boolean;
 };
 
@@ -273,6 +275,79 @@ function solveControlEdge(mode: Mode, gamut: Gamut, target: number): string {
     if (worst(mid) >= target) hi = mid; else lo = mid;
   }
   return grey(hi, gamut);
+}
+
+/**
+ * THE GLYPH (§7, §11, decided 2026-08-23) — the most saturated version of a family's hue that
+ * a person can still see as a small mark on this mode's page.
+ *
+ * It exists because the SOLID does not survive as an icon and the INK is the wrong instrument.
+ * Measured against `apcaFloors.nonText`, `--accent-solid` misses on the dark page (|Lc| 43.4
+ * against 45) and a brand yellow, green or pale pink misses on the light one (19, 27, 23) —
+ * so the fill can never be the icon colour, because no single hex is legible on both white and
+ * black. That is not a property of our blue; it is a property of colour.
+ *
+ * The ink clears the floor everywhere, which made "just use the ink" the obvious answer, and
+ * measuring killed it: the ink is solved for READING (Lc 60+, and its muted rung is solved
+ * against `inkLc`), and meeting a higher bar costs saturation. A solved glyph is **1.3x to
+ * 2.2x more chromatic than the ink in every family and both modes** — for accent, `#0296ff`
+ * against the ink's `#2a6caa` in light, `#1999ff` against `#95c2f2` in dark. The first pair is
+ * a vivid blue beside a muted navy, which is the whole difference between an accent and a
+ * value that merely has a hue.
+ *
+ * WHAT IT IS, stated as the rule rather than as arithmetic: the accent, moved only as far as
+ * the page forces. In light it lands within a hair of the solid (`#0296ff` vs `#0094fc`)
+ * because the solid already clears the floor there; in dark it lifts, because that is the
+ * only direction legibility exists. That is `undilutedTones`' own distinction made concrete —
+ * chroma is held at the family's maximum and only LIGHTNESS moves.
+ *
+ * Chroma peaks at the hue's cusp and falls away from it in both directions, while contrast
+ * rises monotonically away from the bed. So the answer is the cusp when the cusp clears, and
+ * otherwise the nearest point to it that does — which is exactly what bisection finds, and
+ * why this needs no scan. `solveControlEdge`'s shape with the family's own hue in place of
+ * neutral's, measured against the harder of the seal and the page for its reason: a floor
+ * that only holds on one of the two surfaces every app puts marks on is not a floor.
+ *
+ * Contrast is read on the sRGB rendering even when emitting P3 (the `contrast` decision's own
+ * sentence — the choice belongs to the design, not to the monitor), and no `contrast="high"`
+ * variant exists because none is owed: Lc 45 IS the WCAG 1.4.11 non-text bar, so the glyph
+ * already conforms at rest in standard mode.
+ */
+function solveGlyph(hue: number, vividness: number, mode: Mode, gamut: Gamut): string {
+  const page = buildScaleFor(resolveTone(tones.neutral), mode, "srgb", "normal", true).steps[0]!;
+  const seal = alphaBackdrop(mode);
+  const target = apcaFloors.nonText;
+  const at = (l: number, g: Gamut) => {
+    const cMax = toGamut(oklch(l, 0.5, hue), "srgb").c;
+    return format(toGamut(oklch(l, cMax * vividness, hue), g), g);
+  };
+  const worst = (l: number) =>
+    Math.min(Math.abs(apcaLc(at(l, "srgb"), page)), Math.abs(apcaLc(at(l, "srgb"), seal)));
+  const cusp = cuspLightness(hue, gamut);
+  if (worst(cusp) >= target) return at(cusp, gamut);
+  // The cusp is too close to the bed, so walk AWAY from it — darker on a light page, lighter
+  // on a dark one — and stop at the first lightness that clears. Nearest-to-cusp is
+  // most-chromatic, so the boundary point is the answer rather than merely an answer.
+  let lo: number;
+  let hi: number;
+  if (mode === "light") {
+    lo = 0.02;
+    hi = cusp; // worst() falls as l rises here: find the LIGHTEST l still clearing
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (worst(mid) >= target) lo = mid;
+      else hi = mid;
+    }
+    return at(lo, gamut);
+  }
+  lo = cusp;
+  hi = 0.98; // dark: worst() rises with l — find the DARKEST l still clearing
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    if (worst(mid) >= target) hi = mid;
+    else lo = mid;
+  }
+  return at(hi, gamut);
 }
 
 /**
@@ -473,6 +548,10 @@ export function buildScaleFor(
     solidActive,
     contrast,
     label,
+    // Behind the same `stepsOnly` guard the alpha ramp is behind, and for the same reason:
+    // the solve reads the neutral page and the seal, both of which are built by this very
+    // function, so computing it on the steps-only pass is the cycle that guard exists to cut.
+    glyph: stepsOnly ? "" : solveGlyph(hue, vividness, mode, gamut),
     isLowChroma,
   };
 }
@@ -577,6 +656,10 @@ export function colorDeclarations(
       decl(`${tone}-text`, `var(--${tone}-11)`),
       decl(`${tone}-label`, s.label),
       decl(`${tone}-contrast`, s.contrast),
+      // The GLYPH (solved above): the family placed where a small mark is visible. Sits
+      // beside `contrast` because both are solved rather than picked off the ladder, and
+      // both answer a legibility question the steps cannot.
+      decl(`${tone}-glyph`, s.glyph),
       // The ink ladder (§15) — what the type emphasis rungs read when this family is chosen.
       // Loud is the family's ONE designed text colour: neutral 12 (a gray scale has twelve
       // grays), a chroma family's 11 (12 is its high-contrast variant, and 9/10 are solid

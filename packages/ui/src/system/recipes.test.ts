@@ -435,13 +435,21 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     expect(recipes).toContain(".kui-row[data-popup-open]:not([data-disabled])");
     // Checked speaks accent through the INDICATOR (reversed 2026-08-09 from whole-row
     // --accent-label ink: a text ink lives at steps 11-12 and read as dark emphasis, while
-    // a glyph owes only the non-text floor and can wear the mark family's own bright
-    // solid). The precedence fact survives the move: the accent is named directly, not a
-    // tone role, so the disabled arm's remap cannot reach it — the :not([data-disabled])
-    // on the ROW is what stands a dead tick down to the dimmed inherited ink.
+    // a glyph owes only the non-text floor). The precedence fact survives the move: the
+    // accent is named directly, not a tone role, so the disabled arm's remap cannot reach
+    // it — the :not([data-disabled]) on the ROW is what stands a dead tick down to the
+    // dimmed inherited ink.
+    //
+    // --accent-GLYPH since 2026-08-23. The clause this law used to pin said the tick wears
+    // "the mark family's own bright solid" and justified it by the non-text floor; measured,
+    // that solid is one hex in both appearances and misses the floor on the dark page
+    // (|Lc| 43.4 against 45). Same principle, the value that actually keeps it.
     const checked = ".kui-row:where(:not([data-disabled])) > [data-slot]:where([data-checked], [data-selected])";
     expect(recipes).toContain(checked);
-    expect(block(recipes, checked)).toContain("color: var(--accent-solid)");
+    expect(block(recipes, checked)).toContain("color: var(--accent-glyph)");
+    // The solid is gone from this rule, not merely joined by the glyph — a rule naming both
+    // would satisfy the line above while still painting whichever came second.
+    expect(block(recipes, checked)).not.toContain("var(--accent-solid)");
     // And no row rule paints the LABEL accent anymore — the reversal in the negative.
     expect(block(recipes, checked)).not.toContain("--kui-ct-label-color");
     expect(recipes).not.toContain("--kui-ct-label-color: var(--accent-label)");

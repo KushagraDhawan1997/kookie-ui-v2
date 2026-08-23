@@ -821,6 +821,10 @@ export const ROLES = [
   "text",
   "label",
   "contrast",
+  // The GLYPH (§7, §11, 2026-08-23): the family placed where a small MARK is visible on this
+  // mode's page. NOT a diluted role — chroma is held at the family's maximum and only
+  // lightness moves, which is the same distinction that lets the ink survive `undilutedTones`.
+  "glyph",
   // The ink ladder (§15): the type rungs' per-family resolutions. `text` stays what it was —
   // the surface layer consumes it — and ink is the type layer's own trio.
   "ink",

@@ -189,6 +189,7 @@ function roleValue(s: Scale, role: (typeof ROLES)[number], mode: Mode): string {
     case "ink": return s.steps[10]!;
     case "ink-muted": return `color-mix(in oklab, ${s.steps[10]!} ${solveInkFade(s.steps[10]!, mode, inkLc.muted)}%, transparent)`;
     case "ink-faint": return `color-mix(in oklab, ${s.steps[10]!} ${solveInkFade(s.steps[10]!, mode, inkLc.faint)}%, transparent)`;
+    case "glyph": return s.glyph;
     case "a3": return s.alpha[2]!;
     default: {
       const unmapped: never = role;
@@ -890,6 +891,7 @@ const ROLE_NOTES: Record<(typeof ROLES)[number], [string, string]> = {
   ink: ["step 12 (neutral) or step 11 (chroma)", "loud type — the rung's per-family text"],
   "ink-muted": ["step 11, or the ink faded to 74%", "medium type on a chosen tone"],
   "ink-faint": ["step 10, or the ink faded to 52%", "quiet type — timestamps, placeholders"],
+  glyph: ["generated, the hue at max chroma", "icons and small marks — the accent, placed"],
   a3: ["step 3 as alpha over the page", "the tone-forward surface fill (Notice)"],
 };
 

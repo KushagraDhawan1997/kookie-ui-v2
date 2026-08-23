@@ -100,7 +100,13 @@
   inline-size: var(--active-tab-width, 0);
   block-size: var(--tab-rule);
   border-radius: var(--tab-rule);
-  background-color: var(--tone-solid);
+  /* --tone-GLYPH, not --tone-solid (2026-08-23). The rule is 2px of fine detail, so it owes
+     the non-text floor, and the solid is one hex in both appearances: measured |Lc| 43.4 on
+     dark's page against a floor of 45. The glyph is that floor solved per mode at the
+     family's full chroma — in light it lands within a hair of the solid (#0095fe vs
+     #0094fc), so this is a dark-mode repair that costs light nothing. Read through the
+     indicator's own `data-tone="accent"` stamp, as before. */
+  background-color: var(--tone-glyph);
 }
 
 .kui-tab-rule[hidden] {

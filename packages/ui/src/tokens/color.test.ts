@@ -18,6 +18,7 @@ import {
 } from "./color-config.ts";
 import { dress, surfaceColor } from "./config.ts";
 import {
+  alphaBackdrop,
   apcaLc,
   buildScale,
   buildScaleFor,
@@ -1056,5 +1057,93 @@ describe("the invalid edge clears the non-text floor, in both modes (§8, WCAG 1
       const emitted = declarationsFor(mode).find((l) => l.includes("--invalid-edge:"));
       expect(emitted).toContain(mode === "dark" ? "var(--destructive-11)" : "var(--destructive-solid)");
     }
+  });
+});
+
+
+/**
+ * THE GLYPH (§7, §11, 2026-08-23) — the family's own colour, placed where a small mark is
+ * visible on this mode's page.
+ *
+ * The role exists because the two obvious candidates both fail, and BOTH failures are pinned
+ * below rather than described. The SOLID misses the non-text floor on the dark page, so a
+ * mark cannot wear the fill. The INK clears it everywhere and is therefore the tempting
+ * answer — "just use the ink" was my own first proposal — but it is solved for READING, and
+ * meeting a higher bar costs saturation, so an accent icon in the ink is a muted navy rather
+ * than the colour somebody chose.
+ */
+describe("the glyph clears the floor a small mark owes, at the family's own chroma", () => {
+  const chromaOf = (hex: string) => toOklch(hex)!.c ?? 0;
+
+  for (const mode of MODES) {
+    it(`${mode}: every family's glyph clears the non-text floor on BOTH beds`, () => {
+      const page = buildScaleFor(resolveTone(tones.neutral), mode, "srgb").steps[0]!;
+      const seal = alphaBackdrop(mode);
+      for (const tone of TONES) {
+        const { glyph } = buildScale(tone, mode);
+        for (const [bed, name] of [[page, "page"], [seal, "seal"]] as const) {
+          expect(
+            Math.abs(apcaLc(glyph, bed)),
+            `${tone}'s glyph on the ${name}`,
+          ).toBeGreaterThanOrEqual(apcaFloors.nonText);
+        }
+      }
+    });
+
+    it(`${mode}: it is the FAMILY, not a value that merely clears the floor`, () => {
+      // The guard that stops the law above being satisfied by black. A solve that returned
+      // the darkest thing available would pass every contrast assertion in this file and
+      // would be useless — so the glyph is held to most of the chroma the hue can hold at its
+      // own cusp, which is the property the role is FOR.
+      for (const tone of TONES) {
+        const t = resolveTone(tones[tone]);
+        if (t.vividness < lowChromaThreshold) continue; // a grey has no chroma to keep
+        const { glyph, steps } = buildScale(tone, mode);
+        expect(chromaOf(glyph), `${tone}'s glyph went grey`).toBeGreaterThan(0.05);
+        // And more chromatic than the ink, which is the entire reason it is not the ink.
+        expect(chromaOf(glyph), `${tone}'s glyph is no more vivid than its ink`).toBeGreaterThan(
+          chromaOf(steps[10]!),
+        );
+      }
+    });
+  }
+
+  it("the SOLID is what fails — the measurement the role was minted for", () => {
+    /**
+     * THE INPUT MATTERS AS MUCH AS THE OUTPUT (2026-08-20). Every assertion above is a floor,
+     * and a floor law passes on a system that never had a problem — so this law measures the
+     * thing that was BROKEN and asserts it is still broken, which is what makes the others
+     * mean something. If the solid ever starts clearing the non-text floor everywhere, the
+     * glyph role has become redundant and somebody should find out here rather than never.
+     *
+     * Dark is where it bites for our own blue (|Lc| 43.4 against a floor of 45), and the
+     * general case is worse: a brand yellow, green or pale pink measures 19, 27 and 23 as a
+     * light-mode icon. No single hex is legible on both white and black, which is why a fill
+     * can never be a glyph — a property of colour, not of this palette.
+     */
+    const misses: string[] = [];
+    for (const mode of MODES) {
+      const page = buildScaleFor(resolveTone(tones.neutral), mode, "srgb").steps[0]!;
+      for (const tone of TONES) {
+        const { solid } = buildScale(tone, mode);
+        if (Math.abs(apcaLc(solid, page)) < apcaFloors.nonText) misses.push(`${tone}/${mode}`);
+      }
+    }
+    expect(misses, "no shipped solid misses the glyph floor any more").not.toHaveLength(0);
+    expect(misses, "accent's dark solid was the forcing case").toContain("accent/dark");
+  });
+
+  it("and the emitted role carries it — accent included, because a glyph is PLACED not faded", () => {
+    for (const mode of MODES) {
+      const lines = declarationsFor(mode);
+      for (const tone of TONES) {
+        const { glyph } = buildScale(tone, mode);
+        expect(lines, `--${tone}-glyph`).toContain(`  --${tone}-glyph: ${glyph};`);
+      }
+    }
+    // The indirection hands accent its OWN glyph rather than neutral's: chroma is held at the
+    // family's maximum and only lightness moves, which is exactly what `undilutedTones`
+    // permits. A glyph in neutral would be the doctrine misread as "accent appears less".
+    expect(emitted).toContain("--tone-glyph: var(--accent-glyph);");
   });
 });

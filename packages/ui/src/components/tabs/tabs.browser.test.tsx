@@ -133,11 +133,23 @@ describe("the rule (§26)", () => {
   });
 
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: it paints the accent solid — one selected colour, system-wide`, () => {
+    it(`${appearance}: it paints the accent GLYPH — the floor a 2px mark owes`, () => {
+      // --accent-glyph since 2026-08-23, and the swap is a dark-mode repair. The rule is fine
+      // detail, so it owes `apcaFloors.nonText`; the solid is ONE hex in both appearances and
+      // measured |Lc| 43.4 on dark's page, under that floor. The glyph is the floor solved per
+      // mode at the family's full chroma — in light it lands within a hair of the solid
+      // (#0095fe vs #0094fc), so nothing visible moved there.
       const root = bar("2", { appearance });
-      expect(computed(ruleOf(root), "background-color")).toBe(
-        colorOn(root, "var(--accent-solid)"),
-      );
+      expect(computed(ruleOf(root), "background-color")).toBe(colorOn(root, "var(--accent-glyph)"));
+      // In DARK the two genuinely differ, which is what makes this law fail on a revert rather
+      // than pass on a coincidence. Light is deliberately not asserted apart: there the solve
+      // lands beside the solid, and demanding a difference would pin an accident.
+      if (appearance === "dark") {
+        expect(
+          computed(ruleOf(root), "background-color"),
+          "the rule went back to the solid",
+        ).not.toBe(colorOn(root, "var(--accent-solid)"));
+      }
     });
   }
 

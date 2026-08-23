@@ -372,6 +372,7 @@
   --neutral-text: var(--neutral-11);
   --neutral-label: #454648;
   --neutral-contrast: #ffffff;
+  --neutral-glyph: #8f9397;
   --neutral-ink: var(--neutral-12);
   --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
   --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
@@ -413,6 +414,7 @@
   --accent-text: var(--accent-11);
   --accent-label: #23486e;
   --accent-contrast: #ffffff;
+  --accent-glyph: #0095fe;
   --accent-ink: var(--accent-11);
   --accent-ink-muted: color-mix(in oklab, var(--accent-11) 77%, transparent);
   --accent-ink-faint: color-mix(in oklab, var(--accent-11) 37%, transparent);
@@ -454,6 +456,7 @@
   --destructive-text: var(--destructive-11);
   --destructive-label: #6c3230;
   --destructive-contrast: #ffffff;
+  --destructive-glyph: #e7494e;
   --destructive-ink: var(--destructive-11);
   --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 73%, transparent);
   --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 35%, transparent);
@@ -495,6 +498,7 @@
   --blue-text: var(--blue-11);
   --blue-label: #23486e;
   --blue-contrast: #ffffff;
+  --blue-glyph: #0095fe;
   --blue-ink: var(--blue-11);
   --blue-ink-muted: color-mix(in oklab, var(--blue-11) 77%, transparent);
   --blue-ink-faint: color-mix(in oklab, var(--blue-11) 37%, transparent);
@@ -536,6 +540,7 @@
   --green-text: var(--green-11);
   --green-label: #255130;
   --green-contrast: #000000;
+  --green-glyph: #00c059;
   --green-ink: var(--green-11);
   --green-ink-muted: color-mix(in oklab, var(--green-11) 78%, transparent);
   --green-ink-faint: color-mix(in oklab, var(--green-11) 38%, transparent);
@@ -577,6 +582,7 @@
   --orange-text: var(--orange-11);
   --orange-label: #673822;
   --orange-contrast: #ffffff;
+  --orange-glyph: #fb6d16;
   --orange-ink: var(--orange-11);
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
   --orange-ink-faint: color-mix(in oklab, var(--orange-11) 36%, transparent);
@@ -618,6 +624,7 @@
   --amber-text: var(--amber-11);
   --amber-label: #544325;
   --amber-contrast: #000000;
+  --amber-glyph: #d69e30;
   --amber-ink: var(--amber-11);
   --amber-ink-muted: color-mix(in oklab, var(--amber-11) 77%, transparent);
   --amber-ink-faint: color-mix(in oklab, var(--amber-11) 38%, transparent);
@@ -659,6 +666,7 @@
   --success-text: var(--success-11);
   --success-label: #255130;
   --success-contrast: #000000;
+  --success-glyph: #00c059;
   --success-ink: var(--success-11);
   --success-ink-muted: color-mix(in oklab, var(--success-11) 78%, transparent);
   --success-ink-faint: color-mix(in oklab, var(--success-11) 38%, transparent);
@@ -700,6 +708,7 @@
   --warning-text: var(--warning-11);
   --warning-label: #544325;
   --warning-contrast: #000000;
+  --warning-glyph: #d69e30;
   --warning-ink: var(--warning-11);
   --warning-ink-muted: color-mix(in oklab, var(--warning-11) 77%, transparent);
   --warning-ink-faint: color-mix(in oklab, var(--warning-11) 38%, transparent);
@@ -741,6 +750,7 @@
   --info-text: var(--info-11);
   --info-label: #23486e;
   --info-contrast: #ffffff;
+  --info-glyph: #0095fe;
   --info-ink: var(--info-11);
   --info-ink-muted: color-mix(in oklab, var(--info-11) 77%, transparent);
   --info-ink-faint: color-mix(in oklab, var(--info-11) 37%, transparent);
@@ -1001,6 +1011,7 @@
   --neutral-text: var(--neutral-11);
   --neutral-label: #454648;
   --neutral-contrast: #ffffff;
+  --neutral-glyph: #8f9397;
   --neutral-ink: var(--neutral-12);
   --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
   --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
@@ -1042,6 +1053,7 @@
   --accent-text: var(--accent-11);
   --accent-label: #23486e;
   --accent-contrast: #ffffff;
+  --accent-glyph: #0095fe;
   --accent-ink: var(--accent-11);
   --accent-ink-muted: color-mix(in oklab, var(--accent-11) 77%, transparent);
   --accent-ink-faint: color-mix(in oklab, var(--accent-11) 37%, transparent);
@@ -1083,6 +1095,7 @@
   --destructive-text: var(--destructive-11);
   --destructive-label: #6c3230;
   --destructive-contrast: #ffffff;
+  --destructive-glyph: #e7494e;
   --destructive-ink: var(--destructive-11);
   --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 73%, transparent);
   --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 35%, transparent);
@@ -1124,6 +1137,7 @@
   --blue-text: var(--blue-11);
   --blue-label: #23486e;
   --blue-contrast: #ffffff;
+  --blue-glyph: #0095fe;
   --blue-ink: var(--blue-11);
   --blue-ink-muted: color-mix(in oklab, var(--blue-11) 77%, transparent);
   --blue-ink-faint: color-mix(in oklab, var(--blue-11) 37%, transparent);
@@ -1165,6 +1179,7 @@
   --green-text: var(--green-11);
   --green-label: #255130;
   --green-contrast: #000000;
+  --green-glyph: #00c059;
   --green-ink: var(--green-11);
   --green-ink-muted: color-mix(in oklab, var(--green-11) 78%, transparent);
   --green-ink-faint: color-mix(in oklab, var(--green-11) 38%, transparent);
@@ -1206,6 +1221,7 @@
   --orange-text: var(--orange-11);
   --orange-label: #673822;
   --orange-contrast: #ffffff;
+  --orange-glyph: #fb6d16;
   --orange-ink: var(--orange-11);
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
   --orange-ink-faint: color-mix(in oklab, var(--orange-11) 36%, transparent);
@@ -1247,6 +1263,7 @@
   --amber-text: var(--amber-11);
   --amber-label: #544325;
   --amber-contrast: #000000;
+  --amber-glyph: #d69e30;
   --amber-ink: var(--amber-11);
   --amber-ink-muted: color-mix(in oklab, var(--amber-11) 77%, transparent);
   --amber-ink-faint: color-mix(in oklab, var(--amber-11) 38%, transparent);
@@ -1288,6 +1305,7 @@
   --success-text: var(--success-11);
   --success-label: #255130;
   --success-contrast: #000000;
+  --success-glyph: #00c059;
   --success-ink: var(--success-11);
   --success-ink-muted: color-mix(in oklab, var(--success-11) 78%, transparent);
   --success-ink-faint: color-mix(in oklab, var(--success-11) 38%, transparent);
@@ -1329,6 +1347,7 @@
   --warning-text: var(--warning-11);
   --warning-label: #544325;
   --warning-contrast: #000000;
+  --warning-glyph: #d69e30;
   --warning-ink: var(--warning-11);
   --warning-ink-muted: color-mix(in oklab, var(--warning-11) 77%, transparent);
   --warning-ink-faint: color-mix(in oklab, var(--warning-11) 38%, transparent);
@@ -1370,6 +1389,7 @@
   --info-text: var(--info-11);
   --info-label: #23486e;
   --info-contrast: #ffffff;
+  --info-glyph: #0095fe;
   --info-ink: var(--info-11);
   --info-ink-muted: color-mix(in oklab, var(--info-11) 77%, transparent);
   --info-ink-faint: color-mix(in oklab, var(--info-11) 37%, transparent);
@@ -1630,6 +1650,7 @@
   --neutral-text: var(--neutral-11);
   --neutral-label: #d1d2d3;
   --neutral-contrast: #000000;
+  --neutral-glyph: #93979a;
   --neutral-ink: var(--neutral-12);
   --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 74%, transparent);
   --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 48%, transparent);
@@ -1671,6 +1692,7 @@
   --accent-text: var(--accent-11);
   --accent-label: #bbd5f1;
   --accent-contrast: #ffffff;
+  --accent-glyph: #1999ff;
   --accent-ink: var(--accent-11);
   --accent-ink-muted: color-mix(in oklab, var(--accent-11) 94%, transparent);
   --accent-ink-faint: color-mix(in oklab, var(--accent-11) 60%, transparent);
@@ -1712,6 +1734,7 @@
   --destructive-text: var(--destructive-11);
   --destructive-label: #ebc9c6;
   --destructive-contrast: #ffffff;
+  --destructive-glyph: #eb6f6d;
   --destructive-ink: var(--destructive-11);
   --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 95%, transparent);
   --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 61%, transparent);
@@ -1753,6 +1776,7 @@
   --blue-text: var(--blue-11);
   --blue-label: #bbd5f1;
   --blue-contrast: #ffffff;
+  --blue-glyph: #1999ff;
   --blue-ink: var(--blue-11);
   --blue-ink-muted: color-mix(in oklab, var(--blue-11) 94%, transparent);
   --blue-ink-faint: color-mix(in oklab, var(--blue-11) 60%, transparent);
@@ -1794,6 +1818,7 @@
   --green-text: var(--green-11);
   --green-label: #79f097;
   --green-contrast: #000000;
+  --green-glyph: #00fd78;
   --green-ink: var(--green-11);
   --green-ink-muted: color-mix(in oklab, var(--green-11) 91%, transparent);
   --green-ink-faint: color-mix(in oklab, var(--green-11) 58%, transparent);
@@ -1835,6 +1860,7 @@
   --orange-text: var(--orange-11);
   --orange-label: #f1c8b6;
   --orange-contrast: #ffffff;
+  --orange-glyph: #fb6d16;
   --orange-ink: var(--orange-11);
   --orange-ink-muted: color-mix(in oklab, var(--orange-11) 95%, transparent);
   --orange-ink-faint: color-mix(in oklab, var(--orange-11) 60%, transparent);
@@ -1876,6 +1902,7 @@
   --amber-text: var(--amber-11);
   --amber-label: #eecd95;
   --amber-contrast: #000000;
+  --amber-glyph: #f7b838;
   --amber-ink: var(--amber-11);
   --amber-ink-muted: color-mix(in oklab, var(--amber-11) 94%, transparent);
   --amber-ink-faint: color-mix(in oklab, var(--amber-11) 60%, transparent);
@@ -1917,6 +1944,7 @@
   --success-text: var(--success-11);
   --success-label: #79f097;
   --success-contrast: #000000;
+  --success-glyph: #00fd78;
   --success-ink: var(--success-11);
   --success-ink-muted: color-mix(in oklab, var(--success-11) 91%, transparent);
   --success-ink-faint: color-mix(in oklab, var(--success-11) 58%, transparent);
@@ -1958,6 +1986,7 @@
   --warning-text: var(--warning-11);
   --warning-label: #eecd95;
   --warning-contrast: #000000;
+  --warning-glyph: #f7b838;
   --warning-ink: var(--warning-11);
   --warning-ink-muted: color-mix(in oklab, var(--warning-11) 94%, transparent);
   --warning-ink-faint: color-mix(in oklab, var(--warning-11) 60%, transparent);
@@ -1999,6 +2028,7 @@
   --info-text: var(--info-11);
   --info-label: #bbd5f1;
   --info-contrast: #ffffff;
+  --info-glyph: #1999ff;
   --info-ink: var(--info-11);
   --info-ink-muted: color-mix(in oklab, var(--info-11) 94%, transparent);
   --info-ink-faint: color-mix(in oklab, var(--info-11) 60%, transparent);
@@ -2251,6 +2281,7 @@
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.2697 0.2751 0.282);
     --neutral-contrast: #ffffff;
+    --neutral-glyph: color(display-p3 0.5162 0.527 0.5407);
     --neutral-ink: var(--neutral-12);
     --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
     --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
@@ -2280,6 +2311,7 @@
     --accent-text: var(--accent-11);
     --accent-label: color(display-p3 0.1341 0.2781 0.4584);
     --accent-contrast: #ffffff;
+    --accent-glyph: color(display-p3 0.2329 0.5284 0.8902);
     --accent-ink: var(--accent-11);
     --accent-ink-muted: color-mix(in oklab, var(--accent-11) 77%, transparent);
     --accent-ink-faint: color-mix(in oklab, var(--accent-11) 37%, transparent);
@@ -2309,6 +2341,7 @@
     --destructive-text: var(--destructive-11);
     --destructive-label: color(display-p3 0.4082 0.1959 0.1861);
     --destructive-contrast: #ffffff;
+    --destructive-glyph: color(display-p3 0.846 0.3798 0.3667);
     --destructive-ink: var(--destructive-11);
     --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 73%, transparent);
     --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 35%, transparent);
@@ -2338,6 +2371,7 @@
     --blue-text: var(--blue-11);
     --blue-label: color(display-p3 0.1341 0.2781 0.4584);
     --blue-contrast: #ffffff;
+    --blue-glyph: color(display-p3 0.2329 0.5284 0.8902);
     --blue-ink: var(--blue-11);
     --blue-ink-muted: color-mix(in oklab, var(--blue-11) 77%, transparent);
     --blue-ink-faint: color-mix(in oklab, var(--blue-11) 37%, transparent);
@@ -2367,6 +2401,7 @@
     --green-text: var(--green-11);
     --green-label: color(display-p3 0.1428 0.3274 0.167);
     --green-contrast: #000000;
+    --green-glyph: color(display-p3 0.3391 0.7436 0.3952);
     --green-ink: var(--green-11);
     --green-ink-muted: color-mix(in oklab, var(--green-11) 78%, transparent);
     --green-ink-faint: color-mix(in oklab, var(--green-11) 38%, transparent);
@@ -2396,6 +2431,7 @@
     --orange-text: var(--orange-11);
     --orange-label: color(display-p3 0.3904 0.2197 0.1303);
     --orange-contrast: #ffffff;
+    --orange-glyph: color(display-p3 0.9248 0.5035 0.277);
     --orange-ink: var(--orange-11);
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
     --orange-ink-faint: color-mix(in oklab, var(--orange-11) 36%, transparent);
@@ -2425,6 +2461,7 @@
     --amber-text: var(--amber-11);
     --amber-label: color(display-p3 0.3267 0.2636 0.1433);
     --amber-contrast: #000000;
+    --amber-glyph: color(display-p3 0.8072 0.6305 0.2781);
     --amber-ink: var(--amber-11);
     --amber-ink-muted: color-mix(in oklab, var(--amber-11) 77%, transparent);
     --amber-ink-faint: color-mix(in oklab, var(--amber-11) 38%, transparent);
@@ -2454,6 +2491,7 @@
     --success-text: var(--success-11);
     --success-label: color(display-p3 0.1428 0.3274 0.167);
     --success-contrast: #000000;
+    --success-glyph: color(display-p3 0.3391 0.7436 0.3952);
     --success-ink: var(--success-11);
     --success-ink-muted: color-mix(in oklab, var(--success-11) 78%, transparent);
     --success-ink-faint: color-mix(in oklab, var(--success-11) 38%, transparent);
@@ -2483,6 +2521,7 @@
     --warning-text: var(--warning-11);
     --warning-label: color(display-p3 0.3267 0.2636 0.1433);
     --warning-contrast: #000000;
+    --warning-glyph: color(display-p3 0.8072 0.6305 0.2781);
     --warning-ink: var(--warning-11);
     --warning-ink-muted: color-mix(in oklab, var(--warning-11) 77%, transparent);
     --warning-ink-faint: color-mix(in oklab, var(--warning-11) 38%, transparent);
@@ -2512,6 +2551,7 @@
     --info-text: var(--info-11);
     --info-label: color(display-p3 0.1341 0.2781 0.4584);
     --info-contrast: #ffffff;
+    --info-glyph: color(display-p3 0.2329 0.5284 0.8902);
     --info-ink: var(--info-11);
     --info-ink-muted: color-mix(in oklab, var(--info-11) 77%, transparent);
     --info-ink-faint: color-mix(in oklab, var(--info-11) 37%, transparent);
@@ -2550,6 +2590,7 @@
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.2697 0.2751 0.282);
     --neutral-contrast: #ffffff;
+    --neutral-glyph: color(display-p3 0.5162 0.527 0.5407);
     --neutral-ink: var(--neutral-12);
     --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
     --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
@@ -2579,6 +2620,7 @@
     --accent-text: var(--accent-11);
     --accent-label: color(display-p3 0.1341 0.2781 0.4584);
     --accent-contrast: #ffffff;
+    --accent-glyph: color(display-p3 0.2329 0.5284 0.8902);
     --accent-ink: var(--accent-11);
     --accent-ink-muted: color-mix(in oklab, var(--accent-11) 77%, transparent);
     --accent-ink-faint: color-mix(in oklab, var(--accent-11) 37%, transparent);
@@ -2608,6 +2650,7 @@
     --destructive-text: var(--destructive-11);
     --destructive-label: color(display-p3 0.4082 0.1959 0.1861);
     --destructive-contrast: #ffffff;
+    --destructive-glyph: color(display-p3 0.846 0.3798 0.3667);
     --destructive-ink: var(--destructive-11);
     --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 73%, transparent);
     --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 35%, transparent);
@@ -2637,6 +2680,7 @@
     --blue-text: var(--blue-11);
     --blue-label: color(display-p3 0.1341 0.2781 0.4584);
     --blue-contrast: #ffffff;
+    --blue-glyph: color(display-p3 0.2329 0.5284 0.8902);
     --blue-ink: var(--blue-11);
     --blue-ink-muted: color-mix(in oklab, var(--blue-11) 77%, transparent);
     --blue-ink-faint: color-mix(in oklab, var(--blue-11) 37%, transparent);
@@ -2666,6 +2710,7 @@
     --green-text: var(--green-11);
     --green-label: color(display-p3 0.1428 0.3274 0.167);
     --green-contrast: #000000;
+    --green-glyph: color(display-p3 0.3391 0.7436 0.3952);
     --green-ink: var(--green-11);
     --green-ink-muted: color-mix(in oklab, var(--green-11) 78%, transparent);
     --green-ink-faint: color-mix(in oklab, var(--green-11) 38%, transparent);
@@ -2695,6 +2740,7 @@
     --orange-text: var(--orange-11);
     --orange-label: color(display-p3 0.3904 0.2197 0.1303);
     --orange-contrast: #ffffff;
+    --orange-glyph: color(display-p3 0.9248 0.5035 0.277);
     --orange-ink: var(--orange-11);
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 74%, transparent);
     --orange-ink-faint: color-mix(in oklab, var(--orange-11) 36%, transparent);
@@ -2724,6 +2770,7 @@
     --amber-text: var(--amber-11);
     --amber-label: color(display-p3 0.3267 0.2636 0.1433);
     --amber-contrast: #000000;
+    --amber-glyph: color(display-p3 0.8072 0.6305 0.2781);
     --amber-ink: var(--amber-11);
     --amber-ink-muted: color-mix(in oklab, var(--amber-11) 77%, transparent);
     --amber-ink-faint: color-mix(in oklab, var(--amber-11) 38%, transparent);
@@ -2753,6 +2800,7 @@
     --success-text: var(--success-11);
     --success-label: color(display-p3 0.1428 0.3274 0.167);
     --success-contrast: #000000;
+    --success-glyph: color(display-p3 0.3391 0.7436 0.3952);
     --success-ink: var(--success-11);
     --success-ink-muted: color-mix(in oklab, var(--success-11) 78%, transparent);
     --success-ink-faint: color-mix(in oklab, var(--success-11) 38%, transparent);
@@ -2782,6 +2830,7 @@
     --warning-text: var(--warning-11);
     --warning-label: color(display-p3 0.3267 0.2636 0.1433);
     --warning-contrast: #000000;
+    --warning-glyph: color(display-p3 0.8072 0.6305 0.2781);
     --warning-ink: var(--warning-11);
     --warning-ink-muted: color-mix(in oklab, var(--warning-11) 77%, transparent);
     --warning-ink-faint: color-mix(in oklab, var(--warning-11) 38%, transparent);
@@ -2811,6 +2860,7 @@
     --info-text: var(--info-11);
     --info-label: color(display-p3 0.1341 0.2781 0.4584);
     --info-contrast: #ffffff;
+    --info-glyph: color(display-p3 0.2329 0.5284 0.8902);
     --info-ink: var(--info-11);
     --info-ink-muted: color-mix(in oklab, var(--info-11) 77%, transparent);
     --info-ink-faint: color-mix(in oklab, var(--info-11) 37%, transparent);
@@ -2849,6 +2899,7 @@
     --neutral-text: var(--neutral-11);
     --neutral-label: color(display-p3 0.8195 0.8231 0.8275);
     --neutral-contrast: #000000;
+    --neutral-glyph: color(display-p3 0.5784 0.5897 0.6041);
     --neutral-ink: var(--neutral-12);
     --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 74%, transparent);
     --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 48%, transparent);
@@ -2878,6 +2929,7 @@
     --accent-text: var(--accent-11);
     --accent-label: color(display-p3 0.7454 0.8333 0.9453);
     --accent-contrast: #ffffff;
+    --accent-glyph: color(display-p3 0.281 0.5892 0.9702);
     --accent-ink: var(--accent-11);
     --accent-ink-muted: color-mix(in oklab, var(--accent-11) 94%, transparent);
     --accent-ink-faint: color-mix(in oklab, var(--accent-11) 60%, transparent);
@@ -2907,6 +2959,7 @@
     --destructive-text: var(--destructive-11);
     --destructive-label: color(display-p3 0.9197 0.7821 0.7678);
     --destructive-contrast: #ffffff;
+    --destructive-glyph: color(display-p3 0.8594 0.4621 0.4411);
     --destructive-ink: var(--destructive-11);
     --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 95%, transparent);
     --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 61%, transparent);
@@ -2936,6 +2989,7 @@
     --blue-text: var(--blue-11);
     --blue-label: color(display-p3 0.7454 0.8333 0.9453);
     --blue-contrast: #ffffff;
+    --blue-glyph: color(display-p3 0.281 0.5892 0.9702);
     --blue-ink: var(--blue-11);
     --blue-ink-muted: color-mix(in oklab, var(--blue-11) 94%, transparent);
     --blue-ink-faint: color-mix(in oklab, var(--blue-11) 60%, transparent);
@@ -2965,6 +3019,7 @@
     --green-text: var(--green-11);
     --green-label: color(display-p3 0.5163 0.9526 0.5668);
     --green-contrast: #000000;
+    --green-glyph: color(display-p3 0.4408 0.9497 0.5114);
     --green-ink: var(--green-11);
     --green-ink-muted: color-mix(in oklab, var(--green-11) 91%, transparent);
     --green-ink-faint: color-mix(in oklab, var(--green-11) 58%, transparent);
@@ -2994,6 +3049,7 @@
     --orange-text: var(--orange-11);
     --orange-label: color(display-p3 0.9435 0.7797 0.6953);
     --orange-contrast: #ffffff;
+    --orange-glyph: color(display-p3 0.9248 0.5035 0.277);
     --orange-ink: var(--orange-11);
     --orange-ink-muted: color-mix(in oklab, var(--orange-11) 95%, transparent);
     --orange-ink-faint: color-mix(in oklab, var(--orange-11) 60%, transparent);
@@ -3023,6 +3079,7 @@
     --amber-text: var(--amber-11);
     --amber-label: color(display-p3 0.9342 0.8022 0.5546);
     --amber-contrast: #000000;
+    --amber-glyph: color(display-p3 0.9417 0.7441 0.3541);
     --amber-ink: var(--amber-11);
     --amber-ink-muted: color-mix(in oklab, var(--amber-11) 94%, transparent);
     --amber-ink-faint: color-mix(in oklab, var(--amber-11) 60%, transparent);
@@ -3052,6 +3109,7 @@
     --success-text: var(--success-11);
     --success-label: color(display-p3 0.5163 0.9526 0.5668);
     --success-contrast: #000000;
+    --success-glyph: color(display-p3 0.4408 0.9497 0.5114);
     --success-ink: var(--success-11);
     --success-ink-muted: color-mix(in oklab, var(--success-11) 91%, transparent);
     --success-ink-faint: color-mix(in oklab, var(--success-11) 58%, transparent);
@@ -3081,6 +3139,7 @@
     --warning-text: var(--warning-11);
     --warning-label: color(display-p3 0.9342 0.8022 0.5546);
     --warning-contrast: #000000;
+    --warning-glyph: color(display-p3 0.9417 0.7441 0.3541);
     --warning-ink: var(--warning-11);
     --warning-ink-muted: color-mix(in oklab, var(--warning-11) 94%, transparent);
     --warning-ink-faint: color-mix(in oklab, var(--warning-11) 60%, transparent);
@@ -3110,6 +3169,7 @@
     --info-text: var(--info-11);
     --info-label: color(display-p3 0.7454 0.8333 0.9453);
     --info-contrast: #ffffff;
+    --info-glyph: color(display-p3 0.281 0.5892 0.9702);
     --info-ink: var(--info-11);
     --info-ink-muted: color-mix(in oklab, var(--info-11) 94%, transparent);
     --info-ink-faint: color-mix(in oklab, var(--info-11) 60%, transparent);
@@ -4527,6 +4587,7 @@
   --tone-text: var(--neutral-text);
   --tone-label: var(--neutral-label);
   --tone-contrast: var(--neutral-contrast);
+  --tone-glyph: var(--neutral-glyph);
   --tone-ink: var(--neutral-ink);
   --tone-ink-muted: var(--neutral-ink-muted);
   --tone-ink-faint: var(--neutral-ink-faint);
@@ -4547,6 +4608,7 @@
   --tone-text: var(--accent-text);
   --tone-label: var(--accent-label);
   --tone-contrast: var(--accent-contrast);
+  --tone-glyph: var(--accent-glyph);
   --tone-ink: var(--accent-ink);
   --tone-ink-muted: var(--neutral-ink-muted);
   --tone-ink-faint: var(--neutral-ink-faint);
@@ -4567,6 +4629,7 @@
   --tone-text: var(--destructive-text);
   --tone-label: var(--destructive-label);
   --tone-contrast: var(--destructive-contrast);
+  --tone-glyph: var(--destructive-glyph);
   --tone-ink: var(--destructive-ink);
   --tone-ink-muted: var(--destructive-ink-muted);
   --tone-ink-faint: var(--destructive-ink-faint);
@@ -4587,6 +4650,7 @@
   --tone-text: var(--blue-text);
   --tone-label: var(--blue-label);
   --tone-contrast: var(--blue-contrast);
+  --tone-glyph: var(--blue-glyph);
   --tone-ink: var(--blue-ink);
   --tone-ink-muted: var(--blue-ink-muted);
   --tone-ink-faint: var(--blue-ink-faint);
@@ -4607,6 +4671,7 @@
   --tone-text: var(--green-text);
   --tone-label: var(--green-label);
   --tone-contrast: var(--green-contrast);
+  --tone-glyph: var(--green-glyph);
   --tone-ink: var(--green-ink);
   --tone-ink-muted: var(--green-ink-muted);
   --tone-ink-faint: var(--green-ink-faint);
@@ -4627,6 +4692,7 @@
   --tone-text: var(--orange-text);
   --tone-label: var(--orange-label);
   --tone-contrast: var(--orange-contrast);
+  --tone-glyph: var(--orange-glyph);
   --tone-ink: var(--orange-ink);
   --tone-ink-muted: var(--orange-ink-muted);
   --tone-ink-faint: var(--orange-ink-faint);
@@ -4647,6 +4713,7 @@
   --tone-text: var(--amber-text);
   --tone-label: var(--amber-label);
   --tone-contrast: var(--amber-contrast);
+  --tone-glyph: var(--amber-glyph);
   --tone-ink: var(--amber-ink);
   --tone-ink-muted: var(--amber-ink-muted);
   --tone-ink-faint: var(--amber-ink-faint);
@@ -4667,6 +4734,7 @@
   --tone-text: var(--success-text);
   --tone-label: var(--success-label);
   --tone-contrast: var(--success-contrast);
+  --tone-glyph: var(--success-glyph);
   --tone-ink: var(--success-ink);
   --tone-ink-muted: var(--success-ink-muted);
   --tone-ink-faint: var(--success-ink-faint);
@@ -4687,6 +4755,7 @@
   --tone-text: var(--warning-text);
   --tone-label: var(--warning-label);
   --tone-contrast: var(--warning-contrast);
+  --tone-glyph: var(--warning-glyph);
   --tone-ink: var(--warning-ink);
   --tone-ink-muted: var(--warning-ink-muted);
   --tone-ink-faint: var(--warning-ink-faint);
@@ -4707,6 +4776,7 @@
   --tone-text: var(--info-text);
   --tone-label: var(--info-label);
   --tone-contrast: var(--info-contrast);
+  --tone-glyph: var(--info-glyph);
   --tone-ink: var(--info-ink);
   --tone-ink-muted: var(--info-ink-muted);
   --tone-ink-faint: var(--info-ink-faint);

@@ -715,12 +715,20 @@ describe("row states are the quiet rung's, driven by the highlight attribute (§
       expect(computed(dead, "cursor")).toBe(
         probeIn(popup, (el) => (el.style.cursor = "var(--cursor-disabled)"), (cs) => cs.cursor),
       );
-      // Checked speaks accent through the INDICATOR (reversed 2026-08-09): the tick wears
-      // the mark family's own bright solid, and the LABEL stays the row's ordinary ink —
-      // the whole-row --accent-label ink read as dark emphasis, not selection.
+      // Checked speaks accent through the INDICATOR (reversed 2026-08-09): the tick wears the
+      // family at full chroma and the LABEL stays the row's ordinary ink — the whole-row
+      // --accent-label ink read as dark emphasis, not selection.
+      //
+      // --accent-GLYPH since 2026-08-23, not the mark family's solid. The comment that used to
+      // stand here said "the mark family's own bright solid" and justified it by the non-text
+      // floor a glyph owes; measured, the solid is one hex in both appearances and misses that
+      // floor on the dark page (|Lc| 43.4 against 45). The mark family's ON state does NOT
+      // follow, and the divergence is principled rather than an oversight: a checked box is a
+      // filled AREA and answers `nonTextLarge` (30), which the solid clears with room. Same
+      // family, two floors, because the marks are two sizes.
       const indicator = ticked.querySelector<HTMLElement>('[data-slot="leading"]');
       if (!indicator) throw new Error("indicator slot missing");
-      expect(computed(indicator, "color")).toBe(colorOn(popup, "var(--accent-solid)"));
+      expect(computed(indicator, "color")).toBe(colorOn(popup, "var(--accent-glyph)"));
       const plain = [...popup.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
         (el) => el.textContent === "Plain",
       );
@@ -1391,9 +1399,10 @@ describe("a focused row's ring survives the panel that scrolls it (§8)", () => 
 
       // Calibration, and the negative control in one: UNLIT, the tick is still the accent.
       // This is what fails if the new arm is written without its state guard and swallows
-      // every checked row in the panel.
+      // every checked row in the panel. (--accent-GLYPH since 2026-08-23: a tick is fine
+      // detail and owes the non-text floor, which the solid missed on the dark page.)
       expect(computed(tick, "color"), `${appearance}: an unlit tick keeps the accent`).toBe(
-        colorOn(popup, "var(--accent-solid)"),
+        colorOn(popup, "var(--accent-glyph)"),
       );
 
       row.setAttribute("data-highlighted", "");
@@ -1405,7 +1414,7 @@ describe("a focused row's ring survives the panel that scrolls it (§8)", () => 
       expect(computed(row, "color"), appearance).toBe(computed(tick, "color"));
       // And the two roles really differ, so naming the wrong token cannot pass either.
       expect(colorOn(popup, "var(--tone-contrast)"), appearance).not.toBe(
-        colorOn(popup, "var(--accent-solid)"),
+        colorOn(popup, "var(--accent-glyph)"),
       );
     }
   });

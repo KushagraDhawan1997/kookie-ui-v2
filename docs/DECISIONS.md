@@ -558,6 +558,7 @@ Components reference roles, never raw steps and never the generation mechanism. 
 --accent-text                                   /* step 11: links, prose on a tint */
 --accent-label                                  /* generated between 11 and 12: UI labels */
 --accent-contrast                               /* APCA-computed text on solid */
+--accent-glyph                                  /* solved per mode: icons and small marks */
 --accent-a1 ... --accent-a12                     /* alpha scale, composites over the seal */
 ```
 
@@ -566,6 +567,12 @@ Press darkens the `background-color` token, **never** `filter: brightness()` (wh
 ### Two role remaps that stop `highContrast` from ever being needed
 
 Radix ships a per-component `highContrast` prop because its step 11 is placed at a *floor* — the minimum that clears 4.5:1 on the backgrounds it sits on — so the prop is an escape from a value tuned to a threshold rather than to how it should look. We generate and verify with APCA, so the default can sit where it actually looks right and still be provably legible. Both fixes live in the role layer; **neither touches the scale**, and that constraint is what makes them correct.
+
+**A GLYPH IS NOT A FILL, AND IT IS NOT INK EITHER (`--{tone}-glyph`, 2026-08-23).** The family's own colour, placed where a small mark is visible on this mode's page: chroma held at the hue's maximum, lightness moved only as far as the bed forces, solved against `apcaFloors.nonText` on the harder of the page and the seal. It exists because both obvious candidates fail, measured. **The SOLID cannot be an icon colour** — it is one designed hex in both appearances, and no single hex is legible on both white and black: `--accent-solid` misses the non-text floor on the dark page (|Lc| 43.4 against 45), while a brand yellow, green or pale pink misses on the light one (19, 27, 23). That is a property of colour, not of this palette, and it is the reason a fill can never double as a mark. **The INK cannot either, and this is the near-miss worth recording**: the ink clears the floor in every family and both modes, which made "just use the ink" the obvious answer — but the ink is solved for READING (Lc 60+), and meeting a higher bar is paid for in saturation. The solved glyph is **1.3× to 2.2× more chromatic than the ink in every family and mode**: for accent, `#0296ff` against the ink's `#2a6caa` in light. A vivid blue beside a muted navy.
+
+What it is, as a sentence: **the accent, moved only as far as the page forces.** In light it lands within a hair of the solid (`#0095fe` vs `#0094fc`), because the solid already clears the floor there; in dark it lifts, because that is the only direction legibility exists. That is `undilutedTones`' own fading-versus-placing distinction made concrete — nothing is drained, only relocated — which is why an undiluted tone keeps its OWN glyph rather than pointing at neutral's. No `contrast="high"` variant is owed: Lc 45 *is* the WCAG 1.4.11 non-text bar, so the glyph conforms at rest in standard mode.
+
+**Two consumers moved to it on the day it shipped, and both were conformance repairs rather than taste**: the row family's checked TICK (menu and select) and the tab RULE. Both are fine detail, both were reading a solid that missed the floor their own comments cited as justification. **The mark family's ON state deliberately did not follow** — a checked box is a filled AREA and answers `apcaFloors.nonTextLarge` (30), which the solid clears with room. Same family, two floors, because the marks are two sizes; §7 already states that split for a field's border against a checkbox's ring.
 
 **1. A UI label is not a link.** `--accent-text` (step 11) stays as it is, because links and prose on a tint genuinely want the lighter, more chromatic value. Button and control labels instead read `--accent-label`, generated between 11 and 12: enough weight to read as a UI label, enough chroma to still say accent rather than ink. This is the section's own rule about extra states living in the role layer above the scale, not as a step 11.5.
 

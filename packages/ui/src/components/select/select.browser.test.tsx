@@ -690,7 +690,7 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
 
 describe("selected speaks accent through the indicator", () => {
   for (const appearance of ["light", "dark"] as const) {
-    it(`${appearance}: the chosen row's tick is the accent solid; its label is ordinary ink`, async () => {
+    it(`${appearance}: the chosen row's tick is the accent GLYPH; its label is ordinary ink`, async () => {
       const { popup, items } = openSelect({ appearance });
       await settled();
       const [alpha, beta] = items;
@@ -698,7 +698,11 @@ describe("selected speaks accent through the indicator", () => {
       expect(beta.getAttribute("data-selected"), "defaultValue=b marks Beta").not.toBeNull();
       const indicator = beta.querySelector<HTMLElement>('[data-slot="leading"]');
       if (!indicator) throw new Error("indicator missing");
-      expect(computed(indicator, "color")).toBe(colorOn(popup, "var(--accent-solid)"));
+      // --accent-GLYPH since 2026-08-23. A tick is fine detail and owes the non-text floor,
+      // which the solid missed on the dark page (|Lc| 43.4 against 45) while the comment
+      // beside it in recipes.css claimed the floor as its justification. Same principle,
+      // finally the value that keeps it.
+      expect(computed(indicator, "color")).toBe(colorOn(popup, "var(--accent-glyph)"));
       expect(computed(beta, "color"), "the label stays the row's ink").toBe(
         computed(alpha, "color"),
       );
