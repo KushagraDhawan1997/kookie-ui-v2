@@ -7,11 +7,18 @@
    text box with no dress of its own. */
 
 .kui-composer {
-  /* A column, and the gap is the same distance the row uses between its clusters. One rhythm
-     inside the pane: the text, then the controls, then whatever the caller stacks. */
+  /* A column, and the gap IS the pane's own padding (2026-08-23, Kushagra: the text and the row
+     "need to have some gap, it doesnt"). It was `--layout-space-3` — half the inset at every
+     index — so the text sat twice as far from the wall as from the row, which reads as no gap
+     at all rather than as a small one. Judged against 8, 12 and 16 in the playground.
+
+     One number rather than two: the air inside a composer and the air at its edge are the same
+     air, so a second ladder would only be a thing to keep in step. `--kui-sf-p` is published
+     per index on this very element by the surface size join, so the gap answers the index by
+     construction and this file states no distance of its own. */
   display: flex;
   flex-direction: column;
-  gap: var(--layout-space-3);
+  gap: var(--kui-sf-p);
   /* A surface hugs its content; a composer spans the room it is given, because it is the width
      of the conversation it sits under. */
   inline-size: 100%;

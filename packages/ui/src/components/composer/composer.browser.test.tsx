@@ -66,6 +66,21 @@ describe("the index prices what the composer OWNS, and stops (§30)", () => {
       { theme: {} },
     );
 
+  it("the air inside equals the air at the edge, at every index", () => {
+    // The gap shipped at half the inset (2026-08-23) and read as no gap. The claim is the
+    // EQUALITY rather than a number, so it holds at every index instead of being a literal
+    // that agrees at one of them — the shell's own lesson about pinned values.
+    for (const size of ["1", "4"] as const) {
+      const composer = within(at(size), ".kui-composer");
+      expect(computed(composer, "row-gap")).toBe(computed(composer, "padding-top"));
+    }
+    // Vacuity guard: the two indexes must actually differ, or the equality above could hold
+    // because nothing moves.
+    expect(computed(within(at("1"), ".kui-composer"), "row-gap")).not.toBe(
+      computed(within(at("4"), ".kui-composer"), "row-gap"),
+    );
+  });
+
   it("its own text moves with the index", () => {
     // The step map is shared with the alert and the notice, so this also pins that a composer
     // and a notice at one index are one typography.

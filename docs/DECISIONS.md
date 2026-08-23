@@ -2011,6 +2011,10 @@ Two spellings carry it, and both are the shared layer's rather than this file's.
 
 **Why the original defect had no law: none of the fifteen read anything at two indexes.** Three do now, and the sabotage pass re-commits each fault — the fixed step, the pinned ceiling, and the row opting back in — and the right law fails each time. −22 bytes gzipped, because the fix DELETES three declarations.
 
+**The gap inside the pane IS the pane's own padding, corrected 2026-08-23 on sight** (Kushagra: the text area and the row "need to have some gap, it doesnt"). It shipped at `--layout-space-3`, which is exactly half the inset at every index, so the text sat 16px from the wall and 8px from the row — measured, the gap was never missing, it was half the distance the eye was already reading as the unit of air, which is what makes a small gap look like none. Judged in the playground against 8, 12 and 16.
+
+The value is `--kui-sf-p` rather than a step, and that is the decision rather than the number: the air inside a composer and the air at its edge are the SAME air, so a second ladder would only be a thing to keep in step with the first. The surface size join already publishes that hook per index on this very element, so the gap answers the index by construction and `composer.css` states no distance of its own. The law asserts the EQUALITY and not a length — a hardcoded 16px agrees at size 2 and nowhere else, and the sabotage pass catches exactly that alongside the original half-step.
+
 ### What it does not do
 
 The conversation, the scroller, message parts, branches, reasoning, tool calls, sources, transport and persistence. A model picker is a `Select`. Suggestions are `Button`s. The scroller is a separate decision recorded in `docs/handovers/2026-08-23-chatbar-family.md`: the hard part of a conversation is scroll, and shadcn's is 6,274 lines against 139 of styling.
