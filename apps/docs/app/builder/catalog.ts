@@ -816,6 +816,38 @@ export const CATALOG: Record<string, CatalogEntry> = {
     renderChild: true,
     make: () => node("PopoverClose", {}, { children: [node("Button", { emphasis: "quiet" }, { text: "Close" })] }),
   },
+  Tooltip: {
+    family: "Surface",
+    blurb: "The name of a control, shown to a pointer resting on it. Dropped whole.",
+    props: {},
+    children: { only: ["TooltipTrigger", "TooltipContent"] },
+    phantom: true,
+    make: () =>
+      node("Tooltip", {}, {
+        children: [
+          node("TooltipTrigger", {}, { children: [node("Button", { emphasis: "quiet" }, { text: "Undo" })] }),
+          node("TooltipContent", {}, { text: "Undo" }),
+        ],
+      }),
+  },
+  TooltipTrigger: {
+    family: "Surface",
+    blurb: "The control the tooltip names.",
+    props: {},
+    children: { only: ["Button"] },
+    partOf: "Tooltip",
+    renderChild: true,
+    make: () => node("TooltipTrigger", {}, { children: [node("Button", { emphasis: "quiet" }, { text: "Undo" })] }),
+  },
+  TooltipContent: {
+    family: "Surface",
+    blurb: "The words. One short line, and it may only restate the control's own name.",
+    props: {},
+    children: "text",
+    requiresAncestor: "Tooltip",
+    partOf: "Tooltip",
+    make: () => node("TooltipContent", {}, { text: "Undo" }),
+  },
   Dialog: {
     family: "Surface",
     blurb: "A modal panel over a dimmed app. Dropped whole; the content is yours to compose.",
@@ -975,6 +1007,10 @@ export const CATALOG: Record<string, CatalogEntry> = {
  * and holds the reason to a sentence).
  */
 export const EXCLUDED: { name: string; why: string }[] = [
+  {
+    name: "TooltipProvider",
+    why: "Configuration for a REGION rather than a thing that goes in one: it states the delay every tooltip inside it waits and groups them so a row of buttons reads as one row. It belongs once near the root of an app, which is outside anything this canvas composes. Every Tooltip placed here works without it, on the library's own timing.",
+  },
   {
     name: "Shell",
     why: "The builder composes what goes INSIDE an app frame; the Shell is that frame. It claims the whole window, owns landmarks the canvas already provides, and its panes place themselves by grid area rather than by a drop — so a Shell on this canvas would be an app inside an app. Its parts are excluded for the same reason: none of them means anything outside the frame that arranges them.",

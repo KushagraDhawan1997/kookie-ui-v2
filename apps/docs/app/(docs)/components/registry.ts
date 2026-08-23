@@ -978,6 +978,46 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "tooltip",
+    name: "Tooltip",
+    family: "Surface",
+    spec: "§11, §20, §31",
+    blurb:
+      "The name of a control, shown to a pointer that rests on it. It may only restate what the control already announces — a tooltip has no keyboard route, no touch route and no reading order, so anything that appears only here is lost to everybody else. It is inverted: the panel paints itself in the ink of the mode it is in and writes on itself in that mode's surface colour, so it is dark on a light page and light on a dark one, at the highest contrast the palette has. The part names follow shadcn/ui's tooltip (MIT), with credit. The behaviour is Base UI's Tooltip.",
+    axes: [],
+    refusals: [
+      {
+        name: "content that is not a string",
+        why: "A tooltip holds a sentence, not a small composition. An inverted panel cannot invert an arbitrary subtree: anything that carries its own colour re-states it on its own element and wins, so a key cap inside a tooltip keeps the page's ink and its own pale fill and disappears on a dark panel. Write the shortcut into the sentence. Anything that genuinely needs a chip in it is a Popover.",
+      },
+      {
+        name: "a size",
+        why: "The only index a tooltip could take is the one belonging to the control it names, which it cannot see — and reading it would make one label two sizes depending on which button it sat under. A tooltip is one thing at one size.",
+      },
+      {
+        name: "tone and emphasis",
+        why: "A tooltip has a job, not a volume. There is nothing for a colour family to mean on a label that restates a name.",
+      },
+      {
+        name: "a delay you set per tooltip",
+        why: "Timing is a property of a region of the interface, not of one label — a delay that changed per call site would make one product feel like several. Wrap your app in a TooltipProvider once and every tooltip inside it shares both the timing and the group, so the first one in a toolbar waits and the rest appear as the pointer travels.",
+      },
+      {
+        name: "a touch story",
+        why: "There is no hover on a phone, so nothing opens — and because a tooltip never carries anything of its own, nothing is missing. A hint a touch user genuinely needs belongs in a FieldDescription, a Notice, or on the screen.",
+      },
+      {
+        name: "an arrow",
+        why: "An arrow is a second boundary on a panel whose boundary is already the strongest contrast on the screen. What says where it came from is that it is anchored to the thing you are pointing at.",
+      },
+    ],
+    parts: [
+      { part: "TooltipProvider", blurb: "Optional, and it belongs once near the root of an app: it states the system's timing and groups every tooltip inside it, so a row of buttons reads as one row." },
+      { part: "TooltipTrigger", blurb: "The control the tooltip names. Pass your own Button through render." },
+      { part: "TooltipContent", blurb: "The words. One short line — the name of the thing, and a shortcut if it has one." },
+    ],
+  },
+  {
     slug: "text",
     name: "Text",
     family: "Type",

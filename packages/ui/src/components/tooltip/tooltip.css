@@ -1,0 +1,76 @@
+/* Tooltip (§11, §31) — the one INVERTED identity in the defaults table, and the only row that
+ * ever named an exception.
+ *
+ * Everything about where this pane sits is the floating family's: it portals, it anchors, it
+ * casts its coverage, it flies out of its trigger. What is here is the two facts that are the
+ * tooltip's own — the inversion, and a box priced for one line of words.
+ *
+ * It deliberately does NOT wear `kui-floating-rows`: that class carries the concentric corner
+ * and the squircle bump, both of which are arithmetic about the ROWS a pane hugs (§30), and a
+ * tooltip hugs one line of text. It takes the surface band's corner like a card does.
+ *
+ * AND IT HAS NO SIZE AXIS, which is Progress's decision arriving one family over. The ladder
+ * was asked first, as the rule requires, and it refused: the only index a tooltip could
+ * plausibly ride is its TRIGGER's, which it has no access to and which would make one label two
+ * sizes depending on which button it named. A tooltip is one thing at one size. Withholding is
+ * also the additive direction — granting an index later is a new prop, taking one away is a
+ * break. */
+
+.kui-tooltip-popup {
+  /* THE INVERSION, and it mints nothing. The pane paints itself in the ink of whatever mode it
+     is in; the body below writes on it in that mode's surface colour. Dark on a light page,
+     light on a dark one, at the highest contrast the palette has — because those two roles ARE
+     the mode's two ends, and the pair that normal text already uses.
+
+     `contrast="high"` reaches it for free, which is what §11's "exception: high-contrast
+     inverted" was asking for: both roles move under the conformance surface, so the inversion
+     moves with them and nothing here has to know. */
+  background-color: var(--color-text);
+  /* NO `border-color: transparent` HERE, and its absence is the point. It was written — an
+     inverted chip is its own boundary, and a hairline on the highest-contrast object on the
+     screen is the doubled-edge defect (2026-08-07) at a smaller scale — and then its sabotage
+     pass survived: removing it changed nothing, because the pane never stamps `data-bordered`
+     and the surface layer already resolves an un-bordered quiet pane's edge to transparent
+     (measured `1px solid rgba(0, 0, 0, 0)`). A declaration with no consumer is the entropy this
+     repo keeps paying for, so the guarantee is stated where it is actually made — in the
+     component, by not asking for an edge — and the law reads the outcome against a bordered
+     pane that does draw one. */
+  /* One line of words, priced on its own two axes (§31): block tighter than inline, the row
+     family's own finding about what a one-line box is asking on each axis. Both are picks into
+     layout space, so density reaches a tooltip through the layer with nothing designed twice. */
+  padding-block: var(--tooltip-p-block);
+  padding-inline: var(--tooltip-p-inline);
+  /* A tooltip that runs the width of the window is a paragraph. Capped by the room the
+     positioner reports as well, because the cap is a maximum and so is the room — in CSS a
+     minimum would beat a maximum, and there is no minimum here, which is the whole reason a
+     tooltip needs no `min-width` floor: it is as wide as its words and no wider. */
+  max-width: min(var(--tooltip-max-w), var(--available-width, 100vw));
+  /* Base UI keeps focus where it was — a tooltip never takes it — so there is nothing here for
+     a ring to mark. */
+  outline: none;
+}
+
+/* The words, and the reason the inversion is declared in two places rather than one.
+ *
+ * `--color-text` cannot be re-scoped on the pane itself: the fill above READS it, and a custom
+ * property that referred to its own re-scoped value would resolve to the thing it was trying to
+ * invert. The body is the element that already exists between the pane and the content (the
+ * floating family's motion box), so the role flips there — one element down from the fill that
+ * consumed the old value.
+ *
+ * Re-scoping the ROLE rather than setting `color` is what carries the inversion to the `Text`
+ * the component places: `.kui-type` reads `--color-text`, so the words invert instead of
+ * painting the page's ink on the page's ink. The muted role follows the loud one deliberately —
+ * a tooltip is one voice, and a faded line inside a 28px chip is a line nobody reads.
+ *
+ * This is also exactly as far as an inverted pane can reach, and it is why `children` is typed
+ * as a string (see tooltip.tsx). A component that stamps a tone re-declares `--tone-ink` ON ITS
+ * OWN ELEMENT, which outranks anything an ancestor re-scoped — measured, a `Kbd` in a tooltip
+ * kept the page's dark ink and its own pale fill and disappeared on a near-black pane. The
+ * repair is not more re-scoping, because the fill would still be wrong; it is that a tooltip
+ * holds a sentence. */
+.kui-tooltip-popup > .kui-floating-body {
+  --color-text: var(--color-surface);
+  --color-text-muted: var(--color-surface);
+  color: var(--color-text);
+}

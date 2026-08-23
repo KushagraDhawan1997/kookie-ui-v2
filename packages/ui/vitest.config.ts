@@ -55,6 +55,7 @@ export default defineConfig({
             "@base-ui/react/slider",
             "@base-ui/react/switch",
             "@base-ui/react/tabs",
+            "@base-ui/react/tooltip",
           ],
         },
         /**

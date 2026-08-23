@@ -1203,6 +1203,33 @@ export const floatingPadding = 2;
 export const floatingMinWidth = 112;
 
 /**
+ * §30, §31 — the TOOLTIP's own inset, a pair of picks into layout space (v0, eye pass
+ * pending).
+ *
+ * A pair rather than one number, and the argument is the row family's own (2026-08-16): a
+ * one-line box asks two different questions on its two axes — how much air the LINE gets, and
+ * how much the WORDS get — and answering both with one value is what made a trailing chip sit
+ * equally off the top and bottom and visibly farther from the end. So block is tighter than
+ * inline, which is what every platform's tooltip does.
+ *
+ * Picks rather than raw lengths, like `floatingPadding`: density reaches a tooltip through the
+ * layer, so a compact app gets a compact tooltip with nothing designed twice. Index 2 = 4px and
+ * index 4 = 12px at default density, which puts a step-2 label in a 28px chip — the proportion
+ * shadcn reaches with px-3 py-1.5 at a smaller step.
+ */
+export const tooltipPadding = { block: 2, inline: 4 } as const;
+
+/**
+ * §31 — the tooltip's maximum width, raw px through --scale (the `floatingMinWidth`
+ * precedent: no palette rung lives at this scale, and a width is not a rhythm).
+ *
+ * A tooltip that runs the width of the window is a paragraph, and a paragraph is not a
+ * tooltip — this is the cap that makes a long label wrap into a small block instead. v0.
+ */
+export const tooltipMaxWidth = 240;
+
+
+/**
  * §10, §24 — the SCRIM: the dialog backdrop's dim and its blur, minted 2026-08-10 with
  * Dialog and designed long before it (§10's material table has carried this row, unemitted,
  * since 2026-08-04).

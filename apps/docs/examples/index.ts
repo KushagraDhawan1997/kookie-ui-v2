@@ -53,6 +53,7 @@ import TabsExample from "./tabs";
 import TextAreaExample from "./text-area";
 import TextFieldExample from "./text-field";
 import TextExample from "./text";
+import TooltipExample from "./tooltip";
 import ThemeExample from "./theme";
 
 export const EXAMPLES: Record<string, React.ComponentType> = {
@@ -92,5 +93,6 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "text-area": TextAreaExample,
   "text-field": TextFieldExample,
   "text": TextExample,
+  "tooltip": TooltipExample,
   "theme": ThemeExample,
 };

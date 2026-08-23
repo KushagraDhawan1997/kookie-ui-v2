@@ -2607,5 +2607,83 @@ export const API: Record<string, ApiEntry> = {
         "doc": ""
       }
     ]
+  },
+  "TooltipContent": {
+    "element": "div",
+    "props": [
+      {
+        "name": "align",
+        "type": "\"start\" | \"center\" | \"end\"",
+        "optional": true,
+        "doc": "How it lines up along that side."
+      },
+      {
+        "name": "children",
+        "type": "string",
+        "optional": true,
+        "doc": "The words, and they are a STRING rather than nodes — the one refusal the type carries. A tooltip is a label, and a label is a sentence. What it cannot be is a small composition: an inverted pane cannot invert an arbitrary subtree, because a component that stamps a tone re-declares the ink roles ON ITS OWN ELEMENT, which overrides anything a parent re-scoped — measured, a `Kbd` inside a tooltip kept the page's ink and its own pale fill, and vanished on a near-black pane. Inverting the whole palette instead would mean knowing the current appearance, which under `appearance=\"inherit\"` no React code can. The shortcut case is a string too: `Undo ⌘Z`. Anything that genuinely needs a chip in it is a `Popover`, which holds content because it was built to."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "side",
+        "type": "\"top\" | \"right\" | \"bottom\" | \"left\"",
+        "optional": true,
+        "doc": "Which side of the trigger to prefer. It flips itself when that side has no room."
+      },
+      {
+        "name": "sideOffset",
+        "type": "number",
+        "optional": true,
+        "doc": "The gap from the trigger, in pixels. Defaults to the family's own."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "Tooltip": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The trigger and the content, in that order."
+      },
+      {
+        "name": "defaultOpen",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Uncontrolled starting state."
+      },
+      {
+        "name": "onOpenChange",
+        "type": "(open: boolean) => void",
+        "optional": true,
+        "doc": "Told when it opens or closes."
+      },
+      {
+        "name": "open",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Controlled open state."
+      }
+    ]
+  },
+  "TooltipProvider": {
+    "element": null,
+    "props": []
+  },
+  "TooltipTrigger": {
+    "element": null,
+    "props": []
   }
 };

@@ -303,7 +303,10 @@
   /* the menu popup (§22) — padding is a layout-space pick (re-declared per density scope,
      the surface-padding trap), the width floor rides --scale alone so it lives here only. */
   --floating-p: var(--layout-space-2);
+  --tooltip-p-block: var(--layout-space-2);
+  --tooltip-p-inline: var(--layout-space-4);
   --floating-min-w: calc(112px * var(--scale));
+  --tooltip-max-w: calc(240px * var(--scale));
 
   /* the overlay pane (§24) — a MAXIMUM width per size index, published to the pane by
      the surface layer's overlay join, and the gutter a dialog keeps from the window
@@ -3960,6 +3963,8 @@
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
   --floating-p: var(--layout-space-2);
+  --tooltip-p-block: var(--layout-space-2);
+  --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
 }
@@ -4010,6 +4015,8 @@
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
   --floating-p: var(--layout-space-2);
+  --tooltip-p-block: var(--layout-space-2);
+  --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
 }
@@ -4060,6 +4067,8 @@
   --surface-p-3: var(--layout-space-6);
   --surface-p-4: var(--layout-space-7);
   --floating-p: var(--layout-space-2);
+  --tooltip-p-block: var(--layout-space-2);
+  --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
 }

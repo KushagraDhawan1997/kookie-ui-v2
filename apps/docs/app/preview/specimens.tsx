@@ -81,6 +81,10 @@ import {
   TabsPanel,
   TabsTab,
   Text,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
   TextArea,
   Theme,
   TextField,
@@ -1927,6 +1931,64 @@ function MaterialScene() {
  * behind each pane — and the PATTERN bed specifically: flat shapes at high frequency are
  * where a bend is visible at all, which is the reason beds.tsx gives for having it.
  */
+function TooltipSection() {
+  return (
+    <Stack gap="6">
+      {/* The claim to judge with a pointer, and the case this component was built for: a row of
+          icon-only buttons whose only name is an aria-label. Rest on the first and wait; then
+          travel along the row — the provider groups them, so the rest arrive without waiting
+          again, which is the difference between a toolbar you can read and one you fight. */}
+      <Demo label="A toolbar, grouped">
+        <TooltipProvider>
+          <Flex gap="2">
+            {([["Undo", "\u21A9"], ["Redo", "\u21AA"], ["Comment", "\u2026"], ["Share", "\u2197"]] as const).map(
+              ([label, glyph]) => (
+                <Tooltip key={label}>
+                  <TooltipTrigger
+                    render={
+                      <Button emphasis="quiet" iconOnly aria-label={label}>
+                        {glyph}
+                      </Button>
+                    }
+                  />
+                  <TooltipContent>{label}</TooltipContent>
+                </Tooltip>
+              ),
+            )}
+          </Flex>
+        </TooltipProvider>
+      </Demo>
+      {/* The INVERSION is the one identity exception in the system, and it mints nothing: the
+          panel is the mode's own ink with the mode's own surface written on it. Judge it in both
+          appearances — the environment panel above flips the page. */}
+      <Demo label="Inverted, in whatever mode it lands in">
+        <TooltipProvider>
+          <Flex gap="4" wrap="wrap">
+            {(["top", "right", "bottom", "left"] as const).map((side) => (
+              <Tooltip key={side} defaultOpen>
+                <TooltipTrigger render={<Button emphasis="quiet" bordered>{cap(side)}</Button>} />
+                <TooltipContent side={side}>{`Opens ${side}`}</TooltipContent>
+              </Tooltip>
+            ))}
+          </Flex>
+        </TooltipProvider>
+      </Demo>
+      {/* A long label wraps into a small block rather than running the width of the window —
+          and this is the one to check at each density, because the inset is a layout-space pick
+          and a compact app gets a compact tooltip with nothing designed twice. */}
+      <Demo label="A long label, and the cap that keeps it a tooltip">
+        <Tooltip defaultOpen>
+          <TooltipTrigger render={<Button emphasis="quiet" bordered>Restore</Button>} />
+          <TooltipContent side="bottom">
+            Restore this document to the version saved before the last import, and discard
+            everything after it
+          </TooltipContent>
+        </Tooltip>
+      </Demo>
+    </Stack>
+  );
+}
+
 function ThicknessLadder() {
   const RUNGS = [
     { m: "thin", title: "Thin", line: "Structure ghosts through. Chrome that should not compete with what it sits on." },
@@ -2290,4 +2352,5 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "text", name: "Text", body: <TextSection /> },
   { id: "text-area", name: "Text area", body: <TextAreaSection /> },
   { id: "text-field", name: "Text field", body: <TextFieldSection /> },
+  { id: "tooltip", name: "Tooltip", body: <TooltipSection /> },
 ];

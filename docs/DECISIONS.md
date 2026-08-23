@@ -1071,7 +1071,7 @@ Resting position for each component across the four axes. Dash = axis not expose
 | Popover | neutral *(stamped)* | quiet *(stamped)* | floating | theme's | **SHIPPED 2026-08-23 (§30)** — the floating family's fourth member and the first whose CONTENT the system does not own. The pane is a CARD in its box (the surface band's corner and padding, NOT the concentric arithmetic — that arm moved to `kui-floating-rows` the day this shipped) and a FLOATING pane in its coverage (the cast, in both worlds; it has no scrim to state coverage for it). `size` prices the box alone, Dialog's rule; the title and description are the one sanctioned anatomy (`aria-labelledby`/`aria-describedby`) and take the owned type steps. Refused: `modal`, an arrow, free positioning, a trigger-width floor, a drawn ✕ |
 | ~~HoverCard~~ | — | — | — | — | **NOT SHIPPED (2026-08-23), and not an oversight.** A card that opens on hover is a hover-reveal, and what a hover-reveal becomes on a touch screen is an open question §17 and §18 both record as belonging to the pointer axis rather than to a component. Building one would answer it for the whole system by accident. The composition today is a `Popover` on a real press |
 | Menu / Dropdown | neutral | quiet + bordered | floating | solid | thin/thick opt-in — SHIPPED 2026-08-09 (§22): popup = Card's stamped identity + kui-floating, surface-1 corner (overlay rejected by eye), casts in both worlds |
-| Tooltip | neutral (inverted) | - | floating | solid | exception: high-contrast inverted |
+| Tooltip | *(inverted, stamped neutral)* | *(stamped quiet)* | floating | **solid, always** | **SHIPPED 2026-08-23 (§31)**, and this row's exception is now built: the pane paints itself in `--color-text` and writes on itself in `--color-surface`, so it inverts in whichever appearance is in force and `contrast="high"` reaches it for free — no colour is minted and none can drift. It may only RESTATE the name its control announces, which is why it is hidden from assistive technology, why it needs no touch story (§17/§18's hover-reveal question, answered by having nothing to adapt), and why `children` is a `string`. No size axis, no material, no arrow; the delay lives on `TooltipProvider`, because a delay is a property of a region |
 | Dialog | neutral | quiet | overlay | theme's | SHIPPED 2026-08-10 (§24): the panel is Card's stamped identity + `kui-overlay` (the overlay band's corner, the designed max width), the backdrop carries scrim + blur, and the panel casts nothing of its own. **Material is the THEME's since 2026-08-16 and this cell said "opt-in" until 2026-08-20**: a floating pane passes `backdrop: true` by construction — a popup always covers the app — so the panel expresses whatever material the app is built of, and "panel stays solid" is now what a `solid` theme means rather than a default the component holds |
 | Sheet / Drawer | neutral | quiet | overlay | solid | content scrolls under: strong material candidate |
 | ~~Toast~~ | — | — | — | — | **REFUSED 2026-08-21 (§29).** If an action deserves attention, it gets that attention BEFORE the action; if it does not, we do not narrate it afterwards. A toast is important enough to say and too late to act on, which is a category that does not exist. Its two real cases collapse on inspection: undo belongs in an undo stack (Apple owns the gesture at the OS level and can promise it; the web cannot, so build undo rather than rent its shape), and a copy confirmation belongs on the button that copied. The refusal owes a Button done state, recorded open |
@@ -1238,6 +1238,12 @@ It is the row family's standalone member, the fourth of the four §21 named on d
 The mechanism worth reading is `data-hover-lit` (§21 above): what lights a row is a per-INSTANCE claim, not a per-component one, because the same row is roving in a palette and not roving in a settings list. 20 mounted laws, three sabotage passes — and the sabotage that removed the marker from `ShellNavItem` was caught by Shell's own laws, which is the promotion guarded from both ends.
 
 **Four of the twenty laws were wrong before they were right, and two of the four are this repo's own recorded shapes.** The comparison against a menu row read the FIRST popup in the document rather than the last (mounts accumulate; four laws were comparing a row against one from a previous mount) and read it on the MOUNT FRAME, mid-flight — size 3 measured 89px against the row's real 34. The third asserted a menu row does not light under the pointer, which was never true and never the claim: Base UI stamps `data-highlighted` on hover too, and the stand-down's job is that the row goes dark when the keyboard moves the highlight off a pointer-rested row. It reads the MARKER's presence across every member now. The fourth asserted a strict inequality in a cell that is a designed equality — coarse size 1 renders a row and its button both at 36px — and it is asserted as an equality rather than skipped, which is Switch's coarse size-4 rule.
+
+**Repetition, seventeenth entry — Tooltip, shipped 2026-08-23 (§31).** **+117 bytes gzipped**, and it closes §20's enumeration: Menu, Select, Popover, Dialog and Tooltip were the five floating components the portal groundwork named on the day it shipped, and all five now exist.
+
+It is the only component in the library whose identity §11 had described and nobody had built — `neutral (inverted)`, with `exception: high-contrast inverted` — and the interesting part is how little that turned out to cost. The inversion is `--color-text` as the fill and `--color-surface` as the ink: the mode's own two ends, swapped, so it is correct in both appearances and under the conformance surface without the component knowing which one it is in. The `<Theme appearance>` flip that looks like the obvious answer cannot work, because under `appearance="inherit"` — the supported shape — no React code knows the current mode.
+
+**What it refuses is unusually large for a component this small, and every refusal is the same rule restated**: a tooltip may only say what its control already says. So it is hidden from assistive technology, it has no touch story, its `children` are a `string`, and it takes no size, no tone, no emphasis, no material and no per-call-site delay. §17 and §18's *hover-reveal → tap* question is answered rather than deferred: a well-formed tooltip has nothing to adapt.
 
 ---
 
@@ -2004,6 +2010,45 @@ Nothing is trapped, nothing is dimmed, an outside press dismisses. `modal` is re
 `size` prices the BOX — padding and corner — and not the type inside it, which is Dialog's rule and holds here for the same reason. The exception is `PopoverTitle` and `PopoverDescription`: those exist only because `aria-labelledby` and `aria-describedby` need something to point at (§10's anatomy criterion, its one sanctioned shape), so they are type the SYSTEM owns and they read the shared `OWNED_*_STEP` map — a popover, a dialog and an alert at one index are one typography.
 
 **16 mounted laws, four sabotage passes; +14 bytes gzipped** for the component and the corner split together.
+
+
+---
+
+## 31. Tooltip (2026-08-23)
+
+**The name of a control, shown to a pointer that rests on it — and the last of the five floating components §20 named on the day the portal groundwork shipped** (Menu, Select, Popover, Dialog, Tooltip; AlertDialog joined by the split).
+
+### It may only restate what the control already announces
+
+This is the rule the whole component hangs on rather than a nicety, and every other decision below follows from it. A tooltip has no keyboard route, no touch route and no reading order: it is an affordance of exactly one input device. So anything appearing only here is information lost to everybody else, and the component is safe precisely to the extent that its words are the accessible name the trigger already carries. An icon-only button with `aria-label="Undo"` and a tooltip reading "Undo" is the shape this exists for — and it is the shape apps/docs was already in, with 26 icon-only buttons whose only name was an attribute.
+
+**That is also why it has no touch story and does not need one.** There is no hover on a phone, so nothing opens; because the tooltip never carried anything of its own, nothing is missing. This is what §17 and §18 both recorded as the open *hover-reveal → tap* question, and the answer is that a well-formed tooltip has nothing to adapt. A hint a touch user genuinely needs is a `FieldDescription`, a `Notice`, or words on the screen.
+
+**It is HIDDEN from assistive technology, which is that rule enforced rather than written down.** Base UI wires nothing — measured, the trigger carries no `aria-describedby` and the panel no `role="tooltip"` — so the choice was ours either way. Announcing a restatement produces "Undo, button, Undo"; and if a tooltip carries something its control does not, hiding it creates no new problem, because that information was already unavailable to every keyboard and touch user. The repair is to put the words somewhere they live.
+
+### The inversion, and it mints nothing
+
+§11 has said `neutral (inverted)` with `exception: high-contrast inverted` since the defaults table was written — the only row in that table that ever named an exception, and it had never been built. It costs two declarations and no new colour: **the pane paints itself in `--color-text` and its words are written in `--color-surface`**, so it is dark on a light page and light on a dark one, at the highest contrast the palette has, in whatever appearance is in effect. `contrast="high"` reaches it for free, because the conformance surface moves both of those roles and the component knows nothing about it.
+
+**A `<Theme appearance>` flip was the first idea and it cannot work**: under `appearance="inherit"` — the supported shape, and what apps/docs itself renders — no React code knows which mode is in force, because the answer is on `<html>` and arrives before hydration. The role pair needs no such knowledge.
+
+**The inversion is declared on two elements, and it has to be.** `--color-text` cannot be re-scoped on the pane, because the fill READS it and a property cannot invert the value its own declaration consumed. The floating family's body element already sits between the pane and the content, so the role flips there.
+
+**And that is exactly as far as an inverted pane can reach**, which is why `children` is typed as a `string`. A component that stamps a tone re-declares the ink roles ON ITS OWN ELEMENT and outranks anything an ancestor re-scoped — measured, a `Kbd` inside a tooltip kept the page's dark ink and its own pale fill and vanished on a near-black pane. More re-scoping does not fix it (the fill would still be wrong), and inverting the whole palette needs the appearance nobody knows. So a tooltip holds a sentence; the shortcut case is a string too (`Undo ⌘Z`), and anything that genuinely needs a chip in it is a `Popover`.
+
+### The box, and the two absences
+
+`--tooltip-p-block` and `--tooltip-p-inline` are a PAIR of picks into layout space, block tighter than inline — the row family's own finding that a one-line box asks a different question on each axis. Picks rather than raw lengths, so density reaches a tooltip through the layer with nothing designed twice. `--tooltip-max-w` caps it: a tooltip that runs the width of the window is a paragraph. There is no `min-width` floor, because a tooltip is as wide as its words.
+
+**No size axis** (Progress's decision, one family over): the only index a tooltip could ride is its TRIGGER's, which it cannot see and which would make one label two sizes. It does stamp a fixed `data-size="1"` — without an index the surface join never fires and the pane falls back to a card's un-indexed corner, measured at 64.52px on a 30px chip.
+
+**No material, ever.** The material defends a foreground against what passes behind a pane; a tooltip defends itself by inverting, which is the stronger answer, and two defences on one 28px box is the doubled-edge defect's shape. It is also not a `kui-floating-rows` pane (§30): it hugs one line of text, so there is no concentric arithmetic to do.
+
+### The delay belongs to a region
+
+`TooltipProvider` states it, because that is the only place Base UI accepts it (measured: the Root has no `delay` in 1.7) — and that turns out to be the right home anyway. A delay is a property of a REGION of the interface, not of one label, and the provider does a second thing worth the export: it GROUPS, so the first tooltip in a toolbar waits and the rest arrive as the pointer travels. It is optional; a lone tooltip works on Base UI's own timing. It is excluded from the builder's catalog with that reason written down, because configuration for a region is not a thing you place in a composition.
+
+**15 mounted laws, five compile-time refusals, six sabotage passes; +117 bytes gzipped.** The delay, the inset pair and the width cap are v0 for the eye pass.
 
 
 ## Open questions / deferred

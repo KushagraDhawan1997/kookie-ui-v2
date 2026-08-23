@@ -68,6 +68,8 @@ import {
   floatingSeed,
   floatingEcho,
   floatingPadding,
+  tooltipPadding,
+  tooltipMaxWidth,
   overlayWidth,
   alertWidth,
   dialogInset,
@@ -345,6 +347,7 @@ export function generateTokens(): string {
   lines.push("     the surface-padding trap), the width floor rides --scale alone so it lives here only. */");
   lines.push(...floatingPanelFamily());
   lines.push(decl("floating-min-w", zoom(floatingMinWidth)));
+  lines.push(decl("tooltip-max-w", zoom(tooltipMaxWidth)));
 
   lines.push("", "  /* the overlay pane (§24) — a MAXIMUM width per size index, published to the pane by");
   lines.push("     the surface layer's overlay join, and the gutter a dialog keeps from the window");
@@ -1245,7 +1248,13 @@ function surfacePaddingFamily(): string[] {
 /** The floating panel's padding (§22, §23): one pick into layout space — a var() bakes where
     it is declared, so this re-emits in every density scope exactly like surface padding does. */
 function floatingPanelFamily(): string[] {
-  return [decl("floating-p", `var(--layout-space-${floatingPadding})`)];
+  return [
+    decl("floating-p", `var(--layout-space-${floatingPadding})`),
+    // The tooltip's pair rides along, for the same substitution reason: a var() bakes where it
+    // is declared, so both re-emit in every density scope.
+    decl("tooltip-p-block", `var(--layout-space-${tooltipPadding.block})`),
+    decl("tooltip-p-inline", `var(--layout-space-${tooltipPadding.inline})`),
+  ];
 }
 
 /** The dialog's gutter from the window edge (§24): one pick into layout space, re-emitted

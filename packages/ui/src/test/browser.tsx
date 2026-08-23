@@ -53,6 +53,7 @@ import spinnerCss from "../components/spinner/spinner.css?raw";
 import switchCss from "../components/switch/switch.css?raw";
 import tabsCss from "../components/tabs/tabs.css?raw";
 import textAreaCss from "../components/text-area/text-area.css?raw";
+import tooltipCss from "../components/tooltip/tooltip.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
 import layoutCss from "../system/layout.css?raw";
 import recipesCss from "../system/recipes.css?raw";
@@ -97,6 +98,7 @@ export function installStyles(): void {
     switchCss,
     tabsCss,
     textFieldCss,
+    tooltipCss,
     textAreaCss,
   ].join("\n");
   document.head.append(sheet);

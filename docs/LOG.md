@@ -8,6 +8,32 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 Tooltip, and an identity the defaults table had described for three weeks
+
+**What.** `Tooltip` ships (§31), which closes §20's enumeration — Menu, Select, Popover, Dialog and Tooltip were the five floating components the portal groundwork named, and all five now exist. +117 bytes gzipped.
+
+**The forcing case was in our own app**: 26 icon-only buttons in apps/docs whose only name is an `aria-label`, so a sighted pointer user gets nothing at all.
+
+**The inversion cost two declarations and no new colour.** §11 has said `neutral (inverted)` with `exception: high-contrast inverted` since the defaults table was written, and nobody had built it. The answer is the mode's own two ends, swapped: the pane paints itself in `--color-text` and its words are written in `--color-surface`. Dark on a light page, light on a dark one, at the highest contrast the palette has, in whatever appearance is in force — and `contrast="high"` reaches it free, because the conformance surface moves both roles and the component knows nothing.
+
+**A `<Theme appearance>` flip was the first idea and it cannot work**, which is worth recording because it looks obviously right. Under `appearance="inherit"` — the supported shape, and what apps/docs itself renders — no React code knows which mode is in force: the answer is stamped on `<html>` by a pre-paint script and never enters React's tree. The role pair needs no such knowledge, which is the whole reason it is the better mechanism rather than merely the cheaper one.
+
+**It is declared on TWO elements, and it has to be.** `--color-text` cannot be re-scoped on the pane, because the fill READS it and a property cannot invert the value its own declaration consumed. The floating family's body element already sits between the pane and the content, so the role flips one element down.
+
+**And that is exactly as far as an inverted pane can reach — which is why `children` is a `string`.** Measured: a `Kbd` inside a tooltip painted `color(display-p3 0.12 0.12 0.13)` on a near-black pane and disappeared, because a component that stamps a tone re-declares `--tone-ink` ON ITS OWN ELEMENT and outranks anything an ancestor re-scoped. Re-scoping the tone trio as well was tried and is not a fix: the chip's FILL would still be the page's pale wash. So the type refuses the composition. The shortcut case is a string too (`Undo ⌘Z`); anything that genuinely needs a chip in it is a Popover, which holds content because it was built to.
+
+**The restatement rule, and the aria decision it forces.** A tooltip has no keyboard route, no touch route and no reading order, so anything appearing only there is lost to everybody else. Base UI wires nothing — measured, the trigger carries no `aria-describedby` and the panel no `role="tooltip"` — so the choice was ours. The panel is `aria-hidden`: announcing a restatement reads as "Undo, button, Undo", and if a tooltip carries something its control does not, hiding it creates no new problem, because that information was already unavailable to every keyboard and touch user. §17 and §18's open *hover-reveal → tap* question is answered rather than deferred: a well-formed tooltip has nothing to adapt, because it never carried anything of its own.
+
+**The delay belongs to a REGION, and Base UI made that decision for us before we made it.** `Tooltip.Root` has no `delay` prop in 1.7 (measured) — only `Tooltip.Provider` does. That turns out to be the right home: a delay is a property of a region of the interface, not of one label, and the provider does a second thing worth the export, which is GROUPING, so the first tooltip in a toolbar waits and the rest arrive as the pointer travels. It is optional, and it is excluded from the builder's catalog with the reason written down.
+
+**Two absences with arguments.** No size axis — the only index a tooltip could ride is its TRIGGER's, which it cannot see and which would make one label two sizes (Progress's decision, one family over); it does stamp a fixed `data-size="1"`, because without an index the surface join never fires and the pane falls back to a card's corner, measured at 64.52px on a 30px chip. And no material ever: the material defends a foreground against what passes behind a pane, a tooltip defends itself by inverting, and two defences on one 28px box is the doubled-edge defect's shape.
+
+**A declaration was written, sabotaged, and deleted rather than kept.** `border-color: transparent` was there for a good reason — a hairline on the highest-contrast object on the screen is the doubled-edge defect at a smaller scale — and its sabotage pass survived: removing it changed nothing, because the pane never stamps `data-bordered` and the surface layer already resolves an un-bordered quiet pane's edge to transparent. A declaration with no consumer is the entropy this repo keeps paying for.
+
+**And the law guarding it was wrong twice before it was right**, both times in the same shape: no control, then a control in the wrong world. Asserting "the tooltip's border is transparent" passes in a world where nothing draws a border at all — and since the fill-first flip (2026-08-17) that is the elevated world, so the menu put beside it as a control measured `rgba(0, 0, 0, 0)` too and proved nothing. `depth="flat"` is where a pane's hairline comes back, so that is where the comparison is made.
+
+---
+
 ## 2026-08-23 Popover, and the class that was carrying two different claims
 
 **What.** `Popover` ships (§30) — the floating family's fourth member — and `kui-floating` splits: the concentric corner and the squircle bump move onto a new `kui-floating-rows`, which Menu and Select wear and a popover does not. +14 bytes gzipped for the component and the split together.
