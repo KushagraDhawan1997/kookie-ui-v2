@@ -997,6 +997,69 @@ describe("the entry is the floating family's, and it flies into an item-aligned 
     return { popup: popup!, trigger };
   }
 
+  it("an item-aligned panel flies to the box BASE UI sized, not to the room on one side (§23)", async () => {
+    /**
+     * 2026-08-23, Kushagra: *"this bug is back"* — measured within the hour, and the defect was
+     * mine from earlier the same day.
+     *
+     * The anchored entry now clamps its target to `--available-height`, because a menu with
+     * more content than room used to aim at the whole viewport and finish its opening in a
+     * tenth of its clock. `--available-height` is the room on ONE SIDE of the trigger, and that
+     * is the panel's cap exactly when the panel sits on one side of it.
+     *
+     * An item-aligned select does not. The whole point of that placement is that the list
+     * extends above AND below the trigger so the chosen row lands on the value it replaces, so
+     * Base UI sizes the positioner itself. Measured on a 48-row select in a 900px window: the
+     * positioner is 880px, `--available-height` is 425px, and the clamp corrected `--kui-fly-h`
+     * from 880 to 425 — the panel landed at 425 and then jumped to 880 the moment the flight
+     * released, which is twice its own height, after it had visibly finished arriving.
+     *
+     * WHY EVERY EXISTING LAW PASSED, and it is this repo's oldest lesson in a new place: they
+     * read the chosen ROW. The row was correct throughout — offset spread 0 in flight, landing
+     * 2px, no creep — because the placement's scroll offset compensates for the panel being
+     * half the size it should be. The axis that was wrong was the panel's HEIGHT, and nothing
+     * read it across the seam. So this law reads the box.
+     *
+     * WHAT THIS FIXTURE STILL CANNOT TELL APART, stated because it is the trap the fix itself
+     * fell into first. The guard asks whether BASE UI sized this panel, and there are two
+     * places it could be read: the positioner's inline height (`heldHeight`, correct) and the
+     * popup's own (`borrowed`, wrong). In the preview app the popup carries no inline height at
+     * all — measured `""` while the positioner held `880px` — so guarding on `borrowed` leaves
+     * the defect live. In THIS fixture the popup does carry one, so that spelling passes here
+     * for the wrong reason. The sabotage pass shows it: removing the guard fails this law,
+     * swapping it for `borrowed` does not. Recorded rather than papered over — closing it needs
+     * a mount that reproduces the app's Base UI path, and the app is where it was measured.
+     */
+    const { popup } = await openItemAligned();
+    const positioner = popup.parentElement!;
+    // PAST DEPARTURE, and the law's first spelling was not — it read at the pose and measured
+    // an uncorrected target, so it passed with the guard deleted. The correction lives in
+    // `depart()`, which is one frame after the pose comes off: it is the last moment before
+    // `transitioncancel` is armed as the dismissal signal, so nothing may write a flight var
+    // after it.
+    await until(() => !popup.hasAttribute("data-seed"), 3000);
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    expect(popup.hasAttribute("data-unfurling"), "the flight is over — the target has been stripped").toBe(true);
+
+    // CALIBRATION, both halves, and without them this law cannot fail. The placement must be
+    // the item-aligned one, and the two candidate numbers must DIFFER — a panel whose
+    // one-sided room happens to equal its own height agrees with the defect.
+    expect(positioner.getAttribute("data-side"), "not the item-aligned placement").toBe("none");
+    const room = parseFloat(getComputedStyle(positioner).getPropertyValue("--available-height"));
+    const sized = parseFloat(positioner.style.height);
+    expect(sized, "Base UI sized no positioner — there is nothing for a clamp to disagree with").toBeGreaterThan(0);
+    expect(
+      Math.abs(sized - room),
+      `the panel (${sized}px) and the room on one side (${room}px) must differ, or a clamp is invisible`,
+    ).toBeGreaterThan(20);
+
+    const target = parseFloat(popup.style.getPropertyValue("--kui-fly-h"));
+    expect(
+      target,
+      `the flight aims at ${target}px — the room on ONE side of the trigger — for a panel Base UI sized at ${sized}px, so it lands at half its height and jumps to full when the flight releases`,
+    ).toBeCloseTo(sized, 0);
+  });
+
   it("the width floor is the trigger's LAYOUT box, not the box it is holding a press in (§22)", async () => {
     /**
      * 2026-08-23, the floating-motion audit: this guarantee was held by ONE law, and that law

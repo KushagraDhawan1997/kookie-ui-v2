@@ -819,6 +819,29 @@ function useFlight(plan: FlightPlan) {
            */
           const fitToRoom = () => {
             if (!positioner) return;
+            /**
+             * NOT WHERE BASE UI OWNS THE HEIGHT (2026-08-23, Kushagra: *"this bug is back"*,
+             * measured the same hour the clamp shipped).
+             *
+             * `--available-height` is the room on ONE SIDE of the trigger, which is the panel's
+             * cap exactly when the panel sits on one side of it. An item-aligned select does
+             * not: the whole point of that placement is that the list extends above AND below,
+             * so Base UI sizes the positioner itself and lays the popup out as `height: 100%`
+             * of it. Clamping there aims the flight at the wrong number by more than a factor
+             * of two — measured on a 48-row select in a 900px window, `--kui-fly-h` corrected
+             * 880 → 425, the panel landed at 425 and then jumped to 880 when the flight
+             * released.
+             *
+             * `heldHeight` is the discriminator and it already exists: it is the POSITIONER's
+             * own inline height, snapshotted before the pose overwrites it, so it is non-empty
+             * exactly where the library sized this panel and empty where the panel sizes
+             * itself. Two near-misses, both measured rather than reasoned: `borrowed` is the
+             * same idea read off the POPUP, and Base UI writes nothing there in this case
+             * (`popup.style.height` is `""` while the positioner carries `880px`); and asking
+             * `data-side` fails differently, because an item-aligned select stamps `none`,
+             * which `hasAttribute` reads as present — the test three lines up.
+             */
+            if (heldHeight) return;
             const room = getComputedStyle(positioner);
             const fit = (name: string, axis: string, measured: number) => {
               const available = parseFloat(room.getPropertyValue(axis));

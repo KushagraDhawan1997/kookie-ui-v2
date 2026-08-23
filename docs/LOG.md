@@ -124,6 +124,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 The room clamp is only the panel's cap where the panel sits on one side of its trigger
+
+**What.** The anchored entry's new `--available-height` clamp is skipped where Base UI sized the positioner itself. Without the skip, a 48-row select in a 900px window flew to 425px for a panel that settles at 880 and doubled in height the moment the flight released.
+
+**Why it came up.** Kushagra: *"this bug is back"*, within the hour of the clamp shipping, with two screenshots of the same select at two sizes. The defect was mine, from earlier the same day.
+
+**The mistake, and it is the audit's own shape.** `--available-height` is the room on ONE SIDE of the trigger. That is the panel's cap exactly when the panel sits on one side of it, which is every menu and every ordinary select — and the clamp was written against those, correctly. An item-aligned select is the case it was not written for: the whole point of that placement is that the list extends above AND below the trigger so the chosen row lands on the value it replaces, so Base UI sizes the positioner and the one-sided room is not a cap at all. Measured: positioner 880px, `--available-height` 425px, target corrected 880 → 425.
+
+**The discriminator, and two near-misses that were measured rather than reasoned.** `heldHeight` — the positioner's own inline height, snapshotted before the pose overwrites it — is non-empty exactly where the library sized the panel. `borrowed` is the same idea read off the POPUP and is wrong: in the running app that property is empty while the positioner carries 880px, so guarding on it leaves the defect live. `data-side` fails differently: an item-aligned select stamps `none`, which `hasAttribute` reads as present, and that is already the test three lines above.
+
+**Every law passed with the defect in, and the reason is the oldest one here.** They read the chosen ROW — offset spread 0 in flight, landing 2px, no creep — because the placement's scroll offset compensates for a panel at half its height. The axis that was wrong was the panel's own box, and nothing read it across the seam. The new law reads the box, and its first spelling read it at the POSE, before the correction happens, so it passed with the guard deleted; it reads past departure now.
+
+**What that law still cannot tell apart, recorded rather than papered over.** In its fixture the popup DOES carry an inline height, so the `borrowed` spelling passes there for the wrong reason — the sabotage pass shows removing the guard failing and swapping it for `borrowed` not failing. Closing that needs a mount reproducing the app's Base UI path; the app is where it was measured.
+
+---
+
 ## 2026-08-23 The panel measures itself before the browser has told it how much room it has
 
 **What.** For any anchored panel whose content is taller (or wider) than the space it has, the entry was aimed at a box the panel can never occupy. Measured on a 40-item menu in an 800px window: `--kui-fly-h: 800px` for a panel that settles at 393.4. The runner now corrects the target at departure, clamped to the room the positioner publishes.
