@@ -4534,12 +4534,12 @@
 }
 
 [data-tone="accent"] {
-  --tone-soft: var(--accent-soft);
-  --tone-soft-hover: var(--accent-soft-hover);
-  --tone-soft-active: var(--accent-soft-active);
-  --tone-soft-solid: var(--accent-soft-solid);
-  --tone-soft-hover-solid: var(--accent-soft-hover-solid);
-  --tone-soft-active-solid: var(--accent-soft-active-solid);
+  --tone-soft: var(--neutral-soft);
+  --tone-soft-hover: var(--neutral-soft-hover);
+  --tone-soft-active: var(--neutral-soft-active);
+  --tone-soft-solid: var(--neutral-soft-solid);
+  --tone-soft-hover-solid: var(--neutral-soft-hover-solid);
+  --tone-soft-active-solid: var(--neutral-soft-active-solid);
   --tone-solid: var(--accent-solid);
   --tone-solid-hover: var(--accent-solid-hover);
   --tone-solid-active: var(--accent-solid-active);
@@ -4548,9 +4548,9 @@
   --tone-label: var(--accent-label);
   --tone-contrast: var(--accent-contrast);
   --tone-ink: var(--accent-ink);
-  --tone-ink-muted: var(--accent-ink-muted);
-  --tone-ink-faint: var(--accent-ink-faint);
-  --tone-a3: var(--accent-a3);
+  --tone-ink-muted: var(--neutral-ink-muted);
+  --tone-ink-faint: var(--neutral-ink-faint);
+  --tone-a3: var(--neutral-a3);
 }
 
 [data-tone="destructive"] {

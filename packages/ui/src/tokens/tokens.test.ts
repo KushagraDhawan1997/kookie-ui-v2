@@ -43,7 +43,8 @@ import {
 } from "./config.ts";
 import { allStylesheets, block as blockIn, sheet, stripped } from "../test/stylesheets.ts";
 import { generateLayoutCss } from "../system/layout-css.ts";
-import { generateTokens } from "./generate.ts";
+import { DILUTED_ROLES, ROLES, generateTokens } from "./generate.ts";
+import { tones, undilutedTones } from "./color-config.ts";
 
 const css = generateTokens();
 /**
@@ -1885,4 +1886,81 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
       expect(points.filter((v) => v > 0.5).length, `${name} actually travels`).toBeGreaterThan(4);
     });
   }
+});
+
+
+/**
+ * ACCENT IS NEVER DILUTED (§7, §11, 2026-08-23) — the doctrine, read off the emitted
+ * indirection rather than off the config that produced it.
+ *
+ * Kushagra: *"an accent never paints a 'faded' background. Accent is pure. You pick accent,
+ * and its the vibrant color you pick. Your loudest buttons get it. Its the medium emphasis
+ * button, and quiet on hover, that lose that."*
+ *
+ * The blue block is the LOAD-BEARING half and it is not decoration. `accent` and `blue` are
+ * the same recipe — literally `{ hue: 250, vividness: 1 }` twice — so every value in the two
+ * blocks was byte-identical until today, and a law that only read the accent block would go
+ * green against a generator that had sent EVERY tone's washes to neutral. The two blocks
+ * differing at exactly the diluted roles, and agreeing everywhere else, is the whole claim.
+ */
+describe("the undiluted tones point their washed roles at neutral (§7, §11)", () => {
+  it("every diluted role is a role that exists", () => {
+    // A typo here would make the rule a silent no-op — the set is consulted by NAME, so
+    // `"soft-hovr"` simply never matches and the wash it was meant to catch ships diluted
+    // with the suite green. This is the cheapest law in the file and it guards the whole
+    // mechanism.
+    for (const role of DILUTED_ROLES) {
+      expect(ROLES as readonly string[], `"${role}" is not a role`).toContain(role);
+    }
+    // And the set is not empty, which every loop below would tolerate.
+    expect(DILUTED_ROLES.size).toBeGreaterThan(0);
+    expect(undilutedTones.length).toBeGreaterThan(0);
+  });
+
+  for (const tone of undilutedTones) {
+    it(`${tone} reads neutral where the role is a dilution, and itself everywhere else`, () => {
+      const scope = block(`[data-tone="${tone}"]`);
+      for (const role of ROLES) {
+        const value = scope.match(new RegExp(`--tone-${role}:\\s*([^;]+);`))?.[1];
+        expect(value, `--tone-${role} is not declared for ${tone}`).toBeDefined();
+        expect(value, `--tone-${role}`).toBe(
+          DILUTED_ROLES.has(role) ? `var(--neutral-${role})` : `var(--${tone}-${role})`,
+        );
+      }
+    });
+  }
+
+  it("a DILUTED tone still reads itself at every role — accent's twin proves the rule bites", () => {
+    // `blue` is accent's own recipe under a different name (LOG 2026-08-05), which makes it
+    // the one negative control that cannot be dismissed as a different colour behaving
+    // differently. Same pigment, one is an identity and one is data, and only the identity
+    // refuses its washes.
+    const scope = block(`[data-tone="blue"]`);
+    for (const role of ROLES) {
+      expect(scope, `--tone-${role} for blue`).toContain(`--tone-${role}: var(--blue-${role});`);
+    }
+    // Stated as a difference as well as a pair of absolutes, so a generator that renamed the
+    // neutral family out from under both blocks still fails.
+    const accent = block(`[data-tone="accent"]`);
+    const differing = ROLES.filter(
+      (role) =>
+        accent.match(new RegExp(`--tone-${role}:\\s*([^;]+);`))?.[1] !==
+        scope.match(new RegExp(`--tone-${role}:\\s*([^;]+);`))?.[1]?.replace("blue", "accent"),
+    );
+    expect(new Set(differing)).toEqual(DILUTED_ROLES);
+  });
+
+  it("the tones that are MEANINGS keep their washes", () => {
+    // The asymmetry is the decision, not an oversight: a pale red still reads danger, so
+    // diluting a meaning costs it nothing. Only an identity is destroyed by dilution. If a
+    // second tone ever joins `undilutedTones` this law is where that shows up.
+    for (const tone of Object.keys(tones)) {
+      if ((undilutedTones as readonly string[]).includes(tone)) continue;
+      const scope = block(`[data-tone="${tone}"]`);
+      expect(scope, `${tone} lost its wash`).toContain(`--tone-soft: var(--${tone}-soft);`);
+      expect(scope, `${tone} lost its faded ink`).toContain(
+        `--tone-ink-muted: var(--${tone}-ink-muted);`,
+      );
+    }
+  });
 });

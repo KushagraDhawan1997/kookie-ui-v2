@@ -34,7 +34,15 @@ import { Separator } from "../separator/separator.tsx";
 import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
-import { APPEARANCES, DEPTHS, computed, mounted, tokenOn, within } from "../../test/browser.tsx";
+import {
+  APPEARANCES,
+  DEPTHS,
+  colorOn,
+  computed,
+  mounted,
+  tokenOn,
+  within,
+} from "../../test/browser.tsx";
 import { VIEWPORT as WIDE } from "../../test/viewport.ts";
 
 const narrow = () => page.viewport(375, 800);
@@ -1666,11 +1674,24 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     );
   });
 
-  it("current and hover are DIFFERENT currencies, so they compose instead of colliding", async () => {
-    // The fills go rest → hover → press; a fourth step would have nowhere to go. Current is
-    // not a fourth step, it is another colour — the row stamps `data-tone="accent"`, so grey
-    // means the pointer is here and accent means this is where you are. Apple's answer, and
-    // the same call the rail's item takes.
+  it("current is said in INK, not in fill — and the fill collision is deliberate", async () => {
+    /**
+     * REWRITTEN 2026-08-23, and the rewrite IS the decision (Kushagra: *"an accent never
+     * paints a 'faded' background… render selected state with neutral background + accent
+     * label"*).
+     *
+     * This law used to assert the opposite of what it asserts now, in its own words: "grey
+     * means the pointer is here and accent means this is where you are". That was true while
+     * a current row's fill was `--accent-soft`. Accent is undiluted now, so the medium rung
+     * resolves neutral, and a current row at REST is byte-identical to any row under the
+     * pointer — measured `rgb(0 0 15 / 0.067)` for both in light.
+     *
+     * The collision is PINNED rather than tolerated. It is the cost of the doctrine, it was
+     * paid knowingly, and a later hand that steps the row's fill to buy the distinction back
+     * must fail here and re-open the decision rather than quietly restore a fourth rung. What
+     * carries "you are here" instead is the LABEL, which is the half of the fill/ink split
+     * that survived — plus `aria-current`, which never depended on either.
+     */
     const shell = nav({ rows: 2 });
     const [currentRow, plain] = [rows(shell)[0]!, rows(shell)[1]!];
     const currentRest = computed(currentRow, "background-color");
@@ -1680,9 +1701,22 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     // hover colour" is also true of transparent.
     expect(currentRest, "the current row rests unpainted").not.toBe(plainRest);
     expect(currentRest, "the current row rests transparent").not.toContain("rgba(0, 0, 0, 0)");
+    // THE INK is the signal, and it is the family's — read through the stamp, so a row that
+    // lost `data-tone="accent"` and fell back to neutral fails here rather than passing on a
+    // role name that resolves to whatever is in scope.
+    expect(computed(currentRow, "color"), "the current row's label is not accent").toBe(
+      colorOn(currentRow, "var(--accent-ink)"),
+    );
+    expect(
+      computed(currentRow, "color"),
+      "current and plain rows read the same ink, so nothing says which is current",
+    ).not.toBe(computed(plain, "color"));
+    // THE COLLISION, stated as a measurement: rest-current and hovered-plain are one paint.
     await userEvent.hover(plain);
-    const plainHovered = computed(plain, "background-color");
-    expect(currentRest, "the current row is painted in the hover currency").not.toBe(plainHovered);
+    expect(
+      computed(plain, "background-color"),
+      "the fills have separated again — re-open the 2026-08-23 decision before changing this",
+    ).toBe(currentRest);
     // And the current row still MOVES under the pointer rather than being a dead end.
     await userEvent.hover(currentRow);
     expect(
@@ -1836,18 +1870,30 @@ describe("the rail: a column of squares whose width is not the app's to state (�
     expect(item.contains(hit), "the gutter beside the square is dead").toBe(true);
   });
 
-  it("current speaks accent and hover speaks grey here too — one vocabulary, two families", async () => {
+  it("current speaks accent in its GLYPH, and the fill collides here too (2026-08-23)", async () => {
+    // The rail's item is the nav row's own decision at square scale, and it lands better here
+    // than it does one pane over: a rail item has no words, so the thing that carries "you are
+    // here" is the icon — which reads `currentColor` and therefore the family ink — while the
+    // fill is the same neutral wash a hovered square takes. One signal, no competition.
     const shell = rail("3");
     const [currentItem, plain] = [
       ...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item"),
     ];
     const currentRest = computed(currentItem!, "background-color");
     expect(currentRest, "the current square rests transparent").not.toContain("rgba(0, 0, 0, 0)");
+    // `--accent-LABEL`, not `--accent-ink`, and the difference is real rather than a typo: a
+    // rail item is a square, not a `.kui-row`, so it never takes the row family's re-point to
+    // the content ink and keeps the control layer's button-label ink (§21's 2026-08-09 split —
+    // a row reads prose ink because a row is a line you read; a square has no line).
+    expect(computed(currentItem!, "color"), "the current square's glyph is not accent").toBe(
+      colorOn(currentItem!, "var(--accent-label)"),
+    );
+    expect(computed(currentItem!, "color")).not.toBe(computed(plain!, "color"));
     await userEvent.hover(plain!);
     expect(
       computed(plain!, "background-color"),
-      "the current square and a hovered one are painted the same",
-    ).not.toBe(currentRest);
+      "the fills have separated again — re-open the 2026-08-23 decision before changing this",
+    ).toBe(currentRest);
   });
 });
 

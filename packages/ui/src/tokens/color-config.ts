@@ -190,6 +190,35 @@ export const tones = {
   info: { hue: 250, vividness: 1 },
 } as const;
 
+/**
+ * The tones that refuse their DILUTED roles (2026-08-23, Kushagra: *"an accent never paints a
+ * 'faded' background. Accent is pure. You pick accent, and its the vibrant color you pick.
+ * Your loudest buttons get it. Its the medium emphasis button, and quiet on hover, that lose
+ * that."*).
+ *
+ * THE DISTINCTION IS FADING VERSUS PLACING, and it is what makes this a rule rather than a
+ * preference. A family's soft rungs are its pigment at 11% alpha — measured, `--accent-soft`
+ * in light is 89% page, and in DARK it is not even the same colour (`#001c4b`-ish at 90%
+ * against a solid of `#0094fc`). That is a dilution: chroma and identity are what get spent.
+ * The INK rungs are not — they hold full chroma and move LIGHTNESS until the hue can be read
+ * on the bed it sits on, which is why the ink inverts between modes while the solid does not.
+ * So the ink stays, the washes go, and the sentence is one line: accent appears at the top
+ * rung or not at all.
+ *
+ * ACCENT-ONLY, and the asymmetry is the point rather than a special case. The other nine are
+ * MEANINGS — a pale red still reads danger, so diluting one costs nothing it was carrying.
+ * Accent is an IDENTITY: it is the one family a consumer chooses, and 11% of somebody's brand
+ * is not their brand. The repo already half-knew this — `button.browser.test.tsx` and
+ * `kbd.browser.test.tsx` both test through `blue` rather than `accent` with the comment
+ * "accent is a CONFIGURED identity that may equal any family".
+ *
+ * The stated cost: `accent ≡ blue` stops holding at these roles. That equality was worth 539
+ * bytes and was true by construction while accent was a colour family; it stops being true
+ * the day accent becomes a ROLE, which is what this makes it. DECISIONS §11 carries the
+ * amendment.
+ */
+export const undilutedTones = ["accent"] as const;
+
 export type ToneName = keyof typeof tones;
 export type Mode = keyof typeof lightness;
 

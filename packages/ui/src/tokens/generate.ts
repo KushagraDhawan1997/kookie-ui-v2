@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { decl, indent } from "./emit.ts";
-import { tones, type ToneName } from "./color-config.ts";
+import { tones, undilutedTones, type ToneName } from "./color-config.ts";
 import { colorDeclarations, contrastHighDeclarations } from "./color.ts";
 import {
   borderWidth,
@@ -831,8 +831,46 @@ export const ROLES = [
   "a3",
 ] as const;
 
+/**
+ * The roles that are a DILUTION of a family's pigment rather than a placement of it (§7, §11,
+ * 2026-08-23) — the set `undilutedTones` refuses.
+ *
+ * Membership is decided by ONE question: does this role spend the family's chroma to get
+ * where it is going? The soft trio and `a3` are the pigment at an alpha, so what reaches the
+ * eye is mostly the bed; the two faded inks are the loud ink mixed toward transparent. Those
+ * dilute. `solid` does not (it IS the pigment), and neither does `ink` — measured, the ink
+ * holds full chroma and inverts between modes (`#2a6caa` light, `#95c2f2` dark) while the
+ * solid is one hex in both, which is exactly the signature of a value that moves LIGHTNESS to
+ * stay legible rather than draining colour to stay quiet.
+ *
+ * `border`, `text`, `label` and `contrast` are deliberately OUT. A border is a line, not a
+ * wash — the rule Kushagra stated is about backgrounds — and `label`/`contrast` are the inks
+ * that sit ON a solid fill, so they are part of what makes the undiluted rung readable rather
+ * than a quieter version of it. If borders should follow, that is its own decision.
+ */
+export const DILUTED_ROLES: ReadonlySet<string> = new Set([
+  "soft",
+  "soft-hover",
+  "soft-active",
+  "soft-solid",
+  "soft-hover-solid",
+  "soft-active-solid",
+  "ink-muted",
+  "ink-faint",
+  "a3",
+]);
+
 function toneRoles(tone: ToneName): string[] {
-  return ROLES.map((role) => decl(`tone-${role}`, `var(--${tone}-${role})`));
+  // An undiluted tone reads NEUTRAL at the diluted roles — not `transparent`, and not its own
+  // value at a lower alpha. The wash still has to exist: a medium button and a current row
+  // both need a fill, and what they lose is the claim that the fill is the brand.
+  const undiluted = (undilutedTones as readonly string[]).includes(tone);
+  return ROLES.map((role) =>
+    decl(
+      `tone-${role}`,
+      `var(--${undiluted && DILUTED_ROLES.has(role) ? "neutral" : tone}-${role})`,
+    ),
+  );
 }
 
 /**

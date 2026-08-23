@@ -61,7 +61,15 @@ describe("the well is neutral and the level is the accent, in both appearances (
       // it a bug. The two parts must resolve different families.
       const { root, fill } = parts(<Progress value={40} />, { theme: { appearance } });
       expect(computed(root, "background-color")).not.toBe(computed(fill, "background-color"));
-      expect(computed(root, "background-color")).not.toBe(colorOn(root, "var(--tone-soft)"));
+      // Read against the FAMILY's own wash, not the indirection (2026-08-23). `--tone-soft`
+      // used to be the right probe and stopped being one the day accent became undiluted: an
+      // undiluted tone points its washed roles at neutral, so `var(--tone-soft)` now resolves
+      // to a neutral alpha that legitimately coincides with `--color-track` (both are neutral
+      // a-steps; measured identical in dark, where soft sits one rung up). Comparing against
+      // it asserted that two neutrals differ, which is a law about nothing. `--accent-soft` is
+      // still emitted and still the thing a bar must not paint, so the guarantee survives the
+      // doctrine change and a well repointed at the family still fails here.
+      expect(computed(root, "background-color")).not.toBe(colorOn(root, "var(--accent-soft)"));
     });
   }
 });
