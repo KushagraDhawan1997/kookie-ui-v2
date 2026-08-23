@@ -8,6 +8,11 @@ Subject: `kookie-ui@0.3.22`, files `packages/kookie-ui/src/components/chatbar.ts
 
 This document follows `apps/docs/content/AUTHORING.md`.
 
+`2026-08-23-chatbar-family.md` reconciles the whole composer pattern with researched sources.
+Read it with this document. It corrects question 1 below, and it adds three defects this
+audit missed: there is no stop control, the composer is not a `<form>`, and CSS now does the
+auto-resize that finding M7 describes.
+
 ## How this audit was made
 
 I read the source. I did not run the component.
@@ -345,11 +350,20 @@ change.
 
 It also causes C5, three of the minor findings, and most of M7.
 
-No shipping AI chat input has a compact mode with a different set of controls. ChatGPT,
-Claude and Gemini all grow the input with the content. That behaviour is auto-resize on its
-own.
+**This paragraph corrected itself on 2026-08-23. See
+`2026-08-23-chatbar-family.md`.** The first draft said that no shipping AI chat input has a
+compact mode. I wrote that from memory and did not check it. assistant-ui ships a compact
+composer, so the axis is real.
 
-If a v2 Chatbar only grows, most of this component's API disappears.
+The research changes the recommendation rather than removing it. assistant-ui derives compact
+from the **content**: no attachments, no quote, no queue, no dictation, and no newline in the
+text. It has no blur handler. It emits one `data-compact` attribute and unmounts nothing.
+
+v1 derives the same axis from **focus**, and branches the React tree.
+
+Keep the axis. Move it from focus to content, and emit an attribute instead of a branch. That
+change removes C5, both sets of slots, the focus loss when a slot unmounts, and the reason the
+layout animation exists.
 
 ### 2. Does the system own the file model?
 
