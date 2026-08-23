@@ -134,15 +134,44 @@ export function LensBench() {
       setSeen(count);
     };
     sweep();
-    // Panes come and go — a resize remints a map, a menu opens, a card is scrolled past — and
-    // a filter minted after a drag carries the config values, so it would sit on screen beside
-    // the ones this panel has already moved. Watching the host is what keeps the whole document
-    // at one setting.
-    const host = document.querySelector("svg[aria-hidden='true']");
-    if (!host) return;
-    const observer = new MutationObserver(sweep);
-    observer.observe(host, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    /**
+     * Panes come and go — a resize remints a map, a menu opens, a card scrolls past — and a
+     * filter minted after a drag carries the config values, so it would sit on screen beside
+     * the ones this panel has already moved. Watching for new ones is what keeps the whole
+     * document at one setting.
+     *
+     * THE HOST IS FOUND BY WHAT IT CONTAINS (2026-08-23, Kushagra: the bench "seems to only
+     * affect controls or triggers and cards, not menus or dialogs"). The first spelling took
+     * `svg[aria-hidden="true"]`, which is what `refraction.tsx` builds its host as — and also
+     * what every icon on the page is: measured, 229 of them on `/preview`, so `querySelector`
+     * returned an icon inside a span and the observer watched a node that never changes. Panes
+     * already on screen were swept once by the call above and looked right; a menu or dialog
+     * mints its filter when it OPENS, which is after that sweep, so those never moved at all.
+     *
+     * Two observers, because the host is created lazily and only when the first glass pane
+     * mounts: one on `<body>`, childList only and therefore cheap, to notice it arriving, and
+     * one on the host itself for the filters inside it. Re-resolved on every callback rather
+     * than captured, so a host torn down and rebuilt is picked up.
+     */
+    let watched: Element | null = null;
+    let inner: MutationObserver | null = null;
+    const attach = () => {
+      const host = document.querySelector("filter[id^='kui-lens']")?.closest("svg") ?? null;
+      if (host === watched) return;
+      inner?.disconnect();
+      watched = host;
+      if (!host) return;
+      inner = new MutationObserver(sweep);
+      inner.observe(host, { childList: true, subtree: true });
+      sweep();
+    };
+    attach();
+    const outer = new MutationObserver(attach);
+    outer.observe(document.body, { childList: true });
+    return () => {
+      outer.disconnect();
+      inner?.disconnect();
+    };
   }, [open, bend, fringe]);
 
   const reset = () => {
