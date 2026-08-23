@@ -275,8 +275,8 @@ function popupProps(
   // 437 -> 427 across three levels, a panel holding one character 427px wide (audit
   // 2026-08-09). The argument for the floor is Button-shaped and does not survive the move.
   const identity = anchored
-    ? "kui-surface kui-floating kui-menu-popup kui-menu-anchored"
-    : "kui-surface kui-floating kui-menu-popup";
+    ? "kui-surface kui-floating kui-floating-rows kui-menu-popup kui-menu-anchored"
+    : "kui-surface kui-floating kui-floating-rows kui-menu-popup";
   return {
     "data-size": size,
     "data-tone": "neutral",

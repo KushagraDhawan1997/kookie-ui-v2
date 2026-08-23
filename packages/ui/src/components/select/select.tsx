@@ -237,7 +237,7 @@ export type SelectContentProps = {
 /** The panel's surface identity — the menu popup's constants, self-keyed (§23). data-size
     is stamped for the concentric corner (the floating size join reads it). */
 function popupProps(size: Size, material: SurfaceMaterial, className?: string) {
-  const identity = "kui-surface kui-floating kui-select-popup";
+  const identity = "kui-surface kui-floating kui-floating-rows kui-select-popup";
   return {
     "data-size": size,
     "data-tone": "neutral",

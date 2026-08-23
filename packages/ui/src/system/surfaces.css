@@ -305,12 +305,19 @@
     --kui-corner-k: 1.613;
     corner-shape: squircle;
   }
-  /* The floating pane runs a touch past the global compensation (2026-08-17, Kushagra, by
+  /* The row-hugging pane runs a touch past the global compensation (2026-08-17, Kushagra, by
      eye: "just a little more radius, only in squircle"). A squircle spends its curvature
      along the edge, and on a small pane hugging tight rows the spread reads tighter still —
      the arc branch is judged right, so the bump lives HERE and dies with the block: engines
-     without corner-shape never see it. v0, eye pass pending. */
-  .kui-surface.kui-floating {
+     without corner-shape never see it. v0, eye pass pending.
+
+     KEYED ON HUGGING ROWS SINCE 2026-08-23, for the same reason the concentric corner above is
+     and found by the same measurement: its own sentence says "a small pane hugging tight rows",
+     and it was written on `.kui-floating`, which says where a pane sits. With the concentric
+     arm re-keyed and this one left behind, a popover's corner still came out 42 / 56 / 70 / 84
+     against a Card's 38.7 / 51.6 / 64.5 / 77.4 — the same raw band multiplied by 1.75 instead
+     of 1.613. Two facts about rows were riding one class; both now say rows. */
+  .kui-surface.kui-floating-rows {
     --kui-corner-k: 1.75;
   }
 }
@@ -358,6 +365,18 @@
    agreed with it because it read the same declared numbers. --radius-row-N is the identity at
    every other level, so nothing but `full` moves.
 
+   IT IS KEYED ON HUGGING ROWS, NOT ON FLOATING (2026-08-23, with Popover). The overlay join
+   below already stated the criterion — "nothing about it hugs rows, so there is no concentric
+   arithmetic to do" — and this block had it keyed on `.kui-floating`, which is a different
+   claim: it says where a pane sits, not what it holds. Popover is the first floating pane whose
+   content the system does not own, and measured through the old selector its corner came out
+   42 / 54.25 / 71.75 / 89.25px against a Card's 38.7 / 51.6 / 64.5 / 77.4 — LARGER than a card
+   at every index, because the sum adds a row corner to card-scale padding and there are no rows
+   to justify the term. It did not match a Menu either (28 / 33.25 / 36.75 / 40.25), so the
+   "one family, one corner" argument for leaving it alone fails on the same measurement. A
+   floating pane that hugs rows says so with `kui-floating-rows`; one that does not falls
+   through to the base surface join and wears the card's corner, which is what it is.
+
    No fixed surface pick can hold instead: the row corner moves with BOTH the size index and
    the radius level, while a surface pick moves with neither — the shipped surface-1 matched only where the sums
    happened to coincide (medium × sizes 1-2, large × 3) and read broken everywhere else,
@@ -365,19 +384,19 @@
    --kui-floating-p hook (the --kui-sf-cast shape: the system declares the fallback, the
    pane's own sheet supplies the value); the higher specificity over the surface join
    above is what lets these arms re-state the padding the join would otherwise pick. */
-.kui-surface.kui-floating[data-size="1"] {
+.kui-surface.kui-floating-rows[data-size="1"] {
   --kui-sf-p: var(--kui-floating-p, var(--surface-p-1));
   --kui-sf-radius: calc(var(--radius-row-1) + var(--kui-sf-p));
 }
-.kui-surface.kui-floating[data-size="2"] {
+.kui-surface.kui-floating-rows[data-size="2"] {
   --kui-sf-p: var(--kui-floating-p, var(--surface-p-2));
   --kui-sf-radius: calc(var(--radius-row-2) + var(--kui-sf-p));
 }
-.kui-surface.kui-floating[data-size="3"] {
+.kui-surface.kui-floating-rows[data-size="3"] {
   --kui-sf-p: var(--kui-floating-p, var(--surface-p-3));
   --kui-sf-radius: calc(var(--radius-row-3) + var(--kui-sf-p));
 }
-.kui-surface.kui-floating[data-size="4"] {
+.kui-surface.kui-floating-rows[data-size="4"] {
   --kui-sf-p: var(--kui-floating-p, var(--surface-p-4));
   --kui-sf-radius: calc(var(--radius-row-4) + var(--kui-sf-p));
 }

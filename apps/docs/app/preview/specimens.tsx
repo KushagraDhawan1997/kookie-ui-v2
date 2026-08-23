@@ -45,6 +45,12 @@ import {
   MenuContent,
   MenuItem,
   Notice,
+  Popover,
+  PopoverClose,
+  PopoverContent,
+  PopoverDescription,
+  PopoverTitle,
+  PopoverTrigger,
   Progress,
   Row,
   Radio,
@@ -668,6 +674,97 @@ function NoticeSection() {
           </Stack>
         </Box>
       </Stack>
+    </Stack>
+  );
+}
+
+function PopoverSection() {
+  return (
+    <Stack gap="6">
+      {/* The claim to judge first, and it is the one this component's first hour turned on: a
+          popover is a CARD that floats. Open it beside the card and the menu — the corner and
+          the padding should match the card exactly, and the cast should match the menu. */}
+      <Demo label="A card that floats, beside the two it is made of">
+        <Flex gap="6" align="flex-start">
+          <Popover>
+            <PopoverTrigger render={<Button emphasis="quiet" bordered>Open a popover</Button>} />
+            <PopoverContent>
+              <Stack gap="1">
+                <PopoverTitle>Filters</PopoverTitle>
+                <PopoverDescription>Narrow the list to what you are looking for.</PopoverDescription>
+              </Stack>
+            </PopoverContent>
+          </Popover>
+          <Menu>
+            <MenuTrigger render={<Button emphasis="quiet" bordered>Open a menu</Button>} />
+            <MenuContent>
+              <MenuItem>Duplicate</MenuItem>
+              <MenuItem>Rename</MenuItem>
+            </MenuContent>
+          </Menu>
+          <Box minWidth="12rem">
+            <Card size="2">
+              <Text size="2">A card at the same index.</Text>
+            </Card>
+          </Box>
+        </Flex>
+      </Demo>
+      {/* The index prices the BOX and not the words inside it — the same rule a dialog follows,
+          for the same reason: the content is the call site's. What the index does reach is the
+          title and the description, because those exist only because the wiring needs them. */}
+      <Demo label="Size prices the box">
+        <Flex gap="4" align="flex-start" wrap="wrap">
+          {SIZES.map((size) => (
+            <Popover key={size} size={size}>
+              <PopoverTrigger render={<Button size={size} emphasis="quiet" bordered>{`Size ${size}`}</Button>} />
+              <PopoverContent>
+                <Stack gap="1">
+                  <PopoverTitle>Filters</PopoverTitle>
+                  <PopoverDescription>The panel grew; this sentence did not.</PopoverDescription>
+                </Stack>
+              </PopoverContent>
+            </Popover>
+          ))}
+        </Flex>
+      </Demo>
+      {/* The shape a product actually uses it in: a small form that must not take over the
+          screen. The page behind stays live on purpose — that is the whole distinction from a
+          dialog, and it is the thing to check by clicking somewhere else. */}
+      <Demo label="Composed — an edit in place">
+        <Popover>
+          <PopoverTrigger render={<Button emphasis="quiet" bordered>Rename project</Button>} />
+          <PopoverContent>
+            <Stack gap="4">
+              <Stack gap="1">
+                <PopoverTitle>Rename project</PopoverTitle>
+                <PopoverDescription>This changes the name everywhere it appears.</PopoverDescription>
+              </Stack>
+              <Field>
+                <FieldLabel>Name</FieldLabel>
+                <TextField defaultValue="api-gateway" />
+              </Field>
+              <Flex gap="3" justify="flex-end">
+                <PopoverClose render={<Button emphasis="quiet">Cancel</Button>} />
+                <PopoverClose render={<Button emphasis="loud" tone="accent">Save</Button>} />
+              </Flex>
+            </Stack>
+          </PopoverContent>
+        </Popover>
+      </Demo>
+      {/* Over the hostile bed, where a floating pane has to defend its own legibility. */}
+      <Demo label="On glass">
+        <HostileBed>
+          <Popover>
+            <PopoverTrigger render={<Button emphasis="quiet" bordered>Open over media</Button>} />
+            <PopoverContent>
+              <Stack gap="1">
+                <PopoverTitle>Filters</PopoverTitle>
+                <PopoverDescription>The panel expresses whatever the app is built of.</PopoverDescription>
+              </Stack>
+            </PopoverContent>
+          </Popover>
+        </HostileBed>
+      </Demo>
     </Stack>
   );
 }
@@ -2177,6 +2274,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "notice", name: "Notice", body: <NoticeSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
+  { id: "popover", name: "Popover", body: <PopoverSection /> },
   { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
   { id: "row", name: "Row", body: <RowSection /> },

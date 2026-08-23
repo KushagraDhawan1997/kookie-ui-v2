@@ -400,14 +400,29 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
   /** The in-flow twin: the popup's exact classes and attributes, mounted in ordinary flow
       under the same Theme, with the positioner's own variable supplied so min-width
       computes from the same input. */
+  /**
+   * The class list and the row's, READ OFF A REAL POPUP rather than restated (2026-08-23).
+   *
+   * The twin used to carry hand-written copies, and the day the popup's identity changed —
+   * `kui-floating-rows` joining it when Popover split the concentric corner off `kui-floating`
+   * — three of these laws failed on a correct component, because the fixture was the stale
+   * half. A fixture that restates what it is comparing against is the second home this repo
+   * keeps finding in shipped code, and it is no better in a law.
+   */
+  function identities(): { popup: string; row: string } {
+    const { popup, items } = openMenu({});
+    return { popup: popup.className, row: items[0]!.className };
+  }
+
   function twin(theme: ThemeProps) {
+    const identity = identities();
     let popupTwin: HTMLElement | null = null;
     let itemTwin: HTMLElement | null = null;
     render(
       <Theme {...theme}>
         <div
           ref={(n: HTMLDivElement | null) => void (popupTwin = n)}
-          className="kui-surface kui-floating kui-menu-popup kui-menu-anchored"
+          className={identity.popup}
           data-size="2"
           data-tone="neutral"
           data-emphasis="quiet"
@@ -416,7 +431,7 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
         >
           <div
             ref={(n: HTMLDivElement | null) => void (itemTwin = n)}
-            className="kui-control kui-row kui-menu-item"
+            className={identity.row}
             data-size="2"
             data-tone="neutral"
             data-emphasis="quiet"
@@ -493,6 +508,14 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
      mount inside an RTL subtree, where CSS direction does NOT reach a body-level portal on
      its own. Falsified by dropping the wrapper's `dir` stamp. */
   it("agrees under RTL, where the cascade does not carry the answer (§20)", () => {
+    // The twin takes its identity from the popup THIS law mounts, assigned after the render
+    // rather than read from a menu of its own (2026-08-23). Two reasons, and the second is the
+    // one that bit: `identities()` mounts a real menu, so calling it inside the JSX replaces
+    // the tree being rendered, and calling it before leaves an extra portal in the document —
+    // which this law's `document.querySelector(".kui-portal .kui-menu-popup")` then finds
+    // FIRST, so the subject became the spare LTR menu. The law's own comment already says an
+    // index is not an identification; an anatomy selector is not one either once a second
+    // thing shares the anatomy.
     let popupTwin: HTMLElement | null = null;
     render(
       <Theme>
@@ -505,7 +528,6 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
           </Menu>
           <div
             ref={(n: HTMLDivElement | null) => void (popupTwin = n)}
-            className="kui-surface kui-floating kui-menu-popup kui-menu-anchored"
             data-size="2"
             data-tone="neutral"
             data-emphasis="quiet"
@@ -522,6 +544,7 @@ describe("the agreement law: portalled ≡ in-flow (§20, un-marks ENGINEERING �
     const twinEl = popupTwin as HTMLElement | null;
     if (!popup || !twinEl) throw new Error("subject or twin missing");
     if (popup === twinEl) throw new Error("the law is comparing the twin with itself");
+    twinEl.className = popup.className;
     // Calibration: the twin really is in the RTL subtree, so a passing comparison means the
     // portal reached rtl rather than both sides sitting at the document's ltr.
     expect(computed(twinEl, "direction")).toBe("rtl");

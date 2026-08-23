@@ -114,14 +114,27 @@ function rowFacts(el: HTMLElement) {
 /* ── The §20 agreement law ────────────────────────────────────────────────────────────── */
 
 describe("the agreement law: portalled ≡ in-flow (§20, §23)", () => {
+  /**
+   * The popup's class list, READ OFF A REAL PANEL rather than restated (2026-08-23).
+   *
+   * The twin used to carry a hand-written copy, and it went stale the day `kui-floating-rows`
+   * joined the identity — the fixture failing on a correct component, which is the second-home
+   * defect this repo keeps finding in shipped code and is no better in a law.
+   */
+  function identities(): { popup: string; row: string } {
+    const { popup, items } = openSelect({});
+    return { popup: popup.className, row: items[0]!.className };
+  }
+
   function twin(theme: ThemeProps) {
+    const identity = identities();
     let popupTwin: HTMLElement | null = null;
     let itemTwin: HTMLElement | null = null;
     render(
       <Theme {...theme}>
         <div
           ref={(n: HTMLDivElement | null) => void (popupTwin = n)}
-          className="kui-surface kui-floating kui-select-popup"
+          className={identity.popup}
           data-size="2"
           data-tone="neutral"
           data-emphasis="quiet"
@@ -130,7 +143,7 @@ describe("the agreement law: portalled ≡ in-flow (§20, §23)", () => {
         >
           <div
             ref={(n: HTMLDivElement | null) => void (itemTwin = n)}
-            className="kui-control kui-row kui-select-item"
+            className={identity.row}
             data-size="2"
             data-tone="neutral"
             data-emphasis="quiet"

@@ -45,6 +45,7 @@ export default defineConfig({
             "@base-ui/react/field",
             "@base-ui/react/input",
             "@base-ui/react/menu",
+            "@base-ui/react/popover",
             "@base-ui/react/progress",
             "@base-ui/react/radio",
             "@base-ui/react/select",

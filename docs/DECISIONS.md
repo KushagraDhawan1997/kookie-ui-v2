@@ -1068,7 +1068,8 @@ Resting position for each component across the four axes. Dash = axis not expose
 | Card | — (shell: fixed neutral quiet + bordered identity, no visual props; `size × material` only) | | | solid | see §10 "Card is a shell" |
 | Panel | neutral | quiet | flat | solid | flush (sidebar/inspector body) |
 | Notice | neutral | medium | flat | theme's | ONE component, spec'd 2026-08-21 (§29) — the Callout and Banner rows collapsed into it. A condition that is true now, sitting on the region it is about. Tone is the CATEGORY, not the volume, so it rests neutral and the semantic families (success/warning/info) finally have a consumer. It never floats and always takes layout space. Placement is the caller's, which is why it is not called Banner: Atlassian needs two components because their split is *where it sits*, and §3 forbids a component owning its own position. At most one resolving action plus a dismissal that only acknowledges; the dismissal is the app's state, never the component's. An icon slot, empty-safe |
-| Popover / HoverCard | neutral | quiet + bordered | floating | solid | thin/thick opt-in |
+| Popover | neutral *(stamped)* | quiet *(stamped)* | floating | theme's | **SHIPPED 2026-08-23 (§30)** — the floating family's fourth member and the first whose CONTENT the system does not own. The pane is a CARD in its box (the surface band's corner and padding, NOT the concentric arithmetic — that arm moved to `kui-floating-rows` the day this shipped) and a FLOATING pane in its coverage (the cast, in both worlds; it has no scrim to state coverage for it). `size` prices the box alone, Dialog's rule; the title and description are the one sanctioned anatomy (`aria-labelledby`/`aria-describedby`) and take the owned type steps. Refused: `modal`, an arrow, free positioning, a trigger-width floor, a drawn ✕ |
+| ~~HoverCard~~ | — | — | — | — | **NOT SHIPPED (2026-08-23), and not an oversight.** A card that opens on hover is a hover-reveal, and what a hover-reveal becomes on a touch screen is an open question §17 and §18 both record as belonging to the pointer axis rather than to a component. Building one would answer it for the whole system by accident. The composition today is a `Popover` on a real press |
 | Menu / Dropdown | neutral | quiet + bordered | floating | solid | thin/thick opt-in — SHIPPED 2026-08-09 (§22): popup = Card's stamped identity + kui-floating, surface-1 corner (overlay rejected by eye), casts in both worlds |
 | Tooltip | neutral (inverted) | - | floating | solid | exception: high-contrast inverted |
 | Dialog | neutral | quiet | overlay | theme's | SHIPPED 2026-08-10 (§24): the panel is Card's stamped identity + `kui-overlay` (the overlay band's corner, the designed max width), the backdrop carries scrim + blur, and the panel casts nothing of its own. **Material is the THEME's since 2026-08-16 and this cell said "opt-in" until 2026-08-20**: a floating pane passes `backdrop: true` by construction — a popup always covers the app — so the panel expresses whatever material the app is built of, and "panel stays solid" is now what a `solid` theme means rather than a default the component holds |
@@ -1965,6 +1966,45 @@ The message family's only part in it is a Notice on the surface where the result
 `Callout` describes paint, and it is the one name three unrelated things share — an authored aside, a condition notice and an act's receipt. That is §2's inversion in a single word, and it is why every design system has one: a docs site is every design system's first consumer, and the docs site wants an aside. `Banner` names a position, and components in this system do not own their position (§3). `Alert` is taken twice over, by AlertDialog and by the assertive ARIA role. **Notice** names the thing itself.
 
 ---
+
+---
+
+## 30. Popover (2026-08-23)
+
+**The floating family's fourth member, and the first whose CONTENT the system does not own.** A menu holds rows, a select holds options, an alert holds a fixed question with two answers — each of those is an arrangement this system designed, which is what licenses it to size the type inside them. A popover holds a form, a summary, a colour picker, a filter panel: shapes only the call site knows. So what the component owns is the pane and its behaviour, and everything inside it is the caller's.
+
+**Six flat exports** in shadcn/ui's popover vocabulary (MIT, credited): `Popover`, `PopoverTrigger`, `PopoverContent`, `PopoverTitle`, `PopoverDescription`, `PopoverClose` — the same six Dialog has, for the same reasons. The behaviour is Base UI's Popover; the §20 machinery (Portal → PortalScope → Positioner → Popup, the material read INSIDE the scope) arrives as the family's, with the agreement law every portalling component owes.
+
+### A popover is a CARD that floats, and that split is the section's real content
+
+`kui-floating` was carrying two different claims: **where a pane sits** (it covers the app, so it casts, it expresses the material, it flies out of its trigger) and **what a pane holds** (rows, so its corner is concentric — the rows' corner plus the panel's padding). Every member so far hugged rows, so nothing separated them.
+
+**Measured, the conflation is not subtle.** Wearing the concentric arm, a popover's corner came out **42 / 54.25 / 71.75 / 89.25px** against a Card's 38.7 / 51.6 / 64.5 / 77.4 — rounder than a card at every index, because the sum adds a row corner to card-scale padding with no rows to justify the term. It did not match a Menu either (28 / 33.25 / 36.75 / 40.25), so the "one family, one corner" argument for leaving it alone fails on the same measurement. This is the fraction wall's shape again: a corner holding a fraction of a box the component does not have (§6's checkbox sentence, and Progress's).
+
+**So the concentric arm is keyed on `kui-floating-rows`, not on `kui-floating`** — and the criterion was already written down one join below, in the overlay pane's own comment: *"nothing about it hugs rows, so there is no concentric arithmetic to do."* Menu and Select wear the marker; a floating pane without it falls through to the base surface join and wears the card's corner and the card's padding, which is what it is. **The same defect was there twice**: the squircle bump (`--kui-corner-k: 1.75`, 2026-08-17) is keyed the same way now, because its own sentence says *"a small pane hugging tight rows"* and it was written on `.kui-floating` — with the concentric arm re-keyed and the bump left behind, the corner still came out 42 / 56 / 70 / 84, the same raw band multiplied by 1.75 instead of 1.613.
+
+**What the popover keeps from the floating half is its COVERAGE**: the cast, in both worlds (§22's overlap clause — and unlike Dialog it has no scrim to state coverage for it), the material by construction, and the family's entry.
+
+### The page stays live, and that is the whole line between this and Dialog
+
+Nothing is trapped, nothing is dimmed, an outside press dismisses. `modal` is refused for §24's own reason, read backwards: a panel that must be answered before anything else can happen is a `Dialog`, one that stops you to ask a single question is an `AlertDialog`, and those are three different promises that the choice of component is how you make.
+
+**The law for it is the SCRIM, and it took three attempts to find a measurement that was true.** Scroll lock is the obvious one and is not observable — Base UI only locks a document that actually scrolls, so a dialog and a popover both leave `body.style.overflow` untouched in the harness. Inertness was the second, and neither component marks an outside subtree `inert` or `aria-hidden` there. What is always true and visible in the DOM is that a dialog renders a backdrop and a popover renders none. Notice's own shape: the absence is the design.
+
+### What it refuses
+
+**An arrow.** Base UI ships one and it stays unrendered. An arrow is a second boundary on a pane whose boundary is already stated — the 2026-08-07 doubled-edge defect, and on glass it would need its own veil, ring and lens for a shape the lens cannot describe (the map encodes one rounded rect). What says where the panel came from is that it is anchored to the trigger and flies out of its silhouette; the system's answer to that question is motion, not a beak.
+
+**A width floored at the trigger.** Menu floors at `--anchor-width` because "never narrower than the button you pressed" is a size-match argument about a list of that button's own options. A popover holds a form, so its width is its content's; tying it to whatever opened it would make one panel a different shape per call site.
+
+**Free positioning** (a side and an alignment, and the system does the rest — §23's sentence), and **a drawn ✕** (Dialog's refusal, verbatim: two other ways out, and a corner glyph on a small pane competes with what the panel is for).
+
+### What it takes from the index
+
+`size` prices the BOX — padding and corner — and not the type inside it, which is Dialog's rule and holds here for the same reason. The exception is `PopoverTitle` and `PopoverDescription`: those exist only because `aria-labelledby` and `aria-describedby` need something to point at (§10's anatomy criterion, its one sanctioned shape), so they are type the SYSTEM owns and they read the shared `OWNED_*_STEP` map — a popover, a dialog and an alert at one index are one typography.
+
+**16 mounted laws, four sabotage passes; +14 bytes gzipped** for the component and the corner split together.
+
 
 ## Open questions / deferred
 

@@ -656,6 +656,46 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "popover",
+    name: "Popover",
+    family: "Surface",
+    spec: "§20, §22, §30",
+    blurb:
+      "An anchored panel holding whatever you put in it, with the page still live behind it. It is the floating family's first member whose content the system does not design: a menu holds rows and a select holds options, and a popover holds a form, a summary or a filter panel. The pane is a card in everything about its box and a floating pane in everything about its coverage. The part names follow shadcn/ui's popover (MIT), with credit. The behaviour is Base UI's Popover.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "the panel's box: its padding and its corner. Not the type inside it, because the content is yours. It does reach the title and the description, which exist only because the accessibility wiring needs them" },
+    ],
+    refusals: [
+      {
+        name: "a modal mode",
+        why: "The page staying live is the whole distinction from Dialog. A panel that must be answered before anything else can happen is a Dialog, and one that stops you to ask a single question is an AlertDialog. Those are three different promises, and which component you reach for is how you make one.",
+      },
+      {
+        name: "an arrow",
+        why: "An arrow is a second boundary on a pane whose boundary is already drawn, and on glass it would need its own veil, ring and lens for a shape the lens cannot describe. What says where the panel came from is that it is anchored to the thing you pressed and grows out of it.",
+      },
+      {
+        name: "free positioning",
+        why: "You choose a side and an alignment, and the system does the rest — flipping when that side has no room, keeping the panel on screen, matching the gap every other floating panel uses. A panel that could be placed anywhere is a panel every call site places differently.",
+      },
+      {
+        name: "a width that matches the trigger",
+        why: "A menu is never narrower than the button that opened it, because its rows are that button's own options. A popover holds a form; tying its width to whatever opened it would make one panel a different shape on every screen.",
+      },
+      {
+        name: "a drawn close button",
+        why: "The panel has two other ways out — an outside press and Escape — and a corner glyph on a small pane competes with what the panel is for. Place a PopoverClose around your own Button when a third way out is worth the room.",
+      },
+    ],
+    parts: [
+      { part: "PopoverTrigger", blurb: "The control that opens it. Pass your own Button through render; this adds the wiring and the anchor the panel measures itself against." },
+      { part: "PopoverContent", blurb: "The panel. Takes the side and alignment to prefer, and holds your content." },
+      { part: "PopoverTitle", blurb: "The panel's name, in words. It is the visible heading and the string a screen reader announces the panel by. Without it the panel has no accessible name." },
+      { part: "PopoverDescription", blurb: "The supporting line, announced together with the title. A description that restates the title is heard twice." },
+      { part: "PopoverClose", blurb: "Dismisses the panel. Place a real Button inside it." },
+    ],
+  },
+  {
     slug: "progress",
     name: "Progress",
     family: "Indicator",

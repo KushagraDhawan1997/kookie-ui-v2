@@ -1480,6 +1480,136 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "PopoverClose": {
+    "element": null,
+    "props": []
+  },
+  "PopoverContent": {
+    "element": "div",
+    "props": [
+      {
+        "name": "align",
+        "type": "\"start\" | \"center\" | \"end\"",
+        "optional": true,
+        "doc": "How it lines up along that side."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The panel's content, and it belongs to you. One part is worth reaching for: a `PopoverTitle`, without which the panel has no accessible name."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the panel, not on the positioner around it."
+      },
+      {
+        "name": "side",
+        "type": "\"top\" | \"right\" | \"bottom\" | \"left\"",
+        "optional": true,
+        "doc": "Which side of the trigger to prefer. The panel flips itself when that side has no room."
+      },
+      {
+        "name": "sideOffset",
+        "type": "number",
+        "optional": true,
+        "doc": "The gap from the trigger, in pixels. Defaults to the family's own."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": "Inline styles, merged last. They land on the panel, so a width you set is the panel's."
+      }
+    ]
+  },
+  "PopoverDescription": {
+    "element": "p",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The supporting line, said once. It is announced together with the title, so a description that restates the title is heard twice."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "Popover": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The trigger and the content, in that order. Both are parts of this component rather than free children: the trigger is what the panel anchors to, and the content is what portals."
+      },
+      {
+        "name": "defaultOpen",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Uncontrolled starting state."
+      },
+      {
+        "name": "onOpenChange",
+        "type": "(open: boolean) => void",
+        "optional": true,
+        "doc": "Told when the panel opens or closes."
+      },
+      {
+        "name": "open",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Controlled open state."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The panel's box: its padding and its corner. NOT the type inside it — the content is yours, so its steps are yours to state. That line is Dialog's and it holds here for the same reason: a surface never sizes the words it is holding. What the index does reach is `PopoverTitle` and `PopoverDescription`, because those two exist only because the accessibility wiring forces them, and type the system owns is type the system may size."
+      }
+    ]
+  },
+  "PopoverTitle": {
+    "element": "h2",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The panel's name, in words. It is the visible heading and the string a screen reader announces the panel by, which is one obligation rather than two. Name the thing, such as \"Filters\", never the widget."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "PopoverTrigger": {
+    "element": null,
+    "props": []
+  },
   "Progress": {
     "element": null,
     "props": [

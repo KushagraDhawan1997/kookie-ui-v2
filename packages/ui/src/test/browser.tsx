@@ -40,6 +40,7 @@ import kbdCss from "../components/kbd/kbd.css?raw";
 import linkCss from "../components/link/link.css?raw";
 import menuCss from "../components/menu/menu.css?raw";
 import noticeCss from "../components/notice/notice.css?raw";
+import popoverCss from "../components/popover/popover.css?raw";
 import selectCss from "../components/select/select.css?raw";
 import progressCss from "../components/progress/progress.css?raw";
 import radioCss from "../components/radio/radio.css?raw";
@@ -84,6 +85,7 @@ export function installStyles(): void {
     linkCss,
     menuCss,
     noticeCss,
+    popoverCss,
   selectCss,
     progressCss,
     radioCss,

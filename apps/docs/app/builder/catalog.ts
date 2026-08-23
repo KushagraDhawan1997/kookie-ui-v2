@@ -738,6 +738,84 @@ export const CATALOG: Record<string, CatalogEntry> = {
     make: () => node("SelectLabel", {}, { text: "Label" }),
   },
 
+  Popover: {
+    family: "Surface",
+    blurb: "An anchored panel with the page still live behind it. Dropped whole; the content is yours to compose.",
+    props: { size: size() },
+    children: { only: ["PopoverTrigger", "PopoverContent"] },
+    phantom: true,
+    make: () =>
+      node("Popover", { size: "2" }, {
+        children: [
+          node("PopoverTrigger", {}, { children: [node("Button", { emphasis: "quiet", bordered: true }, { text: "Open popover" })] }),
+          node("PopoverContent", {}, {
+            children: [
+              node("Stack", { gap: "4" }, {
+                children: [
+                  node("Stack", { gap: "1" }, {
+                    children: [
+                      node("PopoverTitle", {}, { text: "Popover title" }),
+                      node("PopoverDescription", {}, { text: "What this panel is for, said quietly." }),
+                    ],
+                  }),
+                  node("Flex", { gap: "3", justify: "flex-end" }, {
+                    children: [
+                      node("PopoverClose", {}, { children: [node("Button", { emphasis: "quiet" }, { text: "Cancel" })] }),
+                      node("PopoverClose", {}, { children: [node("Button", { emphasis: "loud" }, { text: "Save" })] }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+  },
+  PopoverTrigger: {
+    family: "Surface",
+    blurb: "The button that opens it.",
+    props: {},
+    children: { only: ["Button"] },
+    partOf: "Popover",
+    renderChild: true,
+    make: () => node("PopoverTrigger", {}, { children: [node("Button", { emphasis: "quiet", bordered: true }, { text: "Open" })] }),
+  },
+  PopoverContent: {
+    family: "Surface",
+    blurb: "The panel: portals, anchors itself, dismisses on an outside press. Its layout is yours.",
+    props: {},
+    children: "any",
+    partOf: "Popover",
+    make: () => node("PopoverContent", {}, { children: [] }),
+  },
+  PopoverTitle: {
+    family: "Surface",
+    blurb: "The panel's accessible name — a real heading at the card-title step.",
+    props: {},
+    children: "text",
+    requiresAncestor: "PopoverContent",
+    partOf: "Popover",
+    make: () => node("PopoverTitle", {}, { text: "Popover title" }),
+  },
+  PopoverDescription: {
+    family: "Surface",
+    blurb: "The supporting line, announced with the title.",
+    props: {},
+    children: "text",
+    requiresAncestor: "PopoverContent",
+    partOf: "Popover",
+    make: () => node("PopoverDescription", {}, { text: "What this panel is for, said quietly." }),
+  },
+  PopoverClose: {
+    family: "Surface",
+    blurb: "Dismisses the panel. Wrap a real Button.",
+    props: {},
+    children: { only: ["Button"] },
+    requiresAncestor: "PopoverContent",
+    partOf: "Popover",
+    renderChild: true,
+    make: () => node("PopoverClose", {}, { children: [node("Button", { emphasis: "quiet" }, { text: "Close" })] }),
+  },
   Dialog: {
     family: "Surface",
     blurb: "A modal panel over a dimmed app. Dropped whole; the content is yours to compose.",

@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 Popover, and the class that was carrying two different claims
+
+**What.** `Popover` ships (§30) — the floating family's fourth member — and `kui-floating` splits: the concentric corner and the squircle bump move onto a new `kui-floating-rows`, which Menu and Select wear and a popover does not. +14 bytes gzipped for the component and the split together.
+
+**Why it was worth building fourth.** Every floating member so far held content the system designed — a menu holds rows, a select holds options, an alert holds a fixed question — and a popover holds a form or a summary, whose shape only the call site knows. That is the case that separates two claims `kui-floating` had been making at once: WHERE a pane sits (it covers the app, so it casts, it expresses the material, it flies out of its trigger) and WHAT a pane holds (rows, so its corner is the rows' corner plus the panel's padding). Nothing had ever needed one without the other.
+
+**The measurement is what settled it, and it is not subtle.** Wearing the concentric arm, a popover's corner came out 42 / 54.25 / 71.75 / 89.25px against a Card's 38.7 / 51.6 / 64.5 / 77.4 — rounder than a card at every index, because the sum adds a row corner to card-scale padding with no rows to justify the term. And it did not match a Menu either (28 / 33.25 / 36.75 / 40.25), so the one argument for leaving it alone — one family, one corner — dies on the same numbers. This is the fraction wall in its usual shape: a corner holding a fraction of a box the component does not have.
+
+**The criterion was already written down, one join below.** The overlay pane's own comment says *"a pane that COVERS is not a card and not an anchored panel: nothing about it hugs rows, so there is no concentric arithmetic to do."* That is the test, and the concentric arm was keyed on the wrong thing — on where the pane sits. It is keyed on hugging rows now, and a floating pane that does not hug rows falls through to the base surface join and wears the card's corner and the card's padding, which is what a popover is.
+
+**The same defect was there twice, and the second half only showed after the first was fixed.** The squircle bump (`--kui-corner-k: 1.75`, 2026-08-17) was also on `.kui-floating`, and its own sentence reads *"a small pane hugging tight rows"*. With the concentric arm re-keyed and the bump left behind, the popover's corner still came out 42 / 56 / 70 / 84 — the correct raw band multiplied by 1.75 instead of 1.613. Two facts about rows were riding one class; both say rows now.
+
+**The modality law took three attempts, and the two that failed are the finding.** "The page stays live" is the whole line between this and a Dialog, and the obvious measurement — scroll lock — is not observable: Base UI only locks a document that actually scrolls, so a dialog and a popover both leave `body.style.overflow` untouched in the harness and the law's control did not exist. Inertness was the second attempt, and neither component marks an outside subtree `inert` or `aria-hidden` there. What is always true and visible in the DOM is the SCRIM: a dialog renders a backdrop and a popover renders none. The law reads that, with the dialog beside it as the control.
+
+**Two fixture defects came out of the split, both in laws rather than in code.** The menu and select agreement laws mounted an in-flow twin with the popup's class list HAND-COPIED, so a correct change to the identity failed three laws — the second-home defect this repo keeps finding in shipped code, and no better in a fixture. Both twins read the identity off a real panel now. Fixing it then produced a second bug worth recording: the RTL law finds its subject with `document.querySelector(".kui-portal .kui-menu-popup")`, so mounting an extra menu to read the identity from left a spare LTR portal that the selector found FIRST. That law's own comment already says *"an index is not an identification"* — an anatomy selector is not one either, once a second thing shares the anatomy. It takes its twin's identity from the subject it already mounted.
+
+**Refused, each with its reason.** An arrow: a second boundary on a pane whose boundary is already stated, and on glass it needs its own veil, ring and lens for a shape the lens cannot describe — what says where the panel came from is that it is anchored to the trigger and flies out of it. A width floored at the trigger: that floor is a size-match argument about a list of the trigger's own options, and a popover holds a form. `modal`: §24's argument read backwards — a panel that must be answered is a Dialog. A drawn ✕: Dialog's refusal verbatim. And `HoverCard`, which §11 had paired with this row since the defaults table was written: a card that opens on hover is a hover-reveal, and what a hover-reveal becomes on a touch screen is an open question §17 and §18 both assign to the pointer axis. Building one would answer it for the system by accident.
+
+**One law of mine was a tautology and was deleted rather than fixed** — `expect(x).toBe(x)`, dressed up in a conditional. It was written while reaching for a claim about the cast that the two assertions above it already make.
+
+---
+
 ## 2026-08-23 The row family's fourth member, and what actually lights a row
 
 **What.** `Row` ships — the standalone member §21 named on day one and never built — and with it the family's hover rule moves into the shared layer. Net **−17 bytes gzipped**: the component has no stylesheet, and the promotion deletes more than the export adds.

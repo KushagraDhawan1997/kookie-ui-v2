@@ -34,6 +34,7 @@ import KbdExample from "./kbd";
 import LinkExample from "./link";
 import MenuExample from "./menu";
 import NoticeExample from "./notice";
+import PopoverExample from "./popover";
 import ProgressExample from "./progress";
 import RadioGroupExample from "./radio-group";
 import RadioExample from "./radio";
@@ -71,6 +72,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "link": LinkExample,
   "menu": MenuExample,
   "notice": NoticeExample,
+  "popover": PopoverExample,
   "progress": ProgressExample,
   "radio-group": RadioGroupExample,
   "radio": RadioExample,

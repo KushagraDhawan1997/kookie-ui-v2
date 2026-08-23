@@ -1,0 +1,31 @@
+/* Popover (§30). The pane is a surface — its fill, edge, corner, dress, cast and material are
+   all the surface layer's, and its entry is the floating family's — so what is left for this
+   sheet is the three facts that are about a panel holding CONTENT the system did not design.
+ *
+ * It deliberately does NOT wear `kui-floating-rows`, which is what carries the concentric
+ * corner (§6, §22): that arithmetic is a pane's corner derived from the corner of the rows
+ * inside it, and this pane has no rows. Measured through it, a popover came out rounder than a
+ * card at every index (42 / 54.25 / 71.75 / 89.25 against 38.7 / 51.6 / 64.5 / 77.4) — a row
+ * corner added to card-scale padding, with nothing to justify the term. A popover is a card
+ * that floats, so it takes the card's corner and the card's padding from the base surface
+ * join, and only its coverage — the cast — comes from the floating half. */
+
+.kui-popover-popup {
+  /* Never narrower than the family's designed floor (§22). Deliberately NOT floored at the
+     trigger's width the way a menu is: that floor means "never narrower than the button you
+     pressed", which is a size-match argument about a list of the trigger's own options. A
+     popover holds a form or a summary — its width is its content's, and tying it to whatever
+     button opened it would make the same panel a different shape per call site. */
+  min-width: var(--floating-min-w);
+  /* The room the positioner reports, as a hard stop in both axes. A pane clips (§3), so
+     without these a panel taller than the window loses its own bottom with no scrollbar
+     anywhere — and the caller cannot fix it, because the room is a fact only the positioner
+     knows. Content that needs to scroll goes in a ScrollArea, which is the composition the
+     pane rule was made to work with. */
+  max-height: var(--available-height, none);
+  max-width: var(--available-width, none);
+  /* Base UI moves focus to the panel on open. The ring is a keyboard affordance for CONTROLS;
+     a panel holding focus is a mode, and what the reader needs is the announcement the title
+     provides. Menu's sentence and Dialog's, for the same reason in all three. */
+  outline: none;
+}
