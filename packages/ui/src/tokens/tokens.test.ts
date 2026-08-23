@@ -1925,6 +1925,7 @@ describe("the wash is neutral for everyone; accent gives up more (§7, §9, §11
     "soft-solid",        // the trio's opaque twins — what the glass scopes re-point to
     "soft-hover-solid",
     "soft-active-solid",
+    "border",            // step 7 — a pale tint of the pigment, and `bordered` is RANK
   ] as const;
   const ACCENT_ONLY = [
     "a3",                // the tone-forward surface fill — Notice keeps this
@@ -1936,7 +1937,6 @@ describe("the wash is neutral for everyone; accent gives up more (§7, §9, §11
     "solid",
     "solid-hover",
     "solid-active",
-    "border",
     "text",
     "label",
     "contrast",

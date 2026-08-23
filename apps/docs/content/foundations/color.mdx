@@ -73,12 +73,17 @@ cost nothing.
 Every family emits the same set. `--destructive-solid`, `--success-ink` and `--warning-border`
 all exist, so one role name works across all ten families.
 
-## No family paints a faded fill
+## No family paints a faded fill or a faded ring
 
 A tinted fill is a colour spent to say almost nothing: at 11% alpha what reaches the eye is
 mostly the page. So the tint fills are **neutral for every family**. A medium button, a quiet
 button under the pointer, and a badge's chip are grey whatever tone they carry — and the family
 arrives in the label instead.
+
+The **border** follows, for the same reason rather than a different one: `--{tone}-border` is a
+pale tint too, and a `bordered` button is a loudness step — quiet, then quiet with a ring, then
+medium — which reads the same in grey. A checkbox's edge and a field's edge are unaffected: they
+have their own solved achromatic line and never read the family's.
 
 The solid fill keeps the colour, which is the point: that is the rung the rule protects.
 

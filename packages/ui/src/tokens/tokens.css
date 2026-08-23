@@ -4607,7 +4607,7 @@
   --tone-solid: var(--accent-solid);
   --tone-solid-hover: var(--accent-solid-hover);
   --tone-solid-active: var(--accent-solid-active);
-  --tone-border: var(--accent-border);
+  --tone-border: var(--neutral-border);
   --tone-text: var(--accent-text);
   --tone-label: var(--accent-label);
   --tone-contrast: var(--accent-contrast);
@@ -4628,7 +4628,7 @@
   --tone-solid: var(--destructive-solid);
   --tone-solid-hover: var(--destructive-solid-hover);
   --tone-solid-active: var(--destructive-solid-active);
-  --tone-border: var(--destructive-border);
+  --tone-border: var(--neutral-border);
   --tone-text: var(--destructive-text);
   --tone-label: var(--destructive-label);
   --tone-contrast: var(--destructive-contrast);
@@ -4649,7 +4649,7 @@
   --tone-solid: var(--blue-solid);
   --tone-solid-hover: var(--blue-solid-hover);
   --tone-solid-active: var(--blue-solid-active);
-  --tone-border: var(--blue-border);
+  --tone-border: var(--neutral-border);
   --tone-text: var(--blue-text);
   --tone-label: var(--blue-label);
   --tone-contrast: var(--blue-contrast);
@@ -4670,7 +4670,7 @@
   --tone-solid: var(--green-solid);
   --tone-solid-hover: var(--green-solid-hover);
   --tone-solid-active: var(--green-solid-active);
-  --tone-border: var(--green-border);
+  --tone-border: var(--neutral-border);
   --tone-text: var(--green-text);
   --tone-label: var(--green-label);
   --tone-contrast: var(--green-contrast);
@@ -4691,7 +4691,7 @@
   --tone-solid: var(--orange-solid);
   --tone-solid-hover: var(--orange-solid-hover);
   --tone-solid-active: var(--orange-solid-active);
-  --tone-border: var(--orange-border);
+  --tone-border: var(--neutral-border);
   --tone-text: var(--orange-text);
   --tone-label: var(--orange-label);
   --tone-contrast: var(--orange-contrast);
@@ -4712,7 +4712,7 @@
   --tone-solid: var(--amber-solid);
   --tone-solid-hover: var(--amber-solid-hover);
   --tone-solid-active: var(--amber-solid-active);
-  --tone-border: var(--amber-border);
+  --tone-border: var(--neutral-border);
   --tone-text: var(--amber-text);
   --tone-label: var(--amber-label);
   --tone-contrast: var(--amber-contrast);
@@ -4733,7 +4733,7 @@
   --tone-solid: var(--success-solid);
   --tone-solid-hover: var(--success-solid-hover);
   --tone-solid-active: var(--success-solid-active);
-  --tone-border: var(--success-border);
+  --tone-border: var(--neutral-border);
   --tone-text: var(--success-text);
   --tone-label: var(--success-label);
   --tone-contrast: var(--success-contrast);
@@ -4754,7 +4754,7 @@
   --tone-solid: var(--warning-solid);
   --tone-solid-hover: var(--warning-solid-hover);
   --tone-solid-active: var(--warning-solid-active);
-  --tone-border: var(--warning-border);
+  --tone-border: var(--neutral-border);
   --tone-text: var(--warning-text);
   --tone-label: var(--warning-label);
   --tone-contrast: var(--warning-contrast);
@@ -4775,7 +4775,7 @@
   --tone-solid: var(--info-solid);
   --tone-solid-hover: var(--info-solid-hover);
   --tone-solid-active: var(--info-solid-active);
-  --tone-border: var(--info-border);
+  --tone-border: var(--neutral-border);
   --tone-text: var(--info-text);
   --tone-label: var(--info-label);
   --tone-contrast: var(--info-contrast);

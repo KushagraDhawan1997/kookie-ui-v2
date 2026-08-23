@@ -18,6 +18,7 @@ import {
   probeIn,
   render,
   until,
+  within,
 } from "../../test/browser.tsx";
 import { Theme } from "../../theme/theme.tsx";
 import { Box } from "../box/box.tsx";
@@ -161,6 +162,40 @@ describe("the axes are orthogonal and resolve through the role layer (§7, §9)"
     expect(computed(grey, "color"), "a neutral label collapsed onto the link ink").not.toBe(
       tokenOn(grey, "--tone-text"),
     );
+  });
+
+  it("a BORDERED ring is grey too — the rank half-step never said the family", () => {
+    /**
+     * Added 2026-08-23 (Kushagra: "The border shouldn't be colored too, then right? On button I
+     * mean"). The washes went neutral first and the border was left out on the grounds that "a
+     * border is a line, not a wash" — an argument about shape, where the rule is about
+     * dilution. `--{tone}-border` is step 7, a pale tint: destructive resolved it to a washed
+     * pink while the fill beside it was already grey and the label already carried the family,
+     * so the ring was saying it a third time in its faintest voice.
+     *
+     * `bordered` is a RANK half-step (§9), which is what makes this safe: quiet < quiet+border
+     * < medium is a loudness ladder, and it reads identically in grey.
+     *
+     * DESTRUCTIVE against NEUTRAL in one mount — the equality is the claim, and a law reading
+     * one of them alone would pass on a package where nothing is bordered at all.
+     */
+    const root = mounted(
+      <div>
+        <Button data-t="toned" tone="destructive" emphasis="quiet" bordered>Delete</Button>
+        <Button data-t="grey" emphasis="quiet" bordered>Delete</Button>
+      </div>,
+      { theme: {} },
+    );
+    const toned = within(root, '[data-t="toned"]');
+    const grey = within(root, '[data-t="grey"]');
+    expect(computed(toned, "border-top-color"), "the ring is tinted by its tone again").toBe(
+      computed(grey, "border-top-color"),
+    );
+    // The ring still EXISTS — a `bordered` button that stopped drawing one satisfies the line
+    // above for the wrong reason, and the rank half-step would be gone with it.
+    expect(computed(toned, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+    // And the family is still on the button, in the one place it now lives.
+    expect(computed(toned, "color")).not.toBe(computed(grey, "color"));
   });
 
   it("loud reads the APCA-chosen contrast for its own fill", () => {

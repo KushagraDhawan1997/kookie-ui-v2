@@ -861,6 +861,20 @@ const WASH_ROLES: ReadonlySet<string> = new Set([
   "soft-solid",
   "soft-hover-solid",
   "soft-active-solid",
+  // THE BORDER JOINED THEM (Kushagra, same session: "The border shouldn't be colored too,
+  // then right? On button I mean"). The first cut kept it out on the grounds that "a border is
+  // a line, not a wash" — which is an argument about SHAPE, and the rule is about DILUTION.
+  // `--{tone}-border` is step 7, a pale tint of the pigment: destructive resolves it to a
+  // washed pink (p3 0.963 0.775 0.756) and that is diluted colour whatever geometry it is cut
+  // into. On a bordered button the ring was also saying the family a THIRD time, in its
+  // faintest voice, next to a grey fill and a coloured label.
+  //
+  // Measured, it reaches exactly one thing. Marks and fields REPLACE this role before reading
+  // it (`--control-edge` / `--field-edge`, both solved achromatic), the switch swaps in the
+  // track, and a surface's edge is shadowed by `--surface-edge` — so a toned Card, a Notice, a
+  // checkbox and a text field are all byte-identical across this change. What moves is the
+  // `bordered` ring, which is a RANK half-step (§9) and never was a family statement.
+  "border",
 ]);
 
 /**
