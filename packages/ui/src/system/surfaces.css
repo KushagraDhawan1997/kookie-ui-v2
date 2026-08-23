@@ -1836,10 +1836,26 @@
   block-size: 100%;
 }
 
+/* THE BODY IS PINNED AT THE PANE'S OWN PADDING, read through `--kui-sf-p` (2026-08-23,
+   ultracode audit — these nine declarations named `--kui-floating-p` and it is UNSET on two of
+   the four panels).
+
+   `--kui-floating-p` is the floating family's padding OVERRIDE: menus and selects declare it,
+   and the size join above consumes it WITH a fallback (`var(--kui-floating-p, var(--surface-p-N))`).
+   These rules read it bare, so on a Popover or a Tooltip — the first floating panes that are
+   neither menu nor select — it resolved to nothing, the whole declaration was invalid at
+   computed-value time, and every inset fell back to `auto`: the body took its static position
+   for the length of the entry, on the opposite edge from the one the rule names.
+
+   `--kui-sf-p` is the RESOLVED padding of whatever pane this is, which is the value all nine
+   wanted in the first place: on a menu it resolves through `--kui-floating-p` by the join
+   above, and on a popover it is the surface band. One name, correct on all four. It inherits
+   on purpose (§3 — it is how `m="bleed"` finds its surface), which is what lets a child read
+   it at all. */
 .kui-surface.kui-floating[data-unfurling] .kui-floating-body {
   position: absolute;
-  inset-block-start: var(--kui-floating-p);
-  inset-inline-start: var(--kui-floating-p);
+  inset-block-start: var(--kui-sf-p);
+  inset-inline-start: var(--kui-sf-p);
 }
 /* The body is held against the same edge as its box — the case analysis above, restated for
    the element inside it (2026-08-22 audit). It carried the same two faults and for the same
@@ -1850,21 +1866,21 @@
 .kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"] .kui-floating-body {
   inset-inline-start: auto;
-  inset-inline-end: var(--kui-floating-p);
+  inset-inline-end: var(--kui-sf-p);
 }
 /* The body's own direction arms — the physical/logical mix above, restated for the element
    inside the box, exactly as the pin itself is. */
 [dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body {
-  inset-inline-start: var(--kui-floating-p);
+  inset-inline-start: var(--kui-sf-p);
   inset-inline-end: auto;
 }
 [dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="right"] .kui-floating-body {
   inset-inline-start: auto;
-  inset-inline-end: var(--kui-floating-p);
+  inset-inline-end: var(--kui-sf-p);
 }
 .kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="center"] .kui-floating-body {
-  inset-inline: var(--kui-floating-p);
+  inset-inline: var(--kui-sf-p);
   margin-inline: auto;
 }
 .kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="end"] .kui-floating-body,
@@ -1872,18 +1888,18 @@
 .kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="end"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="end"] .kui-floating-body {
   inset-block-start: auto;
-  inset-block-end: var(--kui-floating-p);
+  inset-block-end: var(--kui-sf-p);
 }
 .kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="center"] .kui-floating-body {
-  inset-block: var(--kui-floating-p);
+  inset-block: var(--kui-sf-p);
   margin-block: auto;
 }
 .kui-surface.kui-floating[data-unfurling][data-side="top"] .kui-floating-body {
   inset-block-start: auto;
-  inset-block-end: var(--kui-floating-p);
+  inset-block-end: var(--kui-sf-p);
   /* The origin that went with this pin (2026-08-17: "the squish collapses toward the edge it
      is PINNED to" — measured, the body's top edge sat 5px above the panel's own and was clipped
      there for the squished frames) is no longer stated here. The panel's own `--kui-origin-y`

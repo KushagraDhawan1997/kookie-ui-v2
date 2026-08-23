@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { composeRender, type RenderElement } from "../../system/render.ts";
+import { composeRender, filled, type RenderElement } from "../../system/render.ts";
 import type { Emphasis, Tone } from "../../system/axes.ts";
 import type { TypeSize, Weight } from "../text/text.tsx";
 
@@ -102,6 +102,27 @@ export function Badge({
     style,
     ...props,
   };
+
+  /**
+   * AN EMPTY BADGE RENDERS NOTHING (2026-08-23, ultracode audit).
+   *
+   * The refusal was written and never enforced: `<Badge tone="success">{done && "New"}</Badge>`
+   * type-checks under `--strict`, and when the condition is false it rendered a 23 x 16 green
+   * lozenge with no text — a coloured dot, which is exactly the thing the refusal names (WCAG
+   * 1.4.1, and the same reason a Link stays underlined). `{""}`, `{null}`, `{false}` and
+   * `{undefined}` all reached it; only a bare `<Badge/>` was a type error.
+   *
+   * The TYPE cannot close this, which is why it is a runtime answer: the commonest way to write
+   * a conditional badge is `{cond && "New"}`, whose type is `string | false` and which is a
+   * legitimate thing to write. So the component answers the way the slot mechanism already
+   * does — `filled()` is the same question the icon slots ask, and it is the same helper.
+   *
+   * Rendering nothing rather than throwing: a badge that has nothing to say is a badge that
+   * should not be there, and taking down the page over it would be a worse trade than the
+   * absence. `0` counts as content and stays, which is `filled()`'s own rule and correct here —
+   * a badge reading "0" is a real thing to say.
+   */
+  if (!filled(children)) return null;
 
   if (render) return composeRender(render, merged as never, children);
 

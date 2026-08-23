@@ -736,3 +736,51 @@ describe("the page is published and never consumed (§10, §13, 2026-08-20)", ()
     expect(consumers).toEqual(["system/surfaces.css"]);
   });
 });
+
+
+/**
+ * THE ENTRY FLIGHT'S BODY PIN READS THE RESOLVED PADDING (§22, added 2026-08-23 from the audit).
+ *
+ * Nine declarations hold a panel's body against its own padding for the length of the entry.
+ * All nine read `--kui-floating-p` BARE — the floating family's padding OVERRIDE, which menus
+ * and selects declare and popovers and tooltips do not. On those two the value resolved to
+ * nothing, the declaration was invalid at computed-value time, and every inset fell to `auto`.
+ *
+ * IT IS A NODE LAW BECAUSE A BROWSER ONE CANNOT SEE IT. `getComputedStyle` reports the USED
+ * value for an inset on a positioned element and can never answer `auto`; with the hook unset
+ * the body falls to its static position, which IS one padding from the pane's top, so the used
+ * value reads identically under both spellings. A browser law was written, measured against
+ * both, found unfalsifiable, and deleted — popover.browser.test.tsx records that. The
+ * declaration is the thing that can be wrong, so the declaration is what this reads.
+ */
+describe("the flight pins a panel's body at padding every panel HAS (§22)", () => {
+  const flight = raw("system/surfaces.css").slice(
+    raw("system/surfaces.css").indexOf(
+      '.kui-surface.kui-floating[data-unfurling] .kui-floating-body {',
+    ),
+  );
+
+  it("no flight rule reads the floating-only override bare", () => {
+    // Bare, meaning with no fallback. The size join above may read it — that is the override
+    // doing its job, and it supplies `var(--surface-p-N)` behind it.
+    expect(flight, "a flight rule reads --kui-floating-p with nothing behind it").not.toContain(
+      "var(--kui-floating-p)",
+    );
+  });
+
+  it("they read --kui-sf-p, which every surface resolves", () => {
+    // The positive half, and the count: nine declarations were found to be affected, so a
+    // regression that fixed one and left eight fails here rather than passing on the one.
+    const reads = [...flight.matchAll(/var\(--kui-sf-p\)/g)].length;
+    expect(reads, "the flight stopped reading the resolved padding").toBeGreaterThanOrEqual(9);
+  });
+
+  it("and the size join still DECLARES the override — the two are different jobs", () => {
+    // The guard against over-correcting: `--kui-floating-p` is not dead, it is a menu's way of
+    // saying its padding is not a card's. Deleting it would silently give every menu a card's
+    // inset. This is the law that fails if somebody reads the one above too broadly.
+    const join = raw("system/surfaces.css");
+    expect(join).toContain("var(--kui-floating-p, var(--surface-p-1))");
+    expect(join).toContain("var(--kui-floating-p, var(--surface-p-4))");
+  });
+});

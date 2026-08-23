@@ -8,6 +8,7 @@ import type { Size } from "../../system/axes.ts";
 import { FloatingBody, PortalScope } from "../../system/floating.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
 import { rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { Heading } from "../heading/heading.tsx";
@@ -198,9 +199,27 @@ function PopoverPopup({
       ref={lensRef}
       {...props}
     >
-      <FloatingBody>
-        <GlassScope material={material}>{children}</GlassScope>
-      </FloatingBody>
+      {/* THE CONTENT SCROLLS, THE PANEL NEVER DOES — Menu's 2026-08-17 adoption, one family
+          member over (added 2026-08-23). The popup keeps its glass, corner and cast; the
+          viewport inside carries the overflow, so an overlong panel no longer clips its own
+          bottom with no way to reach it. Before this the sheet's own comment recommended a
+          ScrollArea to the CALLER, which is a component asking a call site to solve a problem
+          only the component can see: `--available-height` is a fact the positioner reports to
+          the pane, and a caller wrapping its own content cannot read it.
+
+          `focusable` IS LEFT ALONE, and that is the one place this deliberately departs from
+          Menu. Menu passes `focusable={false}` because ARIA voids `role="presentation"` on a
+          focusable element and because a roving-focus widget must not grow a tab stop inside
+          itself — and it can afford to, since the menu scrolls its own highlight into view. A
+          popover holds ARBITRARY content and traps nothing, so nothing else will scroll it: a
+          keyboard user reaching a scrollable region needs it focusable (WCAG 2.1.1). The two
+          answers differ because the two panels differ, which is the whole reason this is
+          stated rather than copied. */}
+      <ScrollArea>
+        <FloatingBody>
+          <GlassScope material={material}>{children}</GlassScope>
+        </FloatingBody>
+      </ScrollArea>
     </BasePopover.Popup>
   );
 }

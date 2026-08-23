@@ -13,7 +13,7 @@
  * set, because context crosses a portal and attributes do not.
  */
 import { describe, expect, it } from "vitest";
-import { userEvent } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
 import { SIZES, computed, mounted, render, settleAll, tokenOn } from "../../test/browser.tsx";
@@ -420,4 +420,157 @@ describe("the trigger keeps its element's semantics (§5)", () => {
     expect(nested.getAttribute("type"), "the nested shape took the native branch").toBeNull();
     expect(nested.getAttribute("aria-disabled")).toBe("true");
   });
+});
+
+
+/**
+ * THE CONTENT SCROLLS, THE PANEL DOES NOT (§22, added 2026-08-23 — Menu's 2026-08-17 adoption,
+ * one family member over).
+ *
+ * The fixture has to OVERFLOW or this law is about nothing: a panel that fits needs no
+ * viewport, and every assertion below is satisfied by a short one for the wrong reason. So the
+ * viewport is pinned small and the content is made far taller than it, and the first assertion
+ * is the calibration that says so.
+ */
+describe("an overlong panel scrolls its content, not itself (§22)", () => {
+  it("the viewport overflows, the pane does not, and the pane keeps its own box", async () => {
+    await page.viewport(600, 320);
+    const host = render(
+      <Theme>
+        <Popover defaultOpen>
+          <PopoverTrigger render={<Button>Open</Button>} />
+          <PopoverContent>
+            <PopoverTitle>Filters</PopoverTitle>
+            {Array.from({ length: 40 }, (_, i) => (
+              <p key={i} style={{ margin: 0 }}>{`row ${i}`}</p>
+            ))}
+          </PopoverContent>
+        </Popover>
+      </Theme>,
+    );
+    settleAll();
+    const popup = document.querySelector<HTMLElement>(".kui-popover-popup");
+    if (!popup) throw new Error("no popup — the law would assert nothing");
+    const viewport = popup.querySelector<HTMLElement>(".kui-scroll-viewport");
+    if (!viewport) throw new Error("no ScrollArea viewport inside the popup");
+
+    // CALIBRATION: the content genuinely does not fit. Without this the law passes on a short
+    // panel, where nothing scrolls and nothing is supposed to.
+    expect(
+      viewport.scrollHeight,
+      "the fixture fits — this law is measuring a panel with no overflow",
+    ).toBeGreaterThan(viewport.clientHeight + 20);
+
+    // The VIEWPORT is what scrolls.
+    viewport.scrollTop = 40;
+    expect(viewport.scrollTop, "the viewport does not scroll").toBeGreaterThan(0);
+
+    // The PANE does not — it clips, and a pane that scrolled would take its own corner and
+    // cast with it (the 2026-08-20 `clip` vs `hidden` finding, one component over).
+    expect(popup.scrollHeight, "the pane itself scrolls").toBe(popup.clientHeight);
+
+    // And the pane stayed inside the room the positioner reported, which is the thing the
+    // caller could never have fixed from outside.
+    expect(popup.getBoundingClientRect().bottom).toBeLessThanOrEqual(320);
+    expect(host).toBeTruthy();
+  });
+
+  it("the scrollable region is reachable by keyboard — Menu's answer inverted, on purpose", async () => {
+    // Menu passes `focusable={false}`: it is a roving-focus widget that scrolls its own
+    // highlight into view, and a tab stop inside it would be wrong. A popover traps nothing
+    // and holds content nobody else will scroll, so its viewport must be reachable (WCAG
+    // 2.1.1). Asserted against the MENU in the same run, because "the two differ" is the
+    // claim — reading the popover alone would pass whatever Menu does.
+    await page.viewport(600, 320);
+    render(
+      <Theme>
+        <Popover defaultOpen>
+          <PopoverTrigger render={<Button>Open</Button>} />
+          <PopoverContent>
+            {Array.from({ length: 40 }, (_, i) => <p key={i} style={{ margin: 0 }}>{`row ${i}`}</p>)}
+          </PopoverContent>
+        </Popover>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>M</Button>} />
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    settleAll();
+    const pv = document.querySelector<HTMLElement>(".kui-popover-popup .kui-scroll-viewport");
+    const mv = document.querySelector<HTMLElement>(".kui-menu-popup .kui-scroll-viewport");
+    if (!pv || !mv) throw new Error("a viewport is missing — the comparison would assert nothing");
+    expect(pv.hasAttribute("tabindex"), "a popover's scrollable content is unreachable").toBe(true);
+    expect(mv.hasAttribute("tabindex"), "the menu grew a tab stop inside its roving focus").toBe(
+      false,
+    );
+  });
+});
+
+
+/**
+ * THE FLIGHT'S PADDING HOOK RESOLVES ON EVERY PANEL (§22, added 2026-08-23 from the audit).
+ *
+ * Nine declarations pin a panel's body against its own padding for the length of the entry
+ * flight, and all nine read `--kui-floating-p` bare. That hook is the floating family's
+ * padding OVERRIDE — menus and selects declare it, popovers and tooltips do not — so on the
+ * two panels this branch added it resolved to nothing, the declarations were invalid at
+ * computed-value time, and every inset fell to `auto`.
+ *
+ * The law reads the value the rules read NOW, on all three panels at once, because the claim
+ * is that one name serves them all. The MENU is the load-bearing third: it proves the switch
+ * cost nothing where the hook was already live.
+ */
+describe("the padding hook the entry flight reads is set on every floating panel (§22)", () => {
+  it("popover, tooltip and menu all resolve it — and the menu's value did not move", () => {
+    render(
+      <Theme>
+        <Popover defaultOpen>
+          <PopoverTrigger render={<Button>p</Button>} />
+          <PopoverContent>body</PopoverContent>
+        </Popover>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>m</Button>} />
+          <MenuContent><MenuItem>Alpha</MenuItem></MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    settleAll();
+    for (const sel of [".kui-popover-popup", ".kui-menu-popup"]) {
+      const pane = document.querySelector<HTMLElement>(sel);
+      if (!pane) throw new Error(`${sel} never mounted — the law would assert nothing`);
+      const body = pane.querySelector<HTMLElement>(".kui-floating-body");
+      if (!body) throw new Error(`${sel} has no floating body`);
+      // The BODY is what the flight rules land on, so the value has to reach it — the hook
+      // inherits, which is the mechanism, and reading it on the pane alone would not prove it.
+      expect(computed(body, "--kui-sf-p"), `${sel}: the body cannot see its pane's padding`)
+        .not.toBe("");
+      expect(computed(body, "--kui-sf-p"), sel).toBe(computed(pane, "--kui-sf-p"));
+    }
+    // The menu is unchanged by the switch: its --kui-sf-p resolves THROUGH --kui-floating-p by
+    // the size join, so both names give one value there. This is what says the repair was free.
+    const menu = document.querySelector<HTMLElement>(".kui-menu-popup")!;
+    expect(computed(menu, "--kui-sf-p")).toBe(computed(menu, "--kui-floating-p"));
+    // And the popover genuinely has no `--kui-floating-p` — the condition that made the old
+    // spelling dead. Without this the law would pass on a package where every panel declared it.
+    const pop = document.querySelector<HTMLElement>(".kui-popover-popup")!;
+    expect(computed(pop, "--kui-floating-p"), "a popover now declares the override too").toBe("");
+    expect(computed(pop, "--kui-sf-p"), "and its own padding is unset").not.toBe("");
+  });
+
+  /**
+   * THE MISSING HALF LIVES IN A NODE LAW, and why is worth recording.
+   *
+   * A browser law here cannot distinguish the fix from the defect. `getComputedStyle` reports
+   * the USED value for an inset on a positioned element, never `auto` — the same trap a prior
+   * audit recorded when "drawn by both edges" passed against `translate` + `width`. With the
+   * hook unset the body falls to its static position, and its static position IS one padding
+   * from the pane's top, so the used value reads the same 16px under both spellings. Measured:
+   * reverting the nine declarations changed nothing this file could see, while sabotaging one
+   * to `99px` showed immediately — the instrument works, the property just cannot answer.
+   *
+   * So the declaration is asserted where a declaration can be read: `surfaces.test.ts`.
+   */
 });

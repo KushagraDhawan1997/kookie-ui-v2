@@ -188,6 +188,32 @@ export type Scale = {
  * directly, and dark's `var(--neutral-2)` resolves through the same generator that emits it,
  * so the backdrop and the seal cannot drift apart.
  */
+/**
+ * The PAGE, memoised per mode (2026-08-23, ultracode audit).
+ *
+ * Three solvers measure their target against the page and the seal, and all three rebuilt the
+ * entire neutral scale to get one hex — inside a bisection loop, forty iterations deep, for
+ * every family in both modes. Measured, `generateTokens()` went from 1229ms to 2381ms when the
+ * glyph role landed, and most of that is this.
+ *
+ * A cache and not a hoist, for `backdropCache`'s own stated reason one function down: the call
+ * sites are spread across three solvers, and hoisting one leaves the next author to rediscover
+ * it. The generator is pure — the same mode answers the same hex — so memoising is stating that
+ * rather than assuming it. `stepsOnly` is what keeps this out of the cycle it would otherwise
+ * make: the page is a STEP, and steps do not depend on the backdrop.
+ */
+const pageCache: Partial<Record<Mode, string>> = {};
+function pageColor(mode: Mode): string {
+  pageCache[mode] ??= buildScaleFor(
+    resolveTone(tones.neutral),
+    mode,
+    "srgb",
+    "normal",
+    true,
+  ).steps[0]!;
+  return pageCache[mode]!;
+}
+
 const backdropCache: Partial<Record<Mode, string>> = {};
 export function alphaBackdrop(mode: Mode): string {
   const rest: string = surfaceColor[mode].rest;
@@ -249,7 +275,7 @@ export type ToneInput = ToneSpec | { color: string };
  * neutral, not a pure one. Monotonic in L away from the bed, so bisection is exact.
  */
 function solveControlEdge(mode: Mode, gamut: Gamut, target: number): string {
-  const page = buildScaleFor(resolveTone(tones.neutral), mode, "srgb", "normal", true).steps[0]!;
+  const page = pageColor(mode);
   const seal = alphaBackdrop(mode);
   const { hue, vividness } = resolveTone(tones.neutral);
   const grey = (l: number, g: Gamut) => {
@@ -314,7 +340,7 @@ function solveControlEdge(mode: Mode, gamut: Gamut, target: number): string {
  * already conforms at rest in standard mode.
  */
 function solveGlyph(hue: number, vividness: number, mode: Mode, gamut: Gamut): string {
-  const page = buildScaleFor(resolveTone(tones.neutral), mode, "srgb", "normal", true).steps[0]!;
+  const page = pageColor(mode);
   const seal = alphaBackdrop(mode);
   const target = apcaFloors.nonText;
   const at = (l: number, g: Gamut) => {
@@ -363,7 +389,7 @@ function solveGlyph(hue: number, vividness: number, mode: Mode, gamut: Gamut): s
  * only holds on one of the two surfaces every app puts text on is not a floor.
  */
 export function solveInkFade(inkHex: string, mode: Mode, target: number): number {
-  const page = buildScaleFor(resolveTone(tones.neutral), mode, "srgb", "normal", true).steps[0]!;
+  const page = pageColor(mode);
   const seal = alphaBackdrop(mode);
   const channels = (hex: string) =>
     [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];

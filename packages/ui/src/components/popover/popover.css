@@ -18,14 +18,24 @@
      button opened it would make the same panel a different shape per call site. */
   min-width: var(--floating-min-w);
   /* The room the positioner reports, as a hard stop in both axes. A pane clips (§3), so
-     without these a panel taller than the window loses its own bottom with no scrollbar
-     anywhere — and the caller cannot fix it, because the room is a fact only the positioner
-     knows. Content that needs to scroll goes in a ScrollArea, which is the composition the
-     pane rule was made to work with. */
+     without these a panel taller than the window loses its own bottom. The pane no longer
+     relies on a caller to notice: the content sits in a ScrollArea (popover.tsx), so the
+     overflow has somewhere to go — this sheet used to RECOMMEND that composition, which was
+     a component asking a call site to solve a problem only the component can see. */
   max-height: var(--available-height, none);
   max-width: var(--available-width, none);
   /* Base UI moves focus to the panel on open. The ring is a keyboard affordance for CONTROLS;
      a panel holding focus is a mode, and what the reader needs is the announcement the title
      provides. Menu's sentence and Dialog's, for the same reason in all three. */
   outline: none;
+}
+
+/* The height bound, restated for the element that actually scrolls (Menu's own sentence,
+   §22). The popup's `max-height` bounds the PANE; the viewport is what overflows, so it needs
+   the same room minus the pane's border box contribution or it would grow past its parent and
+   the clip would take the bottom back. The fallback is `100vh` rather than a big round px
+   sentinel: a raw px literal is the one thing a hand-authored sheet may not carry, and an
+   unpositioned panel has no room to be told about beyond the window it sits in. */
+.kui-popover-popup .kui-scroll-viewport {
+  max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width));
 }

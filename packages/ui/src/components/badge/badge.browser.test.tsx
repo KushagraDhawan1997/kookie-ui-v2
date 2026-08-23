@@ -22,6 +22,7 @@ import {
   mounted,
   numberOn,
   tokenOn,
+  within,
 } from "../../test/browser.tsx";
 import { Code } from "../code/code.tsx";
 import { Kbd } from "../kbd/kbd.tsx";
@@ -270,5 +271,52 @@ describe("the box holds its shape (§6, §15)", () => {
     const rendered = mounted(<Badge render={<em />}>Live</Badge>, { theme: {} });
     expect(rendered.tagName).toBe("EM");
     expect(computed(rendered, "background-color")).toBe(colorOn(rendered, "var(--tone-soft)"));
+  });
+});
+
+
+/**
+ * AN EMPTY BADGE RENDERS NOTHING (added 2026-08-23 from the ultracode audit).
+ *
+ * The refusal — "an empty badge, or a bare dot" — was documented in the component reference
+ * and enforced nowhere. Measured before the fix: `<Badge tone="success">{false && "New"}</Badge>`
+ * rendered a 23.03 x 16 green lozenge with empty `textContent`. A coloured dot is colour
+ * carrying meaning alone, which is what the refusal is about.
+ *
+ * The fixture walks the four ways a caller lands there, because the TYPE closes none of them:
+ * `{cond && "…"}` is `string | false` and is the commonest spelling of a conditional badge.
+ */
+describe("an empty badge is refused at runtime, because the type cannot refuse it", () => {
+  for (const [label, child] of [
+    ["a false conditional", false],
+    ["an empty string", ""],
+    ["null", null],
+    ["undefined", undefined],
+  ] as const) {
+    it(`${label} renders no element at all`, () => {
+      const root = mounted(
+        <div data-t="host">
+          <Badge tone="success">{child}</Badge>
+        </div>,
+        { theme: {} },
+      );
+      expect(root.querySelector(".kui-badge"), `${label} still drew a lozenge`).toBeNull();
+    });
+  }
+
+  it("but ZERO is content, and a real word still renders", () => {
+    // The other half, and it is what stops the guard being "render nothing, ever". `0` is a
+    // count somebody meant to show — `filled()`'s own rule — and without this the law passes
+    // on a Badge that had stopped rendering entirely.
+    const root = mounted(
+      <div>
+        <Badge data-t="zero">{0}</Badge>
+        <Badge data-t="word">New</Badge>
+      </div>,
+      { theme: {} },
+    );
+    expect(within(root, '[data-t="zero"]').textContent, "a zero count vanished").toBe("0");
+    expect(within(root, '[data-t="word"]').textContent).toBe("New");
+    expect(root.querySelectorAll(".kui-badge")).toHaveLength(2);
   });
 });
