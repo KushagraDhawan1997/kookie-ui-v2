@@ -29,6 +29,7 @@ import { density } from "../tokens/config.ts";
 // load-bearing, since the recipes read tokens and components read recipes. Keep this list and
 // that file in step; a sheet missing here makes laws pass against an empty cascade.
 import alertDialogCss from "../components/alert-dialog/alert-dialog.css?raw";
+import badgeCss from "../components/badge/badge.css?raw";
 import blockquoteCss from "../components/blockquote/blockquote.css?raw";
 import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
@@ -72,6 +73,7 @@ export function installStyles(): void {
     typeCss,
     spinnerCss,
     alertDialogCss,
+    badgeCss,
     blockquoteCss,
     buttonCss,
     checkboxCss,

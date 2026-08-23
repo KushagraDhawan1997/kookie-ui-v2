@@ -71,7 +71,7 @@ export function Kbd({
     "data-weight": weight,
     "data-emphasis": emphasis,
     "data-tone": tone,
-    className: className ? `kui-type kui-kbd ${className}` : "kui-type kui-kbd",
+    className: className ? `kui-type kui-atom kui-atom-box kui-kbd ${className}` : "kui-type kui-atom kui-atom-box kui-kbd",
     style,
     ...props,
   };

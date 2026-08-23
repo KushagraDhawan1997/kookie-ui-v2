@@ -74,7 +74,7 @@ export function Code({
     "data-weight": weight,
     "data-emphasis": emphasis,
     "data-tone": tone,
-    className: className ? `kui-type kui-code ${className}` : "kui-type kui-code",
+    className: className ? `kui-type kui-atom kui-code ${className}` : "kui-type kui-atom kui-code",
     style,
     ...props,
   };

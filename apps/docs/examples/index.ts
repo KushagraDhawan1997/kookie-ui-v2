@@ -18,6 +18,7 @@
 import type * as React from "react";
 
 import AlertDialogExample from "./alert-dialog";
+import BadgeExample from "./badge";
 import BlockquoteExample from "./blockquote";
 import BoxExample from "./box";
 import ButtonExample from "./button";
@@ -54,6 +55,7 @@ import ThemeExample from "./theme";
 
 export const EXAMPLES: Record<string, React.ComponentType> = {
   "alert-dialog": AlertDialogExample,
+  "badge": BadgeExample,
   "blockquote": BlockquoteExample,
   "box": BoxExample,
   "button": ButtonExample,

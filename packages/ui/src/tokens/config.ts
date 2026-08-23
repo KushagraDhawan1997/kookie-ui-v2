@@ -1837,6 +1837,19 @@ export const monoScale = 0.925;
 export const kbdScale = 0.9;
 
 /**
+ * §15 — the badge's own factor (2026-08-23; v0 for the eye pass). A badge sits BESIDE the
+ * thing it marks rather than inside a sentence, and it is secondary to it: the label is what
+ * you read, the badge is what you glance at. Small glyphs in a roomy pill are what make that
+ * relationship legible, which is the cap's argument arriving at the third atom.
+ *
+ * It equals `kbdScale` today and is deliberately NOT the same constant — `segmentInset` and
+ * `switchInset` set that precedent (§26). Both mean "discount the glyphs so the box has a
+ * face", and they are free to diverge the moment either is judged on its own: the cap's is
+ * about symbols like ⌘ drawing full-size in the sans, the badge's is about rank.
+ */
+export const badgeScale = 0.9;
+
+/**
  * §6, §15 — the atom corner (2026-08-08, Kushagra: every sized component's corner scales
  * with it, and the atoms' did not — Code at size 9 wore the same 4px as size 1). The atoms
  * are not on the height ladder, so a control-band pick would hold a fraction of a box they

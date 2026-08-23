@@ -161,11 +161,22 @@ describe("it inherits the atom's typography rules, not a second set (§15)", () 
     const one = mounted(<Kbd>K</Kbd>, { theme: {} });
     expect(computed(one, "white-space")).toBe("nowrap");
     expect(computed(one, "justify-content")).toBe("center");
-    const width = parseFloat(computed(one, "width"));
-    const font = parseFloat(computed(one, "font-size"));
-    expect(width, "a one-glyph cap shrink-wrapped below its floor").toBeGreaterThanOrEqual(
-      1.6 * font - 0.5,
-    );
+    // REWRITTEN 2026-08-23, when Badge copied this law and its sabotage pass caught them both.
+    // The old spelling measured `K` against `1.6 * font - 0.5` — and `K` renders 1.654em wide,
+    // which is CONTENT, not the floor: deleting `min-inline-size` outright moved the width by
+    // less than the tolerance and the law stayed green. `i` is a glyph the floor really binds
+    // (1.599em measured, against `W` at 2.126em), so the claim is exact and the wide glyph
+    // beside it is what keeps a floor from being satisfied by a fixed width.
+    const narrow = mounted(<Kbd>i</Kbd>, { theme: {} });
+    expect(
+      parseFloat(computed(narrow, "width")) / parseFloat(computed(narrow, "font-size")),
+      "a narrow cap is no longer standing at its floor",
+    ).toBeCloseTo(1.6, 2);
+    const wide = mounted(<Kbd>W</Kbd>, { theme: {} });
+    expect(
+      parseFloat(computed(wide, "width")) / parseFloat(computed(wide, "font-size")),
+      "the floor became a fixed width",
+    ).toBeGreaterThan(1.7);
   });
 
   it("an inherited cap NEVER spreads its line — all nine steps, both pointer worlds", () => {

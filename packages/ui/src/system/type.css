@@ -148,3 +148,62 @@
 .kui-type[data-weight="semibold"] {
   font-weight: var(--font-weight-semibold);
 }
+
+/* ── The inert atoms' shared identity (§11, §15; promoted 2026-08-23 with Badge) ───────────
+   Code self-keyed, Kbd self-keyed while repeating it, and the THIRD member is what promotes
+   (the field family's rule, LOG 2026-08-05). Badge is that third member, so what all three
+   atoms are made of moves here and what each one IS stays in its own sheet.
+
+   Three facts, and each is the same fact for the same reason in all three:
+
+   - The FILL is an identity, not a rung (§11's "subtle fill", Card's sentence at atom scale).
+     It reads the tone indirection, which is the one place this family diverges from Text: an
+     atom carrying a fill has a second thing to tint, so a chosen family moves the box as well
+     as the ink. The default `neutral` is stamped by each component, so nothing here names a
+     family (§7).
+   - The CORNER is the atom band. An atom is priced in its own glyphs (see the padding below),
+     so its corner is too — `--radius-atom` is em-based and re-declared per radius level.
+   - The optical SCALE is applied here, in the inherited-size arm. `em` reads the PARENT'S
+     size, which is exactly what an unset size means; when a size IS stated, the join's
+     `[data-size]` declaration wins on specificity, so the two arms never fight. Each member
+     declares its own factor (`--mono-scale`, `--kbd-scale`, `--badge-scale`) — the atoms
+     deliberately do not share one discount, because they do not share a reason for it. */
+.kui-atom {
+  background-color: var(--tone-soft);
+  border-radius: var(--radius-atom);
+  font-size: calc(1em * var(--kui-ty-scale));
+}
+
+/* ── The one-line box (promoted 2026-08-23 with Badge) ────────────────────────────────────
+   Kbd's geometry, which is now two members' geometry: a cap and a pill are both blocks that
+   sit BESIDE running text rather than inside it. Code deliberately does not wear it — an
+   inline chip belongs to its sentence, wraps with it, and pays `box-decoration-break` for the
+   privilege. That split is the reason this is a second class rather than a stand-down: a
+   member opts IN to being a box, and nothing has to opt out.
+
+   `block-size: 1lh` is the hard-won half (Kbd, audit 2026-08-08). A designed em box cannot
+   track the ramp's own line ratio, which falls from 1.33 at step 1 to 1.107 at step 9 — a
+   constant em box fits the small steps and overflows the large ones, measured at 13px of line
+   growth at step 9 against a bound of 3 that only held because the law looped sizes 1-4. A
+   height taken FROM the line box cannot drift from the line box.
+
+   `vertical-align: top` is the other half: the box fills the line box it already matches, so
+   the line cannot grow. `middle` centres on the baseline plus half an x-height, which pushes a
+   line-tall box past the strut and puts the growth straight back.
+
+   The inline padding is the atom's own `em`, the family's argument for every horizontal length
+   it owns: a mark is one line of its label because its box is a property of the type beside it,
+   and a chip's breathing room is a property of the glyphs inside it. `min-inline-size` is what
+   keeps a single character — a count, a `1`, an `⌘` — from collapsing into a sliver. */
+.kui-atom-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  block-size: 1lh;
+  vertical-align: top;
+  white-space: nowrap;
+  min-inline-size: 1.6em;
+  padding-inline: 0.5em;
+  padding-block: 0;
+}

@@ -1,9 +1,13 @@
 /* Inline code (§11's inert atoms, §15): the type layer's third family slot, wearing a fill.
  *
- * Almost all of what a code chip looks like is already written: `.kui-type` zeroes the margin
- * and points the colour at the foreground role, and the ramp, the weights and the emphasis
- * rungs are the shared layer's. What is here is the two facts that are this atom's own — the
- * mono family and §11's "subtle fill" — plus the inline-fill correction nobody gets for free.
+ * Almost all of what a code chip looks like is already written. `.kui-type` zeroes the margin
+ * and points the colour at the foreground role; the ramp, the weights and the emphasis rungs
+ * are the shared layer's; and since 2026-08-23 the fill, the corner and the optical-scale
+ * application are `.kui-atom`'s, promoted when Badge landed as the family's third member.
+ *
+ * What is left here is what a code chip IS and the other two atoms are not: the mono family,
+ * its own discount, and the inline model — a chip belongs to its sentence and wraps with it,
+ * which is why it does NOT wear `.kui-atom-box`.
  *
  * The fill is an IDENTITY, not a rung (Card's sentence at atom scale). Emphasis resolves for
  * type as foreground roles, which is the resolution this family takes; a chip whose FILL also
@@ -12,20 +16,10 @@
 .kui-code {
   font-family: var(--font-mono);
   /* The mono optical correction (§15): mono glyphs read a step large at the same size, so
-     the atom stands the type join's scale down to the designed factor — the join multiplies
-     it into font-size for the stated-size arm, and the em spelling below is the same factor
-     for the inherited arm (em reads the PARENT'S size, which is exactly what an unset size
-     means). The line box is untouched in both arms; only the glyphs shrink. When a size IS
-     stated the join's [data-size] declaration wins this font-size on specificity, so the
-     two arms never fight. */
+     the atom stands the type join's scale down to the designed factor. The join multiplies it
+     into font-size for the stated-size arm; `.kui-atom` does the same for the inherited arm.
+     The line box is untouched in both; only the glyphs shrink. */
   --kui-ty-scale: var(--mono-scale);
-  font-size: calc(1em * var(--kui-ty-scale));
-  /* §11's "subtle fill", through the tone indirection so a chosen family tints the chip as
-     well as its ink — an atom that carries a fill has a second thing to tint, which is the
-     one place this family diverges from Text. The default is stamped `neutral`, so this
-     resolves to the neutral wash without the component ever naming a family (§7). */
-  background-color: var(--tone-soft);
-  border-radius: var(--radius-atom);
   /* Relative to the chip's OWN type, and deliberately so: this is the first length in the
      package that is not a token, and the argument is the mark family's own. A mark is one
      line of its label because its box is a property of the type beside it; a chip's breathing
@@ -35,7 +29,9 @@
      2 and 4 is the fraction wall the mark ladder, control padding and the slider track each
      hit. `em` needs no ladder and is correct at all nine steps by construction.
      Not px, so the tokens-only law is untouched — but stated here rather than left for a
-     reader to notice, because the law's regex is not the rule, the non-negotiable is. */
+     reader to notice, because the law's regex is not the rule, the non-negotiable is.
+     The values are the chip's own and NOT `.kui-atom-box`'s: this box is padded on both axes
+     because it has no stated height to be centred in. */
   padding-inline: 0.35em;
   padding-block: 0.12em;
   /* An inline box that wraps paints its fill on the FIRST fragment only, so a chip broken

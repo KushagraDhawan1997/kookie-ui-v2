@@ -1,0 +1,29 @@
+/* A badge (§11's inert atoms, §15): the atom family's third member, and the one that spends
+ * the tone vocabulary.
+ *
+ * It is the cheapest sheet in the family because it arrived last. `.kui-type` gives it the
+ * margin reset and the foreground role, `.kui-atom` the fill, the corner and the optical-scale
+ * application, `.kui-atom-box` the one-line box Kbd designed — the box is here rather than in
+ * this file precisely BECAUSE this component arrived: the second member self-keys, the third
+ * promotes (LOG 2026-08-05).
+ *
+ * Two declarations are its own, and the second is the interesting one.
+ *
+ * The FAMILY is the body face. A badge names a state in the interface's own voice, so it reads
+ * in the interface's own type — the cap's argument for leaving the mono slot, which applies
+ * here for the same reason and none of the ⌘-shaped ones.
+ *
+ * The DISCOUNT is about rank, not metrics. A badge sits beside a label and is secondary to it:
+ * the label is what you read, the badge is what you glance at, and glyphs that fill their pill
+ * edge-to-edge read as a second label rather than as a mark on the first. `--badge-scale`
+ * equals `--kbd-scale` today and is deliberately its own number (config states why).
+ *
+ * What it does NOT declare is most of the argument for it existing separately from Kbd. No
+ * edge and no relief: a key cap is a picture of a physical object that stands proud of the
+ * surface, and a badge is printed onto it. That absence is law-asserted against a mounted Kbd,
+ * because "nothing casts anywhere" would otherwise pass for it. */
+
+.kui-badge {
+  font-family: var(--font-body);
+  --kui-ty-scale: var(--badge-scale);
+}

@@ -84,6 +84,42 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "badge",
+    name: "Badge",
+    family: "Type",
+    spec: "§11, §15",
+    blurb:
+      "A short word or a count that states what the thing beside it is right now. It sits in the same family as Code and Kbd and is made of the same parts: the same fill, the same corner, the same one-line box a key cap uses. What it adds is the tone. The colour families exist so that failed, running and done read as one vocabulary across a product, and this is the component that spends them.",
+    axes: [
+      { name: "size", values: "1-9", note: "optional with no default. Unset, a badge takes the size of the line it sits beside, so one next to a card title is bigger than one in a table row. Set it when the badge stands alone" },
+      { name: "tone", values: "any family", note: "the axis a badge exists for. It moves the ink and the fill together, because a badge with a fill has two things to tint" },
+      { name: "emphasis", values: "loud | medium | quiet", note: "picks an ink colour. It moves the letters, never the fill" },
+      { name: "weight", values: "regular | medium | semibold", note: "token names, never numbers. Unset by default: the fill and the pill are what mark a badge out" },
+    ],
+    refusals: [
+      {
+        name: "a fill ladder, or a variant prop",
+        why: "Tone is the category, not the volume. A badge does not come in loud. Two badges of different loudness on one screen say something about importance that neither of them means, and a failed deploy is destructive whether or not it is the most important thing on the page. Ranking is what emphasis does for actions.",
+      },
+      {
+        name: "a dismissal",
+        why: "A badge you can remove is a control: it takes focus, it answers a key, and it needs an accessible name for the removal. That is a different component and it is not built. A removable chip today is a Button.",
+      },
+      {
+        name: "a count prop",
+        why: "A badge renders what you give it. Formatting a number is the app's job, and where the cut-off sits — 99+, 9+, no cut-off at all — is a product decision that changes per surface.",
+      },
+      {
+        name: "a position",
+        why: "Apple's badge sits on its container: a tab, an app icon, a row. That is a position, and no component here owns its own position. Put a badge in the row beside a title, in a table cell, or over the thing it counts with a Box.",
+      },
+      {
+        name: "an empty badge, or a bare dot",
+        why: "A coloured dot is colour carrying meaning on its own, which is what WCAG 1.4.1 is about, and it is the same reason a Link stays underlined. Give it a word.",
+      },
+    ],
+  },
+  {
     slug: "blockquote",
     name: "Blockquote",
     family: "Type",

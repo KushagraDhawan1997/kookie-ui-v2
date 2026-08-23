@@ -25,6 +25,7 @@ import {
   typeBands,
   focusRing,
   fontFamily,
+  badgeScale,
   kbdScale,
   monoScale,
   fontSize,
@@ -159,6 +160,7 @@ export function generateTokens(): string {
   put("font-mono", fontFamily.mono);
   put("mono-scale", String(monoScale));
   put("kbd-scale", String(kbdScale));
+  put("badge-scale", String(badgeScale));
 
   lines.push(
     "",

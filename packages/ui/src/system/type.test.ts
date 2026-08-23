@@ -113,3 +113,70 @@ describe("type never takes density or pointer, and only tokens carry values (§1
     expect(stripped).toContain("var(--color-text)");
   });
 });
+
+describe("the inert atoms have ONE identity, and the third member is what moved it here (§11, §15)", () => {
+  // The family rule (LOG 2026-08-05, TextArea's): the second member self-keys, the third
+  // promotes. Code shipped the fill, the corner and the optical-scale application; Kbd
+  // restated all three verbatim while it was the second; Badge landed 2026-08-23 as the third
+  // and they moved into `.kui-atom`, with the one-line box Kbd designed moving into
+  // `.kui-atom-box` beside it.
+  //
+  // This law is what makes the promotion mean anything. A member that quietly re-declared the
+  // fill would look right for exactly as long as its copy happened to agree, which is the
+  // drift the promotion exists to end — and no mounted law can catch it, because a copy that
+  // agrees computes the same value.
+  const ATOMS = ["code", "kbd", "badge"] as const;
+
+  it("the shared identity is declared once, in the type layer", () => {
+    for (const [name, decl] of [
+      ["the fill", "background-color: var(--tone-soft)"],
+      ["the corner", "border-radius: var(--radius-atom)"],
+      ["the inherited-size arm", "font-size: calc(1em * var(--kui-ty-scale))"],
+    ] as const) {
+      expect(stripped, `${name} is not declared in the type layer`).toContain(decl);
+    }
+  });
+
+  it("and no atom's own stylesheet declares any of it a second time", () => {
+    for (const atom of ATOMS) {
+      const own = sheet(`components/${atom}/${atom}.css`);
+      for (const property of ["background-color", "border-radius"]) {
+        expect(own, `${atom}.css re-declares ${property} — the promotion has a second author`)
+          .not.toMatch(new RegExp(`${property}\\s*:`));
+      }
+      // The font-size arm is the subtler one: a member re-stating `calc(1em * ...)` would be
+      // re-implementing the inherited-size arm rather than reading it.
+      expect(own, `${atom}.css re-declares the inherited-size arm`).not.toContain("font-size:");
+    }
+  });
+
+  it("every atom declares its OWN discount, and no two of them share the token", () => {
+    // The atoms deliberately do not share one factor: mono's is a metric correction, the cap's
+    // is about symbols drawing full-size in the sans, the badge's is about rank. They may
+    // coincide numerically — `--kbd-scale` and `--badge-scale` do today — and they must stay
+    // separately correctable, which is exactly what a shared token would take away.
+    const factors = ATOMS.map((atom) => {
+      const own = sheet(`components/${atom}/${atom}.css`);
+      const m = own.match(/--kui-ty-scale:\s*var\((--[\w-]+)\)/);
+      expect(m, `${atom}.css states no optical scale of its own`).not.toBeNull();
+      return m![1]!;
+    });
+    expect(new Set(factors).size, `two atoms read one scale token: ${factors.join(", ")}`).toBe(
+      factors.length,
+    );
+  });
+
+  it("the one-line box is the type layer's, and only the members that ARE boxes wear it", () => {
+    // Code is the deliberate non-member: an inline chip belongs to its sentence and wraps with
+    // it. That is why the box is a second class rather than a stand-down — a member opts in,
+    // and nothing has to opt out.
+    expect(stripped).toContain("block-size: 1lh");
+    expect(sheet("components/code/code.css"), "the chip grew a box").not.toContain("block-size");
+    for (const atom of ATOMS) {
+      // `sheet()` on a .tsx deliberately: it strips block comments, so a JSDoc paragraph
+      // about the atom family cannot satisfy a law about the className the component ships.
+      const source = sheet(`components/${atom}/${atom}.tsx`);
+      expect(source, `${atom}.tsx does not wear the shared atom identity`).toContain("kui-atom");
+    }
+  });
+});

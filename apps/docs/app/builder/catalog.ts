@@ -481,6 +481,13 @@ export const CATALOG: Record<string, CatalogEntry> = {
     children: "text",
     make: () => node("Blockquote", { size: "3" }, { text: "Taste is the last layer." }),
   },
+  Badge: {
+    family: "Type",
+    blurb: "A word or a count stating what the thing beside it is. Tone is the category, not the volume; unset size takes the line it sits beside.",
+    props: typeProps,
+    children: "text",
+    make: () => node("Badge", { tone: "success" }, { text: "Live" }),
+  },
   Code: {
     family: "Type",
     blurb: "Inline code: the mono slot in a subtle fill. Unset size takes the line it sits in.",

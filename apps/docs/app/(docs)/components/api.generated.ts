@@ -232,6 +232,59 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "Badge": {
+    "element": "span",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The word, or the count. A badge with nothing in it is refused by this type: see below."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "emphasis",
+        "type": "Emphasis",
+        "optional": true,
+        "doc": "Picks an ink colour, the same three the surrounding copy uses. It moves the letters, not the fill — a badge that faded its box would be reading one axis two ways."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render into the element the document needs."
+      },
+      {
+        "name": "size",
+        "type": "TypeSize",
+        "optional": true,
+        "doc": "A step on the shared ramp. Optional with no default, for the same reason `Code` and `Kbd` are: a badge takes the size of the line it sits beside, so a badge next to a card title is bigger than one in a table row without either call site repeating the index. Set it only when the badge stands alone."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "optional": true,
+        "doc": "The family, and this is the axis a badge exists for. `success` for a finished job, `destructive` for a failed one, `warning` for one that needs attention, `info` for one that is merely running. It moves the ink and the fill together, because a badge with a fill has two things to tint. Defaults to `neutral`."
+      },
+      {
+        "name": "weight",
+        "type": "Weight",
+        "optional": true,
+        "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, as `size` is: the fill and the pill are what mark a badge out, never the weight."
+      }
+    ]
+  },
   "Blockquote": {
     "element": "blockquote",
     "props": [

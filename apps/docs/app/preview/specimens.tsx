@@ -23,6 +23,7 @@
  */
 import * as React from "react";
 import {
+  Badge,
   Blockquote,
   Box,
   Button,
@@ -275,6 +276,102 @@ function TonesSection() {
 }
 
 /* ── Sections, alphabetical ────────────────────────────────────────────────────────────── */
+
+function BadgeSection() {
+  return (
+    <Stack gap="6">
+      {/* The claim to judge first: an atom with no `size` takes the line it sits beside, so a
+          badge next to a card title is bigger than one in a meta row without either call site
+          repeating an index. The step is on the TEXT only — every badge here is bare. */}
+      <Stack gap="3">
+        {(["6", "3", "2"] as const).map((size) => (
+          <Flex key={size} align="center" gap="3">
+            <Text size={size}>api-gateway</Text>
+            <Badge tone="success">Live</Badge>
+          </Flex>
+        ))}
+      </Stack>
+      {/* Tone is the axis this component exists for: the ten families as one vocabulary. The
+          question to read down the column is whether ten of these still look like one system. */}
+      <SpecTable
+        cols={["Badge", "Beside a cap", "Beside a chip"]}
+        rows={TONES.map((tone) => ({
+          label: tone,
+          cells: [
+            <Badge key="1" size="2" tone={tone}>{cap(tone)}</Badge>,
+            <Kbd key="2" size="2" tone={tone}>⌘K</Kbd>,
+            <Code key="3" size="2" tone={tone}>{tone}</Code>,
+          ],
+        }))}
+      />
+      {/* The family side by side at one step: same fill, same corner, same box — and the cap
+          is the only one that stands proud of the surface. If a badge ever grows an edge or a
+          shadow, this row is where it shows. */}
+      <SpecTable
+        cols={["1", "3", "6", "9"]}
+        rows={[
+          { label: "badge", cells: (["1", "3", "6", "9"] as const).map((s) => <Badge key={s} size={s}>Live</Badge>) },
+          { label: "kbd", cells: (["1", "3", "6", "9"] as const).map((s) => <Kbd key={s} size={s}>⌘K</Kbd>) },
+          { label: "code", cells: (["1", "3", "6", "9"] as const).map((s) => <Code key={s} size={s}>x</Code>) },
+        ]}
+      />
+      {/* Emphasis moves the ink and never the fill — the box holds while the letters step. */}
+      <SpecTable
+        cols={["loud", "medium", "quiet"]}
+        rows={[
+          {
+            label: "badge",
+            cells: (["loud", "medium", "quiet"] as const).map((e) => (
+              <Badge key={e} size="2" emphasis={e}>Queued</Badge>
+            )),
+          },
+        ]}
+      />
+      {/* The count case: a badge over the thing it counts. The position is the call site's —
+          the component knows nothing about where it goes (§3), so this is a Box doing what a
+          Box does. */}
+      <Demo label="A count, placed by its call site">
+        <Flex gap="6" align="center">
+          {([["3", "destructive"], ["12", "accent"], ["1", "neutral"]] as const).map(([n, tone]) => (
+            <Box key={n} position="relative">
+              <Button emphasis="quiet" bordered>Inbox</Button>
+              <Box position="absolute" style={{ insetInlineEnd: "-6px", insetBlockStart: "-8px" }}>
+                <Badge size="1" tone={tone}>{n}</Badge>
+              </Box>
+            </Box>
+          ))}
+        </Flex>
+      </Demo>
+      {/* Composed: the shape a product actually uses it in, where the badge is the only thing
+          carrying colour and the words carry everything else. */}
+      <Demo label="Composed — a deploy list">
+        <Box maxWidth="30rem">
+          <Card size="3">
+            <Stack gap="4">
+              <Flex align="center" gap="3">
+                <Heading size="6">Deployments</Heading>
+                <Badge tone="info">Preview</Badge>
+              </Flex>
+              {(
+                [
+                  ["4821", "Failed", "destructive"],
+                  ["4820", "Cancelled", "warning"],
+                  ["4819", "Live", "success"],
+                  ["4818", "Queued", "neutral"],
+                ] as const
+              ).map(([build, state, tone]) => (
+                <Flex key={build} justify="space-between" align="center" gap="4">
+                  <Text size="2">Build {build}</Text>
+                  <Badge size="2" tone={tone}>{state}</Badge>
+                </Flex>
+              ))}
+            </Stack>
+          </Card>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
 
 function BlockquoteSection() {
   return (
@@ -1975,6 +2072,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "sizes", name: "Sizes — every control at one index", body: <SizesSection /> },
   { id: "tones", name: "Tones — ten families, every consumer", body: <TonesSection /> },
   { id: "materials", name: "Materials — placement decides expression", body: <MaterialsSection /> },
+  { id: "badge", name: "Badge", body: <BadgeSection /> },
   { id: "blockquote", name: "Blockquote", body: <BlockquoteSection /> },
   { id: "button", name: "Button", body: <ButtonSection /> },
   ported("card"),

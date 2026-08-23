@@ -1,5 +1,6 @@
 // Public surface of @kookie-ui/react. Every export here is a decision (ENGINEERING.md §1.6).
 export { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction, type AlertDialogProps, type AlertDialogTriggerProps, type AlertDialogContentProps, type AlertDialogTitleProps, type AlertDialogDescriptionProps, type AlertDialogCancelProps, type AlertDialogActionProps } from "./components/alert-dialog/alert-dialog.tsx";
+export { Badge, type BadgeProps } from "./components/badge/badge.tsx";
 export { Blockquote, type BlockquoteProps } from "./components/blockquote/blockquote.tsx";
 export { Box, type BoxProps } from "./components/box/box.tsx";
 export { Button, type ButtonProps } from "./components/button/button.tsx";

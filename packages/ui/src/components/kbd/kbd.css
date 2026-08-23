@@ -1,14 +1,15 @@
-/* A key cap (§11's inert atoms, §15): Code's fill and tone facts in its OWN family and box.
+/* A key cap (§11's inert atoms, §15): the atom family's fill and box, with relief.
  *
  * It shipped as "Code plus an edge" wearing the mono slot, and left it the next day
  * (2026-08-08, Kushagra — judged in the playground): a mono cell draws symbols like ⌘
  * compact to fit its fixed advance, so the command glyph read too small, and the platform
- * itself sets shortcuts in the UI sans (macOS menus; Radix's cap is sans too). What survives
- * of the family identity is the fill, the tone indirection and the type-join membership;
- * the family and the geometry are the cap's own.
+ * itself sets shortcuts in the UI sans (macOS menus; Radix's cap is sans too).
  *
- * The atom's shared facts are restated rather than promoted, the second-member rule
- * (LOG 2026-08-05): Badge and Tag are the atoms still to land; the third promotes. */
+ * The atom's shared facts were restated here under the second-member rule until 2026-08-23,
+ * when Badge arrived as the third and promoted them: the fill, the corner and the optical
+ * scale are `.kui-atom`'s, and the one-line box — which Kbd designed and Badge now wears — is
+ * `.kui-atom-box`'s. What is left is the cap: the body family, its own discount, an edge and
+ * the relief that says a key is a physical thing. */
 
 .kui-kbd {
   /* The BODY family: a key cap names a key, it does not quote code — and the sans draws
@@ -16,12 +17,8 @@
   font-family: var(--font-body);
   /* The cap's own discount through the type join's optical scale (§15): deeper than the
      chip's, because small glyphs in a roomy cap are what make a key read as a KEY rather
-     than as highlighted text. The em spelling is the inherited-size arm, exactly as in
-     code.css. */
+     than as highlighted text. */
   --kui-ty-scale: var(--kbd-scale);
-  font-size: calc(1em * var(--kui-ty-scale));
-  background-color: var(--tone-soft);
-  border-radius: var(--radius-atom);
   /* An alpha edge, not a drawn hairline (2026-08-17 — fill is identity, light replaces
      line): the cap's fill carries it, and the edge only supplements, same value on any
      bed. The tone indirection stays on the fill and ink; the edge is achromatic. */
@@ -31,41 +28,9 @@
      floating button, when a key is pressed INTO its surface — top-face catch plus a
      whisper of drop, cap-scale (--kbd-relief). Still role semantics — it holds in a flat
      world — and a PANE still stands it down (§10, lab: relief in the pane, not a sticker
-     on it), so a glass surface's --kui-kbd-cast wins the first slot. */
+     on it), so a glass surface's --kui-kbd-cast wins the first slot.
+     This is the one thing the cap has that the family's other box does NOT: a badge is flat,
+     which is most of what keeps the two legible side by side. */
   --kui-ct-cast: var(--kui-kbd-cast, var(--kbd-relief, none));
   box-shadow: var(--kui-ct-cast, none);
-  /* The cap geometry (2026-08-08, with the family move): a key never wraps, a one-glyph
-     key sits centered in a near-square cap rather than shrink-wrapping into a sliver, and
-     the block box is what lets min-inline-size apply at all (it does not reach a plain
-     inline). All in the cap's own em — the glyphs price the cap, the em-padding argument
-     one property over. box-decoration-break left with the inline model: an unwrappable
-     block has no second fragment to lose. */
-  /* The cap IS one line box tall — `1lh`, resolved against the line-height it inherits (an
-     unset size) or the one the join states (a stated size). That is what makes the face free
-     of consequence: a designed em box could not track the type ramp's own line ratio, which
-     falls from 1.33 at step 1 to 1.107 at step 9, so a constant em cap fitted the small
-     steps and overflowed the large ones — measured at 13px of line growth at step 9, against
-     a bound of 3 that only held because the law looped sizes 1-4 (audit 2026-08-08). Height
-     from the line box cannot drift from the line box.
-
-     `vertical-align: top` with that height is the second half: the box fills the line box it
-     already matches, so the line cannot grow. `middle` was the first spelling and is wrong
-     here — it centres the box on the baseline plus half an x-height, which pushes a
-     line-tall box past the strut and reintroduces the growth this removes. */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  block-size: 1lh;
-  vertical-align: top;
-  white-space: nowrap;
-  min-inline-size: 1.6em;
-  /* The cap's vertical presence (2026-08-08, Kushagra: glyphs at bare line-height read
-     cramped — a keycap has a face, not just a line). The face is now the LINE BOX itself
-     (see block-size above), so there is no block padding to price and no spread to bound:
-     the glyph is the discounted type centred in a box exactly one line tall. Inline padding
-     stays the cap's own em — the glyphs price their own breathing room, the family's
-     argument for every horizontal length it owns. */
-  padding-inline: 0.5em;
-  padding-block: 0;
 }
