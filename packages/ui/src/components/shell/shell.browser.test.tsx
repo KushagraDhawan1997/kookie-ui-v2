@@ -1779,6 +1779,52 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     expect(computed(currentRow, "color")).not.toBe(computed(plain, "color"));
   });
 
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: a DEAD nav row dims its words, not only its icon`, () => {
+      // The law this file has never had (ultracode audit 2026-08-23: `grep -c disabled` on this
+      // file returned zero). The stand-down that keeps an ordinary nav label out of the accent
+      // put it in a role the disabled remap cannot reach, so a dead row kept live words between
+      // a dead icon and a dead cursor.
+      //
+      // `<Row disabled>` is the negative control and it is load-bearing: it is the same family
+      // with no shell override, so it proves the remap works and isolates the defect to this
+      // member. Without it the law could pass on a package where nothing dims at all.
+      const shell = mounted(
+        <Shell style={{ height: 400, width: 900 }}>
+          <ShellSidebar aria-label="Primary">
+            <ShellNavGroup label="Workspace">
+              <ShellNavItem data-t="live">Inbox</ShellNavItem>
+              <ShellNavItem data-t="dead" disabled>Archive</ShellNavItem>
+            </ShellNavGroup>
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { appearance }, select: ".kui-shell" },
+      );
+      const live = within(shell, '[data-t="live"]');
+      const dead = within(shell, '[data-t="dead"]');
+      expect(computed(dead, "color"), "a dead nav row reads like a live one").not.toBe(
+        computed(live, "color"),
+      );
+      expect(computed(dead, "color")).toBe(colorOn(dead, "var(--disabled-ink)"));
+      // And the CURRENT arm still wins where it should — it reads --tone-ink too, so a dead
+      // current row must dim rather than keep the accent.
+      const both = mounted(
+        <Shell style={{ height: 400, width: 900 }}>
+          <ShellSidebar aria-label="Primary">
+            <ShellNavItem data-t="dc" current disabled>Inbox</ShellNavItem>
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { appearance }, select: ".kui-shell" },
+      );
+      const dc = within(both, '[data-t="dc"]');
+      expect(computed(dc, "color"), "a dead CURRENT row kept the accent").toBe(
+        colorOn(dc, "var(--disabled-ink)"),
+      );
+    });
+  }
+
   it("being current is ANNOUNCED, and the heading is CONNECTED to its items", () => {
     // Both are the non-visual halves that force these parts to exist at all (§10's
     // criterion): a colour tells nobody who cannot see it, and a heading rendered as a

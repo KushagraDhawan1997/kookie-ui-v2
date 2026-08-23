@@ -464,10 +464,25 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     // palette-independent by construction. It has to WIN over
     // the rule above without being reachable at rest, which is specificity plus the state
     // guard — assert both, because either one alone is a different rule.
-    const litTick =
-      '[data-contrast="high"]\n  .kui-row:where([data-highlighted], [data-popup-open]):not([data-disabled])\n  > [data-slot]:where([data-checked], [data-selected])';
-    expect(recipes).toContain(litTick);
-    expect(block(recipes, litTick)).toContain("color: var(--tone-contrast)");
+    //
+    // EVERY SLOT since 2026-08-23 (ultracode audit), not just the indicator. The narrow list
+    // was correct while a row's other slots reached the contrast ink by INHERITING the label's
+    // colour; the same day's `.kui-row > [data-slot="leading"]` rule took the icon out of that
+    // chain, and a lit row's icon then painted the glyph ON the solid fill it sits on — Lc 0.0
+    // in 14 of 20 tone x appearance cells. Pinning the value, not the spelling: the assertion
+    // below reads the SLOT LIST rather than the whole selector text, so widening the state
+    // guard later does not kill this law the way pinning a full selector has killed three
+    // before (`block()`'s own 2026-08-20 note).
+    const litSlot =
+      '[data-contrast="high"]\n  .kui-row:where([data-highlighted], [data-popup-open]):not([data-disabled])\n  > [data-slot]';
+    expect(recipes).toContain(litSlot);
+    expect(block(recipes, litSlot)).toContain("color: var(--tone-contrast)");
+    // And it is not narrowed back to the indicator — the defect, stated so it cannot return
+    // quietly. A `:where([data-checked]...)` qualifier after `[data-slot]` is exactly what
+    // shipped the Lc 0.0 icon.
+    expect(recipes, "the lit-row arm is back to indicators only").not.toContain(
+      `${litSlot}:where([data-checked], [data-selected])`,
+    );
   });
 
   it("a row reads CONTENT ink, and its rule sits after the emphasis ladder (§15, §21)", () => {

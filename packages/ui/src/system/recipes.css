@@ -653,13 +653,26 @@
 
    Not routed through the accent rule's own :where() — this has to WIN, and it does on
    specificity (0,5,0 against that rule's 0,2,0), so its placement here beside the fill it
-   answers is free. Rejected: a lighter high-contrast fill with darkened ink, Button's medium
+   answers is free.
+
+   EVERY SLOT, not just the indicator (widened 2026-08-23, ultracode audit). This named
+   `:where([data-checked], [data-selected])` while a row's other slots reached the contrast ink
+   by INHERITING the label's colour — true until the same day's leading-slot rule took the icon
+   out of that chain by declaring `color` on it directly. Measured with the narrow list: a lit
+   row's icon painted the glyph ON the solid fill it sits on, at APCA Lc 0.0 in 14 of 20 tone x
+   appearance cells and under the non-text floor in all 20 (light neutral: glyph #1f1f20 on
+   solid #030303; light accent: #0095fe on #0094fc). A regression on `MenuItem`, whose
+   `leading` prop predates all of this.
+
+   It is verbatim the half-fix the paragraph above warns about — "a fill that changes underneath
+   ink that does not" — so the list is now the general statement it should always have been: on
+   a lit row the WHOLE row is solid, therefore everything on it reads the contrast ink. Rejected: a lighter high-contrast fill with darkened ink, Button's medium
    rung (Kushagra's first proposal). Medium's fill IS --tone-soft, which is byte-identical to
    the lit fill this arm replaced: 1.16:1 light, 1.08:1 dark against the panel — the exact
    measurement that put the row on the solid rung, so the proposal reopens it. */
 [data-contrast="high"]
   .kui-row:where([data-highlighted], [data-popup-open]):not([data-disabled])
-  > [data-slot]:where([data-checked], [data-selected]) {
+  > [data-slot] {
   color: var(--tone-contrast);
 }
 

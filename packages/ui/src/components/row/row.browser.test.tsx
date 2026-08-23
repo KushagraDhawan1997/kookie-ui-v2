@@ -423,3 +423,81 @@ describe("the leading icon speaks the row's family (§7, §21)", () => {
     );
   });
 });
+
+
+/**
+ * A DEAD ROW IS DEAD ON EVERY ELEMENT (§21, added 2026-08-23 from the ultracode audit).
+ *
+ * `disabled` is not a content attribute on an `<a>`, so this shipped as a complete no-op on
+ * the path Row's own JSDoc recommends: full-contrast ink, `pointer` cursor, in the tab order,
+ * activatable, announced to nobody. `Button` on the same page got it right, which is the
+ * negative control this whole describe is built around — without it the law could pass on a
+ * package where nothing is ever disabled properly.
+ */
+describe("disabled reaches the render target, not only the button (§21)", () => {
+  it("a dead LINK is dimmed, announced, out of the tab order and inert", () => {
+    const root = mounted(
+      <div>
+        <Row data-t="live" render={<a href="#live" />}>Live</Row>
+        <Row data-t="dead" disabled render={<a href="#dead" />}>Dead</Row>
+        <Button data-t="control" disabled render={<a href="#c" />}>Control</Button>
+      </div>,
+      { theme: {} },
+    );
+    const dead = within(root, '[data-t="dead"]');
+    const live = within(root, '[data-t="live"]');
+    const control = within(root, '[data-t="control"]');
+
+    // Calibration: the negative control proves the SHARED arms work, so a failure below is
+    // Row's and not the disabled machinery's.
+    expect(computed(control, "color")).toBe(colorOn(control, "var(--disabled-ink)"));
+
+    // PAINT — the shared arms only reach it through `data-disabled`, since `:disabled` cannot
+    // match an anchor.
+    expect(computed(dead, "color"), "a dead link reads like a live one").not.toBe(
+      computed(live, "color"),
+    );
+    expect(computed(dead, "color")).toBe(colorOn(dead, "var(--disabled-ink)"));
+    expect(computed(dead, "cursor"), "a dead link still promises a press").not.toBe("pointer");
+
+    // ANNOUNCEMENT and REACHABILITY — the half a colour cannot carry.
+    expect(dead.getAttribute("aria-disabled"), "a dead link is announced to nobody").toBe("true");
+    expect(dead.tabIndex, "a dead link is still in the tab order").toBe(-1);
+
+    // And a LIVE link keeps every one of them, so the law is about `disabled` rather than
+    // about being an anchor.
+    expect(live.getAttribute("aria-disabled")).toBeNull();
+    expect(live.tabIndex).not.toBe(-1);
+    expect(live.hasAttribute("data-disabled")).toBe(false);
+  });
+
+  it("a render target that IS a button gains none of it — the element already means it", () => {
+    /**
+     * The other half, and it is what stops the fix from being a blanket stamp: on a native
+     * button `disabled` IS the contract, and `aria-disabled` beside it is the double
+     * announcement this repo refuses elsewhere.
+     *
+     * THE FIXTURE MUST BE `render={<button/>}`, NOT A BARE `<Row disabled>`. The first spelling
+     * used the bare row and its own sabotage pass caught it: the guard lives INSIDE the
+     * `if (render)` branch, so a bare row never reaches it and removing the `rootsInButton`
+     * check changed nothing the law could see. A law about the guard has to mount the path the
+     * guard is on — the degenerate-fixture rule (2026-08-20), on the day it was quoted.
+     */
+    const root = mounted(
+      <div>
+        <Row data-t="native" disabled render={<button />}>Dead</Row>
+        <Row data-t="bare" disabled>Dead</Row>
+      </div>,
+      { theme: {} },
+    );
+    for (const t of ["native", "bare"]) {
+      const el = within(root, `[data-t="${t}"]`);
+      expect(el.tagName, t).toBe("BUTTON");
+      expect(el.getAttribute("aria-disabled"), `${t}: a native button was double-announced`).toBeNull();
+      expect(el.hasAttribute("data-disabled"), `${t}: a native button was double-stamped`).toBe(false);
+      expect(el.tabIndex, `${t}: a native button had its tabindex rewritten`).not.toBe(-1);
+      // It is still visibly dead — through `:disabled`, which is what a real button offers.
+      expect(computed(el, "color"), t).toBe(colorOn(el, "var(--disabled-ink)"));
+    }
+  });
+});

@@ -1387,6 +1387,51 @@ describe("a focused row's ring survives the panel that scrolls it (§8)", () => 
      ugly in light (5.21:1) and a genuine failure in dark, where the row is near-white and the
      blue measures 2.65:1 against the 3:1 a non-text indicator owes — under the floor, on the
      conformance surface. Falsified by deleting the tick arm from recipes.css. */
+  it("contrast=high moves EVERY slot on a lit row, not just the indicator (§19, §21)", () => {
+    /**
+     * ADDED 2026-08-23 (ultracode audit), and the fixture is the whole point.
+     *
+     * The two laws around this one mount `openMenu()`'s default items, which carry NO leading
+     * icon — so when the same day's `.kui-row > [data-slot="leading"]` rule took the icon out
+     * of the inherited colour chain, every high-contrast law here stayed green while a lit
+     * row's icon painted the glyph ON the solid fill underneath it: measured APCA Lc 0.0 in 14
+     * of 20 tone x appearance cells and under the non-text floor in all 20. A degenerate
+     * fixture, in the exact sense the 2026-08-20 rule names — the input could not tell a
+     * correct implementation from a broken one, because the input had no icon.
+     *
+     * So this law states its own item WITH an icon, and reads the icon rather than the tick.
+     */
+    for (const appearance of APPEARANCES) {
+      const { popup, items } = openMenu(
+        { appearance, contrast: "high" },
+        <MenuItem leading={<span data-probe>▲</span>}>Alpha</MenuItem>,
+      );
+      const row = items[0]!;
+      const icon = row.querySelector<HTMLElement>('[data-slot="leading"]');
+      if (!icon) throw new Error("no leading slot — the law would assert nothing");
+
+      // Calibration first: the row must actually BE lit, or every assertion below is about an
+      // unlit row and passes for the wrong reason.
+      row.setAttribute("data-highlighted", "");
+      expect(computed(row, "background-color"), `${appearance}: the row is not lit`).toBe(
+        colorOn(popup, "var(--tone-solid)"),
+      );
+
+      // The icon rides the fill it sits on, exactly as the label does.
+      expect(computed(icon, "color"), `${appearance}: the icon did not follow the fill`).toBe(
+        colorOn(popup, "var(--tone-contrast)"),
+      );
+      expect(computed(icon, "color"), `${appearance}: icon and label disagree`).toBe(
+        computed(row, "color"),
+      );
+      // And it is NOT the glyph — the value it wore before the fix, and the one that measured
+      // Lc 0.0 against this very fill.
+      expect(computed(icon, "color"), `${appearance}: the icon is still the glyph`).not.toBe(
+        colorOn(popup, "var(--tone-glyph)"),
+      );
+    }
+  });
+
   it("contrast=high moves the checked TICK too, in both appearances (§19, §21)", () => {
     for (const appearance of APPEARANCES) {
       const { popup, items } = openMenu(

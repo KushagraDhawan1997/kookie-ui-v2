@@ -3,7 +3,13 @@
 import * as React from "react";
 
 import type { Size, Tone } from "../../system/axes.ts";
-import { composeRender, slot, type RenderElement } from "../../system/render.ts";
+import {
+  composeRender,
+  rootsInButton,
+  slot,
+  unwrapLazy,
+  type RenderElement,
+} from "../../system/render.ts";
 
 export type RowProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /**
@@ -136,7 +142,36 @@ export function Row({
 
   // `type="button"` only on the button this file renders — a render target keeps its own
   // element semantics (the Button-as-anchor lesson, 2026-08-03).
-  if (render) return composeRender(render, merged as never, content);
+  if (render) {
+    /**
+     * A DEAD ROW IS DEAD ON EVERY ELEMENT (added 2026-08-23, ultracode audit).
+     *
+     * `disabled` is not a content attribute on an `<a>`: it parses, it does nothing, and none
+     * of the three shared disabled arms match it. Measured, `<Row disabled render={<a href/>}>`
+     * came back byte-identical to its live self in every channel — full-contrast ink, `pointer`
+     * cursor, still in the tab order, still activatable, and announced to nobody — while a
+     * `<Button disabled render={<a href/>}>` on the same page got it right. Row's own JSDoc
+     * recommends exactly this shape, and `tsc --strict` accepts it.
+     *
+     * Unlike every other member, this one has no Base UI primitive to delegate the contract to
+     * — a Row is a plain element — so it states the contract itself. `data-disabled` is what
+     * the shared arms actually read (they key on `:disabled` OR the attribute, three spellings,
+     * precisely because one is never enough), `aria-disabled` is what announces it, `tabIndex`
+     * takes it out of the tab order, and the click guard is what stops a live `href` from
+     * navigating. On a real `<button>` none of this is added: the element already means it.
+     */
+    const dead = props.disabled === true && !rootsInButton(unwrapLazy(render));
+    const target = dead
+      ? {
+          ...merged,
+          "data-disabled": "",
+          "aria-disabled": true as const,
+          tabIndex: -1,
+          onClick: (event: React.MouseEvent) => event.preventDefault(),
+        }
+      : merged;
+    return composeRender(render, target as never, content);
+  }
   return (
     <button {...(merged as React.ComponentPropsWithoutRef<"button">)} type="button">
       {content}

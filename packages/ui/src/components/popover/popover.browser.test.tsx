@@ -326,3 +326,98 @@ describe("the agreement law: portalled ≡ in-flow (§20, ENGINEERING §2.1)", (
     expect(surfaceFacts(twin(HOSTILE, identity))).not.toEqual(surfaceFacts(twinEl));
   });
 });
+
+
+/**
+ * THE TRIGGER'S ELEMENT SEMANTICS (§5, added 2026-08-23 from the ultracode audit).
+ *
+ * Base UI branches its entire a11y contract on `nativeButton` and defaults it to TRUE, so a
+ * component that does not forward the answer emits `type="button"` on an anchor — where `type`
+ * is the linked resource's MIME type — and a disabled one as a tab stop with an inert
+ * `disabled` attribute and no `aria-disabled`. That is the Button defect of 2026-08-03, and
+ * Popover was its FOURTH shipping: Button caught it, Menu re-shipped and caught it in the
+ * 2026-08-09 audit, Dialog and AlertDialog carry the guard, and this component was written
+ * without one. Chromium had been printing Base UI's own warning on that path all along.
+ *
+ * `Menu` is the negative control, and it is the point: the two components must agree about one
+ * node, because the failure that made this a rule was two of them disagreeing.
+ */
+describe("the trigger keeps its element's semantics (§5)", () => {
+  it("as an anchor: no type=button, announced when dead, out of the tab order", () => {
+    const host = render(
+      <Theme>
+        <Popover>
+          <PopoverTrigger data-t="live" render={<a href="#live" />}>Open</PopoverTrigger>
+          <PopoverContent>body</PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverTrigger data-t="dead" disabled render={<a href="#dead" />}>Open</PopoverTrigger>
+          <PopoverContent>body</PopoverContent>
+        </Popover>
+        <Menu>
+          <MenuTrigger data-t="menu" disabled render={<a href="#m" />}>Open</MenuTrigger>
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    const at = (t: string) => {
+      const el = host.querySelector<HTMLElement>(`[data-t="${t}"]`);
+      if (!el) throw new Error(`no trigger ${t} — the law would assert nothing`);
+      return el;
+    };
+
+    // `type` is a MIME type on an anchor. Emitting "button" there is meaningless markup and is
+    // the tell that the whole contract went down the native-button branch.
+    expect(at("live").getAttribute("type"), "type=button on an anchor").toBeNull();
+    expect(at("dead").getAttribute("type"), "type=button on an anchor").toBeNull();
+
+    // A DEAD trigger is announced and unreachable. `disabled` does nothing on an `<a>`, so
+    // without the inference these are the two channels that silently vanish.
+    expect(at("dead").getAttribute("aria-disabled"), "a dead trigger is announced to nobody").toBe(
+      "true",
+    );
+    expect(at("dead").tabIndex, "a dead trigger is still in the tab order").toBe(-1);
+
+    // AND IT AGREES WITH MENU, node for node. Without this the law passes on a package where
+    // every floating trigger is wrong in the same way.
+    expect(at("dead").getAttribute("aria-disabled")).toBe(
+      at("menu").getAttribute("aria-disabled"),
+    );
+    expect(at("dead").tabIndex).toBe(at("menu").tabIndex);
+
+    // A LIVE one keeps its reachability, so the law is about `disabled` and not about anchors.
+    expect(at("live").getAttribute("aria-disabled")).toBeNull();
+    expect(at("live").tabIndex).not.toBe(-1);
+  });
+
+  it("as a real button it is left alone, and the nested Button shape is not mistaken for one", () => {
+    // `rootsInButton` RECURSES, and this is why: `render={<Button render={<a href/>}/>}` is a
+    // component, so a one-level `type === "button"` check answers TRUE and puts the anchor back
+    // down the native branch — two components disagreeing about one node, which is the exact
+    // shape the menu comment records.
+    const host = render(
+      <Theme>
+        <Popover>
+          <PopoverTrigger data-t="plain">Open</PopoverTrigger>
+          <PopoverContent>body</PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverTrigger data-t="nested" disabled render={<Button render={<a href="#n" />} />}>
+            Open
+          </PopoverTrigger>
+          <PopoverContent>body</PopoverContent>
+        </Popover>
+      </Theme>,
+    );
+    const plain = host.querySelector<HTMLElement>('[data-t="plain"]')!;
+    const nested = host.querySelector<HTMLElement>('[data-t="nested"]')!;
+    expect(plain.tagName, "the default path stopped rendering a button").toBe("BUTTON");
+    expect(plain.getAttribute("aria-disabled"), "a live native button was stamped").toBeNull();
+    // The nested anchor is still an anchor, and still gets the anchor's contract.
+    expect(nested.tagName).toBe("A");
+    expect(nested.getAttribute("type"), "the nested shape took the native branch").toBeNull();
+    expect(nested.getAttribute("aria-disabled")).toBe("true");
+  });
+});

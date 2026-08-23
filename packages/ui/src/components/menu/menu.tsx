@@ -19,7 +19,7 @@ import * as React from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
-import { mergeRefs, slot, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import { mergeRefs, rootsInButton, slot, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import {
   FloatingBody,
   FloatingDirectionContext,
@@ -160,14 +160,6 @@ export function Menu({ size = "2", open, defaultOpen, onOpenChange, children }: 
  * intrinsic element. A component with no escape is opaque and takes Base UI's own default —
  * the `nativeButton` prop is the escape for the case inspection cannot see.
  */
-function rootsInButton(el: RenderElement, depth = 0): boolean {
-  const target = unwrapLazy(el);
-  if (typeof target.type === "string") return target.type === "button";
-  const inner = target.props?.render;
-  if (depth < 4 && React.isValidElement(inner)) return rootsInButton(inner as RenderElement, depth + 1);
-  return true;
-}
-
 export type MenuTriggerProps = {
   /** Usually a Kookie Button: `<MenuTrigger render={<Button/>}>Open</MenuTrigger>`. */
   render?: RenderElement;

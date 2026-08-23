@@ -638,6 +638,29 @@
   --kui-ct-label-color: var(--tone-ink);
 }
 
+/* AND A DEAD ROW DIMS (2026-08-23, ultracode audit — a defect the stand-down above introduced
+   and this arm closes).
+
+   The shared disabled remap rewrites tone ROLES, so it reaches `--tone-ink` and cannot reach
+   `--color-text`. Standing the label down to the tone-less role therefore stood it out of the
+   remap's vocabulary: measured, a `<ShellNavItem disabled>` painted its label at full resting
+   contrast — byte-identical to a live row in both appearances — while its icon and its cursor
+   dimmed correctly around it. A live word wearing dead punctuation.
+
+   Restored THROUGH the vocabulary rather than around it: `--tone-ink` is already
+   `--disabled-ink` on a dead element, so this names no new value and cannot drift from the
+   remap. Both spellings, because the family's own remap 180 lines up spells three arms for
+   exactly this reason — `Row` and the shell members render a bare `<button disabled>` while
+   Base UI stamps `[data-disabled]` on the controls it owns.
+
+   This is the shape recipes.css names at its own remap — "a remap that covers one of several
+   vocabularies dims whichever controls happen to use the covered one" — recommitted one file
+   over, in the same commit as the fix for its third instance. Fourth. */
+.kui-shell-nav-item:disabled,
+.kui-shell-nav-item[data-disabled] {
+  --kui-ct-label-color: var(--tone-ink);
+}
+
 /* The press area reaches back out to the pane's wall. It reads `--kui-sf-p` — the surface
    padding HOOK, which inherits on purpose (it is how `m="bleed"` finds the nearest surface,
    §3) — so the expander and the air it undoes are one number by construction rather than two

@@ -28,7 +28,7 @@ import * as React from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
-import { mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import { mergeRefs, rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import {
   FloatingDirectionContext,
   PortalScope,
@@ -129,14 +129,6 @@ export function Dialog({ size = "3", open, defaultOpen, onOpenChange, children }
  * stop at the first intrinsic element; an opaque component takes Base UI's default, and
  * `nativeButton` is the escape for what inspection cannot see.
  */
-function rootsInButton(el: RenderElement, depth = 0): boolean {
-  const target = unwrapLazy(el);
-  if (typeof target.type === "string") return target.type === "button";
-  const inner = target.props?.render;
-  if (depth < 4 && React.isValidElement(inner)) return rootsInButton(inner as RenderElement, depth + 1);
-  return true;
-}
-
 type ButtonPartProps = Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"

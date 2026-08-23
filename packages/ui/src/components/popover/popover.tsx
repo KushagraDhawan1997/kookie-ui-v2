@@ -7,6 +7,7 @@ import { Popover as BasePopover } from "@base-ui/react/popover";
 import type { Size } from "../../system/axes.ts";
 import { FloatingBody, PortalScope } from "../../system/floating.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
+import { rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { Heading } from "../heading/heading.tsx";
@@ -77,8 +78,31 @@ export type PopoverTriggerProps = React.ComponentPropsWithoutRef<typeof BasePopo
  * whatever you already have, and this component only adds the wiring (`aria-expanded`,
  * `aria-haspopup`, the anchor the panel measures itself against).
  */
-export function PopoverTrigger(props: PopoverTriggerProps) {
-  return <BasePopover.Trigger {...props} />;
+export function PopoverTrigger({ render, nativeButton, ...props }: PopoverTriggerProps) {
+  // `nativeButton` INFERRED, not defaulted (added 2026-08-23, ultracode audit). Base UI
+  // branches its whole a11y contract on it and defaults it to true, so this component shipped
+  // `render={<a href/>}` as `<a type="button" tabindex="0">` — `type` on an anchor being the
+  // linked resource's MIME type — and a DISABLED one as a tab stop carrying an inert
+  // `disabled` attribute and no `aria-disabled`: a focusable, unannounced dead link.
+  //
+  // That is the Button defect of 2026-08-03, and this was its FOURTH shipping: Button caught
+  // it, Menu re-shipped and caught it in the 2026-08-09 audit, Dialog and AlertDialog carry
+  // the same guard, and Popover was written without it. Chromium prints Base UI's own warning
+  // twice on the anchor path, which is how long it had been saying so.
+  //
+  // `rootsInButton` is now shared (system/render.ts) rather than a fifth private copy, and it
+  // RECURSES because the blessed shape is `render={<Button render={<a href/>}/>}` — a
+  // component, so a one-level check answers wrong and the two components disagree about one
+  // node. It unwraps lazily at every level for the RSC boundary (§5).
+  const target = render === undefined ? undefined : unwrapLazy(render as RenderElement);
+  const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
+  return (
+    <BasePopover.Trigger
+      {...(target ? { render: target } : {})}
+      nativeButton={isNativeButton}
+      {...props}
+    />
+  );
 }
 
 export type PopoverContentProps = Omit<
@@ -238,6 +262,17 @@ export type PopoverCloseProps = React.ComponentPropsWithoutRef<typeof BasePopove
  * press and Escape, and a corner glyph on a small pane competes with whatever the panel is
  * actually for. Notice draws one because it has neither of those.
  */
-export function PopoverClose(props: PopoverCloseProps) {
-  return <BasePopover.Close {...props} />;
+export function PopoverClose({ render, nativeButton, ...props }: PopoverCloseProps) {
+  // The trigger's fix, one export over and for the same reason: a close button rendered as an
+  // anchor is the commonest shape after the trigger, and Base UI's default would give it
+  // `type="button"` and an unannounced disabled state.
+  const target = render === undefined ? undefined : unwrapLazy(render as RenderElement);
+  const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
+  return (
+    <BasePopover.Close
+      {...(target ? { render: target } : {})}
+      nativeButton={isNativeButton}
+      {...props}
+    />
+  );
 }

@@ -123,6 +123,36 @@ export function filled(node: React.ReactNode): boolean {
 }
 
 /**
+ * Does this `render` target bottom out in a real `<button>`? (§5, promoted 2026-08-23.)
+ *
+ * Base UI branches its ENTIRE accessibility contract on `nativeButton`, which defaults to
+ * TRUE — so an unforwarded `render={<a href/>}` emits `type="button"` on an anchor (where
+ * `type` is the linked resource's MIME type) and, when disabled, an inert `disabled`
+ * attribute with no `aria-disabled` and tabindex 0: a focusable, unannounced dead link. That
+ * is the 2026-08-03 Button defect, and it has now been shipped four times — Button, Menu
+ * (audit 2026-08-09), Dialog/AlertDialog, and Popover (audit 2026-08-23).
+ *
+ * It RECURSES because the blessed shape is nested: `render={<Button render={<a href/>}/>}` is
+ * a component, not an element, so a one-level `type === "button"` check answers wrong and the
+ * two components disagree about one node — Button wearing the correct `role="button"` and its
+ * host the wrong `type="button"`. Depth-capped at 4 against a cycle.
+ *
+ * Unwraps at every level (§5): an element created in a Server Component crosses the RSC
+ * boundary as a lazy node whose `type` answers wrong, silently (facebook/react#32392).
+ *
+ * PROMOTED ON ITS FOURTH CONSUMER, exactly as `slot()` was the same day: AlertDialog, Dialog
+ * and Menu each carried a byte-identical private copy. `true` is the honest default for a
+ * component (we cannot see inside it) — the recursion is what makes that safe.
+ */
+export function rootsInButton(el: RenderElement, depth = 0): boolean {
+  const target = unwrapLazy(el);
+  if (typeof target.type === "string") return target.type === "button";
+  const inner = (target.props as { render?: unknown }).render;
+  if (depth < 4 && React.isValidElement(inner)) return rootsInButton(inner as RenderElement, depth + 1);
+  return true;
+}
+
+/**
  * The slotted-control family's wrapper (ENGINEERING §3, promoted 2026-08-23).
  *
  * One `<span data-slot>` around an adornment, guarded by `filled()` so `{cond && icon}` never

@@ -29,7 +29,7 @@ import * as React from "react";
 import { AlertDialog as BaseAlertDialog } from "@base-ui/react/alert-dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
-import { mergeRefs, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import { mergeRefs, rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import {
   FloatingDirectionContext,
   OverlayBody,
@@ -117,14 +117,6 @@ export function AlertDialog({ size = "2", open, defaultOpen, onOpenChange, child
 
 /** Menu's own check, on its third consumer (§5): does the render target bottom out in a real
     `<button>`? A component with its own `render` escape is transparent — follow it. */
-function rootsInButton(el: RenderElement, depth = 0): boolean {
-  const target = unwrapLazy(el);
-  if (typeof target.type === "string") return target.type === "button";
-  const inner = target.props?.render;
-  if (depth < 4 && React.isValidElement(inner)) return rootsInButton(inner as RenderElement, depth + 1);
-  return true;
-}
-
 export type AlertDialogTriggerProps = Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
