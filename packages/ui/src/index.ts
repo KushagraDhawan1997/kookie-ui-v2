@@ -19,6 +19,7 @@ export { Progress, type ProgressProps } from "./components/progress/progress.tsx
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
 export { SegmentedControl, SegmentedItem, type SegmentedControlProps, type SegmentedItemProps } from "./components/segmented-control/segmented-control.tsx";
+export { Row, type RowProps } from "./components/row/row.tsx";
 export { ScrollArea, type ScrollAreaProps } from "./components/scroll-area/scroll-area.tsx";
 export {
   Shell,

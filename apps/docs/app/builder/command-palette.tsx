@@ -8,11 +8,17 @@
  * It is deliberately not a fuzzy-scored matcher. A palette that reorders as you type is a
  * palette you cannot build muscle memory for; every typed word must appear, and the order
  * is the table's own.
+ *
+ * The rows are `Row`s (2026-08-23). They used to be `Box`es painting `var(--neutral-a3)` for
+ * the highlighted one, which is the palette redrawing the row family's lit fill by hand — and
+ * it had already drifted, because that fill grew material remaps and a high-contrast arm while
+ * this copy stayed one flat step. The keyboard model stays here, where it belongs: the list
+ * knows what its items mean, and `highlighted` is how it tells the row it is the one driving.
  */
 
 import * as React from "react";
 
-import { Box, Dialog, DialogContent, DialogTitle, Flex, Kbd, ScrollArea, Stack, Text, TextField } from "@kookie-ui/react";
+import { Box, Dialog, DialogContent, DialogTitle, Kbd, Row, ScrollArea, Stack, Text, TextField } from "@kookie-ui/react";
 
 import {
   COMMANDS,
@@ -160,23 +166,15 @@ export function CommandPalette({
                             </Text>
                           </Box>
                         ) : null}
-                        <Box
+                        <Row
                           data-active={i === active}
+                          highlighted={i === active}
                           onMouseEnter={() => setActive(i)}
                           onClick={() => run(row)}
-                          px="3"
-                          py="2"
-                          style={{
-                            borderRadius: "var(--radius-control-2)",
-                            background: i === active ? "var(--neutral-a3)" : "transparent",
-                            cursor: "pointer",
-                          }}
+                          trailing={row.hint ? <Kbd>{row.hint}</Kbd> : null}
                         >
-                          <Flex align="center" justify="space-between" gap="4">
-                            <Text size="2">{row.title}</Text>
-                            {row.hint ? <Kbd>{row.hint}</Kbd> : null}
-                          </Flex>
-                        </Box>
+                          <Text size="2">{row.title}</Text>
+                        </Row>
                       </React.Fragment>
                     );
                   })}

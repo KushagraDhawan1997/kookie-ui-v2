@@ -1012,6 +1012,10 @@ export function ShellNavItem({
     ...(current
       ? { "aria-current": "page" as const, "data-tone": "accent", "data-emphasis": "medium" }
       : { "data-emphasis": "quiet" }),
+    // The pointer is this row's only cursor — a sidebar has no roving highlight — so it opts
+    // into the family's hover rule (§21, promoted 2026-08-23 with Row). This stamp replaces
+    // the private `:hover` rule shell.css carried from the day it shipped.
+    "data-hover-lit": "",
     className: cx("kui-control kui-row kui-shell-nav-item", className),
     ref,
   };

@@ -513,6 +513,14 @@ export const CATALOG: Record<string, CatalogEntry> = {
     make: () => node("Kbd", {}, { text: "⌘K" }),
   },
 
+  Row: {
+    family: "Control",
+    blurb: "One row in a list: search results, commands, settings, files. Its height is its text line plus an inset, not a button's.",
+    props: { size: size(), tone, current: bool, disabled: bool },
+    children: "text",
+    make: () => node("Row", {}, { text: "Deployments" }),
+  },
+
   /* ── Indicators ─────────────────────────────────────────────────────────────────────── */
   Notice: {
     family: "Surface",

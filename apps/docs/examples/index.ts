@@ -37,6 +37,7 @@ import NoticeExample from "./notice";
 import ProgressExample from "./progress";
 import RadioGroupExample from "./radio-group";
 import RadioExample from "./radio";
+import RowExample from "./row";
 import ScrollAreaExample from "./scroll-area";
 import SegmentedControlExample from "./segmented-control";
 import SelectExample from "./select";
@@ -73,6 +74,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "progress": ProgressExample,
   "radio-group": RadioGroupExample,
   "radio": RadioExample,
+  "row": RowExample,
   "scroll-area": ScrollAreaExample,
   "segmented-control": SegmentedControlExample,
   "select": SelectExample,

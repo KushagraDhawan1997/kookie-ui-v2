@@ -664,20 +664,12 @@
      it. One mechanism, and it is the one the target expander is measured from. */
 }
 
-/* HOVER, which the family stands down and this member restores. The stand-down exists for a
-   ROVING HIGHLIGHT — Base UI unifies pointer and keyboard into `data-highlighted`, and a row
-   that also answered raw hover would keep a pointer-rested row lit after the keyboard moved
-   on (§21, the two-cursors bug). A sidebar has no roving highlight at all, so the reason does
-   not reach here and the row would otherwise be dead under the pointer. Stated as this
-   member's own fact rather than by re-scoping the shared rule: the second member self-keys,
-   and a third non-roving row is what promotes it. Inside the `(hover: hover)` guard, like
-   every hover in this system. */
-@media (hover: hover) {
-  .kui-shell-nav-item:hover:not([data-disabled]) {
-    background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
-    --kui-ct-paint: var(--motion-hover-in);
-  }
-}
+/* HOVER LEFT THIS FILE 2026-08-23, and the comment that used to be here named the day it
+   would: "the second member self-keys, and a third non-roving row is what promotes it." Row
+   is that third member, so the rule is `.kui-row[data-hover-lit]:hover` in the shared layer
+   and `ShellNavItem` gets it by stamping the marker like any other row the pointer is the
+   only cursor for. Nothing about how a nav row hovers changed; there is simply one author of
+   it now instead of one per member. */
 
 /* YOU ARE HERE is TWO STAMPS and no declaration — see ShellNavItem. The row stamps
    `data-tone="accent"` and `data-emphasis="medium"`, and the emphasis ladder does the rest:

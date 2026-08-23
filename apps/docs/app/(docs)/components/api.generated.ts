@@ -1518,6 +1518,71 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "Row": {
+    "element": "button",
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "current",
+        "type": "boolean",
+        "optional": true,
+        "doc": "This is the thing you are looking at now — the page you are on, the file that is open. It is LOCATION, not selection: it announces `aria-current` and it is not a form value. For \"the one I picked out of several\", use a `RadioGroup`: picking one of several is a radio group (§26), and a row that faked it with an attribute would be the exact shape that decision refused."
+      },
+      {
+        "name": "disabled",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Turns the row off. It stays in the list: a dead row still says the thing exists."
+      },
+      {
+        "name": "highlighted",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Lights the row from OUTSIDE — for a list that moves a highlight with the arrow keys while focus stays somewhere else, which is what a command palette and a search field's results both are. **Passing it at all changes how the row answers the pointer**, and that is the point. A list with a roving highlight has two cursors — the keyboard's and the pointer's — and a row that answered both would stay lit under a resting pointer after the keyboard had moved on. So a row you drive is driven only by you: state `highlighted` and hover stops painting; leave it unset and the pointer is the only cursor, which is what an ordinary list wants."
+      },
+      {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "Before the label: an icon, an avatar, a tick."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Be a link, or be inert. A row that navigates should be an `<a>`, and a row in a list you only read should be a `<div>` — the element is the semantics, and this is how you say so."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The row's box, which is its text line plus one designed inset (§21) — not the control height ladder. It rests at 2, like every other control in the library."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "optional": true,
+        "doc": "The one meaning a row carries beyond being itself. A `destructive` row is the delete in a list of verbs. It is a narrow vocabulary on purpose: a list of peers where three rows wear three families is a list that has stopped being a list."
+      },
+      {
+        "name": "trailing",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "After it, pushed to the far edge: a shortcut, a count, a chevron."
+      }
+    ]
+  },
   "ScrollArea": {
     "element": null,
     "props": [

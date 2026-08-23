@@ -25,20 +25,19 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     expect(queries[0]!.replace(/\s+/g, " ")).toBe(`@media ${narrowMedia}`);
   });
 
-  it("no other viewport query hides in the sheet — every @media is one of three sanctioned forms", () => {
-    // The narrow block, the scrim's prefers-reduced-transparency (dialog.css's own pair),
-    // and the nav row's `(hover: hover)` guard — a capability query, not a viewport one,
-    // arrived 2026-08-20 with the hover restoration and failed the old count of 2, which is
-    // this law doing its job: any @media appearing here is a decision, and a NEW one still
-    // fails first. Asserted as the exact SET rather than a count, because a count of three
-    // would let a fourth form ride in by replacing one of these.
+  it("no other viewport query hides in the sheet — every @media is one of two sanctioned forms", () => {
+    // The narrow block and the scrim's prefers-reduced-transparency (dialog.css's own pair).
+    // Asserted as the exact SET rather than a count, because a count would let a new form ride
+    // in by replacing one of these — which is how this law has earned itself twice already.
+    //
+    // It was THREE for three days. The nav row's `(hover: hover)` guard arrived 2026-08-20 with
+    // the hover restoration and failed the old count of 2; it left again 2026-08-23 when Row
+    // shipped and the family took the rule back, and it failed this law on the way out too.
+    // Both directions are the law working: an @media in this sheet is a decision, and the sheet
+    // has no business holding a hover rule now that the family has one home for it.
     const queries = (css.match(/@media[^{]+/g) ?? []).map((q) => q.replace(/\s+/g, " ").trim());
     expect(queries.sort()).toEqual(
-      [
-        `@media ${narrowMedia}`,
-        "@media (hover: hover)",
-        "@media (prefers-reduced-transparency: reduce)",
-      ].sort(),
+      [`@media ${narrowMedia}`, "@media (prefers-reduced-transparency: reduce)"].sort(),
     );
   });
 
@@ -85,16 +84,18 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
   it("the shell paints no bed, casts nothing, and moves nothing — the absences ARE the design (§27)", () => {
     // Panes are surfaces: fill, edge, depth and material all arrive from surfaces.css. A
     // background, box-shadow or transition appearing in this sheet means the shell has
-    // started painting on its own account. TWO paints are sanctioned: the scrim's fill, and
-    // the nav row's hover restoration (2026-08-20, the member that restores what the row
-    // family stands down) — which must spend the CONTROL layer's own currency, the pin
-    // below, so the exemption is the row's state paint re-keyed and can never quietly
-    // become a bed. The third non-roving row promotes the restoration into recipes.css,
-    // and this exemption dies with the promotion.
-    expect(
-      block(css, ".kui-shell-nav-item:hover:not([data-disabled])"),
-      "the restored hover must spend the control layer's own currency",
-    ).toContain("background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover))");
+    // started painting on its own account. ONE paint is sanctioned: the scrim's fill.
+    //
+    // IT WAS TWO, AND THE SECOND DIED ON SCHEDULE (2026-08-23). The nav row's hover
+    // restoration was exempted here on 2026-08-20 with the exemption's own expiry written
+    // beside it — "the third non-roving row promotes the restoration into recipes.css, and
+    // this exemption dies with the promotion". Row is that third member, so the rule is
+    // `.kui-row[data-hover-lit]:hover` in the shared layer and this sheet paints one thing
+    // again. Removing the exemption is not tidying: while it stood, a hover rule in this file
+    // was legal, and now none is.
+    expect(css, "the nav row's private hover rule came back").not.toContain(
+      ".kui-shell-nav-item:hover",
+    );
     // A THIRD AND FOURTH RULE ARE SANCTIONED (2026-08-21), and they are the opposite of a
     // paint: a flush pane stands the surface's own lighting DOWN (`background-image: none`,
     // stated as the property because `--kui-sf-light` is not registered `inherits: false` and

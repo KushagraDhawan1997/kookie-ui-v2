@@ -8,11 +8,17 @@
  * site being made of the system is not a slogan: this is the piece that would have caught a
  * broken focus trap or a portal that did not re-theme.
  *
- * The rows are `Button`s rather than `MenuItem`s, and that is the taxonomy speaking rather
- * than a shortcut. A menu row is a member of a `Menu` — it needs that context for its roving
- * focus and its `role="menuitem"` — and a list of search results in a dialog is not a menu.
- * §21's row family is the right SHAPE, and the package does not currently export a row that
- * lives outside Menu or Shell; a quiet full-width Button is the honest stand-in until it does.
+ * The rows are `Row`s and not `MenuItem`s, and that is the taxonomy speaking. A menu row is a
+ * member of a `Menu` — it needs that context for its roving focus and its `role="menuitem"` —
+ * and a list of search results in a dialog is not a menu. §21's row family is the right shape,
+ * and `Row` is the member of it that lives outside Menu and Shell.
+ *
+ * This file used to say so and then render full-width quiet Buttons, because that member did
+ * not exist yet. The three things that came back with it: the row's own box (line plus inset,
+ * not the button height ladder), the family's lit fill instead of a borrowed emphasis rung, and
+ * the two-cursors rule stated rather than hoped for — `highlighted` is what drives these rows,
+ * so the pointer stops painting and a mouse resting over row three cannot argue with a keyboard
+ * that has moved to row five.
  */
 import * as React from "react";
 import Link from "next/link";
@@ -25,6 +31,7 @@ import {
   Flex,
   Kbd,
   Stack,
+  Row,
   Text,
   TextField,
 } from "@kookie-ui/react";
@@ -130,10 +137,10 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
 
             <Stack gap="1">
               {results.map((entry, index) => (
-                <Button
+                <Row
                   key={entry.href}
                   size="2"
-                  emphasis={index === active ? "medium" : "quiet"}
+                  highlighted={index === active}
                   onMouseEnter={() => setActive(index)}
                   onClick={() => {
                     setOpen(false);
@@ -147,7 +154,6 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
                       }}
                     />
                   }
-                  style={{ justifyContent: "flex-start", inlineSize: "100%" }}
                 >
                   <Flex align="baseline" gap="3" wrap="wrap">
                     <Text size="2" weight="medium">
@@ -157,7 +163,7 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
                       {entry.context}
                     </Text>
                   </Flex>
-                </Button>
+                </Row>
               ))}
             </Stack>
           </Stack>

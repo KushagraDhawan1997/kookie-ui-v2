@@ -46,6 +46,7 @@ import {
   MenuItem,
   Notice,
   Progress,
+  Row,
   Radio,
   RadioGroup,
   Separator,
@@ -1895,6 +1896,95 @@ function MaterialsSection() {
   );
 }
 
+function RowSection() {
+  return (
+    <Stack gap="6">
+      {/* The family claim, on one screen: a Row and a menu item are the same object. The menu
+          is open beside the list on purpose — if the standalone row ever grows its own box,
+          its own corner or its own weight, this is the pair where it shows. */}
+      <Demo label="The same object, in and out of a menu">
+        <Flex gap="6" align="flex-start">
+          <Box minWidth="14rem">
+            <Card size="2">
+              <Stack gap="1">
+                <Row current>Overview</Row>
+                <Row trailing={<Kbd>⌘1</Kbd>}>Deployments</Row>
+                <Row trailing={<Kbd>⌘2</Kbd>}>Environments</Row>
+                <Row disabled>Billing</Row>
+              </Stack>
+            </Card>
+          </Box>
+          <Menu>
+            <MenuTrigger render={<Button emphasis="quiet" bordered>Open a menu</Button>} />
+            <MenuContent>
+              <MenuItem>Overview</MenuItem>
+              <MenuItem>Deployments</MenuItem>
+              <MenuItem>Environments</MenuItem>
+              <MenuItem disabled>Billing</MenuItem>
+            </MenuContent>
+          </Menu>
+        </Flex>
+      </Demo>
+      {/* A row is SHORTER than the button at its index — §21's one geometry departure. Read
+          this row-by-row: the list should sit under the button beside it at every step. */}
+      <SpecTable
+        cols={["1", "2", "3", "4"]}
+        rows={[
+          { label: "row", cells: SIZES.map((s) => <Row key={s} size={s}>Duplicate</Row>) },
+          { label: "button", cells: SIZES.map((s) => <Button key={s} size={s} emphasis="quiet" bordered>Duplicate</Button>) },
+        ]}
+      />
+      {/* THE TWO CURSORS, side by side, and this is the one to judge with a mouse. On the left
+          nobody is driving, so the pointer lights the row. On the right the list is driving —
+          row two is held lit — and hovering paints nothing, because a mouse resting on row one
+          must not argue with a keyboard that has moved to row two. */}
+      <Demo label="Driven and undriven">
+        <Flex gap="6" align="flex-start">
+          <Box minWidth="12rem">
+            <Card size="2">
+              <Stack gap="1">
+                <Text size="1" emphasis="quiet">Pointer</Text>
+                <Row>Rename</Row>
+                <Row>Duplicate</Row>
+                <Row>Move</Row>
+              </Stack>
+            </Card>
+          </Box>
+          <Box minWidth="12rem">
+            <Card size="2">
+              <Stack gap="1">
+                <Text size="1" emphasis="quiet">Driven</Text>
+                <Row highlighted={false}>Rename</Row>
+                <Row highlighted>Duplicate</Row>
+                <Row highlighted={false}>Move</Row>
+              </Stack>
+            </Card>
+          </Box>
+        </Flex>
+      </Demo>
+      {/* Tone is the narrow vocabulary a row carries — the delete in a list of verbs, and
+          nothing wider. Ten families in one list would be a list that has stopped being one. */}
+      <SpecTable
+        cols={["rest", "current", "disabled"]}
+        rows={[
+          {
+            label: "neutral",
+            cells: [<Row key="1">Rename</Row>, <Row key="2" current>Rename</Row>, <Row key="3" disabled>Rename</Row>],
+          },
+          {
+            label: "destructive",
+            cells: [
+              <Row key="1" tone="destructive">Delete</Row>,
+              <Row key="2" tone="destructive" current>Delete</Row>,
+              <Row key="3" tone="destructive" disabled>Delete</Row>,
+            ],
+          },
+        ]}
+      />
+    </Stack>
+  );
+}
+
 function ScrollAreaSection() {
   return (
     <Stack gap="6">
@@ -2089,6 +2179,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
   { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
+  { id: "row", name: "Row", body: <RowSection /> },
   { id: "scroll-area", name: "Scroll area", body: <ScrollAreaSection /> },
   { id: "segmented-control", name: "Segmented control", body: <SegmentedControlSection /> },
   { id: "separator", name: "Separator", body: <SeparatorSection /> },

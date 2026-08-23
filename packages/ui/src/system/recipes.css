@@ -981,6 +981,36 @@
     background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
   }
 
+  /* ── AND THE ROWS THE POINTER *IS* THE CURSOR FOR (2026-08-23, promoted with Row) ────────
+     The stand-down above is right for a roving list and wrong for every other one, and until
+     Row shipped the family had no way to say which it was in. `.kui-shell-nav-item:hover`
+     carried this rule privately from the day Shell landed, with a comment naming its own
+     price: "a sidebar has no roving highlight at all, so the reason does not reach here and
+     the row would otherwise be dead under the pointer... the second member self-keys, and a
+     third non-roving row is what promotes it." §21's open question had predicted exactly that
+     shape a week earlier — "its author's likely response is a `:hover` rule in a component
+     sheet, which is exactly the per-member drift the family-first argument was made to
+     prevent" — so this is a prediction coming true and then being paid off.
+
+     THE EXCEPTION MARKS ITSELF, and that is the direction the marker runs. Answering the
+     pointer is what every control in this library does; a row that must NOT is the special
+     case. But the special case is not a COMPONENT, it is a USE: the same Row is roving inside
+     a command palette and not roving in a settings list, so the claim is stamped per instance
+     — `Row` writes `data-hover-lit` when nobody else is driving it, and stops writing it the
+     moment a caller states `highlighted`. Menu and Select rows never carry it, because their
+     highlight is always Base UI's. Neither does a menu or nav LABEL, which is a `.kui-row`
+     that is not a control at all and must stay inert under the pointer — the case that makes
+     an opt-in marker the safe direction and gating the stand-down the unsafe one.
+
+     It wins on SPECIFICITY, not order: (0,4,0) against the stand-down's (0,3,0), because
+     `:not()` takes its most specific ARGUMENT rather than summing the list. That is a real
+     improvement on the mechanism above it, whose own comment calls source order "fragile to
+     leave undocumented". */
+  .kui-row[data-hover-lit]:hover:not([data-disabled], [data-loading]) {
+    background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
+    --kui-ct-paint: var(--motion-hover-in);
+  }
+
   /* The BOUNDARY hover rule died here 2026-08-17, and the fill-first flip is what killed it.
      It existed (§8, 2026-08-10) for exactly the two families whose fill was held still — a
      field pinned to the seal, a mark stepping invisibly inside its own seal — so their hover

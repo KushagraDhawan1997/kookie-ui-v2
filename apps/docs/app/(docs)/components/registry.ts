@@ -701,6 +701,40 @@ export const ENTRIES: Entry[] = [
     refusals: [{ name: "any visual prop", why: "The group is wiring. What it looks like is whatever layout you render it as." }],
   },
   {
+    slug: "row",
+    name: "Row",
+    family: "Control",
+    spec: "§21",
+    blurb:
+      "One row in a list. It is the same object a menu item and a sidebar item are — full width, start-aligned, the same states — and its height is its text line plus a designed inset rather than a button's height, which is what makes a column of them read as a list instead of as a stack of buttons. Use it for search results, command lists, settings rows and file lists. A row inside a Menu is a MenuItem; this is the one for everywhere else.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "the row's box. It rests at 2" },
+      { name: "tone", values: "any family", note: "the one meaning a row carries beyond being itself. A destructive row is the delete in a list of verbs" },
+    ],
+    refusals: [
+      {
+        name: "emphasis",
+        why: "Actions rank; a list of peers ranks nothing. A row that was louder than the row under it would be claiming an importance the list does not have. Quiet is the family's identity and the component states it.",
+      },
+      {
+        name: "a keyboard model",
+        why: "A list that moves a highlight with the arrow keys owns that highlight, because only the list knows what its items are and what Enter should do to them. Pass `highlighted` and the row paints what you tell it — and stops answering the pointer, so the two cursors cannot fight.",
+      },
+      {
+        name: "a selected prop",
+        why: "Picking one of several is a radio group, and a row that faked it with an attribute would be the shape the segmented control refused. `current` is a different thing and it is here: it announces aria-current, it means the page you are on, and it is not a form value.",
+      },
+      {
+        name: "a List component to put these in",
+        why: "A column with a gap is a Stack, and the role a list needs — list, listbox, menu, none at all — depends on what the rows mean, which is yours to state. A component that wrapped them would have to guess.",
+      },
+      {
+        name: "a height that matches a button",
+        why: "A row steps down off the height ladder on purpose. A sidebar row does stand level with a button, because it is on screen all day beside real buttons, and that row is ShellNavItem.",
+      },
+    ],
+  },
+  {
     slug: "scroll-area",
     name: "ScrollArea",
     family: "Surface",
