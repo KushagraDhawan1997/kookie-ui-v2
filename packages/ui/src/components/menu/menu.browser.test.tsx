@@ -153,10 +153,25 @@ async function press(trigger: HTMLElement): Promise<void> {
  */
 function watchPose(): Promise<{ flyW: number }> {
   return new Promise((resolve, reject) => {
+    // A HANG-GUARD, not a bound on the subject — and the distinction matters here, because
+    // "raise the number until it passes" is the move this suite forbids (2026-08-20: remove
+    // the race, never widen the tolerance).
+    //
+    // Nothing about this law's claim is a duration. The observer is armed before the gesture
+    // and keyed on the stamp, so it cannot miss the pose however long it takes — that is the
+    // race already removed, by the second of the three sanctioned mechanisms. What remains is
+    // only how long to wait before giving up with a readable message instead of hanging until
+    // vitest's own timeout prints a useless one.
+    //
+    // One second was that number and it was measured on a quiet machine. CI red at ee665b7
+    // (2026-08-23) on a commit touching four composer files and nothing else: the runner spent
+    // 125s of test time in this project, and driving CDP input plus a React render plus the
+    // runner's own measurement does not fit in a second there. Four, under vitest's 5000
+    // default so this message still wins the race to report. The assertion below is untouched.
     const timer = setTimeout(() => {
       observer.disconnect();
-      reject(new Error("the entry never posed — no data-seed inside a second"));
-    }, 1000);
+      reject(new Error("the entry never posed — no data-seed within 4s"));
+    }, 4000);
     const observer = new MutationObserver(() => {
       const posed = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find((el) =>
         el.hasAttribute("data-seed"),
