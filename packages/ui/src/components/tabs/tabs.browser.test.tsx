@@ -26,6 +26,8 @@ import {
   within,
 } from "../../test/browser.tsx";
 import { Theme } from "../../theme/theme.tsx";
+import { Button } from "../button/button.tsx";
+import { SegmentedControl, SegmentedItem } from "../segmented-control/segmented-control.tsx";
 import { Separator } from "../separator/separator.tsx";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "./tabs.tsx";
 
@@ -51,12 +53,23 @@ const ruleOf = (root: Element) => within(root, ".kui-tab-rule");
 
 describe("a tab is a control on the height ladder (§4, §26)", () => {
   for (const pointer of POINTERS) {
-    it(`${pointer}: every tab stands at --control-height-N`, () => {
+    it(`${pointer}: every tab stands at --control-height-N, LESS the bar's inset`, () => {
+      /* The ladder claim, re-keyed 2026-08-23 rather than dropped. It read `--control-height-N`
+         exactly, which was the shipped behaviour and the defect: a tab at the full cell height
+         ends on the hairline, so a hovered tab's fill ran into the line (Kushagra, from the
+         playground — "28px instead of 32"). What the ladder actually governs is the BAR, which
+         still stands level with the controls in its row; the tab is inset inside it.
+    
+         Kept per pointer world and per size, which is the half worth keeping: the inset is one
+         constant and the cells are not, so this is where a coarse cell forgetting the ladder
+         would still show. The bar's own half of the claim is asserted against a mounted Button
+         further down this file, where it belongs. */
       for (const size of SIZES) {
         const root = bar(size, { pointer });
-        const expected = px(tokenOn(root, `--control-height-${size}`));
+        const cell = px(tokenOn(root, `--control-height-${size}`));
+        const inset = px(tokenOn(root, "--tab-inset"));
         for (const tab of tabsOf(root)) {
-          expect(px(computed(tab, "min-height")), `${pointer}/${size}`).toBe(expected);
+          expect(px(computed(tab, "min-height")), `${pointer}/${size}`).toBe(cell - 2 * inset);
         }
       }
     });
@@ -457,5 +470,101 @@ describe("the rule travels as two edges at two speeds (§8, §26)", () => {
     // so it computes to its initial `all`, which reads like a transition and is not one. `0s`
     // is the thing that means "placed".
     expect(computed(rule, "transition-duration")).toBe("0s");
+  });
+});
+
+/**
+ * §26 — A TAB STANDS OFF ITS RULE (2026-08-23, Kushagra, from the playground: the tabs "have
+ * the same height as controls, and so they touch the tab lines… so 28px instead of 32").
+ */
+describe("a tab stands off the rule it sits on (§4, §26)", () => {
+  for (const size of SIZES) {
+    it(`size ${size}: the BAR keeps the ladder and the TAB is shorter by the inset`, () => {
+      // Two claims that have to hold together, which is why they are one law: a tab bar must
+      // still stand level with the controls in its row (the bar's job), and the tab inside it
+      // must not run into the hairline (the tab's job). Fixing either alone breaks the other —
+      // shrinking the bar drops it below the Button beside it, and leaving the tab at full
+      // height is the defect.
+      const root = mounted(
+        <div>
+          <Tabs defaultValue="a">
+            <TabsList size={size}>
+              <TabsTab value="a">Overview</TabsTab>
+              <TabsTab value="b">Projects</TabsTab>
+            </TabsList>
+            <TabsPanel value="a">first</TabsPanel>
+          </Tabs>
+          <Button size={size}>Button</Button>
+        </div>,
+      );
+      const list = within(root, ".kui-tabs-list");
+      const tab = within(root, ".kui-tab");
+      const button = within(root, "button.kui-control:not(.kui-tab)");
+      const inset = px(tokenOn(root, "--tab-inset"));
+      const border = px(tokenOn(root, "--border-width"));
+
+      // The bar stands level with a mounted Button, hairline included — asserted against the
+      // rendered control rather than against the token, which is the point of the rule.
+      expect(list.getBoundingClientRect().height).toBeCloseTo(
+        button.getBoundingClientRect().height + border,
+        0,
+      );
+      // And the tab is exactly two insets shorter than the box it stands in.
+      expect(tab.getBoundingClientRect().height).toBeCloseTo(
+        button.getBoundingClientRect().height - 2 * inset,
+        0,
+      );
+      // CALIBRATION: the inset is not zero, or both assertions above are the old behaviour
+      // wearing new arithmetic.
+      expect(inset, "the inset is zero — this law cannot fail").toBeGreaterThan(0);
+    });
+  }
+
+  it("its box clears the hairline, so a hovered tab never runs into the line", () => {
+    // The defect stated as geometry rather than as a number: the gap between the bottom of the
+    // tab's own box and the top of the rule under it. This is what a hover fill is bounded by.
+    const root = mounted(
+      <Tabs defaultValue="a">
+        <TabsList>
+          <TabsTab value="a">Overview</TabsTab>
+          <TabsTab value="b">Projects</TabsTab>
+        </TabsList>
+        <TabsPanel value="a">first</TabsPanel>
+      </Tabs>,
+    );
+    const list = within(root, ".kui-tabs-list");
+    const tab = within(root, ".kui-tab");
+    const gap =
+      list.getBoundingClientRect().bottom -
+      px(computed(list, "border-block-end-width")) -
+      tab.getBoundingClientRect().bottom;
+    expect(gap).toBeCloseTo(px(tokenOn(root, "--tab-inset")), 0);
+    expect(gap, "the tab's box ends on the hairline").toBeGreaterThan(0);
+  });
+
+  it("stands off by the same amount a SEGMENT does — the precedent it was asked for", () => {
+    // Kushagra named the segmented control as the precedent, so the law reads the two mounted
+    // boxes against each other rather than restating 2 in a third place. They agree by
+    // arithmetic today and could drift by config tomorrow; this is where that would surface.
+    for (const size of SIZES) {
+      const root = mounted(
+        <div>
+          <Tabs defaultValue="a">
+            <TabsList size={size}>
+              <TabsTab value="a">Overview</TabsTab>
+            </TabsList>
+            <TabsPanel value="a">first</TabsPanel>
+          </Tabs>
+          <SegmentedControl size={size} defaultValue="a">
+            <SegmentedItem value="a">List</SegmentedItem>
+            <SegmentedItem value="b">Grid</SegmentedItem>
+          </SegmentedControl>
+        </div>,
+      );
+      expect(
+        within(root, ".kui-tab").getBoundingClientRect().height,
+        `size ${size}: a tab and a segment do not stand at the same height`,
+      ).toBeCloseTo(within(root, ".kui-segment").getBoundingClientRect().height, 0);
+    }
   });
 });

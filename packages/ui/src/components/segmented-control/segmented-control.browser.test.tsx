@@ -574,6 +574,34 @@ describe("the grip travels between segments (§8, §26)", () => {
     ).toBeGreaterThan(0);
   });
 
+  it("the chosen LABEL is on top of the grip, not under it", () => {
+    /* Shipped white on white for one commit (Kushagra, 2026-08-23, from the playground: the
+       chosen segment's word was simply gone). The thumb renders first in the markup and the
+       comment beside it claimed document order would therefore paint it underneath — which is
+       not how painting works: within one stacking context CSS paints in-flow non-positioned
+       content in steps 4-7 and positioned descendants in step 8, so an absolutely positioned
+       thumb covers every static sibling no matter where it sits in the DOM.
+    
+       Read with `elementFromPoint` at the label's own centre rather than by comparing colours,
+       because the colours were never wrong: `--color-thumb-label` computed correctly the whole
+       time and a paint was sitting on top of it. The instrument has to be the one that can see
+       the defect that actually happened. */
+    for (const appearance of APPEARANCES) {
+      const root = control({}, { appearance });
+      const seg = chosen(root);
+      const thumb = within(root, ".kui-segment-thumb");
+      const box = seg.getBoundingClientRect();
+      const onTop = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      expect(
+        thumb.contains(onTop) || onTop === thumb,
+        `${appearance}: the grip is painted over its own label`,
+      ).toBe(false);
+      expect(seg.contains(onTop) || onTop === seg, `${appearance}: the label is not on top`).toBe(
+        true,
+      );
+    }
+  });
+
   it("no value, no grip — it is hidden rather than parked somewhere stale", () => {
     const root = mounted(
       <SegmentedControl>

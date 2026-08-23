@@ -81,6 +81,7 @@ import {
   segmentInset,
   switchInset,
   switchW,
+  tabInset,
   tabRule,
   surfaceChrome,
   surfaceColor,
@@ -248,6 +249,7 @@ export function generateTokens(): string {
     "     it. Emitted at :root alone; no axis re-prices it. */",
   );
   put("tab-rule", zoom(tabRule));
+  put("tab-inset", zoom(tabInset));
 
   lines.push(
     "",

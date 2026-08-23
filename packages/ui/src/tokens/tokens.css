@@ -151,6 +151,7 @@
      thickness that reads as a rule is a perception floor, not a fraction of the tab above
      it. Emitted at :root alone; no axis re-prices it. */
   --tab-rule: calc(2px * var(--scale));
+  --tab-inset: calc(2px * var(--scale));
 
   /* chrome widths (§8, §13). These were raw px literals in the hand-authored layers until
      2026-08-03 — the only geometry in a control that did not answer --scale, so a bordered

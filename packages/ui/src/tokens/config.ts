@@ -680,6 +680,29 @@ export const segmentInset = 2;
 export const tabRule = 2;
 
 /**
+ * §26 — how far a tab stands OFF the rule it sits on (2026-08-23, Kushagra: the tabs "have the
+ * same height as controls, and so they touch the tab lines, when there should be that offset,
+ * making the tab hover area smaller, so 28px instead of 32").
+ *
+ * A tab shipped riding the full control height, so its box ended exactly on the hairline: a
+ * hovered tab's fill ran into the line, and the bar read as one welded object rather than as
+ * labels standing on a rule. The bar keeps the ladder — a tab bar must still stand level with
+ * the controls in the row it sits in — and the TAB is what shrinks, symmetrically, so the
+ * label stays centred and the gap exists at the top as well (a tab that only cleared the line
+ * below would sit visibly high in its own bar).
+ *
+ * The precedent Kushagra named is the segment, which is 28 in a 32 track by exactly this
+ * subtraction, and it is the same number: 2. Deliberately NOT `segmentInset` reused, and this
+ * is the one place that distinction is worth writing down — `segmentInset` is the wall of an
+ * edgeless WELL around a grip, priced tighter than `slotInset` for that reason (see its own
+ * entry), while this is clearance between a label's box and a line it must not touch. Two
+ * facts that agree on a number today and have no reason to move together; the promotion rule
+ * ("the second member self-keys, the third promotes") is about one fact reaching a third
+ * consumer, not about three unrelated 2s.
+ */
+export const tabInset = 2;
+
+/**
  * §8, §13 — the chrome widths. One value each, size- and density-independent: containment and
  * focus are constant facts about a control, not things that get louder as it gets bigger.
  *

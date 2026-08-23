@@ -263,10 +263,13 @@ export function SegmentedControl({
       data-tone="neutral"
       {...props}
     >
-      {/* THE THUMB — one object gliding between homes (§26, §8). Rendered FIRST so it paints
-          under the segments without a stacking rule: the labels of the chosen segment sit on
-          top of it in document order, which is the whole reason it needs no `z-index` and the
-          segments need no `position` of their own.
+      {/* THE THUMB — one object gliding between homes (§26, §8). Rendered FIRST, but that is
+          NOT what puts it under the labels: an absolutely positioned box paints after every
+          static sibling whatever the document order says, and the first spelling of this
+          shipped a chosen label painted white on the white grip (measured with
+          `elementFromPoint`, 2026-08-23). What orders the two is `position: relative` on the
+          segment — see segmented-control.css. Rendering it first is still right, because with
+          both positioned the tie-break IS document order.
 
           `hidden` until the first measurement, so a group with no value paints no thumb and a
           server-rendered one does not flash at the track's start before the layout effect

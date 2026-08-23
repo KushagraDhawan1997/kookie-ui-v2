@@ -63,6 +63,63 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 The grip painted over its own label, and a tab ended on the line it stands on
+
+**What.** Two defects in the travelling highlight shipped hours earlier, both found by Kushagra
+in the playground and both fixed by measuring rather than by re-reading the source. The chosen
+segment's label was invisible — white on the white grip — and Tabs rode the full control height,
+so a tab's box ended exactly on the hairline under it.
+
+**THE LABEL WAS UNDER THE GRIP, AND THE COMMENT SAID IT COULD NOT BE.** The thumb renders first
+in the markup, and the JSX beside it claimed that document order therefore paints it under the
+segments — *"which is the whole reason it needs no `z-index` and the segments need no `position`
+of their own."* That is not how painting works. Within one stacking context CSS paints in-flow
+non-positioned content in steps 4-7 and positioned descendants in step 8, so an absolutely
+positioned thumb covers every static sibling regardless of where it sits in the DOM. Measured
+with `elementFromPoint` at the chosen label's own centre: it returned the thumb.
+
+**The instrument mattered more than the fix.** Every existing colour law was green throughout,
+and correctly so — `--color-thumb-label` computed exactly right the whole time, on the right
+element, in both appearances. Nothing about the ink was wrong; a paint was sitting on top of it.
+A law comparing the label's colour to the grip's fill would have passed the entire time this was
+broken, which is why the new law reads the hit test instead. The repair is `position: relative`
+on the segment, which puts it in the same paint step where document order is the tie-break — no
+`z-index` minted, and no new stacking context for the hover and disabled rules to reason about.
+
+**A TAB SHOULD NOT END ON THE LINE IT STANDS ON.** Kushagra, naming his own precedent: the
+chosen segment is *"a little shorter than control, it is 28px on 32px control, same size as menu
+rows, so we have precedence. We need the same for tabs… presently tabs have same height as
+controls, and so they touch the tab lines."* Measured: at size 2 the tab was 32 in a 32 bar and
+its segment sibling was 28. So a hovered tab's fill ran into the hairline and the bar read as one
+welded object rather than as labels standing on a rule.
+
+**The bar keeps the ladder; the tab is what shrinks.** Both halves are the law, because fixing
+either alone breaks the other: shrink the bar and a tab bar stops standing level with the
+controls in its row, leave the tab at full height and the defect is the defect. Symmetric, so
+the label stays centred — clearing only the line below would leave it sitting visibly high in
+its own bar. Tabs now measure 24 / 28 / 36 / 44 against a Button's 28 / 32 / 40 / 48, which is
+exactly its segment sibling at every index, and the law reads the two mounted boxes against each
+other rather than restating 2 in a third place.
+
+**`tabInset` is its own entry and not `segmentInset` reused**, which is the one place that
+distinction is worth writing down. They are the same number today and they are not the same
+fact: `segmentInset` is the wall of an edgeless WELL around a grip, priced tighter than
+`slotInset` for that stated reason, and this is clearance between a label's box and a line it
+must not touch. The "second member self-keys, the third promotes" rule is about one fact
+reaching a third consumer, not about three unrelated 2s.
+
+**The padding is BLOCK-only and that is load-bearing.** `--active-tab-left` is measured from the
+list's BORDER box while the rule resolves its insets against the PADDING box, and the derived
+right edge (`calc(100% - left - width)`) leans on those being the same box in the inline axis.
+Inline padding here would silently shift every rule by its own width — the same class of
+coordinate mismatch the 2026-08-19 revert was about, one axis over.
+
+**An existing law asserted the defect and was re-keyed, not deleted.** *"Every tab stands at
+`--control-height-N`"* was the shipped behaviour stated as a guarantee. What the ladder actually
+governs is the BAR; the tab is inset inside it. Kept per pointer world and per size, which is
+the half worth keeping — the inset is one constant and the cells are not, so a coarse cell
+forgetting the ladder still shows there.
+
 ## 2026-08-23 The traveling highlight: one object that stretches toward where it is going
 
 **What.** Tabs' rule and the segmented control's grip both travel now, drawn by their two inline

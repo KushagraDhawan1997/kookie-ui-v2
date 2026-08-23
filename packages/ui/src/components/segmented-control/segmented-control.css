@@ -102,6 +102,16 @@
    overrides it, which is the order that makes the sentence true. */
 .kui-segment {
   flex: 1 1 0;
+  /* POSITIONED so it paints ABOVE the thumb (2026-08-23, Kushagra: the chosen label was white
+     on white). The thumb ships first in the markup on the reasoning that document order would
+     put it underneath, and that reasoning is simply wrong: within one stacking context CSS
+     paints in-flow non-positioned content in steps 4-7 and positioned descendants in step 8,
+     so an absolutely positioned thumb covers every static sibling regardless of where it sits
+     in the DOM. Measured — `elementFromPoint` at the chosen label's own centre returned the
+     thumb. Making the segments positioned puts them in the same step, where document order is
+     the tie-break and they come after it, so no `z-index` is minted and nothing here opens a
+     stacking context that the disabled and hover rules would then have to reason about. */
+  position: relative;
   --kui-ct-label-color: var(--color-text-muted);
   min-height: calc(var(--kui-ct-h) - 2 * var(--segment-inset));
   /* The concentric corner (§6, §22's own rule one family over): the inner radius is the
