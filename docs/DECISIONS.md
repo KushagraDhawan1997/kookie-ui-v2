@@ -1997,6 +1997,12 @@ Five, and each is a shape this repo has already been bitten by.
 4. **Enter and IME.** Both references guard `isComposing`; a law drives a composition event, because sending a message mid-composition is silent data loss for anyone typing Japanese, Chinese or Korean.
 5. **The clip against the grown box.** `.kui-surface` clips since 2026-08-20. The text area scrolls itself at max height, inside a clipped pane. A law reads the scroll position, because this is the shape that made a select slide its own contents.
 
+**SHIPPED 2026-08-23 — repetition's fourteenth entry, +121 bytes gzipped for the whole component.** Three exports, a column, a ring and a text box, which is what the design predicted: everything a composer LOOKS like is the surface layer's, so `composer.css` names no colour, no corner and no padding of its own.
+
+**15 mounted laws, nine sabotage passes, and one of them SURVIVED.** Deleting `overflow-y: auto` from the text changed nothing — 15 of 15 still green — because the HTML rendering spec already gives a `<textarea>` `overflow: auto`. So the declaration restated a default (one fact, two homes) and the law pinning it could not fail. Both are gone: the declaration, and the assertion. What makes the overflow reachable is the CEILING, the law reads that, and breaking the ceiling fails two laws. Measured rather than assumed — a bare textarea computes `overflow-y: auto` and `resize: both`, which is also what proved `resize: none` load-bearing where its neighbour was not, and it got a sabotage of its own.
+
+**A docs law caught what neither file could see.** The specimen frame wraps an example in a Card unless the example brings its own pane, and it decides by two independent implementations that must agree — one reads the source, the other renders the module. A composer IS a `.kui-surface`, so the rendered half saw a pane and the source half did not, and the frame would have put a pane inside a pane. Neither file contains the nesting; only the rendered tree does, which is exactly the argument that law was written on.
+
 ### What it does not do
 
 The conversation, the scroller, message parts, branches, reasoning, tool calls, sources, transport and persistence. A model picker is a `Select`. Suggestions are `Button`s. The scroller is a separate decision recorded in `docs/handovers/2026-08-23-chatbar-family.md`: the hard part of a conversation is scroll, and shadcn's is 6,274 lines against 139 of styling.

@@ -1,0 +1,103 @@
+/* Composer (§30, 2026-08-23) — the input half of a conversation.
+
+   Almost everything a composer LOOKS like is the surface layer's: the seal, the corner and its
+   squircle, the padding, the clip, the edge and the cast all arrive from `.kui-surface`,
+   because a box that holds full-size controls is a Card (§10). What is written here is the
+   three things a Card has never had to answer — a column, a ring that watches one child, and a
+   text box with no dress of its own. */
+
+.kui-composer {
+  /* A column, and the gap is the same distance the row uses between its clusters. One rhythm
+     inside the pane: the text, then the controls, then whatever the caller stacks. */
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-space-3);
+  /* A surface hugs its content; a composer spans the room it is given, because it is the width
+     of the conversation it sits under. */
+  inline-size: 100%;
+  /* A flex item's floor is its content, and one unbreakable word in the text would otherwise
+     push the pane past its container — Notice's own line. */
+  min-inline-size: 0;
+}
+
+/* ── The ring (§30) ───────────────────────────────────────────────────────────────────────────
+   Every interactive-surface rule in surfaces.css sits on `:where(button, a, label:has(...))`,
+   and that selector means PRESSABLE: it carries the pointer cursor, the 1px rise toward the
+   pointer and the press sink along with the ring. A composer must have none of those. You type
+   in a composer, you do not press it.
+
+   So that selector is doing two jobs — *this surface is pressable* and *this surface can hold
+   focus* — and the composer is the first thing to want the second without the first. It is NOT
+   split here: the house rule is that the second member self-keys and the third promotes (LOG
+   2026-08-05, TextArea), so this file states its own ring and the split waits for a second
+   focusable, unpressable surface.
+
+   `:focus-within` and not `:focus-visible`, because a composer's focus is a MODE — the caret is
+   in it whether you clicked or tabbed, which is the field family's own sentence (§11).
+
+   Narrowed to the input with `:has()`, which is the load-bearing half. A composer holds real
+   buttons, and a plain `:focus-within` would light the whole pane when you press Send. That is
+   TextField's 2026-08-05 repair — a hosted control lit two rings and the field claimed a focus
+   it did not have — restated one layer up. */
+.kui-composer:has(> .kui-composer-input:focus, .kui-composer-input:focus) {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── The text ────────────────────────────────────────────────────────────────────────────────
+   A bare <textarea>. It wears no fill, no edge and no ring, because the pane around it is all
+   three — a TextArea here would draw a second box inside the first. */
+.kui-composer-input {
+  /* The pane owns the frame, so the control owns nothing. */
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  /* The type is the pane's, at the reading step a message is written at. */
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--font-size-3);
+  line-height: var(--line-height-3);
+  letter-spacing: var(--letter-spacing-3);
+  /* Growth, and this one declaration is the whole mechanism. v1 spends `getComputedStyle`,
+     `scrollHeight`, a `requestAnimationFrame` and a `ResizeObserver` per keystroke on it,
+     against the no-JS-at-interaction-time rule. Baseline 2026-06-16. */
+  field-sizing: content;
+  /* The ceiling, and the fallback in one. Where `field-sizing` is understood this caps the
+     growth; where it is not, `rows` sets the opening height and this makes the box scroll
+     instead of running down the page. Either way the same two numbers bound it. */
+  min-block-size: calc(var(--line-height-3) * 1);
+  max-block-size: calc(var(--line-height-3) * 8);
+  /* No `overflow-y` here, and the absence was MEASURED rather than assumed (2026-08-23): the
+     HTML rendering spec already gives a <textarea> `overflow: auto`, so a declaration would
+     restate the default — one fact, two homes. The sabotage pass is what found it: deleting
+     the declaration changed nothing, so the law pinning it could not fail. What makes the
+     overflow reachable is the ceiling above, and the law reads THAT. */
+  /* This one is not a restatement — the UA default is `both`. A person dragging the pane's
+     corner would otherwise resize the textarea inside it: the frame is the pane's, and a
+     control within it may not restate its own geometry. TextArea's `resize` is a stylesheet
+     fact one family over for the same reason. */
+  resize: none;
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.kui-composer-input::placeholder {
+  /* The muted role, which is what a placeholder has meant since the ink ladder was solved
+     (2026-08-10) — faint is the exception rung, and a placeholder is not an exception. */
+  color: var(--color-text-muted);
+}
+
+/* ── The row ─────────────────────────────────────────────────────────────────────────────────
+   The system states the alignment, the split and the gap; the caller states which controls
+   belong on which side, because that is what those controls MEAN. Notice's row is the
+   precedent — it owns the same three facts and leaves nobody writing a `justify`. */
+.kui-composer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--layout-space-3);
+  min-inline-size: 0;
+}

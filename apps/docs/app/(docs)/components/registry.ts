@@ -577,6 +577,54 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "composer",
+    name: "Composer",
+    family: "Surface",
+    spec: "§30",
+    parts: [
+      { part: "ComposerInput", blurb: "The text a person types. A plain textarea with no box of its own, because the composer around it is already the box — put our TextArea here and you would see two. It grows with its content in CSS and stops at a ceiling, and the composer's ring watches this element, so pressing a button inside the composer does not light the whole pane" },
+      { part: "ComposerRow", blurb: "The row of controls under the text. It states the alignment, the split and the spacing so no call site writes them, and stops there: which controls sit left and which sit right is what those controls mean, so group them yourself with a Flex or leave one flat list and let it space evenly" },
+      { part: "ComposerSend", blurb: "One button with four meanings, read off status: send, in flight, stop, retry. Streaming is the one that earns it, because a person watching a reply arrive needs a way to end it. Each state carries its own accessible name, and stopping is an action on the request rather than another submit" },
+    ],
+    blurb:
+      "The box a person types a message into. It is the input half of a conversation and not the conversation: a form holding a text area that grows, a row of controls under it, and one button that sends. It is a surface rather than a control because of what it holds — a text field holds shrunken controls in its slots, and a composer holds full-size buttons at their own size, which is a box containing controls. It works for an AI chat, a support inbox, a team thread or a comment field, because all four are the same shape.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the pane's padding, its corner and the type inside it, and it reaches the controls that read a field's size. It does not reach Button, which keeps its own resting size, so a row of buttons stays the size you would give them anywhere else" },
+      { name: "backdrop", values: "boolean", note: "says a conversation scrolls behind the composer, so the theme's material can show. The pane becomes the glass and everything inside it resolves solid, so the send button never paints a second layer" },
+      { name: "status", values: "ready | submitted | streaming | error", note: "on ComposerSend. One button with four meanings: send, in flight, stop, retry. Streaming is the one that matters, because a person watching a reply arrive needs a way to end it" },
+    ],
+    refusals: [
+      {
+        name: "the conversation, and every part of it",
+        why: "A message, a bubble, a branch, a reasoning block and a tool call each encode a data model, and this system has none. The libraries that ship them are chat runtimes with a user interface attached. Compose a thread from ScrollArea, Card and Text, or bring a runtime.",
+      },
+      {
+        name: "the scroller",
+        why: "Staying pinned to the bottom, not jumping while a reply streams, and keeping your place when older messages load above are six thousand lines of behaviour in the one library that has done it properly. That is a package, not a component.",
+      },
+      {
+        name: "an attach button",
+        why: "The button follows whoever owns the files, and the app owns them. It is also a Button with an icon, and the system ships no icon set, so ours would be a Button with a hole in it. Files that land on our own elements are different: drop and paste both reach onFiles.",
+      },
+      {
+        name: "owning the files",
+        why: "No File objects, no preview URLs, no validation, no upload. An attachment tile takes its state as a prop you set and draws it. A composer that minted preview URLs would have to destroy them, and it would destroy the one it just handed you.",
+      },
+      {
+        name: "a row of slots",
+        why: "ComposerRow states the alignment, the split and the rhythm, and stops. Which controls sit left and which sit right is what those controls mean, and that is yours. The previous version shipped five parts for this and every one of them was a layout.",
+      },
+      {
+        name: "a compact or collapsed mode",
+        why: "Deferred rather than judged. Collapsing only means something when there is something to fold away, and this ships no attachment tray and no queue. When it lands it will follow what you have typed, never whether you clicked into it, because a bar that closes behind your back can strand itself shut.",
+      },
+      {
+        name: "submitOnEnter",
+        why: "Enter sends and Shift+Enter breaks the line, with no prop. That is what being a real form buys, and it is what every messaging surface a person has used already does. An Enter that closes a Japanese, Chinese or Korean composition never sends.",
+      },
+    ],
+  },
+  {
     slug: "notice",
     name: "Notice",
     family: "Surface",

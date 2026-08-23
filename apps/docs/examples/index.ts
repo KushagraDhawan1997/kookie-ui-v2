@@ -32,6 +32,7 @@ import HeadingExample from "./heading";
 import KbdExample from "./kbd";
 import LinkExample from "./link";
 import MenuExample from "./menu";
+import ComposerExample from "./composer";
 import NoticeExample from "./notice";
 import ProgressExample from "./progress";
 import RadioGroupExample from "./radio-group";
@@ -67,6 +68,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "kbd": KbdExample,
   "link": LinkExample,
   "menu": MenuExample,
+  "composer": ComposerExample,
   "notice": NoticeExample,
   "progress": ProgressExample,
   "radio-group": RadioGroupExample,

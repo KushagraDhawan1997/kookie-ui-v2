@@ -31,7 +31,7 @@ The site in `apps/docs` is the documentation. It has four parts.
 | route | what it holds |
 |---|---|
 | `/` | 21 guideline chapters: getting started, philosophy, foundations and patterns |
-| `/components` | the reference for 34 components, with generated props tables and the refusals |
+| `/components` | the reference for 35 components, with generated props tables and the refusals |
 | `/builder` | a composition editor that exports React code and reviews the result |
 | `/preview` and `/matrix` | the judging surfaces: real screens, and the axis grid |
 

@@ -46,7 +46,11 @@ export type ExampleProps = {
  * finding nothing means wrapping, which is the fault this exists to prevent.
  */
 export const rootsOwnPane = (source: string): boolean =>
-  /return\s*\(\s*<(Card|Surface)\b/.test(source);
+  // Composer joined this list on 2026-08-23, and the agreement law is what put it there: a
+  // composer IS a `.kui-surface` (§30 — a box that holds full-size controls is a Card), so the
+  // frame would have wrapped a pane in a pane. Neither file contains the nesting, which is
+  // exactly why the rendered-tree half of the law is the one that caught it.
+  /return\s*\(\s*<(Card|Surface|Composer)\b/.test(source);
 
 export function Example({ name, quiet }: ExampleProps) {
   const Component = EXAMPLES[name];

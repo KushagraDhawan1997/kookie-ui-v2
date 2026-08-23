@@ -23,6 +23,10 @@
  */
 import * as React from "react";
 import {
+  Composer,
+  ComposerInput,
+  ComposerRow,
+  ComposerSend,
   Blockquote,
   Box,
   Button,
@@ -508,6 +512,62 @@ function HeadingSection() {
           </Heading>
         </Grid>
       ))}
+    </Stack>
+  );
+}
+
+function ComposerSection() {
+  return (
+    <Stack gap="6">
+      {/* The specimen the component was designed from (§30): a form holding a text area that
+          grows, one row of controls under it, and a send button that says what it will do.
+          Every button in that row is a plain Button — the grey pill and the circle are what a
+          Button already is, and the corner is the default radius. Nothing here picks a
+          colour, a length or a look. */}
+      <Box maxWidth="40rem">
+        <Composer>
+          <ComposerInput aria-label="Message" placeholder="Add feedback…" />
+          <ComposerRow>
+            <Flex gap="2">
+              <Button iconOnly aria-label="Add attachment">+</Button>
+              <Button>Opus 5</Button>
+              <Button>Auto</Button>
+            </Flex>
+            <Flex gap="2">
+              <Button iconOnly aria-label="Dictate">M</Button>
+              <ComposerSend icons={{ ready: "\u2191" }} />
+            </Flex>
+          </ComposerRow>
+        </Composer>
+      </Box>
+
+      {/* The four things the send button can mean. This is what replaces a prop that only
+          decided whether the button was VISIBLE: a person watching a reply arrive needs a way
+          to end it, and that is the third one. */}
+      <Stack gap="4">
+        <Text size="2" emphasis="medium">One button, four meanings</Text>
+        <Flex gap="3" align="center">
+          <ComposerSend status="ready" icons={{ ready: "\u2191" }} />
+          <ComposerSend status="submitted" />
+          <ComposerSend status="streaming" icons={{ streaming: "\u25a0" }} />
+          <ComposerSend status="error" icons={{ error: "\u2715" }} />
+        </Flex>
+      </Stack>
+
+      {/* It grows with what you type and stops at a ceiling, in CSS. The previous version
+          measured the box on every keystroke to do this. */}
+      <Box maxWidth="40rem">
+        <Composer size="3">
+          <ComposerInput
+            aria-label="Long message"
+            defaultValue={"It grows with the content and stops at a ceiling.\nNo measuring, no observers, no work on any keystroke."}
+          />
+          <ComposerRow>
+            <Text size="2" emphasis="medium">Shift plus Return breaks the line</Text>
+            <ComposerSend icons={{ ready: "\u2191" }} />
+          </ComposerRow>
+        </Composer>
+      </Box>
     </Stack>
   );
 }
@@ -1986,6 +2046,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "link", name: "Link", body: <LinkSection /> },
   ported("menu"),
+  { id: "composer", name: "Composer", body: <ComposerSection /> },
   { id: "notice", name: "Notice", body: <NoticeSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },

@@ -38,6 +38,7 @@ import fieldCss from "../components/field/field.css?raw";
 import kbdCss from "../components/kbd/kbd.css?raw";
 import linkCss from "../components/link/link.css?raw";
 import menuCss from "../components/menu/menu.css?raw";
+import composerCss from "../components/composer/composer.css?raw";
 import noticeCss from "../components/notice/notice.css?raw";
 import selectCss from "../components/select/select.css?raw";
 import progressCss from "../components/progress/progress.css?raw";
@@ -81,8 +82,9 @@ export function installStyles(): void {
     kbdCss,
     linkCss,
     menuCss,
+    composerCss,
     noticeCss,
-  selectCss,
+    selectCss,
     progressCss,
     radioCss,
     scrollAreaCss,
