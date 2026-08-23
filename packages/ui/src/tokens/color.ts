@@ -290,13 +290,13 @@ function solveControlEdge(mode: Mode, gamut: Gamut, target: number): string {
  * The ink clears the floor everywhere, which made "just use the ink" the obvious answer, and
  * measuring killed it: the ink is solved for READING (Lc 60+, and its muted rung is solved
  * against `inkLc`), and meeting a higher bar costs saturation. A solved glyph is **1.3x to
- * 2.2x more chromatic than the ink in every family and both modes** — for accent, `#0296ff`
+ * 2.2x more chromatic than the ink in every family and both modes** — for accent, `#0095fe`
  * against the ink's `#2a6caa` in light, `#1999ff` against `#95c2f2` in dark. The first pair is
  * a vivid blue beside a muted navy, which is the whole difference between an accent and a
  * value that merely has a hue.
  *
  * WHAT IT IS, stated as the rule rather than as arithmetic: the accent, moved only as far as
- * the page forces. In light it lands within a hair of the solid (`#0296ff` vs `#0094fc`)
+ * the page forces. In light it lands within a hair of the solid (`#0095fe` vs `#0094fc`)
  * because the solid already clears the floor there; in dark it lifts, because that is the
  * only direction legibility exists. That is `undilutedTones`' own distinction made concrete —
  * chroma is held at the family's maximum and only LIGHTNESS moves.

@@ -275,7 +275,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "The family, and this is the axis a badge exists for. `success` for a finished job, `destructive` for a failed one, `warning` for one that needs attention, `info` for one that is merely running. It moves the ink and the fill together, because a badge with a fill has two things to tint. Defaults to `neutral`."
+        "doc": "The family, and this is the axis a badge exists for. `success` for a finished job, `destructive` for a failed one, `warning` for one that needs attention, `info` for one that is merely running. It moves the ink and the fill together, because a badge with a fill has two things to tint — with ONE exception, and it is the accent. Since 2026-08-23 an undiluted tone points its washed roles at neutral, and a badge's fill is one of them, so `tone=\"accent\"` tints the words and leaves the chip grey (measured: byte-identical to `tone=\"neutral\"`'s fill). That is the doctrine working rather than a gap — 11% of a brand is not the brand — and the nine families that are MEANINGS keep both, which is what a status badge needs. Defaults to `neutral`."
       },
       {
         "name": "weight",

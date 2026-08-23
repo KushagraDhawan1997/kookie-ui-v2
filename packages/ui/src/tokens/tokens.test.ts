@@ -1904,6 +1904,73 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
  * differing at exactly the diluted roles, and agreeing everywhere else, is the whole claim.
  */
 describe("the undiluted tones point their washed roles at neutral (§7, §11)", () => {
+  /**
+   * WHAT COUNTS AS A DILUTION, written out INDEPENDENTLY (2026-08-23, ultracode audit).
+   *
+   * Every other law in this describe derives its expectation from `DILUTED_ROLES`, which makes
+   * them laws about self-consistency rather than about the doctrine: they ask "is everything in
+   * the set neutral and everything outside it accent?", which stays true no matter what the set
+   * contains. The audit shrank the set from nine entries to two, regenerated, and ran the whole
+   * package suite — 1797 passed. Accent's hover fill, its press fill, its three glass twins, its
+   * faint ink and its surface tint had all gone back to being faded blue, with nothing red.
+   *
+   * So the membership is stated here as a second source and checked BOTH ways. This literal is
+   * the claim; `DILUTED_ROLES` is the implementation of it. They are allowed to be edited
+   * together — deliberately widening the doctrine means editing two places, which is the price
+   * of the guarantee — but they may not drift apart silently.
+   *
+   * The list is Kushagra's own sentence made checkable: *"an accent never paints a 'faded'
+   * background... Its the medium emphasis button, and quiet on hover, that lose that."* Every
+   * entry is a wash, a wash's opaque twin, a faded ink, or the tone-forward surface tint.
+   */
+  const DILUTIONS = [
+    "soft",              // medium's resting fill
+    "soft-hover",        // medium hovered, and quiet's hover
+    "soft-active",       // medium pressed, and quiet's press
+    "soft-solid",        // the trio's opaque twins — what the glass scopes re-point to
+    "soft-hover-solid",
+    "soft-active-solid",
+    "ink-muted",         // the type ladder's middle rung
+    "ink-faint",         // and its quiet one
+    "a3",                // the tone-forward surface fill (Notice, a toned Card)
+  ] as const;
+
+  it("the set of dilutions is exactly the nine roles the doctrine names", () => {
+    // Both directions. A shorter set is a doctrine that stopped covering something, a longer
+    // one is a role that lost its colour without anybody deciding it should.
+    expect([...DILUTED_ROLES].sort()).toEqual([...DILUTIONS].sort());
+  });
+
+  it("each named dilution really is neutral on accent, and its own on blue", () => {
+    // The outcome, role by role, read off the emitted CSS rather than through the set. This is
+    // the law that fails when an entry is dropped: it names `soft-hover` itself, so removing
+    // `soft-hover` from `DILUTED_ROLES` leaves `--tone-soft-hover: var(--accent-soft-hover)`
+    // here and this assertion is what says so.
+    const accent = block(`[data-tone="accent"]`);
+    const blue = block(`[data-tone="blue"]`);
+    for (const role of DILUTIONS) {
+      expect(accent, `--tone-${role} is still accent's own`).toContain(
+        `--tone-${role}: var(--neutral-${role});`,
+      );
+      // Blue is the control at every single role, not once for the group — a rule that had
+      // sent EVERY family's washes to neutral satisfies the line above perfectly.
+      expect(blue, `blue lost --tone-${role} too`).toContain(
+        `--tone-${role}: var(--blue-${role});`,
+      );
+    }
+  });
+
+  it("and the roles the doctrine does NOT name keep the family — the pigment that survives", () => {
+    // The other half, equally independent: the four roles accent must keep. Written out for
+    // the same reason, and it is the law that fails if somebody widens the set by hand.
+    const accent = block(`[data-tone="accent"]`);
+    for (const role of ["solid", "border", "ink", "glyph"] as const) {
+      expect(accent, `accent lost --tone-${role}`).toContain(
+        `--tone-${role}: var(--accent-${role});`,
+      );
+    }
+  });
+
   it("every diluted role is a role that exists", () => {
     // A typo here would make the rule a silent no-op — the set is consulted by NAME, so
     // `"soft-hovr"` simply never matches and the wash it was meant to catch ships diluted

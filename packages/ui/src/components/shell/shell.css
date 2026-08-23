@@ -713,13 +713,25 @@
    it now instead of one per member. */
 
 /* YOU ARE HERE is TWO STAMPS and no declaration — see ShellNavItem. The row stamps
-   `data-tone="accent"` and `data-emphasis="medium"`, and the emphasis ladder does the rest:
-   quiet rests transparent and hovers to soft, medium rests at soft and hovers to soft-hover.
-   That is what keeps current and hover in different currencies instead of on one ramp —
-   grey means the pointer is here, accent means this is where you are, and the current row
+   `data-tone="accent"` (unconditionally since 2026-08-23, so its ICON can be the accent) and
+   `data-emphasis="medium"` when current, and the emphasis ladder does the rest: quiet rests
+   transparent and hovers to soft, medium rests at soft and hovers to soft-hover. That is what
+   keeps current and hover in different currencies instead of on one ramp, so a current row
    still moves under the pointer because it has its own rung to step within. The first
    spelling painted the hover fill straight onto `[aria-current]`, which read correctly at
    rest and went dead on hover; the law that caught it is the one named for the composition.
+
+   THE COLOUR HALF OF THAT SENTENCE IS RETIRED (2026-08-23). This block said "grey means the
+   pointer is here, accent means this is where you are" — true while a current row's fill was
+   `--accent-soft`, and false the moment `undilutedTones` sent accent's washed roles to
+   neutral. Measured, a current row at rest is byte-identical to any row under the pointer.
+   What says "you are here" is the accent LABEL (the `[aria-current]` arm above) plus the
+   announced attribute; the two-currency mechanism survives at the EMPHASIS level and only its
+   pigment went. The collision is pinned by law in shell.browser.test.tsx rather than
+   tolerated, so buying the distinction back with a fourth rung must re-open the decision.
+
+   (This comment was also UNTERMINATED — it opened `/*` and never closed, silently swallowing
+   the nav-group comment below it. Pre-existing; found by the 2026-08-23 audit.) */
 
 /* A group is layout and a heading; the connection between them is the part's real job. */
 .kui-shell-nav-group {

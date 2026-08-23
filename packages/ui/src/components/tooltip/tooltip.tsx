@@ -171,8 +171,10 @@ export function TooltipContent({
             // NO `data-material`, ever, and the absence is a decision (§10). The material
             // defends a foreground against what passes behind a pane; a tooltip defends itself
             // by INVERTING, which is the stronger answer, and two defences on one 28px box is
-            // the doubled-edge defect's shape. It also carries no `data-size`: there is no size
-            // axis here (see tooltip.css).
+            // the doubled-edge defect's shape. (It DOES carry `data-size="1"` — see the note
+            // on that line. This comment claimed the opposite for a day, seventeen lines under
+            // the stamp itself: there is no size AXIS, which is a different sentence from
+            // carrying no index, and the pane needs one or the surface join never fires.)
             className={identity}
             style={style}
             ref={ref}

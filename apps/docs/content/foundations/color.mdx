@@ -66,17 +66,48 @@ cost nothing.
 --accent-label                                  /* UI labels */
 --accent-contrast                               /* the APCA-chosen text on a solid fill */
 --accent-ink / -ink-muted / -ink-faint          /* the ink ladder, below */
+--accent-glyph                                  /* icons and small marks */
 --accent-a1 … --accent-a12                      /* alpha, composites over the surface seal */
 ```
 
 Every family emits the same set. `--destructive-solid`, `--success-ink` and `--warning-border`
 all exist, so one role name works across all ten families.
 
+## The accent is never diluted
+
+The accent is the one family you choose, and it appears at full strength or not at all. Where a
+role is a *faded* version of a colour — the tint fills, their opaque twins, the two quiet inks,
+and the surface tint — the accent reads **neutral** instead. So a medium button, a quiet button
+under the pointer, a selected row and a tinted surface are all grey, and the accent moves to the
+label. The solid fill, the border, the ink and the glyph keep the colour.
+
+This applies to the accent only. The other nine families are *meanings*, and a pale red still
+reads as danger, so diluting one costs it nothing it was carrying. Diluting an identity destroys
+it: 11% of your brand is not your brand.
+
+## A glyph is not a fill, and it is not ink
+
+Icons read `--{tone}-glyph`, which is the family's hue at full saturation, placed at the
+lightness where a small mark is legible on that mode's page.
+
+It exists because neither obvious answer works. A **fill** cannot be an icon colour: it is one
+value in both light and dark, and no single colour is legible on both white and black — the
+accent fill misses the contrast floor on a dark page, and a brand yellow, green or pale pink
+misses on a light one. The **ink** clears the floor everywhere but is solved for *reading*, and
+meeting that higher bar costs saturation, so an accent icon in the ink is a muted navy rather
+than the colour you picked. The glyph is 1.3× to 2.2× more saturated than the ink in every
+family and both modes.
+
+For a grey there is no saturation to hold, so a low-chroma family's glyph is simply its ink.
+
 ## The ink ladder
 
 On text, `emphasis` picks one of three ink colours. Loud is `--color-text`. Medium is
 `--color-text-muted`. Quiet is `--color-text-faint`. Set a `tone` and those same three levels
 move onto that family's own inks.
+
+The accent is the exception, for the reason above: its two quieter inks are dilutions, so they
+read neutral. Accent text is loud or it is not accent.
 
 ```tsx
 <Card size="3">
