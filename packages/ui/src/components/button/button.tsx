@@ -4,6 +4,7 @@ import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
 import type { Emphasis, Size, SlotName, Tone } from "../../system/axes.ts";
+import { useControlSize } from "../../system/control-size.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { filled, unwrapLazy, type RenderElement } from "../../system/render.ts";
@@ -105,7 +106,7 @@ export type ButtonProps = ButtonBase & (IconOnly | { iconOnly?: false | undefine
  * screen has one focal point unless somebody asks for a second.
  */
 export function Button({
-  size = "2",
+  size: sizeProp,
   tone = "neutral",
   emphasis = "medium",
   bordered = false,
@@ -123,6 +124,13 @@ export function Button({
   ref,
   ...props
 }: ButtonProps) {
+  // The index of the UNIT this button sits in, when it states none of its own (§28, widened
+  // to Button 2026-08-23). `control-size.ts` excluded Button by name, and its argument was
+  // that "a button beside that control is a sibling in the form's layout" — which describes
+  // a button OUTSIDE the Field, and React context cannot reach one. What the exclusion did
+  // reach was a button inside a composer's row, where `<Composer size="4">` left every
+  // control at 2. An explicit `size` still wins, which is the mechanism's second bound.
+  const size = useControlSize(sizeProp);
   // Base UI branches its ENTIRE a11y contract on `nativeButton`, which defaults to true, and
   // we never forwarded it — so `render={<a/>}`, a composition our own laws bless, shipped
   // `type="button"` on an anchor (where `type` means the linked resource's MIME type) and, when

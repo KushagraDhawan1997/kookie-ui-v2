@@ -48,15 +48,23 @@ describe("it is a form, and a surface (§30)", () => {
   });
 });
 
-describe("the index prices what the composer OWNS, and stops (§30)", () => {
+describe("the index reaches everything, and an explicit size still wins (§28, §30)", () => {
   /**
-   * Both halves shipped WRONG on 2026-08-23 and neither had a law, which is why both are here.
-   * The pane's padding moved with the index, a TextField dropped in the row moved with it, a
-   * Button did not, and the composer's own text did not — four elements, three behaviours,
-   * and nobody chose the third. The rule is ownership (§24 against §25): a composer owns its
-   * pane and its text, and whatever you compose into the row is yours.
+   * This block has been wrong twice and the second spelling is the interesting one.
+   *
+   * It shipped with four elements showing THREE behaviours — the pane moved, a TextField in the
+   * row moved, a Button did not, the composer's own text did not — and nobody had chosen the
+   * third. That was closed by making the index stop at the row, on Dialog's ownership argument
+   * (§24 against §25), and the laws below were written to hold it there.
+   *
+   * REVERSED 2026-08-23 (Kushagra, off the preview page: "everything scales, explicit sizes
+   * still win"). Read as a ladder, that answer did not hold: across four indexes the padding
+   * moved four times, the text moved ONCE (`OWNED_BODY_STEP` is 14/14/16/16), and no control
+   * moved at all — so three of the four steps did nothing but pad the box. A composer is a unit
+   * you size as one thing, which is what `ControlSizeContext` is for; it now supplies it, Button
+   * reads it, and a stated `size` beats both.
    */
-  const at = (size: "1" | "4") =>
+  const at = (size: "1" | "2" | "3" | "4") =>
     mounted(
       <Composer size={size}>
         <ComposerInput aria-label="Message" />
@@ -83,14 +91,18 @@ describe("the index prices what the composer OWNS, and stops (§30)", () => {
     );
   });
 
-  it("its own text moves with the index", () => {
-    // The step map is shared with the alert and the notice, so this also pins that a composer
-    // and a notice at one index are one typography.
-    const small = within(at("1"), ".kui-composer-input");
-    const large = within(at("4"), ".kui-composer-input");
-    expect(parseFloat(computed(large, "font-size"))).toBeGreaterThan(
-      parseFloat(computed(small, "font-size")),
+  it("its own text moves at EVERY index — four sizes, four steps", () => {
+    // It rode `OWNED_BODY_STEP` until 2026-08-23, which is 14/14/16/16: sizes 1 and 2 identical,
+    // 3 and 4 identical, so the index moved the text exactly once across four steps. Reading two
+    // indexes could not see that — 1 against 4 differ under BOTH ladders — so this walks all
+    // four and asserts every step is its own, which is the claim the old law could not make.
+    const steps = (["1", "2", "3", "4"] as const).map((size) =>
+      parseFloat(computed(within(at(size), ".kui-composer-input"), "font-size")),
     );
+    expect(new Set(steps).size, `the ladder repeats a step: ${steps.join("/")}`).toBe(4);
+    for (let i = 1; i < steps.length; i++) {
+      expect(steps[i]!, `step ${i + 1} is not above step ${i}`).toBeGreaterThan(steps[i - 1]!);
+    }
   });
 
   it("the box is the same number of LINES at every index, not the same height", () => {
@@ -103,15 +115,59 @@ describe("the index prices what the composer OWNS, and stops (§30)", () => {
     }
   });
 
-  it("nothing you put in the row moves with it — a Button and a field alike", () => {
-    // The consistency is the claim. A field that tracked the composer while the Button beside
-    // it did not is the defect this replaces, so BOTH are read: one of them silently opting
-    // into the pane's index is what the law is for.
+  it("the row moves with it — a Button and a field alike, in step", () => {
+    // BOTH are read, and that is the half the first spelling got right: a field that tracked
+    // the composer while the Button beside it did not is the original defect, so a law that
+    // reads one of them cannot tell "the row follows" from "half the row follows".
     for (const selector of ["button", ".kui-field"]) {
       const small = within(at("1"), selector);
       const large = within(at("4"), selector);
-      expect(small.getAttribute("data-size")).toBe(large.getAttribute("data-size"));
+      expect(small.getAttribute("data-size"), `${selector} ignores the composer's index`).toBe("1");
+      expect(large.getAttribute("data-size"), `${selector} ignores the composer's index`).toBe("4");
     }
+  });
+
+  it("and a control that states its own size keeps it, at every index", () => {
+    // The second bound of the mechanism (§28), and the reason widening Button to read a context
+    // is safe at all. Without this the change is not "the row follows the box", it is "the box
+    // overrules you" — which is what makes silent inheritance this project's most-repeated
+    // defect. Read at BOTH extremes: a pinned control that happened to match at one index would
+    // pass a single-index check by coincidence.
+    const pinned = (size: "1" | "4") =>
+      within(
+        mounted(
+          <Composer size={size}>
+            <ComposerInput aria-label="Message" />
+            <ComposerRow>
+              <Button size="2">Model</Button>
+            </ComposerRow>
+          </Composer>,
+          { theme: {} },
+        ),
+        "button",
+      );
+    expect(pinned("1").getAttribute("data-size")).toBe("2");
+    expect(pinned("4").getAttribute("data-size")).toBe("2");
+  });
+
+  it("the composer does not reach past itself — a Button outside is untouched", () => {
+    // The reach is one wrapper deep and visible in the markup (§28's first bound). React context
+    // gives this by construction, so the law exists to catch a future spelling that does not —
+    // a document-level provider, a portal that re-supplies, a Theme that starts carrying it.
+    const page = mounted(
+      <div>
+        <Composer size="4">
+          <ComposerInput aria-label="Message" />
+          <ComposerRow><Button>Inside</Button></ComposerRow>
+        </Composer>
+        <Button>Outside</Button>
+      </div>,
+      { theme: {} },
+    );
+    const buttons = page.querySelectorAll("button");
+    const outside = buttons[buttons.length - 1]!;
+    expect(outside.textContent).toBe("Outside");
+    expect(outside.getAttribute("data-size"), "the composer's index escaped its own subtree").toBe("2");
   });
 });
 

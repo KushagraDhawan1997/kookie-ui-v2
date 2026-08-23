@@ -8,6 +8,37 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 A size index that moved the padding four times, the text once, and nothing else
+
+**What.** `Composer` supplies `ControlSizeContext`, `Button` reads it, and the composer's own text takes the plain type ladder instead of `OWNED_BODY_STEP`. An explicit `size` on any control still wins.
+
+**Why it came up, and why the preview page is the reason it was found.** Kushagra, looking at the Sizes section with all four indexes stacked: *"why is size index not increasing text and buttons and send button etc"*. Measured:
+
+```
+size 1: pad 12  text 14  button 32
+size 2: pad 16  text 14  button 32
+size 3: pad 24  text 16  button 32
+size 4: pad 32  text 16  button 32
+```
+
+The padding moves four times, the text moves ONCE, and no control moves at all. Three of the four steps did nothing but pad the box.
+
+**Both halves had a cause, and neither was an accident.** The text rode `OWNED_BODY_STEP`, which is `{1:2, 2:2, 3:3, 4:3}` — two values across four sizes, on purpose, because that map prices a message the SYSTEM writes to you (a dialog's description, an alert's question, a notice's line) and one sentence of explanation should not grow much. A composer holds a message YOU write, and it is a text input, so it takes the ladder every other text input takes: the identity map, 12/14/16/18. The map keeps its three real consumers and its single-home guarantee.
+
+The controls did not move because the composer deliberately did not supply `ControlSizeContext` — its own comment said so, and gave the reason: that context "would resize a Select somebody put in the row while the Button beside it kept its own index — three behaviours in one component, and nobody chose the third." That was true, and it was a fact about **Button**, not about the composer.
+
+**So the change is Button's.** `control-size.ts` excluded Button by name and argued that "a button beside that control is a sibling in the form's layout and takes the form's index, not the field's." That argument is right about a button OUTSIDE the field — and that is precisely the button React context cannot reach. What the exclusion actually reached was a button INSIDE a unit, where the rule inverts. The file already set the bar for widening the reader list ("a decision with a call site behind it, not a convenience"); the composer is that call site.
+
+**Checked before it was written rather than after:** a hosted button in a TextField's slot is unaffected either way, because `--kui-ct-hosted-height` is a registered length declared on the SLOT, so CSS sizes it from its container whatever index it carries. And the full suite confirms it — Field's own laws pass untouched, and exactly one law failed: the one written the same morning to hold the previous answer.
+
+**This is the second reversal of the same decision in one day, and the shape is worth keeping.** The first shipped three behaviours across four elements; the repair made them consistent by stopping the index at the row, on Dialog's ownership argument (§24 against §25). Both versions were green. Both were caught by a person reading the ladder AS a ladder, on a page built for exactly that, because **1 against 4 differs under every spelling that has been tried here** — a two-index law cannot tell 12/14/16/18 from 14/14/16/16, and no law read more than two. The text law now walks all four and asserts every step is its own; its sabotage fails printing `14/14/16/16`.
+
+**Rejected: leaving it and documenting it.** "A size-4 composer is a size-2 composer with more padding" is a defensible sentence and a useless axis.
+
+**Four laws, three sabotage passes.** The row follows at both extremes (both a Button and a field, because a law reading one cannot tell "the row follows" from "half of it does"); a pinned `size="2"` control keeps it at both extremes, which is the bound that makes a size context safe rather than an override; the text ladder has four distinct, increasing steps; and the context does not escape the composer's own subtree — that one holds by React's construction today, and exists to catch a future spelling where it does not.
+
+---
+
 ## 2026-08-23 A disabled composer kept your words at full black, and the spec said it could not
 
 **What.** `composer.css` greys the input's value and its placeholder when the input is disabled. The pane is deliberately unchanged.
