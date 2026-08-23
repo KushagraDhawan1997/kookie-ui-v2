@@ -13,7 +13,6 @@ import * as React from "react";
 import {
   Box,
   Button,
-  Card,
   Code,
   Composer,
   ComposerInput,
@@ -30,6 +29,7 @@ import {
   SelectTrigger,
   Separator,
   Stack,
+  Surface,
   Text,
   Theme,
   themeAxes,
@@ -76,7 +76,7 @@ function Sizes() {
     <Stack gap="6">
       {/* The cell-level read: identical content in all four, so the only variables are the
           pane's padding, its corner, and the step its own text is set at. */}
-      <Demo label="Identical content — the pane's padding, corner and text step move together">
+      <Demo label="Identical content — padding, corner, text and every control in the row move together">
         <Stack gap="4">
           {SIZES.map((size) => (
             <Composer key={size} size={size}>
@@ -87,25 +87,23 @@ function Sizes() {
         </Stack>
       </Demo>
 
-      {/* The negative, and the reason this page exists. A composer owns its pane and its own
-          text and NOTHING in its row — Dialog prices the box alone because it does not own its
-          content (§24), AlertDialog prices everything because it does (§25), and ownership is
-          the difference. So the buttons below are byte-identical across all four indexes: you
-          priced them where you wrote them. The failure this catches is the one that shipped —
-          a size-3 composer leaving its buttons at 2 while a TextField beside them moved. */}
-      <Demo label="The index stops at the row — the two extremes, holding an identical row">
-        {/* Sizes 1 and 4 SIDE BY SIDE rather than all four stacked. Stacked, this read exactly
-            like the ladder above it — same row, four panes — and proved nothing the first demo
-            had not already shown. The extremes beside each other are the read: the pane's inset
-            and its text are visibly different and the buttons between them are the same button,
-            because you priced them where you wrote them. */}
+      {/* The half that is easy to get wrong, and did get wrong twice. A composer is a unit you
+          size as one thing, so the row follows the box — but a control that STATES a size keeps
+          it, which is what makes a size context safe to have at all (§28's second bound). Both
+          claims need to be visible together: the row following is the feature, the pinned
+          control not following is the safety rail, and a demo showing only the first would read
+          as "the box overrules you". */}
+      <Demo label="The row follows the box — except a control that states its own size, which keeps it">
         <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5" align="flex-start">
           {(["1", "4"] as const).map((size) => (
             <Composer key={size} size={size}>
-              <ComposerInput aria-label={`Owned text, size ${size}`} defaultValue={`Size ${size} pane`} />
+              <ComposerInput aria-label={`Row, size ${size}`} defaultValue={`Size ${size} pane`} />
               <ComposerRow>
-                <Button size="2">Opus 5</Button>
-                <ComposerSend size="2" icons={SEND} />
+                <Flex gap="2" align="center">
+                  <Button>Follows</Button>
+                  <Button size="2">Pinned at 2</Button>
+                </Flex>
+                <ComposerSend icons={SEND} />
               </ComposerRow>
             </Composer>
           ))}
@@ -352,8 +350,15 @@ function Nesting() {
           change: the pane keeps its own corner and padding inside another surface, and the
           conversation above it owns the scrolling. */}
       <Demo label="Pinned under a conversation that scrolls — what must not change is the pane's own corner and inset">
+        {/* A SURFACE and not a Card, corrected 2026-08-23 (Kushagra: "violating card on card
+            rule, use surface as container to host any such element that looks like a card").
+            A composer IS a `.kui-surface`, so a Card around it is a pane inside a pane — the
+            exact nesting `example-frame.test.tsx` guards on the specimen path, hand-written here
+            on a path that law does not walk. Surface is the answer the library already has: a
+            Card is an object, a Surface is what an object sits on, and its corner comes from the
+            overlay band precisely so a container out-rounds what it holds. */}
         <Box maxWidth="40rem">
-          <Card size="3" render={<Stack gap="4" />} style={{ height: "26rem" }}>
+          <Surface size="3" render={<Stack gap="4" />} style={{ height: "26rem" }}>
             <ScrollArea>
               <Stack gap="4">
                 {[
@@ -374,7 +379,7 @@ function Nesting() {
               <ComposerInput aria-label="Reply" placeholder="Reply to the thread…" />
               <Row />
             </Composer>
-          </Card>
+          </Surface>
         </Box>
       </Demo>
 
@@ -456,7 +461,8 @@ function InUse() {
       {/* A support reply, with the canned-response picker a real inbox has. */}
       <Demo label="A support reply">
         <Box maxWidth="38rem">
-          <Card size="3" render={<Stack gap="4" />}>
+          {/* Ground, not card — the same correction as the Nesting demo above. */}
+          <Surface size="3" render={<Stack gap="4" />}>
             <Stack gap="2">
               <Heading size="5" render={<h3 />}>Refund not received</Heading>
               <Text size="3" emphasis="medium">Opened four hours ago by Priya Raman.</Text>
@@ -475,7 +481,7 @@ function InUse() {
                 <ComposerSend icons={SEND} labels={{ ready: "Reply" }} />
               </ComposerRow>
             </Composer>
-          </Card>
+          </Surface>
         </Box>
       </Demo>
     </Stack>
