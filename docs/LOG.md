@@ -63,6 +63,99 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 The traveling highlight: one object that stretches toward where it is going
+
+**What.** Tabs' rule and the segmented control's grip both travel now, drawn by their two inline
+edges, with the edge FACING the destination on a shorter clock than the one behind it — 320ms
+against 480, both on `calm`. So the highlight pours across to the thing you picked and gathers
+itself as the trailing edge catches up. Asked for by Kushagra against a bench he built and
+judged ("Clip vs Physics"), where the same recipe sits beside the 250ms both-edges-on-one-clock
+version it replaces.
+
+**Why two clocks and not a livelier spring.** The character is ONE spring and the asymmetry is
+entirely in the durations. Giving the leading edge a bouncier curve than the trailing one would
+put two different damping ratios on one object, which rings — and damping is the number §8
+never loosens for visibility. `controlMotion.travel` (420, the switch thumb crossing its
+channel) is deliberately not reused: a highlight moving a whole segment's width is a different
+distance answering a different question, so the new pair straddles the benchmark rather than
+replacing it.
+
+**Tabs gained NO JavaScript, which was not the expected answer.** Direction is the one fact a
+stylesheet cannot work out — CSS knows the value a property animates TO and never the value it
+left, so "which of these two edges is in front" has no selector — and the plan was to stamp it
+from a small effect. Base UI already publishes it: `data-activation-direction` on the indicator,
+computed from the previously active tab, with a `none` that is exactly the first paint. Reading
+the primitive's own attributes before writing a mechanism is the cheaper habit and it paid here.
+
+**The second edge is DERIVED, which is what closes the 2026-08-19 revert on its own terms.** The
+rule shipped drawn by two edges once before and was reverted because the second edge was Base
+UI's `--active-tab-right` — `scrollWidth − left − width`, in the list's SCROLL space, while CSS
+resolves `right` against the containing block's PADDING box. The two agree only while the bar
+fits, and an overflowing bar drew a zero-width rule. `calc(100% - left - width)` derives the
+same edge from the pair Base UI computes in ONE space, against the `100%` that IS the containing
+block. Measured on a bar overflowing by 61px: 91.69 against a 91.67 tab, where the old spelling
+drew 0. tabs.css had written down what a return would need; this is that.
+
+**The segmented control's thumb costs a measurement, and index arithmetic was refuted by
+measuring rather than by argument.** `flex: 1 1 0` gives every segment an equal share while the
+track sizes itself — three labels of three different lengths measured 425.3 / 425.3 / 425.3 — so
+`index × width / count` looks right in every ordinary specimen. Constrain the track and
+`min-width: auto` binds on the longest label: the same three measured 62.0 / 62.0 / 72.0 in a
+200px box, where the arithmetic answers 65.3 and puts the grip ten pixels off its seat. A
+squeezed track is a toolbar on a narrow window. This is the FOURTH bounded exception to §8's "no
+JS at interaction time", beside the flight's measurement, the lens and Tabs' own re-measure, and
+it is bounded the same way: selection and resize, never hover, press, focus or scroll.
+
+**The component predicted this and left the door open.** Its own comment read *"when the motion
+pass wants one object gliding between homes, the measuring hook arrives with it and this stays
+internal"* — the absence of an indicator was correct for exactly as long as the motion did not
+exist, which is the curtain's lesson (a mechanism whose only consumer is an undesigned motion).
+The premise is spent; this is the door rather than a reversal.
+
+**Three defects found by measuring, each invisible in the source.** The effect was keyed on
+renders, and an uncontrolled `RadioGroup` holds its value inside Base UI — so it fired once in a
+component's lifetime and the thumb held 56.9px while another segment was genuinely checked. It
+watches `data-checked` now. The two edges were measured with `clientWidth`/`clientLeft`, which
+are integers, so the trailing edge inherited a rounding error the leading edge did not and the
+grip sat 0.5px narrow on one side only; both are read off `getBoundingClientRect` now, corrected
+by fractional border widths. And the `ResizeObserver` fired the moment it was observed, which
+rewrote the direction to `none` a frame after every selection — removing the transition and
+teleporting the grip, with the whole recipe correct behind it.
+
+**A guard was written, worked, and was then deleted for being unfalsifiable.** The width
+comparison that told the observe-time callback from a real resize fixed the teleport. Then the
+effect stopped being keyed on renders at all, which fixed the same defect at its cause — and the
+guard became something no law could distinguish from its absence. Three sabotage passes tried:
+deleting it changed nothing across 38 laws, and the one input that would have separated them (an
+observer firing without a width change) could not be constructed, because a padding change does
+not move the content box a `ResizeObserver` watches. It is gone. Every remaining case is one
+where re-placing is simply correct.
+
+**The chosen segment gave up its fill.** Two boxes painting one grip means the old segment's
+fill blinking out as the thumb glides away from it, so the fill and the cast moved to the thumb
+and the segment keeps only its ink — which switches INSTANTLY while the box travels, §8's
+paint-is-signal / geometry-is-physics split rather than an oversight.
+
+**Rejected: exempting the keyboard**, which the bench does on the rule that keys are not travel.
+Its stated reason is that gliding across intermediate stops would be false motion, and an arrow
+key here moves exactly one position, so nothing is crossed that was not passed through.
+Exempting it costs a modality listener at interaction time to buy a distinction the argument
+does not make at this step size. Recorded so it can be reopened if a keyboard jump of more than
+one ever exists. **Also not built: the press LEAN and the grabbable segment** from the same
+bench. Both are interaction models rather than motion — the lean needs a pointerdown handler on
+every segment and the drag needs pointer capture, hit-testing and a snap — and neither was part
+of what "add the motion" asked for. They are cheap to add on top of the measurement that now
+exists.
+
+**Two laws of my own were wrong before they were right, both in shapes this repo has named.**
+The size law's fixture used a self-sizing track, where every segment is equal and a thumb that
+divided the track into thirds would pass — the degenerate-fixture rule, and its own calibration
+caught it. And five laws read the flight synchronously after the click, so all five passed
+against a build whose observer stomped the direction a frame later; the law that catches it
+waits two frames, which is past any observer callback and nowhere near the 480ms the flight
+lasts. `test/settling.test.ts` then caught three more of mine reading a gesture's effect in the
+statement after it.
+
 ## 2026-08-23 The eye pass never happened, because it had been happening all along
 
 **What.** `v0` is deleted as a label. It was carried at ~60 sites across `config.ts`, `color-config.ts`,

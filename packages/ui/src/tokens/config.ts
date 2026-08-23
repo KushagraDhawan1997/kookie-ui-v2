@@ -823,6 +823,26 @@ export const controlMotion = {
   mark: 380,
   /** The switch thumb crossing its channel. The benchmark movement (LOG, principle 2). */
   travel: 420,
+  /**
+   * §26 — the TRAVELING HIGHLIGHT's two clocks: one object gliding between siblings, drawn by
+   * its two inline edges (2026-08-23, Kushagra, judged in the "Clip vs Physics" bench).
+   *
+   * The switch's own trick applied between homes rather than inside one channel. A thumb that
+   * slides with both edges on one clock is a photograph being moved; give the edge FACING the
+   * destination the shorter clock and the object stretches toward where it is going, then
+   * gathers itself as the trailing edge catches up. Both edges ride `calm` — the character is
+   * one spring, the asymmetry is entirely in the two durations, which is the only shape that
+   * keeps damping sacred (§8): a leading edge on a livelier curve would ring against a trailing
+   * edge that does not.
+   *
+   * Which edge leads is a direction, and direction is the one fact CSS cannot see — it knows
+   * the new value and not the old one — so the component stamps it. `travel` is deliberately
+   * NOT reused: 420 is a ~20px channel crossing, and a highlight moving a whole segment's width
+   * is a different distance answering a different question. The ratio (0.667) is the judged
+   * half; the pair straddles the benchmark rather than replacing it.
+   */
+  travelLead: 320,
+  travelTrail: 480,
   /** The focus ring landing from outside, and how far outside it starts. Keyboard only by
       construction: `:focus-visible` is the selector, and on anything but a text input it
       means the keyboard. The eye must FIND focus after a Tab; it does not after a click. */

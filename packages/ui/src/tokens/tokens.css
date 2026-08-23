@@ -172,6 +172,8 @@
   --hover-travel: calc(1px * var(--scale));
   --motion-mark: 380ms;
   --motion-travel: 420ms;
+  --motion-travel-lead: 320ms;
+  --motion-travel-trail: 480ms;
   --motion-ring: 260ms;
   --focus-ring-land: calc(4px * var(--scale));
   --press-travel: calc(2px * var(--scale));
