@@ -574,6 +574,40 @@ describe("the grip travels between segments (§8, §26)", () => {
     ).toBeGreaterThan(0);
   });
 
+  it("the chosen segment paints NOTHING under a pointer — the grip is the only paint", async () => {
+    /* Kushagra, 2026-08-23, watching a real click: the hover fill "is on top, so as I click on a
+       segment, and it animates, the hover continues to stay, which doesn't wobble btw, making
+       it look very weird." Exactly right — the segments paint above the thumb by design (that
+       is what puts the label over the grip), so a chosen segment that still answered hover left
+       a static wash sitting precisely where the grip was travelling to.
+    
+       The cause was a re-key that dropped half of what it moved. The chosen segment used to
+       hold all three fill sources at `--color-thumb`, which carried BOTH the grip's colour and
+       the rule that a grip does not fill; moving the colour to the thumb deleted the triple
+       rather than re-pointing it, and the segment fell back to the quiet rung's hover step.
+    
+       Read under a REAL pointer and after the click, which is the state the report is about —
+       the resting law two describes up cannot see this, and neither can one that reads the
+       declared sources on a segment nobody is pointing at. */
+    const root = control();
+    const other0 = other(root);
+    await userEvent.hover(other0);
+    await until(() => computed(other0, "background-color") !== "rgba(0, 0, 0, 0)");
+    // CALIBRATION: an UNCHOSEN segment does answer the pointer, so "paints nothing" below is a
+    // fact about being chosen and not about the harness failing to hover.
+    expect(computed(other0, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
+    await userEvent.click(other0);
+    await until(() => other0.hasAttribute("data-checked"));
+    expect(
+      computed(other0, "background-color"),
+      "the chosen segment is still painting its hover on top of the grip",
+    ).toBe("rgba(0, 0, 0, 0)");
+    // All three sources, the field's rule: declaring only rest falls back mid-interaction.
+    for (const src of ["--kui-ct-fill-src", "--kui-ct-fill-src-hover", "--kui-ct-fill-src-active"]) {
+      expect(computed(other0, src).trim(), `${src} is not stood down`).toBe("transparent");
+    }
+  });
+
   it("the chosen LABEL is on top of the grip, not under it", () => {
     /* Shipped white on white for one commit (Kushagra, 2026-08-23, from the playground: the
        chosen segment's word was simply gone). The thumb renders first in the markup and the

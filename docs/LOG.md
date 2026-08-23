@@ -63,6 +63,42 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 A re-key that moved a colour and left its rule behind
+
+**What.** The chosen segment kept answering hover, so clicking one left a static wash sitting
+exactly where the grip was travelling to. Kushagra, watching a real click: the hover fill "is on
+top, so as I click on a segment, and it animates, the hover continues to stay, which doesn't
+wobble btw, making it look very weird." Fixed by pinning all three of the chosen segment's fill
+sources to `transparent`.
+
+**Why it happened, which is the part worth keeping.** The chosen segment used to hold all three
+fill sources at `--color-thumb`, and that triple was carrying TWO facts at once: what colour the
+grip is, and the rule that a grip does not fill — *"hover and press must not step it, or the
+selected segment would brighten under a pointer that cannot change anything about it."* When the
+grip became a travelling element, the colour moved to the thumb and the triple was DELETED
+rather than re-pointed. The colour arrived at its new home; the rule did not go anywhere. The
+segment fell back to the quiet rung, which does have a hover step, and painted a 6.7% wash over
+the thumb — measured `color(srgb 0 0 0.0588235 / 0.067)` on a segment that had just been
+clicked and still had the pointer on it.
+
+**It was only visible because the other repair worked.** The segments paint ABOVE the thumb by
+design — that is what stops the grip covering its own label, fixed hours earlier the same day —
+so the leftover hover had somewhere to sit. Before that fix it would have been hidden under the
+grip and shipped silently.
+
+**The laws moved with the colour and not with the rule, which is the same mistake in the test
+file.** Five reads were re-keyed from the segment to the thumb, correctly, and the guarantee the
+segment still owed — that it paints nothing in any state — was left with no reader at all. The
+one law that came closest read the resting background, which was `rgba(0, 0, 0, 0)` throughout;
+it cannot see a hover step. The new law hovers a real pointer, clicks, and reads after the
+stamp, which is the state the report is about.
+
+**The general shape, stated because this repo keeps meeting it:** when a declaration is moved,
+ask what ELSE it was saying. A property pinned across three states is usually two claims — a
+value and an invariance — and moving the value is not moving the invariance. Both sabotage passes
+here are that sentence: deleting the pin restores the defect, and pinning rest alone restores it
+under the pointer, which is the field family's own 2026-08-05 trap arriving in a fifth place.
+
 ## 2026-08-23 The grip painted over its own label, and a tab ended on the line it stands on
 
 **What.** Two defects in the travelling highlight shipped hours earlier, both found by Kushagra

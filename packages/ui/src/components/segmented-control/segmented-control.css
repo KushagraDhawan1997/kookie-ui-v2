@@ -144,9 +144,26 @@
 
    The ink switches INSTANTLY while the box travels, and that is §8's split rather than an
    oversight: paint is signal and geometry is physics, so the label you chose is full-strength
-   on the first frame and the grip catches up underneath it. */
+   on the first frame and the grip catches up underneath it.
+
+   AND IT PAINTS NO FILL IN ANY STATE, which is a pin rather than an absence (2026-08-23,
+   Kushagra: clicking a segment left "the hover… on top" of the travelling grip, "which doesn't
+   wobble btw, making it look very weird"). The old spelling held all three sources at
+   `--color-thumb` and carried the rule with them — a grip does not fill, it moves, so hover and
+   press must not step it. Moving the fill to the thumb deleted the triple instead of
+   re-pointing it, and the chosen segment fell back to the QUIET rung, which does have a hover
+   step: measured, the segment under the pointer painted a 6.7% wash on top of the thumb gliding
+   underneath it, a static rectangle sitting exactly where the grip was heading.
+   
+   All three, for the field's own reason (§8): a rule that declared only rest would fall back to
+   the rung's values the moment a pointer arrived, which is the defect restated. The chosen
+   segment can never light up anyway — hovering the thing you already picked promises something
+   a click cannot deliver. */
 .kui-segment:where([data-checked]) {
   --kui-ct-label-color: var(--color-thumb-label);
+  --kui-ct-fill-src: transparent;
+  --kui-ct-fill-src-hover: transparent;
+  --kui-ct-fill-src-active: transparent;
 }
 
 /* THE THUMB — one grip travelling between homes (§8, §11, §26, 2026-08-23, judged in the
