@@ -12,7 +12,13 @@ import { cardPreview } from "./card";
 import { composerPreview } from "./composer";
 import { dialogPreview } from "./dialog";
 import { menuPreview } from "./menu";
+import { segmentedControlPreview } from "./segmented-control";
 import { selectPreview } from "./select";
+import { sliderPreview } from "./slider";
+import { switchPreview } from "./switch";
+import { tabsPreview } from "./tabs";
+import { textAreaPreview } from "./text-area";
+import { textFieldPreview } from "./text-field";
 
 export const COMPONENT_PREVIEWS: readonly ComponentPreview[] = [
   alertDialogPreview,
@@ -20,5 +26,11 @@ export const COMPONENT_PREVIEWS: readonly ComponentPreview[] = [
   composerPreview,
   dialogPreview,
   menuPreview,
+  segmentedControlPreview,
   selectPreview,
+  sliderPreview,
+  switchPreview,
+  tabsPreview,
+  textAreaPreview,
+  textFieldPreview,
 ];

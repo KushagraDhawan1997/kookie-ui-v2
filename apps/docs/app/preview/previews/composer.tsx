@@ -233,7 +233,7 @@ function Materials() {
           a composer is one of the few panes that genuinely sits over moving content. */}
       {BEDS.map((b) => (
         <Demo key={b.id} label={b.name}>
-          <BedSurface bed={b} minHeight="none">
+          <BedSurface bed={b} minHeight="auto">
             <Stack gap="5" style={{ width: "100%" }}>
               <Theme material="solid">
                 <Stack gap="2">
@@ -270,7 +270,7 @@ function Permutations() {
           reads as a different component — a corner that stops being a corner at one rung, a
           veil that swallows its own row. */}
       <Demo label="Size × material, over a hostile bed">
-        <BedSurface bed={BEDS.find((b) => b.id === "swirl")!} minHeight="none">
+        <BedSurface bed={BEDS.find((b) => b.id === "swirl")!} minHeight="auto">
           <Stack gap="6" style={{ width: "100%" }}>
             {glassMaterials().map((m) => (
               <Theme key={m} material={m}>
@@ -293,7 +293,7 @@ function Permutations() {
           the row never paint a second veil. Judged against the same row on a solid pane: the
           controls must look identical in both. */}
       <Demo label="A glass pane scopes its row solid — the buttons must read the same on both">
-        <BedSurface bed={BEDS.find((b) => b.id === "bloom")!} minHeight="none">
+        <BedSurface bed={BEDS.find((b) => b.id === "bloom")!} minHeight="auto">
           <Stack gap="5" style={{ width: "100%" }}>
             <Theme material="regular">
               <Composer backdrop>

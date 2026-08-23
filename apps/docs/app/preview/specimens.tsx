@@ -73,13 +73,7 @@ import {
   Spinner,
   Surface,
   Stack,
-  SegmentedControl,
-  SegmentedItem,
   Switch,
-  Tabs,
-  TabsList,
-  TabsPanel,
-  TabsTab,
   Text,
   Tooltip,
   TooltipContent,
@@ -104,7 +98,6 @@ import {
   PlusIcon,
   SearchIcon,
   SettingsIcon,
-  XIcon,
 } from "../icons";
 import { BedSurface, PHOTO_BED, bed } from "./beds";
 import { ComponentPreviewBody } from "./component-preview";
@@ -1420,47 +1413,6 @@ function ShellSection() {
   );
 }
 
-function SliderSection() {
-  return (
-    <Stack gap="6">
-      <SpecTable
-        wide
-        cols={["Value", "Range", "Disabled"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            <Slider key="1" size={size} defaultValue={40 + Number(size) * 10} aria-label="Value" />,
-            <Slider key="2" size={size} defaultValue={[20, 65]} aria-label="Range" />,
-            <Slider key="3" size={size} defaultValue={50} disabled aria-label="Disabled" />,
-          ],
-        }))}
-      />
-      <Demo label="Composed — an inspector panel">
-        <Box maxWidth="26rem">
-          <Card size="3">
-            <Stack gap="5">
-              <Stack gap="2">
-                <Flex justify="space-between" align="center">
-                  <Text size="2" weight="medium">Blur radius</Text>
-                  <Text size="2" emphasis="medium"><Code size="2">24px</Code></Text>
-                </Flex>
-                <Slider defaultValue={24} max={64} aria-label="Blur radius" />
-              </Stack>
-              <Stack gap="2">
-                <Flex justify="space-between" align="center">
-                  <Text size="2" weight="medium">Opacity</Text>
-                  <Text size="2" emphasis="medium"><Code size="2">80%</Code></Text>
-                </Flex>
-                <Slider defaultValue={80} aria-label="Opacity" />
-              </Stack>
-            </Stack>
-          </Card>
-        </Box>
-      </Demo>
-    </Stack>
-  );
-}
-
 function SpinnerSection() {
   return (
     <SpecTable
@@ -1474,69 +1426,6 @@ function SpinnerSection() {
         ],
       }))}
     />
-  );
-}
-
-function SwitchSection() {
-  return (
-    <Stack gap="6">
-      <SpecTable
-        cols={["Off", "On", "Invalid", "On, invalid", "Disabled", "On, disabled"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            <Switch key="1" size={size} aria-label="Off" />,
-            <Switch key="2" size={size} defaultChecked aria-label="On" />,
-            <Switch key="3" size={size} aria-invalid="true" aria-label="Invalid" />,
-            <Switch key="3b" size={size} aria-invalid="true" defaultChecked aria-label="On, invalid" />,
-            <Switch key="4" size={size} disabled aria-label="Disabled" />,
-            <Switch key="5" size={size} defaultChecked disabled aria-label="On disabled" />,
-          ],
-        }))}
-      />
-      {/* The one-index shift, visible: switch(n) stands level with checkbox(n + 1). */}
-      <Demo label="The mark family in one row — switch(n) ≡ mark(n + 1)">
-        <Flex gap="5" align="center" wrap="wrap">
-          <Switch size="1" defaultChecked aria-label="Switch 1" />
-          <Checkbox size="2" defaultChecked aria-label="Checkbox 2" />
-          <Switch size="2" aria-label="Switch 2" />
-          <RadioGroup defaultValue="a" aria-label="Radio row">
-            <Radio value="a" size="2" aria-label="Radio 2" />
-          </RadioGroup>
-          <Slider size="2" defaultValue={60} aria-label="Slider 2" style={{ width: "160px" }} />
-        </Flex>
-      </Demo>
-      <Demo label="Composed — notification settings">
-        <Box maxWidth="26rem">
-          <Card size="3">
-            {/* Rows at 5, NO separators (composition skill, 2026-08-17): distance already
-                groups sibling rows, and a line plus a gap is two dividers doing one job —
-                the showcase's Notifications stack is the idiom. */}
-            <Stack gap="5">
-              {(
-                [
-                  ["Public profile", "Anyone with the link can view.", true],
-                  ["Weekly digest", "One email, Monday morning.", true],
-                  ["Usage alerts", "When a project passes its budget.", false],
-                ] as const
-              ).map(([label, description, on], i) => (
-                <React.Fragment key={label}>
-                  <Flex gap="5" align="center" justify="space-between">
-                    <Stack gap="1">
-                      <Text size="2" weight="medium" render={<label htmlFor={`pg-sw-${i}`} />}>
-                        {label}
-                      </Text>
-                      <Text size="2" emphasis="medium">{description}</Text>
-                    </Stack>
-                    <Switch id={`pg-sw-${i}`} defaultChecked={on} />
-                  </Flex>
-                </React.Fragment>
-              ))}
-            </Stack>
-          </Card>
-        </Box>
-      </Demo>
-    </Stack>
   );
 }
 
@@ -1616,175 +1505,6 @@ function TextSection() {
           </Stack>
         </Box>
       </Demo>
-    </Stack>
-  );
-}
-
-function TextAreaSection() {
-  return (
-    <Stack gap="6">
-      <SpecTable
-        wide
-        cols={["Empty", "Value", "Invalid", "Disabled"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            // Every specimen carries its own name (audit 2026-08-08): a placeholder is the
-            // accname spec's last-resort fallback, and most of these columns have none.
-            <TextArea
-              key="1"
-              size={size}
-              rows={2}
-              placeholder="Write a note…"
-              aria-label={`Note, size ${size}, empty`}
-            />,
-            <TextArea
-              key="2"
-              size={size}
-              rows={2}
-              defaultValue="The corner squares with the page at radius none."
-              aria-label={`Note, size ${size}, with a value`}
-            />,
-            <TextArea
-              key="3"
-              size={size}
-              rows={2}
-              defaultValue="Too short."
-              aria-invalid="true"
-              aria-label={`Note, size ${size}, invalid`}
-            />,
-            <TextArea
-              key="4"
-              size={size}
-              rows={2}
-              defaultValue="Locked while the build runs."
-              disabled
-              aria-label={`Note, size ${size}, disabled`}
-            />,
-          ],
-        }))}
-      />
-      <Demo label="Composed — a report form">
-        <Box maxWidth="26rem">
-          <Card size="3">
-            <Stack gap="5">
-              <Stack gap="3">
-                <Stack gap="2">
-                  <Text size="2" weight="medium" render={<label htmlFor="pg-ta-fb" />}>
-                    What went wrong?
-                  </Text>
-                  <Text size="2" emphasis="medium">Steps to reproduce help the most.</Text>
-                </Stack>
-                <TextArea id="pg-ta-fb" rows={4} placeholder="It broke when…" />
-              </Stack>
-              <Flex justify="flex-end" gap="3">
-                <Button emphasis="quiet" bordered>Cancel</Button>
-                <Button tone="accent" emphasis="loud">Send report</Button>
-              </Flex>
-            </Stack>
-          </Card>
-        </Box>
-      </Demo>
-    </Stack>
-  );
-}
-
-function TextFieldSection() {
-  return (
-    <Stack gap="6">
-      <SpecTable
-        wide
-        cols={["Empty", "Slots", "Invalid", "Disabled", "Read only"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            // Named for the same reason TextArea's are, one section over.
-            <TextField
-              key="1"
-              size={size}
-              placeholder="Email"
-              aria-label={`Email, size ${size}, empty`}
-            />,
-            <TextField
-              key="2"
-              size={size}
-              placeholder="Search…"
-              aria-label={`Search, size ${size}, with slots`}
-              leading={<SearchIcon />}
-              trailing={
-                <Button size={size} iconOnly emphasis="quiet" aria-label="Clear">
-                  <XIcon />
-                </Button>
-              }
-            />,
-            <TextField
-              key="3"
-              size={size}
-              defaultValue="not-an-email"
-              aria-invalid="true"
-              aria-label={`Email, size ${size}, invalid`}
-            />,
-            <TextField
-              key="4"
-              size={size}
-              defaultValue="Locked"
-              disabled
-              aria-label={`Email, size ${size}, disabled`}
-            />,
-            <TextField
-              key="5"
-              size={size}
-              defaultValue="ku-8841-veda"
-              readOnly
-              aria-label={`Reference, size ${size}, read only`}
-            />,
-          ],
-        }))}
-      />
-      <Demo label="Composed — sign in">
-        <Box maxWidth="26rem">
-          <Card size="3">
-            <Stack gap="6">
-              <Stack gap="2">
-                <Heading size="4" render={<h3 />}>Sign in</Heading>
-                <Text size="2" emphasis="medium">Use your workspace email.</Text>
-              </Stack>
-              <Stack gap="5">
-                <Stack gap="3">
-                  <Text size="2" weight="medium" render={<label htmlFor="pg-tf-email" />}>
-                    Email
-                  </Text>
-                  <TextField id="pg-tf-email" type="email" placeholder="you@company.com" />
-                </Stack>
-                <Stack gap="3">
-                  <Text size="2" weight="medium" render={<label htmlFor="pg-tf-pass" />}>
-                    Password
-                  </Text>
-                  <TextField id="pg-tf-pass" type="password" defaultValue="hunter2hunter2" />
-                </Stack>
-              </Stack>
-              <Button tone="accent" emphasis="loud" style={{ width: "100%" }}>
-                Continue
-              </Button>
-            </Stack>
-          </Card>
-        </Box>
-      </Demo>
-      {/* The field family's glass. The slots matter here: an adornment sits ON the veil,
-          which is where a wrong slot colour shows. */}
-      <HostileBed>
-        {(["thin", "regular", "thick"] as const).map((m) => (
-          <Theme key={m} material={m}>
-            <TextField
-              size="2"
-              placeholder={cap(m)}
-              aria-label={`Glass field, ${m}`}
-              leading={<SearchIcon />}
-              style={{ width: "170px" }}
-            />
-          </Theme>
-        ))}
-      </HostileBed>
     </Stack>
   );
 }
@@ -2212,108 +1932,6 @@ function ScrollAreaSection() {
   );
 }
 
-function SegmentedControlSection() {
-  return (
-    <Stack gap="6">
-      <SpecTable
-        cols={["Two", "Three", "Disabled"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            <SegmentedControl key="1" size={size} defaultValue="list" aria-label="View">
-              <SegmentedItem value="list">List</SegmentedItem>
-              <SegmentedItem value="grid">Grid</SegmentedItem>
-            </SegmentedControl>,
-            <SegmentedControl key="2" size={size} defaultValue="week" aria-label="Range">
-              <SegmentedItem value="day">Day</SegmentedItem>
-              <SegmentedItem value="week">Week</SegmentedItem>
-              <SegmentedItem value="month">Month</SegmentedItem>
-            </SegmentedControl>,
-            <SegmentedControl key="3" size={size} defaultValue="list" disabled aria-label="Disabled">
-              <SegmentedItem value="list">List</SegmentedItem>
-              <SegmentedItem value="grid">Grid</SegmentedItem>
-            </SegmentedControl>,
-          ],
-        }))}
-      />
-      {/* The track rides the height ladder, which is the whole reason it does: a segmented
-          control has to stand level with the button beside it in a toolbar. */}
-      <Demo label="Standing level with the controls beside it">
-        <Flex gap="4" align="center" wrap="wrap">
-          <SegmentedControl defaultValue="grid" aria-label="View">
-            <SegmentedItem value="list">List</SegmentedItem>
-            <SegmentedItem value="grid">Grid</SegmentedItem>
-          </SegmentedControl>
-          <Button emphasis="quiet">Filter</Button>
-          <Button>New project</Button>
-        </Flex>
-      </Demo>
-    </Stack>
-  );
-}
-
-function TabsSection() {
-  return (
-    <Stack gap="6">
-      <SpecTable
-        cols={["Bar"]}
-        rows={SIZES.map((size) => ({
-          label: `size ${size}`,
-          cells: [
-            <Tabs key="1" defaultValue="overview">
-              <TabsList size={size}>
-                <TabsTab value="overview">Overview</TabsTab>
-                <TabsTab value="activity">Activity</TabsTab>
-                <TabsTab value="settings">Settings</TabsTab>
-              </TabsList>
-            </Tabs>,
-          ],
-        }))}
-      />
-      <Demo label="With its panels">
-        <Box maxWidth="30rem">
-          <Tabs defaultValue="overview">
-            <TabsList size="2">
-              <TabsTab value="overview">Overview</TabsTab>
-              <TabsTab value="activity">Activity</TabsTab>
-              <TabsTab value="settings">Settings</TabsTab>
-            </TabsList>
-            <Box pt="5">
-              <TabsPanel value="overview">
-                <Text>Workspace stats and recent activity.</Text>
-              </TabsPanel>
-              <TabsPanel value="activity">
-                <Text>Everything that happened this week.</Text>
-              </TabsPanel>
-              <TabsPanel value="settings">
-                <Text>Who can see this project, and how they are notified.</Text>
-              </TabsPanel>
-            </Box>
-          </Tabs>
-        </Box>
-      </Demo>
-      {/* The two ways to show a choice, side by side: a tab bar switches the page under it,
-          a segmented control sets a value in place. Judged together because the mistake is
-          reaching for the wrong one. */}
-      <Demo label="Tabs switch a view; a segmented control sets a value">
-        <Stack gap="5">
-          <Tabs defaultValue="a">
-            <TabsList size="2">
-              <TabsTab value="a">Documents</TabsTab>
-              <TabsTab value="b">Shared</TabsTab>
-            </TabsList>
-          </Tabs>
-          <SegmentedControl defaultValue="grid" aria-label="View">
-            <SegmentedItem value="list">List</SegmentedItem>
-            <SegmentedItem value="grid">Grid</SegmentedItem>
-          </SegmentedControl>
-        </Stack>
-      </Demo>
-    </Stack>
-  );
-}
-
-
 /**
  * A ported component's collection entry DERIVES from its preview spec (2026-08-19): the same
  * body the standalone page renders, so the two routes cannot drift. `standalone` is the slug
@@ -2358,16 +1976,16 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "radio", name: "Radio", body: <RadioSection /> },
   { id: "row", name: "Row", body: <RowSection /> },
   { id: "scroll-area", name: "Scroll area", body: <ScrollAreaSection /> },
-  { id: "segmented-control", name: "Segmented control", body: <SegmentedControlSection /> },
+  ported("segmented-control"),
   { id: "separator", name: "Separator", body: <SeparatorSection /> },
   { id: "shell", name: "Shell", body: <ShellSection /> },
-  { id: "slider", name: "Slider", body: <SliderSection /> },
+  ported("slider"),
   { id: "spinner", name: "Spinner", body: <SpinnerSection /> },
   { id: "surface", name: "Surface", body: <SurfaceSection /> },
-  { id: "switch", name: "Switch", body: <SwitchSection /> },
-  { id: "tabs", name: "Tabs", body: <TabsSection /> },
+  ported("switch"),
+  ported("tabs"),
   { id: "text", name: "Text", body: <TextSection /> },
-  { id: "text-area", name: "Text area", body: <TextAreaSection /> },
-  { id: "text-field", name: "Text field", body: <TextFieldSection /> },
+  ported("text-area"),
+  ported("text-field"),
   { id: "tooltip", name: "Tooltip", body: <TooltipSection /> },
 ];
