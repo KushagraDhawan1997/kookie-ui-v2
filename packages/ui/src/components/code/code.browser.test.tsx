@@ -216,16 +216,29 @@ describe("the fill is an identity and the tone reaches BOTH of the chip's colour
       expect(computed(el, "color")).toBe(colorOn(el, "var(--neutral-ink)"));
     });
 
-    it(`${appearance}: a chosen tone moves the fill AND the ink — an atom with a fill has two`, () => {
-      // The half that is easy to ship broken: `.kui-type[data-tone]` re-scopes the INK trio,
-      // so a chip could take a destructive tone, turn its text red and keep a grey box. The
-      // fill reads the same indirection, and this is the law that says so.
+    it(`${appearance}: a chosen tone moves the INK — the chip stays grey (2026-08-23)`, () => {
+      /**
+       * REVERSED, and the old law's own words are the record: "a chip could take a destructive
+       * tone, turn its text red and keep a grey box" was named as the DEFECT. It is now the
+       * design. No family paints a faded wash — the soft trio reads neutral for every tone —
+       * so what a tone moves on an atom is its letters.
+       *
+       * A `.kui-type[data-tone]` element re-scopes the ink trio, which is why the ink half is
+       * asserted through the FAMILY rather than the role: a chip that had lost its stamp
+       * entirely would satisfy "the fill is neutral" perfectly.
+       */
       const el = mounted(<Code tone="destructive">rm -rf</Code>, { theme: { appearance } });
       const neutral = mounted(<Code>rm -rf</Code>, { theme: { appearance } });
-      expect(computed(el, "background-color")).toBe(colorOn(el, "var(--destructive-soft)"));
       expect(computed(el, "color")).toBe(colorOn(el, "var(--destructive-ink)"));
-      expect(computed(el, "background-color")).not.toBe(computed(neutral, "background-color"));
-      expect(computed(el, "color")).not.toBe(computed(neutral, "color"));
+      expect(computed(el, "color"), "the tone reaches nothing").not.toBe(
+        computed(neutral, "color"),
+      );
+      expect(computed(el, "background-color"), "the chip is tinted again").toBe(
+        computed(neutral, "background-color"),
+      );
+      // And the chip still exists — a Code that stopped painting a box would pass the line
+      // above for the wrong reason.
+      expect(computed(el, "background-color")).not.toContain("rgba(0, 0, 0, 0)");
     });
 
     it(`${appearance}: the fill does NOT climb the emphasis ladder — that axis is the ink's`, () => {

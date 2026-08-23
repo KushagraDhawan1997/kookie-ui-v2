@@ -1,5 +1,5 @@
 /**
- * ACCENT IS NEVER DILUTED (§7, §11, 2026-08-23) — the doctrine as PAINT.
+ * THE WASHES ARE NEUTRAL FOR EVERYONE, AND ACCENT GIVES UP MORE — the doctrine as PAINT.
  *
  * `tokens.test.ts` reads the emitted indirection and proves the generator wrote what config
  * asked for. This file asks the browser what a person actually sees, which is the standing
@@ -7,12 +7,19 @@
  * through a mounted `<Theme>`, in both appearances, because a token name is one indirection
  * short of the thing that can be wrong.
  *
- * EVERY LAW HERE CARRIES A NEGATIVE CONTROL, and it is the same one each time: `blue`. Accent
- * and blue are the same recipe under two names (`{ hue: 250, vividness: 1 }` twice), so a
- * generator that had quietly sent EVERY tone's wash to neutral — or a stylesheet that had
- * stopped painting fills at all — satisfies "accent's medium fill is neutral" perfectly. The
- * pair differing is the claim; accent alone is a sentence about nothing. This is the
- * degenerate-fixture rule (2026-08-20) applied before the fact rather than after.
+ * THE NEGATIVE CONTROL MOVED ON 2026-08-23 AND THAT IS WORTH READING BEFORE EDITING HERE.
+ * `blue` is accent's own recipe under another name, so it was the one control that could not
+ * be dismissed as a different colour behaving differently — and every law used it the same
+ * way: accent's wash is neutral, blue's is not. Then the washes went neutral for every family
+ * (Kushagra: "why do these buttons continue to have a light filter?"), which made that
+ * comparison TRUE OF BOTH — a control that no longer controls, and a law that had quietly
+ * become a tautology.
+ *
+ * So the laws split. The wash laws now assert three families agree, with a "the fill still
+ * exists" guard in place of the old control. `blue` still controls where accent genuinely
+ * still differs: `a3` and the two faded inks, which stayed accent-only so a Notice keeps its
+ * tint and toned prose keeps its red. When you add a law here, ask which of those two shapes
+ * it is — the wrong one is a sentence about nothing.
  *
  * INSTRUMENT NOTE, for whoever sabotages this file next. These laws read `tokens.css` from
  * DISK, so a mutation to `generate.ts` or `color-config.ts` changes nothing they can see until
@@ -27,6 +34,7 @@ import { userEvent } from "vitest/browser";
 
 import { APPEARANCES, colorOn, computed, mounted, within } from "../test/browser.tsx";
 import { Button } from "../components/button/button.tsx";
+import { Row } from "../components/row/row.tsx";
 import { Text } from "../components/text/text.tsx";
 import type { Emphasis } from "./axes.ts";
 
@@ -52,25 +60,78 @@ const fill = (el: Element) => computed(el, "background-color");
 
 for (const appearance of APPEARANCES) {
   describe(`${appearance}: the washes go neutral and the pigment stays`, () => {
-    it("a MEDIUM accent button is filled in neutral, where its twin is not", () => {
+    it("a MEDIUM button is filled in NEUTRAL whatever tone it carries", () => {
+      // Widened 2026-08-23 from accent-only. The wash roles are neutral for every family now,
+      // so this reads three families at once and asserts they are one colour — which is a
+      // stronger claim than the old "accent equals neutral", and the one Kushagra asked for.
       const { accent, blue, neutral } = trio("medium", appearance);
       expect(fill(accent), "accent's medium fill is still its own").toBe(fill(neutral));
-      // THE CONTROL. Without it this law passes on a package that paints no fills at all.
-      expect(fill(blue), "blue lost its wash too — the rule is not accent-only").not.toBe(
-        fill(neutral),
+      expect(fill(blue), "blue still paints a tinted wash").toBe(fill(neutral));
+      // Vacuity guard: a package that painted NO fill at all satisfies every line above. The
+      // wash has to exist — what it lost is the claim that it is the family.
+      expect(fill(neutral), "the medium rung stopped painting anything").not.toContain(
+        "rgba(0, 0, 0, 0)",
       );
     });
 
-    it("...and the label is where the accent went", () => {
-      const { accent, neutral } = trio("medium", appearance);
-      // Read through the FAMILY, not the role: `var(--tone-label)` resolves at the element to
-      // whatever tone is stamped, so asserting it would pass on a button that had lost its
-      // stamp entirely and fallen back to neutral — which is precisely the failure this law
-      // is here to catch, since the fill is now neutral either way.
-      expect(computed(accent, "color")).toBe(colorOn(accent, "var(--accent-label)"));
-      expect(computed(accent, "color"), "nothing distinguishes the accent button").not.toBe(
+    it("...and the family is in the LABEL — for every tone, not just accent", () => {
+      const { accent, blue, neutral } = trio("medium", appearance);
+      // Read through the FAMILY, not the role: `var(--tone-ink)` resolves at the element to
+      // whatever is stamped, so asserting it would pass on a button that had lost its stamp
+      // and fallen back to neutral — which is exactly the failure to catch, since the fill is
+      // now neutral either way.
+      expect(computed(accent, "color")).toBe(colorOn(accent, "var(--accent-ink)"));
+      expect(computed(blue, "color")).toBe(colorOn(blue, "var(--blue-ink)"));
+      expect(computed(accent, "color"), "nothing distinguishes a toned button").not.toBe(
         computed(neutral, "color"),
       );
+    });
+
+    it("a button's label reads what a ROW's label reads — the 2026-08-23 reversal", () => {
+      /**
+       * The defect Kushagra found on the tone x emphasis board: "why does row label not read
+       * the same as button's... Button label reads too dark."
+       *
+       * Buttons read `--tone-label` (between steps 11 and 12) while rows moved to `--tone-ink`
+       * on 2026-08-09, for a reason that applied to both: on a chroma family `--tone-label` is
+       * muddy — destructive resolves it to #6c3230, a BROWN, against the ink's #a64545. Rows
+       * were fixed, buttons were not, and the two disagreed on one screen.
+       *
+       * DESTRUCTIVE is the fixture and that is load-bearing: on NEUTRAL the two roles are close
+       * enough that a reader might not notice, and this law would be about nothing.
+       */
+      const root = mounted(
+        <div>
+          <Button data-t="btn" tone="destructive" emphasis="quiet">Delete</Button>
+          <Row data-t="row" tone="destructive">Delete</Row>
+        </div>,
+        { theme: { appearance } },
+      );
+      const btn = within(root, '[data-t="btn"]');
+      const row = within(root, '[data-t="row"]');
+      expect(computed(btn, "color"), "a button and a row disagree about one word").toBe(
+        computed(row, "color"),
+      );
+      expect(computed(btn, "color")).toBe(colorOn(btn, "var(--destructive-ink)"));
+      // And it is NOT the control ink it used to be — the brown, measured.
+      expect(computed(btn, "color"), "the button is back on the muddy label ink").not.toBe(
+        colorOn(btn, "var(--destructive-label)"),
+      );
+    });
+
+    it("a QUIET button hovers grey, whatever tone it carries", async () => {
+      // The paint under a real pointer, not the token behind it: quiet's rest is transparent,
+      // so the wash only exists as something the pointer summons.
+      const { accent, blue, neutral } = trio("quiet", appearance);
+      await userEvent.hover(accent);
+      const accentHover = fill(accent);
+      await userEvent.hover(neutral);
+      const neutralHover = fill(neutral);
+      await userEvent.hover(blue);
+      const blueHover = fill(blue);
+      expect(accentHover, "the hover wash never arrived at all").not.toContain("rgba(0, 0, 0, 0)");
+      expect(accentHover).toBe(neutralHover);
+      expect(blueHover, "blue still hovers to a tint").toBe(neutralHover);
     });
 
     it("a LOUD accent button keeps the pigment — this is the rung the rule protects", () => {
@@ -81,27 +142,11 @@ for (const appearance of APPEARANCES) {
       );
     });
 
-    it("a QUIET accent button hovers grey, where its twin hovers blue", async () => {
-      // The paint under a real pointer, not the token behind it: quiet's rest is transparent,
-      // so the wash only exists as something the pointer summons and reading `--tone-soft` off
-      // a resting button would test the indirection this file exists to look past.
-      const { accent, blue, neutral } = trio("quiet", appearance);
-      await userEvent.hover(accent);
-      const accentHover = fill(accent);
-      await userEvent.hover(neutral);
-      const neutralHover = fill(neutral);
-      await userEvent.hover(blue);
-      const blueHover = fill(blue);
-      expect(accentHover, "the hover wash never arrived at all").not.toContain("rgba(0, 0, 0, 0)");
-      expect(accentHover).toBe(neutralHover);
-      expect(blueHover, "blue lost its hover wash too").not.toBe(neutralHover);
-    });
-
-    it("accent TEXT is loud or it is not accent", () => {
-      // The ink trio's faded rungs (§15). Loud keeps the family's designed text colour —
-      // measured `#2a6caa` light, `#95c2f2` dark, and it INVERTS between modes, which is the
-      // signature of a value that moves lightness to stay legible rather than draining chroma
-      // to stay quiet. Muted and faint drained chroma, so they go.
+    it("accent TEXT is loud or it is not accent — and blue is the control that still holds", () => {
+      // The ink trio's faded rungs (§15), and this is one of the three roles that stayed
+      // ACCENT-ONLY when the washes widened. `blue` therefore still controls here, which is
+      // why the surviving difference was moved onto these: the pair no longer differs at the
+      // wash roles at all, so a law using those as its control had become a tautology.
       const root = mounted(
         <div>
           <Text data-t="a-loud" tone="accent">Save</Text>
@@ -116,7 +161,9 @@ for (const appearance of APPEARANCES) {
         colorOn(within(root, '[data-t="a-loud"]'), "var(--accent-ink)"),
       );
       expect(at("a-med"), "a quieted accent word is still blue").toBe(at("n-med"));
-      expect(at("b-med"), "blue's muted ink went neutral too").not.toBe(at("n-med"));
+      expect(at("b-med"), "blue's muted ink went neutral too — Notice's prose would follow").not.toBe(
+        at("n-med"),
+      );
     });
   });
 }

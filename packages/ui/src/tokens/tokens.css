@@ -4619,12 +4619,12 @@
 }
 
 [data-tone="destructive"] {
-  --tone-soft: var(--destructive-soft);
-  --tone-soft-hover: var(--destructive-soft-hover);
-  --tone-soft-active: var(--destructive-soft-active);
-  --tone-soft-solid: var(--destructive-soft-solid);
-  --tone-soft-hover-solid: var(--destructive-soft-hover-solid);
-  --tone-soft-active-solid: var(--destructive-soft-active-solid);
+  --tone-soft: var(--neutral-soft);
+  --tone-soft-hover: var(--neutral-soft-hover);
+  --tone-soft-active: var(--neutral-soft-active);
+  --tone-soft-solid: var(--neutral-soft-solid);
+  --tone-soft-hover-solid: var(--neutral-soft-hover-solid);
+  --tone-soft-active-solid: var(--neutral-soft-active-solid);
   --tone-solid: var(--destructive-solid);
   --tone-solid-hover: var(--destructive-solid-hover);
   --tone-solid-active: var(--destructive-solid-active);
@@ -4640,12 +4640,12 @@
 }
 
 [data-tone="blue"] {
-  --tone-soft: var(--blue-soft);
-  --tone-soft-hover: var(--blue-soft-hover);
-  --tone-soft-active: var(--blue-soft-active);
-  --tone-soft-solid: var(--blue-soft-solid);
-  --tone-soft-hover-solid: var(--blue-soft-hover-solid);
-  --tone-soft-active-solid: var(--blue-soft-active-solid);
+  --tone-soft: var(--neutral-soft);
+  --tone-soft-hover: var(--neutral-soft-hover);
+  --tone-soft-active: var(--neutral-soft-active);
+  --tone-soft-solid: var(--neutral-soft-solid);
+  --tone-soft-hover-solid: var(--neutral-soft-hover-solid);
+  --tone-soft-active-solid: var(--neutral-soft-active-solid);
   --tone-solid: var(--blue-solid);
   --tone-solid-hover: var(--blue-solid-hover);
   --tone-solid-active: var(--blue-solid-active);
@@ -4661,12 +4661,12 @@
 }
 
 [data-tone="green"] {
-  --tone-soft: var(--green-soft);
-  --tone-soft-hover: var(--green-soft-hover);
-  --tone-soft-active: var(--green-soft-active);
-  --tone-soft-solid: var(--green-soft-solid);
-  --tone-soft-hover-solid: var(--green-soft-hover-solid);
-  --tone-soft-active-solid: var(--green-soft-active-solid);
+  --tone-soft: var(--neutral-soft);
+  --tone-soft-hover: var(--neutral-soft-hover);
+  --tone-soft-active: var(--neutral-soft-active);
+  --tone-soft-solid: var(--neutral-soft-solid);
+  --tone-soft-hover-solid: var(--neutral-soft-hover-solid);
+  --tone-soft-active-solid: var(--neutral-soft-active-solid);
   --tone-solid: var(--green-solid);
   --tone-solid-hover: var(--green-solid-hover);
   --tone-solid-active: var(--green-solid-active);
@@ -4682,12 +4682,12 @@
 }
 
 [data-tone="orange"] {
-  --tone-soft: var(--orange-soft);
-  --tone-soft-hover: var(--orange-soft-hover);
-  --tone-soft-active: var(--orange-soft-active);
-  --tone-soft-solid: var(--orange-soft-solid);
-  --tone-soft-hover-solid: var(--orange-soft-hover-solid);
-  --tone-soft-active-solid: var(--orange-soft-active-solid);
+  --tone-soft: var(--neutral-soft);
+  --tone-soft-hover: var(--neutral-soft-hover);
+  --tone-soft-active: var(--neutral-soft-active);
+  --tone-soft-solid: var(--neutral-soft-solid);
+  --tone-soft-hover-solid: var(--neutral-soft-hover-solid);
+  --tone-soft-active-solid: var(--neutral-soft-active-solid);
   --tone-solid: var(--orange-solid);
   --tone-solid-hover: var(--orange-solid-hover);
   --tone-solid-active: var(--orange-solid-active);
@@ -4703,12 +4703,12 @@
 }
 
 [data-tone="amber"] {
-  --tone-soft: var(--amber-soft);
-  --tone-soft-hover: var(--amber-soft-hover);
-  --tone-soft-active: var(--amber-soft-active);
-  --tone-soft-solid: var(--amber-soft-solid);
-  --tone-soft-hover-solid: var(--amber-soft-hover-solid);
-  --tone-soft-active-solid: var(--amber-soft-active-solid);
+  --tone-soft: var(--neutral-soft);
+  --tone-soft-hover: var(--neutral-soft-hover);
+  --tone-soft-active: var(--neutral-soft-active);
+  --tone-soft-solid: var(--neutral-soft-solid);
+  --tone-soft-hover-solid: var(--neutral-soft-hover-solid);
+  --tone-soft-active-solid: var(--neutral-soft-active-solid);
   --tone-solid: var(--amber-solid);
   --tone-solid-hover: var(--amber-solid-hover);
   --tone-solid-active: var(--amber-solid-active);
@@ -4724,12 +4724,12 @@
 }
 
 [data-tone="success"] {
-  --tone-soft: var(--success-soft);
-  --tone-soft-hover: var(--success-soft-hover);
-  --tone-soft-active: var(--success-soft-active);
-  --tone-soft-solid: var(--success-soft-solid);
-  --tone-soft-hover-solid: var(--success-soft-hover-solid);
-  --tone-soft-active-solid: var(--success-soft-active-solid);
+  --tone-soft: var(--neutral-soft);
+  --tone-soft-hover: var(--neutral-soft-hover);
+  --tone-soft-active: var(--neutral-soft-active);
+  --tone-soft-solid: var(--neutral-soft-solid);
+  --tone-soft-hover-solid: var(--neutral-soft-hover-solid);
+  --tone-soft-active-solid: var(--neutral-soft-active-solid);
   --tone-solid: var(--success-solid);
   --tone-solid-hover: var(--success-solid-hover);
   --tone-solid-active: var(--success-solid-active);
@@ -4745,12 +4745,12 @@
 }
 
 [data-tone="warning"] {
-  --tone-soft: var(--warning-soft);
-  --tone-soft-hover: var(--warning-soft-hover);
-  --tone-soft-active: var(--warning-soft-active);
-  --tone-soft-solid: var(--warning-soft-solid);
-  --tone-soft-hover-solid: var(--warning-soft-hover-solid);
-  --tone-soft-active-solid: var(--warning-soft-active-solid);
+  --tone-soft: var(--neutral-soft);
+  --tone-soft-hover: var(--neutral-soft-hover);
+  --tone-soft-active: var(--neutral-soft-active);
+  --tone-soft-solid: var(--neutral-soft-solid);
+  --tone-soft-hover-solid: var(--neutral-soft-hover-solid);
+  --tone-soft-active-solid: var(--neutral-soft-active-solid);
   --tone-solid: var(--warning-solid);
   --tone-solid-hover: var(--warning-solid-hover);
   --tone-solid-active: var(--warning-solid-active);
@@ -4766,12 +4766,12 @@
 }
 
 [data-tone="info"] {
-  --tone-soft: var(--info-soft);
-  --tone-soft-hover: var(--info-soft-hover);
-  --tone-soft-active: var(--info-soft-active);
-  --tone-soft-solid: var(--info-soft-solid);
-  --tone-soft-hover-solid: var(--info-soft-hover-solid);
-  --tone-soft-active-solid: var(--info-soft-active-solid);
+  --tone-soft: var(--neutral-soft);
+  --tone-soft-hover: var(--neutral-soft-hover);
+  --tone-soft-active: var(--neutral-soft-active);
+  --tone-soft-solid: var(--neutral-soft-solid);
+  --tone-soft-hover-solid: var(--neutral-soft-hover-solid);
+  --tone-soft-active-solid: var(--neutral-soft-active-solid);
   --tone-solid: var(--info-solid);
   --tone-solid-hover: var(--info-solid-hover);
   --tone-solid-active: var(--info-solid-active);

@@ -1981,12 +1981,14 @@ describe("the rail: a column of squares whose width is not the app's to state (�
     ];
     const currentRest = computed(currentItem!, "background-color");
     expect(currentRest, "the current square rests transparent").not.toContain("rgba(0, 0, 0, 0)");
-    // `--accent-LABEL`, not `--accent-ink`, and the difference is real rather than a typo: a
-    // rail item is a square, not a `.kui-row`, so it never takes the row family's re-point to
-    // the content ink and keeps the control layer's button-label ink (§21's 2026-08-09 split —
-    // a row reads prose ink because a row is a line you read; a square has no line).
+    // `--accent-INK` since 2026-08-23, and the change is the point rather than a rename. This
+    // read `--accent-label` because a rail square is not a `.kui-row` and so never took the row
+    // family's 2026-08-09 re-point onto the content ink — the two vocabularies had genuinely
+    // split. They are one again: the control layer's own rungs moved to the ink that day, for
+    // the reason the rows moved (on a chroma family `--tone-label` is a brown), so a square, a
+    // row and a button now name one colour.
     expect(computed(currentItem!, "color"), "the current square's glyph is not accent").toBe(
-      colorOn(currentItem!, "var(--accent-label)"),
+      colorOn(currentItem!, "var(--accent-ink)"),
     );
     expect(computed(currentItem!, "color")).not.toBe(computed(plain!, "color"));
     await userEvent.hover(plain!);

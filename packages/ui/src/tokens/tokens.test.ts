@@ -43,7 +43,7 @@ import {
 } from "./config.ts";
 import { allStylesheets, block as blockIn, sheet, stripped } from "../test/stylesheets.ts";
 import { generateLayoutCss } from "../system/layout-css.ts";
-import { DILUTED_ROLES, ROLES, generateTokens } from "./generate.ts";
+import { DILUTED_ROLES, ROLES, WASH_ROLES, generateTokens } from "./generate.ts";
 import { tones, undilutedTones } from "./color-config.ts";
 
 const css = generateTokens();
@@ -1890,144 +1890,145 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
 
 
 /**
- * ACCENT IS NEVER DILUTED (§7, §11, 2026-08-23) — the doctrine, read off the emitted
- * indirection rather than off the config that produced it.
+ * NO TONE PAINTS A FADED FILL, AND ACCENT REFUSES MORE THAN THAT (§7, §9, §11, 2026-08-23).
  *
- * Kushagra: *"an accent never paints a 'faded' background. Accent is pure. You pick accent,
- * and its the vibrant color you pick. Your loudest buttons get it. Its the medium emphasis
- * button, and quiet on hover, that lose that."*
+ * Two rules, and keeping them apart is the whole of what these laws check.
  *
- * The blue block is the LOAD-BEARING half and it is not decoration. `accent` and `blue` are
- * the same recipe — literally `{ hue: 250, vividness: 1 }` twice — so every value in the two
- * blocks was byte-identical until today, and a law that only read the accent block would go
- * green against a generator that had sent EVERY tone's washes to neutral. The two blocks
- * differing at exactly the diluted roles, and agreeing everywhere else, is the whole claim.
+ *   WASH_ROLES     — the soft trio and its opaque glass twins. NEUTRAL for every family.
+ *                    Kushagra, off the tone x emphasis board: "why do these buttons continue
+ *                    to have a light filter?" A medium button, a quiet one under the pointer
+ *                    and a badge's chip are grey whatever tone they carry.
+ *   DILUTED_ROLES  — `a3` and the two faded inks. Neutral only for `undilutedTones`, so a
+ *                    Notice keeps its tint and a `destructive` paragraph at medium emphasis
+ *                    keeps its red, while accent gives both up.
+ *
+ * The negative control MOVED with the rule and that is the interesting part. `blue` used to
+ * prove the rule bit by keeping its washes; it no longer keeps them, so the pair now differs
+ * at `a3` and the inks instead. A law whose control stops controlling is a law that quietly
+ * becomes a tautology — this is where that was caught.
  */
-describe("the undiluted tones point their washed roles at neutral (§7, §11)", () => {
+describe("the wash is neutral for everyone; accent gives up more (§7, §9, §11)", () => {
   /**
-   * WHAT COUNTS AS A DILUTION, written out INDEPENDENTLY (2026-08-23, ultracode audit).
+   * The membership, written out INDEPENDENTLY of the sets it checks.
    *
-   * Every other law in this describe derives its expectation from `DILUTED_ROLES`, which makes
-   * them laws about self-consistency rather than about the doctrine: they ask "is everything in
-   * the set neutral and everything outside it accent?", which stays true no matter what the set
-   * contains. The audit shrank the set from nine entries to two, regenerated, and ran the whole
-   * package suite — 1797 passed. Accent's hover fill, its press fill, its three glass twins, its
-   * faint ink and its surface tint had all gone back to being faded blue, with nothing red.
-   *
-   * So the membership is stated here as a second source and checked BOTH ways. This literal is
-   * the claim; `DILUTED_ROLES` is the implementation of it. They are allowed to be edited
-   * together — deliberately widening the doctrine means editing two places, which is the price
-   * of the guarantee — but they may not drift apart silently.
-   *
-   * The list is Kushagra's own sentence made checkable: *"an accent never paints a 'faded'
-   * background... Its the medium emphasis button, and quiet on hover, that lose that."* Every
-   * entry is a wash, a wash's opaque twin, a faded ink, or the tone-forward surface tint.
+   * Every other law here derives its expectation from the source sets, which makes them laws
+   * about self-consistency rather than about the doctrine: "is everything in the set neutral
+   * and everything outside it not?" stays true whatever the set contains. The audit proved it
+   * — shrinking the old set from nine entries to two passed 1797 tests. So the two lists are
+   * restated here as a second source and checked both ways. They may be edited together;
+   * they may not drift apart silently.
    */
-  const DILUTIONS = [
-    "soft",              // medium's resting fill
+  const WASHES = [
+    "soft",              // medium's resting fill, and a badge's chip
     "soft-hover",        // medium hovered, and quiet's hover
     "soft-active",       // medium pressed, and quiet's press
     "soft-solid",        // the trio's opaque twins — what the glass scopes re-point to
     "soft-hover-solid",
     "soft-active-solid",
+  ] as const;
+  const ACCENT_ONLY = [
+    "a3",                // the tone-forward surface fill — Notice keeps this
     "ink-muted",         // the type ladder's middle rung
     "ink-faint",         // and its quiet one
-    "a3",                // the tone-forward surface fill (Notice, a toned Card)
+  ] as const;
+  /** What no tone ever gives up: the pigment, the line, and the inks that sit on a fill. */
+  const KEPT = [
+    "solid",
+    "solid-hover",
+    "solid-active",
+    "border",
+    "text",
+    "label",
+    "contrast",
+    "ink",
+    "glyph",
   ] as const;
 
-  it("the set of dilutions is exactly the nine roles the doctrine names", () => {
-    // Both directions. A shorter set is a doctrine that stopped covering something, a longer
-    // one is a role that lost its colour without anybody deciding it should.
-    expect([...DILUTED_ROLES].sort()).toEqual([...DILUTIONS].sort());
+  it("the two sets are exactly what the doctrine names, and they do not overlap", () => {
+    expect([...WASH_ROLES].sort()).toEqual([...WASHES].sort());
+    expect([...DILUTED_ROLES].sort()).toEqual([...ACCENT_ONLY].sort());
+    // Disjoint, or a role in both would make `neutralRolesFor` say one thing twice and the
+    // per-tone difference below stop meaning anything.
+    expect([...WASH_ROLES].filter((r) => DILUTED_ROLES.has(r))).toEqual([]);
+    // And between them they cover every role, so nothing is silently unclassified.
+    expect([...WASHES, ...ACCENT_ONLY, ...KEPT].sort()).toEqual([...ROLES].sort());
   });
 
-  it("each named dilution really is neutral on accent, and its own on blue", () => {
-    // The outcome, role by role, read off the emitted CSS rather than through the set. This is
-    // the law that fails when an entry is dropped: it names `soft-hover` itself, so removing
-    // `soft-hover` from `DILUTED_ROLES` leaves `--tone-soft-hover: var(--accent-soft-hover)`
-    // here and this assertion is what says so.
-    const accent = block(`[data-tone="accent"]`);
-    const blue = block(`[data-tone="blue"]`);
-    for (const role of DILUTIONS) {
-      expect(accent, `--tone-${role} is still accent's own`).toContain(
-        `--tone-${role}: var(--neutral-${role});`,
-      );
-      // Blue is the control at every single role, not once for the group — a rule that had
-      // sent EVERY family's washes to neutral satisfies the line above perfectly.
-      expect(blue, `blue lost --tone-${role} too`).toContain(
-        `--tone-${role}: var(--blue-${role});`,
-      );
-    }
-  });
-
-  it("and the roles the doctrine does NOT name keep the family — the pigment that survives", () => {
-    // The other half, equally independent: the four roles accent must keep. Written out for
-    // the same reason, and it is the law that fails if somebody widens the set by hand.
-    const accent = block(`[data-tone="accent"]`);
-    for (const role of ["solid", "border", "ink", "glyph"] as const) {
-      expect(accent, `accent lost --tone-${role}`).toContain(
-        `--tone-${role}: var(--accent-${role});`,
-      );
-    }
-  });
-
-  it("every diluted role is a role that exists", () => {
-    // A typo here would make the rule a silent no-op — the set is consulted by NAME, so
-    // `"soft-hovr"` simply never matches and the wash it was meant to catch ships diluted
-    // with the suite green. This is the cheapest law in the file and it guards the whole
-    // mechanism.
-    for (const role of DILUTED_ROLES) {
+  it("every named role exists — a typo here is a rule that silently does nothing", () => {
+    for (const role of [...WASH_ROLES, ...DILUTED_ROLES]) {
       expect(ROLES as readonly string[], `"${role}" is not a role`).toContain(role);
     }
-    // And the set is not empty, which every loop below would tolerate.
+    expect(WASH_ROLES.size).toBeGreaterThan(0);
     expect(DILUTED_ROLES.size).toBeGreaterThan(0);
     expect(undilutedTones.length).toBeGreaterThan(0);
   });
 
+  it("EVERY tone reads neutral at the wash roles — no faded fills anywhere", () => {
+    // The rule Kushagra asked for, role by role and family by family. It is stated over the
+    // whole tone set rather than a sample, because "buttons and badges" was the ask and every
+    // family reaches both.
+    for (const tone of Object.keys(tones)) {
+      const scope = block(`[data-tone="${tone}"]`);
+      for (const role of WASHES) {
+        expect(scope, `${tone} still paints its own --tone-${role}`).toContain(
+          `--tone-${role}: var(--neutral-${role});`,
+        );
+      }
+    }
+  });
+
+  it("a MEANING keeps its tint and its quiet inks — Notice and toned prose survive", () => {
+    // The half that makes the widening narrow. `a3` is the tone-forward surface (a Notice's
+    // whole design) and the faded inks are a quieter red rather than a grey. If this ever goes
+    // green with those neutralised, the widening reached past what it was asked to.
+    for (const tone of Object.keys(tones)) {
+      if ((undilutedTones as readonly string[]).includes(tone)) continue;
+      const scope = block(`[data-tone="${tone}"]`);
+      for (const role of ACCENT_ONLY) {
+        expect(scope, `${tone} lost --tone-${role}`).toContain(
+          `--tone-${role}: var(--${tone}-${role});`,
+        );
+      }
+    }
+  });
+
   for (const tone of undilutedTones) {
-    it(`${tone} reads neutral where the role is a dilution, and itself everywhere else`, () => {
+    it(`${tone} gives up the washes AND the dilutions, and keeps everything else`, () => {
       const scope = block(`[data-tone="${tone}"]`);
       for (const role of ROLES) {
         const value = scope.match(new RegExp(`--tone-${role}:\\s*([^;]+);`))?.[1];
         expect(value, `--tone-${role} is not declared for ${tone}`).toBeDefined();
+        const neutral = (WASHES as readonly string[]).includes(role)
+          || (ACCENT_ONLY as readonly string[]).includes(role);
         expect(value, `--tone-${role}`).toBe(
-          DILUTED_ROLES.has(role) ? `var(--neutral-${role})` : `var(--${tone}-${role})`,
+          neutral ? `var(--neutral-${role})` : `var(--${tone}-${role})`,
         );
       }
     });
   }
 
-  it("a DILUTED tone still reads itself at every role — accent's twin proves the rule bites", () => {
-    // `blue` is accent's own recipe under a different name (LOG 2026-08-05), which makes it
-    // the one negative control that cannot be dismissed as a different colour behaving
-    // differently. Same pigment, one is an identity and one is data, and only the identity
-    // refuses its washes.
-    const scope = block(`[data-tone="blue"]`);
-    for (const role of ROLES) {
-      expect(scope, `--tone-${role} for blue`).toContain(`--tone-${role}: var(--blue-${role});`);
-    }
-    // Stated as a difference as well as a pair of absolutes, so a generator that renamed the
-    // neutral family out from under both blocks still fails.
+  it("accent and blue still DIFFER — and the control moved to where they now differ", () => {
+    /**
+     * `blue` is accent's own recipe under another name, so it is the one control that cannot
+     * be dismissed as a different colour behaving differently. It used to prove the rule bit
+     * by keeping its washes; it no longer keeps them, so THAT comparison has become a
+     * tautology and this asserts the surviving difference instead — `a3` and the two inks.
+     *
+     * Without this the whole describe would pass on a generator that had neutralised every
+     * role of every family.
+     */
     const accent = block(`[data-tone="accent"]`);
+    const blue = block(`[data-tone="blue"]`);
+    for (const role of ACCENT_ONLY) {
+      expect(accent, `--tone-${role}`).toContain(`--tone-${role}: var(--neutral-${role});`);
+      expect(blue, `--tone-${role}`).toContain(`--tone-${role}: var(--blue-${role});`);
+    }
+    // And they AGREE everywhere else, which is what says the difference is exactly the rule.
     const differing = ROLES.filter(
       (role) =>
         accent.match(new RegExp(`--tone-${role}:\\s*([^;]+);`))?.[1] !==
-        scope.match(new RegExp(`--tone-${role}:\\s*([^;]+);`))?.[1]?.replace("blue", "accent"),
+        blue.match(new RegExp(`--tone-${role}:\\s*([^;]+);`))?.[1]?.replace("blue", "accent"),
     );
     expect(new Set(differing)).toEqual(DILUTED_ROLES);
-  });
-
-  it("the tones that are MEANINGS keep their washes", () => {
-    // The asymmetry is the decision, not an oversight: a pale red still reads danger, so
-    // diluting a meaning costs it nothing. Only an identity is destroyed by dilution. If a
-    // second tone ever joins `undilutedTones` this law is where that shows up.
-    for (const tone of Object.keys(tones)) {
-      if ((undilutedTones as readonly string[]).includes(tone)) continue;
-      const scope = block(`[data-tone="${tone}"]`);
-      expect(scope, `${tone} lost its wash`).toContain(`--tone-soft: var(--${tone}-soft);`);
-      expect(scope, `${tone} lost its faded ink`).toContain(
-        `--tone-ink-muted: var(--${tone}-ink-muted);`,
-      );
-    }
   });
 });

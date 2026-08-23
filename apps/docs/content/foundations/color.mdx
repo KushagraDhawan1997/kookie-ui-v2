@@ -73,17 +73,31 @@ cost nothing.
 Every family emits the same set. `--destructive-solid`, `--success-ink` and `--warning-border`
 all exist, so one role name works across all ten families.
 
-## The accent is never diluted
+## No family paints a faded fill
 
-The accent is the one family you choose, and it appears at full strength or not at all. Where a
-role is a *faded* version of a colour — the tint fills, their opaque twins, the two quiet inks,
-and the surface tint — the accent reads **neutral** instead. So a medium button, a quiet button
-under the pointer, a selected row and a tinted surface are all grey, and the accent moves to the
-label. The solid fill, the border, the ink and the glyph keep the colour.
+A tinted fill is a colour spent to say almost nothing: at 11% alpha what reaches the eye is
+mostly the page. So the tint fills are **neutral for every family**. A medium button, a quiet
+button under the pointer, and a badge's chip are grey whatever tone they carry — and the family
+arrives in the label instead.
 
-This applies to the accent only. The other nine families are *meanings*, and a pale red still
-reads as danger, so diluting one costs it nothing it was carrying. Diluting an identity destroys
-it: 11% of your brand is not your brand.
+The solid fill keeps the colour, which is the point: that is the rung the rule protects.
+
+## The accent gives up more
+
+Two roles stayed per-family and the accent alone refuses them: the **surface tint** and the two
+**quiet inks**. So a `destructive` Notice is still a red-tinted box, and a `destructive`
+paragraph at medium emphasis is still a quieter red — while an `accent` one is grey.
+
+The reason is what the accent *is*. The other nine families are meanings, and a pale red still
+reads as danger. The accent is the one you choose, and diluting an identity destroys it: 11% of
+your brand is not your brand.
+
+## Labels read what words read
+
+A control's label reads `--{tone}-ink` — the same ink prose reads. It used to read a separate
+`--{tone}-label`, minted a step lighter on the argument that a control label is not a link; the
+argument was sound and the value was not. On a chroma family it landed on a brown rather than a
+red, which is why rows left it first and buttons followed.
 
 ## A glyph is not a fill, and it is not ink
 

@@ -821,8 +821,23 @@
   --kui-ct-fill-src: var(--tone-soft);
   --kui-ct-fill-src-hover: var(--tone-soft-hover);
   --kui-ct-fill-src-active: var(--tone-soft-active);
-  /* A control label is not a link: --tone-label sits between steps 11 and 12 (§7). */
-  --kui-ct-label-color: var(--tone-label);
+  /* --tone-INK since 2026-08-23, and it is the row family's own 2026-08-09 reversal arriving
+     where it should have arrived first (Kushagra, off the tone x emphasis board: "why does row
+     label not read the same as button's... Button label reads too dark").
+
+     `--tone-label` sits between steps 11 and 12 and was justified as "a control label is not a
+     link". That reasoning is about `--tone-text` and it survives; what did not is the value on
+     a CHROMA family. Measured, neutral resolves it to a mid grey (#454648 against body copy's
+     #1f1f20) and destructive to #6c3230, a BROWN — which is the exact sentence the row family
+     used to leave it fourteen days earlier ("every menu row read slightly washed and a
+     destructive row read muddy rather than dangerous"). Rows moved; buttons were never moved,
+     so a quiet Destructive button wore the brown that had already been judged wrong one family
+     over, and the two disagreed on the same screen.
+
+     The ink trio resolves both cases by construction: neutral's ink IS step 12, and a chroma
+     family's is its one designed text colour at step 11 (destructive #a64545, an actual red).
+     A label is a word you read, so it reads what words read. */
+  --kui-ct-label-color: var(--tone-ink);
   /* NOT raised (2026-08-17, Kushagra — elevation is selective: "depth separates the focal
      and the floating"): a medium fill is a wash ON the plane, not an object above it, and
      when it cast beside loud the rank stopped reading — Cancel floated exactly as hard as
@@ -841,7 +856,8 @@
   --kui-ct-fill-src: transparent;
   --kui-ct-fill-src-hover: var(--tone-soft);
   --kui-ct-fill-src-active: var(--tone-soft-hover);
-  --kui-ct-label-color: var(--tone-label);
+  /* The medium rung's sentence, same day and same reason — a label reads what words read. */
+  --kui-ct-label-color: var(--tone-ink);
   /* Nothing to light — and declared, not omitted, so a quiet control inside a louder
      surface cannot inherit the ancestor's cast (every rung fully declares its tokens).
      On GLASS the pool survives (2026-08-19): a quiet glass button is a full pane — blur,

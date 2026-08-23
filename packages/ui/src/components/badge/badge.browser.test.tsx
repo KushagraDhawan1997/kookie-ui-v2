@@ -58,17 +58,33 @@ describe("Badge is the atom family's third member (§11, §15)", () => {
       expect(computed(badge, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
     });
 
-    it(`${appearance}: a tone moves BOTH colours a badge owns`, () => {
-      // The family's one divergence from Text (§15): an atom carrying a fill has a second
-      // thing to tint, and "the ink went red, the box stayed grey" is the half-fix that ships.
+    it(`${appearance}: a tone moves the INK, and the chip stays grey`, () => {
+      /**
+       * REVERSED 2026-08-23 (Kushagra, from the tone x emphasis board: "why do these buttons
+       * continue to have a light filter?"). This law used to assert the opposite in its own
+       * words — "an atom carrying a fill has a second thing to tint" — and the fill is what
+       * went. No family paints a faded wash any more: the soft trio reads neutral for every
+       * tone, so a badge's chip is grey and the category arrives in the letters.
+       *
+       * Notice deliberately did NOT follow, and that is the line this widening was drawn along:
+       * a badge's chip reads `--tone-soft`, a Notice's box reads `--tone-a3`, and only the
+       * first moved. Same-day laws in `tokens.test.ts` hold the second.
+       */
       const neutral = mounted(<Badge>Failed</Badge>, { theme: { appearance } });
       const toned = mounted(
         <Badge tone="destructive">Failed</Badge>,
         { theme: { appearance } },
       );
-      expect(computed(toned, "background-color")).not.toBe(computed(neutral, "background-color"));
-      expect(computed(toned, "color")).not.toBe(computed(neutral, "color"));
+      expect(computed(toned, "color"), "the tone reaches nothing at all").not.toBe(
+        computed(neutral, "color"),
+      );
+      expect(computed(toned, "background-color"), "the chip is tinted again").toBe(
+        computed(neutral, "background-color"),
+      );
+      // The chip still EXISTS — a badge that stopped painting a box satisfies the line above
+      // for the wrong reason, and this family's whole shape is a word in a box.
       expect(computed(toned, "background-color")).toBe(colorOn(toned, "var(--tone-soft)"));
+      expect(computed(toned, "background-color")).not.toContain("rgba(0, 0, 0, 0)");
     });
 
     it(`${appearance}: emphasis moves the INK and never the fill`, () => {

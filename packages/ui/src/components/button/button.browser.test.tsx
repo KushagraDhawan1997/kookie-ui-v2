@@ -99,21 +99,68 @@ describe("the axes are orthogonal and resolve through the role layer (§7, §9)"
       }),
     );
 
-    // Within a rung, every tone is distinct — the tone indirection actually rebinds.
-    for (const emphasis of ["loud", "medium"] as const) {
-      const fills = cells.filter((c) => c.emphasis === emphasis).map((c) => c.fill);
-      expect(new Set(fills).size).toBe(3);
-    }
+    // AT LOUD the tone rebinds the FILL — three families, three solids. This is the rung the
+    // 2026-08-23 widening protects, and the one place a fill still says which family it is.
+    const loudFills = cells.filter((c) => c.emphasis === "loud").map((c) => c.fill);
+    expect(new Set(loudFills).size, "the tone indirection stopped rebinding the solid").toBe(3);
+
+    // AT MEDIUM it does not, since 2026-08-23: no family paints a faded wash, so all three
+    // share one grey and the family arrives in the LABEL. Asserted as an equality rather than
+    // dropped, because "the tone stopped reaching the fill" and "the fill is meant to be
+    // tone-blind here" are different claims and only the second is true.
+    const mediumFills = cells.filter((c) => c.emphasis === "medium").map((c) => c.fill);
+    expect(new Set(mediumFills).size, "a medium fill is tinted by its tone again").toBe(1);
+    expect(mediumFills[0], "the medium rung stopped painting anything").not.toBe("rgba(0, 0, 0, 0)");
+
+    // So the INDEPENDENCE this law is named for now lives in the label, and it is asserted
+    // there — otherwise the widening would have quietly deleted the claim rather than moved it.
+    const labels = (["neutral", "blue", "destructive"] as const).map((tone) =>
+      computed(render(<Button tone={tone} emphasis="medium">Label</Button>), "color"),
+    );
+    expect(new Set(labels).size, "the tone reaches neither the fill nor the label").toBe(3);
+
     // Quiet is bare at rest in every tone: its rest is the absence of a fill (§9).
     for (const c of cells.filter((c) => c.emphasis === "quiet")) {
       expect(c.fill).toBe("rgba(0, 0, 0, 0)");
     }
   });
 
-  it("a label is never the raw text token — controls read --tone-label (§7)", () => {
-    const el = render(<Button emphasis="medium">Label</Button>);
-    expect(computed(el, "color")).toBe(tokenOn(el, "--tone-label"));
-    expect(computed(el, "color")).not.toBe(tokenOn(el, "--tone-text"));
+  it("a label reads what WORDS read — the ink, not the control ink (§7, 2026-08-23)", () => {
+    /**
+     * REVERSED from "controls read --tone-label" (Kushagra, off the tone x emphasis board:
+     * "why does row label not read the same as button's... Button label reads too dark").
+     *
+     * `--tone-label` sits between steps 11 and 12 and was justified as "a control label is not
+     * a link" — which is an argument about `--tone-text` and survives. What did not survive is
+     * the VALUE on a chroma family: destructive resolves it to #6c3230, a brown. The row family
+     * left it on 2026-08-09 for exactly that ("a destructive row read muddy rather than
+     * dangerous") and buttons were never moved with them.
+     *
+     * DESTRUCTIVE is the fixture, and it is load-bearing: on neutral the two roles sit close
+     * enough that this law would pass either way and prove nothing.
+     */
+    const el = render(
+      <Button tone="destructive" emphasis="medium">
+        Delete
+      </Button>,
+    );
+    expect(computed(el, "color")).toBe(tokenOn(el, "--tone-ink"));
+    expect(computed(el, "color"), "the button is back on the muddy control ink").not.toBe(
+      tokenOn(el, "--tone-label"),
+    );
+    // AND A CONSEQUENCE WORTH STATING RATHER THAN HIDING. "A control label is not a link" was
+    // §7's reason for minting `--tone-label` at all, and on a CHROMA family that separation is
+    // now gone: `--tone-ink` and `--tone-text` are both step 11 there, so a destructive button
+    // label and a destructive link are one colour. On NEUTRAL they still differ (ink is step
+    // 12, text is 11), which is where the sentence survives. Asserted in both directions so the
+    // trade is recorded as a measurement rather than as a comment nobody re-checks.
+    expect(computed(el, "color"), "a chroma label and a chroma link have separated again").toBe(
+      tokenOn(el, "--tone-text"),
+    );
+    const grey = render(<Button emphasis="medium">Label</Button>);
+    expect(computed(grey, "color"), "a neutral label collapsed onto the link ink").not.toBe(
+      tokenOn(grey, "--tone-text"),
+    );
   });
 
   it("loud reads the APCA-chosen contrast for its own fill", () => {
@@ -338,8 +385,11 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
 
   it("the rung keeps its own label pairing under glass", () => {
     // The fill is still the rung's — merely translucent — so loud keeps the APCA-chosen
-    // contrast and medium keeps the label token. Thin-over-a-bright-photo legibility is
-    // §10's deferred brightness-floor branch, not a label swap.
+    // contrast and medium keeps its own ink. Thin-over-a-bright-photo legibility is §10's
+    // deferred brightness-floor branch, not a label swap. (`--tone-label` until 2026-08-23,
+    // when the medium rung moved to `--tone-ink` for the reason the row family moved four
+    // years of muddy chroma labels; the glass path takes whatever the rung takes, which is the
+    // property this law is really about.)
     const loud = mounted(
       <Button backdrop tone="accent" emphasis="loud">
         Label
@@ -353,7 +403,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
       </Button>,
       { theme: { material: "thick" } },
     );
-    expect(computed(medium, "color")).toBe(tokenOn(medium, "--tone-label"));
+    expect(computed(medium, "color")).toBe(tokenOn(medium, "--tone-ink"));
   });
 
   it("the fill returns to opaque when the material comes off", () => {

@@ -92,7 +92,7 @@ export const ENTRIES: Entry[] = [
       "A short word or a count that states what the thing beside it is right now. It sits in the same family as Code and Kbd and is made of the same parts: the same fill, the same corner, the same one-line box a key cap uses. What it adds is the tone. The colour families exist so that failed, running and done read as one vocabulary across a product, and this is the component that spends them.",
     axes: [
       { name: "size", values: "1-9", note: "optional with no default. Unset, a badge takes the size of the line it sits beside, so one next to a card title is bigger than one in a table row. Set it when the badge stands alone" },
-      { name: "tone", values: "any family", note: "the axis a badge exists for. It moves the ink and the fill together, because a badge with a fill has two things to tint" },
+      { name: "tone", values: "any family", note: "the axis a badge exists for. It moves the INK — the chip itself stays neutral, because no family paints a faded fill. A destructive badge is a grey chip with a red word" },
       { name: "emphasis", values: "loud | medium | quiet", note: "picks an ink colour. It moves the letters, never the fill" },
       { name: "weight", values: "regular | medium | semibold", note: "token names, never numbers. Unset by default: the fill and the pill are what mark a badge out" },
     ],

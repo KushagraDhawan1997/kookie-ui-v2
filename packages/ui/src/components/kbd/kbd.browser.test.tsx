@@ -67,19 +67,24 @@ describe("Kbd shares the chip's fill and tone facts, in its OWN family (§11, §
       expect(computed(kbd, "border-top-color")).not.toBe(colorOn(kbd, "var(--field-edge)"));
     });
 
-    it(`${appearance}: a tone moves the two colours a cap owns, never its relief`, () => {
+    it(`${appearance}: a tone moves the ONE colour a cap still owns — its ink`, () => {
       // `blue`, not `accent` (2026-08-10): accent is a configured identity that may equal any
       // other family — it was blue until today and is neutral now — so it cannot be the probe
       // in a law whose whole claim is that the toned chip differs from the bare one.
       const toned = mounted(<Kbd tone="blue">⌘K</Kbd>, { theme: { appearance } });
       const bare = mounted(<Kbd>⌘K</Kbd>, { theme: { appearance } });
-      // TWO colours, not three, since the edge went achromatic (2026-08-17): a tone moves the
-      // fill and the ink — the two things a cap paints that carry meaning — and the relief's
-      // hairline deliberately stays the same on every bed. Asserted as an EQUALITY on the
-      // edge rather than dropped, because "the tone stopped reaching the border" and "the
-      // border is meant to be tone-blind" are different claims and only one of them is true.
-      expect(computed(toned, "background-color")).not.toBe(computed(bare, "background-color"));
+      // ONE colour since 2026-08-23, and the count is the history. It was three until the edge
+      // went achromatic (2026-08-17), then two, and now one: no family paints a faded wash, so
+      // a cap's FILL is grey whatever tone it carries and only the ink moves. Both the edge and
+      // the fill are asserted as EQUALITIES rather than dropped, because "the tone stopped
+      // reaching them" and "they are meant to be tone-blind" are different claims and only the
+      // second is true.
       expect(computed(toned, "color")).not.toBe(computed(bare, "color"));
+      expect(
+        computed(toned, "background-color"),
+        "a cap's fill is tinted again",
+      ).toBe(computed(bare, "background-color"));
+      expect(computed(toned, "background-color")).not.toContain("rgba(0, 0, 0, 0)");
       expect(
         computed(toned, "border-top-color"),
         "the cap's relief is the same line whatever the tone",

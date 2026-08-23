@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 No tone paints a faded fill, and a label reads what words read
+
+**What.** Two changes off one screenshot of the tone × emphasis board. The WASH roles (the soft trio and its opaque glass twins) read neutral for every family, not just accent — so a medium button, a quiet one under the pointer and a badge's chip are grey whatever tone they carry. And the control layer's medium and quiet rungs moved from `--tone-label` to `--tone-ink`. A **saving of 206 bytes**, because the tone blocks now share more text with neutral.
+
+**Kushagra, looking at the board: *"why do these buttons continue to have a light filter?"* and *"why does row label not read the same as button's… Button label reads too dark."*** Both were right and the second was a defect I had half-explained the day before: I told him a button's label sits a step under body copy on purpose, which is true of NEUTRAL, and never checked the coloured families. Measured, `--tone-label` resolves destructive to `#6c3230` — a brown — against the ink's `#a64545`. **The row family left it on 2026-08-09 for exactly that** (*"a destructive row read muddy rather than dangerous"*), buttons were never moved with them, and the two disagreed about one word on one screen for two weeks.
+
+**The widening is narrower than "all tones undiluted", and the line it was drawn along is the interesting part.** Putting every family into `undilutedTones` would also have taken `a3` — the tone-forward surface fill — and with it a Notice's entire design, plus the faded inks that make a `destructive` paragraph a quieter red rather than a grey. But a badge's chip reads `--tone-soft` and a Notice's box reads `--tone-a3`: different roles, so the set SPLIT rather than widened. `WASH_ROLES` is neutral for everyone; `DILUTED_ROLES` (`a3`, `ink-muted`, `ink-faint`) stays what an undiluted tone refuses. Measured after: a destructive Notice keeps its red tint, a destructive Text at medium keeps its red, a destructive badge is grey with a red word.
+
+**A stated cost, asserted rather than commented.** §7 minted `--tone-label` on the argument that *a control label is not a link*. The argument survives; on a chroma family the separation does not, because `--tone-ink` and `--tone-text` are both step 11 there — so a destructive button label and a destructive link are now one colour. It holds on neutral (ink is 12, text is 11). Both directions are law-asserted so the trade is a measurement somebody can re-check rather than a sentence nobody re-reads.
+
+**Twenty laws came due and the most useful thing that happened is what it did to a negative control.** Every law in `tones.browser.test.tsx` used `blue` the same way: accent's wash is neutral, blue's is not. The widening made that true of both — **a control that no longer controls, and a law that had silently become a tautology.** The wash laws now assert three families agree, with a "the fill still exists" guard in its place; `blue` still controls at `a3` and the inks, which is where accent genuinely still differs. The file header says so, because the next person to add a law here has to pick the right shape.
+
+**Reversals recorded rather than quietly edited.** Badge's law asserted "a tone moves BOTH colours a badge owns"; Code's called a grey box with red text *the defect*; Kbd's counted "two colours, not three". All three now assert the opposite, each carrying the sentence it used to make — Kbd's count is one, and the history of that number (three until the edge went achromatic, two until today) is the record of what the family gave up and when.
+
+**Recorded open, found on the way:** `--tone-label` is not dead. TextField, TextArea and Select still read it for a typed value and a placeholder — so **text you typed is lighter than text the page shows you**, measured `p3 0.270 0.275 0.282` against body copy's `0.120 0.123 0.126`. That is the same complaint one component over and it was not on the list; it is a separate decision and DECISIONS §9 carries it.
+
+---
+
 ## 2026-08-23 A popover scrolls its own content, and three audit leftovers
 
 **What.** Popover adopts `ScrollArea` (Menu's 2026-08-17 shape); the entry flight's nine body-pin declarations read a padding hook that resolves on every panel; an empty `Badge` renders nothing; the colour generator is 43% faster with byte-identical output. Plus two decisions recorded rather than taken. +2 bytes gzipped.

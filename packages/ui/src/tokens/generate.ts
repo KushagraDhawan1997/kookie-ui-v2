@@ -840,46 +840,64 @@ export const ROLES = [
 ] as const;
 
 /**
- * The roles that are a DILUTION of a family's pigment rather than a placement of it (§7, §11,
- * 2026-08-23) — the set `undilutedTones` refuses.
+ * NO TONE PAINTS A FADED FILL (§7, §9, 2026-08-23 — Kushagra, from the tone x emphasis board:
+ * *"why do these buttons continue to have a light filter?"*).
  *
- * Membership is decided by ONE question: does this role spend the family's chroma to get
- * where it is going? The soft trio and `a3` are the pigment at an alpha, so what reaches the
- * eye is mostly the bed; the two faded inks are the loud ink mixed toward transparent. Those
- * dilute. `solid` does not (it IS the pigment), and neither does `ink` — measured, the ink
- * holds full chroma and inverts between modes (`#2a6caa` light, `#95c2f2` dark) while the
- * solid is one hex in both, which is exactly the signature of a value that moves LIGHTNESS to
- * stay legible rather than draining colour to stay quiet.
+ * The wash trio and its opaque glass twins read NEUTRAL for every family, not only for the
+ * undiluted ones. A medium button, a quiet one under the pointer and a badge's chip are grey
+ * whatever tone they carry, and the family arrives in the label instead.
  *
- * `border`, `text`, `label` and `contrast` are deliberately OUT. A border is a line, not a
- * wash — the rule Kushagra stated is about backgrounds — and `label`/`contrast` are the inks
- * that sit ON a solid fill, so they are part of what makes the undiluted rung readable rather
- * than a quieter version of it. If borders should follow, that is its own decision.
+ * This is the accent rule generalised, and the generalisation is narrower than it first looks
+ * because the roles are not interchangeable. The surface tint (`a3`) and the two faded inks
+ * stay per-family below: a Notice is a tone-forward SURFACE and its tint is that component's
+ * whole design, and a `destructive` paragraph at medium emphasis is meant to be a quieter red
+ * rather than a grey. Buttons and badges read `--tone-soft`; Notice reads `--tone-a3`; text
+ * reads the ink trio. Three different roles, so "no faded fills" costs the other two nothing.
  */
-export const DILUTED_ROLES: ReadonlySet<string> = new Set([
+const WASH_ROLES: ReadonlySet<string> = new Set([
   "soft",
   "soft-hover",
   "soft-active",
   "soft-solid",
   "soft-hover-solid",
   "soft-active-solid",
-  "ink-muted",
-  "ink-faint",
-  "a3",
 ]);
 
-function toneRoles(tone: ToneName): string[] {
-  // An undiluted tone reads NEUTRAL at the diluted roles — not `transparent`, and not its own
-  // value at a lower alpha. The wash still has to exist: a medium button and a current row
-  // both need a fill, and what they lose is the claim that the fill is the brand.
+/**
+ * What an UNDILUTED tone refuses on top of the washes above (§7, §11, 2026-08-23).
+ *
+ * Membership is decided by ONE question: does this role spend the family's chroma to get where
+ * it is going? `a3` is the pigment at an alpha, so what reaches the eye is mostly the bed; the
+ * two faded inks are the loud ink mixed toward transparent. Those dilute. `solid` does not (it
+ * IS the pigment), and neither does `ink` — measured, the ink holds full chroma and inverts
+ * between modes (`#2a6caa` light, `#95c2f2` dark) while the solid is one hex in both, which is
+ * exactly the signature of a value that moves LIGHTNESS to stay legible rather than draining
+ * colour to stay quiet.
+ *
+ * `border`, `text`, `label` and `contrast` are deliberately OUT. A border is a line, not a
+ * wash, and `label`/`contrast` are the inks that sit ON a fill — part of what makes a rung
+ * readable rather than a quieter version of it.
+ */
+const DILUTED_ROLES: ReadonlySet<string> = new Set(["ink-muted", "ink-faint", "a3"]);
+
+/** Every role that resolves NEUTRAL for this tone — the union the emitter walks. */
+function neutralRolesFor(tone: string): ReadonlySet<string> {
   const undiluted = (undilutedTones as readonly string[]).includes(tone);
+  return new Set([...WASH_ROLES, ...(undiluted ? DILUTED_ROLES : [])]);
+}
+
+export { DILUTED_ROLES, WASH_ROLES, neutralRolesFor };
+
+function toneRoles(tone: ToneName): string[] {
+  // A neutral-resolving role reads NEUTRAL's value — not `transparent`, and not its own value
+  // at a lower alpha. The wash still has to exist: a medium button and a current row both need
+  // a fill, and what they lose is the claim that the fill is the family.
+  const neutral = neutralRolesFor(tone);
   return ROLES.map((role) =>
-    decl(
-      `tone-${role}`,
-      `var(--${undiluted && DILUTED_ROLES.has(role) ? "neutral" : tone}-${role})`,
-    ),
+    decl(`tone-${role}`, `var(--${neutral.has(role) ? "neutral" : tone}-${role})`),
   );
 }
+
 
 /**
  * The surface world (§10): material recipes and foreground context roles. No shadows and no
