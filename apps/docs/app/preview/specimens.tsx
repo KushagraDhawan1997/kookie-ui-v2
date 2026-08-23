@@ -88,7 +88,17 @@ import {
   SelectItem,
 } from "@kookie-ui/react";
 
-import { PlusIcon, SearchIcon, XIcon } from "../icons";
+import {
+  ArrowUpIcon,
+  BoltIcon,
+  MicIcon,
+  PaperclipIcon,
+  PlusIcon,
+  RetryIcon,
+  SearchIcon,
+  StopSquareIcon,
+  XIcon,
+} from "../icons";
 import { BedSurface, PHOTO_BED, bed } from "./beds";
 import { ComponentPreviewBody } from "./component-preview";
 import { Demo, SIZES, SpecTable, cap } from "./pieces";
@@ -516,6 +526,14 @@ function HeadingSection() {
   );
 }
 
+/* One map, three glyphs, because the send button's meaning changes and its drawing has to
+   follow. `submitted` states none: Button's own spinner is what "in flight" looks like. */
+const SEND_GLYPHS = {
+  ready: <ArrowUpIcon />,
+  streaming: <StopSquareIcon />,
+  error: <RetryIcon />,
+};
+
 function ComposerSection() {
   return (
     <Stack gap="6">
@@ -529,13 +547,13 @@ function ComposerSection() {
           <ComposerInput aria-label="Message" placeholder="Add feedback…" />
           <ComposerRow>
             <Flex gap="2">
-              <Button iconOnly aria-label="Add attachment">+</Button>
+              <Button iconOnly aria-label="Add attachment"><PaperclipIcon /></Button>
               <Button>Opus 5</Button>
-              <Button>Auto</Button>
+              <Button leading={<BoltIcon />}>Auto</Button>
             </Flex>
             <Flex gap="2">
-              <Button iconOnly aria-label="Dictate">M</Button>
-              <ComposerSend icons={{ ready: "\u2191" }} />
+              <Button iconOnly aria-label="Dictate"><MicIcon /></Button>
+              <ComposerSend icons={SEND_GLYPHS} />
             </Flex>
           </ComposerRow>
         </Composer>
@@ -547,10 +565,10 @@ function ComposerSection() {
       <Stack gap="4">
         <Text size="2" emphasis="medium">One button, four meanings</Text>
         <Flex gap="3" align="center">
-          <ComposerSend status="ready" icons={{ ready: "\u2191" }} />
-          <ComposerSend status="submitted" />
-          <ComposerSend status="streaming" icons={{ streaming: "\u25a0" }} />
-          <ComposerSend status="error" icons={{ error: "\u2715" }} />
+          <ComposerSend status="ready" icons={SEND_GLYPHS} />
+          <ComposerSend status="submitted" icons={SEND_GLYPHS} />
+          <ComposerSend status="streaming" icons={SEND_GLYPHS} />
+          <ComposerSend status="error" icons={SEND_GLYPHS} />
         </Flex>
       </Stack>
 
@@ -564,7 +582,7 @@ function ComposerSection() {
           />
           <ComposerRow>
             <Text size="2" emphasis="medium">Shift plus Return breaks the line</Text>
-            <ComposerSend icons={{ ready: "\u2191" }} />
+            <ComposerSend icons={SEND_GLYPHS} />
           </ComposerRow>
         </Composer>
       </Box>

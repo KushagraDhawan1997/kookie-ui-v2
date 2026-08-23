@@ -32,19 +32,23 @@ import {
   Copy01Icon,
   Delete02Icon,
   EyeIcon,
+  FlashIcon,
   LayerIcon,
   ChartLineData01Icon,
   Folder01Icon,
   Home01Icon,
   Mail01Icon,
+  Mic01Icon,
   MoreHorizontalIcon,
   Notification02Icon,
   PlusSignIcon,
+  ReloadIcon,
   Search01Icon,
   Settings02Icon,
   SidebarLeftIcon,
   SidebarRightIcon,
   SquareLock02Icon,
+  StopIcon,
   Tick02Icon,
   UserMultiple02Icon,
 } from "@hugeicons/core-free-icons";
@@ -89,4 +93,13 @@ export const PanelLeftIcon = glyph(SidebarLeftIcon);
 export const PanelRightIcon = glyph(SidebarRightIcon);
 export const CopyIcon = glyph(Copy01Icon);
 export const TrashIcon = glyph(Delete02Icon);
+/* The composer's four (2026-08-23). The send button is one control with four meanings, so the
+   three it can turn into are named for the meaning rather than the drawing: a filled square is
+   the universal stop, and a reload is a retry. `MicIcon` is dictation, which the composer does
+   not own — the app draws that button, which is exactly why these live here. */
+export const BoltIcon = glyph(FlashIcon);
+export const MicIcon = glyph(Mic01Icon);
+export const StopSquareIcon = glyph(StopIcon);
+export const RetryIcon = glyph(ReloadIcon);
+
 export const WarnIcon = glyph(Alert02Icon);
