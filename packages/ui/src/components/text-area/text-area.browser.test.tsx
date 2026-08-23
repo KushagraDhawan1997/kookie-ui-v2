@@ -327,6 +327,27 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
     void (<TextArea shadow="2" />);
   });
 
+  it("a glass textarea wears the pane's RING — the element the border-area spelling exists for", () => {
+    // The glass lock (2026-08-24): one edge, every pane. The ring's canonical spelling is an
+    // ::after, and a <textarea> — like every form control — renders no generated content
+    // (measured: the pseudo computes but never paints), which is the platform constraint
+    // that forced the background-clip: border-area spelling for the whole field family.
+    // So THIS element is the law's real subject: if the ring reads here, it reads anywhere.
+    // Agreement with a glass Button's own ring, not a token name — the resolved conic a
+    // Button's ::after paints must appear verbatim in the textarea's background stack.
+    const glass = mounted(<TextArea backdrop aria-label="glass" />, { theme: { material: "thin" } });
+    const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { material: "thin" } });
+    const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
+    expect(ring).toContain("conic-gradient");
+    expect(computed(glass, "background-image")).toContain(ring);
+    expect(getComputedStyle(glass).backgroundClip.startsWith("border-area")).toBe(true);
+    expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+    // The negative control: a SOLID textarea keeps its pigment hairline and no ring.
+    const solid = mounted(<TextArea aria-label="solid" />, {});
+    expect(computed(solid, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+    expect(computed(solid, "background-image")).not.toContain("conic-gradient");
+  });
+
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
     const glass = mounted(<TextArea backdrop />, { theme: { material: "regular" } });
     // Derived, not restated: the radius is config's to move (2026-08-16).

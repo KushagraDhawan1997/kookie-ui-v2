@@ -5201,3 +5201,190 @@ a short one puts every law inside the narrow type band). `Emulation.setDeviceMet
 over CDP was tried as a way to shrink the window for one law and does not take in this harness.
 So the verification is a real browser at 420/500/620/900, and the numbers it should reproduce
 are written beside the law for the day the suite can set a height.
+
+## 2026-08-24 — the resting gray lightens at its edge, and the segmented track joins the fields
+
+Kushagra, judging /preview: "About grays, it still reads a bit too dark - the text field and
+hairline feel bit darker than they should be… Segmented is also similarly too dark, and I see
+no reason for it to be any other color than text fields or areas tbh." Two changes, one taste
+call each, and the second is an overruling.
+
+**The light field edge went a4 → a3 — the FILL held, and the bracketing is why.** Measured
+first: in light a text field's fill is ALREADY the reference medium button's `--neutral-soft`
+(a3, 6.7%) — what pushed the impression past the button was the hairline sitting on top of it
+(a4, 8.6%). The edge now equals the fill; the border area still reads because it composites the
+same alpha twice (~13% over the 6.7% fill), which is a softer line than any ramp step could
+state. The fill could not follow it down: a2 was judged "a bit too light" on 2026-08-17 in this
+exact context, and dark's a2 is literally TRANSPARENT — the ramp has no half step, so a lighter
+field means moving a3 itself, a call about the whole ramp rather than the dress table. Dark is
+untouched: its fill (3.4%) is fainter than light's and needs its a4 edge for definition, and
+nobody has judged dark dark.
+
+**The dead border followed the live edge down, because the mounted laws demanded it.** Three
+laws failed on the first run — a `Field.Root`-disabled field's border, and both "readOnly does
+not borrow the disabled vocabulary" laws — all one fact: `disabledSteps.light.border` (a3) now
+sat exactly ON the live edge, a disabled field byte-identical to a live one at its boundary.
+The 2026-08-19 rule is recession, so the dead border moved 3 → 2 with the thing it recedes
+from. The node law's `≤` bound had passed at equality; the mounted laws are what knew equality
+is the defect.
+
+**The segmented track left `--color-track` for `--dress-field-fill`** — the well argument
+("one step deeper, a channel you feel a grip in") overruled by the quote above. Only the
+segmented control moves (Kushagra: "No only segmented should leave color track"); the slider
+rail, switch off-track and progress well keep the deeper channel. What still separates the
+track from a field is the EDGE, not the value: a field wears the dress hairline, a well has
+none. The re-point moves all six reads (the resting triple and the disabled triple — the value
+moved, the pinned-across-states invariance did not, 2026-08-23's own rule). The WELL law
+re-keyed to the real claim: the channel's computed background AGREES with a mounted
+TextField's in both appearances — a token-name assertion would stay green the day
+text-field.css stopped reading the same role — and it was falsified against the pre-fix CSS
+(failed in both modes) before being trusted.
+
+Also closed on the way: the `dress` comment in config still claimed the edges sat inside
+`contrastHighBands.border` and were reached by HC re-declaration — stale since the fill-first
+flip softened the field edge out of that band (2026-08-17); the HC mechanism is and was the
+`initial` stand-down, restated where the values live.
+
+## 2026-08-24 — the grips go flat on glass, and the glass track's thumb is the menu's own wash
+
+Kushagra's model, stated over two messages and implemented as two rules: "When glass,
+segmented control's thumb should render as neutral gray like hover in menu, and the entire
+control gets glass… switch's thumb goes flat also, and so does slider." And the crucial
+constraint, his caps kept: glass does not render ON glass, it renders ALPHA — a control inside
+a glass pane resolves its solid appearance at the pane's alpha, the way a glass menu's hover
+is alpha gray. That half was already the shipped mechanism (`on-glass`, 2026-08-16) and needed
+nothing; what was missing was the CASTS.
+
+**The hole is the 2026-08-17 move's own shadow.** The grips left `--control-chrome` for
+`--grip-cast` precisely so no world switch could strip them ("casts always") — which also
+walked them out of the pane stand-down that already governs button casts ("none inside a pane,
+one lift"). slider.css stated the escape as a feature: "why one-lift-per-pane cannot strip
+it." Reversed: "always" is about the WORLD (flat and elevated both keep it), and glass is a
+MATERIAL, the axis the sentence was never about — the disabled-handle lesson ("always is
+about the world, never about state") arriving from a third side. Apple's liquid glass ships
+the handle flat, which retires the "every platform ships it shadowed in every context" clause.
+
+**Rule one — a grip in a pane is a ridge in the glass, not a pebble on it.** The pane rule in
+surfaces.css sets a `--kui-grip-cast` hook on the three thumb elements (`.kui-segment-thumb`,
+`.kui-switch-thumb`, `.kui-slider-thumb`), and each grip sheet consults it before the role —
+`var(--kui-grip-cast, var(--grip-cast, none))` — the keycap's own mechanism, one rule up from
+the keycap's. No specificity fight is possible, because the hook is a property only the pane
+rule writes.
+
+**Rule two — when the segmented TRACK is the glass, the thumb is the pane's own selection
+wash.** `--material-row-wash`, the exact token a glass menu lights a hovered row with, so the
+two agree by construction; cast stood down through the same hook; and the chosen label
+returns to the full ink — `--color-thumb-label` was minted against the near-white fill and
+has nothing to sit on once the fill is a 7%/12% wash. The rule lives in surfaces.css, and its
+placement was forced twice: a component sheet may not name a material (the no-material walk),
+and recipes.css's material region may not touch a colour or a label — that law FAILED the
+first placement and was right to (the material must stay a modifier; the colour-touching
+glass treatments all live in surfaces.css). The pane-member rule cannot reach this case
+because the pane IS the track and the track is not a `.kui-surface`.
+
+**The in-pane and is-pane cases are told apart by the FILL.** Inside someone else's pane the
+grip keeps `--color-thumb` and loses only its lift (a control in glass resolves its solid
+appearance — his alpha rule; loud on-glass commits at 0.88, and a grip is an identity fill of
+the same rank). On its own pane it is the wash. The segmented laws assert both fills, so a
+rule that washed both cases would fail exactly there.
+
+Six new laws (two per grip file, both appearances), and three sabotages each caught by only
+the laws written for it: Rule two deleted → the two is-glass laws fail; Rule one deleted →
+all six in-pane laws fail across three files; the hook un-consulted in one sheet → that
+sheet's two laws alone fail. On the way, today's track re-point to `--dress-field-fill` turned
+out to ride the 2026-08-19 opaque-twin fix for free: `.kui-control[data-material]` re-points
+the dress to its solid twin, so a glass track's veil is priced on the opaque rung — the old
+`--color-track` had no twin and would have collapsed to ~4% under the mix.
+
+## 2026-08-24 — six components take their own preview pages
+
+Kushagra: "I need to see text field and text area and tabs etc indepdently, in their own
+preview pages like we added for card etc to really judje it." The per-component structure
+(2026-08-19) had six entries; the components today's gray and glass work landed on were not
+among them, so the only place to judge them was a specimen table on a 2MB collection page.
+
+Ported: text-field, text-area, tabs, segmented-control, switch, slider — the six the two
+2026-08-24 changes touch. Each is a spec file under `previews/`, registered once, rendered by
+both routes from the one registry; the six hand-written sections in specimens.tsx are deleted
+rather than left beside their replacements, which is what the "derives from the same spec"
+law already required. Registry 6 → 12 entries.
+
+What the structure forced, which is the point of having one: every spec answers all seven
+sections or states a written reason, so each component had to declare what it does NOT have.
+Four `tones` absences got written for four different reasons — a field has no tone because
+loudness ranks actions and a form where one field is louder than the next names nothing; a
+switch's one family is an identity rather than an axis; tabs read the tone-LESS foreground
+roles; a segmented control stamps `data-tone="neutral"` itself, load-bearing, because an
+unstamped control has no hover step.
+
+Written to make today judgeable rather than merely present: the field's resting gray beside
+the medium Button that shares it, at every index and in both appearances at once (the edge
+moved in light only); the segmented track beside a TextField, a TextArea and a Slider, so the
+one shared gray and the deliberately deeper instrument channel read together; and the glass
+grip's two cases side by side — a segmented control whose TRACK is the pane (thumb becomes
+the pane's own wash, flat, full ink) against one INSIDE someone else's pane (keeps its
+pigment, loses only its lift), which is the pair that tells the two rules apart.
+
+Two things fell out of the writing, both the kind the preview exists to surface. `BedSurface
+minHeight="none"` is invalid CSS — the declaration is dropped, so three composer beds had
+silently been falling back to the 240px default rather than hugging their content; fixed to
+`auto`. And a disabled `Field` does not dim its LABEL or its DESCRIPTION: measured
+byte-identical to a live field's in both, while the input inside greys correctly (0.2697 →
+0.7625). That is the 2026-08-22 Card finding and the 2026-08-23 Composer finding on their
+fourth appearance — the shared remap rewrites TONE roles, and these parts are `Text` reading
+the tone-LESS foreground roles. Recorded, not fixed: it is a package change and this was a
+docs change.
+
+## 2026-08-24 — the glass contract locks, and the field family's edge becomes the ring
+
+Kushagra, on the glass preview pages: "about glass, it doesnt look like it, the border is
+weird, see how card does it, button does it, why dont thye" — then the lock: "We need to
+decide and lock what glass means, every element cant act differently when its glass, this is
+a major red flag for me."
+
+**Measured first: three renderings of one material.** A glass Card and Button wear the conic
+ring (the masked ::after, lab port 2026-08-17); a glass TextField and TextArea wore the
+PRE-LAB flat edge — `--material-*-edge`, a uniform white-60% hairline, the sticker outline
+the ring replaced everywhere else; a glass segmented track wore nothing. The fields were
+simply left on the old mechanism when the ring landed, and the 2026-08-17 field-glass block's
+comment still described that hairline as the design.
+
+**Why the ring never moved: a platform wall, then a new door.** The ring is an ::after so it
+can wrap the squircle (border-image cannot follow corner-shape), and a `<textarea>` — like
+every form control — renders no generated content: measured, the pseudo computes with
+`width: auto` and never paints, on input and textarea both. `background-clip: border-area`
+(supported in the pinned Chromium, `CSS.supports` measured true, parses and renders on a
+textarea) clips a background layer to exactly the border band, corners and squircle
+included — so the field family paints the SAME ring token as a background layer above its
+rim, with the border transparent through `var(--kui-glass-hc-edge, transparent)`, the panes'
+own HC hop. Older engines: the @supports guard keeps today's flat hairline as the stated
+fallback, because the failure mode outside the guard is a conic washed across the whole
+field.
+
+**The segmented track joins through the button's ::after** — it is a div, and its border is
+stood down BY WIDTH (audit D2), so border-area has no band there. The well's "no edge" was a
+decision about pigment RANK; the ring is the material's lip, what glass IS (§10's own
+sentence from 2026-08-05).
+
+**One HC arm, extended rather than doubled.** The generated `[data-material]` arm that hands
+every glass element its pigment boundary back (`--kui-glass-hc-edge: var(--tone-border)`)
+now also stands `--kui-ct-glass-ring` down — the background-layer ring cannot take the
+panes' `--material-ring-opacity` (opacity is per-element; this ring is one layer of the
+element's own background). One declaration set for "a glass element's edge becomes a
+boundary again". The state arms (invalid, disabled) stand the ring down beside the glass
+edge they already stood down; reduced transparency needed nothing (its `background-image:
+none` already takes the layer).
+
+**The contract itself is written into §10** — five parts, every pane resolves them
+identically, a component may vary WHERE a part is painted (platform constraint) never WHAT
+it is (a value) — with the two ring spellings named so a third cannot appear quietly.
+
+Laws: the field's old edge law asserted `--material-thin-edge` on the border — the defect
+stated as a guarantee — and is re-keyed to the AGREEMENT: the resolved conic a glass
+Button's ::after paints must appear verbatim in the field's and textarea's background stack
+(the textarea law is the subject that matters: if the ring reads there, it reads anywhere),
+and byte-identical in the track's ::after, with solid negatives on each. New laws for the
+state ring stand-down and the HC trade. Four sabotages, each caught by exactly the law
+written for it: the @supports block deleted (field + textarea laws fail), the track's
+selectors removed (track law fails), the state stand-down removed (state law fails), the HC
+arm's ring line removed and tokens regenerated (HC law fails). 1,892 laws green.

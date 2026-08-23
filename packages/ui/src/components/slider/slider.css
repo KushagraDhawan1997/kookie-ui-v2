@@ -138,7 +138,10 @@
      ships the handle shadowed in every context. It reads the grip's own role VALUE
      (--grip-cast, cap-scale since 2026-08-17 — --control-chrome became the lit button
      chrome and swelled under a 16px cap) rather than the world switch, which is
-     exactly what "always" means — and why one-lift-per-pane cannot strip it. No catch:
+     exactly what "always" means. One-lift-per-pane DOES strip it since 2026-08-24 — glass is
+     a material, not a world, and a grip in a pane is a ridge in the glass, not a pebble on
+     it (the shared layer sets the --kui-grip-cast hook; Apple's liquid glass ships the
+     handle flat, which retired the "every platform" claim that stood here). No catch:
      a gradient on a near-white grip is invisible.
 
      "Always" is about the WORLD, not about state (audit 2026-08-07): reading the palette
@@ -146,7 +149,7 @@
      switch down, so a dead handle kept its full shadow and its white top line — the one
      control in the system that stayed lifted while disabled. The stand-down is stated on the
      mark family (.kui-mark[data-disabled] in recipes.css), which wins here on specificity. */
-  --kui-ct-cast: var(--grip-cast, none);
+  --kui-ct-cast: var(--kui-grip-cast, var(--grip-cast, none));
   box-shadow: var(--kui-ct-cast, none);
   /* The grip's one clock, and the whole travel question answered in the property list: SCALE
      and nothing else. During a drag the pointer IS the physics — Base UI writes the position

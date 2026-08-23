@@ -1317,6 +1317,7 @@
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;
+  --kui-ct-glass-ring: initial;
   /* And the elevated light stands down the same way (§5, 2026-08-07): a disabled control
      makes no promise, so it neither hovers above the page nor catches light. `initial`
      makes the world tokens guaranteed-invalid here; the consumption sites fall back to
@@ -1383,6 +1384,7 @@
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;
+  --kui-ct-glass-ring: initial;
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,
@@ -1579,6 +1581,49 @@
       var(--kui-ct-light, none);
   }
 
+  /* THE FIELD'S EDGE IS THE RING (2026-08-24, Kushagra: "the border is weird, see how card
+     does it, button does it, why dont thye" — and the lock that followed: glass is ONE
+     anatomy, no element renders it differently). The flat --material-*-edge above was the
+     pre-lab spelling: a uniform translucent hairline, a sticker outline beside the conic
+     ring every pane and button wears. The ring could not simply move here because the pane's
+     spelling is an ::after and a <textarea> — like every form control — renders no generated
+     content (measured: the pseudo computes but never paints). `background-clip: border-area`
+     paints a background layer in exactly the border band, corners and squircle included, ON
+     the element itself — so inside this guard the border goes transparent through the SAME
+     HC hop the panes use (--kui-glass-hc-edge arrives on every [data-material] element under
+     contrast="high" and brings the pigment boundary back, with the ring var stood down in
+     the same generated arm), and the ring joins the background stack above the rim. Outside
+     the guard the flat edge stands: older engines keep today's hairline, which is the honest
+     fallback — a wash of conic across the whole field is not.
+
+     States outrank the material (§19): the disabled and invalid arms stand --kui-ct-glass-ring
+     down beside --kui-ct-glass-edge, so a dead or invalid glass field wears the state's
+     pigment border and no light. Reduced transparency needs no new line — its arm already
+     declares background-image: none and re-opens the ordinary border chain. */
+  @supports (background-clip: border-area) {
+    .kui-field:where([data-material="thin"]),
+    .kui-textarea:where([data-material="thin"]) {
+      --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
+      --kui-ct-glass-ring: var(--material-thin-ring);
+      background-image: var(--kui-ct-glass-ring, none), var(--material-thin-rim-control, none), var(--kui-ct-light, none);
+      background-clip: border-area, border-box, border-box;
+    }
+    .kui-field:where([data-material="regular"]),
+    .kui-textarea:where([data-material="regular"]) {
+      --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
+      --kui-ct-glass-ring: var(--material-regular-ring);
+      background-image: var(--kui-ct-glass-ring, none), var(--material-regular-rim-control, none), var(--kui-ct-light, none);
+      background-clip: border-area, border-box, border-box;
+    }
+    .kui-field:where([data-material="thick"]),
+    .kui-textarea:where([data-material="thick"]) {
+      --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
+      --kui-ct-glass-ring: var(--material-thick-ring);
+      background-image: var(--kui-ct-glass-ring, none), var(--material-thick-rim-control, none), var(--kui-ct-light, none);
+      background-clip: border-area, border-box, border-box;
+    }
+  }
+
   /* LOUD GLASS RUNS HOT (lab l2-btn-loud, ported 2026-08-17). At the control veil alphas a
      loud pigment reads WASHED beside its solid counterpart — the white page supplies the
      missing percent and the sheen pours milk on top, the opposite of rank. The lab's answer:
@@ -1642,6 +1687,7 @@
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
   position: relative;
 }
+.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
   content: "";
   position: absolute;
@@ -1660,17 +1706,28 @@
   pointer-events: none;
   opacity: var(--material-ring-opacity, 1);
 }
+.kui-segmented:where([data-material="thin"])::after,
 .kui-button:where([data-material="thin"])::after {
   background: var(--material-thin-ring);
 }
+.kui-segmented:where([data-material="regular"])::after,
 .kui-button:where([data-material="regular"])::after {
   background: var(--material-regular-ring);
 }
+.kui-segmented:where([data-material="thick"])::after,
 .kui-button:where([data-material="thick"])::after {
   background: var(--material-thick-ring);
 }
 
-/* ON GLASS (§10, 2026-08-16) — the control half; see surfaces.css for the reasoning. This is
+/* The segmented TRACK wears the same ring (2026-08-24, the glass lock): a glass track is a
+   pane, and the well's "no edge" is about PIGMENT rank, not about the material's lip. It
+   rides the button's ::after — a track is a div, and its border is stood down BY WIDTH
+   (audit D2), so the border-area spelling has no band to paint. Its `position: relative`
+   comes from segmented-control.css (the thumb's containing block) and is load-bearing twice
+   now. Under HC the ring dies with the panes' (--material-ring-opacity), and the track keeps
+   no pigment fallback on purpose — the solid track has no edge either.
+
+   ON GLASS (§10, 2026-08-16) — the control half; see surfaces.css for the reasoning. This is
    what a dialog's Cancel button takes: the veil's alpha, no filter, no lens. */
 .kui-control[data-material="on-glass"] {
   --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-on-glass-alpha), transparent);

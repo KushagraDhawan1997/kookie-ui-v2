@@ -922,7 +922,7 @@
   --disabled-dim: 70%;
   --disabled-fill: var(--neutral-a2);
   --disabled-fill-solid: var(--neutral-2);
-  --disabled-border: var(--neutral-a3);
+  --disabled-border: var(--neutral-a2);
   --disabled-ink: var(--neutral-8);
   --selected-edge: var(--accent-solid);
   /* transmission (§10, 2026-08-07) — what a PANE casts is the app's shadow passed
@@ -960,7 +960,7 @@
   --dress-field-fill-hover-solid: var(--neutral-4);
   --dress-field-fill-active: var(--neutral-a5);
   --dress-field-fill-active-solid: var(--neutral-5);
-  --dress-field-edge: var(--neutral-a4);
+  --dress-field-edge: var(--neutral-a3);
   --dress-mark-fill: var(--neutral-a4);
   --dress-mark-fill-solid: var(--neutral-4);
   --dress-mark-fill-hover: var(--neutral-a5);
@@ -1561,7 +1561,7 @@
   --disabled-dim: 70%;
   --disabled-fill: var(--neutral-a2);
   --disabled-fill-solid: var(--neutral-2);
-  --disabled-border: var(--neutral-a3);
+  --disabled-border: var(--neutral-a2);
   --disabled-ink: var(--neutral-8);
   --selected-edge: var(--accent-solid);
   /* transmission (§10, 2026-08-07) — what a PANE casts is the app's shadow passed
@@ -1599,7 +1599,7 @@
   --dress-field-fill-hover-solid: var(--neutral-4);
   --dress-field-fill-active: var(--neutral-a5);
   --dress-field-fill-active-solid: var(--neutral-5);
-  --dress-field-edge: var(--neutral-a4);
+  --dress-field-edge: var(--neutral-a3);
   --dress-mark-fill: var(--neutral-a4);
   --dress-mark-fill-solid: var(--neutral-4);
   --dress-mark-fill-hover: var(--neutral-a5);
@@ -3292,6 +3292,7 @@
 }
 :root[data-contrast="high"] [data-material], [data-appearance="light"][data-contrast="high"] [data-material] {
   --kui-glass-hc-edge: var(--tone-border);
+  --kui-ct-glass-ring: initial;
 }
 @media (prefers-contrast: more) {
   :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -3400,6 +3401,7 @@
   }
   :root:not([data-contrast="normal"]) [data-material], [data-appearance="light"]:not([data-contrast="normal"]) [data-material] {
     --kui-glass-hc-edge: var(--tone-border);
+    --kui-ct-glass-ring: initial;
   }
 }
 
@@ -3512,6 +3514,7 @@
 }
 [data-appearance="dark"][data-contrast="high"] [data-material] {
   --kui-glass-hc-edge: var(--tone-border);
+  --kui-ct-glass-ring: initial;
 }
 @media (prefers-contrast: more) {
   [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -3623,6 +3626,7 @@
   }
   [data-appearance="dark"]:not([data-contrast="normal"]) [data-material] {
     --kui-glass-hc-edge: var(--tone-border);
+    --kui-ct-glass-ring: initial;
   }
 }
 

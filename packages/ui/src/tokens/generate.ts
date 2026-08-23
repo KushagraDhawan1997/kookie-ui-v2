@@ -503,7 +503,18 @@ export function generateTokens(): string {
         // The ring stands down and the pane's border chain picks up --tone-border through
         // the element-scoped arm below.
         decls.push(decl("material-ring-opacity", "0"));
-        scopedHigh.push({ attr: "data-material", decls: [decl("kui-glass-hc-edge", "var(--tone-border)")] });
+        scopedHigh.push({
+          attr: "data-material",
+          decls: [
+            decl("kui-glass-hc-edge", "var(--tone-border)"),
+            // The field family's background-layer ring (2026-08-24) cannot take the panes'
+            // ring-opacity — opacity is per-element and this ring is one layer of the
+            // element's own background — so the SAME arm that hands the pigment edge back
+            // stands the ring var down: one HC declaration set for "a glass element's edge
+            // becomes a boundary again".
+            decl("kui-ct-glass-ring", "initial"),
+          ],
+        });
         // Dark floating panes take the same defence as in-flow glass under HC (see the
         // --material-*-alpha-floating emission).
         if (mode === "dark") {

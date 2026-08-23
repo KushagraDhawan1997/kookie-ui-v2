@@ -31,6 +31,8 @@ import { Theme } from "../../theme/theme.tsx";
 import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { SegmentedControl, SegmentedItem } from "./segmented-control.tsx";
+import { TextField } from "../text-field/text-field.tsx";
+import { Card } from "../card/card.tsx";
 
 const px = (v: string) => parseFloat(v);
 
@@ -122,9 +124,27 @@ describe("the track is the control, and it stands level (§4, §26)", () => {
 
 describe("the track is a WELL, and the segment is a grip (§11, §19, §26)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: the channel paints --color-track and the grip --color-thumb`, () => {
-      const root = control({}, { appearance });
-      expect(computed(root, "background-color")).toBe(colorOn(root, "var(--color-track)"));
+    it(`${appearance}: the channel paints the FIELD's gray and the grip --color-thumb`, () => {
+      // The channel left --color-track on 2026-08-24 (Kushagra: "I see no reason for it to be
+      // any other color than text fields or areas"): one gray for field, area and this track;
+      // --color-track stays the instruments' deeper channel. Asserted as the AGREEMENT with a
+      // mounted TextField rather than as the token name alone — the guarantee is "same color
+      // as a text field", and a token identity would stay green the day text-field.css
+      // stopped reading the same role.
+      const host = render(
+        <Theme appearance={appearance}>
+          <SegmentedControl defaultValue="list">
+            <SegmentedItem value="list">List</SegmentedItem>
+            <SegmentedItem value="grid">Grid</SegmentedItem>
+          </SegmentedControl>
+          <TextField />
+        </Theme>,
+      );
+      const root = within(host, ".kui-segmented");
+      expect(computed(root, "background-color")).toBe(
+        computed(within(host, ".kui-field"), "background-color"),
+      );
+      expect(computed(root, "background-color")).toBe(colorOn(root, "var(--dress-field-fill)"));
       expect(computed(grip(root), "background-color")).toBe(colorOn(root, "var(--color-thumb)"));
       // And the two are different, or the grip is invisible in its own channel — the
       // switch's 2026-08-08 disabled defect, guarded against at rest.
@@ -344,6 +364,86 @@ describe("the refusals are pinned by the TYPE, not merely claimed (audit 2026-08
     // @ts-expect-error — and emphasis is not a rung a segment picks.
     void (<SegmentedControl emphasis="loud" />);
   });
+});
+
+describe("glass and the grip (§10, §26, 2026-08-24)", () => {
+  it("a glass TRACK wears the pane's ring — the well has no pigment edge, and the material has a lip", () => {
+    // The glass lock (2026-08-24): the well's "no edge" is a decision about PIGMENT rank;
+    // the ring is the material's own lip, what glass IS (§10's rim-and-edge sentence). The
+    // track rides the button's ::after spelling — its border is stood down BY WIDTH (audit
+    // D2), so the field family's border-area layer would have no band to paint in. Asserted
+    // as the agreement with a glass Button's ring: the two resolved conics must be
+    // byte-identical, so the track cannot drift from the family.
+    const host = render(
+      <Theme material="regular">
+        <Box backdrop>
+          <SegmentedControl defaultValue="list">
+            <SegmentedItem value="list">List</SegmentedItem>
+            <SegmentedItem value="grid">Grid</SegmentedItem>
+          </SegmentedControl>
+          <Button>b</Button>
+        </Box>
+      </Theme>,
+    );
+    const track = within(host, ".kui-segmented");
+    const ring = getComputedStyle(track, "::after").backgroundImage;
+    expect(ring).toContain("conic-gradient");
+    expect(ring).toBe(getComputedStyle(within(host, ".kui-button"), "::after").backgroundImage);
+    // And a solid track paints none — the ring is the material's, never the well's.
+    const solid = control({});
+    expect(getComputedStyle(solid, "::after").backgroundImage).not.toContain("conic-gradient");
+  });
+
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: on a glass TRACK the thumb is the pane's own wash, flat, under full ink`, () => {
+      // Kushagra: "When glass, segmented control's thumb should render as neutral gray like
+      // hover in menu, and the entire control gets glass." The wash is --material-row-wash —
+      // the token a glass menu lights a hovered row with, so the two agree by construction;
+      // the cast stands down (a pane has one lift); and the chosen label returns to the full
+      // ink, because --color-thumb-label was minted against the near-white fill this thumb
+      // no longer has.
+      const host = render(
+        <Theme appearance={appearance} material="thin">
+          <Box backdrop>
+            <SegmentedControl defaultValue="list">
+              <SegmentedItem value="list">List</SegmentedItem>
+              <SegmentedItem value="grid">Grid</SegmentedItem>
+            </SegmentedControl>
+          </Box>
+        </Theme>,
+      );
+      const track = within(host, ".kui-segmented");
+      // The premise, stated so a broken fixture fails as itself rather than as the claim.
+      expect(track.getAttribute("data-material")).toBe("thin");
+      const thumb = within(host, ".kui-segment-thumb");
+      expect(computed(thumb, "background-color")).toBe(colorOn(track, "var(--material-row-wash)"));
+      expect(computed(thumb, "box-shadow")).toBe("none");
+      expect(computed(within(host, ".kui-segment[data-checked]"), "color")).toBe(
+        colorOn(track, "var(--color-text)"),
+      );
+    });
+
+    it(`${appearance}: INSIDE a glass pane the grip keeps its pigment and loses only its lift`, () => {
+      // The other case, deliberately different: a control in a glass card resolves its solid
+      // appearance (on-glass), so the thumb stays --color-thumb — what the pane takes from
+      // every grip it holds is the CAST, the keycap's own rule (a pane has one lift). The
+      // fill assertion is what tells this case from the is-glass case above; a rule that
+      // washed both would go green on the shadow and fail here.
+      const host = render(
+        <Theme appearance={appearance} material="regular">
+          <Card backdrop>
+            <SegmentedControl defaultValue="list">
+              <SegmentedItem value="list">List</SegmentedItem>
+              <SegmentedItem value="grid">Grid</SegmentedItem>
+            </SegmentedControl>
+          </Card>
+        </Theme>,
+      );
+      const thumb = within(host, ".kui-segment-thumb");
+      expect(computed(thumb, "background-color")).toBe(colorOn(thumb, "var(--color-thumb)"));
+      expect(computed(thumb, "box-shadow")).toBe("none");
+    });
+  }
 });
 
 describe("one glass per stack, structurally (§10, §26)", () => {

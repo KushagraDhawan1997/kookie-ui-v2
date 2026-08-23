@@ -52,9 +52,15 @@
      A well has no edge to lose. The switch keeps its hairline because a toggling box must not
      change size; nothing here toggles its own box. */
   border-width: 0;
-  --kui-ct-fill-src: var(--color-track);
-  --kui-ct-fill-src-hover: var(--color-track);
-  --kui-ct-fill-src-active: var(--color-track);
+  /* The channel wears the FIELD's resting gray (Kushagra, 2026-08-24: "I see no reason for
+     it to be any other color than text fields or areas") — it left --color-track, which
+     stays the instruments' deeper channel (slider rail, switch off-track, progress well).
+     What still separates this track from a field is the EDGE, not the value: a field wears
+     the dress hairline and a well has none. Pinned across all three sources because the
+     track answers no pointer — the value moved, the invariance did not (2026-08-23's rule). */
+  --kui-ct-fill-src: var(--dress-field-fill);
+  --kui-ct-fill-src-hover: var(--dress-field-fill);
+  --kui-ct-fill-src-active: var(--dress-field-fill);
   gap: 0;
 
   /* No space between segments (Kushagra, 2026-08-19). The skeleton's `gap: var(--kui-ct-gap)`
@@ -196,8 +202,11 @@
      inherited with the role rather than re-argued, and mechanically the same reading — the
      grip role's VALUE (`--grip-cast`), never the world switch, which is what "always" means.
      The seventh box-shadow consumer in the package, and the count law is where that decision
-     is recorded. */
-  --kui-ct-cast: var(--grip-cast, none);
+     is recorded.
+
+     "Always" is about the WORLD, and glass is a MATERIAL: on or in a pane the hook stands
+     the cast down (one lift), set by the shared layer — the keycap's own mechanism. */
+  --kui-ct-cast: var(--kui-grip-cast, var(--grip-cast, none));
   box-shadow: var(--kui-ct-cast, none);
 }
 
@@ -234,7 +243,7 @@
    stays readable. */
 /* Dead, the CHANNEL and the LABELS stand down too (audit 2026-08-19, D6). The shared disabled
    arm rewrites tone ROLES, and all three of this component's resting colours are non-tone —
-   `--color-track`, `--color-text-muted`, `--color-thumb-label` — so the remap could not reach
+   `--dress-field-fill`, `--color-text-muted`, `--color-thumb-label` — so the remap could not reach
    any of them and a disabled control measured byte-identical to a live one in both appearances
    except for the grip's cast and the cursor. In light that residual was about a three percent
    shift, and on touch, with no cursor, the cast was the whole report.
@@ -244,9 +253,9 @@
    goes. The track's three sources move together for the field's reason — a rule that dimmed
    only rest would light back up under the pointer. */
 .kui-segmented[data-disabled] {
-  --kui-ct-fill-src: color-mix(in srgb, var(--color-track) var(--disabled-dim), transparent);
-  --kui-ct-fill-src-hover: color-mix(in srgb, var(--color-track) var(--disabled-dim), transparent);
-  --kui-ct-fill-src-active: color-mix(in srgb, var(--color-track) var(--disabled-dim), transparent);
+  --kui-ct-fill-src: color-mix(in srgb, var(--dress-field-fill) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-hover: color-mix(in srgb, var(--dress-field-fill) var(--disabled-dim), transparent);
+  --kui-ct-fill-src-active: color-mix(in srgb, var(--dress-field-fill) var(--disabled-dim), transparent);
 }
 
 .kui-segment[data-disabled] {

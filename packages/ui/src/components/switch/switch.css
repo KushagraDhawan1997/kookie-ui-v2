@@ -130,8 +130,11 @@
      inherited with the role rather than re-argued, and mechanically the same reading — the grip
      role's VALUE (--grip-cast, cap-scale since 2026-08-17), not the world switch, which
      is what "always" means. No catch: a
-     gradient on a near-white grip is invisible. */
-  --kui-ct-cast: var(--grip-cast, none);
+     gradient on a near-white grip is invisible.
+
+     "Always" is about the WORLD, and glass is a MATERIAL: on or in a pane the hook stands
+     the cast down (one lift), set by the shared layer — the keycap's own mechanism. */
+  --kui-ct-cast: var(--kui-grip-cast, var(--grip-cast, none));
   box-shadow: var(--kui-ct-cast, none);
 }
 

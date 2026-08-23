@@ -26,6 +26,7 @@ import {
   tokenOn,
   within,
 } from "../../test/browser.tsx";
+import { Card } from "../card/card.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Slider } from "./slider.tsx";
 
@@ -595,4 +596,29 @@ describe("the grip under drag (§8, 2026-08-10)", () => {
       expect(computed(thumb, "transition-timing-function"), "held: the press's spring").not.toBe(restEase);
     });
   });
+});
+
+describe("a grip in a glass pane goes flat — one lift (§5, §10, 2026-08-24)", () => {
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: the pane stands the cast down, and solid ground does not`, () => {
+      // The comment above this thumb's cast said one-lift-per-pane COULD NOT strip it, and
+      // since 2026-08-24 that is reversed on Kushagra's model (glass is a material, not a
+      // world — a grip in a pane is a ridge in the glass, and Apple's liquid glass ships the
+      // handle flat, retiring the "every platform" claim). The stand-down arrives through
+      // the --kui-grip-cast hook set by the pane rule in surfaces.css.
+      const host = render(
+        <Theme appearance={appearance} material="regular">
+          <Card backdrop>
+            <Slider aria-label="In pane" defaultValue={40} />
+          </Card>
+          <Slider aria-label="On ground" defaultValue={40} />
+        </Theme>,
+      );
+      const thumbs = [...host.querySelectorAll<HTMLElement>(".kui-slider-thumb")];
+      expect(thumbs).toHaveLength(2);
+      expect(computed(thumbs[0]!, "box-shadow")).toBe("none");
+      // The negative control: the same control on solid ground keeps the grip's own cast.
+      expect(computed(thumbs[1]!, "box-shadow")).not.toBe("none");
+    });
+  }
 });

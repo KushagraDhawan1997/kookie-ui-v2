@@ -27,6 +27,7 @@ import {
   within,
   inMotion,
 } from "../../test/browser.tsx";
+import { Card } from "../card/card.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Slider } from "../slider/slider.tsx";
 import { TextField } from "../text-field/text-field.tsx";
@@ -784,4 +785,31 @@ describe("the thumb crosses its channel, drawn by both edges (§8)", () => {
 "and it really did stretch"
     ).toBeGreaterThan(box.width);
   });
+});
+
+describe("a grip in a glass pane goes flat — one lift (§5, §10, 2026-08-24)", () => {
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: the pane stands the cast down, and solid ground does not`, () => {
+      // "Casts always" is about the WORLD (flat and elevated both keep it); glass is a
+      // MATERIAL, the axis that sentence was never about. A raised grip is a pebble ON the
+      // pane, and a pane has one lift — the button casts already stand down inside glass,
+      // and the grips walked out of that when they left --control-chrome for --grip-cast
+      // (2026-08-17): the slider handle's "always is about the world" lesson from a third
+      // side. The stand-down arrives through the --kui-grip-cast hook, set by the pane rule
+      // in surfaces.css — the keycap's own mechanism.
+      const host = render(
+        <Theme appearance={appearance} material="regular">
+          <Card backdrop>
+            <Switch defaultChecked aria-label="In pane" />
+          </Card>
+          <Switch defaultChecked aria-label="On ground" />
+        </Theme>,
+      );
+      const thumbs = [...host.querySelectorAll<HTMLElement>(".kui-switch-thumb")];
+      expect(thumbs).toHaveLength(2);
+      expect(computed(thumbs[0]!, "box-shadow")).toBe("none");
+      // The negative control: the same control on solid ground keeps the grip's own cast.
+      expect(computed(thumbs[1]!, "box-shadow")).not.toBe("none");
+    });
+  }
 });

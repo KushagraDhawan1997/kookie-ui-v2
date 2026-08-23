@@ -1237,6 +1237,42 @@
   color: var(--material-kbd-ink);
   --kui-kbd-cast: none;
 }
+/* The grips take the same sentence (2026-08-24): a raised grip is a pebble ON the pane, and
+   a pane has one lift — the button casts already stand down inside glass through the world
+   hooks. The grips left --control-chrome for --grip-cast on 2026-08-17 precisely so no world
+   switch could strip them, which also walked them out of this stand-down: the slider
+   handle's "always is about the world" lesson arriving from the other side, with MATERIAL
+   as the third axis "always" was never about. The hook is consulted before the role in all
+   three grip sheets — the keycap's own mechanism, one rule up. */
+.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"])
+  :where(.kui-segment-thumb, .kui-switch-thumb, .kui-slider-thumb) {
+  --kui-grip-cast: none;
+}
+
+/* THE GRIP ON A PANE OF ITS OWN (§10, §26, 2026-08-24, Kushagra: "When glass, segmented
+   control's thumb should render as neutral gray like hover in menu, and the entire control
+   gets glass"). When the segmented TRACK is the glass — a toolbar over content — the chosen
+   segment is not a raised white pebble on the pane: it is the pane's own selection wash, the
+   same ink-at-low-alpha a glass menu lights its hovered row with, so the thumb trades
+   --color-thumb for --material-row-wash (one token, already solved per mode with the
+   material). Its cast stands down through the grip hook (a pane has one lift — the button
+   casts' own sentence), and the chosen label returns to the full ink: --color-thumb-label
+   was minted against the near-white fill and has nothing to sit on once the fill is a wash.
+   Stated HERE and not in segmented-control.css (a component sheet may not name a material)
+   and not in recipes.css (the material region there may not touch a colour or a label — that
+   law is what keeps the material a modifier; the colour-touching glass treatments all live
+   in this file). The pane-member rule above cannot reach this case, because the pane IS the
+   track and the track is not a .kui-surface. */
+.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-segment-thumb {
+  --kui-ct-fill-src: var(--material-row-wash);
+  --kui-ct-fill-src-hover: var(--material-row-wash);
+  --kui-ct-fill-src-active: var(--material-row-wash);
+  --kui-grip-cast: none;
+}
+.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-segment:where([data-checked]) {
+  --kui-ct-label-color: var(--color-text);
+}
+
 
 /* ON GLASS (§10, 2026-08-16): a member whose backdrop a pane below already spent. Glass does
    not stack, so this never filters and never takes a lens — but it does NOT go opaque either,

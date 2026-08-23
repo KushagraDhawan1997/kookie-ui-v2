@@ -537,7 +537,21 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // depth pinned FLAT here (lab port 2026-08-17: the default flipped to elevated, the
     // radius-flip precedent) — this arm is about a flat world's glass never floating.
     const glass = mounted(<TextField backdrop />, { theme: { depth: "flat", material: "thin" } });
-    expect(computed(glass, "border-top-color")).toBe(colorOn(glass, "var(--material-thin-edge)"));
+    // THE EDGE IS THE RING (2026-08-24, the glass lock — Kushagra: "the border is weird,
+    // see how card does it, button does it"). This line used to assert the flat
+    // --material-thin-edge, which was the defect stated as a guarantee: a uniform pigment
+    // hairline beside the conic ring every pane and button wears. The border is transparent
+    // now and the ring paints in the band through background-clip: border-area — the one
+    // spelling a <textarea> can also take, since form controls render no ::after. Asserted
+    // as the AGREEMENT with a glass Button's own ring, not as a token name: the resolved
+    // conic string a Button's ::after paints must appear verbatim in the field's background
+    // stack, so the two cannot drift apart without this failing.
+    expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+    const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { depth: "flat", material: "thin" } });
+    const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
+    expect(ring).toContain("conic-gradient");
+    expect(computed(glass, "background-image")).toContain(ring);
+    expect(getComputedStyle(glass).backgroundClip.startsWith("border-area")).toBe(true);
     expect(computed(glass, "background-image")).not.toBe("none");
     // Flat: glass never floats — the cast AND the pool are no-op LAYERS (the pool rides the
     // world pointers since 2026-08-17: "flat means flat", so matter stands down with light).
@@ -573,6 +587,22 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(invalid, "border-top-color")).toBe(colorOn(invalid, "var(--invalid-edge)"));
     const disabled = mounted(<TextField backdrop disabled />, { theme: { material: "thin" } });
     expect(computed(disabled, "border-top-color")).toBe(colorOn(disabled, "var(--disabled-border)"));
+    // And the RING dies with the edge (2026-08-24): both arms stand --kui-ct-glass-ring down
+    // beside --kui-ct-glass-edge, or the error border would paint UNDER a ring of light.
+    expect(computed(invalid, "background-image")).not.toContain("conic-gradient");
+    expect(computed(disabled, "background-image")).not.toContain("conic-gradient");
+  });
+
+  it("contrast=high trades the field's ring for the tone hairline — the panes' own HC deal", () => {
+    // The generated HC arm lands on every element carrying [data-material]: it declares
+    // --kui-glass-hc-edge (the pigment boundary back) and stands --kui-ct-glass-ring down —
+    // one declaration set for "a glass element's edge becomes a boundary again". A ring is
+    // light, and light cannot be strengthened; a user asking for high contrast is asking
+    // for pigment (audit 2026-08-18, the panes' finding, now the fields' too).
+    const el = mounted(<TextField backdrop />, { theme: { material: "thin", contrast: "high" } });
+    expect(computed(el, "border-top-color")).toBe(colorOn(el, "var(--tone-border)"));
+    expect(computed(el, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+    expect(computed(el, "background-image")).not.toContain("conic-gradient");
   });
 
   it.each(GLASS_MATERIALS)(

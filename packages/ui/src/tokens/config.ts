@@ -1690,9 +1690,14 @@ export const disabledDim = 70;
  * button's and the dead state rode on label colour alone (audit 2026-08-18). The border
  * recedes the same way — the old opaque --neutral-6 out-contrasted a live field's a4 edge in
  * dark, making the one disabled control the strongest boundary on the row.
+ *
+ * Light's border moved 3 -> 2 on 2026-08-24, WITH the live edge: the field hairline lightened
+ * to a3 that day (the `dress` table), which put the dead border exactly ON the live one — a
+ * disabled field byte-identical to a live field at the boundary, the mounted laws' own
+ * failure. The rule is recession, so the dead border follows the live edge down.
  */
 export const disabledSteps = {
-  light: { fill: 2, border: 3, ink: 8 },
+  light: { fill: 2, border: 2, ink: 8 },
   dark: { fill: 3, border: 3, ink: 8 },
 } as const;
 
@@ -1903,11 +1908,13 @@ export const pageColor = {
  * axis did nothing but delete the card's border. An index is not a colour; it means the
  * opposite thing in the two modes, and only a per-mode table can say which.
  *
- * The edges are deliberately inside `contrastHighBands.border` ([5, 6, 7]). That is what
- * keeps `contrast="high"` reaching a dressed component's boundary for free: the role holds a
- * var() reference, the high-contrast pass re-declares those very steps, and substitution at
- * the element does the rest. A softer edge outside the band would have been an accessibility
- * escape that silently stopped working.
+ * The edges owe `contrast="high"` nothing from this table: the HC pass stands
+ * `--dress-field-edge` and `--dress-mark-edge` down to `initial`, so the consumption site's
+ * fallback (var(--tone-border)) resolves at the element, where the HC declarations have
+ * already strengthened the tone borders. (An older sentence here claimed the edges sat inside
+ * contrastHighBands.border and were reached by re-declaration — stale since the fill-first
+ * flip softened the field edge out of that band, 2026-08-17.) In standard mode a dress edge
+ * is DRESS (2026-08-07's rule): taste, held to no floor.
  *
  * The SURFACE family's rows died with `surfaceLook` (2026-08-20): they were `filled`'s
  * pigment, and `filled` was never judged or used. A card rests on the seal and its edge is
@@ -1915,11 +1922,16 @@ export const pageColor = {
  */
 export const dress = {
   light: {
-    /* Fields: edge softened one step with the fill-first flip; the fill went to 2 the same
-       day and CAME BACK ("a bit too light") — what read heavy before was the fill plus the
-       solved hairline plus the cast, and with those two gone the original well holds
-       (2026-08-17, Kushagra). */
-    field: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 4 },
+    /* Fields: edge softened one step with the fill-first flip (2026-08-17), and one more
+       2026-08-24 (Kushagra: "the text field and hairline feel bit darker than they should
+       be") — the edge now EQUALS the fill, and the hairline still reads because the border
+       area composites the same alpha twice (~13% over a 6.7% fill). The FILL holds at 3,
+       pinned from both sides: it went to 2 on 2026-08-17 and CAME BACK ("a bit too light"),
+       and it already equals the reference medium button's --neutral-soft in this mode — the
+       hairline on top is what pushed the impression past the button. The ramp has no half
+       step below (dark's a2 is literally transparent), so a lighter field means moving a3
+       itself, a call about the whole ramp rather than this table. */
+    field: { fill: 3, "fill-hover": 4, "fill-active": 5, edge: 3 },
     mark: { fill: 4, "fill-hover": 5, "fill-active": 6, edge: 7 },
   },
   dark: {
