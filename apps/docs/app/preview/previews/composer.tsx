@@ -1,6 +1,7 @@
 /**
  * Composer's preview spec (2026-08-23) — the sixth component through the per-component
- * structure, and the first whose States section reports a state the component does not have.
+ * structure — and the page paid for itself on the day it landed: its States section had
+ * nothing to draw for `disabled`, which turned out to be a real defect rather than a design.
  *
  * What this page is for, beyond the usual ladder: a composer is the one surface that holds
  * OTHER components at their own size, so the size section has to prove a negative — that the
@@ -183,27 +184,40 @@ function States() {
         </Grid>
       </Demo>
 
-      {/* Reported rather than drawn, because there is nothing to draw. Measured 2026-08-23:
-          a Composer carrying `aria-disabled`, holding a disabled input, computes byte-identical
-          to a live one on fill, ink, cursor and cast — while a `<Card render={<button
-          disabled/>}>` recedes correctly in the same mount. The shared arm is
-          `.kui-surface:where(button, a, label:has(.kui-control))` and a composer is a `<form>`,
-          which is none of those. So a composer whose conversation is archived, rate-limited or
-          signed out refuses keystrokes while looking exactly like one that accepts them —
-          `readOnly`'s own 2026-08-05 defect, one family over. */}
-      <Demo label="Disabled — the state the component does not have (measured, not assumed)">
+      {/* The section that earned this page. It shipped saying "the state the component does
+          not have", because a disabled composer measured byte-identical to a live one — and
+          that was true of the PANE, which was the wrong thing to look at. A disabled TextArea
+          greys its words and keeps its fill; a disabled composer greyed nothing, so the words
+          you typed stayed full black in a box that had stopped taking keystrokes (2026-08-23).
+          Fixed in composer.css, and the pane still does not dim, because that is TextArea's
+          own answer rather than a gap. */}
+      <Demo label="Disabled — the words grey and the pane does not, which is what every text box in the library does">
         <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5" align="flex-start">
           <Stack gap="2">
             <Text size="2" emphasis="quiet">Live</Text>
             <Composer>
-              <ComposerInput aria-label="Live composer" placeholder="Reply to the thread…" />
+              <ComposerInput aria-label="Live composer" defaultValue="Ship the audit findings." />
               <Row />
             </Composer>
           </Stack>
           <Stack gap="2">
-            <Text size="2" emphasis="quiet">Input disabled — the pane says nothing</Text>
-            <Composer aria-disabled>
-              <ComposerInput aria-label="Dead composer" placeholder="Reply to the thread…" disabled />
+            <Text size="2" emphasis="quiet">Disabled — the thread is archived</Text>
+            <Composer>
+              <ComposerInput aria-label="Dead composer" defaultValue="Ship the audit findings." disabled />
+              <Row />
+            </Composer>
+          </Stack>
+          <Stack gap="2">
+            <Text size="2" emphasis="quiet">Live, empty</Text>
+            <Composer>
+              <ComposerInput aria-label="Live empty" placeholder="Reply to the thread…" />
+              <Row />
+            </Composer>
+          </Stack>
+          <Stack gap="2">
+            <Text size="2" emphasis="quiet">Disabled, empty — the placeholder stands down too</Text>
+            <Composer>
+              <ComposerInput aria-label="Dead empty" placeholder="Reply to the thread…" disabled />
               <Row />
             </Composer>
           </Stack>

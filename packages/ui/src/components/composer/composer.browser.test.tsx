@@ -13,6 +13,7 @@ import { computed, mounted, within } from "../../test/browser.tsx";
 import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
+import { TextArea } from "../text-area/text-area.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { Composer, ComposerInput, ComposerRow, ComposerSend } from "./composer.tsx";
 
@@ -438,5 +439,60 @@ describe("the send button is the composer's one loud thing (§11, §30)", () => 
       "background-color",
     );
     expect(quiet).not.toBe(sendFill());
+  });
+});
+
+describe("a dead composer greys its words (§10, §30)", () => {
+  const text = (props: { disabled?: boolean; value?: string } = {}) =>
+    within(
+      mounted(
+        <Composer>
+          <ComposerInput
+            aria-label="Message"
+            placeholder="Reply…"
+            defaultValue={props.value ?? "Words"}
+            {...(props.disabled ? { disabled: true } : {})}
+          />
+        </Composer>,
+        { theme: {} },
+      ),
+      ".kui-composer-input",
+    );
+
+  it("the value dims, and it dims to the same ink a disabled TextArea uses", () => {
+    // The FIXTURE is the load-bearing half. Comparing a dead composer against itself proves
+    // nothing, and comparing it against "some lighter colour" would pass on any value at all —
+    // so the reference is the control the system already answers this question for. A composer
+    // that dimmed to its own invented grey would be a second answer to one question.
+    const live = computed(text(), "color");
+    const dead = computed(text({ disabled: true }), "color");
+    expect(dead, "a disabled composer paints its words exactly as a live one does").not.toBe(live);
+
+    const areaLive = computed(mounted(<TextArea aria-label="t" defaultValue="Words" />, { theme: {}, select: "textarea" }), "color");
+    const areaDead = computed(mounted(<TextArea aria-label="t" defaultValue="Words" disabled />, { theme: {}, select: "textarea" }), "color");
+    expect(areaDead, "the reference control does not dim either — this law is measuring nothing").not.toBe(areaLive);
+    expect(dead, "a composer invents its own dead ink instead of the system's").toBe(areaDead);
+  });
+
+  it("the placeholder dims with it — an empty dead composer is still dead", () => {
+    // Read through the pseudo-element, which is the only place this colour exists.
+    const ph = (disabled: boolean) =>
+      getComputedStyle(text({ disabled, value: "" }), "::placeholder").color;
+    expect(ph(true), "the placeholder still reads at live weight on a dead pane").not.toBe(ph(false));
+  });
+
+  it("the pane itself does NOT dim, which is TextArea's answer and not an oversight", () => {
+    // The negative half, and it is a decision rather than a leftover: a disabled TextArea's
+    // background is byte-identical to a live one, so the library's rule for a text box that is
+    // off is grey the words and leave the box. Without this, a later change could quietly dim
+    // the pane and no law would object.
+    const pane = (disabled: boolean) =>
+      mounted(
+        <Composer>
+          <ComposerInput aria-label="Message" defaultValue="Words" {...(disabled ? { disabled: true } : {})} />
+        </Composer>,
+        { theme: {} },
+      );
+    expect(computed(pane(true), "background-color")).toBe(computed(pane(false), "background-color"));
   });
 });

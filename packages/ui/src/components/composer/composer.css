@@ -99,6 +99,42 @@
   color: var(--color-text-muted);
 }
 
+/* ── A dead composer greys its words (2026-08-23, Kushagra) ──────────────────────────────────
+   Measured first, and the measurement is why this is here rather than in the shared layer.
+   A disabled TextArea greys its text (0.2697 -> 0.7625) and keeps its fill; a disabled
+   composer changed NOTHING (0.1202 both), so the words you typed stayed full black in a box
+   that had stopped taking keystrokes. Worse than a panel that does not dim, and invisible to
+   every one of the component's laws because none of them read a disabled input.
+
+   The cause is the 2026-08-22 Card finding one component over: the shared remap rewrites the
+   TONE roles, and this input reads the tone-LESS foreground roles (§11) — `--color-text` and
+   `--color-text-muted` — which no tone rewrite can reach. The input is deliberately not a
+   `.kui-control` (§30: a bare textarea, or the pane draws two boxes), so it opted out of the
+   family that carries the remap and lost this with it.
+
+   What it does NOT do is dim the pane, and that is TextArea's own answer rather than a gap:
+   a disabled TextArea's background is byte-identical to a live one. The library's rule for a
+   text box that is off is grey the words and leave the box, so a composer says it the same
+   way. A shared-layer change was proposed and refuted by that measurement — it would have
+   split `.kui-surface:where(button, a, label:has(.kui-control))` to dim a panel that the
+   system, asked properly, does not dim.
+
+   `:disabled` and not an attribute stamp: the input IS the native form element, so whichever
+   route turns it off — the prop, a `<fieldset disabled>` — it lands here as the platform
+   attribute (TextArea's own third-spelling argument, 2026-08-05). */
+.kui-composer-input:disabled {
+  color: var(--disabled-ink);
+}
+
+/* The placeholder stands down WITH it. A textarea shows one or the other, never both, so this
+   is not the ladder-inversion argument the Card fix makes for three rungs at once — it is that
+   an empty dead composer is still dead, and a live-weight placeholder is the one thing left on
+   the pane still claiming otherwise. Needs its own rule: `::placeholder` above is (0,1,1) and
+   would beat a bare inherit. */
+.kui-composer-input:disabled::placeholder {
+  color: var(--disabled-ink);
+}
+
 /* ── The row ─────────────────────────────────────────────────────────────────────────────────
    The system states the alignment, the split and the gap; the caller states which controls
    belong on which side, because that is what those controls MEAN. Notice's row is the

@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-23 A disabled composer kept your words at full black, and the spec said it could not
+
+**What.** `composer.css` greys the input's value and its placeholder when the input is disabled. The pane is deliberately unchanged.
+
+**Why it came up.** Building the component's preview page, its States section had nothing to draw for `disabled`. I measured it, found a composer marked disabled computing byte-identical to a live one, and reported that the panel does not dim. Kushagra: *"we fixed this bug in card too, card can read disabled, why did we use text field rules?"*
+
+**He was right, and the question exposed that I had measured the wrong element.** I had compared PANES. Comparing the text instead: a disabled TextArea greys its words (0.2697 → 0.7625) and a disabled composer greyed nothing (0.1202 both). So the real defect is not a panel that stays bright — it is that text you typed stays at full contrast inside a box that has stopped taking keystrokes, which is `readOnly`'s own 2026-08-05 shape and strictly worse than the thing I had reported.
+
+**The cause is the 2026-08-22 Card finding word for word.** The shared remap rewrites the TONE roles; this input reads the tone-LESS foreground roles (§11), which no tone rewrite reaches. It is also the price of a decision two paragraphs earlier in §30: the input is a bare textarea and deliberately not a `.kui-control`, because our TextArea would draw a second box inside the pane — so it opted out of the family that carries the remap, and nobody noticed the grey-out left with it.
+
+**Rejected, and refuted by the measurement rather than by preference: splitting the pressable selector.** My first proposal was that `.kui-surface:where(button, a, label:has(.kui-control))` answers two questions at once — *can you press this* and *can this be dead* — and should be taken apart so any dead surface dims whatever element it is. The framing is real (§30 already records the composer as the first thing wanting focus without press). It is also the wrong repair, because it targets the pane, and **the pane is correct as it stands**: a disabled TextArea's background is byte-identical to a live one. The library's answer for a text box that is off is grey the words and leave the box. A system-wide change to dim something the system does not dim is entropy dressed as consistency.
+
+**So the fix is local and copies a shipped answer** rather than inventing one. Keyed on `:disabled` and not an attribute stamp: the input IS the native form element, so whichever route turns it off — the prop, a `<fieldset disabled>` — it lands as the platform attribute, which is TextArea's own third-spelling argument (2026-08-05).
+
+**The law's fixture is the load-bearing half.** "It dims" passes on any lighter colour, including one the composer invented; "it dims like itself" cannot fail. The reference is a mounted TextArea, so the law asserts the composer reaches the SAME dead ink the system already uses, with a vacuity guard that the reference control dims at all. Three sabotages, each caught by a different law: restoring the shipped defect, deleting the placeholder rule, and substituting a plausible-but-different grey.
+
+**And the spec was wrong in a way worth naming.** §30 read "The disabled arm shipped 2026-08-22 and applies unchanged… Its selector widens by one entry." The widening never happened, and the sentence was written from the arm's intent rather than from the elements it names — a claim about behaviour, made without mounting the behaviour, in the same document that records this exact mistake four times.
+
+---
+
 ## 2026-08-23 One stroke literal was two weights, because it was written on two grids
 
 **What.** `iconStroke` (1.75, public) and `iconGrid` (24) join config; `glyphStroke` derives the same painted weight for the 16-unit viewBox the package's own glyphs use. Ten hand-written `strokeWidth="1.5"` literals — seven in the package, three in the docs app — now read one of the two.
