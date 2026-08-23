@@ -23,10 +23,6 @@
  */
 import * as React from "react";
 import {
-  Composer,
-  ComposerInput,
-  ComposerRow,
-  ComposerSend,
   Blockquote,
   Box,
   Button,
@@ -89,14 +85,8 @@ import {
 } from "@kookie-ui/react";
 
 import {
-  ArrowUpIcon,
-  BoltIcon,
-  MicIcon,
-  PaperclipIcon,
   PlusIcon,
-  RetryIcon,
   SearchIcon,
-  StopSquareIcon,
   XIcon,
 } from "../icons";
 import { BedSurface, PHOTO_BED, bed } from "./beds";
@@ -526,69 +516,6 @@ function HeadingSection() {
   );
 }
 
-/* One map, three glyphs, because the send button's meaning changes and its drawing has to
-   follow. `submitted` states none: Button's own spinner is what "in flight" looks like. */
-const SEND_GLYPHS = {
-  ready: <ArrowUpIcon />,
-  streaming: <StopSquareIcon />,
-  error: <RetryIcon />,
-};
-
-function ComposerSection() {
-  return (
-    <Stack gap="6">
-      {/* The specimen the component was designed from (§30): a form holding a text area that
-          grows, one row of controls under it, and a send button that says what it will do.
-          Every button in that row is a plain Button — the grey pill and the circle are what a
-          Button already is, and the corner is the default radius. Nothing here picks a
-          colour, a length or a look. */}
-      <Box maxWidth="40rem">
-        <Composer>
-          <ComposerInput aria-label="Message" placeholder="Add feedback…" />
-          <ComposerRow>
-            <Flex gap="2">
-              <Button iconOnly aria-label="Add attachment"><PaperclipIcon /></Button>
-              <Button>Opus 5</Button>
-              <Button leading={<BoltIcon />}>Auto</Button>
-            </Flex>
-            <Flex gap="2">
-              <Button iconOnly aria-label="Dictate"><MicIcon /></Button>
-              <ComposerSend icons={SEND_GLYPHS} />
-            </Flex>
-          </ComposerRow>
-        </Composer>
-      </Box>
-
-      {/* The four things the send button can mean. This is what replaces a prop that only
-          decided whether the button was VISIBLE: a person watching a reply arrive needs a way
-          to end it, and that is the third one. */}
-      <Stack gap="4">
-        <Text size="2" emphasis="medium">One button, four meanings</Text>
-        <Flex gap="3" align="center">
-          <ComposerSend status="ready" icons={SEND_GLYPHS} />
-          <ComposerSend status="submitted" icons={SEND_GLYPHS} />
-          <ComposerSend status="streaming" icons={SEND_GLYPHS} />
-          <ComposerSend status="error" icons={SEND_GLYPHS} />
-        </Flex>
-      </Stack>
-
-      {/* It grows with what you type and stops at a ceiling, in CSS. The previous version
-          measured the box on every keystroke to do this. */}
-      <Box maxWidth="40rem">
-        <Composer size="3">
-          <ComposerInput
-            aria-label="Long message"
-            defaultValue={"It grows with the content and stops at a ceiling.\nNo measuring, no observers, no work on any keystroke."}
-          />
-          <ComposerRow>
-            <Text size="2" emphasis="medium">Shift plus Return breaks the line</Text>
-            <ComposerSend icons={SEND_GLYPHS} />
-          </ComposerRow>
-        </Composer>
-      </Box>
-    </Stack>
-  );
-}
 
 function NoticeSection() {
   return (
@@ -2064,7 +1991,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "link", name: "Link", body: <LinkSection /> },
   ported("menu"),
-  { id: "composer", name: "Composer", body: <ComposerSection /> },
+  ported("composer"),
   { id: "notice", name: "Notice", body: <NoticeSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
