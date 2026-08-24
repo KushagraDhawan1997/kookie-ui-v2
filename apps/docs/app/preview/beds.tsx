@@ -103,11 +103,17 @@ export function BedSurface({
         // page judging glass should not also be paying for a 2400px original on a phone).
         // The optimizer serves the rendered size in a modern format, and offscreen beds
         // lazy-load, so a preview page's weight is the beds you scrolled to, not the set.
+        // `kb-bed-image` drifts it (globals.css, 2026-08-24): a still photograph answers what
+        // one sample of backdrop does to one pane, and glass is judged on what happens while
+        // the thing behind it MOVES. Composited properties only, and reduced motion stands it
+        // down. The class rather than an inline style because a keyframes animation cannot be
+        // written inline.
         <Image
           src={bed.image}
           alt=""
           fill
           sizes="(max-width: 968px) 100vw, 920px"
+          className="kb-bed-image"
           style={{ objectFit: "cover", zIndex: -1 }}
         />
       ) : null}

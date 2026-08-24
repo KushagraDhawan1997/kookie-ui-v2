@@ -1,40 +1,38 @@
 "use client";
 
 /**
- * The lens bench (2026-08-23, Kushagra: *"I need it to be more glassy! more refracting
- * light"*).
+ * The material bench (2026-08-23 as the lens bench; widened 2026-08-24, Kushagra: "I need a
+ * pass at glassness... I look at iOS liquid glass and it is MILES ahead").
  *
- * Its sibling one file over drives the entry clocks by writing custom properties on the
- * document. The lens cannot be driven that way — it is an SVG filter built in JS from a
- * displacement map, and nothing about it is a custom property. But two of its five levers
- * never touch the map:
+ * The first bench could move exactly two levers — `boost` and `fringe`, the attributes a
+ * mounted filter exposes — and its own footer admitted the cage: the lip's width, the depth
+ * behind it and the profile are baked into each pane's map. That cage is why the lab's LOCKED
+ * refraction (2026-08-14: concave profile, wide bezel, IOR 2.4) went unjudged in the package
+ * for two months while the shipped lens carried a narrow squircle lip. This bench holds three
+ * groups of dials:
  *
- *   `boost`   scales the whole bend         → `feDisplacementMap`'s own `scale`
- *   `fringe`  splits R and B off G          → the three channels' scales, spread around it
+ *   LENS      regenerates every mounted pane's displacement map through the package's own
+ *             `__retuneLens` seam — bezel width, glass depth, refraction index, the profile's
+ *             exponent, the lab's concave flip, and kube's pre-blur order (frost before the
+ *             bend, so the lens stays crisp).
+ *   GLINT     the specular band's width, feather and the rim-saturate stage (the edge
+ *             re-emitting the backdrop's own colour) — same seam, same regeneration.
+ *   MATERIAL  multiplies the shipped tokens live — veil, blur, saturation, an appended
+ *             contrast term, the sheen wash and the ring's strength — via one injected
+ *             stylesheet that lands on every `.kui-theme` element with `!important`, which is
+ *             what beats the same element's own token declarations while a nested Theme's
+ *             proximity would beat any inline override on the root.
  *
- * Both are attributes on filters that already exist in the document, so this panel edits them
- * in place and the change is live on the next paint. The other three — `bezel`, `thickness`
- * and `ior` — are baked into the map's pixels and would need every pane's map regenerated, so
- * they are deliberately not here: what is judged with this bench is HOW MUCH the glass bends
- * and how hard it splits, not the shape of the lip.
- *
- * Honest in the same way the motion bench is: it reads the shipped values off the filters
- * themselves rather than carrying a copy of `refraction.tsx`'s ladder. `scale` on the G
- * channel IS `base`, and R/G − 1 IS the fringe, so both levers can be recovered exactly from
- * any filter in the document and 1.0x restores it.
- *
- * It re-applies to filters minted after a change — a resize, a new pane, a menu opening — via
- * a MutationObserver on the host `<svg>`, because those arrive carrying the config values and
- * would otherwise disagree with the ones already on screen.
- *
- * Nothing persists. The readout is the diff for `refraction.tsx`'s `lens` ladder.
+ * Honest the way the motion bench is: every dial is a multiplier OVER what the package ships,
+ * read off the shipped tokens themselves (per mode, from probe elements, so a light snapshot
+ * is never pushed through dark), and 1.0x everywhere restores the package byte-for-byte.
+ * Nothing persists. The readout is the diff for config.ts and refraction.tsx.
  */
 import * as React from "react";
-import { Button, Card, Flex, Heading, Stack, Text } from "@kookie-ui/react";
+import { __retuneLens, Button, Card, Flex, Heading, Stack, Text } from "@kookie-ui/react";
 
-/** The three rungs, in the order the ladder states them. A filter carries no record of which
-    rung minted it, so the panel groups by BEND — the rungs are monotone in it by law, and the
-    distinct values in the document are therefore the rungs that are on screen. */
+/* ── bend/fringe: live attribute edits on mounted filters (the 2026-08-23 half) ──────────── */
+
 type Recovered = { base: number; fringe: number };
 
 function channels(filter: Element): SVGElement[] {
@@ -61,6 +59,93 @@ function apply(filter: Element, shipped: Recovered, bend: number, fringe: number
   g.setAttribute("scale", String(base));
   b.setAttribute("scale", String(base * (1 - spread)));
 }
+
+/* ── material: shipped tokens, multiplied ────────────────────────────────────────────────── */
+
+const THICKNESSES = ["thin", "regular", "thick"] as const;
+const MODES = ["light", "dark"] as const;
+type Mode = (typeof MODES)[number];
+
+/** Every token the material dials rewrite. Alphas take the veil dial; filters take blur,
+    saturation and the contrast term; the rim takes sheen; the rings take edge. */
+const TOKEN_NAMES = THICKNESSES.flatMap((t) => [
+  `--material-${t}-alpha`,
+  `--material-${t}-alpha-hover`,
+  `--material-${t}-alpha-active`,
+  `--material-${t}-alpha-floating`,
+  `--material-${t}-control-alpha`,
+  `--material-${t}-filter`,
+  `--material-${t}-control-filter`,
+  `--material-${t}-control-filter-hover`,
+  `--material-${t}-control-filter-loud`,
+  `--material-${t}-rim`,
+  `--material-${t}-ring`,
+  `--material-${t}-ring-control`,
+  `--material-${t}-glint`,
+  `--material-${t}-glint-control`,
+]);
+
+/** The shipped value of every token, per mode, read off a PROBE — a hidden element carrying
+    the mode's own stamp — so the snapshot is the mode's, not whichever appearance the page
+    happened to be in when the bench opened. */
+function snapshot(): Record<Mode, Map<string, string>> {
+  const out = { light: new Map<string, string>(), dark: new Map<string, string>() };
+  for (const mode of MODES) {
+    const probe = document.createElement("div");
+    probe.className = "kui-theme";
+    probe.setAttribute("data-appearance", mode);
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    document.body.appendChild(probe);
+    const cs = getComputedStyle(probe);
+    for (const name of TOKEN_NAMES) {
+      const v = cs.getPropertyValue(name).trim();
+      if (v) out[mode].set(name, v);
+    }
+    probe.remove();
+  }
+  return out;
+}
+
+type MatDials = { veil: number; blur: number; sat: number; contrast: number; sheen: number; edge: number };
+const MAT_DEFAULT: MatDials = { veil: 1, blur: 1, sat: 1, contrast: 1, sheen: 1, edge: 1 };
+
+const scaleNum = (v: number, x: number) => Number((v * x).toFixed(3));
+
+/** One token value under the dials. Percentages inside gradients are the sheen's; alphas
+    inside `rgb(... / a)` are the ring's; `blur()`/`saturate()` terms are the filter's own. */
+function retoken(name: string, value: string, d: MatDials): string {
+  if (name.includes("-ring") || name.includes("-glint")) {
+    return value.replace(/\/ ([0-9.]+)\)/g, (_, a: string) => `/ ${Math.min(1, scaleNum(parseFloat(a), d.edge))})`);
+  }
+  if (name.includes("-rim")) {
+    return value.replace(/\/ ([0-9.]+)%/g, (_, a: string) => `/ ${Math.min(100, scaleNum(parseFloat(a), d.sheen))}%`);
+  }
+  if (name.includes("-filter")) {
+    let next = value
+      .replace(/blur\(([0-9.]+)px\)/, (_, b: string) => `blur(${scaleNum(parseFloat(b), d.blur)}px)`)
+      .replace(/saturate\(([0-9.]+)%\)/, (_, s: string) => `saturate(${scaleNum(parseFloat(s), d.sat)}%)`);
+    if (d.contrast !== 1) next = `${next} contrast(${d.contrast})`;
+    return next;
+  }
+  // The alphas: `NN%`.
+  return value.replace(/([0-9.]+)%/, (_, a: string) => `${Math.min(100, scaleNum(parseFloat(a), d.veil))}%`);
+}
+
+function styleSheet(shipped: Record<Mode, Map<string, string>>, d: MatDials): string {
+  const rules: string[] = [];
+  for (const mode of MODES) {
+    const decls: string[] = [];
+    for (const [name, value] of shipped[mode]) {
+      const next = retoken(name, value, d);
+      if (next !== value) decls.push(`${name}: ${next} !important;`);
+    }
+    if (decls.length) rules.push(`.kui-theme[data-appearance="${mode}"] {\n${decls.join("\n")}\n}`);
+  }
+  return rules.join("\n");
+}
+
+/* ── the panel ───────────────────────────────────────────────────────────────────────────── */
 
 function Slider({
   label,
@@ -108,14 +193,57 @@ function Slider({
   );
 }
 
+const LENS_DEFAULT = { bezelX: 1, thicknessX: 1, ior: 0, profileP: 2, concave: false, preBlur: 0 };
+const GLINT_DEFAULT = { glintBandX: 1, glintFalloff: 4, rimSaturate: 0 };
+
 export function LensBench() {
   const [open, setOpen] = React.useState(false);
   const [bend, setBend] = React.useState(1);
   const [fringe, setFringe] = React.useState(1);
+  const [lensD, setLensD] = React.useState(LENS_DEFAULT);
+  const [glintD, setGlintD] = React.useState(GLINT_DEFAULT);
+  const [mat, setMat] = React.useState<MatDials>(MAT_DEFAULT);
   /** The shipped values per filter id, captured the first time each filter is seen — so the
       multipliers are always multiples OF what the package ships, and 1.0x is exact. */
   const shipped = React.useRef(new Map<string, Recovered>());
+  const tokens = React.useRef<Record<Mode, Map<string, string>> | null>(null);
   const [seen, setSeen] = React.useState(0);
+
+  /* The regeneration dials: every change re-tunes the package seam, which re-measures every
+     mounted lens. Defaults everywhere → null, which IS the shipped package. */
+  React.useEffect(() => {
+    if (!open) return;
+    const lensAtRest =
+      lensD.bezelX === 1 && lensD.thicknessX === 1 && lensD.ior === 0 && lensD.profileP === 2 && !lensD.concave && lensD.preBlur === 0;
+    const glintAtRest = glintD.glintBandX === 1 && glintD.glintFalloff === 4 && glintD.rimSaturate === 0;
+    if (lensAtRest && glintAtRest) {
+      __retuneLens(null);
+      return;
+    }
+    __retuneLens({
+      bezelX: lensD.bezelX,
+      thicknessX: lensD.thicknessX,
+      ior: lensD.ior === 0 ? null : lensD.ior,
+      profileP: lensD.profileP,
+      concave: lensD.concave,
+      preBlur: lensD.preBlur,
+      glintBandX: glintD.glintBandX,
+      glintFalloff: glintD.glintFalloff,
+      rimSaturate: glintD.rimSaturate,
+    });
+  }, [open, lensD, glintD]);
+  React.useEffect(() => () => __retuneLens(null), []);
+
+  /* The material dials: one injected sheet, shipped x dial, both modes from their own probes. */
+  React.useEffect(() => {
+    if (!open) return;
+    tokens.current ??= snapshot();
+    const tag = document.createElement("style");
+    tag.setAttribute("data-lens-bench", "");
+    tag.textContent = styleSheet(tokens.current, mat);
+    document.head.appendChild(tag);
+    return () => tag.remove();
+  }, [open, mat]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -177,29 +305,29 @@ export function LensBench() {
   const reset = () => {
     setBend(1);
     setFringe(1);
+    setLensD(LENS_DEFAULT);
+    setGlintD(GLINT_DEFAULT);
+    setMat(MAT_DEFAULT);
   };
 
-  /**
-   * What to change in `refraction.tsx`. The bench moves a MULTIPLIER, and the ladder is stated
-   * as physics, so the readout says which lever to move and by how much rather than pretending
-   * to hand over three literal rungs it cannot see the names of.
-   */
+  /** The diff, stated as the levers to move — every dial maps onto one config line. */
   const readout = () =>
     [
-      "// packages/ui/src/system/refraction.tsx — the `lens` ladder",
-      "//",
-      `// bend  x${Math.round(bend * 100) / 100}  → multiply each rung's \`boost\` (it is 1 on every rung today),`,
-      "//        or re-solve `thickness` against a target bend that much higher — the",
-      "//        ladder's own comment prefers the second: bought with the model rather",
-      "//        than with a multiplier past it.",
-      `// fringe x${Math.round(fringe * 100) / 100} → multiply each rung's \`fringe\` (6 / 10 / 16 today):`,
-      `//        thin ${Math.round(6 * fringe * 10) / 10}, regular ${Math.round(10 * fringe * 10) / 10}, thick ${Math.round(16 * fringe * 10) / 10}`,
+      "// The material bench's settings — each line is one config lever.",
+      "// packages/ui/src/system/refraction.tsx:",
+      `//   lens ladder: bezel x${lensD.bezelX}, thickness x${lensD.thicknessX}, ior ${lensD.ior === 0 ? "(ladder's own)" : lensD.ior}`,
+      `//   PROFILE_P ${lensD.profileP}${lensD.concave ? " CONCAVE" : ""}, pre-blur ${lensD.preBlur}px`,
+      `//   glint: band x${glintD.glintBandX}, falloff ${glintD.glintFalloff}, rimSaturate ${glintD.rimSaturate}`,
+      `//   bend x${bend} (boost), fringe x${fringe}`,
+      "// packages/ui/src/tokens/config.ts (material):",
+      `//   veil x${mat.veil}, blur x${mat.blur}, saturate x${mat.sat}, contrast ${mat.contrast === 1 ? "(none)" : `+contrast(${mat.contrast})`}`,
+      `//   sheen x${mat.sheen}, ring alphas x${mat.edge}`,
     ].join("\n");
 
   if (!open) {
     return (
       <Button size="1" emphasis="quiet" bordered onClick={() => setOpen(true)}>
-        Lens bench
+        Material bench
       </Button>
     );
   }
@@ -209,7 +337,7 @@ export function LensBench() {
       <Stack gap="4">
         <Flex justify="space-between" align="center" gap="3">
           <Heading size="2" render={<h2 />}>
-            Lens bench
+            Material bench
           </Heading>
           <Button size="1" emphasis="quiet" onClick={() => setOpen(false)}>
             Close
@@ -217,50 +345,52 @@ export function LensBench() {
         </Flex>
         <Text size="1" emphasis="medium">
           Live on every glass pane on the page. Put something busy behind one — the Materials
-          section, or a menu over the hostile bed — and drag.
+          section, or a menu over the hostile bed — and drag. 1.0&times; everywhere is the
+          shipped package.
         </Text>
 
-        <Text size="1" emphasis="quiet">
-          bend &mdash; how far the glass pushes what is behind it
-        </Text>
-        <Slider
-          label="bend"
-          value={bend}
-          min={0}
-          max={4}
-          step={0.05}
-          suffix="×"
-          onChange={setBend}
-        />
-        <Text size="1" emphasis="quiet">
-          fringe &mdash; how hard the lip splits light into colour
-        </Text>
-        <Slider
-          label="fringe"
-          value={fringe}
-          min={0}
-          max={6}
-          step={0.05}
-          suffix="×"
-          onChange={setFringe}
-        />
+        <Heading size="1" render={<h3 />}>
+          Lens
+        </Heading>
+        <Slider label="bezel width" value={lensD.bezelX} min={0.25} max={8} step={0.25} suffix="×" onChange={(v) => setLensD({ ...lensD, bezelX: v })} />
+        <Slider label="glass depth" value={lensD.thicknessX} min={0.25} max={8} step={0.25} suffix="×" onChange={(v) => setLensD({ ...lensD, thicknessX: v })} />
+        <Slider label="refraction index (0 = ladder)" value={lensD.ior} min={0} max={2.6} step={0.05} suffix="" onChange={(v) => setLensD({ ...lensD, ior: v < 1.1 ? 0 : v })} />
+        <Slider label="profile exponent" value={lensD.profileP} min={1} max={6} step={0.5} suffix="" onChange={(v) => setLensD({ ...lensD, profileP: v })} />
+        <Slider label="pre-blur (frost before the bend)" value={lensD.preBlur} min={0} max={4} step={0.25} suffix="px" onChange={(v) => setLensD({ ...lensD, preBlur: v })} />
+        <Flex gap="2" align="center">
+          <Button size="1" emphasis={lensD.concave ? "loud" : "quiet"} bordered onClick={() => setLensD({ ...lensD, concave: !lensD.concave })}>
+            Concave (the lab&rsquo;s diamond)
+          </Button>
+        </Flex>
+        <Slider label="bend" value={bend} min={0} max={4} step={0.05} suffix="×" onChange={setBend} />
+        <Slider label="fringe" value={fringe} min={0} max={6} step={0.05} suffix="×" onChange={setFringe} />
+
+        <Heading size="1" render={<h3 />}>
+          Glint
+        </Heading>
+        <Slider label="band width (0 = off)" value={glintD.glintBandX} min={0} max={3} step={0.1} suffix="×" onChange={(v) => setGlintD({ ...glintD, glintBandX: v })} />
+        <Slider label="feather" value={glintD.glintFalloff} min={0.5} max={6} step={0.1} suffix="" onChange={(v) => setGlintD({ ...glintD, glintFalloff: v })} />
+        <Slider label="rim saturate (0 = off)" value={glintD.rimSaturate} min={0} max={9} step={0.5} suffix="" onChange={(v) => setGlintD({ ...glintD, rimSaturate: v })} />
+
+        <Heading size="1" render={<h3 />}>
+          Material
+        </Heading>
+        <Slider label="veil" value={mat.veil} min={0.25} max={1.5} step={0.05} suffix="×" onChange={(v) => setMat({ ...mat, veil: v })} />
+        <Slider label="blur" value={mat.blur} min={0} max={3} step={0.1} suffix="×" onChange={(v) => setMat({ ...mat, blur: v })} />
+        <Slider label="saturation" value={mat.sat} min={0.5} max={2} step={0.05} suffix="×" onChange={(v) => setMat({ ...mat, sat: v })} />
+        <Slider label="contrast term" value={mat.contrast} min={0.7} max={1.4} step={0.05} suffix="" onChange={(v) => setMat({ ...mat, contrast: v })} />
+        <Slider label="sheen" value={mat.sheen} min={0} max={2} step={0.1} suffix="×" onChange={(v) => setMat({ ...mat, sheen: v })} />
+        <Slider label="edge light" value={mat.edge} min={0} max={3} step={0.1} suffix="×" onChange={(v) => setMat({ ...mat, edge: v })} />
 
         <Text size="1" emphasis="quiet">
-          {seen} lens{seen === 1 ? "" : "es"} on the page. The lip&rsquo;s WIDTH and the depth
-          behind it are baked into each pane&rsquo;s map, so they are not here — tell me a
-          number and they land in the ladder.
+          {seen} lens{seen === 1 ? "" : "es"} on the page.
         </Text>
 
         <Flex gap="2" align="center" wrap="wrap">
           <Button size="1" emphasis="quiet" bordered onClick={reset}>
             Reset
           </Button>
-          <Button
-            size="1"
-            emphasis="quiet"
-            bordered
-            onClick={() => void navigator.clipboard?.writeText(readout())}
-          >
+          <Button size="1" emphasis="quiet" bordered onClick={() => void navigator.clipboard?.writeText(readout())}>
             Copy notes
           </Button>
         </Flex>

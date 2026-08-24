@@ -45,3 +45,43 @@ body {
 .kb-canvas-scroller .kui-scroll-content {
   block-size: 100%;
 }
+
+/* THE BEDS DRIFT (2026-08-24, Kushagra: "I want to make all images in background moving").
+   Judging glass against a STILL photograph tells you what one sample of backdrop does to
+   one pane. What a real app puts behind glass moves — a scrolling list, a video, a map —
+   and the questions that only a moving backdrop answers are the ones this page exists for:
+   does the veil hold when a bright edge crosses under it, does the lens smear or bend, does
+   quiet text survive a high-frequency patch passing beneath it.
+
+   One rule, because every bed on every preview page is one component (BedSurface): the image
+   is already `fill` + `object-fit: cover` and already the only positioned child, so the
+   drift rides `scale` and `translate` alone — composited properties, no layout, no paint,
+   nothing the pane above it has to re-rasterise for. The scale is what buys the travel: at
+   1.18 the image overhangs its box by 9% on each axis, so the pan never walks an edge into
+   view. Slow and alternating on purpose — it is a bed to judge against, not a thing to
+   watch, and a loop that cuts back to its start would be the one event on the page that
+   draws the eye.
+
+   `prefers-reduced-motion` stands it down whole (§8's own guard, and the honest reading of
+   it here: the motion is not content, it is a test rig). */
+@keyframes kb-bed-drift {
+  from {
+    scale: 1.18;
+    translate: -4% -2%;
+  }
+  to {
+    scale: 1.18;
+    translate: 4% 2%;
+  }
+}
+
+.kb-bed-image {
+  animation: kb-bed-drift 14s ease-in-out infinite alternate;
+  will-change: translate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kb-bed-image {
+    animation: none;
+  }
+}
