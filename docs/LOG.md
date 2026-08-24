@@ -5427,3 +5427,188 @@ guarantee, one commit old, re-keyed rather than deleted. Two sabotages, each cau
 own law. And the fill-triple law caught the first spelling of the fix re-sourcing two states
 of three — the sources are `inherits: false`, so a partial re-point leaves the third with no
 source; rest is now declared bare on purpose.
+
+## 2026-08-24 — the glass lip was white on white, and 1,902 laws never asked whether it was visible
+
+Kushagra, with six screenshots: "Segmented control isnt visible on card, in dark mode it is
+fine, text field has the same problem, and card also (when elevation is off)… See iOSs edit
+button, segmented control, if they didnt have that hairline, they would blend with background
+too."
+
+**Every stop of the light ring was WHITE** — 0.95 / 0.34 / 0.1 / 0.26 — and light's page is
+0.9869. A lit lip photographed against a dark room: over a photograph it reads, over the page
+it is white on white. Dark never showed it, because there the catch IS the boundary, which is
+why one mode looked finished and the other looked broken.
+
+**The model was corrected rather than the value nudged.** A lip is bright where the light
+reaches it and dark where it does not; on a bright ground the SHADE is what draws the edge.
+So `a` keeps the catch and the other three go to pigment, anchored on the glass border this
+system already designed for light (`glassInk.light.border`). The ring composites over the
+pane's own veil, so the dark arc reads whatever the backdrop is doing behind it — and one
+value fixes the segmented track, both field controls and the card at once, which is
+yesterday's lock paying for itself.
+
+**The gap is the finding.** 1,895 laws were green over an invisible edge. Every law that
+could have caught it asserted AGREEMENT — a field's ring equals a button's, the ladder is
+monotone, HC stands it down — all true, all of them, of a ring nobody could see. The claim
+nothing held is the one a person actually makes: it is VISIBLE. `system/material.browser.test.tsx`
+now reads the ring's own stops against the page in both appearances and asks whether any arc
+is far enough from that ground to be a line.
+
+**Its threshold is set from measurement in both directions**, because a floor picked by feel
+is the same failure one layer up: the shipped defect scores 0.0125 of luma on thin and
+regular and 0.0773 on thick — the spectral stop, which is the faint coloured hairline
+Kushagra had already spotted as the only visible edge in the set — against 0.1480 after the
+fix. 0.10 sits above every failing value and below every passing one.
+
+**And the instrument was wrong before it was right, in this repo's own recorded shape.** The
+first draft swept `[\d.]+` over `color(display-p3 0.98 …)` and took the *3 in display-p3* as
+the red channel — the 2026-08-08 calibration lesson, reproduced by the person who wrote it
+down. The tell was that the law scored 0.3939 identically before AND after the fix: identical
+numbers on opposite code. A second instrument bug preceded it — `colorOn` resolves a value as
+a COLOUR, and a conic-gradient is an image, so it came back `rgba(0, 0, 0, 0)` and every parse
+found one stop. Both are noted at their functions.
+
+## 2026-08-24 — the grip was white on white too, and the glass rules never met an on-glass member
+
+Kushagra, on the corrected ring: "So the selected thumb is still very white, see iOS's. and
+on a card theres no visible difference still." Two reports, one root and one gap.
+
+**The grip repeated the ring's mistake at fill scale.** It went WHITE that morning on the
+solid control's relationship — the track recedes, the grip catches light — and on a LIGHT
+pane there is no headroom above it to be lightened into, which is exactly why the white lip
+had been invisible three hours earlier. iOS's own All/Missed is the reference he pointed at:
+the chosen segment is a subtle grey DARKER than the capsule holding it. Light's grip draws
+with shade now (black 0.14) and only dark keeps the catch (white 0.26). Each mode moves away
+from its own ground; neither reaches for one shared idea of "raised".
+
+**And the glass rules had never met an on-glass member.** They were keyed to the three
+THICKNESSES, which is the list meaning "this element IS a pane" — so a segmented control
+inside a glass Card, which is `on-glass`, matched none of them: no grip, no row vocabulary,
+no ring. Measured in that composition, its thumb fell back to the solid `--color-thumb` and
+rendered PURE WHITE on a white pane, and its track had no border and no annulus at all. They
+key on `[data-material]` now, which is every glass state and still never a solid control.
+
+**The track's boundary could not be a border.** The well stands the skeleton's border down BY
+WIDTH (audit D2), so there is no band for the ordinary edge chain or for the field family's
+`border-area` spelling. It takes the ::after annulus that already wraps its squircle, filled
+with the pane's own designed pigment hairline — a flat line, not a conic lip, because an
+on-glass member has no thickness of its own to claim and a second lip nested in the first
+reads as a second pane.
+
+**A law that could not fail was caught by its own sabotage pass, and it was the value one.**
+Reverting light's grip to white broke nothing: the ring laws only ever read the ring. The
+grip now rides the same law, stated as the shared principle rather than as two numbers — each
+mode's states move away from its own ground, in the same direction its hover moves, and
+further. Values stay taste; the direction is law. This morning's own in-pane law had also
+asserted the superseded behaviour ("the grip keeps its pigment"), which is the defect stated
+as a guarantee for the second time in one day; re-keyed with the old value as its negative
+control.
+
+## 2026-08-24 — The glass polish pass: the specular becomes a BAND, the edge catches the backdrop's colour, and the whole identity becomes judgeable in the package
+
+Kushagra: *"it is correct right now but it doesnt look polished... I look at iOS liquid glass
+and it is MILES ahead, and i see no reason why you and I can't reach there. You can do as much
+research as you want."* The research ran two ways — Apple's own description of the material
+(WWDC 219: previous materials *scattered* light, Liquid Glass *"dynamically bends, shapes, and
+concentrates"* it; the highlight layer responds to geometry; the edge does the work and the
+interior stays optically flat) and the serious web recreations (kube.io's chain foremost, the
+one this repo already credits for the lens) — and the diagnosis came out in one sentence: the
+package's glass still buys legibility with SCATTER. The veil and blur carry the material, the
+lens is a narrow lip, and the specular is a 1px annulus that vanishes at pane scale however
+its stops are priced — the 2026-08-24 morning's own visibility finding was a symptom of the
+1px, not of the colours.
+
+**Three findings from the repo's own history, before any new idea:**
+
+1. **The lab's locked refraction was never judged in the package.** lab2's coded defaults
+   carry the judgment comment — *"Defaults judged 2026-08-14 (Kushagra) — the material is
+   DIAMOND, not glass: wide bezel, thick, index 2.4, heavy fringe, full specular"* — concave
+   profile, bezel 120, IOR 2.4. The shipped lens is squircle, bezel 12/18/26, IOR 1.45–1.62.
+   Not because anyone rejected the lab's numbers: the bench could only move `boost` and
+   `fringe` (its own footer said so), so the lip's width, the depth and the profile were only
+   ever judgeable by editing refraction.tsx and reloading, and nobody did.
+2. **The lab's judged dark-control ring never shipped.** *"Dark buttons carry MORE specular,
+   not less (Kushagra 2026-08-15: 'not enough') — roughly double the card's dark peaks"* — the
+   package emitted ONE ring row, the card's, so a dark glass button wore a 340px card's faint
+   lip.
+3. **kube's rim is two layers and the package had ported only the idea of the second.** Their
+   chain re-emits the displaced backdrop inside the specular region at saturate(4–9), clipped
+   by the specular mask, THEN adds the faint white arc — the edge catches the content's own
+   colour. Ours was only ever white or pigment.
+
+**What shipped:**
+
+- **The GLINT** (§10, the edge's second rendering): a per-box alpha mask minted by the lens
+  hook from the same rounded-rect SDF the lens bends with — band width = the rung's bezel,
+  feather `(1-t)^3` — consumed as the mask of a `::before` whose background is the mode's own
+  glint conic. Geometry from JS at the lens's own seam (mount/resize/flight-end, memoised,
+  capped); colour and every stand-down from tokens, so an appearance flip needs no JS and high
+  contrast, reduced transparency and the floating trim all reach the band through
+  `--material-ring-opacity`, the lever the ring already reads. A plain image, so **Safari and
+  Firefox render the specular** — the first piece of the glass identity outside Chromium. The
+  corner contour is a p-norm superellipse when the box computes `corner-shape: squircle`, so
+  the band hugs the squircle the pane actually paints (the lens keeps its judged circular
+  corner; a band of LIGHT detaching at corners is visible where a bent backdrop's corner
+  never was).
+- **The rim-saturate stage** inside the lens filter (kube's chain, credited): the bent
+  backdrop re-emitted at `glint.rimSaturate`, clipped to the glint mask, composited over.
+  Invisible over a neutral page by construction — saturating grey is grey — which is the
+  morning's pigment-arc finding from the other side: pigment draws the boundary where there is
+  no colour to catch, this catches the colour where there is. Built at 4 and **judged OFF the
+  same day** (Kushagra: "This already looks much better, the one thing I have issue with is
+  rim saturation, Id like it off") — ships at 0, where the stage is never built; the bench
+  dial is the road back.
+- **`--material-*-ring-control`**: dark is the lab's doubled row (config `ringControlDark`),
+  light shares the pane's emission source verbatim. The button/segmented ::after and the field
+  family's `--kui-ct-glass-ring` all re-point; the 2026-08-24 family-agreement law holds
+  untouched because every control member moved together.
+- **The spectral fold stays OFF the band** — corrected the same day it shipped: thick's
+  red/blue stops are the 1px lip's split ("at the lip, where light enters"), and across a
+  26px band they rendered as pink haze on a plain ground. `--material-*-glint(-control)`
+  tokens are the ring palette with spectral off; the crisp ::after keeps the split.
+- **The bench became the material bench**: `__retuneLens` (a dunder-fenced package seam,
+  tree-shaken where unimported) regenerates every mounted map live, so bezel width, glass
+  depth, IOR, the profile exponent, the lab's concave flip, kube's pre-blur order, the glint's
+  band/feather/rim-saturate, and — via one injected `!important` sheet over the shipped
+  tokens, snapshotted per mode from probe elements — veil, blur, saturation, an appended
+  contrast term, sheen and edge strength are all judgeable live at /preview for the first
+  time. Every dial is a multiplier over shipped; 1.0× everywhere restores the package.
+
+**Refused, with reasons:** backdrop-adaptive light/dark flipping (Apple's small elements
+sample their backdrop; CSS cannot read a backdrop, and every web approximation — DOM cloning,
+canvas rasterizers — breaks scroll sync, ARIA or both, per the w3c/svgwg#1142 catalogue);
+the pointer-tracked rim stays refused (JS at interaction time, a second light model);
+materialize-by-lens-ramp (Apple animates the refraction itself on entry; a displacement map
+cannot animate without minting per-frame filters — the 2026-08-22 finding that removed
+exactly that).
+
+**Two working lessons.** A `git checkout <file>` to revert a sabotage reverted the whole
+uncommitted mechanism with it — two files rebuilt from context; a sabotage on uncommitted
+work is reverted by inverse edit, never by checkout. And the first fixture for the new laws
+mounted a bare Card under a glass theme, which resolves SOLID by selectivity — the dark-ring
+law passed against `none` — the degenerate-fixture rule caught by its own falsification run
+within the hour of being re-earned.
+
+**Still his to judge, on the bench:** whether the shipped rungs move toward the lab's diamond
+(wider bezel, higher index, concave), how far the veil drops now that the band carries
+legibility work, the contrast term's direction (shuding's recreation EXPANDS at 1.2 where the
+first instinct here was to compress), and dark's pane-scale band strength. Every dial maps
+onto one config line. The band itself is judged in: "This already looks much better." 
+
+**Same-day codas, all three his eye within the hour of shipping.** Rim-saturate OFF (built at
+4, "the one thing I have issue with is rim saturation, Id like it off" — ships 0, the stage is
+never built at 0, the bench dial is the road back). Band wider and tighter (band 1 → 1.5,
+feather 3 → 4: "I'd like band width to be higher, feather too" — the glint reaches past the
+lens's lip while its mass stays at the edge). And **the bare textarea joined the band**
+("text area still looks old wgy"): re-measured first — a textarea's pseudo computes and paints
+zero pixels, so the masked band genuinely cannot land there — it takes the FLAT approximation
+instead: `--material-glint-flat`, the same palette rows sampled on the same (1-t)^falloff
+curve as gradients in its own glass stack, band width per element from the hook's fitted bezel
+(`--kui-glint-band`, 0px fallback so SSR collapses the layers rather than poisoning the
+background list), routed through `--kui-ct-glass-glint` so the disabled, invalid and HC arms
+stand it down with the ring and no second stand-down exists. The glint shape constants moved
+to config.ts on their second consumer (the generator samples the same curve the hook masks
+with — one home or the feather drifts). The wrapper-bearing field must NOT take the flat layer
+— its band is the real one on ::before, and both at once is a doubled light — held by its own
+law. Three sabotages, each caught by exactly its law.
