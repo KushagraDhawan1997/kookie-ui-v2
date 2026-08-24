@@ -140,6 +140,22 @@ export type LensTuning = {
 let tuning: Partial<LensTuning> | null = null;
 let tuningSerial = 0;
 const remeasures = new Set<() => void>();
+
+/**
+ * The wake-up for the seal (see `target`): a `prefers-reduced-transparency` flip changes the
+ * cascade with no resize to announce it, so every mounted lens re-measures and reads the new
+ * answer — the gate itself stays in the stylesheet's computed values, never restated here.
+ * The list is held in a module ref because an unreferenced MediaQueryList can be collected
+ * with its listener still wanted. Lazy, so a server render never touches `matchMedia`.
+ */
+let sealMql: MediaQueryList | null = null;
+function watchSeal(): void {
+  if (sealMql || typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+  sealMql = window.matchMedia("(prefers-reduced-transparency: reduce)");
+  sealMql.addEventListener("change", () => {
+    for (const cb of remeasures) cb();
+  });
+}
 export function __retuneLens(next: Partial<LensTuning> | null): void {
   tuning = next;
   tuningSerial += 1;
@@ -275,10 +291,74 @@ export function bendAt(t: number, bezel: number, thickness: number, ior: number)
 }
 
 /**
+ * The bend, remembered against its EXACT argument. `bendAt` is the map's most expensive step
+ * and it takes one varying input; a memo on the unrounded float returns the value the solve
+ * would have returned, to the last bit — there is no approximation to judge. Keyed per rung
+ * (the fitted bezel/thickness and the index) and per tuning serial, because the bench's
+ * profile dials (`profileP`, `concave`) change `surface()` underneath the physics.
+ */
+const bendMemos = new Map<string, Map<number, number>>();
+function bendMemo(bezel: number, thickness: number, ior: number): Map<number, number> {
+  const key = `${bezel}|${thickness}|${ior}|${tuningSerial}`;
+  let m = bendMemos.get(key);
+  if (!m) {
+    if (bendMemos.size > 16) bendMemos.clear();
+    m = new Map();
+    bendMemos.set(key, m);
+  }
+  return m;
+}
+
+/**
+ * Which generator path each map took — read by the identity law's coverage guard, so a sweep
+ * that only ever exercised the fallback cannot pass as a law about the general case. Not
+ * public API: reachable from the module, never from the package index.
+ */
+export const __genPaths = { analytic: 0, banded: 0, glintAnalytic: 0, glintBanded: 0 };
+
+/**
  * Build the displacement map for one box. Returns the data URL and the maximum bend in px,
  * which becomes the filter's `scale` — the strength is DERIVED from the physics, not chosen.
+ *
+ * ASSEMBLED, NOT SOLVED PER PIXEL (2026-08-24, the performance audit; byte-identity is a law).
+ * The first generator walked every pixel and ran the Snell solve on each band pixel, and the
+ * audit measured both halves of that as repetition: 86% of a card's map is visited and
+ * discarded, and the solve takes ONE varying argument — depth into the bezel — so a card
+ * asked it 17,924 times for 166 distinct answers (a zero-radius box: 18 answers, 952 times
+ * each). Neither is an approximation to trade on: every pixel at one depth gets one bend
+ * because that is what the model SAYS, and a pane's straight edges are a handful of depths
+ * repeated down their length.
+ *
+ * So the map is assembled from what the geometry already shares, and every float still comes
+ * out of the REAL functions at inputs that provably coincide — nothing is synthesised, which
+ * is what makes byte-identity structural rather than lucky:
+ *
+ *   - the bend is memoised on its EXACT float argument (`bendMemo`): the same input returns
+ *     the same value to the last bit. Keyed per rung and per tuning serial, because the
+ *     bench's profile dials change `surface()` under it.
+ *   - a straight edge realises one field value per depth, and it is read off ONE real SDF
+ *     call at a representative pure coordinate: for every pure pixel of a row the x term
+ *     loses `max(qx, qy)` (proved in the margin arithmetic below) and never reaches the
+ *     result, so the representative's float IS every pixel's float. The finite-difference
+ *     gradient on a pure span is (0, ±g) with gx exactly 0 — the two x-neighbours produce
+ *     identical floats — so a whole row shares one rounded pixel value, written through a
+ *     Uint32 fill.
+ *   - the four corners are ONE quadrant solved per pixel and mirrored. Every coordinate
+ *     quantity is a multiple of 0.5 far below 2^53, so mirrored inputs are IDENTICAL floats
+ *     and the quadrant's outputs transfer exactly; each corner rounds its own bytes from the
+ *     sign-flipped floats, because rounding first and flipping bytes is NOT exact at
+ *     half-values (Math.round is half-up: 128.5 and 127.5 do not mirror).
+ *   - the interior is the constant (128, 128, 0, 255), prefilled through a Uint32 view.
+ *
+ * A box whose corner zones meet — no pure span exists — takes the banded fallback: the same
+ * per-pixel loop the map always ran, minus the interior (a row skips from the bezel to its
+ * mirrored column; the field is monotone toward the centre, so the skip is exact) and minus
+ * the redundant solves (same memo). Both paths are held byte-identical to the frozen
+ * 2026-08-23 generator by refraction.browser.test.tsx, whose coverage guard also asserts the
+ * sweep exercises BOTH — a sweep that only ever took the fallback would be a law about the
+ * special case wearing the general one's name.
  */
-function physicalMap(w: number, h: number, r: number, p: LensParams): { url: string; max: number } {
+export function physicalMap(w: number, h: number, r: number, p: LensParams): { url: string; max: number } {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -288,34 +368,202 @@ function physicalMap(w: number, h: number, r: number, p: LensParams): { url: str
   const fit = fitLens(p, Math.min(w, h));
   if (!fit) return { url: "", max: 0 };
   const { bezel, thickness } = fit;
-
-  const mags = new Float32Array(w * h);
-  const nxs = new Float32Array(w * h);
-  const nys = new Float32Array(w * h);
+  const memo = bendMemo(bezel, thickness, p.ior);
+  const bend = (inside: number): number => {
+    let v = memo.get(inside);
+    if (v === undefined) {
+      v = bendAt(inside / bezel, bezel, thickness, p.ior);
+      memo.set(inside, v);
+    }
+    return v;
+  };
+  const data = img.data;
+  // (128, 128, 0, 255) — straight through on both channels. Little-endian RGBA packs A<<24.
+  new Uint32Array(data.buffer).fill(0xff008080);
   let maxAbs = 0;
 
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = y * w + x;
-      const inside = -sdRoundedRect(x + 0.5, y + 0.5, w, h, r); // > 0 inside
-      if (inside < 0 || inside > bezel) continue;
-      const mag = bendAt(inside / bezel, bezel, thickness, p.ior);
-      const gx = sdRoundedRect(x + 1.5, y + 0.5, w, h, r) - sdRoundedRect(x - 0.5, y + 0.5, w, h, r);
-      const gy = sdRoundedRect(x + 0.5, y + 1.5, w, h, r) - sdRoundedRect(x + 0.5, y - 0.5, w, h, r);
-      const gl = Math.hypot(gx, gy) || 1;
-      mags[i] = mag;
-      nxs[i] = gx / gl;
-      nys[i] = gy / gl;
-      if (Math.abs(mag) > maxAbs) maxAbs = Math.abs(mag);
+  /**
+   * The corner zone. `max(r, bezel)` is how far a corner's influence reaches along an edge —
+   * past the arc (r) and past the reach of the perpendicular edge's own band (bezel, which can
+   * exceed r) — and +3 covers the ±1px finite-difference reach with margin. Inside the zone
+   * nothing is assumed; outside it, a pixel is PURE: its field value and gradient depend on one
+   * edge alone, which is what the span fills below rely on.
+   */
+  const cz = Math.ceil(Math.max(r, bezel)) + 3;
+  if (w - 2 * cz >= 1 && h - 2 * cz >= 1) {
+    __genPaths.analytic += 1;
+    // ── one corner quadrant, per pixel, exactly the loop the whole map used to run ──
+    const cmag = new Float32Array(cz * cz);
+    const cnx = new Float32Array(cz * cz);
+    const cny = new Float32Array(cz * cz);
+    const con = new Uint8Array(cz * cz);
+    for (let y = 0; y < cz; y++) {
+      for (let x = 0; x < cz; x++) {
+        const inside = -sdRoundedRect(x + 0.5, y + 0.5, w, h, r);
+        if (inside < 0 || inside > bezel) continue;
+        const i = y * cz + x;
+        const mag = bend(inside);
+        const gx = sdRoundedRect(x + 1.5, y + 0.5, w, h, r) - sdRoundedRect(x - 0.5, y + 0.5, w, h, r);
+        const gy = sdRoundedRect(x + 0.5, y + 1.5, w, h, r) - sdRoundedRect(x + 0.5, y - 0.5, w, h, r);
+        const gl = Math.hypot(gx, gy) || 1;
+        cmag[i] = mag;
+        cnx[i] = gx / gl;
+        cny[i] = gy / gl;
+        con[i] = 1;
+        const a = Math.abs(mag);
+        if (a > maxAbs) maxAbs = a;
+      }
     }
-  }
-
-  for (let i = 0; i < w * h; i++) {
-    const m = maxAbs > 0 ? (mags[i] ?? 0) / maxAbs : 0;
-    img.data[i * 4] = Math.round(128 + (nxs[i] ?? 0) * m * 127);
-    img.data[i * 4 + 1] = Math.round(128 + (nys[i] ?? 0) * m * 127);
-    img.data[i * 4 + 2] = 0;
-    img.data[i * 4 + 3] = 255;
+    // ── the spans' per-depth values, off the real field at a representative pure pixel ──
+    const px = cz + 0.5;
+    const sdRow = (yy: number): number => sdRoundedRect(px, yy + 0.5, w, h, r);
+    type Span = { y: number; mag: number; ny: number };
+    const rows: Span[] = [];
+    for (let y = 0; ; y++) {
+      const inside = -sdRow(y);
+      if (inside > bezel) break;
+      if (inside < 0) continue;
+      const mag = bend(inside);
+      const gy = sdRow(y + 1) - sdRow(y - 1);
+      const gl = Math.hypot(0, gy) || 1;
+      rows.push({ y, mag, ny: gy / gl });
+      const a = Math.abs(mag);
+      if (a > maxAbs) maxAbs = a;
+    }
+    const sdCol = (xx: number): number => sdRoundedRect(xx + 0.5, cz + 0.5, w, h, r);
+    const cols: Span[] = [];
+    for (let x = 0; ; x++) {
+      const inside = -sdCol(x);
+      if (inside > bezel) break;
+      if (inside < 0) continue;
+      const mag = bend(inside);
+      const gx = sdCol(x + 1) - sdCol(x - 1);
+      const gl = Math.hypot(gx, 0) || 1;
+      cols.push({ y: x, mag, ny: gx / gl });
+      const a = Math.abs(mag);
+      if (a > maxAbs) maxAbs = a;
+    }
+    // ── write: corners from mirrored floats, spans as one value per depth ──
+    const u32 = new Uint32Array(data.buffer);
+    for (let y = 0; y < cz; y++) {
+      for (let x = 0; x < cz; x++) {
+        const i = y * cz + x;
+        if (!con[i]) continue;
+        const m = maxAbs > 0 ? (cmag[i] as number) / maxAbs : 0;
+        const nx = cnx[i] as number;
+        const ny = cny[i] as number;
+        const xr = w - 1 - x;
+        const yb = h - 1 - y;
+        let j = (y * w + x) * 4;
+        data[j] = Math.round(128 + nx * m * 127);
+        data[j + 1] = Math.round(128 + ny * m * 127);
+        data[j + 2] = 0;
+        data[j + 3] = 255;
+        j = (y * w + xr) * 4;
+        data[j] = Math.round(128 - nx * m * 127);
+        data[j + 1] = Math.round(128 + ny * m * 127);
+        data[j + 2] = 0;
+        data[j + 3] = 255;
+        j = (yb * w + x) * 4;
+        data[j] = Math.round(128 + nx * m * 127);
+        data[j + 1] = Math.round(128 - ny * m * 127);
+        data[j + 2] = 0;
+        data[j + 3] = 255;
+        j = (yb * w + xr) * 4;
+        data[j] = Math.round(128 - nx * m * 127);
+        data[j + 1] = Math.round(128 - ny * m * 127);
+        data[j + 2] = 0;
+        data[j + 3] = 255;
+      }
+    }
+    for (const { y, mag, ny } of rows) {
+      const m = maxAbs > 0 ? mag / maxAbs : 0;
+      const gTop = Math.round(128 + ny * m * 127);
+      const gBot = Math.round(128 - ny * m * 127);
+      const top = (0xff000000 | (gTop << 8) | 128) >>> 0;
+      const bot = (0xff000000 | (gBot << 8) | 128) >>> 0;
+      u32.fill(top, y * w + cz, y * w + w - cz);
+      u32.fill(bot, (h - 1 - y) * w + cz, (h - 1 - y) * w + w - cz);
+    }
+    for (const { y: x, mag, ny: nx } of cols) {
+      const m = maxAbs > 0 ? mag / maxAbs : 0;
+      const rL = Math.round(128 + nx * m * 127);
+      const rR = Math.round(128 - nx * m * 127);
+      const left = (0xff000000 | (128 << 8) | rL) >>> 0;
+      const right = (0xff000000 | (128 << 8) | rR) >>> 0;
+      const xr = w - 1 - x;
+      for (let y = cz; y < h - cz; y++) {
+        u32[y * w + x] = left;
+        u32[y * w + xr] = right;
+      }
+    }
+  } else {
+    __genPaths.banded += 1;
+    // ── the banded fallback: the original loop minus the interior and the redundant solves ──
+    const mags = new Float32Array(w * h);
+    const nxs = new Float32Array(w * h);
+    const nys = new Float32Array(w * h);
+    const rowC = [new Float64Array(w), new Float64Array(w), new Float64Array(w)];
+    const rowM = [new Uint8Array(w), new Uint8Array(w), new Uint8Array(w)];
+    // One row of centre samples: scan in until the field leaves the bezel, then jump to the
+    // mirrored column — the field is monotone toward the centre, so the jump is exact.
+    const scan = (y: number, out: Float64Array, mark: Uint8Array): void => {
+      mark.fill(0);
+      let x = 0;
+      for (; x < w; x++) {
+        const v = sdRoundedRect(x + 0.5, y + 0.5, w, h, r);
+        out[x] = v;
+        mark[x] = 1;
+        if (-v > bezel) break;
+      }
+      for (let x2 = Math.max(w - 1 - x, x); x2 < w; x2++) {
+        out[x2] = sdRoundedRect(x2 + 0.5, y + 0.5, w, h, r);
+        mark[x2] = 1;
+      }
+    };
+    const at = (row: Float64Array, mk: Uint8Array, x: number, y: number): number =>
+      x < 0 || x >= w
+        ? sdRoundedRect(x + 0.5, y + 0.5, w, h, r)
+        : mk[x]
+          ? (row[x] as number)
+          : sdRoundedRect(x + 0.5, y + 0.5, w, h, r);
+    scan(-1, rowC[0]!, rowM[0]!);
+    scan(0, rowC[1]!, rowM[1]!);
+    for (let y = 0; y < h; y++) {
+      scan(y + 1, rowC[2]!, rowM[2]!);
+      const prev = rowC[0]!;
+      const cur = rowC[1]!;
+      const next = rowC[2]!;
+      const mp = rowM[0]!;
+      const mc = rowM[1]!;
+      const mn = rowM[2]!;
+      for (let x = 0; x < w; x++) {
+        if (!mc[x]) continue;
+        const inside = -(cur[x] as number);
+        if (inside < 0 || inside > bezel) continue;
+        const i = y * w + x;
+        const mag = bend(inside);
+        // The four gradient samples ARE the neighbours' centre samples — the rolling rows
+        // make them free; out-of-row falls back to the real call, exactly as before.
+        const gx = at(cur, mc, x + 1, y) - at(cur, mc, x - 1, y);
+        const gy = at(next, mn, x, y + 1) - at(prev, mp, x, y - 1);
+        const gl = Math.hypot(gx, gy) || 1;
+        mags[i] = mag;
+        nxs[i] = gx / gl;
+        nys[i] = gy / gl;
+        const a = Math.abs(mag);
+        if (a > maxAbs) maxAbs = a;
+      }
+      rowC.push(rowC.shift()!);
+      rowM.push(rowM.shift()!);
+    }
+    for (let i = 0; i < w * h; i++) {
+      const m = maxAbs > 0 ? (mags[i] ?? 0) / maxAbs : 0;
+      if (m === 0) continue; // the prefill already wrote (128, 128, 0, 255)
+      const j = i * 4;
+      data[j] = Math.round(128 + (nxs[i] ?? 0) * m * 127);
+      data[j + 1] = Math.round(128 + (nys[i] ?? 0) * m * 127);
+    }
   }
   ctx.putImageData(img, 0, 0);
   // Clamped at the bezel width: past that the displacement asks for pixels outside the
@@ -333,25 +581,87 @@ function physicalMap(w: number, h: number, r: number, p: LensParams): { url: str
    they never get the bend. */
 const glints = new Map<string, string>();
 
-function glintMap(w: number, h: number, r: number, band: number, falloff: number, k: number): string {
+export function glintMap(w: number, h: number, r: number, band: number, falloff: number, k: number): string {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
   const img = ctx.createImageData(w, h);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const inside = -sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
-      if (inside < -0.5 || inside > band) continue;
-      const t = Math.max(inside, 0) / band;
-      // Feather inward; the half-pixel coverage ramp at the lip is the outer anti-alias.
-      const a = Math.pow(1 - t, falloff) * Math.min(1, inside + 1);
-      const i = (y * w + x) * 4;
-      img.data[i] = 255;
-      img.data[i + 1] = 255;
-      img.data[i + 2] = 255;
-      img.data[i + 3] = Math.round(Math.max(0, Math.min(1, a)) * 255);
+  const data = img.data;
+  // Feather inward; the half-pixel coverage ramp at the lip is the outer anti-alias. One
+  // rounded byte per field value — every float below comes from the real SDF, so pixels that
+  // share a depth share a byte and a span is a Uint32 fill (physicalMap's argument, one map
+  // over; the p-norm corner only differs from the circular one where both outside terms are
+  // live, which is precisely the corner zone the quadrant loop owns).
+  const alphaOf = (inside: number): number => {
+    const t = Math.max(inside, 0) / band;
+    const a = Math.pow(1 - t, falloff) * Math.min(1, inside + 1);
+    return Math.round(Math.max(0, Math.min(1, a)) * 255);
+  };
+  const cz = Math.ceil(Math.max(r, band)) + 2;
+  if (w - 2 * cz >= 1 && h - 2 * cz >= 1) {
+    __genPaths.glintAnalytic += 1;
+    const u32 = new Uint32Array(data.buffer);
+    // ── one corner quadrant, mirrored as BYTES — an alpha has no sign to flip ──
+    for (let y = 0; y < cz; y++) {
+      for (let x = 0; x < cz; x++) {
+        const inside = -sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
+        if (inside < -0.5 || inside > band) continue;
+        const v = ((alphaOf(inside) << 24) | 0x00ffffff) >>> 0;
+        const xr = w - 1 - x;
+        const yb = h - 1 - y;
+        u32[y * w + x] = v;
+        u32[y * w + xr] = v;
+        u32[yb * w + x] = v;
+        u32[yb * w + xr] = v;
+      }
+    }
+    // ── spans: one field value per depth, read at a representative pure pixel ──
+    const px = cz + 0.5;
+    for (let y = 0; ; y++) {
+      const inside = -sdSuperRect(px, y + 0.5, w, h, r, k);
+      if (inside > band) break;
+      if (inside < -0.5) continue;
+      const v = ((alphaOf(inside) << 24) | 0x00ffffff) >>> 0;
+      u32.fill(v, y * w + cz, y * w + w - cz);
+      u32.fill(v, (h - 1 - y) * w + cz, (h - 1 - y) * w + w - cz);
+    }
+    for (let x = 0; ; x++) {
+      const inside = -sdSuperRect(x + 0.5, cz + 0.5, w, h, r, k);
+      if (inside > band) break;
+      if (inside < -0.5) continue;
+      const v = ((alphaOf(inside) << 24) | 0x00ffffff) >>> 0;
+      const xr = w - 1 - x;
+      for (let y = cz; y < h - cz; y++) {
+        u32[y * w + x] = v;
+        u32[y * w + xr] = v;
+      }
+    }
+  } else {
+    __genPaths.glintBanded += 1;
+    // ── the banded fallback: scan in, jump the interior to the mirrored column ──
+    for (let y = 0; y < h; y++) {
+      let x = 0;
+      for (; x < w; x++) {
+        const inside = -sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
+        if (inside > band) break;
+        if (inside < -0.5) continue;
+        const i = (y * w + x) * 4;
+        data[i] = 255;
+        data[i + 1] = 255;
+        data[i + 2] = 255;
+        data[i + 3] = alphaOf(inside);
+      }
+      for (let x2 = Math.max(w - 1 - x, x); x2 < w; x2++) {
+        const inside = -sdSuperRect(x2 + 0.5, y + 0.5, w, h, r, k);
+        if (inside < -0.5 || inside > band) continue;
+        const i = (y * w + x2) * 4;
+        data[i] = 255;
+        data[i + 1] = 255;
+        data[i + 2] = 255;
+        data[i + 3] = alphaOf(inside);
+      }
     }
   }
   ctx.putImageData(img, 0, 0);
@@ -630,6 +940,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           Firefox render the specular even though they never render the bend, which is the
           first piece of the glass identity those engines have ever had. */
       const lensOK = lensSupported();
+      watchSeal();
 
       /**
        * The box the map is built for. Normally the element's own, and during a FLIGHT the box
@@ -642,9 +953,29 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
        * runner reads that one un-posed and hands it over rather than leaving it to be guessed
        * from a moving element.
        */
-      const target = (): { w: number; h: number; r: number; k: number } | null => {
+      const target = (): { w: number; h: number; r: number; k: number; sealed: boolean; ringDown: boolean } | null => {
         const rect = node.getBoundingClientRect();
         const cs = getComputedStyle(node);
+        /**
+         * THE CASCADE IS THE GATE; THE LISTENER BELOW IS ONLY A WAKE-UP (2026-08-24, the
+         * performance audit). Under `prefers-reduced-transparency: reduce` every pane computes
+         * `backdrop-filter: none` and stands its ring to zero — and this hook used to build
+         * both maps, graft the filter and write `--kui-lens` anyway: ~16KB of images per pane
+         * that nothing could ever sample, on the preference surfaces.css itself calls "an
+         * accessibility requirement and a performance escape in one". The condition is
+         * deliberately NOT restated here as a media query — the stylesheet is its one home —
+         * so this reads the cascade's answer off the element: SEALED is an engine that could
+         * glass (`lensSupported`) whose computed backdrop-filter is nonetheless `none`. The
+         * glint additionally requires the ring stood down, because an engine WITHOUT the lens
+         * (Safari, Firefox) also computes `none` and its glint is the one piece of the glass
+         * identity it has. High contrast is deliberately NOT a skip: it zeroes the ring's
+         * opacity but keeps the filter, and a pane mounted under it must hold its mask for the
+         * flip back — the app's own toggle writes `data-contrast` onto <html>, which no
+         * resize, media event or render announces. Reduced transparency's flip IS announced
+         * (`watchSeal`), which is exactly why it is the one condition safe to skip on.
+         */
+        const sealed = lensSupported() && cs.getPropertyValue("backdrop-filter") === "none";
+        const ringDown = cs.getPropertyValue("--material-ring-opacity").trim() === "0";
         // The corner's exponent: `corner-shape: squircle` renders the classic |x|⁴ superellipse,
         // and the glint's contour must follow the corner the box actually paints — a band of
         // light detaching from the lip at every corner is what a circular mask over a squircle
@@ -658,7 +989,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           const h = parseFloat(node.style.getPropertyValue("--kui-fly-h"));
           const r = parseFloat(node.style.getPropertyValue("--kui-fly-r"));
           if (Number.isFinite(w) && Number.isFinite(h) && w >= 8 && h >= 8) {
-            return { w, h, r: Number.isFinite(r) ? r : 0, k };
+            return { w, h, r: Number.isFinite(r) ? r : 0, k, sealed, ringDown };
           }
           // Published nothing readable — a reduced-motion open bails before writing these, and
           // a pane can carry the stamp for a frame before they land. Waiting is right: the old
@@ -666,7 +997,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           return null;
         }
         if (rect.width < 8 || rect.height < 8) return null;
-        return { w: rect.width, h: rect.height, r: parseFloat(cs.borderTopLeftRadius) || 0, k };
+        return { w: rect.width, h: rect.height, r: parseFloat(cs.borderTopLeftRadius) || 0, k, sealed, ringDown };
       };
 
       const measure = () => {
@@ -696,7 +1027,9 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         const fit = fitLens(params, Math.min(box.w, box.h));
         const bandX = tuning?.glintBandX ?? glint.band;
         let glintUrl = "";
-        if (fit && bandX > 0) {
+        // A sealed pane with its ring stood down shows the mask nowhere — see target() for why
+        // BOTH conditions, and why high contrast alone never lands here.
+        if (fit && bandX > 0 && !(box.sealed && box.ringDown)) {
           const band = Math.max(1, fit.bezel * bandX * scale);
           glintUrl = acquireGlint(w, h, r, band, box.k);
         }
@@ -716,7 +1049,16 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           node.style.removeProperty("--kui-glint-band");
           s.glint = false;
         }
-        if (!lensOK) return;
+        if (!lensOK || box.sealed) {
+          // The flip INTO the seal reaches a pane that already wears a filter: give it back,
+          // or the reference outlives everything that could ever sample it.
+          if (s.id) {
+            release(s.id);
+            s.id = null;
+            node.style.removeProperty("--kui-lens");
+          }
+          return;
+        }
         const fitted: LensParams = {
           ...params,
           bezel: params.bezel * scale,
