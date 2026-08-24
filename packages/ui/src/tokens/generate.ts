@@ -1084,6 +1084,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("material-glass-border", glassInk[mode].border),
     decl("material-ink-disabled", glassInk[mode].disabled),
     decl("material-row-wash", glassInk[mode].wash),
+    decl("material-grip-fill", glassInk[mode].grip),
     decl("material-kbd-fill", glassInk[mode].kbdFill),
     decl("material-kbd-edge", glassInk[mode].kbdEdge),
     decl("material-kbd-ink", glassInk[mode].kbdInk),

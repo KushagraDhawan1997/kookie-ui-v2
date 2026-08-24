@@ -367,6 +367,60 @@ describe("the refusals are pinned by the TYPE, not merely claimed (audit 2026-08
 });
 
 describe("glass and the grip (§10, §26, 2026-08-24)", () => {
+  /** The alpha of a `rgba(r, g, b, a)` / `rgb(r g b / a)` computed value; 1 when opaque. */
+  const alphaOf = (v: string) => {
+    const m = /\/\s*([\d.]+)\s*\)|,\s*([\d.]+)\s*\)$/.exec(v);
+    return m ? Number(m[1] ?? m[2]) : 1;
+  };
+
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: on glass the CHOSEN thumb outranks a hovered segment, and neither is opaque`, async () => {
+      // Kushagra, 2026-08-24, from the preview: "Week is selected but its barely visible on
+      // thin, month is hover and its extremely dark, so much more contrast than the selected
+      // thumb." Two defects met in that screenshot and this law reads both.
+      //
+      // ONE — the thumb was painting --material-row-wash, which IS the hover value, so the
+      // persistent state and the transient one were one colour by construction. The claim is
+      // a RANKING, so it is read as one: the chosen grip carries more alpha than a hovered
+      // segment. Alpha rather than a token name, because the two are opposite directions in
+      // light (a white grip against a darkening wash) and a name would not catch them being
+      // equal.
+      //
+      // TWO — the hovered segment was painting FULLY OPAQUE (measured neutral-3 in light,
+      // near-black in dark): the 2026-08-19 opaque-twin re-point sits on the element carrying
+      // [data-material] and those roles INHERIT, so the glass track handed its segments an
+      // opaque source they had no veil to mix back down. The `< 1` assertion is what catches
+      // that class of leak, and it is the half a token-name law would have missed.
+      const host = render(
+        <Theme appearance={appearance} material="thin">
+          <Box backdrop>
+            <SegmentedControl defaultValue="week" aria-label="Range">
+              <SegmentedItem value="day">Day</SegmentedItem>
+              <SegmentedItem value="week">Week</SegmentedItem>
+              <SegmentedItem value="month">Month</SegmentedItem>
+            </SegmentedControl>
+          </Box>
+        </Theme>,
+      );
+      const segs = [...host.querySelectorAll<HTMLElement>(".kui-segment")];
+      const thumb = within(host, ".kui-segment-thumb");
+      const rest = computed(segs[2]!, "background-color");
+      await userEvent.hover(segs[2]!);
+      await until(() => computed(segs[2]!, "background-color") !== rest, 1000);
+      const hover = computed(segs[2]!, "background-color");
+      expect(alphaOf(hover), `${appearance}: a hovered glass segment paints opaque — ${hover}`).toBeLessThan(1);
+      expect(
+        alphaOf(computed(thumb, "background-color")),
+        `${appearance}: the chosen grip does not outrank a hover`,
+      ).toBeGreaterThan(alphaOf(hover));
+      // And the chosen segment still answers no pointer — this rule is (0,2,0) and would
+      // otherwise beat the transparent pin, putting back the 2026-08-23 stuck-hover defect.
+      await userEvent.hover(segs[1]!);
+      expect(computed(segs[1]!, "background-color")).toBe("rgba(0, 0, 0, 0)");
+      await userEvent.unhover(segs[1]!);
+    });
+  }
+
   it("a glass TRACK wears the pane's ring — the well has no pigment edge, and the material has a lip", () => {
     // The glass lock (2026-08-24): the well's "no edge" is a decision about PIGMENT rank;
     // the ring is the material's own lip, what glass IS (§10's rim-and-edge sentence). The
@@ -395,7 +449,7 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
   });
 
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: on a glass TRACK the thumb is the pane's own wash, flat, under full ink`, () => {
+    it(`${appearance}: on a glass TRACK the thumb is the pane's own GRIP, flat, under full ink`, () => {
       // Kushagra: "When glass, segmented control's thumb should render as neutral gray like
       // hover in menu, and the entire control gets glass." The wash is --material-row-wash —
       // the token a glass menu lights a hovered row with, so the two agree by construction;
@@ -416,7 +470,13 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
       // The premise, stated so a broken fixture fails as itself rather than as the claim.
       expect(track.getAttribute("data-material")).toBe("thin");
       const thumb = within(host, ".kui-segment-thumb");
-      expect(computed(thumb, "background-color")).toBe(colorOn(track, "var(--material-row-wash)"));
+      // --material-grip-fill, NOT the row wash (2026-08-24, second pass). It shipped as the
+      // wash this morning, which is the HOVER value — so selected and hovered were one colour
+      // and the ranking law beside this one could not hold. A grip on a pane is still the
+      // pane's own light rather than the solid control's near-white --color-thumb, but it is
+      // the pane's light at grip strength.
+      expect(computed(thumb, "background-color")).toBe(colorOn(track, "var(--material-grip-fill)"));
+      expect(computed(thumb, "background-color")).not.toBe(colorOn(track, "var(--material-row-wash)"));
       expect(computed(thumb, "box-shadow")).toBe("none");
       expect(computed(within(host, ".kui-segment[data-checked]"), "color")).toBe(
         colorOn(track, "var(--color-text)"),

@@ -5388,3 +5388,42 @@ state ring stand-down and the HC trade. Four sabotages, each caught by exactly t
 written for it: the @supports block deleted (field + textarea laws fail), the track's
 selectors removed (track law fails), the state stand-down removed (state law fails), the HC
 arm's ring line removed and tokens regenerated (HC law fails). 1,892 laws green.
+
+## 2026-08-24 — on glass, hover was shouting over the selection, and it was painting opaque
+
+Kushagra, from the preview's Materials board: "Week is selected but its barely visible on
+thin, month is hover and its extremely dark, so much more contrast than the selected thumb."
+Two defects met in that screenshot, and only one of them was a value.
+
+**The hovered segment was painting FULLY OPAQUE on a pane of light** — measured
+`color(display-p3 0.933 …)` in light and `0.1416 …` in dark, no alpha at all: an opaque grey
+slab on frosted glass, which is why Month read near-black. The cause is the opaque-twin
+re-point of 2026-08-19: it is declared on the element carrying `[data-material]`, and the
+roles it re-points (`--tone-soft` and its states) INHERIT — so a glass track handed its
+segments an opaque source, and a segment, having no material of its own, had no veil to mix
+it back down. The silent-inheritance trap the `--kui-h` rename and four `@property` guards
+were each written for, arriving in the one place nobody had guarded: from a parent control to
+a child control. Fixed in the pane's own rules rather than by registering the tone roles
+non-inheriting — a stamped tone MUST reach a descendant, so a guard there would break the
+tone system to fix a fill.
+
+**And the thumb was painting the HOVER value.** It shipped this morning as
+`--material-row-wash`, which is exactly what a glass menu lights a hovered row with, so the
+persistent state and the transient one were one colour by construction and no tuning could
+ever rank them. `--material-grip-fill` joins the glass ink ladder: white in both modes where
+the wash is a darkening, because that is the relationship the solid control already has (the
+track recedes, the grip catches light — `--color-thumb` is the seal on solid). 50% light,
+26% dark, judged on the preview.
+
+The contract gains its fifth clause (§10): a control on or in a pane paints its states in the
+pane's currency, and **the persistent state outranks the transient one**. The law reads that
+as a ranking rather than as token names — alpha compared, because the two are opposite
+directions in light (a white grip against a darkening wash) and a name would not catch them
+being equal — plus `alpha < 1` on the hover, which is the half that catches the inheritance
+leak and the half a token-name law would have missed.
+
+This morning's own law asserted the thumb equals the row wash: the defect stated as a
+guarantee, one commit old, re-keyed rather than deleted. Two sabotages, each caught by its
+own law. And the fill-triple law caught the first spelling of the fix re-sourcing two states
+of three — the sources are `inherits: false`, so a partial re-point leaves the third with no
+source; rest is now declared bare on purpose.

@@ -1264,10 +1264,37 @@
    in this file). The pane-member rule above cannot reach this case, because the pane IS the
    track and the track is not a .kui-surface. */
 .kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-segment-thumb {
-  --kui-ct-fill-src: var(--material-row-wash);
+  --kui-ct-fill-src: var(--material-grip-fill);
+  --kui-ct-fill-src-hover: var(--material-grip-fill);
+  --kui-ct-fill-src-active: var(--material-grip-fill);
+  --kui-grip-cast: none;
+}
+/* AND THE SEGMENTS SPEAK THE PANE'S ROW VOCABULARY (2026-08-24, the same feedback). Two
+   defects met here. The thumb was painting --material-row-wash — the HOVER value — so the
+   persistent state and the transient one were one colour and could not rank; it takes the
+   grip above now. And an unchosen segment's hover was painting FULLY OPAQUE on a pane of
+   light (measured: neutral-3 in light, near-black in dark, no alpha at all), because the
+   opaque-twin re-point of 2026-08-19 is declared on the element carrying [data-material]
+   and those roles INHERIT — so the track re-pointed --tone-soft to its opaque twin and every
+   segment below, having no material of its own to mix it back down, painted the twin raw.
+   The silent-inheritance trap the --kui-h rename and the four @property guards were each
+   written for, arriving where nobody had registered a guard because the leak crosses from a
+   parent control to a child control.
+
+   Stated as the pane's own row wash rather than by re-registering the tone roles
+   non-inheriting: a stamped tone MUST reach a descendant, so a guard there would break the
+   tone system to fix a fill. `:not([data-checked])` is load-bearing — this rule is (0,2,0)
+   and would otherwise outrank the chosen segment's transparent pin in segmented-control.css,
+   putting back the "the hover continues to stay" defect of 2026-08-23. */
+.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"])
+  .kui-segment:not([data-checked]) {
+  /* All THREE, per the control contract (§9): the sources are registered inherits:false, so
+     a rule that re-points two of them leaves the third resolving no source at all. Rest is
+     bare on purpose — an unchosen segment paints nothing until a pointer reaches it, on
+     glass exactly as on solid. */
+  --kui-ct-fill-src: transparent;
   --kui-ct-fill-src-hover: var(--material-row-wash);
   --kui-ct-fill-src-active: var(--material-row-wash);
-  --kui-grip-cast: none;
 }
 .kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-segment:where([data-checked]) {
   --kui-ct-label-color: var(--color-text);

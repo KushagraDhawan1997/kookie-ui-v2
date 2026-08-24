@@ -826,6 +826,7 @@
   --material-glass-border: rgb(0 0 0 / 0.12);
   --material-ink-disabled: rgb(0 0 0 / 0.32);
   --material-row-wash: rgb(0 0 0 / 0.07);
+  --material-grip-fill: rgb(255 255 255 / 0.5);
   --material-kbd-fill: rgb(0 0 0 / 0.05);
   --material-kbd-edge: rgb(0 0 0 / 0.1);
   --material-kbd-ink: rgb(0 0 0 / 0.58);
@@ -1465,6 +1466,7 @@
   --material-glass-border: rgb(0 0 0 / 0.12);
   --material-ink-disabled: rgb(0 0 0 / 0.32);
   --material-row-wash: rgb(0 0 0 / 0.07);
+  --material-grip-fill: rgb(255 255 255 / 0.5);
   --material-kbd-fill: rgb(0 0 0 / 0.05);
   --material-kbd-edge: rgb(0 0 0 / 0.1);
   --material-kbd-ink: rgb(0 0 0 / 0.58);
@@ -2107,6 +2109,7 @@
   --material-glass-border: rgb(255 255 255 / 0.16);
   --material-ink-disabled: rgb(255 255 255 / 0.38);
   --material-row-wash: rgb(255 255 255 / 0.12);
+  --material-grip-fill: rgb(255 255 255 / 0.26);
   --material-kbd-fill: rgb(255 255 255 / 0.1);
   --material-kbd-edge: rgb(255 255 255 / 0.16);
   --material-kbd-ink: rgb(255 255 255 / 0.75);

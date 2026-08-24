@@ -1378,6 +1378,14 @@ export const glassInk = {
     border: "rgb(0 0 0 / 0.12)",
     disabled: "rgb(0 0 0 / 0.32)",
     wash: "rgb(0 0 0 / 0.07)",
+    /* THE GRIP on a pane (2026-08-24, Kushagra: "Week is selected but its barely visible on
+       thin, month is hover and its extremely dark, so much more contrast than the selected
+       thumb"). The chosen thumb had been painting `wash` — the HOVER value itself — so the
+       persistent state and the transient one were one colour by construction and could never
+       rank. It is WHITE in both modes where the wash is a darkening, because that is the
+       relationship the solid control already has: the track recedes and the grip catches
+       light (--color-thumb is the seal on solid). Judged on the preview's Materials board. */
+    grip: "rgb(255 255 255 / 0.5)",
     kbdFill: "rgb(0 0 0 / 0.05)",
     kbdEdge: "rgb(0 0 0 / 0.1)",
     kbdInk: "rgb(0 0 0 / 0.58)",
@@ -1388,6 +1396,10 @@ export const glassInk = {
     border: "rgb(255 255 255 / 0.16)",
     disabled: "rgb(255 255 255 / 0.38)",
     wash: "rgb(255 255 255 / 0.12)",
+    /* See light's note. Dark's pane is already dark, so the grip needs less white to stand
+       clear of a 12% wash — and too much reads as a lit slab rather than a piece of the
+       same glass. */
+    grip: "rgb(255 255 255 / 0.26)",
     kbdFill: "rgb(255 255 255 / 0.1)",
     kbdEdge: "rgb(255 255 255 / 0.16)",
     kbdInk: "rgb(255 255 255 / 0.75)",
