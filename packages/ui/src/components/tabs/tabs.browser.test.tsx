@@ -432,8 +432,8 @@ describe("the rule travels as two edges at two speeds (§8, §26)", () => {
   });
 
   for (const [dir, lead, trail] of [
-    ["forward", "right", "left"],
-    ["back", "left", "right"],
+    ["forward", "--kui-tab-right", "--kui-tab-left"],
+    ["back", "--kui-tab-left", "--kui-tab-right"],
   ] as const) {
     it(`${dir}: the edge facing the destination takes the shorter clock`, async () => {
       inMotion();
@@ -443,6 +443,9 @@ describe("the rule travels as two edges at two speeds (§8, §26)", () => {
       // Waited for, never assumed: a driver gesture resolving is not React having committed
       // the render that moves this stamp (test/settling.test.ts enforces the rule).
       await until(() => rule.getAttribute("data-activation-direction") === want);
+      // The clocks ride the REGISTERED insets since 2026-08-25 (the bar's wall): the spring
+      // runs on the raw value and the painted inset is that value floored at the wall, so the
+      // property list names the custom pair rather than `left`/`right`.
       const style = computed(rule, "transition-property").split(", ");
       const clocks = computed(rule, "transition-duration").split(", ");
       const at = (name: string) => clocks[style.indexOf(name)];
@@ -453,6 +456,124 @@ describe("the rule travels as two edges at two speeds (§8, §26)", () => {
       expect(at(lead)).not.toBe(at(trail));
     });
   }
+
+  it("back: the flight never leaves the bar — the overshoot squashes against the start", async () => {
+    /* THE WALL (§8, §26, 2026-08-25, the segmented channel's wall one file over, same day).
+       The first tab rests at the bar's very start, so EVERY flight back to it carried the
+       rule's leading edge out of the bar's box — the calm spring's ~6.8% overshoot, ~14px on
+       a long jump, retracting from outside the thing it underlines.
+
+       Seized and swept, so the assertion covers every point of the curve; the calibration half
+       is what keeps it from passing for the wrong reason — the RAW registered inset must still
+       cross the wall mid-flight, or the spring was tamed rather than clamped and a different
+       motion shipped under a green wall. */
+    inMotion();
+    const { rule, tabs } = bar3("back");
+    const list = tabs[0]!.parentElement as HTMLElement;
+    await userEvent.click(tabs[0]!);
+    await until(() => rule.getAttribute("data-activation-direction") === "left");
+    const anims = rule.getAnimations();
+    expect(anims.length, "no flight started").toBeGreaterThan(0);
+    for (const a of anims) a.pause();
+    const box = list.getBoundingClientRect();
+    let sprung = false;
+    for (let t = 0; t <= 480; t += 10) {
+      for (const a of anims) a.currentTime = t;
+      expect(
+        rule.getBoundingClientRect().left,
+        `t=${t}ms: the rule left the bar`,
+      ).toBeGreaterThanOrEqual(box.left - 0.5);
+      if (parseFloat(getComputedStyle(rule).getPropertyValue("--kui-tab-left")) < -4)
+        sprung = true;
+    }
+    expect(
+      sprung,
+      "the raw inset never crossed the wall — the spring was tamed, not clamped",
+    ).toBe(true);
+  });
+
+  it("forward: the wall binds at the bar's END where the last tab reaches it", async () => {
+    // The bar's end binds only when a tab sits against it — tabs do not fill a wide bar, and
+    // overshoot past the last LABEL along the hairline is deliberate (ink on a rail, and the
+    // rail continues; the wall is the box). `min-content` makes the last tab flush with the
+    // bar's end, which is the fixture where the end wall and its absence give different
+    // answers.
+    inMotion();
+    const root = mounted(
+      <Tabs defaultValue="a">
+        <TabsList style={{ inlineSize: "min-content" }}>
+          <TabsTab value="a">One</TabsTab>
+          <TabsTab value="b">Two</TabsTab>
+          <TabsTab value="c">Three long</TabsTab>
+        </TabsList>
+        <TabsPanel value="a">x</TabsPanel>
+        <TabsPanel value="b">x</TabsPanel>
+        <TabsPanel value="c">x</TabsPanel>
+      </Tabs>,
+    );
+    const list = within(root, ".kui-tabs-list");
+    const rule = within(root, ".kui-tab-rule");
+    const tabs = [...root.querySelectorAll(".kui-tab")] as HTMLElement[];
+    // CALIBRATION: the last tab really is flush with the bar's end, or this is the wide-bar
+    // fixture where the end wall never binds and the law cannot fail.
+    expect(tabs[2]!.getBoundingClientRect().right).toBeCloseTo(
+      list.getBoundingClientRect().right,
+      0,
+    );
+    await userEvent.click(tabs[2]!);
+    await until(() => rule.getAttribute("data-activation-direction") === "right");
+    const anims = rule.getAnimations();
+    expect(anims.length, "no flight started").toBeGreaterThan(0);
+    for (const a of anims) a.pause();
+    const box = list.getBoundingClientRect();
+    for (let t = 0; t <= 480; t += 10) {
+      for (const a of anims) a.currentTime = t;
+      expect(
+        rule.getBoundingClientRect().right,
+        `t=${t}ms: the rule left the bar`,
+      ).toBeLessThanOrEqual(box.right + 0.5);
+    }
+  });
+
+  it("a flight INTO the overflow region still lands on its tab — the wall is adaptive", async () => {
+    /* The half the segmented control did not need. On an overflowing bar a tab's resting
+       `right` inset is legitimately NEGATIVE (the 2026-08-19 coordinate trap), so a static
+       floor at the bar's edge would clamp the flight short and re-commit that defect as a
+       wall: the rule would stop at the visible box's end, off its own tab. The wall is
+       `min(target, 0%)` — the destination's own seat out there — and this law is the input
+       where the adaptive and static spellings give different answers. */
+    inMotion();
+    const root = mounted(
+      <div style={{ inlineSize: "200px" }}>
+        <Tabs defaultValue="a">
+          <TabsList>
+            <TabsTab value="a">Overview here</TabsTab>
+            <TabsTab value="b">Projects too</TabsTab>
+            <TabsTab value="c">Settings also</TabsTab>
+          </TabsList>
+          <TabsPanel value="a">x</TabsPanel>
+        </Tabs>
+      </div>,
+    );
+    const list = within(root, ".kui-tabs-list");
+    const rule = within(root, ".kui-tab-rule");
+    const tabs = [...root.querySelectorAll(".kui-tab")] as HTMLElement[];
+    expect(list.scrollWidth, "the fixture does not overflow").toBeGreaterThan(
+      list.clientWidth + 40,
+    );
+    await userEvent.click(tabs[2]!);
+    await until(() => rule.getAttribute("data-activation-direction") === "right");
+    const anims = rule.getAnimations();
+    expect(anims.length, "no flight started").toBeGreaterThan(0);
+    for (const a of anims) {
+      a.pause();
+      a.currentTime = 480;
+    }
+    const seat = tabs[2]!.getBoundingClientRect();
+    const drawn = rule.getBoundingClientRect();
+    expect(drawn.left, "the flight stopped short of the overflow tab").toBeCloseTo(seat.left, 0);
+    expect(drawn.width).toBeCloseTo(seat.width, 0);
+  });
 
   it("STRETCHES on the way — mid-flight it is wider than either end", async () => {
     // The two clocks are declarations; this is what they produce. Seized at 160ms, where the

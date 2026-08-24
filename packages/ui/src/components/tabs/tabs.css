@@ -96,23 +96,67 @@
    `bottom: calc(-1 * --border-width)` puts the rule's underside flush with the hairline's and
    the accent covers the neutral line rather than stacking on top of it.
 
-   Both variables come from OUTSIDE this package's vocabulary — Base UI writes them onto this
-   element after it measures. The fallbacks are what the rule is before any measurement exists:
-   no width, at the bar's start, which paints nothing and agrees with the `[hidden]` Base UI
-   sets in the same state. They also stop a dangling `var()` from disarming the whole
+   Both source variables come from OUTSIDE this package's vocabulary — Base UI writes them onto
+   this element after it measures. The fallbacks are what the rule is before any measurement
+   exists: no width, at the bar's start, which paints nothing and agrees with the `[hidden]`
+   Base UI sets in the same state. They also stop a dangling `var()` from disarming the whole
    declaration, which is the shape the --floating-rise law was written for. */
+
+/* THE BAR HAS WALLS (§8, §26, 2026-08-25, Kushagra: "lets fix tab too" — the segmented
+   channel's wall, one file over, same day). The calm spring overshoots ~6.8% of travel, and
+   the first tab rests at the bar's very start — so EVERY flight back to it carried the rule's
+   leading edge out of the bar's box, ~14px on a long jump, retracting from somewhere it had
+   no business being. Same mechanism as the segmented thumb: the spring rides the two
+   REGISTERED custom properties below (an unregistered custom property transitions discretely,
+   so the registration is what makes a spring expressible on one at all), and the painted
+   inset floors that value at the wall through max().
+
+   THE WALL IS ADAPTIVE, and that is the half the segmented control did not need. A track's
+   seats always sit inside its channel; a tab on an OVERFLOWING bar sits past the padding box,
+   where its resting `right` inset is legitimately NEGATIVE — the exact coordinate trap the
+   2026-08-19 revert closed, and a static floor at the bar's edge would re-commit it as a
+   clamp, pinning the rule inside the visible box and off its own tab. So the wall is
+   `min(target, 0%)`: the bar's edge while the destination sits inside the box (the floor a
+   fitting bar wants), and the destination's own seat when it sits in the overflow region —
+   where a flight arrives with no overshoot at all, which is the wall behaviour, applied at
+   the seat because the box's edge is behind it. The target is the raw Base UI pair, which
+   updates instantly; only the registered pair is sprung.
+
+   What deliberately keeps its overshoot: a flight to the LAST tab of a bar the tabs do not
+   fill. The rule stretches ~14px past the last label ALONG the hairline and gathers back —
+   ink on a rail, and the rail continues; the wall is the box, not the label, and there is
+   box there. The escape this closes is the rule exiting the BAR.
+
+   `inherits: false` — the @property guard's standing reason; `<length-percentage>` because
+   the derived right edge is a calc mixing `100%` with measured px; the initial-value is the
+   descriptor's obligatory zero and never paints (Base UI keeps the rule `[hidden]` until a
+   tab is active). */
+@property --kui-tab-left {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --kui-tab-right {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 .kui-tab-rule {
   position: absolute;
   bottom: calc(-1 * var(--border-width));
-  left: var(--active-tab-left, 0);
-  /* THE SECOND EDGE, DERIVED — not Base UI's (§26, §8, 2026-08-23).
+  /* The TARGETS — the raw derivation, one home, consumed twice below: as the registered
+     pair's specified value (the sprung copy) and as the wall's reference (the instant copy).
+     One name cannot be both the spring and the target, which is why the fact needs two.
 
-     The rule is drawn by both inline edges again, because the motion finally needs them: a
-     highlight that stretches toward its destination needs two edges travelling at two speeds,
-     and one edge plus a width cannot express that (a width has no direction, so both sides of
-     the box would arrive together at whatever clock the width was given).
+     THE SECOND EDGE, DERIVED — not Base UI's (§26, §8, 2026-08-23). The rule is drawn by both
+     inline edges because a highlight that stretches toward its destination needs two edges
+     travelling at two speeds, and one edge plus a width cannot express that (a width has no
+     direction, so both sides of the box would arrive together at whatever clock the width was
+     given).
 
-     What was wrong in the first spelling was never "two edges" — it was WHOSE right edge.
+     What was wrong in the 2026-08-18 spelling was never "two edges" — it was WHOSE right edge.
      `--active-tab-right` is `scrollWidth − left − width`, in the list's SCROLL space, while CSS
      resolves an absolutely positioned box's `right` against its containing block's PADDING box:
      the two agree only while the bar fits, and an overflowing bar drew a zero-width rule (audit
@@ -121,7 +165,12 @@
      containing block. The list declares no inline padding and no inline border, so its padding
      box and the box `--active-tab-left` is measured from are the same box, which is the premise
      this rests on and the reason a law measures an OVERFLOWING bar rather than a fitting one. */
-  right: calc(100% - var(--active-tab-left, 0) - var(--active-tab-width, 0));
+  --kui-tab-left-target: var(--active-tab-left, 0%);
+  --kui-tab-right-target: calc(100% - var(--active-tab-left, 0%) - var(--active-tab-width, 0%));
+  --kui-tab-left: var(--kui-tab-left-target);
+  --kui-tab-right: var(--kui-tab-right-target);
+  left: max(var(--kui-tab-left), min(var(--kui-tab-left-target), 0%));
+  right: max(var(--kui-tab-right), min(var(--kui-tab-right-target), 0%));
   block-size: var(--tab-rule);
   border-radius: var(--tab-rule);
   /* --tone-GLYPH, not --tone-solid (2026-08-23). The rule is 2px of fine detail, so it owes
@@ -149,17 +198,22 @@
 
    The physical `left`/`right` naming is Base UI's own and it is consistent with the properties:
    the direction is measured in the same physical space the offsets are, so an RTL bar gets a
-   coherent pair rather than a logical name pointing at a physical measurement. */
+   coherent pair rather than a logical name pointing at a physical measurement.
+
+   The clocks ride the REGISTERED pair, not `left`/`right` (2026-08-25, the wall): the spring
+   overshoots on the raw value and the painted inset is that value floored at the wall by the
+   max() above — the character is untouched, the wall is real. The unstamped state cannot
+   accidentally animate them: `transition-property: all` never covers a custom property. */
 .kui-tab-rule[data-activation-direction="right"] {
   transition:
-    right var(--motion-travel-lead) var(--motion-spring),
-    left var(--motion-travel-trail) var(--motion-spring);
+    --kui-tab-right var(--motion-travel-lead) var(--motion-spring),
+    --kui-tab-left var(--motion-travel-trail) var(--motion-spring);
 }
 
 .kui-tab-rule[data-activation-direction="left"] {
   transition:
-    left var(--motion-travel-lead) var(--motion-spring),
-    right var(--motion-travel-trail) var(--motion-spring);
+    --kui-tab-left var(--motion-travel-lead) var(--motion-spring),
+    --kui-tab-right var(--motion-travel-trail) var(--motion-spring);
 }
 
 .kui-tab-rule[hidden] {
