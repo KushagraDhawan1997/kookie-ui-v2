@@ -234,3 +234,48 @@ of blocked main thread and roughly 50 ms, with 4 and 5 taking whole populations 
 The projection in that last sentence is arithmetic on the measured parts, not an end-to-end
 measurement. Confirming it end to end is step 3's gate, and it should be done before the number
 is quoted anywhere else.
+
+---
+
+## Addendum, same day: steps 1-5 are implemented, and the ceiling moved
+
+Kushagra's call on reading the report: do steps 1-5, "but 2.9x isnt enough." The 2.9x was the
+ceiling of cleaning the existing loop, so the loop is gone instead.
+
+**What shipped** (`refraction.tsx`, held by `refraction.browser.test.tsx`):
+
+- The generator ASSEMBLES the map instead of solving every pixel: the bend memoised on its
+  exact float argument, one corner quadrant solved and mirrored, straight edges filled one
+  value per depth, the interior prefilled. Every float still comes off the real field at
+  inputs that provably coincide — nothing is synthesised, which is what makes byte identity
+  structural rather than lucky. Small boxes take a banded fallback.
+- Under `prefers-reduced-transparency: reduce` the hook builds NOTHING — the gate reads the
+  cascade's own computed answer, a media listener only wakes the flip back.
+- Step 5 as written in this report (skip the glint under high contrast) is REVISED after
+  refutation: an HC flip can arrive by a route nothing announces (the app's toggle stamping
+  `<html>`), so skipping would strand a missing glint on the flip back. Under reduced
+  transparency the glint skip rides step 4; under HC alone it keeps building (~1 ms, hidden
+  by opacity, exactly the pre-change behaviour). A negative-control law pins the refusal.
+
+**Measured after, same container, same fixtures:**
+
+| | before | after | |
+|---|---|---|---|
+| card map (lens + glint) | 16.5 ms | 2.2 ms | 7.5x |
+| dialog map | 17.5 ms | 2.4 ms | 7.3x |
+| menu map | 15.5 ms | 2.3 ms | 6.7x |
+| six-box sweep | 66.1 ms | 12.6 ms | 5.25x |
+| the nine-pane cold screen's glass tax | 137.4 ms | 57.6 ms | 2.4x |
+
+Byte identity is a LAW, not a claim: the 2026-08-23 generator is frozen in the law file as an
+oracle and the PNG data URLs are compared string-equal across eighteen box shapes and three
+rungs, with a coverage guard proving the sweep exercises both generator paths. Seven sabotages
+caught; two survived and both were proven mathematical no-ops rather than blind spots.
+
+The remaining ~58 ms on that screen: roughly 40% corner solves, PNG encodes and pixel writes,
+the rest React and style work the solid screen also pays. Steps 6-7 (defer off-screen panes,
+quantise the fitted bezel) both move pixels and stay decisions. Suite state after: 535 node +
+1387 browser laws with the same 5 environmental failures as before the change (border-area
+unsupported in this container's Chromium, plus the documented whole-pixel motion flake) —
+verified by stashing the change and watching the same 5 fail without it. Budget unmoved at
+32,936 gzipped: no CSS changed.
