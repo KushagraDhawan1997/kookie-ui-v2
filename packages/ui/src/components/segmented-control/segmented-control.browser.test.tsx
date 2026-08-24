@@ -483,12 +483,18 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
       );
     });
 
-    it(`${appearance}: INSIDE a glass pane the grip keeps its pigment and loses only its lift`, () => {
-      // The other case, deliberately different: a control in a glass card resolves its solid
-      // appearance (on-glass), so the thumb stays --color-thumb — what the pane takes from
-      // every grip it holds is the CAST, the keycap's own rule (a pane has one lift). The
-      // fill assertion is what tells this case from the is-glass case above; a rule that
-      // washed both would go green on the shadow and fail here.
+    it(`${appearance}: INSIDE a glass pane the grip speaks the same glass vocabulary, and loses its lift`, () => {
+      // REVERSED 2026-08-24, and the reversal is the point (Kushagra, on a segmented control
+      // inside a glass Card: "on a card theres no visible difference still"). This law used
+      // to assert that an in-pane grip keeps the solid --color-thumb, on the reading that
+      // on-glass means "resolve your solid appearance". Measured in that composition, solid
+      // meant PURE WHITE on a white pane — the control's one piece of state, invisible.
+      //
+      // The glass rules had been keyed to the three THICKNESSES, which is the list meaning
+      // "this element IS a pane", so a member of someone else's pane matched none of them.
+      // They key on [data-material] now, which is every glass STATE and still never a solid
+      // control. One vocabulary: whether the track is the glass or merely sits on it, the
+      // grip is the pane's grip. The CAST stand-down is unchanged and asserted below.
       const host = render(
         <Theme appearance={appearance} material="regular">
           <Card backdrop>
@@ -500,8 +506,17 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
         </Theme>,
       );
       const thumb = within(host, ".kui-segment-thumb");
-      expect(computed(thumb, "background-color")).toBe(colorOn(thumb, "var(--color-thumb)"));
+      expect(computed(thumb, "background-color")).toBe(colorOn(thumb, "var(--material-grip-fill)"));
+      // The negative control the old spelling WAS: pure white on a white pane is the defect,
+      // so a return to the solid grip fails here rather than passing quietly.
+      expect(computed(thumb, "background-color")).not.toBe(colorOn(thumb, "var(--color-thumb)"));
       expect(computed(thumb, "box-shadow")).toBe("none");
+      // And the track, which has no border to draw one with (the well stands it down by
+      // width), gets its boundary from the annulus: the pane's own pigment hairline, so a
+      // control inside a glass card is not a shape you have to guess at.
+      const ring = getComputedStyle(within(host, ".kui-segmented"), "::after");
+      expect(ring.content).toBe('""');
+      expect(ring.backgroundColor).toBe(colorOn(thumb, "var(--material-glass-border)"));
     });
   }
 });

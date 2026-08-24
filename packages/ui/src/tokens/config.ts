@@ -1110,6 +1110,35 @@ export const cursor = {
  * now, and neither recipes.css nor surfaces.css mentions `--neutral-1` at all. Designed points, not a dial; blur radii provisional until measured on a mid-tier
  * device (§10). Judged against the photo backdrop in the preview.
  */
+/**
+ * The GLINT's shape (§10, 2026-08-24): the specular is a BAND of light on the bezel, not a
+ * hairline. The band is the bezel itself — one geometry, two renderings: the displacement map
+ * bends the backdrop across it, and this mask lets the mode's own ring conic light it, peaking
+ * at the lip and feathering inward at `falloff`. Colour and intensity stay in the ring tokens
+ * (per mode, per thickness, solved at the element), which is what keeps the map colourless and
+ * an appearance flip correct with no JS. kube.io's specular is the method's source (credited):
+ * theirs is confined to ~1-2px; iOS's reads wider, which is what `band` prices. Lives in
+ * CONFIG because two consumers read it: the hook (the mask and the rim clip) and the
+ * generator (the bare textarea's flat-band gradients sample the same feather curve) — one
+ * home or the curve drifts.
+ */
+export const glint = {
+  /** the band's width as a fraction of the rung's bezel. 1.5 since 2026-08-24 (Kushagra:
+      "I'd like band width to be higher") — the glint reaches past the lens's lip: light
+      spreads wider on glass than the bend does. */
+  band: 1.5,
+  /** feather: alpha = (1 - t)^falloff across the band — HIGHER hugs the lip tighter, with a
+      longer soft tail. 2.2 read as haze on a plain ground; 3 was the correction; 4 with the
+      wider band (same day, same feedback) keeps the mass at the edge while the reach grows. */
+  falloff: 4,
+  /** saturation of the displaced backdrop re-emitted inside the rim (kube's 4-9 range; the
+      edge catches the content's own colour, not only white light). Chromium-only, because it
+      lives in the lens filter. SHIPS OFF — judged the day it was built (2026-08-24, Kushagra:
+      "the one thing I have issue with is rim saturation, Id like it off"); at 0 the stage is
+      never built, and the bench's dial is how it comes back for a look. */
+  rimSaturate: 0,
+} as const;
+
 export const material = {
   // The ladder is monotone in every lever — alpha, blur, saturation, brightness push — so
   // thickness reads as one dimension. Thin is a veil: the backdrop's structure ghosts
@@ -1198,16 +1227,39 @@ export const material = {
      tracked version stays in the lab (JS at interaction time, and a second light model).
      a = facing the light, b = flanks, c = shade side, d = warm collect. */
   ring: {
-    light: { a: "rgb(255 255 255 / 0.95)", b: "rgb(240 248 255 / 0.34)", c: "rgb(255 255 255 / 0.1)", d: "rgb(255 250 240 / 0.26)", opacity: 1 },
+    /* LIGHT'S SHADE SIDE IS DARK (2026-08-24, Kushagra: a glass segmented control, field and
+       card all vanish on a light ground — "if they didnt have that hairline, they would blend
+       with background too", pointing at iOS's Edit button and All/Missed control).
+       Every stop here used to be WHITE — 0.95 / 0.34 / 0.1 / 0.26 — which is a lit lip
+       photographed against a dark room: on a photograph it reads, on the page it is white on
+       white and the element has no boundary at all. Dark mode never showed it, because there
+       a white lip is the whole story.
+       The model is corrected rather than the value nudged: a lip is BRIGHT where the light
+       hits it and DARK where it does not, and on a bright ground the shade is what draws the
+       edge. So `a` keeps the catch and the other three go to pigment, anchored on the glass
+       border this system already designed for light (glassInk.light.border, 0.12). The ring
+       composites over the pane's own veil, so the dark arc reads whatever the backdrop is
+       doing behind it. */
+    light: { a: "rgb(255 255 255 / 0.95)", b: "rgb(0 0 0 / 0.07)", c: "rgb(0 0 0 / 0.15)", d: "rgb(10 5 0 / 0.11)", opacity: 1 },
     dark: { a: "rgb(255 255 255 / 0.34)", b: "rgb(210 230 255 / 0.1)", c: "rgb(255 255 255 / 0.04)", d: "rgb(255 245 235 / 0.08)", opacity: 1 },
   },
   /* Deep glass splits light: THICK's ring folds spectral stops into itself (the lab's
      .l2-thick::after; dark is the corrected copy from the dialog — the audit's "dark thick
      renders light's spectral rim" bug, fixed by taking the copy that was right). */
   ringSpectral: {
-    light: ["rgb(255 255 255 / 0.97)", "rgb(255 190 170 / 0.4)", "rgb(170 205 255 / 0.34)", "rgb(255 255 255 / 0.1)", "rgb(255 246 235 / 0.28)"],
+    /* Thick's shade side takes light's correction too (2026-08-24) — the spectral stops are
+       the SPLIT at the lip, which happens where light enters; the far side is still shade. */
+    light: ["rgb(255 255 255 / 0.97)", "rgb(255 190 170 / 0.4)", "rgb(170 205 255 / 0.34)", "rgb(0 0 0 / 0.15)", "rgb(10 5 0 / 0.11)"],
     dark: ["rgb(255 255 255 / 0.44)", "rgb(255 200 180 / 0.14)", "rgb(180 210 255 / 0.12)", "rgb(255 255 255 / 0.05)", "rgb(255 245 235 / 0.1)"],
   },
+  /* DARK CONTROLS CARRY MORE SPECULAR, NOT LESS (lab 2026-08-15, Kushagra: "not enough";
+     ported 2026-08-24 with the glint) — a small dark pane's rim is most of its evidence, and
+     the one ring row was priced for 340px cards, so a dark glass button wore a card's faint
+     lip. The lab's judged answer: roughly double the card's dark peaks, still under light's.
+     LIGHT has no row here on purpose — a light control's lip is the pane's, the lab never
+     split them, and the generator emits the shared value so the two cannot drift. One row for
+     all three thicknesses, the lab's own shape (its dark buttons overrode a/b/c/d once). */
+  ringControlDark: { a: "rgb(255 255 255 / 0.72)", b: "rgb(210 230 255 / 0.22)", c: "rgb(255 255 255 / 0.08)", d: "rgb(255 245 235 / 0.2)" },
 
   /* THE POOL (lab, ported 2026-08-17): the shade that settles at a pane's bottom INSIDE it —
      matter, not elevation, so it lives in both depth worlds and joins the cast in the one
@@ -1377,15 +1429,28 @@ export const glassInk = {
     faint: "rgb(0 0 0 / 0.42)",
     border: "rgb(0 0 0 / 0.12)",
     disabled: "rgb(0 0 0 / 0.32)",
-    wash: "rgb(0 0 0 / 0.07)",
+    wash: "rgb(0 0 0 / 0.05)",
     /* THE GRIP on a pane (2026-08-24, Kushagra: "Week is selected but its barely visible on
        thin, month is hover and its extremely dark, so much more contrast than the selected
        thumb"). The chosen thumb had been painting `wash` — the HOVER value itself — so the
        persistent state and the transient one were one colour by construction and could never
-       rank. It is WHITE in both modes where the wash is a darkening, because that is the
-       relationship the solid control already has: the track recedes and the grip catches
-       light (--color-thumb is the seal on solid). Judged on the preview's Materials board. */
-    grip: "rgb(255 255 255 / 0.5)",
+       rank.
+
+       It went WHITE first, on the solid control's relationship (track recedes, grip catches
+       light), and that was the ring's mistake one component over: on a LIGHT ground nothing
+       is lightened into visibility, because there is no headroom above the pane. Kushagra,
+       against iOS's All/Missed: "the selected thumb is still very white, see iOS's" — where
+       the selected segment is a subtle GREY, darker than the capsule around it. So light
+       draws its grip with SHADE like its ring does, and only dark keeps the catch; each mode
+       moves away from its own ground rather than toward one shared idea of "raised".
+
+       Its first shade value was 0.14 and read "too dark" (Kushagra) — iOS's selected segment
+       sits a few percent off its capsule, not a visible slab. Light's WASH came down with it
+       (0.07 -> 0.05) rather than the grip moving alone: the two are a RATIO, and at 0.09
+       against 0.07 the ranking would have been arithmetic nobody could see. The pair holds
+       2x. The wash is the same token a glass menu lights a row with, so that got subtler
+       too — the same argument, one component over. */
+    grip: "rgb(0 0 0 / 0.1)",
     kbdFill: "rgb(0 0 0 / 0.05)",
     kbdEdge: "rgb(0 0 0 / 0.1)",
     kbdInk: "rgb(0 0 0 / 0.58)",

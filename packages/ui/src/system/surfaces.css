@@ -1192,6 +1192,49 @@
   background: var(--material-thick-ring);
 }
 
+/* ── The GLINT: the ring's band (§10, 2026-08-24) ─────────────────────────────────────────
+   The specular was a 1px annulus, and 1px is why it kept vanishing at pane scale — iOS's
+   glint is a BAND of light lying ON the bezel, wide at the arcs that face the light and
+   feathering inward. The band's geometry is a per-box alpha mask minted by the lens hook
+   (refraction.tsx) from the same signed-distance field the lens bends with — one bezel, two
+   renderings — and its COLOUR is the mode's own glint conic (the ring palette with the
+   spectral fold off: the split is the 1px lip's own phenomenon, and across a band thick's
+   red/blue stops read as pink haze), resolved at the element, so an appearance flip recolours
+   it with no JS and the light/shade model is stated once. A plain image, not a filter: Safari
+   and Firefox render this even though the lens never reaches them.
+   Default dark — `--kui-glint-on` is 0 until the hook measures the box — so SSR, print, a
+   detached hook or a box too small for a bezel all keep exactly the 1px ring. Every ring
+   stand-down reaches it through the same `--material-ring-opacity` the ::after reads: high
+   contrast, reduced transparency and the floating trim need no second arm. */
+.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  corner-shape: inherit;
+  pointer-events: none;
+  -webkit-mask-image: var(--kui-glint, none);
+  mask-image: var(--kui-glint, none);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0));
+}
+.kui-surface:where([data-material="thin"])::before {
+  background: var(--material-thin-glint);
+}
+.kui-surface:where([data-material="regular"])::before {
+  background: var(--material-regular-glint);
+}
+.kui-surface:where([data-material="thick"])::before {
+  background: var(--material-thick-glint);
+}
+/* The floating trim, mirrored: a menu's glint dims exactly as its ring does. */
+.kui-surface.kui-floating:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
+  opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0) * 0.6);
+}
+
 /* ── QUIET PAINT ON GLASS IS ALPHA, NOT PIGMENT (§10, lab 2026-08-15, ported 2026-08-17) ──
    A pigment grey is an absolute colour: over a bright backdrop an opaque mid-grey is DARKER
    than what shows through and the dim semantic INVERTS — the disabled row read emphasised.
@@ -1262,8 +1305,11 @@
    and not in recipes.css (the material region there may not touch a colour or a label — that
    law is what keeps the material a modifier; the colour-touching glass treatments all live
    in this file). The pane-member rule above cannot reach this case, because the pane IS the
-   track and the track is not a .kui-surface. */
-.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-segment-thumb {
+   track and the track is not a .kui-surface. KEYED ON [data-material] — every glass STATE,
+   on-glass included — never the thickness list, which means "this element IS a pane": a
+   segmented control inside a glass Card is on-glass, and keyed on thicknesses it matched
+   nothing and fell back to the solid white thumb on a pane of light (2026-08-24, round 3). */
+.kui-segmented[data-material] .kui-segment-thumb {
   --kui-ct-fill-src: var(--material-grip-fill);
   --kui-ct-fill-src-hover: var(--material-grip-fill);
   --kui-ct-fill-src-active: var(--material-grip-fill);
@@ -1286,8 +1332,7 @@
    tone system to fix a fill. `:not([data-checked])` is load-bearing — this rule is (0,2,0)
    and would otherwise outrank the chosen segment's transparent pin in segmented-control.css,
    putting back the "the hover continues to stay" defect of 2026-08-23. */
-.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"])
-  .kui-segment:not([data-checked]) {
+.kui-segmented[data-material] .kui-segment:not([data-checked]) {
   /* All THREE, per the control contract (§9): the sources are registered inherits:false, so
      a rule that re-points two of them leaves the third resolving no source at all. Rest is
      bare on purpose — an unchosen segment paints nothing until a pointer reaches it, on
@@ -1296,7 +1341,7 @@
   --kui-ct-fill-src-hover: var(--material-row-wash);
   --kui-ct-fill-src-active: var(--material-row-wash);
 }
-.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-segment:where([data-checked]) {
+.kui-segmented[data-material] .kui-segment:where([data-checked]) {
   --kui-ct-label-color: var(--color-text);
 }
 

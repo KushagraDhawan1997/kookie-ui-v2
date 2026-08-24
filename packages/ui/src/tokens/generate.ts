@@ -93,6 +93,7 @@ import {
   surfacePadding,
   inputFontFloor,
   touchTargetMin,
+  glint,
   type DensityLevel,
   type DensitySet,
   type RadiusLevel,
@@ -143,6 +144,13 @@ export function generateTokens(): string {
 
   lines.push("", "  /* the touch floor (§16) — raw px on purpose: a physical floor, not a zoomable length */");
   put("touch-target-min", `${touchTargetMin}px`);
+  // The glint band's RESTING width (§10, 2026-08-24): 0px, so the bare textarea's flat-band
+  // gradients collapse to nothing until the lens hook measures the element and writes its
+  // fitted bezel inline. Declared here so tokens.css stays closed over its own vocabulary —
+  // the dangling-var law fired on the reference, correctly, and an allowlist arm would have
+  // been a hole where this is a contract: the token exists, its safe value is zero, and only
+  // a measured element raises it.
+  put("kui-glint-band", "0px");
   lines.push("  /* and the zoom floor (§4), which is zero here: a fine pointer never zooms on focus.");
   lines.push("     The coarse world re-declares it — see pointerWorld(). */");
   put("input-font-floor", "0px");
@@ -507,6 +515,7 @@ export function generateTokens(): string {
           attr: "data-material",
           decls: [
             decl("kui-glass-hc-edge", "var(--tone-border)"),
+            decl("kui-ct-glass-glint", "initial"),
             // The field family's background-layer ring (2026-08-24) cannot take the panes'
             // ring-opacity — opacity is per-element and this ring is one layer of the
             // element's own background — so the SAME arm that hands the pigment edge back
@@ -997,6 +1006,44 @@ const ringBg = (mode: "light" | "dark", spectral: boolean): string => {
   return `conic-gradient(from 345deg, ${a}, ${b} 22%, ${c} 34%, ${d} 44%, ${d} 56%, ${c} 66%, ${b} 78%, ${a})`;
 };
 
+/**
+ * The CONTROL's ring (§10, ported from the lab 2026-08-24): dark controls carry roughly
+ * double the card's specular — the lab's own judged row (2026-08-15, "not enough") — because
+ * a small dark pane's rim is most of its evidence. Light controls share the pane's ring
+ * VERBATIM, emitted from the same source so the two cannot drift: the lab never split light,
+ * and a second copy that agrees today is the copy that silently disagrees tomorrow.
+ */
+const ringControlBg = (mode: "light" | "dark", spectral: boolean): string => {
+  if (mode === "light") return ringBg(mode, spectral);
+  const { a, b, c, d } = material.ringControlDark;
+  return `conic-gradient(from 345deg, ${a}, ${b} 22%, ${c} 34%, ${d} 44%, ${d} 56%, ${c} 66%, ${b} 78%, ${a})`;
+};
+
+/**
+ * THE BARE TEXTAREA'S BAND, FLAT (§10, 2026-08-24, Kushagra: "text area still looks old").
+ * A `<textarea>` renders no generated content (re-measured the same day: the pseudo computes,
+ * zero pixels paint) and a mask on the element takes its text — so the one glass element with
+ * no second surface takes the band as GRADIENTS in its own background stack: the top catch
+ * feathered inward on the SAME curve as the mask ((1-t)^falloff, sampled at 0/25/50%), a warm
+ * collect rising from the bottom, colours from the same rows the conics use (light: the pane
+ * ring's catch and collect; dark: the control row's). The band's WIDTH arrives per element as
+ * `--kui-glint-band` — the hook's own fitted bezel, so a small box narrows it exactly as the
+ * mask would — with a 0px fallback, so an unmeasured element (SSR, no JS) collapses the
+ * gradients to nothing instead of poisoning the whole background list. What the platform still
+ * withholds is the corner wrap and the side arcs; the crisp ring carries those.
+ */
+const glintFlatBg = (mode: "light" | "dark"): string => {
+  const row = mode === "light" ? material.ring.light : material.ringControlDark;
+  const fade = (c: string, f: number) =>
+    c.replace(/\/ ([0-9.]+)\)/, (_, a: string) => `/ ${Number((parseFloat(a) * f).toFixed(3))})`);
+  const curve = [0, 0.25, 0.5].map((t) => Math.pow(1 - t, glint.falloff));
+  const B = "var(--kui-glint-band, 0px)";
+  return [
+    `linear-gradient(180deg, ${fade(row.a, curve[0] ?? 1)}, ${fade(row.a, curve[1] ?? 0)} calc(${B} * 0.25), ${fade(row.a, curve[2] ?? 0)} calc(${B} * 0.5), transparent ${B})`,
+    `linear-gradient(0deg, ${fade(row.d, 0.7)}, transparent calc(${B} * 0.66))`,
+  ].join(", ");
+};
+
 function surfaceWorld(mode: "light" | "dark"): string[] {
   const m = material[mode];
   const glass = (name: "thin" | "regular" | "thick") => {
@@ -1045,6 +1092,15 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       ...(mode === "dark" ? [decl(`material-${name}-alpha-floating`, `${floatingDark.alpha[name]}%`)] : []),
       // The RING: thick's is spectral (deep glass splits light), thin/regular the palette's.
       decl(`material-${name}-ring`, ringBg(mode, name === "thick")),
+      // The control's ring: light shares the pane's verbatim, dark is the lab's doubled row.
+      decl(`material-${name}-ring-control`, ringControlBg(mode, name === "thick")),
+      // The GLINT's colour (2026-08-24): the ring palette with the spectral fold ALWAYS off.
+      // The split is a LIP phenomenon — its own comment prices it "at the lip, where light
+      // enters" — and painted across the band's width thick's red/blue stops read as pink
+      // haze on a plain ground (measured on the first render). The band takes broad light;
+      // the 1px ring keeps the split.
+      decl(`material-${name}-glint`, ringBg(mode, false)),
+      decl(`material-${name}-glint-control`, ringControlBg(mode, false)),
     ];
   };
   // The SOLID pane's lighting — the lab's matte recipe, NOT the rim() builder's glass one
@@ -1067,6 +1123,9 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     ...glass("regular"),
     ...glass("thick"),
     decl("material-opaque-alpha", `${material.fallbackAlpha}%`),
+    // The bare textarea's flat band (one token per mode — the width rides the element's own
+    // `--kui-glint-band`, so no per-thickness copies exist to drift).
+    decl("material-glint-flat", glintFlatBg(mode)),
     // The POOL (§10, ported 2026-08-17): the shade settling at a pane's bottom INSIDE it —
     // matter, not elevation, so it joins the cast in both depth worlds. Solid's is its seat
     // line (dark solid: a no-op layer, list-legal where `none` is not).

@@ -1318,6 +1318,7 @@
   --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;
   --kui-ct-glass-ring: initial;
+  --kui-ct-glass-glint: initial;
   /* And the elevated light stands down the same way (§5, 2026-08-07): a disabled control
      makes no promise, so it neither hovers above the page nor catches light. `initial`
      makes the world tokens guaranteed-invalid here; the consumption sites fall back to
@@ -1385,6 +1386,7 @@
   --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;
   --kui-ct-glass-ring: initial;
+  --kui-ct-glass-glint: initial;
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,
@@ -1604,23 +1606,44 @@
     .kui-field:where([data-material="thin"]),
     .kui-textarea:where([data-material="thin"]) {
       --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
-      --kui-ct-glass-ring: var(--material-thin-ring);
-      background-image: var(--kui-ct-glass-ring, none), var(--material-thin-rim-control, none), var(--kui-ct-light, none);
-      background-clip: border-area, border-box, border-box;
+      --kui-ct-glass-ring: var(--material-thin-ring-control);
+      --kui-ct-glass-glint: var(--material-thin-glint-control);
+      background-image: var(--kui-ct-glass-ring, none), var(--kui-ct-glass-glint-bg, none), var(--material-thin-rim-control, none), var(--kui-ct-light, none);
+      background-clip: border-area, border-box, border-box, border-box;
     }
     .kui-field:where([data-material="regular"]),
     .kui-textarea:where([data-material="regular"]) {
       --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
-      --kui-ct-glass-ring: var(--material-regular-ring);
-      background-image: var(--kui-ct-glass-ring, none), var(--material-regular-rim-control, none), var(--kui-ct-light, none);
-      background-clip: border-area, border-box, border-box;
+      --kui-ct-glass-ring: var(--material-regular-ring-control);
+      --kui-ct-glass-glint: var(--material-regular-glint-control);
+      background-image: var(--kui-ct-glass-ring, none), var(--kui-ct-glass-glint-bg, none), var(--material-regular-rim-control, none), var(--kui-ct-light, none);
+      background-clip: border-area, border-box, border-box, border-box;
     }
     .kui-field:where([data-material="thick"]),
     .kui-textarea:where([data-material="thick"]) {
       --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
-      --kui-ct-glass-ring: var(--material-thick-ring);
-      background-image: var(--kui-ct-glass-ring, none), var(--material-thick-rim-control, none), var(--kui-ct-light, none);
-      background-clip: border-area, border-box, border-box;
+      --kui-ct-glass-ring: var(--material-thick-ring-control);
+      --kui-ct-glass-glint: var(--material-thick-glint-control);
+      background-image: var(--kui-ct-glass-ring, none), var(--kui-ct-glass-glint-bg, none), var(--material-thick-rim-control, none), var(--kui-ct-light, none);
+      background-clip: border-area, border-box, border-box, border-box;
+    }
+
+    /* THE BARE TEXTAREA'S BAND IS FLAT (§10, 2026-08-24, Kushagra: "text area still looks
+       old"). It is the one glass element with no second surface for the masked band: a
+       form control renders no generated content (re-measured this day — the pseudo computes
+       and paints zero pixels) and a mask on the element takes its text with it. So it takes
+       the approximation: `--material-glint-flat`, the same palette feathered on the same
+       curve as gradients, its width the element's own `--kui-glint-band` (the hook's fitted
+       bezel — 0px until measured, which collapses the layers instead of poisoning the list).
+       Routed THROUGH `--kui-ct-glass-glint`, the hook the field family's band already rides,
+       so the disabled and invalid arms and the generated HC arm stand this down with the
+       ring and no second stand-down exists. The wrapper-bearing members must NOT take this
+       layer — theirs is the real band on ::before, and both at once is a doubled light.
+       What the platform still withholds here: the corner wrap and the side arcs; the crisp
+       ring carries those. */
+    .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+      --kui-ct-glass-glint: var(--material-glint-flat);
+      --kui-ct-glass-glint-bg: var(--kui-ct-glass-glint, none);
     }
   }
 
@@ -1687,7 +1710,7 @@
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
   position: relative;
 }
-.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
+.kui-segmented[data-material]::after,
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
   content: "";
   position: absolute;
@@ -1708,15 +1731,74 @@
 }
 .kui-segmented:where([data-material="thin"])::after,
 .kui-button:where([data-material="thin"])::after {
-  background: var(--material-thin-ring);
+  background: var(--material-thin-ring-control);
 }
 .kui-segmented:where([data-material="regular"])::after,
 .kui-button:where([data-material="regular"])::after {
-  background: var(--material-regular-ring);
+  background: var(--material-regular-ring-control);
 }
 .kui-segmented:where([data-material="thick"])::after,
 .kui-button:where([data-material="thick"])::after {
-  background: var(--material-thick-ring);
+  background: var(--material-thick-ring-control);
+}
+
+/* ── The GLINT at control scale (§10, 2026-08-24) — the pane's band, on the members that can
+   paint it. Mechanism and reasoning in surfaces.css: a per-box alpha mask from the lens hook,
+   coloured by the mode's ring tokens at the element, dark until the hook measures. The button
+   family and the segmented track take it on ::before (their ::after is the crisp 1px ring);
+   the FIELD family takes it on the wrapper, whose ::before is the one pseudo the family has —
+   its background rides `--kui-ct-glass-ring`, so the disabled and invalid arms that stand the
+   ring down stand the glint down in the same breath, and an engine without border-area (where
+   that hook is never declared) never paints a band over the flat-hairline fallback. A bare
+   <textarea> stays ring-only: no wrapper, no pseudo — the family's one recorded exception.
+   On-glass members mint no mask (no bezel to light), so the layer stays dark there by
+   construction. */
+.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
+.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
+.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  corner-shape: inherit;
+  pointer-events: none;
+  -webkit-mask-image: var(--kui-glint, none);
+  mask-image: var(--kui-glint, none);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0));
+}
+.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+  position: relative;
+}
+.kui-button:where([data-material="thin"])::before,
+.kui-segmented:where([data-material="thin"])::before {
+  background: var(--material-thin-glint-control);
+}
+.kui-button:where([data-material="regular"])::before,
+.kui-segmented:where([data-material="regular"])::before {
+  background: var(--material-regular-glint-control);
+}
+.kui-button:where([data-material="thick"])::before,
+.kui-segmented:where([data-material="thick"])::before {
+  background: var(--material-thick-glint-control);
+}
+.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
+  background: var(--kui-ct-glass-glint, none);
+}
+/* AN ON-GLASS TRACK GETS A FLAT HAIRLINE, NOT A LIP (2026-08-24, Kushagra: "on a card theres
+   no visible difference still"). A segmented control inside a glass CARD is a member of
+   someone else's pane, not a pane — it takes no filter and no lens, so a conic lip would
+   claim a thickness it does not have and read as a second pane nested in the first. But it
+   still owes a boundary, and it is the one control that cannot draw one with a border: the
+   well stands the skeleton's border down BY WIDTH (audit D2), so there is no band for the
+   ordinary edge chain OR for the field family's border-area spelling. The ::after annulus
+   above is already the right shape and already wraps the squircle; filled with the pane's
+   own designed pigment hairline it is exactly the line iOS draws around theirs. */
+.kui-segmented:where([data-material="on-glass"])::after {
+  background: var(--material-glass-border);
 }
 
 /* The segmented TRACK wears the same ring (2026-08-24, the glass lock): a glass track is a

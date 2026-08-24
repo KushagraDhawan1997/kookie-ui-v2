@@ -39,6 +39,7 @@ import * as React from "react";
 
 import type { Material } from "./axes.ts";
 import { ON_GLASS, type SurfaceMaterial } from "../theme/theme.tsx";
+import { glint } from "../tokens/config.ts";
 
 /** Signed distance to a rounded-rect border: negative inside, positive outside. */
 function sdRoundedRect(x: number, y: number, w: number, h: number, r: number): number {
@@ -47,6 +48,25 @@ function sdRoundedRect(x: number, y: number, w: number, h: number, r: number): n
   const ox = Math.max(qx, 0);
   const oy = Math.max(qy, 0);
   return Math.hypot(ox, oy) + Math.min(Math.max(qx, qy), 0) - r;
+}
+
+/**
+ * The same distance with a SUPERELLIPSE corner (2026-08-24, the glint's own need): the p-norm
+ * replaces the Euclidean one in the corner region, so the contour follows the squircle the
+ * pane actually renders (`corner-shape: squircle` is the classic |x|⁴ + |y|⁴ superellipse).
+ * A p-norm is not a true metric — bands thin slightly on the diagonal — which the glint's own
+ * feather absorbs and a displacement map would not: the LENS keeps the circular corner it was
+ * judged with, and this exists because a band of LIGHT detaching from the lip at every corner
+ * is visible in a way a bent backdrop's corner never was.
+ */
+function sdSuperRect(x: number, y: number, w: number, h: number, r: number, k: number): number {
+  if (k === 2) return sdRoundedRect(x, y, w, h, r);
+  const qx = Math.abs(x - w / 2) - (w / 2 - r);
+  const qy = Math.abs(y - h / 2) - (h / 2 - r);
+  const ox = Math.max(qx, 0);
+  const oy = Math.max(qy, 0);
+  const corner = Math.pow(Math.pow(ox, k) + Math.pow(oy, k), 1 / k);
+  return corner + Math.min(Math.max(qx, qy), 0) - r;
 }
 
 /**
@@ -73,17 +93,59 @@ const PROFILE_P = 2;
 const PROFILE_Q = 0.25;
 
 function surface(t: number): { height: number; slope: number } {
+  const P = tuning?.profileP ?? PROFILE_P;
   const u = 1 - t;
-  const uP = Math.pow(u, PROFILE_P);
+  const uP = Math.pow(u, P);
+  const sign = tuning?.concave ? -1 : 1;
   return {
     height: Math.pow(Math.max(1 - uP, 0), PROFILE_Q),
     // The 0.04 floor is the shipped guard kept: at the lip the denominator goes to zero and
     // the slope with it would be an infinity the map cannot encode.
     slope:
-      (PROFILE_P * PROFILE_Q * Math.pow(u, PROFILE_P - 1)) /
+      (sign * (P * PROFILE_Q * Math.pow(u, P - 1))) /
       Math.pow(Math.max(1 - uP, 0.04), 1 - PROFILE_Q),
   };
 }
+
+/* ── The bench seam (2026-08-24) ───────────────────────────────────────────────────────────
+   The lens bench could only ever move `boost` and `fringe`, because those are attributes on
+   filters that already exist — the lip's width, the depth behind it and the profile are baked
+   into each map's pixels, so judging THEM meant editing this file and reloading. That cage is
+   what kept the lab's locked refraction (2026-08-14: concave, wide bezel, IOR 2.4) from ever
+   being judged in the package. `__retuneLens` is the bench's regeneration handle: it holds a
+   multiplier set, bumps a serial that is part of every map's cache key, and asks every mounted
+   lens to re-measure. It is a judging tool with the playground's own status — null in every
+   app that never imports it, tree-shaken out with the bench — and nothing in the package calls
+   it. Laws read the shipped constants, which this never mutates. */
+export type LensTuning = {
+  /** × on each rung's bezel width (and the glint band that rides it). */
+  bezelX: number;
+  /** × on each rung's glass depth. */
+  thicknessX: number;
+  /** overrides every rung's refraction index (null = the ladder's own). */
+  ior: number | null;
+  /** the surface profile's exponent (2 shipped; 4 is the old spike). */
+  profileP: number;
+  /** negate the slope — the lab's locked "diamond" profile. */
+  concave: boolean;
+  /** × on the glint band's width relative to the bezel. */
+  glintBandX: number;
+  /** the glint's feather exponent (higher = tighter to the lip). */
+  glintFalloff: number;
+  /** saturation of the backdrop the rim re-emits inside the filter (0 disables the stage). */
+  rimSaturate: number;
+  /** px of Gaussian blur applied INSIDE the filter, before displacement (0 = none). */
+  preBlur: number;
+};
+let tuning: Partial<LensTuning> | null = null;
+let tuningSerial = 0;
+const remeasures = new Set<() => void>();
+export function __retuneLens(next: Partial<LensTuning> | null): void {
+  tuning = next;
+  tuningSerial += 1;
+  for (const cb of remeasures) cb();
+}
+
 
 /** The lens's shape, in config terms. Every number is judged, none is derived from taste
     at a call site — a consumer never sees these. */
@@ -154,7 +216,16 @@ export const lens: Record<LensThickness, LensParams> = {
  * exactly as long as that was each caller's job.
  */
 function rung(material: SurfaceMaterial): LensParams | null {
-  return material === "solid" || material === ON_GLASS ? null : lens[material];
+  if (material === "solid" || material === ON_GLASS) return null;
+  const base = lens[material];
+  if (!tuning) return base;
+  // The bench's multipliers, applied over the shipped rung — 1.0 everywhere restores it.
+  return {
+    ...base,
+    bezel: base.bezel * (tuning.bezelX ?? 1),
+    thickness: base.thickness * (tuning.thicknessX ?? 1),
+    ior: tuning.ior ?? base.ior,
+  };
 }
 
 /** Maps are generated at most this wide/tall and stretched to the box. The bend is a
@@ -252,6 +323,55 @@ function physicalMap(w: number, h: number, r: number, p: LensParams): { url: str
   return { url: canvas.toDataURL(), max: Math.min(maxAbs, bezel) };
 }
 
+/* ── The glint map: the band of light on the bezel (§10, 2026-08-24) ──────────────────────
+   A colourless alpha mask — white where the bezel catches light, transparent everywhere else —
+   consumed twice: as the mask of the pane's `::before` (whose background is the mode's own
+   ring conic, so colour and intensity resolve at the element and an appearance flip needs no
+   JS), and as the rim's clip inside the lens filter, where the displaced backdrop is
+   re-emitted saturated (the edge catches the content's own colour). Unlike the lens it is a
+   plain image, so it renders in every engine — Safari and Firefox get the specular even though
+   they never get the bend. */
+const glints = new Map<string, string>();
+
+function glintMap(w: number, h: number, r: number, band: number, falloff: number, k: number): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+  const img = ctx.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const inside = -sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
+      if (inside < -0.5 || inside > band) continue;
+      const t = Math.max(inside, 0) / band;
+      // Feather inward; the half-pixel coverage ramp at the lip is the outer anti-alias.
+      const a = Math.pow(1 - t, falloff) * Math.min(1, inside + 1);
+      const i = (y * w + x) * 4;
+      img.data[i] = 255;
+      img.data[i + 1] = 255;
+      img.data[i + 2] = 255;
+      img.data[i + 3] = Math.round(Math.max(0, Math.min(1, a)) * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
+}
+
+/** Mint (or reuse) the glint mask for one box, in map pixels. The memo is dropped whole past
+    a bound rather than LRU-tracked: distinct boxes on one page are few, and a data URL held
+    by an element's own style survives the memo being emptied. */
+function acquireGlint(w: number, h: number, r: number, band: number, k: number): string {
+  const falloff = tuning?.glintFalloff ?? glint.falloff;
+  const key = `${w}x${h}r${r}b${Math.round(band * 10)}f${falloff}k${k}z${tuningSerial}`;
+  const hit = glints.get(key);
+  if (hit) return hit;
+  const url = glintMap(w, h, r, band, falloff, k);
+  if (glints.size > 64) glints.clear();
+  if (url) glints.set(key, url);
+  return url;
+}
+
 /* ── The filter registry: one <svg> for the document, one filter per distinct box ──────── */
 
 let defs: SVGSVGElement | null = null;
@@ -288,8 +408,15 @@ const el = (name: string, attrs: Record<string, string | number>): SVGElement =>
  * both — so a filter is never edited in place. A changed box mints a new id and the old one
  * is released.
  */
-function acquire(w: number, h: number, r: number, p: LensParams, fit: number): string | null {
-  const key = `${w}x${h}r${r}z${fit}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}`;
+function acquire(
+  w: number,
+  h: number,
+  r: number,
+  p: LensParams,
+  fit: number,
+  rim: { url: string; sat: number } | null,
+): string | null {
+  const key = `${w}x${h}r${r}z${fit}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}q${tuningSerial}rs${rim ? rim.sat : 0}`;
   const hit = filters.get(key);
   if (hit) {
     hit.users += 1;
@@ -338,6 +465,15 @@ function acquire(w: number, h: number, r: number, p: LensParams, fit: number): s
   });
   filter.appendChild(el("feImage", { href: url, preserveAspectRatio: "none", result: "map" }));
   filter.appendChild(el("feGaussianBlur", { in: "map", stdDeviation: 3, result: "soft" }));
+  /* The bench's pre-blur (kube's own order): frost applied BEFORE the displacement bends it,
+     so the lens's edge stays crisp while the content softens — the stylesheet's chain blurs
+     the bent result instead, softening the bend it paid for. Bench-only until judged: at 0 the
+     source passes through untouched and the shipped chain is byte-identical. */
+  const pre = tuning?.preBlur ?? 0;
+  const source = pre > 0 ? "presoft" : "SourceGraphic";
+  if (pre > 0) {
+    filter.appendChild(el("feGaussianBlur", { in: "SourceGraphic", stdDeviation: pre, result: "presoft" }));
+  }
   // Three displacements at different scales, one per channel, screened back together: the edge
   // splits light. The spread was ~8% when it was written, which kept the body registered as a
   // side effect rather than as a rule; the judged ladder runs 18 / 30 / 48 (2026-08-23), so the
@@ -353,7 +489,7 @@ function acquire(w: number, h: number, r: number, p: LensParams, fit: number): s
   for (const ch of ["R", "G", "B"] as const) {
     filter.appendChild(
       el("feDisplacementMap", {
-        in: "SourceGraphic",
+        in: source,
         in2: "soft",
         scale: scales[ch],
         xChannelSelector: "R",
@@ -364,7 +500,20 @@ function acquire(w: number, h: number, r: number, p: LensParams, fit: number): s
     filter.appendChild(el("feColorMatrix", { in: `d${ch}`, type: "matrix", values: keep[ch], result: `c${ch}` }));
   }
   filter.appendChild(el("feBlend", { in: "cR", in2: "cG", mode: "screen", result: "rg" }));
-  filter.appendChild(el("feBlend", { in: "rg", in2: "cB", mode: "screen" }));
+  filter.appendChild(el("feBlend", { in: "rg", in2: "cB", mode: "screen", result: "body" }));
+  /* THE RIM RE-EMITS THE BACKDROP (§10, 2026-08-24; kube.io's chain, credited): inside the
+     glint band the bent backdrop is shown again, hyper-saturated and clipped to the band's own
+     mask — so a red photograph's edge catches red, not only white. Over a neutral page the
+     stage is invisible by construction (saturating grey is grey), which is exactly why the
+     pigment ring exists (2026-08-24's own finding, from the other side). The white/pigment arc
+     stays in the element's `::before`, where every engine gets it; this half lives in the lens
+     because it needs the displaced result, which only the lens has. */
+  if (rim && rim.sat > 0) {
+    filter.appendChild(el("feImage", { href: rim.url, preserveAspectRatio: "none", result: "gmask" }));
+    filter.appendChild(el("feColorMatrix", { in: "body", type: "saturate", values: rim.sat, result: "vivid" }));
+    filter.appendChild(el("feComposite", { in: "vivid", in2: "gmask", operator: "in", result: "rim" }));
+    filter.appendChild(el("feComposite", { in: "rim", in2: "body", operator: "over" }));
+  }
   host().appendChild(filter);
   filters.set(key, { id, users: 1 });
   return id;
@@ -432,6 +581,8 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
   const state = React.useRef<{
     node: HTMLElement | null;
     id: string | null;
+    glint: boolean;
+    retune: (() => void) | null;
     ro: ResizeObserver | null;
     flight: MutationObserver | null;
     /** The target box a flight has already been measured for — see `measureUnlessFlying`. */
@@ -439,6 +590,8 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
   }>({
     node: null,
     id: null,
+    glint: false,
+    retune: null,
     ro: null,
     flight: null,
     flightKey: null,
@@ -455,16 +608,28 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         s.flight?.disconnect();
         s.flight = null;
         s.flightKey = null;
+        if (s.retune) remeasures.delete(s.retune);
+        s.retune = null;
         if (s.id) release(s.id);
         if (s.id && s.node) s.node.style.removeProperty("--kui-lens");
         s.id = null;
+        if (s.glint && s.node) {
+          s.node.style.removeProperty("--kui-glint");
+          s.node.style.removeProperty("--kui-glint-on");
+          s.node.style.removeProperty("--kui-glint-band");
+        }
+        s.glint = false;
       };
 
       detach();
       s.node = node;
-      // The rung, resolved once: which piece of glass this is, or nothing at all.
-      const params = rung(material);
-      if (!node || !params || !lensSupported()) return;
+      // Which piece of glass this is — or nothing at all. The rung itself re-resolves inside
+      // every measure (the bench's multipliers land there); only the membership is fixed.
+      if (!node || material === "solid" || material === ON_GLASS) return;
+      /** The lens needs Chromium; the GLINT is a plain mask image and does not — Safari and
+          Firefox render the specular even though they never render the bend, which is the
+          first piece of the glass identity those engines have ever had. */
+      const lensOK = lensSupported();
 
       /**
        * The box the map is built for. Normally the element's own, and during a FLIGHT the box
@@ -477,9 +642,14 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
        * runner reads that one un-posed and hands it over rather than leaving it to be guessed
        * from a moving element.
        */
-      const target = (): { w: number; h: number; r: number } | null => {
+      const target = (): { w: number; h: number; r: number; k: number } | null => {
         const rect = node.getBoundingClientRect();
         const cs = getComputedStyle(node);
+        // The corner's exponent: `corner-shape: squircle` renders the classic |x|⁴ superellipse,
+        // and the glint's contour must follow the corner the box actually paints — a band of
+        // light detaching from the lip at every corner is what a circular mask over a squircle
+        // clip would draw. corner-shape does not animate, so this is stable through a flight.
+        const k = cs.getPropertyValue("corner-shape").includes("squircle") ? 4 : 2;
         const flight = node.closest("[data-unfurling]");
         // Only when the flying element IS this pane. A lens attached to something INSIDE a
         // flying panel has its own geometry and none of these numbers describe it.
@@ -488,7 +658,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           const h = parseFloat(node.style.getPropertyValue("--kui-fly-h"));
           const r = parseFloat(node.style.getPropertyValue("--kui-fly-r"));
           if (Number.isFinite(w) && Number.isFinite(h) && w >= 8 && h >= 8) {
-            return { w, h, r: Number.isFinite(r) ? r : 0 };
+            return { w, h, r: Number.isFinite(r) ? r : 0, k };
           }
           // Published nothing readable — a reduced-motion open bails before writing these, and
           // a pane can carry the stamp for a frame before they land. Waiting is right: the old
@@ -496,10 +666,12 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           return null;
         }
         if (rect.width < 8 || rect.height < 8) return null;
-        return { w: rect.width, h: rect.height, r: parseFloat(cs.borderTopLeftRadius) || 0 };
+        return { w: rect.width, h: rect.height, r: parseFloat(cs.borderTopLeftRadius) || 0, k };
       };
 
       const measure = () => {
+        const params = rung(material);
+        if (!params) return;
         const box = target();
         if (!box) return;
         const rect = { width: box.w, height: box.h };
@@ -519,12 +691,39 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
          * judged values fix. Scaling them here means the lip is 18 CSS px on every pane, and at
          * or under the cap `scale` is 1 and these are the judged numbers untouched.
          */
+        /* THE GLINT, before the lens: it is a plain mask image, so it lands in every engine
+           and on every box the bezel fits — the lens's own support gate never withholds it. */
+        const fit = fitLens(params, Math.min(box.w, box.h));
+        const bandX = tuning?.glintBandX ?? glint.band;
+        let glintUrl = "";
+        if (fit && bandX > 0) {
+          const band = Math.max(1, fit.bezel * bandX * scale);
+          glintUrl = acquireGlint(w, h, r, band, box.k);
+        }
+        if (glintUrl && fit) {
+          node.style.setProperty("--kui-glint", `url("${glintUrl}")`);
+          node.style.setProperty("--kui-glint-on", "1");
+          // The band's width in CSS px — the fitted bezel, so a small box narrows the band
+          // exactly as the mask does. The bare textarea's flat-band gradients are its one
+          // consumer today; it is written on every glass element because the width is a fact
+          // about the element's bezel, not about who reads it.
+          node.style.setProperty("--kui-glint-band", `${Math.round(fit.bezel * bandX * 10) / 10}px`);
+
+          s.glint = true;
+        } else if (s.glint) {
+          node.style.removeProperty("--kui-glint");
+          node.style.removeProperty("--kui-glint-on");
+          node.style.removeProperty("--kui-glint-band");
+          s.glint = false;
+        }
+        if (!lensOK) return;
         const fitted: LensParams = {
           ...params,
           bezel: params.bezel * scale,
           thickness: params.thickness * scale,
         };
-        const next = acquire(w, h, r, fitted, scale);
+        const sat = tuning?.rimSaturate ?? glint.rimSaturate;
+        const next = acquire(w, h, r, fitted, scale, glintUrl && sat > 0 ? { url: glintUrl, sat } : null);
         if (!next) return;
         // UNCONDITIONALLY, never `s.id !== next` (2026-08-22 audit). `measure()` runs once
         // directly below and the ResizeObserver then delivers its own initial record for the
@@ -589,6 +788,8 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
       };
 
       measureUnlessFlying();
+      s.retune = measureUnlessFlying;
+      remeasures.add(measureUnlessFlying);
       s.ro = new ResizeObserver(measureUnlessFlying);
       s.ro.observe(node);
       // The seam is still watched, and it is still a signal rather than a guess — but what it

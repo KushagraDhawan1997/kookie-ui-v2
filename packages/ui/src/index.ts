@@ -98,3 +98,11 @@ export type { Responsive } from "./system/resolve.ts";
 export { iconStroke, iconGrid } from "./tokens/config.ts";
 export { tiers, tierNames } from "./system/props.ts";
 export type { Tier } from "./system/props.ts";
+// The lens bench's regeneration seam (2026-08-24), NOT API — the dunder is the fence. The
+// bench judges the lip's width, the glass depth and the profile, which are baked into each
+// pane's displacement map; without this handle those three were only ever judgeable by
+// editing refraction.tsx and reloading, which is why the lab's locked refraction went two
+// months unjudged in the package. It holds bench multipliers and re-measures mounted lenses;
+// nothing in the package calls it, an app that never imports it tree-shakes it away, and the
+// laws read the shipped constants it never mutates.
+export { __retuneLens, type LensTuning } from "./system/refraction.tsx";
