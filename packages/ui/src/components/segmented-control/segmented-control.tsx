@@ -273,7 +273,11 @@ export function SegmentedControl({
 
           `hidden` until the first measurement, so a group with no value paints no thumb and a
           server-rendered one does not flash at the track's start before the layout effect
-          runs. Not exported and not a part: it is structure, the same call TabsList makes
+          runs. Since the wall (2026-08-25) this gate is the ONLY guard against an unmeasured
+          paint: the insets are registered with the descriptor's obligatory 0px initial, which
+          the channel-wall max() would floor into a full-channel thumb — the old var()
+          fallbacks that parked it on the first seat are unreachable on a registered property.
+          Not exported and not a part: it is structure, the same call TabsList makes
           about its indicator. */}
       <span className="kui-segment-thumb" aria-hidden="true" hidden />
       <GlassScope material={material}>{children}</GlassScope>

@@ -172,6 +172,51 @@
   --kui-ct-fill-src-active: transparent;
 }
 
+/* THE CHANNEL HAS WALLS (§8, §26, 2026-08-25, Kushagra from the glass preview: the grip "does
+   not leave the container" in the bench, and ours did). The bench's own lean rule — "a lean can
+   never cross a boundary: it always points inward" — holds for the FLIGHT too, and the shipped
+   flight broke it: the calm spring overshoots ~6.8% of travel, which on a full first-to-last
+   jump across a 360px track is ~16px, and the 2px channel inset absorbs almost none of it.
+   Measured: the grip's edge 14.11px OUTSIDE the track at t=170ms — identically in solid and on
+   glass. Only the visibility differed (a white grip over a white page against a grip poking out
+   of a ringed pane over a photo), which is why it was reported as a glass defect.
+
+   The wall is GEOMETRY, not a second spring. The two clocks and the calm character are the
+   judged motion and none of it moves; what changes is that the spring now rides the REGISTERED
+   custom properties the measurement already writes, and the painted inset is that value floored
+   at the channel inset — max() at the point of use. An interior flight never reaches the floor
+   (its inset targets sit a whole seat above it, and 6.8% of a seat cannot cross them), so every
+   interior flight is byte-identical. A flight into an END seat: the leading edge arrives at the
+   wall and holds, the trailing edge is still flying on its own clock, and the overshoot is
+   spent as a SQUASH against the wall instead of an escape through it — which is what a grip
+   with momentum hitting the end of a real channel does.
+
+   Rejected: `overflow: clip` on the track (pins the visible edge at the BOX, not the channel —
+   the grip would intrude into the 2px frame — and it shaves the grip's cast; it is also the
+   bench's rejected side, by name), and a non-overshooting curve on wall-bound flights (the
+   component would have to know its destination is an end, and §8's "one character, the
+   asymmetry entirely in the durations" dies with a per-destination spring).
+
+   The registration is what makes the clamp expressible at all: an unregistered custom property
+   transitions DISCRETELY, so a spring can only ride a registered <length>. `inherits: false` is
+   the @property guard's standing reason — a length private to one thumb must not leak into a
+   nested control. The initial-value is the descriptor's obligatory 0px and never paints: the
+   thumb is `[hidden]` until the first measurement writes both edges, and 0px through the max()
+   would otherwise span the whole channel rather than sit on the first seat — the registration
+   retires the old var() fallbacks, whose arms it makes unreachable (the 2026-08-07 rule: a
+   fallback chain is only a mechanism if every arm is reachable). */
+@property --kui-seg-left {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --kui-seg-right {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 /* THE THUMB — one grip travelling between homes (§8, §11, §26, 2026-08-23, judged in the
    "Clip vs Physics" bench).
 
@@ -185,14 +230,15 @@
    thumb is not a segment, so it cannot pick the value up from one, and the two must agree or a
    grip sits in a differently-rounded seat.
 
-   Placed by the two lengths the measurement writes, with fallbacks that put it exactly where
-   the first segment sits — so a thumb that somehow paints before any measurement lands on a
-   real seat rather than filling the whole channel. */
+   Placed by the two lengths the measurement writes, floored at the channel wall (the block
+   above). The old var() fallbacks — "an unmeasured thumb lands on the first seat" — are gone
+   because the registration makes them unreachable; the guard against painting unmeasured is
+   the `[hidden]` the thumb wears until the first measurement, and it always was. */
 .kui-segment-thumb {
   position: absolute;
   inset-block: var(--segment-inset);
-  left: var(--kui-seg-left, var(--segment-inset));
-  right: var(--kui-seg-right, var(--segment-inset));
+  left: max(var(--kui-seg-left), var(--segment-inset));
+  right: max(var(--kui-seg-right), var(--segment-inset));
   border-radius: calc(max(var(--kui-ct-radius), var(--segment-inset)) - var(--segment-inset));
   --kui-ct-fill-src: var(--color-thumb);
   --kui-ct-fill-src-hover: var(--color-thumb);
@@ -222,17 +268,23 @@
    `data-activation-direction` is written by the measurement, in Base UI's own vocabulary, so
    this file and tabs.css read identically. Its `none` — first paint, a resize, a re-selection
    of the same segment — matches neither rule, so the thumb simply has no clock and is PLACED.
-   That is what puts every "should not fly" case in one place without a rule of its own. */
+   That is what puts every "should not fly" case in one place without a rule of its own —
+   `transition-property: all` never covers a custom property, so the unstamped state cannot
+   accidentally animate the registered pair.
+
+   The clocks ride the REGISTERED insets, not `left`/`right` (2026-08-25, the wall): the spring
+   overshoots on the raw value, and the painted inset is that value floored at the channel wall
+   by the max() above — the character is untouched, the wall is real. */
 .kui-segment-thumb[data-activation-direction="right"] {
   transition:
-    right var(--motion-travel-lead) var(--motion-spring),
-    left var(--motion-travel-trail) var(--motion-spring);
+    --kui-seg-right var(--motion-travel-lead) var(--motion-spring),
+    --kui-seg-left var(--motion-travel-trail) var(--motion-spring);
 }
 
 .kui-segment-thumb[data-activation-direction="left"] {
   transition:
-    left var(--motion-travel-lead) var(--motion-spring),
-    right var(--motion-travel-trail) var(--motion-spring);
+    --kui-seg-left var(--motion-travel-lead) var(--motion-spring),
+    --kui-seg-right var(--motion-travel-trail) var(--motion-spring);
 }
 
 /* Dead, the grip stops casting but does not melt (§8, the switch's 2026-08-08 correction one

@@ -633,10 +633,26 @@ describe("the grip travels between segments (§8, §26)", () => {
          below its natural width the `min-width: auto` floor binds on the longest label and the
          segments diverge: measured 62.0 / 62.0 / 72.0 in a 200px box, where an index would have
          answered 65.3. That divergence is why this component measures at all, so it is the
-         input the law is built on. The squeeze is proportional because the natural width grows
-         with the size index; 0.55 is measured to bind at every one of them. */
-      const natural = three({ size }).root.getBoundingClientRect().width;
-      const { thumb, segs } = three({ size, style: { inlineSize: `${natural * 0.55}px` } });
+         input the law is built on.
+
+         THE SQUEEZE STOPS ABOVE MIN-CONTENT (re-cut 2026-08-25, when the channel wall landed).
+         The old 0.55 × natural squeezed below the track's own min-content, which puts the SEATS
+         outside the channel — the flex line overflows and the skeleton centres it, so seg[0]
+         measured 15.5px LEFT of the track's border box — and the wall now correctly refuses to
+         follow a seat out of the channel, so the old fixture asserted the thumb onto a seat the
+         control no longer covers. That geometry is a caller-forced break (a box below its
+         min-content overflows its labels with or without a thumb) and not what this law is
+         about. The width is derived from the measured floors instead of hand-tuned: at
+         min-content every segment sits at its floor, and halfway between "sum of floors" (below
+         which the row overflows) and "three times the largest" (above which no floor binds) the
+         longest label's floor binds, the others share the slack equally, and everything stays
+         inside the channel — divergence without overflow, guaranteed at every index because the
+         labels scale with it. */
+      const probe = three({ size, style: { inlineSize: "min-content" } });
+      const floors = probe.segs.map((s) => s.getBoundingClientRect().width);
+      const chrome = probe.root.getBoundingClientRect().width - floors.reduce((a, b) => a + b, 0);
+      const width = (floors.reduce((a, b) => a + b, 0) + 3 * Math.max(...floors)) / 2 + chrome;
+      const { thumb, segs } = three({ size, style: { inlineSize: `${width}px` } });
       const seat = segs[0]!.getBoundingClientRect();
       const grip = thumb.getBoundingClientRect();
       expect(grip.left).toBeCloseTo(seat.left, 1);
@@ -652,8 +668,8 @@ describe("the grip travels between segments (§8, §26)", () => {
   }
 
   for (const [dir, lead, trail, target] of [
-    ["forward", "right", "left", 2],
-    ["back", "left", "right", 0],
+    ["forward", "--kui-seg-right", "--kui-seg-left", 2],
+    ["back", "--kui-seg-left", "--kui-seg-right", 0],
   ] as const) {
     it(`${dir}: the edge facing the destination takes the shorter clock`, async () => {
       inMotion();
@@ -663,12 +679,66 @@ describe("the grip travels between segments (§8, §26)", () => {
       // Waited for, never assumed: the stamp lands when the MutationObserver sees Base UI move
       // `data-checked`, which a resolved gesture does not promise (test/settling.test.ts).
       await until(() => thumb.getAttribute("data-activation-direction") === want);
+      // The clocks ride the REGISTERED insets since 2026-08-25 (the channel wall): the spring
+      // runs on the raw value and the painted inset is that value floored at the wall, so the
+      // property list names the custom pair rather than `left`/`right`.
       const props = computed(thumb, "transition-property").split(", ");
       const clocks = computed(thumb, "transition-duration").split(", ");
       const at = (name: string) => clocks[props.indexOf(name)];
       expect(at(lead), `${dir}: the leading edge is not on the short clock`).toBe("0.32s");
       expect(at(trail), `${dir}: the trailing edge is not on the long clock`).toBe("0.48s");
       expect(at(lead)).not.toBe(at(trail));
+    });
+  }
+
+  for (const [dir, target] of [
+    ["forward", 2],
+    ["back", 0],
+  ] as const) {
+    it(`${dir}: the flight never crosses the channel wall — overshoot is spent as squash`, async () => {
+      /* THE WALL (§8, §26, 2026-08-25, Kushagra from the glass preview, against the bench's own
+         lean rule: "a lean can never cross a boundary"). The calm spring overshoots ~6.8% of
+         travel, and on a full jump into an end seat that measured the grip's edge 14.11px
+         OUTSIDE the track — in solid and on glass identically; glass only made it visible.
+
+         The flight is SEIZED and swept, so the assertion covers every point of the curve rather
+         than racing one: at no currentTime does the painted box cross the channel inset. The
+         calibration half is what keeps this from passing for the wrong reason: the RAW
+         registered inset must still go past the wall mid-flight — the spring was clamped, not
+         tamed — so a build that quietly swapped calm for a non-overshooting curve fails here
+         instead of shipping a different motion under a green wall. */
+      inMotion();
+      const { root, thumb, segs } = three(dir === "back" ? { defaultValue: "c" } : {});
+      const inset = parseFloat(computed(root, "padding-left"));
+      expect(inset).toBeGreaterThan(0);
+      await userEvent.click(segs[target]!);
+      await until(
+        () =>
+          thumb.getAttribute("data-activation-direction") === (dir === "forward" ? "right" : "left"),
+      );
+      const anims = thumb.getAnimations();
+      expect(anims.length, "no flight started").toBeGreaterThan(0);
+      for (const a of anims) a.pause();
+      const box = root.getBoundingClientRect();
+      const raw = dir === "forward" ? "--kui-seg-right" : "--kui-seg-left";
+      let sprung = false;
+      for (let t = 0; t <= 480; t += 10) {
+        for (const a of anims) a.currentTime = t;
+        const r = thumb.getBoundingClientRect();
+        expect(
+          r.right,
+          `t=${t}ms: the grip's right edge left the channel`,
+        ).toBeLessThanOrEqual(box.right - inset + 0.5);
+        expect(
+          r.left,
+          `t=${t}ms: the grip's left edge left the channel`,
+        ).toBeGreaterThanOrEqual(box.left + inset - 0.5);
+        if (parseFloat(getComputedStyle(thumb).getPropertyValue(raw)) < inset - 4) sprung = true;
+      }
+      expect(
+        sprung,
+        "the raw inset never crossed the wall — the spring was tamed, not clamped",
+      ).toBe(true);
     });
   }
 
