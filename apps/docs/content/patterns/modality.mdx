@@ -1,43 +1,43 @@
-An interruption stops the work the person was doing. This system ships four levels of
-interruption. Take the lowest level that does the job.
+An interruption stops whatever someone was doing. There are four levels of it here, and the
+rule is to take the cheapest one that does the job.
 
-## The four levels of interruption
+## The four levels
 
-The list runs from the cheapest level to the most expensive one.
+From cheapest to most expensive:
 
-- **Inline.** Change the thing in place. An error under the field that caused it, a `Switch`
-  that takes effect at once, and a row that opens are the cases. Nothing covers anything, and
-  the person keeps their place.
-- **A menu.** Use `Menu` for a short list of actions. Use `Select` for a list of values. A menu
-  covers a small rectangle. It closes on Escape, on an outside press, and on a choice. The page
-  below it stays readable.
-- **A dialog.** `Dialog` puts a scrim over the whole app. It traps focus. It holds work that
-  needs room away from the page.
-- **An alert.** `AlertDialog` covers the app the same way. It does not let the person leave
-  without an answer.
+- **Inline.** Change the thing where it stands: an error under the field that caused it, a
+  switch that takes effect immediately, a row that expands. Nothing covers anything and nobody
+  loses their place.
+- **A menu.** Use `Menu` for a short list of actions and `Select` for a list of values. It
+  covers a small rectangle and closes on Escape, on an outside press, or when you pick
+  something. Everything underneath stays readable.
+- **A dialog.** `Dialog` dims the whole app and traps focus. Use it for work that needs room
+  away from the page.
+- **An alert.** `AlertDialog` covers the app the same way, and does not let anyone leave without
+  answering.
 
-The specification names `Popover`, `Tooltip` and `Sheet` on this ladder, and none of the three
-has shipped. Use a `Menu` for the anchored case until they do. Use a `Dialog` for the rest. Keep
-any stand-in you build in one file, so you change one place on the day the real component lands.
+`Sheet` belongs on this list and has not shipped yet. Use a `Dialog` until it does, and keep
+any stand-in you build in one file so there is one place to change on the day the real thing
+arrives.
 
-## Choose between a dialog and an alert
+## Choosing between a dialog and an alert
 
-The two panels render almost the same and they are two kinds of thing.
+The two panels look nearly identical and are two different things.
 
-A dialog hosts your work. You opened it. It holds a form, a picker or a document. You can leave
-it the way you came in.
+A dialog holds your work. You opened it, it contains a form or a picker or a document, and you
+can leave it the way you came in.
 
-An alert stops you with a question. It may have no trigger at all. Something raised it because a
-decision has to happen before anything else does.
+An alert stops you with a question. It may have no trigger at all — something raised it because
+a decision has to happen before anything else can.
 
-One sentence sets the boundary. **A panel that needs any control beyond its two buttons is a
-`Dialog`.** A type-to-confirm field, a checkbox and a form of any size each cross that line. The
-panel then holds work rather than a choice.
+One sentence draws the line: **a panel that needs any control beyond its two buttons is a
+Dialog.** A type-to-confirm field, a checkbox, a form of any size — each of those crosses it,
+because the panel is now holding work rather than a choice.
 
-## The alert dialog owns its content
+## An alert owns its own content
 
-The content of an alert is closed. It holds a title, a description, a cancel button and an action
-button, in that order. The component lays them out.
+An alert's contents are fixed: a title, a description, a cancel button and an action button, in
+that order, laid out by the component.
 
 ```tsx
 <AlertDialog>
@@ -53,66 +53,68 @@ button, in that order. The component lays them out.
 </AlertDialog>
 ```
 
-`size` on an alert sets everything: the box, the corner, the padding, both type steps and both
-buttons. The system owns all of that content, so the system may size it. `size` on a `Dialog`
-stops at the box. A dialog holds content the system did not write, and no surface in this system
-sizes type it does not own.
+`size` on an alert sets everything: the box, the corner, the padding, both text sizes and both
+buttons. The system wrote all of that content, so the system may size it.
 
-Write cancel first. That order is how focus is decided. Cancel reads first and it sits at the
-start. It flips for a right-to-left language at no cost. It takes initial focus as the first
-tabbable element. Document order chooses the safest action.
+`size` on a `Dialog` stops at the box, because a dialog holds content the system did not write,
+and nothing here sizes text it does not own.
 
-## The scrim is the separation
+Write cancel first. That order is what decides focus: cancel reads first, sits at the start,
+flips correctly for a right-to-left language at no cost, and takes focus as the first thing you
+can tab to. Document order picks the safe answer for you.
 
-The dialog panel casts no shadow of its own. Every floating layer has to show what it covers,
-and a dialog does that by darkening the whole viewport. A shadow under the panel would say the
-same thing twice.
+## The dimmed background is the separation
 
-The panel keeps the ordinary surface chrome, the same chrome a `Card` takes. It is lifted in an
-elevated theme and flat in a flat one.
+The dialog panel casts no shadow of its own. Anything floating has to show what it covers, and a
+dialog does that by darkening the entire window. A shadow under the panel would say the same
+thing a second time.
 
-The scrim is also why the panel barely moves when it opens. The scrim has already announced
-the change.
+The panel keeps the ordinary card treatment of whichever world it is in — raised in a raised
+theme, flat in a flat one.
 
-Under `contrast="high"`, and for a person who asks the operating system for reduced transparency,
-the scrim gives one answer: more colour and no blur.
+The dimming is also why the panel barely moves when it opens. The change has already been
+announced.
 
-## Focus and dismissal
+Under high contrast, and for anyone who has asked for reduced transparency, the dimming gives
+one answer: more colour and no blur.
 
-Both panels trap focus while they are open. Both return focus where it came from when they close.
-A keyboard never falls out of the layer, and it never lands nowhere afterwards.
+## Focus and getting out
 
-Neither panel takes an initial-focus prop. That is a refusal, not a gap. What the panel holds
-decides where focus lands, which is why the alert puts cancel first in its own tab order.
+Both panels trap focus while open and return it where it came from when they close, so a
+keyboard never falls out of the layer and never lands nowhere afterwards.
+
+Neither takes an initial-focus prop. That is a refusal rather than a gap: what the panel
+contains decides where focus should land, which is exactly why the alert puts cancel first in
+its own tab order.
 
 A dialog closes on Escape, on an outside press, and on any `DialogClose` you place. An alert
-closes on Escape and on its two buttons. An alert does **not** close on an outside press. A stray
-press must not answer a question about deleting something.
+closes on Escape and on its two buttons only. **An alert does not close on an outside press**,
+because a stray click must not answer a question about deleting something.
 
-Escape stays on the alert. A keyboard "not now" is cancel by another route. Removing Escape would
-shut a keyboard user inside a panel they can only leave by committing to one of its answers.
+Escape stays, though. A keyboard "not now" is cancel by another route, and removing it would
+shut a keyboard user inside a panel they could only leave by committing to one of the answers.
 
-There is no corner close glyph as anatomy, for the reason `Card` has no header slot. It is
-layout, not wiring. `DialogClose` places a real `Button` wherever the composition wants one. A
-screen reader user on a touch device needs that button to leave a trapped panel.
+There is no built-in close cross in the corner, for the same reason `Card` has no header slot:
+that is layout rather than wiring. `DialogClose` puts a real button wherever your layout wants
+one. Someone using a screen reader on a touch device needs that button to leave a trapped panel.
 
 ## Name the consequence
 
-Write what will happen. "Delete project" is better than "OK". "Keep it" is better than "Cancel"
-whenever the safe answer has a name. The description carries the consequence and its scope in as
-few words as will hold them.
+Write what will actually happen. "Delete project" beats "OK". "Keep it" beats "Cancel" whenever
+the safe answer has a name. The description carries the consequence and its scope in as few
+words as will hold them.
 
-Put the tone on the action button, never on the panel. The alert stays neutral, and the
-destructive act is the one red thing inside it.
+Put the tone on the action button, never on the panel. The alert itself stays neutral, and the
+destructive act is the one red thing in it.
 
-An alert holds exactly one action button, so a loud button is correct here as a default. The
-anatomy holds the one-focal-action rule. Nobody has to remember it.
+An alert holds exactly one action button, so a loud button is the right default there. The
+anatomy holds the one-loud-action rule for you, and nobody has to remember it.
 
-## Every covering layer must show what it covers
+## Anything that covers must show its edge
 
-Covering something is information, so anything that covers has to show its own edge. In an
-elevated theme a menu casts a shadow. In a flat theme it draws a hairline instead, because a
-flat theme draws every boundary with a line. A dialog draws it with the scrim.
+Covering something is information, so whatever covers has to show where it ends. In a raised
+theme a menu casts a shadow. In a flat theme it draws a thin line instead, because a flat theme
+draws every boundary with a line. A dialog does it with the dimmed background.
 
-None of this is a call-site decision. No component in this system takes a shadow. Knowing that
-the rule exists is what stops a reader reaching for one.
+None of this is a decision you make at the call site. No component here takes a shadow. Knowing
+the rule exists is what stops you looking for one.
