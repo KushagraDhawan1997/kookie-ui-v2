@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Flex } from "@kookie-ui/react";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@kookie-ui/react";
 
 import { setAppearance, useAppearance, type AppearanceChoice } from "./appearance";
 
@@ -12,31 +12,32 @@ const LABELS: Record<AppearanceChoice, string> = {
 };
 
 /**
- * Three quiet buttons, the active one accent — a picker built from the loudness ladder
- * rather than a segmented control the package does not have yet. Until hydration the server
- * snapshot shows "system" active; useSyncExternalStore corrects it without a mismatch.
+ * A Select, not three buttons (2026-08-26, Kushagra — the chrome restructure that removed
+ * the header). The button row was built before the package had a segmented control or a
+ * Select worth using; picking one of three persistent choices is exactly what a Select is,
+ * and in the sidebar's footer a 32px trigger costs a third of the row three buttons did.
  *
- * `flexGrow="1"` is now taste, not load-bearing: it dates from when every Box was a
- * size-query container and a Flex as a row-flex item collapsed to zero width — the defect
- * this header was the first real consumer to hit. Containment went opt-in 2026-08-08 (§2,
- * the `container` prop), so a plain Flex here would hug its content; the grown item stays
- * because absorbing the middle is the layout this header wants.
+ * `items` is passed because the value paints on the closed trigger before the panel has
+ * ever opened — the exact case the map exists for. Until hydration the server snapshot
+ * shows "system"; useSyncExternalStore corrects it without a mismatch.
  */
 export function AppearanceToggle() {
   const { choice } = useAppearance();
   return (
-    <Flex gap="1" align="center" justify="flex-end" flexGrow="1">
-      {CHOICES.map((c) => (
-        <Button
-          key={c}
-          size="1"
-          tone={choice === c ? "accent" : "neutral"}
-          emphasis={choice === c ? "medium" : "quiet"}
-          onClick={() => setAppearance(c)}
-        >
-          {LABELS[c]}
-        </Button>
-      ))}
-    </Flex>
+    <Select
+      size="2"
+      value={choice}
+      items={LABELS}
+      onValueChange={(value) => setAppearance(value as AppearanceChoice)}
+    >
+      <SelectTrigger aria-label="Appearance" />
+      <SelectContent>
+        {CHOICES.map((c) => (
+          <SelectItem key={c} value={c}>
+            {LABELS[c]}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

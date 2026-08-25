@@ -55,6 +55,7 @@ import TextAreaExample from "./text-area";
 import TextFieldExample from "./text-field";
 import TextExample from "./text";
 import TooltipExample from "./tooltip";
+import TreeExample from "./tree";
 import ThemeExample from "./theme";
 
 export const EXAMPLES: Record<string, React.ComponentType> = {
@@ -96,5 +97,6 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "text-field": TextFieldExample,
   "text": TextExample,
   "tooltip": TooltipExample,
+  "tree": TreeExample,
   "theme": ThemeExample,
 };

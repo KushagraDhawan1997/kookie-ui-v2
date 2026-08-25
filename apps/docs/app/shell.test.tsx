@@ -50,9 +50,14 @@ describe("the root layout is the one place appearance is decided", () => {
 });
 
 describe("a page-shaped route gets the page chrome — including the one Next reaches itself", () => {
-  // The header, the inset and the landmark, asserted as the three things the 404 lost rather
-  // than as "it renders SiteChrome" — a law naming the component would pass on a SiteChrome
-  // that had been emptied.
+  // Asserted as the things the 404 once lost rather than as "it renders SiteChrome" — a law
+  // naming the component would pass on a SiteChrome that had been emptied.
+  //
+  // THE HEADER IS DELETED (2026-08-26, Kushagra): its whole content moved into the sidebar's
+  // pinned stack, so `<header>` leaves this law's vocabulary. What a route can lose now is
+  // the NAV landmark (the sidebar, with everything in it) and the ROUTE BACK — the trigger
+  // floating in the content pane, the only thing that can reopen a closed or overlaying
+  // sidebar. Both are asserted where the header used to be.
   //
   // THE INSET MOVED (2026-08-21). It used to be a `<Box p="6">` inside the scroller, and this
   // law matched the custom property that Box writes. Every shell pane pads itself now, so the
@@ -61,14 +66,15 @@ describe("a page-shaped route gets the page chrome — including the one Next re
   // statement is the thing a route can still lose, so it is what this clause reads; that the
   // padding then really lands is the package's own law, measured in a mounted browser.
   const wearsChrome = (out: string) => ({
-    header: out.includes("<header"),
+    nav: out.includes("<nav"),
+    trigger: out.includes('aria-label="Toggle navigation"'),
     main: out.includes("<main"),
     inset: /<main[^>]*data-size="3"/.test(out),
   });
 
   it("the (docs) group wears it", () => {
     const chrome = wearsChrome(html(DocsLayout({ children: "page" })));
-    expect(chrome).toEqual({ header: true, main: true, inset: true });
+    expect(chrome).toEqual({ nav: true, trigger: true, main: true, inset: true });
   });
 
   it("not-found wears it too, because a route group cannot reach it", () => {
@@ -76,7 +82,7 @@ describe("a page-shaped route gets the page chrome — including the one Next re
     // so app/not-found.tsx is wrapped by the ROOT layout alone. It has to carry the chrome
     // itself, and did not between 0d192d4 and this commit.
     const chrome = wearsChrome(html(NotFound()));
-    expect(chrome).toEqual({ header: true, main: true, inset: true });
+    expect(chrome).toEqual({ nav: true, trigger: true, main: true, inset: true });
   });
 
   it("every page.tsx outside (docs) is a deliberate bare-viewport route", () => {

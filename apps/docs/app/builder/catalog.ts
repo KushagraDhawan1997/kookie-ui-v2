@@ -1083,6 +1083,10 @@ export const EXCLUDED: { name: string; why: string }[] = [
     name: "ScrollArea",
     why: "Its one job needs a stated height, and a stated raw length is exactly what this builder refuses to offer — every distance here is a token index. It joins the palette the day the system gives a scroll region a designed height vocabulary.",
   },
+  {
+    name: "Tree",
+    why: "Its hierarchy is DATA (`items`), not children — the machine renders visible nodes as a flat list from a value — and this builder composes JSX trees. A placeable Tree would need the inspector to be a tree editor for the prop, which is a second builder inside this one. It joins the palette if `items` ever gains a canvas-editable shape.",
+  },
 ];
 
 /* ── The grammar — one rule, asked by the palette, the tree and the drop handler ──────── */

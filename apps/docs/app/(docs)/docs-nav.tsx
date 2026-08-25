@@ -10,18 +10,85 @@
  * client bundle to render a list of names. The layout reads both registries on the server and
  * hands this the two fields a link needs.
  */
+import type * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShellNavGroup, ShellNavItem, ShellScroll, Stack } from "@kookie-ui/react";
 
 import { NavDisclosure } from "./nav-disclosure";
+import {
+  BlocksIcon,
+  BoardIcon,
+  ColorIcon,
+  CompassIcon,
+  CursorIcon,
+  DepthIcon,
+  DeviceIcon,
+  FamiliesIcon,
+  FormIcon,
+  IdeaIcon,
+  InstallIcon,
+  LayoutIcon,
+  MatrixIcon,
+  MaterialIcon,
+  MegaphoneIcon,
+  MotionIcon,
+  PreviewIcon,
+  RadiusIcon,
+  RocketIcon,
+  RulesIcon,
+  SizeIcon,
+  StructureIcon,
+  ThemeIcon,
+  TypeIcon,
+  WindowIcon,
+} from "../icons";
+
+/* One glyph per chapter, keyed by href because the section data crosses the server boundary
+   as `{href, label}` (see the DATA IS PASSED IN note above) and a React component cannot ride
+   in it without dragging the elements the other way. A chapter with no entry here renders
+   bare — the lookup is optional by construction, so a new chapter fails nothing and simply
+   shows up iconless until it is named here. The component rows stay bare on purpose: a list
+   of like things, where a glyph per row is an invented metaphor thirty-one times. */
+const CHAPTER_ICONS: Record<string, React.ComponentType> = {
+  "/start/installation": InstallIcon,
+  "/start/theming": ThemeIcon,
+  "/start/your-first-screen": RocketIcon,
+  "/philosophy/why-kookie-exists": IdeaIcon,
+  "/philosophy/component-families": FamiliesIcon,
+  "/philosophy/why-these-rules-hold": RulesIcon,
+  "/foundations/color": ColorIcon,
+  "/foundations/typography": TypeIcon,
+  "/foundations/space-and-layout": LayoutIcon,
+  "/foundations/size": SizeIcon,
+  "/foundations/radius": RadiusIcon,
+  "/foundations/materials": MaterialIcon,
+  "/foundations/depth": DepthIcon,
+  "/foundations/motion": MotionIcon,
+  "/foundations/states": CursorIcon,
+  "/foundations/responsiveness": DeviceIcon,
+  "/patterns/composition": StructureIcon,
+  "/patterns/forms": FormIcon,
+  "/patterns/modality": WindowIcon,
+  "/patterns/navigation": CompassIcon,
+  "/patterns/feedback": MegaphoneIcon,
+};
 
 export type NavLink = { href: string; label: string };
 export type NavSection = { id: string; title: string; links: readonly NavLink[] };
 
-function Row({ href, label, current }: NavLink & { current: boolean }) {
+function Row({
+  href,
+  label,
+  current,
+  icon: Icon,
+}: NavLink & { current: boolean; icon?: React.ComponentType | undefined }) {
   return (
-    <ShellNavItem current={current} render={<Link href={href} />}>
+    <ShellNavItem
+      current={current}
+      {...(Icon ? { leading: <Icon /> } : {})}
+      render={<Link href={href} />}
+    >
       {label}
     </ShellNavItem>
   );
@@ -38,10 +105,13 @@ function Row({ href, label, current }: NavLink & { current: boolean }) {
  * A plain array rather than a prop, because unlike the chapters and the components these are
  * not derived from anything — there are three of them and they are named here.
  */
-const WORKBENCH: NavLink[] = [
-  { href: "/builder", label: "Builder" },
-  { href: "/preview", label: "Preview" },
-  { href: "/matrix", label: "Matrix" },
+const WORKBENCH: (NavLink & { icon: React.ComponentType })[] = [
+  { href: "/builder", label: "Builder", icon: BoardIcon },
+  { href: "/preview", label: "Preview", icon: PreviewIcon },
+  { href: "/matrix", label: "Matrix", icon: MatrixIcon },
+  // Blocks sits here for now rather than earning a section of its own: with one block the
+  // index IS the section, and where the entry lives can be re-judged when there are several.
+  { href: "/blocks", label: "Blocks", icon: BlocksIcon },
 ];
 
 export function DocsNav({
@@ -68,7 +138,12 @@ export function DocsNav({
         {sections.map((section) => (
           <ShellNavGroup key={section.id} label={section.title}>
             {section.links.map((link) => (
-              <Row key={link.href} {...link} current={pathname === link.href} />
+              <Row
+                key={link.href}
+                {...link}
+                icon={CHAPTER_ICONS[link.href]}
+                current={pathname === link.href}
+              />
             ))}
           </ShellNavGroup>
         ))}

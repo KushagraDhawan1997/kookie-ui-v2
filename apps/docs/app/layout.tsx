@@ -30,7 +30,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: appearanceScript }} />
       </head>
       <body>
-        <Theme appearance="inherit">{children}</Theme>
+        {/* The docs run on the system's own glass (Kushagra, 2026-08-26 — "let's embrace
+            kookie"; `thin` after an hour at `regular`, judged live). Selectivity means this
+            costs nothing at rest: popups pass it by construction, `backdrop`-marked controls
+            take it, and every unmarked in-flow control still resolves solid. */}
+        <Theme appearance="inherit" material="thin">
+          {children}
+        </Theme>
       </body>
     </html>
   );

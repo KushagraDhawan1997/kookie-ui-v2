@@ -236,6 +236,12 @@ export const API: Record<string, ApiEntry> = {
     "element": "span",
     "props": [
       {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "States PLACEMENT, never a material (§10, 2026-08-26 — Kushagra: \"badge must grow backdrop\", the floating-controls-take-glass rule reaching the one inert atom that floats): a badge overlaying content — a status chip over an image, a count over a map, a file label over a code well — marks itself as over-content and resolves the theme's material. On calm ground it resolves solid and pays nothing. `Code` and `Kbd` deliberately do not take it: they live inside running text, which never floats."
+      },
+      {
         "name": "children",
         "type": "React.ReactNode",
         "optional": false,
@@ -2215,7 +2221,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "leading",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The row's icon, and it renders in the ACCENT (2026-08-23, Kushagra: *\"row and sidebar row render their icons in accent color always\"*). Apple states the same rule in as many words — *\"By default, sidebar icons use your app's accent color... people expect all sidebar icons to appear in that color\"* — and it is the one place a system's colour reads as identity rather than as emphasis, because a sidebar icon IS the item: permanent, learned, and the only thing left when the pane collapses to a rail. Always, not only when current. What says \"you are here\" is the LABEL and `aria-current`."
+        "doc": "The row's icon. It rests in the label's neutral ink and takes the ACCENT only on the current row (REVERSED 2026-08-26, Kushagra, judging Finder over the docs sidebar: \"make resting icons neutral not accent\" — when every icon is accent, accent stops meaning \"you are here\", and the current row has nothing to pop against). The 2026-08-23 rule this replaces painted them accent always; recipes.css carries the reversal's record."
       },
       {
         "name": "render",
@@ -2775,5 +2781,64 @@ export const API: Record<string, ApiEntry> = {
   "TooltipTrigger": {
     "element": null,
     "props": []
+  },
+  "Tree": {
+    "element": "div",
+    "props": [
+      {
+        "name": "defaultExpandedIds",
+        "type": "readonly string[]",
+        "optional": true,
+        "doc": "Uncontrolled starting expansion."
+      },
+      {
+        "name": "defaultSelectedIds",
+        "type": "readonly string[]",
+        "optional": true,
+        "doc": "Uncontrolled starting selection."
+      },
+      {
+        "name": "expandedIds",
+        "type": "readonly string[]",
+        "optional": true,
+        "doc": "Controlled expansion, paired with `onExpandedChange`."
+      },
+      {
+        "name": "items",
+        "type": "readonly TreeNode[]",
+        "optional": false,
+        "doc": "The hierarchy, as data. See `TreeNode`."
+      },
+      {
+        "name": "multiselectable",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Several rows selectable at once (§33): Shift-arrow and Shift-click extend a range, Cmd/Ctrl-click toggles. Announced as `aria-multiselectable`. Off, a click replaces."
+      },
+      {
+        "name": "onExpandedChange",
+        "type": "(ids: string[]) => void",
+        "optional": true,
+        "doc": "Fires when a node opens or closes, with the whole expanded set."
+      },
+      {
+        "name": "onSelectionChange",
+        "type": "(ids: string[]) => void",
+        "optional": true,
+        "doc": "Fires when the selection changes, with the whole selected set."
+      },
+      {
+        "name": "selectedIds",
+        "type": "readonly string[]",
+        "optional": true,
+        "doc": "Controlled selection, paired with `onSelectionChange`."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The rows' index — the row family's own `size`, stamped per row. Rests at 2."
+      }
+    ]
   }
 };

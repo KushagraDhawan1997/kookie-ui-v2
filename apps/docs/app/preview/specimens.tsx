@@ -79,6 +79,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  Tree,
+  type TreeNode,
   TextArea,
   Theme,
   TextField,
@@ -1948,6 +1950,78 @@ function ported(slug: string): { id: string; name: string; body: React.ReactNode
   };
 }
 
+const TREE_ITEMS: readonly TreeNode[] = [
+  {
+    id: "src",
+    label: "src",
+    children: [
+      {
+        id: "components",
+        label: "components",
+        children: [
+          { id: "button", label: "button.tsx" },
+          { id: "tree", label: "tree.tsx" },
+        ],
+      },
+      { id: "index", label: "index.ts" },
+    ],
+  },
+  { id: "docs", label: "docs", children: [{ id: "readme", label: "README.md" }] },
+  { id: "license", label: "LICENSE" },
+];
+
+function TreeSection() {
+  return (
+    <Stack gap="6">
+      {/* The machine, whole: disclosure by chevron or keyboard (arrow keys walk visible rows,
+          Right opens and descends, Left closes and ascends), selection painted at the family's
+          medium rung. The indent is DERIVED — one level is one icon box — so flipping the
+          pointer axis in the panel deepens it with the glyphs; nothing here states a number. */}
+      <Demo label="Disclosure, keyboard, selection — a Card as the pane">
+        <Box minWidth="16rem" maxWidth="20rem">
+          <Card size="2">
+            <Tree items={TREE_ITEMS} defaultExpandedIds={["src"]} aria-label="Project files" />
+          </Card>
+        </Box>
+      </Demo>
+      {/* Several at once: Shift-arrow or Shift-click extends, Cmd/Ctrl-click toggles. */}
+      <Demo label="Multi-select — Shift extends, Cmd toggles">
+        <Box minWidth="16rem" maxWidth="20rem">
+          <Card size="2">
+            <Tree
+              items={TREE_ITEMS}
+              multiselectable
+              defaultExpandedIds={["src", "components"]}
+              defaultSelectedIds={["button", "tree"]}
+              aria-label="Project files, several selectable"
+            />
+          </Card>
+        </Box>
+      </Demo>
+      {/* The rows are row-family members, so the index prices them exactly as it prices a
+          Row — and the indent step grows with the icon box at each size. */}
+      <SpecTable
+        cols={["1", "2", "3", "4"]}
+        rows={[
+          {
+            label: "size",
+            cells: SIZES.map((s) => (
+              <Box key={s} minWidth="12rem">
+                <Tree
+                  size={s}
+                  items={TREE_ITEMS.slice(0, 2)}
+                  defaultExpandedIds={["src"]}
+                  aria-label={`Files at size ${s}`}
+                />
+              </Box>
+            )),
+          },
+        ]}
+      />
+    </Stack>
+  );
+}
+
 export const SECTIONS: { id: string; name: string; body: React.ReactNode; standalone?: string }[] = [
   // Two cross-family sections lead, out of alphabetical order on purpose: they sweep an axis
   // ACROSS components, which is the permutation no single component's table can hold, and
@@ -1988,4 +2062,5 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   ported("text-area"),
   ported("text-field"),
   { id: "tooltip", name: "Tooltip", body: <TooltipSection /> },
+  { id: "tree", name: "Tree", body: <TreeSection /> },
 ];

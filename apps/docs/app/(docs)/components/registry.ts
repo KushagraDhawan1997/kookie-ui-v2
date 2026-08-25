@@ -795,7 +795,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§21",
     blurb:
-      "Row is one row in a list. It is the same object a menu item and a sidebar item are, and its height is its text line plus a small inset rather than a button's height, which is what makes a column of them read as a list instead of a stack of buttons. Use it for search results, command lists, settings rows and file lists. Inside a Menu, use MenuItem instead.",
+      "Row is one row in a list. It is the same object a menu item and a sidebar item are: the same rest, the same hover, the same content weight. A standing row rides the height ladder, so it sits level with a Button at its index; only a menu's rows keep their tighter box, because a panel opened for a second is read denser than a column that is on screen all day. Use it for search results, command lists, settings rows and file lists. Inside a Menu, use MenuItem instead.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the row's box. It rests at 2" },
       { name: "tone", values: "any family", note: "the one meaning a row carries beyond being itself. A destructive row is the delete in a list of verbs" },
@@ -818,8 +818,46 @@ export const ENTRIES: Entry[] = [
         why: "A column with a gap is a Stack, and the role a list needs — list, listbox, menu, none at all — depends on what the rows mean, which is yours to state. A component that wrapped them would have to guess.",
       },
       {
-        name: "a height that matches a button",
-        why: "A row steps down off the height ladder on purpose. A sidebar row does stand level with a button, because it is on screen all day beside real buttons, and that row is ShellNavItem.",
+        name: "the menu row's tighter box",
+        why: "A menu row's height is its text line plus a small inset — judged on a menu, where a full-height row read sparse. A standing row is on screen all day beside real buttons, so it stands level with them; wanting the menu's density in a permanent list is wanting a menu.",
+      },
+    ],
+  },
+  {
+    slug: "tree",
+    name: "Tree",
+    family: "Control",
+    spec: "§33",
+    blurb:
+      "Tree shows hierarchical content the person reveals and hides: a file browser, a layers panel, anything with sub-contents. It is the machine only — disclosure per node, the ARIA tree keyboard (arrows walk visible rows, Right opens and descends, Left closes and ascends, Home, End, typeahead), and selection, single or several at once. The rows are row-family members, the visible nodes render as a flat list with level attributes, and the indent is derived: one level is one icon box, so it answers size and the pointer world with no number of its own. The finished tools built on it — rename, drag, icons per file type — are blocks, not props.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "the rows' index — the row family's own size. It rests at 2" },
+      { name: "multiselectable", values: "boolean", note: "several rows at once: Shift extends a range, Cmd or Ctrl toggles one" },
+    ],
+    refusals: [
+      {
+        name: "drag to reorder",
+        why: "Restructuring by drag is its own pattern — flat lists want it as much as trees — with a genuinely contested accessible answer and drop semantics that belong to your data model. It will land as its own mechanism that composes with Tree; until then it is app code, as the builder's Layers pane shows.",
+      },
+      {
+        name: "cascade selection",
+        why: "Whether choosing a folder chooses its children is a product decision — a checkbox tree's tri-state is one answer among several — and nothing in this system needs one yet. Selection here is exactly the rows you selected.",
+      },
+      {
+        name: "async children and loading states",
+        why: "No consumer loads a subtree over the network yet. When one does, the pattern's aria-busy shape is where it lands.",
+      },
+      {
+        name: "rename-in-place",
+        why: "Renaming belongs to the tool built on the tree, not to the machine: what a name is, when it commits and what rejects it are the app's facts.",
+      },
+      {
+        name: "JSX children",
+        why: "The hierarchy is data (`items`), because the visible rows render FLAT with ARIA level attributes — the accessible spelling of nesting — and a nested JSX walk would be the child-scanning the Shell deleted. Your data maps to nodes; the tree renders rows.",
+      },
+      {
+        name: "an indent prop",
+        why: "One level is one icon box, derived from the designed glyph ladder. A stated indent would be a second number for a distance the system already prices per size and per pointer world.",
       },
     ],
   },

@@ -25,6 +25,28 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { iconStroke } from "@kookie-ui/react";
 import {
   Alert02Icon,
+  BlocksIcon as HugeBlocksIcon,
+  BlurIcon,
+  BrowserIcon,
+  CheckListIcon,
+  ColorsIcon,
+  CompassIcon as HugeCompassIcon,
+  Cursor01Icon,
+  Download01Icon,
+  IdeaIcon as HugeIdeaIcon,
+  JusticeScale01Icon,
+  Layers01Icon,
+  Layout01Icon,
+  Megaphone01Icon,
+  MotionIcon as HugeMotionIcon,
+  RadiusIcon as HugeRadiusIcon,
+  Rocket01Icon,
+  RulerIcon,
+  ShapesIcon,
+  SmartPhone01Icon,
+  Structure01Icon,
+  SwatchIcon,
+  TextFontIcon,
   ArrowTurnBackwardIcon,
   ArrowTurnForwardIcon,
   ArrowUp02Icon,
@@ -34,7 +56,9 @@ import {
   Delete02Icon,
   EyeIcon,
   FlashIcon,
+  GridViewIcon,
   LayerIcon,
+  PaintBoardIcon,
   ChartLineData01Icon,
   Folder01Icon,
   Home01Icon,
@@ -107,3 +131,37 @@ export const StopSquareIcon = glyph(StopIcon);
 export const RetryIcon = glyph(ReloadIcon);
 
 export const WarnIcon = glyph(Alert02Icon);
+
+/* The sidebar's Workbench rows (2026-08-26). Only that group carries icons: its four rows are
+   destinations of different KINDS, which is what a glyph can tell apart — the chapter and
+   component rows are lists of like things, where per-row metaphors are noise and a leading
+   slot's indent would misalign any row without one. Named for the destination's meaning. */
+export const BoardIcon = glyph(PaintBoardIcon);
+export const MatrixIcon = glyph(GridViewIcon);
+export const BlocksIcon = glyph(HugeBlocksIcon);
+
+/* The chapter rows (2026-08-26, Kushagra: the guideline chapters carry icons; the component
+   list does not — those rows are a list of like things, and a glyph per component would be an
+   invented metaphor thirty-one times). One glyph per chapter, named for the chapter's SUBJECT
+   so the nav map in docs-nav.tsx reads as a table of contents. */
+export const InstallIcon = glyph(Download01Icon);
+export const ThemeIcon = glyph(SwatchIcon);
+export const RocketIcon = glyph(Rocket01Icon);
+export const IdeaIcon = glyph(HugeIdeaIcon);
+export const FamiliesIcon = glyph(ShapesIcon);
+export const RulesIcon = glyph(JusticeScale01Icon);
+export const ColorIcon = glyph(ColorsIcon);
+export const TypeIcon = glyph(TextFontIcon);
+export const LayoutIcon = glyph(Layout01Icon);
+export const SizeIcon = glyph(RulerIcon);
+export const RadiusIcon = glyph(HugeRadiusIcon);
+export const MaterialIcon = glyph(BlurIcon);
+export const DepthIcon = glyph(Layers01Icon);
+export const MotionIcon = glyph(HugeMotionIcon);
+export const CursorIcon = glyph(Cursor01Icon);
+export const DeviceIcon = glyph(SmartPhone01Icon);
+export const StructureIcon = glyph(Structure01Icon);
+export const FormIcon = glyph(CheckListIcon);
+export const WindowIcon = glyph(BrowserIcon);
+export const CompassIcon = glyph(HugeCompassIcon);
+export const MegaphoneIcon = glyph(Megaphone01Icon);
