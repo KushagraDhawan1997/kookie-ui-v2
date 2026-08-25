@@ -3020,6 +3020,86 @@ describe("the panel unfurls out of a seed (§22)", () => {
     ).toBeLessThan(2);
   });
 
+  it("the catch keeps the box's flight, not the list's browsing (§22, 2026-08-25)", async () => {
+    /**
+     * Kushagra, on a constrained menu: it reopened "scrolled" — the top rows clipped above
+     * the panel's own edge, and only ever on the quick second press. A caught reopen keeps
+     * the panel because physics does not teleport (the law above), but the viewport's
+     * scroll offset is not physics — it is what the person had browsed to before
+     * dismissing. A slow second press gets a fresh mount and the list at its top; a quick
+     * one got the stale offset, so TIMING decided what the same gesture showed. Measured
+     * live: dismiss a scrolled menu, reopen mid-dissolve, `scrollTop` 196 on arrival —
+     * the group label and three rows hidden above the clip — against 0 a beat slower.
+     *
+     * The runner resets the popup's OWN system viewport when the ending stamp is revoked
+     * — that edge, never the arrival, because mid-dissolve the body is posed and a scaled
+     * body contributes its SCALED size to the scrollable overflow, so a reset written into
+     * that geometry is taken back when the content grows out of it (measured: 0 at the
+     * arrival, 132 again by the next frame).
+     *
+     * The fixture must genuinely scroll — a list that fits makes every spelling pass (the
+     * degenerate-fixture rule), which is why the premise is asserted, not assumed.
+     * Falsified: delete the `revoked` reset in floating.tsx and the claim reads the full
+     * stale offset back.
+     */
+    let setOpen!: (v: boolean) => void;
+    function Host() {
+      const [open, set] = React.useState(false);
+      setOpen = set;
+      return (
+        <Theme>
+          <Menu open={open} onOpenChange={set}>
+            <MenuTrigger render={<Button>Open</Button>} />
+            <MenuContent>
+              {Array.from({ length: 40 }, (_, i) => (
+                <MenuItem key={i}>Row {i + 1}</MenuItem>
+              ))}
+            </MenuContent>
+          </Menu>
+        </Theme>
+      );
+    }
+    mount(<Host />);
+    inMotion();
+    flushSync(() => setOpen(true));
+    const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
+    await departed(popup);
+    await until(() => !popup.hasAttribute("data-unfurling"));
+
+    // The popup's own anatomy — the same direct-child chain the runner is scoped to.
+    const viewport = popup.querySelector<HTMLElement>(
+      ":scope > .kui-scroll-area > .kui-scroll-viewport",
+    )!;
+    expect(viewport, "the premise: the menu scrolls through its system viewport").not.toBeNull();
+    const max = viewport.scrollHeight - viewport.clientHeight;
+    expect(max, "the premise: the list overflows — a fitting list proves nothing").toBeGreaterThan(60);
+    viewport.scrollTop = max;
+    expect(viewport.scrollTop, "the premise: the browsing scroll took").toBeGreaterThan(60);
+
+    const seized = catchDissolve(popup);
+    flushSync(() => setOpen(false));
+    const { fading, release } = await seized;
+    expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
+    expect(fading, "the premise: the panel is visibly mid-dissolve").toBeLessThan(0.9);
+
+    flushSync(() => setOpen(true)); // the quick reopen
+    release();
+    // Anchored on the revocation, the same announcement the law above waits for — it is
+    // also the very edge the reset itself rides, so the read lands after the write.
+    await until(() => !popup.hasAttribute("data-ending-style"), 3000);
+    expect(popup.isConnected, "the premise: the panel is the one that was dissolving").toBe(true);
+
+    // The claim: the caught reopen presents the same menu a fresh mount would.
+    expect(
+      viewport.scrollTop,
+      `a reopened menu rests at its top, not at the last browse (${Math.round(max)}px available)`,
+    ).toBe(0);
+
+    // And the reset did not cost the catch: the panel still recovers to rest.
+    await until(() => parseFloat(computed(popup, "opacity")) === 1, 3000);
+    expect(computed(popup, "opacity"), "the dismissal is still revoked whole").toBe("1");
+  });
+
   it("suppression is total: under reduced motion nothing is posed and no clock survives (§8)", async () => {
     /**
      * The floating family had NO mounted reduced-motion law until 2026-08-16 — only a string

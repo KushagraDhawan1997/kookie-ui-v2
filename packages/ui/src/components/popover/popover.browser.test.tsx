@@ -14,9 +14,22 @@
  */
 import { describe, expect, it } from "vitest";
 import { page, userEvent } from "vitest/browser";
+import * as React from "react";
+import { flushSync } from "react-dom";
 
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
-import { SIZES, computed, mounted, render, settleAll, tokenOn } from "../../test/browser.tsx";
+import {
+  SIZES,
+  catchDissolve,
+  computed,
+  inMotion,
+  mounted,
+  render,
+  settleAll,
+  tokenOn,
+  until,
+} from "../../test/browser.tsx";
+import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogTrigger } from "../dialog/dialog.tsx";
@@ -506,6 +519,84 @@ describe("an overlong panel scrolls its content, not itself (§22)", () => {
     expect(mv.hasAttribute("tabindex"), "the menu grew a tab stop inside its roving focus").toBe(
       false,
     );
+  });
+
+  it("a caught reopen resets the popup's OWN viewport and never a scroller the caller composed (§22, 2026-08-25)", async () => {
+    /**
+     * The runner resets a caught reopen's browsing scroll so a quick second press shows the
+     * same panel a fresh mount would (the menu's finding, its law in menu.browser.test.tsx).
+     * The reach of that reset is what THIS law pins: it is scoped to the popup's own anatomy
+     * — the direct-child chain `:scope > .kui-scroll-area > .kui-scroll-viewport` — because a
+     * popover's content is the CALLER'S, and a ScrollArea they composed keeps whatever
+     * position they gave it. Both sides in one fixture, because a widened spelling
+     * (`querySelectorAll(".kui-scroll-viewport")`, reset them all) satisfies the first half
+     * perfectly — the second is the one that catches it.
+     */
+    await page.viewport(600, 320);
+    inMotion();
+    let setOpen!: (v: boolean) => void;
+    function Host() {
+      const [open, set] = React.useState(false);
+      setOpen = set;
+      return (
+        <Theme>
+          <Popover open={open} onOpenChange={set}>
+            <PopoverTrigger render={<Button>Open</Button>} />
+            <PopoverContent>
+              <ScrollArea style={{ height: 80 }}>
+                {Array.from({ length: 30 }, (_, i) => (
+                  <p key={i} style={{ margin: 0 }}>{`inner ${i}`}</p>
+                ))}
+              </ScrollArea>
+              {Array.from({ length: 40 }, (_, i) => (
+                <p key={i} style={{ margin: 0 }}>{`row ${i}`}</p>
+              ))}
+            </PopoverContent>
+          </Popover>
+        </Theme>
+      );
+    }
+    render(<Host />);
+    flushSync(() => setOpen(true));
+    const popup = document.querySelector<HTMLElement>(".kui-popover-popup")!;
+    // Landed, not merely mounted: a scroll written into a posed box is clamped by the pose.
+    await until(
+      () =>
+        !popup.hasAttribute("data-seed") &&
+        !popup.hasAttribute("data-unfurling") &&
+        parseFloat(computed(popup, "opacity")) === 1,
+      3000,
+    );
+
+    const own = popup.querySelector<HTMLElement>(":scope > .kui-scroll-area > .kui-scroll-viewport")!;
+    const theirs = own.querySelector<HTMLElement>(".kui-scroll-viewport")!;
+    expect(theirs, "the premise: the caller's scroller is INSIDE the system one").not.toBeNull();
+
+    // CALIBRATION on both: a scroller that cannot scroll makes every spelling pass.
+    own.scrollTop = 200;
+    theirs.scrollTop = 40;
+    expect(own.scrollTop, "the premise: the popup's own viewport scrolls").toBeGreaterThan(60);
+    expect(theirs.scrollTop, "the premise: the caller's scroller scrolls").toBeGreaterThan(20);
+    const kept = theirs.scrollTop;
+
+    const seized = catchDissolve(popup);
+    flushSync(() => setOpen(false));
+    const { fading, release } = await seized;
+    expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
+    expect(fading, "the premise: the panel is visibly mid-dissolve").toBeLessThan(0.9);
+
+    flushSync(() => setOpen(true)); // the quick reopen
+    release();
+    await until(() => !popup.hasAttribute("data-ending-style"), 3000);
+    expect(popup.isConnected, "the premise: the panel is the one that was dissolving").toBe(true);
+
+    // The system viewport presents from the top — the menu's rule, family-wide.
+    expect(own.scrollTop, "the popup's own browsing scroll must reset").toBe(0);
+    // And the caller's scroller is not the runner's to touch.
+    expect(
+      theirs.scrollTop,
+      "the reset reached INTO the caller's content — the :scope guard is the fix",
+    ).toBe(kept);
   });
 });
 

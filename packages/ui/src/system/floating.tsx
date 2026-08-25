@@ -1160,6 +1160,42 @@ function useFlight(plan: FlightPlan) {
             popup.hasAttribute("data-open"),
         );
         if (opened && !popup.hasAttribute("data-ending-style")) begin();
+        /**
+         * The catch keeps the BOX's flight, not the list's browsing (2026-08-25, Kushagra:
+         * a constrained menu reopened "scrolled" — the top rows clipped above the panel's
+         * own edge, only ever seen on the quick second press).
+         *
+         * A caught reopen continues from where the panel is because physics does not
+         * teleport — but the viewport's scroll offset is not physics, it is what the
+         * person had scrolled to before dismissing. A slow second press gets a fresh mount
+         * and the list at its top; a quick one got the stale offset, so TIMING decided
+         * what the same gesture showed. Measured: dismiss a scrolled menu, reopen
+         * mid-dissolve, `scrollTop` 196 on arrival against 0 on any open a beat slower.
+         *
+         * Anchored on the REVOCATION — the ending stamp leaving while the panel is open —
+         * never on the arrival, because the arrival is still mid-dissolve: the exit poses
+         * the body, a scaled body contributes its SCALED size to the scrollable overflow,
+         * and a reset written into that geometry is taken back when the content grows out
+         * of it (measured: `scrollTop = 0` at the arrival, 132 again by the next frame).
+         * The stamp leaving is when the popup's rules are its own again; on an ordinary
+         * exit it never leaves while the panel is open — the popup unmounts wearing it —
+         * so this edge IS the caught reopen, the same instant the catch laws read.
+         *
+         * Scoped to the popup's OWN anatomy — the direct-child chain — because a
+         * popover's content is the caller's, and a ScrollArea THEY composed keeps whatever
+         * position they gave it (`querySelector` without `:scope >` would reach it). A
+         * select is untouched by construction: its own box scrolls and there the offset
+         * IS the placement, which the caught reopen must keep.
+         */
+        const revoked = records.some(
+          (record) => record.attributeName === "data-ending-style" && record.oldValue !== null,
+        );
+        if (revoked && popup.hasAttribute("data-open") && !popup.hasAttribute("data-ending-style")) {
+          const viewport = popup.querySelector<HTMLElement>(
+            ":scope > .kui-scroll-area > .kui-scroll-viewport",
+          );
+          if (viewport) viewport.scrollTop = 0;
+        }
       });
       observer.observe(popup, {
         attributes: true,
