@@ -169,9 +169,26 @@
      declares its own factor (`--mono-scale`, `--kbd-scale`, `--badge-scale`) — the atoms
      deliberately do not share one discount, because they do not share a reason for it. */
 .kui-atom {
-  background-color: var(--tone-soft);
+  /* The fill through one level of indirection since Badge grew `backdrop` (2026-08-26):
+     at rest the derived name is unset and the fallback IS the old declaration, byte for
+     byte. Under glass the material region (recipes.css) writes the derived name as the
+     veil — its own fill mixed toward transparent — through `--kui-atom-fill-src`, which
+     points at the OPAQUE twin because the veil formula multiplies an alpha source (the
+     2026-08-19 finding, the same twin re-point the controls take). Both registered
+     `inherits: false` below — the fourth time that guard has been needed, here so an atom
+     composed inside a glass atom cannot inherit its host's veil. */
+  background-color: var(--kui-atom-fill, var(--tone-soft));
+  --kui-atom-fill-src: var(--tone-soft-solid);
   border-radius: var(--radius-atom);
   font-size: calc(1em * var(--kui-ty-scale));
+}
+@property --kui-atom-fill {
+  syntax: "*";
+  inherits: false;
+}
+@property --kui-atom-fill-src {
+  syntax: "*";
+  inherits: false;
 }
 
 /* ── The one-line box (promoted 2026-08-23 with Badge) ────────────────────────────────────

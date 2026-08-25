@@ -26,6 +26,7 @@ import {
   contrastHighDeclarations,
   cuspLightness,
   resolveTone,
+  solveRing,
   toneFromColor,
 } from "./color.ts";
 import { generateTokens } from "./generate.ts";
@@ -534,13 +535,23 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
     }
   });
 
-  it("widens the interaction spread rather than narrowing it", () => {
+  it("keeps the interaction spread perceptible — wider where the hue has room", () => {
+    // Re-keyed 2026-08-26: the strict `>` refused every bright brand, and the setting's own
+    // contract is "as much contrast as each colour permits — a band that stays put is the
+    // setting working, not failing" (color-config's high-contrast header). A cusp-parked
+    // yellow's HIGH solid moves toward the extreme, and at the gamut's edge its state travel
+    // legitimately compresses below normal's. What must never give is DISTINGUISHABILITY:
+    // the high states hold the same state floor the resting palette is held to (the
+    // mud-guard's own number). Blue — a hue with room — is additionally held to the strict
+    // widening, so a dead high-contrast spread mechanism still fails loudly here.
     for (const mode of MODES) {
-      const normal = buildScale("accent", mode);
       const high = buildScale("accent", mode, "srgb", "high");
-      expect(Math.abs(L(high.solidActive) - L(high.solid))).toBeGreaterThan(
-        Math.abs(L(normal.solidActive) - L(normal.solid)),
-      );
+      const spread = (s: typeof high) => Math.abs(L(s.solidActive) - L(s.solid));
+      // Two state steps live inside the rest→active spread, so the floor is two of them.
+      expect(spread(high)).toBeGreaterThanOrEqual(2 * 0.035);
+      const blueNormal = buildScale("blue", mode);
+      const blueHigh = buildScale("blue", mode, "srgb", "high");
+      expect(spread(blueHigh)).toBeGreaterThan(spread(blueNormal));
     }
   });
 
@@ -646,9 +657,20 @@ describe("the focus ring clears its contrast floor against the page (§8, WCAG 2
 
   for (const mode of MODES) {
     it(`holds in ${mode}, against every surface the ring can sit on`, () => {
+      // THE SUBJECT IS THE EMITTED TOKEN (re-keyed 2026-08-26, when the ring learned to
+      // solve): the law resolves whatever --focus-ring ships — the picked step's var() for a
+      // brand whose step clears, a solved hex for a bright brand — and holds THAT to the
+      // floor. Reading the pick directly would go green while the stylesheet shipped
+      // something else, and would be unwritable for a solved brand at all.
       const accent = buildScale("accent", mode);
       const neutral = buildScale("neutral", mode);
-      const ring = mode === "dark" ? accent.steps[10]! : accent.solid;
+      const emitted = declarationsFor(mode).find((l) => l.includes("--focus-ring:"))!;
+      const value = /--focus-ring:\s*([^;]+);/.exec(emitted)![1]!.trim();
+      const ring = value.startsWith("var(")
+        ? value === "var(--accent-solid)"
+          ? accent.solid
+          : accent.steps[Number(/--accent-(\d+)/.exec(value)![1]!) - 1]!
+        : value;
       // Steps 1-3: the page, the seal, and the soft fill a focused control may rest on.
       for (const step of [0, 1, 2]) {
         expect(
@@ -659,12 +681,44 @@ describe("the focus ring clears its contrast floor against the page (§8, WCAG 2
     });
   }
 
-  it("and the emitted token is the step the law just checked, not a third thing", () => {
-    // The law above proves a colour; this proves the stylesheet ships that colour. Without it
-    // the two could drift apart silently, which is how --tone-solid got missed in §7.
+  it("the emission is the pick when the pick clears, and the solve only when it cannot", () => {
+    // The complete spec, brand-independent (re-keyed 2026-08-26 from a blue-pinned spelling
+    // that a bright brand was expected to break): whichever branch the current brand takes,
+    // the OTHER branch must be the reason — a var() may ship only because the pick clears,
+    // a hex only because it does not, so a third thing (or the right thing for the wrong
+    // reason) fails either way.
     for (const mode of MODES) {
-      const emitted = declarationsFor(mode).find((l) => l.includes("--focus-ring:"));
-      expect(emitted).toContain(mode === "dark" ? "var(--accent-11)" : "var(--accent-solid)");
+      const accent = buildScale("accent", mode);
+      const neutral = buildScale("neutral", mode);
+      const pick = mode === "dark" ? accent.steps[10]! : accent.solid;
+      const pickClears = [0, 1, 2].every(
+        (step) => Math.abs(apcaLc(pick, neutral.steps[step]!)) >= NON_TEXT,
+      );
+      const emitted = declarationsFor(mode).find((l) => l.includes("--focus-ring:"))!;
+      if (pickClears) {
+        expect(emitted).toContain(mode === "dark" ? "var(--accent-11)" : "var(--accent-solid)");
+      } else {
+        expect(emitted).toContain(solveRing(mode));
+      }
+    }
+  });
+
+  it("a bright brand's ring solves down the hue instead of refusing (§8, 2026-08-26)", () => {
+    // Apple's own arrangement, as a mechanism: yellow cannot be a ring at its solid's
+    // lightness, so the ring is the most chromatic yellow that still clears every bed. The
+    // fixture is the hue that FORCED this — an input where the solved and picked answers
+    // differ (the degenerate-fixture rule): for blue they coincide in effect, and a law run
+    // there would prove nothing.
+    const yellow = { hue: 100, vividness: 0.95 };
+    for (const mode of MODES) {
+      const neutral = buildScale("neutral", mode);
+      const solved = solveRing(mode, "srgb", yellow);
+      for (const step of [0, 1, 2]) {
+        expect(
+          Math.abs(apcaLc(solved, neutral.steps[step]!)),
+          `${mode} solved yellow ring vs neutral-${step + 1}`,
+        ).toBeGreaterThanOrEqual(NON_TEXT);
+      }
     }
   });
 });
@@ -1155,7 +1209,12 @@ describe("the glyph clears the floor a small mark owes, at the family's own chro
       }
     }
     expect(misses, "no shipped solid misses the glyph floor any more").not.toHaveLength(0);
-    expect(misses, "accent's dark solid was the forcing case").toContain("accent/dark");
+    // Anchored on the DATA family, not the brand (re-keyed 2026-08-26): `accent/dark` was
+    // the forcing case only while accent ≡ blue — a bright brand's dark solid CLEARS the
+    // floor, and pinning the brand here made re-branding fail a law about the glyph role's
+    // reason to exist. Blue is a closed-set family and misses at |Lc| 43.4 regardless of
+    // what the brand is.
+    expect(misses, "blue's dark solid is the stable forcing case").toContain("blue/dark");
   });
 
   it("and the emitted role carries it — accent included, because a glyph is PLACED not faded", () => {

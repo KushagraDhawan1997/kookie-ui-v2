@@ -1942,6 +1942,7 @@ describe("the wash is neutral for everyone; accent gives up more (§7, §9, §11
     "contrast",
     "ink",
     "glyph",
+    "current", // the per-mode ink/glyph pick (§21) — both candidates are KEPT, so it is
   ] as const;
 
   it("the two sets are exactly what the doctrine names, and they do not overlap", () => {

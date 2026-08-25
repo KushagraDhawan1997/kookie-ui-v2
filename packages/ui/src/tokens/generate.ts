@@ -846,6 +846,10 @@ export const ROLES = [
   "ink",
   "ink-muted",
   "ink-faint",
+  // The CURRENT colour (§21, 2026-08-26): a current row's icon and label, one value. A
+  // per-mode pick between ink and glyph (color-config's currentInk) — an identity role like
+  // both of its candidates, so it survives `undilutedTones` untouched.
+  "current",
   // The tone-forward surface fill (§10): alpha, visible because it carries chroma — Notice's
   // dressing. The default surface never uses alpha; it seals (--color-surface below).
   "a3",

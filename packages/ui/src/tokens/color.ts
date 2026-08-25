@@ -15,6 +15,7 @@ import {
   contrastHighBands,
   focusRingStep,
   inkLc,
+  currentInk,
   invalidEdgeStep,
   labelPosition,
   lightness,
@@ -315,11 +316,13 @@ function solveControlEdge(mode: Mode, gamut: Gamut, target: number): string {
  *
  * The ink clears the floor everywhere, which made "just use the ink" the obvious answer, and
  * measuring killed it: the ink is solved for READING (Lc 60+, and its muted rung is solved
- * against `inkLc`), and meeting a higher bar costs saturation. A solved glyph is **1.3x to
- * 2.2x more chromatic than the ink in every family and both modes** — for accent, `#0095fe`
- * against the ink's `#2a6caa` in light, `#1999ff` against `#95c2f2` in dark. The first pair is
- * a vivid blue beside a muted navy, which is the whole difference between an accent and a
- * value that merely has a hue.
+ * against `inkLc`), and meeting a higher bar costs saturation — darkening away from the cusp
+ * sheds chroma by gamut geometry. When this was decided the gap was **1.3x to 2.2x in every
+ * family and both modes** (`#0095fe` against an ink of `#2a6caa` in light — a vivid blue
+ * beside a muted navy, the whole difference between an accent and a value that merely has a
+ * hue). The 2026-08-26 chromaCurve change closed most of that gap (the ink was ALSO paying a
+ * designed taper on top of the geometric cost, and stopped); the glyph remains the vivid end
+ * by construction, because it darkens least.
  *
  * WHAT IT IS, stated as the rule rather than as arithmetic: the accent, moved only as far as
  * the page forces. In light it lands within a hair of the solid (`#0095fe` vs `#0094fc`)
@@ -340,15 +343,30 @@ function solveControlEdge(mode: Mode, gamut: Gamut, target: number): string {
  * already conforms at rest in standard mode.
  */
 function solveGlyph(hue: number, vividness: number, mode: Mode, gamut: Gamut): string {
-  const page = pageColor(mode);
-  const seal = alphaBackdrop(mode);
+  return solveSignal(hue, vividness, mode, gamut, [pageColor(mode), alphaBackdrop(mode)]);
+}
+
+/**
+ * The shared walk under `solveGlyph` and `solveRing` (generalised 2026-08-26, when the ring
+ * learned to solve): the most chromatic placement of a hue that clears the non-text floor
+ * against EVERY bed it is measured on. The beds are the caller's, because that is the only
+ * thing the two signals disagree about — a glyph sits on the page or the seal, a ring can
+ * also land on a focused control's soft fill.
+ */
+function solveSignal(
+  hue: number,
+  vividness: number,
+  mode: Mode,
+  gamut: Gamut,
+  beds: readonly string[],
+): string {
   const target = apcaFloors.nonText;
   const at = (l: number, g: Gamut) => {
     const cMax = toGamut(oklch(l, 0.5, hue), "srgb").c;
     return format(toGamut(oklch(l, cMax * vividness, hue), g), g);
   };
   const worst = (l: number) =>
-    Math.min(Math.abs(apcaLc(at(l, "srgb"), page)), Math.abs(apcaLc(at(l, "srgb"), seal)));
+    Math.min(...beds.map((bed) => Math.abs(apcaLc(at(l, "srgb"), bed))));
   const cusp = cuspLightness(hue, gamut);
   if (worst(cusp) >= target) return at(cusp, gamut);
   // The cusp is too close to the bed, so walk AWAY from it — darker on a light page, lighter
@@ -374,6 +392,33 @@ function solveGlyph(hue: number, vividness: number, mode: Mode, gamut: Gamut): s
     else lo = mid;
   }
   return at(hi, gamut);
+}
+
+/**
+ * The RING, solved for a bright brand (§8, 2026-08-26 — Kushagra: "I need green and yellow
+ * tones to work; Apple makes it work"). Apple's own arrangement, read structurally: a bright
+ * brand's FILL carries dark text, and everywhere the brand must be a LINE — focus above all —
+ * the platform uses a darker cut of the same hue, never the bright fill. The mechanism is the
+ * glyph solve with the ring's own beds: the page, the seal, and the soft fill a focused
+ * control can rest on (the three surfaces the ring law has always measured).
+ *
+ * The emission consults this ONLY when the picked step misses a bed — a brand whose solid
+ * already clears (blue, violet, rose) passes through as the `var()` it always was, byte for
+ * byte, so the solve is dormant machinery until a bright brand exists.
+ */
+export function solveRing(
+  mode: Mode,
+  gamut: Gamut = "srgb",
+  // Parameterized so a law can hand it the hue that forced it (yellow) while the shipped
+  // brand's pick still clears — the emission always calls it with the real accent.
+  spec: ToneSpec = resolveTone(tones.accent),
+): string {
+  const neutral = buildScaleFor(resolveTone(tones.neutral), mode, "srgb");
+  return solveSignal(spec.hue, spec.vividness, mode, gamut, [
+    neutral.steps[0]!,
+    neutral.steps[1]!,
+    neutral.steps[2]!,
+  ]);
 }
 
 /**
@@ -527,15 +572,26 @@ export function buildScaleFor(
   const preferredReach = reach(preferred);
   const oppositeReach = reach(-preferred);
   const labelFloor = hc ? apcaFloors.aaa : apcaFloors.body;
-  const flippedStillClears = (() => {
+  const flipClears = (floor: number) => {
     const t = Math.min(oppositeReach, desired);
     if (t <= preferredReach) return false;
     const fillAt = (fraction: number) =>
       formatHex(toGamut(oklch(clampL(restL - preferred * t * fraction), restC, hue), "srgb"))!;
     return [solidStateDeltas.hover / solidStateDeltas.active, 1].every(
-      (f) => Math.abs(apcaLc(contrast, fillAt(f))) >= labelFloor,
+      (f) => Math.abs(apcaLc(contrast, fillAt(f))) >= floor,
     );
-  })();
+  };
+  const flippedStillClears =
+    flipClears(labelFloor) ||
+    // HIGH CONTRAST NEVER NARROWS THE STATES BELOW NORMAL (2026-08-26, the bright-brand
+    // work): the AAA aspiration on the flip trade is an ASPIRATION — for a cusp-parked
+    // brand (yellow) it blocked the only direction with room, and the widened spread came
+    // out NARROWER than normal mode's, under the floor the palette refused amber for. When
+    // refusing the flip would do that, the gate falls back to the body floor, which is the
+    // same bar the high-contrast label law itself holds every state to. Normal mode is
+    // untouched (spread === 1 short-circuits), and a hue whose preferred side affords the
+    // full excursion never reaches this expression at all.
+    (spread > 1 && flipClears(apcaFloors.body));
   const away = isLowChroma
     ? -preferred
     : preferredReach >= desired || !flippedStillClears
@@ -722,6 +778,11 @@ export function colorDeclarations(
           decl(`${tone}-ink-faint`, fade(inkLc.faint)),
         ];
       })(),
+      // The CURRENT colour (§21, 2026-08-26): what a current row's icon AND label both wear,
+      // one value so the two cannot mismatch. A per-mode pick between the family's ink and
+      // its glyph — see currentInk in color-config.ts for the judgment and its stated cost.
+      // For a grey the two candidates coincide, so this resolves identically either way.
+      decl(`${tone}-current`, `var(--${tone}-${currentInk[mode]})`),
     );
   }
 
@@ -737,7 +798,25 @@ export function colorDeclarations(
   // "≥3:1 against adjacent surfaces" law was never actually written (found 2026-08-03). Step 11
   // is the band designed to be legible against the page, and it clears the same floor light's
   // solid already did: 74.7 light, 66.3 dark, against --neutral-1.
-  out.push(decl("focus-ring", `var(--accent-${focusRingStep[mode]})`));
+  //
+  // AND THE PICK IS GUARDED (2026-08-26): a bright brand's picked step cannot clear the floor
+  // at any vividness — yellow's solid on white is the canonical case — so when the pick misses
+  // any of the ring's three beds, the emission solves down the hue instead (see solveRing).
+  // For every brand whose pick clears, this branch is dormant and the var() ships unchanged.
+  {
+    const accentScale = buildScaleFor(resolveTone(tones.accent), mode, "srgb");
+    const neutralScale = buildScaleFor(resolveTone(tones.neutral), mode, "srgb");
+    const pick =
+      focusRingStep[mode] === "solid"
+        ? accentScale.solid
+        : accentScale.steps[Number(focusRingStep[mode]) - 1]!;
+    const clears = [neutralScale.steps[0]!, neutralScale.steps[1]!, neutralScale.steps[2]!].every(
+      (bed) => Math.abs(apcaLc(pick, bed)) >= apcaFloors.nonText,
+    );
+    out.push(
+      decl("focus-ring", clears ? `var(--accent-${focusRingStep[mode]})` : solveRing(mode, gamut)),
+    );
+  }
 
   // The edge a control wears while it is INVALID — both its border and its ring (§8, decided
   // 2026-08-04). One token because it is one answer: "this control is wrong" is a single

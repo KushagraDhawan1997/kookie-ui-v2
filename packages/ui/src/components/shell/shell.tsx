@@ -974,14 +974,11 @@ export type ShellNavItemProps = Omit<React.ComponentPropsWithoutRef<"button">, "
    */
   current?: boolean;
   /**
-   * The row's icon, and it renders in the ACCENT (2026-08-23, Kushagra: *"row and sidebar row
-   * render their icons in accent color always"*). Apple states the same rule in as many words
-   * — *"By default, sidebar icons use your app's accent color... people expect all sidebar
-   * icons to appear in that color"* — and it is the one place a system's colour reads as
-   * identity rather than as emphasis, because a sidebar icon IS the item: permanent, learned,
-   * and the only thing left when the pane collapses to a rail.
-   *
-   * Always, not only when current. What says "you are here" is the LABEL and `aria-current`.
+   * The row's icon. It rests in the label's neutral ink and takes the ACCENT only on the
+   * current row (REVERSED 2026-08-26, Kushagra, judging Finder over the docs sidebar: "make
+   * resting icons neutral not accent" — when every icon is accent, accent stops meaning
+   * "you are here", and the current row has nothing to pop against). The 2026-08-23 rule
+   * this replaces painted them accent always; recipes.css carries the reversal's record.
    */
   leading?: React.ReactNode;
   /** After the label, pushed to the far edge: a count, a chevron, a status dot. */
@@ -1015,15 +1012,17 @@ export function ShellNavItem({
   const merged = {
     ...props,
     "data-size": size,
-    // ACCENT IS STAMPED ALWAYS (2026-08-23), which was unsafe until the day it was written.
-    // The family is what the ICON reads, and a sidebar icon is accent whether or not you are
-    // standing on it — so the stamp cannot be conditional on `current` any more.
+    // ACCENT IS STAMPED ALWAYS (2026-08-23; still right after the 2026-08-26 icon reversal).
+    // The family is what the CURRENT row's icon and label read, and current is decided per
+    // render — a conditional stamp would work today, but the unconditional one is what lets
+    // the [aria-current] arms resolve the family without a second condition to keep in step.
     //
     // What made it safe is `undilutedTones`: accent's washed roles resolve NEUTRAL, so a
     // stamped row's fill is grey at every rung and only the roles that survive dilution — the
     // glyph and the ink — arrive in colour. Before that change this stamp would have painted
     // every nav row a pale blue. The LABEL is stood back down in shell.css unless the row is
-    // current, because a column of blue words is not a sidebar.
+    // current, and since 2026-08-26 the resting ICON simply inherits that stood-down ink
+    // (recipes.css — the family arrives only with [aria-current]).
     //
     // Emphasis stays the pair it was: quiet rests transparent and hovers to soft, medium rests
     // at soft and hovers to soft-hover, so the current row still has somewhere to go under the

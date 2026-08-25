@@ -4,6 +4,8 @@ import * as React from "react";
 
 import { composeRender, filled, type RenderElement } from "../../system/render.ts";
 import type { Emphasis, Tone } from "../../system/axes.ts";
+import { useLensRef } from "../../system/refraction.tsx";
+import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import type { TypeSize, Weight } from "../text/text.tsx";
 
 export type BadgeProps = Omit<
@@ -37,6 +39,15 @@ export type BadgeProps = Omit<
    * SURFACE keeps its tint while a chip loses one. Defaults to `neutral`.
    */
   tone?: Tone;
+  /**
+   * States PLACEMENT, never a material (§10, 2026-08-26 — Kushagra: "badge must grow
+   * backdrop", the floating-controls-take-glass rule reaching the one inert atom that
+   * floats): a badge overlaying content — a status chip over an image, a count over a map,
+   * a file label over a code well — marks itself as over-content and resolves the theme's
+   * material. On calm ground it resolves solid and pays nothing. `Code` and `Kbd`
+   * deliberately do not take it: they live inside running text, which never floats.
+   */
+  backdrop?: boolean;
   /** Render into the element the document needs. */
   render?: RenderElement;
   /** The word, or the count. A badge with nothing in it is refused by this type: see below. */
@@ -82,6 +93,7 @@ export function Badge({
   weight,
   emphasis,
   tone = "neutral",
+  backdrop,
   render,
   className,
   style,
@@ -89,8 +101,12 @@ export function Badge({
   ref,
   ...props
 }: BadgeProps) {
+  // §10 — the app says what things are built of; a component only states placement.
+  const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
+  // The lens, prepended to the atom's material chain the way every glass box takes it.
+  const lensRef = useLensRef<HTMLElement>(material, ref);
   const merged = {
-    ref,
+    ref: lensRef,
     // Stamped only when chosen — an unset step means "take the line beside me", which is the
     // default, so an attribute would turn the absence into a choice (the type join keys on the
     // attribute's presence).
@@ -98,6 +114,8 @@ export function Badge({
     "data-weight": weight,
     "data-emphasis": emphasis,
     "data-tone": tone,
+    // Solid is the absence of a material, so it writes no attribute (§10).
+    "data-material": material === "solid" ? undefined : material,
     className: className
       ? `kui-type kui-atom kui-atom-box kui-badge ${className}`
       : "kui-type kui-atom kui-atom-box kui-badge",
@@ -126,7 +144,11 @@ export function Badge({
    */
   if (!filled(children)) return null;
 
-  if (render) return composeRender(render, merged as never, children);
+  // One glass per stack, structurally: a glass badge scopes its subtree solid, and a badge
+  // inside someone else's pane resolves through that pane's scope, exactly as a Card does.
+  const scoped = <GlassScope material={material}>{children}</GlassScope>;
 
-  return <span {...(merged as React.ComponentPropsWithRef<"span">)}>{children}</span>;
+  if (render) return composeRender(render, merged as never, scoped);
+
+  return <span {...(merged as React.ComponentPropsWithRef<"span">)}>{scoped}</span>;
 }

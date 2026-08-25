@@ -129,7 +129,10 @@ describe("the inert atoms have ONE identity, and the third member is what moved 
 
   it("the shared identity is declared once, in the type layer", () => {
     for (const [name, decl] of [
-      ["the fill", "background-color: var(--tone-soft)"],
+      // The fill's spelling gained one level of indirection when Badge grew `backdrop`
+      // (2026-08-26): the derived name is unset at rest and the fallback IS the old value,
+      // so the identity this law protects — one declaration, in the type layer — is intact.
+      ["the fill", "background-color: var(--kui-atom-fill, var(--tone-soft))"],
       ["the corner", "border-radius: var(--radius-atom)"],
       ["the inherited-size arm", "font-size: calc(1em * var(--kui-ty-scale))"],
     ] as const) {

@@ -1791,7 +1791,9 @@ export const gripCast = {
  * scrollbar has no size index (Progress's sentence: no box of its own to ride).
  */
 export const scrollbar = {
-  size: 7,
+  /** 7 → 5 (2026-08-26, Kushagra: thinner, package-wide). Judged by eye like every number
+      here; the capsule radius derives from it. */
+  size: 5,
   inset: 2,
   /** Alpha-ramp steps: resting thumb, and the darker one under the pointer's grip. */
   thumbStep: 6,

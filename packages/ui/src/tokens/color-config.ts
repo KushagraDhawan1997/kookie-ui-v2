@@ -21,12 +21,20 @@
  */
 export const lightness = {
   // Steps 3-5 darkened .96/.945/.92 -> .95/.935/.91 (2026-08-03, judged by eye): the medium
-  // fill read too faint on white. Moved as a band so the 3->4 hover and 4->5 press deltas
-  // hold — darkening 3 alone would have collapsed the hover feedback to near zero.
-  light: [0.99, 0.975, 0.95, 0.935, 0.91, 0.9, 0.87, 0.82, 0.62, 0.58, 0.52, 0.24],
+  // fill read too faint on white. PARTIALLY REVERSED 2026-08-26 (Kushagra, app-wide in the
+  // glass world: "the grays appear too gray, or too dark" in light, "for dark its opposite"):
+  // steps 3-6 lifted .008 as a band, so every hover and press delta holds exactly — half of
+  // the 2026-08-03 darkening given back, judged live rather than derived.
+  // Step 7 — the border band — lifted .87 → .885 (2026-08-26, Kushagra: the Surface
+  // hairline and the Shell's flush seams "too dark"); every family's `-border` role is
+  // step 7, so one number fades every resting hairline toward its bed.
+  light: [0.99, 0.975, 0.958, 0.943, 0.918, 0.908, 0.885, 0.82, 0.62, 0.58, 0.52, 0.24],
   // Step 11 sits at .80 rather than .77 because at .77 the destructive text role measured
   // APCA Lc 57 on its own soft fill, under the Lc 60 body-text target. Law-tested below.
-  dark: [0.17, 0.196, 0.23, 0.265, 0.3, 0.34, 0.4, 0.49, 0.62, 0.66, 0.8, 0.94],
+  // Steps 3-6 DOWN .008 (2026-08-26, the same judgment's dark half: dark's grays read too
+  // light) — the band move again, deltas held.
+  // Step 7 down .40 → .385, the same hairline judgment's dark half.
+  dark: [0.17, 0.196, 0.222, 0.257, 0.292, 0.332, 0.385, 0.49, 0.62, 0.66, 0.8, 0.94],
 } as const;
 
 /**
@@ -86,8 +94,19 @@ export const step10Offset = -0.04;
  * Expressed against the boundary, the curve means what it says at every step, no step is
  * silently clipped, and every hue behaves the same way relative to its own possibilities.
  * It also makes P3 a pure config change: widen the boundary and everything follows.
+ *
+ * THE TEXT BAND STOPPED TAPERING 2026-08-26 (Kushagra, from the docs sidebar beside Finder:
+ * "my blue is so vibrant, yet my links and sidebar selected item label is so dull"). Steps
+ * 11-12 ran 0.8/0.55, which threw away a fifth to nearly half of the chroma the gamut holds
+ * at those lightnesses — measured, the accent ink shipped #2a6caa (C .118) where the same
+ * lightness supports #006fc0 (C .151). The taper predates the solved-ink work and was never
+ * a judged value; darkening for contrast already costs chroma by gamut geometry, and the
+ * fraction was paying that cost a second time. 11 goes to the boundary like the solid band;
+ * 12 keeps a soft taper (0.8) because it is near-black body text and the label interpolates
+ * toward it. Contrast is unaffected by construction — APCA reads luminance and the band's
+ * LIGHTNESS did not move — and the ink-fade solves re-derive from the new hexes.
  */
-export const chromaCurve = [0.9, 0.92, 0.94, 0.96, 0.97, 0.98, 1.0, 1.0, 1.0, 1.0, 0.8, 0.55] as const;
+export const chromaCurve = [0.9, 0.92, 0.94, 0.96, 0.97, 0.98, 1.0, 1.0, 1.0, 1.0, 1.0, 0.8] as const;
 
 /**
  * `--accent-label` sits between steps 11 and 12: enough weight to read as a UI label, enough
@@ -143,25 +162,44 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
  * The set widens here, by config, when a component forces it; the palette is never
  * pre-shipped.
  */
+/**
+ * The user's brand colour, and it is BLUE again (2026-08-16, Kushagra) — blue's own
+ * recipe verbatim, so accent ≡ blue by construction and the two cannot drift apart.
+ *
+ * It was GREY between 2026-08-10 and today, and that experiment is worth stating rather
+ * than deleting: a grey brand meant `lowChromaThreshold` (0.18) routed `--accent-solid`
+ * to step 12 instead of step 9, so the primary button was near-black in light and
+ * near-white in dark. Nothing in the generator needed an exception then and nothing
+ * needs one now — the threshold is keyed on CHROMA, not on a family name, so it simply
+ * stops applying at full vividness. What the material work made plain is that a brand
+ * with no chroma has nothing to carry through a translucent veil: on glass the primary
+ * action arrived as smoke, and every tone in the sweep said something except the one
+ * that is meant to say the most.
+ *
+ * Either direction is one line: `{ hue: 250, vividness: 0.04 }` is the grey that was
+ * here, and any `{ hue, vividness }` or `{ color: "#hex" }` works the same way — but a
+ * hex pin loses the `.hue` field neutral derives from below, and the `tsc` error that
+ * causes is deliberate: re-branding by pin means restating the grey's lean on purpose
+ * (`toneFromColor` in color.ts computes the hue if you want to keep the derivation).
+ *
+ * A named const rather than a row, because neutral DERIVES from it.
+ */
+// Tried and reverted 2026-08-26, judged live: rose { hue: 15, vividness: 0.95 } (passed
+// every law; collides with destructive's hue) and yellow { hue: 100, .95/.85 } / amber-as-
+// brand { hue: 80, 0.9 } (REFUSED — 3-4 laws red at every vividness: the focus ring, the
+// HC spread and the solid measurement are signals the brand must carry, and the yellow band
+// cannot clear them on white; a data family can be amber, a brand cannot).
+const accent = { hue: 90, vividness: 0.9 } as const;
+
 export const tones = {
-  /** Not a brand colour: a hue and a near-zero chroma, which is all a tinted grey is. */
-  neutral: { hue: 250, vividness: 0.04 },
-  /** The user's brand colour, and it is BLUE again (2026-08-16, Kushagra) — blue's own
-      recipe verbatim, so accent ≡ blue by construction and the two cannot drift apart.
-
-      It was GREY between 2026-08-10 and today, and that experiment is worth stating rather
-      than deleting: a grey brand meant `lowChromaThreshold` (0.18) routed `--accent-solid`
-      to step 12 instead of step 9, so the primary button was near-black in light and
-      near-white in dark. Nothing in the generator needed an exception then and nothing
-      needs one now — the threshold is keyed on CHROMA, not on a family name, so it simply
-      stops applying at full vividness. What the material work made plain is that a brand
-      with no chroma has nothing to carry through a translucent veil: on glass the primary
-      action arrived as smoke, and every tone in the sweep said something except the one
-      that is meant to say the most.
-
-      Either direction is one line: `{ hue: 250, vividness: 0.04 }` is the grey that was
-      here, and any `{ hue, vividness }` or `{ color: "#hex" }` works the same way. */
-  accent: { hue: 250, vividness: 1 },
+  /** Not a brand colour: THE ACCENT'S OWN HUE at near-zero chroma, which is all a tinted
+      grey is. Derived since 2026-08-26 (Kushagra: the grey should be "very very slightly
+      biased towards its accent") — it was hue 250 all along, but as a second literal that
+      only happened to agree with the brand's; now a re-branded system's greys lean toward
+      the new brand by construction, and the two cannot drift. The AMOUNT of lean is the
+      vividness, judged by eye like every number here. */
+  neutral: { hue: accent.hue, vividness: 0.04 },
+  accent,
   destructive: { color: "#E5484D" },
   blue: { hue: 250, vividness: 1 },
   green: { hue: 150, vividness: 1 },
@@ -428,3 +466,26 @@ export const inkLc = { muted: 60, faint: 30 } as const;
  */
 export const focusRingStep = { light: "solid", dark: "11" } as const;
 export const invalidEdgeStep = { light: "solid", dark: "11" } as const;
+
+/**
+ * §21 — which of the family's two vivid text-adjacent roles the CURRENT row wears, per mode
+ * (2026-08-26, Kushagra, from the docs sidebar in both appearances: "the icon color and label
+ * not matching bothers me. In dark mode I prefer the icon color, in light mode the text
+ * color"). The current row's icon and label are ONE colour by construction — both read
+ * `--tone-current` — and this pick decides what that colour resolves to.
+ *
+ * The two candidates exist for different jobs and land differently per mode. Light's ink
+ * (step 11) is the rich dark blue and its glyph is nearly the solid — a light vivid blue that
+ * reads thinner than the words beside it; dark's ink (step 11 at L .80) is a pale pastel
+ * while its glyph is the saturated mid-blue. In each mode the better of the pair is the one
+ * that kept more chroma per unit of contrast spent. The focus-ring/invalid-edge pattern
+ * exactly: a per-mode pick, because the ladder's ends behave differently against each page.
+ *
+ * THE STATED COST (the standing rule's carve-out, written rather than hidden): dark's glyph
+ * is solved to `apcaFloors.nonText` (45), under the body floor of 60, so a dark current
+ * LABEL wears a value solved for marks. It is a short nav label, never a reading line, the
+ * state is triply announced (aria-current, the medium fill, the icon), and the quiet ink
+ * rung (30) is precedent that a stated exception can sit under the floor. The per-run
+ * contrast report is where it stays visible.
+ */
+export const currentInk = { light: "ink", dark: "glyph" } as const;

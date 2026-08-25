@@ -14,7 +14,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { inkLc, tones, type Mode, type ToneName } from "./color-config.ts";
+import { currentInk, inkLc, tones, type Mode, type ToneName } from "./color-config.ts";
 import { buildScale, buildScaleFor, solveInkFade, toneFromColor, type Scale } from "./color.ts";
 
 import { density, fontSize, lineHeight, radiusLevels, type DensityLevel } from "./config.ts";
@@ -190,6 +190,7 @@ function roleValue(s: Scale, role: (typeof ROLES)[number], mode: Mode): string {
     case "ink-muted": return `color-mix(in oklab, ${s.steps[10]!} ${solveInkFade(s.steps[10]!, mode, inkLc.muted)}%, transparent)`;
     case "ink-faint": return `color-mix(in oklab, ${s.steps[10]!} ${solveInkFade(s.steps[10]!, mode, inkLc.faint)}%, transparent)`;
     case "glyph": return s.glyph;
+    case "current": return currentInk[mode] === "glyph" ? s.glyph : s.steps[10]!;
     case "a3": return s.alpha[2]!;
     default: {
       const unmapped: never = role;
@@ -892,6 +893,7 @@ const ROLE_NOTES: Record<(typeof ROLES)[number], [string, string]> = {
   "ink-muted": ["step 11, or the ink faded to 74%", "medium type on a chosen tone"],
   "ink-faint": ["step 10, or the ink faded to 52%", "quiet type — timestamps, placeholders"],
   glyph: ["generated, the hue at max chroma", "icons and small marks — the accent, placed"],
+  current: ["the ink (light) or the glyph (dark)", "a current row's icon AND label, one value"],
   a3: ["step 3 as alpha over the page", "the tone-forward surface fill (Notice)"],
 };
 

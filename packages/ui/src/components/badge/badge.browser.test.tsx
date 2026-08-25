@@ -24,6 +24,7 @@ import {
   tokenOn,
   within,
 } from "../../test/browser.tsx";
+import { Card } from "../card/card.tsx";
 import { Code } from "../code/code.tsx";
 import { Kbd } from "../kbd/kbd.tsx";
 import { Text } from "../text/text.tsx";
@@ -334,5 +335,50 @@ describe("an empty badge is refused at runtime, because the type cannot refuse i
     expect(within(root, '[data-t="zero"]').textContent, "a zero count vanished").toBe("0");
     expect(within(root, '[data-t="word"]').textContent).toBe("New");
     expect(root.querySelectorAll(".kui-badge")).toHaveLength(2);
+  });
+});
+
+describe("Badge `backdrop` — the floating chip takes the theme's material (§10, 2026-08-26)", () => {
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: over glass the fill becomes a veil and the filter is real`, () => {
+      // The stamp, the veil and the filter in one experiment, against the solid twin in the
+      // SAME theme — so what is measured is the prop, not the theme.
+      const glass = mounted(<Badge backdrop>Live</Badge>, {
+        theme: { appearance, material: "thin" },
+      });
+      const solid = mounted(<Badge>Live</Badge>, { theme: { appearance, material: "thin" } });
+      expect(glass.getAttribute("data-material")).toBe("thin");
+      expect(solid.getAttribute("data-material")).toBeNull();
+      expect(computed(glass, "background-color")).not.toBe(computed(solid, "background-color"));
+      expect(computed(glass, "backdrop-filter")).not.toBe("none");
+      expect(computed(solid, "backdrop-filter")).toBe("none");
+    });
+  }
+
+  it("on calm ground the prop costs nothing", () => {
+    // Selectivity's negative control: under a solid theme, `backdrop` resolves solid, stamps
+    // nothing, and the chip is byte-identical to a plain one.
+    const marked = mounted(<Badge backdrop>Live</Badge>, { theme: {} });
+    const plain = mounted(<Badge>Live</Badge>, { theme: {} });
+    expect(marked.getAttribute("data-material")).toBeNull();
+    expect(computed(marked, "background-color")).toBe(computed(plain, "background-color"));
+    expect(computed(marked, "backdrop-filter")).toBe("none");
+  });
+
+  it("a glass badge scopes its subtree — one glass per stack", () => {
+    // The fixture is contrived on purpose and NOT degenerate (the Notice lesson): the child
+    // must be something that CAN ask for glass, or the law passes with the scope deleted.
+    // A backdrop-marked Card inside a glass badge resolves ON-GLASS (§10, 2026-08-17: glass
+    // never renders on glass — the pane's scope hands its subtree the solid appearance at
+    // the pane's own alpha), never a second veil. With the scope deleted it stamps "thin",
+    // which is what the falsification run shows.
+    const badge = mounted(
+      <Badge backdrop>
+        <Card backdrop>x</Card>
+      </Badge>,
+      { theme: { material: "thin" } },
+    );
+    expect(badge.getAttribute("data-material")).toBe("thin");
+    expect(badge.querySelector(".kui-surface")?.getAttribute("data-material")).toBe("on-glass");
   });
 });
