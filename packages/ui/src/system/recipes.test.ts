@@ -53,7 +53,17 @@ describe("a component's own CSS names no axis (§2, §9)", () => {
   for (const [name, css] of components) {
     it(`${name} contains no tone, no rung, no size index, and no material`, () => {
       for (const tone of TONE_NAMES) expect(css).not.toContain(`--${tone}-`);
-      for (const rung of RUNGS) expect(css).not.toContain(rung);
+      // THE RUNG SCAN LOOKS PAST THE WEIGHT LADDER, and it has to (2026-08-25). `medium` names
+      // two unrelated things in this system: an emphasis rung, which a component sheet must
+      // never branch on, and `--font-weight-medium`, which is a step on the type ladder and
+      // has nothing to do with loudness. A bare substring match cannot tell them apart, so it
+      // made ONE of the three weight tokens unusable in every component stylesheet — a trap
+      // that fires on the author, not on the fault, and it fired the first time a sheet asked
+      // for a medium weight. Narrow by construction: the substitution removes the token NAME
+      // and nothing else, so `--tone-medium`, `--accent-medium` and `[data-emphasis="medium"]`
+      // are all still caught, which is what the sabotage pass confirmed.
+      const withoutWeights = css.replaceAll(/--font-weight-[a-z]+/g, "");
+      for (const rung of RUNGS) expect(withoutWeights).not.toContain(rung);
       expect(css).not.toMatch(/data-size/);
       expect(css).not.toMatch(/data-material|--material-/);
       // If this ever fails, the recipe layer has stopped absorbing variation and the cost has

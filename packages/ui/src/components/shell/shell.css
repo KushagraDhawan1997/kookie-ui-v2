@@ -742,10 +742,25 @@
 /* The heading keeps the FAMILY's short box — it is a caption, not a target, so it must not
    take the member height above. It wears the row skeleton for one reason: its words line up
    with the rows under it, which is what the reserved gutter buys (the menu label's own
-   move). */
+   move).
+
+   IT CARRIES A WEIGHT STEP (2026-08-25), and until it did, a group heading and a group member
+   were the same 14px at the same 400 weight in the same case, differing in ink alone. That is
+   the similarity rule inverted — one treatment worn by two roles — and measured on the docs
+   site it is exactly what made a five-group sidebar read as one undifferentiated column of
+   links. Every platform sidebar ranks the two, and every one of them does it with weight or
+   size.
+
+   WEIGHT AND NOT SIZE, because size is what the paragraph above is protecting: the label
+   shares the row's type so its words sit on the rows' own left edge and the group reads as a
+   block. Dropping a step would break that alignment to buy the same distinction weight buys
+   for free. `.kui-row` states regular at (0,1,0) and this ties with it, so the declaration
+   depends on shell.css following recipes.css in the bundle — which is the order the entry
+   states, and which the law reads through a mounted Theme rather than trusting. */
 .kui-shell-nav-label {
   pointer-events: none;
   color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
 }
 
 /* ── The narrow window (§18's boundary — config's `narrowMedia`, law-pinned) ───────────────

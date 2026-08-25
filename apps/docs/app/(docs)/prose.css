@@ -13,6 +13,33 @@
  * escape hatch is for, and each is small enough to delete the day the component lands.
  */
 
+/* ── The reading measure ───────────────────────────────────────────────────────────────────
+   Prose ran 93 characters per line before 2026-08-25 (measured, not estimated: the paragraph's
+   own text laid out on a canvas at its own computed font). The comfortable range is 45–75 and
+   80 is the ceiling anything technical is usually granted, so the column was about a quarter
+   too wide — which is most of why a chapter read as a wall even before the rhythm was flat.
+
+   Narrowing the COLUMN would have paid for reading with the figures: at 40rem a fenced sample
+   loses 128px and starts scrolling sideways for lines that fit today. So the two are split.
+   Text takes `--kd-measure`; a figure keeps the column it is in. They share a left edge — one
+   axis, which is the alignment rule — and differ only on the right, which is the arrangement
+   the HIG and Material both use, for this reason.
+
+   Stated as `> *` with figures opting out, rather than the reverse, because there are three
+   kinds of figure and every other block is prose; marking the minority is the smaller claim
+   and it cannot go stale when a new prose element is mapped. */
+.kd-prose {
+  --kd-measure: 40rem;
+}
+
+.kd-prose > * {
+  max-inline-size: var(--kd-measure);
+}
+
+.kd-prose > .kd-figure {
+  max-inline-size: none;
+}
+
 /* ── Lists ─────────────────────────────────────────────────────────────────────────────────
    Type and ink arrive from `<Text render={<ul/>}>` and inherit; what is left is the indent
    and the marker. `li + li` rather than a gap, because a flex list stops generating markers
@@ -97,6 +124,34 @@
    question, recorded in the handover rather than decided here. */
 .kd-scroll > * > .kui-scroll-content {
   min-inline-size: 0 !important;
+}
+
+/* ── The component index ───────────────────────────────────────────────────────────────────
+   An entry is a link with two lines, and it is deliberately NOT a Card: a grid already groups
+   these, and boxing what alignment has grouped is the closure rule's own failure case (§15).
+   What a box WAS buying is a hover affordance, so the underline buys it back for the price of
+   two declarations — the same trade `.kd-toc-link` below makes, and the same one the system
+   will delete the day a list row wants a second line.
+
+   The clamp is a floor under a fact the page cannot control: a blurb's opening sentence is
+   usually short and occasionally is not, and one long entry must not set the row height for
+   every entry beside it in the track. */
+.kd-index-item {
+  color: inherit;
+  text-decoration: none;
+}
+
+.kd-index-item:hover .kd-index-name {
+  text-decoration-line: underline;
+  text-underline-offset: 0.2em;
+}
+
+.kd-index-blurb {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 /* ── The table of contents ─────────────────────────────────────────────────────────────────

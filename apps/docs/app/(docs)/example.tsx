@@ -62,8 +62,16 @@ export function Example({ name, quiet }: ExampleProps) {
   }
   const specimen = <Component />;
   const source = readExampleSource(name);
+  // ONE FIGURE, and the gaps are what say so (2026-08-25). The specimen and its source used
+  // to sit 8px apart with the source's own label 4px above the well — one step between the
+  // two halves and one step inside the second half, so the label belonged to neither and the
+  // pair read as two boxes that had drifted into each other rather than as a thing and its
+  // code. §15 asks group and sibling distances to differ by two steps at minimum; `code-block`
+  // binds its label to its well at 4px, and the 16px here is what separates the specimen from
+  // that pair. The figure's air from the prose around it is the chapter renderer's, and it is
+  // now 32px a side, which is what lets a tighter inside read as one unit.
   return (
-    <Stack gap="3">
+    <Stack gap="5">
       {/* The specimen sits on a CARD — paper above the page, which is where most components
           actually live. A Surface would be the other reading (a ground holding objects) and
           is wrong here for one reason: the code block below is already a well, and two wells

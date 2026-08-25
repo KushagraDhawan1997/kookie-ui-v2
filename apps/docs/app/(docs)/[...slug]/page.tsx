@@ -22,6 +22,7 @@ import {
 
 import { ProseFlow } from "../../../mdx-components";
 import { BY_SLUG, CHAPTERS, neighbours, SECTIONS } from "../chapters";
+import { PageFrame } from "../page-frame";
 import { chapterToc } from "../toc";
 
 export function generateStaticParams() {
@@ -88,62 +89,78 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
   const { Content } = chapter;
 
   return (
-    <Flex gap="7" align="flex-start" style={{ maxWidth: "74rem" }}>
-      <Stack gap="7" style={{ maxWidth: "46rem", minWidth: 0, flex: 1 }}>
-      <Stack gap="4">
-        <Text size="2" emphasis="quiet">
-          {section?.title}
-        </Text>
-        <Heading size="8" render={<h1 />}>
-          {chapter.title}
-        </Heading>
-        <Text size="4" emphasis="medium" render={<p />}>
-          {chapter.blurb}
-        </Text>
-      </Stack>
+    <PageFrame width="62rem">
+      <Flex gap="7" align="flex-start">
+        <Stack gap="8" style={{ maxWidth: "46rem", minWidth: 0, flex: 1 }}>
+          {/* THE SECTION NAME USED TO SIT HERE, at `size 2 quiet`, and it was an eyebrow: two
+              elements doing one element's job, which §15 refuses by name and this renderer
+              was publishing on every page of the site. It said nothing the reader did not
+              already have — the navigation shows the section with the current chapter lit
+              inside it — and it cost the title the top of its own page. The fact survives in
+              the footer, where it sits beside the citation and has a job.
 
-      <ProseFlow>
-        <Content />
-      </ProseFlow>
+              `kd-prose` for the reading measure alone: the deck is prose and belongs on the
+              same column as the prose under it, and the class is where that width is stated. */}
+          <Stack gap="3" className="kd-prose">
+            <Heading size="8" render={<h1 />}>
+              {chapter.title}
+            </Heading>
+            {/* LOUD, and one step up (2026-08-25). This is the most important sentence on the
+                page and it was rendered FAINTER than the body it introduces — 18px muted over
+                16px loud — so it read as a caption under the title rather than as the deck it
+                is. §15 already says reading-length prose rests loud; this was the one place on
+                the site that did not. */}
+            <Text size="5" render={<p />}>
+              {chapter.blurb}
+            </Text>
+          </Stack>
 
-      {/* What this chapter publishes. Not a footnote — it is the claim the whole site rests
-          on: these pages are a re-voicing of a spec that governs the code, not prose written
-          alongside it. A law resolves every reference against the real document. */}
-      <Stack gap="3">
-        <Separator />
-        <Text size="2" emphasis="quiet">
-          Specified in {chapter.spec.join(", ")}.
-        </Text>
-      </Stack>
+          <ProseFlow>
+            <Content />
+          </ProseFlow>
 
-      {(prev ?? next) ? (
-        <Flex gap="4" justify="space-between" wrap="wrap">
-          {prev ? (
-            <Stack gap="1">
+          {/* The footer: a rule, the way on, and the colophon. Set apart at the page's largest
+              interval because it is furniture rather than reading — and it carries the claim
+              the whole site rests on, which is that these pages re-voice a specification that
+              governs the code rather than being prose written alongside it. A law resolves
+              every citation against the real document. */}
+          <Box mt="7">
+            <Stack gap="6">
+              <Separator />
+              {(prev ?? next) ? (
+                <Flex gap="4" justify="space-between" wrap="wrap">
+                  {prev ? (
+                    <Stack gap="1">
+                      <Text size="2" emphasis="quiet">
+                        Previous
+                      </Text>
+                      <KookieLink size="3" render={<Link href={`/${prev.slug}`} />}>
+                        {prev.title}
+                      </KookieLink>
+                    </Stack>
+                  ) : (
+                    <span />
+                  )}
+                  {next ? (
+                    <Stack gap="1" style={{ textAlign: "end" }}>
+                      <Text size="2" emphasis="quiet">
+                        Next
+                      </Text>
+                      <KookieLink size="3" render={<Link href={`/${next.slug}`} />}>
+                        {next.title}
+                      </KookieLink>
+                    </Stack>
+                  ) : null}
+                </Flex>
+              ) : null}
               <Text size="2" emphasis="quiet">
-                Previous
+                {section?.title} · Specified in {chapter.spec.join(", ")}.
               </Text>
-              <KookieLink size="3" render={<Link href={`/${prev.slug}`} />}>
-                {prev.title}
-              </KookieLink>
             </Stack>
-          ) : (
-            <span />
-          )}
-          {next ? (
-            <Stack gap="1" style={{ textAlign: "end" }}>
-              <Text size="2" emphasis="quiet">
-                Next
-              </Text>
-              <KookieLink size="3" render={<Link href={`/${next.slug}`} />}>
-                {next.title}
-              </KookieLink>
-            </Stack>
-          ) : null}
-        </Flex>
-      ) : null}
-      </Stack>
-      <OnThisPage entries={toc} />
-    </Flex>
+          </Box>
+        </Stack>
+        <OnThisPage entries={toc} />
+      </Flex>
+    </PageFrame>
   );
 }

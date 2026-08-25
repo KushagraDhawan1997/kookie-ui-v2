@@ -16,10 +16,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Box,
-  Button,
   Code,
   Flex,
   Heading,
+  Link as KookieLink,
   Separator,
   Stack,
   Text,
@@ -28,6 +28,7 @@ import {
 import { Example } from "../../example";
 import { InlineCode } from "../../../inline-code";
 import { API } from "../api.generated";
+import { PageFrame } from "../../page-frame";
 import { propDescription } from "../prop-description";
 import { BY_SLUG, ENTRIES } from "../registry";
 
@@ -47,8 +48,18 @@ export async function generateMetadata({
     : { title: "KookieUI" };
 }
 
-/** A labelled block. Its own component because the page has six of them and they must not
-    drift — the same reason the package has a shared type layer. */
+/**
+ * A labelled block. Its own component because the page has six of them and they must not
+ * drift — the same reason the package has a shared type layer.
+ *
+ * THE RULE UNDER THE HEADING IS GONE (2026-08-25). It sat inside a `gap 4` stack, so it had
+ * 12px above it and 12px below: a line floating equidistant between a heading and the content
+ * that heading introduces, dividing a thing from its own body. §15 asks for a separator only
+ * where distance cannot group, and here distance groups perfectly well — 48px between sections
+ * against 16px from a heading to its content is the asymmetry the brief asks for, and it is
+ * the same interval a chapter's `h2` gets, so a component page and a chapter now read at one
+ * rhythm instead of two.
+ */
 function Section({
   title,
   lead,
@@ -59,8 +70,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <Stack gap="4">
-      <Stack gap="2">
+    <Stack gap="5">
+      <Stack gap="2" className="kd-prose">
         <Heading size="6" render={<h2 />}>
           {title}
         </Heading>
@@ -70,7 +81,6 @@ function Section({
           </Text>
         ) : null}
       </Stack>
-      <Separator />
       {children}
     </Stack>
   );
@@ -82,23 +92,38 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
   if (!entry) notFound();
   const api = API[entry.name];
 
+  // 48rem, not the index's 62: this page is a reading column, and its figures — the specimen,
+  // the fence — sit in the same column as the prose rather than beside it. At 62 the demo pane
+  // ran 992px around four buttons, which is the empty-Card fault the index had, arriving one
+  // route over. The props table is the one block that genuinely wants more, and it has its own
+  // scroller for exactly that.
   return (
-    <Stack gap="7" style={{ maxWidth: "52rem" }}>
-      <Stack gap="4">
-        <Flex gap="3" align="center">
-          <Button size="1" emphasis="quiet" render={<Link href="/components" />}>
+    <PageFrame width="48rem">
+      <Stack gap="9">
+      {/* THE METADATA USED TO SIT UP HERE beside the back link — `Control · §4, §8, §9`, at
+          `size 2 quiet`, directly above the title. That is an eyebrow, which §15 refuses by
+          name: the family and the spec sections are not what this page is called, and putting
+          them where the title goes made two elements do one element's job on all 42 pages.
+          They are facts about the component, so they went where the page's other facts are,
+          in the colophon at the foot.
+
+          The back link stays, because navigation is a job. It is a Link rather than the
+          `size 1` Button it was: it goes somewhere, and §15 retires size 1 from composed
+          surfaces anyway. */}
+      <Stack gap="4" className="kd-prose">
+        <Flex>
+          <KookieLink size="2" render={<Link href="/components" />}>
             ← Components
-          </Button>
-          <Text size="2" emphasis="quiet">
-            {entry.family} · {entry.spec}
-          </Text>
+          </KookieLink>
         </Flex>
-        <Heading size="8" render={<h1 />}>
-          {entry.name}
-        </Heading>
-        <Text size="4" emphasis="medium" render={<p />}>
-          <InlineCode text={entry.blurb} />
-        </Text>
+        <Stack gap="3">
+          <Heading size="8" render={<h1 />}>
+            {entry.name}
+          </Heading>
+          <Text size="5" render={<p />}>
+            <InlineCode text={entry.blurb} />
+          </Text>
+        </Stack>
       </Stack>
 
       <Section title="Example">
@@ -224,7 +249,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
       ) : null}
 
       <Section title="Everywhere">
-        <Stack gap="3">
+        <Stack gap="3" className="kd-prose">
           <Text size="2" emphasis="medium" render={<p />}>
             This component inherits the rules below. Every component in the system does.
           </Text>
@@ -241,6 +266,17 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
           </Text>
         </Stack>
       </Section>
-    </Stack>
+
+      {/* The colophon, and the chapter pages' own footer one route over: a rule, then the
+          facts about this page rather than about its subject. This is where the family and
+          the spec citation went when they stopped being an eyebrow. */}
+      <Stack gap="6">
+        <Separator />
+        <Text size="2" emphasis="quiet">
+          {entry.family} · Specified in {entry.spec}.
+        </Text>
+      </Stack>
+      </Stack>
+    </PageFrame>
   );
 }

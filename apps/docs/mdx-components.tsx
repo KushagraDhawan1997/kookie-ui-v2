@@ -10,10 +10,34 @@
  *
  * VERTICAL RHYTHM IS THE CALLER'S, and it has to be: components never own outer spacing (the
  * non-negotiable). The chapter page puts the whole flow in a `<Stack>`, so the base distance
- * between blocks is that gap; a heading adds to it through `<Box mt>`, the sanctioned escape,
- * which is what makes a section break read as a section break instead of a slightly larger
- * paragraph gap. Differentiated rhythm is the composition brief's own rule (§15) — a flat
- * one is a finding the reviewer would raise against any screen we shipped.
+ * between blocks is that gap; a heading adds to it through `<Box mt>`, the sanctioned escape.
+ *
+ * THE RHYTHM IS STATED, because until 2026-08-25 it was not. Measured on a chapter, this file
+ * produced ONE distance doing four jobs: paragraph to paragraph 12px, paragraph to code block
+ * 12px, and heading to its own body 12px. A 12px gap under a 24px line is half a line, so
+ * paragraphs fused into a wall and a fence read as another paragraph. Only the 36px above an
+ * `h2` was differentiated at all. Differentiated rhythm is the composition brief's own rule
+ * (§15) — within-group and between-group must differ by at least two layout-space steps — so
+ * the renderer that publishes that rule was the one screen on the site breaking it.
+ *
+ * Four intervals now, each meaning exactly one thing, and each landing ON a layout-space step
+ * rather than between two (`mt` composes with the flow gap, so the sum is what the eye reads):
+ *
+ *   sibling to sibling      16  (`FLOW_GAP` alone)          — two thirds of the 24px line
+ *   heading to its body     16  (`FLOW_GAP` alone)          — a heading belongs to what follows
+ *   figure, top and bottom  32  (`FIGURE_MARGIN` + gap)     — a fence is not another paragraph
+ *   subsection break (h3)   40  (`mt="6"` + gap)
+ *   section break (h2)      48  (`mt="7"` + gap)
+ *
+ * Heading space is asymmetric by 3:1, which is the brief's rule and the reason a section break
+ * now reads as one instead of as a slightly larger paragraph gap.
+ *
+ * THE MEASURE IS SPLIT FROM THE FIGURE WIDTH, and that split is what buys both halves. Prose
+ * ran 93 characters per line, measured — against a 45–75 ideal and an 80 ceiling anything
+ * technical is usually granted. Narrowing the whole column would have cramped every code
+ * sample, so `prose.css` gives text `--kd-measure` (40rem, measured at 80 characters) and lets
+ * a figure keep the column. They share a left edge, so there is still one axis; only the right
+ * edge differs, which is the arrangement HIG and Material both use for the same reason.
  *
  * TWO ELEMENTS HAVE NO COMPONENT TO RESOLVE TO — lists and tables — and they are handled here
  * in the only honest way: the semantic element, kept for what it announces, with its type
@@ -44,10 +68,22 @@ import { ReviewRules } from "./app/(docs)/review-rules";
 import { nodeText, slugify } from "./app/(docs)/slug";
 import type { TypeSize } from "@kookie-ui/react";
 
+/** The distance between two ordinary siblings, and the only one this file states twice — it
+    is also the distance under a heading, because those are the same relationship seen from
+    two sides: a block and the block it belongs with. */
+const FLOW_GAP = "5";
+
+/** What a figure adds on EACH side, on top of the flow gap. A fence, an example and a table
+    are not paragraphs, and the eye needs to be told that before it reads the contents. */
+const FIGURE_MARGIN = "5";
+
 /** A heading that carries its own anchor. The id is what the table of contents links to and
     what a URL fragment lands on, so it is computed from the rendered words through the one
-    slug function both sides share (`slug.ts`). */
-function anchored(level: 2 | 3 | 4, size: TypeSize, marginTop: "4" | "5" | "6") {
+    slug function both sides share (`slug.ts`).
+
+    `marginTop` is what the level MEANS, not a decoration on it: composed with `FLOW_GAP` it
+    is the break the reader is being asked to take, and the ladder above states each sum. */
+function anchored(level: 2 | 3 | 4, size: TypeSize, marginTop: "3" | "6" | "7") {
   const Component = ({ children }: { children?: React.ReactNode }) => {
     const id = slugify(nodeText(children));
     const element =
@@ -64,6 +100,16 @@ function anchored(level: 2 | 3 | 4, size: TypeSize, marginTop: "4" | "5" | "6") 
   return Component;
 }
 
+/** A block that is not prose. It takes air on both sides and it keeps the column rather than
+    the reading measure — `prose.css` narrows everything else. */
+function Figure({ children }: { children: React.ReactNode }) {
+  return (
+    <Box my={FIGURE_MARGIN} className="kd-figure">
+      {children}
+    </Box>
+  );
+}
+
 /**
  * Pull the fence apart. MDX gives `<pre>` exactly one child — a `<code>` carrying the source
  * as text and the language as `language-*` — so this reads both off that child and renders
@@ -78,7 +124,11 @@ function fence(props: { children?: React.ReactNode }): React.ReactElement {
   const className = child.props.className ?? "";
   const lang = className.replace(/^language-/, "") || "tsx";
   const code = typeof child.props.children === "string" ? child.props.children : "";
-  return <CodeBlock code={code} lang={lang} />;
+  return (
+    <Figure>
+      <CodeBlock code={code} lang={lang} />
+    </Figure>
+  );
 }
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
@@ -86,9 +136,20 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     // A chapter never renders its own `h1` — the page does, from the registry, so the title
     // in the navigation and the title on the page are one fact. An `h1` inside a chapter is
     // a second one, and the docs law fails on it.
-    h2: anchored(2, "7", "6"),
-    h3: anchored(3, "6", "5"),
-    h4: anchored(4, "5", "4"),
+    // THE LADDER, and the jump between rungs is the point. §15 asks adjacent levels to differ
+    // by at least 1.33x, and the old mapping (7, 6, 5 — 30, 24, 20) cleared that at neither
+    // step: 1.25 and 1.20, which is a rounding error wearing a hierarchy's name. Worse at the
+    // top, where a 30px `h2` sat under a 40px `h1` at 1.33 — the floor — so the 144 section
+    // headings on this site out-weighed the page title they were under.
+    //
+    // 40 / 24 / 18 instead: 1.67 then 1.33, both real. The section heading is CALMER than it
+    // was, not louder, because the 48px break above it is what says "new section" — space
+    // ranks more cheaply than size, and it does not have to shout over the title to do it.
+    h2: anchored(2, "6", "7"),
+    h3: anchored(3, "4", "6"),
+    // Unreachable: a law forbids a chapter from going deeper than `h3`. Mapped anyway, so a
+    // stray heading degrades to a small one rather than to an unstyled UA `<h4>`.
+    h4: anchored(4, "3", "3"),
 
     p: ({ children }) => (
       <Text size="3" render={<p />}>
@@ -122,8 +183,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     li: ({ children }) => <li>{children}</li>,
 
     blockquote: ({ children }) => <Blockquote>{children}</Blockquote>,
+    // A thematic break outranks a figure, so it takes more air than one: 40px a side.
     hr: () => (
-      <Box my="5">
+      <Box my="6">
         <Separator />
       </Box>
     ),
@@ -159,11 +221,13 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     // type from Text and the grid lines from tokens in prose.css. §11 plans a table ROW (an
     // interactive surface); a static data table has never been specified.
     table: ({ children }) => (
-      <Box className="kd-table-wrap">
-        <Text size="2" render={<table className="kd-table" />}>
-          {children}
-        </Text>
-      </Box>
+      <Figure>
+        <Box className="kd-table-wrap">
+          <Text size="2" render={<table className="kd-table" />}>
+            {children}
+          </Text>
+        </Box>
+      </Figure>
     ),
     th: ({ children }) => (
       <th>
@@ -192,7 +256,15 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
 }
 
 /** The wrapper a chapter's flow is rendered into. Exported so the chapter page and any law
-    that mounts a chapter agree on the rhythm rather than each choosing one. */
+    that mounts a chapter agree on the rhythm rather than each choosing one.
+
+    `kd-prose` is what carries the reading measure onto the text blocks and lets a figure keep
+    the column — see `prose.css`. The class rather than a `style` because the rule it turns on
+    is a child selector, which no inline value can express. */
 export function ProseFlow({ children }: { children: React.ReactNode }) {
-  return <Stack gap="4">{children}</Stack>;
+  return (
+    <Stack gap={FLOW_GAP} className="kd-prose">
+      {children}
+    </Stack>
+  );
 }

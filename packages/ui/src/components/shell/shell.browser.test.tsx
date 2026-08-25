@@ -1779,6 +1779,42 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     expect(computed(currentRow, "color")).not.toBe(computed(plain, "color"));
   });
 
+  it("a group HEADING is not a group member — it carries a weight step", () => {
+    // The law this file has never had, and its absence is why the defect shipped: a heading
+    // and a member were 14px/400 in the same case, apart in ink alone, so five groups read as
+    // one column of links. Measured on the docs site 2026-08-25.
+    //
+    // THE TWO ARE READ AGAINST EACH OTHER, never against a literal alone. Asserting the label
+    // is `500` passes just as happily on a stylesheet that sent every ROW to 500, which is the
+    // same fault wearing the fix's clothes — and the fixture holds both, so they can disagree.
+    // The size assertion is the other half and it is not decoration: it pins WHICH property
+    // buys the distinction, because a size step would buy the same rank and break the shared
+    // left edge the label's own comment exists to protect.
+    const shell = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary">
+          <ShellNavGroup label="Workspace">
+            <ShellNavItem>Inbox</ShellNavItem>
+          </ShellNavGroup>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const label = within(shell, ".kui-shell-nav-label");
+    const item = within(shell, ".kui-shell-nav-item");
+    expect(
+      computed(label, "font-weight"),
+      "the heading and its members are one treatment",
+    ).not.toBe(computed(item, "font-weight"));
+    expect(computed(label, "font-weight"), "the heading is not the medium step").toBe("500");
+    expect(computed(item, "font-weight"), "a row stopped being content dress").toBe("400");
+    expect(
+      computed(label, "font-size"),
+      "the heading bought its rank with size, which breaks the shared left edge",
+    ).toBe(computed(item, "font-size"));
+  });
+
   for (const appearance of APPEARANCES) {
     it(`${appearance}: a DEAD nav row dims its words, not only its icon`, () => {
       // The law this file has never had (ultracode audit 2026-08-23: `grep -c disabled` on this

@@ -59,7 +59,12 @@ export function DocsNav({
 
   return (
     <ShellScroll>
-      <Stack gap="4">
+      {/* 24px between groups against 0 between the rows inside one — the proximity rule's two
+          distances, and they were 12 and 0 before 2026-08-25, which is one layout-space step
+          apart where §15 asks for two. The label's own weight step (shell.css) is the other
+          half of the same repair: distance says where a group ends, treatment says that the
+          line at the top of it is a heading rather than another link. */}
+      <Stack gap="6">
         {sections.map((section) => (
           <ShellNavGroup key={section.id} label={section.title}>
             {section.links.map((link) => (
