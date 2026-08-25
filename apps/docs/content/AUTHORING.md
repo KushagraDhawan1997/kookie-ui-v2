@@ -1,6 +1,38 @@
 # How to write a chapter
 
-The rules for `apps/docs/content`. Read this before you write a chapter.
+The rules for `apps/docs/content` **and for every blurb in `app/(docs)/chapters.ts` and
+`app/(docs)/components/registry.ts`**. Read this before you write a chapter or a blurb.
+
+## Blurbs
+
+A blurb is the sentence under a page's title and the line under its name in the index. It is
+the most-read prose on the site, and until 2026-08-25 it was the worst, because this guide did
+not cover it and the test that claimed to check it only measured length.
+
+**Write a blurb as a sentence that says what the page is for.** Not a headline. Not a list of
+noun phrases. If you read it aloud and it does not finish a thought, it is not a blurb.
+
+- Wrong: `The house style. One loud control, different gaps for different groups, a type
+  ladder, and tone used as a vocabulary.`
+- Right: `Correct components do not add up to a good screen on their own. These are the rules
+  for putting them together, and the builder checks most of them for you.`
+- Wrong: `The package, one stylesheet, a Theme at the root, and the script that sets dark mode
+  before the first paint.`
+- Right: `Add the package to your app, import one stylesheet, and wrap your app in a Theme. You
+  also add a small script so dark mode is correct on the first paint.`
+- Wrong: `Two clocks.`
+- Right: `Motion runs on two clocks. A colour change lands on the very first frame, and
+  anything that moves follows a spring.`
+
+A verbless opener fails a test. A fragment whose verb hides in a subordinate clause does not —
+no test can catch that one, so it is on you.
+
+**Say what the reader gets, not what the system contains.** "Seven app-level values, stated one
+time at the root" describes the implementation. "A Theme sets seven values for your whole app"
+tells a reader what to do with it.
+
+**Never put a date, a version or a decision history in a blurb.** A reader has not seen an
+earlier version. `docs/LOG.md` holds that.
 
 ## Language: Simplified Technical English
 

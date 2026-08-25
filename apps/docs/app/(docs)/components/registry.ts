@@ -47,7 +47,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§10, §20, §25",
     blurb:
-      "A modal question with two answers. It holds a title, a description, a cancel button and an action button, and the component lays those out itself. It is separate from Dialog because the two do different jobs: a dialog holds work you asked for, and an alert stops you and asks something. It uses role=alertdialog, it does not close on an outside press, and its content is fixed. The part names follow shadcn/ui's alert-dialog (MIT), with credit. The behaviour is Base UI's AlertDialog.",
+      "AlertDialog asks a question with two answers. It holds a title, a description, a cancel button and an action button, and it lays those out itself. It is separate from Dialog because the two do different jobs: a dialog holds work you asked for, and an alert stops you to ask something. It uses `role=alertdialog`, it does not close when you press outside it, and its contents are fixed. The part names follow shadcn/ui's alert-dialog (MIT), with credit, and the behaviour is Base UI's AlertDialog.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "sets everything: the box, the corner, the padding, the type steps of the title and description, and both buttons. Dialog's size stops at the box. Alert may go further because the system wrote this content" },
       { name: "tone (Action)", values: "any family", note: "the one meaning an action carries beyond going ahead. Use destructive for the deletes this component mostly exists for" },
@@ -89,7 +89,7 @@ export const ENTRIES: Entry[] = [
     family: "Type",
     spec: "§11, §15",
     blurb:
-      "A short word or a count that states what the thing beside it is right now. It sits in the same family as Code and Kbd and is made of the same parts: the same fill, the same corner, the same one-line box a key cap uses. What it adds is the tone. The colour families exist so that failed, running and done read as one vocabulary across a product, and this is the component that spends them.",
+      "Badge shows a short word or a count that says what the thing beside it is right now. It is built from the same parts as Code and Kbd: the same fill, the same corner and the same one-line box. What it adds is tone, so that words such as failed, running and done read the same way everywhere in a product.",
     axes: [
       { name: "size", values: "1-9", note: "optional with no default. Unset, a badge takes the size of the line it sits beside, so one next to a card title is bigger than one in a table row. Set it when the badge stands alone" },
       { name: "tone", values: "any family", note: "the axis a badge exists for. It moves the INK — the chip itself stays neutral, because no family paints a faded fill. A destructive badge is a grey chip with a red word" },
@@ -125,7 +125,7 @@ export const ENTRIES: Entry[] = [
     family: "Type",
     spec: "§11, §15",
     blurb:
-      "Body copy set apart by a rule and an indent. How it reads comes from the shared type layer. What it adds is the quiet hairline down its leading edge and the indent that keeps the words off it.",
+      "Blockquote sets body copy apart with a rule and an indent. How the text reads comes from the shared type layer. What Blockquote adds is the thin line down its leading edge and the indent that keeps the words clear of it.",
     axes: [
       { name: "size", values: "1-9", note: "defaults to 3. A quote is a block, so it sets its own step" },
       { name: "weight", values: "regular | medium | semibold", note: "token names, never numbers" },
@@ -149,7 +149,7 @@ export const ENTRIES: Entry[] = [
     family: "Layout",
     spec: "§2, §3",
     blurb:
-      "The layout engine. Flex, Stack and Grid are Box with a fixed display and a shorter prop list. Box takes the whole set: spacing, width and height, a few structural keywords, and the props a flex or grid child needs. Every value resolves through a token, and any prop can take one value per container tier.",
+      "Box is the layout engine every other layout component is built from. Flex, Stack and Grid are all Box with a fixed display and a shorter prop list. Box takes the full set: spacing, width and height, and the props a flex or grid child needs. Every value resolves through a token, and any prop can take a different value at each container size.",
     axes: [
       { name: "p / m / px / py …", values: "layout space steps", note: "the density-aware layer, never the raw palette" },
       {
@@ -190,7 +190,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §8, §9",
     blurb:
-      "The action control, and the one the shared control layer was written for. Loudness is the only ranking axis. You never set an appearance: the theme resolves it from tone, emphasis and bordered, over whatever material the Theme says the app is made of.",
+      "Button is the action control, and the one the shared control layer was built for. Loudness is its only ranking axis. You never set an appearance directly: the theme works it out from `tone`, `emphasis` and `bordered`, over whatever material the Theme says the app is made of.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "an index into the height ladder, not a measurement" },
       { name: "tone", values: "any family", note: "picks the meaning. accent resolves through the Theme" },
@@ -217,7 +217,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§10",
     blurb:
-      "A ground: what objects sit on. A Card is an object, and a Surface is what holds it. An object is opaque, catches light and casts a shadow. A ground does none of those. Use it two ways: a bounded region of a page that holds cards, and a quieter region inside a card, such as a code block or a settings group. Its colour is a stated pair rather than a step down from its parent, because in dark mode a relative step would land above the card colour and the cards would be darker than the region holding them.",
+      "Surface is a ground: the region that objects sit on. A Card is an object, and a Surface is what holds it. Use it for a bounded region of a page that holds cards, or for a quieter region inside a card, such as a code block or a settings group. Its colour is a stated pair rather than one step down from its parent, because in dark mode a relative step would land lighter than the cards it holds.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "padding and corner from the container band, one step up from a card's, because a container needs a larger corner than the things inside it" },
     ],
@@ -246,7 +246,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§9, §10",
     blurb:
-      "An object with its own plane: one opaque fill, one corner, one padding, and no other treatment. Its size sets the padding and the corner, never a height. The element decides what it does: render it as a button or a link and it presses, with the same state colours and the same motion every control has; render it as the label of a radio and it can be chosen. Only the press distances are its own, because a large box moving as far as a button reads as the page bending.",
+      "Card is an object with its own surface: one solid fill, one corner and one padding, and nothing else. Its size sets the padding and the corner, never a height. What it does depends on the element you give it: render it as a button or a link and it becomes pressable, with the same state colours and motion every control has. Only the press distances differ, because a large box that moved as far as a button would look like the page was bending.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "padding and corner, not height" },
       { name: "backdrop", values: "boolean", note: "says content passes behind this card, so the theme's material can show. Unset, it follows the surrounding <Box backdrop> region. It can never pick a thickness" },
@@ -284,7 +284,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §6, §11",
     blurb:
-      "A control that is its own mark. Its box is exactly one line of its label's type, so it lines up with the text beside it and grows on a phone with nothing designed twice. Its hit area extends to the size a Button of the same index would occupy, whether or not that area is painted.",
+      "Checkbox is a control that is its own mark. Its box is exactly one line of its label's text, so it lines up with the words beside it and grows on a phone without anything being designed twice. Its tappable area extends to the size a Button of the same index would occupy, whether or not you can see that area.",
     axes: [{ name: "size", values: "1 | 2 | 3 | 4", note: "an index into the mark ladder, which is the line-height ladder" }],
     refusals: [
       {
@@ -307,7 +307,7 @@ export const ENTRIES: Entry[] = [
     family: "Type",
     spec: "§11, §15",
     blurb:
-      "Inline code: the mono font slot with a subtle fill behind it. Its size is optional, and unset it takes the size of the line it sits in, so a literal inside small text stays small without the call site repeating the index.",
+      "Code shows inline code in the mono font, with a light fill behind it. Its size is optional: leave it unset and it takes the size of the line it sits in, so a value inside small text stays small without you repeating the index.",
     axes: [
       { name: "size", values: "1-9, optional", note: "unset, it takes the line it sits in" },
       { name: "emphasis", values: "loud | medium | quiet", note: "picks the ink colour, not the fill" },
@@ -330,7 +330,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§10, §20, §24",
     blurb:
-      "A modal panel over a dimmed app. The panel is a Card that covers: same fill, same edge, with a corner one step rounder than a card of the same size. It casts no shadow of its own, because the scrim behind it is what separates it from the page. Below the narrow window boundary it presents as a sheet on the bottom edge. The part names follow shadcn/ui's dialog (MIT), with credit. The behaviour is Base UI's Dialog, focus trap and scroll lock included.",
+      "Dialog shows a panel over a dimmed app. The panel looks like a Card with a slightly rounder corner, and it casts no shadow of its own, because the dimmed background behind it is what separates it from the page. On a narrow window it slides up from the bottom edge as a sheet instead. The part names follow shadcn/ui's dialog (MIT), with credit, and the behaviour is Base UI's Dialog, including the focus trap and scroll lock.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "sets the box: a maximum width, the padding and the corner. It never sets the type inside. The window wins when there is less room than the size asks for" },
     ],
@@ -378,7 +378,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§28",
     blurb:
-      "The unit that makes one input make sense. A control on its own is a box: it does not carry its own name, it cannot say what it is for, and it cannot say what went wrong. Field supplies a label, a description and an error, and wires all three to the control so a screen reader reads them as one thing. What it draws is a column and a gap. The behaviour is Base UI's Field.",
+      "Field is the unit that makes one input make sense. A control on its own is just a box: it cannot carry its own name, say what it is for, or say what went wrong. Field supplies a label, a description and an error message, and wires all three to the control so a screen reader reads them as one thing. What it draws is a column and a gap. The behaviour is Base UI's Field.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "sets the whole unit: the label, the description, the error and the control inside it. It reaches the control by context, and an explicit prop on the control always wins, so a control is never re-sized behind a number somebody typed" },
     ],
@@ -417,7 +417,7 @@ export const ENTRIES: Entry[] = [
     family: "Layout",
     spec: "§3",
     blurb:
-      "Box with display: flex and the flex props kept. It ships no CSS of its own. The shorter prop list is the point: columns on a Flex does not compile.",
+      "Flex is Box with `display: flex` and the flex props kept. It ships no CSS of its own. The shorter prop list is the point: `columns` on a Flex does not compile.",
     axes: [
       { name: "direction / align / justify / wrap", values: "the flex vocabulary", note: "responsive like every layout prop" },
       { name: "gap", values: "layout space steps", note: "the distance between children, through the density-aware layer" },
@@ -429,7 +429,7 @@ export const ENTRIES: Entry[] = [
     name: "Grid",
     family: "Layout",
     spec: "§3",
-    blurb: "Box with display: grid and the grid props kept. Same mechanism as Flex, and the same zero extra CSS.",
+    blurb: "Grid is Box with `display: grid` and the grid props kept. It works the same way Flex does, and adds no CSS of its own.",
     axes: [
       { name: "columns / rows", values: "track lists", note: "a raw track string travels the same path a token does" },
       {
@@ -446,7 +446,7 @@ export const ENTRIES: Entry[] = [
     family: "Type",
     spec: "§15",
     blurb:
-      "The heading font slot, on the same nine-step ramp Text uses. How large it looks and where it sits in the document outline are separate questions: size picks the step, and render picks the element.",
+      "Heading uses the heading font on the same nine-step scale Text uses. How large it looks and where it sits in the document outline are separate choices: `size` picks the step, and `render` picks the element.",
     axes: [
       { name: "size", values: "1-9", note: "defaults to 6, the level a section title usually wants" },
       { name: "weight", values: "regular | medium | semibold", note: "defaults to semibold. There is no bold" },
@@ -466,7 +466,7 @@ export const ENTRIES: Entry[] = [
     family: "Type",
     spec: "§11, §15",
     blurb:
-      "A key cap. It takes Code's fill and tone behaviour but sets the letters in the body font, because a key names a key rather than quoting code, and the interface sans draws the command symbol full size where a mono cell squeezes it. Its box is exactly one line tall, so it never spreads the line it sits in.",
+      "Kbd shows a key or a shortcut, such as ⌘K. It takes the same fill and tone behaviour as Code, but sets the letters in the body font, because a key names a key rather than quoting code. Its box is exactly one line tall, so it never pushes apart the line it sits in.",
     axes: [
       { name: "size", values: "1-9, optional", note: "unset, it takes the size of the line it sits in, like Code. A fixed size would push a size-1 caption up to 16px" },
       { name: "emphasis", values: "loud | medium | quiet", note: "changes the ink colour, not the cap fill. A quiet chord shows quieter letters on the same key" },
@@ -485,7 +485,7 @@ export const ENTRIES: Entry[] = [
     family: "Type",
     spec: "§11, §15",
     blurb:
-      "The one type component that answers a pointer. How it reads comes from the shared type layer. What it adds is the underline and the states. It is not a control, so it stays selectable, it wraps across lines, and it sits on the line its paragraph set.",
+      "Link is the one type component that responds to a pointer. How it reads comes from the shared type layer. What it adds is the underline and the hover and focus states. It is not a control, so it stays selectable, it wraps across lines, and it sits on the same line as the paragraph around it.",
     axes: [
       { name: "size", values: "1-9", note: "optional with no default. Unset, it takes the line it sits in" },
       { name: "weight", values: "regular | medium | semibold", note: "optional. A link in a sentence keeps that sentence's weight" },
@@ -516,7 +516,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§20, §21, §22",
     blurb:
-      "A floating list of actions. The panel is a Card that floats, with a corner derived from its rows: the row's own corner plus the panel's padding, so the two curves nest. It casts a shadow in a flat theme as well as an elevated one, because a shadow under a floating pane is information about what it covers. The part names follow shadcn/ui's dropdown-menu (MIT), with credit. The behaviour is Base UI's Menu.",
+      "Menu shows a floating list of actions. Its corner is worked out from the rows inside it, so the outer curve and the row curves nest instead of fighting. It casts a shadow even in a flat theme, because a shadow under a floating panel tells you it is covering something. The part names follow shadcn/ui's dropdown-menu (MIT), with credit, and the behaviour is Base UI's Menu.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "set it on the root, like Button. A size-4 trigger must not open a size-2 menu. Rows take the control padding and type, and their height is the text line plus a fixed inset, a notch under a button of the same index" },
       { name: "tone (Item)", values: "destructive", note: "a list of one: the single meaning a row may carry. Widening it is a decision, never a default" },
@@ -568,7 +568,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§20, §21, §23",
     blurb:
-      "A form control that holds a choice. The panel, the rows and the corner all come from Menu with nothing re-designed. What is new is the trigger: a field-shaped button, so a Select beside a TextField reads as the same family, with the same fill, edge and height, while staying a real button that announces itself as a combobox. Base UI renders a hidden input, so a Select submits with a form like the native element it replaces. The part names follow shadcn/ui's select (MIT), with credit.",
+      "Select is a form control that holds a choice. Its panel, rows and corner all come from Menu with nothing redesigned. What is new is the trigger: a button shaped like a field, so a Select beside a TextField reads as the same family, with the same fill, border and height, while staying a real button that announces itself as a combobox. Base UI renders a hidden input, so a Select submits with a form like the native element it replaces. The part names follow shadcn/ui's select (MIT), with credit.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "set it on the root. The trigger and the option rows both take it" },
       { name: "items", values: "Record<value, label>", note: "value to label for the closed trigger. Base UI reads labels from mounted options, and a panel that never opened has none, so pass this whenever a defaultValue paints first" },
@@ -618,7 +618,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§31",
     parts: [
-      { part: "ComposerInput", blurb: "The text a person types. A plain textarea with no box of its own, because the composer around it is already the box — put our TextArea here and you would see two. It grows with its content in CSS and stops at a ceiling, and the composer's ring watches this element, so pressing a button inside the composer does not light the whole pane" },
+      { part: "ComposerInput", blurb: "ComposerInput is the box a person types their message into. It is a plain textarea with no border of its own, because the Composer around it is already the box, and putting a TextArea here would show two. It grows with the text and stops at a maximum height, and the Composer's focus ring watches this element, so pressing a button inside the composer does not light up the whole panel." },
       { part: "ComposerRow", blurb: "The row of controls under the text. It states the alignment, the split and the spacing so no call site writes them, and stops there: which controls sit left and which sit right is what those controls mean, so group them yourself with a Flex or leave one flat list and let it space evenly" },
       { part: "ComposerSend", blurb: "One button with four meanings, read off status: send, in flight, stop, retry. Streaming is the one that earns it, because a person watching a reply arrive needs a way to end it. Each state carries its own accessible name, and stopping is an action on the request rather than another submit" },
     ],
@@ -667,7 +667,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§29",
     blurb:
-      "A condition that is true right now, stated on the region it is about. The person did not cause it, so it is not a receipt, and it lasts while the condition lasts, so it is not transient. It takes layout space and never floats, because a strip that hovered would cover the content it is telling you about. It carries at most one action that resolves the condition and one dismissal that only acknowledges it.",
+      "Notice states a condition that is true right now, on the region it is about. The person did not cause it, so it is not a receipt, and it lasts as long as the condition lasts, so it does not disappear on a timer. It takes up layout space and never floats, because a strip that hovered would cover the content it is telling you about. It carries at most one action that fixes the condition, and one dismissal that only acknowledges it.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "sets the whole strip: the padding, the corner, the symbol's grid, the dismiss button and the message. A surface normally never sizes the type inside it, and the exception is type the system owns. A notice is one sentence in a fixed arrangement rather than a composition you built, so it uses the alert dialog's own steps and the two cannot drift. State a step on your own Text and yours still wins. It rests at 2 rather than a card's 3, because a notice is a strip across the top of something rather than an object in its own right" },
       { name: "backdrop", values: "boolean", note: "says content passes behind this strip, so the theme's material can show. Pin a notice over a scrolling region and it can be glass. Leave it in flow and it resolves solid and costs nothing. A glass strip scopes everything inside it, so its action button never paints a second layer of glass" },
@@ -710,7 +710,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§20, §22, §31",
     blurb:
-      "An anchored panel holding whatever you put in it, with the page still live behind it. It is the floating family's first member whose content the system does not design: a menu holds rows and a select holds options, and a popover holds a form, a summary or a filter panel. The pane is a card in everything about its box and a floating pane in everything about its coverage. The part names follow shadcn/ui's popover (MIT), with credit. The behaviour is Base UI's Popover.",
+      "Popover shows a panel anchored to a control, with the page still live behind it. It is the one floating component whose contents the system does not design: a menu holds rows and a select holds options, but a popover holds whatever you put in it, such as a form, a summary or a filter panel. The part names follow shadcn/ui's popover (MIT), with credit, and the behaviour is Base UI's Popover.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the panel's box: its padding and its corner. Not the type inside it, because the content is yours. It does reach the title and the description, which exist only because the accessibility wiring needs them" },
     ],
@@ -750,7 +750,7 @@ export const ENTRIES: Entry[] = [
     family: "Indicator",
     spec: "§11, §19",
     blurb:
-      "A track with a fill in it. It has no grip, so it needs no hit area and takes no focus. Give it a number and it reports a fraction. Give it null and it sweeps to say that something is happening without saying how far along it is.",
+      "Progress shows how far along a task is. It has no handle, so it takes no focus and needs no tappable area. Give it a number and it shows a fraction. Give it null and it sweeps, to say that something is happening without claiming to know how far along it is.",
     axes: [
       { name: "value", values: "number | null", note: "null sweeps, which means the work started and you cannot say how far it has got" },
       { name: "min / max", values: "number", note: "0 and 100 by default. The bar reports a fraction, so any pair of numbers works. It shows no number itself: put a formatted value in a sibling Text" },
@@ -772,7 +772,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §6, §11",
     blurb:
-      "The checkbox's shape sibling. Its circle carries the role: a square radio reads as a checkbox, so the radius axis never reaches it. It is one of only four shapes in the system that no theme can square off.",
+      "Radio lets someone pick one option from a group. Its circle carries the meaning: a square radio reads as a checkbox, so no theme setting can square it off. It is one of only four shapes in the system that stays round whatever the corner setting says.",
     axes: [{ name: "size", values: "1 | 2 | 3 | 4", note: "the mark ladder, shared with Checkbox and the slider thumb" }],
     refusals: [
       { name: "tone and emphasis", why: "The same as Checkbox: neutral when off and accent when on is an identity, not an axis." },
@@ -785,7 +785,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§11",
     blurb:
-      "Base UI's group, wrapped with no CSS at all. It exists for the keyboard and the form value, not for a look. `render` is open, so the group can be a Stack.",
+      "RadioGroup wraps Base UI's radio group and adds no styling at all. It exists for the keyboard behaviour and the form value, not for a look. `render` is open, so the group can be a Stack.",
     axes: [{ name: "value / defaultValue", values: "string", note: "the group owns the selection" }],
     refusals: [{ name: "any visual prop", why: "The group is wiring. What it looks like is whatever layout you render it as." }],
   },
@@ -795,7 +795,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§21",
     blurb:
-      "One row in a list. It is the same object a menu item and a sidebar item are — full width, start-aligned, the same states — and its height is its text line plus a designed inset rather than a button's height, which is what makes a column of them read as a list instead of as a stack of buttons. Use it for search results, command lists, settings rows and file lists. A row inside a Menu is a MenuItem; this is the one for everywhere else.",
+      "Row is one row in a list. It is the same object a menu item and a sidebar item are, and its height is its text line plus a small inset rather than a button's height, which is what makes a column of them read as a list instead of a stack of buttons. Use it for search results, command lists, settings rows and file lists. Inside a Menu, use MenuItem instead.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the row's box. It rests at 2" },
       { name: "tone", values: "any family", note: "the one meaning a row carries beyond being itself. A destructive row is the delete in a list of verbs" },
@@ -829,7 +829,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§10",
     blurb:
-      "Custom scrollbars over native scrolling. The browser keeps the physics, and the system draws the bar: a capsule thumb over the content, visible while you scroll or hover, with no drawn track and no reserved gutter. One export, because the viewport, the bars and the corner are assembly rather than API.",
+      "ScrollArea draws custom scrollbars over native scrolling. The browser keeps the scrolling behaviour, and the system draws the bar: a rounded thumb over the content, visible while you scroll or hover, with no visible track and no reserved gutter. It is one export, because the viewport, the bars and the corner are assembly rather than API.",
     axes: [
       { name: "focusable", values: "boolean", note: "a standalone region keeps its keyboard tab stop. A component that already owns keyboard scrolling, such as Menu, passes false" },
     ],
@@ -847,7 +847,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§11",
     blurb:
-      "The quiet hairline as its own element: one colour and one thickness, both already designed. Its length is the container's, which is the outer-spacing rule applied to size.",
+      "Separator draws a thin dividing line. It has one colour and one thickness, both already decided. Its length comes from whatever contains it, which is the outer-spacing rule applied to size.",
     axes: [{ name: "orientation", values: "horizontal | vertical", note: "the one prop. A vertical hairline is the same two tokens with the axes swapped" }],
     refusals: [
       { name: "children", why: "A labelled divider is a composition: two separators and a Text, not a prop." },
@@ -861,7 +861,7 @@ export const ENTRIES: Entry[] = [
     family: "Layout",
     spec: "§27",
     blurb:
-      "The app frame: a header, a rail, a sidebar, the content, an inspector and a bottom pane. Each pane places itself in one grid, so the Shell never inspects its children and DOM order stays reading order. A pane nobody has touched rests on auto, and CSS decides what auto means for the current window size, so first paint is right with no script. State lives on each pane, in the same controlled pattern Dialog uses. The only thing that crosses the frame is a trigger finding a pane by name.",
+      "Shell is the app frame: a header, a rail, a sidebar, the content, an inspector and a bottom pane. Each pane places itself in one grid, so Shell never inspects its children and the DOM order stays the reading order. A pane you have not touched rests on auto, and CSS decides what auto means at the current window size, so the first paint is correct with no script. State lives on each pane, in the same controlled pattern Dialog uses.",
     axes: [
       {
         name: "flush",
@@ -907,7 +907,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §11",
     blurb:
-      "A value you set along a length. The root is the control, so the whole strip is pressable and it stands as tall a target as the Button beside it. A range slider is the same component: pass an array and a thumb renders for each entry.",
+      "Slider lets someone set a value along a length. The whole strip is pressable, and it stands as tall a target as the Button beside it. A range slider is the same component: pass an array and it renders a handle for each entry.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the height ladder for the target, and the mark ladder for the thumb" },
       { name: "value / defaultValue", values: "number | number[]", note: "an array makes it a range" },
@@ -926,7 +926,7 @@ export const ENTRIES: Entry[] = [
     family: "Indicator",
     spec: "§8",
     blurb:
-      "A busy indicator that costs one composited transform and no JavaScript. The spokes are real shapes rather than a gradient, and the animated element is the wrapper rather than the SVG, because an SVG root's transform is not reliably composited and this control's one job is to keep moving while the main thread is busy.",
+      "Spinner shows that something is busy. It costs one composited transform and no JavaScript. The spokes are real shapes rather than a gradient, and the wrapper is what rotates rather than the SVG, because this control's one job is to keep moving even when the main thread is busy.",
     axes: [],
     refusals: [
       {
@@ -941,7 +941,7 @@ export const ENTRIES: Entry[] = [
     name: "Stack",
     family: "Layout",
     spec: "§3",
-    blurb: "Box with a column flex preset. It is the most common layout in any app, named so that nobody writes it out again.",
+    blurb: "Stack is Box with a column flex preset. It is the most common layout in any app, so it has a name of its own and nobody writes it out again.",
     axes: [{ name: "gap / align / justify", values: "the flex vocabulary", note: "gap through the layout-space layer" }],
     refusals: [{ name: "dividers", why: "A rule between rows is a Separator you place, not a prop that guesses where you wanted one." }],
   },
@@ -951,7 +951,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §11, §19, §26",
     blurb:
-      "One choice among a few, all shown at once. It is a radio group, not a row of toggle buttons, because picking one of several is what a radio group is, and that is what a screen reader then hears. The track stands level with the Button beside it, each segment is the channel minus a fixed inset, and the chosen segment is the grip.",
+      "SegmentedControl shows a few options at once and lets someone pick one. It is built as a radio group rather than a row of toggle buttons, because picking one of several is what a radio group is, and that is what a screen reader announces. The control stands the same height as a Button beside it, and the selected option is marked by a raised tile that slides between positions.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "sets the track. The segments derive from the channel, so they never state an index of their own" },
     ],
@@ -984,7 +984,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §6, §11, §19",
     blurb:
-      "An on and off control. Its track is one step up the mark ladder from a checkbox, which is the relationship every peer arrives at by hand. Off is a neutral channel with its edge melted into it, so you feel for it rather than read it as a small surface.",
+      "Switch turns one thing on or off. Its track is slightly larger than a checkbox at the same size, which is the relationship every other design system arrives at by hand. When it is off, the track is a neutral channel with no visible border, so you feel for it rather than reading it as a small panel.",
     axes: [{ name: "size", values: "1 | 2 | 3 | 4", note: "one index up the mark ladder, with its own width for each step" }],
     refusals: [
       { name: "tone and emphasis", why: "The same as every mark: neutral when off, accent when on, as an identity rather than an axis." },
@@ -1001,7 +1001,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§11, §15, §26",
     blurb:
-      "A bar of places you can go, and the one you are on. The active tab is marked by ink and a rule, never by a louder fill or a heavier label: a fill would make it read as a button among links, and a heavier weight is wider, so the bar would reflow every time you switch.",
+      "Tabs shows a set of places you can go and marks the one you are on. The active tab is marked by its ink and a rule underneath, never by a louder fill or a heavier label. A fill would make it read as a button among links, and a heavier weight is wider, so the bar would shift every time you switched.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "on the list, once. A bar of mixed sizes is not a thing anyone means" },
     ],
@@ -1032,7 +1032,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§11, §20, §32",
     blurb:
-      "The name of a control, shown to a pointer that rests on it. It may only restate what the control already announces — a tooltip has no keyboard route, no touch route and no reading order, so anything that appears only here is lost to everybody else. It is inverted: the panel paints itself in the ink of the mode it is in and writes on itself in that mode's surface colour, so it is dark on a light page and light on a dark one, at the highest contrast the palette has. The part names follow shadcn/ui's tooltip (MIT), with credit. The behaviour is Base UI's Tooltip.",
+      "Tooltip shows the name of a control when a pointer rests on it. It may only repeat what the control already announces, because a tooltip has no keyboard route, no touch route and no reading order, so anything that appears only here is lost to everybody else. It is inverted: dark on a light page and light on a dark one. The part names follow shadcn/ui's tooltip (MIT), with credit, and the behaviour is Base UI's Tooltip.",
     axes: [],
     refusals: [
       {
@@ -1072,7 +1072,7 @@ export const ENTRIES: Entry[] = [
     family: "Type",
     spec: "§15",
     blurb:
-      "Body copy. A step on the ramp sets three things at one index: font size, line height and letter spacing. It renders a span, because flow is the layout layer's job, so a paragraph is render={<p/>}.",
+      "Text sets body copy. One size index sets three things at once: the font size, the line height and the letter spacing. It renders a span, because laying out a block is the container's job, so write a paragraph as `render={<p/>}`.",
     axes: [
       { name: "size", values: "1-9", note: "defaults to 3, the anchor step" },
       { name: "weight", values: "regular | medium | semibold", note: "token names, never numbers" },
@@ -1091,7 +1091,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §11",
     blurb:
-      "A multi-line input. The visible control is a wrapper around the textarea — TextField's anatomy, adopted 2026-08-25 when glass forced it: a form control paints no generated content, so a bare textarea could never carry the material's band. No slots (an adornment floating over a scrolling paragraph is not a designed position). Its padding is the same inset on all four sides, because every real textarea is a paragraph. ref reaches the textarea; className and style dress the wrapper.",
+      "A multi-line text input. The visible control is a wrapper around the textarea, which is what lets it carry a border and a background while the text scrolls inside it. It has no icon slots, because an icon floating over a scrolling paragraph has nowhere sensible to sit. Its padding is the same on all four sides. `ref` reaches the textarea, and `className` and `style` dress the wrapper.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the control height survives as a minimum height. Growth is rows" },
       { name: "rows", values: "number", note: "the starting height, in lines of text" },
@@ -1116,7 +1116,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §9, §11",
     blurb:
-      "A single-line input. The visible control is a wrapper around the input, which is what makes its slots real anatomy: a field that can hold an icon inside its border cannot keep that border on the input. ref goes to the input, and className and style dress the wrapper.",
+      "TextField is a single-line text input. The visible control is a wrapper around the input, which is what makes its icon slots real: a field that holds an icon inside its border cannot keep that border on the input itself. `ref` goes to the input, and `className` and `style` dress the wrapper.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the control index. It sets the height, the side padding, the corner, the slot inset and the label step together. A control inside a slot derives its own box from that inset, so you never pick a second index" },
       { name: "leading / trailing", values: "ReactNode", note: "an icon, or a hosted control that keeps its own press" },
@@ -1136,7 +1136,7 @@ export const ENTRIES: Entry[] = [
     family: "Layout",
     spec: "§5, §7, §12, §19",
     blurb:
-      "Where an app sets its identity. Seven axes, each re-pricing tokens for everything below it. Themes nest, so a section can override the page. Every prop answers a question that call sites are then not allowed to answer one at a time.",
+      "Theme is where an app sets its identity. It has seven settings, and each one changes the tokens for everything inside it. Themes nest, so one section can override the page around it. Every setting answers a question once, at the root, so that individual screens are not left answering it one at a time.",
     axes: [
       { name: "appearance", values: "inherit | light | dark", note: "resolved output, never a colour you pass" },
       { name: "contrast", values: "normal | high", note: "an accessibility setting, not a design knob. It is where the contrast floors bind for edges and fills" },
