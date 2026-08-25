@@ -1,11 +1,11 @@
-KookieUI needs three things: the package, one stylesheet, and a `Theme` at the root of your
-tree. There is no configuration file and no plugin. The generator produces every value ahead
-of time and ships it as CSS custom properties.
+KookieUI needs three things: the package, one stylesheet, and a `Theme` wrapped around your
+app. There is no config file and no build plugin. Every value is worked out ahead of time and
+shipped as CSS custom properties.
 
 ## The package is not on npm yet
 
-`@kookie-ui/react` is pre-release. You cannot install it from npm today. Build the workspace
-instead:
+`@kookie-ui/react` is pre-release, so you cannot install it from npm today. Build it from the
+repository instead:
 
 ```bash
 git clone https://github.com/KushagraDhawan1997/kookie-ui-v2
@@ -14,7 +14,7 @@ pnpm install
 pnpm run build
 ```
 
-Then depend on it from an app in the same workspace. This site does the same:
+Then depend on it from an app in the same workspace. This site does exactly that:
 
 ```json
 {
@@ -24,24 +24,23 @@ Then depend on it from an app in the same workspace. This site does the same:
 }
 ```
 
-After the package publishes, the command becomes `pnpm add @kookie-ui/react`. Everything else
-on this page stays the same. The peer dependencies are React 19 and React DOM 19.
+Once it is published, you will install it with `pnpm add @kookie-ui/react` and nothing else on
+this page will change. You need React 19 and React DOM 19.
 
-## Import the stylesheet one time
+## Import the stylesheet once
 
 ```tsx
 import "@kookie-ui/react/styles.css";
 ```
 
-Import it once, at the root of your app. This file holds the complete system: the generated
-token layer, the shared control rules, and every component's rules. There is no per-component
-import.
+Import it one time, at the root of your app. This single file contains everything: the colour
+and spacing values, the shared rules for controls, and the rules for every component. There is
+no separate stylesheet per component.
 
-The stylesheet does not change with the set of components you import. A component you add
-tomorrow needs no new CSS. CI measures the gzipped size of this file on every commit and fails
-the build if it grows.
+The file is the same size no matter how many components you use, so adding a component
+tomorrow costs you no extra CSS.
 
-## Wrap the app in a Theme
+## Wrap your app in a Theme
 
 ```tsx
 import "@kookie-ui/react/styles.css";
@@ -52,15 +51,14 @@ export default function App({ children }: { children: React.ReactNode }) {
 }
 ```
 
-`Theme` sets the scope that every token resolves against. It writes seven app-level values
-onto one element: appearance, radius, density, depth, material, contrast and pointer.
-Everything inside reads those values through CSS inheritance. See
-[Theming](/start/theming) for what each value controls.
+`Theme` is where your app's seven settings live: appearance, radius, density, depth, material,
+contrast and pointer. Everything inside it picks up those settings automatically. See
+[Theming](/start/theming) for what each one does.
 
-## Paint the page
+## Paint the page yourself
 
-The library does not paint a page background. A `Theme` that painted one would repaint the
-page at every nested appearance scope. Paint it in your own CSS:
+The library does not set a background colour on your page, because a Theme that painted one
+would repaint it again every time you nested another Theme inside it. Set it in your own CSS:
 
 ```css
 body {
@@ -72,18 +70,19 @@ body {
 }
 ```
 
-Use `--color-ground` instead of `--color-page` when the page holds cards. A ground is the
-surface that objects sit on.
+Use `--color-ground` instead of `--color-page` if your page is mostly cards. It is slightly
+darker, so cards sitting on it have something to sit on.
 
-## Set dark mode before the first paint
+## Set dark mode before the page paints
 
-The server cannot resolve the appearance. The visitor's stored choice and the operating system
-preference are both client facts. A server that guesses produces one of two faults: a flash of
-the wrong theme, or a hydration mismatch.
+Your server cannot know whether to render light or dark. Whether someone chose a mode, and
+what their operating system prefers, are both things only their browser knows. If the server
+guesses, you get one of two problems: the page flashes the wrong colours, or React complains
+that the server and browser disagree.
 
-Run a script in `<head>` that writes the answer onto `<html>` before the first paint. Set the
-root `Theme` to `appearance="inherit"`, so it writes no appearance of its own. One element
-holds the mode.
+The fix is a small script in your `<head>` that writes the answer onto `<html>` before
+anything paints. Then set your root `Theme` to `appearance="inherit"` so it does not write an
+appearance of its own, and one element holds the answer.
 
 ```html
 <script>
@@ -112,22 +111,21 @@ holds the mode.
 </html>
 ```
 
-Two details in that script are necessary.
+Two details in that script matter, and both are easy to get wrong.
 
-**Guard the read, not the whole function.** Some browsers throw an error when a script reads
-`localStorage`. Safari does this when the user blocks all cookies. One `try` around the whole
-function also skips the two `setAttribute` calls, so a visitor with a dark operating system
-gets the light values. `matchMedia` needs no permission and always answers. Read with a guard,
-then write without one.
+**Put the `try` around the read, not around everything.** Some browsers throw an error just
+for reading `localStorage`. Safari does it when someone blocks all cookies. If you wrap the
+whole function in one `try`, that error also skips the two `setAttribute` calls, and someone
+with a dark operating system gets a light page. Reading the media query never throws, so guard
+the read and leave the writes outside.
 
-**Write both attributes onto the same element.** The generated high-contrast rules require
-`data-appearance` and `data-contrast` on one element. `Theme` does this. When the script takes
-over the appearance, it must also take over the contrast.
+**Write both attributes onto the same element.** The high-contrast colours only apply when
+`data-appearance` and `data-contrast` are on one element together. If your script takes over
+the appearance, it has to take over the contrast as well.
 
-## Set the fonts
+## Point the font tokens at your fonts
 
-The type layer reads three font family tokens. It ships no font files. Point the tokens at the
-fonts you serve:
+The library ships no font files. It reads three tokens, so point them at whatever you serve:
 
 ```css
 :root {
@@ -137,9 +135,9 @@ fonts you serve:
 }
 ```
 
-If you set nothing, the tokens fall back to the platform font stacks.
+If you set nothing, they fall back to the standard system fonts.
 
-## Test the result
+## Check that it worked
 
 ```tsx
 import { Button, Card, Stack, Text } from "@kookie-ui/react";
@@ -155,3 +153,5 @@ export function Smoke() {
   );
 }
 ```
+
+If the card has rounded corners and the button is blue, everything is wired up.
