@@ -3533,10 +3533,15 @@ describe("the panel unfurls out of a seed (§22)", () => {
         return steady >= 2;
       }, 3000);
       const rest = popup.getBoundingClientRect().top;
+      // Tightened 8 -> 1.5 on 2026-08-25 with the RESTING ANCHOR (useRestingAnchor,
+      // floating.tsx): the first bound was set when a ~2px press-spring residue was a
+      // documented cost, and a bound that admits the residue is a bound that cannot catch
+      // the anchor correction being deleted. Measured: 0.0 with the virtual anchor, 2.0
+      // without — the sabotage this now exists for.
       expect(
         Math.abs(atStrip - rest),
         `the release must hand the popup to a positioner already at the truth: ${Math.round(atStrip)} at the strip against ${Math.round(rest)} at rest`,
-      ).toBeLessThan(8);
+      ).toBeLessThan(1.5);
     });
 
     it("the rows the flight reveals are the rows the panel rests on (§22, 2026-08-25)", async () => {
@@ -3583,10 +3588,11 @@ describe("the panel unfurls out of a seed (§22)", () => {
         return steady >= 2;
       }, 3000);
       const rest = popup.querySelector('[role="menuitem"]')!.getBoundingClientRect().top;
+      // 8 -> 1.5 with the resting anchor, the box law's own sentence (see above).
       expect(
         Math.abs(atStrip - rest),
         `the content must not move across the release: first row at ${Math.round(atStrip)} at the strip against ${Math.round(rest)} at rest`,
-      ).toBeLessThan(8);
+      ).toBeLessThan(1.5);
     });
 
     watchesFrames("the seed of a pin-corrected flight never leaves its trigger (§22, 2026-08-25)", async () => {

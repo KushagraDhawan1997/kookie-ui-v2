@@ -241,6 +241,76 @@ function restingAnchorWidth(anchor: HTMLElement, rectWidth: number): number {
   return rectWidth / scale;
 }
 
+/**
+ * THE PLACEMENT IS COMPUTED AGAINST THE TRIGGER'S RESTING BOX (§8, §22, 2026-08-25) — the
+ * sentence `restingAnchorWidth` states one axis over, finally applied to the whole box, which
+ * is what its own 2026-08-23 residue note said the fix would be.
+ *
+ * An open trigger HOLDS its press (§8): scale 0.975 and a 2px sink, arriving over ~150ms of
+ * spring. The placement freezes earlier than that — the pin stops the positioner's resize
+ * observer, and floating-ui's autoUpdate watches element resize and layout shift, never a
+ * transform — so a constrained panel's room was measured mid-spring and the release's one
+ * late re-solve then found ~2px more of it: the seam held and the panel's TOP popped by the
+ * difference, one frame after the flight said it was done (Kushagra: "theres a small jump
+ * still"). Measured as a pair: press held, a 2.00px release delta; press neutralized, zero.
+ *
+ * So the anchor handed to the positioner is a VIRTUAL element reporting the trigger's
+ * UNTRANSFORMED layout box: every solve — first, mid-flight, post-release — computes the same
+ * press-independent answer, and there is nothing left for the release to correct. The seed's
+ * glue is untouched (it measures the REAL rect, because the silhouette sits on the pixels the
+ * trigger is painted at), and the visible cost is only that a pressed trigger sits its own 2px
+ * sink further from the seam while pressed — a static gap, not a motion.
+ *
+ * The inversion handles exactly the press's channels — the individual `scale` and `translate`
+ * properties about the element's transform-origin — and stands down whole for a `transform`
+ * matrix, which this system never puts on a trigger and cannot invert case-by-case. Individual
+ * transform properties compose translate→rotate→scale about the origin, so the rendered
+ * top-left corner is layout + T + O·(1 − s); verified against a live press to the hundredth
+ * (layout 434.38 + 2 + 16·0.025 = 436.78 measured 436.77). `contextElement` is the real
+ * trigger, so floating-ui still finds the scroll ancestors it must observe.
+ */
+function restingBox(el: HTMLElement): DOMRect {
+  const rect = el.getBoundingClientRect();
+  const cs = getComputedStyle(el);
+  if (cs.transform !== "none" && cs.transform !== "") return rect;
+  const scaleParts = cs.scale === "none" ? [1] : cs.scale.split(" ").map(parseFloat);
+  const sx = scaleParts[0] ?? 1;
+  const sy = scaleParts[1] ?? sx;
+  const translateParts = cs.translate === "none" ? [0] : cs.translate.split(" ").map(parseFloat);
+  const tx = translateParts[0] || 0;
+  const ty = translateParts[1] || 0;
+  if (sx === 1 && sy === 1 && tx === 0 && ty === 0) return rect;
+  const [ox = 0, oy = 0] = cs.transformOrigin.split(" ").map(parseFloat);
+  return new DOMRect(
+    rect.left - tx - ox * (1 - sx),
+    rect.top - ty - oy * (1 - sy),
+    rect.width / sx,
+    rect.height / sy,
+  );
+}
+
+/** The virtual anchor for a family's Positioner. Reads the ambient trigger lazily, so the
+    object can be created before the trigger has registered; resolves per solve, which rides
+    the same seams floating-ui itself measures on (open, scroll, resize). */
+export function useRestingAnchor(): {
+  getBoundingClientRect: () => DOMRect;
+  readonly contextElement: Element | undefined;
+} {
+  const { anchor } = React.use(FloatingDirectionContext);
+  return React.useMemo(
+    () => ({
+      getBoundingClientRect() {
+        const el = anchor();
+        return el ? restingBox(el) : new DOMRect();
+      },
+      get contextElement() {
+        return anchor() ?? undefined;
+      },
+    }),
+    [anchor],
+  );
+}
+
 /* ── The ENTRY runner — ONE mechanism for every panel that BECOMES (§8, §22, §24) ─────────
  *
  * Unified 2026-08-16 out of two runners written five days apart. They had converged on the

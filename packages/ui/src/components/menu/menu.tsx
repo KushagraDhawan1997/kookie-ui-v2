@@ -25,6 +25,7 @@ import {
   FloatingDirectionContext,
   PortalScope,
   useAmbientDirection,
+  useRestingAnchor,
 } from "../../system/floating.tsx";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
@@ -291,10 +292,17 @@ export function MenuContent({
   style,
   ref,
 }: MenuContentProps) {
+  /* The placement's anchor is the trigger's RESTING box (§8, §22, 2026-08-25): an open
+     trigger holds its press, the press is a transform, and floating-ui's tracking never
+     re-solves for one — so a constrained panel's room was frozen mid-spring and the release's
+     late re-solve popped the panel's top by the spring's remaining ~2px. The virtual anchor
+     makes every solve press-independent; the entry's own glue still measures the real pixels
+     (system/floating.tsx carries the whole argument). */
+  const anchor = useRestingAnchor();
   return (
     <BaseMenu.Portal>
       <PortalScope>
-        <BaseMenu.Positioner side={side} align={align} sideOffset={sideOffset}>
+        <BaseMenu.Positioner side={side} align={align} sideOffset={sideOffset} anchor={anchor}>
           <MenuPopup anchored className={className} style={style} ref={ref}>
             {children}
           </MenuPopup>
